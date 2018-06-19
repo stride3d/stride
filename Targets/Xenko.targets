@@ -1,0 +1,387 @@
+﻿<Project InitialTargets="XenkoCheckRequirements" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Check requirements when running this build file -->
+  <Target Name="XenkoCheckRequirements">
+    <Error Condition="'$(XenkoPlatform)' == ''" Text="The property %24(XenkoPlatform) must be defined by the project"/>
+
+    <!-- If we compile without Visual Studio, still properly resolve platform if SolutionPath is given -->
+    <MSBuild Projects="$(SolutionPath)"
+             Condition="'$(BuildingInsideVisualStudio)' != 'true' and '$(BuildingSolutionFile)' != 'true' and '$(SolutionPath)' != '' and '$(SolutionPath)' != '*Undefined*'"
+             Targets="GetSolutionConfigurationContents"
+             Properties="Configuration=$(Configuration);Platform=$(SolutionPlatform)"
+             ContinueOnError="$(ContinueOnError)">
+      <Output TaskParameter="TargetOutputs" PropertyName="CurrentSolutionConfigurationContents"/>
+    </MSBuild>
+  </Target>
+  
+  <PropertyGroup>
+    <!-- Windows10 was renammed into UWP -->
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == 'Windows10'">UWP</XenkoPlatform>
+    <!-- Default mappings -->
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</XenkoPlatform>
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</XenkoPlatform>
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'Xamarin.iOS'">iOS</XenkoPlatform>
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == ''">Windows</XenkoPlatform>
+
+    <!-- Defaults for CPU and GraphicsApi based on platform-->
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'Windows'">Direct3D11</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'UWP'">Direct3D11</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'Android'">OpenGLES</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'iOS'">OpenGLES</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'Linux'">OpenGL</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'macOS'">OpenGL</XenkoDefaultGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == '' and '$(XenkoDefaultGraphicsApi)' != ''">$(XenkoDefaultGraphicsApi)</XenkoGraphicsApi>
+
+    <!--By default, turn on assembly processor-->
+    <XenkoAssemblyProcessor Condition="'$(XenkoAssemblyProcessor)' == ''">true</XenkoAssemblyProcessor>
+
+    <XenkoUserLibrariesPath Condition="'$(XenkoCurrentPackagePath)' != ''">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\NativeLibs</XenkoUserLibrariesPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(XenkoPlatformFullName)' == ''">
+    <!-- Define the location where to build assemblies. -->
+    <XenkoPlatformFullName>$(XenkoPlatform)</XenkoPlatformFullName>
+    <XenkoPlatformFullName Condition="'$(XenkoBuildDirExtension)' != ''">$(XenkoPlatformFullName)-$(XenkoBuildDirExtension)</XenkoPlatformFullName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <XenkoGraphicsSpecificOriginal>$(XenkoPlatformFullName)\$(XenkoGraphicsApi)</XenkoGraphicsSpecificOriginal>
+  </PropertyGroup>
+
+  <!-- 
+  *****************************************************************************************************************************
+  Package setup
+  *****************************************************************************************************************************
+  -->
+
+  <!-- Setup global properties for this package -->
+  <PropertyGroup>
+    <XenkoPackageXenko Condition="'$(XenkoPackageXenko)' == ''">$(MSBuildThisFileDirectory)..</XenkoPackageXenko>
+    <!-- Resolve path (remove ".." elements), for better support on Xamarin iOS -->
+    <XenkoPackageXenko>$([System.IO.Path]::GetFullPath('$(XenkoPackageXenko)'))</XenkoPackageXenko>
+    <XenkoPackageXenkoBin Condition="'$(XenkoPackageXenkoBin)' == ''">$(XenkoPackageXenko)\Bin</XenkoPackageXenkoBin>
+    <XenkoPackageXenkoSdkBin Condition="'$(XenkoPackageXenkoSdkBin)' == ''">$(XenkoPackageXenkoBin)\Windows</XenkoPackageXenkoSdkBin>
+    <XenkoPackageXenkoPlatformBin Condition="'$(XenkoPackageXenkoPlatformBin)' == ''">$(XenkoPackageXenkoBin)\$(XenkoPlatformFullName)</XenkoPackageXenkoPlatformBin>
+  </PropertyGroup>
+
+  <!---
+  *****************************************************************************************************************************
+  Assembly References
+  *****************************************************************************************************************************
+  -->
+  <Choose>
+    <When Condition="'$(XenkoUnitTest)' != 'true'">
+      <ItemGroup>
+        <Reference Include="Xenko.Core">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Core.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Core.IO">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Core.IO.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Core.Mathematics">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Core.Mathematics.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Core.MicroThreading">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Core.MicroThreading.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Core.Serialization">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Core.Serialization.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Audio">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Audio.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Engine">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Engine.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Games">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\$(XenkoGraphicsApi)\Xenko.Games.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Graphics">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\$(XenkoGraphicsApi)\Xenko.Graphics.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Particles">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Particles.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Input">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\$(XenkoGraphicsApi)\Xenko.Input.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Shaders">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Shaders.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.UI">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.UI.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Physics">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Physics.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Navigation">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Navigation.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.SpriteStudio.Runtime">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.SpriteStudio.Runtime.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Native">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Native.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.VirtualReality">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\$(XenkoGraphicsApi)\Xenko.VirtualReality.dll</HintPath>
+        </Reference>
+        <Reference Include="Xenko.Video">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Video.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <Choose>
+    <When Condition="'$(XenkoAutoTesting)' == 'true'">
+      <ItemGroup>
+        <Reference Include="Xenko.Games.Testing">
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Games.Testing.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <!-- 
+  *****************************************************************************************************************************
+  Platform specific
+  *****************************************************************************************************************************
+  -->
+  <PropertyGroup>
+    <!--This variable can be overriden by a platform specific targets (in case the executable is located into an assembly dll )-->
+    <XenkoIsExecutable Condition=" '$(OutputType)' == 'Exe'">true</XenkoIsExecutable>
+    <XenkoIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</XenkoIsExecutable>
+    <XenkoAssemblyProcessorPath>$(XenkoPackageXenko)\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe</XenkoAssemblyProcessorPath>
+  </PropertyGroup>
+  <!-- Include platform specific targets -->
+  <Import Condition="Exists('$(MSBuildThisFileDirectory)\$(MSBuildThisFileName).$(XenkoPlatform).targets')"
+          Project="$(MSBuildThisFileDirectory)\$(MSBuildThisFileName).$(XenkoPlatform).targets"/>
+  <Import Condition="('$(XenkoRuntime)' != '') and Exists('$(MSBuildThisFileDirectory)\$(MSBuildThisFileName).$(XenkoRuntime).targets')"
+          Project="$(MSBuildThisFileDirectory)\$(MSBuildThisFileName).$(XenkoRuntime).targets"/>
+  <!-- 
+  *****************************************************************************************************************************
+  Assembly Processor
+  *****************************************************************************************************************************
+  -->
+  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(XenkoAssemblyProcessorPath)" Condition=" '$(XenkoAssemblyProcessorPath)' != '' And '$(XenkoAssemblyProcessorDev)' != 'true' "/>
+    
+  <Target Name="XenkoRunAssemblyProcessor" DependsOnTargets="ResolveProjectReferences">
+    <WriteLinesToFile File="$(IntermediateOutputPath)XenkoReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
+    <PropertyGroup>
+      <XenkoAssemblyProcessorOptions Condition="'$(XenkoAssemblyProcessorOptions)' == ''">--auto-notify-property --parameter-key --auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
+      <!-- If building user solutions (not unit tests), provide assembly processor with ProjectReferences paths so that they can be readded to assembly references for serialization module initializer (otherwise .exe don't have real reference on Game assemblies with auto load scene game) -->
+      <XenkoAssemblyProcessorOptions Condition="'$(XenkoUnitTest)' != 'true'">$(XenkoAssemblyProcessorOptions) @(_ResolvedProjectReferencePaths->'--add-reference=%22%(Identity)%22',' ')</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(XenkoAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</XenkoAssemblyProcessorOptions>
+      <!-- Physics, Particles and SpriteStudio assembly is actually hard coded/referenced here, remove once a better system is in place! -->
+      <!-- Please keep in sync with AssemblyRecompiler.cs -->
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Physics.dll"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Particles.dll"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.SpriteStudio.Runtime.dll"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Native.dll"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.UI.dll"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Navigation.dll"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Video.dll"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions Condition="'$(XenkoAutoTesting)' == 'true'">$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Games.Testing.dll"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)XenkoReferences.cache"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --platform=$(XenkoPlatform) --targetFramework=$(XenkoNETFrameworkVersion) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(XenkoAssemblyProcessorOptions) --signkeyfile="$(AssemblyOriginatorKeyFile)" --delete-on-error</XenkoAssemblyProcessorOptions>
+    </PropertyGroup>
+    
+    <!-- Run assembly processor -->
+    <Message Condition=" '$(XenkoAssemblyProcessorDev)' != 'true' " Importance="low" Text="&quot;$(XenkoAssemblyProcessorPath)&quot; $(XenkoAssemblyProcessorOptions)"/>
+    <AssemblyProcessorTask Condition=" '$(XenkoAssemblyProcessorDev)' != 'true' " Arguments="$(XenkoAssemblyProcessorOptions)"/>
+    <!-- Dev mode: don't use task to avoid locking the file -->
+    <Exec Condition=" '$(XenkoAssemblyProcessorDev)' == 'true' " Command="&quot;$(XenkoAssemblyProcessorPath)&quot; $(XenkoAssemblyProcessorOptions)"/>
+  </Target>
+  <PropertyGroup Condition=" '$(XenkoAssemblyProcessor)' == 'true'">
+    <PrepareForRunDependsOn>
+      XenkoRunAssemblyProcessor;
+      $(PrepareForRunDependsOn)
+    </PrepareForRunDependsOn>
+  </PropertyGroup>
+
+  <!-- 
+  *****************************************************************************************************************************
+  Dependencies reading (from .ssdeps)
+  Important: Please keep in sync with Xenko.Core.PostSettings.Dependencies.Targets
+  *****************************************************************************************************************************
+  -->
+  <!-- List dependency files from .ssdeps -->
+  <Target Name="_XenkoListDepsFiles" DependsOnTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <_XenkoDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_XenkoDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+    </ItemGroup>
+  </Target>
+
+  <!-- Note: this target Outputs are not real, used so that it gets expanded for each file
+             also, if _XenkoDepsFile is empty the target is still called so check for it -->
+  <Target Name="_XenkoBuildDependencies" DependsOnTargets="_XenkoListDepsFiles" Outputs="%(_XenkoDepsFile.Identity)">
+    <!-- Read dependencies from file -->
+    <ReadLinesFromFile File="%(_XenkoDepsFile.Identity)" Condition="'%(_XenkoDepsFile.Identity)' != ''">
+      <Output TaskParameter="Lines" ItemName="_XenkoDependencyLocal"/>
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <_XenkoSourceDir>%(_XenkoDepsFile.RootDir)%(_XenkoDepsFile.Directory)</_XenkoSourceDir>
+    </PropertyGroup>
+    <ItemGroup>
+      <_XenkoDependencyLocal>
+        <!-- Note: Using regex match rather than regex split or string split to avoid MSBuild MissingMethodException -->
+        <Type>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(1).ToString())</Type>
+        <SourcePath>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(2).ToString())</SourcePath>
+        <Link>$([System.Text.RegularExpressions.Regex]::Match('%(Identity)', `(.*);(.*);(.*)`).get_Groups().get_Item(3).ToString())</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </_XenkoDependencyLocal>
+      <_XenkoDependencyContent Include="@(_XenkoDependencyLocal->'$(_XenkoSourceDir)%(SourcePath)')" Condition="'%(_XenkoDependencyLocal.Type)' == 'Content'"/>
+      <_XenkoDependencyNativeLib Include="@(_XenkoDependencyLocal->'$(_XenkoSourceDir)%(SourcePath)')" Condition="'%(_XenkoDependencyLocal.Type)' == 'NativeLib'"/>
+    </ItemGroup>
+
+    <!-- Message -->
+    <Message Importance="Normal" Text="Detected dependency from %(_XenkoDepsFile.FileName)" Condition="'%(_XenkoDepsFile.Identity)' != ''"/>
+    <Message Importance="Normal" Text="  %(_XenkoDependencyLocal.Type): %(_XenkoDependencyLocal.Identity) => %(_XenkoDependencyLocal.Link)"/>
+
+    <!-- Cleanup so that _XenkoDependencyLocal is local -->
+    <ItemGroup>
+      <_XenkoDependencyLocal Remove="@(_XenkoDependencyLocal)"/>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_XenkoCopyContent" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Content Include="@(_XenkoDependencyContent)"/>
+    </ItemGroup>
+  </Target>
+
+  <!-- 
+  *****************************************************************************************************************************
+  Compile Asset 
+  *****************************************************************************************************************************
+  -->
+  <PropertyGroup Condition="'$(XenkoCurrentPackagePath)' != ''">
+    <ResolveReferencesDependsOn>
+      XenkoUpdateXenkoPreviousDir;
+      XenkoUpdateGraphicsPlatform;
+      $(ResolveReferencesDependsOn)
+    </ResolveReferencesDependsOn>
+    <PrepareForRunDependsOn>
+      $(PrepareForRunDependsOn);
+      XenkoCompileAsset
+    </PrepareForRunDependsOn>
+
+    <!--asset BuildPath for all platforms (same as package)-->
+    <XenkoCompileAssetBuildPath Condition="'$(XenkoCompileAssetBuildPath)' == ''">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Cache\data</XenkoCompileAssetBuildPath>
+
+    <!--asset OutputPath for Android.-->
+    <XenkoCompileAssetOutputPath Condition="'$(XenkoCompileAssetOutputPath)' == '' and '$(XenkoPlatform)' == 'Android'">$(ProjectDir)$(IntermediateOutputPath)assets\data</XenkoCompileAssetOutputPath>
+
+    <!--asset OutputPath for other platforms. Note: this is overridden for UnitTests projects. -->
+    <XenkoCompileAssetOutputPath Condition="'$(XenkoCompileAssetOutputPath)' == ''">$(TargetDir)data</XenkoCompileAssetOutputPath>
+
+    <XenkoCompileAssetCommand Condition="'$(XenkoCompileAssetCommand)' == ''">$(XenkoPackageXenkoSdkBin)\Xenko.Core.Assets.CompilerApp.exe</XenkoCompileAssetCommand>
+
+    <XenkoCompileAssetCommandProxy Condition="'$(DisableAssetCompilerExecServerProxy)' == 'true' Or '$(XenkoDisableAssetCompilerExecServerProxy)' == 'true'">&quot;$(XenkoCompileAssetCommand)&quot;</XenkoCompileAssetCommandProxy>
+    <XenkoCompileAssetCommandProxy Condition="'$(XenkoCompileAssetCommandProxy)' == ''">&quot;$(XenkoPackageXenkoSdkBin)\Xenko.Core.Assets.CompilerClient.exe&quot;</XenkoCompileAssetCommandProxy>
+    
+    <!-- Quite hard-coded for our current way to find default game settings -->
+    <XenkoGameSettings Condition=" '$([System.IO.File]::Exists($([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Assets\Shared\GameSettings.xkgamesettings))' == 'true' ">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Assets\Shared\GameSettings.xkgamesettings</XenkoGameSettings>
+    <!-- Quite hard-coded for our current unit tests -->
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Assets\GameSettings.xkgamesettings))' == 'true'">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Assets\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\GameAssets\GameSettings.xkgamesettings))' == 'true' ">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\GameAssets\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\AudioAssets\GameSettings.xkgamesettings))' == 'true' ">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\AudioAssets\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Shaders.Bytecodes\GameSettings.xkgamesettings))' == 'true' ">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Shaders.Bytecodes\GameSettings.xkgamesettings</XenkoGameSettings>
+  </PropertyGroup>
+
+  <!-- Detect if Xenko path changed -->
+  <Target Name="XenkoUpdateXenkoPreviousDir">
+    <!--Add XenkoDir cache to list of inputs-->
+    <ItemGroup>
+      <CustomAdditionalCompileInputs Include="$(IntermediateOutputPath)XenkoDir.cache" />
+    </ItemGroup>
+
+    <!-- Read current state -->
+    <ReadLinesFromFile Condition="Exists('$(IntermediateOutputPath)XenkoDir.cache')" File="$(IntermediateOutputPath)XenkoDir.cache">
+      <Output TaskParameter="Lines" PropertyName="XenkoPreviousDir"/>
+    </ReadLinesFromFile>
+
+    <!-- Write result back to disk if it changed -->
+    <Message Importance="Normal" Condition=" '$(XenkoPreviousDir)' != '$(XenkoDir)' " Text="Detected a change in Xenko directory: '$(XenkoDir)' (previous build: '$(XenkoPreviousDir)')"/>
+    <WriteLinesToFile Condition=" '$(XenkoPreviousDir)' != '$(XenkoDir)' " File="$(IntermediateOutputPath)XenkoDir.cache" Lines="$(XenkoDir)" Overwrite="true" />
+  </Target>
+
+
+  <!-- Compute graphics platform from game settings asset -->
+  <Target Name="XenkoComputeGraphicsPlatformFromGameSettings" Inputs="$(XenkoGameSettings)" Outputs="$(IntermediateOutputPath)XenkoGraphicsPlatform.cache" Condition="'$(XenkoCurrentPackagePath)' != '' and '$(XenkoIsExecutable)' == 'true'">
+    <Error Condition="'$(XenkoBuildProfile)' == ''" Text="The asset compiler is requiring the property (XenkoBuildProfile) to be defined"/>
+    <Error Condition="!Exists('$(XenkoCurrentPackagePath)')" Text="Unable to find package decription from path [$(XenkoCurrentPackagePath)]"/>
+
+    <!-- Ensure the output directory exists -->
+    <MakeDir Directories="$(TargetDir)"/>
+    <MakeDir Directories="$(IntermediateOutputPath)"/>
+    
+    <!-- Get the real graphics platform from .xkpkg -->
+    <Exec WorkingDirectory="$(TargetDir)" ConsoleToMSBuild="true"
+          Command="&quot;$(XenkoCompileAssetCommand)&quot; --platform=$(XenkoPlatform) --profile=$(XenkoBuildProfile) --package-file=&quot;$(XenkoCurrentPackagePath)&quot; --get-graphics-platform">
+      <Output TaskParameter="ConsoleOutput" PropertyName="XenkoGraphicsApiComputed" />
+    </Exec>
+    
+    <!-- Write result back to disk -->
+    <WriteLinesToFile File="$(IntermediateOutputPath)XenkoGraphicsPlatform.cache" Lines="$(XenkoGraphicsApiComputed)" Overwrite="true" />
+  </Target>
+
+  <!-- Default way to resolve graphics platform (from game settings asset) -->
+  <Target Name="XenkoGetGraphicsPlatform" DependsOnTargets="XenkoComputeGraphicsPlatformFromGameSettings">
+    <ReadLinesFromFile File="$(IntermediateOutputPath)XenkoGraphicsPlatform.cache">
+      <Output TaskParameter="Lines" PropertyName="XenkoGraphicsApi"/>
+    </ReadLinesFromFile>
+  </Target>
+  
+  <Target Name="XenkoUpdateGraphicsPlatform" DependsOnTargets="XenkoGetGraphicsPlatform" Condition="'$(XenkoCurrentPackagePath)' != ''">
+    <Message Importance="Normal" Text="Detected Graphics Platform $(XenkoGraphicsApi)"/>
+    <PropertyGroup>
+      <XenkoGraphicsSpecific>$(XenkoPlatformFullName)\$(XenkoGraphicsApi)</XenkoGraphicsSpecific>
+      <!-- Since some assemblies are graphics API specific, we need to add those to search path, and do so before everything else (so that $(OutDir) doesn't take precedence) -->
+      <AssemblySearchPaths>
+        $(XenkoPackageXenkoPlatformBin)\$(XenkoGraphicsApi)\;
+        $(XenkoPackageXenkoPlatformBin)\;
+        $(AssemblySearchPaths)
+      </AssemblySearchPaths>
+    </PropertyGroup>
+    
+    <!-- Rewrite dependencies -->
+    <ItemGroup>
+      <CustomAdditionalCompileInputs Include="$(IntermediateOutputPath)XenkoGraphicsPlatform.cache" />
+      <Reference Condition="$([System.String]::Copy('%(Reference.HintPath)').Contains('$(XenkoGraphicsSpecificOriginal)'))">
+        <HintPath>$([System.String]::Copy('%(Reference.HintPath)').Replace('$(XenkoGraphicsSpecificOriginal)','$(XenkoGraphicsSpecific)'))</HintPath>
+      </Reference>
+    </ItemGroup>
+  </Target>
+
+  <!--Compile assets for all XenkoPackage items and only for an executable-->
+  <Target Name="XenkoCompileAsset" DependsOnTargets="XenkoUpdateGraphicsPlatform" Condition="'$(XenkoCurrentPackagePath)' != '' and '$(XenkoIsExecutable)' == 'true'">
+    <!--Check that the package file actually exist-->
+    <Error Condition="'$(XenkoBuildProfile)' == ''" Text="The asset compiler is requiring the property (XenkoBuildProfile) to be defined"/>
+    <Error Condition="!Exists('$(XenkoCurrentPackagePath)')" Text="Unable to find package decription from path [$(XenkoCurrentPackagePath)]"/>
+    <PropertyGroup>
+      <XenkoCompileAssetCommandProxy>$(XenkoCompileAssetCommandProxy) $(XenkoCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(XenkoPlatform) --profile=$(XenkoBuildProfile) --project-configuration=$(Configuration) --output-path=&quot;$(XenkoCompileAssetOutputPath)&quot; --build-path=&quot;$(XenkoCompileAssetBuildPath)&quot; --package-file=&quot;$(XenkoCurrentPackagePath)&quot; --log-pipe=&quot;$(XenkoBuildEngineLogPipeUrl)&quot;</XenkoCompileAssetCommandProxy>
+      <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogVerbose)' != ''">$(XenkoCompileAssetCommandProxy) --verbose</XenkoCompileAssetCommandProxy>
+      <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogDebug)' != ''">$(XenkoCompileAssetCommandProxy) --debug</XenkoCompileAssetCommandProxy>
+    </PropertyGroup>
+
+    <!-- Ensure the output directory exists -->
+    <MakeDir Directories="$(TargetDir)"/>
+
+    <!-- Compile assets -->
+    <Exec WorkingDirectory="$(TargetDir)" Command="$(XenkoCompileAssetCommandProxy)" />
+    
+    <!-- Android specific: include build output in _AndroidAssetsDest so that APK is regenerated -->
+    <ItemGroup Condition="'$(XenkoPlatform)' == 'Android'">
+      <_AndroidAssetsDest Include="$(XenkoCompileAssetOutputPath)\**\*.*" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Clean assets -->
+  <Target Name="XenkoCleanAsset" Condition="'$(XenkoCurrentPackagePath)' != '' and '$(XenkoIsExecutable)' == 'true'">
+    <RemoveDir Condition="Exists('$(XenkoCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetBuildPath)"/>
+    <RemoveDir Condition="Exists('$(XenkoCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetOutputPath)"/>
+  </Target>
+</Project>

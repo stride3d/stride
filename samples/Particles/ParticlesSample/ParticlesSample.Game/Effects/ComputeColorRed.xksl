@@ -1,0 +1,13 @@
+﻿// This is the simplest way of overriding particle shader behavior
+//  Refer to the Red Particle System in the Editor
+//  Under Material it uses a Shader for its Emissive color, and the shader's name is ComputeColorRed
+//  As long as your shader inherits ComputeColor and overrides float4 Compute() you can add any custom behavior to it
+
+shader ComputeColorRed : ComputeColor
+{
+    override float4 Compute()
+    {
+        return float4(1, 0, 0, 1);
+    }
+};
+

@@ -1,0 +1,4 @@
+aaa:
+  !<!YamlDotNet.Test.Serialization.SerializationTests%2BConvertible%2C%20YamlDotNet.Test>
+  Left: hello
+  Right: world

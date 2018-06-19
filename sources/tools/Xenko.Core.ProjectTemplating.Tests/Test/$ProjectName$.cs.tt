@@ -1,0 +1,6 @@
+﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" debug="True" #>
+This is a test with the file name using the property $ProjectName$ = "<#= ProjectName #>"
+<#
+// Setup a dynamic property that will be later used by the file [SubFolder\TextTemplate1.cs.tt]
+Properties.Toto = 5;
+#>

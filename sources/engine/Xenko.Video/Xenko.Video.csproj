@@ -1,0 +1,96 @@
+﻿<Project>
+  <PropertyGroup>
+    <XenkoAssemblySign>true</XenkoAssemblySign>
+    <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <XenkoPlatformDependent>true</XenkoPlatformDependent>
+    <XenkoProjectPlatformDependentWindows>true</XenkoProjectPlatformDependentWindows>
+    <XenkoBuildTags>*</XenkoBuildTags>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(XenkoPlatform)' == 'Android'">
+    <DefineConstants>XENKO_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="('$(XenkoPlatform)' == 'Windows') and ('$(XenkoRuntime)' != 'CoreCLR')">
+    <DefineConstants>XENKO_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Update="Shaders\VideoShader.cs">
+      <DependentUpon>VideoShader.xksl</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Audio\Xenko.Audio.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko\Xenko.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <PackageReference Include="SharpDX.MediaFoundation" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
+    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D12'" />
+  </ItemGroup>
+  <Choose>
+    <When Condition="$(DefineConstants.Contains(XENKO_VIDEO_FFMPEG))">
+      <ItemGroup Condition="'$(XenkoPlatform)' == 'Android'">
+        <XenkoNativeLib Include="$(XenkoDependenciesDir)\FFmpeg\$(XenkoPlatform)\**\*.so">
+          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+          <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </XenkoNativeLib>
+      </ItemGroup>
+      <ItemGroup Condition="'$(XenkoPlatform)' == 'Windows'">
+        <XenkoNativeLib Include="$(XenkoDependenciesDir)\FFmpeg\$(XenkoPlatform)\**\*.dll">
+          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+          <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </XenkoNativeLib>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <ItemGroup>
+    <None Include="Shaders\VideoShader.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>VideoShader.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" Condition="'$(XenkoPlatform)' == 'Windows'" />
+  </ItemGroup>
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

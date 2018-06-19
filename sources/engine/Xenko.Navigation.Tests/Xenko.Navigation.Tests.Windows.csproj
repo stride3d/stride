@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <!--Import Local Pre Settings for the solution being loaded -->
+  <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1AC5A693-3CC4-4450-AA76-70DA4F0C29DF}</ProjectGuid>
+    <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Xenko.Navigation.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Xenko.Navigation.Tests</RootNamespace>
+    <XenkoBuildTags>*</XenkoBuildTags>
+    <XenkoPlatform>Windows</XenkoPlatform>
+    <XenkoBuildProfile>Windows</XenkoBuildProfile>
+    <XenkoPackageGuid>{f98cfc8c-b3de-442a-ae37-06db6235f7da}</XenkoPackageGuid>
+    <XenkoDir>$(MSBuildThisFileDirectory)..\..\..</XenkoDir>
+    <XenkoAssemblySign>true</XenkoAssemblySign>
+    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
+    <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)Xenko.Navigation.Tests.xkpkg</XenkoCurrentPackagePath>
+    <OutputPath>..\..\..\Bin\$(XenkoPlatformFullName)\$(XenkoOutputFolder)</OutputPath>
+    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(XenkoPlatformFullName)-$(XenkoGraphicsApi)\$(Configuration)</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CoreCLR_Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <XenkoRuntime Condition="'$(XenkoProjectType)' == 'Executable'">CoreCLR</XenkoRuntime>
+    <XenkoBuildDirExtension Condition="'$(XenkoBuildDirExtension)' == ''">CoreCLR</XenkoBuildDirExtension>
+    <DefineConstants>XENKO_RUNTIME_CORECLR;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CoreCLR_Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <XenkoRuntime Condition="'$(XenkoProjectType)' == 'Executable'">CoreCLR</XenkoRuntime>
+    <XenkoBuildDirExtension Condition="'$(XenkoBuildDirExtension)' == ''">CoreCLR</XenkoBuildDirExtension>
+    <DefineConstants>XENKO_RUNTIME_CORECLR;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Xenko.Navigation.Tests.DynamicBarrierTest</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="PlayerController.cs" />
+    <Compile Include="DynamicBarrierTest.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StaticTest.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Xenko.Particles\Xenko.Particles.csproj">
+      <Project>{f32fda80-b6dd-47a8-8681-437e2c0d3f31}</Project>
+      <Name>Xenko.Particles</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.UI\Xenko.UI.csproj">
+      <Project>{bb9deeef-f18c-40d8-b016-6434cc71b8c3}</Project>
+      <Name>Xenko.UI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Video\Xenko.Video.csproj">
+      <Project>{DA355C86-866F-4843-9B4D-63A173C750FB}</Project>
+      <Name>Xenko.Video</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <Import Condition="'$(XenkoRuntime)' == ''" Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="Xenko.Navigation.Tests.Shared.targets" />
+  <Import Project="$(XenkoPackageProps)" Condition="Exists('$(XenkoPackageProps)')" />
+  <Import Project="$(XenkoDir)\sources\targets\Xenko.UnitTests.targets" Condition="Exists('$(XenkoDir)\sources\targets\Xenko.UnitTests.targets')" />
+  <Target Name="EnsureXenkoInstalled" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(XenkoDir)' == ''" Text="Xenko SDK was not found. Check Xenko is installed and the global env variable [XenkoDir] is setup correctly" />
+    <Error Condition="!Exists('$(XenkoDir)\sources\targets\Xenko.UnitTests.targets')" Text="Invalid Xenko SDK installation. Target file [$(XenkoDir)\sources\targets\Xenko.UnitTests.targets] was not found." />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+    Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

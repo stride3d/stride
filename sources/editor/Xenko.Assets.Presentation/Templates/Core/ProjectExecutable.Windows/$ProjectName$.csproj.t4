@@ -1,0 +1,19 @@
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace><#= Properties.Namespace #></RootNamespace>
+
+    <OutputPath>..\Bin\Windows\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+<#@ include file="..\Common.PropertyGroups.targets.t4" #>
+
+  <ItemGroup>
+    <ProjectReference Include="..\<#= Properties.PackageName #>.Game\<#= Properties.PackageName #>.Game.csproj" />
+  </ItemGroup>
+
+</Project>

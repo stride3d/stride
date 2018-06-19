@@ -1,0 +1,304 @@
+﻿<Project>
+  <PropertyGroup>
+    <XenkoAssemblySign>true</XenkoAssemblySign>
+    <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <XenkoPlatformDependent>true</XenkoPlatformDependent>
+    <XenkoProjectPlatformDependentWindows>true</XenkoProjectPlatformDependentWindows>
+    <XenkoBuildTags>*</XenkoBuildTags>
+    <DefineConstants>$(DefineConstants);XENKO_GRAPHICS_NO_DESCRIPTOR_COPIES</DefineConstants>
+  </PropertyGroup>
+  <Choose>
+    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
+    </When>
+  </Choose>
+  <Import Condition="$(XenkoUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
+  <Choose>
+    <When Condition=" '$(XenkoGraphicsApi)' == 'Vulkan' ">
+      <Choose>
+        <When Condition=" '$(XenkoPlatform)' == 'Windows'">
+          <ItemGroup>
+            <Reference Include="SharpVulkan">
+              <SpecificVersion>False</SpecificVersion>
+              <HintPath>$(XenkoDependenciesDir)\SharpVulkan\Windows\SharpVulkan.dll</HintPath>
+            </Reference>
+          </ItemGroup>
+        </When>
+        <Otherwise>
+          <ItemGroup>
+            <Reference Include="SharpVulkan">
+              <SpecificVersion>False</SpecificVersion>
+              <HintPath>$(XenkoDependenciesDir)\SharpVulkan\Other\SharpVulkan.dll</HintPath>
+            </Reference>
+          </ItemGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(XenkoUI.Contains('SDL'))">
+      <ItemGroup>
+        <XenkoNativeLib Include="$(XenkoDependenciesDir)\SDL2\$(XenkoPlatform)\**\*SDL2*">
+          <Link>..\%(RecursiveDir)%(Filename)%(Extension)</Link>
+          <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </XenkoNativeLib>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <ItemGroup>
+    <XenkoNativeLib Include="$(XenkoDependenciesDir)\freetype\$(XenkoPlatform)\**\*.*">
+      <Link>..\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </XenkoNativeLib>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(XenkoPlatform)' == 'iOS'">
+    <Reference Include="SharpFont">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(XenkoDependenciesDir)SharpFont\iOS\SharpFont.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup Condition="'$(XenkoPlatform)' != 'iOS'">
+    <Reference Include="SharpFont">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(XenkoDependenciesDir)SharpFont\Portable\SharpFont.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <!-- Files for Direct3D  -->
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Update="Shaders\ColorUtility.cs">
+      <DependentUpon>ColorUtility.xksl</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="Shaders\SignedDistanceFieldFontShader.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>SignedDistanceFieldFontShader.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Shaders\SignedDistanceFieldFont.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>SignedDistanceFieldFont.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Shaders\SpriteAlphaCutoff.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>SpriteAlphaCutoff.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Shaders\SpriteEffectExtTexture.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>SpriteEffectExtTexture.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Shaders\SpriteEffectExtTextureRegular.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>SpriteEffectExtTextureRegular.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Shaders\SpriteSignedDistanceFieldFontShader.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>SpriteSignedDistanceFieldFontShader.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Shaders\SpriteSuperSampler.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>SpriteSuperSampler.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Shaders\UIEffect.cs">
+      <DependentUpon>UIEffect.xkfx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="Shaders\SpriteBatch.cs">
+      <DependentUpon>SpriteBatch.xkfx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="Shaders\ShaderBaseStream.cs">
+      <DependentUpon>ShaderBaseStream.xksl</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="FrameworkResources.Designer.cs">
+      <DependentUpon>FrameworkResources.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="Shaders\SpriteBase.cs">
+      <DependentUpon>SpriteBase.xksl</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="Shaders\SpriteBatchShader.cs">
+      <DependentUpon>SpriteBatchShader.xksl</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="Shaders\ShaderBase.cs">
+      <DependentUpon>ShaderBase.xksl</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="Shaders\SpriteEffect.cs">
+      <DependentUpon>SpriteEffect.xksl</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="Shaders\Texturing.cs">
+      <DependentUpon>Texturing.xksl</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Update="Shaders\UIEffectShader.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>UIEffectShader.xksl</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <!-- Files for Null device -->
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko\Xenko.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
+    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D12'" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11' Or '$(XenkoGraphicsApi)' == 'Direct3D12'" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="FrameworkResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>FrameworkResources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="Shaders.Bytecodes\CompileShaders.cmd" />
+    <None Include="Shaders.Bytecodes\Graphics.xkpkg" />
+    <None Include="Shaders.Bytecodes\Shaders.xkeffectlog" />
+    <None Include="Shaders\SignedDistanceFieldFontShader.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SignedDistanceFieldFontShader.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\SignedDistanceFieldFont.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SignedDistanceFieldFont.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\SpriteAlphaCutoff.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SpriteAlphaCutoff.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\SpriteEffectExtTexture.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SpriteEffectExtTexture.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\SpriteEffectExtTextureRegular.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SpriteEffectExtTextureRegular.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\SpriteSignedDistanceFieldFontShader.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SpriteSignedDistanceFieldFontShader.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\SpriteSuperSampler.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SpriteSuperSampler.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\UIEffect.xkfx">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>UIEffect.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\SpriteBatch.xkfx">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SpriteBatch.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\ShaderBaseStream.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>ShaderBaseStream.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\ColorUtility.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>ColorUtility.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\SpriteBase.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SpriteBase.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\SpriteBatchShader.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SpriteBatchShader.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\ShaderBase.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>ShaderBase.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\SpriteEffect.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>SpriteEffect.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\Texturing.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Texturing.cs</LastGenOutput>
+    </None>
+    <None Include="Shaders\UIEffectShader.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>UIEffectShader.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <Import Project="..\Xenko.Shared\Refactor\Xenko.Refactor.projitems" Label="Shared" />
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

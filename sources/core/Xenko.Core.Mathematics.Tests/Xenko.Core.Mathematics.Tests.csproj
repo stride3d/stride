@@ -1,0 +1,40 @@
+﻿<Project>
+  <PropertyGroup>
+    <XenkoAssemblySign>true</XenkoAssemblySign>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
+    <XenkoBuildTags>Windows</XenkoBuildTags>
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoSkipUnitTests)' == 'true'">false</XenkoCompilerTargetsEnable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="nunit.core.interfaces" Label="Xenko.DoNotSync">
+      <HintPath>$(XenkoCommonDependenciesDir)NUnit\addins\nunit.core.interfaces.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework" Label="Xenko.DoNotSync">
+      <HintPath>$(XenkoCommonDependenciesDir)NUnit\nunit.framework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

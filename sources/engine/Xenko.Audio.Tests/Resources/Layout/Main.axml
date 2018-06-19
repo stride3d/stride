@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+    <Button
+        android:id="@+id/ButtonEngine"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Engine" />
+    <Button
+        android:id="@+id/ButtonWave"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Wave" />
+    <Button
+        android:id="@+id/ButtonEffect"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Sound Effect" />
+    <Button
+        android:id="@+id/ButtonEffectInstance"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Sound Effect Instance" />
+    <Button
+        android:id="@+id/ButtonMusic"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Sound Music" />
+    <Button
+        android:id="@+id/ButtonDynamic"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Dynamic Music" />
+    <Button
+        android:id="@+id/ButtonCurrent"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Current" />
+</LinearLayout>

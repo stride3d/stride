@@ -1,0 +1,13 @@
+!Entity
+Id: 9bd0e22c-5c8a-4ca5-a43a-4f101072e71c
+Data:
+    Components:
+        ModelComponent.Key: !ModelComponentData
+            DrawOrder: 0
+            Enabled: false
+            Model: 360026b3-7636-456d-bcfe-a3bc8c6db2a9:model/Model
+            Parameters: null
+        AnimationComponent.Key: !AnimationComponentData
+            Animations:
+                New Key: 6acc7d38-d227-4a0d-b966-5cef68aecec8:model/animation/Animation
+    Name: null

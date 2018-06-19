@@ -1,0 +1,1792 @@
+﻿---
+slug: sms
+translations:
+  en:
+    name: Send SMSs
+    description: Send SMSs for national numbers
+  pt:
+    name: Enviar SMSs
+    description: Envio de SMSs para números nacionais
+
+operations:
+  - service: OneAPI/SMS/SendSMS
+    name: sendSms
+
+  - service: OneAPI/SMS/SendSMS
+    name: getSmsDeliveryStatus
+
+  - service: OneAPI/SMS/Notification
+    name: notifySmsDeliveryReceipt
+
+characteristics:
+  - label: address
+    operations:
+    - service: OneAPI/SMS/SendSMS
+      name: sendSms
+    translations:
+      en:
+        name: Sender
+        description: SMS detination
+      pt:
+        name: Destinatário
+        description: Destinatário da SMS
+    values:
+      - translations:
+          en: 500 SMS Pack
+          pt: Pack de 500 SMS
+        value: 500
+        choosable: true
+
+      - translations:
+          en: 250 SMS Pack
+          pt: Pack de 250 SMS
+        value: 250
+        choosable: true
+...
+---
+slug: mms
+translations:
+  en:
+    name: Send MMSs
+    description: Send MMSs for national numbers
+  pt:
+    name: Enviar MMSs
+    description: Envio de MMSs para números nacionais
+
+operations:
+  - service: OneAPI/MMS/SendMessage
+    name: sendMessage
+
+  - service: OneAPI/MMS/SendMessage
+    name: getMessageDeliveryStatus
+
+  - service: OneAPI/MMS/MessageNotification
+    name: notifyMessageDeliveryReceipt
+
+  - service: OneAPI/MMS/SendMessageInlineAttachments
+    name: sendMessageWithInlineAttachments
+
+characteristics:
+  - label: address
+    operations:
+      - service: OneAPI/MMS/SendMessage
+        name: sendMessage
+    translations:
+      en:
+        name: Sender
+        description: MMS detination
+      pt:
+        name: Destinatário
+        description: Destinatário da MMS
+    values:
+      - translations:
+          en: 500 MMS Pack
+          pt: Pack de 500 MMS
+        value: 500
+        choosable: true
+
+      - translations:
+          en: 250 MMS Pack
+          pt: Pack de 250 MMS
+        value: 250
+        choosable: true
+
+  - label: network
+    operations:
+      - service: OneAPI/MMS/SendMessage
+        name: sendMessage
+    translations:
+      en:
+        name: Network
+        description: MMS detination Network
+      pt:
+        name: Rede
+        description: Rede de destino da MMS
+    values:
+      - translations:
+          en: TMN
+          pt: TMN
+        value: TMN
+        choosable: true
+
+      - translations:
+          en: Vodafone
+          pt: Vodafone
+        value: Vodafone
+        choosable: true
+
+      - translations:
+          en: Optimus
+          pt: Optimus
+        value: Optimus
+        choosable: true
+
+...
+---
+slug: agenda
+translations:
+  en:
+    name: Agenda de Cultura e Lazer [EN]
+    description: Agenda
+  pt:
+    name: Agenda de Cultura e Lazer
+    description: Agenda completa de todo o tipo de acividades de natureza cultural e recreativa
+
+characteristics:
+  - label: genre
+    translations:
+      pt:
+        name: Género
+        description: Tipo de eventos
+      en:
+        name: Genre
+        description: Events type
+    values:
+      - translations:
+          en: Pop/Rock
+          pt: Pop/Rock
+        value: 3
+        choosable: true
+      - translations:
+          en: Irish
+          pt: Irlandesa
+        value: 5
+        choosable: true
+      - translations:
+          en: Modern
+          pt: Contemporânea
+        value: 6
+        choosable: true
+      - translations:
+          en: Latina
+          pt: Latina
+        value: 7
+        choosable: true
+      - translations:
+          en: Electrónic/Dance
+          pt: Electrónica/Dança
+        value: 8
+        choosable: true
+      - translations:
+          en: Experimental
+          pt: Experimental
+        value: 9
+        choosable: true
+      - translations:
+          en: Hip-Hop
+          pt: Hip-Hop
+        value: 10
+        choosable: true
+      - translations:
+          en: Fado
+          pt: Fado
+        value: 11
+        choosable: true
+      - translations:
+          en: Traditional
+          pt: Tradicional
+        value: 12
+        choosable: true
+      - translations:
+          en: Ligeira
+          pt: Ligeira
+        value: 13
+        choosable: true
+      - translations:
+          en: Afro/Reggae
+          pt: Afro/Reggae
+        value: 14
+        choosable: true
+      - translations:
+          en: World
+          pt: World
+        value: 15
+        choosable: true
+      - translations:
+          en: Jazz/Blues
+          pt: Jazz/Blues
+        value: 16
+        choosable: true
+      - translations:
+          en: Opera
+          pt: Ópera
+        value: 17
+        choosable: true
+      - translations:
+          en: Hard/Heavy
+          pt: Hard/Heavy
+        value: 18
+        choosable: true
+      - translations:
+          en: Brasilian
+          pt: Brasileira
+        value: 19
+        choosable: true
+      - translations:
+          en: Classical
+          pt: Clássica
+        value: 20
+        choosable: true
+      - translations:
+          en: Other
+          pt: Outros
+        value: 99
+        choosable: true
+  - label: area
+    translations:
+      pt:
+        name: Região
+        description: Região
+      en:
+        name: Area
+        description: Area
+    values:
+      - translations:
+          en: National
+          pt: Nacional
+        children: *all-municipalities
+      - translations:
+          en: Municipality
+          pt: Concelho
+        children: &all-municipalities
+          - translations:
+              en: Águeda
+              pt: Águeda
+            value: 0101
+            choosable: true
+          - translations:
+              en: Albergaria-a-Velha
+              pt: Albergaria-a-Velha
+            value: 0102
+            choosable: true
+          - translations:
+              en: Anadia
+              pt: Anadia
+            value: 0103
+            choosable: true
+          - translations:
+              en: Arouca
+              pt: Arouca
+            value: 0104
+            choosable: true
+          - translations:
+              en: Aveiro
+              pt: Aveiro
+            value: 0105
+            choosable: true
+          - translations:
+              en: Castelo de Paiva
+              pt: Castelo de Paiva
+            value: 0106
+            choosable: true
+          - translations:
+              en: Espinho
+              pt: Espinho
+            value: 0107
+            choosable: true
+          - translations:
+              en: Estarreja
+              pt: Estarreja
+            value: 0108
+            choosable: true
+          - translations:
+              en: Santa Maria da Feira
+              pt: Santa Maria da Feira
+            value: 0109
+            choosable: true
+          - translations:
+              en: Ílhavo
+              pt: Ílhavo
+            value: 0110
+            choosable: true
+          - translations:
+              en: Mealhada
+              pt: Mealhada
+            value: 0111
+            choosable: true
+          - translations:
+              en: Murtosa
+              pt: Murtosa
+            value: 0112
+            choosable: true
+          - translations:
+              en: Oliveira de Azeméis
+              pt: Oliveira de Azeméis
+            value: 0113
+            choosable: true
+          - translations:
+              en: Oliveira do Bairro
+              pt: Oliveira do Bairro
+            value: 0114
+            choosable: true
+          - translations:
+              en: Ovar
+              pt: Ovar
+            value: 0115
+            choosable: true
+          - translations:
+              en: São João da Madeira
+              pt: São João da Madeira
+            value: 0116
+            choosable: true
+          - translations:
+              en: Sever do Vouga
+              pt: Sever do Vouga
+            value: 0117
+            choosable: true
+          - translations:
+              en: Vagos
+              pt: Vagos
+            value: 0118
+            choosable: true
+          - translations:
+              en: Vale de Cambra
+              pt: Vale de Cambra
+            value: 0119
+            choosable: true
+          - translations:
+              en: Aljustrel
+              pt: Aljustrel
+            value: 0201
+            choosable: true
+          - translations:
+              en: Almodôvar
+              pt: Almodôvar
+            value: 0202
+            choosable: true
+          - translations:
+              en: Alvito
+              pt: Alvito
+            value: 0203
+            choosable: true
+          - translations:
+              en: Barrancos
+              pt: Barrancos
+            value: 0204
+            choosable: true
+          - translations:
+              en: Beja
+              pt: Beja
+            value: 0205
+            choosable: true
+          - translations:
+              en: Castro Verde
+              pt: Castro Verde
+            value: 0206
+            choosable: true
+          - translations:
+              en: Cuba
+              pt: Cuba
+            value: 0207
+            choosable: true
+          - translations:
+              en: Ferreira do Alentejo
+              pt: Ferreira do Alentejo
+            value: 0208
+            choosable: true
+          - translations:
+              en: Mértola
+              pt: Mértola
+            value: 0209
+            choosable: true
+          - translations:
+              en: Moura
+              pt: Moura
+            value: 0210
+            choosable: true
+          - translations:
+              en: Odemira
+              pt: Odemira
+            value: 0211
+            choosable: true
+          - translations:
+              en: Ourique
+              pt: Ourique
+            value: 0212
+            choosable: true
+          - translations:
+              en: Serpa
+              pt: Serpa
+            value: 0213
+            choosable: true
+          - translations:
+              en: Vidigueira
+              pt: Vidigueira
+            value: 0214
+            choosable: true
+          - translations:
+              en: Amares
+              pt: Amares
+            value: 0301
+            choosable: true
+          - translations:
+              en: Barcelos
+              pt: Barcelos
+            value: 0302
+            choosable: true
+          - translations:
+              en: Braga
+              pt: Braga
+            value: 0303
+            choosable: true
+          - translations:
+              en: Cabeceiras de Basto
+              pt: Cabeceiras de Basto
+            value: 0304
+            choosable: true
+          - translations:
+              en: Celorico de Basto
+              pt: Celorico de Basto
+            value: 0305
+            choosable: true
+          - translations:
+              en: Esposende
+              pt: Esposende
+            value: 0306
+            choosable: true
+          - translations:
+              en: Fafe
+              pt: Fafe
+            value: 0307
+            choosable: true
+          - translations:
+              en: Guimarães
+              pt: Guimarães
+            value: 0308
+            choosable: true
+          - translations:
+              en: Póvoa de Lanhoso
+              pt: Póvoa de Lanhoso
+            value: 0309
+            choosable: true
+          - translations:
+              en: Terras de Bouro
+              pt: Terras de Bouro
+            value: 0310
+            choosable: true
+          - translations:
+              en: Vieira do Minho
+              pt: Vieira do Minho
+            value: 0311
+            choosable: true
+          - translations:
+              en: Vila Nova de Famalicão
+              pt: Vila Nova de Famalicão
+            value: 0312
+            choosable: true
+          - translations:
+              en: Vila Verde
+              pt: Vila Verde
+            value: 0313
+            choosable: true
+          - translations:
+              en: Vizela
+              pt: Vizela
+            value: 0314
+            choosable: true
+          - translations:
+              en: Alfândega da Fé
+              pt: Alfândega da Fé
+            value: 0401
+            choosable: true
+          - translations:
+              en: Bragança
+              pt: Bragança
+            value: 0402
+            choosable: true
+          - translations:
+              en: Carrazeda de Ansiães
+              pt: Carrazeda de Ansiães
+            value: 0403
+            choosable: true
+          - translations:
+              en: Freixo de Espada à Cinta
+              pt: Freixo de Espada à Cinta
+            value: 0404
+            choosable: true
+          - translations:
+              en: Macedo de Cavaleiros
+              pt: Macedo de Cavaleiros
+            value: 0405
+            choosable: true
+          - translations:
+              en: Miranda do Douro
+              pt: Miranda do Douro
+            value: 0406
+            choosable: true
+          - translations:
+              en: Mirandela
+              pt: Mirandela
+            value: 0407
+            choosable: true
+          - translations:
+              en: Mogadouro
+              pt: Mogadouro
+            value: 0408
+            choosable: true
+          - translations:
+              en: Torre de Moncorvo
+              pt: Torre de Moncorvo
+            value: 0409
+            choosable: true
+          - translations:
+              en: Vila Flor
+              pt: Vila Flor
+            value: 0410
+            choosable: true
+          - translations:
+              en: Vimioso
+              pt: Vimioso
+            value: 0411
+            choosable: true
+          - translations:
+              en: Vinhais
+              pt: Vinhais
+            value: 0412
+            choosable: true
+          - translations:
+              en: Belmonte
+              pt: Belmonte
+            value: 0501
+            choosable: true
+          - translations:
+              en: Castelo Branco
+              pt: Castelo Branco
+            value: 0502
+            choosable: true
+          - translations:
+              en: Covilhã
+              pt: Covilhã
+            value: 0503
+            choosable: true
+          - translations:
+              en: Fundão
+              pt: Fundão
+            value: 0504
+            choosable: true
+          - translations:
+              en: Idanha-a-Nova
+              pt: Idanha-a-Nova
+            value: 0505
+            choosable: true
+          - translations:
+              en: Oleiros
+              pt: Oleiros
+            value: 0506
+            choosable: true
+          - translations:
+              en: Penamacor
+              pt: Penamacor
+            value: 0507
+            choosable: true
+          - translations:
+              en: Proença-a-Nova
+              pt: Proença-a-Nova
+            value: 0508
+            choosable: true
+          - translations:
+              en: Sertã
+              pt: Sertã
+            value: 0509
+            choosable: true
+          - translations:
+              en: Vila de Rei
+              pt: Vila de Rei
+            value: 0510
+            choosable: true
+          - translations:
+              en: Vila Velha de Ródão
+              pt: Vila Velha de Ródão
+            value: 0511
+            choosable: true
+          - translations:
+              en: Arganil
+              pt: Arganil
+            value: 0601
+            choosable: true
+          - translations:
+              en: Cantanhede
+              pt: Cantanhede
+            value: 0602
+            choosable: true
+          - translations:
+              en: Coimbra
+              pt: Coimbra
+            value: 0603
+            choosable: true
+          - translations:
+              en: Condeixa-a-Nova
+              pt: Condeixa-a-Nova
+            value: 0604
+            choosable: true
+          - translations:
+              en: Figueira da Foz
+              pt: Figueira da Foz
+            value: 0605
+            choosable: true
+          - translations:
+              en: Góis
+              pt: Góis
+            value: 0606
+            choosable: true
+          - translations:
+              en: Lousã
+              pt: Lousã
+            value: 0607
+            choosable: true
+          - translations:
+              en: Mira
+              pt: Mira
+            value: 0608
+            choosable: true
+          - translations:
+              en: Miranda do Corvo
+              pt: Miranda do Corvo
+            value: 0609
+            choosable: true
+          - translations:
+              en: Montemor-o-Velho
+              pt: Montemor-o-Velho
+            value: 0610
+            choosable: true
+          - translations:
+              en: Oliveira do Hospital
+              pt: Oliveira do Hospital
+            value: 0611
+            choosable: true
+          - translations:
+              en: Pampilhosa da Serra
+              pt: Pampilhosa da Serra
+            value: 0612
+            choosable: true
+          - translations:
+              en: Penacova
+              pt: Penacova
+            value: 0613
+            choosable: true
+          - translations:
+              en: Penela
+              pt: Penela
+            value: 0614
+            choosable: true
+          - translations:
+              en: Soure
+              pt: Soure
+            value: 0615
+            choosable: true
+          - translations:
+              en: Tábua
+              pt: Tábua
+            value: 0616
+            choosable: true
+          - translations:
+              en: Vila Nova de Poiares
+              pt: Vila Nova de Poiares
+            value: 0617
+            choosable: true
+          - translations:
+              en: Alandroal
+              pt: Alandroal
+            value: 0701
+            choosable: true
+          - translations:
+              en: Arraiolos
+              pt: Arraiolos
+            value: 0702
+            choosable: true
+          - translations:
+              en: Borba
+              pt: Borba
+            value: 0703
+            choosable: true
+          - translations:
+              en: Estremoz
+              pt: Estremoz
+            value: 0704
+            choosable: true
+          - translations:
+              en: Évora
+              pt: Évora
+            value: 0705
+            choosable: true
+          - translations:
+              en: Montemor-o-Novo
+              pt: Montemor-o-Novo
+            value: 0706
+            choosable: true
+          - translations:
+              en: Mora
+              pt: Mora
+            value: 0707
+            choosable: true
+          - translations:
+              en: Mourão
+              pt: Mourão
+            value: 0708
+            choosable: true
+          - translations:
+              en: Portel
+              pt: Portel
+            value: 0709
+            choosable: true
+          - translations:
+              en: Redondo
+              pt: Redondo
+            value: 0710
+            choosable: true
+          - translations:
+              en: Reguengos de Monsaraz
+              pt: Reguengos de Monsaraz
+            value: 0711
+            choosable: true
+          - translations:
+              en: Vendas Novas
+              pt: Vendas Novas
+            value: 0712
+            choosable: true
+          - translations:
+              en: Viana do Alentejo
+              pt: Viana do Alentejo
+            value: 0713
+            choosable: true
+          - translations:
+              en: Vila Viçosa
+              pt: Vila Viçosa
+            value: 0714
+            choosable: true
+          - translations:
+              en: Albufeira
+              pt: Albufeira
+            value: 0801
+            choosable: true
+          - translations:
+              en: Alcoutim
+              pt: Alcoutim
+            value: 0802
+            choosable: true
+          - translations:
+              en: Aljezur
+              pt: Aljezur
+            value: 0803
+            choosable: true
+          - translations:
+              en: Castro Marim
+              pt: Castro Marim
+            value: 0804
+            choosable: true
+          - translations:
+              en: Faro
+              pt: Faro
+            value: 0805
+            choosable: true
+          - translations:
+              en: Lagoa
+              pt: Lagoa
+            value: 0806
+            choosable: true
+          - translations:
+              en: Lagos
+              pt: Lagos
+            value: 0807
+            choosable: true
+          - translations:
+              en: Loulé
+              pt: Loulé
+            value: 0808
+            choosable: true
+          - translations:
+              en: Monchique
+              pt: Monchique
+            value: 0809
+            choosable: true
+          - translations:
+              en: Olhão
+              pt: Olhão
+            value: 0810
+            choosable: true
+          - translations:
+              en: Portimão
+              pt: Portimão
+            value: 0811
+            choosable: true
+          - translations:
+              en: São Brás de Alportel
+              pt: São Brás de Alportel
+            value: 0812
+            choosable: true
+          - translations:
+              en: Silves
+              pt: Silves
+            value: 0813
+            choosable: true
+          - translations:
+              en: Tavira
+              pt: Tavira
+            value: 0814
+            choosable: true
+          - translations:
+              en: Vila do Bispo
+              pt: Vila do Bispo
+            value: 0815
+            choosable: true
+          - translations:
+              en: Vila Real de Santo António
+              pt: Vila Real de Santo António
+            value: 0816
+            choosable: true
+          - translations:
+              en: Aguiar da Beira
+              pt: Aguiar da Beira
+            value: 0901
+            choosable: true
+          - translations:
+              en: Almeida
+              pt: Almeida
+            value: 0902
+            choosable: true
+          - translations:
+              en: Celorico da Beira
+              pt: Celorico da Beira
+            value: 0903
+            choosable: true
+          - translations:
+              en: Figueira de Castelo Rodrigo
+              pt: Figueira de Castelo Rodrigo
+            value: 0904
+            choosable: true
+          - translations:
+              en: Fornos de Algodres
+              pt: Fornos de Algodres
+            value: 0905
+            choosable: true
+          - translations:
+              en: Gouveia
+              pt: Gouveia
+            value: 0906
+            choosable: true
+          - translations:
+              en: Guarda
+              pt: Guarda
+            value: 0907
+            choosable: true
+          - translations:
+              en: Manteigas
+              pt: Manteigas
+            value: 0908
+            choosable: true
+          - translations:
+              en: Mêda
+              pt: Mêda
+            value: 0909
+            choosable: true
+          - translations:
+              en: Pinhel
+              pt: Pinhel
+            value: 0910
+            choosable: true
+          - translations:
+              en: Sabugal
+              pt: Sabugal
+            value: 0911
+            choosable: true
+          - translations:
+              en: Seia
+              pt: Seia
+            value: 0912
+            choosable: true
+          - translations:
+              en: Trancoso
+              pt: Trancoso
+            value: 0913
+            choosable: true
+          - translations:
+              en: Vila Nova de Foz Côa
+              pt: Vila Nova de Foz Côa
+            value: 0914
+            choosable: true
+          - translations:
+              en: Alcobaça
+              pt: Alcobaça
+            value: 1001
+            choosable: true
+          - translations:
+              en: Alvaiázere
+              pt: Alvaiázere
+            value: 1002
+            choosable: true
+          - translations:
+              en: Ansião
+              pt: Ansião
+            value: 1003
+            choosable: true
+          - translations:
+              en: Batalha
+              pt: Batalha
+            value: 1004
+            choosable: true
+          - translations:
+              en: Bombarral
+              pt: Bombarral
+            value: 1005
+            choosable: true
+          - translations:
+              en: Caldas da Rainha
+              pt: Caldas da Rainha
+            value: 1006
+            choosable: true
+          - translations:
+              en: Castanheira de Pêra
+              pt: Castanheira de Pêra
+            value: 1007
+            choosable: true
+          - translations:
+              en: Figueiró dos Vinhos
+              pt: Figueiró dos Vinhos
+            value: 1008
+            choosable: true
+          - translations:
+              en: Leiria
+              pt: Leiria
+            value: 1009
+            choosable: true
+          - translations:
+              en: Marinha Grande
+              pt: Marinha Grande
+            value: 1010
+            choosable: true
+          - translations:
+              en: Nazaré
+              pt: Nazaré
+            value: 1011
+            choosable: true
+          - translations:
+              en: Óbidos
+              pt: Óbidos
+            value: 1012
+            choosable: true
+          - translations:
+              en: Pedrógão Grande
+              pt: Pedrógão Grande
+            value: 1013
+            choosable: true
+          - translations:
+              en: Peniche
+              pt: Peniche
+            value: 1014
+            choosable: true
+          - translations:
+              en: Pombal
+              pt: Pombal
+            value: 1015
+            choosable: true
+          - translations:
+              en: Porto de Mós
+              pt: Porto de Mós
+            value: 1016
+            choosable: true
+          - translations:
+              en: Alenquer
+              pt: Alenquer
+            value: 1101
+            choosable: true
+          - translations:
+              en: Arruda dos Vinhos
+              pt: Arruda dos Vinhos
+            value: 1102
+            choosable: true
+          - translations:
+              en: Azambuja
+              pt: Azambuja
+            value: 1103
+            choosable: true
+          - translations:
+              en: Cadaval
+              pt: Cadaval
+            value: 1104
+            choosable: true
+          - translations:
+              en: Cascais
+              pt: Cascais
+            value: 1105
+            choosable: true
+          - translations:
+              en: Lisboa
+              pt: Lisboa
+            value: 1106
+            choosable: true
+          - translations:
+              en: Loures
+              pt: Loures
+            value: 1107
+            choosable: true
+          - translations:
+              en: Lourinhã
+              pt: Lourinhã
+            value: 1108
+            choosable: true
+          - translations:
+              en: Mafra
+              pt: Mafra
+            value: 1109
+            choosable: true
+          - translations:
+              en: Oeiras
+              pt: Oeiras
+            value: 1110
+            choosable: true
+          - translations:
+              en: Sintra
+              pt: Sintra
+            value: 1111
+            choosable: true
+          - translations:
+              en: Sobral de Monte Agraço
+              pt: Sobral de Monte Agraço
+            value: 1112
+            choosable: true
+          - translations:
+              en: Torres Vedras
+              pt: Torres Vedras
+            value: 1113
+            choosable: true
+          - translations:
+              en: Vila Franca de Xira
+              pt: Vila Franca de Xira
+            value: 1114
+            choosable: true
+          - translations:
+              en: Amadora
+              pt: Amadora
+            value: 1115
+            choosable: true
+          - translations:
+              en: Odivelas
+              pt: Odivelas
+            value: 1116
+            choosable: true
+          - translations:
+              en: Alter do Chão
+              pt: Alter do Chão
+            value: 1201
+            choosable: true
+          - translations:
+              en: Arronches
+              pt: Arronches
+            value: 1202
+            choosable: true
+          - translations:
+              en: Avis
+              pt: Avis
+            value: 1203
+            choosable: true
+          - translations:
+              en: Campo Maior
+              pt: Campo Maior
+            value: 1204
+            choosable: true
+          - translations:
+              en: Castelo de Vide
+              pt: Castelo de Vide
+            value: 1205
+            choosable: true
+          - translations:
+              en: Crato
+              pt: Crato
+            value: 1206
+            choosable: true
+          - translations:
+              en: Elvas
+              pt: Elvas
+            value: 1207
+            choosable: true
+          - translations:
+              en: Fronteira
+              pt: Fronteira
+            value: 1208
+            choosable: true
+          - translations:
+              en: Gavião
+              pt: Gavião
+            value: 1209
+            choosable: true
+          - translations:
+              en: Marvão
+              pt: Marvão
+            value: 1210
+            choosable: true
+          - translations:
+              en: Monforte
+              pt: Monforte
+            value: 1211
+            choosable: true
+          - translations:
+              en: Nisa
+              pt: Nisa
+            value: 1212
+            choosable: true
+          - translations:
+              en: Ponte de Sor
+              pt: Ponte de Sor
+            value: 1213
+            choosable: true
+          - translations:
+              en: Portalegre
+              pt: Portalegre
+            value: 1214
+            choosable: true
+          - translations:
+              en: Sousel
+              pt: Sousel
+            value: 1215
+            choosable: true
+          - translations:
+              en: Amarante
+              pt: Amarante
+            value: 1301
+            choosable: true
+          - translations:
+              en: Baião
+              pt: Baião
+            value: 1302
+            choosable: true
+          - translations:
+              en: Felgueiras
+              pt: Felgueiras
+            value: 1303
+            choosable: true
+          - translations:
+              en: Gondomar
+              pt: Gondomar
+            value: 1304
+            choosable: true
+          - translations:
+              en: Lousada
+              pt: Lousada
+            value: 1305
+            choosable: true
+          - translations:
+              en: Maia
+              pt: Maia
+            value: 1306
+            choosable: true
+          - translations:
+              en: Marco de Canaveses
+              pt: Marco de Canaveses
+            value: 1307
+            choosable: true
+          - translations:
+              en: Matosinhos
+              pt: Matosinhos
+            value: 1308
+            choosable: true
+          - translations:
+              en: Paços de Ferreira
+              pt: Paços de Ferreira
+            value: 1309
+            choosable: true
+          - translations:
+              en: Paredes
+              pt: Paredes
+            value: 1310
+            choosable: true
+          - translations:
+              en: Penafiel
+              pt: Penafiel
+            value: 1311
+            choosable: true
+          - translations:
+              en: Porto
+              pt: Porto
+            value: 1312
+            choosable: true
+          - translations:
+              en: Póvoa de Varzim
+              pt: Póvoa de Varzim
+            value: 1313
+            choosable: true
+          - translations:
+              en: Santo Tirso
+              pt: Santo Tirso
+            value: 1314
+            choosable: true
+          - translations:
+              en: Valongo
+              pt: Valongo
+            value: 1315
+            choosable: true
+          - translations:
+              en: Vila do Conde
+              pt: Vila do Conde
+            value: 1316
+            choosable: true
+          - translations:
+              en: Vila Nova de Gaia
+              pt: Vila Nova de Gaia
+            value: 1317
+            choosable: true
+          - translations:
+              en: Trofa
+              pt: Trofa
+            value: 1318
+            choosable: true
+          - translations:
+              en: Abrantes
+              pt: Abrantes
+            value: 1401
+            choosable: true
+          - translations:
+              en: Alcanena
+              pt: Alcanena
+            value: 1402
+            choosable: true
+          - translations:
+              en: Almeirim
+              pt: Almeirim
+            value: 1403
+            choosable: true
+          - translations:
+              en: Alpiarça
+              pt: Alpiarça
+            value: 1404
+            choosable: true
+          - translations:
+              en: Benavente
+              pt: Benavente
+            value: 1405
+            choosable: true
+          - translations:
+              en: Cartaxo
+              pt: Cartaxo
+            value: 1406
+            choosable: true
+          - translations:
+              en: Chamusca
+              pt: Chamusca
+            value: 1407
+            choosable: true
+          - translations:
+              en: Constância
+              pt: Constância
+            value: 1408
+            choosable: true
+          - translations:
+              en: Coruche
+              pt: Coruche
+            value: 1409
+            choosable: true
+          - translations:
+              en: Entroncamento
+              pt: Entroncamento
+            value: 1410
+            choosable: true
+          - translations:
+              en: Ferreira do Zêzere
+              pt: Ferreira do Zêzere
+            value: 1411
+            choosable: true
+          - translations:
+              en: Golegã
+              pt: Golegã
+            value: 1412
+            choosable: true
+          - translations:
+              en: Mação
+              pt: Mação
+            value: 1413
+            choosable: true
+          - translations:
+              en: Rio Maior
+              pt: Rio Maior
+            value: 1414
+            choosable: true
+          - translations:
+              en: Salvaterra de Magos
+              pt: Salvaterra de Magos
+            value: 1415
+            choosable: true
+          - translations:
+              en: Santarém
+              pt: Santarém
+            value: 1416
+            choosable: true
+          - translations:
+              en: Sardoal
+              pt: Sardoal
+            value: 1417
+            choosable: true
+          - translations:
+              en: Tomar
+              pt: Tomar
+            value: 1418
+            choosable: true
+          - translations:
+              en: Torres Novas
+              pt: Torres Novas
+            value: 1419
+            choosable: true
+          - translations:
+              en: Vila Nova da Barquinha
+              pt: Vila Nova da Barquinha
+            value: 1420
+            choosable: true
+          - translations:
+              en: Ourém
+              pt: Ourém
+            value: 1421
+            choosable: true
+          - translations:
+              en: Alcácer do Sal
+              pt: Alcácer do Sal
+            value: 1501
+            choosable: true
+          - translations:
+              en: Alcochete
+              pt: Alcochete
+            value: 1502
+            choosable: true
+          - translations:
+              en: Almada
+              pt: Almada
+            value: 1503
+            choosable: true
+          - translations:
+              en: Barreiro
+              pt: Barreiro
+            value: 1504
+            choosable: true
+          - translations:
+              en: Grândola
+              pt: Grândola
+            value: 1505
+            choosable: true
+          - translations:
+              en: Moita
+              pt: Moita
+            value: 1506
+            choosable: true
+          - translations:
+              en: Montijo
+              pt: Montijo
+            value: 1507
+            choosable: true
+          - translations:
+              en: Palmela
+              pt: Palmela
+            value: 1508
+            choosable: true
+          - translations:
+              en: Santiago do Cacém
+              pt: Santiago do Cacém
+            value: 1509
+            choosable: true
+          - translations:
+              en: Seixal
+              pt: Seixal
+            value: 1510
+            choosable: true
+          - translations:
+              en: Sesimbra
+              pt: Sesimbra
+            value: 1511
+            choosable: true
+          - translations:
+              en: Setúbal
+              pt: Setúbal
+            value: 1512
+            choosable: true
+          - translations:
+              en: Sines
+              pt: Sines
+            value: 1513
+            choosable: true
+          - translations:
+              en: Arcos de Valdevez
+              pt: Arcos de Valdevez
+            value: 1601
+            choosable: true
+          - translations:
+              en: Caminha
+              pt: Caminha
+            value: 1602
+            choosable: true
+          - translations:
+              en: Melgaço
+              pt: Melgaço
+            value: 1603
+            choosable: true
+          - translations:
+              en: Monção
+              pt: Monção
+            value: 1604
+            choosable: true
+          - translations:
+              en: Paredes de Coura
+              pt: Paredes de Coura
+            value: 1605
+            choosable: true
+          - translations:
+              en: Ponte da Barca
+              pt: Ponte da Barca
+            value: 1606
+            choosable: true
+          - translations:
+              en: Ponte de Lima
+              pt: Ponte de Lima
+            value: 1607
+            choosable: true
+          - translations:
+              en: Valença
+              pt: Valença
+            value: 1608
+            choosable: true
+          - translations:
+              en: Viana do Castelo
+              pt: Viana do Castelo
+            value: 1609
+            choosable: true
+          - translations:
+              en: Vila Nova de Cerveira
+              pt: Vila Nova de Cerveira
+            value: 1610
+            choosable: true
+          - translations:
+              en: Alijó
+              pt: Alijó
+            value: 1701
+            choosable: true
+          - translations:
+              en: Boticas
+              pt: Boticas
+            value: 1702
+            choosable: true
+          - translations:
+              en: Chaves
+              pt: Chaves
+            value: 1703
+            choosable: true
+          - translations:
+              en: Mesão Frio
+              pt: Mesão Frio
+            value: 1704
+            choosable: true
+          - translations:
+              en: Mondim de Basto
+              pt: Mondim de Basto
+            value: 1705
+            choosable: true
+          - translations:
+              en: Montalegre
+              pt: Montalegre
+            value: 1706
+            choosable: true
+          - translations:
+              en: Murça
+              pt: Murça
+            value: 1707
+            choosable: true
+          - translations:
+              en: Peso da Régua
+              pt: Peso da Régua
+            value: 1708
+            choosable: true
+          - translations:
+              en: Ribeira de Pena
+              pt: Ribeira de Pena
+            value: 1709
+            choosable: true
+          - translations:
+              en: Sabrosa
+              pt: Sabrosa
+            value: 1710
+            choosable: true
+          - translations:
+              en: Santa Marta de Penaguião
+              pt: Santa Marta de Penaguião
+            value: 1711
+            choosable: true
+          - translations:
+              en: Valpaços
+              pt: Valpaços
+            value: 1712
+            choosable: true
+          - translations:
+              en: Vila Pouca de Aguiar
+              pt: Vila Pouca de Aguiar
+            value: 1713
+            choosable: true
+          - translations:
+              en: Vila Real
+              pt: Vila Real
+            value: 1714
+            choosable: true
+          - translations:
+              en: Armamar
+              pt: Armamar
+            value: 1801
+            choosable: true
+          - translations:
+              en: Carregal do Sal
+              pt: Carregal do Sal
+            value: 1802
+            choosable: true
+          - translations:
+              en: Castro Daire
+              pt: Castro Daire
+            value: 1803
+            choosable: true
+          - translations:
+              en: Cinfães
+              pt: Cinfães
+            value: 1804
+            choosable: true
+          - translations:
+              en: Lamego
+              pt: Lamego
+            value: 1805
+            choosable: true
+          - translations:
+              en: Mangualde
+              pt: Mangualde
+            value: 1806
+            choosable: true
+          - translations:
+              en: Moimenta da Beira
+              pt: Moimenta da Beira
+            value: 1807
+            choosable: true
+          - translations:
+              en: Mortágua
+              pt: Mortágua
+            value: 1808
+            choosable: true
+          - translations:
+              en: Nelas
+              pt: Nelas
+            value: 1809
+            choosable: true
+          - translations:
+              en: Oliveira de Frades
+              pt: Oliveira de Frades
+            value: 1810
+            choosable: true
+          - translations:
+              en: Penalva do Castelo
+              pt: Penalva do Castelo
+            value: 1811
+            choosable: true
+          - translations:
+              en: Penedono
+              pt: Penedono
+            value: 1812
+            choosable: true
+          - translations:
+              en: Resende
+              pt: Resende
+            value: 1813
+            choosable: true
+          - translations:
+              en: Santa Comba Dão
+              pt: Santa Comba Dão
+            value: 1814
+            choosable: true
+          - translations:
+              en: São João da Pesqueira
+              pt: São João da Pesqueira
+            value: 1815
+            choosable: true
+          - translations:
+              en: São Pedro do Sul
+              pt: São Pedro do Sul
+            value: 1816
+            choosable: true
+          - translations:
+              en: Sátão
+              pt: Sátão
+            value: 1817
+            choosable: true
+          - translations:
+              en: Sernancelhe
+              pt: Sernancelhe
+            value: 1818
+            choosable: true
+          - translations:
+              en: Tabuaço
+              pt: Tabuaço
+            value: 1819
+            choosable: true
+          - translations:
+              en: Tarouca
+              pt: Tarouca
+            value: 1820
+            choosable: true
+          - translations:
+              en: Tondela
+              pt: Tondela
+            value: 1821
+            choosable: true
+          - translations:
+              en: Vila Nova de Paiva
+              pt: Vila Nova de Paiva
+            value: 1822
+            choosable: true
+          - translations:
+              en: Viseu
+              pt: Viseu
+            value: 1823
+            choosable: true
+          - translations:
+              en: Vouzela
+              pt: Vouzela
+            value: 1824
+            choosable: true
+          - translations:
+              en: Calheta
+              pt: Calheta
+            value: 3101
+            choosable: true
+          - translations:
+              en: Câmara de Lobos
+              pt: Câmara de Lobos
+            value: 3102
+            choosable: true
+          - translations:
+              en: Funchal
+              pt: Funchal
+            value: 3103
+            choosable: true
+          - translations:
+              en: Machico
+              pt: Machico
+            value: 3104
+            choosable: true
+          - translations:
+              en: Ponta do Sol
+              pt: Ponta do Sol
+            value: 3105
+            choosable: true
+          - translations:
+              en: Porto Moniz
+              pt: Porto Moniz
+            value: 3106
+            choosable: true
+          - translations:
+              en: Ribeira Brava
+              pt: Ribeira Brava
+            value: 3107
+            choosable: true
+          - translations:
+              en: Santa Cruz
+              pt: Santa Cruz
+            value: 3108
+            choosable: true
+          - translations:
+              en: Santana
+              pt: Santana
+            value: 3109
+            choosable: true
+          - translations:
+              en: São Vicente
+              pt: São Vicente
+            value: 3110
+            choosable: true
+          - translations:
+              en: Porto Santo
+              pt: Porto Santo
+            value: 3201
+            choosable: true
+          - translations:
+              en: Vila do Porto
+              pt: Vila do Porto
+            value: 4101
+            choosable: true
+          - translations:
+              en: Lagoa
+              pt: Lagoa
+            value: 4201
+            choosable: true
+          - translations:
+              en: Nordeste
+              pt: Nordeste
+            value: 4202
+            choosable: true
+          - translations:
+              en: Ponta Delgada
+              pt: Ponta Delgada
+            value: 4203
+            choosable: true
+          - translations:
+              en: Povoação
+              pt: Povoação
+            value: 4204
+            choosable: true
+          - translations:
+              en: Ribeira Grande
+              pt: Ribeira Grande
+            value: 4205
+            choosable: true
+          - translations:
+              en: Vila Franca do Campo
+              pt: Vila Franca do Campo
+            value: 4206
+            choosable: true
+          - translations:
+              en: Angra do Heroísmo
+              pt: Angra do Heroísmo
+            value: 4301
+            choosable: true
+          - translations:
+              en: Praia da Vitória
+              pt: Praia da Vitória
+            value: 4302
+            choosable: true
+          - translations:
+              en: Santa Cruz da Graciosa
+              pt: Santa Cruz da Graciosa
+            value: 4401
+            choosable: true
+          - translations:
+              en: Calheta de São Jorge
+              pt: Calheta de São Jorge
+            value: 4501
+            choosable: true
+          - translations:
+              en: Velas
+              pt: Velas
+            value: 4502
+            choosable: true
+          - translations:
+              en: Lajes do Pico
+              pt: Lajes do Pico
+            value: 4601
+            choosable: true
+          - translations:
+              en: Madalena
+              pt: Madalena
+            value: 4602
+            choosable: true
+          - translations:
+              en: São Roque do Pico
+              pt: São Roque do Pico
+            value: 4603
+            choosable: true
+          - translations:
+              en: Horta
+              pt: Horta
+            value: 4701
+            choosable: true
+          - translations:
+              en: Lajes das Flores
+              pt: Lajes das Flores
+            value: 4801
+            choosable: true
+          - translations:
+              en: Santa Cruz das Flores
+              pt: Santa Cruz das Flores
+            value: 4802
+            choosable: true
+          - translations:
+              en: Corvo
+              pt: Corvo
+            value: 4901
+            choosable: true
+...

@@ -1,0 +1,13 @@
+!Entity
+Id: f6fa5759-24a0-45d7-99e5-8f70c111e55a
+Data:
+    Components:
+        ModelComponent.Key: !ModelComponentData
+            DrawOrder: 0
+            Enabled: true
+            Model: 1a3c9bc1-f150-44b2-a9bd-71a26effb6c9:mc00
+            Parameters: null
+        AnimationComponent.Key: !AnimationComponentData
+            Animations:
+                Run: 494e227d-fe6f-4d66-8545-93bc56930c2c:ma00
+    Name: mc00

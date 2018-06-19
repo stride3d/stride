@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:minHeight="?android:attr/listPreferredItemHeight"
+  android:padding="12dp"
+  >
+  <TextView android:id="@+id/dialog_LabelField"
+    android:layout_width="wrap_content"
+    android:layout_height="fill_parent"
+    android:layout_weight=".99"
+    android:ellipsize="end"
+    android:singleLine="true"
+    android:paddingTop="5dp"
+    android:text="TitleText"
+    android:textSize="21sp"
+    android:textColor="#ffffff"
+    />
+  <RadioButton
+    android:id="@+id/dialog_RadioButtonList"
+    android:layout_width="36dp"
+    android:layout_height="fill_parent"
+    android:layout_weight=".01"
+    />
+</LinearLayout>

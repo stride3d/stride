@@ -1,0 +1,38 @@
+﻿<!-- Build file post-included by all Xenko projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <XenkoNETFrameworkVersion>v4.5</XenkoNETFrameworkVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Condition="'$(XenkoRuntime)' == 'CoreCLR'" Include="$(XenkoPackageXenkoPlatformBin)\CoreCLRSetup.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Condition="'$(XenkoRuntime)' == 'CoreCLR'" Include="$(XenkoPackageXenkoPlatformBin)\runtimeconfig.json">
+      <Link>%(RecursiveDir)$(AssemblyName).runtimeconfig.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Copy native libraries to output -->
+  <Target Name="_XenkoSetupNativeLibraries" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <None Include="@(_XenkoDependencyNativeLib)">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+  </Target>
+ 
+  <UsingTask TaskName="PackageDeployTask" AssemblyFile="$(XenkoPackageXenko)\bin\Windows\Xenko.Assets.dll"/>
+
+  <Target Name="DeployOnLinux" AfterTargets="XenkoCompileAsset" Condition="('$(XenkoIsExecutable)' == 'true') AND ('$(XenkoUnitTest)' != 'true') AND ('$(XenkoDeploy)' == 'true')">
+    <PackageDeployTask
+        Directory="$(TargetDir)"
+        Machine="$(XenkoRemoteTarget)"
+        Username="$(XenkoRemoteUsername)"
+        Password="$(XenkoRemotePassword)"
+        Location="local/Projects/$(MSBuildProjectName)" />
+  </Target>
+
+</Project>

@@ -1,0 +1,33 @@
+/**
+ * Gettext.NET (Gettext for .NET / Mono)
+ *
+ * Copyright 2011, 2012 Serguei Tarassov, <st@arbinada.com>
+ * http://www.arbinada.com/
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either 
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public 
+ * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ **/
+
+The Gettext.NET package is partially under the LGPL and partially under the GPL.
+
+The following parts are under the LGPL, see file COPYING.LIB-2.txt:
+  - the libintl and libasprintf libraries and their header files,
+  - the GNU.Gettext.dll C# library,
+  - the utility program GNU.Gettext.Msgfmt.exe
+  - the GNU.Getopt.dll C# library and its satellite assemblies GNU.Getopt.resources.dll,
+  - the *.sh and *.cmd shells scripts.
+
+The following parts are under the GPL, see file COPYING.GPL-3.txt:
+  - the _programs_ gettext, ngettext, envsubst,
+  - the documentation.

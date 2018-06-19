@@ -1,0 +1,11 @@
+!Texture
+Id: 9b46afbd-7409-45cd-ad08-01b765103ecf
+Source: sr_mc00_1.dds
+Width: 100
+Height: 100
+IsSizeInPercentage: true
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+ColorKeyEnabled: false
+Format: Compressed
+GenerateMipmaps: true
+PremultiplyAlpha: true

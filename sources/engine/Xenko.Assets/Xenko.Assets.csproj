@@ -1,0 +1,211 @@
+﻿<Project>
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorDefaultOptions)</XenkoAssemblyProcessorOptions>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition="('$(XenkoPlatform)' == 'Windows') and ('$(XenkoRuntime)' != 'CoreCLR')">
+    <DefineConstants>XENKO_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.0.1" />
+    <!--PackageReference Include="Esent.Interop" Version="1.9.4" /-->
+    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" />
+    <PackageReference Include="Microsoft.Build" Version="15.6.82">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.6.82">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.6.82">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.6.82">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.4.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.4.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.4.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="0.10.6" />
+    <!--PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="2.4.0" /-->
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Renci.SshNet">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\deps\SSH.NET\Renci.SshNet.dll</HintPath>
+    </Reference>
+    <PackageReference Include="System.AppContext" Version="4.3.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <PackageReference Include="System.Composition.AttributedModel" Version="1.1.0" />
+    <PackageReference Include="System.Composition.Convention" Version="1.1.0" />
+    <PackageReference Include="System.Composition.Hosting" Version="1.1.0" />
+    <PackageReference Include="System.Composition.Runtime" Version="1.1.0" />
+    <PackageReference Include="System.Composition.TypedParts" Version="1.1.0" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <PackageReference Include="System.Console" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
+    <PackageReference Include="System.IO" Version="4.3.0" />
+    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
+    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+    <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Reflection" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="1.5.0" />
+    <PackageReference Include="System.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
+    <PackageReference Include="System.Security.Cryptography.Encoding" Version="4.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.4.0" />
+    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
+    <PackageReference Include="System.Xml.ReaderWriter" Version="4.3.1" />
+    <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XPath" Version="4.3.0" />
+    <PackageReference Include="System.Xml.XPath.XDocument" Version="4.3.0" />
+    <Reference Include="VHACDSharp">
+      <HintPath>..\..\..\deps\VHACD\VHACDSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\assets\Xenko.Core.Packages\Xenko.Core.Packages.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Yaml\Xenko.Core.Yaml.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\tools\Xenko.Core.ProjectTemplating\Xenko.Core.ProjectTemplating.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\tools\Xenko.TextureConverter\Xenko.TextureConverter.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Audio\Xenko.Audio.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Navigation\Xenko.Navigation.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Physics\Xenko.Physics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\shaders\Xenko.Core.Shaders\Xenko.Core.Shaders.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Shaders.Compiler\Xenko.Shaders.Compiler.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.UI\Xenko.UI.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Video\Xenko.Video.csproj">
+      <Project>{DA355C86-866F-4843-9B4D-63A173C750FB}</Project>
+      <Name>Xenko.Video</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko\Xenko.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel10.xkgfxcomp" />
+    <None Include="AssetPackage\Assets\Shared\DefaultGraphicsCompositorLevel9.xkgfxcomp" />
+    <None Include="AssetPackage\Assets\Shared\XenkoClearCoatMetalFlakesNM.xktex" />
+    <None Include="AssetPackage\Assets\Shared\XenkoClearCoatOrangePeelNM.xktex" />
+    <None Include="AssetPackage\Assets\Shared\XenkoDebugSpriteFont.xktex" />
+    <None Include="AssetPackage\Assets\Shared\XenkoDefaultFont.xkfnt" />
+    <None Include="AssetPackage\Assets\Shared\XenkoDefaultSplashScreen.xktex" />
+    <None Include="AssetPackage\Assets\Shared\XenkoEnvironmentLightingDFGLUT16.xktex" />
+    <None Include="AssetPackage\Assets\Shared\XenkoEnvironmentLightingDFGLUT8.xktex" />
+    <None Include="AssetPackage\Assets\Shared\XenkoUIDesigns.xksheet" />
+    <None Include="AssetPackage\Assets\Shared\XenkoUILibrary.xkuilib" />
+    <None Include="AssetPackage\Workfiles\UIDesigns.pdn" />
+    <None Include="AssetPackage\XenkoAssetPackage.xkpkg" />
+    <None Include="UI\Resources\UIDesigns.dds" />
+    <None Include="UI\Resources\UIDesigns.pdn" />
+    <None Include="UI\XenkoUIDesigns.xksheet" />
+    <None Include="UI\XenkoUILibrary.xkuilib" />
+  </ItemGroup>
+  <!--ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="1.1.0" />
+    <Analyzer Include="Microsoft.CodeAnalysis.Analyzers" />
+    <Analyzer Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
+  </ItemGroup-->
+  <ItemGroup>
+    <None Include="..\..\..\deps\FFmpeg\ffmpeg.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\deps\msdfgen\msdfgen.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="AssetPackage\Resources\ClearCoatMetalFlakesNM.dds" />
+    <None Include="AssetPackage\Resources\ClearCoatOrangePeelNM.dds" />
+    <None Include="AssetPackage\Resources\EnvironmentLightingDFGLUT16.dds" />
+    <None Include="AssetPackage\Resources\EnvironmentLightingDFGLUT8.dds" />
+    <None Include="AssetPackage\Resources\UIDesigns.dds" />
+    <None Include="AssetPackage\Resources\XenkoDebugSpriteFont.png" />
+    <None Include="AssetPackage\Resources\XenkoDefaultSplashScreen.png" />
+  </ItemGroup>
+  <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

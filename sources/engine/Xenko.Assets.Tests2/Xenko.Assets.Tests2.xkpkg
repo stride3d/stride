@@ -1,0 +1,78 @@
+!Package
+Id: 04ed1618-1a06-4a69-ac34-1006a978af11
+SerializedVersion: {Assets: 0.0.4}
+Meta:
+    Name: Xenko.Assets.Tests2
+    Version: 1.0.0.0
+    Authors: []
+    Owners: []
+    Dependencies:
+        -   Name: Xenko
+            Version: 2.3.0.1-dev
+            RootAssets: []
+LocalDependencies: []
+Profiles:
+    -   Name: Shared
+        Platform: Shared
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: GameAssets
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: 117bf9f8-d2d9-4d32-9702-251c3e038090
+                Location: Xenko.Assets.Tests2.csproj
+                Type: Library
+    -   Name: Windows
+        Platform: Windows
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: GameAssets
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: 117bf9f8-d2d9-4d32-9702-251c3e038090
+                Location: Xenko.Assets.Tests2.csproj
+                Type: Executable
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 0851d017-5e86-4954-a5db-1bcf98687ac2:DdsMaskBC1
+    - 08872397-58a1-4b94-830d-6676d48d1aca:SheetNoAlpha
+    - 15bcf3ec-1a85-4664-a99a-8836d4a6706f:SheetColorAutoNoAlphaPacked
+    - 199436a6-0b5e-4ca0-88ee-27e75d4d70e4:JpegInterpolated
+    - 1a11f50d-6971-48ce-93e9-a838c1f44b0d:SheetColorAutoMask
+    - 213d04d7-d1a0-420e-94d2-901663338ce1:SheetInterpolatedAlpha
+    - 231c5969-26ee-4a8c-9d29-6146ee723740:PngMask
+    - 2ac8e854-0983-487a-b491-9a66b155ff03:PngColorResultTrue
+    - 2c6491c4-701b-4eb7-b9f8-94d22d95b0cf:PngNoAlpha
+    - 2d00caf8-f724-404d-87cd-df814a78b252:GraphicsCompositor
+    - 34ac902c-db56-4d4f-bbaa-763c385ee3c7:SheetAutoInterpolated
+    - 380fa137-4b95-4dc8-ae41-d0859ea332e0:SheetMaskAlpha
+    - 38e24744-5030-49f5-9bd6-63ffaf9f5cdb:SheetExplicitAlphaPacked
+    - 3b94cddb-afa4-4322-820b-431f80529de9:SheetAutoNoAlpha
+    - 40d4445a-5e9e-42ad-a4b0-f90fba6100c4:JpegExplicit
+    - 5148de80-108a-4849-aef6-e9eea98ceffd:DdsMaskBC3
+    - 56080dc7-a5f6-4969-9549-3f5d2ae3fc40:PngInterpolated
+    - 5d4851cf-4172-4b12-ab11-e15b302871e7:JpegColorResultTrue
+    - 61be7040-a213-4a13-aac4-ecdc415f9ad6:SheetColorNoAlpha
+    - 632355e6-4fc9-4606-a5e8-199dab4ba729:DdsNoAlpha
+    - 66575bba-0b50-4162-9571-4bfc5644deaf:SheetColorMaskPacked
+    - 6c447e1e-39de-497e-9b90-a472dee00624:SheetColorMask
+    - 6c677f02-2311-4cc1-b574-b29cabc85af5:SheetColorAutoMaskPacked
+    - 83b48119-bf0a-4384-92fa-fe5ffb6ac730:SheetColorNoAlphaPacked
+    - 843afbb3-4f38-4d2e-8d47-2ee40374a088:SheetExplicitAlpha
+    - 853bedb3-91b9-4392-8b4d-eb07be1ce115:JpegMask
+    - 8cc3c13d-b050-49ae-87cf-a58107f4e474:JpegColorResultFalse
+    - 915ede20-6202-4e2b-a667-2bd4c22da6ba:SheetAutoMask
+    - 96c3f51f-4e90-4176-9886-ea5d1e1572fa:SheetNoAlphaPacked
+    - a5a2626d-c832-4a98-86eb-7822f7b4cf83:SheetInterpolatedAlphaPacked
+    - b5ffed04-aa12-4ef7-99fa-e60d973dc047:JpegNone
+    - bb339658-877a-49dc-80f8-f5f9fbb51dda:DdsInterpolated
+    - bf563667-8a16-42e1-af9e-4e6531474d42:SheetColorAutoNoAlpha
+    - c11892c2-7737-458f-beb0-3861bb656b57:SheetAutoInterpolatedPacked
+    - c39fe354-374c-4953-a85a-37c2cdd8fe8b:SheetAutoNoAlphaPacked
+    - d94d9299-3bc8-4531-952f-703e6b80d38d:JpegAuto
+    - eba50ccd-2b38-42d0-a98d-147d29141d4d:SheetAutoMaskPacked
+    - f5cf3f85-622e-4345-aa18-8e781460ba71:SheetMaskAlphaPacked
+    - f8dfa4d7-d5e7-4f36-9e7c-2c9d3de0e154:PngColorResultFalse
+    - fb543f7c-e6a7-4bbc-9a75-47ae5db41968:MainScene

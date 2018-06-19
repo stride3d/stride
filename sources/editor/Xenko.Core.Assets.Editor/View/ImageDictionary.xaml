@@ -1,0 +1,118 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:assets="clr-namespace:Xenko.Core.Assets;assembly=Xenko.Core.Assets"
+                    xmlns:core="clr-namespace:Xenko.Core;assembly=Xenko.Core">
+
+  <!-- Generic action-related icons -->
+  <BitmapImage x:Key="ImageNew" UriSource="../Resources/Icons/asterisk-small.png" />
+  <BitmapImage x:Key="ImageOpen" UriSource="../Resources/Icons/folder-horizontal-open.png" />
+  <BitmapImage x:Key="ImageClose" UriSource="../Resources/Icons/cross-white.png" />
+  <BitmapImage x:Key="ImageSave" UriSource="../Resources/Icons/disk-black.png" />
+  <BitmapImage x:Key="ImageUndo" UriSource="../Resources/Icons/arrow-return-180-left.png" />
+  <BitmapImage x:Key="ImageRedo" UriSource="../Resources/Icons/arrow-return.png" />
+  <BitmapImage x:Key="ImageCut" UriSource="../Resources/Icons/scissors-blue.png" />
+  <BitmapImage x:Key="ImageCopy" UriSource="../Resources/Icons/document-copy.png" />
+  <BitmapImage x:Key="ImageCopyRecursively" UriSource="../Resources/Icons/document-copy.png" />
+  <BitmapImage x:Key="ImagePaste" UriSource="../Resources/Icons/clipboard-paste.png" />
+  <BitmapImage x:Key="ImagePrevious" UriSource="../Resources/Icons/left_circular-24.png" />
+  <BitmapImage x:Key="ImageNext" UriSource="../Resources/Icons/right_circular-24.png" />
+  <BitmapImage x:Key="ImageRename" UriSource="../Resources/Icons/ui-text-field.png"/>
+  <BitmapImage x:Key="ImageDelete" UriSource="../Resources/Icons/cross-script.png"/>
+  <BitmapImage x:Key="ImageAcceptingDrop" UriSource="../Resources/Icons/tick-small.png" />
+  <BitmapImage x:Key="ImageRejectingDrop" UriSource="../Resources/Icons/cross-small.png" />
+  <BitmapImage x:Key="ImageOpenWithTextEditor" UriSource="../Resources/Icons/report--pencil.png"/>
+  <BitmapImage x:Key="ImageOpenAssetFile" UriSource="../Resources/Icons/application-list.png"/>
+  <BitmapImage x:Key="ImageOpenSourceFile" UriSource="../Resources/Icons/application-image.png"/>
+  <BitmapImage x:Key="ImageExplore" UriSource="../Resources/Icons/folder-open+magnifier-small.png"/>
+  <BitmapImage x:Key="ImageVisualStudio" UriSource="../Resources/Icons/visual-studio.png"/>
+  <BitmapImage x:Key="ImageSettings" UriSource="../Resources/Icons/gear.png"/>
+
+  <!-- Solution icons -->
+  <BitmapImage x:Key="ImageNewSolution" UriSource="../Resources/Icons/databases+new.png" />
+
+  <!-- Package icons -->
+  <BitmapImage x:Key="ImagePackage" UriSource="../Resources/Icons/database.png" />
+  <BitmapImage x:Key="ImageAddNewPackage" UriSource="../Resources/Icons/database+new.png"/>
+  <BitmapImage x:Key="ImageAddExistingPackage" UriSource="../Resources/Icons/database--arrow.png"/>
+  <BitmapImage x:Key="ImagePackageReference" UriSource="../Resources/Icons/database-small.png"/>
+  <BitmapImage x:Key="ImagePackageProperties" UriSource="../Resources/Icons/property.png"/>
+
+  <!-- Asset folder icons -->
+  <BitmapImage x:Key="ImageRootFolder" UriSource="../Resources/Icons/folder-stand.png"/>
+  <BitmapImage x:Key="ImageFolder" UriSource="../Resources/Icons/folder.png" />
+  <BitmapImage x:Key="ImageNewFolder" UriSource="../Resources/Icons/folder+new.png" />
+
+  <!-- Project icons -->
+  <BitmapImage x:Key="ImageAddNewProject" UriSource="../Resources/Icons/blue-document-number+new.png"/>
+  <BitmapImage x:Key="ImageAddExistingProject" UriSource="../Resources/Icons/blue-document-number+arrow.png"/>
+  <BitmapImage x:Key="ImageReloadAssemblies" UriSource="../Resources/Icons/blue-document-number+reload.png"/>
+  <BitmapImage x:Key="ImageAddDependency" UriSource="../Resources/Icons/databases-relation+plus.png"/>
+  <BitmapImage x:Key="ImageStartupProject" UriSource="../Resources/Icons/hand-point.png"/>
+  <BitmapImage x:Key="ImageCodeRoot" UriSource="../Resources/Icons/blue-documents-stack+number.png"/>
+  <BitmapImage x:Key="ImageDepsRoot" UriSource="../Resources/Icons/databases-relation.png"/>
+  <BitmapImage x:Key="ImageExpandAssetFolders" UriSource="../Resources/Icons/folder-tree--expand.png"/>
+  <BitmapImage x:Key="ImageExpandAllFolders" UriSource="../Resources/Icons/document-tree--expand.png"/>
+  <BitmapImage x:Key="ImageCollapseAllFolders" UriSource="../Resources/Icons/document-tree--collapse.png"/>
+    
+  <BitmapImage x:Key="{x:Static assets:ProjectType.Executable}" UriSource="../Resources/Icons/application-blue.png"/>
+  <BitmapImage x:Key="{x:Static assets:ProjectType.Library}" UriSource="../Resources/Icons/blue-document-number.png"/>
+
+  <!-- Asset icons -->
+  <BitmapImage x:Key="ImageNewAsset" UriSource="../Resources/Icons/plus2_math-24.png"/>
+  <BitmapImage x:Key="ImageImportAsset" UriSource="../Resources/Icons/import-24.png"/>
+  <BitmapImage x:Key="ImageEditAsset" UriSource="../Resources/Icons/edit-24.png"/>
+  <BitmapImage x:Key="UpdateSelectedAssetsFromSource" UriSource="../Resources/Icons/reimport-24.png"/>
+  <BitmapImage x:Key="UpdateAllAssetsWithModifiedSource" UriSource="../Resources/Icons/reimport-24.png"/>
+  <BitmapImage x:Key="ImageReimportEffects" UriSource="../Resources/Icons/teapot-24.png"/>
+  <BitmapImage x:Key="ImageAssetIsRoot" UriSource="../Resources/Icons/asset-root.png"/>
+  <BitmapImage x:Key="ImageAssetIsIndirectlyIncluded" UriSource="../Resources/Icons/status.png"/>
+  <BitmapImage x:Key="ImageAssetIsExcluded" UriSource="../Resources/Icons/status-offline.png"/>
+  <BitmapImage x:Key="ImageAssetOverride" UriSource="../Resources/Icons/copy_link-32.png"/>
+
+  <!-- Property edition icons -->
+  <BitmapImage x:Key="ImageDropDown" UriSource="../Resources/Icons/control-270.png" />
+  <BitmapImage x:Key="ImageAdd" UriSource="../Resources/Icons/plus.png" />
+  <BitmapImage x:Key="ImageRemove" UriSource="../Resources/Icons/cross.png" />
+  <BitmapImage x:Key="ImageClear" UriSource="../Resources/Icons/eraser.png" />
+  <BitmapImage x:Key="ImageBrowse" UriSource="../Resources/Icons/folder--arrow.png" />
+  <BitmapImage x:Key="ImageFetchAsset" UriSource="../Resources/Icons/magnifier--arrow.png"/>
+  <BitmapImage x:Key="ImagePickup" UriSource="../Resources/Icons/hand-point-090.png"/>
+  <BitmapImage x:Key="ImageCreateInstance" UriSource="../Resources/Icons/gear--pencil.png"/>
+  <BitmapImage x:Key="ImageClearText" UriSource="../Resources/Icons/cross-script.png"/>
+  <BitmapImage x:Key="ImageTags" UriSource="../Resources/Icons/tag-label.png"/>
+    
+  <!-- Platform icons -->
+  <BitmapImage x:Key="{x:Static core:PlatformType.Android}" UriSource="../Resources/Icons/android.png"/>
+  <BitmapImage x:Key="{x:Static core:PlatformType.iOS}" UriSource="../Resources/Icons/ios-icon-16.png"/>
+  <BitmapImage x:Key="{x:Static core:PlatformType.Linux}" UriSource="../Resources/Icons/animal-penguin.png"/>
+  <BitmapImage x:Key="{x:Static core:PlatformType.macOS}" UriSource="../Resources/Icons/mac-os.png"/>
+  <BitmapImage x:Key="{x:Static core:PlatformType.Windows}" UriSource="../Resources/Icons/windows.png"/>
+  <BitmapImage x:Key="{x:Static core:PlatformType.UWP}" UriSource="../Resources/Icons/uwp.png"/>
+
+  <!-- Build icons -->
+  <BitmapImage x:Key="ImageBuildProject" UriSource="../Resources/Icons/compile+white.png"/>
+  <BitmapImage x:Key="ImageStartProject" UriSource="../Resources/Icons/control+green.png"/>
+  <BitmapImage x:Key="ImageLiveScripting" UriSource="../Resources/Icons/live-scripting.png"/>
+  <BitmapImage x:Key="ImageStopBuild" UriSource="../Resources/Icons/control-stop-square-small+red.png"/>
+
+  <!-- Asset view icons -->
+  <BitmapImage x:Key="ImageClearFilters" UriSource="../Resources/Icons/delete-24.png"/>
+  <BitmapImage x:Key="ImageFilter" UriSource="../Resources/Icons/funnel.png"/>
+  <BitmapImage x:Key="ImageRecursiveDisplay" UriSource="../Resources/Icons/folder-tree.png"/>
+  <BitmapImage x:Key="ImageRefresh" UriSource="../Resources/Icons/refresh-24.png" />
+  <BitmapImage x:Key="ImageShowTiles" UriSource="../Resources/Icons/application-icon-large.png"/>
+  <BitmapImage x:Key="ImageShowGrid" UriSource="../Resources/Icons/application-table.png"/>
+  <BitmapImage x:Key="ImageShowTree" UriSource="../Resources/Icons/application-tree.png"/>
+  <BitmapImage x:Key="ImageSort" UriSource="../Resources/Icons/sort-alphabet-column.png"/>    
+  <BitmapImage x:Key="ImageView" UriSource="../Resources/Icons/eye-24.png"/>
+  <BitmapImage x:Key="ImageZoomDefault" UriSource="../Resources/Icons/magnifier-zoom-actual-equal.png" />
+  <BitmapImage x:Key="ImageZoomIn" UriSource="../Resources/Icons/magnifier-zoom-in.png"/>
+  <BitmapImage x:Key="ImageZoomOut" UriSource="../Resources/Icons/magnifier-zoom-out.png"/>
+    
+  <!-- Icons for Welcome -->
+  <Geometry x:Key="GeometryNew">F1 M 38,28.5C 41.1667,28.5 50.2708,20.5833 55.0208,30.0833C 59.7708,39.5833 58.5833,52.25 55.4167,52.25C 47.5,52.25 52.25,44.3333 38,44.3333C 23.75,44.3333 28.5,52.25 20.5833,52.25C 17.4167,52.25 16.2292,39.5833 20.9792,30.0833C 25.7292,20.5834 34.8333,28.5 38,28.5 Z M 26.9167,32.0625L 26.9167,34.8334L 24.1458,34.8334L 24.1458,38L 26.9167,38L 26.9167,40.7709L 30.0833,40.7709L 30.0833,38L 32.8542,38L 32.8542,34.8334L 30.0833,34.8334L 30.0833,32.0625L 26.9167,32.0625 Z M 45.125,34.0417C 44.2505,34.0417 43.5416,34.7506 43.5416,35.625C 43.5416,36.4995 44.2505,37.2084 45.125,37.2084C 45.9994,37.2084 46.7083,36.4995 46.7083,35.625C 46.7083,34.7506 45.9994,34.0417 45.125,34.0417 Z M 48.2917,31.2708C 47.4172,31.2708 46.7083,31.9797 46.7083,32.8542C 46.7083,33.7286 47.4172,34.4375 48.2917,34.4375C 49.1661,34.4375 49.875,33.7286 49.875,32.8542C 49.875,31.9797 49.1661,31.2708 48.2917,31.2708 Z M 48.2917,37.2083C 47.4172,37.2083 46.7083,37.9172 46.7083,38.7917C 46.7083,39.6661 47.4172,40.375 48.2917,40.375C 49.1661,40.375 49.875,39.6661 49.875,38.7917C 49.875,37.9172 49.1661,37.2083 48.2917,37.2083 Z M 51.4583,34.0417C 50.5839,34.0417 49.875,34.7505 49.875,35.625C 49.875,36.4995 50.5839,37.2083 51.4583,37.2083C 52.3328,37.2083 53.0417,36.4995 53.0417,35.625C 53.0417,34.7505 52.3328,34.0417 51.4583,34.0417 Z</Geometry>
+  <Geometry x:Key="GeometryOpen">F1 M 19,50L 28,34L 63,34L 54,50L 19,50 Z M 19,28.0001L 35,28C 36,25 37.4999,24.0001 37.4999,24.0001L 48.75,24C 49.3023,24 50,24.6977 50,25.25L 50,28L 53.9999,28.0001L 53.9999,32L 27,32L 19,46.4L 19,28.0001 Z</Geometry>
+  <Geometry x:Key="GeometryHelp">F1 M 25,27L 46,19L 46,22.25L 28.5,29L 31.75,31.25L 51,23.75L 51,48.5L 31.75,57L 25,52L 25,27 Z M 41.8929,46.0327C 40.9009,46.4197 40.0967,47.5376 40.0967,48.5296C 40.0967,49.5216 40.9009,50.0121 41.8929,49.6251C 42.8849,49.2381 43.6891,48.1202 43.6891,47.1282C 43.6891,46.1361 42.8849,45.6457 41.8929,46.0327 Z M 42.2521,31.5228C 39.0777,32.7612 36.5042,36.1777 36.5042,39.1538L 36.5042,39.8723L 40.0967,38.4708L 40.0967,37.3931C 40.0967,36.2027 41.0617,34.8612 42.2521,34.3968C 43.4425,33.9324 44.4076,34.5209 44.4076,35.7113C 44.4076,36.2305 44.4076,36.4298 42.9706,38.4274C 42.2521,39.4262 40.0967,41.7753 40.0967,44.2187L 40.0967,45.2964L 43.6891,43.895L 43.6891,42.458C 43.6891,41.2676 44.4076,40.0223 45.8445,38.7432C 47.2815,37.4641 48,35.3876 48,34.3099C 48,31.3338 45.4266,30.2844 42.2521,31.5228 Z</Geometry>
+  <Geometry x:Key="GeometryRightArrow">F1 M 19.0002,34L 19.0002,42L 43.7502,42L 33.7502,52L 44.2502,52L 58.2502,38L 44.2502,24L 33.7502,24L 43.7502,34L 19.0002,34 Z</Geometry>
+
+</ResourceDictionary>

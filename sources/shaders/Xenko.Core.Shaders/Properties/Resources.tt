@@ -1,0 +1,338 @@
+﻿<#
+/*
+Resource file to CSharp converter. It replaces the one provided by Visual Studio to circumvent the lack
+of ResourceManager.GetObject in CoreCLR. The current version only handles string, string file and binary file resources. For file references, they are embedded in the generated Csharp.
+
+This is taken from T4Resx written and maintained Kenneth Baltrinic
+http://blog.baltrinic.com
+
+Related blog posts: http://blog.baltrinic.com/software-development/dotnet/t4-template-replace-resxfilecodegenerator
+
+The certain parts of this template were copied from the T4MVC template which is distributed under the MvcContrib license (http://mvccontrib.codeplex.com/license)
+
+This template if free for redistribution in accordance with the same license.
+*/
+#>
+<#@ template debug="true" hostspecific="true" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Xml" #>
+<#@ assembly name="Microsoft.VisualStudio.Shell.Interop.8.0" #>
+<#@ assembly name="EnvDTE" #>
+<#@ assembly name="EnvDTE80" #>
+<#@ assembly name="VSLangProj" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.CodeDom" #>
+<#@ import namespace="System.CodeDom.Compiler" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="Microsoft.VisualStudio.Shell.Interop" #>
+<#@ import namespace="EnvDTE" #>
+<#@ import namespace="EnvDTE80" #>
+<#@ import namespace="Microsoft.VisualStudio.TextTemplating" #>
+using System.Reflection;
+
+<#
+   var serviceProvider = Host as IServiceProvider;
+    if (serviceProvider != null) {
+        Dte = serviceProvider.GetService(typeof(SDTE)) as DTE;
+    }
+
+    // Fail if we couldn't get the DTE. This can happen when trying to run in TextTransform.exe
+    if (Dte == null) {
+        throw new Exception("T4MVC can only execute through the Visual Studio host");
+    }
+
+    Project = GetProjectContainingT4File(Dte);
+
+    if (Project == null) {
+        Error("Could not find the VS Project containing the T4 file.");
+        return"XX";
+    }
+	
+	 AppRoot = Path.GetDirectoryName(Project.FullName) + '\\';
+	 RootNamespace = Project.Properties.Item("RootNamespace").Value.ToString();
+
+try{
+	AllEntries = new List<ResourceEntry>();
+	FindResourceFilesRecursivlyAndRecordEntries(Project.ProjectItems, "");
+	AllEntries.Sort( new Comparison<ResourceEntry>( (e1, e2) => (e1.Path + e1.File + e1.Name).CompareTo(e2.Path + e2.File + e2.Name)));
+
+	var currentNamespace = "";
+	var currentClass = "";
+	var thisIsFirstEntryInClass = true;
+	var names = new List<string>();
+	foreach(var entry in AllEntries)
+	{
+	    //WriteLine("//" + entry.Path + ":" + entry.File+ ":" + entry.Name);
+
+		var newNamespace = RootNamespace + "." + entry.Path;
+		var newClass = entry.File;
+
+		bool namesapceIsChanging = newNamespace != currentNamespace;
+		bool classIsChanging = namesapceIsChanging || newClass != currentClass;
+		
+		if(namesapceIsChanging)
+		{
+			//Close out current namespace if one exists
+			if( currentNamespace != "" )
+				WriteLine("}");
+
+			currentNamespace = newNamespace;
+			
+			//open new namespace
+			WriteLine(string.Format("namespace {0}", currentNamespace));
+			WriteLine("{");
+
+		}
+
+		if(classIsChanging)
+		{
+			currentClass = newClass;
+			WriteLine(string.Format("\tpublic class {0}", currentClass));
+			WriteLine("\t{");
+			thisIsFirstEntryInClass = true;
+	
+		//Emit code for the ResourceManager property and GetResourceString method for the current class
+		#>
+        private static global::System.Resources.ResourceManager resourceMan;
+        
+        /// <summary>
+        ///   Returns the cached ResourceManager instance used by this class.
+        /// </summary>
+        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
+        private static global::System.Resources.ResourceManager ResourceManager 
+		{
+            get 
+			{
+                if (object.ReferenceEquals(resourceMan, null)) 
+				{
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("<#=string.Format("{0}.{1}{2}", RootNamespace, entry.Path + "." + entry.File, entry.Type) #>", typeof(<#=entry.File#>).GetTypeInfo().Assembly);
+                    resourceMan = temp;
+                }
+                return resourceMan;
+            }
+        }
+		<#
+		}
+
+		//Emit the static resource string access method for the current entry
+		if(entry.Comment != null)
+		{
+			if(!thisIsFirstEntryInClass) WriteLine("");
+			WriteLine(string.Format("\r\n\t\t///<summary>\r\n\t\t///{0}\r\n\t\t///</summary>", entry.Comment.Replace("\r\n", "\r\n\t\t///")));
+		}
+		else
+			WriteLine("");
+
+		//Select all tokens between braces that constitute valid identifiers
+        var tokens = Regex.Matches(entry.Value, @"{(([A-Za-z]{1}\w*?)|([A-Za-z_]{1}\w+?))?}").Cast<Match>().Select(m => m.Value);
+        
+		if(tokens.Any())
+		{
+			var inParams = tokens.Aggregate("", (list, value) => list += ", string " + value).Replace("{", "").Replace("}", "");
+			if(inParams.Length > 0 ) inParams = inParams.Substring(1);
+			var outParams = tokens.Aggregate("", (list, value) => list += ", \"" + value +"\", " + value.Replace("{", "").Replace("}", "") );
+
+			WriteLine(string.Format("\t\tpublic static string {0}({1}) {{ return ResourceManager.GetString(\"{0}\"{2}); }}",  entry.Name, inParams, outParams));
+		}
+		else
+		{
+            if (!entry.IsFileRef)
+            {
+			    WriteLine(string.Format("\t\tpublic static string {0} {{ get {{ return ResourceManager.GetString(\"{0}\"); }} }}",  entry.Name));
+            } else {
+                string returnType = entry.TypeRef.FullName;
+                WriteLine (string.Format ("\t\tpublic static {0} {1}", returnType, entry.Name));
+                WriteLine ("\t\t{");
+                WriteLine ("\t\t\tget {");
+                if (entry.TypeRef == typeof(string))
+                {
+                    Write ("\t\t\t\t return ");
+                    Write (ToLiteral(File.ReadAllText (AppRoot + "\\" + entry.Path + "\\" + entry.FileRef)));
+                    WriteLine (";");
+                }
+                else
+                {
+                    byte [] byteArray = File.ReadAllBytes (AppRoot + "\\" + entry.Path + "\\" + entry.FileRef);
+                    int counter = 0;
+                    Write ("\t\t\t\t return new byte [] {");
+                    for (int i = 0, nb = byteArray.Length; i < nb; i++ ) {
+                            // Limit ourself to 50 entries per line.
+                        if (counter % 50 == 0)
+                        {
+                            WriteLine ("");
+                            Write ("\t\t\t\t\t");
+                        }
+                        Write (byteArray [i].ToString());
+                        if (i < nb - 1) {
+                            Write (", ");
+                        }
+                        counter++;
+                    }
+                    WriteLine ("");
+                    WriteLine ("\t\t\t\t};");
+                }
+                WriteLine ("\t\t\t}");
+                WriteLine ("\t\t}");
+            }
+		}
+		names.Add(entry.Name);
+
+		thisIsFirstEntryInClass = false;
+		
+	} // foreach(var entry in AllEntries)
+	
+	//close out the current class when done
+	if(currentClass != "")
+	{
+		WriteLine("\t}");
+	}
+}
+catch(Exception ex)
+{
+	Error(ex.ToString());
+}
+#>
+}
+<#+
+    const string Kind_PhysicalFolder = "{6BB5F8EF-4483-11D3-8BCF-00C04F8EC28C}";
+	bool AlwaysKeepTemplateDirty = true;
+	static DTE Dte;
+	static Project Project;
+	static string AppRoot;
+	static string RootNamespace;
+	static List<ResourceEntry> AllEntries;
+
+void FindResourceFilesRecursivlyAndRecordEntries(ProjectItems items, string path)
+{
+	foreach(ProjectItem item in items)
+	{
+		if(Path.GetExtension(item.Name) == ".resx")
+			RecordEntriesInResourceFile(item, path);
+		if(item.Kind == Kind_PhysicalFolder)
+			FindResourceFilesRecursivlyAndRecordEntries(item.ProjectItems, path+"."+item.Name);
+	}
+}
+
+void RecordEntriesInResourceFile(ProjectItem item, string path)
+{
+	//skip resource files except those for the default culture
+	if(Regex.IsMatch(item.Name, @".*\.[a-zA-z]{2}(-[a-zA-z]{2})?\.resx"))
+            return;
+
+	var filePath = (string)item.Properties.Item("FullPath").Value;
+	var xml = new XmlDocument();
+	xml.Load(filePath);
+	var entries = xml.DocumentElement.SelectNodes("//data");
+
+	var parentFile = item.Name.Replace(".resx", "");
+	var fileType = Path.GetExtension(parentFile);
+	if(fileType != null && fileType != "")
+		parentFile = parentFile.Replace(fileType, "");
+
+    foreach (XmlElement entryElement in entries)
+	{
+		var entry = new ResourceEntry
+		{
+			Path = path.Substring(1),
+			File = MakeIntoValidIdentifier(parentFile),
+            Type = fileType,
+            IsFileRef = entryElement.Attributes["type"].Value.IndexOf ("System.Resources.ResXFileRef") >= 0,
+			Name = MakeIntoValidIdentifier(entryElement.Attributes["name"].Value)
+		};
+
+		var valueElement = entryElement.SelectSingleNode("value");
+		if(valueElement != null) {
+        	entry.Value = valueElement.InnerText;
+            if (entry.IsFileRef) {
+                string[] l_entries = entry.Value.Split (new char [1] {';'});
+                if (l_entries.Length > 0) {
+                    entry.FileRef = l_entries [0];
+                }
+                if (l_entries.Length > 1) {
+                    entry.TypeRef = Type.GetType (l_entries [1]);
+                }
+            }
+        }
+		var commentElement = entryElement.SelectSingleNode("comment");
+		if(commentElement != null)
+			entry.Comment = commentElement.InnerText;
+
+		AllEntries.Add(entry);
+	}
+}
+
+string MakeIntoValidIdentifier(string arbitraryString)
+{
+	var validIdentifier = Regex.Replace(arbitraryString, @"[^A-Za-z0-9-._]", " ");
+	validIdentifier = ConvertToPascalCase(validIdentifier);
+	if (Regex.IsMatch(validIdentifier, @"^\d")) validIdentifier = "_" + validIdentifier;
+	return validIdentifier;
+}
+
+string ConvertToPascalCase(string phrase)
+{
+	string[] splittedPhrase = phrase.Split(' ', '-', '.');
+	var sb = new StringBuilder();
+
+	sb = new StringBuilder();
+
+	foreach (String s in splittedPhrase)
+	{
+		char[] splittedPhraseChars = s.ToCharArray();
+		if (splittedPhraseChars.Length > 0)
+		{
+			splittedPhraseChars[0] = ((new String(splittedPhraseChars[0], 1)).ToUpper().ToCharArray())[0];
+		}
+		sb.Append(new String(splittedPhraseChars));
+	}
+	return sb.ToString();
+}
+
+Project GetProjectContainingT4File(DTE dte) {
+
+    // Find the .tt file's ProjectItem
+    ProjectItem projectItem = dte.Solution.FindProjectItem(Host.TemplateFile);
+
+    // If the .tt file is not opened, open it
+    if (projectItem.Document == null)
+        projectItem.Open(Constants.vsViewKindCode);
+
+    if (AlwaysKeepTemplateDirty) {
+        // Mark the .tt file as unsaved. This way it will be saved and update itself next time the
+        // project is built. Basically, it keeps marking itself as unsaved to make the next build work.
+        // Note: this is certainly hacky, but is the best I could come up with so far.
+        projectItem.Document.Saved = false;
+    }
+
+    return projectItem.ContainingProject;
+}
+
+struct ResourceEntry
+{
+	public string Path { get; set; }
+	public string File { get; set; }
+	public string Type { get; set; }
+    public bool IsFileRef { get; set; }
+    public string FileRef { get; set; }
+    public Type TypeRef { get; set; }
+	public string Name { get; set; }
+	public string Value { get; set; }
+	public string Comment { get; set; }
+}
+
+private static string ToLiteral(string input)
+{
+    using (var writer = new StringWriter())
+    {
+        using (var provider = CodeDomProvider.CreateProvider("CSharp"))
+        {
+            provider.GenerateCodeFromExpression(new CodePrimitiveExpression(input), writer, null);
+            return writer.ToString();
+        }
+    }
+}
+#>

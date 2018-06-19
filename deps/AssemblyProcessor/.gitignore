@@ -1,0 +1,4 @@
+*.pdb
+*.xml
+!Xenko.Core.AssemblyProcessor.*
+Xenko.Core.AssemblyProcessor.vshost.*

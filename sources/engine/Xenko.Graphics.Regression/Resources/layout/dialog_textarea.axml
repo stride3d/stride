@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<EditText xmlns:android="http://schemas.android.com/apk/res/android"
+android:id="@+id/iFormFieldValue"
+android:padding="12dp"
+android:layout_width="fill_parent"
+android:layout_height="wrap_content"
+android:maxWidth="350dp"
+android:gravity="top"
+android:lines="5"
+android:inputType="text|textMultiLine"
+android:textSize="21sp"
+android:background="@android:color/transparent"
+android:textColor="#ff000000"/>

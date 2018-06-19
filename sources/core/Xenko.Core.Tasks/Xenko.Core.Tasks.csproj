@@ -1,0 +1,71 @@
+﻿<Project>
+  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <OutputType>Exe</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
+    <XenkoPlatformDependent>true</XenkoPlatformDependent>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <XenkoBuildTags>WindowsTools</XenkoBuildTags>
+    <XenkoOutputPath>bin\$(Configuration)\</XenkoOutputPath>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <Choose>
+    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
+    </When>
+  </Choose>
+  <ItemGroup>
+    <Reference Include="LibGit2Sharp, Version=0.24.0.0, Culture=neutral, PublicKeyToken=7cbde695407f0333, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\deps\libgit2\LibGit2Sharp.dll</HintPath>
+    </Reference>
+    <PackageReference Include="Microsoft.Build" Version="15.6.82">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Framework" Version="15.6.82">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.0.7-preview-ge60d679b53" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.6.82">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.6.82">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30">
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </PackageReference>
+    <PackageReference Include="Mono.Options" Version="5.3.0.1" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <PackageReference Include="System.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <None Include="..\..\..\deps\libgit2\**\*.dll">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj" />
+    <ProjectReference Include="..\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" />
+    <ProjectReference Include="..\Xenko.Core.Design\Xenko.Core.Design.csproj" />
+    <ProjectReference Include="..\Xenko.Core.Yaml\Xenko.Core.Yaml.csproj" />
+  </ItemGroup>
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

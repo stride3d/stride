@@ -1,0 +1,98 @@
+﻿<!-- Global settings used to configure the XenkoGraphicsApi -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Default values -->
+  <PropertyGroup>
+    <XenkoGraphicsApi Condition=" '$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
+    <XenkoAssemblyProcessorOptions Condition="'$(XenkoAssemblyProcessorOptions)' == ''">$(XenkoAssemblyProcessorDefaultOptions)</XenkoAssemblyProcessorOptions>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <XenkoDependenciesDir Condition="'$(XenkoDependenciesDir)' != '' and !HasTrailingSlash('$(XenkoDependenciesDir)')">$(XenkoDependenciesDir)\</XenkoDependenciesDir>
+    <XenkoDependenciesDir Condition="'$(XenkoDependenciesDir)' == ''">$(XenkoPackageXenko)\deps\</XenkoDependenciesDir>
+  </PropertyGroup>
+
+  <!--Import global Xenko settings-->
+  <Import Project="$(MSBuildThisFileDirectory)..\targets\Xenko.Core.GlobalSettings.targets"/>
+  
+  <!-- 
+    Settings XenkoGraphicsApi specific
+  -->
+  <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'Direct3D11' ">
+    <XenkoGraphicsApiDefines>XENKO_GRAPHICS_API_DIRECT3D;XENKO_GRAPHICS_API_DIRECT3D11</XenkoGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'Direct3D12' ">
+    <XenkoGraphicsApiDefines>XENKO_GRAPHICS_API_DIRECT3D;XENKO_GRAPHICS_API_DIRECT3D12</XenkoGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'Null' ">
+    <XenkoGraphicsApiDefines>XENKO_GRAPHICS_API_NULL</XenkoGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'OpenGL' ">
+    <XenkoGraphicsApiDefines>XENKO_GRAPHICS_API_OPENGL;XENKO_GRAPHICS_API_OPENGLCORE</XenkoGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'OpenGLES' ">
+    <XenkoGraphicsApiDefines>XENKO_GRAPHICS_API_OPENGL;XENKO_GRAPHICS_API_OPENGLES</XenkoGraphicsApiDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'Vulkan' ">
+    <XenkoGraphicsApiDefines>XENKO_GRAPHICS_API_VULKAN</XenkoGraphicsApiDefines>
+  </PropertyGroup>
+  
+  <!-- 
+    Settings XenkoPlatform specific
+  -->
+  <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Windows' ">
+    <XenkoGraphicsApiDefines>FRAMEWORK_SHADER_USE_SHARPDX;$(XenkoGraphicsApiDefines)</XenkoGraphicsApiDefines>
+    <FrameworkShaderUseSharpDX>true</FrameworkShaderUseSharpDX>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(XenkoPlatform)' == 'UWP' ">
+    <AutoIncludeSystemAssembly>true</AutoIncludeSystemAssembly>
+    <ProjectLockFile Condition="'$(ProjectLockFile)' == ''">$(MSBuildThisFileDirectory)..\build\project.lock.json</ProjectLockFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="('$(XenkoPlatform)' == 'Linux') or ('$(XenkoPlatform)' == 'macOS')">
+    <FrameworkShaderUseSharpDX>false</FrameworkShaderUseSharpDX>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Android' ">
+    <XenkoExternalSuffix>.Android</XenkoExternalSuffix>
+    <FrameworkShaderUseSharpDX>false</FrameworkShaderUseSharpDX>
+    <AndroidSupportedAbis>armeabi-v7a%3barmeabi%3bx86</AndroidSupportedAbis>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(XenkoPlatform)' == 'iOS' ">
+    <XenkoExternalSuffix>.iOS</XenkoExternalSuffix>
+    <FrameworkShaderUseSharpDX>false</FrameworkShaderUseSharpDX>
+    <NUnitLiteBinDir>$(XenkoDependenciesDir)NUnitLite\net-monotouch\</NUnitLiteBinDir>
+  </PropertyGroup>
+
+  <!-- 
+    Global Defines
+  -->
+  <PropertyGroup>
+    <XenkoGraphicsApiDefines>$(XenkoGraphicsApiDefines);XENKO_EFFECT_COMPILER</XenkoGraphicsApiDefines>
+    <XenkoEffectCompiler>true</XenkoEffectCompiler>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'CoreCLR' ">
+    <XenkoRuntimeDefines>XENKO_RUNTIME_CORECLR</XenkoRuntimeDefines>
+    <AutoIncludeSystemAssembly>true</AutoIncludeSystemAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);$(XenkoGraphicsApiDefines);XENKO_SUPPORT_BETA_UPGRADE</DefineConstants>
+  </PropertyGroup>
+  
+  <!--Building Xenko SDK itself?-->
+  <PropertyGroup Condition=" '$(XenkoUserBuild)' != 'true' ">
+    <!--Output All files in solution\Bin directory-->
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+</Project>

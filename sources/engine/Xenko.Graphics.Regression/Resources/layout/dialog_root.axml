@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:paddingTop="5dp"
+  android:paddingBottom="8dp"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:minHeight="?android:attr/listPreferredItemHeight"
+	>
+  <LinearLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:layout_weight="1"
+		>
+    <TextView android:id="@+id/dialog_LabelField"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="0dp"
+			android:layout_marginLeft="8dp"
+			android:ellipsize="end"
+			android:singleLine="true"
+			android:text="Fieldset Label"
+			android:textStyle="bold"
+			android:textAppearance="?android:attr/textAppearanceSmall"
+			/>
+    <TextView
+			android:id="@+id/dialog_ValueField"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginLeft="8dp"
+			android:layout_marginRight="8dp"
+			android:singleLine="true"
+			android:text="FieldValue"
+		  android:textAppearance="?android:attr/textAppearanceLarge"
+			/>
+  </LinearLayout>
+  <ImageView
+      android:id="@+id/dialog_DisclosureField"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginLeft="8dp"
+      android:layout_marginRight="8dp"
+      android:layout_gravity="center_vertical"
+      android:src="@drawable/dialog_expander_ic_minimized"
+  />
+</LinearLayout>

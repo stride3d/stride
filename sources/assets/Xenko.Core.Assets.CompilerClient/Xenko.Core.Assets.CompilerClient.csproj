@@ -1,0 +1,37 @@
+﻿<Project>
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
+    <OutputType>Exe</OutputType>
+    <Prefer32Bit>false</Prefer32Bit>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <XenkoBuildTags>WindowsTools</XenkoBuildTags>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <XenkoAssemblyProcessorOptions>--auto-module-initializer</XenkoAssemblyProcessorOptions>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\core\Xenko.Core\ModuleInitializerAttribute.cs">
+      <Link>ModuleInitializerAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\shared\ToolAssemblyResolveModuleInitializer.cs">
+      <Link>ToolAssemblyResolveModuleInitializer.cs</Link>
+    </Compile>
+    <Compile Include="..\Xenko.Core.Assets\DirectoryHelper.cs">
+      <Link>DirectoryHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\Xenko.Core.Assets\Package.Constants.cs">
+      <Link>Package.Constants.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tools\Xenko.ExecServer\Xenko.ExecServer.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

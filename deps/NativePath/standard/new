@@ -1,0 +1,32 @@
+#ifndef new_hpp
+#define new_hpp
+
+#include "../NativePath.h"
+
+#ifdef __cplusplus
+//C++ utility
+
+//standard placement form of new
+inline void* operator new(size_t _Size, void* _Where) throw()
+{
+	(void)_Size;
+	return _Where;
+}
+
+inline void operator delete(void*, void*) throw()
+{
+	return;
+}
+
+inline void* operator new[](size_t _Size, void* _Where) throw()
+{
+	(void)_Size;
+	return _Where;
+}
+
+inline void operator delete[](void*, void*) throw()
+{
+}
+#endif
+
+#endif

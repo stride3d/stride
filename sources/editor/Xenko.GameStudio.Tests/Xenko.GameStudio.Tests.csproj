@@ -1,0 +1,74 @@
+﻿<Project>
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
+    <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>$(XenkoCommonDependenciesDir)NUnit\nunit.framework.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\assets\Xenko.Core.Assets.Tests\Helpers\GuidGenerator.cs">
+      <Link>Helpers\GuidGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\assets\Xenko.Core.Assets.Tests\Helpers\IdentifierGenerator.cs">
+      <Link>Helpers\IdentifierGenerator.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\assets\Xenko.Core.Assets.Quantum\Xenko.Core.Assets.Quantum.csproj" />
+    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
+    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation\Xenko.Core.Presentation.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Quantum\Xenko.Core.Quantum.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Assets.Models\Xenko.Assets.Models.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Assets\Xenko.Assets.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Games\Xenko.Games.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj" />
+    <ProjectReference Include="..\Xenko.Core.Assets.Editor\Xenko.Core.Assets.Editor.csproj" />
+    <ProjectReference Include="..\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj" />
+    <ProjectReference Include="..\Xenko.Editor\Xenko.Editor.csproj" />
+    <ProjectReference Include="..\Xenko.GameStudio\Xenko.GameStudio.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="Assets\Assets.xkprj" />
+    <None Include="Assets\ma00.fbx" />
+    <None Include="Assets\ma00.xkanim" />
+    <None Include="Assets\mc00.fbx" />
+    <None Include="Assets\mc00.xkm3d" />
+    <None Include="Assets\mc00_entity.xkentity" />
+    <None Include="Assets\mc00_material_mc00_hir.xkmat" />
+    <None Include="Assets\mc00_material_mc00_irn.xkmat" />
+    <None Include="Assets\mc00_material_mc00_oth.xkmat" />
+    <None Include="Assets\mc00_material_mc00_skn.xkmat" />
+    <None Include="Assets\mc00_material_mc00_skn1.xkmat" />
+    <None Include="Assets\mc00_sr_mc00_0.xktex" />
+    <None Include="Assets\mc00_sr_mc00_1.xktex" />
+    <None Include="Assets\MicrosoftSansSerif20.xkfnt" />
+    <None Include="Assets\MistralItalic14.xkfnt" />
+    <None Include="Assets\sr_mc00_0.dds" />
+    <None Include="Assets\sr_mc00_1.dds" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

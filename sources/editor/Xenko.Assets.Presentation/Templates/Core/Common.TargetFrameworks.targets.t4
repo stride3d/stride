@@ -1,0 +1,8 @@
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<#
+var targetFrameworks = ((IEnumerable<dynamic>)Properties.Platforms).Select(x => x.TargetFramework).Distinct().ToList();
+if (targetFrameworks.Count > 1) { #>
+    <TargetFrameworks><#= string.Join(";", targetFrameworks) #></TargetFrameworks>
+<# } else { #>
+    <TargetFramework><#= targetFrameworks[0] #></TargetFramework>
+<# } #>

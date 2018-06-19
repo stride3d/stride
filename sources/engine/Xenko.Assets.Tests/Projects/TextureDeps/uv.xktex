@@ -1,0 +1,12 @@
+!Texture
+Id: d949320c-dcd1-4dc0-a169-6f874c31fd2a
+Source: ../../Data/uv.dds
+Width: 100
+Height: 100
+IsSizeInPercentage: true
+ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+ColorKeyEnabled: false
+Format: Compressed
+Alpha: None
+GenerateMipmaps: true
+PremultiplyAlpha: true

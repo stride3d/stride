@@ -1,0 +1,1 @@
+﻿This highlighter is not a real thing, just a sketch - good enough to highlight samples in Grammar Explorer

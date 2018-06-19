@@ -1,0 +1,9 @@
+a simple key: a value   # The KEY token is produced here.
+? a complex key
+: another value
+a mapping:
+  key 1: value 1
+  key 2: value 2
+a sequence:
+  - item 1
+  - item 2

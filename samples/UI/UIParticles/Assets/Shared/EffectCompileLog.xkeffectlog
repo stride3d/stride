@@ -1,0 +1,16 @@
+﻿---
+!EffectCompileRequest
+EffectName: ParticleEffect
+UsedParameters:
+    ParticleBase.UsesSoftEdge: 0
+    ParticleBase.BaseColor: !ShaderClassSource
+        ClassName: ComputeColorTextureScaledOffsetDynamicSampler
+        GenericArguments: [ParticleBase.EmissiveMap, TEXCOORD0, Material.Sampler.i0, rgba, Material.TextureScale, Material.TextureOffset]
+---
+!EffectCompileRequest
+EffectName: ParticleEffect
+UsedParameters:
+    ParticleBase.UsesSoftEdge: 0
+    ParticleBase.BaseColor: !ShaderClassSource
+        ClassName: ComputeColorFromStream
+        GenericArguments: [COLOR0, rgba]

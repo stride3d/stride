@@ -1,0 +1,13 @@
+!Entity
+Id: be52722c-c19a-472e-9714-8706ed88bc45
+Data:
+    Components:
+        ModelComponent.Key: !ModelComponentData
+            DrawOrder: 0
+            Enabled: false
+            Model: 7fccdd7f-baf0-46a0-8526-0f34de5f72a1:subfolder/Model
+            Parameters: null
+        AnimationComponent.Key: !AnimationComponentData
+            Animations:
+                New Key: ed0173f8-865e-4fea-8d7b-e8553eff5595:subfolder/Animation
+    Name: null

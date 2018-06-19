@@ -1,0 +1,9 @@
+--- # Implicit empty plain scalars do not produce tokens.
+--- a plain scalar
+--- 'a single-quoted scalar'
+--- "a double-quoted scalar"
+--- |-
+  a literal scalar
+--- >-
+  a folded
+  scalar

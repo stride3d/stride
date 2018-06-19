@@ -1,0 +1,164 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C821E6B2-04B2-4983-8348-7AC37B23C5E1}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ParticlesSample</RootNamespace>
+    <AssemblyName>ParticlesSample.Game</AssemblyName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)..\ParticlesSample.xkpkg</XenkoCurrentPackagePath>
+    <XenkoPackageProps>$([System.IO.Path]::ChangeExtension('$(XenkoCurrentPackagePath)', '.props'))</XenkoPackageProps>
+    <XenkoProjectType>Library</XenkoProjectType>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <XenkoPlatform>Windows</XenkoPlatform>
+    <XenkoBuildProfile>Windows</XenkoBuildProfile>
+    <OutputPath>..\Bin\Windows\Debug\</OutputPath>
+    <IntermediateOutputPath>obj\Windows\Debug\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <XenkoPlatform>Windows</XenkoPlatform>
+    <XenkoBuildProfile>Windows</XenkoBuildProfile>
+    <OutputPath>..\Bin\Windows\Release\</OutputPath>
+    <IntermediateOutputPath>obj\Windows\Release\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <XenkoPlatform>Windows</XenkoPlatform>
+    <XenkoBuildProfile>Windows</XenkoBuildProfile>
+    <OutputPath>..\Bin\Windows\Testing\</OutputPath>
+    <IntermediateOutputPath>obj\Windows\Testing\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
+    <XenkoPlatform>Windows</XenkoPlatform>
+    <XenkoBuildProfile>Windows</XenkoBuildProfile>
+    <OutputPath>..\Bin\Windows\AppStore\</OutputPath>
+    <IntermediateOutputPath>obj\Windows\AppStore\</IntermediateOutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- A reference to the entire .NET Framework is automatically included -->
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AnimationStart.cs" />
+    <Compile Include="CameraOrbitScript.cs" />
+    <Compile Include="ComputeColorTextureScroll.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>ComputeColorTextureScroll.xksl</DependentUpon>
+    </Compile>
+    <Compile Include="Effects\ComputeColorRadial.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>ComputeColorRadial.xksl</DependentUpon>
+    </Compile>
+    <Compile Include="Effects\ComputeColorRed.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>ComputeColorRed.xksl</DependentUpon>
+    </Compile>
+    <Compile Include="Effects\ParticleCustomEffect.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>ParticleCustomEffect.xkfx</DependentUpon>
+    </Compile>
+    <Compile Include="Effects\ParticleCustomShader.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>ParticleCustomShader.xksl</DependentUpon>
+    </Compile>
+    <Compile Include="GameProfiler.cs" />
+    <Compile Include="LaserOrientationScript.cs" />
+    <Compile Include="Materials\ParticleCustomMaterial.cs" />
+    <Compile Include="Materials\ParticleCustomShaderKeys.cs" />
+    <Compile Include="NextSceneScript.cs" />
+    <Compile Include="Particles\CustomParticleFields.cs" />
+    <Compile Include="Particles\Initializers\CustomParticleInitializer.cs" />
+    <Compile Include="Particles\ShapeBuilders\CustomParticleShape.cs" />
+    <Compile Include="Particles\Spawners\CustomParticleSpawner.cs" />
+    <Compile Include="Particles\Updaters\CustomParticleUpdater.cs" />
+    <Compile Include="PrefabInstance.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RotateEntity.cs" />
+    <Compile Include="RotationScript.cs" />
+    <Compile Include="UIScript.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ComputeColorTextureScroll.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>ComputeColorTextureScroll.cs</LastGenOutput>
+    </None>
+    <None Include="Effects\ComputeColorRadial.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>ComputeColorRadial.cs</LastGenOutput>
+    </None>
+    <None Include="Effects\ComputeColorRed.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>ComputeColorRed.cs</LastGenOutput>
+    </None>
+    <None Include="Effects\ParticleCustomEffect.xkfx">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>ParticleCustomEffect.cs</LastGenOutput>
+    </None>
+    <None Include="Effects\ParticleCustomShader.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>ParticleCustomShader.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <Import Project="$(XenkoPackageProps)" Condition="Exists('$(XenkoPackageProps)')" />
+  <Import Project="$(XenkoDir)\Targets\Xenko.Common.targets" Condition="Exists('$(XenkoDir)\Targets\Xenko.Common.targets')" />
+  <Target Name="EnsureXenkoInstalled" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(XenkoDir)' == ''" Text="Xenko SDK was not found. Check Xenko is installed and the global env variable [XenkoDir] is setup correctly" />
+    <Error Condition="!Exists('$(XenkoDir)\Targets\Xenko.Common.targets')" Text="Invalid Xenko SDK installation. Target file [$(XenkoDir)\Targets\Xenko.Common.targets] was not found." />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+    Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

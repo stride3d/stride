@@ -1,0 +1,73 @@
+!MaterialAsset
+Id: 310C8C39-16A2-4E67-8509-C98DE89D2F20
+BuildOrder: 250
+Material:
+    Parameters:
+        Capacity: 4
+        ~Items:
+            MaterialParameters.DiffuseModel: !MaterialDiffuseModel Lambert
+            MaterialParameters.ShadingModel: !MaterialShadingModel Phong
+            MaterialParameters.SpecularModel: !MaterialSpecularModel BlinnPhong
+            Material.SpecularColorValue: !Color4 {R: 0.4, G: 0.1, B: 1, A: 1}
+            Material.DiffuseColorValue: !Color4 {R: 1, G: 1, B: 0.5, A: 0.5}
+            Material.SpecularIntensity: 0
+            Material.SpecularPower: 0
+    ColorNodes: 
+        MaterialParameters.AlbedoDiffuse: diffuse
+        MaterialParameters.AlbedoSpecular: specular
+        MaterialParameters.NormalMap: normalMap
+        MaterialParameters.DisplacementMap: displacement
+    Nodes:
+        diffuse: !MaterialTextureNode
+            TextureReference: 00000000-0000-0000-0000-000000000001:_c300_body_cm
+            TexcoordIndex: 0
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}
+        displacement: !MaterialBinaryNode
+            LeftChild: !MaterialBinaryNode
+                LeftChild: !MaterialReferenceNode
+                    Name: _c300_body_cm
+                RightChild: !MaterialReferenceNode
+                    Name: _c300_body_cm
+                Operand: HardMix
+            RightChild: !MaterialFloatNode
+                Value: 0.7
+            Operand: Overlay
+        normalMap: !MaterialTextureNode
+            TextureReference: 00000000-0000-0000-0000-000000000001:_c300_body_cm
+            TexcoordIndex: 0
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}
+        specular: !MaterialBinaryNode
+            LeftChild: !MaterialReferenceNode
+                Name: _c300_body_sp
+            RightChild: !MaterialBinaryNode
+                LeftChild: !MaterialBinaryNode
+                    LeftChild: !MaterialFloatNode
+                        Value: 2
+                    RightChild: !MaterialFloatNode
+                        Value: 0.5
+                    Operand: Multiply
+                RightChild: !MaterialBinaryNode
+                    LeftChild: !MaterialFloatNode
+                        Value: 2
+                    RightChild: !MaterialFloatNode
+                        Value: 0.5
+                    Operand: Divide
+                Operand: Add
+            Operand: Multiply
+        _c300_body_sp: !MaterialTextureNode
+            TextureReference: 00000000-0000-0000-0000-000000000002:_c300_body_sp
+            TexcoordIndex: 0
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}
+        _c300_body_cm: !MaterialTextureNode
+            TextureReference: 00000000-0000-0000-0000-000000000001:_c300_body_cm
+            TexcoordIndex: 1
+            Scale: {X: 0.5, Y: 0.3}
+            Offset: {X: 0, Y: 0}
+        _c300_body_cm2: !MaterialTextureNode
+            TextureReference: 00000000-0000-0000-0000-000000000001:_c300_body_cm
+            TexcoordIndex: 0
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}

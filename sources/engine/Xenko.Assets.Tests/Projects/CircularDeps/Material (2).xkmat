@@ -1,0 +1,14 @@
+!MaterialAsset
+Id: d7eccfd9-3c44-4d83-b141-eb72e65b1f81
+BuildOrder: 250
+Material:
+    Nodes:
+        New Key: !MaterialReferenceNode
+            Name: Material2
+        New Key 2: !MaterialTextureNode
+            TextureReference: dc4e6241-f10e-4d35-a47a-ed9ccf9b00dd:Material
+            TexcoordIndex: 0
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}
+    ColorNodes: {}
+    Parameters: {}

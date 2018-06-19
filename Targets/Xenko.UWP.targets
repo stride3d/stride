@@ -1,0 +1,63 @@
+<!-- Build file post-included by all Xenko projects -->
+<Project InitialTargets="XenkoRemapPlatforms" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Target Name="XenkoRemapPlatforms">
+    <!-- Remap real platform for UWP -->
+    <CreateProperty Condition=" '$(Platform)' == 'UWP'" Value="AnyCPU">
+      <Output TaskParameter="Value" PropertyName="Platform" />
+    </CreateProperty>
+  </Target>
+  
+  <ItemGroup>
+    <!-- Temporarily until dependencies are properly added to .nuspec file (note: will need https://github.com/NuGet/Home/issues/1660 to have different dependencies for different graphics platforms) -->
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.0.6" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.0.1" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Rewrite platform so that ProjectReference libraries get built properly -->
+    <Platform>UWP</Platform>
+    
+    <XenkoIsExecutable Condition=" '$(OutputType)' == 'AppContainerExe'">true</XenkoIsExecutable>
+    <XenkoNETFrameworkVersion>v4.5.1</XenkoNETFrameworkVersion>
+
+    <XenkoCPU Condition="'$(Platform)' == 'x86'">x86</XenkoCPU>
+    <XenkoCPU Condition="'$(Platform)' == 'x64'">x64</XenkoCPU>
+    <XenkoCPU Condition="'$(Platform)' == 'ARM'">ARM</XenkoCPU>
+    
+    <!-- Use OutputPath to define AppxPackage directory -->
+    <AppxPackageDir>$(OutputPath)\$(AppxPackageDirName)\</AppxPackageDir>
+    <AppxPackageTestDir>$(AppxPackageDir)Test\</AppxPackageTestDir>
+    <AppxPackageName>$(AssemblyName)</AppxPackageName>
+  </PropertyGroup>
+
+  <!-- Copy native libraries to output -->
+  <Target Name="_XenkoSetupNativeLibraries" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Content Include="@(_XenkoDependencyNativeLib)" Condition="$([System.String]::Copy('%(_XenkoDependencyNativeLib.Link)').StartsWith('$(XenkoCPU)'))">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link Condition="'$(XenkoCPU)' != ''">$([System.String]::Copy('%(_XenkoDependencyNativeLib.Link)').Replace('$(XenkoCPU)\', ''))</Link>
+      </Content>
+    </ItemGroup>
+  </Target>
+
+  <PropertyGroup>
+    <PrepareResourcesDependsOn>
+      DeployAssetsUWP;
+      $(PrepareResourcesDependsOn)
+    </PrepareResourcesDependsOn>
+  </PropertyGroup>
+
+  <!-- UWP: Transform Assets into Content -->
+  <Target Name="DeployAssetsUWP" DependsOnTargets="XenkoCompileAsset" Condition="'$(XenkoIsExecutable)' == 'true'">
+    <ItemGroup>
+      <!-- Define the Assets to deploy -->
+      <AssetsToDeploy Include="$(XenkoCompileAssetOutputPath)\**\*.*"/>
+
+      <Content Include="@(AssetsToDeploy)">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link>data\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      </Content>
+    </ItemGroup>
+  </Target>
+</Project>

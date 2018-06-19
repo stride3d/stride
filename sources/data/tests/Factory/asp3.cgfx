@@ -1,0 +1,1252 @@
+// 変換行列
+// ・このパラメータはビューポートのカメラ位置とモデルの配置が反映します。
+float4x4 g_mtxWorld			: WORLD;
+float4x4 g_mtxView			: VIEW;
+float4x4 g_mtxProjection	: PROJECTION;
+float4x4 g_mtxWorldViewProj : WORLDVIEWPROJECTION;
+float4x4 g_mtxWorldView		: WORLDVIEW;
+float4x4 g_imtxView			: VIEWI;
+
+// ライトパラメータ
+// ・このパラメータはシーン内にあるライトの情報が反映します。
+// ・パラメータはView座標系で指定されます。
+float3 g_vtLightDir : VIEWDIRECTION
+<  
+	string UIName = "Parallel Light"; 
+	string Object = "TargetLight";
+	int refID = 0;
+> = {0.477, -0.577, -0.677};
+
+float4 g_colorLight : LIGHTCOLOR
+<
+	int LightRef = 0;
+> = float4(1.0f, 1.0f, 1.0f, 1.0f);
+
+// ライティングの有効/無効
+bool g_enablesLighting
+<
+	string UIName = "Lighting";
+> = true;
+
+// 拡散反射カラーのソース選択
+int g_diffuseColorSelect
+<
+	string UIName = "Diffuse Color Select";
+	string UIType = "Spinner";
+	int UIMin = 0;
+	int UIMax = 2;
+	int UIStep = 1;
+> = 0;
+
+// 拡散反射の固定カラー
+float4 g_diffuseColor
+<
+	string UIName = "Material Color";
+> = float4( 0.80f, 0.80f, 0.80f, 1.0f );
+
+// 透明度
+float g_transparency
+<
+	string UIName = "Transparency";
+	float UIMin = 0.0f;
+	float UIMax = 1.0f;
+	float UIStep = 0.001f;
+> = 0.0f;
+
+// 自己発光
+float3 g_emissionColor
+<
+	string UIName = "Emission";
+> = float3(0.00f, 0.00f, 0.00f);
+
+// ライティングにおける拡散反射輝度のスケール
+float g_diffuseAttenuation
+<
+	string UIName = "Luminance";
+	float UIMin = 0.0f;
+	float UIMax = 2.0f;
+	float UIStep = 0.01f;
+> = 1.0f;
+
+// スペキュラーの設定
+bool g_enablesSpecular
+<
+	string UIName = "Specular";
+> = false;
+
+int g_specularColorSelector
+<
+	string UIName = "Specular Color Select";
+	string UIType = "Spinner";
+	int UIMin = 0;
+	int UIMax = 3;
+	int UIStep = 1;
+> = 0;
+
+float3 g_colorSpecular
+<
+	string UIName = "Specular Color";
+> = float3( 0.80f, 0.80f, 0.80f );
+
+float g_SpecularPower
+<
+	string UIName = "Specular Power";
+	string UIType = "FloatSpinner";
+	float UIMin = 0.01f;
+	float UIMax = 256.0f;
+> = 32.0f;
+
+// リムスペキュラー
+bool g_enablesRimSpecular
+<
+	string UIName = "Rim Specular";
+> = false;
+
+float3 g_colorRimSpecular
+<
+	string UIName = "Rim Specular Color";
+> = float3( 0.80f, 0.80f, 0.80f );
+
+float g_rimSpecularPower
+<
+	string UIName = "Rim Specular power";
+	string UIType = "FloatSpinner";
+	float UIMin = 0.01f;
+	float UIMax = 256.0f;
+> = 5.0f;
+
+float g_rimSpecularSelfLuminous
+<
+	string UIName = "Rim Specular Luminous";
+	string UIType = "FloatSpinner";
+	float UIMin = 0.0f;
+	float UIMax = 2.0f;
+> = 1.0f;
+
+
+// ベースカラーテクスチャ
+// ・ビットマップ
+// ・マップチャンネル
+bool g_enablesBaseColorTex
+<
+	string UIName = "Base Texture";
+> = false;
+
+
+texture g_texBaseColor : DiffuseMap
+<
+	string UIName = "Base Texture";
+	int Texcoord = 0;
+	int MapChannel = 1;
+>;
+
+sampler2D g_texsmpBaseColor = sampler_state
+{
+	Texture = <g_texBaseColor>;
+	minFilter = Linear;
+	magFilter = Linear;
+};
+
+int g_blendBaseColorTexture
+<
+	string UIName = "Base Texture Blend";
+	string UIType = "Spinner";
+	int UIMin = 0;
+	int UIMax = 6;
+	int UIStep = 1;
+> = 0;
+
+int g_baseColorTexTransform
+<
+	string UIName = "Base Texture Transform";
+	string UIType = "Spinner";
+	int UIMin = 0;
+	int UIMax = 3;
+	int UIStep = 1;
+> = 0;
+
+// 補助カラーテクスチャ
+// ・ビットマップ
+// ・マップチャンネル
+bool g_enablesUtilColorTex
+<
+	string UIName = "Util Texture";
+> = false;
+
+texture g_texUtilColor : DiffuseMap
+<
+	string UIName = "Texture";
+	int Texcoord = 1;
+	int MapChannel = 1;
+>;
+
+sampler2D g_texsmpUtilColor = sampler_state
+{
+	Texture = <g_texUtilColor>;
+	minFilter = Linear;
+	magFilter = Linear;
+};
+
+int g_blendUtilColorTexture
+<
+	string UIName = "Util Texture Blend";
+	string UIType = "Spinner";
+	int UIMin = 0;
+	int UIMax = 8;
+	int UIStep = 1;
+> = 0;
+
+int g_utilColorTexTransform
+<
+	string UIName = "Util Texture Transform";
+	string UIType = "Spinner";
+	int UIMin = 0;
+	int UIMax = 3;
+	int UIStep = 1;
+> = 0;
+
+// グロスマップ
+bool g_enablesGlossMap
+<
+	string UIName = "Gloss Map";
+> = false;
+
+int g_indexGlossSrc
+<
+	string UIName = "Gloss Map Source";
+	int UIMin = 0;
+	int UIMax = 2;
+	int UIStep = 1;
+> = 0;
+
+// 法線マップテクスチャ
+// ・ビットマップ
+// ・マップチャンネル
+// ・基底ベクトル
+bool g_enablesNormalMap
+<
+	string UIName = "Normal Map";
+> = false;
+
+texture g_texNormalMap : NormalMap
+<
+	string UIName = "NormalMap Texture";
+	int Texcoord = 2;
+	int MapChannel = 1;
+>;
+
+sampler2D g_texsmpNormalMap = sampler_state
+{
+	Texture = <g_texNormalMap>;
+	minFilter = Linear;
+	magFilter = Linear;
+};
+
+// 法線マップの基底ベクトルの選択(ローカル座標系/接線座標系)
+int g_normalMapType
+<
+	string UIName = "Normal Map Type";
+	string UIType = "Spinner";
+	int UIMin = 0;
+	int UIMax = 1;
+	int UIStep = 1;
+> = 0;
+
+int g_normalMapTexTransform
+<
+	string UIName = "NormalMap Transform";
+	string UIType = "Spinner";
+	int UIMin = 0;
+	int UIMax = 3;
+	int UIStep = 1;
+> = 0;
+
+// ローカル座標系での法線マップのRGBの基底ベクトル。
+int g_normalMapAxisR
+<
+	string UIName = "Base Axis of R";
+	string UIWidget = "Slider";
+	int UIMin = 0;
+	int UIMax = 5;
+	int UIStep = 1;
+> = 0;
+
+int g_normalMapAxisG
+<
+	string UIName = "Base Axis of G";
+	string UIWidget = "Slider";
+	int UIMin = 0;
+	int UIMax = 5;
+	int UIStep = 1;
+> = 2;
+
+int g_normalMapAxisB
+<
+	string UIName = "Base Axis of B";
+	string UIWidget = "Slider";
+	int UIMin = 0;
+	int UIMax = 5;
+	int UIStep = 1;
+> = 4;
+
+const float3 g_vtBaseAxis[6] =
+{
+	{  1, 0, 0, },		// +X
+	{ -1, 0, 0, },		// -X
+	{ 0,  1, 0, },		// +Y
+	{ 0, -1, 0, },		// -Y
+	{ 0, 0,  1, },		// +Z
+	{ 0, 0, -1, },		// -Z
+};
+
+// 接線座標系での法線マップの、RとGを交換。
+bool g_swapTangentAndBinormal
+<
+	string UIName = "Swap Tgt and Bnml.";
+> = false;
+
+// 接線座標系のTangent基底ベクトルの向きを反転する。
+bool g_flipTangent
+<
+	string UIName = "Flip Tangent";
+> = false;
+
+// 接線座標系のBinormal基底ベクトルの向きを反転する。
+bool g_flipBinormal
+<
+	string UIName = "Flip Binormal";
+> = false;
+
+// 法線マップのデバッグ
+bool g_debugShowNormalDir
+<
+	string UIName = "Output Normal To Color";
+> = false;
+
+// 環境マップテクスチャ
+// ・ビットマップ
+// ・調整カラー
+// ・フレネル項
+bool g_enablesEnvironmentMap
+<
+	string UIName = "Environment Map";
+> = false;
+
+texture g_texCubeEnvironmentMap : EnvironmentMap
+<
+	string UIName = "Cube Map Texture";
+	string Type = "Cube";
+>;
+
+samplerCUBE	g_texsmpCubeEnvironmentMap = sampler_state
+{
+	Texture = <g_texCubeEnvironmentMap>;
+	minFilter = Linear;
+	magFilter = Linear;
+};
+
+texture g_texSphereEnvironmentMap
+<
+	string UIName = "Sphere Map Texture";
+>;
+
+sampler2D	g_texsmpSphericalEnvironmentMap = sampler_state
+{
+	Texture = <g_texSphereEnvironmentMap>;
+	MinFilter = Linear;
+	MagFilter = Linear;
+};
+
+int g_environmentMapType
+<
+	string UIName = "Env Map Type";
+	int UIMin = 0;
+	int UIMax = 2;
+	int UIStep = 1;
+> = 0;
+
+float4 g_colorEnvironmentMapModulate
+<
+	string UIName = "Env Map Color";
+> = float4( 1.00f, 1.00f, 1.00f, 1.0f );
+
+bool g_enablesFresnelTerm
+<
+	string UIName = "Use Fresnel";
+> = false;
+
+float g_fresnelR0
+<
+	string UIName = "Fresnel Front";
+	float UIMin = 0.0f;
+	float UIMax = 1.0f;
+	float UIStep = 0.01f;
+> = 0.2f;
+
+float g_fresnelR1
+<
+	string UIName = "Fresnel Side";
+	float UIMin = 0.0f;
+	float UIMax = 10.0f;
+	float UIStep = 0.01f;
+> = 0.8f;
+
+// パララックスマップ
+bool g_enablesParallaxMap
+<
+	string UIName = "Parallax Map";
+> = false;
+
+int g_parallaxMapSource
+<
+	string UIName = "Parallax Map Source";
+	int UIMin = 0;
+	int UIMax = 2;
+	int UIStep = 1;
+> = 0;
+
+float g_parallaxMapStride
+<
+	string UIName = "Parallax Map Stride";
+> = 0.03f;
+
+// テクスチャ座標変換１の移動成分
+float2 g_texcoordTransformOffset1
+<
+	string UIName = "TexTransform1 Offset";
+> = float2( 0.0f, 0.0f );
+
+// テクスチャ座標変換１の縮尺成分
+float2 g_texcoordTransformRepeat1
+<
+	string UIName = "TexTransform1 Repeat";
+> = float2( 1.0f, 1.0f );
+
+// テクスチャ座標変換２の移動成分
+float2 g_texcoordTransformOffset2
+<
+	string UIName = "TexTransform2 Offset";
+> = float2( 0.0f, 0.0f );
+
+// テクスチャ座標変換２の縮尺成分
+float2 g_texcoordTransformRepeat2
+<
+	string UIName = "TexTransform2 Repeat";
+> = float2( 1.0f, 1.0f );
+
+// テクスチャ座標変換３の移動成分
+float2 g_texcoordTransformOffset3
+<
+	string UIName = "TexTransform3 Offset";
+> = float2( 0.0f, 0.0f );
+
+// テクスチャ座標変換３の縮尺成分
+float2 g_texcoordTransformRepeat3
+<
+	string UIName = "TexTransform3 Repeat";
+> = float2( 1.0f, 1.0f );
+
+
+// フォグの影響
+bool g_enablesFog
+<
+	string UIName = "Fog";
+> = true;
+
+// 環境光(環境グローバル)
+float3 g_ambientLightColor
+<
+	string UIName = "Ambient Light Color";
+> = float3(0.3, 0.3, 0.3);
+
+// フォグ(環境グローバル)
+// ・種類
+// ・フォグカラー
+// ・リニアフォグの開始/終了距離
+// ・指数フォグの濃度係数
+int g_fogDensityType
+<
+	string UIName = "Fog Density Type";
+	int UIMin = 0;
+	int UIMax = 3;
+	int UIStep = 1;
+> = 0;
+
+float4 g_fogColor
+<
+	string UIName = "Fog Color";
+> = float4( 0.80f, 0.80f, 0.80f, 1.0f );
+
+float g_fogStart
+<
+	string UIName = "Fog Start";
+	float UIMin = 0.0;
+	float UIMax = 10000.0;
+	float UIStep = 1.0;
+> = 1.0;
+
+float g_fogEnd
+<
+	string UIName = "Fog End";
+	float UIMin = 0.0;
+	float UIMax = 10000.0;
+	float UIStep = 1.0;
+> = 100.0;
+
+float g_fogDensity
+<
+	string UIName = "Fog Density(1/1000)";
+	float UIMin = 0.0;
+	float UIMax = 100.0;
+	float UIStep = 0.01;
+> = 1.0;
+
+struct VSOutput
+{
+	float4 vtPosition			: POSITION;
+   	float3 vtViewDirection		: TEXCOORD0;
+   	float2 uv0					: TEXCOORD1;
+   	float2 uv1					: TEXCOORD2;
+   	float2 uv2					: TEXCOORD3;
+   	
+   	float3 Nv					: TEXCOORD4;
+   	float3 Ns					: TEXCOORD5;
+   	float3 Nt					: TEXCOORD6;
+
+   	float2 slide				: TEXCOORD7;
+
+	float4 color				: COLOR;
+	
+	float fogDistance			: FOG;
+};
+
+struct PSInput
+{
+   	float3 vtViewDirection		: TEXCOORD0;
+   	float2 uv0					: TEXCOORD1;
+   	float2 uv1					: TEXCOORD2;
+   	float2 uv2					: TEXCOORD3;
+
+   	float3 Nv					: TEXCOORD4;
+   	float3 Ns					: TEXCOORD5;
+   	float3 Nt					: TEXCOORD6;
+
+   	float2 slide				: TEXCOORD7;
+
+	float4 color				: COLOR;
+
+	float fogDistance			: FOG;
+};
+
+VSOutput VS(
+	float3 iPosition	: POSITION,
+	float3 iNormal		: NORMAL,
+	float2 iTexCoord0	: TEXCOORD0,
+	float2 iTexCoord1	: TEXCOORD3,
+	float2 iTexCoord2	: TEXCOORD4,
+
+	float4 iColor		: COLOR0,
+
+	float3 iTangent		: TEXCOORD1,
+	float3 iBinormal	: TEXCOORD2)
+{
+	VSOutput o;
+
+	// ラスタライズの為に頂点の同時座標を出力。
+	o.vtPosition = mul(g_mtxWorldViewProj, float4(iPosition,1));
+
+	// View座標系でのピクセルから視点へのベクトルを計算。
+	// PerPixelLightingにおいて参照される。
+//	if(g_mtxProjection[3][3] == 0.0f)
+	{
+		// 透視変換の場合。普通。
+		o.vtViewDirection = -1.0f * mul(g_mtxWorldView, float4(iPosition,1)).xyz;
+	}
+//	else
+//	{
+//		// 正射影行列の場合、ピクセルの位置にかかわらず視線方向は平行になる。
+//		o.vtViewDirection = float3(0,0,-1);
+//	}
+
+	if(g_enablesNormalMap || g_parallaxMapStride)
+	{
+		float3 tmpNs;
+		float3 tmpNt;
+		float3 tmpNv;
+		if(g_enablesNormalMap && (g_normalMapType == 0))
+		{
+			// モデルのローカル座標系での法線マップ
+			// 法線マップの基底ベクトル用に、モデル座標系の基底ベクトルを
+			// ビュー座標系へ変換して出力。
+			tmpNs = g_vtBaseAxis[g_normalMapAxisR];
+			tmpNt = g_vtBaseAxis[g_normalMapAxisG];
+			tmpNv = cross(tmpNs, tmpNt);
+			if(dot(g_vtBaseAxis[g_normalMapAxisB], tmpNv) < 0)
+			{
+				tmpNv *= -1.0f;
+			}
+		}
+		else
+		{
+			// テクスチャの接線空間での法線マップ
+			// Mayaから入力されるTangentとBinormalは逆になっているので入れ替える
+			// r -> binormal
+			// g -> tangent
+			tmpNs = g_swapTangentAndBinormal? iBinormal: iTangent;
+			// Mayaではテクスチャ座標系が左下原点なので、Binormalを反転させる
+			tmpNt = g_swapTangentAndBinormal? -iTangent: -iBinormal;
+			tmpNv = cross(iTangent, iBinormal);
+			if(dot(iNormal, tmpNv) < 0)
+			{
+				tmpNv *= -1.0f;
+			}
+		}
+		o.Ns = mul((float3x3)g_mtxWorldView, tmpNs);
+		o.Nt = mul((float3x3)g_mtxWorldView, tmpNt);
+		o.Nv = mul((float3x3)g_mtxWorldView, tmpNv);
+
+		// パララクスマップのオフセット量
+		float3 vtVDir = normalize(o.vtViewDirection);
+		// Mayaではテクスチャ座標系が左下原点なので、slide.yを反転させる
+		o.slide = float2(dot(o.Ns, vtVDir), -dot(o.Nt, vtVDir));
+
+		if(g_enablesNormalMap && (g_normalMapType == 1))
+		{
+			o.Ns *= g_flipTangent? -1.0f: 1.0f;
+			o.Nt *= g_flipBinormal? -1.0f: 1.0f;
+		}
+	}
+	else
+	{
+		// View座標系での法線ベクトルを出力。
+		o.Nv = mul((float3x3)g_mtxWorldView, iNormal);
+		// 法線マップ用の基底ベクトルは出力しない。
+		o.Ns = float3(0, 0, 0);
+		o.Nt = float3(0, 0, 0);
+		// パララクスマップのオフセット量
+		o.slide = float2(0, 0);
+	}
+
+	// UV座標の計算
+	// プレビューシェーダのUV座標アニメーションの原点は左上になる。
+	// Mayaは左下が原点なのでV方向のオフセットを反転させ、
+	// スケールピボットを左上に設定する。
+	float2 repeat1 = g_texcoordTransformRepeat1;
+	float2 repeat2 = g_texcoordTransformRepeat2;
+	float2 repeat3 = g_texcoordTransformRepeat3;
+	float2 offset1 = float2( g_texcoordTransformOffset1.x, -g_texcoordTransformOffset1.y );
+	float2 offset2 = float2( g_texcoordTransformOffset2.x, -g_texcoordTransformOffset2.y );
+	float2 offset3 = float2( g_texcoordTransformOffset3.x, -g_texcoordTransformOffset3.y );
+
+	o.uv0 =
+		// TexTransform 0(無効)
+		(step((float)g_baseColorTexTransform,0) * step(0,(float)g_baseColorTexTransform) *
+			iTexCoord0)
+		// TexTransform 1
+	  + (step((float)g_baseColorTexTransform,1) * step(1,(float)g_baseColorTexTransform) *
+			((((iTexCoord0-float2(0,1)) * repeat1)+float2(0,1)) + offset1))
+		// TexTransform 2
+	  + (step((float)g_baseColorTexTransform,2) * step(2,(float)g_baseColorTexTransform) *
+			((((iTexCoord0-float2(0,1)) * repeat2)+float2(0,1)) + offset2))
+		// TexTransform 3
+	  + (step((float)g_baseColorTexTransform,3) * step(3,(float)g_baseColorTexTransform) *
+			((((iTexCoord0-float2(0,1)) * repeat3)+float2(0,1)) + offset3));
+
+	o.uv1 =
+		// TexTransform 0(無効)
+		(step((float)g_utilColorTexTransform,0) * step(0,(float)g_utilColorTexTransform) *
+			iTexCoord1)
+		// TexTransform 1
+	  + (step((float)g_utilColorTexTransform,1) * step(1,(float)g_utilColorTexTransform) *
+			((((iTexCoord1-float2(0,1)) * repeat1)+float2(0,1)) + offset1))
+		// TexTransform 2
+	  + (step((float)g_utilColorTexTransform,2) * step(2,(float)g_utilColorTexTransform) *
+			((((iTexCoord1-float2(0,1)) * repeat2)+float2(0,1)) + offset2))
+		// TexTransform 3
+	  + (step((float)g_utilColorTexTransform,3) * step(3,(float)g_utilColorTexTransform) *
+			((((iTexCoord1-float2(0,1)) * repeat3)+float2(0,1)) + offset3));
+
+	o.uv2 =
+		// TexTransform 0(無効)
+		(step((float)g_normalMapTexTransform,0) * step(0,(float)g_normalMapTexTransform) *
+			iTexCoord2)
+		// TexTransform 1
+	  + (step((float)g_normalMapTexTransform,1) * step(1,(float)g_normalMapTexTransform) *
+			((((iTexCoord2-float2(0,1)) * repeat1)+float2(0,1)) + offset1))
+		// TexTransform 2
+	  + (step((float)g_normalMapTexTransform,2) * step(2,(float)g_normalMapTexTransform) *
+			((((iTexCoord2-float2(0,1)) * repeat2)+float2(0,1)) + offset2))
+		// TexTransform 3
+	  + (step((float)g_normalMapTexTransform,3) * step(3,(float)g_normalMapTexTransform) *
+			((((iTexCoord2-float2(0,1)) * repeat3)+float2(0,1)) + offset3));
+
+	// カラーをそのまま出力
+	o.color = iColor;
+
+	// フォグの距離を出力
+	// 線形フォグでは、開始距離から終了距離の間での正規化を済ませておく。
+	if(g_fogDensityType == 1)
+	{
+		o.fogDistance = (g_fogEnd - o.vtPosition.w) / (g_fogEnd - g_fogStart);
+	}
+	else
+	{
+		o.fogDistance = o.vtPosition.w;
+	}
+
+	return o;
+}
+
+float4 PS(
+	PSInput i
+	) : COLOR0
+{
+	// 光線の方向をView座標系へ変換。
+	float3 vtLightDir = -g_vtLightDir;
+	// ピクセルから視点へ向かう方向の単位ベクトルを計算。
+	float3 vtEye = normalize(i.vtViewDirection);
+
+	// パララックスマップによるテクスチャアドレスのオフセットを計算
+	float2 uvStride = 0;
+	if(g_enablesParallaxMap)
+	{
+		float height;
+		if(g_parallaxMapSource == 0)
+		{
+			height = tex2D(g_texsmpBaseColor, i.uv0).a;
+		}
+		else if(g_parallaxMapSource == 1)
+		{
+			height = tex2D(g_texsmpUtilColor, i.uv1).a;
+		}
+		else
+		{
+			height = tex2D(g_texsmpNormalMap, i.uv2).a;
+		}
+		uvStride = (1.0f - height) * -g_parallaxMapStride * i.slide;
+	}
+
+	// 法線ベクトルを決定
+	float3 vtNormal;
+	if(!g_enablesNormalMap)
+	{
+		// 頂点シェーダから出力された法線ベクトルを使う。
+		vtNormal = i.Nv;
+	}
+	else
+	{
+		// 法線マップからベクトルを読み取る。
+		float3 n = tex2D(g_texsmpNormalMap, i.uv2+uvStride).xyz;
+		n = 2.0f * (n - 0.5f);
+		vtNormal = (n.x * i.Ns) + (n.y * i.Nt) + (n.z * i.Nv);
+	}
+	// 法線ベクトルを正規化。
+	vtNormal = normalize(vtNormal);
+
+	// ベーステクスチャをフェッチ
+	float4 textureColor[2];
+	textureColor[0] = g_enablesBaseColorTex? tex2D(g_texsmpBaseColor, i.uv0+uvStride): float4(1,1,1,1);
+	textureColor[1] = g_enablesUtilColorTex? tex2D(g_texsmpUtilColor, i.uv1+uvStride): float4(1,1,1,1);
+
+	// ポリゴンのベースカラーを決定
+	float4 colorMaterial;
+	if(g_diffuseColorSelect == 0)
+	{
+		// マテリアルカラー
+		float4 diffuse = g_diffuseColor;
+		diffuse.a = 1.0f-g_transparency;
+		colorMaterial = diffuse;
+	}
+	else if(g_diffuseColorSelect == 1)
+	{
+		// 頂点カラー
+		colorMaterial = i.color;
+	}
+	else
+	{
+		// マテリアルと頂点カラーの積
+		float4 diffuse = g_diffuseColor;
+		diffuse.a = 1.0f-g_transparency;
+		colorMaterial = diffuse * i.color;
+	}
+
+	// マテリアルのベースカラーに対するライティング結果の輝度
+	float4 lumDiffuse = { 0, 0, 0, 1 };
+	float3 lumSpecular = { 0, 0, 0 };
+	float3 lumRimSpecular = { 0, 0, 0 };
+
+	// ライティング
+	if(g_enablesLighting != false)
+	{
+		// 白色のマテリアルに対しての拡散反射を計算。
+		float d = max(0, dot(vtNormal, vtLightDir));
+		lumDiffuse.rgb += d * g_colorLight.rgb;
+
+		// 環境光を加算
+		lumDiffuse.rgb += g_ambientLightColor;
+
+		// 白色のマテリアルに対してのスペキュラーを計算。
+		if(g_enablesSpecular)
+		{
+			float3 vtHalf = normalize(vtLightDir + vtEye);
+			float s = max(0, dot(vtNormal, vtHalf));
+			s = pow(s, g_SpecularPower);
+			lumSpecular += s * g_colorLight.rgb;
+		}
+
+		// 白色のマテリアルに対してのリムスペキュラーを計算。
+		if(g_enablesRimSpecular)
+		{
+			float fr = pow((1.0f - dot(vtNormal, vtEye)), g_rimSpecularPower);
+			float lumi = saturate(dot(vtNormal, vtLightDir) + g_rimSpecularSelfLuminous);
+			lumRimSpecular = (fr * lumi) * g_colorLight.rgb;
+		}
+
+		// 拡散反射の減衰を適用。
+		lumDiffuse *= g_diffuseAttenuation;
+		// 自己発光の輝度を加算。
+		lumDiffuse.rgb += g_emissionColor;
+
+		// マテリアルカラーに拡散反射のシェーディングを適用。
+		colorMaterial.rgb *= lumDiffuse.rgb;
+	}
+	else
+	{
+		lumDiffuse = float4(1,1,1,1);
+		lumSpecular = float3(0,0,0);
+	}
+
+	// テクスチャカラー/アルファを適用
+	// ピクセルの最終カラーを代入する変数。
+	float4 pixelColor = colorMaterial;
+	if(g_enablesBaseColorTex)
+	{
+		// ベースカラーテクスチャの合成
+		pixelColor =
+			// ModulateRGBA
+			(step((float)g_blendBaseColorTexture,0) * step(0,(float)g_blendBaseColorTexture) *
+				pixelColor * textureColor[0])
+			// ModulateRGB
+		  + (step((float)g_blendBaseColorTexture,1) * step(1,(float)g_blendBaseColorTexture) *
+				float4((pixelColor * textureColor[0]).rgb, pixelColor.a))
+			// AddRGB
+		  + (step((float)g_blendBaseColorTexture,2) * step(2,(float)g_blendBaseColorTexture) *
+				float4((pixelColor + textureColor[0]).rgb, pixelColor.a))
+			// DecalRGBA_Ma 
+		  + (step((float)g_blendBaseColorTexture,3) * step(3,(float)g_blendBaseColorTexture) *
+				float4(lerp(pixelColor, textureColor[0], pixelColor.a).rgb,
+					   lerp(1, textureColor[0].a, pixelColor.a)))
+			// DecalRGB_Ta 
+		  + (step((float)g_blendBaseColorTexture,4) * step(4,(float)g_blendBaseColorTexture) *
+				float4(lerp(pixelColor, textureColor[0], textureColor[0].a).rgb,
+					   pixelColor.a))
+			// ModulateDecalRGBA_Ma 
+		  + (step((float)g_blendBaseColorTexture,5) * step(5,(float)g_blendBaseColorTexture) *
+				float4(pixelColor * lerp(float4(1,1,1,1), textureColor[0], pixelColor.a).rgb,
+					   lerp(1, textureColor[0].a, pixelColor.a)))
+			// ModulateDecalRGB_Ta 
+		  + (step((float)g_blendBaseColorTexture,6) * step(6,(float)g_blendBaseColorTexture) *
+				float4(pixelColor.rgb * lerp(float4(1,1,1,1), textureColor[0], textureColor[0].a).rgb,
+					   pixelColor.a));
+	}
+	if(g_enablesUtilColorTex)
+	{
+		// 補助カラーテクスチャの合成
+		pixelColor =
+			// ModulateRGBA
+			(step((float)g_blendUtilColorTexture,0) * step(0,(float)g_blendUtilColorTexture) *
+				(pixelColor * textureColor[1]))
+			// ModulateRGB
+		  + (step((float)g_blendUtilColorTexture,1) * step(1,(float)g_blendUtilColorTexture) *
+				float4((pixelColor * textureColor[1]).rgb, pixelColor.a))
+		  // AddRGB
+		  + (step((float)g_blendUtilColorTexture,2) * step(2,(float)g_blendUtilColorTexture) *
+				float4((pixelColor + textureColor[1]).rgb, pixelColor.a))
+		  // DecalRGB_Ma
+		  + (step((float)g_blendUtilColorTexture,3) * step(3,(float)g_blendUtilColorTexture) *
+				float4(lerp((colorMaterial*textureColor[0]), textureColor[1], colorMaterial.a).rgb,
+					   1.0))
+		  // DecalRGBA_Ma
+		  + (step((float)g_blendUtilColorTexture,4) * step(4,(float)g_blendUtilColorTexture) *
+				float4(lerp((colorMaterial*textureColor[0]), textureColor[1], colorMaterial.a).rgb,
+					   lerp(textureColor[0].a, textureColor[1].a, colorMaterial.a)))
+		  // DecalRGBA_Ta
+		  + (step((float)g_blendUtilColorTexture,5) * step(5,(float)g_blendUtilColorTexture) *
+				float4(lerp((colorMaterial*textureColor[0]), textureColor[1], colorMaterial.a).rgb,
+					   lerp(colorMaterial.a*textureColor[0].a, colorMaterial.a, textureColor[1].a)))
+		  // ModulateDecalRGB_Ma
+		  + (step((float)g_blendUtilColorTexture,6) * step(6,(float)g_blendUtilColorTexture) *
+				float4((colorMaterial * lerp(textureColor[0], textureColor[1], colorMaterial.a)).rgb,
+					   1.0))
+		  // ModulateDecalRGBA_Ma
+		  + (step((float)g_blendUtilColorTexture,7) * step(7,(float)g_blendUtilColorTexture) *
+				float4((colorMaterial * lerp(textureColor[0], textureColor[1], colorMaterial.a)).rgb,
+					   lerp(textureColor[0].a, textureColor[1].a, colorMaterial.a)))
+		  // ModulateDecalRGBA_Ta
+		  + (step((float)g_blendUtilColorTexture,8) * step(8,(float)g_blendUtilColorTexture) *
+				float4((colorMaterial * lerp(textureColor[0], textureColor[1], textureColor[1].a)).rgb,
+					   colorMaterial.a * lerp(textureColor[0].a, 1.0, textureColor[1].a)));
+	}
+
+	// グロスマップ値を代入
+	float glossMap;
+	if(!g_enablesGlossMap)
+	{
+		// 無効
+		glossMap = 1.0f;
+	}
+	else if(g_indexGlossSrc == 0)
+	{
+		// ベースカラーテクスチャのアルファ。
+		glossMap = textureColor[0].a;
+	}
+	else if(g_indexGlossSrc == 1)
+	{
+		// 補助カラーテクスチャのアルファ。
+		glossMap = textureColor[1].a;
+	}
+	else
+	{
+		// フラグメントのアルファ。
+		glossMap = pixelColor.a;
+	}
+
+	// スペキュラーカラーを決定
+	float3 colorSpecular;
+	if(g_specularColorSelector == 0)
+	{
+		// マテリアルカラー
+		colorSpecular = g_colorSpecular;
+	}
+	else if(g_specularColorSelector == 1)
+	{
+		// 頂点カラー
+		colorSpecular = i.color.rgb;
+	}
+	else if(g_specularColorSelector == 2)
+	{
+		// マテリアルと頂点カラーの積
+		colorSpecular = g_colorSpecular * i.color.rgb;
+	}
+	else
+	{
+		// フラグメントのカラー。
+		colorSpecular = g_colorSpecular * pixelColor.rgb;
+	}
+
+	// スペキュラをのせる。
+	pixelColor.rgb += glossMap * lumSpecular * colorSpecular;
+
+	// リムスペキュラーをのせる。
+	if(g_enablesRimSpecular)
+	{
+		float3 colorRimSpecular;
+		if(g_specularColorSelector == 0)
+		{
+			// マテリアルカラー
+			colorRimSpecular = g_colorRimSpecular;
+		}
+		else if(g_specularColorSelector == 1)
+		{
+			// 頂点カラー
+			colorRimSpecular = i.color.rgb;
+		}
+		else if(g_specularColorSelector == 2)
+		{
+			// マテリアルと頂点カラーの積
+			colorRimSpecular = g_colorRimSpecular * i.color.rgb;
+		}
+		else
+		{
+			// フラグメントのカラー。
+			colorRimSpecular = g_colorRimSpecular * pixelColor.rgb;
+		}
+
+		pixelColor.rgb += glossMap * lumRimSpecular * colorRimSpecular;
+	}
+
+	// 環境マップをのせる
+	if(g_enablesEnvironmentMap)
+	{
+		float4 colEnvironmentMap = { 0, 0, 0, 0 };
+		// ワールド座標系でのキューブ環境マップを行う。
+		float3 rv = normalize((float3)reflect(vtEye, vtNormal));
+		if(g_environmentMapType == 0)
+		{
+			// ワールド座標系でのキューブ環境マップを行う。
+			rv = mul(g_imtxView, float4(rv,0)).xyz;
+			// MayaとDirect3Dの座標系の違いを修正。
+			rv = float3(-1,-1, 1) * rv.xyz;
+	
+			colEnvironmentMap =
+				g_colorEnvironmentMapModulate
+			  * texCUBE(g_texsmpCubeEnvironmentMap, rv);
+		}
+		else
+		{
+			// 鏡面反射環境マップ(g_environmentMapType == 2)を指定されたときも
+			// プレビューシェーダ上では球面環境マップとして表示する。
+
+			// ビュー座標系での球状環境マップを行う
+			float3 r = rv;
+			r.z -= 1.0;
+			r = r * r;
+			float m = rsqrt(r.x + r.y + r.z);
+			float2 uv = float2(0.5,-0.5) * (rv.xy * m + float2(1.0, 1.0));
+
+			colEnvironmentMap =
+				g_colorEnvironmentMapModulate
+			  * tex2D(g_texsmpSphericalEnvironmentMap, uv);
+		}
+
+		if(g_enablesFresnelTerm)
+		{
+			// フレネル項によって環境マップの強さを調整する。
+			float f = pow(1.0f - dot(vtEye, vtNormal), 4.0f);
+			f = g_fresnelR0 + g_fresnelR1 * f;
+			f *= glossMap;
+			pixelColor.rgb = lerp(pixelColor.rgb, colEnvironmentMap.rgb, f);
+		}
+		else
+		{
+			// そのままピクセルの色へ加算する。
+			pixelColor.rgb += glossMap * colEnvironmentMap.rgb;
+		}
+	}
+
+	// フォグとの合成
+	//  フォグスイッチがOFFならばフォグを無効にする。
+	int fogType = (g_enablesFog? 1: 0) * g_fogDensityType;
+	if(fogType == 0)
+	{
+		// フォグ無効
+	}
+	else if(fogType == 1)
+	{
+		// 線形フォグ
+		pixelColor.rgb = lerp(
+			g_fogColor.rgb,
+			pixelColor.rgb,
+			clamp(i.fogDistance, 0, 1));
+	}
+	else if(fogType == 2)
+	{
+		// 指数フォグ
+		float d = ((g_fogDensity * 0.001) * i.fogDistance);
+		pixelColor.rgb = lerp(
+			g_fogColor.rgb,
+			pixelColor.rgb,
+			exp(-d));
+	}
+	else if(fogType == 3)
+	{
+		// 指数フォグ2
+		float d = ((g_fogDensity * 0.001) * i.fogDistance);
+		pixelColor.rgb = lerp(
+			g_fogColor.rgb,
+			pixelColor.rgb,
+			exp(-d*d));
+	}
+
+	// デバッグ目的で、法線方向をカラーで出力。
+	if(g_debugShowNormalDir)
+	{
+		pixelColor.rgb = float3(vtNormal);
+	}
+	return pixelColor;
+}
+
+technique OPACITY
+{
+    pass P0 
+    {		
+       	PolygonMode			= int2(FrontAndBack, Fill); 
+
+		VertexProgram	= compile vp30 VS();
+
+		FragmentProgram	= compile fp30 PS();
+
+		DepthTestEnable		= true;
+		DepthMask			= true;
+		
+		BlendEnable			= false;
+		AlphaTestEnable		= false;
+    }
+}
+
+technique ALPHATEST
+{
+    pass P0 
+    {		
+       	PolygonMode			= int2(FrontAndBack, Fill); 
+
+		VertexProgram	= compile vp30 VS();
+
+		FragmentProgram	= compile fp30 PS();
+		
+		DepthTestEnable		= true;
+		DepthMask			= true;
+
+		BlendEnable			= false;
+		BlendFunc			= int2(SrcAlpha, OneMinusSrcAlpha);
+
+		AlphaTestEnable		= true;
+		AlphaFunc			= float2(Greater, 0.49f);
+    }
+}
+
+technique BLEND
+{
+    pass P0 
+    {		
+       	PolygonMode			= int2(FrontAndBack, Fill); 
+
+		VertexProgram	= compile vp30 VS();
+
+		FragmentProgram	= compile fp30 PS();
+		
+		DepthTestEnable		= true;
+		DepthMask			= false;
+
+		BlendEnable			= true;
+		BlendFunc			= int2(SrcAlpha, OneMinusSrcAlpha);
+		BlendEquation		= Add;
+
+		AlphaTestEnable		= true;
+		AlphaFunc			= float2(Greater, 0);
+    }
+}
+
+technique BLEND_2PASS
+{
+    pass P0 
+    {		
+       	PolygonMode			= int2(FrontAndBack, Fill); 
+
+		VertexProgram	= compile vp30 VS();
+		FragmentProgram	= compile fp30 PS();
+
+		DepthTestEnable		= true;
+		DepthMask			= false;
+		
+		BlendEnable			= true;
+		BlendFunc			= int2(SrcAlpha, OneMinusSrcAlpha);
+		BlendEquation		= Add;
+
+		AlphaTestEnable		= true;
+		AlphaFunc			= float2(Greater, 0);
+    }
+}
+
+technique ADD
+{
+    pass P0 
+    {		
+       	PolygonMode			= int2(FrontAndBack, Fill); 
+
+		VertexProgram	= compile vp30 VS();
+
+		FragmentProgram	= compile fp30 PS();
+		
+		DepthTestEnable		= true;
+		DepthMask			= false;
+
+		BlendEnable			= true;
+		BlendFunc			= int2(SrcAlpha, One);
+		BlendEquation		= Add;
+
+		AlphaTestEnable		= true;
+		AlphaFunc			= float2(Greater, 0);
+    }
+}
+
+technique SUB
+{
+    pass P0 
+    {		
+       	PolygonMode			= int2(FrontAndBack, Fill); 
+
+		VertexProgram	= compile vp30 VS();
+
+		FragmentProgram	= compile fp30 PS();
+		
+		DepthTestEnable		= true;
+		DepthMask			= false;
+
+		BlendEnable			= true;
+		BlendFunc			= int2(SrcAlpha, One);
+		BlendEquation		= ReverseSubtract;
+
+		AlphaTestEnable		= true;
+		AlphaFunc			= float2(Greater, 0);
+    }
+}
+
+technique MODULATE
+{
+    pass P0 
+    {		
+       	PolygonMode			= int2(FrontAndBack, Fill); 
+
+		VertexProgram	= compile vp30 VS();
+
+		FragmentProgram	= compile fp30 PS();
+		
+		DepthTestEnable		= true;
+		DepthMask			= false;
+
+		BlendEnable			= true;
+		BlendFunc			= int2(DestColor, Zero);
+		BlendEquation		= Add;
+
+		AlphaTestEnable		= true;
+		AlphaFunc			= float2(Greater, 0);
+    }
+}
+
+technique CUSTOM
+{
+    pass P0 
+    {		
+       	PolygonMode			= int2(FrontAndBack, Fill); 
+
+		VertexProgram	= compile vp30 VS();
+
+		FragmentProgram	= compile fp30 PS();
+		
+		DepthTestEnable		= true;
+		DepthMask			= false;
+
+		BlendEnable			= true;
+		BlendFunc			= int2(SrcAlpha, OneMinusSrcAlpha);
+		BlendEquation		= Add;
+
+		AlphaTestEnable		= true;
+		AlphaFunc			= float2(Greater, 0);
+    }
+}
+
+technique SPECULAR_2PASS
+{
+    pass P0 
+    {		
+       	PolygonMode			= int2(FrontAndBack, Fill); 
+
+		VertexProgram	= compile vp30 VS();
+
+		FragmentProgram	= compile fp30 PS();
+		
+		DepthTestEnable		= true;
+		DepthMask			= false;
+
+		BlendEnable			= true;
+		BlendFunc			= int2(SrcAlpha, OneMinusSrcAlpha);
+		BlendEquation		= Add;
+
+		AlphaTestEnable		= true;
+		AlphaFunc			= float2(Greater, 0);
+    }
+}
+
+
+

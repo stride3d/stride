@@ -1,0 +1,42 @@
+!Package
+Id: 2fd8e3c1-d573-48af-8aeb-3f8d053f7d0d
+SerializedVersion: {Assets: 0.0.4}
+Meta:
+    Name: VRSandbox
+    Version: 1.0.0.0
+    Authors: []
+    Owners: []
+    RootNamespace: VRSandbox
+    Dependencies:
+        -   Name: Xenko
+            Version: 2.1.0.2
+            RootAssets: []
+LocalDependencies:
+    - ec64fd24-824f-4da4-b077-3661cf988027:../../Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg
+    - bdd7a38f-3ff5-4279-b7b7-27a4c677f4d7:../../Packs/SamplesAssetPackage/SamplesAssetPackage.xkpkg
+Profiles:
+    -   Name: Shared
+        Platform: Shared
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets/Shared
+            -   Path: VRSandbox.Game/Effects
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: 577d2166-5b06-4119-96cf-70d6c1716a2f
+                Location: VRSandbox.Game/VRSandbox.Game.csproj
+                Type: Library
+    -   Name: Windows
+        Platform: Windows
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets/Windows
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: bd079676-2c54-43c7-8476-14b007ee6780
+                Location: VRSandbox.Windows/VRSandbox.Windows.csproj
+                Type: Executable
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets: []

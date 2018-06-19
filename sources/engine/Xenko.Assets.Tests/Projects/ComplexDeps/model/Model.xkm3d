@@ -1,0 +1,7 @@
+!Model
+Id: 360026b3-7636-456d-bcfe-a3bc8c6db2a9
+BuildOrder: 500
+Source: null
+Materials:
+    -   Name: "New Key"
+        Material: f2620870-6cd8-4e9f-8dfe-1431624562b1:material/Material

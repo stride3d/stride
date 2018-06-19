@@ -1,0 +1,74 @@
+<sskk:ModalWindow x:Class="Xenko.GameStudio.View.AboutPage"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+        xmlns:gameStudio="clr-namespace:Xenko.GameStudio"
+        xmlns:crashReport="clr-namespace:Xenko.Editor.CrashReport"
+        mc:Ignorable="d" 
+        Title="{sskk:Localize About Xenko, Context=About}"
+        SizeToContent="WidthAndHeight" ResizeMode="NoResize"
+        Style="{DynamicResource WindowChromeStyle}" ShowInTaskbar="False"
+        d:DesignHeight="300" d:DesignWidth="300">
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/CommonResources.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+
+      <BitmapImage x:Key="XenkoLogoWhite" UriSource="../Resources/XenkoLogoDefaultWhite.png" />
+    </ResourceDictionary>
+  </Window.Resources>
+  <StackPanel Margin="20">
+    <!-- Xenko logo -->
+    <Image DockPanel.Dock="Top"
+           HorizontalAlignment="Center" VerticalAlignment="Center" 
+           Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelHeight)}"
+           Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelWidth)}"
+           Source="{StaticResource XenkoLogoWhite}" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+    <Grid Margin="20">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="20" />
+        <ColumnDefinition />
+      </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition />
+        <RowDefinition Height="20" />
+        <RowDefinition />
+      </Grid.RowDefinitions>
+      
+      <!-- Copyright info -->
+      <TextBlock Grid.Row="0" Grid.Column="0"
+                 HorizontalAlignment="Left" VerticalAlignment="Center">
+        <Run Text="{sskk:Localize Xenko version, Context=About}" /> <Run Text="{x:Static gameStudio:XenkoGameStudio.EditorVersion}" /><LineBreak />
+        <Run Text="{x:Static gameStudio:XenkoGameStudio.CopyrightText1}" /><LineBreak />
+        <Run Text="{x:Static gameStudio:XenkoGameStudio.CopyrightText2}" /><LineBreak />
+        <!-- License -->
+        <Hyperlink TextDecorations="Underline" Click="License_OnClick">
+          <Run Text="{sskk:Localize MIT License, Context=About}" />
+        </Hyperlink>
+      </TextBlock>
+      <!-- Open-source notice -->
+      <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                 IsEnabled="True">
+        <Run Text="{sskk:Localize Xenko uses open-source software., Context=About}" />
+        <Hyperlink TextDecorations="Underline" Click="ThirdParty_OnClick">
+          <Run Text="{sskk:Localize See the list, Context=About}" />
+        </Hyperlink>
+      </TextBlock>
+      <!-- Privacy policy -->
+      <TextBlock Grid.Row="0" Grid.Column="2"
+                 HorizontalAlignment="Right" VerticalAlignment="Top" FlowDirection="RightToLeft" IsEnabled="True">
+        <Hyperlink TextDecorations="Underline"
+                   CommandParameter="{x:Static crashReport:CrashReportForm.PrivacyPolicyUrl}" Command="{x:Static sskk:UtilityCommands.OpenHyperlinkCommand}">
+          <Run Text="{sskk:Localize Privacy policy, Context=About}" />
+        </Hyperlink>
+      </TextBlock>
+    </Grid>
+    <!-- Button -->
+    <Button HorizontalAlignment="Center" Padding="20,6" MinWidth="80"
+            Content="{sskk:Localize Close, Context=About}" Click="ButtonCloseClick" />
+  </StackPanel>
+</sskk:ModalWindow>

@@ -1,0 +1,14 @@
+!SpriteFont
+Id: cceee37b-d3eb-478b-8203-4689aea8cc5c
+FontName: Mistral
+Size: 14.25
+Style: Italic
+CharacterRegions:
+    -   Start: ' '
+        End: "\x7F"
+DefaultCharacter: ' '
+Format: Rgba32
+Spacing: 0
+LineSpacing: 0
+UseKerning: false
+NoPremultiply: false

@@ -1,0 +1,5 @@
+﻿!ProjectTemplate
+Files:
+  - {Source: $ProjectName$.cs.tt, Target: $ProjectName$.cs, IsTemplate: true}
+  - {Source: SubFolder\TextRaw.txt}
+  - {Source: SubFolder\TextTemplate1.cs.tt, Target: SubFolder\TextTemplate1.cs, IsTemplate: true}

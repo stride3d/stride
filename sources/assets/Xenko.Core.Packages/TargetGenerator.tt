@@ -1,0 +1,54 @@
+<#@ template language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" InitialTargets="CheckPackages">
+<#  foreach (var package in packages)
+	{
+        var packageVar = NugetStore.GetPackageVersionVariable(package.Id, packageVersionPrefix);
+        var packageTarget = String.Format(@"{0}\Targets\{1}.targets", package.Path, package.Id);
+
+        // Special case: if major version 1.0 still exists, use it as default (new projects should be created with props file)
+        var defaultPackageVersion = store.GetLocalPackages(package.Id).Select(x => x.Version).FirstOrDefault(x => x.Version.Major == 1 && x.Version.Minor == 0) ?? package.Version;
+        var defaultPackageVersionNormalized = defaultPackageVersion.ToNuGetVersion().ToNormalizedString();
+	#>
+  <PropertyGroup>
+    <<#=packageVar#> Condition="'$(<#=packageVar#>Override)' != ''">$(<#=packageVar#>Override)</<#=packageVar#>>
+    <<#=packageVar#>Saved>$(<#=packageVar#>)</<#=packageVar#>Saved>
+<#      // List all the correspondances: Major.minor -> latest installed explicit version
+
+        // Get all the related versions of the same package also installed, and order by Major.Minor
+        var allMajorVersions = store.GetLocalPackages(package.Id).GroupBy(p => p.Version.Version.Major, p => p);
+        foreach (var major in allMajorVersions)
+        {
+            var majorVersion = major.Key;
+            var minorPkg = major.GroupBy(p => p.Version.Version.Minor, p => p);
+            foreach (var minor in minorPkg)
+            {
+                var latestPackage = minor.First();
+                var latestPackageVersionNormalized = latestPackage.Version.ToNuGetVersion().ToNormalizedString(); #>
+    <<#=packageVar#>Revision Condition="'$(<#=packageVar#>)' == '<#=majorVersion#>.<#=minor.Key#>'"><#=latestPackageVersionNormalized#></<#=packageVar#>Revision>
+<#          }
+        }#>
+    <<#=packageVar#>>$(<#=packageVar#>Revision)</<#=packageVar#>>
+    <<#=packageVar#>Invalid Condition="'$(<#=packageVar#>)' == '' or !Exists('<#=packageTarget#>')">true</<#=packageVar#>Invalid>
+    <<#=packageVar#> Condition="'$(<#=packageVar#>Invalid)' == 'true'"><#=defaultPackageVersionNormalized#></<#=packageVar#>>
+  </PropertyGroup>
+<#  } #>
+  <Target Name="CheckPackages">
+<#  foreach (var package in packages)
+    {
+		    var packageVar = NugetStore.GetPackageVersionVariable(package.Id, packageVersionPrefix);#>
+    <Message Condition="'$(<#=packageVar#>Invalid)' == 'true'" Text="Package <#=package.Id#> with version [$(<#=packageVar#>Saved)] not found. Use version $(<#=packageVar#>) instead" />
+<#  } #>
+  </Target>
+<#  foreach (var package in packages)
+    {
+        var packageVar = NugetStore.GetPackageVersionVariable(package.Id, packageVersionPrefix);
+        foreach (var packageVersion in store.GetLocalPackages(package.Id))
+        {
+            var packageTarget = String.Format(@"{0}\Targets\{1}.targets", packageVersion.Path, packageVersion.Id); #>
+  <Import Project="<#=packageTarget#>" Condition="Exists('<#=packageTarget#>') And '$(<#=packageVar#>)' == '<#=packageVersion.Version.ToNuGetVersion().ToNormalizedString()#>'" />
+<#      }
+    } #>
+</Project>

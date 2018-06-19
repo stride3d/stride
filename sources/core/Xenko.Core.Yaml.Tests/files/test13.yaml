@@ -1,0 +1,6 @@
+? a sequence
+: - item 1
+  - item 2
+? a mapping
+: key 1: value 1
+  key 2: value 2

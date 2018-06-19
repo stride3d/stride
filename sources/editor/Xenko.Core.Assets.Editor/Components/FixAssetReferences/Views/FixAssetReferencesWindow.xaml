@@ -1,0 +1,90 @@
+<sskk:ModalWindow x:Class="Xenko.Core.Assets.Editor.Components.FixAssetReferences.Views.FixAssetReferencesWindow"
+                  xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                  xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                  xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                  xmlns:valueConverters="clr-namespace:Xenko.Core.Assets.Editor.View.ValueConverters"
+                  xmlns:xcdg="http://schemas.xceed.com/wpf/xaml/datagrid"
+                  xmlns:behaviors="clr-namespace:Xenko.Core.Assets.Editor.View.Behaviors"
+                  xmlns:far="clr-namespace:Xenko.Core.Assets.Editor.Components.FixAssetReferences"
+                  mc:Ignorable="d"
+                  ShowInTaskbar="False"
+                  Title="{Binding FixedObjectsCounter, StringFormat={sskk:Localize Fix references ({0})}}"
+                  Height="768" Width="1024" Style="{DynamicResource WindowChromeStyle}"
+                  d:DataContext="{d:DesignInstance far:FixAssetReferencesViewModel}">
+  <sskk:ModalWindow.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../../../View/CommonResources.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </sskk:ModalWindow.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+    <DockPanel Grid.Row="0">
+      <Image Margin="10" DockPanel.Dock="Left" Source="{Binding CurrentObjectToReplace.ThumbnailData.Presenter, Mode=OneWay}" Width="64" Height="64"/>
+      <TextBlock Margin="10,20" VerticalAlignment="Center" TextWrapping="Wrap"
+                 Text="{Binding CurrentObjectToReplace.Url, StringFormat={sskk:Localize The asset {0} is referenced by other assets. Choose how to handle these references.}}"/>
+    </DockPanel>
+    <RadioButton Grid.Row="1" Margin="20" IsChecked="{Binding UseSingleReplace}" Content="{sskk:Localize Replace all the references with a reference to a different asset:, Context=Button}"/>
+
+    <StackPanel Grid.Row="2" Orientation="Horizontal" IsEnabled="{Binding UseSingleReplace}">
+      <sskk:TextBox Text="{Binding SingleReplacementObject, Converter={valueConverters:AssetViewModelToUrl}}" Margin="30,0,4,0" MinWidth="200" WatermarkContent="{sskk:Localize Select an asset}"/>
+      <UniformGrid Rows="1">
+        <Button Command="{Binding PickupSingleReplacementObjectCommand}"  Background="Transparent" ToolTip="{sskk:Localize Select asset, Context=ToolTip}">
+          <Image Source="{StaticResource ImagePickup}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
+        </Button>
+      </UniformGrid>
+    </StackPanel>
+
+    <RadioButton Grid.Row="3" Margin="20" Content="{sskk:Localize Replace references individually:, Context=Button}" IsChecked="{Binding UseSingleReplace, Converter={sskk:InvertBool}}"/>
+    <xcdg:DataGridControl Margin="20" Grid.Row="4" ItemsSource="{Binding CurrentReplacements}" AutoCreateColumns="False" ItemScrollingBehavior="Immediate" IsEnabled="{Binding UseSingleReplace, Converter={sskk:InvertBool}}">
+      <xcdg:DataGridControl.Resources>
+        <DataTemplate x:Key="AssetPickupCellTemplate">
+          <DockPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}}" d:DataContext="{d:DesignInstance far:AssetReferenceReplacementViewModel}">
+            <Button Command="{Binding PickupReplacementObjectCommand}"
+                    ToolTip="{sskk:Localize Select asset, Context=ToolTip}" DockPanel.Dock="Right" Content="{sskk:Image {StaticResource ImagePickup}, 16, 16, NearestNeighbor}"
+                    Background="Transparent" IsEnabled="{Binding IsChecked, ElementName=ClearCheckBox, Converter={sskk:InvertBool}}"/>
+            <CheckBox x:Name="ClearCheckBox" Content="{sskk:Localize Clear this reference, Context=Button}" Margin="10,0" DockPanel.Dock="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                      IsChecked="{Binding DontFixReference}"/>
+            <sskk:TextBox Text="{Binding ReplacementObject, Converter={valueConverters:AssetViewModelToUrl}}"
+                          Margin="10,0" MinWidth="200" WatermarkContent="{sskk:Localize Select an asset}" IsEnabled="{Binding IsChecked, ElementName=ClearCheckBox, Converter={sskk:InvertBool}}"/>
+          </DockPanel>
+        </DataTemplate>
+      </xcdg:DataGridControl.Resources>
+      <xcdg:DataGridControl.Columns>
+        <xcdg:Column Width="2*" FieldName="Referencer.Url" Title="{sskk:Localize Referencer}" AllowSort="True" ReadOnly="True"/>
+        <xcdg:Column Width="3*" FieldName="MemberPath" Title="{sskk:Localize Reference path}" AllowSort="True" ReadOnly="True"/>
+        <xcdg:Column Width="3*" FieldName="ReplacementObject" Title="{sskk:Localize Replacement asset}" AllowSort="True" CellContentTemplate="{StaticResource AssetPickupCellTemplate}"/>
+      </xcdg:DataGridControl.Columns>
+      <xcdg:DataGridControl.View>
+        <!-- Don't forget to change TableflowViewItemsHost in TableflowView.GridElementTemplates.xaml -->
+        <!--<xcdg:TableflowView ContainerHeight="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={sskk:Chained {sskk:SumNum}, {sskk:MaxNum}, Parameter1={sskk:Double 8}, Parameter2={sskk:Double 26}}}"
+                                            ScrollingAnimationDuration="0" RowFadeInAnimationDuration="0" IsColumnVirtualizationEnabled="False"/>-->
+        <xcdg:TableView AllowRowResize="False" IsColumnVirtualizationEnabled="False"/>
+      </xcdg:DataGridControl.View>
+      <i:Interaction.Behaviors>
+        <behaviors:XceedDataGridResizableColumnsBehavior/>
+      </i:Interaction.Behaviors>
+    </xcdg:DataGridControl>
+    <UniformGrid Grid.Row="5" Rows="1" DockPanel.Dock="Bottom" Margin="20">
+      <Button Margin="10,0,0,0" Padding="10,4" Content="{sskk:Localize Done, Context=Button}" Command="{Binding FixReferencesCommand}"/>
+      <Button Margin="10,0,0,0" Padding="10,4" Content="{sskk:Localize Clear references, Context=Button}" Command="{Binding ClearReferencesCommand}" ToolTip="{sskk:Localize Clear the references of the current asset, Context=ToolTip}"/>
+      <Button Margin="10,0,0,0" Padding="10,4" Content="{sskk:Localize Clear all references, Context=Button}" Command="{Binding ClearAllReferencesCommand}" ToolTip="{sskk:Localize Clear references for all assets being deleted, Context=ToolTip}"/>
+      <Button Margin="10,0,0,0" Padding="10,4" Content="{sskk:Localize Cancel, Context=Button}" IsCancel="True" ToolTip="{sskk:Localize Cancel operation, Context=ToolTip}">
+        <i:Interaction.Behaviors>
+          <sskk:ButtonCloseWindowBehavior DialogResult="Cancel"/>
+        </i:Interaction.Behaviors>
+      </Button>
+    </UniformGrid>
+  </Grid>
+</sskk:ModalWindow>

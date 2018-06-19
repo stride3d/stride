@@ -1,0 +1,41 @@
+﻿<Project>
+
+  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  
+  <PropertyGroup>
+    <Description>Xenko Core IO assembly.</Description>
+    <Version>0.1.0.0</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>    
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <XenkoAssemblySign>true</XenkoAssemblySign>
+    <XenkoNativeOutputName>libcore</XenkoNativeOutputName>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <XenkoAssemblyProcessorOptions>--auto-module-initializer</XenkoAssemblyProcessorOptions>
+    <XenkoPlatformDependent>true</XenkoPlatformDependent>
+    <XenkoBuildTags>*</XenkoBuildTags>
+  </PropertyGroup>
+  
+  <Choose>
+    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
+    </When>
+  </Choose>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Remove="System.IO.Compression.Zip\*.cs" Condition=" '$(XenkoPlatform)' != 'Android' " />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj" />
+    <PackageReference Include="SharpDX" Version="4.0.1" Condition="'$(TargetFramework)' == 'uap10.0'" />
+  </ItemGroup>
+  
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+</Project>

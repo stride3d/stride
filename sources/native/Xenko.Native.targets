@@ -1,0 +1,273 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Condition="Exists('$(MSBuildProjectDirectory)\Xenko.Native.Libs.targets')" Project="$(MSBuildProjectDirectory)\Xenko.Native.Libs.targets" />
+
+  <PropertyGroup>
+    <!-- ignore bin and obj folders -->
+    <XenkoNativeDefaultItemExcludes>$(XenkoNativeDefaultItemExcludes);$(BaseOutputPath)/**</XenkoNativeDefaultItemExcludes>
+    <XenkoNativeDefaultItemExcludes>$(XenkoNativeDefaultItemExcludes);$(BaseIntermediateOutputPath)/**</XenkoNativeDefaultItemExcludes>
+  </PropertyGroup>  
+  <ItemGroup>
+    <XenkoNativeCFile Include="**\*.c;**\*.cpp" Exclude="$(XenkoNativeDefaultItemExcludes)" />
+    <XenkoNativeHFile Include="**\*.h;**\*.hpp" Exclude="$(XenkoNativeDefaultItemExcludes)" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputObjectPath>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)</OutputObjectPath>
+    
+    <XenkoNativeAndroidGCC>-nostdlib -ldl -lstdc++ -lc -lm</XenkoNativeAndroidGCC>
+    
+    <!--Use "-v" to debug the tooling -->
+    <XenkoNativeToolingDebug></XenkoNativeToolingDebug> 
+    
+    <XenkoNativeClang>$(XenkoNativeToolingDebug) -Wno-ignored-attributes -Wno-delete-non-virtual-dtor -Wno-macro-redefined -I&quot;$(XenkoDependenciesDir)\NativePath&quot; -I&quot;$(XenkoDependenciesDir)\NativePath\standard&quot;</XenkoNativeClang>
+    <XenkoNativeClang Condition="'$(XenkoPlatform)' == 'Linux'">$(XenkoNativeClang) -DPLATFORM_LINUX</XenkoNativeClang>
+    <XenkoNativeClang Condition="'$(XenkoPlatform)' == 'macOS'">$(XenkoNativeClang) -DPLATFORM_MACOS</XenkoNativeClang>
+    <XenkoNativeClangCPP>-std=c++11 -fno-rtti -fno-exceptions</XenkoNativeClangCPP>
+  
+    <!--<XenkoNativeOutputPath>$([MSBuild]::MakeRelative('$(OutputPath)', '$(XenkoPackageXenkoPlatformBin)\'))</XenkoNativeOutputPath>-->
+    <XenkoNativeOutputPath>$(XenkoPackageXenkoPlatformBin)\</XenkoNativeOutputPath>
+  </PropertyGroup>
+
+  <Choose>
+    <When Condition="('$(XenkoPlatform)' == 'UWP')">
+      <PropertyGroup>
+        <XenkoNativeClang Condition="'$(Configuration)' == 'Debug'">$(XenkoNativeClang) -Od</XenkoNativeClang>
+        <XenkoNativeClang Condition="'$(Configuration)' == 'Release'">$(XenkoNativeClang) -O2</XenkoNativeClang>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <XenkoNativeClang Condition="'$(Configuration)' == 'Debug'">$(XenkoNativeClang) -O0 -g</XenkoNativeClang>
+        <XenkoNativeClang Condition="'$(Configuration)' == 'Release'">$(XenkoNativeClang) -O3</XenkoNativeClang>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+
+  <!-- Define NEED_DLL_EXPORT for platforms that requires it. -->
+  <PropertyGroup>
+    <XenkoNativeClang Condition=" '$(XenkoPlatform)' == 'Windows' OR '$(XenkoPlatform)' == 'UWP' ">$(XenkoNativeClang) -DNEED_DLL_EXPORT</XenkoNativeClang>
+  </PropertyGroup>
+  
+  <!-- Define default CPU architectures -->
+  <ItemGroup>
+    <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP' Or '$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'macOS' " Include="x86;x64"/>
+    <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'UWP' " Include="ARM"/>
+    <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Android' " Include="arm64-v8a;armeabi;armeabi-v7a;x86;x86_64"/>
+  </ItemGroup>
+  
+  <!-- Define default dynamic library extensions -->
+  <PropertyGroup>
+    <XenkoNativeLibraryTargetExt Condition=" '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP' ">.dll</XenkoNativeLibraryTargetExt>
+    <XenkoNativeLibraryTargetExt Condition=" '$(XenkoPlatform)' == 'Android' Or '$(XenkoPlatform)' == 'Linux' ">.so</XenkoNativeLibraryTargetExt>
+    <XenkoNativeLibraryTargetExt Condition=" '$(XenkoPlatform)' == 'macOS' ">.dylib</XenkoNativeLibraryTargetExt>
+    <XenkoNativeLibraryTargetExt Condition=" '$(XenkoPlatform)' == 'iOS' ">.a</XenkoNativeLibraryTargetExt>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- Sepcial case: no CPU-specific libraries, output at top level -->
+    <_XenkoNativeOutput Condition="'@(XenkoNativeCPU)'==''" Include="$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)">
+      <RelativePath>%(Identity)</RelativePath>
+    </_XenkoNativeOutput>
+    <!-- One output file per CPU -->
+    <_XenkoNativeOutput Include="@(XenkoNativeCPU->'%(Identity)\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)')">
+      <RelativePath>%(Identity)</RelativePath>
+    </_XenkoNativeOutput>
+    
+    <XenkoNativeOutput Include="@(_XenkoNativeOutput->'$(XenkoNativeOutputPath)%(Identity)')"/>
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Include="@(XenkoNativeCFile)" />
+    <UpToDateCheckInput Include="@(XenkoNativeHFile)" />
+  </ItemGroup>
+  
+  <!-- Update XenkoNativeOutput.Link using computed OutputPath and add to XenkoNativeLib -->
+  <Target Name="_RegisterXenkoNativeOutputs" AfterTargets="CoreCompile">
+    <PropertyGroup>
+      <_OutputPathRelative>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</_OutputPathRelative>
+    </PropertyGroup>
+    <ItemGroup>
+      <XenkoNativeOutput>
+        <Link>$([MSBuild]::MakeRelative('$(_OutputPathRelative)', '$(XenkoNativeOutputPath)'))%(RelativePath)</Link>
+      </XenkoNativeOutput>
+      <XenkoNativeLib Include="@(XenkoNativeOutput)"/>
+    </ItemGroup>
+  </Target>
+
+  <!-- Define ItemGroup so that they are properly copied -->
+  <!-- Disabled since it doesn't play nice because file is not output yet when we are building ourselves. Also MSBuild doesn't copy reference of sub project if CopyLocal is false -->
+  <!--<PropertyGroup>
+    <AssignTargetPathsDependsOn>
+      $(AssignTargetPathsDependsOn);
+      _RegisterXenkoNativeOutputs;
+    </AssignTargetPathsDependsOn>
+  </PropertyGroup>
+  <Target Name="_RegisterXenkoNativeOutputs">
+    <Message Importance="High" Text="XenkoNativeOutput: @(XenkoNativeOutput->'%(TargetFullPath)')"/>
+    <ItemGroup>
+      <Content Include="@(XenkoNativeOutput->'%(TargetFullPath)')" KeepMetadata="Nothing">
+        <Link>%(XenkoNativeOutput.Identity)</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+  </Target>-->
+
+  <!--<Target Name="_XenkoGenerateNativeFile" BeforeTargets="Build">
+    <Touch AlwaysCreate="true" Files="$(OutputPath)\$(XenkoNativeOutputName).ss_native"/>
+  </Target>-->
+  
+  <Target Name="CompileNativeClang_Windows" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)" Condition="'$(XenkoPlatform)' == 'Windows' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile">
+    <MakeDir Directories="$(OutputObjectPath)\x86"/>
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\x86\%(XenkoNativeCFile.Filename).obj&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target i686-pc-windows-msvc" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\x86\%(XenkoNativeCFile.Filename).obj&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target i686-pc-windows-msvc" />
+    <MSBuild Projects="$(MSBuildThisFileDirectory)\WindowsProjects\WindowsDesktop\WindowsDesktop.sln" Targets="Build" Properties="XenkoNativeOutputName=$(XenkoNativeOutputName);XenkoNativeOutputDir=$(XenkoNativeOutputPath)\x86;XenkoDependenciesDir=$(XenkoDependenciesDir);XenkoNativePathLibs=libNativePath.lib $(XenkoNativePathLibs);XenkoNativeProjectFolder=$(ProjectDir);XenkoNativeProjectObjFolder=$(OutputObjectPath)\x86;Configuration=$(Configuration);Platform=x86" StopOnFirstFailure="true" />
+
+    <MakeDir Directories="$(OutputObjectPath)\x64"/>
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\x64\%(XenkoNativeCFile.Filename).obj&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fms-extensions -DWINDOWS_DESKTOP -target x86_64-pc-windows-msvc" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; -gcodeview -fno-ms-extensions -nobuiltininc -nostdinc++ $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\x64\%(XenkoNativeCFile.Filename).obj&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot;  -fms-extensions -DWINDOWS_DESKTOP -target x86_64-pc-windows-msvc" />
+    <MSBuild Projects="$(MSBuildThisFileDirectory)\WindowsProjects\WindowsDesktop\WindowsDesktop.sln" Targets="Build" Properties="XenkoNativeOutputName=$(XenkoNativeOutputName);XenkoNativeOutputDir=$(XenkoNativeOutputPath)x64;XenkoDependenciesDir=$(XenkoDependenciesDir);XenkoNativePathLibs=libNativePath.lib $(XenkoNativePathLibs);XenkoNativeProjectFolder=$(ProjectDir);XenkoNativeProjectObjFolder=$(OutputObjectPath)\x64;Configuration=$(Configuration);Platform=x64" StopOnFirstFailure="true" />
+	
+    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
+    <Delete Files="@(IntermediateAssembly)"/>
+  </Target>
+
+  <Target Name="CompileNativeClang_UWP" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)"  Condition="'$(XenkoPlatform)' == 'UWP' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile">
+    <MakeDir Directories="$(OutputObjectPath)\x86"/>
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\clang-cl.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\x86\%(XenkoNativeCFile.Filename).obj&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -WX -EHsc -GS- -MD -DUWP -m32" />
+    <MSBuild Projects="$(MSBuildThisFileDirectory)\WindowsProjects\UWP\UWP.sln" Targets="Build" Properties="XenkoNativeOutputName=$(XenkoNativeOutputName);XenkoNativeOutputDir=$(XenkoNativeOutputPath)\x86;XenkoDependenciesDir=$(XenkoDependenciesDir);XenkoNativePathLibs=libNativePath.lib $(XenkoNativePathLibs);XenkoNativeProjectFolder=$(ProjectDir);XenkoNativeProjectObjFolder=$(OutputObjectPath)\x86;Configuration=$(Configuration);Platform=x86" StopOnFirstFailure="true" />
+
+    <MakeDir Directories="$(OutputObjectPath)\x64"/>
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\clang-cl.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\x64\%(XenkoNativeCFile.Filename).obj&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -WX -EHsc -GS- -MD -DUWP -m64" />
+    <MSBuild Projects="$(MSBuildThisFileDirectory)\WindowsProjects\UWP\UWP.sln" Targets="Build" Properties="XenkoNativeOutputName=$(XenkoNativeOutputName);XenkoNativeOutputDir=$(XenkoNativeOutputPath)\x64;XenkoDependenciesDir=$(XenkoDependenciesDir);XenkoNativePathLibs=libNativePath.lib $(XenkoNativePathLibs);XenkoNativeProjectFolder=$(ProjectDir);XenkoNativeProjectObjFolder=$(OutputObjectPath)\x64;Configuration=$(Configuration);Platform=x64" StopOnFirstFailure="true" />
+
+    <MakeDir Directories="$(OutputObjectPath)\ARM"/>
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\clang-cl.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\ARM\%(XenkoNativeCFile.Filename).obj&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -WX -EHsc -GS- -MD -DUWP -m32 --target=thumbv7-windows-msvc" />
+    <MSBuild Projects="$(MSBuildThisFileDirectory)\WindowsProjects\UWP\UWP.sln" Targets="Build" Properties="XenkoNativeOutputName=$(XenkoNativeOutputName);XenkoNativeOutputDir=$(XenkoNativeOutputPath)\ARM;XenkoDependenciesDir=$(XenkoDependenciesDir);XenkoNativePathLibs=libNativePath.lib $(XenkoNativePathLibs);XenkoNativeProjectFolder=$(ProjectDir);XenkoNativeProjectObjFolder=$(OutputObjectPath)\ARM;Configuration=$(Configuration);Platform=ARM" StopOnFirstFailure="true" />
+
+    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
+    <Delete Files="@(IntermediateAssembly)"/>
+  </Target>
+
+  <Target Name="CompileNativeClang_iOS" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)" Condition="'$(XenkoPlatform)' == 'iOS' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile">
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armv7.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DIOS -mios-version-min=6.0 -target armv7-apple-ios" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armv7.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DIOS -mios-version-min=6.0 -target armv7-apple-ios" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\llvm-ar.exe&quot; rcs -format=bsd &quot;$(OutputObjectPath)\$(XenkoNativeOutputName)_armv7.a&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_armv7.o&quot;', ' ')" />
+
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armv7s.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DIOS -mios-version-min=6.0 -target armv7s-apple-ios" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armv7s.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DIOS -mios-version-min=6.0 -target armv7s-apple-ios" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\llvm-ar.exe&quot; rcs -format=bsd &quot;$(OutputObjectPath)\$(XenkoNativeOutputName)_armv7s.a&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_armv7s.o&quot;', ' ')" />
+    
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_arm64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DIOS -mios-version-min=6.0 -target arm64-apple-ios" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_arm64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DIOS -mios-version-min=6.0 -target arm64-apple-ios" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\llvm-ar.exe&quot; rcs -format=bsd &quot;$(OutputObjectPath)\$(XenkoNativeOutputName)_arm64.a&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_arm64.o&quot;', ' ')" />
+    
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_i386.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DIOS -mios-version-min=6.0 -target i386-apple-ios" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_i386.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DIOS -mios-version-min=6.0 -target i386-apple-ios" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\llvm-ar.exe&quot; rcs -format=bsd &quot;$(OutputObjectPath)\$(XenkoNativeOutputName)_i386.a&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_i386.o&quot;', ' ')" />
+    
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DIOS -mios-version-min=6.0 -target x86_64-apple-ios" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DIOS -mios-version-min=6.0 -target x86_64-apple-ios" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\llvm-ar.exe&quot; rcs -format=bsd &quot;$(OutputObjectPath)\$(XenkoNativeOutputName)_x86_64.a&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86_64.o&quot;', ' ')" />
+    
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\lipo.exe&quot; &quot;$(OutputObjectPath)\$(XenkoNativeOutputName)_armv7.a&quot; &quot;$(OutputObjectPath)\$(XenkoNativeOutputName)_armv7s.a&quot; &quot;$(OutputObjectPath)\$(XenkoNativeOutputName)_arm64.a&quot; &quot;$(OutputObjectPath)\$(XenkoNativeOutputName)_i386.a&quot; &quot;$(OutputObjectPath)\$(XenkoNativeOutputName)_x86_64.a&quot; -create -output &quot;$(XenkoNativeOutputPath)\$(XenkoNativeOutputName).a&quot;" />
+
+    <Copy SourceFiles="$(XenkoDependenciesDir)\NativePath\iOS\libNativePath.a" DestinationFolder="$(XenkoNativeOutputPath)" />
+    
+    <Copy SourceFiles="@(XenkoNativePathLibs2)" DestinationFolder="$(XenkoNativeOutputPath)" />
+    
+    <ItemGroup>
+      <XenkoNativeLib Include="$(XenkoNativeOutputPath)libNativePath.a"/>
+      <XenkoNativeLib Include="@(XenkoNativePathLibs2->'$(XenkoNativeOutputPath)%(Filename)%(Extension)')"/>
+    </ItemGroup>
+
+    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
+    <Delete Files="@(IntermediateAssembly)"/>
+  </Target>
+
+  <Target Name="CompileNativeClang_iOS_Clean" Condition="'$(XenkoPlatform)' == 'iOS'" BeforeTargets="Clean">
+    <Delete Files="@(XenkoNativePathLibs2->'$(XenkoNativeOutputPath)\%(Filename).a', ' ')" />
+  </Target>
+
+  <!-- RELEASE.TXT does not seem to exist anymore
+  <PropertyGroup Condition="Exists('$(AndroidNdkDirectory)\RELEASE.TXT')">
+    <XenkoNativeAndroidIs64Bit Condition="'$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText(`$(AndroidNdkDirectory)\RELEASE.TXT`)), `r\d\d\w?\s\(64-bit\)`).Success)' == 'true'">-x86_64</XenkoNativeAndroidIs64Bit>
+    <XenkoNativeAndroidIs64Bit Condition="'$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText(`$(AndroidNdkDirectory)\RELEASE.TXT`)), `r\d\d\w?\s\(64-bit\)`).Success)' == 'false'"></XenkoNativeAndroidIs64Bit>
+  </PropertyGroup>
+  -->
+  
+  <PropertyGroup>
+    <XenkoNativeAndroidIs64Bit>-x86_64</XenkoNativeAndroidIs64Bit>
+  </PropertyGroup>
+  
+  <Target Name="CompileNativeClang_Android" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)" Condition="'$(XenkoPlatform)' == 'Android' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile">
+    <Error Text="The AndroidNdkDirectory environment variable is not set!" Condition="'$(AndroidNdkDirectory)' == ''" />
+    <Error Text="The installed NDK version is outdated, please install a r10+! ($(AndroidNdkDirectory))" Condition="'$([System.Text.RegularExpressions.Regex]::Match(`$(AndroidNdkDirectory)`, `.*r\d\d[a-z]?$`).Success)' == 'false'" />
+
+    <MakeDir Directories="$(XenkoNativeOutputPath)\armeabi-v7a"/>
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target armv7-none-android" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target armv7-none-android" />
+    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\arm-linux-androideabi-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\arm-linux-androideabi-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\armeabi-v7a\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_armeabi-v7a.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-arm&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi-v7a\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi-v7a\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
+
+    <MakeDir Directories="$(XenkoNativeOutputPath)\armeabi"/>
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target arm-none-android" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target arm-none-android" />
+    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\arm-linux-androideabi-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\arm-linux-androideabi-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\armeabi\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_armeabi.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-arm&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
+
+    <MakeDir Directories="$(XenkoNativeOutputPath)\arm64-v8a"/>
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target aarch64-none-android" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target aarch64-none-android" />
+    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\aarch64-linux-android-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\aarch64-linux-android-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\arm64-v8a\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_arm64-v8a.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-21\arch-arm64&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\arm64-v8a\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\arm64-v8a\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
+
+    <MakeDir Directories="$(XenkoNativeOutputPath)\x86"/>
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target i386-none-android" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target i386-none-android" />
+    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\x86-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\i686-linux-android-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\x86\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-x86&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\x86\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\x86\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
+    
+    <MakeDir Directories="$(XenkoNativeOutputPath)\x86_64"/>
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target x86_64-none-android" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86_64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target x86_64-none-android" />
+    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\x86_64-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\x86_64-linux-android-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\x86_64\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86_64.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-21\arch-x86_64&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\x86_64\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\x86_64\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
+
+    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
+    <Delete Files="@(IntermediateAssembly)"/>
+  </Target>
+
+  <Target Name="CompileNativeClang_Linux" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)" Condition="'$(XenkoPlatform)' == 'Linux' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile">
+    <MakeDir Directories="$(XenkoNativeOutputPath)\x86;$(XenkoNativeOutputPath)\x64;"/>
+    
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\lld.exe&quot; -flavor gnu --eh-frame-hdr -m elf_x86_64 -shared -o &quot;$(XenkoNativeOutputPath)\x64\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x64.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Linux\x86_64\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Linux\x86_64\libNativePath.a&quot;" />
+
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target i386-linux-gnu" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target i386-linux-gnu" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\lld.exe&quot; -flavor gnu --eh-frame-hdr -m elf_i386 -shared -o &quot;$(XenkoNativeOutputPath)\x86\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Linux\x86\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Linux\x86\libNativePath.a&quot;" />
+  </Target>
+
+  <Target Name="CompileNativeClang_macOS" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)" Condition="'$(XenkoPlatform)' == 'macOS' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile">
+    <MakeDir Directories="$(XenkoNativeOutputPath)\x86;$(XenkoNativeOutputPath)\x64;"/>
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\darwin_ld.exe&quot; -arch x86_64 -w -flat_namespace -undefined dynamic_lookup -sdk_version 10.11  -macosx_version_min 10.11 -dylib -o &quot;$(XenkoNativeOutputPath)\x64\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x64.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\$(XenkoPlatform)\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\$(XenkoPlatform)\libNativePath.a&quot;" />
+
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target i386-apple-darwin" />
+    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target i386-apple-darwin" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\darwin_ld.exe&quot; -arch i386 -w -flat_namespace -undefined dynamic_lookup -sdk_version 10.11  -macosx_version_min 10.11 -dylib -o &quot;$(XenkoNativeOutputPath)\x86\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\$(XenkoPlatform)\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\$(XenkoPlatform)\libNativePath.a&quot;" />
+
+    <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
+    <Delete Files="@(IntermediateAssembly)"/>
+  </Target>
+  
+  <Target Name="CompileNativeClang_Clean" BeforeTargets="Clean">
+    <ItemGroup>
+      <ObjFiles Include="$(OutputObjectPath)\**\*.obj" />
+      <OFiles Include="$(OutputObjectPath)\**\*.o" />
+      <AFiles Include="$(OutputObjectPath)\**\*.a" />
+    </ItemGroup>
+    <Delete Files="@(XenkoNativeOutput)" />
+    <Delete Files="@(ObjFiles)" />
+    <Delete Files="@(OFiles)" />
+    <Delete Files="@(AFiles)" />
+  </Target>
+</Project>

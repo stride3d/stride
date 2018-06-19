@@ -1,0 +1,47 @@
+---
+!EffectCompileRequest
+EffectName: ComputeEffectShader
+UsedParameters:
+    ComputeEffectShader.ComputeShaderName: LambertianPrefilteringSHEffectPass1
+    ComputeEffectShader.ThreadNumbers: {X: 4, Y: 4, Z: 1}
+    LambertianPrefilteringSHParameters.BlockSize: 4
+    SphericalHarmonicsParameters.HarmonicsOrder: 3
+---
+!EffectCompileRequest
+EffectName: ComputeEffectShader
+UsedParameters:
+    ComputeEffectShader.ComputeShaderName: LambertianPrefilteringSHEffectPass2
+    ComputeEffectShader.ThreadNumbers: {X: 128, Y: 1, Z: 1}
+    LambertianPrefilteringSHParameters.BlockSize: 128
+    SphericalHarmonicsParameters.HarmonicsOrder: 3
+---
+!EffectCompileRequest
+EffectName: ComputeEffectShader
+UsedParameters:
+    ComputeEffectShader.ComputeShaderName: LambertianPrefilteringSHEffectPass2
+    ComputeEffectShader.ThreadNumbers: {X: 256, Y: 1, Z: 1}
+    LambertianPrefilteringSHParameters.BlockSize: 256
+    SphericalHarmonicsParameters.HarmonicsOrder: 3
+---
+!EffectCompileRequest
+EffectName: ComputeEffectShader
+UsedParameters:
+    ComputeEffectShader.ComputeShaderName: LambertianPrefilteringSHEffectPass2
+    ComputeEffectShader.ThreadNumbers: {X: 512, Y: 1, Z: 1}
+    LambertianPrefilteringSHParameters.BlockSize: 512
+    SphericalHarmonicsParameters.HarmonicsOrder: 3
+---
+!EffectCompileRequest
+EffectName: ComputeEffectShader
+UsedParameters:
+    ComputeEffectShader.ComputeShaderName: LambertianPrefilteringSHEffectPass2
+    ComputeEffectShader.ThreadNumbers: {X: 1024, Y: 1, Z: 1}
+    LambertianPrefilteringSHParameters.BlockSize: 1024
+    SphericalHarmonicsParameters.HarmonicsOrder: 3
+---
+!EffectCompileRequest
+EffectName: ComputeEffectShader
+UsedParameters:
+    ComputeEffectShader.ComputeShaderName: RadiancePrefilteringGGXEffect
+    ComputeEffectShader.ThreadNumbers: {X: 1024, Y: 1, Z: 1}
+    RadiancePrefilteringGGXParams.NbOfSamplings: 1024

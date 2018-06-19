@@ -1,0 +1,49 @@
+!Package
+Id: 1adf36a6-5e90-4da5-9e31-2c9fe29cad18
+SerializedVersion: {Assets: 0.0.4}
+Meta:
+    Name: TopDownRPG
+    Version: 1.0.0.0
+    Authors: []
+    Owners: []
+    RootNamespace: TopDownRPG
+    Dependencies:
+        -   Name: Xenko
+            Version: 2.1.0.2
+            RootAssets: []
+LocalDependencies:
+    - ec64fd24-824f-4da4-b077-3661cf988027:../../Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg
+    - c9b4f26a-e7ba-4201-a6e0-0c0eedfe9de2:../../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.xkpkg
+    - bdd7a38f-3ff5-4279-b7b7-27a4c677f4d7:../../Packs/SamplesAssetPackage/SamplesAssetPackage.xkpkg
+    - 575b8dc7-3fad-497d-acf7-fbdfabcece80:../../Packs/VFXPackage/VFXPackage.xkpkg
+Profiles:
+    -   Name: Shared
+        Platform: Shared
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets/Shared
+            -   Path: TopDownRPG.Game/Effects
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: 92b5077f-3d0d-4043-a3b4-25a32c9d64aa
+                Location: TopDownRPG.Game/TopDownRPG.Game.csproj
+                Type: Library
+    -   Name: Windows
+        Platform: Windows
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets/Windows
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: 436e0287-cc11-4e08-bd1b-c7ab4b20b0dd
+                Location: TopDownRPG.Windows/TopDownRPG.Windows.csproj
+                Type: Executable
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 465718fa-96e7-4d3b-897d-8e7075b1a9ae:WesternChunk
+    - 7cdb3d4a-151d-4851-a736-fec1bba593d3:SouthernChunk
+    - 805ec36b-feab-40fb-93cd-8f5083937659:CentralChunk
+    - cd7db7bc-2d8e-45be-a6d9-4b7e9008e949:NorthernChunk
+    - feaab56f-3f56-48e0-83be-dfe2f38f65a6:EasternChunk

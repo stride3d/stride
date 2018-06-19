@@ -1,0 +1,38 @@
+﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<# var identityGuid = System.Guid.NewGuid(); #>
+  <Identity
+    Name="<#= identityGuid.ToString().ToLowerInvariant() #>"
+    Publisher="CN=MyCompany"
+    Version="1.0.0.0" />
+
+  <mp:PhoneIdentity PhoneProductId="<#= identityGuid.ToString().ToLowerInvariant() #>" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+
+  <Properties>
+    <DisplayName><#= Properties.PackageName #></DisplayName>
+    <PublisherDisplayName>publisher</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="<#= Properties.PackageNameShort #>"
+        Executable="$targetnametoken$.exe"
+        EntryPoint="<#= Properties.Namespace #>.App">
+        <uap:VisualElements
+            DisplayName="<#= Properties.PackageDisplayName #>"
+            Square150x150Logo="Assets\Logo.png"
+            Square44x44Logo="Assets\SmallLogo.png"
+            Description="<#= Properties.PackageName #>"
+            BackgroundColor="#464646">
+            <uap:SplashScreen Image="Assets\SplashScreen.png" />
+<#@ include file="..\Common.UWP.targets.t4" #>
+        </uap:VisualElements>
+    </Application>
+  </Applications>

@@ -1,0 +1,872 @@
+<UserControl x:Class="Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views.EntityHierarchyEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:p="clr-namespace:Xenko.Assets.Presentation"
+             xmlns:strings="clr-namespace:Xenko.Assets.Presentation.Resources.Strings"
+             xmlns:viewModel="clr-namespace:Xenko.Assets.Presentation.ViewModel"
+             xmlns:pvc="clr-namespace:Xenko.Assets.Presentation.ValueConverters"
+             xmlns:assetEditors="clr-namespace:Xenko.Assets.Presentation.AssetEditors"
+             xmlns:gameEditor="clr-namespace:Xenko.Assets.Presentation.AssetEditors.GameEditor"
+             xmlns:ehvm="clr-namespace:Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels"
+             xmlns:ehv="clr-namespace:Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Views"
+             xmlns:svm="clr-namespace:Xenko.Assets.Presentation.AssetEditors.SceneEditor.ViewModels"
+             xmlns:entityFactories="clr-namespace:Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.EntityFactories"
+             xmlns:views="clr-namespace:Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Views"
+             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance viewModel:EntityHierarchyViewModel}">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/CommonResources.xaml"/>
+        <ResourceDictionary Source="/Xenko.Assets.Presentation;component/View/ImageDictionary.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+
+      <Style x:Key="EnumListBoxItemContainerStyle" TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+        <Setter Property="Width" Value="28"/>
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="Padding" Value="0"/>
+      </Style>
+
+      <Style x:Key="EnumListBox" BasedOn="{StaticResource {x:Type ListBox}}" TargetType="ListBox">
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Focusable" Value="False"/>
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Disabled"/>
+        <Setter Property="ItemTemplate">
+          <Setter.Value>
+            <DataTemplate>
+              <Border Width="28" Height="28"
+                      ToolTip="{Binding Converter={sskk:EnumToTooltip}}" sskk:ToolTipHelper.Status="{Binding Editor.Status, Source={x:Static sskk:SessionViewModel.Instance}}" ToolTipService.ShowOnDisabled="True">
+                <Image Width="24" Height="24" Source="{Binding Converter={sskk:EnumToResource}}" />
+              </Border>
+            </DataTemplate>
+          </Setter.Value>
+        </Setter>
+        <Setter Property="ItemContainerStyle" Value="{StaticResource EnumListBoxItemContainerStyle}"/>
+        <Setter Property="ItemsPanel">
+          <Setter.Value>
+            <ItemsPanelTemplate>
+              <StackPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+          </Setter.Value>
+        </Setter>
+      </Style>
+
+      <ContextMenu x:Key="TreeViewContextMenu" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyRootViewModel}">
+        <MenuItem Header="{sskk:Localize Create, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{sskk:Localize Folder, Context=Menu}" Command="{Binding Editor.CreateFolderInRootCommand}"/>
+        <MenuItem Header="{sskk:Localize Empty entity, Context=Menu}" Command="{Binding Editor.CreateEntityInRootCommand}"/>
+        <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
+        <MenuItem ItemsSource="{x:Static p:XenkoDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
+          <MenuItem.ItemContainerStyle>
+            <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
+              <Setter Property="ItemsSource" Value="{Binding Factories.Values, Mode=OneWay}"/>
+              <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
+              <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                  <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
+                    <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
+                    <Setter Property="CommandParameter" Value="{Binding Factory, Mode=OneWay}"/>
+                    <Setter Property="Command" Value="{Binding DataContext.Editor.CreateEntityInRootCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"/>
+                  </Style>
+                </Setter.Value>
+              </Setter>
+            </Style>
+          </MenuItem.ItemContainerStyle>
+          <MenuItem.Template>
+            <ControlTemplate>
+              <Border Background="Transparent">
+                <StackPanel IsItemsHost="True"/>
+              </Border>
+            </ControlTemplate>
+          </MenuItem.Template>
+        </MenuItem>
+        <MenuItem Header="{sskk:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{sskk:Localize Open prefab in editor, Context=Menu}" Command="{Binding Editor.OpenPrefabEditorCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{sskk:Localize Select prefab in asset view, Context=Menu}" Command="{Binding Editor.SelectPrefabCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{sskk:Localize Break link to prefab ,Context=Menu}" Command="{Binding Editor.BreakLinkToPrefabCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{sskk:Localize Create prefab from selection, Context=Menu}" Command="{Binding Editor.CreatePrefabFromSelectionCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+        <Separator/>
+        <MenuItem Header="{sskk:Localize Duplicate, Context=Menu}" InputGestureText="Ctrl+D" Command="{Binding Editor.DuplicateSelectionCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}"/>
+        <MenuItem Command="ApplicationCommands.Cut" Icon="{sskk:Image {StaticResource ImageCut}}" />
+        <MenuItem Command="ApplicationCommands.Copy" Icon="{sskk:Image {StaticResource ImageCopy}}" />
+        <MenuItem Command="ApplicationCommands.Paste" CommandParameter="{sskk:True}" Icon="{sskk:Image {StaticResource ImagePaste}}" />
+        <MenuItem Command="ApplicationCommands.Delete" Icon="{sskk:Image {StaticResource ImageDelete}}"/>
+        <Separator/>
+        <MenuItem Header="Rename" InputGestureText="F2" Command="{Binding Editor.EntityWithGizmo.RenameCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" Icon="{sskk:Image {StaticResource ImageRename}}"/>
+      </ContextMenu>
+
+      <ContextMenu x:Key="TreeViewItemContextMenu" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyElementViewModel}">
+        <MenuItem Header="{sskk:Localize Create, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{sskk:Localize Folder, Context=Menu}" Command="{Binding Editor.CreateFolderInSelectionCommand}"/>
+        <MenuItem Header="{sskk:Localize Empty entity, Context=Menu}" Command="{Binding Editor.CreateEntityInSelectionCommand}"/>
+        <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
+        <MenuItem ItemsSource="{x:Static p:XenkoDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
+          <MenuItem.ItemContainerStyle>
+            <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
+              <Setter Property="ItemsSource" Value="{Binding Factories.Values, Mode=OneWay}"/>
+              <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
+              <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                  <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
+                    <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
+                    <Setter Property="CommandParameter" Value="{Binding Factory, Mode=OneWay}"/>
+                    <Setter Property="Command" Value="{Binding DataContext.Editor.CreateEntityInSelectionCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"/>
+                  </Style>
+                </Setter.Value>
+              </Setter>
+            </Style>
+          </MenuItem.ItemContainerStyle>
+          <MenuItem.Template>
+            <ControlTemplate>
+              <Border Background="Transparent">
+                <StackPanel IsItemsHost="True"/>
+              </Border>
+            </ControlTemplate>
+          </MenuItem.Template>
+        </MenuItem>
+        <MenuItem Header="{sskk:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{sskk:Localize Set as active scene, Context=Menu}" Command="{Binding Editor.SetActiveRootCommand}" Visibility="{Binding Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type svm:SceneRootViewModel}}, FallbackValue={sskk:Collapsed}}"
+                  IsChecked="{sskk:MultiBinding {Binding Mode=OneWay}, {Binding Editor.ActiveRoot, Mode=OneWay}, Converter={sskk:AllEqualMultiConverter}}" />
+        <MenuItem Header="{sskk:Localize Open prefab in editor, Context=Menu}" Command="{Binding Editor.OpenPrefabEditorCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{sskk:Localize Select prefab in asset view, Context=Menu}" Command="{Binding Editor.SelectPrefabCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{sskk:Localize Break link to prefab, Context=Menu}" Command="{Binding Editor.BreakLinkToPrefabCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{sskk:Localize Create prefab from selection, Context=Menu}" Command="{Binding Editor.CreatePrefabFromSelectionCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+        <Separator/>
+        <MenuItem Header="{sskk:Localize Duplicate, Context=Menu}" InputGestureText="Ctrl+D" Command="{Binding Editor.DuplicateSelectionCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}"/>
+        <MenuItem Command="ApplicationCommands.Cut" Icon="{sskk:Image {StaticResource ImageCut}}" />
+        <MenuItem Command="ApplicationCommands.Copy" Icon="{sskk:Image {StaticResource ImageCopy}}" />
+        <MenuItem Command="ApplicationCommands.Paste" Icon="{sskk:Image {StaticResource ImagePaste}}" />
+        <MenuItem Command="ApplicationCommands.Delete" Icon="{sskk:Image {StaticResource ImageDelete}}"/>
+        <Separator/>
+        <MenuItem Header="{sskk:Localize Rename, Context=Menu}" InputGestureText="F2" Command="{Binding RenameCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" Icon="{sskk:Image {StaticResource ImageRename}}"/>
+      </ContextMenu>
+
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <UserControl.InputBindings>
+    <KeyBinding Command="{Binding Editor.Grid.ToggleCommand}" Gesture="{sskk:KeyGesture {x:Static strings:KeyGestures.GestureToggleGrid}}"/>
+    <KeyBinding Command="{Binding Editor.DuplicateSelectionCommand}" Gesture="{sskk:KeyGesture {}Ctrl+D}"/>
+  </UserControl.InputBindings>
+  <i:Interaction.Behaviors>
+    <!-- These commands are available globally in the editor -->
+    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Editor.DeleteCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding Editor.PasteCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <sskk:CommandBindingBehavior RoutedCommand="{x:Static ehv:EntityHierarchyEditorView.FocusOnSelection}" Command="{Binding Editor.EntityWithGizmo.FocusOnEntityCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
+  </i:Interaction.Behaviors>
+  <Grid>
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Editor, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}, Parameter2={sskk:False}}}">
+      <TextBlock Text="{sskk:Localize Loading scene...}" Margin="20" HorizontalAlignment="Center"/>
+      <TextBlock Text="{sskk:Localize This might take a few minutes the first time.}" Margin="20" HorizontalAlignment="Center"/>
+      <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="20" BorderThickness="1"/>
+    </StackPanel>
+    <Grid DataContext="{Binding Editor, Mode=OneWay}" Visibility="{Binding Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyEditorViewModel}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="5"/>
+        <ColumnDefinition Width="3*"/>
+      </Grid.ColumnDefinitions>
+
+      <DockPanel Grid.Row="0" Grid.Column="0">
+        <ToolBarTray DockPanel.Dock="Top">
+          <ToolBar>
+            <Menu Background="Transparent" DataContext="{sskk:PriorityBinding {Binding ActiveRoot, Converter={sskk:NullToUnset}, Mode=OneWay}, {Binding HierarchyRoot, Mode=OneWay}}"
+                  ToolTip="{sskk:Localize Create a new entity, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Editor.Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+              <MenuItem Style="{StaticResource ToolBarIconMenuItemStyle}">
+                <MenuItem.Icon>
+                  <Image Source="{StaticResource ImageNewAsset}" MaxHeight="24" MaxWidth="24" />
+                </MenuItem.Icon>
+                <MenuItem Header="{sskk:Localize Create, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+                <!-- For some reason I have to set the style explicitly for this menu item, otherwise it is wrong-->
+                <MenuItem Header="{sskk:Localize New folder, Context=Menu}" Command="{Binding Editor.CreateFolderInRootCommand}" Style="{StaticResource {x:Type MenuItem}}"/>
+                <!-- For some reason I have to set the style explicitly for this menu item, otherwise it is wrong-->
+                <MenuItem Header="{sskk:Localize Empty entity, Context=Menu}" Command="{Binding Editor.CreateEntityInRootCommand}" Style="{StaticResource {x:Type MenuItem}}"/>
+                <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
+                <MenuItem ItemsSource="{x:Static p:XenkoDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
+                  <MenuItem.ItemContainerStyle>
+                    <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
+                      <Setter Property="ItemsSource" Value="{Binding Factories.Values, Mode=OneWay}"/>
+                      <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
+                      <Setter Property="ItemContainerStyle">
+                        <Setter.Value>
+                          <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
+                            <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
+                            <Setter Property="CommandParameter" Value="{Binding Factory, Mode=OneWay}"/>
+                            <Setter Property="Command" Value="{Binding DataContext.Editor.CreateEntityInRootCommand, RelativeSource={RelativeSource AncestorType=Menu}, Mode=OneWay}"/>
+                          </Style>
+                        </Setter.Value>
+                      </Setter>
+                    </Style>
+                  </MenuItem.ItemContainerStyle>
+                  <MenuItem.Template>
+                    <ControlTemplate>
+                      <Border Background="Transparent">
+                        <StackPanel IsItemsHost="True"/>
+                      </Border>
+                    </ControlTemplate>
+                  </MenuItem.Template>
+                </MenuItem>
+              </MenuItem>
+            </Menu>
+            <Separator/>
+            <AdornerDecorator>
+              <sskk:TextBox UseTimedValidation="True" Width="120" WatermarkContent="Filter" Text="{Binding FilterPattern}" VerticalAlignment="Center"
+                            ToolTip="{sskk:Localize Filter entities by name, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                <i:Interaction.Behaviors>
+                  <sskk:ContainTextAdornerBehavior />
+                </i:Interaction.Behaviors>
+              </sskk:TextBox>
+            </AdornerDecorator>
+            <Separator/>
+            <Button Command="{x:Static views:AssetCompositeHierarchyTreeViewHelper.ExpandAllItems}" CommandTarget="{Binding ElementName=HierarchyTreeView}"
+                    ToolTip="{sskk:Localize Expand all entities, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+              <Image Source="{StaticResource ImageExpandAllFolders}" />
+            </Button>
+            <Button Command="{x:Static views:AssetCompositeHierarchyTreeViewHelper.CollapseAllItems}" CommandTarget="{Binding ElementName=HierarchyTreeView}"
+                    ToolTip="{sskk:Localize Collapse all entities, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+              <Image Source="{StaticResource ImageCollapseAllFolders}" />
+            </Button>
+          </ToolBar>
+        </ToolBarTray>
+        <Grid>
+          <sskk:TreeView x:Name="HierarchyTreeView" ItemsSource="{Binding HierarchyRoot, Mode=OneWay, Converter={sskk:Yield}}" AllowDrop="True"
+                         BorderBrush="Black" BorderThickness="0,1,0,0">
+            <FrameworkElement.Resources>
+              <SolidColorBrush x:Key="UnloadedColor" Color="Gray" />
+              <!-- Name style -->
+              <Style x:Key="NameStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyItemViewModel}">
+                <Setter Property="Margin" Value="4,0"/>
+                <Setter Property="Text" Value="{Binding Name}"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding Owner.IsLoaded, Mode=OneWay}" Value="{sskk:False}">
+                    <Setter Property="Foreground" Value="{StaticResource UnloadedColor}"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+              <!-- Loading style -->
+              <Style x:Key="LoadingStyle" TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyElementViewModel}">
+                <Setter Property="Margin" Value="4,0"/>
+                <Setter Property="Foreground" Value="#FF00FF70" />
+                <Setter Property="Text" Value="{sskk:Localize Loading...}" />
+                <Setter Property="Visibility" Value="{Binding IsLoading, Mode=OneWay, Converter={sskk:VisibleOrCollapsed}}" />
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsLoaded, Mode=OneWay}" Value="{sskk:True}">
+                    <Setter Property="Text" Value="{sskk:Localize Unloading...}"/>
+                  </DataTrigger>
+                  <EventTrigger RoutedEvent="TextBlock.Loaded">
+                    <BeginStoryboard>
+                      <Storyboard>
+                        <ColorAnimation From="#FF00FF70" To="White" Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" BeginTime="0:0:0.3" Duration="0:0:0.2" AutoReverse="True" RepeatBehavior="Forever"/>
+                      </Storyboard>
+                    </BeginStoryboard>
+                  </EventTrigger>
+                </Style.Triggers>
+              </Style>
+              <!-- Default button style -->
+              <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Margin" Value="4,0,0,0" />
+                <Setter Property="Padding" Value="0" />
+                <Setter Property="MinHeight" Value="16" />
+                <Setter Property="MinWidth" Value="16" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+              </Style>
+              <!-- Load button -->
+              <Image x:Key="LoadImage" x:Shared="False" Source="{StaticResource ImageLoadEntity}" Height="16" Width="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+              <Image x:Key="UnloadImage" x:Shared="False" Source="{StaticResource ImageUnloadEntity}" Height="16" Width="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+              <Style x:Key="LoadButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyElementViewModel}">
+                <Setter Property="Command" Value="{Binding LoadCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}"/>
+                <EventSetter Event="Click" Handler="LoadOrLockButton_OnClick"/>
+                <Setter Property="Content" Value="{StaticResource UnloadImage}"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsLoaded, Mode=OneWay}" Value="{sskk:True}">
+                    <Setter Property="Content" Value="{StaticResource LoadImage}"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+              <!-- Lock button -->
+              <Image x:Key="LockImage" x:Shared="False" Source="{StaticResource ImageLockEntity}" Height="16" Width="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+              <Image x:Key="UnlockImage" x:Shared="False" Source="{StaticResource ImageUnlockEntity}" Height="16" Width="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+              <Style x:Key="LockButtonStyle" TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyElementViewModel}">
+                <Setter Property="Command" Value="{Binding LockCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}"/>
+                <EventSetter Event="Click" Handler="LoadOrLockButton_OnClick"/>
+                <Setter Property="IsEnabled" Value="{Binding IsLoaded, Mode=OneWay}"/>
+                <Setter Property="Content" Value="{StaticResource UnlockImage}"/>
+                <Style.Triggers>
+                  <DataTrigger Binding="{Binding IsLocked, Mode=OneWay}" Value="{sskk:True}">
+                    <Setter Property="Content" Value="{StaticResource LockImage}"/>
+                  </DataTrigger>
+                </Style.Triggers>
+              </Style>
+              <!-- Default template -->
+              <HierarchicalDataTemplate DataType="{x:Type ehvm:EntityHierarchyItemViewModel}" ItemsSource="{Binding Children}">
+                <TextBlock Style="{StaticResource NameStyle}"/>
+              </HierarchicalDataTemplate>
+              <!-- Folder template -->
+              <HierarchicalDataTemplate DataType="{x:Type ehvm:EntityFolderViewModel}" ItemsSource="{Binding Children}">
+                <StackPanel Orientation="Horizontal">
+                  <Image Source="{StaticResource FolderIcon}"
+                         MaxWidth="16" MaxHeight="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                  <TextBlock Style="{StaticResource NameStyle}"/>
+                </StackPanel>
+              </HierarchicalDataTemplate>
+              <!-- Entity template -->
+              <HierarchicalDataTemplate DataType="{x:Type ehvm:EntityViewModel}" ItemsSource="{Binding Children}">
+                <DockPanel>
+                  <!-- Focus button -->
+                  <Button DockPanel.Dock="Right"
+                          Command="{Binding FocusOnEntityCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" IsEnabled="{Binding IsLoaded, Mode=OneWay}"
+                          Content="{sskk:Image {StaticResource ImageFetchEntity}, 16, 16, NearestNeighbor}">
+                    <Button.ToolTip>
+                      <TextBlock Text="{sskk:Localize Focus on this entity (F), Context=ToolTip}" />
+                    </Button.ToolTip>
+                  </Button>
+                  <!-- Lock button -->
+                  <Button DockPanel.Dock="Right" Style="{StaticResource LockButtonStyle}">
+                    <Button.ToolTip>
+                      <StackPanel>
+                        <TextBlock Text="{sskk:Localize Lock/unlock this entity, Context=ToolTip}" />
+                        <TextBlock Text="{sskk:Localize (Hold Ctrl to apply to child entities recursively), Context=ToolTip}" />
+                      </StackPanel>
+                    </Button.ToolTip>
+                  </Button>
+                  <!-- Load button -->
+                  <!-- FIXME place holder until we allow to load/unload a single entity -->
+                  <Button DockPanel.Dock="Right" IsEnabled="False" />
+                  <!--<Button DockPanel.Dock="Right" Style="{StaticResource LoadButtonStyle}">
+                    <Button.ToolTip>
+                      <StackPanel>
+                        <TextBlock Text="{sskk:Localize Toggle visibility on this entity, Context=ToolTip}" />
+                        <TextBlock Text="{sskk:Localize (Hold CTRL to apply to the entity children recursively), Context=ToolTip}" Visibility="{Binding IsLoaded, Converter={sskk:VisibleOrCollapsed}, ConverterParameter={sskk:False}}" />
+                      </StackPanel>
+                    </Button.ToolTip>
+                  </Button>-->
+                  <StackPanel Orientation="Horizontal">
+                    <Image Source="{Binding Components, Converter={pvc:EntityComponentToResource}}"
+                           MaxWidth="16" MaxHeight="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                    <TextBlock Style="{StaticResource NameStyle}"/>
+                    <!-- FIXME uncomment this when we allow to load/unload a single entity -->
+                    <!--<TextBlock Style="{StaticResource LoadingStyle}" />-->
+                    <TextBlock Text="{Binding Components, Converter={pvc:EntityComponentToTransformLinkInfo}, Mode=OneWay, StringFormat=(Link: {0}), FallbackValue={}}" Foreground="#FFB0D3FF" />
+                    <TextBlock Text="{Binding SourcePrefab.Name, Mode=OneWay, StringFormat=(Prefab: {0}), FallbackValue={}}" Foreground="#FFB0FFD3" />
+                  </StackPanel>
+                </DockPanel>
+              </HierarchicalDataTemplate>
+              <!-- Scene template -->
+              <HierarchicalDataTemplate DataType="{x:Type svm:SceneRootViewModel}" ItemsSource="{Binding Children}">
+                <DockPanel>
+                  <!-- Focus button -->
+                  <!-- FIXME place holder until we have a selectable gizmo for the scene anchor -->
+                  <Button DockPanel.Dock="Right" IsEnabled="False" />
+                  <!--<Button DockPanel.Dock="Right" IsEnabled="False"
+                          Content="{sskk:Image {StaticResource ImageFetchEntity}, 16, 16, NearestNeighbor}" />-->
+                  <!-- Lock button -->
+                  <Button DockPanel.Dock="Right" Style="{StaticResource LockButtonStyle}">
+                    <Button.ToolTip>
+                      <StackPanel>
+                        <TextBlock Text="{sskk:Localize Lock/unlock all entities, Context=ToolTip}" />
+                        <TextBlock Text="{sskk:Localize (Hold Ctrl to apply to child scenes recursively), Context=ToolTip}" />
+                      </StackPanel>
+                    </Button.ToolTip>
+                  </Button>
+                  <!-- Load button -->
+                  <Button DockPanel.Dock="Right" Style="{StaticResource LoadButtonStyle}">
+                    <Button.ToolTip>
+                      <StackPanel>
+                        <TextBlock Text="{sskk:Localize Load/unload all entities, Context=ToolTip}" />
+                        <TextBlock Text="{sskk:Localize (Hold Ctrl to apply to child scenes recursively), Context=ToolTip}" Visibility="{Binding IsLoaded, Mode=OneWay, Converter={sskk:VisibleOrCollapsed}, ConverterParameter={sskk:False}}" />
+                      </StackPanel>
+                    </Button.ToolTip>
+                  </Button>
+                  <StackPanel Orientation="Horizontal">
+                    <Image Source="{StaticResource SceneIcon}"
+                           MaxWidth="16" MaxHeight="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                    <TextBlock>
+                      <TextBlock.Style>
+                        <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource NameStyle}">
+                          <Setter Property="FontWeight" Value="Normal" />
+                          <Style.Triggers>
+                            <DataTrigger Binding="{sskk:MultiBinding {Binding Mode=OneWay}, {Binding Editor.ActiveRoot, Mode=OneWay}, Converter={sskk:AllEqualMultiConverter}, FallbackValue={sskk:True}}" Value="{sskk:True}">
+                              <Setter Property="FontWeight" Value="Bold" />
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
+                    <TextBlock Style="{StaticResource LoadingStyle}" />
+                    <TextBlock Margin="4,0" Text="{sskk:Localize (Unloaded)}" Foreground="{StaticResource UnloadedColor}"
+                               Visibility="{sskk:MultiBinding {Binding IsLoaded, Mode=OneWay, FallbackValue={sskk:False}}, {Binding IsLoading, Mode=OneWay, FallbackValue={sskk:False}},
+                                                              Converter={sskk:MultiChained {sskk:OrMultiConverter}, {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}"/>
+                  </StackPanel>
+                </DockPanel>
+              </HierarchicalDataTemplate>
+            </FrameworkElement.Resources>
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <sskk:VirtualizingTreePanel Background="Transparent" DataContext="{sskk:PriorityBinding {Binding ActiveRoot, Converter={sskk:NullToUnset}, Mode=OneWay}, {Binding HierarchyRoot, Mode=OneWay}}"
+                                            ContextMenu="{StaticResource TreeViewContextMenu}"/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemContainerStyle>
+              <Style TargetType="{x:Type sskk:TreeViewItem}" BasedOn="{StaticResource {x:Type sskk:TreeViewItem}}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyItemViewModel}">
+                <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" d:DataContext="{d:DesignInstance ehvm:EntityHierarchyItemViewModel}"/>
+                <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=OneTime}"/>
+                <Setter Property="IsEditing" Value="{Binding IsEditing, Mode=TwoWay}"/>
+                <Setter Property="Visibility" Value="{Binding IsVisible, Mode=OneWay, Converter={sskk:VisibleOrCollapsed}}"/>
+                <Setter Property="ContextMenu" Value="{StaticResource TreeViewItemContextMenu}"/>
+                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                <Setter Property="TemplateEdit">
+                  <Setter.Value>
+                    <DataTemplate DataType="{x:Type ehvm:EntityViewModel}">
+                      <StackPanel Orientation="Horizontal">
+                        <Image Source="{Binding Components, Converter={pvc:EntityComponentToResource}}"
+                               MaxWidth="16" MaxHeight="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                        <sskk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" Margin="6,2"/>
+                      </StackPanel>
+                    </DataTemplate>
+                  </Setter.Value>
+                </Setter>
+                <Setter Property="sskk:Interaction.Behaviors">
+                  <Setter.Value>
+                    <sskk:BehaviorCollection>
+                      <sskk:TreeViewStopEditOnLostFocusBehavior/>
+                    </sskk:BehaviorCollection>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </ItemsControl.ItemContainerStyle>
+            <i:Interaction.Behaviors>
+              <sskk:DragOverAutoScrollBehavior/>
+              <sskk:TreeViewAutoExpandBehavior/>
+              <sskk:TreeViewDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanInsert="True" AllowDropOnEmptyArea="True"/>
+              <sskk:TreeViewBindableSelectedItemsBehavior SelectedItems="{Binding SelectedContent}" GiveFocusOnSelectionChange="False"/>
+              <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding CutCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
+              <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding CopyCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
+            </i:Interaction.Behaviors>
+            <UIElement.InputBindings>
+              <KeyBinding Key="F" Command="{x:Static ehv:EntityHierarchyEditorView.FocusOnSelection}"/>
+            </UIElement.InputBindings>
+          </sskk:TreeView>
+        </Grid>
+      </DockPanel>
+
+      <GridSplitter Grid.Column="1" Width="5" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext"/>
+
+      <DockPanel Grid.Column="2">
+        <DockPanel.Resources>
+          <Style TargetType="{x:Type Separator}" BasedOn="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"/>
+        </DockPanel.Resources>
+        <Border Background="{StaticResource BackgroundBrush}" DockPanel.Dock="Top" Padding="8,2">
+          <DockPanel>
+            <WrapPanel HorizontalAlignment="Right" DockPanel.Dock="Right">
+              <!-- Lighting -->
+              <ToggleButton x:Name="ToggleLighting" Content="{sskk:Image {StaticResource ImageLighting}, 24, 24, NearestNeighbor}"
+                            ToolTip="{sskk:Localize Light probes and cubemaps..., Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                            Width="28" Height="28" Background="Transparent" >
+                <i:Interaction.Behaviors>
+                  <sskk:ToggleButtonPopupBehavior/>
+                </i:Interaction.Behaviors>
+              </ToggleButton>
+              <Popup IsOpen="{Binding ElementName=ToggleLighting, Path=IsChecked}" StaysOpen="False" PlacementTarget="{Binding ElementName=ToggleLighting}">
+                <Grid Background="{StaticResource BackgroundBrush}" MinWidth="130" MinHeight="100">
+                  <StackPanel>
+                    <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
+                      <TextBlock Text="{sskk:Localize Light probes}" FontWeight="Bold"/>
+                    </Border>
+                    <StackPanel Margin="4">
+                      <DockPanel Margin="4">
+                        <sskk:NumericTextBox DockPanel.Dock="Right" Width="50" Value="{Binding Lighting.LightProbeBounces}" Minimum="0" DecimalPlaces="3" Margin="2"/>
+                        <TextBlock Text="{sskk:Localize Bounces:}" VerticalAlignment="Center"/>
+                      </DockPanel>
+                      <UniformGrid Columns="2">
+                        <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="4" Padding="4"
+                                ToolTip="{sskk:Localize Compute lighting using light probes, Context=ToolTip}"
+                                Command="{Binding Lighting.RequestLightProbesComputeCommand}">
+                          <StackPanel Orientation="Horizontal">
+                            <Image Source="{StaticResource ImageLightProbesCompute}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                            <TextBlock Text="Compute" VerticalAlignment="Center" Margin="4"/>
+                          </StackPanel>
+                        </Button>
+                        <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="4" Padding="4"
+                                ToolTip="{sskk:Localize Reset light probes, Context=ToolTip}"
+                                Command="{Binding Lighting.RequestLightProbesResetCommand}">
+                          <StackPanel Orientation="Horizontal">
+                            <Image Source="{StaticResource ImageLightProbesReset}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                            <TextBlock Text="{sskk:Localize Reset}" VerticalAlignment="Center" Margin="4"/>
+                          </StackPanel>
+                        </Button>
+                      </UniformGrid>
+                    </StackPanel>
+                    <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
+                      <TextBlock Text="{sskk:Localize Cubemap}" FontWeight="Bold"/>
+                    </Border>
+                    <StackPanel Margin="4">
+                      <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="4" Padding="4"
+                              ToolTip="{sskk:Localize Generate a cubemap from the scene view and save as a texture, Context=ToolTip}"
+                              Command="{Binding Lighting.CaptureCubemapCommand}">
+                        <StackPanel Orientation="Horizontal">
+                          <Image Source="{StaticResource ImageGenerateCubeMap}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                          <TextBlock Text="{sskk:Localize Capture}" VerticalAlignment="Center" Margin="4"/>
+                        </StackPanel>
+                      </Button>
+                    </StackPanel>
+                  </StackPanel>
+                </Grid>
+              </Popup>
+              <!-- Navigation -->
+              <ToggleButton x:Name="ToggleNavigation" Content="{sskk:Image {StaticResource ImageNavigation}, 24, 24, NearestNeighbor}"
+                            ToolTip="{sskk:Localize Navigation visibility..., Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                            Width="28" Height="28" Background="Transparent" >
+                <i:Interaction.Behaviors>
+                  <sskk:ToggleButtonPopupBehavior/>
+                </i:Interaction.Behaviors>
+              </ToggleButton>
+              <Popup IsOpen="{Binding ElementName=ToggleNavigation, Path=IsChecked}" StaysOpen="False" PlacementTarget="{Binding ElementName=ToggleNavigation}">
+                <Grid Background="{StaticResource BackgroundBrush}" MinWidth="200" MaxWidth="400" MaxHeight="400">
+                  <DockPanel Margin="5,2">
+                    <StackPanel DockPanel.Dock="Top">
+                      <TextBlock DockPanel.Dock="Left" Text="{sskk:Localize Show navigation meshes:}" Margin="5"/>
+                      <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                        <Button Content="{sskk:Localize All, Context=Button}" Margin="5" Command="{Binding Navigation.ToggleAllGroupsCommand}" CommandParameter="{sskk:True}" Width="40"/>
+                        <Button Content="{sskk:Localize None, Context=Button}" Margin="5" Command="{Binding Navigation.ToggleAllGroupsCommand}" CommandParameter="{sskk:False}" Width="40"/>
+                      </StackPanel>
+                      <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="3">
+                        <StackPanel>
+                          <ItemsControl ItemsSource="{Binding Navigation.Visuals}" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                <Grid HorizontalAlignment="Stretch">
+                                  <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30" />
+                                    <ColumnDefinition Width="*" />
+                                  </Grid.ColumnDefinitions>
+                                  <Rectangle HorizontalAlignment="Center" VerticalAlignment="Center" Fill="{Binding Color, Converter={sskk:ColorConverter}}" Width="20" Height="20" Stroke="#FF211E1E" OpacityMask="Black" StrokeThickness="1" />
+                                  <CheckBox Grid.Column="1" Content="{Binding DisplayName, Mode=OneWay}" IsChecked="{Binding IsVisible}" Margin="2"/>
+                                </Grid>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </StackPanel>
+                      </ScrollViewer>
+                    </StackPanel>
+                  </DockPanel>
+                </Grid>
+              </Popup>
+              <!-- Gizmos -->
+              <ToggleButton x:Name="ToggleGizmo" Content="{sskk:Image {StaticResource ImageGizmos}, 24, 24, NearestNeighbor}"
+                            ToolTip="{sskk:Localize Grid and gizmo options..., Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                            Width="28" Height="28" Background="Transparent" >
+                <i:Interaction.Behaviors>
+                  <sskk:ToggleButtonPopupBehavior/>
+                </i:Interaction.Behaviors>
+              </ToggleButton>
+              <Popup IsOpen="{Binding ElementName=ToggleGizmo, Path=IsChecked}" StaysOpen="False" PlacementTarget="{Binding ElementName=ToggleGizmo}">
+                <Grid Background="{StaticResource BackgroundBrush}" MinWidth="200" MaxWidth="400" MaxHeight="400">
+                  <DockPanel Margin="5,2">
+                    <StackPanel DockPanel.Dock="Top">
+                      <TextBlock DockPanel.Dock="Left" Text="{sskk:Localize Transformation gizmo size:}" Margin="5"/>
+                      <Slider HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0"
+                              Maximum="{Binding Length, Source={x:Static sskk:Utils.ZoomFactors}, Converter={sskk:SumNum}, ConverterParameter=-1}"
+                              Value="{Binding Transform.GizmoSize, Converter={sskk:ItemToIndex}, ConverterParameter={x:Static sskk:Utils.ZoomFactors}}"/>
+                      <DockPanel>
+                        <TextBlock DockPanel.Dock="Left" Text="{sskk:Localize Component gizmo size:}" Margin="5"/>
+                        <CheckBox IsChecked="{Binding EntityGizmos.FixedSize}" Content="{sskk:Localize Fixed, Context=Button}" HorizontalAlignment="Right" Margin="5"/>
+                      </DockPanel>
+                      <Slider HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0"
+                              Maximum="{Binding Length, Source={x:Static sskk:Utils.ZoomFactors}, Converter={sskk:SumNum}, ConverterParameter=-1}"
+                              Value="{Binding EntityGizmos.GizmoSize, Converter={sskk:ItemToIndex}, ConverterParameter={x:Static sskk:Utils.ZoomFactors}}"/>
+                      <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                        <CheckBox Content="Grid" Margin="5" IsChecked="{Binding Grid.IsVisible}"/>
+                        <Separator Margin="5" Height="0" Width="5"/>
+                        <CheckBox Content="{sskk:Localize Camera preview, Context=Button}" Margin="5" IsChecked="{Binding DisplayCameraPreview}"/>
+                        <CheckBox Content="{sskk:Localize Light probe volumes, Context=Button}" Margin="5" IsChecked="{Binding Lighting.LightProbeWireframeVisible}"/>
+                      </StackPanel>
+                    </StackPanel>
+                    <Separator Margin="5" Height="2" HorizontalAlignment="Stretch" DockPanel.Dock="Top"/>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                      <Button Content="{sskk:Localize All, Context=Button}" Margin="5" Command="{Binding EntityGizmos.ToggleAllGizmosCommand}" CommandParameter="{sskk:True}" Width="40"/>
+                      <Button Content="{sskk:Localize None, Context=Button}" Margin="5" Command="{Binding EntityGizmos.ToggleAllGizmosCommand}" CommandParameter="{sskk:False}" Width="40"/>
+                    </StackPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="3">
+                      <StackPanel>
+                        <ItemsControl ItemsSource="{Binding EntityGizmos.ActiveGizmos}" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                              <CheckBox Content="{Binding ComponentName, Mode=OneWay}" IsChecked="{Binding IsActive}" Margin="2"/>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <CheckBox Content="{sskk:Localize Other entities, Context=Button}" IsChecked="{Binding EntityGizmos.FallbackGizmo.IsActive}" Margin="2"/>
+                      </StackPanel>
+                    </ScrollViewer>
+                  </DockPanel>
+                </Grid>
+              </Popup>
+              <!-- Camera -->
+              <ToggleButton x:Name="ToggleCamera" Content="{sskk:Image {StaticResource ImageCameraSettings}, 24, 24, NearestNeighbor}"
+                            ToolTip="{sskk:Localize Editor camera options..., Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                            Width="28" Height="28" Background="Transparent">
+                <i:Interaction.Behaviors>
+                  <sskk:ToggleButtonPopupBehavior/>
+                </i:Interaction.Behaviors>
+              </ToggleButton>
+              <Popup IsOpen="{Binding ElementName=ToggleCamera, Path=IsChecked}" StaysOpen="False" PlacementTarget="{Binding ElementName=ToggleCamera}">
+                <Grid Background="{StaticResource BackgroundBrush}" MinWidth="130" MinHeight="100" Width="180">
+                  <StackPanel>
+                    <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
+                      <TextBlock Text="{sskk:Localize Projection}" FontWeight="Bold"/>
+                    </Border>
+                    <StackPanel Margin="4">
+                      <RadioButton Content="{sskk:Localize Perspective, Context=Button}" IsChecked="{Binding Camera.OrthographicProjection, Converter={sskk:InvertBool}}" Margin="4"/>
+                      <RadioButton Content="{sskk:Localize Orthographic, Context=Button}" IsChecked="{Binding Camera.OrthographicProjection}" Margin="4"/>
+                      <sskk:KeyValueGrid>
+                        <TextBlock DockPanel.Dock="Left" Text="{sskk:Localize Near plane:}" Margin="5"/>
+                        <sskk:NumericTextBox Value="{Binding Camera.NearPlane}" DecimalPlaces="4" HorizontalAlignment="Stretch" Margin="5" Minimum="0"/>
+                        <TextBlock DockPanel.Dock="Left" Text="{sskk:Localize Far plane:}" Margin="5"/>
+                        <sskk:NumericTextBox Value="{Binding Camera.FarPlane}" DecimalPlaces="4" HorizontalAlignment="Stretch" Margin="5" Minimum="0"/>
+                        <TextBlock DockPanel.Dock="Left" Text="{sskk:Localize Field of view:}" Margin="5"
+                                   Visibility="{Binding Camera.OrthographicProjection, Converter={sskk:Chained {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}"/>
+                        <sskk:NumericTextBox Value="{Binding Camera.FieldOfView}" DecimalPlaces="1"  HorizontalAlignment="Stretch" Margin="5" Minimum="0" Maximum="180"
+                                             Visibility="{Binding Camera.OrthographicProjection, Converter={sskk:Chained {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}"/>
+                        <Slider sskk:KeyValueGrid.UseFullRow="True" HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0" Maximum="180" Value="{Binding Camera.FieldOfView}"
+                                Visibility="{Binding Camera.OrthographicProjection, Converter={sskk:Chained {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}"/>
+                        <TextBlock DockPanel.Dock="Left" Text="{sskk:Localize Orthographic size:}" Margin="5" Visibility="{Binding Camera.OrthographicProjection, Converter={sskk:VisibleOrCollapsed}}"/>
+                        <sskk:NumericTextBox Value="{Binding Camera.OrthographicSize}" HorizontalAlignment="Stretch" DecimalPlaces="4" Margin="5" Minimum="0"
+                                             Visibility="{Binding Camera.OrthographicProjection, Converter={sskk:VisibleOrCollapsed}}"/>
+                      </sskk:KeyValueGrid>
+                    </StackPanel>
+                    <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
+                      <TextBlock Text="{sskk:Localize Movement}" FontWeight="Bold"/>
+                    </Border>
+                    <StackPanel Margin="4">
+                      <sskk:KeyValueGrid>
+                        <TextBlock DockPanel.Dock="Left" Text="{sskk:Localize Speed:}" Margin="5"/>
+                        <Slider sskk:KeyValueGrid.UseFullRow="True" HorizontalAlignment="Stretch" Height="18" Margin="5" Minimum="0" Maximum="{Binding Camera.AvailableMovementSpeedCount}" Value="{Binding Camera.MoveSpeedIndex}"/>
+                      </sskk:KeyValueGrid>
+                    </StackPanel>
+                    <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
+                      <TextBlock Text="{sskk:Localize Orientation}" FontWeight="Bold"/>
+                    </Border>
+                    <UniformGrid Columns="2" Margin="4">
+                      <Button Content="{sskk:Localize Front, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Front}"
+                              Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
+                      <Button Content="{sskk:Localize Back, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Back}"
+                              Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
+                      <Button Content="{sskk:Localize Top, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Top}"
+                              Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
+                      <Button Content="{sskk:Localize Bottom, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Bottom}"
+                              Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
+                      <Button Content="{sskk:Localize Left, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Left}"
+                              Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
+                      <Button Content="{sskk:Localize Right, Context=Button}" Command="{Binding Camera.ResetCameraOrientationCommand}" CommandParameter="{x:Static assetEditors:CameraOrientation.Right}"
+                              Style="{StaticResource TransparentButtonStyle}" Margin="2" HorizontalAlignment="Center"/>
+                    </UniformGrid>
+                  </StackPanel>
+                </Grid>
+              </Popup>
+            </WrapPanel>
+            <WrapPanel>
+              <ListBox Style="{StaticResource EnumListBox}" SelectedItem="{Binding Transform.ActiveTransformation, Mode=TwoWay}"
+                       ItemsSource="{Binding Source={x:Type gameEditor:Transformation}, Converter={sskk:EnumValues}}"/>
+              <ToggleButton IsChecked="{Binding Transform.TranslationSnap.IsActive}" Height="28" Background="Transparent"
+                            Visibility="{Binding Transform.ActiveTransformation, Mode=OneWay,
+                                                 Converter={sskk:Chained {sskk:IsEqualToParam}, {sskk:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Translation}}}"
+                            ToolTip="{sskk:Localize Snap translations to this value, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                <StackPanel Orientation="Horizontal">
+                  <Image Source="{StaticResource ImageTranslateSnap}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                  <sskk:NumericTextBox Width="50" Value="{Binding Transform.TranslationSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
+                </StackPanel>
+              </ToggleButton>
+              <ToggleButton IsChecked="{Binding Transform.RotationSnap.IsActive}" Height="28" Background="Transparent"
+                            Visibility="{Binding Transform.ActiveTransformation, Mode=OneWay,
+                                                 Converter={sskk:Chained {sskk:IsEqualToParam}, {sskk:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Rotation}}}"
+                            ToolTip="{sskk:Localize Snap rotations to this value, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                <StackPanel Orientation="Horizontal">
+                  <Image Source="{StaticResource ImageRotateSnap}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                  <sskk:NumericTextBox Width="50" Value="{Binding Transform.RotationSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
+                </StackPanel>
+              </ToggleButton>
+              <ToggleButton IsChecked="{Binding Transform.ScaleSnap.IsActive}" Height="28" Background="Transparent"
+                            Visibility="{Binding Transform.ActiveTransformation, Mode=OneWay,
+                                                 Converter={sskk:Chained {sskk:IsEqualToParam}, {sskk:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Scale}}}"
+                            ToolTip="{sskk:Localize Snap scale to this factor, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                <StackPanel Orientation="Horizontal">
+                  <Image Source="{StaticResource ImageScaleSnap}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                  <sskk:NumericTextBox Width="50" Value="{Binding Transform.ScaleSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
+                </StackPanel>
+              </ToggleButton>
+              <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
+              <ListBox Style="{StaticResource EnumListBox}" SelectedItem="{Binding Transform.Space, Mode=TwoWay}"
+                     ItemsSource="{Binding Source={x:Type gameEditor:TransformationSpace}, Converter={sskk:EnumValues}}">
+                <ListBox.ItemContainerStyle>
+                  <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource EnumListBoxItemContainerStyle}">
+                    <Style.Triggers>
+                      <DataTrigger Binding="{sskk:MultiBinding {Binding},
+                                                               {Binding DataContext.Transform.AvailableSpaces, RelativeSource={RelativeSource AncestorType=ListBox}},
+                                                               Converter={pvc:CollectionContainsItem}}" Value="False">
+                        <Setter Property="IsEnabled" Value="False"/>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </ListBox.ItemContainerStyle>
+              </ListBox>
+              <ComboBox ItemsSource="{Binding Rendering.AvailableRenderModes}" SelectedItem="{Binding Rendering.RenderMode}" DisplayMemberPath="Name" Width="80">
+                <ComboBox.ItemContainerStyle>
+                  <Style TargetType="{x:Type ComboBoxItem}" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding Name}" Value="-">
+                        <Setter Property="IsEnabled" Value="False"/>
+                        <Setter Property="Template">
+                          <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ComboBoxItem}">
+                              <Separator Style="{StaticResource ComboBoxSeparator}"/>
+                            </ControlTemplate>
+                          </Setter.Value>
+                        </Setter>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </ComboBox.ItemContainerStyle>
+              </ComboBox>
+              <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
+              <ToggleButton IsChecked="{Binding MaterialSelectionMode}" Background="Transparent"
+                            Content="{sskk:Image {StaticResource ImageToggleMaterialMode}, 24, 24, NearestNeighbor}" Width="28" Height="28"
+                            ToolTip="{sskk:Localize Toggle material selection (click a selected asset to select its material), Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+              <ToggleButton IsChecked="{Binding DisplaySelectionMask}" Background="Transparent"
+                            Content="{sskk:Image {StaticResource ImageToggleSelectionMask}, 24, 24, NearestNeighbor}" Width="28" Height="28"
+                            ToolTip="{sskk:Localize Show or hide selection mask, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+              <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
+              <TextBlock Text="{sskk:Localize Loading assets...}" Visibility="{Binding CompilingAssets, Converter={sskk:VisibleOrCollapsed}}"
+                         VerticalAlignment="Center" FontWeight="Bold" Foreground="#FF00FF70">
+                <TextBlock.Triggers>
+                  <EventTrigger RoutedEvent="TextBlock.Loaded">
+                    <BeginStoryboard>
+                      <Storyboard>
+                        <ColorAnimation From="#FF00FF70" To="White" Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)" BeginTime="0:0:0.3" Duration="0:0:0.2" AutoReverse="True" RepeatBehavior="Forever"/>
+                      </Storyboard>
+                    </BeginStoryboard>
+                  </EventTrigger>
+                </TextBlock.Triggers>
+              </TextBlock>
+            </WrapPanel>
+          </DockPanel>
+        </Border>
+        <StatusBar DockPanel.Dock="Bottom">
+          <StatusBar.ItemsPanel>
+            <ItemsPanelTemplate>
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="2*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="100"/>
+                </Grid.ColumnDefinitions>
+              </Grid>
+            </ItemsPanelTemplate>
+          </StatusBar.ItemsPanel>
+          <!--<StatusBarItem Grid.Column="0">
+            <TextBlock Text="{Binding SelectedItemName}"/>
+          </StatusBarItem>-->
+        </StatusBar>
+        <Grid Background="Transparent" Focusable="True" PreviewKeyDown="EditorPreviewKeyDown">
+          <i:Interaction.Behaviors>
+            <sskk:FrameworkElementDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanDrag="False" />
+          </i:Interaction.Behaviors>
+          <Grid.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="{sskk:Localize Create, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+              <MenuItem Header="{sskk:Localize Empty entity, Context=Menu}" Command="{Binding CreateEntityCommand}"/>
+              <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
+              <MenuItem ItemsSource="{x:Static p:XenkoDefaultAssetsPlugin.EntityFactoryCategories}" IsCheckable="True">
+                <MenuItem.ItemContainerStyle>
+                  <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance entityFactories:EntityFactoryCategory}">
+                    <Setter Property="ItemsSource" Value="{Binding Factories.Values, Mode=OneWay}"/>
+                    <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
+                    <Setter Property="ItemContainerStyle">
+                      <Setter.Value>
+                        <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
+                          <Setter Property="Header" Value="{Binding Name, Mode=OneWay}"/>
+                          <Setter Property="CommandParameter" Value="{Binding Factory, Mode=OneWay}"/>
+                          <Setter Property="Command" Value="{Binding DataContext.CreateEntityCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}, Mode=OneWay}"/>
+                        </Style>
+                      </Setter.Value>
+                    </Setter>
+                  </Style>
+                </MenuItem.ItemContainerStyle>
+                <MenuItem.Template>
+                  <ControlTemplate>
+                    <Border Background="Transparent">
+                      <StackPanel IsItemsHost="True"/>
+                    </Border>
+                  </ControlTemplate>
+                </MenuItem.Template>
+              </MenuItem>
+              <MenuItem Header="{sskk:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+              <MenuItem Header="{sskk:Localize Open in prefab editor, Context=Menu}" Command="{Binding OpenPrefabEditorCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+              <MenuItem Header="{sskk:Localize Select prefab in asset view, Context=Menu}" Command="{Binding SelectPrefabCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+              <MenuItem Header="{sskk:Localize Break link to prefab, Context=Menu}" Command="{Binding BreakLinkToPrefabCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+              <MenuItem Header="{sskk:Localize Create prefab from selection, Context=Menu}" Command="{Binding CreatePrefabFromSelectionCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+              <Separator/>
+              <MenuItem Header="{sskk:Localize Duplicate, Context=Menu}" Command="{Binding DuplicateSelectionCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}"/>
+              <MenuItem Header="{Binding Text, Source={x:Static ApplicationCommands.Cut}}" Command="{Binding CutCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}" Icon="{sskk:Image {StaticResource ImageCut}}" />
+              <MenuItem Header="{Binding Text, Source={x:Static ApplicationCommands.Copy}}" Command="{Binding CopyCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}" Icon="{sskk:Image {StaticResource ImageCopy}}" />
+              <MenuItem Header="{Binding Text, Source={x:Static ApplicationCommands.Delete}}" Command="{Binding DeleteCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}" Icon="{sskk:Image {StaticResource ImageDelete}}"/>
+              <Separator/>
+              <MenuItem Header="{sskk:Localize Rename, Context=Menu}" Command="{Binding EntityWithGizmo.RenameCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" Icon="{sskk:Image {StaticResource ImageRename}}"/>
+            </ContextMenu>
+          </Grid.ContextMenu>
+          <Grid>
+            <ContentPresenter x:Name="SceneView" Visibility="{Binding LastException, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}">
+              <ContentPresenter.InputBindings>
+                <KeyBinding Key="F" Command="{x:Static ehv:EntityHierarchyEditorView.FocusOnSelection}"/>
+              </ContentPresenter.InputBindings>
+            </ContentPresenter>
+
+            <!-- Crash message -->
+            <Grid Visibility="{Binding LastException, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}}">
+              <Border HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Background="{StaticResource BackgroundBrush}" />
+              <Grid HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="{StaticResource ControlBackgroundBrush}"
+                    MinWidth="400" MaxWidth="1200"
+                    Margin="20">
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="*" />
+                  <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBox Text="{Binding LastException.Message, StringFormat=Error: {0}, Mode=OneWay}" Foreground="{StaticResource TextBrush}" Margin="20"
+                         IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" FontWeight="Bold"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden" FontSize="20"/>
+                <TextBox Text="{Binding LastException, Mode=OneWay}" Foreground="{StaticResource TextBrush}" Margin="20"
+                         IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Grid.Row="1"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden" />
+                <StackPanel Grid.Row="2" Orientation="Vertical" Margin="20">
+                  <TextBlock Text="{sskk:Localize Before you resume\, fix the failing asset (likely a graphics compositor or scene).}" Margin="0,8" HorizontalAlignment="Center"/>
+                  <UniformGrid HorizontalAlignment="Center" Rows="1" Columns="2">
+                    <Button Content="{sskk:Localize Resume, Context=Button}" Command="{Binding ResumeCommand}"
+                            Padding="24,8" HorizontalAlignment="Stretch" Margin="10,0"/>
+                    <Button Content="{sskk:Localize Copy error to clipboard, Context=Button}" Command="{Binding CopyErrorToClipboardCommand}"
+                            Padding="24,8" HorizontalAlignment="Stretch" Margin="10,0"/>
+                  </UniformGrid>
+                </StackPanel>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
+      </DockPanel>
+    </Grid>
+  </Grid>
+</UserControl>

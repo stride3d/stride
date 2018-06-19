@@ -1,0 +1,29 @@
+﻿!MaterialAsset
+Id: 0C3AABAE-E000-4E2D-A28C-949C3E790913
+BuildOrder: 250
+Source: ../../whatever.fbx
+Material:
+    Parameters:
+        Capacity: 4
+        ~Items:
+            MaterialParameters.DiffuseModel: !MaterialDiffuseModel Lambert
+            MaterialParameters.ShadingModel: !MaterialShadingModel Phong
+            MaterialParameters.SpecularModel: !MaterialSpecularModel BlinnPhong
+    ColorNodes: 
+        MaterialParameters.AlbedoDiffuse: diffuse
+    Nodes:
+        diffuse: !MaterialShaderClassNode
+            CompositionNodes: {}
+            Generics:
+                myTexture: !NodeParameterTexture
+                    Reference: referenceTexture
+                mySampler: !NodeParameterSampler
+                    Filtering: Anisotropic
+                    AddressModeU: Mirror
+                    AddressModeV: Clamp
+            MixinReference: 00000000-0000-0000-0000-000000000000:TestTextureGenericShader
+        referenceTexture: !MaterialTextureNode
+            TextureReference: 00000000-0000-0000-0000-000000000001:texture1
+            TexcoordIndex: 0
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}

@@ -1,0 +1,97 @@
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<#
+var curPlatform = (Xenko.Core.PlatformType)System.Enum.Parse(typeof(Xenko.Core.PlatformType), Properties.CurrentPlatform);
+var needSigning = true;
+#>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <!--Import Local Pre Settings for the solution being loaded -->
+  <Import Project="<#= Properties.XenkoSdkRelativeDir #>\sources\targets\Xenko.PreSettings.UnitTests.targets" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{<#= ProjectGuid.ToString().ToUpperInvariant() #>}</ProjectGuid>
+<# if (curPlatform == Xenko.Core.PlatformType.Android) { #>
+    <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AndroidApplication>true</AndroidApplication>
+    <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
+    <AndroidUseLatestPlatformSdk></AndroidUseLatestPlatformSdk>
+    <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
+    <AndroidSupportedAbis>armeabi,armeabi-v7a,x86</AndroidSupportedAbis>
+    <AndroidStoreUncompressedFileExtensions />
+    <MandroidI18n />
+    <JavaMaximumHeapSize />
+    <JavaOptions />
+    <AssemblyName><#= ProjectName #></AssemblyName>
+<# } else if (curPlatform == Xenko.Core.PlatformType.iOS) { #>
+    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <AssemblyName><#= ProjectName.Replace(".", "") #></AssemblyName>
+<# } else { #>
+    <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Exe</OutputType>
+    <XenkoBuildTags>*</XenkoBuildTags>
+    <AssemblyName><#= ProjectName #></AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+<# } #>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace><#= Properties.Namespace #></RootNamespace>
+    <XenkoBuildTags>*</XenkoBuildTags>
+    <XenkoPlatform><#= curPlatform #></XenkoPlatform>
+    <XenkoBuildProfile>$(XenkoPlatform)</XenkoBuildProfile>
+    <XenkoDir>$(MSBuildThisFileDirectory)<#= Properties.XenkoSdkRelativeDir #></XenkoDir>
+    <XenkoAssemblySign><#= needSigning.ToString().ToLowerInvariant() #></XenkoAssemblySign>
+    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''"><#= curPlatform.GetDefaultGraphicsPlatform() #></XenkoGraphicsApi>
+    <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
+    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
+    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+<#@ include file="..\Common.PropertyGroups.targets.t4" #>
+  <ItemGroup>
+    <None Include="README.md" />
+    <Compile Include="TestClass1.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+<# if (curPlatform == Xenko.Core.PlatformType.Android) { #>
+  <ItemGroup>
+    <Reference Label="Xenko.DoNotSync" Include="Mono.Android" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Label="Xenko.DoNotSync" Include="Properties\AndroidManifest.xml" />
+    <AndroidResource Label="Xenko.DoNotSync" Include="Resources\Drawable\Icon.png" />
+    <Compile Label="Xenko.DoNotSync" Include="Resources\Resource.Designer.cs" />
+    <Compile Label="Xenko.DoNotSync" Include="<#= Properties.XenkoSdkRelativeDir #>\sources\shared\tests\nunitlite\NUnitLiteLauncher.Android.cs">
+      <Link>NUnitLiteLauncher.Android.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
+<# } else if (curPlatform == Xenko.Core.PlatformType.iOS) { #>
+  <ItemGroup>
+    <Reference Label="Xenko.DoNotSync" Include="Xamarin.iOS" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Label="Xenko.DoNotSync" Include="Info.plist" />
+    <Compile Label="Xenko.DoNotSync" Include="<#= Properties.XenkoSdkRelativeDir #>\sources\shared\tests\nunitlite\NUnitLiteLauncher.iPhone.cs">
+      <Link>NUnitLiteLauncher.iPhone.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
+<# } else { #>
+  <Import Condition="'$(XenkoRuntime)' == ''" Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+<# } #>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+    Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
+

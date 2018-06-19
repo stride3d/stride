@@ -1,0 +1,50 @@
+﻿<Project>
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <XenkoBuildTags>WindowsTools</XenkoBuildTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>$(XenkoCommonDependenciesDir)NUnit\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\ConsoleProgram.cs">
+      <Link>Frontend\Console\ConsoleProgram.cs</Link>
+    </Compile>
+    <Compile Remove="Frontend\TexArray.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <XenkoNativeLib Include="$(XenkoDependenciesDir)FreeImage\Release\**\*.dll">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </XenkoNativeLib>
+    <XenkoNativeLib Include="$(XenkoDependenciesDir)TextureWrappers\Release\**\*.dll">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </XenkoNativeLib>
+    <XenkoNativeLib Include="$(XenkoDependenciesDir)PVRTT\**\*.dll">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </XenkoNativeLib>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

@@ -1,0 +1,19 @@
+!MaterialAsset
+Id: bb55877e-63e4-42c1-ac75-0d70bbc2e328
+BuildOrder: 250
+Source: mc00.fbx
+Material:
+    Nodes:
+        diffuse: !MaterialReferenceNode
+            Name: sr_mc00_1
+        sr_mc00_1: !MaterialTextureNode
+            TextureReference: 9b46afbd-7409-45cd-ad08-01b765103ecf:mc00_sr_mc00_1
+            TexcoordIndex: 0
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}
+    ColorNodes:
+        MaterialParameters.AlbedoDiffuse: diffuse
+    Parameters:
+        MaterialParameters.DiffuseModel: Lambert
+        MaterialParameters.ShadingModel: Phong
+        MaterialParameters.SpecularModel: BlinnPhong

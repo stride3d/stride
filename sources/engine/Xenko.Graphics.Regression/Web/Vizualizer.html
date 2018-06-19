@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html>
+<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <script src="jquery-2.1.0.min.js"></script>
+  <style type="text/css">
+    .fail {
+      background-color: lightpink;
+    }
+    .success {
+      background-color: lightgreen;
+    }
+    .titles {
+      background-color: lightgray;
+    }
+    .noImage {
+      background-color: gray;
+    }
+    .imageCell {
+        min-width:256px;
+    }
+  </style>
+ </head>
+ <body>
+  <input type="file" id="files" name="files" accept=".json" multiple/>
+  <hr>
+  <output id="list"></output>
+  <div style="text-align:center;">
+   <div id="title" style="font-size:200%">Build number ###</div>
+   <input id="localLoad" type="checkbox" /> load locally
+   <select id="allTests">
+    <option value="AllTests">All tests</option>
+   </select>
+   <input id="succFail" type="radio" name="filter" value="all" checked>all
+   <input id="succ" type="radio" name="filter" value="succeeded">succeeded
+   <input id="fail" type="radio" name="filter" value="failed">failed
+   <table id="table" border="1" style="width:100%">
+    <tr>
+     <td class="titles">Device</td>
+     <td class="titles">Test name</td>
+     <td class="titles">Build</td>
+     <td class="titles imageCell">Base image</td>
+     <td class="titles imageCell">Computed image</td> 
+     <td class="titles imageCell">Difference to gold image</td>
+     <td class="titles imageCell">Normalized difference to base image</td>
+     <td class="titles">Error</td>
+    </tr>
+   </table>
+  </div>
+ </body>
+ <script src="tableBuilder.js"/>
+</html>

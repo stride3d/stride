@@ -1,0 +1,7 @@
+﻿This is the "REDIST list" for Microsoft Blend for Visual Studio Software Development Kit ("SDK") for .NET 4.5 that is referenced in the "Distributable Code" section of the Microsoft Software License Terms for Microsoft Visual Studio 2012 software (the "software").
+
+If you have a validly licensed copy of such software, you may copy and distribute the unmodified object code form of the files contained in the directories below, subject to the software's License Terms.
+
+Libraries
+Templates
+{Program Files}\MSBuild\Microsoft\Expression\Blend\.NETFramework\v4.5\

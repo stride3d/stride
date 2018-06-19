@@ -1,0 +1,2 @@
+﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" debug="True" #>
+This is a test of template with the project name <#= ProjectName #> and <#= Properties.Toto #>

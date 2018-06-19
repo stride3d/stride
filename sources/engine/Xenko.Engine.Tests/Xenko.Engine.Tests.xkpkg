@@ -1,0 +1,96 @@
+!Package
+Id: c6c57562-42df-42ad-be2d-8d5889211366
+SerializedVersion: {Assets: 0.0.4}
+Meta:
+    Name: Xenko.Engine.Tests
+    Version: 1.0.0.0
+    Authors: []
+    Owners: []
+    Dependencies:
+        -   Name: Xenko
+            Version: 3.0.0.1-dev
+            RootAssets: []
+LocalDependencies: []
+Profiles:
+    -   Name: Shared
+        Platform: Shared
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: GameAssets
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: a8f8d125-7a22-489f-99bc-9a02f545a17f
+                Location: Xenko.Engine.Tests.Windows.csproj
+                Type: Library
+    -   Name: Windows
+        Platform: Windows
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets/Windows
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: a8f8d125-7a22-489f-99bc-9a02f545a17f
+                Location: Xenko.Engine.Tests.Windows.csproj
+                Type: Executable
+    -   Name: Android
+        Platform: Android
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets/Android
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: a8f8d125-7a22-489f-99bc-9a02f545a17f
+                Location: Xenko.Engine.Tests.Android.csproj
+                Type: Executable
+    -   Name: iOS
+        Platform: iOS
+        InheritProfiles: []
+        AssetFolders:
+            -   Path: Assets/iPhone
+        OutputGroupDirectories: {}
+        ProjectReferences:
+            -   Id: a8f8d125-7a22-489f-99bc-9a02f545a17f
+                Location: Xenko.Engine.Tests.iOS.csproj
+                Type: Executable
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 02de8aa1-8ec5-46aa-b596-598f223bdb06:BallSprite2
+    - 06662a6f-f415-43a9-8076-64c6e706754b:knight Run
+    - 08b936e5-d0eb-4f02-9304-b8b7819086fe:knight Idle
+    - 10df5408-fbd1-4177-b0c2-e0190d6311a3:mannequinModel
+    - 170d7900-50c3-46c0-ab61-fd86a5377c76:RotationSheet
+    - 32a944cf-8bb5-413b-9998-36a85b12dcc5:c100_chr_ch00_Knight_SWORD1
+    - 332697a8-4758-43bf-ad87-a9de0f5c5789:Idle
+    - 39070e2f-ef25-4600-86f8-309c7081b6bb:Sphere1
+    - 39f244ad-8360-48db-8074-d0d3cade8289:01-Default
+    - 3b9e7d5b-28b5-4091-852a-fe8732ca5787:c100_body_cm
+    - 3c6d4404-3e52-47a7-9161-9341e5ccba93:PNTessellationDisplAE
+    - 42e13c3a-d915-4255-9531-25891f8435be:c100_body_sp
+    - 4adb2d35-7a6f-401a-bc08-74aba11c2ad2:FlatTessellationDisplAE
+    - 4c09a08e-1b49-4dde-81ed-57f69627ff93:Walk
+    - 4d7c768f-511c-46f7-9c80-676a15f54a4a:c100_weapon_cm
+    - 51144a89-25ee-4065-9f5b-34f57c7640a6:BasicDisplacementMap
+    - 53b953af-1d02-459e-a96f-b40805964d59:knight Model
+    - 5a58611c-b0e2-4c5c-87b6-4f1c7d1d9fb8:GraphicsCompositor
+    - 5d8ecea5-50f2-49c1-8fe8-16e67dd65ab0:BallSprite1
+    - 6318256a-cbfa-43cf-a9ba-18b91e6ab350:DebugSpriteSheet
+    - 6a238290-1a54-4690-b478-4eb4e5b7ea3a:FlatTessellation
+    - 6bacdf7e-6538-4cfa-a035-0807aee89e2c:c100_chr_ch00_Knight_KINGHT_iron
+    - 731de5a2-8804-4875-886f-51f5cc5cf439:megalodon
+    - 8866a602-efc2-49ae-8797-bf22d0794b8d:PNTessellation
+    - 9340a3e9-14b4-4367-8c24-a7a3f9f04610:c100_weapon_sp
+    - a22fce22-5505-4761-ac9d-91c74d92494c:megalodon Model
+    - a7a030b6-da74-4c64-9b6f-e15d9ee50434:CobbleDisplacementMap
+    - a8a31df9-250d-4b60-bfe3-f35042efc094:c100_weapon_nm
+    - c88b7d39-bb04-407f-92e4-69f2dcfef378:c100_chr_ch00_Knight_KINGHT
+    - cc7836ee-28a3-4a94-bf68-f24516109ef5:FlatTessellationDispl
+    - d4fe46ef-c9fe-4718-9311-0f5e71429b92:c100_body_em
+    - dfd25be5-f94f-4c4a-8437-02c5424cfec4:NoTessellation
+    - e323d1dc-c052-4191-9b71-b139eb248070:Sphere2
+    - e3beb255-7a4c-46a6-8f8a-65703d344614:Font
+    - e3bf5815-0836-4044-a686-3c73e4766fee:GuardAdditive
+    - f56b546d-0ce0-4b0d-9672-69e2489fbd40:PNTessellationAE
+    - f959170b-df62-40ff-869a-fd72304a8464:GroundSprite
+    - ffd38816-770b-4047-a376-6e5ec614f379:c100_body_nm

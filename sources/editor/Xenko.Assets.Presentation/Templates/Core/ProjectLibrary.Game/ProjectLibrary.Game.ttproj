@@ -1,0 +1,3 @@
+﻿!ProjectTemplate
+Files:
+  - {Source: $ProjectName$.csproj.t4, Target: $ProjectName$.csproj, IsTemplate: true}

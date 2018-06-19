@@ -1,0 +1,14 @@
+!SpriteFont
+Id: 10ec78cc-a5e7-484e-b614-6e89dd5b7ac7
+FontName: Microsoft Sans Serif
+Size: 20.25
+Style: Regular
+CharacterRegions:
+    -   Start: ' '
+        End: "\x7F"
+DefaultCharacter: ' '
+Format: Rgba32
+Spacing: 0
+LineSpacing: 0
+UseKerning: false
+NoPremultiply: false

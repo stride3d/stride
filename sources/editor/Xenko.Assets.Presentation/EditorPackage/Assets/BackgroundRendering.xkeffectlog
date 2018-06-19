@@ -1,0 +1,16 @@
+---
+!EffectCompileRequest
+EffectName: BackgroundShader
+UsedParameters: {}
+---
+!EffectCompileRequest
+EffectName: BackgroundCubemapShader
+UsedParameters: {}
+---
+!EffectCompileRequest
+EffectName: SkyboxShaderTexture
+UsedParameters: {}
+---
+!EffectCompileRequest
+EffectName: SkyboxShaderCubemap
+UsedParameters: {}

@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <XenkoAssemblySign>true</XenkoAssemblySign>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <XenkoAssemblyProcessorOptions>--serialization --parameter-key</XenkoAssemblyProcessorOptions>
+    <XenkoBuildTags>*</XenkoBuildTags>
+    <XenkoBulletPlatform>Windows</XenkoBulletPlatform>
+    <XenkoBulletPlatform Condition="'$(XenkoPlatform)' == 'iOS'">iOS</XenkoBulletPlatform>
+    <XenkoBulletSignedDir Condition="'$(XenkoSign)' == 'true'">Signed\</XenkoBulletSignedDir>
+  </PropertyGroup>
+  <Choose>
+    <When Condition="'$(XenkoPlatform)' == 'Windows'">
+      <ItemGroup>
+        <XenkoNativeLib Include="..\..\..\deps\VHACD\**\VHACD.dll">
+          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+        </XenkoNativeLib>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <ItemGroup>
+    <XenkoNativeLib Include="..\..\..\deps\BulletPhysics\$(XenkoPlatform)\**\libbulletc.*">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </XenkoNativeLib>
+    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="..\..\..\deps\BulletPhysics\BulletSharp.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </XenkoContent>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="BulletSharp">
+      <HintPath>..\..\..\deps\BulletPhysics\$(XenkoBulletPlatform)\$(XenkoBulletSignedDir)BulletSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <Choose>
+    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
+    </When>
+  </Choose>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko\Xenko.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

@@ -1,0 +1,31 @@
+﻿!MaterialAsset
+Id: 0C3AABAE-E000-4E2D-A28C-949C3E790912
+BuildOrder: 250
+Source: ../../whatever.fbx
+Material:
+    Parameters:
+        MaterialParameters.DiffuseModelKey: !MaterialDiffuseModel Lambert
+        MaterialParameters.ShadingModelKey: !MaterialShadingModel Phong
+        MaterialParameters.SpecularModelKey: !MaterialSpecularModel BlinnPhong
+    ColorNodes: 
+        MaterialParameters.AlbedoDiffuse: diffuse
+    Nodes:
+        diffuse: !MaterialBinaryNode
+            LeftChild: !MaterialTextureNode
+                TextureReference: 00000000-0000-0000-0000-000000000000:texture0
+                TexcoordIndex: 0
+                Scale: {X: 1, Y: 1}
+                Offset: {X: 0, Y: 0}
+            RightChild: !MaterialReferenceNode
+                Name: referenceTexture
+            Operand: HardMix
+        referenceTexture: !MaterialTextureNode
+            TextureReference: 00000000-0000-0000-0000-000000000000:texture1
+            TexcoordIndex: 0
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}
+        unreferencedTexture: !MaterialTextureNode
+            TextureReference: 00000000-0000-0000-0000-000000000000:texture2
+            TexcoordIndex: 0
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}

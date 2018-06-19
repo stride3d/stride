@@ -1,0 +1,15 @@
+!Model
+Id: 1a3c9bc1-f150-44b2-a9bd-71a26effb6c9
+BuildOrder: 500
+Source: mc00.fbx
+MeshParameters:
+    -   Name: mc00_hir
+        Material: d73d1ab6-d578-4bc1-86ab-e30f3fefd238:mc00_material_mc00_hir
+    -   Name: mc00_oth
+        Material: 5a608d9d-5f59-4ca1-81f8-ea6c22ab0b75:mc00_material_mc00_oth
+    -   Name: mc00_skn
+        Material: bb55877e-63e4-42c1-ac75-0d70bbc2e328:mc00_material_mc00_skn
+    -   Name: mc00_skn1
+        Material: 6cafe92f-8b77-4518-9808-bf81057a6315:mc00_material_mc00_skn1
+    -   Name: mc00_irn
+        Material: 011d98ba-11de-4da8-aeee-55b46d0307fc:mc00_material_mc00_irn

@@ -1,0 +1,53 @@
+﻿<!-- Build file pre-included by all Xenko projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Setup this part according to your project if you want your .csproj to compile individually without going through the .sln file -->
+  <PropertyGroup>
+    <SolutionDir Condition=" '$(SolutionDir)' == '' ">$(MSBuildThisFileDirectory)..\..\build\</SolutionDir>
+    <SolutionName Condition=" '$(SolutionName)' == '' ">Xenko</SolutionName>
+    <SolutionPath Condition=" '$(SolutionPath)' == '' ">$(SolutionDir)$(SolutionName).sln</SolutionPath>
+  </PropertyGroup>
+
+  <!--Import Local Pre Settings for the solution being loaded -->
+  <Import Project="$(SolutionDir)$(SolutionName).PreSettings.Local.targets" Condition="Exists('$(SolutionDir)$(SolutionName).PreSettings.Local.targets')" />
+  <Import Project="$(SolutionDir)Xenko.Core.PreSettings.Local.targets" Condition="Exists('$(SolutionDir)Xenko.Core.PreSettings.Local.targets')" />
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <GenerateProjectSpecificOutputFolder>false</GenerateProjectSpecificOutputFolder>
+
+    <!-- Defines the language of the project being compiled CSharp or Cpp - defined by default to CSharp, must be overriden to Cpp in a Cpp project -->
+    <XenkoProjectType Condition="'$(XenkoProjectType)' == ''">CSharp</XenkoProjectType>
+
+    <!-- Flag used per-project settings to specify that it should only be compiled on Windows Desktop-->
+    <XenkoWindowsOnly Condition="'$(XenkoWindowsOnly)' == ''">false</XenkoWindowsOnly>
+
+    <!-- Default values -->
+    <XenkoPlatform Condition=" '$(XenkoPlatform)' == '' ">Windows</XenkoPlatform>
+    <XenkoUI Condition="'$(XenkoUI)' == '' AND '$(XenkoPlatform)' == 'Windows'">SDL;WINFORMS;WPF</XenkoUI>
+
+    <XenkoPlatformFullName Condition="'$(XenkoPlatformFullName)' == ''">$(XenkoPlatform)</XenkoPlatformFullName>
+    
+    <XenkoGlobalSettingsTargets Condition="'$(XenkoGlobalSettingsTargets)' == ''">$(MSBuildThisFileDirectory)Xenko.Core.GlobalSettings.targets</XenkoGlobalSettingsTargets>
+    <XenkoPostSettingsTargets Condition="'$(XenkoPostSettingsTargets)' == ''">$(MSBuildThisFileDirectory)Xenko.Core.PostSettings.targets</XenkoPostSettingsTargets>
+  </PropertyGroup>
+
+  <!-- Build the XenkoUIList using the value of XenkoUI -->
+  <ItemGroup Condition="'$(XenkoUIList)' == ''">
+    <XenkoUIList Condition="'$(XenkoUI)' != ''" Include="$(XenkoUI)" />
+    <XenkoUIList Condition="'$(XenkoUI)' == ''" Include="None" />
+  </ItemGroup>
+
+  <!-- Ensure appropriate Solution Platform are available -->
+  <Choose>
+    <When  Condition=" '$(XenkoPlatform)' == 'Android' ">
+      <PropertyGroup Condition=" '$(Platform)' == 'Android' "/>
+    </When>
+    <When  Condition=" '$(XenkoPlatform)' == 'iOS' ">
+      <PropertyGroup Condition=" '$(Platform)' == 'iPhone' "/>
+      <PropertyGroup Condition=" '$(Platform)' == 'iPhoneSimulator' "/>
+    </When>
+  </Choose>
+
+  <!--Import Global Settings-->
+  <Import Project="$(XenkoGlobalSettingsTargets)"/>
+</Project>

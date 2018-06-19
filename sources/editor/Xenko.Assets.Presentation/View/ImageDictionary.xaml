@@ -1,0 +1,141 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:font="clr-namespace:Xenko.Graphics.Font;assembly=Xenko.Graphics"
+                    xmlns:preview="clr-namespace:Xenko.Assets.Presentation.Preview"
+                    xmlns:engine="clr-namespace:Xenko.Engine;assembly=Xenko.Engine"
+                    xmlns:physics="clr-namespace:Xenko.Engine;assembly=Xenko.Physics"
+                    xmlns:ss="clr-namespace:Xenko.Engine;assembly=Xenko.SpriteStudio.Runtime"
+                    xmlns:components="clr-namespace:Xenko.Particles.Components;assembly=Xenko.Particles"
+                    xmlns:data="clr-namespace:Xenko.Data;assembly=Xenko"
+                    xmlns:gameEditor="clr-namespace:Xenko.Assets.Presentation.AssetEditors.GameEditor"
+                    xmlns:engine-ui="clr-namespace:Xenko.Engine;assembly=Xenko.UI"
+                    xmlns:ss-runtime="clr-namespace:Xenko.SpriteStudio.Runtime;assembly=Xenko.SpriteStudio.Runtime"
+                    xmlns:video="clr-namespace:Xenko.Video;assembly=Xenko.Video">
+  <BitmapImage x:Key="ImageUp" UriSource="../Resources/Icons/arrow-090-medium.png" />
+  <BitmapImage x:Key="ImageDown" UriSource="../Resources/Icons/arrow-270-medium.png" />
+  <BitmapImage x:Key="ImageDuplicateSprite" UriSource="../Resources/Icons/slides.png" />
+
+  <BitmapImage x:Key="ImagePlay" UriSource="../Resources/Icons/control.png" />
+  <BitmapImage x:Key="ImagePause" UriSource="../Resources/Icons/control-pause.png" />
+
+  <BitmapImage x:Key="ImageScaleOnRealSize" UriSource="../Resources/Icons/image-resize-actual.png" />
+  <BitmapImage x:Key="ImageFitOnScreen" UriSource="../Resources/Icons/image-resize.png" />
+  <BitmapImage x:Key="ImageFocusOnRegion" UriSource="../Resources/Icons/magnifier-zoom-fit.png" />
+  <BitmapImage x:Key="ImageMagicWand" UriSource="../Resources/Icons/wand-magic.png" />
+  <BitmapImage x:Key="ImageSelectAll" UriSource="../Resources/Icons/image-select.png" />
+  <BitmapImage x:Key="ImagePicker" UriSource="../Resources/Icons/pipette.png" />
+  <BitmapImage x:Key="ImageHighlightMaterial" UriSource="../Resources/Icons/zsphere_16.png" />
+  <BitmapImage x:Key="ImageHighlightSelection" UriSource="../Resources/Icons/lightbulb-16.png" />
+  <BitmapImage x:Key="ImageLocked" UriSource="../Resources/Icons/lock.png" />
+  <BitmapImage x:Key="ImageUnlocked" UriSource="../Resources/Icons/lock-unlock.png" />
+
+  <!-- Curve editor icons -->
+  <BitmapImage x:Key="ImageEditCurve" UriSource="../Resources/Icons/curve-16.png" />
+  <BitmapImage x:Key="ImageFitCurve" UriSource="../Resources/Icons/curve_fit-32.png" />
+  <BitmapImage x:Key="ImageFitCurveHeight" UriSource="../Resources/Icons/curve_fit_height-32.png" />
+  <BitmapImage x:Key="ImageFitCurveWidth" UriSource="../Resources/Icons/curve_fit_width-32.png" />
+  <BitmapImage x:Key="ImageFirstPoint" UriSource="../Resources/Icons/skip_to_start-32.png" />
+  <BitmapImage x:Key="ImageLastPoint" UriSource="../Resources/Icons/end-32.png" />
+  <BitmapImage x:Key="ImageNextPoint" UriSource="../Resources/Icons/play-32.png" />
+  <BitmapImage x:Key="ImagePreviousPoint" UriSource="../Resources/Icons/play-32.png" Rotation="Rotate180" />
+
+  <!-- Arrows -->
+  <BitmapImage x:Key="ImageThicknessLeft" UriSource="../Resources/Icons/left-16.png" />
+  <BitmapImage x:Key="ImageThicknessRight" UriSource="../Resources/Icons/right-16.png" />
+  <BitmapImage x:Key="ImageThicknessUp" UriSource="../Resources/Icons/up-16.png" />
+  <BitmapImage x:Key="ImageThicknessDown" UriSource="../Resources/Icons/down-16.png" />
+  <BitmapImage x:Key="ImageThicknessBack" UriSource="../Resources/Icons/layers-arrange-back.png" />
+  <BitmapImage x:Key="ImageThicknessFront" UriSource="../Resources/Icons/layers-arrange.png" />
+
+  <BitmapImage x:Key="ImageResetCamera" UriSource="../Resources/Icons/camera.png" />
+
+  <BitmapImage x:Key="ImageWarning" UriSource="../Resources/Icons/exclamation-circle.png" />
+    
+  <BitmapImage x:Key="{x:Static font:FontStyle.Bold}" UriSource="../Resources/Icons/edit-bold.png" />
+  <BitmapImage x:Key="{x:Static font:FontStyle.Italic}" UriSource="../Resources/Icons/edit-italic.png" />
+
+  <BitmapImage x:Key="{x:Static components:StateControl.Play}" UriSource="../Resources/Icons/control.png" />
+  <BitmapImage x:Key="{x:Static components:StateControl.Pause}" UriSource="../Resources/Icons/control-pause.png" />
+  <BitmapImage x:Key="{x:Static components:StateControl.Stop}" UriSource="../Resources/Icons/control-stop.png" />
+    
+  <BitmapImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Sphere}" UriSource="../Resources/Icons/sphere.png" />
+  <BitmapImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Cube}" UriSource="../Resources/Icons/cube.png" />
+  <BitmapImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Cylinder}" UriSource="../Resources/Icons/cylinder.png" />
+  <BitmapImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Torus}" UriSource="../Resources/Icons/torus.png" />
+  <BitmapImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Plane}" UriSource="../Resources/Icons/plane.png" />
+  <BitmapImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Teapot}" UriSource="../Resources/Icons/teapot.png" />
+  <BitmapImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Cone}" UriSource="../Resources/Icons/cone.png" />
+  <BitmapImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Capsule}" UriSource="../Resources/Icons/capsule.png" />
+
+  <BitmapImage x:Key="{x:Static gameEditor:Transformation.Translation}" UriSource="../Resources/Icons/move_24.png" />
+  <BitmapImage x:Key="{x:Static gameEditor:Transformation.Rotation}" UriSource="../Resources/Icons/rotate_24.png" />
+  <BitmapImage x:Key="{x:Static gameEditor:Transformation.Scale}" UriSource="../Resources/Icons/scale_24.png" />
+
+  <BitmapImage x:Key="{x:Static data:ConfigPlatforms.Android}" UriSource="../Resources/Icons/android.png"/>
+  <BitmapImage x:Key="{x:Static data:ConfigPlatforms.iOS}" UriSource="../Resources/Icons/ios-icon-16.png"/>
+  <BitmapImage x:Key="{x:Static data:ConfigPlatforms.Linux}" UriSource="../Resources/Icons/animal-penguin.png"/>
+  <BitmapImage x:Key="{x:Static data:ConfigPlatforms.macOS}" UriSource="../Resources/Icons/mac-os.png"/>
+  <BitmapImage x:Key="{x:Static data:ConfigPlatforms.Windows}" UriSource="../Resources/Icons/windows.png"/>
+  <BitmapImage x:Key="{x:Static data:ConfigPlatforms.UWP}" UriSource="../Resources/Icons/uwp.png"/>
+
+  <BitmapImage x:Key="ImageFetchEntity" UriSource="../Resources/Icons/magnifier-medium.png" />
+  <BitmapImage x:Key="ImageLoadEntity" UriSource="../Resources/Icons/eye-16.png" />
+  <BitmapImage x:Key="ImageUnloadEntity" UriSource="../Resources/Icons/eye-hide-16.png" />
+  <BitmapImage x:Key="ImageLockEntity" UriSource="../Resources/Icons/lock.png" />
+  <BitmapImage x:Key="ImageUnlockEntity" UriSource="../Resources/Icons/lock-unlock-gray.png" />
+
+  <BitmapImage x:Key="ImageTranslateSnap" UriSource="../Resources/Icons/move_24+lock.png" />
+  <BitmapImage x:Key="ImageRotateSnap" UriSource="../Resources/Icons/rotate_24+lock.png" />
+  <BitmapImage x:Key="ImageScaleSnap" UriSource="../Resources/Icons/scale_24+lock.png" />
+  <BitmapImage x:Key="ImageAmbientLightForeground" UriSource="../Resources/Icons/globe-green.png" />
+  <BitmapImage x:Key="ImageToggleMaterialMode" UriSource="../Resources/Icons/zsphere_24.png" />
+  <BitmapImage x:Key="ImageToggleSelectionMask" UriSource="../Resources/Icons/selection_mask_yellow.png" />
+  <BitmapImage x:Key="ImageGizmos" UriSource="../Resources/Icons/gizmos.png" />
+  <BitmapImage x:Key="ImageLighting" UriSource="../Resources/Icons/infinite_light_24.png" />
+  <BitmapImage x:Key="ImageNavigation" UriSource="../Resources/Icons/navigation.png" />
+  <BitmapImage x:Key="ImageCameraSettings" UriSource="../Resources/Icons/camera_24.png" />
+  <BitmapImage x:Key="ImageGenerateCubeMap" UriSource="../Resources/Icons/cube_map_24.png" />
+  <BitmapImage x:Key="ImageLightProbesCompute" UriSource="../Resources/Icons/light_probes_compute.png" />
+  <BitmapImage x:Key="ImageLightProbesReset" UriSource="../Resources/Icons/light_probes_reset.png" />
+
+  <BitmapImage x:Key="{x:Static gameEditor:TransformationSpace.WorldSpace}" UriSource="../Resources/Icons/globe-green_24.png" />
+  <BitmapImage x:Key="{x:Static gameEditor:TransformationSpace.ObjectSpace}" UriSource="../Resources/Icons/wooden-box.png" />
+  <BitmapImage x:Key="{x:Static gameEditor:TransformationSpace.ViewSpace}" UriSource="../Resources/Icons/eye_24.png" />
+
+  <!-- Default fallback for entity component without icons -->
+  <BitmapImage x:Key="{x:Type engine:EntityComponent}" UriSource="../Resources/Components/entity-16.png" />
+    
+  <BitmapImage x:Key="{x:Type engine:AnimationComponent}" UriSource="../Resources/Components/animation-16.png" />
+  <BitmapImage x:Key="{x:Type engine:AudioEmitterComponent}" UriSource="../Resources/Components/audioemitter-16.png" />
+  <BitmapImage x:Key="{x:Type engine:AudioListenerComponent}" UriSource="../Resources/Components/audiolistener-16.png" />
+  <BitmapImage x:Key="{x:Type engine:BackgroundComponent}" UriSource="../Resources/Components/background-16.png" />
+  <BitmapImage x:Key="{x:Type engine:CameraComponent}" UriSource="../Resources/Components/camera-16.png" />
+  <BitmapImage x:Key="{x:Type engine:LightComponent}" UriSource="../Resources/Components/light-16.png" />
+  <BitmapImage x:Key="{x:Type components:ParticleSystemComponent}" UriSource="../Resources/Components/particle-16.png" />    
+  <BitmapImage x:Key="{x:Type engine:ModelComponent}" UriSource="../Resources/Components/model-16.png" />
+  <BitmapImage x:Key="{x:Type engine:ModelNodeLinkComponent}" UriSource="../Resources/Components/modelnodelink-16.png" />
+  <BitmapImage x:Key="{x:Type physics:PhysicsComponent}" UriSource="../Resources/Components/physics-16.png" />
+  <BitmapImage x:Key="{x:Type engine:ScriptComponent}" UriSource="../Resources/Components/script-16.png" />
+  <BitmapImage x:Key="{x:Type engine:SpriteComponent}" UriSource="../Resources/Components/sprite-16.png" />
+  <BitmapImage x:Key="{x:Type ss:SpriteStudioComponent}" UriSource="../Resources/Components/spritestudio-16.png" />
+  <BitmapImage x:Key="{x:Type ss-runtime:SpriteStudioNodeLinkComponent}" UriSource="../Resources/Components/modelnodelink-16.png" />
+  <BitmapImage x:Key="{x:Type engine:TransformComponent}" UriSource="../Resources/Components/entity-16.png" />
+  <BitmapImage x:Key="{x:Type engine-ui:UIComponent}" UriSource="../Resources/Components/ui-16.png" />
+  <BitmapImage x:Key="{x:Type engine-ui:UIElementLinkComponent}" UriSource="../Resources/Components/modelnodelink-16.png" />
+  <BitmapImage x:Key="{x:Type video:VideoComponent}" UriSource="../Resources/Components/video-16.png" />
+  <BitmapImage x:Key="FolderIcon" UriSource="../Resources/Components/folder-16.png" />
+  <BitmapImage x:Key="SceneIcon" UriSource="../Resources/Components/scene-blue-16.png" />
+
+  <SolidColorBrush x:Key="FallbackConnectorDisconnected" Color="#727171"/>
+  <SolidColorBrush x:Key="FallbackConnector" Color="#c5c5c5"/>
+  <SolidColorBrush x:Key="FallbackConnectorMouseOver" Color="#ebebeb"/>
+
+  <SolidColorBrush x:Key="ExecutionConnectorDisconnected" Color="#727171"/>
+  <SolidColorBrush x:Key="ExecutionConnector" Color="#c5c5c5"/>
+  <SolidColorBrush x:Key="ExecutionConnectorMouseOver" Color="#ebebeb"/>
+
+  <SolidColorBrush x:Key="ValueConnectorDisconnected" Color="#668639"/>
+  <SolidColorBrush x:Key="ValueConnector" Color="#82DF40"/>
+  <SolidColorBrush x:Key="ValueConnectorMouseOver" Color="#ADFF25"/>
+
+</ResourceDictionary>

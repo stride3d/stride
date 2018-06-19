@@ -1,0 +1,15 @@
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<#@ import namespace="System.Linq" #>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+<#@ include file="..\Common.TargetFrameworks.targets.t4" #>
+    <RootNamespace><#= Properties.Namespace #></RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Xenko" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>">
+      <PrivateAssets>contentfiles;analyzers</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,14 @@
+!MaterialAsset
+Id: cb1f44ac-a6bc-4b67-b74a-0c2859c55b3a
+BuildOrder: 250
+Material:
+    Nodes:
+        New Key: !MaterialReferenceNode
+            Name: TestMaterial
+        New Key 2: !MaterialTextureNode
+            TextureReference: 77fb96f6-a38f-4a71-a43c-c8d566ea3825:subfolder/Texture
+            TexcoordIndex: 0
+            Scale: {X: 1, Y: 1}
+            Offset: {X: 0, Y: 0}
+    ColorNodes: {}
+    Parameters: {}

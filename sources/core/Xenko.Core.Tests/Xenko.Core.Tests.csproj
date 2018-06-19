@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <XenkoAssemblySign>true</XenkoAssemblySign>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <PropertyGroup>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5AA408BA-E766-453E-B661-E3D7EC46E2A6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Xenko.Core.Tests</RootNamespace>
+    <AssemblyName>Xenko.Core.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
+    <XenkoBuildTags>Windows;Android;iOS</XenkoBuildTags>
+    <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoSkipUnitTests)' == 'true'">false</XenkoCompilerTargetsEnable>
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoRuntime)' == 'CoreCLR'">false</XenkoCompilerTargetsEnable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="nunit.framework" Label="Xenko.DoNotSync">
+      <HintPath>$(XenkoCommonDependenciesDir)NUnit\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="TestObjectIdBuilder.cs" />
+    <Compile Include="TestPriorityLinkedQueue.cs" />
+    <Compile Include="MemoryFileProvider.cs" />
+    <Compile Include="TestPriorityQueue.cs" />
+    <Compile Include="TestProfiler.cs" />
+    <Compile Include="TestSerialization.StructLayout.cs" />
+    <Compile Include="TestContentManager.cs" />
+    <Compile Include="TestLogger.cs" />
+    <Compile Include="TestMicroThread.cs" />
+    <Compile Include="TestStore.cs" />
+    <Compile Include="TestSerialization.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestUnmanagedArray.cs" />
+    <Compile Include="TestUtilities.cs" />
+    <Compile Include="TestWatcher.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj">
+      <Project>{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}</Project>
+      <Name>Xenko.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Core.IO\Xenko.Core.IO.csproj">
+      <Project>{1DE01410-22C9-489B-9796-1ADDAB1F64E5}</Project>
+      <Name>Xenko.Core.IO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj">
+      <Project>{1320F627-EE43-4115-8E89-19D1753E51F2}</Project>
+      <Name>Xenko.Core.MicroThreading</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
+      <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
+      <Name>Xenko.Core.Serialization</Name>
+    </ProjectReference>
+    <XenkoEmbeddedNativeLibrary Include="$(XenkoPackageXenkoPlatformBin)\libcore">
+      <Visible>false</Visible>
+    </XenkoEmbeddedNativeLibrary>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Condition="'$(XenkoCompilerTargetsEnable)' != 'false'" Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

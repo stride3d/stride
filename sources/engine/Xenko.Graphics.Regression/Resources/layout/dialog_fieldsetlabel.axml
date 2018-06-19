@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:minHeight="?android:attr/listPreferredItemHeight"
+  android:orientation="vertical"
+  android:padding="12dp"
+  >
+  <TextView android:id="@+id/dialog_LabelField"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:ellipsize="end"
+    android:singleLine="true"
+    android:text="Fieldset Label"
+    android:textSize="21sp"
+    android:textColor="#ffffff"
+    />
+</LinearLayout>

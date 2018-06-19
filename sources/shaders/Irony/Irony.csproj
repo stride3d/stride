@@ -1,0 +1,83 @@
+﻿<Project>
+
+  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  
+  <PropertyGroup>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>irony.snk</AssemblyOriginatorKeyFile>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <XenkoBuildTags>*</XenkoBuildTags>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Remove="**\*.cs" />
+    <Compile Include="Parsing\AstInterfaces.cs" />
+    <Compile Include="Parsing\Grammar\GrammarError.cs" />
+    <Compile Include="Parsing\Grammar\TermReportGroups.cs" />
+    <Compile Include="Parsing\Diagnostics\ParseTreeExtensions.cs" />
+    <Compile Include="Parsing\Parser\ParsingEventArgs.cs" />
+    <Compile Include="Common\StringUtils.cs" />
+    <Compile Include="Parsing\Parser\CoreParser_ErrorHandling.cs" />
+    <Compile Include="Parsing\Diagnostics\ParserTrace.cs" />
+    <Compile Include="Parsing\Scanner\Scanner.cs" />
+    <Compile Include="Parsing\Terminals\_ISourceStream.cs" />
+    <Compile Include="Parsing\Data\GrammarData.cs" />
+    <Compile Include="Parsing\Grammar\LanguageAttribute.cs" />
+    <Compile Include="Parsing\Data\LanguageData.cs" />
+    <Compile Include="Parsing\Data\Construction\LanguageDataBuilder.cs" />
+    <Compile Include="Parsing\Data\Construction\GrammarDataBuilder.cs" />
+    <Compile Include="Parsing\Data\Construction\ParserDataBuilder_HelperClasses.cs" />
+    <Compile Include="Parsing\Data\Construction\ParserDataBuilder.cs" />
+    <Compile Include="Parsing\Parser\Parser.cs" />
+    <Compile Include="Parsing\Data\ParserData.cs" />
+    <Compile Include="Parsing\Parser\ParserStack.cs" />
+    <Compile Include="Parsing\Parser\ParseTree.cs" />
+    <Compile Include="Parsing\Parser\CoreParser.cs" />
+    <Compile Include="Parsing\Scanner\SourceLocation.cs" />
+    <Compile Include="Parsing\Diagnostics\ParserDataPrinter.cs" />
+    <Compile Include="Parsing\Scanner\TokenEditorInfo.cs" />
+    <Compile Include="Parsing\Parser\ParsingContext.cs" />
+    <Compile Include="Parsing\Grammar\GrammarHint.cs" />
+    <Compile Include="Parsing\Grammar\NonTerminal.cs" />
+    <Compile Include="Parsing\Grammar\BnfExpression.cs" />
+    <Compile Include="Parsing\Diagnostics\ParserMessage.cs" />
+    <Compile Include="Parsing\Terminals\KeyTerm.cs" />
+    <Compile Include="Parsing\Terminals\_Terminal.cs" />
+    <Compile Include="Parsing\Scanner\Token.cs" />
+    <Compile Include="Parsing\Grammar\BnfTerm.cs" />
+    <Compile Include="Parsing\Grammar\Grammar.cs" />
+    <Compile Include="Parsing\TokenFilters\TokenFilter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="irony.snk" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="Parsing\Data\Construction\_about_parser_construction.txt" />
+  </ItemGroup>
+  
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  
+</Project>

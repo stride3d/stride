@@ -1,0 +1,15 @@
+!GameSettingsAsset
+Id: 6B842923-F59C-4216-BD5C-A44F2A656E3C
+Tags: []
+BackBufferWidth: 1280
+BackBufferHeight: 720
+DefaultGraphicsProfile: Level_9_1
+DisplayOrientation: LandscapeRight
+TextureQuality: Fast
+Profiles:
+    Windows: !WindowsGameSettingsProfile
+        GraphicsPlatform: Direct3D11
+    Windows-OpenGL: !WindowsGameSettingsProfile
+        GraphicsPlatform: OpenGL
+    Windows-OpenGLES: !WindowsGameSettingsProfile
+        GraphicsPlatform: OpenGLES

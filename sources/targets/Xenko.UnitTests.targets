@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <!-- Do not compile unit test when packaging -->
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoSkipUnitTests)' == 'true'">false</XenkoCompilerTargetsEnable>
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
+    
+    <XenkoUnitTest>true</XenkoUnitTest>
+    <XenkoCommonDependenciesDir></XenkoCommonDependenciesDir>
+
+    <!-- Unit tests are executables (execute asset compiler, embed native libraries, etc... -->
+    <XenkoIsExecutable>true</XenkoIsExecutable>
+
+    <!-- Setup Asset Compiler MSBuild SolutionDir and SolutionName to point to Xenko Windows
+         Also disable BuildProjectReferences, otherwise it would try to recompile assemblies currently locked by the CompilerApp itself.
+         However, that means that Tests dependencies must be compiled properly on Windows (should be the case usually).
+    -->
+    <XenkoCompileAssetOptions>--compile-property:SolutionDir=$([System.IO.Path]::GetFullPath('$(XenkoDir)'))\build\;SolutionName=Xenko;BuildProjectReferences=false</XenkoCompileAssetOptions>
+
+    <!-- Workaround for solution dependencies with incompatible frameworks: https://github.com/Microsoft/msbuild/issues/2661#issuecomment-338808156 -->
+    <AddSyntheticProjectReferencesForSolutionDependencies>false</AddSyntheticProjectReferencesForSolutionDependencies>
+
+  </PropertyGroup>
+  
+  <!-- On Windows, let's sign the assemblies with fake strong signing (OpenSource Signing, OSS),
+       so that people can compile Xenko themself and still use the editor which expect strongly signed assemblies.
+    -->
+  <!-- Signing -->
+  <PropertyGroup Condition=" '$(XenkoOpenSourceSign)' == 'true'">
+    <XenkoSign>true</XenkoSign>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(XenkoAssemblySign)' == 'true' And '$(XenkoSign)' == 'true'">
+    <DefineConstants>$(DefineConstants);XENKO_SIGNED</DefineConstants>
+    <SignAssembly>true</SignAssembly>
+    <DelaySign Condition="'$(XenkoOpenSourceSign)' == 'true'">true</DelaySign>
+    <AssemblyOriginatorKeyFile Condition="'$(XenkoOpenSourceSign)' != 'true'">$(SolutionDir)xenko.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile Condition="'$(XenkoOpenSourceSign)' == 'true'">$(SolutionDir)xenko.public.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  
+  <Import Project="$(MSBuildThisFileDirectory)\..\..\Targets\Xenko.Common.targets"/>
+
+  <!-- Add Default targets used by Msbuild for undefined Platforms / or when skipping compilation under a platform -->
+  <Import Condition="'$(XenkoCompilerTargetsEnable)' == 'false'" Project="$(MSBuildThisFileDirectory)Xenko.UnitTests.DisableBuild.targets"/>
+
+  <PropertyGroup>
+    <XenkoCommonDependenciesDir>$(XenkoPackageXenko)\deps\</XenkoCommonDependenciesDir>
+  </PropertyGroup>
+
+  <!-- Include platform dependent assembly when specified -->
+  <Choose>
+    <When Condition=" '$(XenkoPlatform)' == 'Android'">
+      <ItemGroup>
+        <Reference Include="Xamarin.Android.NUnitLite"/>
+      </ItemGroup>
+    </When>
+    <When Condition=" '$(XenkoPlatform)' == 'iOS'">
+      <ItemGroup>
+        <Reference Include="MonoTouch.NUnitLite"/>
+      </ItemGroup>
+    </When>
+    <When Condition="('$(XenkoRuntime)' == '') and (('$(XenkoPlatform)' == 'Windows') or ('$(XenkoPlatform)' == 'Linux') or ('$(XenkoPlatform)' == 'macOS'))">
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>$(XenkoCommonDependenciesDir)NUnit\nunit.framework.dll</HintPath>
+        </Reference>
+        <Reference Include="nunit.core.interfaces">
+          <HintPath>$(XenkoCommonDependenciesDir)NUnit\addins\nunit.core.interfaces.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="('$(XenkoRuntime)' == 'CoreCLR')">
+      <ItemGroup>
+        <Reference Include="nunitlite">
+          <HintPath>$(XenkoCommonDependenciesDir)NUnitLite\Portable\nunitlite.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>$(XenkoCommonDependenciesDir)NUnitLite\Portable\nunit.framework.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <!-- Override graphics platform (no need to get it from game settings asset) -->
+  <Target Name="XenkoGetGraphicsPlatform">
+    <!-- Do nothing for XenkoGraphicsApi, keep it as set by locals target -->
+    <PropertyGroup>
+      <XenkoCompileAssetOptions>$(XenkoCompileAssetOptions) --property:XenkoGraphicsApi=$(XenkoGraphicsApi)</XenkoCompileAssetOptions>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Import target to handle ProjectReference for executables -->
+  <Import Project="$(MSBuildThisFileDirectory)Xenko.InternalReferences.targets"/>
+</Project>

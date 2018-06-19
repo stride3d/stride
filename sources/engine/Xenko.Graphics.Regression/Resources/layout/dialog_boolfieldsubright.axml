@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:paddingTop="5dp"
+  android:paddingBottom="8dp"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:minHeight="?android:attr/listPreferredItemHeight"
+  android:orientation="horizontal"
+  >
+  <LinearLayout
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_weight="1"
+    >
+    <TextView android:id="@+id/dialog_LabelField"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:ellipsize="end"
+      android:singleLine="true"
+      android:layout_marginTop="9dp"
+      android:layout_marginLeft="12dp"
+      android:text="FieldLabel"
+      android:textAppearance="?android:attr/textAppearanceLarge"
+      />
+    <TextView android:id="@+id/dialog_LabelSubtextField"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="2dp"
+      android:layout_marginLeft="12dp"
+      android:ellipsize="end"
+      android:singleLine="true"
+      android:text="Subtext"
+      android:textAppearance="?android:attr/textAppearanceSmall"
+      />
+  </LinearLayout>
+  <CheckBox
+    android:id="@+id/dialog_BoolField"
+    android:layout_width="wrap_content"
+    android:layout_height="fill_parent"
+    android:layout_gravity="right"
+    android:layout_marginRight="8dp"
+    android:focusable="false"
+    />
+</LinearLayout>

@@ -1,0 +1,43 @@
+http://community.imgtec.com/developers/powervr/sdk-end-user-licence-agreement/
+
+SDK End User Licence Agreement
+PLEASE READ THIS AGREEMENT CAREFULLY. BY USING ANY PORTION OF THE SDK YOU WILL BE LEGALLY BOUND TO THESE TERMS. 
+Imagination Technologies Limited (ÅgImaginationÅh) provides this Software Development Kit subject to the terms of this Agreement. If you do not agree with any of these terms, then do not install or otherwise use the SDK.
+
+Definitions
+ÅgSDKÅh means all or any component of software in source or binary form, tools, code examples, drivers, files, libraries, utilities, reference manuals, documentation, or other materials, and including any related updates or upgrades made available by Imagination under this Agreement from time to time.
+Licence Grant
+Subject to your compliance with the terms of this Agreement, Imagination grants to you a non-exclusive, non-assignable licence to:(a) use the SDK for the sole purpose of developing, profiling, or assisting in the optimisation of internal, commercial, or non-commercial applications (ÅgDevelopment LicenseÅh);(b) distribute the SDK in source code, object file, or compiled binary form as a component of your application, provided that:
+i. you do not distribute the SDK on a stand alone basis;
+ii. you distribute such components under terms no less restrictive than those in this Agreement;
+iii. you comply with the attribution requirements set out in Appendix 1;
+iv. you are solely responsible for any update, support obligation or other liability that may arise from such distribution;
+v. you do not make any statements that your application or its performance are certified, guaranteed or otherwise endorsed by Imagination (ÅgProduction LicenseÅh)
+
+(c) Use the SDK as expressly authorised by Imagination in writing, on the payment and/or support terms set out in Appendix 2 (if applicable) (ÅgCustom LicenseÅh).
+
+Restrictions
+Other than as expressly permitted herein, you may not: (i) use the SDK for any unauthorised purpose; (ii) modify, disassemble, decompile, reverse engineer, revise or enhance the SDK, create derivative works or attempt to discover the source code for any element of the SDK not already provided in source code form; (iii) remove any proprietary or copyright notices on or accompanying the SDK; or (iv) incorporate or combine the SDK, with any open source software in such a way that would cause the SDK, or any portion thereof, to be subject to all or part of the licence obligations or other intellectual property related terms with respect to such open source software.
+Ownership
+Imagination retains all ownership of the SDK, including without limitation all copyrights and other intellectual property rights therein.
+Warranty Disclaimer
+THE SDK IS PROVIDED ÅgAS ISÅh. Imagination HEREBY DISCLAIMS ALL EXPRESS OR IMPLIED WARRANTIES AND CONDITIONS WITH REGARD TO THE SDK, INCLUDING ALL WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT.
+Limitation of Liability
+IN NO EVENT WILL Imagination BE LIABLE TO YOU FOR ANY DAMAGES, CLAIMS OR COSTS WHATSOEVER ARISING FROM THIS AGREEMENT AND/OR YOUR USE OF THE SDK OR ANY COMPONENT THEREOF, INCLUDING WITHOUT LIMITATION ANY CONSEQUENTIAL, INDIRECT, INCIDENTAL DAMAGES, OR ANY LOST PROFITS OR LOST SAVINGS, EVEN IF Imagination HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS OR FOR ANY CLAIM BY ANY THIRD PARTY. THE FOREGOING LIMITATIONS AND EXCLUSIONS APPLY TO THE EXTENT PERMITTED BY APPLICABLE LAW IN YOUR JURISDICTION.
+Third Party Materials
+All third party materials found on this SDK, including without limitation, artwork, graphics, game demos and patches, are the sole and exclusive property of such third parties. Imagination makes no representations or warranties about the accuracy, usability or validity of any third party materials, and disclaims all liabilities in connection with such third party materials.
+Term
+This Agreement is effective until terminated. Imagination has the right to terminate this Agreement immediately if you fail to comply with any term of this Agreement. You may terminate this Agreement by destroying or returning to Imagination all copies of the SDK in your possession.
+Governing Law
+This Agreement is governed by and shall be construed in accordance with English law and each party agrees to submit to the exclusive jurisdiction of the courts of England.
+APPENDIX 1: ATTRIBUTION REQUIREMENTS
+If source code is released as it is, the Copyright notice should be kept in a visible position.
+
+If object code is bundled with a product, all branding should be kept as it was originally, and the following acknowledgement should be displayed clearly in any associated documentation or other collateral in printed or electronic form distributed with the product incorporating the SDK component: ÅgThis product includes components of the PowerVR? SDK from Imagination Technologies LimitedÅh
+
+If source code is used to compile a product, the following acknowledgement should be displayed clearly in any associated documentation or other collateral in printed or electronic form distributed with the product incorporating the SDK component: ÅgThis product includes components of the PowerVR? SDK from Imagination Technologies LimitedÅh
+
+APPENDIX 2: FEES
+LICENCE FEES: nil
+ROYALTY FEES: nil
+SUPPORT AND MAINTENANCE TERMS AND FEES: nil

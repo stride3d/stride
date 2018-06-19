@@ -1,0 +1,200 @@
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+using Xenko.Core.Assets;
+using Xenko.Core.Assets.Compiler;
+using Xenko.Core.BuildEngine;
+using Xenko.Core;
+using Xenko.Core.IO;
+using Xenko.Core.Serialization;
+using Xenko.Core.Serialization.Contents;
+using Xenko.Data;
+using Xenko.Engine;
+using Xenko.Engine.Design;
+using Xenko.Graphics;
+using Xenko.Rendering.Compositing;
+
+namespace Xenko.Assets
+{
+    [AssetCompiler(typeof(GameSettingsAsset), typeof(AssetCompilationContext))]
+    public class GameSettingsAssetCompiler : AssetCompilerBase
+    {
+        protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
+        {
+            var asset = (GameSettingsAsset)assetItem.Asset;
+            // TODO: We should ignore game settings stored in dependencies
+            result.BuildSteps = new AssetBuildStep(assetItem);
+            result.BuildSteps.Add(new GameSettingsCompileCommand(targetUrlInStorage, assetItem.Package, context.Platform, context.GetCompilationMode(), asset));
+        }
+
+        public override IEnumerable<Type> GetRuntimeTypes(AssetItem assetItem)
+        {
+            yield return typeof(Scene);
+            yield return typeof(GraphicsCompositor);
+            yield return typeof(Texture);
+        }
+
+        private class GameSettingsCompileCommand : AssetCommand<GameSettingsAsset>
+        {
+            private readonly PlatformType platform;
+            private readonly CompilationMode compilationMode;
+            private readonly Package package;
+            public GameSettingsCompileCommand(string url, Package package, PlatformType platform, CompilationMode compilationMode, GameSettingsAsset asset)
+                : base(url, asset, package)
+            {
+                this.package = package;
+                this.platform = platform;
+                this.compilationMode = compilationMode;
+            }
+
+            protected override void ComputeParameterHash(BinarySerializationWriter writer)
+            {
+                base.ComputeParameterHash(writer);
+
+                // Hash used parameters from package
+                writer.Write(package.Id);
+                writer.Write(package.UserSettings.GetValue(GameUserSettings.Effect.EffectCompilation));
+                writer.Write(package.UserSettings.GetValue(GameUserSettings.Effect.RecordUsedEffects));
+                writer.Write(compilationMode);
+
+                // Hash platform
+                writer.Write(platform);
+            }
+
+            protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
+            {
+                var result = new GameSettings
+                {
+                    PackageId = package.Id,
+                    PackageName = package.Meta.Name,
+                    DefaultSceneUrl = Parameters.DefaultScene != null ? AttachedReferenceManager.GetUrl(Parameters.DefaultScene) : null,
+                    DefaultGraphicsCompositorUrl = Parameters.GraphicsCompositor != null ? AttachedReferenceManager.GetUrl(Parameters.GraphicsCompositor) : null,
+                    SplashScreenUrl = Parameters.SplashScreenTexture != null && (compilationMode == CompilationMode.Release || compilationMode == CompilationMode.AppStore) ? AttachedReferenceManager.GetUrl(Parameters.SplashScreenTexture) : null,
+                    SplashScreenColor = Parameters.SplashScreenColor,
+                    DoubleViewSplashScreen = Parameters.DoubleViewSplashScreen,
+                    EffectCompilation = package.UserSettings.GetValue(GameUserSettings.Effect.EffectCompilation),
+                    RecordUsedEffects = package.UserSettings.GetValue(GameUserSettings.Effect.RecordUsedEffects),
+                    Configurations = new PlatformConfigurations(),
+                    CompilationMode = compilationMode
+                };
+
+                //start from the default platform and go down overriding
+
+                foreach (var configuration in Parameters.Defaults.Where(x => !x.OfflineOnly))
+                {
+                    result.Configurations.Configurations.Add(new ConfigurationOverride
+                    {
+                        Platforms = ConfigPlatforms.None,
+                        SpecificFilter = -1,
+                        Configuration = configuration
+                    });
+                }
+
+                foreach (var configurationOverride in Parameters.Overrides.Where(x => x.Configuration != null && !x.Configuration.OfflineOnly))
+                {
+                    result.Configurations.Configurations.Add(configurationOverride);
+                }
+
+                result.Configurations.PlatformFilters = Parameters.PlatformFilters;
+
+                //make sure we modify platform specific files to set the wanted orientation
+                SetPlatformOrientation(package, platform, Parameters.GetOrCreate<RenderingSettings>().DisplayOrientation);
+
+                var assetManager = new ContentManager();
+                assetManager.Save(Url, result);
+
+                return Task.FromResult(ResultStatus.Successful);
+            }
+        }
+
+        public static void SetPlatformOrientation(Package package, PlatformType platform, RequiredDisplayOrientation orientation)
+        {
+            foreach (var profile in package.Profiles)
+            {
+                if (profile.Platform != platform) continue;
+
+                switch (profile.Platform)
+                {
+                    case PlatformType.Android:
+                        {
+                            var exeProjectLocation = profile.ProjectReferences.FirstOrDefault(x => x.Type == ProjectType.Executable);
+                            if (exeProjectLocation == null) continue;
+
+                            var path = exeProjectLocation.Location;
+                            var activityFileName = package.Meta.Name + "Activity.cs";
+                            var activityFile = UPath.Combine(path.GetFullDirectory(), new UFile(activityFileName));
+                            if (!File.Exists(activityFile)) continue;
+
+                            var activitySource = File.ReadAllText(activityFile);
+
+                            string orientationString;
+                            switch (orientation)
+                            {
+                                case RequiredDisplayOrientation.Default:
+                                    orientationString = "Android.Content.PM.ScreenOrientation.Landscape";
+                                    break;
+                                case RequiredDisplayOrientation.LandscapeLeft:
+                                    orientationString = "Android.Content.PM.ScreenOrientation.Landscape";
+                                    break;
+                                case RequiredDisplayOrientation.LandscapeRight:
+                                    orientationString = "Android.Content.PM.ScreenOrientation.ReverseLandscape";
+                                    break;
+                                case RequiredDisplayOrientation.Portrait:
+                                    orientationString = "Android.Content.PM.ScreenOrientation.Portrait";
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
+
+                            activitySource = Regex.Replace(activitySource, @"(\[Activity(?:.*[\n,\r]*)+?[\n,\r,\s]*ScreenOrientation\s*=\s*)([\w,\d,\.]+)(\s*,)", $"$1{orientationString}$3");
+
+                            File.WriteAllText(activityFile, activitySource);
+                        }
+                        break;
+                    case PlatformType.iOS:
+                        {
+                            var exeProjectLocation = profile.ProjectReferences.FirstOrDefault(x => x.Type == ProjectType.Executable);
+                            if (exeProjectLocation == null) continue;
+
+                            var path = exeProjectLocation.Location;
+                            var plistFile = UPath.Combine(path.GetFullDirectory(), new UFile("Info.plist"));
+                            if (!File.Exists(plistFile)) continue;
+
+                            var xmlDoc = XDocument.Load(plistFile);
+                            var orientationKey = xmlDoc.Descendants("key").FirstOrDefault(x => x.Value == "UISupportedInterfaceOrientations");
+                            var orientationElement = ((XElement)orientationKey?.NextNode)?.Descendants("string").FirstOrDefault();
+                            if (orientationElement != null)
+                            {
+                                switch (orientation)
+                                {
+                                    case RequiredDisplayOrientation.Default:
+                                        orientationElement.Value = "UIInterfaceOrientationLandscapeRight";
+                                        break;
+                                    case RequiredDisplayOrientation.LandscapeLeft:
+                                        orientationElement.Value = "UIInterfaceOrientationLandscapeLeft";
+                                        break;
+                                    case RequiredDisplayOrientation.LandscapeRight:
+                                        orientationElement.Value = "UIInterfaceOrientationLandscapeRight";
+                                        break;
+                                    case RequiredDisplayOrientation.Portrait:
+                                        orientationElement.Value = "UIInterfaceOrientationPortrait";
+                                        break;
+                                    default:
+                                        throw new ArgumentOutOfRangeException();
+                                }
+                            }
+
+                            xmlDoc.Save(plistFile);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+}

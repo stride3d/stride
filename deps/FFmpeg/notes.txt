@@ -1,0 +1,1 @@
+Extracted from ffmpeg-20160530-git-d74cc61-win64-static.zip

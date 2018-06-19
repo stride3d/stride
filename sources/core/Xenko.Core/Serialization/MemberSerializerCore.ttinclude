@@ -1,0 +1,310 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+<# {
+     var typeExpr = supportsGenerics ? "typeof(T)" : "objType";
+	 var objCopyExpr = supportsGenerics ? "objCopy" : "obj";
+	 var serializerCastExpr = supportsGenerics ? "(DataSerializer<T>)" : string.Empty;
+	 var castExpr = supportsGenerics ? "(T)" : string.Empty; #>
+<# if (supportsReuseReferences || supportsNonSealed || supportsNullDataSerializer) { #>
+            var context = stream.Context;
+<# } #>
+
+<# if (supportsValueType) { #>
+<# if (supportsGenerics) { #>
+            if (isValueType)
+<# } else { #>
+            if (objType.GetTypeInfo().IsValueType)
+<# } #>
+            {
+<# if (supportsNullDataSerializer) { #>
+                if (dataSerializer == null)
+                {
+                    dataSerializer = <#= serializerCastExpr #>context.SerializerSelector.GetSerializer(<#= typeExpr #>);
+
+                    // If we still have no serializer, throw an exception
+                    if (dataSerializer == null)
+                        throw new ArgumentException("No serializer available for type " + <#= typeExpr #>.FullName);
+                }
+<# } // supportsNullDataSerializer #>
+
+                // Structure, no need to check for inheritance or null values.
+                dataSerializer.Serialize(ref obj, mode, stream);
+
+                return;
+            }
+
+<# } #>
+
+<# if (supportsNonSealed || supportsReuseReferences) { #>
+            // Serialize either with dataSerializer if obj is really of type T, otherwise look for appropriate serializer.
+            SerializeClassFlags flags;
+<# } #>
+<# if (supportsReuseReferences) { #>
+            bool reuseReferences = context.SerializerSelector.ReuseReferences;
+            int index;
+<# } #>
+<# if (supportsExternalIdentifiableAsGuid) { #>
+            bool externalIdentifiableAsGuid = context.SerializerSelector.ExternalIdentifiableAsGuid;
+<# } #>
+<# if (supportsNonSealed) { #>
+            bool hasTypeInfo;
+<# if (supportsGenerics) { #>
+            object objCopy;
+<# } #>
+            DataSerializer objectDataSerializer;
+            Type type;
+<# } // supportsNonSealed #>
+
+            if (mode == ArchiveMode.Serialize)
+            {
+                if (ReferenceEquals(obj, null))
+                {
+                    // Null contentRef
+                    stream.Write((byte)SerializeClassFlags.IsNull);
+                }
+                else
+                {
+<# if (supportsNonSealed || supportsReuseReferences) { #>
+                    flags = SerializeClassFlags.None;
+<# } #>
+
+<# if (supportsExternalIdentifiableAsGuid) { #>
+                    if (externalIdentifiableAsGuid)
+                    {
+                        var identifiable = obj as IIdentifiable;
+                        var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
+                        if (identifiable != null && externalIdentifiables?.ContainsKey(identifiable.Id) == true)
+                        {
+                            flags |= SerializeClassFlags.IsExternalIdentifiable;
+                            stream.Write((byte)flags);
+                            stream.Write(identifiable.Id);
+                            return;
+                        }
+                    }
+<# } #>
+
+<# if (supportsReuseReferences) { #>
+                    index = -1;
+                    if (reuseReferences)
+                    {
+                        var objectReferences = context.Get(MemberSerializer.ObjectSerializeReferences);
+                        if (objectReferences.TryGetValue(obj, out index))
+                        {
+                            // Already serialized, just write its contentRef index
+                            flags |= SerializeClassFlags.IsReference;
+                            stream.Write((byte)flags);
+                            stream.Write(index);
+                            return;
+                        }
+
+                        // First time it is serialized, add it to objectReferences.
+                        objectReferences.Add(obj, index = objectReferences.Count);
+                    }
+<# } #>
+
+<# if (supportsNonSealed) { #>
+                    // If real type is not expected type, we need to store type info as well.
+                    var expectedType = <#= typeExpr #>;
+                    type = <# if (supportsGenerics) { #>isSealed<# } else { #>objType.GetTypeInfo().IsSealed<# } #> ? expectedType : obj.GetType();
+                    hasTypeInfo = type != expectedType;
+                    objectDataSerializer = null;
+                    if (hasTypeInfo)
+                    {
+                        // Find matching serializer (always required w/ typeinfo, since type was different than expected)
+                        objectDataSerializer = context.SerializerSelector.GetSerializer(type);
+
+                        if (objectDataSerializer == null)
+                            throw new ArgumentException("No serializer available for type " + type.FullName);
+
+                        // Update expected type
+                        type = objectDataSerializer.SerializationType;
+
+                        // Special case: serializer reports the actual serialized type, and it might actually match the expected type
+                        // (i.e. there is a hidden inherited type, such as PropertyInfo/RuntimePropertyInfo).
+                        // Let's detect it here.
+                        if (type == expectedType)
+                        {
+                            // Cancel type info
+                            hasTypeInfo = false;
+                        }
+                        else
+                        {
+                            // Continue as expected with type info
+                            flags |= SerializeClassFlags.IsTypeInfo;
+                        }
+                    }
+<# } // supportsNonSealed #>
+
+                    // Serialize flags
+<# if (supportsNonSealed || supportsReuseReferences) { #>
+                    stream.Write((byte)flags);
+<# } else { #>
+                    stream.Write((byte)SerializeClassFlags.None);
+<# } #>
+
+<# if (supportsReuseReferences) { #>
+                    // Serialize object index (if required)
+                    if (reuseReferences)
+                        stream.Write(index);
+
+<# } #>
+<# if (supportsNonSealed) { #>
+                    if (hasTypeInfo)
+                    {
+                        // Serialize type info
+                        fixed (ObjectId* serializationTypeId = &objectDataSerializer.SerializationTypeId)
+                            stream.Serialize((IntPtr)serializationTypeId, ObjectId.HashSize);
+
+                        // Serialize object
+<# if (supportsGenerics) { #>
+                        objCopy = obj;
+<# } #>
+                        objectDataSerializer.PreSerialize(ref <#= objCopyExpr #>, mode, stream);
+                        objectDataSerializer.Serialize(ref <#= objCopyExpr #>, mode, stream);
+<# if (supportsGenerics) { #>
+                        obj = (T)objCopy;
+<# } #>
+                    }
+                    else
+<# } // supportsNonSealed #>
+                    {
+<# if (supportsNullDataSerializer) { #>
+                        if (dataSerializer == null)
+                        {
+                            dataSerializer = <#= serializerCastExpr #>context.SerializerSelector.GetSerializer(<# if (supportsNonSealed) { #>expectedType<# } else { #><#= typeExpr #><# } #>);
+
+                            // If we still have no serializer, throw an exception
+                            if (dataSerializer == null)
+                                throw new ArgumentException("No serializer available for type " + <# if (supportsNonSealed) { #>expectedType<# } else { #><#= typeExpr #><# } #>.FullName);
+                        }
+
+<# } // supportsNullDataSerializer #>
+                        // Serialize object
+                        dataSerializer.PreSerialize(ref obj, mode, stream);
+                        dataSerializer.Serialize(ref obj, mode, stream);
+                    }
+                }
+            }
+            else
+            {
+
+<# if (supportsNonSealed || supportsReuseReferences) { #>
+                flags = (SerializeClassFlags)stream.ReadByte();
+                var isNull = (flags & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+<# } else { // optimized version where flags is only used for isNull: optimize locals #>
+                var isNull = ((SerializeClassFlags)stream.ReadByte() & SerializeClassFlags.IsNull) == SerializeClassFlags.IsNull;
+<# } #>
+<# if (supportsReuseReferences) { #>
+                var objectReferences = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeReferences) : null;
+                var referenceCallback = reuseReferences ? context.Get(MemberSerializer.ObjectDeserializeCallback) : null;
+                var isReference = (flags & SerializeClassFlags.IsReference) == SerializeClassFlags.IsReference;
+                var isExternalIdentifiable = (flags & SerializeClassFlags.IsExternalIdentifiable) == SerializeClassFlags.IsExternalIdentifiable;
+                index = reuseReferences && !isNull && !isExternalIdentifiable ? stream.ReadInt32() : -1;
+<# } #>
+<# if (supportsNonSealed) { #>
+                hasTypeInfo = (flags & SerializeClassFlags.IsTypeInfo) == SerializeClassFlags.IsTypeInfo;
+<# } // supportsNonSealed #>
+
+                if (isNull)
+                {
+                    obj = <# if (supportsGenerics) { #>default(T)<# } else { #>null<# } #>;
+                }
+<# if (supportsExternalIdentifiableAsGuid) { #>
+                else if (externalIdentifiableAsGuid && isExternalIdentifiable)
+                {
+                    var externalIdentifiables = context.Get(MemberSerializer.ExternalIdentifiables);
+					var identifier = stream.Read<Guid>();
+					IIdentifiable identifiable;
+					externalIdentifiables.TryGetValue(identifier, out identifiable);
+                    obj = <#= castExpr #>identifiable;
+                }
+<# } #>
+<# if (supportsReuseReferences) { #>
+                else if (reuseReferences && isReference)
+                {
+                    obj = <#= castExpr #>objectReferences[index];
+                }
+<# } #>
+                else
+                {
+<# if (supportsReuseReferences) { #>
+                    if (reuseReferences)
+                    {
+                        if (objectReferences.Count != index)
+                            throw new InvalidOperationException("Serialization contentRef indices are out of sync.");
+                        objectReferences.Add(null);
+                    }
+<# } #>
+<# if (supportsNonSealed) { #>
+                    if (hasTypeInfo)
+                    {
+                        ObjectId serializationTypeId;
+                        stream.Serialize((IntPtr)Interop.FixedOut(out serializationTypeId), ObjectId.HashSize);
+
+                        objectDataSerializer = context.SerializerSelector.GetSerializer(ref serializationTypeId);
+						if (objectDataSerializer == null)
+						    throw new ArgumentException("No serializer available for type id " + serializationTypeId + " and base type " + <#= typeExpr #>.FullName);
+
+<# if (supportsGenerics) { #>
+                        objCopy = obj;
+<# } #>
+                        objectDataSerializer.PreSerialize(ref <#= objCopyExpr #>, mode, stream);
+
+<# if (supportsReuseReferences) { #>
+                        if (reuseReferences)
+                        {
+                            // Register object so that later references to it are working.
+                            objectReferences[index] = <#= objCopyExpr #>;
+                        }
+<# } #>
+
+                        objectDataSerializer.Serialize(ref <#= objCopyExpr #>, mode, stream);
+<# if (supportsGenerics) { #>
+                        obj = (T)objCopy;
+<# } #>
+                    }
+                    else
+<# } // supportsNonSealed #>
+                    {
+<# if (supportsNullDataSerializer) { #>
+                        if (dataSerializer == null)
+                        {
+                            dataSerializer = <#= serializerCastExpr #>context.SerializerSelector.GetSerializer(<#= typeExpr #>);
+
+                            // If we still have no serializer, throw an exception
+                            if (dataSerializer == null)
+                                throw new ArgumentException("No serializer available for type " + <#= typeExpr #>.FullName);
+                        }
+
+<# } // supportsNullDataSerializer #>
+                        // Serialize object
+                        dataSerializer.PreSerialize(ref obj, mode, stream);
+
+<# if (supportsReuseReferences) { #>
+                        if (reuseReferences)
+                        {
+                            // Register object so that later references to it are working.
+                            objectReferences[index] = obj;
+                        }
+<# } #>
+
+                        dataSerializer.Serialize(ref obj, mode, stream);
+                    }
+
+<# if (supportsReuseReferences) { #>
+                    if (reuseReferences)
+                    {
+                        // Register object so that later references to it are working.
+                        objectReferences[index] = obj;
+
+                        // Call Reference Callback
+                        referenceCallback?.Invoke(index, obj);
+                    }
+<# } #>
+                }
+            }
+<# } #>

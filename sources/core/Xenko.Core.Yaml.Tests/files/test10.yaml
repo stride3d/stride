@@ -1,0 +1,8 @@
+- item 1
+- item 2
+-
+  - item 3.1
+  - item 3.2
+-
+  key 1: value 1
+  key 2: value 2

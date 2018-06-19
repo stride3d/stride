@@ -1,0 +1,62 @@
+== x64 DLL version ==
+
+This is a FFmpeg win64 shared build.
+
+FFMpeg version: 3.3.3 (9079c70d2095643af6954001d0627445650b85a6)
+
+This FFmpeg build was configured with:
+  --toolchain=msvc
+  --arch=x86_64
+  --enable-version3
+  --enable-yasm 
+  --enable-asm
+  --enable-shared
+  --enable-w32threads
+  --enable-avresample
+  --disable-ffserver 
+  --disable-programs
+  --disable-doc
+  --disable-static
+  --target-os=win64
+
+
+== x86 DLL version ==
+
+This is a FFmpeg x86 generic shared build.
+
+FFMpeg version: 3.3.3 (9079c70d2095643af6954001d0627445650b85a6)
+
+This FFmpeg build was configured with:
+  --toolchain=msvc
+  --arch=x86
+  --enable-version3
+  --enable-yasm
+  --enable-asm
+  --enable-shared
+  --enable-w32threads
+  --enable-avresample
+  --disable-ffserver
+  --disable-programs
+  --disable-doc
+  --disable-static
+  
+  
+// Instructions for building FFmpeg:
+# ref: https://pracucci.com/compile-ffmpeg-on-windows-with-visual-studio-compiler.html
+
+1. checkout ffmpeg
+2. download MSYS (​http://msys2.github.io)
+3. install it C:\workspace\windows\msys64
+4. run MSYS command prompt (C:\workspace\windows\msys64\msys2_shell.cmd)
+5. install package with "pacman -Su make gcc diffutils autoconf automake gperf yasm python"
+6. go to C:\workspace\windows\msys64
+7. edit msys2_shell.cmd file
+8. uncomment the "set MSYS2_PATH_TYPE=inherit" line so that environment variables are available
+9. download yasm http://www.tortall.net/projects/yasm/releases/yasm-1.3.0-win64.exe
+10. rename it to yasm.exe and move it to C:\workspace\windows
+11. Add C:\workspace\windows to PATH environment variable
+12. in C:\ProgramData\Microsoft\AndroidNDK64\android-ndk-r13b\build\tools\make_standalone_toolchain.py
+   * in get_host_tag_or_die method add support for MSYS
+		elif (platform.system() == 'MSYS_NT-10.0' or
+          platform.system() == 'MINGW64_NT-10.0'):
+        host_tag = 'windows-x86_64'

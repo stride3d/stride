@@ -1,0 +1,80 @@
+<sskk:ModalWindow x:Class="Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views.NewPackageWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views"
+        xmlns:viewModels="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
+        mc:Ignorable="d"
+        Title="{sskk:Localize New package}" Height="768" Width="1024" Icon="{DynamicResource EditorIcon}" ShowInTaskbar="False"
+        Style="{DynamicResource WindowChromeStyle}" d:DataContext="{d:DesignInstance viewModels:NewPackageTemplateCollectionViewModel}">
+  <sskk:ModalWindow.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../../../View/CommonResources.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </sskk:ModalWindow.Resources>
+  <DockPanel>
+    <Grid DockPanel.Dock="Bottom">
+      <DockPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="20" DockPanel.Dock="Bottom">
+          <UniformGrid Rows="1">
+            <Button Content="{sskk:Localize Select, Context=Button}" Padding="20,6" Margin="10,0,0,0"
+                    ToolTip="{sskk:Localize Use the selected template, Context=ToolTip}" IsEnabled="{Binding SelectedTemplate, Converter={sskk:ObjectToBool}}">
+              <i:Interaction.Behaviors>
+                <sskk:ButtonCloseWindowBehavior DialogResult="OK"/>
+              </i:Interaction.Behaviors>
+            </Button>
+            <Button Content="{sskk:Localize Cancel, Context=Button}" Padding="20,6" Margin="10,0,0,0" IsCancel="True" ToolTip="{sskk:Localize Cancel (Esc), Context=ToolTip}">
+              <i:Interaction.Behaviors>
+                <sskk:ButtonCloseWindowBehavior DialogResult="Cancel"/>
+              </i:Interaction.Behaviors>
+            </Button>
+          </UniformGrid>
+        </StackPanel>
+        <Grid IsEnabled="{Binding SelectedTemplate, Converter={sskk:MatchType}, ConverterParameter={x:Type viewModels:TemplateDescriptionViewModel}}">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <Grid.Resources>
+            <Style TargetType="{x:Type sskk:TextBox}" BasedOn="{StaticResource {x:Type sskk:TextBox}}">
+              <EventSetter Event="Validated" Handler="OnTextBoxValidated" />
+              <Setter Property="ValidateOnLostFocus" Value="True" />
+              <Setter Property="ValidateOnTextChange" Value="False" />
+              <Setter Property="ValidateWithEnter" Value="True" />
+            </Style>
+          </Grid.Resources>
+
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="{sskk:Localize Name:}" Margin="20,0" VerticalAlignment="Center"/>
+          <sskk:TextBox Grid.Row="0" Grid.Column="1" Margin="2" Text="{Binding Name}">
+            <i:Interaction.Behaviors>
+              <sskk:TextBoxCloseWindowBehavior DialogResult="OK" IsEnabled="{sskk:MultiBinding {Binding SelectedTemplate, Converter={sskk:ObjectToBool}}, {Binding ArePropertiesValid}, Converter={sskk:AndMultiConverter}}"/>
+            </i:Interaction.Behaviors>
+          </sskk:TextBox>
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="{sskk:Localize Location:}" Margin="20,0" VerticalAlignment="Center"/>
+          <DockPanel Grid.Row="1" Grid.Column="1">
+            <Button Style="{StaticResource ImageButtonStyle}" DockPanel.Dock="Right" Command="{Binding BrowseDirectoryCommand}" CommandParameter="Location" ToolTip="{sskk:Localize Browse directory, Context=ToolTip}">
+              <Image Source="{StaticResource ImageBrowse}" Width="16" Height="16" Margin="-1"/>
+            </Button>
+            <sskk:TextBox Margin="2" Text="{Binding Location, Converter={sskk:UDirectoryToString}}" sskk:Trimming.TextTrimming="WordEllipsis" sskk:Trimming.TrimmingSource="Middle" sskk:Trimming.WordSeparators="/\\">
+              <i:Interaction.Behaviors>
+                <sskk:TextBoxCloseWindowBehavior DialogResult="OK" IsEnabled="{sskk:MultiBinding {Binding SelectedTemplate, Converter={sskk:ObjectToBool}}, {Binding ArePropertiesValid}, Converter={sskk:AndMultiConverter}}"/>
+              </i:Interaction.Behaviors>
+            </sskk:TextBox>
+          </DockPanel>
+        </Grid>
+      </DockPanel>
+    </Grid>
+
+    <views:TemplateBrowserUserControl Margin="10"/>
+  </DockPanel>
+</sskk:ModalWindow>

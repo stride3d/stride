@@ -1,0 +1,147 @@
+﻿<Project>
+  <PropertyGroup>
+    <XenkoAssemblySign>true</XenkoAssemblySign>
+    <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <XenkoPlatformFilter>Windows;Android;iOS;Linux;macOS;UWP</XenkoPlatformFilter>
+    <DefineConstants>$(DefineConstants);XAMCORE_2_0</DefineConstants>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <XenkoPlatformDependent>true</XenkoPlatformDependent>
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
+    <XenkoBuildTags>*</XenkoBuildTags>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Remove="AndrRunner\**\*.cs" />
+    <Compile Remove="TouchRunner\**\*.cs" />
+  </ItemGroup>
+
+  <Choose>
+    <When Condition="('$(XenkoRuntime)' == '') and (('$(XenkoPlatform)' == 'Windows') or ('$(XenkoPlatform)' == 'Linux') or ('$(XenkoPlatform)' == 'macOS'))">
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>$(XenkoCommonDependenciesDir)NUnit\nunit.framework.dll</HintPath>
+          <Private>False</Private>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="('$(XenkoRuntime)' == 'CoreCLR') or ('$(XenkoPlatform)' == 'UWP')">
+      <ItemGroup>
+        <Reference Include="nunitlite">
+          <HintPath>$(XenkoCommonDependenciesDir)NUnitLite\Portable\nunitlite.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>$(XenkoCommonDependenciesDir)NUnitLite\Portable\nunit.framework.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="'$(XenkoPlatform)' == 'iOS'">
+      <ItemGroup>
+        <Reference Include="MonoTouch.NUnitLite" />
+        <Reference Include="MonoTouch.Dialog-1" />
+        <Reference Include="OpenTK-1.1">
+          <HintPath>$(XenkoDependenciesDir)OpenTK\iOS\OpenTK-1.1.dll</HintPath>
+        </Reference>
+      </ItemGroup>
+      <ItemGroup Condition="'$(XenkoPlatform)' == 'iOS'">
+        <Compile Include="TouchRunner\**\*.cs" />
+      </ItemGroup>
+    </When>
+    <When Condition="'$(XenkoPlatform)' == 'Android'">
+      <ItemGroup>
+        <Reference Include="Xamarin.Android.NUnitLite" />
+      </ItemGroup>
+      <ItemGroup>
+        <Compile Include="AndrRunner\**\*.cs" />
+        <AndroidResource Include="Resources\layout\dialog_achievements.axml" />
+        <AndroidResource Include="Resources\layout\dialog_boolfieldleft.axml" />
+        <AndroidResource Include="Resources\layout\dialog_boolfieldright.axml" />
+        <AndroidResource Include="Resources\layout\dialog_boolfieldsubleft.axml" />
+        <AndroidResource Include="Resources\layout\dialog_boolfieldsubright.axml" />
+        <AndroidResource Include="Resources\layout\dialog_button.axml" />
+        <AndroidResource Include="Resources\layout\dialog_datefield.axml" />
+        <AndroidResource Include="Resources\layout\dialog_fieldsetlabel.axml" />
+        <AndroidResource Include="Resources\layout\dialog_floatimage.axml" />
+        <AndroidResource Include="Resources\layout\dialog_labelfieldbelow.axml" />
+        <AndroidResource Include="Resources\layout\dialog_labelfieldright.axml" />
+        <AndroidResource Include="Resources\layout\dialog_onofffieldright.axml" />
+        <AndroidResource Include="Resources\layout\dialog_panel.axml" />
+        <AndroidResource Include="Resources\layout\dialog_root.axml" />
+        <AndroidResource Include="Resources\layout\dialog_selectlist.axml" />
+        <AndroidResource Include="Resources\layout\dialog_selectlistfield.axml" />
+        <AndroidResource Include="Resources\layout\dialog_textarea.axml" />
+        <AndroidResource Include="Resources\layout\dialog_textfieldbelow.axml" />
+        <AndroidResource Include="Resources\layout\dialog_textfieldright.axml" />
+        <AndroidResource Include="Resources\drawable\dialog_disclosure.png" />
+        <AndroidResource Include="Resources\drawable\dialog_expander_ic_minimized.9.png" />
+      </ItemGroup>
+    </When>
+  </Choose>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Input\Xenko.Input.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Xenko\Xenko.csproj">
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Scripts\RunAndroidTest.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\RunAndroidUnitTest.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\RunUniqueAndroidTest.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\RunUniqueWindowsTest.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Web\jquery-2.1.0.min.js" />
+    <None Include="Web\tableBuilder.js" />
+    <None Include="Web\Vizualizer.html" />
+  </ItemGroup>
+
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+
+</Project>

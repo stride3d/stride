@@ -1,0 +1,162 @@
+! "Name"    = 'Tokenizer'
+! "Version" = '1.0'
+! "Author"  = 'Alexandre Mutel'
+! "About"   = 'Based on partial conversion of Sun Java 1.0-2.0 specification'
+
+{String Char} = {Printable} - ["]
+{Quote} = ['']
+{IdLetter} = {Letter} + [_$]
+{IdAlphaNumeric} = {Alphanumeric} + [_$]
+{HexDigit} = {Digit} + [abcdefABCDEF]
+{OctalCharSet} = [01234567]
+{NoZeroDigit} = [123456789]
+{LongTypeSuffix} =[lL]
+{FloatTypeSuffix} =[hHdfDF]
+{ExponentPartIndicator} = [eE]
+{Sign} = [-+]
+{CharSign} = [abtnfr"\] + {Quote}
+{CharSign1} = {String Char} - [\]
+{HexEscapeSign} =[uUxX]
+{WS}        = {Whitespace} - {CR} - {LF}
+
+Identifier     = {IdLetter}{IdAlphaNumeric}*
+StringLiteral  = '"'{String Char}*'"'
+FloatingPointLiteral   = {Digit}+'.'{Digit}*{FloatTypeSuffix}? | {Digit}+{FloatTypeSuffix} | '.'{Digit}+{FloatTypeSuffix}?
+FloatingPointLiteralExponent = {Digit}+'.'{Digit}*{ExponentPartIndicator}{Sign}?{Digit}+{FloatTypeSuffix}? | {Digit}+{ExponentPartIndicator}{Sign}?{Digit}+{FloatTypeSuffix}? | '.'{Digit}+{ExponentPartIndicator}{Sign}?{Digit}+{FloatTypeSuffix}?
+IndirectCharLiteral = {Quote}{CharSign1}{Quote}
+StandardEscapeCharLiteral = {Quote}'\'{CharSign}{Quote}
+OctalEscapeCharLiteral ={Quote}'\'{OctalCharSet}+{Quote}
+HexEscapeCharLiteral ={Quote}'\'{HexEscapeSign}{HexDigit}+{Quote}
+StartWithNoZeroDecimalIntegerLiteral = {NoZeroDigit}{Digit}*{LongTypeSuffix}?
+StartWithZeroDecimalIntegerLiteral = '0'{LongTypeSuffix}?
+HexIntegerLiteral = '0'('x'|'X'){HexDigit}+{LongTypeSuffix}?
+OctalIntegerLiteral = '0'{OctalCharSet}+{LongTypeSuffix}?
+
+!"Case Sensitive" = 'True'
+Whitespace  = {WS}+
+NewLine     = {CR}{LF} | {CR} | {LF}
+
+LineContinuation          =  '\'
+Preprocessor = '#'
+TokenPasting = '##'
+Arrobas = '@'
+Not          =  '!'
+NotEqual    = '!='
+And          = '&&'
+LeftParen     = '('
+RightParen   = ')'
+Mul          = '*'
+MulAssign  = '*='
+Plus         = '+'
+PlusPlus     = '++'
+AddAssign   = '+='
+Comma        = ','
+Minus        = '-'
+MinusMinus   = '--'
+SubAssign   = '-='
+Div          = '/'
+DivAssign   = '/='
+Mod          = '%'
+ModAssign   = '%='
+Colon        = ':'
+Semi         = ';'
+LessThan     = '<'
+LessThanOrEqual = '<='
+Assign       = '='
+Equal        = '=='
+GreaterThan  = '>'
+GreaterThanOrEqual = '>='
+Question     = '?'
+LeftBracket     = '['
+RightBracket     = ']'
+LeftCurly       = '{'
+Or           = '||'
+RightCurly       = '}'
+Dot          = '.'
+BitwiseNot   = '~'
+BitwiseShiftLeft ='<<'
+BitwiseShiftRight='>>'
+BitwiseAnd   ='&'
+BitwiseOr    ='|'
+BitwiseXor   ='^'
+BitwiseShiftLeftAssign='<<='
+BitwiseShiftRightAssign='>>='
+BitwiseAndAssign   =    '&='
+BitwiseOrAssign    =    '|='
+BitwiseXorAssign   =    '^='
+IdentifierSeparator =  '::'
+
+Comment Start = '/*'
+Comment End = '*/'
+Comment Line = '//'
+
+"Start Symbol" = <Values>
+
+<Value> 
+        ::= WS
+        |  NewLine 
+        |  IndirectCharLiteral
+        |  StandardEscapeCharLiteral
+        |  OctalEscapeCharLiteral
+        |  HexEscapeCharLiteral
+        |  StartWithZeroDecimalIntegerLiteral
+        |  StartWithNoZeroDecimalIntegerLiteral
+        |  FloatingPointLiteral
+        |  FloatingPointLiteralExponent
+        |  HexIntegerLiteral  
+        |  OctalIntegerLiteral
+        |  StringLiteral
+        |  Identifier
+        | LineContinuation
+        | Preprocessor
+        | TokenPasting
+        | Arrobas
+        | Not
+        | NotEqual
+        | And
+        | LeftParen
+        | RightParen
+        | Mul
+        | MulAssign
+        | Plus
+        | PlusPlus
+        | AddAssign
+        | Comma
+        | Minus
+        | MinusMinus
+        | SubAssign
+        | Div
+        | DivAssign
+        | Mod
+        | ModAssign
+        | Colon
+        | Semi
+        | LessThan
+        | LessThanOrEqual
+        | Assign
+        | Equal
+        | GreaterThan
+        | GreaterThanOrEqual
+        | Question
+        | LeftBracket
+        | RightBracket
+        | LeftCurly
+        | Or
+        | RightCurly
+        | Dot
+        | BitwiseNot
+        | BitwiseShiftLeft
+        | BitwiseShiftRight
+        | BitwiseAnd
+        | BitwiseOr
+        | BitwiseXor
+        | BitwiseShiftLeftAssign
+        | BitwiseShiftRightAssign
+        | BitwiseAndAssign
+        | BitwiseOrAssign
+        | BitwiseXorAssign
+        | IdentifierSeparator
+        
+<Values> 
+        ::= <Value>
+         |  <Values> <Value>
