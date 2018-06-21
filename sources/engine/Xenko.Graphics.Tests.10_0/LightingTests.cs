@@ -48,7 +48,6 @@ namespace Xenko.Graphics.Tests
 
         public LightingTests()
         {
-            CurrentVersion = 20; // Removed incorrect normal anti-aliasing
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_10_0 };
         }
 
@@ -104,97 +103,97 @@ namespace Xenko.Graphics.Tests
         [Test]
         public void SceneNoLighting()
         {
-            RunGameTest(new LightingTests { AmbientLight = false });
+            RunGameTest(new LightingTests { AmbientLight = false }, true);
         }
 
         [Test]
         public void SceneAmbientLight()
         {
-            RunGameTest(new LightingTests());
+            RunGameTest(new LightingTests(), true);
         }
 
         [Test]
         public void ScenePointLight()
         {
-            RunGameTest(new LightingTests { PointLight = true });
+            RunGameTest(new LightingTests { PointLight = true }, true);
         }
 
         [Test]
         public void ScenePointLightShadowCubeMap()
         {
-            RunGameTest(new LightingTests { PointLightShadowCubeMap = true });
+            RunGameTest(new LightingTests { PointLightShadowCubeMap = true }, true);
         }
 
         [Test]
         public void ScenePointLightShadowParaboloid()
         {
-            RunGameTest(new LightingTests { PointLightShadowParaboloid = true });
+            RunGameTest(new LightingTests { PointLightShadowParaboloid = true }, true);
         }
 
         [Test]
         public void SceneSpotLight()
         {
-            RunGameTest(new LightingTests { SpotLight = true });
+            RunGameTest(new LightingTests { SpotLight = true }, true);
         }
 
         [Test]
         public void SceneSpotLightShadow()
         {
-            RunGameTest(new LightingTests { SpotLightShadow = true });
+            RunGameTest(new LightingTests { SpotLightShadow = true }, true);
         }
 
         [Test]
         public void SceneDirectionalLight()
         {
-            RunGameTest(new LightingTests { DirectionalLight = true });
+            RunGameTest(new LightingTests { DirectionalLight = true }, true);
         }
 
         [Test]
         public void SceneDirectionalLightShadowOneCascade()
         {
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true });
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true }, true);
         }
 
         [Test]
         public void SceneTwoDirectionalLightShadowOneCascade()
         {
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowOneCascade2 = true });
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowOneCascade2 = true }, true);
         }
 
         [Test]
         public void SceneDirectionalLightShadowOneFourCascade()
         {
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowFourCascades = true });
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowFourCascades = true }, true);
         }
 
         [Test]
         public void SceneDirectionalLightShadowOneCascadePCF()
         {
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascadePCF = true });
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascadePCF = true }, true);
         }
 
         [Test]
         public void SceneDirectionalLightShadowFourCascades()
         {
-            RunGameTest(new LightingTests { DirectionalLightShadowFourCascades = true });
+            RunGameTest(new LightingTests { DirectionalLightShadowFourCascades = true }, true);
         }
 
         [Test]
         public void SceneSkybox()
         {
-            RunGameTest(new LightingTests { Skybox = true });
+            RunGameTest(new LightingTests { Skybox = true }, true);
         }
 
         [Test]
         public void SceneSkyboxRotated()
         {
-            RunGameTest(new LightingTests { SkyboxRotated = true });
+            RunGameTest(new LightingTests { SkyboxRotated = true }, true);
         }
 
         [Test]
         public void SceneSkyboxMultiple()
         {
-            RunGameTest(new LightingTests { Skybox = true, SkyboxRotated = true });
+            RunGameTest(new LightingTests { Skybox = true, SkyboxRotated = true }, true);
         }
 
     }

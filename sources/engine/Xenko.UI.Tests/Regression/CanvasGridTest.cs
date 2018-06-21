@@ -19,7 +19,6 @@ namespace Xenko.UI.Tests.Regression
     {
         public CanvasGridTest()
         {
-            CurrentVersion = 6;
         }
 
         protected override void RegisterTests()

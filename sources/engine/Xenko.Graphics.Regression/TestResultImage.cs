@@ -12,7 +12,6 @@ namespace Xenko.Graphics.Regression
     public class TestResultImage
     {
         public string TestName;
-        public string CurrentVersion;
         public string Frame;
 
         // Image
@@ -21,7 +20,6 @@ namespace Xenko.Graphics.Regression
         public void Read(BinaryReader reader)
         {
             TestName = reader.ReadString();
-            CurrentVersion = reader.ReadString();
             Frame = reader.ReadString();
 
             // Read image header
@@ -56,7 +54,6 @@ namespace Xenko.Graphics.Regression
         public void Write(BinaryWriter writer)
         {
             writer.Write(TestName);
-            writer.Write(CurrentVersion);
             writer.Write(Frame);
 
             // This call returns the pixels without any extra stride

@@ -37,8 +37,7 @@ namespace Xenko.Engine.Tests
         private SpriteSheet groundSprites;
 
         public SpriteTestGame()
-        {   
-            CurrentVersion = 7;
+        {
             GraphicsDeviceManager.PreferredDepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt;
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_9_1 };
         }

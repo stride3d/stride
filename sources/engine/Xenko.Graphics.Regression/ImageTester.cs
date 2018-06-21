@@ -7,150 +7,132 @@ using System.IO;
 using System.Threading.Tasks;
 using Xenko.Engine.Network;
 using Sockets.Plugin;
+using Xenko.Core;
+using Xenko.Core.Mathematics;
 
 namespace Xenko.Graphics.Regression
 {
     public static class ImageTester
     {
-        public const string XenkoImageServerHost = "xenkobuild.xenko.com";
-        public const int XenkoImageServerPort = 1832;
-
-        public static ImageTestResultConnection ImageTestResultConnection = PlatformPermutator.GetDefaultImageTestResultConnection();
-
-        private static TcpSocketClient ImageComparisonServer;
-
-        public static bool Connect(SimpleSocket simpleSocket)
+        public enum ComparisonMode
         {
-            ImageComparisonServer = simpleSocket.Socket;
-            return OpenConnection();
+            /// <summary>
+            /// Comparison will fails if image doesn't exist or is different.
+            /// </summary>
+            CompareOnly,
+            /// <summary>
+            /// Comparison will fails if image is different. If no version of it exist yet, it will be created.
+            /// </summary>
+            CompareOrCreate,
+            CompareOrCreateAlternative,
         }
 
-        public static bool Connect()
+        public enum ComparisonResult
         {
-            if (ImageComparisonServer != null)
-                return true;
-
-            try
-            {
-                ImageComparisonServer = new TcpSocketClient();
-                var t = Task.Run(async () => await ImageComparisonServer.ConnectAsync(XenkoImageServerHost, XenkoImageServerPort));
-                t.Wait();
-            }
-            catch (Exception)
-            {
-                ImageComparisonServer = null;
-
-                return false;
-            }
-
-            return OpenConnection();
+            ReferenceCreated,
+            Success,
+            Failed,
         }
 
-        private static bool OpenConnection()
+        public static void SaveImage(Image image, string testFilename)
         {
-            try
+            Directory.CreateDirectory(Path.GetDirectoryName(testFilename));
+            using (var stream = File.Open(testFilename, FileMode.Create))
             {
-                // Send initial parameters
-                var networkStream = ImageComparisonServer.WriteStream;
-                var binaryWriter = new BinaryWriter(networkStream);
-                ImageTestResultConnection.Write(binaryWriter);
-                return true;
-            }
-            catch
-            {
-                ImageComparisonServer = null;
-                return false;
-            }
-        }
-
-        public static void Disconnect()
-        {
-            if (ImageComparisonServer != null)
-            {
-                try
-                {
-                    // Properly sends a message notifying we want to close the connection
-                    var networkStream = ImageComparisonServer.WriteStream;
-                    var binaryWriter = new BinaryWriter(networkStream);
-                    binaryWriter.Write((int)ImageServerMessageType.ConnectionFinished);
-                    binaryWriter.Flush();
-
-                    ImageComparisonServer.Dispose();
-                }
-                catch (Exception)
-                {
-                    // Ignore failures on disconnect
-                }
-                ImageComparisonServer = null;
-            }
-        }
-
-        public static bool RequestImageComparisonStatus(ref string testName)
-        {
-            if (!Connect())
-                throw new InvalidOperationException("Could not connect to image comparer server");
-
-            try
-            {
-                if (testName == null && NUnit.Framework.TestContext.CurrentContext != null)
-                {
-                    testName = NUnit.Framework.TestContext.CurrentContext.Test.FullName;
-                }
-
-                var binaryWriter = new BinaryWriter(ImageComparisonServer.WriteStream);
-                var binaryReader = new BinaryReader(ImageComparisonServer.ReadStream);
-
-                // Header
-                binaryWriter.Write((int)ImageServerMessageType.RequestImageComparisonStatus);
-                binaryWriter.Write(testName ?? "Unable to fetch test name");
-                binaryWriter.Flush();
-
-                return binaryReader.ReadBoolean();
-            }
-            catch (Exception)
-            {
-                return false;
+                image.Save(stream, ImageFileType.Png);
             }
         }
 
         /// <summary>
         /// Send the data of the test to the server.
         /// </summary>
-        /// <param name="testResultImage">The image to send.</param>
-        public static bool SendImage(TestResultImage testResultImage)
+        /// <param name="image">The image to send.</param>
+        /// <param name="testFilename">The expected filename.</param>
+        public static bool CompareImage(Image image, string testFilename)
         {
-            if (!Connect())
-                throw new InvalidOperationException("Could not connect to image comparer server");
-
-            try
+            // Compare
+            Image referenceImage;
+            using (var stream = File.OpenRead(testFilename))
             {
-                if (testResultImage.TestName == null && NUnit.Framework.TestContext.CurrentContext != null)
-                {
-                    testResultImage.TestName = NUnit.Framework.TestContext.CurrentContext.Test.FullName;
-                }
-
-                var binaryWriter = new BinaryWriter(ImageComparisonServer.WriteStream);
-                var binaryReader = new BinaryReader(ImageComparisonServer.ReadStream);
-
-                // Header
-                binaryWriter.Write((int)ImageServerMessageType.SendImage);
-
-                GameTestBase.TestGameLogger.Info(@"Sending image information...");
-
-                var sw = new Stopwatch();
-                sw.Start();
-
-                testResultImage.Write(binaryWriter);
-
-                sw.Stop();
-                GameTestBase.TestGameLogger.Info($"Total calculation time: {sw.Elapsed}");
-
-                return binaryReader.ReadBoolean();
+                referenceImage = Image.Load(stream);
             }
-            catch (Exception)
+
+            // Start comparison
+            if (image.PixelBuffer.Count != referenceImage.PixelBuffer.Count)
             {
                 return false;
             }
+
+            for (int i = 0; i < image.PixelBuffer.Count; ++i)
+            {
+                var buffer = image.PixelBuffer[i];
+                var referenceBuffer = referenceImage.PixelBuffer[i];
+
+                if (buffer.Width != referenceBuffer.Width
+                    || buffer.Height != referenceBuffer.Height
+                    || buffer.RowStride != referenceBuffer.RowStride)
+                    return false;
+
+                var swapBGR = buffer.Format.IsBGRAOrder() != referenceBuffer.Format.IsBGRAOrder();
+                // For now, we handle only this specific case
+                if (buffer.Format != PixelFormat.R8G8B8A8_UNorm_SRgb || referenceBuffer.Format != PixelFormat.B8G8R8A8_UNorm)
+                {
+                    // TODO: support more formats
+                    return false;
+                }
+
+                bool checkAlpha;
+                switch (buffer.Format)
+                {
+                    case PixelFormat.B8G8R8X8_UNorm:
+                    case PixelFormat.B8G8R8X8_UNorm_SRgb:
+                        checkAlpha = false;
+                        break;
+                    case PixelFormat.R8G8B8A8_UNorm:
+                    case PixelFormat.R8G8B8A8_UNorm_SRgb:
+                        checkAlpha = true;
+                        break;
+                    default:
+                        throw new NotSupportedException($"Format {buffer.Format} not supported when comparing images");
+                }
+
+                // Compare remaining bytes.
+                int allowedDiff = 2;
+                int differentPixels = 0;
+                unsafe
+                {
+                    for (int y = 0; y < buffer.Height; ++y)
+                    {
+                        var pSrc = (Color*)(buffer.DataPointer + y * buffer.RowStride);
+                        var pDst = (Color*)(referenceBuffer.DataPointer + y * referenceBuffer.RowStride);
+                        for (int x = 0; x < buffer.Width; ++x, ++pSrc, ++pDst)
+                        {
+                            var src = *pSrc;
+                            if (swapBGR)
+                            {
+                                var tmp = src.B;
+                                src.B = src.R;
+                                src.R = tmp;
+                            }
+
+                            var r = Math.Abs((int)src.R - (int)pDst->R);
+                            var g = Math.Abs((int)src.G - (int)pDst->G);
+                            var b = Math.Abs((int)src.B - (int)pDst->B);
+                            var a = Math.Abs((int)src.A - (int)pDst->A);
+                            if (r > allowedDiff || g > allowedDiff || b > allowedDiff || (a > allowedDiff && checkAlpha))
+                            {
+                                // Too big difference
+                                differentPixels++;
+                            }
+                        }
+                    }
+                }
+
+                if (differentPixels > 0)
+                    return false;
+            }
+
+            return true;
         }
     }
 }

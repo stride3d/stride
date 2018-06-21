@@ -19,7 +19,6 @@ namespace Xenko.Graphics.Tests.Regression
         
         public TestSimpleTexture()
         {
-            CurrentVersion = 1;
             GraphicsDeviceManager.PreferredBackBufferWidth = 256;
             GraphicsDeviceManager.PreferredBackBufferHeight = 256;
         }

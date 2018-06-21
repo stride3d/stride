@@ -27,7 +27,6 @@ namespace Xenko.Engine.Tests
 
         public SpriteRotationTests()
         {
-            CurrentVersion = 2;
             GraphicsDeviceManager.PreferredBackBufferWidth = ScreenWidth;
             GraphicsDeviceManager.PreferredBackBufferHeight = ScreenHeight;
         }

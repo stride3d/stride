@@ -32,7 +32,6 @@ namespace Xenko.Graphics.Tests
 
         public TestGeometricPrimitives()
         {
-            CurrentVersion = 12;
         }
 
         protected override void RegisterTests()

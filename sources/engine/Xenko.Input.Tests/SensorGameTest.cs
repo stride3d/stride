@@ -64,7 +64,6 @@ namespace Xenko.Input.Tests
 
         public SensorGameTest()
         {
-            CurrentVersion = 1;
             AutoLoadDefaultSettings = true;
             GraphicsDeviceManager.PreferredGraphicsProfile = new [] { GraphicsProfile.Level_9_1, };
         }

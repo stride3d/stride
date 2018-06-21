@@ -47,14 +47,6 @@ namespace Xenko.Graphics.Regression
         /// </summary>
         public bool AllTestsCompleted => frameCount > lastFrame;
 
-        public IEnumerable<string> TestNames
-        {
-            get
-            {
-                return screenshotFrames.Select(x => x.Value).Distinct();
-            }
-        }
-
         /// <summary>
         /// The current frame.
         /// </summary>

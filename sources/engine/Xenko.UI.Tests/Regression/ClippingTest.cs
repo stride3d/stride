@@ -26,7 +26,6 @@ namespace Xenko.UI.Tests.Regression
 
         public ClippingTest()
         {
-            CurrentVersion = 7;
         }
 
         protected override async Task LoadContent()

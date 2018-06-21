@@ -20,7 +20,6 @@ namespace Xenko.Graphics.Tests
 
         public FixedAspectRatioTests()
         {
-            CurrentVersion = 1;
         }
 
         protected override async Task LoadContent()

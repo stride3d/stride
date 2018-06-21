@@ -22,7 +22,6 @@ namespace Xenko.UI.Tests.Regression
     {
         public BillboardModeTests()
         {
-            CurrentVersion = 6;
         }
 
         protected override async Task LoadContent()

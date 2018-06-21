@@ -22,7 +22,6 @@ namespace Xenko.Graphics.Tests
 
         public TestExternSpriteFont()
         {
-            CurrentVersion = 5; // Font names & sizes changed slightly
         }
 
         protected override void RegisterTests()

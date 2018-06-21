@@ -55,7 +55,6 @@ namespace Xenko.Graphics.Tests
 
         public TestRadiancePrefilteringGgx(bool filterAtEachFrame)
         {
-            CurrentVersion = 3;
             this.filterAtEachFrame = filterAtEachFrame;
             GraphicsDeviceManager.PreferredBackBufferWidth = screenSize.X;
             GraphicsDeviceManager.PreferredBackBufferHeight = screenSize.Y;

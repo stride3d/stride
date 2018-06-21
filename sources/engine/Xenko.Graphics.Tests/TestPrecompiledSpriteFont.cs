@@ -13,7 +13,6 @@ namespace Xenko.Graphics.Tests
         public TestPrecompiledSpriteFont()
             : base("PrecompiledFonts/", "pre")
         {
-            CurrentVersion = 7; // Font names & sizes changed slightly
         }
 
         public static void Main()

@@ -26,7 +26,6 @@ namespace Xenko.UI.Tests.Regression
 
         public StackPanelTest()
         {
-            CurrentVersion = 10;
         }
 
         protected override void RegisterTests()

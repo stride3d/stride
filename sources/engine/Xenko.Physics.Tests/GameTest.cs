@@ -71,8 +71,6 @@ namespace Xenko.Physics.Tests
 
         protected override async Task LoadContent()
         {
-            CurrentVersion = PhysicsTestVersion + IndividualTestVersion;
-
             await base.LoadContent();
 
             var assetManager = Services.GetSafeServiceAs<ContentManager>();

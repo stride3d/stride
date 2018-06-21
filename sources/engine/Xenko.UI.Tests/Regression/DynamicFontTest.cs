@@ -23,7 +23,6 @@ namespace Xenko.UI.Tests.Regression
 
         public DynamicFontTest()
         {
-            CurrentVersion = 6; // Font type, names & sizes changed slightly
         }
 
         protected override async Task LoadContent()

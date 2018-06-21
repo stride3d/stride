@@ -89,8 +89,6 @@ namespace Xenko.Particles.Tests
 
         protected override async Task LoadContent()
         {
-            CurrentVersion = ParticleTestVersion + IndividualTestVersion;
-
             await base.LoadContent();
 
             var assetManager = Services.GetSafeServiceAs<ContentManager>();

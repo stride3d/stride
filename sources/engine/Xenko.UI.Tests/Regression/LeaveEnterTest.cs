@@ -35,7 +35,6 @@ namespace Xenko.UI.Tests.Regression
 
         public LeaveEnterTest()
         {
-            CurrentVersion = 5; // Element is now correctly focused due to simulated input
         }
 
         protected override async Task LoadContent()

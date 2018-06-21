@@ -36,7 +36,6 @@ namespace Xenko.Graphics.Tests
 
         public TestTextureSampling()
         {
-            CurrentVersion = 2;
         }
 
         protected override void RegisterTests()

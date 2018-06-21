@@ -23,7 +23,6 @@ namespace Xenko.Graphics.Tests
         public TestTexture()
         {
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_10_0 };
-            CurrentVersion = 1;
         }
 
         [Test]

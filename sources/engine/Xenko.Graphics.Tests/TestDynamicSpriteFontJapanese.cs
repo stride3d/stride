@@ -39,7 +39,6 @@ namespace Xenko.Graphics.Tests
 
         public TestDynamicSpriteFontJapanese()
         {
-            CurrentVersion = 4; // Font names & sizes changed slightly
         }
 
         protected override void RegisterTests()

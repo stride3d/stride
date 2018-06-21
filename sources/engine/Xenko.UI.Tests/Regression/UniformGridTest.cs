@@ -15,12 +15,6 @@ namespace Xenko.UI.Tests.Regression
     /// </summary>
     public class UniformGridTest : UITestGameBase
     {
-        public UniformGridTest()
-        {
-            //CurrentVersion = 8;
-            CurrentVersion = 9; // One texture was using Format: TrueColor which is no longer available!
-        }
-
         protected override void RegisterTests()
         {
             base.RegisterTests();

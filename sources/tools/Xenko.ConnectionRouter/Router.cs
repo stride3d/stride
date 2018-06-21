@@ -144,9 +144,9 @@ namespace Xenko.ConnectionRouter
                         var port = int.Parse(urlSegments[2]);
 
                         // Note: for security reasons, we currently use a whitelist
-                        if (host == "xenkobuild.xenko.com" && port == 1832)
-                            await serverSocket.StartClient(host, port, false);
-                        else
+                        //if (host == "xenkobuild.xenko.com" && port == 1832)
+                        //    await serverSocket.StartClient(host, port, false);
+                        //else
                             throw new InvalidOperationException("Trying to redirect to a non-whitelisted host/port");
                             break;
                     }

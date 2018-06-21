@@ -41,7 +41,6 @@ namespace Xenko.Graphics.Tests
 
         public TestLambertPrefilteringSH()
         {
-            CurrentVersion = 3;
             GraphicsDeviceManager.PreferredBackBufferWidth = screenSize.X;
             GraphicsDeviceManager.PreferredBackBufferHeight = screenSize.Y;
         }

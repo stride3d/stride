@@ -28,7 +28,6 @@ namespace Xenko.UI.Tests.Regression
         public SliderTest()
         {
             // 5 = Texture assets set to uncompressed, build machine changed
-            CurrentVersion = 6; // Element is now correctly focused due to simulated input
         }
 
         protected override async Task LoadContent()

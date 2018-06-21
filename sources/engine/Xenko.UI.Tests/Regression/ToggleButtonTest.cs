@@ -21,7 +21,6 @@ namespace Xenko.UI.Tests.Regression
 
         public ToggleButtonTest()
         {
-            CurrentVersion = 5;
         }
 
         protected override async Task LoadContent()

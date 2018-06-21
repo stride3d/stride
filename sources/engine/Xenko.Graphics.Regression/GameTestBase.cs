@@ -32,23 +32,17 @@ namespace Xenko.Graphics.Regression
 
         public int StopOnFrameCount { get; set; }
 
+        public bool UseTestName { get; set; }
+
         public InputSourceSimulated InputSourceSimulated { get; private set; }
         public MouseSimulated MouseSimulated { get; private set; }
         public KeyboardSimulated KeyboardSimulated { get; private set; }
 
-        /// <summary>
-        /// The current version of the test
-        /// </summary>
-        public int CurrentVersion;
-
-        /// <summary>
-        /// The current version extra parameter (concatenated to CurrentVersionNumber).
-        /// </summary>
-        public string CurrentVersionExtra;
-
         public int FrameIndex;
 
         private bool screenshotAutomationEnabled;
+        private List<string> comparisonMissingMessages = new List<string>();
+        private List<string> comparisonFailedMessages = new List<string>();
 
         private BackBufferSizeMode backBufferSizeMode;
 
@@ -67,7 +61,6 @@ namespace Xenko.Graphics.Regression
             Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
             Services.AddService<IGraphicsDeviceService>(GraphicsDeviceManager);
 
-            CurrentVersion = 0;
             StopOnFrameCount = -1;
             AutoLoadDefaultSettings = false;
 
@@ -76,16 +69,6 @@ namespace Xenko.Graphics.Regression
 
             // by default we want the same size for the back buffer on mobiles and windows.
             BackBufferSizeMode = BackBufferSizeMode.FitToDesiredValues;
-
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-            // get build number
-            if (ImageTester.ImageTestResultConnection.BuildNumber <= 0 && int.TryParse(Environment.GetEnvironmentVariable("XENKO_BUILD_NUMBER"), out int buildNumber))
-                ImageTester.ImageTestResultConnection.BuildNumber = buildNumber;
-
-            // get branch name
-            if (string.IsNullOrEmpty(ImageTester.ImageTestResultConnection.BranchName))
-                ImageTester.ImageTestResultConnection.BranchName = Environment.GetEnvironmentVariable("XENKO_BRANCH_NAME") ?? "";
-#endif
         }
 
         /// <inheritdoc />
@@ -113,9 +96,7 @@ namespace Xenko.Graphics.Regression
             if (textureToSave == null)
                 return;
 
-            TestGameLogger.Info(@"Saving non null image");
-            testName = testName ?? CurrentTestContext?.Test.FullName;
-            TestGameLogger.Info(@"saving remotely.");
+            TestGameLogger.Info(@"Saving image");
             using (var image = textureToSave.GetDataAsImage(GraphicsContext.CommandList))
             {
                 try
@@ -236,13 +217,6 @@ namespace Xenko.Graphics.Regression
             Window.Position = Int2.Zero; // avoid possible side effects due to position of the window in the screen.
 #endif
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-            // Register 3D card name
-            // TODO: This doesn't work well because ImageTester.ImageTestResultConnection is static, this will need improvements
-            if (!ImageTester.ImageTestResultConnection.DeviceName.Contains("_"))
-                ImageTester.ImageTestResultConnection.DeviceName += "_" + GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' '); // Workaround for sharpDX bug: Description ends with an series trailing of '\0' characters
-#endif
-
             Script.AddTask(RegisterTestsInternal);
         }
 
@@ -297,7 +271,7 @@ namespace Xenko.Graphics.Regression
             if (takeSnapshot)
                 game.FrameGameSystem.TakeScreenshot();
 
-            RunGameTest(game);
+            RunGameTest(game, true);
         }
 
         protected void PerformDrawTest(Action<Game, RenderDrawContext> drawTestAction, GraphicsProfile? profileOverride = null, string subTestName = null, bool takeSnapshot = true)
@@ -310,9 +284,8 @@ namespace Xenko.Graphics.Regression
 
             // register the tests.
             game.FrameGameSystem.IsUnitTestFeeding = true;
-            var testName = TestContext.CurrentContext.Test.FullName+subTestName;
             if (takeSnapshot)
-                game.FrameGameSystem.TakeScreenshot(null, testName);
+                game.FrameGameSystem.TakeScreenshot();
 
             // setup empty scene
             var scene = new Scene();
@@ -324,7 +297,7 @@ namespace Xenko.Graphics.Regression
                 Game = new DelegateSceneRenderer(context => drawTestAction(game, context)),
             };
 
-            RunGameTest(game);
+            RunGameTest(game, true);
         }
 
         /// <summary>
@@ -334,11 +307,12 @@ namespace Xenko.Graphics.Regression
         {
         }
 
-        protected static void RunGameTest(GameTestBase game)
+        protected static void RunGameTest(GameTestBase game, bool appendTestName = false)
         {
             game.EnableSimulatedInputSource();
 
             game.CurrentTestContext = TestContext.CurrentContext;
+            game.UseTestName = appendTestName;
 
             game.ScreenShotAutomationEnabled = !ForceInteractiveMode;
 
@@ -348,11 +322,13 @@ namespace Xenko.Graphics.Regression
 
             if (game.ScreenShotAutomationEnabled)
             {
-                foreach (var testName in game.FrameGameSystem.TestNames)
+                if (game.comparisonFailedMessages.Count > 0)
                 {
-                    var localTestName = testName;
-                    if (!ImageTester.RequestImageComparisonStatus(ref localTestName))
-                        failedTests.Add(localTestName);
+                    Assert.Fail("Some image comparison failed:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonFailedMessages));
+                }
+                if (game.comparisonMissingMessages.Count > 0)
+                {
+                    Assert.Inconclusive("Some reference images are missing, please copy them manually:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonMissingMessages));
                 }
             }
 
@@ -367,14 +343,76 @@ namespace Xenko.Graphics.Regression
         /// <param name="testName">The name of the test.</param>
         public void SendImage(Image image, string testName)
         {
-            var currentVersion = CurrentVersion.ToString();
-            if (CurrentVersionExtra != null)
-                currentVersion += CurrentVersionExtra;
+            var frame = testName;
+            if (frame == null && FrameIndex++ > 0)
+                frame = "f" + (FrameIndex - 1);
 
-            // TODO: Allow textual frame names (and use FrameIndex if not properly set)
-            var frameIndex = FrameIndex++;
+            // Register 3D card name
+            // TODO: This doesn't work well because ImageTester.ImageTestResultConnection is static, this will need improvements
+            //if (!ImageTester.ImageTestResultConnection.DeviceName.Contains("_"))
+            //    ImageTester.ImageTestResultConnection.DeviceName += "_" + GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' '); // Workaround for sharpDX bug: Description ends with an series trailing of '\0' characters
 
-            ImageTester.SendImage(new TestResultImage { CurrentVersion = currentVersion, Frame = frameIndex.ToString(), Image = image, TestName = testName });
+#if XENKO_PLATFORM_WINDOWS_DESKTOP
+            var platformSpecific = $"Windows_{GraphicsDevice.Platform}_{GraphicsDevice.Adapter.Description.Split('\0')[0].TrimEnd(' ')}";
+#else
+            var platformSpecific = string.Empty;
+            throw new NotImplementedException();
+#endif
+
+            var testFilename = GenerateName(Path.Combine(PlatformFolders.ApplicationBinaryDirectory, @"..\..\..\..\..\tests"), frame, platformSpecific);
+            var testFilenamePattern = GenerateName(Path.Combine(PlatformFolders.ApplicationBinaryDirectory, @"..\..\..\..\..\tests"), frame, null);
+            testFilenamePattern = Path.Combine(Path.GetDirectoryName(testFilenamePattern), Path.GetFileNameWithoutExtension(testFilenamePattern) + ".*" + Path.GetExtension(testFilenamePattern));
+            var testFilenameUser = GenerateName(Path.Combine(PlatformFolders.ApplicationBinaryDirectory, @"..\..\..\..\..\tests\local"), frame, platformSpecific);
+
+            var testFilenames = new[] { testFilename };
+            
+            // First, if exact match doesn't exist, test any other pattern
+            // TODO: We might want to sort/filter partially (platform, etc...)?
+            if (!File.Exists(testFilename))
+            {
+                testFilenames = Directory.Exists(Path.GetDirectoryName(testFilenamePattern))
+                    ? Directory.GetFiles(Path.GetDirectoryName(testFilenamePattern), Path.GetFileName(testFilenamePattern))
+                    : new string[0];
+            }
+            
+            if (testFilenames.Length == 0)
+            {
+                // No source image, save this one so that user can later copy it to validated folder
+                ImageTester.SaveImage(image, testFilenameUser);
+                comparisonMissingMessages.Add($"* {testFilenameUser} (current)");
+            }
+            else if (!testFilenames.Any(file => ImageTester.CompareImage(image, file)))
+            {
+                // Comparison failed, save current version so that user can compare/promote it manually
+                ImageTester.SaveImage(image, testFilenameUser);
+                comparisonFailedMessages.Add($"* {testFilenameUser} (current)");
+                foreach (var file in testFilenames)
+                    comparisonFailedMessages.Add($"  {file} (reference)");
+            }
+        }
+
+        private string GenerateName(string testArtifactPath, string frame, string platformSpecific)
+        {
+            var fullName = CurrentTestContext.Test.FullName;
+            var fullClassName = fullName.Substring(0, fullName.LastIndexOf('.'));
+            var classNameIndex = fullClassName.LastIndexOf('.');
+            var @namespace = classNameIndex != -1 ? fullClassName.Substring(0, classNameIndex) : string.Empty;
+            var className = fullClassName.Substring(classNameIndex + 1);
+            var testName = CurrentTestContext.Test.Name;
+
+            var testFolder = Path.Combine(testArtifactPath, @namespace);
+            var testFilename = className;
+            if (UseTestName && testName != null)
+                testFilename += $".{testName}";
+            if (frame != null)
+                testFilename += $".{frame}";
+            if (platformSpecific != null)
+                testFilename += $".{platformSpecific}";
+            testFilename += ".png";
+            testFilename = Path.Combine(testFolder, testFilename);
+
+            // Collapse parent directories
+            return Path.GetFullPath(new Uri(testFilename).LocalPath);
         }
 
         protected void SaveTexture(Texture texture, string filename)

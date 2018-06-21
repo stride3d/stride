@@ -20,7 +20,6 @@ namespace Xenko.Graphics.Tests
 
         public TestImageLoad()
         {
-            CurrentVersion = 3;
         }
 
         protected override void RegisterTests()

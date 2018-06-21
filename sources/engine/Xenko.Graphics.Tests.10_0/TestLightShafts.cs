@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -22,7 +22,6 @@ namespace Xenko.Graphics.Tests
             // 2 = Fix projection issues
             // 3 = Simplifiy density parameters
             // 4 = Change random jitter position hash
-            CurrentVersion = 4;
 
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_10_0 };
             GraphicsDeviceManager.SynchronizeWithVerticalRetrace = false;

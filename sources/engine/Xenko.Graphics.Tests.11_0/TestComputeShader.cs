@@ -31,7 +31,6 @@ namespace Xenko.Graphics.Tests
 
         public TestComputeShader()
         {
-            CurrentVersion = 2;
             GraphicsDeviceManager.PreferredBackBufferWidth = screenSize.X;
             GraphicsDeviceManager.PreferredBackBufferHeight = screenSize.Y;
         }

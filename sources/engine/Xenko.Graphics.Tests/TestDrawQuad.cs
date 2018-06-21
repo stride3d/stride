@@ -16,7 +16,6 @@ namespace Xenko.Graphics.Tests
 
         public TestDrawQuad()
         {
-            CurrentVersion = 2;
         }
 
         protected override void RegisterTests()

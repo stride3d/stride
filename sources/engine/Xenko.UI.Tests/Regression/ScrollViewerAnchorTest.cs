@@ -52,7 +52,6 @@ namespace Xenko.UI.Tests.Regression
 
         public ScrollViewerAnchorTest()
         {
-            CurrentVersion = 11;
         }
 
         protected override async Task LoadContent()

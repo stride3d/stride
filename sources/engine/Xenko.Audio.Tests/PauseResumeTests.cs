@@ -14,7 +14,6 @@ namespace Xenko.Audio.Tests
         
         public PauseResumeTest()
         {
-            CurrentVersion = 1;
         }
 
         protected override async Task LoadContent()

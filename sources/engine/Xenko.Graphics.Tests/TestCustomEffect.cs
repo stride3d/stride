@@ -22,7 +22,6 @@ namespace Xenko.Graphics.Tests
 
         public TestCustomEffect()
         {
-            CurrentVersion = 2;
         }
 
         protected override void RegisterTests()

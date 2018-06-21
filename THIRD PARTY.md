@@ -44,7 +44,6 @@ Xenko uses the following open-source products.
 * [FreeImage](http://freeimage.sourceforge.net/) (FreeImage Public License - Version 1.0)
 * [Gettext.NET](https://sourceforge.net/projects/gettextnet/) (LGPL 2.1, unmodified binaries)
 * [ILRepack](https://github.com/gluck/il-repack) (Apache License 2.0)
-* [ImageMagick](http://www.imagemagick.org/)
 * [Markdown.XAML](https://github.com/theunrepentantgeek/Markdown.XAML) (MIT License)
 * [Mono.Cecil](https://github.com/jbevain/cecil) (MIT License)
 * [Mono.Options](http://www.mono-project.com/) and [Mono.TextTemplating](https://github.com/mono/t4) (MIT License)

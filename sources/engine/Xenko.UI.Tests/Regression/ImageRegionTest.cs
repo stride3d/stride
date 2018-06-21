@@ -25,7 +25,6 @@ namespace Xenko.UI.Tests.Regression
 
         public ImageRegionTest()
         {
-            CurrentVersion = 7;
         }
 
         protected override async Task LoadContent()

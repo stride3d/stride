@@ -36,7 +36,7 @@
     <DefineConstants>DEBUG;TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -44,7 +44,7 @@
     <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Testing|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -52,7 +52,7 @@
     <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'AppStore|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -60,7 +60,7 @@
     <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CoreCLR_Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -72,7 +72,7 @@
     <XenkoRuntime Condition="'$(XenkoProjectType)' == 'Executable'">CoreCLR</XenkoRuntime>
     <XenkoBuildDirExtension Condition="'$(XenkoBuildDirExtension)' == ''">CoreCLR</XenkoBuildDirExtension>
     <DefineConstants>XENKO_RUNTIME_CORECLR;$(DefineConstants)</DefineConstants>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CoreCLR_Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -83,7 +83,7 @@
     <XenkoRuntime Condition="'$(XenkoProjectType)' == 'Executable'">CoreCLR</XenkoRuntime>
     <XenkoBuildDirExtension Condition="'$(XenkoBuildDirExtension)' == ''">CoreCLR</XenkoBuildDirExtension>
     <DefineConstants>XENKO_RUNTIME_CORECLR;$(DefineConstants)</DefineConstants>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>Xenko.Graphics.Tests.TestDynamicSpriteFont</StartupObject>

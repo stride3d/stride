@@ -20,7 +20,6 @@ namespace Xenko.UI.Tests.Regression
 
         public ChildrenMeasurementTest()
         {
-            CurrentVersion = 1;
         }
 
         protected override async Task LoadContent()

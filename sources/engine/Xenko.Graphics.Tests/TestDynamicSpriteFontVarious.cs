@@ -32,7 +32,6 @@ namespace Xenko.Graphics.Tests
 
         public TestDynamicSpriteFontVarious()
         {
-            CurrentVersion = 4;  // Font names & sizes changed slightly
         }
 
         protected override void RegisterTests()

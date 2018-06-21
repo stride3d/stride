@@ -14,7 +14,6 @@ namespace Xenko.Audio.Tests
     {
         public BasicTest()
         {
-            CurrentVersion = 1;
         }
 
 

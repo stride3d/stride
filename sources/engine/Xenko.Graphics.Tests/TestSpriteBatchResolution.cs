@@ -21,12 +21,6 @@ namespace Xenko.Graphics.Tests
         private Texture colorTexture;
         private SpriteSheet spheres;
 
-        public TestSpriteBatchResolution()
-        {
-            //CurrentVersion = 5; // Changes in font type/size
-            CurrentVersion = 6; // Texture assets set to uncompressed, build machine changed
-        }
-
         protected override void RegisterTests()
         {
             base.RegisterTests();

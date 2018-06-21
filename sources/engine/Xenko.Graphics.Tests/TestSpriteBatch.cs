@@ -24,12 +24,6 @@ namespace Xenko.Graphics.Tests
 
         private SpriteSheet rotatedImages;
 
-        public TestSpriteBatch()
-        {
-            //CurrentVersion = 9;
-            CurrentVersion = 10; // Texture assets set to uncompressed
-        }
-
         protected override void RegisterTests()
         {
             base.RegisterTests();

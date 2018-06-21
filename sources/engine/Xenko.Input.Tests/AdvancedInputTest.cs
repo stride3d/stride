@@ -59,8 +59,6 @@ namespace Xenko.Input.Tests
         /// </summary>
         public AdvancedInputTest()
         {
-            CurrentVersion = 1;
-            
             DefaultTextColor = Color.Black;
 
             displayPointerDuration = TimeSpan.FromSeconds(1.5f);

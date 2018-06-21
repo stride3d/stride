@@ -26,7 +26,6 @@ namespace Xenko.Engine.Tests
 
         public SpriteRenderer3DTests()
         {
-            CurrentVersion = 6;
             GraphicsDeviceManager.PreferredBackBufferWidth = ScreenWidth;
             GraphicsDeviceManager.PreferredBackBufferHeight = ScreenHeight;
         }

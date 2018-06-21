@@ -31,7 +31,6 @@ namespace Xenko.Graphics.Tests
 
         private MaterialTests(Func<MaterialTests, Material> createMaterial)
         {
-            CurrentVersion = 9; // Removed incorrect normal anti-aliasing
             this.createMaterial = createMaterial;
             GraphicsDeviceManager.PreferredGraphicsProfile = new[] { GraphicsProfile.Level_10_0 };
         }
@@ -80,13 +79,13 @@ namespace Xenko.Graphics.Tests
         [Test]
         public void MaterialDiffuseColor()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseColor")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseColor")), true);
         }
 
         [Test]
         public void MaterialDiffuseFloat4()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseFloat4")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseFloat4")), true);
         }
         #endregion
 
@@ -94,42 +93,42 @@ namespace Xenko.Graphics.Tests
         [Test]
         public void MaterialDiffuseTexture()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTexture")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTexture")), true);
         }
 
         // Test ComputeTextureColor.Fallback
         [Test]
         public void MaterialDiffuseTextureFallback()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureFallback")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureFallback")), true);
         }
 
         // Test texcoord offsets
         [Test]
         public void MaterialDiffuseTextureOffset()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureOffset")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureOffset")), true);
         }
 
         // Test texcoord scaling
         [Test]
         public void MaterialDiffuseTextureScaled()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureScaled")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureScaled")), true);
         }
 
         // Test texcoord1
         [Test]
         public void MaterialDiffuseTextureCoord1()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureCoord1")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureCoord1")), true);
         }
 
         // Test uv address modes
         [Test]
         public void MaterialDiffuseTextureClampMirror()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureClampMirror")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureClampMirror")), true);
         }
         #endregion
 
@@ -137,13 +136,13 @@ namespace Xenko.Graphics.Tests
         [Test]
         public void MaterialBinaryOperatorMultiply()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorMultiply")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorMultiply")), true);
         }
 
         [Test]
         public void MaterialBinaryOperatorAdd()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorAdd")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorAdd")), true);
         }
         #endregion
 
@@ -151,7 +150,7 @@ namespace Xenko.Graphics.Tests
         [Test]
         public void MaterialDiffuseComputeColorFixed()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/ComputeColors/MaterialDiffuseComputeColorFixed")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/ComputeColors/MaterialDiffuseComputeColorFixed")), true);
         }
         #endregion
 
@@ -159,37 +158,37 @@ namespace Xenko.Graphics.Tests
         [Test]
         public void MaterialMetalness()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialMetalness")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialMetalness")), true);
         }
 
         [Test]
         public void MaterialSpecular()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialSpecular")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialSpecular")), true);
         }
 
         [Test]
         public void MaterialNormalMap()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMap")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMap")), true);
         }
 
         [Test]
         public void MaterialNormalMapCompressed()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMapCompressed")) { CurrentVersion = CurrentVersion + 1 });
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMapCompressed")), true);
         }
 
         [Test]
         public void MaterialEmissive()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialEmissive")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialEmissive")), true);
         }
 
         [Test]
         public void MaterialCavity()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialCavity")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialCavity")), true);
         }
         #endregion
 
@@ -198,37 +197,37 @@ namespace Xenko.Graphics.Tests
         [Test]
         public void MaterialLayerAAA()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerAAA")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerAAA")), true);
         }
 
         [Test, Ignore("Disabled until XK-3123 is fixed (material blending SM flush results in layer masks applied improperly)")]
         public void MaterialLayerABB()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")), true);
         }
 
         [Test]
         public void MaterialLayerABA()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABA")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABA")), true);
         }
 
         [Test]
         public void MaterialLayerABC()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABC")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABC")), true);
         }
 
         [Test, Ignore("Disabled until XK-3123 is fixed (material blending SM flush results in layer masks applied improperly)")]
         public void MaterialLayerBAA()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBAA")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBAA")), true);
         }
 
         [Test]
         public void MaterialLayerBBB()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBBB")));
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBBB")), true);
         }
 
         [Test, Ignore("Similar to MaterialLayerABB but using API for easier debugging")]
@@ -291,7 +290,7 @@ namespace Xenko.Graphics.Tests
                 };
 
                 return CreateMaterial(materialDesc, context);
-            }));
+            }), true);
         }
 
         #endregion

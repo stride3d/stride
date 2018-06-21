@@ -24,7 +24,6 @@ namespace Xenko.UI.Tests.Regression
 
         public ClickTests()
         {
-            CurrentVersion = 9;
         }
 
         protected override async Task LoadContent()

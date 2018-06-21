@@ -122,7 +122,7 @@ namespace Xenko.Games.Testing
             using (var image = texture.GetDataAsImage(Game.GraphicsContext.CommandList))
             {
                 //Send to server and store to disk
-                var imageData = new TestResultImage { CurrentVersion = "1.0", Frame = "0", Image = image, TestName = "" };
+                var imageData = new TestResultImage { Frame = "0", Image = image, TestName = "" };
                 var payload = new ScreenShotPayload { FileName = filename };
                 var resultFileStream = new MemoryStream();
                 var writer = new BinaryWriter(resultFileStream);

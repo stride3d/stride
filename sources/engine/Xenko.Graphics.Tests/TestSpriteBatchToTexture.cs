@@ -31,7 +31,6 @@ namespace Xenko.Graphics.Tests
 
         public TestSpriteBatchToTexture()
         {
-            CurrentVersion = 4; // Changes in font type/size
         }
 
         protected override void RegisterTests()

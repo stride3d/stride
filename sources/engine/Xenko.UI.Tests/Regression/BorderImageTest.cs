@@ -21,7 +21,6 @@ namespace Xenko.UI.Tests.Regression
 
         public BorderImageTest()
         {
-            CurrentVersion = 8;
         }
 
         protected override async Task LoadContent()

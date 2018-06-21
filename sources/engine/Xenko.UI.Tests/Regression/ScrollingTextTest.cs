@@ -30,7 +30,6 @@ namespace Xenko.UI.Tests.Regression
 
         public ScrollingTextTest()
         {
-            CurrentVersion = 6; // Offset changed due to size changes, but visually correct
         }
 
         protected override async Task LoadContent()

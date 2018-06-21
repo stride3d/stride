@@ -18,7 +18,6 @@ namespace Xenko.Graphics.Tests
 
         public TestBitmapSpriteFont()
         {
-            CurrentVersion = 3;
         }
 
         protected override void RegisterTests()

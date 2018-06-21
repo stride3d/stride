@@ -24,7 +24,6 @@ namespace Xenko.Graphics.Tests
 
         public TestImageEffect()
         {
-            CurrentVersion = 5;
             GraphicsDeviceManager.PreferredBackBufferWidth = 760;
             GraphicsDeviceManager.PreferredBackBufferHeight = 1016;
         }

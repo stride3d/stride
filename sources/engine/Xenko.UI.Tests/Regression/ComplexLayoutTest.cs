@@ -32,7 +32,6 @@ namespace Xenko.UI.Tests.Regression
 
         public ComplexLayoutTest()
         {
-            CurrentVersion = 13;
         }
 
         protected override async Task LoadContent()

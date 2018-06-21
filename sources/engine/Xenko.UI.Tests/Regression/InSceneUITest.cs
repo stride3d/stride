@@ -24,7 +24,6 @@ namespace Xenko.UI.Tests.Regression
 
         public InSceneUITest()
         {
-            CurrentVersion = 8;
         }
 
         protected override async Task LoadContent()
