@@ -7,6 +7,7 @@
     <ProjectGuid>{E7B1B17F-D04B-4978-B504-A6BB3EE846C9}</ProjectGuid>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Xenko.UI.Tests</RootNamespace>
     <AssemblyName>Xenko.UI.Tests</AssemblyName>

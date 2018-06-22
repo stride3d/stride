@@ -9,6 +9,7 @@
     <ProjectGuid>{4F0E7E04-F067-4CE8-B8C8-1105F319D123}</ProjectGuid>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Xenko.Physics.Tests</RootNamespace>
     <AssemblyName>Xenko.Physics.Tests</AssemblyName>

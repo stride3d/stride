@@ -12,6 +12,7 @@
     <ProjectGuid>{A8F8D125-7A22-489F-99BC-9A02F545A17F}</ProjectGuid>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Xenko.Engine.Tests</RootNamespace>
     <AssemblyName>Xenko.Engine.Tests</AssemblyName>

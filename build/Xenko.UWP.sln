@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-XenkoRuntime", "20-Xenko
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Targets.Private", "{97978864-95DD-43A6-9159-AA1C881BE99F}"
 	ProjectSection(SolutionItems) = preProject
+		..\store.config = ..\store.config
 		..\sources\targets\Xenko.Core.Android.CSharp.targets = ..\sources\targets\Xenko.Core.Android.CSharp.targets
 		..\sources\targets\Xenko.Core.CoreCLR.Cpp.targets = ..\sources\targets\Xenko.Core.CoreCLR.Cpp.targets
 		..\sources\targets\Xenko.Core.CoreCLR.CSharp.targets = ..\sources\targets\Xenko.Core.CoreCLR.CSharp.targets
@@ -21,7 +22,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Ta
 		..\sources\targets\Xenko.Core.PreSettings.targets = ..\sources\targets\Xenko.Core.PreSettings.targets
 		..\sources\targets\Xenko.Core.UWP.Cpp.targets = ..\sources\targets\Xenko.Core.UWP.Cpp.targets
 		..\sources\targets\Xenko.Core.UWP.CSharp.targets = ..\sources\targets\Xenko.Core.UWP.CSharp.targets
-		..\store.config = ..\store.config
 		..\sources\targets\Xenko.GlobalSettings.targets = ..\sources\targets\Xenko.GlobalSettings.targets
 		..\sources\targets\Xenko.InternalReferences.targets = ..\sources\targets\Xenko.InternalReferences.targets
 		..\sources\native\Xenko.Native.targets = ..\sources\native\Xenko.Native.targets
@@ -40,8 +40,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "80-Shaders", "80-Shaders", 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.User", "00-Targets.User", "{BB2D1F96-E184-4EE2-8677-3EA5E059E1A6}"
 	ProjectSection(SolutionItems) = preProject
-		..\Targets\Xenko.Common.targets = ..\Targets\Xenko.Common.targets
 		..\Targets\Xenko.Android.targets = ..\Targets\Xenko.Android.targets
+		..\Targets\Xenko.Common.targets = ..\Targets\Xenko.Common.targets
 		..\Targets\Xenko.CoreCLR.targets = ..\Targets\Xenko.CoreCLR.targets
 		..\Targets\Xenko.iOS.targets = ..\Targets\Xenko.iOS.targets
 		..\Targets\Xenko.Linux.targets = ..\Targets\Xenko.Linux.targets
@@ -63,11 +63,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "21-XenkoRuntime.Tests", "21
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targets.Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
 	ProjectSection(SolutionItems) = preProject
+		Xenko.Android.PreSettings.Local.targets = Xenko.Android.PreSettings.Local.targets
+		Xenko.build = Xenko.build
 		Xenko.Core.GlobalSettings.Local.targets = Xenko.Core.GlobalSettings.Local.targets
 		Xenko.Core.PostSettings.Local.targets = Xenko.Core.PostSettings.Local.targets
 		Xenko.Core.PreSettings.Local.targets = Xenko.Core.PreSettings.Local.targets
-		Xenko.Android.PreSettings.Local.targets = Xenko.Android.PreSettings.Local.targets
-		Xenko.build = Xenko.build
 		Xenko.Direct3D.CoreCLR.PreSettings.Local.targets = Xenko.Direct3D.CoreCLR.PreSettings.Local.targets
 		Xenko.Direct3D.PreSettings.Local.targets = Xenko.Direct3D.PreSettings.Local.targets
 		Xenko.Direct3D.SDL.PreSettings.Local.targets = Xenko.Direct3D.SDL.PreSettings.Local.targets
@@ -156,9 +156,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Navigation", "..\sour
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Localization", "00-Localization", "{FC791F56-C1F1-4C41-A193-868D8197F8E2}"
 	ProjectSection(SolutionItems) = preProject
+		..\sources\localization\Xenko.Assets.Presentation.pot = ..\sources\localization\Xenko.Assets.Presentation.pot
 		..\sources\localization\Xenko.Core.Assets.Editor.pot = ..\sources\localization\Xenko.Core.Assets.Editor.pot
 		..\sources\localization\Xenko.Core.Presentation.pot = ..\sources\localization\Xenko.Core.Presentation.pot
-		..\sources\localization\Xenko.Assets.Presentation.pot = ..\sources\localization\Xenko.Assets.Presentation.pot
 		..\sources\localization\Xenko.GameStudio.pot = ..\sources\localization\Xenko.GameStudio.pot
 	EndProjectSection
 EndProject

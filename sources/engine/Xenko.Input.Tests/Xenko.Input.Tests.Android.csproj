@@ -9,6 +9,7 @@
     <ProjectGuid>{01700344-CF44-482C-BEBC-60213B0F844C}</ProjectGuid>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Xenko.Input.Tests</RootNamespace>
     <AssemblyName>Xenko.Input.Tests</AssemblyName>

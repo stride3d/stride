@@ -9,6 +9,7 @@
     <ProjectGuid>{570B0FF9-246F-4C6C-8384-F6BE1887A4A9}</ProjectGuid>
     <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Xenko.Graphics.Tests</RootNamespace>
     <AssemblyName>Xenko.Graphics.Tests.10_0</AssemblyName>
