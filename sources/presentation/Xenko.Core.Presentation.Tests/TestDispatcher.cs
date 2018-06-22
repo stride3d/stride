@@ -4,94 +4,93 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Extensions;
 using Xenko.Core.Presentation.Services;
 using Xenko.Core.Presentation.View;
 
 namespace Xenko.Core.Presentation.Tests
 {
-    [TestFixture]
-    class TestDispatcher
+    public class TestDispatcher
     {
-        [Test]
+        [Fact]
         public void TestInvoke()
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
             dispatcher.Invoke(() => count = 2);
-            Assert.AreEqual(2, count);
+            Assert.Equal(2, count);
             ShutdownDispatcher(dispatcher);
         }
 
-        [Test]
+        [Fact]
         public void TestInvokeResult()
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
             int result = dispatcher.Invoke(() => ++count);
-            Assert.AreEqual(2, result);
+            Assert.Equal(2, result);
             ShutdownDispatcher(dispatcher);
         }
 
-        [Test]
+        [Fact]
         public void TestInvokeAsyncFireAndForget()
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
             dispatcher.InvokeAsync(async () => { await Task.Delay(100); count = count + 1; }).Forget();
-            Assert.AreEqual(1, count);
+            Assert.Equal(1, count);
             Thread.Sleep(200);
-            Assert.AreEqual(2, count);
+            Assert.Equal(2, count);
             ShutdownDispatcher(dispatcher);
         }
 
-        [Test]
+        [Fact]
         public void TestInvokeTask()
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
             var task = dispatcher.InvokeAsync(async () => { await Task.Delay(100); count = count + 1; });
-            Assert.AreEqual(1, count);
+            Assert.Equal(1, count);
             task.Result.Wait();
-            Assert.AreEqual(2, count);
+            Assert.Equal(2, count);
             ShutdownDispatcher(dispatcher);
         }
 
-        [Test]
+        [Fact]
         public void TestInvokeTaskResult()
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
             var task = dispatcher.InvokeAsync(async () => { await Task.Delay(100); return 2; });
-            Assert.AreEqual(1, count);
+            Assert.Equal(1, count);
             task.Wait();
             count += task.Result.Result;
-            Assert.AreEqual(3, count);
+            Assert.Equal(3, count);
             ShutdownDispatcher(dispatcher);
         }
         
-        [Test]
+        [Fact]
         public async Task TestInvokeAsyncTask()
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
             var task = dispatcher.InvokeAsync(async () => { await Task.Delay(100); count = count + 1; });
-            Assert.AreEqual(1, count);
+            Assert.Equal(1, count);
             await task.Result;
-            Assert.AreEqual(2, count);
+            Assert.Equal(2, count);
             ShutdownDispatcher(dispatcher);
         }
 
-        [Test]
+        [Fact]
         public async Task TestInvokeAsyncTaskResult()
         {
             var dispatcher = CreateDispatcher();
             int count = 1;
             var task = dispatcher.InvokeAsync(async () => { await Task.Delay(100); return 2; });
-            Assert.AreEqual(1, count);
+            Assert.Equal(1, count);
             count += await task.Result;
-            Assert.AreEqual(3, count);
+            Assert.Equal(3, count);
             ShutdownDispatcher(dispatcher);
         }
 

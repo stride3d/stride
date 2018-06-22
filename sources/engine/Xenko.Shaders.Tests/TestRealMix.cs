@@ -1,11 +1,11 @@
-﻿/*
+/*
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Rendering;
 using Xenko.Engine.Shaders.Mixins;
@@ -15,7 +15,6 @@ using Xenko.Core.Shaders.Utility;
 
 namespace Xenko.Core.Shaders.Tests
 {
-    [TestFixture]
     class TestRealMix
     {
         private ShaderSourceManager sourceManager;
@@ -28,7 +27,7 @@ namespace Xenko.Core.Shaders.Tests
             sourceManager.LookupDirectoryList.Add(@"../../../../../shaders");
             shaderLoader = new ShaderLoader(sourceManager);
         }
-        [Test]
+        [Fact]
         public void TestModule() // simple mix with inheritance
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -204,10 +203,10 @@ namespace Xenko.Core.Shaders.Tests
                 Console.WriteLine("-----------------------------WARNINGS END------------------------------------");
             }
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
         }
 
-        [Test]
+        [Fact]
         public void TestModuleShort() // simple mix with inheritance
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -245,7 +244,7 @@ namespace Xenko.Core.Shaders.Tests
                 Console.WriteLine("-----------------------------WARNINGS END------------------------------------");
             }
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
         }
     }
 }

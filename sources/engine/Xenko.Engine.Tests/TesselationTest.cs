@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core;
 using Xenko.Core.Mathematics;
@@ -46,7 +46,7 @@ namespace Xenko.Engine.Tests
         {
         }
 
-        public TesselationTest(bool isDebug)
+        protected TesselationTest(bool isDebug)
         {
             debug = isDebug;
             GraphicsDeviceManager.DeviceCreationFlags = DeviceCreationFlags.Debug;
@@ -198,7 +198,7 @@ namespace Xenko.Engine.Tests
             }
         }
 
-        [Test]
+        [SkippableFact]
         public void RunTestGame()
         {
             IgnoreGraphicPlatform(GraphicsPlatform.OpenGL);

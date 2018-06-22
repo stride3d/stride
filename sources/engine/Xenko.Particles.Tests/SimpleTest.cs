@@ -1,23 +1,23 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 
 namespace Xenko.Particles.Tests
 {
-    class SimpleTest
+    public class SimpleTest
     {
-        [Test]
+        [Fact]
         public void OnePlusOne()
         {
             var i = 1;
             i++;
 
-            Assert.That(i, Is.EqualTo(2));
+            Assert.Equal(2, i);
         }
 
-        [Test]
+        [Fact]
         public void TestEmitter()
         {
             var dummySystem = new ParticleSystem();
@@ -29,7 +29,7 @@ namespace Xenko.Particles.Tests
 
             emitter.Update(0.016f, dummySystem);
 
-            Assert.That(emitter.LivingParticles, Is.EqualTo(5));
+            Assert.Equal(5, emitter.LivingParticles);
         }
     }
 }

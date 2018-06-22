@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Serializers;
 using Xenko.Core.Assets.Tests.Helpers;
 using Xenko.Core.Assets.Yaml;
@@ -15,7 +15,6 @@ using Xenko.Core.Yaml;
 
 namespace Xenko.Core.Assets.Tests.Yaml
 {
-    [TestFixture]
     public class TestObjectReferenceSerialization
     {
         public interface IReferenceable : IIdentifiable
@@ -191,17 +190,17 @@ AbstractRefDictionary:
         Value: Test
 ";
 
-        [Test]
+        [Fact]
         public void TestExpandObjectSerialization()
         {
             var obj = new Container { Referenceable1 = new Referenceable { Id = GuidGenerator.Get(1), Value = "Test" } };
             var yaml = SerializeAsString(obj, null);
-            Assert.AreEqual(ExpandedObjectYaml, yaml);
+            Assert.Equal(ExpandedObjectYaml, yaml);
             yaml = SerializeAsString(obj, new YamlAssetMetadata<Guid>());
-            Assert.AreEqual(ExpandedObjectYaml, yaml);
+            Assert.Equal(ExpandedObjectYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestExpandObjectDeserialization()
         {
             var obj = (Container)Deserialize(ExpandedObjectYaml);
@@ -209,11 +208,11 @@ AbstractRefDictionary:
             Assert.Null(obj.Referenceable2);
             Assert.Null(obj.Referenceable3);
             Assert.Null(obj.Referenceable4);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.Referenceable1.Id);
-            Assert.AreEqual("Test", obj.Referenceable1.Value);
+            Assert.Equal(GuidGenerator.Get(1), obj.Referenceable1.Id);
+            Assert.Equal("Test", obj.Referenceable1.Value);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteReferenceConcreteObjectSerialization()
         {
             var obj = new Container { Referenceable1 = new Referenceable { Id = GuidGenerator.Get(1), Value = "Test" } };
@@ -223,23 +222,23 @@ AbstractRefDictionary:
             path.PushMember(nameof(Container.Referenceable2));
             objectReferences.Set(path, obj.Referenceable2.Id);
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(ConcreteReferenceConcreteObjectYaml, yaml);
+            Assert.Equal(ConcreteReferenceConcreteObjectYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteReferenceConcreteObjectDeserialization()
         {
             var obj = (Container)Deserialize(ConcreteReferenceConcreteObjectYaml);
             Assert.NotNull(obj.Referenceable1);
             Assert.NotNull(obj.Referenceable2);
-            Assert.AreEqual(obj.Referenceable1, obj.Referenceable2);
+            Assert.Equal(obj.Referenceable1, obj.Referenceable2);
             Assert.Null(obj.Referenceable3);
             Assert.Null(obj.Referenceable4);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.Referenceable1.Id);
-            Assert.AreEqual("Test", obj.Referenceable1.Value);
+            Assert.Equal(GuidGenerator.Get(1), obj.Referenceable1.Id);
+            Assert.Equal("Test", obj.Referenceable1.Value);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractReferenceConcreteObjectSerialization()
         {
             var obj = new Container { Referenceable1 = new Referenceable { Id = GuidGenerator.Get(1), Value = "Test" } };
@@ -249,23 +248,23 @@ AbstractRefDictionary:
             path.PushMember(nameof(Container.Referenceable3));
             objectReferences.Set(path, obj.Referenceable3.Id);
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(AbstractReferenceConcreteObjectYaml, yaml);
+            Assert.Equal(AbstractReferenceConcreteObjectYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractReferenceConcreteObjectDeserialization()
         {
             var obj = (Container)Deserialize(AbstractReferenceConcreteObjectYaml);
             Assert.NotNull(obj.Referenceable1);
             Assert.NotNull(obj.Referenceable3);
-            Assert.AreEqual(obj.Referenceable1, obj.Referenceable3);
+            Assert.Equal(obj.Referenceable1, obj.Referenceable3);
             Assert.Null(obj.Referenceable2);
             Assert.Null(obj.Referenceable4);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.Referenceable1.Id);
-            Assert.AreEqual("Test", obj.Referenceable1.Value);
+            Assert.Equal(GuidGenerator.Get(1), obj.Referenceable1.Id);
+            Assert.Equal("Test", obj.Referenceable1.Value);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteReferenceObjectAbstractSerialization()
         {
             var obj = new Container { Referenceable3 = new Referenceable { Id = GuidGenerator.Get(1), Value = "Test" } };
@@ -275,23 +274,23 @@ AbstractRefDictionary:
             path.PushMember(nameof(Container.Referenceable2));
             objectReferences.Set(path, obj.Referenceable2.Id);
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(ConcreteReferenceAbstractObjectYaml, yaml);
+            Assert.Equal(ConcreteReferenceAbstractObjectYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteReferenceObjectAbstractDeserialization()
         {
             var obj = (Container)Deserialize(ConcreteReferenceAbstractObjectYaml);
             Assert.NotNull(obj.Referenceable2);
             Assert.NotNull(obj.Referenceable3);
-            Assert.AreEqual(obj.Referenceable2, obj.Referenceable3);
+            Assert.Equal(obj.Referenceable2, obj.Referenceable3);
             Assert.Null(obj.Referenceable1);
             Assert.Null(obj.Referenceable4);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.Referenceable2.Id);
-            Assert.AreEqual("Test", obj.Referenceable2.Value);
+            Assert.Equal(GuidGenerator.Get(1), obj.Referenceable2.Id);
+            Assert.Equal("Test", obj.Referenceable2.Value);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstracteferenceObjectAbstractSerialization()
         {
             var obj = new Container { Referenceable3 = new Referenceable { Id = GuidGenerator.Get(1), Value = "Test" } };
@@ -301,23 +300,23 @@ AbstractRefDictionary:
             path.PushMember(nameof(Container.Referenceable4));
             objectReferences.Set(path, obj.Referenceable4.Id);
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(AbstractReferenceAbstractObjectYaml, yaml);
+            Assert.Equal(AbstractReferenceAbstractObjectYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstracteferenceObjectAbstractDeserialization()
         {
             var obj = (Container)Deserialize(AbstractReferenceAbstractObjectYaml);
             Assert.NotNull(obj.Referenceable3);
             Assert.NotNull(obj.Referenceable4);
-            Assert.AreEqual(obj.Referenceable3, obj.Referenceable4);
+            Assert.Equal(obj.Referenceable3, obj.Referenceable4);
             Assert.Null(obj.Referenceable1);
             Assert.Null(obj.Referenceable2);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.Referenceable3.Id);
-            Assert.AreEqual("Test", obj.Referenceable3.Value);
+            Assert.Equal(GuidGenerator.Get(1), obj.Referenceable3.Id);
+            Assert.Equal("Test", obj.Referenceable3.Value);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteReferenceableListSerialization()
         {
             var obj = new CollectionContainer();
@@ -333,24 +332,24 @@ AbstractRefDictionary:
             path.PushItemId(IdentifierGenerator.Get(1));
             objectReferences.Set(path, GuidGenerator.Get(1));
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(ConcreteReferenceableListYaml, yaml);
+            Assert.Equal(ConcreteReferenceableListYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteReferenceableListDeserialization()
         {
             var obj = (CollectionContainer)Deserialize(ConcreteReferenceableListYaml);
             Assert.NotNull(obj.ConcreteRefList);
-            Assert.AreEqual(2, obj.ConcreteRefList.Count);
-            Assert.AreEqual(obj.ConcreteRefList[0], obj.ConcreteRefList[1]);
+            Assert.Equal(2, obj.ConcreteRefList.Count);
+            Assert.Equal(obj.ConcreteRefList[0], obj.ConcreteRefList[1]);
             var ids = CollectionItemIdHelper.GetCollectionItemIds(obj.ConcreteRefList);
-            Assert.AreEqual(IdentifierGenerator.Get(1), ids[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(2), ids[1]);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.ConcreteRefList[0].Id);
-            Assert.AreEqual("Test", obj.ConcreteRefList[0].Value);
+            Assert.Equal(IdentifierGenerator.Get(1), ids[0]);
+            Assert.Equal(IdentifierGenerator.Get(2), ids[1]);
+            Assert.Equal(GuidGenerator.Get(1), obj.ConcreteRefList[0].Id);
+            Assert.Equal("Test", obj.ConcreteRefList[0].Value);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractReferenceableListSerialization()
         {
             var obj = new CollectionContainer();
@@ -366,24 +365,24 @@ AbstractRefDictionary:
             path.PushItemId(IdentifierGenerator.Get(1));
             objectReferences.Set(path, GuidGenerator.Get(1));
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(AbstractReferenceableListYaml, yaml);
+            Assert.Equal(AbstractReferenceableListYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractReferenceableListDeserialization()
         {
             var obj = (CollectionContainer)Deserialize(AbstractReferenceableListYaml);
             Assert.NotNull(obj.AbstractRefList);
-            Assert.AreEqual(2, obj.AbstractRefList.Count);
-            Assert.AreEqual(obj.AbstractRefList[0], obj.AbstractRefList[1]);
+            Assert.Equal(2, obj.AbstractRefList.Count);
+            Assert.Equal(obj.AbstractRefList[0], obj.AbstractRefList[1]);
             var ids = CollectionItemIdHelper.GetCollectionItemIds(obj.AbstractRefList);
-            Assert.AreEqual(IdentifierGenerator.Get(1), ids[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(2), ids[1]);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.AbstractRefList[0].Id);
-            Assert.AreEqual("Test", obj.AbstractRefList[0].Value);
+            Assert.Equal(IdentifierGenerator.Get(1), ids[0]);
+            Assert.Equal(IdentifierGenerator.Get(2), ids[1]);
+            Assert.Equal(GuidGenerator.Get(1), obj.AbstractRefList[0].Id);
+            Assert.Equal("Test", obj.AbstractRefList[0].Value);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteReferenceableDictionarySerialization()
         {
             var obj = new CollectionContainer();
@@ -399,24 +398,24 @@ AbstractRefDictionary:
             path.PushItemId(IdentifierGenerator.Get(1));
             objectReferences.Set(path, GuidGenerator.Get(1));
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(ConcreteReferenceableDictionaryYaml, yaml);
+            Assert.Equal(ConcreteReferenceableDictionaryYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteReferenceableDictionaryDeserialization()
         {
             var obj = (CollectionContainer)Deserialize(ConcreteReferenceableDictionaryYaml);
             Assert.NotNull(obj.ConcreteRefDictionary);
-            Assert.AreEqual(2, obj.ConcreteRefDictionary.Count);
-            Assert.AreEqual(obj.ConcreteRefDictionary["Item1"], obj.ConcreteRefDictionary["Item2"]);
+            Assert.Equal(2, obj.ConcreteRefDictionary.Count);
+            Assert.Equal(obj.ConcreteRefDictionary["Item1"], obj.ConcreteRefDictionary["Item2"]);
             var ids = CollectionItemIdHelper.GetCollectionItemIds(obj.ConcreteRefDictionary);
-            Assert.AreEqual(IdentifierGenerator.Get(1), ids["Item1"]);
-            Assert.AreEqual(IdentifierGenerator.Get(2), ids["Item2"]);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.ConcreteRefDictionary["Item1"].Id);
-            Assert.AreEqual("Test", obj.ConcreteRefDictionary["Item1"].Value);
+            Assert.Equal(IdentifierGenerator.Get(1), ids["Item1"]);
+            Assert.Equal(IdentifierGenerator.Get(2), ids["Item2"]);
+            Assert.Equal(GuidGenerator.Get(1), obj.ConcreteRefDictionary["Item1"].Id);
+            Assert.Equal("Test", obj.ConcreteRefDictionary["Item1"].Value);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractReferenceableDictionarySerialization()
         {
             var obj = new CollectionContainer();
@@ -432,24 +431,24 @@ AbstractRefDictionary:
             path.PushItemId(IdentifierGenerator.Get(1));
             objectReferences.Set(path, GuidGenerator.Get(1));
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(AbstractReferenceableDictionaryYaml, yaml);
+            Assert.Equal(AbstractReferenceableDictionaryYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractReferenceableDictionaryDeserialization()
         {
             var obj = (CollectionContainer)Deserialize(AbstractReferenceableDictionaryYaml);
             Assert.NotNull(obj.AbstractRefDictionary);
-            Assert.AreEqual(2, obj.AbstractRefDictionary.Count);
-            Assert.AreEqual(obj.AbstractRefDictionary["Item1"], obj.AbstractRefDictionary["Item2"]);
+            Assert.Equal(2, obj.AbstractRefDictionary.Count);
+            Assert.Equal(obj.AbstractRefDictionary["Item1"], obj.AbstractRefDictionary["Item2"]);
             var ids = CollectionItemIdHelper.GetCollectionItemIds(obj.AbstractRefDictionary);
-            Assert.AreEqual(IdentifierGenerator.Get(1), ids["Item1"]);
-            Assert.AreEqual(IdentifierGenerator.Get(2), ids["Item2"]);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.AbstractRefDictionary["Item1"].Id);
-            Assert.AreEqual("Test", obj.AbstractRefDictionary["Item1"].Value);
+            Assert.Equal(IdentifierGenerator.Get(1), ids["Item1"]);
+            Assert.Equal(IdentifierGenerator.Get(2), ids["Item2"]);
+            Assert.Equal(GuidGenerator.Get(1), obj.AbstractRefDictionary["Item1"].Id);
+            Assert.Equal("Test", obj.AbstractRefDictionary["Item1"].Value);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteNonIdentifiableReferenceableListSerialization()
         {
             var obj = new NonIdentifiableCollectionContainer();
@@ -462,21 +461,21 @@ AbstractRefDictionary:
             path.PushIndex(0);
             objectReferences.Set(path, GuidGenerator.Get(1));
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(ConcreteNonIdentifiableReferenceableListYaml, yaml);
+            Assert.Equal(ConcreteNonIdentifiableReferenceableListYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteNonIdentifiableReferenceableListDeserialization()
         {
             var obj = (NonIdentifiableCollectionContainer)Deserialize(ConcreteNonIdentifiableReferenceableListYaml);
             Assert.NotNull(obj.ConcreteRefList);
-            Assert.AreEqual(2, obj.ConcreteRefList.Count);
-            Assert.AreEqual(obj.ConcreteRefList[0], obj.ConcreteRefList[1]);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.ConcreteRefList[0].Id);
-            Assert.AreEqual("Test", obj.ConcreteRefList[0].Value);
+            Assert.Equal(2, obj.ConcreteRefList.Count);
+            Assert.Equal(obj.ConcreteRefList[0], obj.ConcreteRefList[1]);
+            Assert.Equal(GuidGenerator.Get(1), obj.ConcreteRefList[0].Id);
+            Assert.Equal("Test", obj.ConcreteRefList[0].Value);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractNonIdentifiableReferenceableListSerialization()
         {
             var obj = new NonIdentifiableCollectionContainer();
@@ -489,21 +488,21 @@ AbstractRefDictionary:
             path.PushIndex(0);
             objectReferences.Set(path, GuidGenerator.Get(1));
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(AbstractNonIdentifiableReferenceableListYaml, yaml);
+            Assert.Equal(AbstractNonIdentifiableReferenceableListYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractNonIdentifiableReferenceableListDeserialization()
         {
             var obj = (NonIdentifiableCollectionContainer)Deserialize(AbstractNonIdentifiableReferenceableListYaml);
             Assert.NotNull(obj.AbstractRefList);
-            Assert.AreEqual(2, obj.AbstractRefList.Count);
-            Assert.AreEqual(obj.AbstractRefList[0], obj.AbstractRefList[1]);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.AbstractRefList[0].Id);
-            Assert.AreEqual("Test", obj.AbstractRefList[0].Value);
+            Assert.Equal(2, obj.AbstractRefList.Count);
+            Assert.Equal(obj.AbstractRefList[0], obj.AbstractRefList[1]);
+            Assert.Equal(GuidGenerator.Get(1), obj.AbstractRefList[0].Id);
+            Assert.Equal("Test", obj.AbstractRefList[0].Value);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteNonIdentifiableReferenceableDictionarySerialization()
         {
             var obj = new NonIdentifiableCollectionContainer();
@@ -519,21 +518,21 @@ AbstractRefDictionary:
             path.PushIndex("Item1");
             objectReferences.Set(path, GuidGenerator.Get(1));
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(ConcreteNonIdentifiableReferenceableDictionaryYaml, yaml);
+            Assert.Equal(ConcreteNonIdentifiableReferenceableDictionaryYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestConcreteNonIdentifiableReferenceableDictionaryDeserialization()
         {
             var obj = (NonIdentifiableCollectionContainer)Deserialize(ConcreteNonIdentifiableReferenceableDictionaryYaml);
             Assert.NotNull(obj.ConcreteRefDictionary);
-            Assert.AreEqual(2, obj.ConcreteRefDictionary.Count);
-            Assert.AreEqual(obj.ConcreteRefDictionary["Item1"], obj.ConcreteRefDictionary["Item2"]);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.ConcreteRefDictionary["Item1"].Id);
-            Assert.AreEqual("Test", obj.ConcreteRefDictionary["Item1"].Value);
+            Assert.Equal(2, obj.ConcreteRefDictionary.Count);
+            Assert.Equal(obj.ConcreteRefDictionary["Item1"], obj.ConcreteRefDictionary["Item2"]);
+            Assert.Equal(GuidGenerator.Get(1), obj.ConcreteRefDictionary["Item1"].Id);
+            Assert.Equal("Test", obj.ConcreteRefDictionary["Item1"].Value);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractNonIdentifiableReferenceableDictionarySerialization()
         {
             var obj = new NonIdentifiableCollectionContainer();
@@ -546,18 +545,18 @@ AbstractRefDictionary:
             path.PushIndex("Item1");
             objectReferences.Set(path, GuidGenerator.Get(1));
             var yaml = SerializeAsString(obj, objectReferences);
-            Assert.AreEqual(AbstractNonIdentifiableReferenceableDictionaryYaml, yaml);
+            Assert.Equal(AbstractNonIdentifiableReferenceableDictionaryYaml, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractNonIdentifiableReferenceableDictionaryDeserialization()
         {
             var obj = (NonIdentifiableCollectionContainer)Deserialize(AbstractNonIdentifiableReferenceableDictionaryYaml);
             Assert.NotNull(obj.AbstractRefDictionary);
-            Assert.AreEqual(2, obj.AbstractRefDictionary.Count);
-            Assert.AreEqual(obj.AbstractRefDictionary["Item1"], obj.AbstractRefDictionary["Item2"]);
-            Assert.AreEqual(GuidGenerator.Get(1), obj.AbstractRefDictionary["Item1"].Id);
-            Assert.AreEqual("Test", obj.AbstractRefDictionary["Item1"].Value);
+            Assert.Equal(2, obj.AbstractRefDictionary.Count);
+            Assert.Equal(obj.AbstractRefDictionary["Item1"], obj.AbstractRefDictionary["Item2"]);
+            Assert.Equal(GuidGenerator.Get(1), obj.AbstractRefDictionary["Item1"].Id);
+            Assert.Equal("Test", obj.AbstractRefDictionary["Item1"].Value);
         }
 
         private static string SerializeAsString(object instance, YamlAssetMetadata<Guid> objectReferences)

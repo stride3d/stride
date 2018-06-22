@@ -3,7 +3,7 @@
 
 using System;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Graphics;
@@ -15,14 +15,13 @@ namespace Xenko.UI.Tests.Layering
     /// <summary>
     /// A class that contains test functions for layering of the <see cref="ImageElement"/> class.
     /// </summary>
-    [TestFixture]
     [System.ComponentModel.Description("Tests for ImageElement layering")]
     public class ImageElementTests : ImageElement
     {
         /// <summary>
         /// Test the invalidations generated object property changes.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestBasicInvalidations()
         {
             var source = new Sprite();
@@ -48,7 +47,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the <see cref="UIElement.MeasureOverride"/> function
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureOverride()
         {
             var rand = new Random();
@@ -59,32 +58,32 @@ namespace Xenko.UI.Tests.Layering
             // Fixed sized
             image.StretchType = StretchType.None;
             image.Measure(rand.NextVector3());
-            Assert.AreEqual(imageSize, image.DesiredSizeWithMargins);
+            Assert.Equal(imageSize, image.DesiredSizeWithMargins);
 
             // Uniform sized
             image.StretchType = StretchType.Uniform;
             image.Measure(new Vector3(50));
-            Assert.AreEqual(new Vector3(50, 25, 0), image.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(50, 25, 0), image.DesiredSizeWithMargins);
 
             // Uniform to fill sized
             image.StretchType = StretchType.UniformToFill;
             image.Measure(new Vector3(50));
-            Assert.AreEqual(new Vector3(100, 50, 0), image.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(100, 50, 0), image.DesiredSizeWithMargins);
 
             // Fill on stretch
             image.StretchType = StretchType.FillOnStretch;
             image.Measure(new Vector3(50));
-            Assert.AreEqual(new Vector3(50, 25, 0), image.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(50, 25, 0), image.DesiredSizeWithMargins);
 
             // Fill
             image.StretchType = StretchType.Fill;
             image.Measure(new Vector3(50));
-            Assert.AreEqual(new Vector3(50, 50, 0), image.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(50, 50, 0), image.DesiredSizeWithMargins);
 
             // Test minimal size due to borders
             image.StretchType = StretchType.Fill;
             image.Measure(new Vector3());
-            Assert.AreEqual(new Vector3(4, 6, 0), image.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(4, 6, 0), image.DesiredSizeWithMargins);
 
             // Test with infinite value
             for (var type = 0; type < 5; ++type)
@@ -94,14 +93,14 @@ namespace Xenko.UI.Tests.Layering
             image.StretchType = StretchType.Fill;
             image.StretchDirection = StretchDirection.DownOnly;
             image.Measure(new Vector3(200, 300, 220));
-            Assert.AreEqual(new Vector3(100, 50, 0), image.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(100, 50, 0), image.DesiredSizeWithMargins);
             image.Measure(new Vector3(20, 15, 30));
-            Assert.AreEqual(new Vector3(20, 15, 0), image.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(20, 15, 0), image.DesiredSizeWithMargins);
             image.StretchDirection = StretchDirection.UpOnly;
             image.Measure(new Vector3(200, 300, 220));
-            Assert.AreEqual(new Vector3(200, 300, 0), image.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(200, 300, 0), image.DesiredSizeWithMargins);
             image.Measure(new Vector3(20, 30, 22));
-            Assert.AreEqual(new Vector3(100, 50, 0), image.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(100, 50, 0), image.DesiredSizeWithMargins);
         }
 
         public void TestMeasureOverrideInfiniteValues(StretchType stretch)
@@ -111,16 +110,16 @@ namespace Xenko.UI.Tests.Layering
             var image = new ImageElement { Source = (SpriteFromTexture)sprite, StretchType = stretch };
             
             image.Measure(new Vector3(float.PositiveInfinity));
-            Assert.AreEqual(imageSize, image.DesiredSizeWithMargins);
+            Assert.Equal(imageSize, image.DesiredSizeWithMargins);
 
             image.Measure(new Vector3(150, float.PositiveInfinity, 10));
-            Assert.AreEqual(stretch == StretchType.None ? imageSize : new Vector3(150, 75, 0), image.DesiredSizeWithMargins);
+            Assert.Equal(stretch == StretchType.None ? imageSize : new Vector3(150, 75, 0), image.DesiredSizeWithMargins);
         }
 
         /// <summary>
         /// Test the <see cref="UIElement.ArrangeOverride"/> function
         /// </summary>
-        [Test]
+        [Fact]
         public void TestArrangeOverride()
         {
             var rand = new Random();
@@ -131,32 +130,32 @@ namespace Xenko.UI.Tests.Layering
             // Fixed sized
             image.StretchType = StretchType.None;
             image.Arrange(rand.NextVector3(), false);
-            Assert.AreEqual(imageSize, image.RenderSize);
+            Assert.Equal(imageSize, image.RenderSize);
 
             // Uniform sized
             image.StretchType = StretchType.Uniform;
             image.Arrange(new Vector3(50), false);
-            Assert.AreEqual(new Vector3(50, 25, 0), image.RenderSize);
+            Assert.Equal(new Vector3(50, 25, 0), image.RenderSize);
 
             // Uniform to fill sized
             image.StretchType = StretchType.UniformToFill;
             image.Arrange(new Vector3(50), false);
-            Assert.AreEqual(new Vector3(100, 50, 0), image.RenderSize);
+            Assert.Equal(new Vector3(100, 50, 0), image.RenderSize);
 
             // Fill on stretch
             image.StretchType = StretchType.FillOnStretch;
             image.Arrange(new Vector3(50), false);
-            Assert.AreEqual(new Vector3(50, 50, 0), image.RenderSize);
+            Assert.Equal(new Vector3(50, 50, 0), image.RenderSize);
 
             // Fill
             image.StretchType = StretchType.Fill;
             image.Arrange(new Vector3(50), false);
-            Assert.AreEqual(new Vector3(50, 50, 0), image.RenderSize);
+            Assert.Equal(new Vector3(50, 50, 0), image.RenderSize);
 
             // Test there is no minimal size due to borders in arrange
             image.StretchType = StretchType.Fill;
             image.Arrange(new Vector3(), false);
-            Assert.AreEqual(new Vector3(), image.RenderSize);
+            Assert.Equal(new Vector3(), image.RenderSize);
 
             // Test with infinite value
             for (var type = 0; type < 5; ++type)
@@ -166,14 +165,14 @@ namespace Xenko.UI.Tests.Layering
             image.StretchType = StretchType.Fill;
             image.StretchDirection = StretchDirection.DownOnly;
             image.Arrange(new Vector3(200, 300, 220), false);
-            Assert.AreEqual(new Vector3(100, 50, 0), image.RenderSize);
+            Assert.Equal(new Vector3(100, 50, 0), image.RenderSize);
             image.Arrange(new Vector3(20, 15, 30), false);
-            Assert.AreEqual(new Vector3(20, 15, 0), image.RenderSize);
+            Assert.Equal(new Vector3(20, 15, 0), image.RenderSize);
             image.StretchDirection = StretchDirection.UpOnly;
             image.Arrange(new Vector3(200, 300, 220), false);
-            Assert.AreEqual(new Vector3(200, 300, 0), image.RenderSize);
+            Assert.Equal(new Vector3(200, 300, 0), image.RenderSize);
             image.Arrange(new Vector3(20, 30, 22), false);
-            Assert.AreEqual(new Vector3(100, 50, 0), image.RenderSize);
+            Assert.Equal(new Vector3(100, 50, 0), image.RenderSize);
         }
 
         public void TestArrangeOverrideInfiniteValues(StretchType stretch)
@@ -183,10 +182,10 @@ namespace Xenko.UI.Tests.Layering
             var image = new ImageElement { Source = (SpriteFromTexture)sprite, StretchType = stretch };
 
             image.Arrange(new Vector3(float.PositiveInfinity), false);
-            Assert.AreEqual(imageSize, image.RenderSize);
+            Assert.Equal(imageSize, image.RenderSize);
 
             image.Arrange(new Vector3(150, float.PositiveInfinity, 10), false);
-            Assert.AreEqual(stretch == StretchType.None ? imageSize : new Vector3(150, 75, 0), image.RenderSize);
+            Assert.Equal(stretch == StretchType.None ? imageSize : new Vector3(150, 75, 0), image.RenderSize);
         }
     }
 }

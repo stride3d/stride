@@ -113,6 +113,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="XunitAttributes.cs" />
     <Compile Include="AutoAlphaTests.cs" />
     <Compile Include="Program.cs" />
   </ItemGroup>

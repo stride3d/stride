@@ -1,19 +1,18 @@
+using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Serialization;
 
 namespace Xenko.Core.Assets.Tests.Compilers
 {
-    public class CompilerTestBase
+    public class CompilerTestBase : IDisposable
     {
-        [SetUp]
-        public void Setup()
+        public CompilerTestBase()
         {
             TestCompilerBase.CompiledAssets = new HashSet<AssetItem>();
         }
 
-        [TearDown]
-        public void TearDown()
+        public void Dispose()
         {
             TestCompilerBase.CompiledAssets = null;
         }

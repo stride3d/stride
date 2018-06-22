@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.UI.Panels;
@@ -15,20 +15,13 @@ namespace Xenko.UI.Tests.Layering
     /// </summary>
     public class GridTests
     {
-        private Random rand;
+        private Random rand = new Random(DateTime.Now.Millisecond);
 
-        [TestFixtureSetUp]
-        public void Initialize()
-        {
-            // create a rand variable changing from a test to the other
-            rand = new Random(DateTime.Now.Millisecond);
-        }
         /// <summary>
         /// launch all the tests of <see cref="GridTests"/>
         /// </summary>
         public void TestAll()
         {
-            Initialize();
             TestGridDefaultState();
             TestDefinitionNoCompletion();
             TestFixedOnlyBasicLayering();
@@ -64,7 +57,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the default state of the grid.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestGridDefaultState()
         {
             var grid = new Grid();
@@ -76,13 +69,13 @@ namespace Xenko.UI.Tests.Layering
 
         private void TestDefinitionsDefaultState(StripDefinitionCollection definitions)
         {
-            Assert.AreEqual(0, definitions.Count);
+            Assert.Equal(0, definitions.Count);
         }
 
         /// <summary>
         /// Test that no strip definition are added when a child is partially outside of the grid definition.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestDefinitionNoCompletion()
         {
             var grid = new Grid();
@@ -105,15 +98,15 @@ namespace Xenko.UI.Tests.Layering
             grid.Measure(Vector3.Zero);
             grid.Arrange(Vector3.Zero, false);
 
-            Assert.AreEqual(grid.ColumnDefinitions.Count, 0);
-            Assert.AreEqual(grid.RowDefinitions.Count, 0);
-            Assert.AreEqual(grid.LayerDefinitions.Count, 0);
+            Assert.Equal(grid.ColumnDefinitions.Count, 0);
+            Assert.Equal(grid.RowDefinitions.Count, 0);
+            Assert.Equal(grid.LayerDefinitions.Count, 0);
         }
 
         /// <summary>
         /// Tests that a grid without row/column/layer definitions behave like a grid with one of each.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestDefaultGridLayering()
         {
             var grid = new Grid();
@@ -139,7 +132,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test that fix-size strip layering (both measuring and arranging) works properly.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestFixedOnlyComplexLayering()
         {
             // create a 3x3 grid with elements of every every different span and too small/big size
@@ -218,34 +211,34 @@ namespace Xenko.UI.Tests.Layering
 
             //measure with too small size
             grid.Measure(Vector3.Zero);
-            Assert.AreEqual(new Vector3(600, 1500, 2400), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(600, 1500, 2400), grid.DesiredSizeWithMargins);
             // measure with too big size
             grid.Measure(float.PositiveInfinity * Vector3.One);
-            Assert.AreEqual(new Vector3(600, 1500, 2400), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(600, 1500, 2400), grid.DesiredSizeWithMargins);
 
             // arrange with too small size
             grid.Arrange(Vector3.Zero, false);
-            Assert.AreEqual(new Vector3(600, 1500, 2400), grid.RenderSize);
+            Assert.Equal(new Vector3(600, 1500, 2400), grid.RenderSize);
             // arrange with too big size
             grid.Arrange(float.PositiveInfinity * Vector3.One, false);
 
             // test the strip actual size
-            Assert.AreEqual(100, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(200, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(300, grid.ColumnDefinitions[2].ActualSize);
-            Assert.AreEqual(400, grid.RowDefinitions[0].ActualSize);
-            Assert.AreEqual(500, grid.RowDefinitions[1].ActualSize);
-            Assert.AreEqual(600, grid.RowDefinitions[2].ActualSize);
-            Assert.AreEqual(700, grid.LayerDefinitions[0].ActualSize);
-            Assert.AreEqual(800, grid.LayerDefinitions[1].ActualSize);
-            Assert.AreEqual(900, grid.LayerDefinitions[2].ActualSize);
+            Assert.Equal(100, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(200, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(300, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(400, grid.RowDefinitions[0].ActualSize);
+            Assert.Equal(500, grid.RowDefinitions[1].ActualSize);
+            Assert.Equal(600, grid.RowDefinitions[2].ActualSize);
+            Assert.Equal(700, grid.LayerDefinitions[0].ActualSize);
+            Assert.Equal(800, grid.LayerDefinitions[1].ActualSize);
+            Assert.Equal(900, grid.LayerDefinitions[2].ActualSize);
         }
 
 
         /// <summary>
         /// Basic Test that check that fix-size strip layering (both measuring and arranging) works properly.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestFixedOnlyBasicLayering()
         {
             var grid = new Grid();
@@ -275,7 +268,7 @@ namespace Xenko.UI.Tests.Layering
         private void CheckFixedSizeStripSize(StripDefinitionCollection definitions, List<float> sizes)
         {
             for (var i=0; i<definitions.Count; ++i)
-                Assert.AreEqual(sizes[i], definitions[i].ActualSize);
+                Assert.Equal(sizes[i], definitions[i].ActualSize);
         }
 
         private void CreateFixedSizeDefinition(StripDefinitionCollection definitions, List<float> sizes)
@@ -289,7 +282,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the values of the layering with basic star values definitions.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyBasicLayering()
         {
             // 0  10*  10   20*    30    30*     60
@@ -316,18 +309,18 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c02);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(60,0,0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(60,0,0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(2*grid.DesiredSizeWithMargins, false);
 
             for (int i = 0; i < ratios.Count; i++)
-                Assert.AreEqual(2*ratios[i], grid.ColumnDefinitions[i].ActualSize);
+                Assert.Equal(2*ratios[i], grid.ColumnDefinitions[i].ActualSize);
         }
 
         /// <summary>
         /// Test the layering with star only but multiple strip definitions
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMultiSpanLayering()
         {
             // 0      30*     30     20*    50    10*    60
@@ -368,18 +361,18 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c20);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(60, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(60, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(2 * grid.DesiredSizeWithMargins, false);
 
             for (int i = 0; i < ratios.Count; i++)
-                Assert.AreEqual(2 * ratios[i], grid.ColumnDefinitions[i].ActualSize);
+                Assert.Equal(2 * ratios[i], grid.ColumnDefinitions[i].ActualSize);
         }
 
         /// <summary>
         /// Basic test on single star element with minimum
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMin1EltLayering()
         {
             var grid = new Grid();
@@ -396,17 +389,17 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c00);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(20, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(20, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(15 * Vector3.One, false);
-            Assert.AreEqual(20 , grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(20 , grid.ColumnDefinitions[0].ActualSize);
 
          }
 
         /// <summary>
         /// Basic test on single star element with maximum
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMax1EltLayering()
         {
             var grid = new Grid();
@@ -423,16 +416,16 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c00);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(20, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(20, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(40 * Vector3.One, false);
-            Assert.AreEqual(20, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
         }
 
         /// <summary>
         /// Basic test on double star elements with minimum
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMin2EltsLayering1()
         {
             var grid = new Grid();
@@ -455,17 +448,17 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c01);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(50, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(50, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(15 * Vector3.One, false);
-            Assert.AreEqual(20, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[1].ActualSize);
         }   
         
         /// <summary>
         /// Basic test on double star elements with minimum
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMin2EltsLayering2()
         {
             var grid = new Grid();
@@ -488,17 +481,17 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c01);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(105, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(105, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(110 * Vector3.One, false);
-            Assert.AreEqual(30, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(80, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(80, grid.ColumnDefinitions[1].ActualSize);
         }
 
         /// <summary>
         /// Basic test on double star elements with minimum
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMin2EltsLayering3()
         {
             var grid = new Grid();
@@ -521,17 +514,17 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c01);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(75, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(75, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(90 * Vector3.One, false);
-            Assert.AreEqual(30, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(60, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(60, grid.ColumnDefinitions[1].ActualSize);
         }
 
         /// <summary>
         /// Basic test on double star elements with maximum
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMax2EltsLayering1()
         {
             var grid = new Grid();
@@ -554,17 +547,17 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c01);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(50, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(50, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(90 * Vector3.One, false);
-            Assert.AreEqual(20, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[1].ActualSize);
         }
 
         /// <summary>
         /// Basic test on double star elements with maximum
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMax2EltsLayering2()
         {
             var grid = new Grid();
@@ -587,17 +580,17 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c01);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(60, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(60, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(65 * Vector3.One, false);
-            Assert.AreEqual(20, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(45, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(45, grid.ColumnDefinitions[1].ActualSize);
         }
 
         /// <summary>
         /// Basic test on double star elements with maximum
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMax2EltsLayering3()
         {
             var grid = new Grid();
@@ -620,17 +613,17 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c01);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(45, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(45, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(60 * Vector3.One, false);
-            Assert.AreEqual(20, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(40, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(40, grid.ColumnDefinitions[1].ActualSize);
         }
 
         /// <summary>
         /// Test on multi minimum bounded star element
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMultiMinLayering1()
         {
             var grid = new Grid();
@@ -651,19 +644,19 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c00);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(140, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(140, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(50 * Vector3.One, false);
-            Assert.AreEqual(20, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(40, grid.ColumnDefinitions[2].ActualSize);
-            Assert.AreEqual(50, grid.ColumnDefinitions[3].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(40, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(50, grid.ColumnDefinitions[3].ActualSize);
         }
 
         /// <summary>
         /// Test on multi minimum bounded star element
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMultiMinLayering2()
         {
             var grid = new Grid();
@@ -684,19 +677,19 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c00);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(150, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(150, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(150 * Vector3.One, false);
-            Assert.AreEqual(30, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(50, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(40, grid.ColumnDefinitions[2].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[3].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(50, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(40, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[3].ActualSize);
         }
 
         /// <summary>
         /// Test on multi maximum bounded star element
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMultiMaxLayering1()
         {
             var grid = new Grid();
@@ -717,19 +710,19 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c00);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(140, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(140, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(200 * Vector3.One, false);
-            Assert.AreEqual(20, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(50, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(40, grid.ColumnDefinitions[2].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[3].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(50, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(40, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[3].ActualSize);
         }        
         
         /// <summary>
         /// Test on multi maximum bounded star element
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMultiMaxLayering2()
         {
             var grid = new Grid();
@@ -750,19 +743,19 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c00);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(110, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(110, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(110 * Vector3.One, false);
-            Assert.AreEqual(20, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[2].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[3].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[3].ActualSize);
         }
 
         /// <summary>
         /// Test on multi minimum maximum bounded star element
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMinMaxLayering1()
         {
             var grid = new Grid();
@@ -784,19 +777,19 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c00);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(145, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(145, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(145 * Vector3.One, false);
-            Assert.AreEqual(20, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(35, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(40, grid.ColumnDefinitions[2].ActualSize);
-            Assert.AreEqual(50, grid.ColumnDefinitions[3].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(35, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(40, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(50, grid.ColumnDefinitions[3].ActualSize);
         }
 
         /// <summary>
         /// Test on multi minimum maximum bounded star element
         /// </summary>
-        [Test]
+        [Fact]
         public void TestStarOnlyMinMaxLayering2()
         {
             var grid = new Grid();
@@ -818,19 +811,19 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c00);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(195, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(195, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(195 * Vector3.One, false);
-            Assert.AreEqual(60, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(35, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(55, grid.ColumnDefinitions[2].ActualSize);
-            Assert.AreEqual(45, grid.ColumnDefinitions[3].ActualSize);
+            Assert.Equal(60, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(35, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(55, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(45, grid.ColumnDefinitions[3].ActualSize);
         }
 
         /// <summary>
         /// Basic test on multi type of strips
         /// </summary>
-        [Test]
+        [Fact]
         public void TestBasicMultiTypeLayering()
         {
             var grid = new Grid();
@@ -861,18 +854,18 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c11);
 
             grid.Measure(50 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(100, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(100, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(110 * Vector3.One, false);
-            Assert.AreEqual(30, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(50, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(50, grid.ColumnDefinitions[2].ActualSize);
         }
 
         /// <summary>
         /// Test the values of the layering with simples auto values.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestAutoOnlyBasicLayering()
         {
             // 0       10          40            80
@@ -913,19 +906,19 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c12);
 
             grid.Measure(30 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(80,0,0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(80,0,0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(30 * rand.NextVector3(), false);
 
-            Assert.AreEqual(10, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(40, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(10, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(40, grid.ColumnDefinitions[2].ActualSize);
         }
 
         /// <summary>
         /// Tests auto layering with strips of multi-span
         /// </summary>
-        [Test]
+        [Fact]
         public void TestAutoOnlyMultiSpanLayering()
         {
             // 0       10          40                70
@@ -979,19 +972,19 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c30);
 
             grid.Measure(30 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(70, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(70, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(50 * rand.NextVector3(), false);
 
-            Assert.AreEqual(10, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(30, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(10, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(30, grid.ColumnDefinitions[2].ActualSize);
         }
 
         /// <summary>
         /// Tests auto layering with strips with min and max values
         /// </summary>
-        [Test] 
+        [Fact] 
         public void TestAutoOnlyMinMaxLayering()
         {
             //  min = 20                                                      min = 20
@@ -1072,23 +1065,23 @@ namespace Xenko.UI.Tests.Layering
             grid.Children.Add(c44);
 
             grid.Measure(30 * rand.NextVector3());
-            Assert.AreEqual(new Vector3(140, 0, 0), grid.DesiredSizeWithMargins);
+            Assert.Equal(new Vector3(140, 0, 0), grid.DesiredSizeWithMargins);
 
             grid.Arrange(100 * rand.NextVector3(), false);
 
-            Assert.AreEqual(20, grid.ColumnDefinitions[0].ActualSize);
-            Assert.AreEqual(20, grid.ColumnDefinitions[1].ActualSize);
-            Assert.AreEqual(20, grid.ColumnDefinitions[2].ActualSize);
-            Assert.AreEqual(20, grid.ColumnDefinitions[3].ActualSize);
-            Assert.AreEqual(20, grid.ColumnDefinitions[4].ActualSize);
-            Assert.AreEqual(20, grid.ColumnDefinitions[5].ActualSize);
-            Assert.AreEqual(20, grid.ColumnDefinitions[6].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[0].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[1].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[2].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[3].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[4].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[5].ActualSize);
+            Assert.Equal(20, grid.ColumnDefinitions[6].ActualSize);
         }
 
         /// <summary>
         /// Check that the available sizes provided to the children during measure are correct whatever the strips type is
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureProvidedSizeMix()
         {
             var grid = new Grid();
@@ -1136,7 +1129,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Check that the available sizes provided to the children during measure are correct for fixed strips
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureProvidedSizeFixed()
         {
             var grid = new Grid();
@@ -1165,7 +1158,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Check that the available sizes provided to the children during measure are correct for fixed strips
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureProvidedSizeFixedMulti()
         {
             var grid = new Grid();
@@ -1195,7 +1188,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Check that the available sizes provided to the children during measure are correct for fixed strips
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureProvidedSizeStar0()
         {
             var grid = new Grid();
@@ -1228,7 +1221,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Check that the available sizes provided to the children during measure are correct for fixed strips
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureProvidedSizeStar1()
         {
             var grid = new Grid();
@@ -1261,7 +1254,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Check that the available sizes provided to the children during measure are correct for auto strips
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureProvidedSizeAuto0()
         {
             var grid = new Grid();
@@ -1290,7 +1283,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Check that the available sizes provided to the children during measure are correct for auto strips
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureProvidedSizeAuto1()
         {
             var grid = new Grid();
@@ -1333,7 +1326,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Check that the available sizes provided to the children during measure are correct for auto strips
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureProvidedSizeAutoMix()
         {
             var grid = new Grid();
@@ -1371,7 +1364,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the invalidations generated object property changes.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestBasicInvalidations()
         {
             var grid = new Grid();
@@ -1397,7 +1390,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test for the <see cref="StackPanel.GetSurroudingAnchorDistances"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestSurroudingAnchor()
         {
             var childSize1 = new Vector3(50, 150, 250);
@@ -1421,32 +1414,32 @@ namespace Xenko.UI.Tests.Layering
             grid.Measure(1000 * Vector3.One);
             grid.Arrange(1000 * Vector3.One, false);
             
-            Assert.AreEqual(new Vector2(   0, 100), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, -1));
-            Assert.AreEqual(new Vector2(   0, 100), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 0));
-            Assert.AreEqual(new Vector2( -50,  50), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 50));
-            Assert.AreEqual(new Vector2( -80,  20), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 80));
-            Assert.AreEqual(new Vector2(   0, 200), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 100));
-            Assert.AreEqual(new Vector2( -10, 190), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 110));
-            Assert.AreEqual(new Vector2(-200,   0), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 300));
-            Assert.AreEqual(new Vector2(-200,   0), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 500));
+            Assert.Equal(new Vector2(   0, 100), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, -1));
+            Assert.Equal(new Vector2(   0, 100), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 0));
+            Assert.Equal(new Vector2( -50,  50), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 50));
+            Assert.Equal(new Vector2( -80,  20), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 80));
+            Assert.Equal(new Vector2(   0, 200), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 100));
+            Assert.Equal(new Vector2( -10, 190), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 110));
+            Assert.Equal(new Vector2(-200,   0), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 300));
+            Assert.Equal(new Vector2(-200,   0), grid.GetSurroudingAnchorDistances(Orientation.Horizontal, 500));
             
-            Assert.AreEqual(new Vector2(   0, 150), grid.GetSurroudingAnchorDistances(Orientation.Vertical, -1));
-            Assert.AreEqual(new Vector2(   0, 150), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 0));
-            Assert.AreEqual(new Vector2( -50, 100), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 50));
-            Assert.AreEqual(new Vector2( -80,  70), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 80));
-            Assert.AreEqual(new Vector2(   0, 200), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 150));
-            Assert.AreEqual(new Vector2( -10, 190), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 160));
-            Assert.AreEqual(new Vector2(-200,   0), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 350));
-            Assert.AreEqual(new Vector2(-200,   0), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 500));
+            Assert.Equal(new Vector2(   0, 150), grid.GetSurroudingAnchorDistances(Orientation.Vertical, -1));
+            Assert.Equal(new Vector2(   0, 150), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 0));
+            Assert.Equal(new Vector2( -50, 100), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 50));
+            Assert.Equal(new Vector2( -80,  70), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 80));
+            Assert.Equal(new Vector2(   0, 200), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 150));
+            Assert.Equal(new Vector2( -10, 190), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 160));
+            Assert.Equal(new Vector2(-200,   0), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 350));
+            Assert.Equal(new Vector2(-200,   0), grid.GetSurroudingAnchorDistances(Orientation.Vertical, 500));
             
-            Assert.AreEqual(new Vector2(   0, 300), grid.GetSurroudingAnchorDistances(Orientation.InDepth, -1));
-            Assert.AreEqual(new Vector2(   0, 300), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 0));
-            Assert.AreEqual(new Vector2( -50, 250), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 50));
-            Assert.AreEqual(new Vector2( -80, 220), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 80));
-            Assert.AreEqual(new Vector2(   0, 300), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 300));
-            Assert.AreEqual(new Vector2( -10, 290), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 310));
-            Assert.AreEqual(new Vector2(-300,   0), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 600));
-            Assert.AreEqual(new Vector2(-300,   0), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 900));
+            Assert.Equal(new Vector2(   0, 300), grid.GetSurroudingAnchorDistances(Orientation.InDepth, -1));
+            Assert.Equal(new Vector2(   0, 300), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 0));
+            Assert.Equal(new Vector2( -50, 250), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 50));
+            Assert.Equal(new Vector2( -80, 220), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 80));
+            Assert.Equal(new Vector2(   0, 300), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 300));
+            Assert.Equal(new Vector2( -10, 290), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 310));
+            Assert.Equal(new Vector2(-300,   0), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 600));
+            Assert.Equal(new Vector2(-300,   0), grid.GetSurroudingAnchorDistances(Orientation.InDepth, 900));
         }
     }
 }

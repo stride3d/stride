@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Analysis;
 using Xenko.Core.Assets.Compiler;
 using Xenko.Core;
@@ -9,10 +9,9 @@ using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Core.Assets.Tests.Compilers
 {
-    [TestFixture]
     public class TestDependencyByIncludeTypeAnalysis : CompilerTestBase
     {
-        [Test]
+        [Fact]
         public void CompilerDependencyByIncludeTypeAnalysis()
         {
             var package = new Package();
@@ -41,7 +40,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
             context.Properties.Set(BuildAssetNode.VisitRuntimeTypes, true);
             var assetBuildResult = assetBuilder.Prepare(context);
             // Total number of asset to compile = 3
-            Assert.AreEqual(3, assetBuildResult.BuildSteps.Count);
+            Assert.Equal(3, assetBuildResult.BuildSteps.Count);
         }
 
         [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<MyContent1>), Profile = "Content")]

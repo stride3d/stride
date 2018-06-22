@@ -46,13 +46,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Yaml.Tests
 {
     public class InsertionQueueTests
     {
-        [Test]
+        [Fact]
         public void ShouldThrowExceptionWhenDequeuingEmptyContainer()
         {
             var queue = CreateQueue();
@@ -60,7 +60,7 @@ namespace Xenko.Core.Yaml.Tests
             Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
         }
 
-        [Test]
+        [Fact]
         public void ShouldThrowExceptionWhenDequeuingContainerThatBecomesEmpty()
         {
             var queue = new InsertionQueue<int>();
@@ -71,17 +71,17 @@ namespace Xenko.Core.Yaml.Tests
             Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
         }
 
-        [Test]
+        [Fact]
         public void ShouldCorrectlyDequeueElementsAfterEnqueuing()
         {
             var queue = CreateQueue();
 
             WithTheRange(0, 10).Perform(queue.Enqueue);
 
-            Assert.AreEqual(new List<int>() {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, OrderOfElementsIn(queue));
+            Assert.Equal(new List<int>() {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, OrderOfElementsIn(queue));
         }
 
-        [Test]
+        [Fact]
         public void ShouldCorrectlyDequeueElementsWhenIntermixingEnqueuing()
         {
             var queue = CreateQueue();
@@ -90,10 +90,10 @@ namespace Xenko.Core.Yaml.Tests
             PerformTimes(5, queue.Dequeue);
             WithTheRange(10, 15).Perform(queue.Enqueue);
 
-            Assert.AreEqual(new List<int>() {5, 6, 7, 8, 9, 10, 11, 12, 13, 14}, OrderOfElementsIn(queue));
+            Assert.Equal(new List<int>() {5, 6, 7, 8, 9, 10, 11, 12, 13, 14}, OrderOfElementsIn(queue));
         }
 
-        [Test]
+        [Fact]
         public void ShouldThrowExceptionWhenDequeuingAfterInserting()
         {
             var queue = CreateQueue();
@@ -105,7 +105,7 @@ namespace Xenko.Core.Yaml.Tests
             Assert.Throws<InvalidOperationException>(() => queue.Dequeue());
         }
 
-        [Test]
+        [Fact]
         public void ShouldCorrectlyDequeueElementsWhenInserting()
         {
             var queue = CreateQueue();
@@ -113,7 +113,7 @@ namespace Xenko.Core.Yaml.Tests
             WithTheRange(0, 10).Perform(queue.Enqueue);
             queue.Insert(5, 99);
 
-            Assert.AreEqual(new List<int>() {0, 1, 2, 3, 4, 99, 5, 6, 7, 8, 9}, OrderOfElementsIn(queue));
+            Assert.Equal(new List<int>() {0, 1, 2, 3, 4, 99, 5, 6, 7, 8, 9}, OrderOfElementsIn(queue));
         }
 
         private static InsertionQueue<int> CreateQueue()

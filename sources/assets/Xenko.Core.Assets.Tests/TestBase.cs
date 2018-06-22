@@ -3,7 +3,7 @@
 using System;
 using System.IO;
 using System.Reflection;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Assets.Tests
 {
@@ -19,7 +19,7 @@ namespace Xenko.Core.Assets.Tests
             var left = File.ReadAllText(outputFilePath).Trim();
             Console.WriteLine(left);
             var right = File.ReadAllText(referenceFilePath).Trim();
-            Assert.That(left, Is.EqualTo(right));
+            Assert.Equal(right, left);
         }
 
         public static string AssemblyDirectory

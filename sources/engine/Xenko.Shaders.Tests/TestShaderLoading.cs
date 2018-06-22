@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.IO;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
@@ -15,15 +15,12 @@ using LoggerResult = Xenko.Core.Shaders.Utility.LoggerResult;
 
 namespace Xenko.Shaders.Tests
 {
-    [TestFixture]
-    [Ignore("This test fixture is unmaintained and currently doesn't pass")]
     public class TestShaderLoading
     {
         private ShaderSourceManager sourceManager;
         private ShaderLoader shaderLoader;
 
-        [SetUp]
-        public void Init()
+        public TestShaderLoading()
         {
             // Create and mount database file system
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();
@@ -35,35 +32,35 @@ namespace Xenko.Shaders.Tests
             shaderLoader = new ShaderLoader(sourceManager);
         }
 
-        [Test]
+        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestSimple()
         {
             var simple = sourceManager.LoadShaderSource("Simple");
 
             // Make sure that SourceManager will fail if type is not found
-            Assert.Catch<FileNotFoundException>(() => sourceManager.LoadShaderSource("BiduleNotFound"));
+            Assert.Throws<FileNotFoundException>(() => sourceManager.LoadShaderSource("BiduleNotFound"));
 
             // Reload it and check that it is not loaded twice
             var simple2 = sourceManager.LoadShaderSource("Simple");
 
             //TODO: cannot compare structure references
             //Assert.That(ReferenceEquals(simple, simple2), Is.True);
-            Assert.AreEqual(simple, simple2);
+            Assert.Equal(simple, simple2);
         }
 
-        [Test]
+        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestLoadAst()
         {
             var log = new LoggerResult();
 
             var simple = shaderLoader.LoadClassSource(new ShaderClassSource("Simple"), new Xenko.Core.Shaders.Parser.ShaderMacro[0], log, false)?.Type;
 
-            Assert.That(simple.Members.Count, Is.EqualTo(1));
+            Assert.Equal(1, simple.Members.Count);
 
             var simple2 = shaderLoader.LoadClassSource(new ShaderClassSource("Simple"), new Xenko.Core.Shaders.Parser.ShaderMacro[0], log, false)?.Type;
 
             // Make sure that a class is not duplicated in memory
-            Assert.That(ReferenceEquals(simple, simple2), Is.True);
+            Assert.True(ReferenceEquals(simple, simple2));
         }
     }
 }

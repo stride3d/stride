@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Annotations;
 using Xenko.Core.Yaml.Serialization;
 
@@ -51,31 +51,31 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
         private const string AssemblyName = "Xenko.Core.Yaml.Tests";
         private const string Namespace = "Xenko.Core.Yaml.Tests.TestNamespace";
 
-        [Test]
+        [Fact]
         public void TestNullType()
         {
             TestType(null, "!!null");
         }
 
-        [Test]
+        [Fact]
         public void TestDefaultType()
         {
             TestType(typeof(int), "!!int");
         }
 
-        [Test]
+        [Fact]
         public void TestCoreType()
         {
             TestType(typeof(Guid), "!System.Guid,mscorlib");
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleType()
         {
             TestType(typeof(SimpleType), $"!{Namespace}.SimpleType,{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestNullableType()
         {
             // TODO: we would like to have something like "!!int?"
@@ -86,59 +86,59 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(SimpleStruct?), $"!System.Nullable%601[[{Namespace}.SimpleStruct,{AssemblyName}]],mscorlib");
         }
 
-        [Test]
+        [Fact]
         public void TestNestedType()
         {
             TestType(typeof(NestedTypeContainer.NestedType), $"!{Namespace}.NestedTypeContainer+NestedType,{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestDoubleNestedType()
         {
             TestType(typeof(NestedTypeContainer.NestedType.NestedType2), $"!{Namespace}.NestedTypeContainer+NestedType+NestedType2,{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericType()
         {
             TestType(typeof(GenericType<SimpleType>), $"!{Namespace}.GenericType%601[[{Namespace}.SimpleType,{AssemblyName}]],{AssemblyName}");
             TestType(typeof(GenericType<double>), $"!{Namespace}.GenericType%601[[System.Double,mscorlib]],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericNestedType()
         {
             TestType(typeof(GenericNestedTypeContainer<SimpleType>.NestedType.NestedType2), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[{Namespace}.SimpleType,{AssemblyName}]],{AssemblyName}");
             TestType(typeof(GenericNestedTypeContainer<int>.NestedType.NestedType2), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[System.Int32,mscorlib]],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericDoubleNestedType()
         {
             TestType(typeof(GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]],{AssemblyName}");
             TestType(typeof(GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,mscorlib],[System.String,mscorlib],[System.Guid,mscorlib],[System.DateTime,mscorlib]],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestNestedGenericType()
         {
             TestType(typeof(GenericType<NestedTypeContainer.NestedType.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.NestedTypeContainer+NestedType+NestedType2,{AssemblyName}]],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericNestedGenericType()
         {
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]],{AssemblyName}]],{AssemblyName}");
             TestType(typeof(GenericType<GenericNestedTypeContainer2<int, string>.NestedType<Guid, DateTime>.NestedType2>), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32,mscorlib],[System.String,mscorlib],[System.Guid,mscorlib],[System.DateTime,mscorlib]],{AssemblyName}]],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestDataContractType()
         {
             TestType(typeof(DataContractType), "!CustomName");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericDataContractType()
         {
             // TODO: we would like to have: !CustomName2[[Xenko.Core.Yaml.Tests.TestNamespace.SimpleType,Xenko.Core.Yaml.Tests]]
@@ -149,51 +149,51 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(GenericDataContractType<DataContractType>), $"!{Namespace}.GenericDataContractType%601[[{Namespace}.DataContractType,{AssemblyName}]],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestAliasContractType()
         {
             TestTypeWithAlias(typeof(AliasType), $"!{Namespace}.AliasType,{AssemblyName}", "!OldName");
             TestTypeWithAlias(typeof(AliasType2), "!NewName", "!PreviousName");
         }
 
-        [Test]
+        [Fact]
         public void TestDefaultTypeArray()
         {
             // TODO: we would like to have: !!int[]
             TestType(typeof(int[]), "!System.Int32[],mscorlib");
         }
 
-        [Test]
+        [Fact]
         public void TestCoreTypeArray()
         {
             TestType(typeof(Guid[]), "!System.Guid[],mscorlib");
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleTypeArray()
         {
             TestType(typeof(SimpleType[]), $"!{Namespace}.SimpleType[],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleTypeNestedArray()
         {
             TestType(typeof(SimpleType[][][][][]), $"!{Namespace}.SimpleType[][][][][],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestNestedTypeArray()
         {
             TestType(typeof(NestedTypeContainer.NestedType[]), $"!{Namespace}.NestedTypeContainer+NestedType[],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestDoubleNestedTypeArray()
         {
             TestType(typeof(NestedTypeContainer.NestedType.NestedType2[]), $"!{Namespace}.NestedTypeContainer+NestedType+NestedType2[],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericTypeArray()
         {
             TestType(typeof(GenericType<SimpleType>[]), $"!{Namespace}.GenericType%601[[{Namespace}.SimpleType,{AssemblyName}]][],{AssemblyName}");
@@ -204,7 +204,7 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(GenericType<double[]>[]), $"!{Namespace}.GenericType%601[[System.Double[],mscorlib]][],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericTypeNestedArray()
         {
             TestType(typeof(GenericType<SimpleType>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.SimpleType,{AssemblyName}]][][],{AssemblyName}");
@@ -215,7 +215,7 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(GenericType<double[][]>[][]), $"!{Namespace}.GenericType%601[[System.Double[][],mscorlib]][][],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericNestedTypeArray()
         {
             TestType(typeof(GenericNestedTypeContainer<SimpleType>.NestedType.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[{Namespace}.SimpleType,{AssemblyName}]][],{AssemblyName}");
@@ -226,7 +226,7 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(GenericNestedTypeContainer<int[]>.NestedType.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer%601+NestedType+NestedType2[[System.Int32[],mscorlib]][],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericDoubleNestedTypeArray()
         {
             TestType(typeof(GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]][],{AssemblyName}");
@@ -237,7 +237,7 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(GenericNestedTypeContainer2<int[], string[]>.NestedType<Guid[], DateTime[]>.NestedType2[]), $"!{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[],mscorlib],[System.String[],mscorlib],[System.Guid[],mscorlib],[System.DateTime[],mscorlib]][],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestNestedGenericTypeArray()
         {
             TestType(typeof(GenericType<NestedTypeContainer.NestedType.NestedType2>[]), $"!{Namespace}.GenericType%601[[{Namespace}.NestedTypeContainer+NestedType+NestedType2,{AssemblyName}]][],{AssemblyName}");
@@ -245,7 +245,7 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(GenericType<NestedTypeContainer.NestedType.NestedType2[]>[]), $"!{Namespace}.GenericType%601[[{Namespace}.NestedTypeContainer+NestedType+NestedType2[],{AssemblyName}]][],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericNestedGenericTypeArray()
         {
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2>[]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]],{AssemblyName}]][],{AssemblyName}");
@@ -258,7 +258,7 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(GenericType<GenericNestedTypeContainer2<int[], string[]>.NestedType<Guid[], DateTime[]>.NestedType2[]>[]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[],mscorlib],[System.String[],mscorlib],[System.Guid[],mscorlib],[System.DateTime[],mscorlib]][],{AssemblyName}]][],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericNestedGenericTypeDoubleArray()
         {
             TestType(typeof(GenericType<GenericNestedTypeContainer2<SimpleType, SimpleType2>.NestedType<SimpleType3, SimpleType4>.NestedType2>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[{Namespace}.SimpleType,{AssemblyName}],[{Namespace}.SimpleType2,{AssemblyName}],[{Namespace}.SimpleType3,{AssemblyName}],[{Namespace}.SimpleType4,{AssemblyName}]],{AssemblyName}]][][],{AssemblyName}");
@@ -271,14 +271,14 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(GenericType<GenericNestedTypeContainer2<int[][], string[][]>.NestedType<Guid[][], DateTime[][]>.NestedType2[][]>[][]), $"!{Namespace}.GenericType%601[[{Namespace}.GenericNestedTypeContainer2%602+NestedType%602+NestedType2[[System.Int32[][],mscorlib],[System.String[][],mscorlib],[System.Guid[][],mscorlib],[System.DateTime[][],mscorlib]][][],{AssemblyName}]][][],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestDataContractTypeArray()
         {
             // TODO: we would like to have: !CustomName[]
             TestType(typeof(DataContractType[]), $"!{Namespace}.DataContractType[],{AssemblyName}");
         }
 
-        [Test]
+        [Fact]
         public void TestGenericDataContractTypeArray()
         {
             // TODO: we would like to have: !CustomName2[[Xenko.Core.Yaml.Tests.TestNamespace.SimpleType,Xenko.Core.Yaml.Tests]][]
@@ -291,7 +291,7 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             TestType(typeof(GenericDataContractType<DataContractType>[]), $"!{Namespace}.GenericDataContractType%601[[{Namespace}.DataContractType,{AssemblyName}]][],{AssemblyName}");
         }
 
-        [Test,Ignore("Aliases are not supported for arrays")]
+        [Fact(Skip = "Aliases are not supported for arrays")]
         public void TestAliasContractTypeArray()
         {
             // TODO: Support aliases (ie. remapping) for array
@@ -316,17 +316,17 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             var serializer = CreateSerializer();
             bool isAlias;
             var retrievedTag = serializer.Settings.TagTypeRegistry.TagFromType(type);
-            Assert.AreEqual(tag, retrievedTag);
+            Assert.Equal(tag, retrievedTag);
             var retrivedType = serializer.Settings.TagTypeRegistry.TypeFromTag(tag, out isAlias);
             Assert.False(isAlias);
-            Assert.AreEqual(type, retrivedType);
+            Assert.Equal(type, retrivedType);
 
             serializer = CreateSerializer();
             retrivedType = serializer.Settings.TagTypeRegistry.TypeFromTag(tag, out isAlias);
             Assert.False(isAlias);
-            Assert.AreEqual(type, retrivedType);
+            Assert.Equal(type, retrivedType);
             retrievedTag = serializer.Settings.TagTypeRegistry.TagFromType(type);
-            Assert.AreEqual(tag, retrievedTag);
+            Assert.Equal(tag, retrievedTag);
         }
 
         private static void TestTypeWithAlias(Type type, string tag, string alias)
@@ -335,17 +335,17 @@ namespace Xenko.Core.Yaml.Tests.TestNamespace
             var serializer = CreateSerializer();
             bool isAlias;
             var retrievedTag = serializer.Settings.TagTypeRegistry.TagFromType(type);
-            Assert.AreEqual(tag, retrievedTag);
+            Assert.Equal(tag, retrievedTag);
             var retrivedType = serializer.Settings.TagTypeRegistry.TypeFromTag(alias, out isAlias);
             Assert.True(isAlias);
-            Assert.AreEqual(type, retrivedType);
+            Assert.Equal(type, retrivedType);
 
             serializer = CreateSerializer();
             retrivedType = serializer.Settings.TagTypeRegistry.TypeFromTag(alias, out isAlias);
             Assert.True(isAlias);
-            Assert.AreEqual(type, retrivedType);
+            Assert.Equal(type, retrivedType);
             retrievedTag = serializer.Settings.TagTypeRegistry.TagFromType(type);
-            Assert.AreEqual(tag, retrievedTag);
+            Assert.Equal(tag, retrievedTag);
         }
     }
 }

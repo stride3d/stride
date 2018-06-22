@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using NUnit.Framework;
+using Xunit;
 using NUnitAsync;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Extensions;
@@ -15,31 +15,25 @@ using Xenko.Core.Presentation.Windows;
 namespace Xenko.Core.Presentation.Tests
 {
     /// <summary>
-    /// Test class for the <see cref="WindowManager"/>.
+    /// Test class for the <see cref="WindowManager"/>. : IDisposable
     /// </summary>
     /// <remarks>This class uses a monitor to run sequencially.</remarks>
-    [TestFixture]
-    public class TestWindowManager
+    public class TestWindowManager : IDisposable
     {
-        private static readonly object LockObj = new object();
         private StaSynchronizationContext syncContext;
 
-        [SetUp]
-        protected virtual void Setup()
+        public TestWindowManager()
         {
-            Monitor.Enter(LockObj);
             syncContext = new StaSynchronizationContext();
         }
 
-        [TearDown]
-        protected virtual void TearDown()
+        public void Dispose()
         {
             syncContext.Dispose();
             syncContext = null;
-            Monitor.Exit(LockObj);
         }
 
-        [Test]
+        [Fact]
         public async Task TestInitDistroy()
         {
             LoggerResult loggerResult;
@@ -60,24 +54,25 @@ namespace Xenko.Core.Presentation.Tests
             HideBlocking,
         }
 
-        [TestCase(Step.ShowMain, Step.HideMain, Step.ShowModal, Step.HideModal, Step.ShowBlocking, Step.HideBlocking, TestName = "ShowMain, HideMain, ShowModal, HideModal, ShowBlocking, HideBlocking")]
-        [TestCase(Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.HideBlocking, Step.ShowModal, Step.HideModal, TestName = "ShowMain, HideMain, ShowBlocking, HideBlocking, ShowModal, HideModal")]
-        [TestCase(Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.ShowModal, Step.HideBlocking, Step.HideModal, TestName = "ShowMain, HideMain, ShowBlocking, ShowModal, HideBlocking, HideModal")]
-        [TestCase(Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.ShowModal, Step.HideModal, Step.HideBlocking, TestName = "ShowMain, HideMain, ShowBlocking, ShowModal, HideModal, HideBlocking")]
-        [TestCase(Step.ShowMain, Step.HideMain, Step.ShowModal, Step.ShowBlocking, Step.HideModal, Step.HideBlocking, TestName = "ShowMain, HideMain, ShowModal, ShowBlocking, HideModal, HideBlocking")]
-        [TestCase(Step.ShowMain, Step.HideMain, Step.ShowModal, Step.ShowBlocking, Step.HideBlocking, Step.HideModal, TestName = "ShowMain, HideMain, ShowModal, ShowBlocking, HideBlocking, HideModal")]
-        [TestCase(Step.ShowModal, Step.HideModal, Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.HideBlocking, TestName = "ShowModal, HideModal, ShowMain, HideMain, ShowBlocking, HideBlocking")]
-        [TestCase(Step.ShowModal, Step.HideModal, Step.ShowBlocking, Step.HideBlocking, Step.ShowMain, Step.HideMain, TestName = "ShowModal, HideModal, ShowBlocking, HideBlocking, ShowMain, HideMain")]
-        [TestCase(Step.ShowModal, Step.HideModal, Step.ShowBlocking, Step.ShowMain, Step.HideBlocking, Step.HideMain, TestName = "ShowModal, HideModal, ShowBlocking, ShowMain, HideBlocking, HideMain")]
-        [TestCase(Step.ShowModal, Step.HideModal, Step.ShowBlocking, Step.ShowMain, Step.HideMain, TestName = "ShowModal, HideModal, ShowBlocking, ShowMain, HideMain")] // NOTE: in this case Blocking is closed by Main.
-        [TestCase(Step.ShowModal, Step.HideModal, Step.ShowMain, Step.ShowBlocking, Step.HideMain, TestName = "ShowModal, HideModal, ShowMain, ShowBlocking, HideMain")] // NOTE: in this case Blocking is closed by Main.
-        [TestCase(Step.ShowModal, Step.HideModal, Step.ShowMain, Step.ShowBlocking, Step.HideBlocking, Step.HideMain, TestName = "ShowModal, HideModal, ShowMain, ShowBlocking, HideBlocking, HideMain")]
-        [TestCase(Step.ShowBlocking, Step.HideBlocking, Step.ShowModal, Step.HideModal, Step.ShowMain, Step.HideMain, TestName = "ShowBlocking, HideBlocking, ShowModal, HideModal, ShowMain, HideMain")]
-        [TestCase(Step.ShowBlocking, Step.HideBlocking, Step.ShowMain, Step.HideMain, Step.ShowModal, Step.HideModal, TestName = "ShowBlocking, HideBlocking, ShowMain, HideMain, ShowModal, HideModal")]
-        [TestCase(Step.ShowBlocking, Step.HideBlocking, Step.ShowMain, Step.ShowModal, Step.HideMain, Step.HideModal, TestName = "ShowBlocking, HideBlocking, ShowMain, ShowModal, HideMain, HideModal")]
-        [TestCase(Step.ShowBlocking, Step.HideBlocking, Step.ShowMain, Step.ShowModal, Step.HideModal, Step.HideMain, TestName = "ShowBlocking, HideBlocking, ShowMain, ShowModal, HideModal, HideMain")]
-        [TestCase(Step.ShowBlocking, Step.HideBlocking, Step.ShowModal, Step.ShowMain, Step.HideModal, Step.HideMain, TestName = "ShowBlocking, HideBlocking, ShowModal, ShowMain, HideModal, HideMain")]
-        [TestCase(Step.ShowBlocking, Step.HideBlocking, Step.ShowModal, Step.ShowMain, Step.HideMain, Step.HideModal, TestName = "ShowBlocking, HideBlocking, ShowModal, ShowMain, HideMain, HideModal")]
+        [Theory]
+        [InlineData(Step.ShowMain, Step.HideMain, Step.ShowModal, Step.HideModal, Step.ShowBlocking, Step.HideBlocking)]
+        [InlineData(Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.HideBlocking, Step.ShowModal, Step.HideModal)]
+        [InlineData(Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.ShowModal, Step.HideBlocking, Step.HideModal)]
+        [InlineData(Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.ShowModal, Step.HideModal, Step.HideBlocking)]
+        [InlineData(Step.ShowMain, Step.HideMain, Step.ShowModal, Step.ShowBlocking, Step.HideModal, Step.HideBlocking)]
+        [InlineData(Step.ShowMain, Step.HideMain, Step.ShowModal, Step.ShowBlocking, Step.HideBlocking, Step.HideModal)]
+        [InlineData(Step.ShowModal, Step.HideModal, Step.ShowMain, Step.HideMain, Step.ShowBlocking, Step.HideBlocking)]
+        [InlineData(Step.ShowModal, Step.HideModal, Step.ShowBlocking, Step.HideBlocking, Step.ShowMain, Step.HideMain)]
+        [InlineData(Step.ShowModal, Step.HideModal, Step.ShowBlocking, Step.ShowMain, Step.HideBlocking, Step.HideMain)]
+        [InlineData(Step.ShowModal, Step.HideModal, Step.ShowBlocking, Step.ShowMain, Step.HideMain)] // NOTE: in this case Blocking is closed by Main.
+        [InlineData(Step.ShowModal, Step.HideModal, Step.ShowMain, Step.ShowBlocking, Step.HideMain)] // NOTE: in this case Blocking is closed by Main.
+        [InlineData(Step.ShowModal, Step.HideModal, Step.ShowMain, Step.ShowBlocking, Step.HideBlocking, Step.HideMain)]
+        [InlineData(Step.ShowBlocking, Step.HideBlocking, Step.ShowModal, Step.HideModal, Step.ShowMain, Step.HideMain)]
+        [InlineData(Step.ShowBlocking, Step.HideBlocking, Step.ShowMain, Step.HideMain, Step.ShowModal, Step.HideModal)]
+        [InlineData(Step.ShowBlocking, Step.HideBlocking, Step.ShowMain, Step.ShowModal, Step.HideMain, Step.HideModal)]
+        [InlineData(Step.ShowBlocking, Step.HideBlocking, Step.ShowMain, Step.ShowModal, Step.HideModal, Step.HideMain)]
+        [InlineData(Step.ShowBlocking, Step.HideBlocking, Step.ShowModal, Step.ShowMain, Step.HideModal, Step.HideMain)]
+        [InlineData(Step.ShowBlocking, Step.HideBlocking, Step.ShowModal, Step.ShowMain, Step.HideMain, Step.HideModal)]
         public async Task TestBlockingWindow(params Step[] steps)
         {
             TestWindow mainWindow = null;
@@ -96,42 +91,42 @@ namespace Xenko.Core.Presentation.Tests
                     switch (step)
                     {
                         case Step.ShowMain:
-                            Assert.IsNull(mainWindow);
+                            Assert.Null(mainWindow);
                             windowsManagerTask = WindowManagerHelper.NextWindowShown;
                             window = dispatcher.Invoke(() => new TestWindow("MainWindow"));
                             window.Shown += (sender, e) => { mainWindow = window; windowsEvent.SetResult(0); };
                             dispatcherTask = dispatcher.InvokeAsync(() => WindowManager.ShowMainWindow(window)).Task;
                             break;
                         case Step.ShowModal:
-                            Assert.IsNull(modalWindow);
+                            Assert.Null(modalWindow);
                             windowsManagerTask = WindowManagerHelper.NextWindowShown;
                             window = dispatcher.Invoke(() => new TestWindow("ModalWindow"));
                             window.Shown += (sender, e) => { modalWindow = window; windowsEvent.SetResult(0); };
                             dispatcherTask = dispatcher.InvokeAsync(() => window.ShowDialog()).Task;
                             break;
                         case Step.ShowBlocking:
-                            Assert.IsNull(blockingWindow);
+                            Assert.Null(blockingWindow);
                             windowsManagerTask = WindowManagerHelper.NextWindowShown;
                             window = dispatcher.Invoke(() => new TestWindow("BlockingWindow"));
                             window.Shown += (sender, e) => { blockingWindow = window; windowsEvent.SetResult(0); };
                             dispatcherTask = dispatcher.InvokeAsync(() => WindowManager.ShowBlockingWindow(window)).Task;
                             break;
                         case Step.HideMain:
-                            Assert.IsNotNull(mainWindow);
+                            Assert.NotNull(mainWindow);
                             windowsManagerTask = WindowManagerHelper.NextWindowHidden;
                             window = mainWindow;
                             window.Closed += (sender, e) => { mainWindow = null; blockingWindow = null; windowsEvent.SetResult(0); };
                             dispatcherTask = dispatcher.InvokeAsync(() => window.Close()).Task;
                             break;
                         case Step.HideModal:
-                            Assert.IsNotNull(modalWindow);
+                            Assert.NotNull(modalWindow);
                             windowsManagerTask = WindowManagerHelper.NextWindowHidden;
                             window = modalWindow;
                             window.Closed += (sender, e) => { modalWindow = null; windowsEvent.SetResult(0); };
                             dispatcherTask = dispatcher.InvokeAsync(() => window.Close()).Task;
                             break;
                         case Step.HideBlocking:
-                            Assert.IsNotNull(blockingWindow);
+                            Assert.NotNull(blockingWindow);
                             windowsManagerTask = WindowManagerHelper.NextWindowHidden;
                             window = blockingWindow;
                             window.Closed += (sender, e) => { blockingWindow = null; windowsEvent.SetResult(0); };
@@ -156,22 +151,22 @@ namespace Xenko.Core.Presentation.Tests
             switch (step)
             {
                 case Step.ShowMain:
-                    Assert.IsNotNull(mainWindow, step.ToString());
+                    Assert.NotNull(mainWindow);
                     break;
                 case Step.ShowModal:
-                    Assert.IsNotNull(modalWindow, step.ToString());
+                    Assert.NotNull(modalWindow);
                     break;
                 case Step.ShowBlocking:
-                    Assert.IsNotNull(blockingWindow, step.ToString());
+                    Assert.NotNull(blockingWindow);
                     break;
                 case Step.HideMain:
-                    Assert.IsNull(mainWindow, step.ToString());
+                    Assert.Null(mainWindow);
                     break;
                 case Step.HideModal:
-                    Assert.IsNull(modalWindow, step.ToString());
+                    Assert.Null(modalWindow);
                     break;
                 case Step.HideBlocking:
-                    Assert.IsNull(blockingWindow, step.ToString());
+                    Assert.Null(blockingWindow);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(step), step, null);
@@ -180,39 +175,39 @@ namespace Xenko.Core.Presentation.Tests
             if (mainWindow != null)
             {
                 var winInfo = WindowManager.MainWindow;
-                Assert.NotNull(winInfo, step.ToString());
-                Assert.AreEqual(mainWindow, winInfo.Window, step.ToString());
-                Assert.True(winInfo.IsModal, step.ToString()); // TODO: should return false ideally;
-                Assert.AreEqual(modalWindow != null || blockingWindow != null, winInfo.IsDisabled, step.ToString());
+                Assert.NotNull(winInfo);
+                Assert.Equal(mainWindow, winInfo.Window);
+                Assert.True(winInfo.IsModal); // TODO: should return false ideally;
+                Assert.Equal(modalWindow != null || blockingWindow != null, winInfo.IsDisabled);
             }
             else
             {
-                Assert.AreEqual(null, WindowManager.MainWindow, step.ToString());
+                Assert.Equal(null, WindowManager.MainWindow);
             }
             if (modalWindow != null)
             {
-                Assert.AreEqual(1, WindowManager.ModalWindows.Count, step.ToString());
+                Assert.Equal(1, WindowManager.ModalWindows.Count);
                 var winInfo = WindowManager.ModalWindows[0];
-                Assert.AreEqual(modalWindow, winInfo.Window, step.ToString());
-                Assert.True(winInfo.IsModal, step.ToString());
-                Assert.False(winInfo.IsDisabled, step.ToString());
+                Assert.Equal(modalWindow, winInfo.Window);
+                Assert.True(winInfo.IsModal);
+                Assert.False(winInfo.IsDisabled);
             }
             else
             {
-                Assert.AreEqual(0, WindowManager.ModalWindows.Count, step.ToString());
+                Assert.Equal(0, WindowManager.ModalWindows.Count);
             }
             if (blockingWindow != null)
             {
-                Assert.AreEqual(1, WindowManager.BlockingWindows.Count, step.ToString());
+                Assert.Equal(1, WindowManager.BlockingWindows.Count);
                 var winInfo = WindowManager.BlockingWindows[0];
-                Assert.AreEqual(blockingWindow, winInfo.Window, step.ToString());
-                Assert.False(winInfo.IsModal, step.ToString());
-                Assert.AreEqual(modalWindow != null, winInfo.IsDisabled, step.ToString());
-                Assert.AreEqual(mainWindow, winInfo.Owner?.Window, step.ToString());
+                Assert.Equal(blockingWindow, winInfo.Window);
+                Assert.False(winInfo.IsModal);
+                Assert.Equal(modalWindow != null, winInfo.IsDisabled);
+                Assert.Equal(mainWindow, winInfo.Owner?.Window);
             }
             else
             {
-                Assert.AreEqual(0, WindowManager.BlockingWindows.Count, step.ToString());
+                Assert.Equal(0, WindowManager.BlockingWindows.Count);
             }
         }
     }

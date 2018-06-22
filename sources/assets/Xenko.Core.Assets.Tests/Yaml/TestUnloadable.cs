@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Reflection;
@@ -12,7 +12,6 @@ using Xenko.Core.Yaml;
 
 namespace Xenko.Core.Assets.Tests.Yaml
 {
-    [TestFixture]
     public class TestUnloadable
     {
         [DataContract("UnloadableContainer")]
@@ -65,75 +64,75 @@ ObjectList:
             }
         }
 
-        [Test]
+        [Fact]
         public void TestInvalidTypeToObject()
         {
             var obj = Deserialize<object>(YamlInvalidType);
 
             // Check it's an unloadable object
-            Assert.IsInstanceOf<IUnloadable>(obj);
-            Assert.IsNotInstanceOf<UnloadableContainer>(obj);
+            Assert.IsAssignableFrom<IUnloadable>(obj);
+            Assert.False(obj is UnloadableContainer);
 
             // Make sure it is stable when serialized
-            Assert.AreEqual(YamlInvalidType, Serialize(obj));
+            Assert.Equal(YamlInvalidType, Serialize(obj));
         }
 
-        [Test]
+        [Fact]
         public void TestInvalidTypeToGivenType()
         {
             var obj = Deserialize<UnloadableContainer>(YamlInvalidType);
 
             // Check it's an unloadable object
-            Assert.IsInstanceOf<IUnloadable>(obj);
+            Assert.IsAssignableFrom<IUnloadable>(obj);
             // Check that properties of the expected type deserialized properly
-            Assert.AreEqual("value0", obj.ObjectMember);
+            Assert.Equal("value0", obj.ObjectMember);
 
             // Make sure it is stable when serialized
-            Assert.AreEqual(YamlInvalidType, Serialize(obj));
+            Assert.Equal(YamlInvalidType, Serialize(obj));
         }
 
-        [Test]
+        [Fact]
         public void TestUnknownMember()
         {
             var obj = Deserialize<UnloadableContainer>(YamlUnknownMember);
 
             // Check it's not an unloadable object
-            Assert.IsNotInstanceOf<IUnloadable>(obj);
+            Assert.False(obj is IUnloadable);
             // Check that properties of the type deserialized properly
-            Assert.AreEqual("value1", obj.ObjectMember);
+            Assert.Equal("value1", obj.ObjectMember);
 
             // It shouldn't be stable since a member is gone
-            Assert.AreNotEqual(YamlInvalidType, Serialize(obj));
+            Assert.NotEqual(YamlInvalidType, Serialize(obj));
         }
 
-        [Test]
+        [Fact]
         public void TestInvalidMemberType()
         {
             var obj = Deserialize<UnloadableContainer>(YamlInvalidMemberType);
 
             // Check it's not an unloadable object
-            Assert.IsNotInstanceOf<IUnloadable>(obj);
+            Assert.False(obj is IUnloadable);
             // But it's member should be
-            Assert.IsInstanceOf<IUnloadable>(obj.ObjectMember);
+            Assert.IsAssignableFrom<IUnloadable>(obj.ObjectMember);
 
             // It shouldn't be stable since a member is gone
-            Assert.AreNotEqual(YamlInvalidType, Serialize(obj));
+            Assert.NotEqual(YamlInvalidType, Serialize(obj));
         }
 
-        [Test]
+        [Fact]
         public void TestInvalidCollectionItemType()
         {
             var obj = Deserialize<UnloadableContainer>(YamlInvalidCollectionItemType);
 
             // Check it's not an unloadable object
-            Assert.IsNotInstanceOf<IUnloadable>(obj);
+            Assert.False(obj is IUnloadable);
             // Check collection members
-            Assert.IsNotInstanceOf<IUnloadable>(obj.ObjectList[0]);
-            Assert.AreEqual("value0", obj.ObjectList[0]);
-            Assert.IsInstanceOf<IUnloadable>(obj.ObjectList[1]);
+            Assert.False(obj.ObjectList[0] is IUnloadable);
+            Assert.Equal("value0", obj.ObjectList[0]);
+            Assert.True(obj.ObjectList[1] is IUnloadable);
 
             // It shouldn't be stable since a member is gone
-            Assert.AreNotEqual(YamlInvalidType, Serialize(obj));
+            Assert.NotEqual(YamlInvalidType, Serialize(obj));
         }
     }
 }

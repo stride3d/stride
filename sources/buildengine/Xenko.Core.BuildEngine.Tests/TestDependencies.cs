@@ -2,44 +2,43 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Threading;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.BuildEngine.Tests.Commands;
 using Xenko.Core.Diagnostics;
 
 namespace Xenko.Core.BuildEngine.Tests
 {
-    [TestFixture, Ignore("BuildEngine tests are deprecated")]
-    class TestDependencies
+    public class TestDependencies
     {
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestCommandDependencies()
         {
             Logger logger = Utils.CleanContext();
             CommandDependenciesCommon(logger, new DummyBlockingCommand { Delay = 100 }, new DummyBlockingCommand { Delay = 100 }, ResultStatus.Successful, ResultStatus.Successful);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestFailedDependencies()
         {
             Logger logger = Utils.CleanContext();
             CommandDependenciesCommon(logger, new FailingCommand(), new DummyBlockingCommand { Delay = 100 }, ResultStatus.Failed, ResultStatus.NotTriggeredPrerequisiteFailed);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestCancelledDependencies()
         {
             Logger logger = Utils.CleanContext();
             CommandDependenciesCommon(logger, new DummyBlockingCommand { Delay = 1000000 }, new DummyBlockingCommand { Delay = 100 }, ResultStatus.Cancelled, ResultStatus.NotTriggeredPrerequisiteFailed, true);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestExceptionDependencies()
         {
             Logger logger = Utils.CleanContext();
             CommandDependenciesCommon(logger, new ExceptionCommand(), new DummyBlockingCommand { Delay = 100 }, ResultStatus.Failed, ResultStatus.NotTriggeredPrerequisiteFailed);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestMultipleDependencies()
         {
             Utils.CleanContext();
@@ -59,11 +58,11 @@ namespace Xenko.Core.BuildEngine.Tests
 
             builder.Run(Builder.Mode.Build);
 
-            Assert.That(firstStep.Status, Is.EqualTo(ResultStatus.Successful));
-            Assert.That(parentStep.Status, Is.EqualTo(ResultStatus.Successful));
-            Assert.That(step1.Status, Is.EqualTo(ResultStatus.Successful));
-            Assert.That(step2.Status, Is.EqualTo(ResultStatus.Successful));
-            Assert.That(finalStep.Status, Is.EqualTo(ResultStatus.Successful));
+            Assert.Equal(ResultStatus.Successful, firstStep.Status);
+            Assert.Equal(ResultStatus.Successful, parentStep.Status);
+            Assert.Equal(ResultStatus.Successful, step1.Status);
+            Assert.Equal(ResultStatus.Successful, step2.Status);
+            Assert.Equal(ResultStatus.Successful, finalStep.Status);
         }
 
         private static void CommandDependenciesCommon(Logger logger, Command command1, Command command2, ResultStatus expectedStatus1, ResultStatus expectedStatus2, bool cancelled = false)
@@ -88,8 +87,8 @@ namespace Xenko.Core.BuildEngine.Tests
 
             builder.Run(Builder.Mode.Build);
 
-            Assert.That(step1.Status, Is.EqualTo(expectedStatus1));
-            Assert.That(step2.Status, Is.EqualTo(expectedStatus2));
+            Assert.Equal(expectedStatus1, step1.Status);
+            Assert.Equal(expectedStatus2, step2.Status);
         }
 
     }

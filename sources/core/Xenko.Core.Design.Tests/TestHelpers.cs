@@ -2,13 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Windows;
 
 namespace Xenko.Core.Design.Tests
 {
-    [TestFixture]
-    class TestHelpers
+    public class TestHelpers
     {
         private static void ThrowTestInner(string msg)
         {
@@ -63,7 +62,7 @@ namespace Xenko.Core.Design.Tests
                 throw new AggregateException("Aggregate exceptions!", exceptions);
 
         }
-        [Test]
+        [Fact]
         public void ExceptionLogTest()
         {
             try

@@ -6,16 +6,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Storage;
 
 namespace Xenko.Core.Tests
 {
-    [TestFixture]
     public class TestObjectIdBuilder
     {
-        [Test]
+        [Fact]
         public void TestFull()
         {
             var builder = new ObjectIdBuilder();
@@ -23,17 +22,17 @@ namespace Xenko.Core.Tests
             builder.Write(buffer, 0, buffer.Length);
             var id1 = builder.ComputeHash();
             var id1_verified = new ObjectId(StringToByteArray("30ef026f687d0c55687d0c55687d0c55"));
-            Assert.AreEqual(id1_verified, id1);
+            Assert.Equal(id1_verified, id1);
 
             builder = new ObjectIdBuilder();
             buffer = ASCIIEncoding.ASCII.GetBytes("this is a test of a longer string");
             builder.Write(buffer, 0, buffer.Length);
             var id2 = builder.ComputeHash();
             var id2_verified = new ObjectId(StringToByteArray("eb221d36fbd7e7bfd3ab4fd02fa6482b"));
-            Assert.AreEqual(id2_verified, id2);
+            Assert.Equal(id2_verified, id2);
         }
 
-        [Test]
+        [Fact]
         public void TestSimple()
         {
             var builder = new ObjectIdBuilder();
@@ -48,7 +47,7 @@ namespace Xenko.Core.Tests
             simpleBuilder.Write(BitConverter.ToInt32(ASCIIEncoding.ASCII.GetBytes("89AB"), 0));
             simpleBuilder.Write(BitConverter.ToInt32(ASCIIEncoding.ASCII.GetBytes("CDEF"), 0));
             var id2 = simpleBuilder.ComputeHash();
-            Assert.AreEqual(id1, id2);
+            Assert.Equal(id1, id2);
         }
 
         private static byte[] StringToByteArray(string hex)

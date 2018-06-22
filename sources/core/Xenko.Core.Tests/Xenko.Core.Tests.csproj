@@ -18,9 +18,8 @@
     <XenkoCompilerTargetsEnable Condition="'$(XenkoRuntime)' == 'CoreCLR'">false</XenkoCompilerTargetsEnable>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="nunit.framework" Label="Xenko.DoNotSync">
-      <HintPath>$(XenkoCommonDependenciesDir)NUnit\nunit.framework.dll</HintPath>
-    </Reference>
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
@@ -28,6 +27,8 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="XunitAttributes.cs" />
+    <Compile Include="NonParallelCollectionDefinition.cs" />
     <Compile Include="TestObjectIdBuilder.cs" />
     <Compile Include="TestPriorityLinkedQueue.cs" />
     <Compile Include="MemoryFileProvider.cs" />
@@ -67,6 +68,6 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

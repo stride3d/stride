@@ -45,7 +45,7 @@
 
 using System;
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Yaml.Tests
 {
@@ -54,16 +54,16 @@ namespace Xenko.Core.Yaml.Tests
         private const string TestString = "abcdefghi";
         private const int Capacity = 4;
 
-        [Test]
+        [Fact]
         public void ShouldHaveReadOnceWhenPeekingAtOffsetZero()
         {
             var reader = CreateFakeReader(TestString);
             var buffer = CreateBuffer(reader, Capacity);
 
-            Assert.AreEqual('a', buffer.Peek(0));
+            Assert.Equal('a', buffer.Peek(0));
         }
 
-        [Test]
+        [Fact]
         public void ShouldHaveReadTwiceWhenPeekingAtOffsetOne()
         {
             var reader = CreateFakeReader(TestString);
@@ -71,10 +71,10 @@ namespace Xenko.Core.Yaml.Tests
 
             buffer.Peek(0);
 
-            Assert.AreEqual('b', buffer.Peek(1));
+            Assert.Equal('b', buffer.Peek(1));
         }
 
-        [Test]
+        [Fact]
         public void ShouldHaveReadThriceWhenPeekingAtOffsetTwo()
         {
             var reader = CreateFakeReader(TestString);
@@ -83,10 +83,10 @@ namespace Xenko.Core.Yaml.Tests
             buffer.Peek(0);
             buffer.Peek(1);
 
-            Assert.AreEqual('c', buffer.Peek(2));
+            Assert.Equal('c', buffer.Peek(2));
         }
 
-        [Test]
+        [Fact]
         public void ShouldNotHaveReadAfterSkippingOneCharacter()
         {
             var reader = CreateFakeReader(TestString);
@@ -96,11 +96,11 @@ namespace Xenko.Core.Yaml.Tests
 
             buffer.Skip(1);
 
-            Assert.AreEqual('b', buffer.Peek(0));
-            Assert.AreEqual('c', buffer.Peek(1));
+            Assert.Equal('b', buffer.Peek(0));
+            Assert.Equal('c', buffer.Peek(1));
         }
 
-        [Test]
+        [Fact]
         public void ShouldHaveReadOnceAfterSkippingOneCharacter()
         {
             var reader = CreateFakeReader(TestString);
@@ -110,10 +110,10 @@ namespace Xenko.Core.Yaml.Tests
 
             buffer.Skip(1);
 
-            Assert.AreEqual('d', buffer.Peek(2));
+            Assert.Equal('d', buffer.Peek(2));
         }
 
-        [Test]
+        [Fact]
         public void ShouldHaveReadTwiceAfterSkippingOneCharacter()
         {
             var reader = CreateFakeReader(TestString);
@@ -123,10 +123,10 @@ namespace Xenko.Core.Yaml.Tests
 
             buffer.Skip(1);
 
-            Assert.AreEqual('e', buffer.Peek(3));
+            Assert.Equal('e', buffer.Peek(3));
         }
 
-        [Test]
+        [Fact]
         public void ShouldHaveReadOnceAfterSkippingFiveCharacters()
         {
             var reader = CreateFakeReader(TestString);
@@ -138,10 +138,10 @@ namespace Xenko.Core.Yaml.Tests
 
             buffer.Skip(4);
 
-            Assert.AreEqual('f', buffer.Peek(0));
+            Assert.Equal('f', buffer.Peek(0));
         }
 
-        [Test]
+        [Fact]
         public void ShouldHaveReadOnceAfterSkippingSixCharacters()
         {
             var reader = CreateFakeReader(TestString);
@@ -155,10 +155,10 @@ namespace Xenko.Core.Yaml.Tests
 
             buffer.Skip(1);
 
-            Assert.AreEqual('g', buffer.Peek(0));
+            Assert.Equal('g', buffer.Peek(0));
         }
 
-        [Test]
+        [Fact]
         public void ShouldHaveReadOnceAfterSkippingSevenCharacters()
         {
             var reader = CreateFakeReader(TestString);
@@ -172,10 +172,10 @@ namespace Xenko.Core.Yaml.Tests
 
             buffer.Skip(2);
 
-            Assert.AreEqual('h', buffer.Peek(0));
+            Assert.Equal('h', buffer.Peek(0));
         }
 
-        [Test]
+        [Fact]
         public void ShouldHaveReadOnceAfterSkippingEightCharacters()
         {
             var reader = CreateFakeReader(TestString);
@@ -189,10 +189,10 @@ namespace Xenko.Core.Yaml.Tests
 
             buffer.Skip(3);
 
-            Assert.AreEqual('i', buffer.Peek(0));
+            Assert.Equal('i', buffer.Peek(0));
         }
 
-        [Test]
+        [Fact]
         public void ShouldHaveReadOnceAfterSkippingNineCharacters()
         {
             var reader = CreateFakeReader(TestString);
@@ -206,10 +206,10 @@ namespace Xenko.Core.Yaml.Tests
 
             buffer.Skip(4);
 
-            Assert.AreEqual('\0', buffer.Peek(0));
+            Assert.Equal('\0', buffer.Peek(0));
         }
 
-        [Test]
+        [Fact]
         public void ShouldFindEndOfInput()
         {
             var reader = CreateFakeReader(TestString);
@@ -226,7 +226,7 @@ namespace Xenko.Core.Yaml.Tests
             Assert.True(buffer.EndOfInput);
         }
 
-        [Test]
+        [Fact]
         public void ShouldThrowWhenPeekingBeyondCapacity()
         {
             var reader = CreateFakeReader(TestString);
@@ -235,7 +235,7 @@ namespace Xenko.Core.Yaml.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => buffer.Peek(4));
         }
 
-        [Test]
+        [Fact]
         public void ShouldThrowWhenSkippingBeyondCurrentBuffer()
         {
             var reader = CreateFakeReader(TestString);

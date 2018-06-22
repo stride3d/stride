@@ -17,7 +17,7 @@ namespace Xenko.Particles.Tests
     /// <summary>
     /// Game class for test on the Input sensors.
     /// </summary>
-    class GameTest : GameTestBase
+    public class GameTest : GameTestBase
     {
         /// <summary>
         /// The <see cref="ParticleTestVersion"/> is shared for all tests
@@ -135,15 +135,6 @@ namespace Xenko.Particles.Tests
             ScreenshotRequested = true;
         }
 
-        protected void SaveCurrentFrameBufferToHdd()
-        {
-            // SaveTexture is only defined for Windows and is only used to test the screenshots locally
-            var filename = xenkoDir + "\\screenshots\\" + assemblyName + "." + platformName + "_" + testName + "_" + screenShots + ".png";
-            screenShots++;
-
-            SaveTexture(GraphicsDevice.Presenter.BackBuffer, filename);
-        }
-
         protected override void Draw(GameTime gameTime)
         {
             base.Draw(gameTime);
@@ -151,7 +142,6 @@ namespace Xenko.Particles.Tests
             if (!ScreenshotRequested)
                 return;
 
-            SaveCurrentFrameBufferToHdd();
             ScreenshotRequested = false;
         }
 

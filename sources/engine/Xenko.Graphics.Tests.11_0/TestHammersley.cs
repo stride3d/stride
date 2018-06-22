@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core;
 using Xenko.Core.Mathematics;
@@ -86,7 +86,7 @@ namespace Xenko.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [SkippableFact]
         public void RunImageLoad()
         {
             IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);

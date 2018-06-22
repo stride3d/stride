@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.IO;
 using Xenko.Core.Serialization.Contents;
@@ -15,14 +15,11 @@ using Xenko.Core.Shaders.Ast.Hlsl;
 
 namespace Xenko.Shaders.Tests
 {
-    [TestFixture]
-    [Ignore("This test fixture is unmaintained and currently doesn't pass")]
     public class TestMixinMacros
     {
         private ShaderMixinParser shaderMixinParser;
 
-        [SetUp]
-        public void Init()
+        private void Init()
         {
             // Create and mount database file system
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();
@@ -33,9 +30,11 @@ namespace Xenko.Shaders.Tests
             shaderMixinParser.SourceManager.LookupDirectoryList.Add("/shaders"); 
         }
 
-        [Test]
+        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestMacros()
         {
+            Init();
+
             // test that macros are correctly used
             var baseMixin = new ShaderMixinSource();
             baseMixin.AddMacro("XENKO_GRAPHICS_API_DIRECT3D", 1);
@@ -58,11 +57,11 @@ namespace Xenko.Shaders.Tests
 
             var parsingResult = shaderMixinParser.Parse(baseMixin, baseMixin.Macros.ToArray());
             
-            Assert.IsFalse(parsingResult.HasErrors);
+            Assert.False(parsingResult.HasErrors);
             var cBufferVar = parsingResult.Shader.Declarations.OfType<ConstantBuffer>().First(x => x.Name == "Globals").Members.OfType<Variable>().ToList();
-            Assert.AreEqual(1, cBufferVar.Count(x => x.Type.Name.Text == "int"));
-            Assert.AreEqual(1, cBufferVar.Count(x => x.Type.Name.Text == "float"));
-            Assert.AreEqual(1, cBufferVar.Count(x => x.Type.Name.Text == "float4"));
+            Assert.Equal(1, cBufferVar.Count(x => x.Type.Name.Text == "int"));
+            Assert.Equal(1, cBufferVar.Count(x => x.Type.Name.Text == "float"));
+            Assert.Equal(1, cBufferVar.Count(x => x.Type.Name.Text == "float4"));
 
             // test clash when reloading
             var baseMixin2 = new ShaderMixinSource();
@@ -86,16 +85,18 @@ namespace Xenko.Shaders.Tests
 
             var parsingResult2 = shaderMixinParser.Parse(baseMixin2, baseMixin2.Macros.ToArray());
 
-            Assert.IsFalse(parsingResult.HasErrors);
+            Assert.False(parsingResult.HasErrors);
             var cBufferVar2 = parsingResult2.Shader.Declarations.OfType<ConstantBuffer>().First(x => x.Name == "Globals").Members.OfType<Variable>().ToList();
-            Assert.AreEqual(1, cBufferVar2.Count(x => x.Type.Name.Text == "int"));
-            Assert.AreEqual(1, cBufferVar2.Count(x => x.Type.Name.Text == "uint4"));
-            Assert.AreEqual(1, cBufferVar2.Count(x => x.Type.Name.Text == "float4"));
+            Assert.Equal(1, cBufferVar2.Count(x => x.Type.Name.Text == "int"));
+            Assert.Equal(1, cBufferVar2.Count(x => x.Type.Name.Text == "uint4"));
+            Assert.Equal(1, cBufferVar2.Count(x => x.Type.Name.Text == "float4"));
         }
 
-        [Test]
+        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestMacrosArray()
         {
+            Init();
+
             // test that macros are correctly used through an array
             var baseMixin = new ShaderMixinSource();
             baseMixin.AddMacro("XENKO_GRAPHICS_API_DIRECT3D", 1);
@@ -122,17 +123,16 @@ namespace Xenko.Shaders.Tests
 
             var parsingResult = shaderMixinParser.Parse(baseMixin, baseMixin.Macros.ToArray());
 
-            Assert.IsFalse(parsingResult.HasErrors);
+            Assert.False(parsingResult.HasErrors);
             var cBufferVar = parsingResult.Shader.Declarations.OfType<ConstantBuffer>().First(x => x.Name == "Globals").Members.OfType<Variable>().ToList();
-            Assert.AreEqual(1, cBufferVar.Count(x => x.Type.Name.Text == "int"));
-            Assert.AreEqual(1, cBufferVar.Count(x => x.Type.Name.Text == "float"));
-            Assert.AreEqual(1, cBufferVar.Count(x => x.Type.Name.Text == "float4"));
+            Assert.Equal(1, cBufferVar.Count(x => x.Type.Name.Text == "int"));
+            Assert.Equal(1, cBufferVar.Count(x => x.Type.Name.Text == "float"));
+            Assert.Equal(1, cBufferVar.Count(x => x.Type.Name.Text == "float4"));
         }
 
 
         public void Run()
         {
-            Init();
             //TestMacros();
             TestMacrosArray();
         }

@@ -1,16 +1,15 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Quantum.Tests.Helpers;
 using Xenko.Core.Reflection;
 using Xenko.Core.Quantum;
 
 namespace Xenko.Core.Assets.Quantum.Tests
 {
-    [TestFixture]
     public class TestCollectionUpdates
     {
-        [Test]
+        [Fact]
         public void TestSimpleCollectionUpdate()
         {
             var container = new AssetPropertyGraphContainer(new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } });

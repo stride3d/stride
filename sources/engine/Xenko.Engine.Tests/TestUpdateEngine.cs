@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Engine.Design;
 using Xenko.Updater;
@@ -11,10 +11,9 @@ using Xenko.Rendering;
 
 namespace Xenko.Engine.Tests
 {
-    [TestFixture]
     public class TestUpdateEngine
     {
-        [Test]
+        [Fact]
         public void TestIntField()
         {
             var test = new TestClass();
@@ -29,10 +28,10 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.IntField, Is.EqualTo(123));
+            Assert.Equal(123, test.IntField);
         }
 
-        [Test]
+        [Fact]
         public void TestIntProperty()
         {
             var test = new TestClass();
@@ -47,10 +46,10 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.IntProperty, Is.EqualTo(123));
+            Assert.Equal(123, test.IntProperty);
         }
 
-        [Test]
+        [Fact]
         public void TestObjectField()
         {
             var test = new TestClass();
@@ -66,10 +65,10 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.ObjectField, Is.EqualTo(test2));
+            Assert.Equal(test2, test.ObjectField);
         }
 
-        [Test]
+        [Fact]
         public void TestObjectProperty()
         {
             var test = new TestClass();
@@ -85,10 +84,10 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.ObjectProperty, Is.EqualTo(test2));
+            Assert.Equal(test2, test.ObjectProperty);
         }
 
-        [Test]
+        [Fact]
         public void TestCastQualifiedName()
         {
             var test = new TestClass()
@@ -108,12 +107,12 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(((TestClass)test.ObjectField).IntField, Is.EqualTo(123));
-            Assert.That(((TestClass)test.ObjectProperty).IntField, Is.EqualTo(456));
+            Assert.Equal(123, ((TestClass)test.ObjectField).IntField);
+            Assert.Equal(456, ((TestClass)test.ObjectProperty).IntField);
         }
 
 
-        [Test]
+        [Fact]
         public void TestIntArray()
         {
             var test = new TestClass();
@@ -130,13 +129,13 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.IntArray[0], Is.EqualTo(123));
-            Assert.That(test.IntArray[1], Is.EqualTo(0));
-            Assert.That(test.IntArray[2], Is.EqualTo(123));
-            Assert.That(test.IntArray[3], Is.EqualTo(456));
+            Assert.Equal(123, test.IntArray[0]);
+            Assert.Equal(0, test.IntArray[1]);
+            Assert.Equal(123, test.IntArray[2]);
+            Assert.Equal(456, test.IntArray[3]);
         }
 
-        [Test]
+        [Fact]
         public void TestIntList()
         {
             var test = new TestClass();
@@ -153,13 +152,13 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.IntList[0], Is.EqualTo(123));
-            Assert.That(test.IntList[1], Is.EqualTo(0));
-            Assert.That(test.IntList[2], Is.EqualTo(123));
-            Assert.That(test.IntList[3], Is.EqualTo(456));
+            Assert.Equal(123, test.IntList[0]);
+            Assert.Equal(0, test.IntList[1]);
+            Assert.Equal(123, test.IntList[2]);
+            Assert.Equal(456, test.IntList[3]);
         }
 
-        [Test]
+        [Fact]
         public void TestBlittableStruct()
         {
             var test = new TestClass();
@@ -177,13 +176,13 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.BlittableStructField.IntField, Is.EqualTo(123));
-            Assert.That(test.BlittableStructField.IntProperty, Is.EqualTo(456));
-            Assert.That(test.BlittableStructProperty.IntField, Is.EqualTo(123));
-            Assert.That(test.BlittableStructProperty.IntProperty, Is.EqualTo(456));
+            Assert.Equal(123, test.BlittableStructField.IntField);
+            Assert.Equal(456, test.BlittableStructField.IntProperty);
+            Assert.Equal(123, test.BlittableStructProperty.IntField);
+            Assert.Equal(456, test.BlittableStructProperty.IntProperty);
         }
 
-        [Test]
+        [Fact]
         public void TestNonBlittableStruct()
         {
             var test = new TestClass();
@@ -202,13 +201,13 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.NonBlittableStructField.TestClassField, Is.EqualTo(test2));
-            Assert.That(test.NonBlittableStructField.TestClassProperty, Is.EqualTo(test2));
-            Assert.That(test.NonBlittableStructProperty.TestClassField, Is.EqualTo(test2));
-            Assert.That(test.NonBlittableStructProperty.TestClassProperty, Is.EqualTo(test2));
+            Assert.Equal(test2, test.NonBlittableStructField.TestClassField);
+            Assert.Equal(test2, test.NonBlittableStructField.TestClassProperty);
+            Assert.Equal(test2, test.NonBlittableStructProperty.TestClassField);
+            Assert.Equal(test2, test.NonBlittableStructProperty.TestClassProperty);
         }
 
-        [Test]
+        [Fact]
         public void TestTestClassArray()
         {
             var test = new TestClass();
@@ -227,13 +226,13 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.TestClassArray[0], Is.EqualTo(test));
-            Assert.That(test.TestClassArray[0].IntField, Is.EqualTo(123));
-            Assert.That(test.TestClassArray[1], Is.EqualTo(test2));
-            Assert.That(test.TestClassArray[1].IntField, Is.EqualTo(456));
+            Assert.Equal(test, test.TestClassArray[0]);
+            Assert.Equal(123, test.TestClassArray[0].IntField);
+            Assert.Equal(test2, test.TestClassArray[1]);
+            Assert.Equal(456, test.TestClassArray[1].IntField);
         }
 
-        [Test]
+        [Fact]
         public void TestTestClassList()
         {
             UpdateEngine.RegisterMemberResolver(new ListUpdateResolver<TestClass>());
@@ -254,13 +253,13 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.TestClassList[0], Is.EqualTo(test));
-            Assert.That(test.TestClassList[0].IntField, Is.EqualTo(123));
-            Assert.That(test.TestClassList[1], Is.EqualTo(test2));
-            Assert.That(test.TestClassList[1].IntField, Is.EqualTo(456));
+            Assert.Equal(test, test.TestClassList[0]);
+            Assert.Equal(123, test.TestClassList[0].IntField);
+            Assert.Equal(test2, test.TestClassList[1]);
+            Assert.Equal(456, test.TestClassList[1].IntField);
         }
 
-        [Test]
+        [Fact]
         public void TestManyProperties()
         {
             var test = new TestClass();
@@ -299,29 +298,29 @@ namespace Xenko.Engine.Tests
 
             RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.IntField, Is.EqualTo(123));
-            Assert.That(test.IntProperty, Is.EqualTo(456));
-            Assert.That(test.NonBlittableStructField.TestClassField, Is.EqualTo(test2));
-            Assert.That(test.NonBlittableStructField.TestClassProperty, Is.EqualTo(test2));
-            Assert.That(test.NonBlittableStructProperty.TestClassField, Is.EqualTo(test2));
-            Assert.That(test.NonBlittableStructProperty.TestClassProperty, Is.EqualTo(test2));
-            Assert.That(test.ObjectField, Is.EqualTo(test2));
-            Assert.That(test.ObjectProperty, Is.EqualTo(test2));
-            Assert.That(test.IntArray[0], Is.EqualTo(123));
-            Assert.That(test.IntArray[1], Is.EqualTo(0));
-            Assert.That(test.IntArray[2], Is.EqualTo(123));
-            Assert.That(test.IntArray[3], Is.EqualTo(456));
-            Assert.That(test.IntList[0], Is.EqualTo(123));
-            Assert.That(test.IntList[1], Is.EqualTo(0));
-            Assert.That(test.IntList[2], Is.EqualTo(123));
-            Assert.That(test.IntList[3], Is.EqualTo(456));
-            Assert.That(test.TestClassArray[0], Is.EqualTo(test2));
-            Assert.That(test.TestClassArray[0].IntField, Is.EqualTo(123));
-            Assert.That(test.TestClassArray[1], Is.EqualTo(test3));
-            Assert.That(test.TestClassArray[1].IntField, Is.EqualTo(456));
+            Assert.Equal(123, test.IntField);
+            Assert.Equal(456, test.IntProperty);
+            Assert.Equal(test2, test.NonBlittableStructField.TestClassField);
+            Assert.Equal(test2, test.NonBlittableStructField.TestClassProperty);
+            Assert.Equal(test2, test.NonBlittableStructProperty.TestClassField);
+            Assert.Equal(test2, test.NonBlittableStructProperty.TestClassProperty);
+            Assert.Equal(test2, test.ObjectField);
+            Assert.Equal(test2, test.ObjectProperty);
+            Assert.Equal(123, test.IntArray[0]);
+            Assert.Equal(0, test.IntArray[1]);
+            Assert.Equal(123, test.IntArray[2]);
+            Assert.Equal(456, test.IntArray[3]);
+            Assert.Equal(123, test.IntList[0]);
+            Assert.Equal(0, test.IntList[1]);
+            Assert.Equal(123, test.IntList[2]);
+            Assert.Equal(456, test.IntList[3]);
+            Assert.Equal(test2, test.TestClassArray[0]);
+            Assert.Equal(123, test.TestClassArray[0].IntField);
+            Assert.Equal(test3, test.TestClassArray[1]);
+            Assert.Equal(456, test.TestClassArray[1].IntField);
         }
 
-        [Test]
+        [Fact]
         public void TestNullSkip()
         {
             var test = new TestClass { IntList = null, IntArray = null };
@@ -356,18 +355,18 @@ namespace Xenko.Engine.Tests
             // Just check that it doesn't crash and some set are properly done
             RunUpdateEngine(test, updateMemberInfo, blittableData, null);
 
-            Assert.That(test.IntField, Is.EqualTo(123));
-            Assert.That(test.IntProperty, Is.EqualTo(123));
+            Assert.Equal(123, test.IntField);
+            Assert.Equal(123, test.IntProperty);
 
             // Also try with null array
             test.TestClassArray = null;
             blittableData[0] = 456;
             RunUpdateEngine(test, updateMemberInfo, blittableData, null);
-            Assert.That(test.IntField, Is.EqualTo(456));
-            Assert.That(test.IntProperty, Is.EqualTo(456));
+            Assert.Equal(456, test.IntField);
+            Assert.Equal(456, test.IntProperty);
         }
 
-        [Test]
+        [Fact]
         public void TestOutOfBoundsSkip()
         {
             var test = new TestClass
@@ -385,10 +384,10 @@ namespace Xenko.Engine.Tests
             };
 
             // Check that ctor of TestClass properly initialized size of array/list to 4 (this test relies on it)
-            Assert.That(test.IntArray.Length, Is.EqualTo(4));
-            Assert.That(test.IntList.Count, Is.EqualTo(4));
-            Assert.That(test.TestClassArray.Length, Is.EqualTo(2));
-            Assert.That(test.TestClassList.Count, Is.EqualTo(2));
+            Assert.Equal(4, test.IntArray.Length);
+            Assert.Equal(4, test.IntList.Count);
+            Assert.Equal(2, test.TestClassArray.Length);
+            Assert.Equal(2, test.TestClassList.Count);
 
             UpdateEngine.RegisterMemberResolver(new ArrayUpdateResolver<int>());
             UpdateEngine.RegisterMemberResolver(new ListUpdateResolver<int>());
@@ -412,10 +411,10 @@ namespace Xenko.Engine.Tests
             RunUpdateEngine(test, updateMemberInfo, blittableData, null);
 
             // Update shouldn't have been done (we skip the whole stuff if it goes out of bound)
-            Assert.That(test.IntArray[0], Is.EqualTo(0));
-            Assert.That(test.IntList[0], Is.EqualTo(0));
-            Assert.That(test.TestClassArray[0].IntField, Is.EqualTo(0));
-            Assert.That(test.TestClassList[0].IntField, Is.EqualTo(0));
+            Assert.Equal(0, test.IntArray[0]);
+            Assert.Equal(0, test.IntList[0]);
+            Assert.Equal(0, test.TestClassArray[0].IntField);
+            Assert.Equal(0, test.TestClassList[0].IntField);
         }
 
         internal static unsafe void RunUpdateEngine(object test, List<UpdateMemberInfo> updateMemberInfo, TestData[] blittableData, UpdateObjectData[] objectData)

@@ -141,6 +141,7 @@
     <Compile Include="..\..\assets\Xenko.Core.Assets.Tests\Helpers\GuidGenerator.cs">
       <Link>GuidGenerator.cs</Link>
     </Compile>
+    <Compile Include="XunitAttributes.cs" />
     <Compile Include="TestMaterialGenerator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="AssetImportTests.cs" />

@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Graphics;
 using Xenko.UI.Controls;
@@ -96,7 +96,7 @@ namespace Xenko.UI.Tests.Regression
             stackPanel.Orientation = Orientation.Horizontal;
         }
 
-        [Test]
+        [Fact]
         public void RunChildrenMeasurementTest()
         {
             RunGameTest(new ChildrenMeasurementTest());

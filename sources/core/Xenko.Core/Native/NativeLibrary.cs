@@ -50,24 +50,17 @@ namespace Xenko.Core
                     cpu = IntPtr.Size == 8 ? "x64" : "x86";
 
                 // We are trying to load the dll from a shadow path if it is already registered, otherwise we use it directly from the folder
-                var dllFolder = NativeLibraryInternal.GetShadowPathForNativeDll(libraryName) ?? Path.Combine(Path.GetDirectoryName(typeof(NativeLibrary).GetTypeInfo().Assembly.Location), cpu);
+                var dllFolder = NativeLibraryInternal.GetShadowPathForNativeDll(libraryName);
+                if (dllFolder == null)
+                    dllFolder = Path.Combine(Path.GetDirectoryName(typeof(NativeLibrary).GetTypeInfo().Assembly.Location), cpu);
+                if (!Directory.Exists(dllFolder))
+                    dllFolder = Path.Combine(Environment.CurrentDirectory, cpu);
                 var libraryFilename = Path.Combine(dllFolder, libraryName);
                 var result = LoadLibrary(libraryFilename);
 
                 if (result == IntPtr.Zero)
                 {
-                    var envSdk = Environment.GetEnvironmentVariable("XenkoDir");
-                    if (envSdk != null)
-                    {
-                        //give a further try by using xenko env dir.. this is specially necessary when dealing with nunit tests
-                        libraryFilename = Path.Combine(envSdk, "Bin\\Windows\\" + cpu, libraryName);
-                        result = LoadLibrary(libraryFilename);
-                    }
-                }
-
-                if (result == IntPtr.Zero)
-                {
-                    throw new InvalidOperationException(string.Format("Could not load native library {0} from path [{1}] using CPU architecture {2}.", libraryName, libraryFilename, cpu));
+                    throw new InvalidOperationException($"Could not load native library {libraryName} from path [{libraryFilename}] using CPU architecture {cpu}.");
                 }
 
                 LoadedLibraries.Add(libraryName.ToLowerInvariant(), result);

@@ -5,18 +5,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.MicroThreading;
 
 namespace Xenko.Core.Design.Tests
 {
-    [TestFixture]
     public class TestMicroThreadLock
     {
         const int ThreadCount = 50;
         const int IncrementCount = 20;
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestConcurrencyInMicrothreads()
         {
             var scheduler = new Scheduler();
@@ -32,7 +31,7 @@ namespace Xenko.Core.Design.Tests
                         var initialValue = counter;
                         for (var i = 0; i < IncrementCount; ++i)
                         {
-                            Assert.AreEqual(initialValue + i, counter);
+                            Assert.Equal(initialValue + i, counter);
                             await Task.Yield();
                             ++counter;
                         }
@@ -43,10 +42,10 @@ namespace Xenko.Core.Design.Tests
             {
                 scheduler.Run();
             }
-            Assert.AreEqual(ThreadCount * IncrementCount, counter);
+            Assert.Equal(ThreadCount * IncrementCount, counter);
         }
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestSequentialLocksInMicrothreads()
         {
             var scheduler = new Scheduler();
@@ -62,7 +61,7 @@ namespace Xenko.Core.Design.Tests
                         var initialValue = counter;
                         for (var i = 0; i < IncrementCount; ++i)
                         {
-                            Assert.AreEqual(initialValue + i, counter);
+                            Assert.Equal(initialValue + i, counter);
                             await Task.Yield();
                             ++counter;
                         }
@@ -72,7 +71,7 @@ namespace Xenko.Core.Design.Tests
                         var initialValue = counter;
                         for (var i = 0; i < IncrementCount; ++i)
                         {
-                            Assert.AreEqual(initialValue + i, counter);
+                            Assert.Equal(initialValue + i, counter);
                             await Task.Yield();
                             ++counter;
                         }
@@ -83,10 +82,10 @@ namespace Xenko.Core.Design.Tests
             {
                 scheduler.Run();
             }
-            Assert.AreEqual(2 * ThreadCount * IncrementCount, counter);
+            Assert.Equal(2 * ThreadCount * IncrementCount, counter);
         }
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestReentrancyInMicrothreads()
         {
             var scheduler = new Scheduler();
@@ -108,7 +107,7 @@ namespace Xenko.Core.Design.Tests
                                 {
                                     using (await microThreadLock.LockAsync())
                                     {
-                                        Assert.AreEqual(initialValue + i, counter);
+                                        Assert.Equal(initialValue + i, counter);
                                     }
                                     using (await microThreadLock.LockAsync())
                                     {
@@ -128,10 +127,10 @@ namespace Xenko.Core.Design.Tests
             {
                 scheduler.Run();
             }
-            Assert.AreEqual(ThreadCount * IncrementCount, counter);
+            Assert.Equal(ThreadCount * IncrementCount, counter);
         }
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestConcurrencyInThreads()
         {
             var microThreadLock = new MicroThreadLock();
@@ -150,7 +149,7 @@ namespace Xenko.Core.Design.Tests
                             var initialValue = counter;
                             for (var i = 0; i < IncrementCount; ++i)
                             {
-                                Assert.AreEqual(initialValue + i, counter);
+                                Assert.Equal(initialValue + i, counter);
                                 Thread.Sleep(1);
                                 ++counter;
                             }
@@ -163,10 +162,10 @@ namespace Xenko.Core.Design.Tests
                 threads.Add(thread);
             }
             threads.ForEach(x => x.Join());
-            Assert.AreEqual(ThreadCount * IncrementCount, counter);
+            Assert.Equal(ThreadCount * IncrementCount, counter);
         }
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestSequentialLocksInThreads()
         {
             var microThreadLock = new MicroThreadLock();
@@ -185,7 +184,7 @@ namespace Xenko.Core.Design.Tests
                             var initialValue = counter;
                             for (var i = 0; i < IncrementCount; ++i)
                             {
-                                Assert.AreEqual(initialValue + i, counter);
+                                Assert.Equal(initialValue + i, counter);
                                 Thread.Sleep(1);
                                 ++counter;
                             }
@@ -195,7 +194,7 @@ namespace Xenko.Core.Design.Tests
                             var initialValue = counter;
                             for (var i = 0; i < IncrementCount; ++i)
                             {
-                                Assert.AreEqual(initialValue + i, counter);
+                                Assert.Equal(initialValue + i, counter);
                                 Thread.Sleep(1);
                                 ++counter;
                             }
@@ -208,10 +207,10 @@ namespace Xenko.Core.Design.Tests
                 threads.Add(thread);
             }
             threads.ForEach(x => x.Join());
-            Assert.AreEqual(2 * ThreadCount * IncrementCount, counter);
+            Assert.Equal(2 * ThreadCount * IncrementCount, counter);
         }
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestReentrancyInThreads()
         {
             var microThreadLock = new MicroThreadLock();
@@ -234,7 +233,7 @@ namespace Xenko.Core.Design.Tests
                                 {
                                     using ((await microThreadLock.ReserveSyncLock()).Lock())
                                     {
-                                        Assert.AreEqual(initialValue + i, counter);
+                                        Assert.Equal(initialValue + i, counter);
                                     }
                                     using ((await microThreadLock.ReserveSyncLock()).Lock())
                                     {
@@ -255,10 +254,10 @@ namespace Xenko.Core.Design.Tests
                 threads.Add(thread);
             }
             threads.ForEach(x => x.Join());
-            Assert.AreEqual(ThreadCount * IncrementCount, counter);
+            Assert.Equal(ThreadCount * IncrementCount, counter);
         }
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestConcurrencyInTasks()
         {
             var microThreadLock = new MicroThreadLock();
@@ -273,7 +272,7 @@ namespace Xenko.Core.Design.Tests
                         var initialValue = counter;
                         for (var i = 0; i < IncrementCount; ++i)
                         {
-                            Assert.AreEqual(initialValue + i, counter);
+                            Assert.Equal(initialValue + i, counter);
                             //Thread.Sleep(1);
                             ++counter;
                         }
@@ -282,10 +281,10 @@ namespace Xenko.Core.Design.Tests
                 tasks.Add(task);
             }
             Task.WaitAll(tasks.ToArray());
-            Assert.AreEqual(ThreadCount * IncrementCount, counter);
+            Assert.Equal(ThreadCount * IncrementCount, counter);
         }
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestSequentialLocksInTasks()
         {
             var microThreadLock = new MicroThreadLock();
@@ -300,7 +299,7 @@ namespace Xenko.Core.Design.Tests
                         var initialValue = counter;
                         for (var i = 0; i < IncrementCount; ++i)
                         {
-                            Assert.AreEqual(initialValue + i, counter);
+                            Assert.Equal(initialValue + i, counter);
                             Thread.Sleep(1);
                             ++counter;
                         }
@@ -310,7 +309,7 @@ namespace Xenko.Core.Design.Tests
                         var initialValue = counter;
                         for (var i = 0; i < IncrementCount; ++i)
                         {
-                            Assert.AreEqual(initialValue + i, counter);
+                            Assert.Equal(initialValue + i, counter);
                             Thread.Sleep(1);
                             ++counter;
                         }
@@ -319,10 +318,10 @@ namespace Xenko.Core.Design.Tests
                 tasks.Add(task);
             }
             Task.WaitAll(tasks.ToArray());
-            Assert.AreEqual(2 * ThreadCount * IncrementCount, counter);
+            Assert.Equal(2 * ThreadCount * IncrementCount, counter);
         }
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestReentrancyInTasks()
         {
             var microThreadLock = new MicroThreadLock();
@@ -341,7 +340,7 @@ namespace Xenko.Core.Design.Tests
                             {
                                 using ((await microThreadLock.ReserveSyncLock()).Lock())
                                 {
-                                    Assert.AreEqual(initialValue + i, counter);
+                                    Assert.Equal(initialValue + i, counter);
                                 }
                                 using ((await microThreadLock.ReserveSyncLock()).Lock())
                                 {
@@ -358,10 +357,10 @@ namespace Xenko.Core.Design.Tests
                 tasks.Add(task);
             }
             Task.WaitAll(tasks.ToArray());
-            Assert.AreEqual(ThreadCount * IncrementCount, counter);
+            Assert.Equal(ThreadCount * IncrementCount, counter);
         }
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestConcurrencyInThreadsAndMicrothreads()
         {
             var scheduler = new Scheduler();
@@ -377,7 +376,7 @@ namespace Xenko.Core.Design.Tests
                         var initialValue = counter;
                         for (var i = 0; i < IncrementCount; ++i)
                         {
-                            Assert.AreEqual(initialValue + i, counter);
+                            Assert.Equal(initialValue + i, counter);
                             await Task.Yield();
                             ++counter;
                         }
@@ -398,7 +397,7 @@ namespace Xenko.Core.Design.Tests
                             var initialValue = counter;
                             for (var i = 0; i < IncrementCount; ++i)
                             {
-                                Assert.AreEqual(initialValue + i, counter);
+                                Assert.Equal(initialValue + i, counter);
                                 Thread.Sleep(1);
                                 ++counter;
                             }
@@ -416,10 +415,10 @@ namespace Xenko.Core.Design.Tests
                 scheduler.Run();
             }
             threads.ForEach(x => x.Join());
-            Assert.AreEqual(2 * ThreadCount * IncrementCount, counter);
+            Assert.Equal(2 * ThreadCount * IncrementCount, counter);
         }
 
-        [Test, Timeout(5000)]
+        [Fact]
         public void TestConcurrencyInTasksAndMicrothreads()
         {
             var scheduler = new Scheduler();
@@ -435,7 +434,7 @@ namespace Xenko.Core.Design.Tests
                         var initialValue = counter;
                         for (var i = 0; i < IncrementCount; ++i)
                         {
-                            Assert.AreEqual(initialValue + i, counter);
+                            Assert.Equal(initialValue + i, counter);
                             await Task.Yield();
                             ++counter;
                         }
@@ -452,7 +451,7 @@ namespace Xenko.Core.Design.Tests
                         var initialValue = counter;
                         for (var i = 0; i < IncrementCount; ++i)
                         {
-                            Assert.AreEqual(initialValue + i, counter);
+                            Assert.Equal(initialValue + i, counter);
                             Thread.Sleep(1);
                             ++counter;
                         }
@@ -465,7 +464,7 @@ namespace Xenko.Core.Design.Tests
                 scheduler.Run();
             }
             Task.WaitAll(tasks.ToArray());
-            Assert.AreEqual(2 * ThreadCount * IncrementCount, counter);
+            Assert.Equal(2 * ThreadCount * IncrementCount, counter);
         }
 
 

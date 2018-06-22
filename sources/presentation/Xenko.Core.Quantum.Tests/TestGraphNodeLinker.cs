@@ -2,12 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Quantum.References;
 
 namespace Xenko.Core.Quantum.Tests
 {
-    [TestFixture]
     public class TestGraphNodeLinker
     {
         public class SimpleClass
@@ -118,7 +117,7 @@ namespace Xenko.Core.Quantum.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleObject()
         {
             var nodeContainer = new NodeContainer();
@@ -140,7 +139,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyLinks(expectedLinks, linker);
         }
 
-        [Test]
+        [Fact]
         public void TestObjectWithListOfReferences()
         {
             var nodeContainer = new NodeContainer();
@@ -166,7 +165,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyLinks(expectedLinks, linker);
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleObjectWithNullInTarget()
         {
             var nodeContainer = new NodeContainer();
@@ -188,7 +187,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyLinks(expectedLinks, linker);
         }
 
-        [Test]
+        [Fact]
         public void TestObjectWithStruct()
         {
             var nodeContainer = new NodeContainer();
@@ -213,7 +212,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyLinks(expectedLinks, linker);
         }
 
-        [Test]
+        [Fact]
         public void TestInterfaceMemberDifferentImplementations()
         {
             var nodeContainer = new NodeContainer();
@@ -238,7 +237,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyLinks(expectedLinks, linker);
         }
 
-        [Test]
+        [Fact]
         public void TestCustomFindTarget()
         {
             var nodeContainer = new NodeContainer();
@@ -260,7 +259,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyLinks(expectedLinks, linker);
         }
 
-        [Test]
+        [Fact]
         public void TestCustomFindTargetReference()
         {
             var nodeContainer = new NodeContainer();
@@ -290,7 +289,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyLinks(expectedLinks, linker);
         }
 
-        [Test]
+        [Fact]
         public void TestReentrancy()
         {
             var nodeContainer = new NodeContainer();
@@ -313,12 +312,12 @@ namespace Xenko.Core.Quantum.Tests
 
         private static void VerifyLinks(Dictionary<IGraphNode, IGraphNode> expectedLinks, TestLinker linker)
         {
-            Assert.AreEqual(expectedLinks.Count, linker.LinkedNodes.Count);
+            Assert.Equal(expectedLinks.Count, linker.LinkedNodes.Count);
             foreach (var link in expectedLinks)
             {
                 IGraphNode actualTarget;
                 Assert.True(linker.LinkedNodes.TryGetValue(link.Key, out actualTarget));
-                Assert.AreEqual(link.Value, actualTarget);
+                Assert.Equal(link.Value, actualTarget);
             }
         }
     }

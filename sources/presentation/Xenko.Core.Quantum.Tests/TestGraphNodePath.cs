@@ -1,11 +1,10 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Quantum.Tests
 {
-    [TestFixture]
     public class TestGraphNodePath
     {
         public struct Struct
@@ -21,7 +20,7 @@ namespace Xenko.Core.Quantum.Tests
             public List<Class> ListMember = new List<Class>();
         }
 
-        [Test]
+        [Fact]
         public void TestConstructor()
         {
             var obj = new Class();
@@ -32,7 +31,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreEqual(rootNode, path.RootNode);
         }
 
-        [Test]
+        [Fact]
         public void TestEquals()
         {
             // Note: comparing GraphNodePath.GetHashCode() returns true when the root node is equivalent. This is because the root node is the only invariant.
@@ -97,7 +96,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreNotEqual(path1, path2);
         }
 
-        [Test]
+        [Fact]
         public void TestClone()
         {
             var obj = new Class { ClassMember = new Class(), ListMember = { new Class(), new Class(), new Class() } };
@@ -130,7 +129,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreEqual(path3.GetNode(), clone.GetNode());
         }
 
-        [Test]
+        [Fact]
         public void TestCloneNewRoot()
         {
             var obj1 = new Class { ClassMember = new Class(), ListMember = { new Class(), new Class(), new Class() } };
@@ -166,7 +165,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreEqual(path3.IsEmpty, clone.IsEmpty);
         }
 
-        [Test]
+        [Fact]
         public void TestPushMember()
         {
             var obj = new Class();
@@ -188,7 +187,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreEqual(nodes.Length, i);
         }
 
-        [Test]
+        [Fact]
         public void TestPushStructMember()
         {
             var obj = new Class { StructMember = { StringMember = "aa" } };
@@ -215,7 +214,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreEqual(nodes.Length, i);
         }
 
-        [Test]
+        [Fact]
         public void TestPushTarget()
         {
             var obj = new Class { ClassMember = new Class() };
@@ -238,7 +237,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreEqual(nodes.Length, i);
         }
 
-        [Test]
+        [Fact]
         public void TestPushTargetAndMember()
         {
             var obj = new Class { ClassMember = new Class() };
@@ -264,7 +263,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreEqual(nodes.Length, i);
         }
 
-        [Test]
+        [Fact]
         public void TestPushIndex()
         {
             var obj = new Class { ListMember = { new Class(), new Class(), new Class() } };
@@ -288,7 +287,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreEqual(nodes.Length, i);
         }
 
-        [Test]
+        [Fact]
         public void TestPushIndexAndMember()
         {
             var obj = new Class { ListMember = { new Class(), new Class(), new Class() } };
@@ -315,7 +314,7 @@ namespace Xenko.Core.Quantum.Tests
             AssertAreEqual(nodes.Length, i);
         }
 
-        [Test]
+        [Fact]
         public void TestGetParent()
         {
             var obj = new Class { StructMember = { StringMember = "aa" }, ClassMember = new Class(), ListMember = { new Class(), new Class(), new Class() } };

@@ -3,7 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.MicroThreading;
 using Xenko.Engine.Events;
 using Xenko.Graphics.Regression;
@@ -45,13 +45,12 @@ namespace Xenko.Engine.Tests
         }
     }
 
-    [TestFixture]
     public class EventSystemTests
     {
         /// <summary>
         /// Make sure that events are able to be consumed immediately
         /// </summary>
-        [Test]
+        [Fact]
         public void SameFrameReceive()
         {
             var key = new EventKey();
@@ -66,7 +65,7 @@ namespace Xenko.Engine.Tests
         /// <summary>
         /// Make sure that we can receive events immediately even when using await/async
         /// </summary>
-        [Test]
+        [Fact]
         public void SameFrameReceiveAsync()
         {
             var test = new EventSystemTest();
@@ -93,7 +92,7 @@ namespace Xenko.Engine.Tests
 
                 await recv.ReceiveAsync();
 
-                Assert.AreEqual(currentFrame, frameCounter);
+                Assert.Equal(currentFrame, frameCounter);
 
                 test.Exit();
             });
@@ -104,7 +103,7 @@ namespace Xenko.Engine.Tests
         /// <summary>
         /// Make sure that newly created receivers do not receive previously broadcasted events (before creation)
         /// </summary>
-        [Test]
+        [Fact]
         public void DelayedReceiverCreation()
         {
             var game = new EventSystemTest();
@@ -145,7 +144,7 @@ namespace Xenko.Engine.Tests
         /// <summary>
         /// Test that even if broadcast happens in another thread we receive events in the game schedluer thread
         /// </summary>
-        [Test, Ignore("Hanging")]
+        [Fact(Skip = "Hanging")]
         public void DifferentThreadBroadcast()
         {
             var game = new EventSystemTest();
@@ -284,16 +283,16 @@ namespace Xenko.Engine.Tests
 
             game.Run();
 
-            Assert.IsNull(threadException);
+            Assert.Null(threadException);
 
-            Assert.AreEqual(1200, counter);
+            Assert.Equal(1200, counter);
         }
 
         /// <summary>
         /// Test that even if broadcast happens in another thread we receive events in the game schedluer thread
         /// With a different syntax sugar
         /// </summary>
-        [Test]
+        [Fact]
         public void DifferentSyntax()
         {
             var game = new EventSystemTest();
@@ -312,7 +311,7 @@ namespace Xenko.Engine.Tests
                 while (tests-- > 0)
                 {
                     await recv;
-                    Assert.AreEqual(threadId, Thread.CurrentThread.ManagedThreadId);
+                    Assert.Equal(threadId, Thread.CurrentThread.ManagedThreadId);
                 }
             });
 
@@ -326,7 +325,7 @@ namespace Xenko.Engine.Tests
                 while (tests-- > 0)
                 {
                     await recv;
-                    Assert.AreEqual(threadId, Thread.CurrentThread.ManagedThreadId);
+                    Assert.Equal(threadId, Thread.CurrentThread.ManagedThreadId);
                 }
             });
 
@@ -340,7 +339,7 @@ namespace Xenko.Engine.Tests
                 while (tests-- > 0)
                 {
                     await recv;
-                    Assert.AreEqual(threadId, Thread.CurrentThread.ManagedThreadId);
+                    Assert.Equal(threadId, Thread.CurrentThread.ManagedThreadId);
                 }
             });
 
@@ -369,7 +368,7 @@ namespace Xenko.Engine.Tests
         /// <summary>
         /// Test buffered events and receive many in one go
         /// </summary>
-        [Test]
+        [Fact]
         public void ReceiveManyCheck()
         {
             var game = new EventSystemTest();
@@ -387,7 +386,7 @@ namespace Xenko.Engine.Tests
                     if (frameCount == 20)
                     {
                         var manyEvents = rcv.TryReceiveAll();
-                        Assert.AreEqual(manyEvents, 21);
+                        Assert.Equal(manyEvents, 21);
                         game.Exit();
                     }
                     await game.NextFrame();
@@ -401,7 +400,7 @@ namespace Xenko.Engine.Tests
         /// <summary>
         /// Test proper Task.WaitAny behavior..
         /// </summary>
-        [Test]
+        [Fact]
         public void ReceiveFirstCheck()
         {
             var game = new EventSystemTest();
@@ -447,14 +446,14 @@ namespace Xenko.Engine.Tests
                     await game.NextFrame();
                 }
 
-                Assert.Fail("t2 should be completed");
+                Assert.True(false, "t2 should be completed");
             });
         }
 
         /// <summary>
         /// Test ClearEveryFrame option flag, which clears events at end of every game frame
         /// </summary>
-        [Test]
+        [Fact]
         public void EveryFrameClear()
         {
             var game = new EventSystemTest();
@@ -482,7 +481,7 @@ namespace Xenko.Engine.Tests
                     if (frameCount == 20)
                     {
                         var manyEvents = rcv.TryReceiveAll();
-                        Assert.AreEqual(2, manyEvents);
+                        Assert.Equal(2, manyEvents);
                         game.Exit();
                     }
 

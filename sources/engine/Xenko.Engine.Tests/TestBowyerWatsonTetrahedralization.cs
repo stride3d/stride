@@ -2,17 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Rendering.LightProbes;
 
 namespace Xenko.Engine.Tests
 {
-    [TestFixture]
     public class TestBowyerWatsonTetrahedralization
     {
-        [Test]
+        [Fact]
         public void TestCube()
         {
             // Build cube from (0,0,0) to (1,1,1)

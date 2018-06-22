@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
@@ -11,8 +11,6 @@ using Xenko.Shaders.Compiler;
 
 namespace Xenko.Shaders.Tests
 {
-    [TestFixture]
-    [Ignore("This test fixture is unmaintained and currently doesn't pass")]
     public class TestShaderMixer2
     {
         public EffectCompiler Compiler;
@@ -21,8 +19,7 @@ namespace Xenko.Shaders.Tests
 
         public CompilerParameters MixinParameters;
 
-        [TestFixtureSetUp]
-        public void Init()
+        private void Init()
         {
             // Create and mount database file system
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();
@@ -37,9 +34,11 @@ namespace Xenko.Shaders.Tests
             ResultLogger = new LoggerResult();
         }
 
-        [Test]
+        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestRenaming()
         {
+            Init();
+
             var color1Mixin = new ShaderClassSource("ComputeColorFixed", "Material.DiffuseColorValue");
             var color2Mixin = new ShaderClassSource("ComputeColorFixed", "Material.SpecularColorValue");
             
@@ -54,12 +53,14 @@ namespace Xenko.Shaders.Tests
             mixinSource.AddComposition("albedoDiffuse", compMixin);
 
             var byteCode = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
-            Assert.IsNotNull(byteCode);
+            Assert.NotNull(byteCode);
         }
 
-        [Test]
+        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestRenaming2()
         {
+            Init();
+
             var color1Mixin = new ShaderMixinSource();
             color1Mixin.Mixins.Add(new ShaderClassSource("ComputeColorFixed", "Material.DiffuseColorValue"));
             var color2Mixin = new ShaderMixinSource();
@@ -76,18 +77,22 @@ namespace Xenko.Shaders.Tests
             mixinSource.AddComposition("albedoDiffuse", compMixin);
 
             var byteCode = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
-            Assert.IsNotNull(byteCode);
+            Assert.NotNull(byteCode);
         }
 
-        [Test]
+        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestRenamingBoth()
         {
+            Init();
+
             TestRenaming();
             TestRenaming2();
         }
-        [Test]
+        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestRenamingBothInverse()
         {
+            Init();
+
             TestRenaming2();
             TestRenaming();
         }

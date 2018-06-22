@@ -12,7 +12,7 @@ using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets;
 using Xenko.Core.Assets.Templates;
 using Xenko.Core.Diagnostics;
@@ -36,7 +36,7 @@ namespace Xenko.VisualStudio.Package.Tests
     /// Right now it only has a test for .xksl C# code generator, but it also tests a lot of things along the way: VSPackage properly have all dependencies (no missing .dll), IXenkoCommands can be properly found, etc...
     /// Also, it works against a dev version of Xenko, but it could eventually be improved to test against package version as well.
     /// </remarks>
-    [TestFixture, Apartment(System.Threading.ApartmentState.STA)]
+    //[Apartment(System.Threading.ApartmentState.STA)]
     public class IntegrationTests
     {
         private const string StartArguments = @"/RootSuffix Xenko /resetsettings Profiles\General.vssettings";
@@ -48,8 +48,7 @@ namespace Xenko.VisualStudio.Package.Tests
         /// <summary>
         /// Start experimental instance of Visual Studio. This will be killed on cleanup, except if a debugger is attached (in which case it can reuse the existing instance).
         /// </summary>
-        [OneTimeSetUp]
-        public void Init()
+        private void Init()
         {
             var visualStudioPath = VSLocator.VisualStudioPath;
 
@@ -103,8 +102,7 @@ namespace Xenko.VisualStudio.Package.Tests
             });
         }
 
-        [OneTimeTearDown]
-        public void Cleanup()
+        private void Cleanup()
         {
             if (killVisualStudioProcessDuringTearDown)
             {
@@ -122,17 +120,18 @@ namespace Xenko.VisualStudio.Package.Tests
             context = null;
         }
 
-        [SetUp]
-        public void InitEachTest()
+        public IntegrationTests()
         {
             // Make sure solution is closed (i.e. previous test failure)
             var solution = (Solution2)dte.Solution;
             solution.Close();
         }
 
-        [Test]
+        [Fact]
         public void TestXkslGeneration()
         {
+            Init();
+
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
             // Create temporary folder
@@ -156,23 +155,25 @@ namespace Xenko.VisualStudio.Package.Tests
                 var xkslItem = newGameProject.ProjectItems.AddFromFileCopy(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestGenerator.xksl"));
 
                 // Make sure custom tool is properly set
-                Assert.AreEqual("XenkoShaderKeyGenerator", xkslItem.Properties.Item("CustomTool").Value);
+                Assert.Equal("XenkoShaderKeyGenerator", xkslItem.Properties.Item("CustomTool").Value);
 
                 // Get generated cs file
-                Assert.AreEqual(1, xkslItem.ProjectItems.Count);
+                Assert.Equal(1, xkslItem.ProjectItems.Count);
                 var shaderGeneratedCsharpItem = xkslItem.ProjectItems.OfType<ProjectItem>().First();
                 var shaderGeneratedCsharpFile = shaderGeneratedCsharpItem.FileNames[0];
 
                 // Check content
                 // Note: we could do more advanced code analysis, but just check a few expected stuff is probably good enough to detect if there was no crash generating it
                 var shaderGeneratedCsharpContent = File.ReadAllText(shaderGeneratedCsharpFile);
-                Assert.That(shaderGeneratedCsharpContent.Contains($"{nameof(ValueParameterKey<float>)}<float> TestFloat"));
-                Assert.That(shaderGeneratedCsharpContent.Contains($"{nameof(ValueParameterKey<Color3>)}<{nameof(Color3)}> TestColor"));
+                Assert.Contains($"{nameof(ValueParameterKey<float>)}<float> TestFloat", shaderGeneratedCsharpContent);
+                Assert.Contains($"{nameof(ValueParameterKey<Color3>)}<{nameof(Color3)}> TestColor", shaderGeneratedCsharpContent);
             }
             finally
             {
                 solution.Close();
                 Directory.Delete(tempDirectory, true);
+
+                Cleanup();
             }
         }
 
@@ -180,7 +181,7 @@ namespace Xenko.VisualStudio.Package.Tests
         {
             // Find the game template description for a new game
             var template = TemplateManager.FindTemplates().FirstOrDefault(matchTemplate => matchTemplate.Id == NewGameTemplateGenerator.TemplateId);
-            Assert.IsNotNull(template);
+            Assert.NotNull(template);
 
             var result = new LoggerResult();
 

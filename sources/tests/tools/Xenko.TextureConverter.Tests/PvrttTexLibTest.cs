@@ -2,33 +2,29 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.TextureConverter.Requests;
 using Xenko.TextureConverter.TexLibraries;
 
 namespace Xenko.TextureConverter.Tests
 {
-    [TestFixture]
-    class PvrttTexLibTest
+    public class PvrttTexLibTest : IDisposable
     {
-        PvrttTexLib library;
+        private readonly PvrttTexLib library = new PvrttTexLib();
 
-        [TestFixtureSetUp]
-        public void TestSetUp()
+        public PvrttTexLibTest()
         {
-            library = new PvrttTexLib();
-            Assert.IsFalse(library.SupportBGRAOrder());
+            Assert.False(library.SupportBGRAOrder());
         }
 
-        [TestFixtureTearDown]
-        public void TestTearDown()
+        public void Dispose()
         {
             library.Dispose();
         }
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_BGRA8888.dds")]
-        [TestCase("TextureCube_WMipMaps_BGRA8888.dds")]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_BGRA8888.dds")]
+        [InlineData("TextureCube_WMipMaps_BGRA8888.dds")]
         public void StartLibraryTest(string file)
         {
             TexImage image = new TexImage();
@@ -44,27 +40,27 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Test, Ignore("Need check")]
+        [Fact(Skip = "Need check")]
         public void CanHandleRequestTest()
         {
             TexImage image = TestTools.Load(library, "TextureArray_WMipMaps_PVRTC2_4bpp.pvr");
-            Assert.IsTrue(library.CanHandleRequest(image, new CompressingRequest(Xenko.Graphics.PixelFormat.PVRTC_II_4bpp)));
-            Assert.IsTrue(library.CanHandleRequest(image, new DecompressingRequest(false)));
-            Assert.IsTrue(library.CanHandleRequest(image, new LoadingRequest("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", false)));
-            Assert.IsTrue(library.CanHandleRequest(image, new MipMapsGenerationRequest(Filter.MipMapGeneration.Linear)));
-            Assert.IsTrue(library.CanHandleRequest(image, new NormalMapGenerationRequest(0.5f)));
-            Assert.IsTrue(library.CanHandleRequest(image, new SwitchingBRChannelsRequest()));
-            Assert.IsTrue(library.CanHandleRequest(image, new FlippingRequest(Orientation.Horizontal)));
-            Assert.IsTrue(library.CanHandleRequest(image, new FixedRescalingRequest(512, 512, Filter.Rescaling.Nearest)));
-            Assert.IsTrue(library.CanHandleRequest(image, new ExportRequest("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", 0)));
-            Assert.IsFalse(library.CanHandleRequest(image, new GammaCorrectionRequest(1)));
+            Assert.True(library.CanHandleRequest(image, new CompressingRequest(Xenko.Graphics.PixelFormat.PVRTC_II_4bpp)));
+            Assert.True(library.CanHandleRequest(image, new DecompressingRequest(false)));
+            Assert.True(library.CanHandleRequest(image, new LoadingRequest("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", false)));
+            Assert.True(library.CanHandleRequest(image, new MipMapsGenerationRequest(Filter.MipMapGeneration.Linear)));
+            Assert.True(library.CanHandleRequest(image, new NormalMapGenerationRequest(0.5f)));
+            Assert.True(library.CanHandleRequest(image, new SwitchingBRChannelsRequest()));
+            Assert.True(library.CanHandleRequest(image, new FlippingRequest(Orientation.Horizontal)));
+            Assert.True(library.CanHandleRequest(image, new FixedRescalingRequest(512, 512, Filter.Rescaling.Nearest)));
+            Assert.True(library.CanHandleRequest(image, new ExportRequest("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", 0)));
+            Assert.False(library.CanHandleRequest(image, new GammaCorrectionRequest(1)));
             image.Dispose();
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_PVRTC2_4bpp.pvr")]
-        [TestCase("TextureCube_WMipMaps_PVRTC2_4bpp.pvr")]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_PVRTC2_4bpp.pvr")]
+        [InlineData("TextureCube_WMipMaps_PVRTC2_4bpp.pvr")]
         public void DecompressTest(string file)
         {
             TexImage image = TestTools.Load(library, file);
@@ -75,11 +71,11 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.PVRTC_II_4bpp)]
-        [TestCase("TextureCube_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.PVRTC_II_4bpp)]
-        [TestCase("TextureArray_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.ETC2_RGBA)]
-        [TestCase("TextureCube_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.ETC2_RGBA)]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.PVRTC_II_4bpp)]
+        [InlineData("TextureCube_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.PVRTC_II_4bpp)]
+        [InlineData("TextureArray_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.ETC2_RGBA)]
+        [InlineData("TextureCube_WMipMaps_RGBA8888.pvr", Xenko.Graphics.PixelFormat.ETC2_RGBA)]
         public void CompressTest(string file, Xenko.Graphics.PixelFormat format)
         {
             TexImage image = TestTools.Load(library, file);
@@ -90,9 +86,9 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WOMipMaps_PVRTC2_4bpp.pvr", Filter.MipMapGeneration.Box)]
-        [TestCase("TextureCube_WOMipMaps_PVRTC2_4bpp.pvr", Filter.MipMapGeneration.Cubic)]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WOMipMaps_PVRTC2_4bpp.pvr", Filter.MipMapGeneration.Box)]
+        [InlineData("TextureCube_WOMipMaps_PVRTC2_4bpp.pvr", Filter.MipMapGeneration.Cubic)]
         public void GenerateMipMapTest(string file, Filter.MipMapGeneration filter)
         {
             TexImage image = TestTools.Load(library, file);
@@ -103,9 +99,9 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", "PvrttTexLib_GenerateNormalMapTest_TextureArray_WOMipMaps_PVRTC2_4bpp.pvr")]
-        [TestCase("TextureCube_WMipMaps_PVRTC2_4bpp.pvr", "PvrttTexLib_GenerateNormalMapTest_TextureCube_WOMipMaps_PVRTC2_4bpp.pvr")]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", "PvrttTexLib_GenerateNormalMapTest_TextureArray_WOMipMaps_PVRTC2_4bpp.pvr")]
+        [InlineData("TextureCube_WMipMaps_PVRTC2_4bpp.pvr", "PvrttTexLib_GenerateNormalMapTest_TextureCube_WOMipMaps_PVRTC2_4bpp.pvr")]
         public void GenerateNormalMapTest(string file, string outFile)
         {
             TexImage image = TestTools.Load(library, file);
@@ -116,10 +112,10 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Bicubic)]
-        [TestCase("TextureCube_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Bilinear)]
-        [TestCase("TextureArray_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Nearest)]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Bicubic)]
+        [InlineData("TextureCube_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Bilinear)]
+        [InlineData("TextureArray_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Nearest)]
         public void FixedRescaleTest(string file, Filter.Rescaling filter)
         {
             TexImage image = TestTools.Load(library, file);
@@ -130,10 +126,10 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Bicubic)]
-        [TestCase("TextureCube_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Bilinear)]
-        [TestCase("TextureArray_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Box)]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Bicubic)]
+        [InlineData("TextureCube_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Bilinear)]
+        [InlineData("TextureArray_WMipMaps_RGBA8888.pvr", Filter.Rescaling.Box)]
         public void FactorRescaleTest(string file, Filter.Rescaling filter)
         {
             TexImage image = TestTools.Load(library, file);
@@ -144,9 +140,9 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_PVRTC2_4bpp.pvr")]
-        [TestCase("TextureCube_WMipMaps_PVRTC2_4bpp.pvr")]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_PVRTC2_4bpp.pvr")]
+        [InlineData("TextureCube_WMipMaps_PVRTC2_4bpp.pvr")]
         public void ExportTest(String file)
         {
             TexImage image = TestTools.Load(library, file);
@@ -157,11 +153,11 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", 16)]
-        [TestCase("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", 512)]
-        [TestCase("TextureCube_WMipMaps_PVRTC2_4bpp.pvr", 8)]
-        [TestCase("TextureCube_WMipMaps_PVRTC2_4bpp.pvr", 4)]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", 16)]
+        [InlineData("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", 512)]
+        [InlineData("TextureCube_WMipMaps_PVRTC2_4bpp.pvr", 8)]
+        [InlineData("TextureCube_WMipMaps_PVRTC2_4bpp.pvr", 4)]
         public void ExportMinMipMapTest(String file, int minMipMapSize)
         {
             TexImage image = TestTools.Load(library, file);
@@ -171,9 +167,9 @@ namespace Xenko.TextureConverter.Tests
             image.Dispose();
         }
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_RGBA8888.pvr")]
-        [TestCase("TextureCube_WMipMaps_RGBA8888.pvr")]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_RGBA8888.pvr")]
+        [InlineData("TextureCube_WMipMaps_RGBA8888.pvr")]
         public void SwitchChannelsTest(string file)
         {
             TexImage image = TestTools.Load(library, file);
@@ -183,9 +179,9 @@ namespace Xenko.TextureConverter.Tests
             image.Dispose();
         }
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_RGBA8888.pvr", Orientation.Horizontal)]
-        [TestCase("TextureCube_WMipMaps_RGBA8888.pvr", Orientation.Vertical)]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_RGBA8888.pvr", Orientation.Horizontal)]
+        [InlineData("TextureCube_WMipMaps_RGBA8888.pvr", Orientation.Vertical)]
         public void FlipTest(String file, Orientation orientation)
         {
             TexImage image = TestTools.Load(library, file);
@@ -195,9 +191,9 @@ namespace Xenko.TextureConverter.Tests
             image.Dispose();
         }
 
-        [Ignore("Need check")]
-        [TestCase("TextureArray_WMipMaps_RGBA8888.pvr")]
-        [TestCase("TextureCube_WMipMaps_RGBA8888.pvr")]
+        [Theory(Skip = "Need check")]
+        [InlineData("TextureArray_WMipMaps_RGBA8888.pvr")]
+        [InlineData("TextureCube_WMipMaps_RGBA8888.pvr")]
         public void PreMultiplyAlphaTest(String file)
         {
             TexImage image = TestTools.Load(library, file);

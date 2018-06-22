@@ -1,8 +1,8 @@
-﻿//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 //// This file is distributed under GPL v3. See LICENSE.md for details.
 //using System;
 //
-//using NUnit.Framework;
+//using Xunit;
 //
 //using Xenko.Core;
 //using Xenko.Core.IO;
@@ -14,8 +14,7 @@
 //    /// <summary>
 //    /// Tests for <see cref="AudioEngine"/>
 //    /// </summary>
-//    [TestFixture]
-//    public class TestAudioEngine
+////    public class TestAudioEngine
 //    {
 //        [TestFixtureSetUp]
 //        public void Initialize()
@@ -27,7 +26,7 @@
 //        /// Test that audio engine initializes and disposes correctly without exceptions.
 //        /// If no audio hardware is activated or no output are connected, the AudioInitializationException should be thrown.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void ContextInitialization()
 //        {
 //            try
@@ -37,14 +36,14 @@
 //            }
 //            catch (Exception e)
 //            {
-//                Assert.IsTrue(e is AudioInitializationException, "Audio engine failed to initialize but did not throw AudioInitializationException");
+//                Assert.True(e is AudioInitializationException, "Audio engine failed to initialize but did not throw AudioInitializationException");
 //            }
 //        }
 //
 //        /// <summary>
 //        /// Test that there are no crashes when shutting down the engine with not disposed soundEffects.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestDispose()
 //        {
 //            var crossDisposedEngine = AudioEngineFactory.NewAudioEngine(); 
@@ -92,27 +91,27 @@
 //            }
 //
 //            Assert.DoesNotThrow(engine.Dispose, "AudioEngine crashed during disposal.");
-//            Assert.IsTrue(soundEffect.IsDisposed, "SoundEffect is not disposed.");
+//            Assert.True(soundEffect.IsDisposed, "SoundEffect is not disposed.");
 //            Assert.Throws<InvalidOperationException>(engine.Dispose, "AudioEngine did not threw invalid operation exception.");
-//            Assert.AreEqual(SoundPlayState.Stopped, soundEffectInstance.PlayState, "SoundEffectInstance has not been stopped properly.");
-//            Assert.IsTrue(soundEffectInstance.IsDisposed, "SoundEffectInstance has not been disposed properly.");
-//            Assert.AreEqual(SoundPlayState.Stopped, soundMusic1.PlayState, "soundMusic1 has not been stopped properly.");
-//            Assert.IsTrue(soundMusic1.IsDisposed, "soundMusic1 has not been disposed properly.");
-//            //Assert.AreEqual(SoundPlayState.Stopped, dynSound1.PlayState, "The dynamic sound 1 has not been stopped correctly.");
-//            //Assert.IsTrue(dynSound1.IsDisposed, "The dynamic sound 1 has not been disposed correctly.");
+//            Assert.Equal(SoundPlayState.Stopped, soundEffectInstance.PlayState, "SoundEffectInstance has not been stopped properly.");
+//            Assert.True(soundEffectInstance.IsDisposed, "SoundEffectInstance has not been disposed properly.");
+//            Assert.Equal(SoundPlayState.Stopped, soundMusic1.PlayState, "soundMusic1 has not been stopped properly.");
+//            Assert.True(soundMusic1.IsDisposed, "soundMusic1 has not been disposed properly.");
+//            //Assert.Equal(SoundPlayState.Stopped, dynSound1.PlayState, "The dynamic sound 1 has not been stopped correctly.");
+//            //Assert.True(dynSound1.IsDisposed, "The dynamic sound 1 has not been disposed correctly.");
 //        }
 //
 //        /// <summary>
 //        /// Test the behavior of <see cref="AudioEngine.GetLeastSignificativeSoundEffect"/>
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestGetLeastSignificativeSoundEffect()
 //        {
 //            var engine = AudioEngineFactory.NewAudioEngine();
 //
 //            //////////////////////////////////////////
 //            // 1. Test that it returns null by default
-//            Assert.AreEqual(null, engine.GetLeastSignificativeSoundEffect());
+//            Assert.Equal(null, engine.GetLeastSignificativeSoundEffect());
 //
 //            // create a sound effect
 //            SoundEffect soundEffect;
@@ -121,20 +120,20 @@
 //
 //            /////////////////////////////////////////////////////////////////////
 //            // 2. Test that is returns null when there is no playing sound effect
-//            Assert.AreEqual(null, engine.GetLeastSignificativeSoundEffect());
+//            Assert.Equal(null, engine.GetLeastSignificativeSoundEffect());
 //
 //            /////////////////////////////////////////////////////////////////////////////////
 //            // 3. Test that is returns null when there is no not looped sound effect playing
 //            soundEffect.IsLooped = true;
 //            soundEffect.Play();
-//            Assert.AreEqual(null, engine.GetLeastSignificativeSoundEffect());
+//            Assert.Equal(null, engine.GetLeastSignificativeSoundEffect());
 //
 //            ////////////////////////////////////////////////////////////////////////////
 //            // 4. Test that the sound effect is returned if not playing and not looped
 //            soundEffect.Stop();
 //            soundEffect.IsLooped = false;
 //            soundEffect.Play();
-//            Assert.AreEqual(soundEffect, engine.GetLeastSignificativeSoundEffect());
+//            Assert.Equal(soundEffect, engine.GetLeastSignificativeSoundEffect());
 //
 //            // create another longer sound effect
 //            SoundEffect longerSoundEffect;
@@ -145,13 +144,13 @@
 //            // 5. Test that the longest sound is returned if it is the only playing
 //            soundEffect.Stop();
 //            longerSoundEffect.Play();
-//            Assert.AreEqual(longerSoundEffect, engine.GetLeastSignificativeSoundEffect());
+//            Assert.Equal(longerSoundEffect, engine.GetLeastSignificativeSoundEffect());
 //
 //            //////////////////////////////////////////////////////////////
 //            // 6. Test that the shortest sound is returned if both playing
 //            longerSoundEffect.Play();
 //            soundEffect.Play();
-//            Assert.AreEqual(soundEffect, engine.GetLeastSignificativeSoundEffect());
+//            Assert.Equal(soundEffect, engine.GetLeastSignificativeSoundEffect());
 //
 //            //////////////////////////////////////////////////////////////////////
 //            // 7. Test that the longest sound is returned if the other is looped
@@ -159,7 +158,7 @@
 //            soundEffect.IsLooped = true;
 //            soundEffect.Play();
 //            longerSoundEffect.Play();
-//            Assert.AreEqual(longerSoundEffect, engine.GetLeastSignificativeSoundEffect());
+//            Assert.Equal(longerSoundEffect, engine.GetLeastSignificativeSoundEffect());
 //
 //            engine.Dispose();
 //        }
@@ -167,36 +166,36 @@
 //        /// <summary>
 //        /// Test the behavior of <see cref="AudioEngine.State"/>
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestState()
 //        {
 //            // test initial state
 //            var engine = AudioEngineFactory.NewAudioEngine();
-//            Assert.AreEqual(AudioEngineState.Running, engine.State);
+//            Assert.Equal(AudioEngineState.Running, engine.State);
 //
 //            // test state after pause
 //            engine.PauseAudio();
-//            Assert.AreEqual(AudioEngineState.Paused, engine.State);
+//            Assert.Equal(AudioEngineState.Paused, engine.State);
 //
 //            // test state after resume
 //            engine.ResumeAudio();
-//            Assert.AreEqual(AudioEngineState.Running, engine.State);
+//            Assert.Equal(AudioEngineState.Running, engine.State);
 //
 //            // test state after dispose
 //            engine.Dispose();
-//            Assert.AreEqual(AudioEngineState.Disposed, engine.State);
+//            Assert.Equal(AudioEngineState.Disposed, engine.State);
 //
 //            // test that state remains dispose
 //            engine.PauseAudio();
-//            Assert.AreEqual(AudioEngineState.Disposed, engine.State);
+//            Assert.Equal(AudioEngineState.Disposed, engine.State);
 //            engine.ResumeAudio();
-//            Assert.AreEqual(AudioEngineState.Disposed, engine.State);
+//            Assert.Equal(AudioEngineState.Disposed, engine.State);
 //        }
 //
 //        /// <summary>
 //        /// Test the behavior of <see cref="AudioEngine.PauseAudio"/>
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestPauseAudio()
 //        {
 //            var engine = AudioEngineFactory.NewAudioEngine();
@@ -212,13 +211,13 @@
 //
 //            // check state
 //            engine.PauseAudio();
-//            Assert.AreEqual(AudioEngineState.Paused, engine.State);
+//            Assert.Equal(AudioEngineState.Paused, engine.State);
 //
 //            // check that existing instance can not be played
 //            wave1Instance.Play();
-//            Assert.AreEqual(SoundPlayState.Stopped, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, wave1Instance.PlayState);
 //            music.Play();
-//            Assert.AreEqual(SoundPlayState.Stopped, music.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, music.PlayState);
 //            TestAudioUtilities.ActiveAudioEngineUpdate(engine, 1000); // listen that nothing comes out
 //
 //            // create a new sound effect
@@ -228,21 +227,21 @@
 //
 //            // check that a new instance can not be played
 //            soundEffectStereo.Play();
-//            Assert.AreEqual(SoundPlayState.Stopped, soundEffectStereo.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, soundEffectStereo.PlayState);
 //            Utilities.Sleep(1000); // listen that nothing comes out
 //
 //            // check that a stopped sound stay stopped
 //            engine.ResumeAudio();
 //            soundEffectStereo.Stop();
 //            engine.PauseAudio();
-//            Assert.AreEqual(SoundPlayState.Stopped, soundEffectStereo.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, soundEffectStereo.PlayState);
 //
 //            // check that a paused sound stay paused
 //            engine.ResumeAudio();
 //            soundEffectStereo.Play();
 //            soundEffectStereo.Pause();
 //            engine.PauseAudio();
-//            Assert.AreEqual(SoundPlayState.Paused, soundEffectStereo.PlayState);
+//            Assert.Equal(SoundPlayState.Paused, soundEffectStereo.PlayState);
 //
 //            // check that a playing sound is paused
 //            engine.ResumeAudio();
@@ -250,20 +249,20 @@
 //            soundEffectStereo.Play();
 //            music.Play();
 //            engine.PauseAudio();
-//            Assert.AreEqual(SoundPlayState.Paused, wave1Instance.PlayState);
-//            Assert.AreEqual(SoundPlayState.Paused, soundEffectStereo.PlayState);
-//            Assert.AreEqual(SoundPlayState.Paused, music.PlayState);
+//            Assert.Equal(SoundPlayState.Paused, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Paused, soundEffectStereo.PlayState);
+//            Assert.Equal(SoundPlayState.Paused, music.PlayState);
 //            TestAudioUtilities.ActiveAudioEngineUpdate(engine, 1000); // listen that nothing comes out
 //
 //            // check that stopping a sound while paused is possible
 //            engine.PauseAudio();
 //            soundEffectStereo.Stop();
-//            Assert.AreEqual(SoundPlayState.Stopped, soundEffectStereo.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, soundEffectStereo.PlayState);
 //
 //            // check that disposing a sound while paused is possible
 //            engine.PauseAudio();
 //            music.Dispose();
-//            Assert.IsTrue(music.IsDisposed);
+//            Assert.True(music.IsDisposed);
 //
 //            soundEffect.Dispose();
 //            soundEffectStereo.Dispose();
@@ -272,7 +271,7 @@
 //        /// <summary>
 //        /// Test the behavior of <see cref="AudioEngine.ResumeAudio"/>
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestResumeAudio()
 //        {
 //            var engine = AudioEngineFactory.NewAudioEngine();
@@ -289,8 +288,8 @@
 //            // check that resume do not play stopped instances
 //            engine.PauseAudio();
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Stopped, music.PlayState);
-//            Assert.AreEqual(SoundPlayState.Stopped, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, music.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, wave1Instance.PlayState);
 //            Utilities.Sleep(1000); // listen that nothing comes out
 //
 //            // check that user paused music does not resume
@@ -298,7 +297,7 @@
 //            wave1Instance.Pause();
 //            engine.PauseAudio();
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Paused, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Paused, wave1Instance.PlayState);
 //            Utilities.Sleep(1000); // listen that nothing comes out
 //
 //            // check that sounds paused by PauseAudio are correctly restarted
@@ -306,8 +305,8 @@
 //            music.Play();
 //            engine.PauseAudio();
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Playing, wave1Instance.PlayState);
-//            Assert.AreEqual(SoundPlayState.Playing, music.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, music.PlayState);
 //            TestAudioUtilities.ActiveAudioEngineUpdate(engine, 3000);// listen that the sound comes out
 //            music.Stop();
 //            TestAudioUtilities.ActiveAudioEngineUpdate(engine, 100);// stop the music
@@ -317,34 +316,34 @@
 //            engine.PauseAudio();
 //            wave1Instance.Stop();
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Stopped, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, wave1Instance.PlayState);
 //            Utilities.Sleep(1000); // listen that nothing comes out
 //
 //            // check that a sound played during the pause do not play during the resume
 //            engine.PauseAudio();
 //            wave1Instance.Play();
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Stopped, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, wave1Instance.PlayState);
 //            Utilities.Sleep(1000); // listen that nothing comes out
 //
 //            // check that a two calls to resume do not have side effects (1)
 //            wave1Instance.Play();
 //            engine.PauseAudio();
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Playing, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, wave1Instance.PlayState);
 //            Utilities.Sleep(2000); // wait that the sound is finished
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Stopped, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, wave1Instance.PlayState);
 //            Utilities.Sleep(1000); // listen that nothing comes out
 //
 //            // check that a two calls to resume do not have side effects (2)
 //            wave1Instance.Play();
 //            engine.PauseAudio();
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Playing, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, wave1Instance.PlayState);
 //            wave1Instance.Pause();
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Paused, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Paused, wave1Instance.PlayState);
 //            Utilities.Sleep(1000); // listen that nothing comes out
 //
 //            // check that a several calls to pause/play do not have side effects
@@ -353,7 +352,7 @@
 //            engine.ResumeAudio();
 //            engine.PauseAudio();
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Playing, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, wave1Instance.PlayState);
 //            Utilities.Sleep(2000); // listen that the sound comes out
 //
 //            // check that the sound is not played if disposed
@@ -361,7 +360,7 @@
 //            engine.PauseAudio();
 //            wave1Instance.Dispose();
 //            engine.ResumeAudio();
-//            Assert.AreEqual(SoundPlayState.Stopped, wave1Instance.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, wave1Instance.PlayState);
 //            Utilities.Sleep(1000); // listen that nothing comes out
 //            
 //            music.Dispose();

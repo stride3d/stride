@@ -5,12 +5,12 @@
     <OutputType>WinExe</OutputType>
     <AssemblyName>Xenko.Graphics.Tests</AssemblyName>
     <RootNamespace>Xenko.Graphics.Tests</RootNamespace>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoBuildProfile>$(XenkoPlatform)</XenkoBuildProfile>
-    <XenkoDir>$(MSBuildThisFileDirectory)..\..\..</XenkoDir>
+    <XenkoPlatform>Windows</XenkoPlatform>
+    <XenkoBuildProfile>Windows</XenkoBuildProfile>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
     <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
@@ -79,6 +79,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>ToGlslShader.xksl</DependentUpon>
     </Compile>
+    <Compile Include="XunitAttributes.cs" />
     <Compile Include="Regression\TestMultipleTextures.cs" />
     <Compile Include="Regression\TestSimpleTexture.cs" />
     <Compile Include="TestBitmapSpriteFont.cs" />

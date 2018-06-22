@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
@@ -14,7 +14,6 @@ using Xenko.Core.Yaml.Serialization;
 
 namespace Xenko.Core.Assets.Tests
 {
-    [TestFixture]
     public class TestAssetUpgrade : TestBase
     {
         [DataContract("MyUpgradedAsset")]
@@ -95,35 +94,35 @@ namespace Xenko.Core.Assets.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void Version1()
         {
             var asset = new MyUpgradedAsset(1) { Vector = new Vector3(12.0f, 15.0f, 17.0f), Test1 = new List<int> { 32, 64 } };
             TestUpgrade(asset, true);
         }
 
-        [Test]
+        [Fact]
         public void Version2()
         {
             var asset = new MyUpgradedAsset(2) { Vector = new Vector3(12.0f, 15.0f, 17.0f), Test2 = new List<int> { 32, 64 } };
             TestUpgrade(asset, true);
         }
 
-        [Test]
+        [Fact]
         public void Version3()
         {
             var asset = new MyUpgradedAsset(3) { Vector = new Vector3(12.0f, 15.0f, 17.0f), Test3 = new List<int> { 32, 64 } };
             TestUpgrade(asset, true);
         }
 
-        [Test]
+        [Fact]
         public void Version4()
         {
             var asset = new MyUpgradedAsset(4) { Vector = new Vector3(12.0f, 15.0f, 17.0f), Test4 = new List<int> { 32, 64 } };
             TestUpgrade(asset, true);
         }
 
-        [Test]
+        [Fact]
         public void Version5()
         {
             var asset = new MyUpgradedAsset(5) { Vector = new Vector3(12.0f, 15.0f, 17.0f), Test5 = new List<int> { 32, 64 } };
@@ -138,7 +137,7 @@ namespace Xenko.Core.Assets.Tests
 
             var logger = new LoggerResult();
             var context = new AssetMigrationContext(null, loadingFilePath.ToReference(), loadingFilePath.FilePath.ToWindowsPath(), logger);
-            Assert.AreEqual(AssetMigration.MigrateAssetIfNeeded(context, loadingFilePath, "TestPackage"), needMigration);
+            Assert.Equal(AssetMigration.MigrateAssetIfNeeded(context, loadingFilePath, "TestPackage"), needMigration);
 
             if (needMigration)
             {
@@ -154,12 +153,12 @@ namespace Xenko.Core.Assets.Tests
 
         private static void AssertUpgrade(MyUpgradedAsset asset)
         {
-            Assert.That(asset.SerializedVersion["TestPackage"], Is.EqualTo(new PackageVersion("0.0.5")));
-            Assert.That(asset.Test1, Is.Null);
-            Assert.That(asset.Test2, Is.Null);
-            Assert.That(asset.Test3, Is.Null);
-            Assert.That(asset.Test4, Is.Null);
-            Assert.That(asset.Test5, Is.Not.Null);
+            Assert.Equal(new PackageVersion("0.0.5"), asset.SerializedVersion["TestPackage"]);
+            Assert.Null(asset.Test1);
+            Assert.Null(asset.Test2);
+            Assert.Null(asset.Test3);
+            Assert.Null(asset.Test4);
+            Assert.NotNull(asset.Test5);
         }
     }
 }

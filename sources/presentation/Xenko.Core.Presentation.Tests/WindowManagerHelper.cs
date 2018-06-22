@@ -6,7 +6,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Presentation.Interop;
 using Xenko.Core.Presentation.Windows;

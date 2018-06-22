@@ -2,11 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Quantum.Tests
 {
-    [TestFixture]
     public class TestStructs
     {
         public struct SimpleStruct
@@ -52,7 +51,7 @@ namespace Xenko.Core.Quantum.Tests
             public override string ToString() => $"{{NestingStructContainer: {Struct}}}";
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleStruct()
         {
             var nodeContainer = new NodeContainer();
@@ -69,7 +68,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(memberNode.Target, structMember2Node, container.Struct, container.Struct.Value, nameof(SimpleStruct.Value), false);
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleStructUpdate()
         {
             var nodeContainer = new NodeContainer();
@@ -81,18 +80,18 @@ namespace Xenko.Core.Quantum.Tests
             var structMember2Node = targetNode[nameof(SimpleStruct.Value)];
             memberNode.Update(new SimpleStruct { Name = "Test2", Value = 2 });
 
-            Assert.AreEqual("Test2", container.Struct.Name);
-            Assert.AreEqual(2, container.Struct.Value);
-            Assert.AreEqual(targetNode, memberNode.Target);
-            Assert.AreEqual(structMember1Node, memberNode.Target[nameof(SimpleStruct.Name)]);
-            Assert.AreEqual(structMember2Node, memberNode.Target[nameof(SimpleStruct.Value)]);
+            Assert.Equal("Test2", container.Struct.Name);
+            Assert.Equal(2, container.Struct.Value);
+            Assert.Equal(targetNode, memberNode.Target);
+            Assert.Equal(structMember1Node, memberNode.Target[nameof(SimpleStruct.Name)]);
+            Assert.Equal(structMember2Node, memberNode.Target[nameof(SimpleStruct.Value)]);
             structMember1Node = memberNode.Target[nameof(SimpleStruct.Name)];
             Helper.TestMemberNode(memberNode.Target, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
             structMember2Node = memberNode.Target[nameof(SimpleStruct.Value)];
             Helper.TestMemberNode(memberNode.Target, structMember2Node, container.Struct, container.Struct.Value, nameof(SimpleStruct.Value), false);
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleStructMemberUpdate()
         {
             var nodeContainer = new NodeContainer();
@@ -109,15 +108,15 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(memberNode.Target, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
 
             structMember1Node.Update("Test2");
-            Assert.AreEqual("Test2", container.Struct.Name);
-            Assert.AreEqual(targetNode, memberNode.Target);
-            Assert.AreEqual(structMember1Node, memberNode.Target[nameof(SimpleStruct.Name)]);
-            Assert.AreEqual(structMember2Node, memberNode.Target[nameof(SimpleStruct.Value)]);
+            Assert.Equal("Test2", container.Struct.Name);
+            Assert.Equal(targetNode, memberNode.Target);
+            Assert.Equal(structMember1Node, memberNode.Target[nameof(SimpleStruct.Name)]);
+            Assert.Equal(structMember2Node, memberNode.Target[nameof(SimpleStruct.Value)]);
             Helper.TestMemberNode(memberNode.Target, structMember1Node, container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
             Helper.TestMemberNode(memberNode.Target, memberNode.Target.Members.First(), container.Struct, container.Struct.Name, nameof(SimpleStruct.Name), false);
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleStructCollectionUpdate()
         {
             var nodeContainer = new NodeContainer();
@@ -133,13 +132,13 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(targetNode, structMemberNode, container.Struct, container.Struct.Strings, nameof(StructWithCollection.Strings), true);
 
             structMemberNode.Target.Update("ddd", new Index(1));
-            Assert.AreEqual("ddd", container.Struct.Strings[1]);
-            Assert.AreEqual(targetNode, memberNode.Target);
-            Assert.AreEqual(structMemberNode, targetNode[nameof(StructWithCollection.Strings)]);
+            Assert.Equal("ddd", container.Struct.Strings[1]);
+            Assert.Equal(targetNode, memberNode.Target);
+            Assert.Equal(structMemberNode, targetNode[nameof(StructWithCollection.Strings)]);
             Helper.TestMemberNode(targetNode, structMemberNode, container.Struct, container.Struct.Strings, nameof(StructWithCollection.Strings), true);
         }
 
-        [Test]
+        [Fact]
         public void TestNestedStruct()
         {
             var nodeContainer = new NodeContainer();
@@ -164,7 +163,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(secondNestingMemberNode.Target, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
         }
 
-        [Test]
+        [Fact]
         public void TestFirstNestedStructUpdate()
         {
             var nodeContainer = new NodeContainer();
@@ -180,14 +179,14 @@ namespace Xenko.Core.Quantum.Tests
 
             var newStruct = new FirstNestingStruct { Struct1 = new SecondNestingStruct { Struct2 = new SimpleStruct { Name = "Test2", Value = 2 } } };
             memberNode.Update(newStruct);
-            Assert.AreEqual("Test2", container.Struct.Struct1.Struct2.Name);
-            Assert.AreEqual(2, container.Struct.Struct1.Struct2.Value);
-            Assert.AreEqual(firstTargetNode, memberNode.Target);
-            Assert.AreEqual(firstNestingMemberNode, firstTargetNode[nameof(FirstNestingStruct.Struct1)]);
-            Assert.AreEqual(secondTargetNode, firstNestingMemberNode.Target);
-            Assert.AreEqual(secondNestingMemberNode, secondTargetNode[nameof(SecondNestingStruct.Struct2)]);
-            Assert.AreEqual(structMember1Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Name)]);
-            Assert.AreEqual(structMember2Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Value)]);
+            Assert.Equal("Test2", container.Struct.Struct1.Struct2.Name);
+            Assert.Equal(2, container.Struct.Struct1.Struct2.Value);
+            Assert.Equal(firstTargetNode, memberNode.Target);
+            Assert.Equal(firstNestingMemberNode, firstTargetNode[nameof(FirstNestingStruct.Struct1)]);
+            Assert.Equal(secondTargetNode, firstNestingMemberNode.Target);
+            Assert.Equal(secondNestingMemberNode, secondTargetNode[nameof(SecondNestingStruct.Struct2)]);
+            Assert.Equal(structMember1Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Name)]);
+            Assert.Equal(structMember2Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Value)]);
 
             Helper.TestNonCollectionObjectNode(containerNode, container, 1);
             Helper.TestMemberNode(containerNode, memberNode, container, container.Struct, nameof(StructContainer.Struct), true);
@@ -200,7 +199,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(secondNestingMemberNode.Target, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
         }
 
-        [Test]
+        [Fact]
         public void TestSecondNestedStructUpdate()
         {
             var nodeContainer = new NodeContainer();
@@ -216,14 +215,14 @@ namespace Xenko.Core.Quantum.Tests
 
             var newStruct = new SecondNestingStruct { Struct2 = new SimpleStruct { Name = "Test2", Value = 2 } };
             firstNestingMemberNode.Update(newStruct);
-            Assert.AreEqual("Test2", container.Struct.Struct1.Struct2.Name);
-            Assert.AreEqual(2, container.Struct.Struct1.Struct2.Value);
-            Assert.AreEqual(firstTargetNode, memberNode.Target);
-            Assert.AreEqual(firstNestingMemberNode, firstTargetNode[nameof(FirstNestingStruct.Struct1)]);
-            Assert.AreEqual(secondTargetNode, firstNestingMemberNode.Target);
-            Assert.AreEqual(secondNestingMemberNode, secondTargetNode[nameof(SecondNestingStruct.Struct2)]);
-            Assert.AreEqual(structMember1Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Name)]);
-            Assert.AreEqual(structMember2Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Value)]);
+            Assert.Equal("Test2", container.Struct.Struct1.Struct2.Name);
+            Assert.Equal(2, container.Struct.Struct1.Struct2.Value);
+            Assert.Equal(firstTargetNode, memberNode.Target);
+            Assert.Equal(firstNestingMemberNode, firstTargetNode[nameof(FirstNestingStruct.Struct1)]);
+            Assert.Equal(secondTargetNode, firstNestingMemberNode.Target);
+            Assert.Equal(secondNestingMemberNode, secondTargetNode[nameof(SecondNestingStruct.Struct2)]);
+            Assert.Equal(structMember1Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Name)]);
+            Assert.Equal(structMember2Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Value)]);
 
             Helper.TestNonCollectionObjectNode(containerNode, container, 1);
             Helper.TestMemberNode(containerNode, memberNode, container, container.Struct, nameof(StructContainer.Struct), true);
@@ -236,7 +235,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(secondNestingMemberNode.Target, structMember2Node, container.Struct.Struct1.Struct2, container.Struct.Struct1.Struct2.Value, nameof(SimpleStruct.Value), false);
         }
 
-        [Test]
+        [Fact]
         public void TestNestedStructMemberUpdate()
         {
             var nodeContainer = new NodeContainer();
@@ -252,14 +251,14 @@ namespace Xenko.Core.Quantum.Tests
 
             structMember1Node.Update("Test2");
             structMember2Node.Update(2);
-            Assert.AreEqual("Test2", container.Struct.Struct1.Struct2.Name);
-            Assert.AreEqual(2, container.Struct.Struct1.Struct2.Value);
-            Assert.AreEqual(firstTargetNode, memberNode.Target);
-            Assert.AreEqual(firstNestingMemberNode, firstTargetNode[nameof(FirstNestingStruct.Struct1)]);
-            Assert.AreEqual(secondTargetNode, firstNestingMemberNode.Target);
-            Assert.AreEqual(secondNestingMemberNode, secondTargetNode[nameof(SecondNestingStruct.Struct2)]);
-            Assert.AreEqual(structMember1Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Name)]);
-            Assert.AreEqual(structMember2Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Value)]);
+            Assert.Equal("Test2", container.Struct.Struct1.Struct2.Name);
+            Assert.Equal(2, container.Struct.Struct1.Struct2.Value);
+            Assert.Equal(firstTargetNode, memberNode.Target);
+            Assert.Equal(firstNestingMemberNode, firstTargetNode[nameof(FirstNestingStruct.Struct1)]);
+            Assert.Equal(secondTargetNode, firstNestingMemberNode.Target);
+            Assert.Equal(secondNestingMemberNode, secondTargetNode[nameof(SecondNestingStruct.Struct2)]);
+            Assert.Equal(structMember1Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Name)]);
+            Assert.Equal(structMember2Node, secondNestingMemberNode.Target[nameof(SimpleStruct.Value)]);
 
             Helper.TestNonCollectionObjectNode(containerNode, container, 1);
             Helper.TestMemberNode(containerNode, memberNode, container, container.Struct, nameof(StructContainer.Struct), true);

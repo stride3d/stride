@@ -4,17 +4,16 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Engine.Design;
 using Xenko.Engine.Processors;
 
 namespace Xenko.Engine.Tests
 {
-    [TestFixture]
     public partial class TestEntityManager
     {
-        [Test]
+        [Fact]
         public void Benchmark()
         {
             const int TestCount = 5;

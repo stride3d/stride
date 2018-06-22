@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Animations;
@@ -14,7 +14,6 @@ using Xenko.Rendering.Sprites;
 
 namespace Xenko.Engine.Tests
 {
-    [TestFixture]
     public class SpriteTestGame : EngineTestBase
     {
         private SpriteSheet ballSprite1;
@@ -113,7 +112,7 @@ namespace Xenko.Engine.Tests
             if (Input.IsKeyDown(Keys.Space))
             {
                 var provider = spriteComponent.SpriteProvider as SpriteFromSheet;
-                Assert.IsNotNull(provider);
+                Assert.NotNull(provider);
                 provider.CurrentFrame = 0;
             }
         }
@@ -121,7 +120,7 @@ namespace Xenko.Engine.Tests
         private void SetFrameAndUpdateBall(int updateTimes, int frame)
         {
             var provider = spriteComponent.SpriteProvider as SpriteFromSheet;
-            Assert.IsNotNull(provider);
+            Assert.NotNull(provider);
             provider.CurrentFrame = frame;
 
             for (var i = 0; i < updateTimes; i++)
@@ -160,7 +159,7 @@ namespace Xenko.Engine.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void RunTestGame()
         {
             RunGameTest(new SpriteTestGame());

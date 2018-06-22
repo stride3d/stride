@@ -1,9 +1,9 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.UI.Controls;
@@ -14,7 +14,6 @@ namespace Xenko.UI.Tests.Layering
     /// <summary>
     /// A class that contains test functions for layering of the <see cref="UIElement"/> class.
     /// </summary>
-    [TestFixture]
     [System.ComponentModel.Description("Tests for UIElement layering")]
     public class UIElementLayeringTests : UIElement
     {
@@ -23,24 +22,13 @@ namespace Xenko.UI.Tests.Layering
             throw new NotImplementedException();
         }
 
-        private Random rand;
-
-        /// <summary>
-        /// Initialize the series of tests.
-        /// </summary>
-        [TestFixtureSetUp]
-        public void InitializeTest()
-        {
-            // create a rand variable changing from a test to the other
-            rand = new Random(DateTime.Now.Millisecond);
-        }
+        private Random rand = new Random(DateTime.Now.Millisecond);
 
         /// <summary>
         /// Performs all the tests
         /// </summary>
         public void TestAll()
         {
-            InitializeTest();
             TestCalculateAdjustmentOffsets();
             TestCalculateAvailableSizeWithoutThickness();
             TestDependencyProperties();
@@ -82,7 +70,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the <see cref="UIElement.UpdateWorldMatrix"/> function.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestUpdateWorldMatrix()
         {
             ResetElementState();
@@ -95,48 +83,48 @@ namespace Xenko.UI.Tests.Layering
 
             // test that Identity is return when there are no transformation
             UpdateWorldMatrix(ref identity, true);
-            Assert.AreEqual(Matrix.Identity, WorldMatrix);
+            Assert.Equal(Matrix.Identity, WorldMatrix);
 
             // test that parent matrix is return when there no internal transformations
             var parentWorld = Matrix.LookAtLH(new Vector3(1, 2, 3), Vector3.Zero, new Vector3(0, 0, 1));
             UpdateWorldMatrix(ref parentWorld, true);
-            Assert.AreEqual(parentWorld, WorldMatrix);
+            Assert.Equal(parentWorld, WorldMatrix);
 
             // test that child local matrix is returned parent matrix is identity and no layering has been done
             var localMatrix = Matrix.LookAtLH(new Vector3(3, 2, 1), Vector3.Zero, new Vector3(0, 0, 1));
             LocalMatrix = localMatrix;
             UpdateWorldMatrix(ref identity, true);
-            Assert.AreEqual(localMatrix, WorldMatrix);
+            Assert.Equal(localMatrix, WorldMatrix);
 
             // check that the composition of the parent world matrix and child local matrix is correct
             LocalMatrix = Matrix.Translation(new Vector3(1, 2, 3));
             matrix = Matrix.Scaling(0.5f, 0.5f, 0.5f);
             UpdateWorldMatrix(ref matrix, true);
-            Assert.AreEqual(new Matrix(0.5f, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0.5f, 0, 0.5f, 1f, 1.5f, 1), WorldMatrix);
+            Assert.Equal(new Matrix(0.5f, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0.5f, 0, 0.5f, 1f, 1.5f, 1), WorldMatrix);
 
             // check that the margin and half render size offsets are properly included in the world transformation
             LocalMatrix = Matrix.Identity;
             Margin = new Thickness(1,2,3,4,5,6);
             Arrange(new Vector3(15,27,39), false);
             UpdateWorldMatrix(ref identity, true);
-            Assert.AreEqual(Matrix.Translation(1+5,2+10,6+15), WorldMatrix);
+            Assert.Equal(Matrix.Translation(1+5,2+10,6+15), WorldMatrix);
 
             // check that the result of the composition between margin and parent world matrix is correct
             matrix = Matrix.Scaling(0.5f, 0.5f, 0.5f);
             UpdateWorldMatrix(ref matrix, true);
-            Assert.AreEqual(new Matrix(0.5f, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0.5f, 0, 3f, 6f, 10.5f, 1), WorldMatrix);
+            Assert.Equal(new Matrix(0.5f, 0, 0, 0, 0, 0.5f, 0, 0, 0, 0, 0.5f, 0, 3f, 6f, 10.5f, 1), WorldMatrix);
 
             // check that the composition of the margins, local matrix and parent matrix is correct.
             LocalMatrix = new Matrix(0,-1,0,0, 1,0,0,0, 0,0,1,0, 0,0,0,1);
             matrix = Matrix.Scaling(0.1f, 0.2f, 0.4f);
             UpdateWorldMatrix(ref matrix, true);
-            Assert.AreEqual(new Matrix(0,-0.2f,0,0, 0.1f,0,0,0, 0,0,0.4f,0, 0.6f,2.4f,8.4f,1), WorldMatrix);
+            Assert.Equal(new Matrix(0,-0.2f,0,0, 0.1f,0,0,0, 0,0,0.4f,0, 0.6f,2.4f,8.4f,1), WorldMatrix);
         }
 
         /// <summary>
         /// Test for <see cref="UIElement.DependencyProperties"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestDependencyProperties()
         {
             ResetElementState();
@@ -144,122 +132,122 @@ namespace Xenko.UI.Tests.Layering
             var newElement = new UIElementLayeringTests();
 
             // check dependency property default values
-            Assert.IsTrue(newElement.ForceNextMeasure);
-            Assert.IsTrue(newElement.ForceNextArrange);
-            Assert.IsTrue(newElement.IsEnabled);
-            Assert.AreEqual(1f, newElement.Opacity);
-            Assert.AreEqual(Visibility.Visible, newElement.Visibility);
-            Assert.AreEqual(0f, newElement.DefaultWidth);
-            Assert.AreEqual(0f, newElement.DefaultHeight);
-            Assert.AreEqual(0f, newElement.DefaultDepth);
-            Assert.AreEqual(float.NaN, newElement.Height);
-            Assert.AreEqual(float.NaN, newElement.Width);
-            Assert.AreEqual(float.NaN, newElement.Depth);
-            Assert.AreEqual(0f, newElement.MinimumHeight);
-            Assert.AreEqual(0f, newElement.MinimumWidth);
-            Assert.AreEqual(0f, newElement.MinimumDepth);
-            Assert.AreEqual(float.PositiveInfinity, newElement.MaximumHeight);
-            Assert.AreEqual(float.PositiveInfinity, newElement.MaximumWidth);
-            Assert.AreEqual(float.PositiveInfinity, newElement.MaximumDepth);
-            Assert.AreEqual(HorizontalAlignment.Stretch, newElement.HorizontalAlignment);
-            Assert.AreEqual(VerticalAlignment.Stretch, newElement.VerticalAlignment);
-            Assert.AreEqual(DepthAlignment.Center, newElement.DepthAlignment);
-            Assert.AreEqual(null, newElement.Name);
-            Assert.AreEqual(Thickness.UniformCuboid(0), newElement.Margin);
-            Assert.AreEqual(Matrix.Identity, newElement.LocalMatrix);
+            Assert.True(newElement.ForceNextMeasure);
+            Assert.True(newElement.ForceNextArrange);
+            Assert.True(newElement.IsEnabled);
+            Assert.Equal(1f, newElement.Opacity);
+            Assert.Equal(Visibility.Visible, newElement.Visibility);
+            Assert.Equal(0f, newElement.DefaultWidth);
+            Assert.Equal(0f, newElement.DefaultHeight);
+            Assert.Equal(0f, newElement.DefaultDepth);
+            Assert.Equal(float.NaN, newElement.Height);
+            Assert.Equal(float.NaN, newElement.Width);
+            Assert.Equal(float.NaN, newElement.Depth);
+            Assert.Equal(0f, newElement.MinimumHeight);
+            Assert.Equal(0f, newElement.MinimumWidth);
+            Assert.Equal(0f, newElement.MinimumDepth);
+            Assert.Equal(float.PositiveInfinity, newElement.MaximumHeight);
+            Assert.Equal(float.PositiveInfinity, newElement.MaximumWidth);
+            Assert.Equal(float.PositiveInfinity, newElement.MaximumDepth);
+            Assert.Equal(HorizontalAlignment.Stretch, newElement.HorizontalAlignment);
+            Assert.Equal(VerticalAlignment.Stretch, newElement.VerticalAlignment);
+            Assert.Equal(DepthAlignment.Center, newElement.DepthAlignment);
+            Assert.Equal(null, newElement.Name);
+            Assert.Equal(Thickness.UniformCuboid(0), newElement.Margin);
+            Assert.Equal(Matrix.Identity, newElement.LocalMatrix);
 
             /////////////////////////////////////////
             // check dependency property validators
 
             // opacity validator
             Opacity = -1;
-            Assert.AreEqual(0f, Opacity);
+            Assert.Equal(0f, Opacity);
             Opacity = 2;
-            Assert.AreEqual(1f, Opacity);
+            Assert.Equal(1f, Opacity);
             Opacity = 0.5f;
-            Assert.AreEqual(0.5f, Opacity);
+            Assert.Equal(0.5f, Opacity);
 
             // default sizes (values should remain in range [0, float.MaxValue])
-            Assert.DoesNotThrow(() => DefaultWidth = -1f);
-            Assert.AreEqual(0f, DefaultWidth);
-            Assert.DoesNotThrow(() => DefaultWidth = float.NaN);
-            Assert.AreEqual(0f, DefaultWidth); // previous value unchanged
-            Assert.DoesNotThrow(() => DefaultWidth = float.PositiveInfinity);
-            Assert.AreEqual(float.MaxValue, DefaultWidth);
+            DefaultWidth = -1f;
+            Assert.Equal(0f, DefaultWidth);
+            DefaultWidth = float.NaN;
+            Assert.Equal(0f, DefaultWidth); // previous value unchanged
+            DefaultWidth = float.PositiveInfinity;
+            Assert.Equal(float.MaxValue, DefaultWidth);
 
-            Assert.DoesNotThrow(() => DefaultHeight = -1f);
-            Assert.AreEqual(0f, DefaultHeight);
-            Assert.DoesNotThrow(() => DefaultHeight = float.NaN);
-            Assert.AreEqual(0f, DefaultHeight); // previous value unchanged
-            Assert.DoesNotThrow(() => DefaultHeight = float.PositiveInfinity);
-            Assert.AreEqual(float.MaxValue, DefaultHeight);
+            DefaultHeight = -1f;
+            Assert.Equal(0f, DefaultHeight);
+            DefaultHeight = float.NaN;
+            Assert.Equal(0f, DefaultHeight); // previous value unchanged
+            DefaultHeight = float.PositiveInfinity;
+            Assert.Equal(float.MaxValue, DefaultHeight);
 
-            Assert.DoesNotThrow(() => DefaultDepth = -1f);
-            Assert.AreEqual(0f, DefaultDepth);
-            Assert.DoesNotThrow(() => DefaultDepth = float.NaN);
-            Assert.AreEqual(0f, DefaultDepth); // previous value unchanged
-            Assert.DoesNotThrow(() => DefaultDepth = float.PositiveInfinity);
-            Assert.AreEqual(float.MaxValue, DefaultDepth);
+            DefaultDepth = -1f;
+            Assert.Equal(0f, DefaultDepth);
+            DefaultDepth = float.NaN;
+            Assert.Equal(0f, DefaultDepth); // previous value unchanged
+            DefaultDepth = float.PositiveInfinity;
+            Assert.Equal(float.MaxValue, DefaultDepth);
 
             // sizes (values should remain in range [0, float.MaxValue])
-            Assert.DoesNotThrow(() => Width = -1f);
-            Assert.AreEqual(0f, Width);
-            Assert.DoesNotThrow(() => Width = float.PositiveInfinity);
-            Assert.AreEqual(float.MaxValue, Width);
+            Width = -1f;
+            Assert.Equal(0f, Width);
+            Width = float.PositiveInfinity;
+            Assert.Equal(float.MaxValue, Width);
 
-            Assert.DoesNotThrow(() => Height = -1f);
-            Assert.AreEqual(0f, Height);
-            Assert.DoesNotThrow(() => Height = float.PositiveInfinity);
-            Assert.AreEqual(float.MaxValue, Height);
+            Height = -1f;
+            Assert.Equal(0f, Height);
+            Height = float.PositiveInfinity;
+            Assert.Equal(float.MaxValue, Height);
 
-            Assert.DoesNotThrow(() => Depth = -1f);
-            Assert.AreEqual(0f, Depth);
-            Assert.DoesNotThrow(() => Depth = float.PositiveInfinity);
-            Assert.AreEqual(float.MaxValue, Depth);
+            Depth = -1f;
+            Assert.Equal(0f, Depth);
+            Depth = float.PositiveInfinity;
+            Assert.Equal(float.MaxValue, Depth);
 
             // minimum sizes (values should remain in range [0, float.MaxValue])
-            Assert.DoesNotThrow(() => MinimumWidth = -1f);
-            Assert.AreEqual(0f, MinimumWidth);
-            Assert.DoesNotThrow(() => MinimumWidth = float.NaN);
-            Assert.AreEqual(0f, MinimumWidth); // previous value unchanged
-            Assert.DoesNotThrow(() => MinimumWidth = float.PositiveInfinity);
-            Assert.AreEqual(float.MaxValue, MinimumWidth);
+            MinimumWidth = -1f;
+            Assert.Equal(0f, MinimumWidth);
+            MinimumWidth = float.NaN;
+            Assert.Equal(0f, MinimumWidth); // previous value unchanged
+            MinimumWidth = float.PositiveInfinity;
+            Assert.Equal(float.MaxValue, MinimumWidth);
 
-            Assert.DoesNotThrow(() => MinimumHeight = -1f);
-            Assert.AreEqual(0f, MinimumHeight);
-            Assert.DoesNotThrow(() => MinimumHeight = float.NaN);
-            Assert.AreEqual(0f, MinimumHeight); // previous value unchanged
-            Assert.DoesNotThrow(() => MinimumHeight = float.PositiveInfinity);
-            Assert.AreEqual(float.MaxValue, MinimumHeight);
+            MinimumHeight = -1f;
+            Assert.Equal(0f, MinimumHeight);
+            MinimumHeight = float.NaN;
+            Assert.Equal(0f, MinimumHeight); // previous value unchanged
+            MinimumHeight = float.PositiveInfinity;
+            Assert.Equal(float.MaxValue, MinimumHeight);
 
-            Assert.DoesNotThrow(() => MinimumDepth = -1f);
-            Assert.AreEqual(0f, MinimumDepth);
-            Assert.DoesNotThrow(() => MinimumDepth = float.NaN);
-            Assert.AreEqual(0f, MinimumDepth); // previous value unchanged
-            Assert.DoesNotThrow(() => MinimumDepth = float.PositiveInfinity);
-            Assert.AreEqual(float.MaxValue, MinimumDepth);
+            MinimumDepth = -1f;
+            Assert.Equal(0f, MinimumDepth);
+            MinimumDepth = float.NaN;
+            Assert.Equal(0f, MinimumDepth); // previous value unchanged
+            MinimumDepth = float.PositiveInfinity;
+            Assert.Equal(float.MaxValue, MinimumDepth);
 
             // maximum sizes (values should remain in range [0, float.PositiveInfinity])
-            Assert.DoesNotThrow(() => MaximumWidth = -1f);
-            Assert.AreEqual(0f, MaximumWidth);
-            Assert.DoesNotThrow(() => MaximumWidth = float.NaN);
-            Assert.AreEqual(0f, MaximumWidth); // previous value unchanged
+            MaximumWidth = -1f;
+            Assert.Equal(0f, MaximumWidth);
+            MaximumWidth = float.NaN;
+            Assert.Equal(0f, MaximumWidth); // previous value unchanged
 
-            Assert.DoesNotThrow(() => MaximumHeight = -1f);
-            Assert.AreEqual(0f, MaximumHeight);
-            Assert.DoesNotThrow(() => MaximumHeight = float.NaN);
-            Assert.AreEqual(0f, MaximumHeight); // previous value unchanged
+            MaximumHeight = -1f;
+            Assert.Equal(0f, MaximumHeight);
+            MaximumHeight = float.NaN;
+            Assert.Equal(0f, MaximumHeight); // previous value unchanged
 
-            Assert.DoesNotThrow(() => MaximumDepth = -1f);
-            Assert.AreEqual(0f, MaximumDepth);
-            Assert.DoesNotThrow(() => MaximumDepth = float.NaN);
-            Assert.AreEqual(0f, MaximumDepth); // previous value unchanged
+            MaximumDepth = -1f;
+            Assert.Equal(0f, MaximumDepth);
+            MaximumDepth = float.NaN;
+            Assert.Equal(0f, MaximumDepth); // previous value unchanged
         }
 
         /// <summary>
         /// Test for <see cref="UIElement.CalculateSizeWithoutThickness"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestCalculateAvailableSizeWithoutThickness()
         {
             ResetElementState();
@@ -290,7 +278,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test for <see cref="UIElement.CalculateAdjustmentOffsets"/>.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestCalculateAdjustmentOffsets()
         {
             ResetElementState();
@@ -336,7 +324,7 @@ namespace Xenko.UI.Tests.Layering
 
         private void AssertAreNearlySame(Vector3 v1, Vector3 v2)
         {
-            Assert.IsTrue((v1 - v2).Length() <= v1.Length() * MathUtil.ZeroTolerance);
+            Assert.True((v1 - v2).Length() <= v1.Length() * MathUtil.ZeroTolerance);
         }
 
         delegate Vector3 MeasureOverrideDelegate(Vector3 availableSizeWithoutMargins);
@@ -351,7 +339,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test <see cref="UIElement.Measure"/> when the element is collapsed
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureCollapsed()
         {
             // reset state of the element and set it to collapsed
@@ -397,15 +385,15 @@ namespace Xenko.UI.Tests.Layering
         private void MeasuredWithRandomSizeAndCheckThatDesiredSizesAreNull()
         {
             Measure(10 * Vector3.One + 1000 * rand.NextVector3());
-            Assert.AreEqual(Vector3.Zero, DesiredSize);
-            Assert.AreEqual(Vector3.Zero, DesiredSizeWithMargins);
-            Assert.AreEqual(true, IsMeasureValid);
+            Assert.Equal(Vector3.Zero, DesiredSize);
+            Assert.Equal(Vector3.Zero, DesiredSizeWithMargins);
+            Assert.Equal(true, IsMeasureValid);
         }
 
         /// <summary>
         /// Test for <see cref="UIElement.Measure"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureNotCollapsed()
         {
             TestMeasureNotCollapsedWithMinAndMax(Vector3.Zero, new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity));
@@ -477,9 +465,9 @@ namespace Xenko.UI.Tests.Layering
             var truncedExpectedSizeWithMargins = CalculateSizeWithThickness(ref truncedExpectedSize, ref MarginInternal);
 
             Measure(availableSize);
-            Assert.AreEqual(truncedExpectedSize, DesiredSize);
-            Assert.AreEqual(truncedExpectedSizeWithMargins, DesiredSizeWithMargins);
-            Assert.AreEqual(true, IsMeasureValid);
+            Assert.Equal(truncedExpectedSize, DesiredSize);
+            Assert.Equal(truncedExpectedSizeWithMargins, DesiredSizeWithMargins);
+            Assert.Equal(true, IsMeasureValid);
         }
 
         private Action onCollapsedOverride;
@@ -507,7 +495,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the function <see cref="UIElement.Arrange"/> when the element is collapsed.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestArrangeCollapsed()
         {
             // reset state 
@@ -545,11 +533,11 @@ namespace Xenko.UI.Tests.Layering
         {
             Measure(arrangeSize);
             Arrange(arrangeSize, isParentCollapsed);
-            Assert.AreEqual(true, IsArrangeValid);
-            Assert.AreEqual(expectedSize, RenderSize);
-            Assert.AreEqual(expectedOffset, RenderOffsets);
-            Assert.AreEqual(shouldBeCollapsed, collaspedHasBeenCalled);
-            Assert.AreEqual(!shouldBeCollapsed, arrangeOverridedHasBeenCalled);
+            Assert.Equal(true, IsArrangeValid);
+            Assert.Equal(expectedSize, RenderSize);
+            Assert.Equal(expectedOffset, RenderOffsets);
+            Assert.Equal(shouldBeCollapsed, collaspedHasBeenCalled);
+            Assert.Equal(!shouldBeCollapsed, arrangeOverridedHasBeenCalled);
         }
 
         private void PertubArrangeResultValues()
@@ -563,7 +551,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the function <see cref="UIElement.Arrange"/> when the element is not collapsed.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestArrangeNotCollapsed()
         {
             TestArrangeNotCollapsedCore(HorizontalAlignment.Stretch);
@@ -607,7 +595,7 @@ namespace Xenko.UI.Tests.Layering
             InvalidateMeasure();
             Measure(Vector3.Zero);
             Arrange(Vector3.Zero, false);
-            Assert.AreEqual(true, IsMeasureValid);
+            Assert.Equal(true, IsMeasureValid);
 
             // set the default callbacks
             var desiredSize = 1000 * rand.NextVector3();
@@ -615,7 +603,7 @@ namespace Xenko.UI.Tests.Layering
             onCollapsedOverride = () => collaspedHasBeenCalled = true;
             onArrageOverride = delegate(Vector3 size)
                 {
-                    Assert.AreEqual(expectedProvidedSizeInMeasureOverride, size);
+                    Assert.Equal(expectedProvidedSizeInMeasureOverride, size);
                     arrangeOverridedHasBeenCalled = true; 
 
                     return base.ArrangeOverride(size);
@@ -723,7 +711,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the invalidation system. This invalidation mechanism with Invalidate functions, the IsValid properties and the Measure/Arrange functions.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestInvalidationSystem()
         {
             TestInvalidationSystemCore(true, ()=> collapseOverrideHasBeenCalled);
@@ -738,15 +726,15 @@ namespace Xenko.UI.Tests.Layering
             
             worldMatrix.M11 = 2;
             UpdateWorldMatrix(ref worldMatrix, true);
-            Assert.AreEqual(worldMatrix.M11, WorldMatrix.M11);
+            Assert.Equal(worldMatrix.M11, WorldMatrix.M11);
 
             worldMatrix.M11 = 3;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(2, WorldMatrix.M11);
+            Assert.Equal(2, WorldMatrix.M11);
 
             worldMatrix.M11 = 1;
             UpdateWorldMatrix(ref worldMatrix, true);
-            Assert.AreEqual(worldMatrix.M11, WorldMatrix.M11);
+            Assert.Equal(worldMatrix.M11, WorldMatrix.M11);
 
             // - Check that changing value of the "localMatrix" correctly force the re-calculation of the worldMatrix
 
@@ -755,17 +743,17 @@ namespace Xenko.UI.Tests.Layering
             localMatrix.M11 = 4;
             LocalMatrix = localMatrix;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(localMatrix.M11, WorldMatrix.M11);
+            Assert.Equal(localMatrix.M11, WorldMatrix.M11);
 
             worldMatrix.M11 = 33;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(localMatrix.M11, WorldMatrix.M11);
+            Assert.Equal(localMatrix.M11, WorldMatrix.M11);
 
             worldMatrix.M11 = 1;
             localMatrix.M11 = 5;
             LocalMatrix = localMatrix;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(localMatrix.M11, WorldMatrix.M11);
+            Assert.Equal(localMatrix.M11, WorldMatrix.M11);
         }
 
         private void TestInvalidationSystemCore(bool parentIsCollapsed, ReturnBoolDelegate getArrangeHasBeenCalledVal)
@@ -780,103 +768,103 @@ namespace Xenko.UI.Tests.Layering
 
             Measure(Vector3.Zero);
             Arrange(Vector3.Zero, parentIsCollapsed);
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsTrue(IsArrangeValid);
+            Assert.True(IsMeasureValid);
+            Assert.True(IsArrangeValid);
 
             measureOverrideHasBeenCalled = false;
             arrangeOverrideHasBeenCalled = false;
             collapseOverrideHasBeenCalled = false;
 
             InvalidateMeasure();
-            Assert.IsFalse(IsMeasureValid);
-            Assert.IsFalse(IsArrangeValid);
+            Assert.False(IsMeasureValid);
+            Assert.False(IsArrangeValid);
             Measure(Vector3.Zero);
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsFalse(IsArrangeValid);
-            Assert.IsTrue(measureOverrideHasBeenCalled);
+            Assert.True(IsMeasureValid);
+            Assert.False(IsArrangeValid);
+            Assert.True(measureOverrideHasBeenCalled);
             Arrange(Vector3.Zero, parentIsCollapsed);
-            Assert.IsTrue(IsArrangeValid);
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsTrue(getArrangeHasBeenCalledVal());
+            Assert.True(IsArrangeValid);
+            Assert.True(IsMeasureValid);
+            Assert.True(getArrangeHasBeenCalledVal());
             worldMatrix.M11 = 2;
             UpdateWorldMatrix(ref worldMatrix, false); // check that invalidation of arrange force the update of the world matrix
-            Assert.AreEqual(worldMatrix.M11, WorldMatrix.M11);
+            Assert.Equal(worldMatrix.M11, WorldMatrix.M11);
 
             measureOverrideHasBeenCalled = false;
             arrangeOverrideHasBeenCalled = false;
             collapseOverrideHasBeenCalled = false;
 
             InvalidateArrange();
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsFalse(IsArrangeValid);
+            Assert.True(IsMeasureValid);
+            Assert.False(IsArrangeValid);
             Measure(Vector3.Zero);
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsFalse(IsArrangeValid);
-            Assert.IsFalse(measureOverrideHasBeenCalled);
+            Assert.True(IsMeasureValid);
+            Assert.False(IsArrangeValid);
+            Assert.False(measureOverrideHasBeenCalled);
             Arrange(Vector3.Zero, parentIsCollapsed);
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsTrue(IsArrangeValid);
-            Assert.IsTrue(getArrangeHasBeenCalledVal());
+            Assert.True(IsMeasureValid);
+            Assert.True(IsArrangeValid);
+            Assert.True(getArrangeHasBeenCalledVal());
             worldMatrix.M11 = 3;
             UpdateWorldMatrix(ref worldMatrix, false); // check that invalidation of arrange force the update of the world matrix
-            Assert.AreEqual(worldMatrix.M11, WorldMatrix.M11);
+            Assert.Equal(worldMatrix.M11, WorldMatrix.M11);
 
             measureOverrideHasBeenCalled = false;
             arrangeOverrideHasBeenCalled = false;
             collapseOverrideHasBeenCalled = false;
 
             Measure(Vector3.Zero);
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsTrue(IsArrangeValid);
-            Assert.IsFalse(measureOverrideHasBeenCalled);
+            Assert.True(IsMeasureValid);
+            Assert.True(IsArrangeValid);
+            Assert.False(measureOverrideHasBeenCalled);
             Arrange(Vector3.Zero, parentIsCollapsed);
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsTrue(IsArrangeValid);
-            Assert.IsFalse(getArrangeHasBeenCalledVal());
+            Assert.True(IsMeasureValid);
+            Assert.True(IsArrangeValid);
+            Assert.False(getArrangeHasBeenCalledVal());
             worldMatrix.M11 = 4;
             UpdateWorldMatrix(ref worldMatrix, false); // check that the world matrix is not re-calculated if the arrangement is not invalidated
-            Assert.AreEqual(3, WorldMatrix.M11);
+            Assert.Equal(3, WorldMatrix.M11);
             
             measureOverrideHasBeenCalled = false;
             arrangeOverrideHasBeenCalled = false;
             collapseOverrideHasBeenCalled = false;
 
             Measure(Vector3.One); // check that measuring with a new value force the re-measurement but not re-arrangement
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsFalse(IsArrangeValid);
-            Assert.IsTrue(measureOverrideHasBeenCalled);
+            Assert.True(IsMeasureValid);
+            Assert.False(IsArrangeValid);
+            Assert.True(measureOverrideHasBeenCalled);
             Arrange(Vector3.Zero, parentIsCollapsed);
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsTrue(IsArrangeValid);
-            Assert.IsFalse(getArrangeHasBeenCalledVal());
+            Assert.True(IsMeasureValid);
+            Assert.True(IsArrangeValid);
+            Assert.False(getArrangeHasBeenCalledVal());
 
             measureOverrideHasBeenCalled = false;
             arrangeOverrideHasBeenCalled = false;
             collapseOverrideHasBeenCalled = false;
 
             Measure(Vector3.One);
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsTrue(IsArrangeValid);
-            Assert.IsFalse(measureOverrideHasBeenCalled);
+            Assert.True(IsMeasureValid);
+            Assert.True(IsArrangeValid);
+            Assert.False(measureOverrideHasBeenCalled);
             Arrange(Vector3.One, parentIsCollapsed); // check that arranging with a new value force the re-arrangement
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsTrue(IsArrangeValid);
-            Assert.IsTrue(getArrangeHasBeenCalledVal());
+            Assert.True(IsMeasureValid);
+            Assert.True(IsArrangeValid);
+            Assert.True(getArrangeHasBeenCalledVal());
 
             Measure(Vector3.One);
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsTrue(IsArrangeValid);
-            Assert.IsFalse(measureOverrideHasBeenCalled);
+            Assert.True(IsMeasureValid);
+            Assert.True(IsArrangeValid);
+            Assert.False(measureOverrideHasBeenCalled);
             Arrange(Vector3.One, !parentIsCollapsed); // check that arranging with a new value of the parent collapse state force the re-arrangement
-            Assert.IsTrue(IsMeasureValid);
-            Assert.IsTrue(IsArrangeValid);
-            Assert.IsTrue(getArrangeHasBeenCalledVal());
+            Assert.True(IsMeasureValid);
+            Assert.True(IsArrangeValid);
+            Assert.True(getArrangeHasBeenCalledVal());
         }
 
         /// <summary>
         /// Test the invalidations generated object property changes.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestBasicInvalidations()
         {
             ResetElementState();
@@ -935,7 +923,7 @@ namespace Xenko.UI.Tests.Layering
         {
             element.Measure(Vector3.Zero);
             changeProperty();
-            Assert.IsFalse(element.IsMeasureValid);
+            Assert.False(element.IsMeasureValid);
         }
 
         public static void TestArrangeInvalidation(UIElement element, Action changeProperty)
@@ -943,8 +931,8 @@ namespace Xenko.UI.Tests.Layering
             element.Measure(Vector3.Zero);
             element.Arrange(Vector3.Zero, false);
             changeProperty();
-            Assert.IsTrue(element.IsMeasureValid);
-            Assert.IsFalse(element.IsArrangeValid);
+            Assert.True(element.IsMeasureValid);
+            Assert.False(element.IsArrangeValid);
         }
 
         public static void TestNoInvalidation(UIElement element, Action changeProperty)
@@ -952,8 +940,8 @@ namespace Xenko.UI.Tests.Layering
             element.Measure(Vector3.Zero);
             element.Arrange(Vector3.Zero, false);
             changeProperty();
-            Assert.IsTrue(element.IsMeasureValid);
-            Assert.IsTrue(element.IsArrangeValid);
+            Assert.True(element.IsMeasureValid);
+            Assert.True(element.IsArrangeValid);
         }
 
         class MeasureArrangeCallChecker : StackPanel
@@ -993,51 +981,51 @@ namespace Xenko.UI.Tests.Layering
         {
             foreach (var element in elements)
             {
-                Assert.IsTrue(element.IsArrangeValid);
-                Assert.IsTrue(element.IsMeasureValid);
-                Assert.IsFalse(element.ForceNextMeasure);
-                Assert.IsFalse(element.ForceNextArrange);
+                Assert.True(element.IsArrangeValid);
+                Assert.True(element.IsMeasureValid);
+                Assert.False(element.ForceNextMeasure);
+                Assert.False(element.ForceNextArrange);
             }
         }
 
         private void AssertMeasureState(UIElement element, bool noForce, bool isValid)
         {
-            Assert.AreEqual(isValid, element.IsArrangeValid);
-            Assert.AreEqual(isValid, element.IsMeasureValid);
-            Assert.AreEqual(!noForce, element.ForceNextMeasure);
-            Assert.AreEqual(!noForce, element.ForceNextArrange);
+            Assert.Equal(isValid, element.IsArrangeValid);
+            Assert.Equal(isValid, element.IsMeasureValid);
+            Assert.Equal(!noForce, element.ForceNextMeasure);
+            Assert.Equal(!noForce, element.ForceNextArrange);
         }
 
         private void AssertArrangeState(UIElement element, bool noForce, bool isValid)
         {
-            Assert.AreEqual(isValid, element.IsArrangeValid);
-            Assert.AreEqual(true, element.IsMeasureValid);
-            Assert.AreEqual(false, element.ForceNextMeasure);
-            Assert.AreEqual(!noForce, element.ForceNextArrange);
+            Assert.Equal(isValid, element.IsArrangeValid);
+            Assert.Equal(true, element.IsMeasureValid);
+            Assert.Equal(false, element.ForceNextMeasure);
+            Assert.Equal(!noForce, element.ForceNextArrange);
         }
 
         private void AssertMeasureCalls(MeasureArrangeCallChecker element, bool shouldBeCalled)
         {
-            Assert.AreEqual(shouldBeCalled, element.MeasureHasBeenCalled);
-            Assert.AreEqual(shouldBeCalled, element.ArrangeHasBeenCalled);
+            Assert.Equal(shouldBeCalled, element.MeasureHasBeenCalled);
+            Assert.Equal(shouldBeCalled, element.ArrangeHasBeenCalled);
         }
 
         private void AssertArrangeCalls(MeasureArrangeCallChecker element, bool shouldBeCalled)
         {
-            Assert.AreEqual(false, element.MeasureHasBeenCalled);
-            Assert.AreEqual(shouldBeCalled, element.ArrangeHasBeenCalled);
+            Assert.Equal(false, element.MeasureHasBeenCalled);
+            Assert.Equal(shouldBeCalled, element.ArrangeHasBeenCalled);
         }
 
         private void AssertUpdateMeasureCalls(MeasureArrangeCallChecker element, bool shouldBeCalled)
         {
-            Assert.AreEqual(shouldBeCalled, element.MeasureHasBeenCalled);
-            Assert.AreEqual(false, element.ArrangeHasBeenCalled);
+            Assert.Equal(shouldBeCalled, element.MeasureHasBeenCalled);
+            Assert.Equal(false, element.ArrangeHasBeenCalled);
         }
         
         /// <summary>
         /// Test the invalidations are propagated correctly along the tree
         /// </summary>
-        [Test]
+        [Fact]
         public void TestInvalidationPropagation()
         {
             // construct a simple hierarchy:

@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core;
 using Xenko.Core.Diagnostics;
@@ -28,11 +28,9 @@ namespace Xenko.Graphics.Regression
 
         public FrameGameSystem FrameGameSystem { get; }
 
-        protected TestContext CurrentTestContext { get; set; }
-
         public int StopOnFrameCount { get; set; }
 
-        public bool UseTestName { get; set; }
+        public string TestName { get; set; }
 
         public InputSourceSimulated InputSourceSimulated { get; private set; }
         public MouseSimulated MouseSimulated { get; private set; }
@@ -271,7 +269,7 @@ namespace Xenko.Graphics.Regression
             if (takeSnapshot)
                 game.FrameGameSystem.TakeScreenshot();
 
-            RunGameTest(game, true);
+            RunGameTest(game);
         }
 
         protected void PerformDrawTest(Action<Game, RenderDrawContext> drawTestAction, GraphicsProfile? profileOverride = null, string subTestName = null, bool takeSnapshot = true)
@@ -297,7 +295,7 @@ namespace Xenko.Graphics.Regression
                 Game = new DelegateSceneRenderer(context => drawTestAction(game, context)),
             };
 
-            RunGameTest(game, true);
+            RunGameTest(game);
         }
 
         /// <summary>
@@ -307,12 +305,9 @@ namespace Xenko.Graphics.Regression
         {
         }
 
-        protected static void RunGameTest(GameTestBase game, bool appendTestName = false)
+        protected static void RunGameTest(GameTestBase game)
         {
             game.EnableSimulatedInputSource();
-
-            game.CurrentTestContext = TestContext.CurrentContext;
-            game.UseTestName = appendTestName;
 
             game.ScreenShotAutomationEnabled = !ForceInteractiveMode;
 
@@ -322,18 +317,11 @@ namespace Xenko.Graphics.Regression
 
             if (game.ScreenShotAutomationEnabled)
             {
-                if (game.comparisonFailedMessages.Count > 0)
-                {
-                    Assert.Fail("Some image comparison failed:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonFailedMessages));
-                }
-                if (game.comparisonMissingMessages.Count > 0)
-                {
-                    Assert.Inconclusive("Some reference images are missing, please copy them manually:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonMissingMessages));
-                }
+                Assert.True(game.comparisonFailedMessages.Count == 0, "Some image comparison failed:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonFailedMessages));
+                Assert.True(game.comparisonMissingMessages.Count == 0, "Some reference images are missing, please copy them manually:" + Environment.NewLine + string.Join(Environment.NewLine, game.comparisonMissingMessages));
             }
 
-            if (failedTests.Count > 0)
-                Assert.Fail($"Some image comparison tests failed: {string.Join(", ", failedTests.Select(x => x))}");
+            Assert.True(failedTests.Count == 0, $"Some image comparison tests failed: {string.Join(", ", failedTests.Select(x => x))}");
         }
 
         /// <summary>
@@ -393,17 +381,15 @@ namespace Xenko.Graphics.Regression
 
         private string GenerateName(string testArtifactPath, string frame, string platformSpecific)
         {
-            var fullName = CurrentTestContext.Test.FullName;
-            var fullClassName = fullName.Substring(0, fullName.LastIndexOf('.'));
+            var fullClassName = GetType().FullName;
             var classNameIndex = fullClassName.LastIndexOf('.');
             var @namespace = classNameIndex != -1 ? fullClassName.Substring(0, classNameIndex) : string.Empty;
             var className = fullClassName.Substring(classNameIndex + 1);
-            var testName = CurrentTestContext.Test.Name;
 
             var testFolder = Path.Combine(testArtifactPath, @namespace);
             var testFilename = className;
-            if (UseTestName && testName != null)
-                testFilename += $".{testName}";
+            if (TestName != null)
+                testFilename += $".{TestName}";
             if (frame != null)
                 testFilename += $".{frame}";
             if (platformSpecific != null)
@@ -448,8 +434,7 @@ namespace Xenko.Graphics.Regression
         /// </summary>
         public static void IgnorePlatform(PlatformType platform)
         {
-            if(Platform.Type == platform)
-                Assert.Ignore("This test is not valid for the '{0}' platform. It has been ignored", platform);
+            Skip.If(Platform.Type == platform, $"This test is not valid for the '{platform}' platform. It has been ignored");
         }
 
         /// <summary>
@@ -457,8 +442,7 @@ namespace Xenko.Graphics.Regression
         /// </summary>
         public static void RequirePlatform(PlatformType platform)
         {
-            if(Platform.Type != platform)
-                Assert.Ignore("This test requires the '{0}' platform. It has been ignored", platform);
+            Skip.If(Platform.Type != platform, $"This test requires the '{platform}' platform. It has been ignored");
         }
 
         /// <summary>
@@ -466,8 +450,7 @@ namespace Xenko.Graphics.Regression
         /// </summary>
         public static void IgnoreGraphicPlatform(GraphicsPlatform platform)
         {
-            if (GraphicsDevice.Platform == platform)
-                Assert.Ignore("This test is not valid for the '{0}' graphic platform. It has been ignored", platform);
+            Skip.If(GraphicsDevice.Platform == platform, $"This test is not valid for the '{platform}' graphic platform. It has been ignored");
         }
 
         /// <summary>
@@ -475,8 +458,7 @@ namespace Xenko.Graphics.Regression
         /// </summary>
         public static void RequireGraphicPlatform(GraphicsPlatform platform)
         {
-            if (GraphicsDevice.Platform != platform)
-                Assert.Ignore("This test requires the '{0}' platform. It has been ignored", platform);
+            Skip.If(GraphicsDevice.Platform != platform, $"This test requires the '{platform}' platform. It has been ignored");
         }
     }
 }

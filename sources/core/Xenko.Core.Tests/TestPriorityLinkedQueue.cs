@@ -2,15 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Collections;
 
 namespace Xenko.Core.Tests
 {
-    [TestFixture]
     public class TestPriorityLinkedQueue
     {
-        [Test]
+        [Fact]
         public void TestInsertionAscending()
         {
             var priorityQueue = new PriorityNodeQueue<int>();
@@ -19,13 +18,13 @@ namespace Xenko.Core.Tests
                 priorityQueue.Enqueue(i);
             }
 
-            Assert.That(priorityQueue.Count, Is.EqualTo(1000));
-            Assert.That(priorityQueue.Peek(), Is.EqualTo(0));
+            Assert.Equal(1000, priorityQueue.Count);
+            Assert.Equal(0, priorityQueue.Peek());
 
             CheckPriorityQueue(priorityQueue);
         }
 
-        [Test]
+        [Fact]
         public void TestInsertionDescending()
         {
             var priorityQueue = new PriorityNodeQueue<int>();
@@ -34,13 +33,13 @@ namespace Xenko.Core.Tests
                 priorityQueue.Enqueue(999 - i);
             }
 
-            Assert.That(priorityQueue.Count, Is.EqualTo(1000));
-            Assert.That(priorityQueue.Peek(), Is.EqualTo(0));
+            Assert.Equal(1000, priorityQueue.Count);
+            Assert.Equal(0, priorityQueue.Peek());
 
             CheckPriorityQueue(priorityQueue);
         }
 
-        [Test]
+        [Fact]
         public void TestInsertionRandom()
         {
             var priorityQueue = new PriorityNodeQueue<int>();
@@ -50,12 +49,12 @@ namespace Xenko.Core.Tests
                 priorityQueue.Enqueue(random.Next());
             }
 
-            Assert.That(priorityQueue.Count, Is.EqualTo(1000));
+            Assert.Equal(1000, priorityQueue.Count);
 
             CheckPriorityQueue(priorityQueue);
         }
 
-        [Test]
+        [Fact]
         public void TestRemoval()
         {
             var priorityQueue = new PriorityNodeQueue<int>();
@@ -72,7 +71,7 @@ namespace Xenko.Core.Tests
             priorityQueue.Remove(nodes[251]);
             priorityQueue.Remove(nodes[999]);
 
-            Assert.That(priorityQueue.Count, Is.EqualTo(1000 - 5));
+            Assert.Equal(1000 - 5, priorityQueue.Count);
 
             CheckPriorityQueue(priorityQueue);
         }
@@ -83,7 +82,7 @@ namespace Xenko.Core.Tests
             while (!priorityQueue.Empty)
             {
                 var value = priorityQueue.Dequeue();
-                Assert.That(value, Is.GreaterThanOrEqualTo(lastItem));
+                Assert.True(value >= lastItem);
                 lastItem = value;
             }
         }

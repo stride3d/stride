@@ -2,19 +2,18 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Analysis;
 using Xenko.Core.IO;
 
 namespace Xenko.Core.Assets.Tests
 {
-    [TestFixture]
     public class TestAssetReferenceAnalysis : TestBase
     {
         /// <summary>
         /// Tests that updating an asset reference that is pointing to an invalid GUID but a valid location is updated with the new GUID.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestUpdateAssetUrl()
         {
             var projectDir = new UFile(Path.Combine(Environment.CurrentDirectory, "testxk"));
@@ -38,16 +37,16 @@ namespace Xenko.Core.Assets.Tests
                         IsProcessingUPaths = true
                     });
             var result = analysis.Run();
-            Assert.IsFalse(result.HasErrors);
-            Assert.AreEqual(1, result.Messages.Count);
-            Assert.IsTrue(result.Messages[0].ToString().Contains("changed"));
+            Assert.False(result.HasErrors);
+            Assert.Equal(1, result.Messages.Count);
+            Assert.True(result.Messages[0].ToString().Contains("changed"));
 
             var asset = (AssetObjectTest)assetItem.Asset;
-            Assert.AreEqual(goodAsset.Id, asset.Reference.Id);
-            Assert.AreEqual("good/location", asset.Reference.Location);
+            Assert.Equal(goodAsset.Id, asset.Reference.Id);
+            Assert.Equal("good/location", asset.Reference.Location);
         }
 
-        [Test]
+        [Fact]
         public void TestMoveAssetWithUFile()
         {
             var projectDir = new UFile(Path.Combine(Environment.CurrentDirectory, "testxk"));
@@ -69,27 +68,27 @@ namespace Xenko.Core.Assets.Tests
                         IsProcessingUPaths = true
                     });
             var result = analysis.Run();
-            Assert.IsFalse(result.HasErrors);
-            Assert.AreEqual(UPath.Combine(project.RootDirectory, new UFile("sub1/image.png")), asset.RawAsset);
+            Assert.False(result.HasErrors);
+            Assert.Equal(UPath.Combine(project.RootDirectory, new UFile("sub1/image.png")), asset.RawAsset);
 
             project.Assets.Remove(assetItem);
             assetItem = new AssetItem("sub1/test", asset);
             project.Assets.Add(assetItem);
             result = analysis.Run();
-            Assert.IsFalse(result.HasErrors);
-            Assert.AreEqual(UPath.Combine(project.RootDirectory, new UFile("sub1/image.png")), asset.RawAsset);
+            Assert.False(result.HasErrors);
+            Assert.Equal(UPath.Combine(project.RootDirectory, new UFile("sub1/image.png")), asset.RawAsset);
 
             project.Assets.Remove(assetItem);
             assetItem = new AssetItem("test", asset);
             project.Assets.Add(assetItem);
             result = analysis.Run();
-            Assert.IsFalse(result.HasErrors);
-            Assert.AreEqual(UPath.Combine(project.RootDirectory, new UFile("sub1/image.png")), asset.RawAsset);
+            Assert.False(result.HasErrors);
+            Assert.Equal(UPath.Combine(project.RootDirectory, new UFile("sub1/image.png")), asset.RawAsset);
 
             analysis.Parameters.ConvertUPathTo = UPathType.Relative;
             result = analysis.Run();
-            Assert.IsFalse(result.HasErrors);
-            Assert.AreEqual(new UFile("sub1/image.png"), asset.RawAsset);
+            Assert.False(result.HasErrors);
+            Assert.Equal(new UFile("sub1/image.png"), asset.RawAsset);
         }
     }
 }

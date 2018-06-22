@@ -4,7 +4,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Games;
@@ -57,7 +57,7 @@ namespace Xenko.Navigation.Tests
             base.Update(gameTime);
             if (gameTime.Total > TimeSpan.FromSeconds(6))
             {
-                Assert.Fail("Test timed out");
+                Assert.True(false, "Test timed out");
             }
         }
 
@@ -75,29 +75,29 @@ namespace Xenko.Navigation.Tests
             controllerB.UpdateSpawnPosition();
 
             // Move to lower box
-            await Task.WhenAll(controllerA.TryMove(targetB).ContinueWith(x => { Assert.IsTrue(x.Result.Success); }),
-                controllerB.TryMove(targetB).ContinueWith(x => { Assert.IsTrue(x.Result.Success); }));
+            await Task.WhenAll(controllerA.TryMove(targetB).ContinueWith(x => { Assert.True(x.Result.Success); }),
+                controllerB.TryMove(targetB).ContinueWith(x => { Assert.True(x.Result.Success); }));
 
             // Move to upper box
-            await Task.WhenAll(controllerA.TryMove(targetA).ContinueWith(x => { Assert.IsTrue(x.Result.Success); }),
-                controllerB.TryMove(targetA).ContinueWith(x => { Assert.IsFalse(x.Result.Success); }));
+            await Task.WhenAll(controllerA.TryMove(targetA).ContinueWith(x => { Assert.True(x.Result.Success); }),
+                controllerB.TryMove(targetA).ContinueWith(x => { Assert.False(x.Result.Success); }));
 
             // Change group of A to the group that B has
             controllerA.Navigation.GroupId = controllerB.Navigation.GroupId;
 
             // Move A to it's spawn (should fail with the new group)
-            await controllerA.TryMove(controllerA.SpawnPosition).ContinueWith(x => { Assert.IsFalse(x.Result.Success); });
+            await controllerA.TryMove(controllerA.SpawnPosition).ContinueWith(x => { Assert.False(x.Result.Success); });
 
             // Remove B's navigation mesh
             controllerB.Navigation.NavigationMesh = null;
 
             // Move B to it's spawn (should fail as well now)
-            await controllerB.TryMove(controllerB.SpawnPosition).ContinueWith(x => { Assert.IsFalse(x.Result.Success); });
+            await controllerB.TryMove(controllerB.SpawnPosition).ContinueWith(x => { Assert.False(x.Result.Success); });
 
             Exit();
         }
 
-        [Test]
+        [Fact]
         public static void StaticTest1()
         {
             StaticTest game = new StaticTest();

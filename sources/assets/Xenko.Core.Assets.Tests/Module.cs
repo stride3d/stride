@@ -4,21 +4,13 @@
 using System;
 using System.IO;
 using System.Runtime.CompilerServices;
-using NUnit.Core.Extensibility;
 using Xenko.Core.Reflection;
-using Xenko.Core;
 
 namespace Xenko.Core.Assets.Tests
 {
     // Somehow it helps Resharper NUnit to run module initializer first (to determine unit test configuration).
-    [NUnitAddin]
-    public class Module : IAddin
+    public class Module
     {
-        public bool Install(IExtensionHost host)
-        {
-            return false;
-        }
-
         [ModuleInitializer]
         internal static void Initialize()
         {
@@ -27,6 +19,8 @@ namespace Xenko.Core.Assets.Tests
 
             AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
             RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);
+
+            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
         }
     }
 }

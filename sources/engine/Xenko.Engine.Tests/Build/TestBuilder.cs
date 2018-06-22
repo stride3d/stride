@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 //using Xenko.Framework.Build.Pipeline;
 using Xenko.Core.IO;
 
@@ -15,8 +15,7 @@ using Xenko.Core.IO;
 
 namespace Xenko.Core.Tests.Build
 {
-    //[TestFixture]
-    //public class TestBuilder
+    //    //public class TestBuilder
     //{
     //    public class SimpleCommand : Command
     //    {
@@ -64,7 +63,7 @@ namespace Xenko.Core.Tests.Build
     //        }
     //    }
 
-    //    [Test]
+    //    [Fact]
     //    public void TestExecuteDummySequencialCommands()
     //    {
     //        VirtualFileSystem.MountFileSystem("/source", ".");
@@ -82,7 +81,7 @@ namespace Xenko.Core.Tests.Build
     //        builder.Run();
     //    }
 
-    //    [Test]
+    //    [Fact]
     //    public void TestExecuteDummyParallelizedCommands()
     //    {
     //        VirtualFileSystem.MountFileSystem("/source", ".");
@@ -98,7 +97,7 @@ namespace Xenko.Core.Tests.Build
 
     //        builder.Run();
     //    }
-    //    [Test]
+    //    [Fact]
     //    public void TestExecuteDummyParallelizedCommandsWithSomeVeryLong()
     //    {
     //        VirtualFileSystem.MountFileSystem("/source", ".");

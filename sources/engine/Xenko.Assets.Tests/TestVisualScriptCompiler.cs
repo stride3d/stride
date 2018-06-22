@@ -8,16 +8,15 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Diagnostics;
 using Xenko.Assets.Scripts;
 
 namespace Xenko.Assets.Tests
 {
-    [TestFixture]
     public class TestVisualScriptCompiler
     {
-        [Test]
+        [Fact]
         public void TestCustomCode()
         {
             var visualScript = new VisualScriptAsset();
@@ -42,7 +41,7 @@ namespace Xenko.Assets.Tests
             TestAndCompareOutput(visualScript, "True", testInstance => testInstance.Test());
         }
 
-        [Test]
+        [Fact]
         public void TestConditionalExpression()
         {
             var visualScript = new VisualScriptAsset();
@@ -77,7 +76,7 @@ namespace Xenko.Assets.Tests
             TestAndCompareOutput(visualScript, "False", testInstance => testInstance.Test());
         }
 
-        [Test]
+        [Fact]
         public void TestVariableGet()
         {
             var visualScript = new VisualScriptAsset();
@@ -125,7 +124,7 @@ namespace Xenko.Assets.Tests
             });
         }
 
-        [Test]
+        [Fact]
         public void TestVariableSet()
         {
             var visualScript = new VisualScriptAsset();
@@ -195,7 +194,7 @@ namespace Xenko.Assets.Tests
 
                 // Check output
                 textWriter.Flush();
-                Assert.That(textWriter.ToString(), Is.EqualTo(expectedOutput));
+                Assert.Equal(expectedOutput, textWriter.ToString());
 
                 // Restore Console.Out
                 var standardOutput = new StreamWriter(Console.OpenStandardOutput());

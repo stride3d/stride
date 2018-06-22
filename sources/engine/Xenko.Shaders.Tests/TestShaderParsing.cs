@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.IO;
 using Xenko.Core.Serialization.Assets;
@@ -13,7 +13,6 @@ using Xenko.Shaders.Parser.Mixins;
 
 namespace Xenko.Engine.Tests
 {
-    [TestFixture]
     class TestShaderParsing
     {
         private ShaderSourceManager sourceManager;
@@ -35,46 +34,46 @@ namespace Xenko.Engine.Tests
             shaderMixinParser.SourceManager.LookupDirectoryList.Add(@"shaders");
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleRead() // check that the list is correctly filled
         {
             var moduleMixin = GetAnalyzedMixin("BasicMixin");
             var mixin = moduleMixin.Mixin;
             
-            Assert.AreEqual(1, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Stage)));
-            Assert.AreEqual(1, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Stream)));
-            Assert.AreEqual(3, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count);
-            Assert.AreEqual(0, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Clone)));
-            Assert.AreEqual(0, mixin.BaseMixins.Count);
-            Assert.AreEqual(1, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Stage)));
-            Assert.AreEqual(3, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count);
+            Assert.Equal(1, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Stage)));
+            Assert.Equal(1, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Stream)));
+            Assert.Equal(3, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count);
+            Assert.Equal(0, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Clone)));
+            Assert.Equal(0, mixin.BaseMixins.Count);
+            Assert.Equal(1, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Stage)));
+            Assert.Equal(3, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count);
         }
         
-        [Test]
+        [Fact]
         public void TestInternalReference() // check that the list is correctly filled
         {
             var moduleMixin = GetAnalyzedMixin("Parent");
             var mixin = moduleMixin.Mixin;
             Assert.IsNotNull(mixin);
 
-            Assert.AreEqual(2, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count);
-            Assert.AreEqual(1, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count);
-            //Assert.AreEqual(mixin.ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault(), mixin.ParsingInfo.VariableReferenceExpressions.FirstOrDefault(x => x.Name.Text == "baseValue").TypeInference.Declaration);
+            Assert.Equal(2, mixin.ParsingInfo.ClassReferences.VariablesReferences.Count);
+            Assert.Equal(1, mixin.ParsingInfo.ClassReferences.MethodsReferences.Count);
+            //Assert.Equal(mixin.ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault(), mixin.ParsingInfo.VariableReferenceExpressions.FirstOrDefault(x => x.Name.Text == "baseValue").TypeInference.Declaration);
         }
         
-        [Test]
+        [Fact]
         public void TestInheritance() // check that the base call is correct
         {
             var moduleMixinChild = GetAnalyzedMixin("Child");
             var mixinChild = moduleMixinChild.Mixin;
 
-            Assert.AreEqual(1, mixinChild.BaseMixins.Count);
+            Assert.Equal(1, mixinChild.BaseMixins.Count);
 
             var varDecl = GetAnalyzedMixin("Parent").Mixin.ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault();
-            Assert.AreEqual(1, mixinChild.ParsingInfo.ClassReferences.VariablesReferences.Where(x => x.Key == varDecl).Select(x => x.Value).Count());
+            Assert.Equal(1, mixinChild.ParsingInfo.ClassReferences.VariablesReferences.Where(x => x.Key == varDecl).Select(x => x.Value).Count());
         }
 
-        [Test]
+        [Fact]
         public void TestNameConflictSolved() // check that infered declaration are correct
         {
             var moduleMixinBase1 = GetAnalyzedMixin("BasicMixin");
@@ -84,11 +83,11 @@ namespace Xenko.Engine.Tests
             var def1 = moduleMixinBase1.Mixin.VirtualTable.Variables.FirstOrDefault(x => x.Variable.Name == "myFloat").Variable;
             var def2 = moduleMixinBase2.Mixin.VirtualTable.Variables.FirstOrDefault(x => x.Variable.Name == "myFloat").Variable;
 
-            Assert.AreEqual(1, moduleMixinSolved.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Where(x => x.Key == def1).Select(x => x.Value).Count());
-            Assert.AreEqual(1, moduleMixinSolved.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Where(x => x.Key == def2).Select(x => x.Value).Count());
+            Assert.Equal(1, moduleMixinSolved.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Where(x => x.Key == def1).Select(x => x.Value).Count());
+            Assert.Equal(1, moduleMixinSolved.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Where(x => x.Key == def2).Select(x => x.Value).Count());
         }
         
-        [Test]
+        [Fact]
         public void TestBaseLink() // check that infered declaration are correct
         {
             // TODO: redo this test
@@ -96,34 +95,34 @@ namespace Xenko.Engine.Tests
             var moduleMixinInter = GetAnalyzedMixin("BaseTestInter");
             var moduleMixinParent = GetAnalyzedMixin("BaseTestParent");
 
-            Assert.AreEqual(2, moduleMixinParent.Mixin.LocalVirtualTable.Methods.Count);
+            Assert.Equal(2, moduleMixinParent.Mixin.LocalVirtualTable.Methods.Count);
             var baseMethod1Def = moduleMixinParent.Mixin.LocalVirtualTable.Methods.ToList()[0].Method;
             var baseMethod2Def = moduleMixinParent.Mixin.LocalVirtualTable.Methods.ToList()[1].Method;
 
-            Assert.AreEqual(1, moduleMixinInter.Mixin.LocalVirtualTable.Methods.Count);
+            Assert.Equal(1, moduleMixinInter.Mixin.LocalVirtualTable.Methods.Count);
             var overrideMethod1Def = moduleMixinInter.Mixin.LocalVirtualTable.Methods.ToList()[0].Method;
 
-            Assert.AreEqual(2, moduleMixinChild.Mixin.LocalVirtualTable.Methods.Count);
+            Assert.Equal(2, moduleMixinChild.Mixin.LocalVirtualTable.Methods.Count);
             var overrideFinalMethod1Def = moduleMixinChild.Mixin.LocalVirtualTable.Methods.ToList()[0].Method;
             var overrideFinalMethod2Def = moduleMixinChild.Mixin.LocalVirtualTable.Methods.ToList()[0].Method;
 
-            Assert.AreEqual(1, moduleMixinInter.Mixin.ParsingInfo.BaseMethodCalls.Count);
+            Assert.Equal(1, moduleMixinInter.Mixin.ParsingInfo.BaseMethodCalls.Count);
             var baseOverrideMethod1Call = moduleMixinInter.Mixin.ParsingInfo.BaseMethodCalls.First();
-            Assert.AreEqual(baseMethod1Def, baseOverrideMethod1Call.TypeInference.Declaration);
+            Assert.Equal(baseMethod1Def, baseOverrideMethod1Call.TypeInference.Declaration);
 
-            Assert.AreEqual(3, moduleMixinInter.Mixin.ParsingInfo.ClassReferences.MethodsReferences.Select(x => x.Key).Count());
-            Assert.AreEqual(1, moduleMixinInter.Mixin.ParsingInfo.ThisMethodCalls.Count);
+            Assert.Equal(3, moduleMixinInter.Mixin.ParsingInfo.ClassReferences.MethodsReferences.Select(x => x.Key).Count());
+            Assert.Equal(1, moduleMixinInter.Mixin.ParsingInfo.ThisMethodCalls.Count);
 
-            Assert.AreEqual(2, moduleMixinChild.Mixin.ParsingInfo.BaseMethodCalls.Count);
+            Assert.Equal(2, moduleMixinChild.Mixin.ParsingInfo.BaseMethodCalls.Count);
             var baseFinalMethod1Call = moduleMixinChild.Mixin.ParsingInfo.BaseMethodCalls.ToList()[0];
             var baseFinalMethod2Call = moduleMixinChild.Mixin.ParsingInfo.BaseMethodCalls.ToList()[1];
-            //Assert.AreEqual(overrideMethod1Def, baseFinalMethod1Call.TypeInference.Declaration);
-            //Assert.AreEqual(baseMethod2Def, baseFinalMethod2Call.TypeInference.Declaration);
+            //Assert.Equal(overrideMethod1Def, baseFinalMethod1Call.TypeInference.Declaration);
+            //Assert.Equal(baseMethod2Def, baseFinalMethod2Call.TypeInference.Declaration);
 
-            Assert.AreEqual(1, moduleMixinChild.Mixin.ParsingInfo.ThisMethodCalls.Count);
+            Assert.Equal(1, moduleMixinChild.Mixin.ParsingInfo.ThisMethodCalls.Count);
         }
         
-        /*[Test]
+        /*[Fact]
         public void TestExtern() // check type inference of the extern method call
         {
             var moduleMixin = GetAnalyzedMixin("ExternMixin");
@@ -132,25 +131,25 @@ namespace Xenko.Engine.Tests
             Assert.IsNotNull(moduleMixin.Mixin);
             Assert.IsNotNull(moduleMixinTest.Mixin);
 
-            Assert.AreEqual(1, moduleMixinTest.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Extern)));
+            Assert.Equal(1, moduleMixinTest.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Extern)));
             var externVar = moduleMixinTest.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault();
 
             var externDef = moduleMixin.Mixin.Shader;
             var externMethodDef = externDef.Members.OfType<MethodDeclaration>().FirstOrDefault();
             var externVariableDef = externDef.Members.OfType<Variable>().FirstOrDefault();
 
-            Assert.AreEqual(1, moduleMixinTest.Mixin.ParsingInfo.ExternReferences.MethodsReferences.Select(x => x.Key).Count());
-            //Assert.AreEqual(externVar, moduleMixinTest.Mixin.ParsingInfo.ExternReferences.VariablesReferences.FirstOrDefault().Key);
+            Assert.Equal(1, moduleMixinTest.Mixin.ParsingInfo.ExternReferences.MethodsReferences.Select(x => x.Key).Count());
+            //Assert.Equal(externVar, moduleMixinTest.Mixin.ParsingInfo.ExternReferences.VariablesReferences.FirstOrDefault().Key);
 
-            Assert.AreEqual(1, moduleMixinTest.Mixin.ParsingInfo.ExternReferences.VariablesReferences.Count);
-            Assert.AreEqual(1, moduleMixinTest.Mixin.ParsingInfo.ExternReferences.MethodsReferences.Count);
-            Assert.IsTrue(moduleMixinTest.Mixin.ParsingInfo.ExternReferences.VariablesReferences.All(x => x.Key == externVar));
+            Assert.Equal(1, moduleMixinTest.Mixin.ParsingInfo.ExternReferences.VariablesReferences.Count);
+            Assert.Equal(1, moduleMixinTest.Mixin.ParsingInfo.ExternReferences.MethodsReferences.Count);
+            Assert.True(moduleMixinTest.Mixin.ParsingInfo.ExternReferences.VariablesReferences.All(x => x.Key == externVar));
 
-            Assert.AreEqual(1,moduleMixinTest.Mixin.ParsingInfo.ExternReferences.VariablesReferences.Select(x => x.Key).Count());
-            Assert.AreEqual(externVariableDef, moduleMixinTest.Mixin.ParsingInfo.ExternReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault());
+            Assert.Equal(1,moduleMixinTest.Mixin.ParsingInfo.ExternReferences.VariablesReferences.Select(x => x.Key).Count());
+            Assert.Equal(externVariableDef, moduleMixinTest.Mixin.ParsingInfo.ExternReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault());
         }*/
         /*
-        [Test]
+        [Fact]
         public void TestDeepExtern() // check type inference of the deep extern method call
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -162,34 +161,34 @@ namespace Xenko.Engine.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
-            Assert.AreEqual(2, mcm.Mixins["DeepExternTest"].ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Extern)));
+            Assert.Equal(2, mcm.Mixins["DeepExternTest"].ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Extern)));
             var externVar = mcm.Mixins["DeepExternTest"].ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault();
 
-            Assert.AreEqual(1, mcm.Mixins["DeepExtern"].ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Extern)));
+            Assert.Equal(1, mcm.Mixins["DeepExtern"].ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.Extern)));
             var externVar2 = mcm.Mixins["DeepExtern"].ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault();
 
             var externDef = mcm.Mixins["ExternMixin"].Shader;
             var externMethodDef = externDef.Members.OfType<MethodDeclaration>().FirstOrDefault();
             var externVariableDef = externDef.Members.OfType<Variable>().FirstOrDefault();
 
-            Assert.AreEqual(1, mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferences.MethodsReferences.Select(x => x.Key).Count());
-            Assert.AreEqual(externMethodDef, mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferences.MethodsReferences.Select(x => x.Key).FirstOrDefault());
+            Assert.Equal(1, mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferences.MethodsReferences.Select(x => x.Key).Count());
+            Assert.Equal(externMethodDef, mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferences.MethodsReferences.Select(x => x.Key).FirstOrDefault());
 
-            //Assert.AreEqual(2, mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferenceExpressions.Count);
-            //Assert.IsTrue(mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferenceExpressions.All(x => x.TypeInference.Declaration == externVar));
+            //Assert.Equal(2, mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferenceExpressions.Count);
+            //Assert.True(mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferenceExpressions.All(x => x.TypeInference.Declaration == externVar));
 
-            Assert.AreEqual(1, mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferences.VariablesReferences.Select(x => x.Key).Count());
-            Assert.AreEqual(externVariableDef, mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault());
+            Assert.Equal(1, mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferences.VariablesReferences.Select(x => x.Key).Count());
+            Assert.Equal(externVariableDef, mcm.Mixins["DeepExternTest"].ParsingInfo.ExternReferences.VariablesReferences.Select(x => x.Key).FirstOrDefault());
         }
-        [Test]
+        [Fact]
         public void TestExternArray() // check behavior with a array of compositions
         {
             var moduleMixin = GetAnalyzedMixin("TestExternArray");
         }
         */
-        [Test]
+        [Fact]
         public void TestStaticCall() // check that the type inference is correct
         {
             var moduleMixin = GetAnalyzedMixin("StaticMixin");
@@ -200,12 +199,12 @@ namespace Xenko.Engine.Tests
             var methodCall = moduleMixinCall.Mixin.ParsingInfo.StaticReferences.MethodsReferences.FirstOrDefault().Value.FirstOrDefault();
 
             Assert.AreNotEqual(null, methodCall);
-            Assert.AreEqual(methodDef, methodCall.TypeInference.Declaration);
-            Assert.AreEqual(1, moduleMixinCall.Mixin.ParsingInfo.StaticReferences.VariablesReferences.Select(x => x.Key).Count());
-            Assert.AreEqual(variableDef, moduleMixinCall.Mixin.ParsingInfo.StaticReferences.VariablesReferences.First().Value.First().Expression.TypeInference.Declaration);
+            Assert.Equal(methodDef, methodCall.TypeInference.Declaration);
+            Assert.Equal(1, moduleMixinCall.Mixin.ParsingInfo.StaticReferences.VariablesReferences.Select(x => x.Key).Count());
+            Assert.Equal(variableDef, moduleMixinCall.Mixin.ParsingInfo.StaticReferences.VariablesReferences.First().Value.First().Expression.TypeInference.Declaration);
         }
         /*
-        [Test]
+        [Fact]
         public void TestGenerics() // test the behavior with generics
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -215,10 +214,10 @@ namespace Xenko.Engine.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             // TODO: change test - Irrelevant
             Assert.DoesNotThrow(mcm.Run);
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
         }
         /*
-        [Test]
+        [Fact]
         public void TestGenericsCall() // test the behavior with inheritance and generics
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -234,15 +233,15 @@ namespace Xenko.Engine.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
-            Assert.AreEqual(7, mcm.ClassSources.Count);
-            //Assert.AreEqual(2, mcm.UninstanciatedMixinInfos.Count);
+            Assert.Equal(7, mcm.ClassSources.Count);
+            //Assert.Equal(2, mcm.UninstanciatedMixinInfos.Count);
 
-            Assert.AreEqual(3, mcm.ClassSources.OfType<ShaderClassSource>().Count(x => x.ClassName == "TestGenerics"));
-            Assert.AreEqual(2, mcm.ClassSources.OfType<ShaderClassSource>().Count(x => x.ClassName == "GenericTexcoord"));
-            Assert.AreEqual(1, mcm.ClassSources.OfType<ShaderClassSource>().Count(x => x.ClassName == "GenericCall"));
-            Assert.AreEqual(1, mcm.ClassSources.OfType<ShaderClassSource>().Count(x => x.ClassName == "GenericExtern"));
+            Assert.Equal(3, mcm.ClassSources.OfType<ShaderClassSource>().Count(x => x.ClassName == "TestGenerics"));
+            Assert.Equal(2, mcm.ClassSources.OfType<ShaderClassSource>().Count(x => x.ClassName == "GenericTexcoord"));
+            Assert.Equal(1, mcm.ClassSources.OfType<ShaderClassSource>().Count(x => x.ClassName == "GenericCall"));
+            Assert.Equal(1, mcm.ClassSources.OfType<ShaderClassSource>().Count(x => x.ClassName == "GenericExtern"));
 
 
             //////////////////////////////////////////////////////////////////////////////////////////
@@ -257,49 +256,49 @@ namespace Xenko.Engine.Tests
             var mcm2 = new ShaderCompilationContext(shaderClassSourceList2, shaderLoader.LoadClassSource);
             mcm2.Run();
 
-            Assert.IsFalse(mcm2.ErrorWarningLog.HasErrors);
+            Assert.False(mcm2.ErrorWarningLog.HasErrors);
         }
         
-        [Test]
+        [Fact]
         public void TestStageValueInitializer() // test "= stage"
         {
             // TODO: hangs
             var moduleMixinRef = GetAnalyzedMixin("StageValueReference");
 
-            Assert.AreEqual(1, moduleMixinRef.Mixin.ParsingInfo.StageInitializedVariables.Count);
+            Assert.Equal(1, moduleMixinRef.Mixin.ParsingInfo.StageInitializedVariables.Count);
         }
         */
-        [Test]
+        [Fact]
         public void TestStreams() // test streams input/output - nothing for now
         {
             var moduleMixin = GetAnalyzedMixin("TestStreams");
 
-            Assert.AreEqual(1, moduleMixin.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).Count());
-            Assert.AreEqual(1, moduleMixin.Mixin.ParsingInfo.ClassReferences.VariablesReferences.FirstOrDefault().Value.Count);
+            Assert.Equal(1, moduleMixin.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Select(x => x.Key).Count());
+            Assert.Equal(1, moduleMixin.Mixin.ParsingInfo.ClassReferences.VariablesReferences.FirstOrDefault().Value.Count);
         }
         
-        [Test]
+        [Fact]
         public void TestExternClone() // test extern cloning and correct redirection - do nothing for now
         {
             var moduleMixin = GetAnalyzedMixin("ExternCloneTest");
         }
 
-        [Test]
+        [Fact]
         public void TestStructure() // test structure type inference
         {
             var moduleMixinStr = GetAnalyzedMixin("TestStructure");
             var moduleMixinStrIn = GetAnalyzedMixin("TestStructInheritance");
 
-            Assert.AreEqual(1, moduleMixinStr.Mixin.ParsingInfo.StructureDefinitions.Count);
-            Assert.AreEqual(1, moduleMixinStr.Mixin.LocalVirtualTable.StructureTypes.Count);
-            Assert.AreEqual(1, moduleMixinStr.Mixin.VirtualTable.StructureTypes.Count);
+            Assert.Equal(1, moduleMixinStr.Mixin.ParsingInfo.StructureDefinitions.Count);
+            Assert.Equal(1, moduleMixinStr.Mixin.LocalVirtualTable.StructureTypes.Count);
+            Assert.Equal(1, moduleMixinStr.Mixin.VirtualTable.StructureTypes.Count);
 
-            Assert.AreEqual(0, moduleMixinStrIn.Mixin.ParsingInfo.StructureDefinitions.Count);
-            Assert.AreEqual(0, moduleMixinStrIn.Mixin.LocalVirtualTable.StructureTypes.Count);
-            Assert.AreEqual(1, moduleMixinStrIn.Mixin.VirtualTable.StructureTypes.Count);
+            Assert.Equal(0, moduleMixinStrIn.Mixin.ParsingInfo.StructureDefinitions.Count);
+            Assert.Equal(0, moduleMixinStrIn.Mixin.LocalVirtualTable.StructureTypes.Count);
+            Assert.Equal(1, moduleMixinStrIn.Mixin.VirtualTable.StructureTypes.Count);
         }
         /*
-        [Test]
+        [Fact]
         public void TestGeometryShader() // test structures inheritance in geometry shader
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -310,31 +309,31 @@ namespace Xenko.Engine.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
         }*/
         
-        [Test]
+        [Fact]
         public void TestTessellation() // test tessellation shader, patchstream
         {
             var moduleMixin = GetAnalyzedMixin("TessellationTest");
-            Assert.AreEqual(2, moduleMixin.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.PatchStream)));
+            Assert.Equal(2, moduleMixin.Mixin.ParsingInfo.ClassReferences.VariablesReferences.Count(x => x.Key.Qualifiers.Contains(XenkoStorageQualifier.PatchStream)));
         }
         
-        [Test]
+        [Fact]
         public void TestStageCall()
         {
             var moduleMixin = GetAnalyzedMixin("StageCallExtern");
-            Assert.AreEqual(1, moduleMixin.Mixin.ParsingInfo.StageMethodCalls.Count);
+            Assert.Equal(1, moduleMixin.Mixin.ParsingInfo.StageMethodCalls.Count);
         }
         
-        [Test]
+        [Fact]
         public void TestForEachStatement()
         {
             var moduleMixin = GetAnalyzedMixin("ForEachTest");
-            Assert.AreEqual(1, moduleMixin.Mixin.ParsingInfo.ForEachStatements.Count);
+            Assert.Equal(1, moduleMixin.Mixin.ParsingInfo.ForEachStatements.Count);
         }
         /*
-        [Test]
+        [Fact]
         public void TestErrors()
         {
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -347,8 +346,8 @@ namespace Xenko.Engine.Tests
             var mcmCyclic = new ShaderCompilationContext(shaderClassSourceCyclic, shaderLoader.LoadClassSource);
             mcmCyclic.Run();
 
-            Assert.AreEqual(1, mcmCyclic.ErrorWarningLog.Messages.Count);
-            Assert.That(mcmCyclic.ErrorWarningLog.Messages[0].Code, Is.EqualTo(XenkoMessageCode.ErrorCyclicDependency.Code));
+            Assert.Equal(1, mcmCyclic.ErrorWarningLog.Messages.Count);
+            Assert.Equal(XenkoMessageCode.ErrorCyclicDependency.Code, mcmCyclic.ErrorWarningLog.Messages[0].Code);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -360,8 +359,8 @@ namespace Xenko.Engine.Tests
             var mcmMissing = new ShaderCompilationContext(shaderClassSourceMissing, shaderLoader.LoadClassSource);
             mcmMissing.Run();
 
-            Assert.AreEqual(1, mcmMissing.ErrorWarningLog.Messages.Count);
-            Assert.That(mcmMissing.ErrorWarningLog.Messages[0].Code, Is.EqualTo(XenkoMessageCode.ErrorDependencyNotInModule.Code));
+            Assert.Equal(1, mcmMissing.ErrorWarningLog.Messages.Count);
+            Assert.Equal(XenkoMessageCode.ErrorDependencyNotInModule.Code, mcmMissing.ErrorWarningLog.Messages[0].Code);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -374,8 +373,8 @@ namespace Xenko.Engine.Tests
             var mcmOverride = new ShaderCompilationContext(shaderClassSourceOverride, shaderLoader.LoadClassSource);
             mcmOverride.Run();
 
-            Assert.AreEqual(1, mcmOverride.ErrorWarningLog.Messages.Count);
-            Assert.That(mcmOverride.ErrorWarningLog.Messages[0].Code, Is.EqualTo(XenkoMessageCode.ErrorMissingOverride.Code));
+            Assert.Equal(1, mcmOverride.ErrorWarningLog.Messages.Count);
+            Assert.Equal(XenkoMessageCode.ErrorMissingOverride.Code, mcmOverride.ErrorWarningLog.Messages[0].Code);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -389,8 +388,8 @@ namespace Xenko.Engine.Tests
             var mcmAmbiguous = new ShaderCompilationContext(shaderClassSourceAmbiguous, shaderLoader.LoadClassSource);
             mcmAmbiguous.Run();
 
-            Assert.AreEqual(1, mcmAmbiguous.ErrorWarningLog.Messages.Count);
-            Assert.That(mcmAmbiguous.ErrorWarningLog.Messages[0].Code, Is.EqualTo(XenkoMessageCode.ErrorVariableNameAmbiguity.Code));
+            Assert.Equal(1, mcmAmbiguous.ErrorWarningLog.Messages.Count);
+            Assert.Equal(XenkoMessageCode.ErrorVariableNameAmbiguity.Code, mcmAmbiguous.ErrorWarningLog.Messages[0].Code);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -402,8 +401,8 @@ namespace Xenko.Engine.Tests
             var mcmInterface = new ShaderCompilationContext(shaderClassSourceInterface, shaderLoader.LoadClassSource);
             mcmInterface.Run();
 
-            Assert.IsTrue(mcmInterface.ErrorWarningLog.HasErrors);
-            Assert.AreEqual(1, mcmInterface.ErrorWarningLog.Messages.Count);
+            Assert.True(mcmInterface.ErrorWarningLog.HasErrors);
+            Assert.Equal(1, mcmInterface.ErrorWarningLog.Messages.Count);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -416,7 +415,7 @@ namespace Xenko.Engine.Tests
             var mcmParamReturn = new ShaderCompilationContext(shaderClassSourceParamReturn, shaderLoader.LoadClassSource);
             mcmParamReturn.Run();
 
-            Assert.AreEqual(3, mcmParamReturn.ErrorWarningLog.Messages.Count);
+            Assert.Equal(3, mcmParamReturn.ErrorWarningLog.Messages.Count);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -429,7 +428,7 @@ namespace Xenko.Engine.Tests
             var mcmGenerics = new ShaderCompilationContext(shaderClassSourceGenerics, shaderLoader.LoadClassSource);
             mcmGenerics.Run();
 
-            Assert.IsTrue(mcmGenerics.ErrorWarningLog.HasErrors);
+            Assert.True(mcmGenerics.ErrorWarningLog.HasErrors);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -442,7 +441,7 @@ namespace Xenko.Engine.Tests
             mcmFunc.Run();
 
             // TODO: separate tests or check messages/error code
-            Assert.AreEqual(27, mcmFunc.ErrorWarningLog.Messages.Count);
+            Assert.Equal(27, mcmFunc.ErrorWarningLog.Messages.Count);
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -453,11 +452,11 @@ namespace Xenko.Engine.Tests
             var mcmStream = new ShaderCompilationContext(shaderClassSourceStream, shaderLoader.LoadClassSource);
             mcmStream.Run();
 
-            Assert.AreEqual(1, mcmStream.ErrorWarningLog.Messages.Count);
-            Assert.That(mcmStream.ErrorWarningLog.Messages[0].Code, Is.EqualTo(XenkoMessageCode.ErrorInOutStream.Code));
+            Assert.Equal(1, mcmStream.ErrorWarningLog.Messages.Count);
+            Assert.Equal(XenkoMessageCode.ErrorInOutStream.Code, mcmStream.ErrorWarningLog.Messages[0].Code);
         }
 
-        [Test]
+        [Fact]
         public void TestShaderLibrary()
         {
             var shaderClassSourceList = new HashSet<string>
@@ -472,53 +471,53 @@ namespace Xenko.Engine.Tests
             var lib = new XenkoShaderLibrary(shaderClassSourceList);
             lib.LoadClass = shaderLoader.LoadClassSource;
 
-            Assert.AreEqual(4, lib.AvailableShaders.Count);
-            Assert.AreEqual(0, lib.MixinInfos.Count);
+            Assert.Equal(4, lib.AvailableShaders.Count);
+            Assert.Equal(0, lib.MixinInfos.Count);
             var context = lib.GetContextFromMacros(new ShaderMacro[] { new ShaderMacro("MAC0", "0") });
-            Assert.AreEqual(4, context.Count);
-            Assert.AreEqual(4, lib.AvailableShaders.Count);
-            Assert.AreEqual(4, lib.MixinInfos.Count);
-            Assert.AreEqual(4, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
+            Assert.Equal(4, context.Count);
+            Assert.Equal(4, lib.AvailableShaders.Count);
+            Assert.Equal(4, lib.MixinInfos.Count);
+            Assert.Equal(4, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
 
             context = lib.GetContextFromMacros(new ShaderMacro[] { new ShaderMacro("MAC1", "1") });
-            Assert.AreEqual(4, context.Count);
-            Assert.AreEqual(4, lib.AvailableShaders.Count);
-            Assert.AreEqual(8, lib.MixinInfos.Count);
-            Assert.AreEqual(4, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
+            Assert.Equal(4, context.Count);
+            Assert.Equal(4, lib.AvailableShaders.Count);
+            Assert.Equal(8, lib.MixinInfos.Count);
+            Assert.Equal(4, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
 
             context = lib.GetContextFromMacros(new ShaderMacro[] { new ShaderMacro("MAC0", "1") });
-            Assert.AreEqual(4, context.Count);
-            Assert.AreEqual(4, lib.AvailableShaders.Count);
-            Assert.AreEqual(12, lib.MixinInfos.Count);
-            Assert.AreEqual(4, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
+            Assert.Equal(4, context.Count);
+            Assert.Equal(4, lib.AvailableShaders.Count);
+            Assert.Equal(12, lib.MixinInfos.Count);
+            Assert.Equal(4, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
 
             context = lib.GetContextFromMacros(new ShaderMacro[] { new ShaderMacro("MAC0", "0") });
-            Assert.AreEqual(4, context.Count);
-            Assert.AreEqual(4, lib.AvailableShaders.Count);
-            Assert.AreEqual(12, lib.MixinInfos.Count);
-            Assert.AreEqual(4, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
+            Assert.Equal(4, context.Count);
+            Assert.Equal(4, lib.AvailableShaders.Count);
+            Assert.Equal(12, lib.MixinInfos.Count);
+            Assert.Equal(4, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
 
             context = lib.GetContextFromMacros(new ShaderMacro[] { });
-            Assert.AreEqual(4, context.Count);
-            Assert.AreEqual(4, lib.AvailableShaders.Count);
-            Assert.AreEqual(16, lib.MixinInfos.Count);
-            Assert.AreEqual(4, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
+            Assert.Equal(4, context.Count);
+            Assert.Equal(4, lib.AvailableShaders.Count);
+            Assert.Equal(16, lib.MixinInfos.Count);
+            Assert.Equal(4, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
 
             context = lib.GetContextFromMacros(new ShaderMacro[] { new ShaderMacro("MACRO_TEST", "int") });
-            Assert.AreEqual(4, context.Count);
-            Assert.AreEqual(4, lib.AvailableShaders.Count);
-            Assert.AreEqual(20, lib.MixinInfos.Count);
-            Assert.AreEqual(5, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
+            Assert.Equal(4, context.Count);
+            Assert.Equal(4, lib.AvailableShaders.Count);
+            Assert.Equal(20, lib.MixinInfos.Count);
+            Assert.Equal(5, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count());
 
             context = lib.GetContextFromMacros(new ShaderMacro[] { new ShaderMacro("MACRO_TEST", "float") });
-            Assert.AreEqual(4, context.Count);
-            Assert.AreEqual(4, lib.AvailableShaders.Count);
-            Assert.AreEqual(24, lib.MixinInfos.Count);
-            Assert.AreEqual(6, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count()); // TODO: should be 4!
+            Assert.Equal(4, context.Count);
+            Assert.Equal(4, lib.AvailableShaders.Count);
+            Assert.Equal(24, lib.MixinInfos.Count);
+            Assert.Equal(6, lib.MixinInfos.Select(x => x.Mixin).Distinct().Count()); // TODO: should be 4!
   
         }
 
-        [Test]
+        [Fact]
         public void TestSingle()
         {
             VirtualFileSystem.MountFileSystem("/assets/shaders", "../../../../../shaders");
@@ -553,7 +552,7 @@ namespace Xenko.Engine.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void TestWarnings()
         {
             //VirtualFileSystem.MountFileSystem("/assets/shaders", "../../../../../shaders");
@@ -575,7 +574,7 @@ namespace Xenko.Engine.Tests
         }
 
 
-        [Test]
+        [Fact]
         public void TestMayaWarnings()
         {
             VirtualFileSystem.MountFileSystem("/assets/shaders", "../../../../../shaders");
@@ -601,7 +600,7 @@ namespace Xenko.Engine.Tests
 
             var moduleMixin = shaderMixinParser.GetMixin(mixinName);
             Assert.IsNotNull(moduleMixin);
-            Assert.IsFalse(moduleMixin.Log.HasErrors);
+            Assert.False(moduleMixin.Log.HasErrors);
             Assert.IsNotNull(moduleMixin.Mixin);
 
             return moduleMixin;

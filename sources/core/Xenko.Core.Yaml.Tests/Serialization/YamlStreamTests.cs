@@ -46,163 +46,163 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Yaml.Serialization;
 
 namespace Xenko.Core.Yaml.Tests.Serialization
 {
     public class YamlStreamTests : YamlTest
     {
-        [Test]
+        [Fact]
         public void LoadSimpleDocument()
         {
             var stream = new YamlStream();
             stream.Load(YamlFile("test2.yaml"));
 
-            Assert.AreEqual(1, stream.Documents.Count);
-            Assert.IsInstanceOf<YamlScalarNode>(stream.Documents[0].RootNode);
-            Assert.AreEqual("a scalar", ((YamlScalarNode) stream.Documents[0].RootNode).Value);
+            Assert.Equal(1, stream.Documents.Count);
+            Assert.True(stream.Documents[0].RootNode is YamlScalarNode);
+            Assert.Equal("a scalar", ((YamlScalarNode) stream.Documents[0].RootNode).Value);
         }
 
-        [Test]
+        [Fact]
         public void BackwardAliasReferenceWorks()
         {
             var stream = new YamlStream();
             stream.Load(YamlFile("backwardsAlias.yaml"));
 
-            Assert.AreEqual(1, stream.Documents.Count);
-            Assert.IsInstanceOf<YamlSequenceNode>(stream.Documents[0].RootNode);
+            Assert.Equal(1, stream.Documents.Count);
+            Assert.True(stream.Documents[0].RootNode is YamlSequenceNode);
 
             var sequence = (YamlSequenceNode) stream.Documents[0].RootNode;
-            Assert.AreEqual(3, sequence.Children.Count);
+            Assert.Equal(3, sequence.Children.Count);
 
-            Assert.AreEqual("a scalar", ((YamlScalarNode) sequence.Children[0]).Value);
-            Assert.AreEqual("another scalar", ((YamlScalarNode) sequence.Children[1]).Value);
-            Assert.AreEqual("a scalar", ((YamlScalarNode) sequence.Children[2]).Value);
-            Assert.AreSame(sequence.Children[0], sequence.Children[2]);
+            Assert.Equal("a scalar", ((YamlScalarNode) sequence.Children[0]).Value);
+            Assert.Equal("another scalar", ((YamlScalarNode) sequence.Children[1]).Value);
+            Assert.Equal("a scalar", ((YamlScalarNode) sequence.Children[2]).Value);
+            Assert.Equal(sequence.Children[0], sequence.Children[2]);
         }
 
-        [Test]
+        [Fact]
         public void ForwardAliasReferenceWorks()
         {
             var stream = new YamlStream();
             stream.Load(YamlFile("forwardAlias.yaml"));
 
-            Assert.AreEqual(1, stream.Documents.Count);
-            Assert.IsInstanceOf<YamlSequenceNode>(stream.Documents[0].RootNode);
+            Assert.Equal(1, stream.Documents.Count);
+            Assert.True(stream.Documents[0].RootNode is YamlSequenceNode);
 
             var sequence = (YamlSequenceNode) stream.Documents[0].RootNode;
-            Assert.AreEqual(3, sequence.Children.Count);
+            Assert.Equal(3, sequence.Children.Count);
 
-            Assert.AreEqual("a scalar", ((YamlScalarNode) sequence.Children[0]).Value);
-            Assert.AreEqual("another scalar", ((YamlScalarNode) sequence.Children[1]).Value);
-            Assert.AreEqual("a scalar", ((YamlScalarNode) sequence.Children[2]).Value);
-            Assert.AreSame(sequence.Children[0], sequence.Children[2]);
+            Assert.Equal("a scalar", ((YamlScalarNode) sequence.Children[0]).Value);
+            Assert.Equal("another scalar", ((YamlScalarNode) sequence.Children[1]).Value);
+            Assert.Equal("a scalar", ((YamlScalarNode) sequence.Children[2]).Value);
+            Assert.Equal(sequence.Children[0], sequence.Children[2]);
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample1()
         {
             RoundtripTest("test1.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample2()
         {
             RoundtripTest("test2.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample3()
         {
             RoundtripTest("test3.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample4()
         {
             RoundtripTest("test4.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample5()
         {
             RoundtripTest("test6.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample6()
         {
             RoundtripTest("test6.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample7()
         {
             RoundtripTest("test7.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample8()
         {
             RoundtripTest("test8.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample9()
         {
             RoundtripTest("test9.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample10()
         {
             RoundtripTest("test10.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample11()
         {
             RoundtripTest("test11.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample12()
         {
             RoundtripTest("test12.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample13()
         {
             RoundtripTest("test13.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripExample14()
         {
             RoundtripTest("test14.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripBackreference()
         {
             RoundtripTest("backreference.yaml");
         }
 
-        [Test]
+        [Fact]
         public void FailBackreference()
         {
             RoundtripTest("fail-backreference.yaml");
         }
 
-        [Test]
+        [Fact]
         public void RoundtripTags()
         {
             RoundtripTest("tags.yaml");
         }
 
-        [Test]
+        [Fact]
         public void AllAliasesMustBeResolved()
         {
             var original = new YamlStream();
@@ -230,15 +230,15 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             Dump.WriteLine("The original document produced {0} events.", originalBuilder.Events.Count);
             Dump.WriteLine("The final document produced {0} events.", finalBuilder.Events.Count);
-            Assert.AreEqual(originalBuilder.Events.Count, finalBuilder.Events.Count);
+            Assert.Equal(originalBuilder.Events.Count, finalBuilder.Events.Count);
 
             for (var i = 0; i < originalBuilder.Events.Count; ++i)
             {
                 var originalEvent = originalBuilder.Events[i];
                 var finalEvent = finalBuilder.Events[i];
 
-                Assert.AreEqual(originalEvent.Type, finalEvent.Type);
-                Assert.AreEqual(originalEvent.Value, finalEvent.Value);
+                Assert.Equal(originalEvent.Type, finalEvent.Type);
+                Assert.Equal(originalEvent.Value, finalEvent.Value);
             }
         }
 
@@ -300,7 +300,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
         }
 
         // Todo: Sample.. belongs elsewhere?
-        [Test]
+        [Fact]
         public void RoundtripSample()
         {
             var original = new YamlStream();

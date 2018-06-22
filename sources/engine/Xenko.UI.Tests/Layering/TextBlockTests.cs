@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Graphics;
@@ -11,7 +11,6 @@ namespace Xenko.UI.Tests.Layering
     /// <summary>
     /// A class that contains test functions for layering of the <see cref="TextBlock"/> class.
     /// </summary>
-    [TestFixture]
     [System.ComponentModel.Description("Tests for TextBlock layering")]
     public class TextBlockTests : TextBlock
     {
@@ -20,7 +19,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the invalidations generated object property changes.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestBasicInvalidations()
         {
             // - test the properties that are supposed to invalidate the object measurement

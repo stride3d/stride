@@ -3,7 +3,7 @@
 
 using System.Linq;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Games;
 
@@ -18,12 +18,7 @@ namespace Xenko.Graphics.Regression
 
         protected override bool IsPreferredProfileAvailable(GraphicsProfile[] preferredProfiles, out GraphicsProfile availableProfile)
         {
-            if(!base.IsPreferredProfileAvailable(preferredProfiles, out availableProfile))
-            {
-                var minimumProfile = preferredProfiles.Min();
-                Assert.Ignore("This test requires the '{0}' graphic profile. It has been ignored", minimumProfile);
-            }
-
+            Assert.True(base.IsPreferredProfileAvailable(preferredProfiles, out availableProfile), $"This test requires the '{preferredProfiles.Min()}' graphic profile. It has been ignored");
             return true;
         }
     }

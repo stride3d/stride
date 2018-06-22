@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Design.Tests.Transactions
 {
@@ -27,14 +27,14 @@ namespace Xenko.Core.Design.Tests.Transactions
         {
             // Rollback is done in reverse order
             var value = totalCount - order - 1;
-            Assert.AreEqual(value, counter.Value);
+            Assert.Equal(value, counter.Value);
             counter.Value++;
             base.Rollback();
         }
 
         protected override void Rollforward()
         {
-            Assert.AreEqual(order, counter.Value);
+            Assert.Equal(order, counter.Value);
             counter.Value++;
             base.Rollforward();
         }

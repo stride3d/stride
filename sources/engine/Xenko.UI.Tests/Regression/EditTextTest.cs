@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core;
 using Xenko.Core.Mathematics;
@@ -254,9 +254,9 @@ namespace Xenko.UI.Tests.Regression
 
         public void SelectionTest2()
         {
-            Assert.AreEqual(5, edit4.SelectionStart);
-            Assert.AreEqual(0, edit4.SelectionLength);
-            Assert.AreEqual(5, edit4.CaretPosition);
+            Assert.Equal(5, edit4.SelectionStart);
+            Assert.Equal(0, edit4.SelectionLength);
+            Assert.Equal(5, edit4.CaretPosition);
 
             edit4.TextAlignment = TextAlignment.Center;
             edit4.IsSelectionActive = false;
@@ -266,63 +266,63 @@ namespace Xenko.UI.Tests.Regression
 
         public void SelectionTest3()
         {
-            Assert.AreEqual(6, edit4.SelectionStart);
-            Assert.AreEqual(0, edit4.SelectionLength);
-            Assert.AreEqual(6, edit4.CaretPosition);
+            Assert.Equal(6, edit4.SelectionStart);
+            Assert.Equal(0, edit4.SelectionLength);
+            Assert.Equal(6, edit4.CaretPosition);
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.525f, 0.8f));
             Input.Update(new GameTime());
         }
 
         public void SelectionTest4()
         {
-            Assert.AreEqual(6, edit4.SelectionStart);
-            Assert.AreEqual(3, edit4.SelectionLength);
-            Assert.AreEqual(9, edit4.CaretPosition);
+            Assert.Equal(6, edit4.SelectionStart);
+            Assert.Equal(3, edit4.SelectionLength);
+            Assert.Equal(9, edit4.CaretPosition);
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.57f, 0.8f));
             Input.Update(new GameTime());
         }
 
         public void SelectionTest5()
         {
-            Assert.AreEqual(6, edit4.SelectionStart);
-            Assert.AreEqual(6, edit4.SelectionLength);
-            Assert.AreEqual(12, edit4.CaretPosition);
+            Assert.Equal(6, edit4.SelectionStart);
+            Assert.Equal(6, edit4.SelectionLength);
+            Assert.Equal(12, edit4.CaretPosition);
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.55f, 0.8f));
             Input.Update(new GameTime());
         }
 
         public void SelectionTest6()
         {
-            Assert.AreEqual(6, edit4.SelectionStart);
-            Assert.AreEqual(5, edit4.SelectionLength);
-            Assert.AreEqual(11, edit4.CaretPosition);
+            Assert.Equal(6, edit4.SelectionStart);
+            Assert.Equal(5, edit4.SelectionLength);
+            Assert.Equal(11, edit4.CaretPosition);
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.49f, 0.8f));
             Input.Update(new GameTime());
         }
 
         public void SelectionTest7()
         {
-            Assert.AreEqual(5, edit4.SelectionStart);
-            Assert.AreEqual(1, edit4.SelectionLength);
-            Assert.AreEqual(5, edit4.CaretPosition);
+            Assert.Equal(5, edit4.SelectionStart);
+            Assert.Equal(1, edit4.SelectionLength);
+            Assert.Equal(5, edit4.CaretPosition);
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.42f, 0.8f));
             Input.Update(new GameTime());
         }
 
         public void SelectionTest8()
         {
-            Assert.AreEqual(0, edit4.SelectionStart);
-            Assert.AreEqual(6, edit4.SelectionLength);
-            Assert.AreEqual(0, edit4.CaretPosition);
+            Assert.Equal(0, edit4.SelectionStart);
+            Assert.Equal(6, edit4.SelectionLength);
+            Assert.Equal(0, edit4.CaretPosition);
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.47f, 0.8f));
             Input.Update(new GameTime());
         }
 
         public void SelectionTest9()
         {
-            Assert.AreEqual(3, edit4.SelectionStart);
-            Assert.AreEqual(3, edit4.SelectionLength);
-            Assert.AreEqual(3, edit4.CaretPosition);
+            Assert.Equal(3, edit4.SelectionStart);
+            Assert.Equal(3, edit4.SelectionLength);
+            Assert.Equal(3, edit4.CaretPosition);
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.50f, 0.8f));
             AddPointerEvent(PointerEventType.Released, new Vector2(0.50f, 0.8f));
             Input.Update(new GameTime());
@@ -330,9 +330,9 @@ namespace Xenko.UI.Tests.Regression
 
         public void SelectionGraphicTest1()
         {
-            Assert.AreEqual(6, edit4.SelectionStart);
-            Assert.AreEqual(0, edit4.SelectionLength);
-            Assert.AreEqual(6, edit4.CaretPosition);
+            Assert.Equal(6, edit4.SelectionStart);
+            Assert.Equal(0, edit4.SelectionLength);
+            Assert.Equal(6, edit4.CaretPosition);
 
             edit4.TextAlignment = TextAlignment.Center;
             edit4.IsSelectionActive = false;
@@ -353,7 +353,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        [Test]
+        [Fact]
         public void RunEditTextTest()
         {
             RunGameTest(new EditTextTest());

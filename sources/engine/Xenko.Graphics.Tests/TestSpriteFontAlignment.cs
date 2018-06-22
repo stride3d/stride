@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 
 using System.Threading.Tasks;
 
@@ -114,7 +114,7 @@ One blank line below
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [Fact]
         public void RunTestSpriteFontAlignment()
         {
             RunGameTest(new TestSpriteFontAlignment());

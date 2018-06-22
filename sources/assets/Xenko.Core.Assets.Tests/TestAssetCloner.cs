@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Reflection;
 using Xenko.Core.Serialization;
@@ -36,10 +36,9 @@ namespace Xenko.Core.Assets.Tests
     {        
     }
 
-    [TestFixture]
     public class TestAssetCloner
     {
-        [Test]
+        [Fact]
         public void TestHash()
         {
             var obj1 = new TestAssetClonerObject
@@ -58,24 +57,24 @@ namespace Xenko.Core.Assets.Tests
 
             var hash1 = AssetHash.Compute(obj1);
             var hash2 = AssetHash.Compute(obj2);
-            Assert.AreEqual(hash1, hash2);
+            Assert.Equal(hash1, hash2);
 
             obj1.Name = "Yes";
             var hash11 = AssetHash.Compute(obj1);
-            Assert.AreNotEqual(hash11, hash2);
+            Assert.NotEqual(hash11, hash2);
             obj1.Name = "Test1";
 
             var hash12 = AssetHash.Compute(obj1);
-            Assert.AreEqual(hash12, hash2);
+            Assert.Equal(hash12, hash2);
 
             obj2 = AssetCloner.Clone(obj1);
 
             var hash1WithOverrides = AssetHash.Compute(obj1);
             var hash2WithOverrides = AssetHash.Compute(obj2);
-            Assert.AreEqual(hash1WithOverrides, hash2WithOverrides);
+            Assert.Equal(hash1WithOverrides, hash2WithOverrides);
         }
 
-        [Test]
+        [Fact]
         public void TestCloneCollectionIds()
         {
             var obj = new TestObjectWithCollection { Name = "Test", Items = { "aaa", "bbb" } };
@@ -87,18 +86,18 @@ namespace Xenko.Core.Assets.Tests
             CollectionItemIdentifiers cloneIds;
             var idsExist = CollectionItemIdHelper.TryGetCollectionItemIds(clone.Items, out cloneIds);
             Assert.True(idsExist);
-            Assert.AreEqual(ids.KeyCount, cloneIds.KeyCount);
-            Assert.AreEqual(ids.DeletedCount, cloneIds.DeletedCount);
-            Assert.AreEqual(ids[0], cloneIds[0]);
-            Assert.AreEqual(ids[1], cloneIds[1]);
-            Assert.AreEqual(ids.DeletedItems.Single(), cloneIds.DeletedItems.Single());
+            Assert.Equal(ids.KeyCount, cloneIds.KeyCount);
+            Assert.Equal(ids.DeletedCount, cloneIds.DeletedCount);
+            Assert.Equal(ids[0], cloneIds[0]);
+            Assert.Equal(ids[1], cloneIds[1]);
+            Assert.Equal(ids.DeletedItems.Single(), cloneIds.DeletedItems.Single());
 
             clone = AssetCloner.Clone(obj, AssetClonerFlags.RemoveItemIds);
             idsExist = CollectionItemIdHelper.TryGetCollectionItemIds(clone.Items, out cloneIds);
             Assert.False(idsExist);
         }
 
-        [Test]
+        [Fact]
         public void TestDiscardCollectionIds()
         {
             var obj = new TestObjectWithCollection { Name = "Test", Items = { "aaa", "bbb" } };
@@ -110,11 +109,11 @@ namespace Xenko.Core.Assets.Tests
             CollectionItemIdentifiers cloneIds;
             var idsExist = CollectionItemIdHelper.TryGetCollectionItemIds(clone.Items, out cloneIds);
             Assert.True(idsExist);
-            Assert.AreEqual(ids.KeyCount, cloneIds.KeyCount);
-            Assert.AreEqual(ids.DeletedCount, cloneIds.DeletedCount);
-            Assert.AreEqual(ids[0], cloneIds[0]);
-            Assert.AreEqual(ids[1], cloneIds[1]);
-            Assert.AreEqual(ids.DeletedItems.Single(), cloneIds.DeletedItems.Single());
+            Assert.Equal(ids.KeyCount, cloneIds.KeyCount);
+            Assert.Equal(ids.DeletedCount, cloneIds.DeletedCount);
+            Assert.Equal(ids[0], cloneIds[0]);
+            Assert.Equal(ids[1], cloneIds[1]);
+            Assert.Equal(ids.DeletedItems.Single(), cloneIds.DeletedItems.Single());
 
             clone = AssetCloner.Clone(obj, AssetClonerFlags.RemoveItemIds);
             idsExist = CollectionItemIdHelper.TryGetCollectionItemIds(clone.Items, out cloneIds);

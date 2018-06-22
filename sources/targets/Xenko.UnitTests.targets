@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <!-- Do not compile unit test when packaging -->
@@ -45,42 +45,6 @@
   <PropertyGroup>
     <XenkoCommonDependenciesDir>$(XenkoPackageXenko)\deps\</XenkoCommonDependenciesDir>
   </PropertyGroup>
-
-  <!-- Include platform dependent assembly when specified -->
-  <Choose>
-    <When Condition=" '$(XenkoPlatform)' == 'Android'">
-      <ItemGroup>
-        <Reference Include="Xamarin.Android.NUnitLite"/>
-      </ItemGroup>
-    </When>
-    <When Condition=" '$(XenkoPlatform)' == 'iOS'">
-      <ItemGroup>
-        <Reference Include="MonoTouch.NUnitLite"/>
-      </ItemGroup>
-    </When>
-    <When Condition="('$(XenkoRuntime)' == '') and (('$(XenkoPlatform)' == 'Windows') or ('$(XenkoPlatform)' == 'Linux') or ('$(XenkoPlatform)' == 'macOS'))">
-      <ItemGroup>
-        <Reference Include="nunit.framework">
-          <HintPath>$(XenkoCommonDependenciesDir)NUnit\nunit.framework.dll</HintPath>
-        </Reference>
-        <Reference Include="nunit.core.interfaces">
-          <HintPath>$(XenkoCommonDependenciesDir)NUnit\addins\nunit.core.interfaces.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="('$(XenkoRuntime)' == 'CoreCLR')">
-      <ItemGroup>
-        <Reference Include="nunitlite">
-          <HintPath>$(XenkoCommonDependenciesDir)NUnitLite\Portable\nunitlite.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-      <ItemGroup>
-        <Reference Include="nunit.framework">
-          <HintPath>$(XenkoCommonDependenciesDir)NUnitLite\Portable\nunit.framework.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
 
   <!-- Override graphics platform (no need to get it from game settings asset) -->
   <Target Name="XenkoGetGraphicsPlatform">

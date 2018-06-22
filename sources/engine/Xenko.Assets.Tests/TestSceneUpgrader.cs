@@ -4,7 +4,7 @@
 using System;
 using System.IO;
 using System.Text;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets;
 using Xenko.Core.Diagnostics;
 
@@ -13,14 +13,13 @@ namespace Xenko.Assets.Tests
     /// <summary>
     /// Test upgrade of scenes
     /// </summary>
-    [TestFixture]
     public class TestSceneUpgrader
     {
 
         /// <summary>
         /// Test upgrade of scene assets from samples. This test makes sense when code has been changed but samples are not yet updated.
         /// </summary>
-        [Test]
+        [Fact]
         public void Test()
         {
             var logger = new LoggerResult();

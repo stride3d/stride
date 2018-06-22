@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.IO;
 using Xenko.Effects;
@@ -15,7 +15,6 @@ using Xenko.Core.Shaders.Utilities;
 
 namespace Xenko.Core.Shaders.Tests
 {
-    [TestFixture]
     class TestOpenGLES
     {
         private void Mount()
@@ -23,7 +22,7 @@ namespace Xenko.Core.Shaders.Tests
             VirtualFileSystem.MountFileSystem("/assets/shaders", "../../ShaderES");
         }
 
-        [Test]
+        [Fact]
         public void TestUnroll()
         {
             Mount();
@@ -40,7 +39,7 @@ namespace Xenko.Core.Shaders.Tests
             compiler.Compile(source, "VSMain", "vs");
         }
 
-        [Test]
+        [Fact]
         public void TestBreak()
         {
             Mount();

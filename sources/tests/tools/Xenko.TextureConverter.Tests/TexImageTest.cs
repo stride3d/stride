@@ -3,44 +3,36 @@
 using System;
 using System.Runtime.InteropServices;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.TextureConverter;
 
 namespace Xenko.TextureConverter.Tests
 {
-    [TestFixture]
-    class TexImageTest
+    public class TexImageTest : IDisposable
     {
-        TexImage image;
+        private readonly TexImage image = new TexImage(Marshal.AllocHGlobal(699104), 699104, 512, 512, 1, Xenko.Graphics.PixelFormat.BC3_UNorm, 10, 2, TexImage.TextureDimension.Texture2D);
 
-        [SetUp]
-        public void SetUp()
-        {
-            image = new TexImage(Marshal.AllocHGlobal(699104), 699104, 512, 512, 1, Xenko.Graphics.PixelFormat.BC3_UNorm, 10, 2, TexImage.TextureDimension.Texture2D);
-        }
-
-        [TearDown]
-        public void TearDown()
+        public void Dispose()
         {
             Marshal.FreeHGlobal(image.Data);
         }
 
-        [Test, Ignore("Need check")]
+        [Fact(Skip = "Need check")]
         public void TestEquals()
         {
             TexImage image2 = new TexImage(new IntPtr(), 699104, 512, 512, 1, Xenko.Graphics.PixelFormat.BC3_UNorm, 10, 2, TexImage.TextureDimension.Texture2D);
-            Assert.IsTrue(image.Equals(image2));
+            Assert.True(image.Equals(image2));
 
             image2 = new TexImage(new IntPtr(), 699104, 512, 256, 1, Xenko.Graphics.PixelFormat.BC3_UNorm, 10, 2, TexImage.TextureDimension.Texture2D);
-            Assert.IsFalse(image.Equals(image2));
+            Assert.False(image.Equals(image2));
         }
 
-        [Test, Ignore("Need check")]
+        [Fact(Skip = "Need check")]
         public void TestClone()
         {
             TexImage clone = (TexImage)image.Clone();
 
-            Assert.IsTrue(image.Equals(clone));
+            Assert.True(image.Equals(clone));
 
             clone.Dispose();
         }

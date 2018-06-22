@@ -1,18 +1,18 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Particles.Tests
 {
-    class VisualTestGeneral : GameTest
+    public class VisualTestGeneral : GameTest
     {
         public VisualTestGeneral() : base("VisualTestGeneral")
         {
             IndividualTestVersion = 1;  //  Changes in particle spawning
         }
 
-        [Test]
+        [Fact]
         public void RunVisualTests()
         {
             RunGameTest(new VisualTestGeneral());

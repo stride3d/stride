@@ -1,11 +1,11 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Xenko.Audio.Tests</RootNamespace>
     <AssemblyName>Xenko.Audio.Tests</AssemblyName>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>
@@ -136,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Xenko.Shared\Refactor\Refactor.cs" />
+    <Compile Include="XunitAttributes.cs" />
     <Compile Include="AudioTestGame.cs" />
     <Compile Include="BasicTest.cs" />
     <Compile Include="Engine\GameClassForTests.cs" />

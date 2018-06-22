@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets;
 using Xenko.Core.Assets.Editor.Services;
 using Xenko.Core.Assets.Quantum;
@@ -20,7 +20,6 @@ using Xenko.GameStudio.Tests.Helpers;
 
 namespace Xenko.GameStudio.Tests
 {
-    [TestFixture]
     public class TestCopyPasteWithEntities
     {
         public class CopyPasteTest
@@ -67,7 +66,7 @@ namespace Xenko.GameStudio.Tests
             public ReferencingComponent MyComponent { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void TestCopyPasteEntityAtRoot()
         {
             var sceneAsset = new SceneAsset();
@@ -81,19 +80,19 @@ namespace Xenko.GameStudio.Tests
             service.PropertyGraphContainer.RegisterGraph(assetTest.AssetGraph);
             var clipboard = Copy(service, assetTest.AssetGraph, new[] { entity });
             Paste(service, clipboard, assetTest.AssetGraph, null, null);
-            Assert.AreEqual(2, assetTest.Asset.Hierarchy.Parts.Count);
+            Assert.Equal(2, assetTest.Asset.Hierarchy.Parts.Count);
             Assert.True(assetTest.Asset.Hierarchy.Parts.Values.Contains(entity));
 
             var pastedEntity = assetTest.Asset.Hierarchy.Parts.Values.Single(x => x != entity);
-            Assert.AreEqual(2, assetTest.Asset.Hierarchy.RootParts.Count);
+            Assert.Equal(2, assetTest.Asset.Hierarchy.RootParts.Count);
             Assert.True(assetTest.Asset.Hierarchy.RootParts.Contains(pastedEntity.Entity));
-            Assert.AreEqual(string.Empty, pastedEntity.Folder);
-            Assert.AreNotEqual(entity.Entity.Id, pastedEntity.Entity.Id);
-            Assert.AreNotEqual(entity.Entity.Transform.Id, pastedEntity.Entity.Transform.Id);
-            Assert.AreEqual(Vector3.UnitZ, pastedEntity.Entity.Transform.Position);
+            Assert.Equal(string.Empty, pastedEntity.Folder);
+            Assert.NotEqual(entity.Entity.Id, pastedEntity.Entity.Id);
+            Assert.NotEqual(entity.Entity.Transform.Id, pastedEntity.Entity.Transform.Id);
+            Assert.Equal(Vector3.UnitZ, pastedEntity.Entity.Transform.Position);
         }
 
-        [Test]
+        [Fact]
         public void TestCopyPasteEntityAsChild()
         {
             var sceneAsset = new SceneAsset();
@@ -107,18 +106,18 @@ namespace Xenko.GameStudio.Tests
             service.PropertyGraphContainer.RegisterGraph(assetTest.AssetGraph);
             var clipboard = Copy(service, assetTest.AssetGraph, new[] { entity });
             Paste(service, clipboard, assetTest.AssetGraph, entity, null);
-            Assert.AreEqual(2, assetTest.Asset.Hierarchy.Parts.Count);
+            Assert.Equal(2, assetTest.Asset.Hierarchy.Parts.Count);
             Assert.True(assetTest.Asset.Hierarchy.Parts.Values.Contains(entity));
 
             var pastedEntity = assetTest.Asset.Hierarchy.Parts.Values.Single(x => x != entity);
-            Assert.AreEqual(1, assetTest.Asset.Hierarchy.RootParts.Count);
+            Assert.Equal(1, assetTest.Asset.Hierarchy.RootParts.Count);
             Assert.True(assetTest.Asset.Hierarchy.RootParts.Contains(entity.Entity));
-            Assert.AreEqual(string.Empty, pastedEntity.Folder);
-            Assert.AreNotEqual(entity.Entity.Id, pastedEntity.Entity.Id);
-            Assert.AreNotEqual(entity.Entity.Transform.Id, pastedEntity.Entity.Transform.Id);
-            Assert.AreEqual(entity.Entity.Transform, pastedEntity.Entity.Transform.Parent);
+            Assert.Equal(string.Empty, pastedEntity.Folder);
+            Assert.NotEqual(entity.Entity.Id, pastedEntity.Entity.Id);
+            Assert.NotEqual(entity.Entity.Transform.Id, pastedEntity.Entity.Transform.Id);
+            Assert.Equal(entity.Entity.Transform, pastedEntity.Entity.Transform.Parent);
             Assert.True(entity.Entity.Transform.Children.Contains(pastedEntity.Entity.Transform));
-            Assert.AreEqual(Vector3.UnitZ, pastedEntity.Entity.Transform.Position);
+            Assert.Equal(Vector3.UnitZ, pastedEntity.Entity.Transform.Position);
         }
 
         [CanBeNull]
@@ -136,12 +135,12 @@ namespace Xenko.GameStudio.Tests
             var data = service.DeserializeCopiedData(text, assetGraph.Asset, typeof(Entity));
             Assert.NotNull(data);
             Assert.NotNull(data.Items);
-            Assert.AreEqual(1, data.Items.Count);
+            Assert.Equal(1, data.Items.Count);
 
             var item = data.Items[0];
-            Assert.IsNotNull(item);
-            Assert.IsNotNull(item.Data);
-            Assert.IsNotNull(item.Processor);
+            Assert.NotNull(item);
+            Assert.NotNull(item.Data);
+            Assert.NotNull(item.Processor);
 
             var targetNode = target != null ? assetGraph.Container.NodeContainer.GetNode(target.Entity) : assetGraph.RootNode;
             var nodeAccessor = new NodeAccessor(targetNode, Index.Empty);

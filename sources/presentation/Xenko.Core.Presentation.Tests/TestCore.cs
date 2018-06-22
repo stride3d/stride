@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Extensions;
 using Xenko.Core.Presentation.Collections;
 using Xenko.Core.Presentation.Extensions;
@@ -10,8 +10,7 @@ using Xenko.Core.Presentation.ViewModel;
 
 namespace Xenko.Core.Presentation.Tests
 {
-    [TestFixture]
-    class TestCore
+    public class TestCore
     {
         public class Dummy : ViewModelBase, IComparable
         {
@@ -35,7 +34,7 @@ namespace Xenko.Core.Presentation.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void TestSortedObservableCollection()
         {
             var collection = new SortedObservableCollection<int> { 5, 13, 2, 9, 0, 8, 5, 11, 1, 7, 14, 12, 4, 10, 3, 6 };
@@ -43,15 +42,15 @@ namespace Xenko.Core.Presentation.Tests
 
             for (int i = 0; i < collection.Count; ++i)
             {
-                Assert.That(collection[i] == i);
-                Assert.That(collection.BinarySearch(i) == i);
+                Assert.True(collection[i] == i);
+                Assert.True(collection.BinarySearch(i) == i);
             }
 
             Assert.Throws<InvalidOperationException>(() => collection[4] = 10);
             Assert.Throws<InvalidOperationException>(() => collection.Move(4, 5));
         }
 
-        [Test]
+        [Fact]
         public void TestAutoUpdatingSortedObservableCollection()
         {
             var collection = new AutoUpdatingSortedObservableCollection<Dummy> { new Dummy("sss"), new Dummy("eee") };
@@ -63,28 +62,28 @@ namespace Xenko.Core.Presentation.Tests
 
             for (int i = 0; i < collection.Count; ++i)
             {
-                Assert.That(collection[i].Name == sorted[i]);
-                Assert.That(collection.BinarySearch(sorted[i], (d, s) => String.Compare(d.Name, s, StringComparison.Ordinal)) == i);
+                Assert.True(collection[i].Name == sorted[i]);
+                Assert.True(collection.BinarySearch(sorted[i], (d, s) => String.Compare(d.Name, s, StringComparison.Ordinal)) == i);
             }
 
             dummy.Name = "aaa";
             sorted = new[] { "aaa", "eee", "sss" };
             for (int i = 0; i < collection.Count; ++i)
             {
-                Assert.That(collection[i].Name == sorted[i]);
-                Assert.That(collection.BinarySearch(sorted[i], (d, s) => String.Compare(d.Name, s, StringComparison.Ordinal)) == i);
+                Assert.True(collection[i].Name == sorted[i]);
+                Assert.True(collection.BinarySearch(sorted[i], (d, s) => String.Compare(d.Name, s, StringComparison.Ordinal)) == i);
             }
 
             dummy.Name = "zzz";
             sorted = new[] { "eee", "sss", "zzz" };
             for (int i = 0; i < collection.Count; ++i)
             {
-                Assert.That(collection[i].Name == sorted[i]);
-                Assert.That(collection.BinarySearch(sorted[i], (d, s) => String.Compare(d.Name, s, StringComparison.Ordinal)) == i);
+                Assert.True(collection[i].Name == sorted[i]);
+                Assert.True(collection.BinarySearch(sorted[i], (d, s) => String.Compare(d.Name, s, StringComparison.Ordinal)) == i);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestCamelCaseSplit()
         {
             var inputStrings = new[]
@@ -109,10 +108,10 @@ namespace Xenko.Core.Presentation.Tests
             foreach (var testCase in inputStrings.Zip(expectedResult))
             {
                 var split = testCase.Item1.CamelCaseSplit();
-                Assert.AreEqual(testCase.Item2.Length, split.Count);
+                Assert.Equal(testCase.Item2.Length, split.Count);
                 for (var i = 0; i < testCase.Item2.Length; ++i)
                 {
-                    Assert.AreEqual(testCase.Item2[i], split[i]);
+                    Assert.Equal(testCase.Item2[i], split[i]);
                 }
             }
         }

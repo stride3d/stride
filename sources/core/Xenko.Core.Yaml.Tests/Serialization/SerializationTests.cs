@@ -52,7 +52,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Reflection;
 using Xenko.Core.Yaml.Events;
 using Xenko.Core.Yaml.Serialization;
@@ -62,7 +62,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 {
     public class SerializationTests : YamlTest
     {
-        [Test]
+        [Fact]
         public void Roundtrip()
         {
             var settings = new SerializerSettings();
@@ -82,14 +82,14 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             {
                 if (property.CanRead && property.CanWrite)
                 {
-                    Assert.AreEqual(
+                    Assert.Equal(
                         property.GetValue(original, null),
                         property.GetValue(copy, null));
                 }
             }
         }
 
-        [Test]
+        [Fact]
         public void RoundtripWithDefaults()
         {
             var settings = new SerializerSettings() {EmitDefaultValues = true};
@@ -109,14 +109,14 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             {
                 if (property.CanRead && property.CanWrite)
                 {
-                    Assert.AreEqual(
+                    Assert.Equal(
                         property.GetValue(original, null),
                         property.GetValue(copy, null));
                 }
             }
         }
 
-        [Test]
+        [Fact]
         public void CircularReference()
         {
             var serializer = new Serializer();
@@ -140,16 +140,16 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             public Y Child2 { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void DeserializeScalar()
         {
             var sut = new Serializer();
             var result = sut.Deserialize(YamlFile("test2.yaml"), typeof(object));
 
-            Assert.AreEqual("a scalar", result);
+            Assert.Equal("a scalar", result);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeExplicitType()
         {
             var settings = new SerializerSettings();
@@ -159,10 +159,10 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             object result = serializer.Deserialize(YamlFile("explicitType.yaml"), typeof(object));
 
             Assert.True(typeof(Z).IsAssignableFrom(result.GetType()));
-            Assert.AreEqual("bbb", ((Z) result).aaa);
+            Assert.Equal("bbb", ((Z) result).aaa);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeDictionary()
         {
             var serializer = new Serializer();
@@ -171,11 +171,11 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.True(typeof(IDictionary<object, object>).IsAssignableFrom(result.GetType()), "The deserialized object has the wrong type.");
 
             var dictionary = (IDictionary<object, object>) result;
-            Assert.AreEqual("value1", dictionary["key1"]);
-            Assert.AreEqual("value2", dictionary["key2"]);
+            Assert.Equal("value1", dictionary["key1"]);
+            Assert.Equal("value2", dictionary["key2"]);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeExplicitDictionary()
         {
             var settings = new SerializerSettings();
@@ -187,26 +187,26 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.True(typeof(IDictionary<string, int>).IsAssignableFrom(result.GetType()), "The deserialized object has the wrong type.");
 
             var dictionary = (IDictionary<string, int>) result;
-            Assert.AreEqual(1, dictionary["key1"]);
-            Assert.AreEqual(2, dictionary["key2"]);
+            Assert.Equal(1, dictionary["key1"]);
+            Assert.Equal(2, dictionary["key2"]);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeListOfDictionaries()
         {
             var serializer = new Serializer();
             var result = serializer.Deserialize(YamlFile("listOfDictionaries.yaml"), typeof(List<Dictionary<string, string>>));
 
-            Assert.IsInstanceOf<List<Dictionary<string, string>>>(result);
+            Assert.IsType<List<Dictionary<string, string>>>(result);
 
             var list = (List<Dictionary<string, string>>) result;
-            Assert.AreEqual("conn1", list[0]["connection"]);
-            Assert.AreEqual("path1", list[0]["path"]);
-            Assert.AreEqual("conn2", list[1]["connection"]);
-            Assert.AreEqual("path2", list[1]["path"]);
+            Assert.Equal("conn1", list[0]["connection"]);
+            Assert.Equal("path1", list[0]["path"]);
+            Assert.Equal("conn2", list[1]["connection"]);
+            Assert.Equal("path2", list[1]["path"]);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeList()
         {
             var serializer = new Serializer();
@@ -215,12 +215,12 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.True(typeof(IList).IsAssignableFrom(result.GetType()));
 
             var list = (IList) result;
-            Assert.AreEqual("one", list[0]);
-            Assert.AreEqual("two", list[1]);
-            Assert.AreEqual("three", list[2]);
+            Assert.Equal("one", list[0]);
+            Assert.Equal("two", list[1]);
+            Assert.Equal("three", list[2]);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeExplicitList()
         {
             var serializer = new Serializer();
@@ -229,12 +229,12 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.True(typeof(IList<int>).IsAssignableFrom(result.GetType()));
 
             var list = (IList<int>) result;
-            Assert.AreEqual(3, list[0]);
-            Assert.AreEqual(4, list[1]);
-            Assert.AreEqual(5, list[2]);
+            Assert.Equal(3, list[0]);
+            Assert.Equal(4, list[1]);
+            Assert.Equal(5, list[2]);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeEnumerable()
         {
             var settings = new SerializerSettings();
@@ -247,11 +247,11 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             var bufferAsText = buffer.ToString();
             var result = (IEnumerable<Z>) serializer.Deserialize(bufferAsText, typeof(IEnumerable<Z>));
-            Assert.AreEqual(1, result.Count());
-            Assert.AreEqual("Yo", result.First().aaa);
+            Assert.Equal(1, result.Count());
+            Assert.Equal("Yo", result.First().aaa);
         }
 
-        [Test]
+        [Fact]
         public void RoundtripList()
         {
             var serializer = new Serializer();
@@ -264,15 +264,15 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             var copy = (List<int>) serializer.Deserialize(new StringReader(buffer.ToString()), typeof(List<int>));
 
-            Assert.AreEqual(original.Count, copy.Count);
+            Assert.Equal(original.Count, copy.Count);
 
             for (int i = 0; i < original.Count; ++i)
             {
-                Assert.AreEqual(original[i], copy[i]);
+                Assert.Equal(original[i], copy[i]);
             }
         }
 
-        [Test]
+        [Fact]
         public void DeserializeArray()
         {
             var serializer = new Serializer();
@@ -281,12 +281,12 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.True(result is String[]);
 
             var array = (String[]) result;
-            Assert.AreEqual("one", array[0]);
-            Assert.AreEqual("two", array[1]);
-            Assert.AreEqual("three", array[2]);
+            Assert.Equal("one", array[0]);
+            Assert.Equal("two", array[1]);
+            Assert.Equal("three", array[2]);
         }
 
-        [Test]
+        [Fact]
         public void Enums()
         {
             var settings = new SerializerSettings();
@@ -301,10 +301,10 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var bufferAsText = buffer.ToString();
             var deserialized = (StringFormatFlags) serializer.Deserialize(bufferAsText, typeof(StringFormatFlags));
 
-            Assert.AreEqual(flags, deserialized);
+            Assert.Equal(flags, deserialized);
         }
 
-        [Test]
+        [Fact]
         public void CustomTags()
         {
             var settings = new SerializerSettings();
@@ -312,15 +312,15 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var serializer = new Serializer(settings);
             var result = serializer.Deserialize(YamlFile("tags.yaml"));
 
-            Assert.AreEqual(typeof(Point), result.GetType());
+            Assert.Equal(typeof(Point), result.GetType());
 
             var value = (Point) result;
-            Assert.AreEqual(10, value.X);
-            Assert.AreEqual(20, value.Y);
+            Assert.Equal(10, value.X);
+            Assert.Equal(20, value.Y);
         }
 
         // Convertible are not supported
-        //[Test]
+        //[Fact]
         //public void DeserializeConvertible()
         //{
         //	var settings = new SerializerSettings();
@@ -331,10 +331,10 @@ namespace Xenko.Core.Yaml.Tests.Serialization
         //	var result = serializer.Deserialize(YamlFile("convertible.yaml"), typeof(Z));
 
         //	Assert.True(typeof(Z).IsAssignableFrom(result.GetType()));
-        //	Assert.AreEqual("[hello, world]", ((Z)result).aaa);
+        //	Assert.Equal("[hello, world]", ((Z)result).aaa);
         //}
 
-        [Test]
+        [Fact]
         public void RoundtripWithTypeConverter()
         {
             var buffer = new StringWriter();
@@ -349,7 +349,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             var bufferText = buffer.ToString();
             var copy = serializer.Deserialize<SomeCustomType>(bufferText);
-            Assert.AreEqual("Yo", copy.Value);
+            Assert.Equal("Yo", copy.Value);
         }
 
         class SomeCustomType
@@ -381,7 +381,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             }
         }
 
-        [Test]
+        [Fact]
         public void RoundtripDictionary()
         {
             var entries = new Dictionary<string, string>
@@ -401,11 +401,11 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             foreach (var pair in deserialized)
             {
-                Assert.AreEqual(entries[pair.Key], pair.Value);
+                Assert.Equal(entries[pair.Key], pair.Value);
             }
         }
 
-        [Test]
+        [Fact]
         public void SerializeAnonymousType()
         {
             var data = new {Key = 3};
@@ -421,12 +421,12 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var parsed = serializer.Deserialize<Dictionary<string, string>>(bufferText);
 
             Assert.NotNull(parsed);
-            Assert.AreEqual(1, parsed.Count);
+            Assert.Equal(1, parsed.Count);
             Assert.True(parsed.ContainsKey("Key"));
-            Assert.AreEqual(parsed["Key"], "3");
+            Assert.Equal(parsed["Key"], "3");
         }
 
-        [Test]
+        [Fact]
         public void SerializationIncludesDefaultValueWhenAsked()
         {
             var settings = new SerializerSettings() {EmitDefaultValues = true};
@@ -442,7 +442,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.True(bufferText.Contains("MyString"));
         }
 
-        [Test]
+        [Fact]
         public void SerializationDoesNotIncludeDefaultValueWhenNotAsked()
         {
             var settings = new SerializerSettings() {EmitDefaultValues = false};
@@ -459,7 +459,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.False(bufferText.Contains("MyString"));
         }
 
-        [Test]
+        [Fact]
         public void SerializationOfNullWorksInJson()
         {
             var settings = new SerializerSettings() {EmitDefaultValues = true, EmitJsonComptible = true};
@@ -475,7 +475,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.True(bufferText.Contains("MyString"));
         }
 
-        [Test]
+        [Fact]
         public void DeserializationOfNullWorksInJson()
         {
             var settings = new SerializerSettings() {EmitDefaultValues = true, EmitJsonComptible = true};
@@ -494,7 +494,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.Null(copy.MyString);
         }
 
-        [Test]
+        [Fact]
         public void SerializationRespectsYamlIgnoreAttribute()
         {
             var settings = new SerializerSettings();
@@ -523,7 +523,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             public String IgnoreMe { get { throw new NotImplementedException("Accessing a [YamlIgnore] property"); } set { throw new NotImplementedException("Accessing a [YamlIgnore] property"); } }
         }
 
-        [Test]
+        [Fact]
         public void SerializeArrayOfIdenticalObjects()
         {
             var obj1 = new Z {aaa = "abc"};
@@ -533,12 +533,12 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var result = SerializeThenDeserialize(objects);
 
             Assert.NotNull(result);
-            Assert.AreEqual(3, result.Length);
-            Assert.AreEqual(obj1.aaa, result[0].aaa);
-            Assert.AreEqual(obj1.aaa, result[1].aaa);
-            Assert.AreEqual(obj1.aaa, result[2].aaa);
-            Assert.AreSame(result[0], result[1]);
-            Assert.AreSame(result[1], result[2]);
+            Assert.Equal(3, result.Length);
+            Assert.Equal(obj1.aaa, result[0].aaa);
+            Assert.Equal(obj1.aaa, result[1].aaa);
+            Assert.Equal(obj1.aaa, result[2].aaa);
+            Assert.Equal(result[0], result[1]);
+            Assert.Equal(result[1], result[2]);
         }
 
         private T SerializeThenDeserialize<T>(T input)
@@ -558,7 +558,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             public string aaa { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void RoundtripAlias()
         {
             var input = new ConventionTest {AliasTest = "Fourth"};
@@ -573,7 +573,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var output = serializer.Deserialize<ConventionTest>(serialized);
 
             // Ensure round-trip retains value
-            Assert.AreEqual(input.AliasTest, output.AliasTest);
+            Assert.Equal(input.AliasTest, output.AliasTest);
         }
 
         private class ConventionTest
@@ -594,7 +594,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             public string fourthTest { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void DefaultValueAttributeIsUsedWhenPresentWithoutEmitDefaults()
         {
             var input = new HasDefaults {Value = HasDefaults.DefaultValue};
@@ -608,7 +608,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.False(serialized.Contains("Value"));
         }
 
-        [Test]
+        [Fact]
         public void DefaultValueAttributeIsIgnoredWhenPresentWithEmitDefaults()
         {
             var input = new HasDefaults {Value = HasDefaults.DefaultValue};
@@ -622,7 +622,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             Assert.True(serialized.Contains("Value"));
         }
 
-        [Test]
+        [Fact]
         public void DefaultValueAttributeIsIgnoredWhenValueIsDifferent()
         {
             var input = new HasDefaults {Value = "non-default"};
@@ -645,7 +645,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             public string Value { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void NullValuesInListsAreAlwaysEmittedWithoutEmitDefaults()
         {
             var input = new[] {"foo", null, "bar"};
@@ -656,10 +656,10 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var serialized = writer.ToString();
 
             Dump.WriteLine(serialized);
-            Assert.AreEqual(3, Regex.Matches(serialized, "-").Count);
+            Assert.Equal(3, Regex.Matches(serialized, "-").Count);
         }
 
-        [Test]
+        [Fact]
         public void NullValuesInListsAreAlwaysEmittedWithEmitDefaults()
         {
             var input = new[] {"foo", null, "bar"};
@@ -670,10 +670,10 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var serialized = writer.ToString();
 
             Dump.WriteLine(serialized);
-            Assert.AreEqual(3, Regex.Matches(serialized, "-").Count);
+            Assert.Equal(3, Regex.Matches(serialized, "-").Count);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeTwoDocuments()
         {
             var yaml = @"---
@@ -688,14 +688,14 @@ Name: Brad
 
             var andy = serializer.Deserialize<Person>(reader);
             Assert.NotNull(andy);
-            Assert.AreEqual("Andy", andy.Name);
+            Assert.Equal("Andy", andy.Name);
 
             var brad = serializer.Deserialize<Person>(reader);
             Assert.NotNull(brad);
-            Assert.AreEqual("Brad", brad.Name);
+            Assert.Equal("Brad", brad.Name);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeManyDocuments()
         {
             var yaml = @"---
@@ -717,10 +717,10 @@ Name: Charles
                 people.Add(person);
             }
 
-            Assert.AreEqual(3, people.Count);
-            Assert.AreEqual("Andy", people[0].Name);
-            Assert.AreEqual("Brad", people[1].Name);
-            Assert.AreEqual("Charles", people[2].Name);
+            Assert.Equal(3, people.Count);
+            Assert.Equal("Andy", people[0].Name);
+            Assert.Equal("Brad", people[1].Name);
+            Assert.Equal("Charles", people[2].Name);
         }
 
         public class Person
@@ -734,7 +734,7 @@ Name: Charles
             public int Age { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void DeserializeIntoExisting()
         {
             var serializer = new Serializer();
@@ -743,16 +743,16 @@ Name: Charles
 Name: Andy
 ...";
             andy = serializer.DeserializeInto<ExtendedPerson>(yaml, andy);
-            Assert.AreEqual("Andy", andy.Name);
-            Assert.AreEqual(30, andy.Age);
+            Assert.Equal("Andy", andy.Name);
+            Assert.Equal(30, andy.Age);
 
             andy = new ExtendedPerson {Name = "Not Andy", Age = 30};
             andy = (ExtendedPerson) serializer.Deserialize(yaml, typeof(ExtendedPerson), andy);
-            Assert.AreEqual("Andy", andy.Name);
-            Assert.AreEqual(30, andy.Age);
+            Assert.Equal("Andy", andy.Name);
+            Assert.Equal(30, andy.Age);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeWithExistingObject()
         {
             var serializer = new Serializer();
@@ -762,8 +762,8 @@ Name: Andy
 ...";
             andy = new ExtendedPerson {Name = "Not Andy", Age = 30};
             andy = (ExtendedPerson) serializer.Deserialize(yaml, typeof(ExtendedPerson), andy);
-            Assert.AreEqual("Andy", andy.Name);
-            Assert.AreEqual(30, andy.Age);
+            Assert.Equal("Andy", andy.Name);
+            Assert.Equal(30, andy.Age);
         }
 
         public class Family
@@ -772,7 +772,7 @@ Name: Andy
             public ExtendedPerson Father { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void DeserializeIntoExistingSubObjects()
         {
             var serializer = new Serializer();
@@ -788,15 +788,15 @@ Father:
   Name: Andy
 ...";
             family = serializer.DeserializeInto<Family>(yaml, family);
-            Assert.AreEqual("Andy", family.Father.Name);
-            Assert.AreEqual("Betty", family.Mother.Name);
+            Assert.Equal("Andy", family.Father.Name);
+            Assert.Equal("Betty", family.Mother.Name);
             // Existing behaviour will pass with the commented line
-            //Assert.AreEqual(0, family.Father.Age);
-            Assert.AreEqual(30, family.Father.Age);
-            Assert.AreEqual(22, family.Mother.Age);
+            //Assert.Equal(0, family.Father.Age);
+            Assert.Equal(30, family.Father.Age);
+            Assert.Equal(22, family.Mother.Age);
         }
 
-        [Test]
+        [Fact]
         public void DeserializeWithRepeatedSubObjects()
         {
             var serializer = new Serializer();
@@ -808,16 +808,16 @@ Mother:
   Age: 22
 ...";
             var family = serializer.Deserialize<Family>(yaml);
-            Assert.IsNull(family.Father);
+            Assert.Null(family.Father);
             // Note: This is the behaviour I would expect
             // Existing behaviour will pass with the commented line
-            //Assert.IsNull(family.Mother.Name);
-            Assert.AreEqual("Betty", family.Mother.Name);
-            Assert.AreEqual(22, family.Mother.Age);
+            //Assert.Null(family.Mother.Name);
+            Assert.Equal("Betty", family.Mother.Name);
+            Assert.Equal(22, family.Mother.Age);
         }
 
 
-        [Test]
+        [Fact]
         public void DeserializeEmptyDocument()
         {
             var serializer = new Serializer();
@@ -825,7 +825,7 @@ Mother:
             Assert.Null(array);
         }
 
-        [Test]
+        [Fact]
         public void SerializeGenericDictionaryShouldNotThrowTargetException()
         {
             var serializer = new Serializer();
@@ -923,7 +923,7 @@ Mother:
             #endregion
         }
 
-        [Test]
+        [Fact]
         public void UndefinedForwardReferencesFail()
         {
             var serializer = new Serializer();
@@ -936,7 +936,7 @@ Mother:
                 );
         }
 
-        [Test]
+        [Fact]
         public void DeserializeNullList()
         {
             var settings = new SerializerSettings();
@@ -952,10 +952,10 @@ Mother:
 
             Assert.NotNull(result);
             Assert.NotNull(result.MyList);
-            Assert.AreEqual(3, result.MyList.Count);
-            Assert.AreEqual("aaa", result.MyList[0]);
-            Assert.AreEqual("bbb", result.MyList[1]);
-            Assert.AreEqual("ccc", result.MyList[2]);
+            Assert.Equal(3, result.MyList.Count);
+            Assert.Equal("aaa", result.MyList[0]);
+            Assert.Equal("bbb", result.MyList[1]);
+            Assert.Equal("ccc", result.MyList[2]);
         }
 
         private class X

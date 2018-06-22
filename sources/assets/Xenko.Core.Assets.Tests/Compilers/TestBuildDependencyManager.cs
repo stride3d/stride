@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Analysis;
 using Xenko.Core.Assets.Compiler;
 using Xenko.Core.BuildEngine;
@@ -12,10 +12,9 @@ using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Core.Assets.Tests.Compilers
 {
-    [TestFixture]
     public class TestBuildDependencyManager : CompilerTestBase
     {
-        [Test]
+        [Fact]
         public void TestCompileAsset()
         {
             var package = new Package();
@@ -50,20 +49,20 @@ namespace Xenko.Core.Assets.Tests.Compilers
             MyAsset1Compiler.AssertFunc = (url, ass, pkg) =>
             {
                 // Nothing must have been compiled before
-                AssertInThread(ref ex, () => Assert.AreEqual(0, TestCompilerBase.CompiledAssets.Count));
+                AssertInThread(ref ex, () => Assert.Equal(0, TestCompilerBase.CompiledAssets.Count));
             };
 
             var assetBuilder = new PackageCompiler(new RootPackageAssetEnumerator(package));
             var assetBuildResult = assetBuilder.Prepare(context);
             // Since MyAsset2 is a CompileAsset reference, it should not be compiled, so we should have only 1 asset (MyAsset1) to compile.
-            Assert.AreEqual(1, assetBuildResult.BuildSteps.Count);
+            Assert.Equal(1, assetBuildResult.BuildSteps.Count);
             var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "", "");
             builder.Root.Add(assetBuildResult.BuildSteps);
             builder.Run(Builder.Mode.Build, false);
             RethrowAssertsFromThread(ex);
         }
 
-        [Test]
+        [Fact]
         public void TestCompileContent()
         {
             var package = new Package();
@@ -97,21 +96,21 @@ namespace Xenko.Core.Assets.Tests.Compilers
             Exception ex = null;
             MyAsset1Compiler.AssertFunc = (url, ass, pkg) =>
             {
-                AssertInThread(ref ex, () => Assert.AreEqual(1, TestCompilerBase.CompiledAssets.Count));
-                AssertInThread(ref ex, () => Assert.AreEqual(asset3.Id, TestCompilerBase.CompiledAssets.First().Id));
+                AssertInThread(ref ex, () => Assert.Equal(1, TestCompilerBase.CompiledAssets.Count));
+                AssertInThread(ref ex, () => Assert.Equal(asset3.Id, TestCompilerBase.CompiledAssets.First().Id));
             };
 
             var assetBuilder = new PackageCompiler(new RootPackageAssetEnumerator(package));
             var assetBuildResult = assetBuilder.Prepare(context);
             // Since MyAsset3 is a CompileContent reference, it should be compiled, so we should have only 2 asset (MyAsset1 and MyAsset3) to compile.
-            Assert.AreEqual(2, assetBuildResult.BuildSteps.Count);
+            Assert.Equal(2, assetBuildResult.BuildSteps.Count);
             var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "", "");
             builder.Root.Add(assetBuildResult.BuildSteps);
             builder.Run(Builder.Mode.Build, false);
             RethrowAssertsFromThread(ex);
         }
 
-        [Test]
+        [Fact]
         public void TestRuntime()
         {
             var package = new Package();
@@ -146,14 +145,14 @@ namespace Xenko.Core.Assets.Tests.Compilers
             Exception ex = null;
             MyAsset1Compiler.AssertFunc = (url, ass, pkg) =>
             {
-                AssertInThread(ref ex, () => Assert.AreEqual(1, TestCompilerBase.CompiledAssets.Count));
-                AssertInThread(ref ex, () => Assert.AreEqual(compileAssetReference.Id, TestCompilerBase.CompiledAssets.First().Id));
+                AssertInThread(ref ex, () => Assert.Equal(1, TestCompilerBase.CompiledAssets.Count));
+                AssertInThread(ref ex, () => Assert.Equal(compileAssetReference.Id, TestCompilerBase.CompiledAssets.First().Id));
             };
 
             var assetBuilder = new PackageCompiler(new RootPackageAssetEnumerator(package));
             var assetBuildResult = assetBuilder.Prepare(context);
             // Since MyAsset4 is a Runtime reference, it should be compiled, so we should have 2 asset (MyAsset1 and MyAsset4) to compile.
-            Assert.AreEqual(2, assetBuildResult.BuildSteps.Count);
+            Assert.Equal(2, assetBuildResult.BuildSteps.Count);
             var builder = new Builder(GlobalLogger.GetLogger("Test"), "", "", "");
             builder.Root.Add(assetBuildResult.BuildSteps);
             builder.Run(Builder.Mode.Build, false);

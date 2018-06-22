@@ -1,9 +1,9 @@
-﻿//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 //// This file is distributed under GPL v3. See LICENSE.md for details.
 //using System;
 //using System.IO;
 //
-//using NUnit.Framework;
+//using Xunit;
 //
 //using Xenko.Core;
 //using Xenko.Core.IO;
@@ -16,8 +16,7 @@
 //    /// <summary>
 //    /// Tests for <see cref="SoundEffect"/>.
 //    /// </summary>
-//    [TestFixture]
-//    public class TestSoundEffect
+////    public class TestSoundEffect
 //    {
 //        private AudioEngine defaultEngine;
 //        private Stream validWavStream; 
@@ -43,7 +42,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the load function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestLoad()
 //        {
 //            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,7 +95,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the create function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestCreateInstance()
 //        {
 //            ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,7 +115,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the dispose function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestDispose()
 //        {
 //            ////////////////////////////////////////////////////////////////////////
@@ -156,7 +155,7 @@
 //        /// Brief thests to check that the implementation of the ILocalizable interface based on a default instance works properly.
 //        /// For real implementation test take a look at <see cref="TestSoundEffectInstance"/>
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestDefaultInstance()
 //        {
 //            validWavStream.Seek(0, SeekOrigin.Begin);
@@ -164,25 +163,25 @@
 //
 //            ///////////////////////////
 //            // 1. Check default values
-//            Assert.IsFalse(soundEffect.IsLooped, "SoundEffect is looping by default.");
-//            Assert.AreEqual(SoundPlayState.Stopped, soundEffect.PlayState, "SoundEffect is not stopped by default.");
-//            Assert.AreEqual(1f, soundEffect.Volume, "SoundEffect.Volume default value is not 1f.");
-//            Assert.AreEqual(0f, soundEffect.Pan, "SoundEffect.Pan default value is not 0f.");
+//            Assert.False(soundEffect.IsLooped, "SoundEffect is looping by default.");
+//            Assert.Equal(SoundPlayState.Stopped, soundEffect.PlayState, "SoundEffect is not stopped by default.");
+//            Assert.Equal(1f, soundEffect.Volume, "SoundEffect.Volume default value is not 1f.");
+//            Assert.Equal(0f, soundEffect.Pan, "SoundEffect.Pan default value is not 0f.");
 //
 //            /////////////////////////
 //            // 2. Check IPlayable
 //            soundEffect.IsLooped = true;
 //            soundEffect.Play();
-//            Assert.AreEqual(SoundPlayState.Playing, soundEffect.PlayState, "SoundEffect.PlayState is not Playing.");
+//            Assert.Equal(SoundPlayState.Playing, soundEffect.PlayState, "SoundEffect.PlayState is not Playing.");
 //            Utilities.Sleep(1000);
 //            soundEffect.Pause();
-//            Assert.AreEqual(SoundPlayState.Paused, soundEffect.PlayState, "SoundEffect.PlayState is not Paused.");
+//            Assert.Equal(SoundPlayState.Paused, soundEffect.PlayState, "SoundEffect.PlayState is not Paused.");
 //            Utilities.Sleep(1000);
 //            soundEffect.Play();
 //            Utilities.Sleep(50);
 //            soundEffect.ExitLoop();
 //            Utilities.Sleep(1500);
-//            Assert.AreEqual(SoundPlayState.Stopped, soundEffect.PlayState, "SoundEffect.PlayState is not Stopped after exitLoop.");
+//            Assert.Equal(SoundPlayState.Stopped, soundEffect.PlayState, "SoundEffect.PlayState is not Stopped after exitLoop.");
 //
 //            ////////////////////////
 //            // 3. Volume and stop
@@ -191,7 +190,7 @@
 //            soundEffect.Volume = 0.5f;
 //            Utilities.Sleep(1000);
 //            soundEffect.Stop();
-//            Assert.AreEqual(SoundPlayState.Stopped, soundEffect.PlayState, "SoundEffect.PlayState is not Stopped.");
+//            Assert.Equal(SoundPlayState.Stopped, soundEffect.PlayState, "SoundEffect.PlayState is not Stopped.");
 //            Utilities.Sleep(1000);
 //            soundEffect.Volume = 1f;
 //

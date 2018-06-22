@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
@@ -143,7 +143,7 @@ namespace Xenko.Engine.Tests
             ratio.Transform.Scale = new Vector3(time % 5f) / 5;
         }
 
-        [Test]
+        [Fact]
         public void SpriteRender3DRun()
         {
             RunGameTest(new SpriteRenderer3DTests());

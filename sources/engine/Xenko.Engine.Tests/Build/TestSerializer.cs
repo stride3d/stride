@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +14,6 @@ using Xenko.Core.IO;
 
 namespace Xenko.Core.Tests.Build
 {
-    [TestFixture]
     public class TestSerializer
     {
         private static void SaveSimpleAssets(AssetManager assetManager)
@@ -23,7 +22,7 @@ namespace Xenko.Core.Tests.Build
             assetManager.Save(simpleAsset);
         }
 
-        [Test]
+        [Fact]
         public unsafe void TestSaveAndLoadSimpleAssets()
         {
             var assetManager = new AssetManager();
@@ -32,20 +31,20 @@ namespace Xenko.Core.Tests.Build
             GC.Collect();
 
             var simpleAsset = assetManager.Load<SimpleAsset>("SimpleAssets/Grandpa");
-            Assert.That(simpleAsset.Url, Is.EqualTo("SimpleAssets/Grandpa"));
-            Assert.That(simpleAsset.Str, Is.EqualTo("Grandpa"));
-            Assert.That(simpleAsset.Dble, Is.EqualTo(5.0));
+            Assert.Equal("SimpleAssets/Grandpa", simpleAsset.Url);
+            Assert.Equal("Grandpa", simpleAsset.Str);
+            Assert.Equal(5.0, simpleAsset.Dble);
             Assert.That(simpleAsset.Child, !Is.Null);
 
-            Assert.That(simpleAsset.Child.Url, Is.EqualTo("SimpleAssets/Pa"));
-            Assert.That(simpleAsset.Child.Str, Is.EqualTo("Pa"));
-            Assert.That(simpleAsset.Child.Dble, Is.EqualTo(5.0));
+            Assert.Equal("SimpleAssets/Pa", simpleAsset.Child.Url);
+            Assert.Equal("Pa", simpleAsset.Child.Str);
+            Assert.Equal(5.0, simpleAsset.Child.Dble);
             Assert.That(simpleAsset.Child.Child, !Is.Null);
 
-            Assert.That(simpleAsset.Child.Child.Url, Is.EqualTo("SimpleAssets/Son"));
-            Assert.That(simpleAsset.Child.Child.Str, Is.EqualTo("Son"));
-            Assert.That(simpleAsset.Child.Child.Dble, Is.EqualTo(5.0));
-            Assert.That(simpleAsset.Child.Child.Child, Is.Null);
+            Assert.Equal("SimpleAssets/Son", simpleAsset.Child.Child.Url);
+            Assert.Equal("Son", simpleAsset.Child.Child.Str);
+            Assert.Equal(5.0, simpleAsset.Child.Child.Dble);
+            Assert.Null(simpleAsset.Child.Child.Child);
         }
 
         private static void SaveCyclicallyReferencedAssets(AssetManager assetManager)
@@ -55,7 +54,7 @@ namespace Xenko.Core.Tests.Build
             assetManager.Save(simpleAsset);
         }
 
-        [Test]
+        [Fact]
         public unsafe void TestSaveAndLoadCyclicallyReferencedAssets()
         {
             var assetManager = new AssetManager();
@@ -64,19 +63,19 @@ namespace Xenko.Core.Tests.Build
             GC.Collect();
 
             var simpleAsset = assetManager.Load<SimpleAsset>("SimpleAssets/First");
-            Assert.That(simpleAsset.Url, Is.EqualTo("SimpleAssets/First"));
-            Assert.That(simpleAsset.Str, Is.EqualTo("First"));
-            Assert.That(simpleAsset.Dble, Is.EqualTo(5.0));
+            Assert.Equal("SimpleAssets/First", simpleAsset.Url);
+            Assert.Equal("First", simpleAsset.Str);
+            Assert.Equal(5.0, simpleAsset.Dble);
             Assert.That(simpleAsset.Child, !Is.Null);
 
-            Assert.That(simpleAsset.Child.Url, Is.EqualTo("SimpleAssets/Second"));
-            Assert.That(simpleAsset.Child.Str, Is.EqualTo("Second"));
-            Assert.That(simpleAsset.Child.Dble, Is.EqualTo(5.0));
+            Assert.Equal("SimpleAssets/Second", simpleAsset.Child.Url);
+            Assert.Equal("Second", simpleAsset.Child.Str);
+            Assert.Equal(5.0, simpleAsset.Child.Dble);
             Assert.That(simpleAsset.Child.Child, !Is.Null);
 
-            Assert.That(simpleAsset.Child.Child.Url, Is.EqualTo("SimpleAssets/Third"));
-            Assert.That(simpleAsset.Child.Child.Str, Is.EqualTo("Third"));
-            Assert.That(simpleAsset.Child.Child.Dble, Is.EqualTo(5.0));
+            Assert.Equal("SimpleAssets/Third", simpleAsset.Child.Child.Url);
+            Assert.Equal("Third", simpleAsset.Child.Child.Str);
+            Assert.Equal(5.0, simpleAsset.Child.Child.Dble);
             Assert.That(simpleAsset.Child.Child.Child, Is.SameAs(simpleAsset));
         }
 
@@ -94,12 +93,12 @@ namespace Xenko.Core.Tests.Build
             VirtualFileSystem.FileDelete(FileOdbBackend.BuildUrl(VirtualFileSystem.ApplicationDatabasePath, childId));
         }
 
-        [Test]
+        [Fact]
         public unsafe void TestLoadMissingAsset()
         {
             var assetManager = new AssetManager();
             var asset = assetManager.Load<SimpleAsset>("inexisting/asset");
-            Assert.That(asset, Is.Null);
+            Assert.Null(asset);
             Assert.That(assetManager.HasAssetWithUrl("inexisting/asset"), Is.False);
 
             SaveAssetsAndDeleteAChild(assetManager);
@@ -107,11 +106,11 @@ namespace Xenko.Core.Tests.Build
 
             asset = assetManager.Load<SimpleAsset>("SimpleAssets/Pa");
             Assert.That(asset, !Is.Null);
-            Assert.That(asset.Url, Is.EqualTo("SimpleAssets/Pa"));
-            Assert.That(asset.Child, Is.Null);
+            Assert.Equal("SimpleAssets/Pa", asset.Url);
+            Assert.Null(asset.Child);
 
             asset = assetManager.Load<SimpleAsset>("SimpleAssets/Son");
-            Assert.That(asset, Is.Null);
+            Assert.Null(asset);
         }
 
         private void SaveComplexAssets(AssetManager assetManager)
@@ -135,7 +134,7 @@ namespace Xenko.Core.Tests.Build
             assetManager.Save(ass1);
         }
 
-        [Test]
+        [Fact]
         public unsafe void TestComplexAssets()
         {
             var assetManager = new AssetManager();
@@ -150,29 +149,29 @@ namespace Xenko.Core.Tests.Build
             var ass3 = assetManager.Load<ComplexAsset>("ComplexAssets/Third");
             var ass2FromAss3 = ass3.FirstChild;
 
-            Assert.That(ass1.Url, Is.EqualTo("ComplexAssets/First"));
+            Assert.Equal("ComplexAssets/First", ass1.Url);
             Assert.That(ass2FromAss1, Is.SameAs(ass1.FirstChild));
             Assert.That(ass2FromAss1, Is.SameAs(ass2));
             Assert.That(ass1.Data, !Is.Null);
             Assert.That(ass1.Data.Asset, Is.SameAs(ass2));
-            Assert.That(ass1.Data.Num, Is.EqualTo(1));
-            Assert.That(ass1.Children.Count, Is.EqualTo(1));
+            Assert.Equal(1, ass1.Data.Num);
+            Assert.Equal(1, ass1.Children.Count);
             Assert.That(ass1.Children[0], Is.SameAs(ass2));
 
-            Assert.That(ass2.Url, Is.EqualTo("ComplexAssets/Second"));
+            Assert.Equal("ComplexAssets/Second", ass2.Url);
             Assert.That(ass3FromAss2, Is.SameAs(ass2.FirstChild));
             Assert.That(ass3FromAss2, Is.SameAs(ass3));
-            Assert.That(ass2.Data, Is.Null);
-            Assert.That(ass2.Children.Count, Is.EqualTo(1));
+            Assert.Null(ass2.Data);
+            Assert.Equal(1, ass2.Children.Count);
             Assert.That(ass2.Children[0], Is.SameAs(ass3));
 
-            Assert.That(ass3.Url, Is.EqualTo("ComplexAssets/Third"));
+            Assert.Equal("ComplexAssets/Third", ass3.Url);
             Assert.That(ass2FromAss3, Is.SameAs(ass3.FirstChild));
             Assert.That(ass2FromAss3, Is.SameAs(ass2));
             Assert.That(ass3.Data, !Is.Null);
             Assert.That(ass3.Data.Asset, Is.SameAs(ass1));
-            Assert.That(ass3.Data.Num, Is.EqualTo(2));
-            Assert.That(ass3.Children.Count, Is.EqualTo(2));
+            Assert.Equal(2, ass3.Data.Num);
+            Assert.Equal(2, ass3.Children.Count);
             Assert.That(ass3.Children[0], Is.SameAs(ass1));
             Assert.That(ass3.Children[1], Is.SameAs(ass2));
         }
@@ -186,7 +185,7 @@ namespace Xenko.Core.Tests.Build
             assetManager.SaveSingle(simpleAsset);
         }
 
-        [Test]
+        [Fact]
         public unsafe void TestSaveChangeResaveAndLoadSimpleAssets()
         {
             var assetManager = new AssetManager();
@@ -195,24 +194,24 @@ namespace Xenko.Core.Tests.Build
             GC.Collect();
 
             var simpleAsset = assetManager.Load<SimpleAsset>("SimpleAssets/Grandpa");
-            Assert.That(simpleAsset.Url, Is.EqualTo("SimpleAssets/Grandpa"));
-            Assert.That(simpleAsset.Str, Is.EqualTo("Grandpa"));
-            Assert.That(simpleAsset.Dble, Is.EqualTo(22.0));
+            Assert.Equal("SimpleAssets/Grandpa", simpleAsset.Url);
+            Assert.Equal("Grandpa", simpleAsset.Str);
+            Assert.Equal(22.0, simpleAsset.Dble);
             Assert.That(simpleAsset.Child, !Is.Null);
 
-            Assert.That(simpleAsset.Child.Url, Is.EqualTo("SimpleAssets/Pa"));
-            Assert.That(simpleAsset.Child.Str, Is.EqualTo("Pa"));
-            Assert.That(simpleAsset.Child.Dble, Is.EqualTo(5.0));
+            Assert.Equal("SimpleAssets/Pa", simpleAsset.Child.Url);
+            Assert.Equal("Pa", simpleAsset.Child.Str);
+            Assert.Equal(5.0, simpleAsset.Child.Dble);
             Assert.That(simpleAsset.Child.Dble, !Is.EqualTo(42.0));
             Assert.That(simpleAsset.Child.Child, !Is.Null);
 
-            Assert.That(simpleAsset.Child.Child.Url, Is.EqualTo("SimpleAssets/Son"));
-            Assert.That(simpleAsset.Child.Child.Str, Is.EqualTo("Son"));
-            Assert.That(simpleAsset.Child.Child.Dble, Is.EqualTo(5.0));
-            Assert.That(simpleAsset.Child.Child.Child, Is.Null);
+            Assert.Equal("SimpleAssets/Son", simpleAsset.Child.Child.Url);
+            Assert.Equal("Son", simpleAsset.Child.Child.Str);
+            Assert.Equal(5.0, simpleAsset.Child.Child.Dble);
+            Assert.Null(simpleAsset.Child.Child.Child);
         }
 
-        [Test]
+        [Fact]
         public unsafe void TestSaveAndLoadAssetManyTimes()
         {
             var assetManager = new AssetManager();
@@ -226,7 +225,7 @@ namespace Xenko.Core.Tests.Build
             for (double d = 0; d < 10.0; ++d)
             {
                 simpleAsset = assetManager.Load<SimpleAsset>("SimpleAssets/Grandpa");
-                Assert.That(simpleAsset.Dble, Is.EqualTo(d));
+                Assert.Equal(d, simpleAsset.Dble);
                 simpleAsset.Dble += 1.0;
                 assetManager.SaveSingle(simpleAsset);
                 assetManager.Unload(simpleAsset);
@@ -235,7 +234,7 @@ namespace Xenko.Core.Tests.Build
             }
         }
 
-        [Test]
+        [Fact]
         public unsafe void TestSaveAndLoadAssetAndIndexFileManyTimes()
         {
             var assetManager = new AssetManager();
@@ -252,7 +251,7 @@ namespace Xenko.Core.Tests.Build
             {
                 var anotherAssetManager = new AssetManager();
                 simpleAsset = anotherAssetManager.Load<SimpleAsset>("SimpleAssets/Grandpa");
-                Assert.That(simpleAsset.Dble, Is.EqualTo(d));
+                Assert.Equal(d, simpleAsset.Dble);
                 simpleAsset.Dble += 1.0;
                 anotherAssetManager.SaveSingle(simpleAsset);
                 anotherAssetManager.Unload(simpleAsset);

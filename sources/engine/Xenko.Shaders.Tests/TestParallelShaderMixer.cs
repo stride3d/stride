@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
@@ -17,7 +17,6 @@ using Xenko.Shaders.Compiler;
 
 namespace Xenko.Shaders.Tests
 {
-    [TestFixture]
     public class TestParallelShaderMixer
     {
         private static EffectCompiler compiler;
@@ -89,8 +88,8 @@ namespace Xenko.Shaders.Tests
 
             var result = effectCompiler.Compile(mixinTree, parameters.EffectParameters, parameters).WaitForResult();
 
-            Assert.IsFalse(result.CompilationLog.HasErrors);
-            Assert.IsNotNull(result);
+            Assert.False(result.CompilationLog.HasErrors);
+            Assert.NotNull(result);
 
             Console.WriteLine(@"Thread end");
         }

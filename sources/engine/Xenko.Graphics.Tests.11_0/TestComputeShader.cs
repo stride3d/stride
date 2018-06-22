@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Rendering;
@@ -85,8 +85,7 @@ namespace Xenko.Graphics.Tests
             base.Draw(gameTime);
         }
 
-        [Ignore("This test is unmaintained and currently doesn't pass")]
-        [Test]
+        [SkippableFact(Skip="This test is unmaintained and currently doesn't pass")]
         public void RunTest()
         {
             IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);

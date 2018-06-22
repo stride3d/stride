@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
-using NUnit.Framework;
+using Xunit;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -21,8 +21,7 @@ namespace Xenko.Core.Tests
 {
     // TODO: Add some checks to see if tests really complete within scheduler.Step() callstack
     // (if something is wrong with scheduling, it could end up being ran on another thread).
-    [TestFixture]
-    [Description("Tests on Scheduler and MicroThread")]
+    [Collection("Non-Parallel Collection")]
     public class TestMicroThread
     {
         public class BaseTests
@@ -45,7 +44,7 @@ namespace Xenko.Core.Tests
             {
                 int counter = SharedCounter;
                 await TestSpecialHelper();
-                Assert.That(SharedCounter, Is.Not.EqualTo(counter));
+                Assert.NotEqual(SharedCounter,counter);
                 completed();
             }
 
@@ -53,7 +52,7 @@ namespace Xenko.Core.Tests
             {
                 int counter = SharedCounter;
                 await TaskEx.Delay(100);
-                Assert.That(SharedCounter, Is.Not.EqualTo(counter));
+                Assert.NotEqual(SharedCounter, counter);
                 completed();
             }
 
@@ -61,7 +60,7 @@ namespace Xenko.Core.Tests
             {
                 int counter = SharedCounter;
                 TaskEx.Delay(100).Wait();
-                Assert.That(SharedCounter, Is.EqualTo(counter));
+                Assert.Equal(counter, SharedCounter);
                 completed();
             }
 
@@ -79,7 +78,7 @@ namespace Xenko.Core.Tests
             //    int counter = SharedCounter;
             //    var wc = new WebClient();
             //    wc.DownloadDataTaskAsync(new Uri("http://www.google.com")).Wait();
-            //    Assert.That(SharedCounter, Is.EqualTo(counter));
+            //    Assert.Equal(counter, SharedCounter);
             //    completed();
             //}
 
@@ -107,7 +106,7 @@ namespace Xenko.Core.Tests
             {
                 int counter = SharedCounter;
                 await Task.Factory.StartNew(() => Thread.Sleep(1000));
-                Assert.That(SharedCounter, Is.Not.EqualTo(counter));
+                Assert.NotEqual(SharedCounter, counter);
                 completed();
             }
 
@@ -115,7 +114,7 @@ namespace Xenko.Core.Tests
             {
                 int counter = SharedCounter;
                 Task.Factory.StartNew(() => Thread.Sleep(1000)).Wait();
-                Assert.That(SharedCounter, Is.EqualTo(counter));
+                Assert.Equal(counter, SharedCounter);
                 completed();
             }
 
@@ -131,7 +130,7 @@ namespace Xenko.Core.Tests
             {
                 int counter = SharedCounter;
                 await TestAwaitDirectAsyncHelper();
-                Assert.That(SharedCounter, Is.EqualTo(counter));
+                Assert.Equal(counter, SharedCounter);
                 completed();
             }
 
@@ -140,7 +139,7 @@ namespace Xenko.Core.Tests
                 int counter = SharedCounter;
                 for (int i = 0; i < 8; ++i)
                     await Scheduler.Current.NextFrame();
-                Assert.That(SharedCounter, Is.EqualTo(counter + 8));
+                Assert.Equal(counter + 8, SharedCounter);
                 completed();
             }
 
@@ -229,14 +228,14 @@ namespace Xenko.Core.Tests
             {
                 int counter = SharedCounter;
                 await Scheduler.Current.WhenAll(Scheduler.Current.Add(TestSleep), Scheduler.Current.Add(TestSleep));
-                Assert.That(SharedCounter, Is.Not.EqualTo(counter));
+                Assert.NotEqual(SharedCounter, counter);
                 completed();
             }
         }
 
 #pragma warning restore 1998
         
-        public static object[] GenerateFunctions<T>() where T : new()
+        public static IEnumerable<object[]> GenerateFunctions<T>() where T : new()
         {
             var result = new List<object[]>();
             foreach (var method in typeof(T).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
@@ -247,17 +246,17 @@ namespace Xenko.Core.Tests
             return result.ToArray();
         }
 
-        public static object[] Functions
+        public static IEnumerable<object[]> Functions
         {
             get { return GenerateFunctions<SimpleTests>(); }
         }
 
-        public static object[] FunctionsThrow
+        public static IEnumerable<object[]> FunctionsThrow
         {
             get { return GenerateFunctions<ThrowTests>(); }
         }
 
-        public static object[] FunctionsSync
+        public static IEnumerable<object[]> FunctionsSync
         {
             get { return GenerateFunctions<SyncTests>(); }
         }
@@ -293,43 +292,43 @@ namespace Xenko.Core.Tests
             }
 
             // Check both microthreads completed
-            Assert.That(completed, Is.EqualTo(parallelCount));
+            Assert.Equal(parallelCount, completed);
 
             return microThreads;
         }
 
-        [Test, Sequential, TestCaseSource("Functions")]
+        [Theory, MemberData(nameof(Functions))]
         public void TestFunctions(string testName, BaseTests baseTests, Func<Action, Task> asyncFunction, int parallelCount)
         {
             var microThreads = TestBase(testName, baseTests, asyncFunction, parallelCount);
-            Assert.That(microThreads.All(x => x.State == MicroThreadState.Completed), Is.EqualTo(true));
+            Assert.True(microThreads.All(x => x.State == MicroThreadState.Completed));
         }
         
-        [Test, Sequential, TestCaseSource("FunctionsThrow")]
+        [Theory, MemberData(nameof(FunctionsThrow))]
         public void TestExceptionsIgnore(string testName, BaseTests baseTests, Func<Action, Task> asyncFunction, int parallelCount)
         {
             var microThreads = TestBase(testName, baseTests, asyncFunction, parallelCount, MicroThreadFlags.IgnoreExceptions);
-            Assert.That(microThreads.All(x => x.State == MicroThreadState.Failed && x.Exception != null), Is.EqualTo(true));
+            Assert.True(microThreads.All(x => x.State == MicroThreadState.Failed && x.Exception != null));
         }
 
-        [Test, Sequential, TestCaseSource("FunctionsThrow")]
+        [Theory, MemberData(nameof(FunctionsThrow))]
         public void TestExceptions(string testName, BaseTests baseTests, Func<Action, Task> asyncFunction, int parallelCount)
         {
-            Assert.Throws(typeof(InvalidOperationException), () =>
+            Assert.Throws<InvalidOperationException>(() =>
             {
                 var microThreads = TestBase(testName, baseTests, asyncFunction, parallelCount);
-                Assert.That(microThreads.All(x => x.State == MicroThreadState.Failed && x.Exception != null), Is.EqualTo(true));
+                Assert.True(microThreads.All(x => x.State == MicroThreadState.Failed && x.Exception != null));
             });
         }
 
-        [Test, Sequential, TestCaseSource("FunctionsSync")]
+        [Theory, MemberData(nameof(FunctionsSync))]
         public void TestSyncs(string testName, BaseTests baseTests, Func<Action, Task> asyncFunction, int parallelCount)
         {
             var microThreads = TestBase(testName, baseTests, asyncFunction, parallelCount);
-            Assert.That(microThreads.All(x => x.State == MicroThreadState.Completed), Is.EqualTo(true));
+            Assert.True(microThreads.All(x => x.State == MicroThreadState.Completed));
         }
 
-        /*[Test]
+        /*[Fact]
         public void TestSwitchToNewMicrothread()
         {
             int completed = 0;
@@ -355,9 +354,9 @@ namespace Xenko.Core.Tests
                 Thread.Sleep(10);
             }
 
-            Assert.AreEqual(null, SynchronizationContext.Current);
-            Assert.AreEqual(0, scheduler.MicroThreads.Count());
-            Assert.AreEqual(1, completed);
+            Assert.Equal(null, SynchronizationContext.Current);
+            Assert.Equal(0, scheduler.MicroThreads.Count());
+            Assert.Equal(1, completed);
         }*/
         
         public async Task TestTaskCompletionSourceAsync(TaskCompletionSource<int> tcs, Action completed)
@@ -366,7 +365,7 @@ namespace Xenko.Core.Tests
             completed();
         }
 
-        [Test]
+        [Fact]
         public void TestTaskCompletionSource()
         {
             var scheduler = new Scheduler();
@@ -381,7 +380,7 @@ namespace Xenko.Core.Tests
                 tcs.TrySetResult(1);
                 Thread.Sleep(10);
             }
-            Assert.That(completed, Is.EqualTo(true));
+            Assert.True(completed);
         }
     }
 }

@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.IO;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization.Contents;
@@ -13,7 +13,6 @@ using Xenko.Rendering.Compositing;
 
 namespace Xenko.Graphics.Tests
 {
-    [TestFixture]
     public class FixedAspectRatioTests : GameTestBase
     {
         protected Scene Scene;
@@ -45,7 +44,7 @@ namespace Xenko.Graphics.Tests
             SceneSystem.SceneInstance = new SceneInstance(Services, Scene);
         }
 
-        [Test]
+        [Fact]
         public void TestFixedRatio()
         {
             RunGameTest(new FixedAspectRatioTests());

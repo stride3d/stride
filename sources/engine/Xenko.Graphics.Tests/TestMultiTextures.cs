@@ -5,7 +5,7 @@
 
 using System;
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.IO;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization.Assets;
@@ -18,7 +18,6 @@ using Xenko.Shaders.Compiler;
 
 namespace Xenko.Graphics.Tests
 {
-    [TestFixture]
     class TestMultiTextures : TestGameBase
     {
         private Texture2D UV2Texture;

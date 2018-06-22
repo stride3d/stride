@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Yaml;
 using Xenko.Rendering;
@@ -17,7 +17,6 @@ namespace Xenko.Assets.Tests
     /// <summary>
     /// Tests for <see cref="MaterialGenerator"/> and related classes
     /// </summary>
-    [TestFixture]
     public class TestMaterialGenerator
     {
         public static readonly ValueParameterKey<Color4> DiffuseValueCustom1 = ParameterKeys.NewValue<Color4>();
@@ -33,7 +32,7 @@ namespace Xenko.Assets.Tests
         /// <summary>
         /// Test single material (one shading model, no layers)
         /// </summary>
-        [Test]
+        [Fact]
         public void TestSimpleNoLayer()
         {
             // - LayerRoot: SM0 (Shading Model 0)
@@ -55,7 +54,7 @@ namespace Xenko.Assets.Tests
             Assert.Null(materialPass.Parameters.Get(MaterialKeys.DomainStageSurfaceShaders));
 
             // Check that the color is correctly store in the shader parameters
-            Assert.AreEqual(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
+            Assert.Equal(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
 
             var pixelShaders = materialPass.Parameters.Get(MaterialKeys.PixelStageSurfaceShaders);
 
@@ -92,7 +91,7 @@ Compositions:
         /// <summary>
         /// Test material with one shading model and one layer with same single material
         /// </summary>
-        [Test]
+        [Fact]
         public void TestOneLayerSameShadingModel()
         {
             // - LayerRoot: SM0
@@ -135,7 +134,7 @@ Compositions:
             Assert.Null(materialPass.Parameters.Get(MaterialKeys.DomainStageSurfaceShaders));
 
             // Check that the color is correctly store in the shader parameters
-            Assert.AreEqual(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
+            Assert.Equal(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
 
             var pixelShaders = materialPass.Parameters.Get(MaterialKeys.PixelStageSurfaceShaders);
 
@@ -213,7 +212,7 @@ Compositions:
         /// <summary>
         /// Test material with two shading models and one layer
         /// </summary>
-        [Test]
+        [Fact]
         public void TestOneLayer2ShadingModels()
         {
             // - LayerRoot: SM0
@@ -253,7 +252,7 @@ Compositions:
             Assert.Null(materialPass.Parameters.Get(MaterialKeys.DomainStageSurfaceShaders));
 
             // Check that the color is correctly store in the shader parameters
-            Assert.AreEqual(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
+            Assert.Equal(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
 
             var pixelShaders = materialPass.Parameters.Get(MaterialKeys.PixelStageSurfaceShaders);
 
@@ -337,7 +336,7 @@ Compositions:
         /// <summary>
         /// Test material with 2 shading models and 2 layers (without a shading model on the top layer)
         /// </summary>
-        [Test]
+        [Fact]
         public void Test2Layers2ShadingModels()
         {
             // - LayerRoot:
@@ -384,7 +383,7 @@ Compositions:
             Assert.Null(materialPass.Parameters.Get(MaterialKeys.DomainStageSurfaceShaders));
 
             // Check that the color is correctly store in the shader parameters
-            Assert.AreEqual(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
+            Assert.Equal(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
 
             var pixelShaders = materialPass.Parameters.Get(MaterialKeys.PixelStageSurfaceShaders);
 
@@ -490,7 +489,7 @@ Compositions:
         /// <summary>
         /// Test material with 2 shading models and 3 layers (without a shading model on the top layer)
         /// </summary>
-        [Test]
+        [Fact]
         public void Test3Layers2ShadingModels()
         {
             // This test case is more complex as it shows that the change in shading model is triggering 
@@ -564,7 +563,7 @@ Compositions:
             Assert.Null(materialPass.Parameters.Get(MaterialKeys.DomainStageSurfaceShaders));
 
             // Check that the color is correctly store in the shader parameters
-            Assert.AreEqual(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
+            Assert.Equal(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
 
             var pixelShaders = materialPass.Parameters.Get(MaterialKeys.PixelStageSurfaceShaders);
 
@@ -704,7 +703,7 @@ Compositions:
         /// <summary>
         /// Test material with 3 shading models and 2 layers
         /// </summary>
-        [Test]
+        [Fact]
         public void Test2Layers3ShadingModels()
         {
             // - LayerRoot: SM0
@@ -756,7 +755,7 @@ Compositions:
             Assert.Null(materialPass.Parameters.Get(MaterialKeys.DomainStageSurfaceShaders));
 
             // Check that the color is correctly store in the shader parameters
-            Assert.AreEqual(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
+            Assert.Equal(new Color4(Color.Red), materialPass.Parameters.Get(MaterialKeys.DiffuseValue));
 
             var pixelShaders = materialPass.Parameters.Get(MaterialKeys.PixelStageSurfaceShaders);
 
@@ -893,7 +892,7 @@ Compositions:
             Console.WriteLine("====================================");
             Console.WriteLine(expected);
             Console.Out.Flush();
-            Assert.AreEqual(expected, textResult);
+            Assert.Equal(expected, textResult);
         }
 
         private static string SerializeAsString(object instance)

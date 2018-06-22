@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Input;
@@ -9,7 +9,6 @@ using Xenko.Games.Testing;
 
 namespace TouchInputsTest
 {
-    [TestFixture]
     public class TouchInputsTest
     {
         private const string Path = "samplesGenerated\\TouchInputs\\Bin\\Windows\\Debug\\TouchInputs.exe";
@@ -22,7 +21,7 @@ namespace TouchInputsTest
         private const PlatformType TestPlatform = PlatformType.Windows;
 #endif
 
-        [Test]
+        [Fact]
         public void TestLaunch()
         {
             using (var game = new GameTestingClient(Path, TestPlatform))
@@ -31,7 +30,7 @@ namespace TouchInputsTest
             }
         }
 
-        [Test]
+        [Fact]
         public void TestInputs()
         {
             using (var game = new GameTestingClient(Path, TestPlatform))

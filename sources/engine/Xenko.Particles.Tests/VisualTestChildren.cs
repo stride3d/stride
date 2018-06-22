@@ -1,11 +1,11 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Particles.Tests
 {
-    class VisualTestChildren : GameTest
+    public class VisualTestChildren : GameTest
     {
         public VisualTestChildren() : base("VisualTestChildren")
         {
@@ -13,7 +13,7 @@ namespace Xenko.Particles.Tests
             IndividualTestVersion += 4;  //  Changed to avoid collisions with 1.10
         }
 
-        [Test]
+        [Fact]
         public void RunVisualTests()
         {
             RunGameTest(new VisualTestChildren());

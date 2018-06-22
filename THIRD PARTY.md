@@ -44,12 +44,13 @@ Xenko uses the following open-source products.
 * [FreeImage](http://freeimage.sourceforge.net/) (FreeImage Public License - Version 1.0)
 * [Gettext.NET](https://sourceforge.net/projects/gettextnet/) (LGPL 2.1, unmodified binaries)
 * [ILRepack](https://github.com/gluck/il-repack) (Apache License 2.0)
+* [ImageMagick](http://www.imagemagick.org/)
 * [Markdown.XAML](https://github.com/theunrepentantgeek/Markdown.XAML) (MIT License)
 * [Mono.Cecil](https://github.com/jbevain/cecil) (MIT License)
 * [Mono.Options](http://www.mono-project.com/) and [Mono.TextTemplating](https://github.com/mono/t4) (MIT License)
 * [NShader](http://nshader.codeplex.com/) (Ms-PL)
 * [NuGet](https://nuget.codeplex.com/) (Apache License 2.0)
-* [NUnit](http://www.nunit.org/) (NUnit License) and [NUnitLite](http://nunitlite.org/) (MIT License)
+* [xunit](https://xunit.github.io/) (Apache License 2.0)
 * [Oxyplot](https://github.com/oxyplot/oxyplot) (MIT License)
 * [SLNTools](https://slntools.codeplex.com) (MIT License)
 * [WPFToolKit](http://wpftoolkit.codeplex.com/) (Ms-PL)
@@ -198,9 +199,3 @@ Contact
 - Facebook
 - Twitter
 - etc...
-
-### Icons8.com
-
-Distributed under [Creative Commons Attribution-NoDerivs 3.0 Unported](https://creativecommons.org/licenses/by-nd/3.0/).
-
-Please check their flat icons pack: [https://icons8.com].

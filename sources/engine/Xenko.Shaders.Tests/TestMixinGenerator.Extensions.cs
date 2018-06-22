@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Shaders.Tests
 {
@@ -23,7 +23,7 @@ namespace Xenko.Shaders.Tests
 
             var messageMixins = string.Format("Invalid result for mixin: [{0}] Expecting [{1}]", resultNames, expectingNames);
 
-            Assert.That(resultNames, Is.EqualTo(expectingNames), messageMixins);
+            Assert.True(resultNames == expectingNames, messageMixins);
         }
 
         /// <summary>
@@ -35,15 +35,15 @@ namespace Xenko.Shaders.Tests
         public static void CheckComposition(this ShaderMixinSource mixin, string key, string value)
         {
             ShaderSource source;
-            Assert.That(mixin.Compositions.TryGetValue(key, out source), Is.True, "Unable to find key [{0}] in mixin compositions", key);
+            Assert.True(mixin.Compositions.TryGetValue(key, out source), $"Unable to find key [{key}] in mixin compositions");
 
-            Assert.That(source, Is.Not.Null, "Source composition for key [{0}] cannot be null", key);
+            Assert.True(source != null, $"Source composition for key [{key}] cannot be null");
 
             var classSource = source as ShaderClassSource;
             if (classSource != null)
             {
                 var sourceString = classSource.ToClassName();
-                Assert.That(sourceString, Is.EqualTo(value), "Invalid composition for key [{0}]: [{1}] expecting [{2}]", key, sourceString, value);
+                Assert.True(sourceString == value, $"Invalid composition for key [{key}]: [{sourceString}] expecting [{value}]");
             }
             else
             {
@@ -64,10 +64,10 @@ namespace Xenko.Shaders.Tests
         public static void CheckMacro(this ShaderMixinSource mixin, string key, object value)
         {
             var macro = mixin.Macros.FirstOrDefault(tuple => tuple.Name == key);
-            Assert.That(macro, Is.Not.Null, "Invalid macro [{0}] cannot be null", key);
+            Assert.True(macro.Name != null, $"Invalid macro [{key}] cannot be null");
 
             var macroValue = macro.Definition.ToString();
-            Assert.That(macroValue, Is.EqualTo(value.ToString()), "Invalid macro [{0}} value [{1}] != Expecting [{2}]", key, macroValue, value);
+            Assert.True(value.ToString() == macroValue, $"Invalid macro [{key}] value [{macroValue}] != Expecting [{value}]");
         }
     }
 }

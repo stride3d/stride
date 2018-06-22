@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
 using Xenko.Graphics;
@@ -15,7 +15,7 @@ namespace Xenko.Input.Tests
     /// <summary>
     /// Interactive test that displays the state of various input devices on the screen
     /// </summary>
-    class AdvancedInputTest : InputTestBase
+    public class AdvancedInputTest : InputTestBase
     {
         // keyboard
         private string keyPressed;
@@ -319,7 +319,7 @@ namespace Xenko.Input.Tests
                 Exit();
         }
 
-        [Test]
+        [Fact]
         public void RunAdvancedInputTest()
         {
             RunGameTest(new AdvancedInputTest());

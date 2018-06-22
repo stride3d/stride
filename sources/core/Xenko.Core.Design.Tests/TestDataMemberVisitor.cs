@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Reflection;
 
 namespace Xenko.Core.Design.Tests
@@ -10,7 +10,6 @@ namespace Xenko.Core.Design.Tests
     /// <summary>
     /// Testing <see cref="DataVisitorBase"/>
     /// </summary>
-    [TestFixture]
     public class TestDataMemberVisitor
     {
         /// <summary>
@@ -86,13 +85,13 @@ namespace Xenko.Core.Design.Tests
             public SimpleObject SubObject { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void TestVisitPrimitive()
         {
             var simpleObject = new SimpleObject(1, 2, 3, 4) { Name = "Test", MemberToIgnore = int.MaxValue, SubObject = new SimpleObject(5, 6, 7, 8) };
             var primitiveGrabber = new PrimitiveGrabber();
             primitiveGrabber.Visit(simpleObject);
-            Assert.AreEqual(new List<object>()
+            Assert.Equal(new List<object>()
                 {
                     1, 
                     2, 
@@ -115,7 +114,7 @@ namespace Xenko.Core.Design.Tests
 
             primitiveGrabber.Reset();
             primitiveGrabber.Visit(simpleObject);
-            Assert.AreEqual(new List<object>()
+            Assert.Equal(new List<object>()
                 {
                     1, 
                     2, 
@@ -142,7 +141,7 @@ namespace Xenko.Core.Design.Tests
             public string Name { get; set; }
         }
         
-        [Test]
+        [Fact]
         public void TestCollection()
         {
             var customList = new CustomList() {1, 2, 3, 4};
@@ -150,7 +149,7 @@ namespace Xenko.Core.Design.Tests
             customList.Name = "Test";
             var primitiveGrabber = new PrimitiveGrabber();
             primitiveGrabber.Visit(customList);
-            Assert.AreEqual(new List<object>()
+            Assert.Equal(new List<object>()
                 {
                     10, // customList.CustomId
                     "Test", // customList.Name
@@ -171,7 +170,7 @@ namespace Xenko.Core.Design.Tests
             public string Name { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void TestDictionary()
         {
             var customDict = new CustomDictionary() { {"Key1", "Value1"}, {"Key2", "Value2"}};
@@ -179,7 +178,7 @@ namespace Xenko.Core.Design.Tests
             customDict.Name = "Test";
             var primitiveGrabber = new PrimitiveGrabber();
             primitiveGrabber.Visit(customDict);
-            Assert.AreEqual(new List<object>()
+            Assert.Equal(new List<object>()
                 {
                     10, // customList.CustomId
                     "Test", // customList.Name
@@ -188,13 +187,13 @@ namespace Xenko.Core.Design.Tests
                 }, primitiveGrabber.Collected);
         }
 
-        [Test]
+        [Fact]
         public void TestArray()
         {
             var customArray = new[] {1, 2, 3, 4};
             var primitiveGrabber = new PrimitiveGrabber();
             primitiveGrabber.Visit(customArray);
-            Assert.AreEqual(new List<object>
+            Assert.Equal(new List<object>
                 {
                     1,2,3,4
                 }, primitiveGrabber.Collected);
@@ -207,11 +206,11 @@ namespace Xenko.Core.Design.Tests
             public SelfRef Self { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void TestSelfReferencingType()
         {
             var typeDescriptor = TypeDescriptorFactory.Default.Find(typeof(SelfRef));
-            Assert.AreEqual(typeDescriptor, typeDescriptor[nameof(SelfRef.Self)].TypeDescriptor);
+            Assert.Equal(typeDescriptor, typeDescriptor[nameof(SelfRef.Self)].TypeDescriptor);
         }
     }
 }

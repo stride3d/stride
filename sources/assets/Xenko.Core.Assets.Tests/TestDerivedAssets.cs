@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Serializers;
 using Xenko.Core.Assets.Yaml;
 using Xenko.Core;
@@ -15,7 +15,6 @@ using Xenko.Core.Yaml;
 
 namespace Xenko.Core.Assets.Tests
 {
-    [TestFixture]
     public class TestDerivedAssets
     {
         [DataContract]
@@ -54,7 +53,7 @@ namespace Xenko.Core.Assets.Tests
             return new ItemId(array);
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleSerialization()
         {
             var asset = new MyAsset { Strings = { "aa", "bb" } };
@@ -69,9 +68,9 @@ namespace Xenko.Core.Assets.Tests
             AttachedYamlAssetMetadata metadata;
             var loadedAsset = (MyAsset)serializer.Load(stream, null, null, true, out aliasOccurred, out metadata);
             var asset2Ids = CollectionItemIdHelper.GetCollectionItemIds(loadedAsset.Strings);
-            Assert.AreEqual(2, asset2Ids.KeyCount);
-            Assert.AreEqual(asset1Ids[0], asset2Ids[0]);
-            Assert.AreEqual(asset1Ids[1], asset2Ids[1]);
+            Assert.Equal(2, asset2Ids.KeyCount);
+            Assert.Equal(asset1Ids[0], asset2Ids[0]);
+            Assert.Equal(asset1Ids[1], asset2Ids[1]);
         }
 
     }

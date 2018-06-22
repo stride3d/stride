@@ -3,7 +3,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Core.MicroThreading;
 using Xenko.Engine;
@@ -64,7 +64,7 @@ namespace Xenko.Navigation.Tests
             base.Update(gameTime);
             if (gameTime.Total > TimeSpan.FromSeconds(6))
             {
-                Assert.Fail("Test timed out");
+                Assert.True(false, "Test timed out");
             }
         }
 
@@ -85,11 +85,11 @@ namespace Xenko.Navigation.Tests
             RecursiveToggle(filterAB, true);
             RecursiveToggle(filterB, false);
             var buildResult = await dynamicNavigation.Rebuild();
-            Assert.IsTrue(buildResult.Success);
-            Assert.AreEqual(2, buildResult.UpdatedLayers.Count);
+            Assert.True(buildResult.Success);
+            Assert.Equal(2, buildResult.UpdatedLayers.Count);
 
-            await Task.WhenAll(controllerA.TryMove(targetPosition).ContinueWith(x => { Assert.IsFalse(x.Result.Success); }),
-                controllerB.TryMove(targetPosition).ContinueWith(x => { Assert.IsFalse(x.Result.Success); }));
+            await Task.WhenAll(controllerA.TryMove(targetPosition).ContinueWith(x => { Assert.False(x.Result.Success); }),
+                controllerB.TryMove(targetPosition).ContinueWith(x => { Assert.False(x.Result.Success); }));
 
             await Reset();
 
@@ -97,10 +97,10 @@ namespace Xenko.Navigation.Tests
             RecursiveToggle(filterAB, false);
             RecursiveToggle(filterB, true);
             buildResult = await dynamicNavigation.Rebuild();
-            Assert.IsTrue(buildResult.Success);
+            Assert.True(buildResult.Success);
 
-            await Task.WhenAll(controllerA.TryMove(targetPosition).ContinueWith(x => { Assert.IsTrue(x.Result.Success); }),
-                controllerB.TryMove(targetPosition).ContinueWith(x => { Assert.IsFalse(x.Result.Success); }));
+            await Task.WhenAll(controllerA.TryMove(targetPosition).ContinueWith(x => { Assert.True(x.Result.Success); }),
+                controllerB.TryMove(targetPosition).ContinueWith(x => { Assert.False(x.Result.Success); }));
 
             await Reset();
 
@@ -108,19 +108,19 @@ namespace Xenko.Navigation.Tests
             RecursiveToggle(filterAB, false);
             RecursiveToggle(filterB, false);
             buildResult = await dynamicNavigation.Rebuild();
-            Assert.IsTrue(buildResult.Success);
+            Assert.True(buildResult.Success);
 
-            await Task.WhenAll(controllerA.TryMove(targetPosition).ContinueWith(x => { Assert.IsTrue(x.Result.Success); }),
-                controllerB.TryMove(targetPosition).ContinueWith(x => { Assert.IsTrue(x.Result.Success); }));
+            await Task.WhenAll(controllerA.TryMove(targetPosition).ContinueWith(x => { Assert.True(x.Result.Success); }),
+                controllerB.TryMove(targetPosition).ContinueWith(x => { Assert.True(x.Result.Success); }));
 
             // Walk back to spawn with only letting A pass
             RecursiveToggle(filterAB, false);
             RecursiveToggle(filterB, true);
             buildResult = await dynamicNavigation.Rebuild();
-            Assert.IsTrue(buildResult.Success);
+            Assert.True(buildResult.Success);
 
-            await Task.WhenAll(controllerA.TryMove(controllerA.SpawnPosition).ContinueWith(x => { Assert.IsTrue(x.Result.Success); }),
-                controllerB.TryMove(controllerB.SpawnPosition).ContinueWith(x => { Assert.IsFalse(x.Result.Success); }));
+            await Task.WhenAll(controllerA.TryMove(controllerA.SpawnPosition).ContinueWith(x => { Assert.True(x.Result.Success); }),
+                controllerB.TryMove(controllerB.SpawnPosition).ContinueWith(x => { Assert.False(x.Result.Success); }));
 
             Exit();
         }
@@ -145,7 +145,7 @@ namespace Xenko.Navigation.Tests
                 RecursiveToggle(c, enabled);
         }
 
-        [Test]
+        [Fact]
         public static void DynamicBarrierTest1()
         {
             DynamicBarrierTest game = new DynamicBarrierTest();

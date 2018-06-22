@@ -2,14 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using Xenko.Core.Serialization;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Tests
 {
-    [TestFixture]
-    [Description("Tests serialization")]
     public partial class TestSerialization
     {
         [DataContract]
@@ -145,41 +144,44 @@ namespace Xenko.Core.Tests
             return result;
         }
 
-        //[TestCase(SerializationBackend.Binary)]
-        //[TestCase(SerializationBackend.Xml)]
+        //[InlineData(SerializationBackend.Binary)]
+        //[InlineData(SerializationBackend.Xml)]
         //[Description("Test struct serialization of field and properties (using ComplexTypeSerializer)")]
         //public void TestSerializationComplexTypeStruct(SerializationBackend serializationBackend)
         //{
         //    Serializer.Default.RegisterSerializer(new ComplexTypeSerializer<SerializeStructTest> { Flags = ComplexTypeSerializerFlags.SerializePublicProperties | ComplexTypeSerializerFlags.SerializePublicFields });
         //    var source = new SerializeStructTest { A = 32, B = 123 };
         //    var copy = CopyBySerialization(source, serializationBackend);
-        //    Assert.AreEqual(source.A, copy.A);
-        //    Assert.AreEqual(source.B, copy.B);
+        //    Assert.Equal(source.A, copy.A);
+        //    Assert.Equal(source.B, copy.B);
         //}
 
-        [TestCase(SerializationBackend.Binary)]
+        [Theory]
+        [InlineData(SerializationBackend.Binary)]
         [Description("Test class serialization of field and properties (using ComplexTypeSerializer)")]
         public void TestSerializationComplexTypeClass(SerializationBackend serializationBackend)
         {
             var source = new SerializeClassTest { A = 32, B = 123 };
             var copy = CopyBySerialization(source, serializationBackend);
-            Assert.That(copy.A, Is.EqualTo(source.A));
-            Assert.That(copy.B, Is.EqualTo(source.B));
+            Assert.Equal(source.A, copy.A);
+            Assert.Equal(source.B, copy.B);
         }
 
-        [TestCase(SerializationBackend.Binary)]
+        [Theory]
+        [InlineData(SerializationBackend.Binary)]
         [Description("Test class serialization of field and properties (using ComplexTypeSerializer)")]
         public void TestSerializationList(SerializationBackend serializationBackend)
         {
             var source = new List<int> { 32, 12, 15 };
             var copy = CopyBySerialization(source, serializationBackend);
 
-            Assert.That(copy.Count, Is.EqualTo(source.Count));
+            Assert.Equal(source.Count, copy.Count);
             for (int i = 0; i < source.Count; ++i)
-                Assert.That(copy[i], Is.EqualTo(source[i]));
+                Assert.Equal(source[i], copy[i]);
         }
 
-        [TestCase(SerializationBackend.Binary)]
+        [Theory]
+        [InlineData(SerializationBackend.Binary)]
         [Description("Test serialization for every base types")]
         public void TestSerializationBaseTypes(SerializationBackend serializationBackend)
         {
@@ -206,31 +208,32 @@ namespace Xenko.Core.Tests
                                 Guid = Guid.NewGuid(),
                             };
             var copy = CopyBySerialization(source, serializationBackend);
-            Assert.That(copy.Nullable1, Is.EqualTo(source.Nullable1));
-            Assert.That(copy.Nullable2, Is.EqualTo(source.Nullable2));
-            Assert.That(copy.Bool, Is.EqualTo(source.Bool));
-            Assert.That(copy.C, Is.EqualTo(source.C));
-            Assert.That(copy.B, Is.EqualTo(source.B));
-            Assert.That(copy.SB, Is.EqualTo(source.SB));
-            Assert.That(copy.F, Is.EqualTo(source.F));
-            Assert.That(copy.D, Is.EqualTo(source.D));
-            Assert.That(copy.U16, Is.EqualTo(source.U16));
-            Assert.That(copy.I16, Is.EqualTo(source.I16));
-            Assert.That(copy.U32, Is.EqualTo(source.U32));
-            Assert.That(copy.I32, Is.EqualTo(source.I32));
-            Assert.That(copy.U64, Is.EqualTo(source.U64));
-            Assert.That(copy.I64, Is.EqualTo(source.I64));
-            Assert.That(copy.Enum, Is.EqualTo(source.Enum));
-            Assert.That(copy.Enum2, Is.EqualTo(source.Enum2));
-            Assert.That(copy.EnumNull, Is.EqualTo(source.EnumNull));
-            Assert.That(copy.String, Is.EqualTo(source.String));
-            Assert.That(copy.StringNull, Is.EqualTo(source.StringNull));
-            Assert.That(copy.Data, Is.EqualTo(source.Data));
-            Assert.That(copy.DataNull, Is.EqualTo(source.DataNull));
-            Assert.That(copy.Guid, Is.EqualTo(source.Guid));
+            Assert.Equal(source.Nullable1, copy.Nullable1);
+            Assert.Equal(source.Nullable2, copy.Nullable2);
+            Assert.Equal(source.Bool, copy.Bool);
+            Assert.Equal(source.C, copy.C);
+            Assert.Equal(source.B, copy.B);
+            Assert.Equal(source.SB, copy.SB);
+            Assert.Equal(source.F, copy.F);
+            Assert.Equal(source.D, copy.D);
+            Assert.Equal(source.U16, copy.U16);
+            Assert.Equal(source.I16, copy.I16);
+            Assert.Equal(source.U32, copy.U32);
+            Assert.Equal(source.I32, copy.I32);
+            Assert.Equal(source.U64, copy.U64);
+            Assert.Equal(source.I64, copy.I64);
+            Assert.Equal(source.Enum, copy.Enum);
+            Assert.Equal(source.Enum2, copy.Enum2);
+            Assert.Equal(source.EnumNull, copy.EnumNull);
+            Assert.Equal(source.String, copy.String);
+            Assert.Equal(source.StringNull, copy.StringNull);
+            Assert.Equal(source.Data, copy.Data);
+            Assert.Equal(source.DataNull, copy.DataNull);
+            Assert.Equal(source.Guid, copy.Guid);
         }
 
-        [TestCase(SerializationBackend.Binary)]
+        [Theory]
+        [InlineData(SerializationBackend.Binary)]
         [Description("Test serialization for collection types")]
         public void TestSerializationCollectionTypes(SerializationBackend serializationBackend)
         {
@@ -243,39 +246,41 @@ namespace Xenko.Core.Tests
                                  Dictionary = new Dictionary<string, string> { { "a", "b" }, { "c", "d" } },
                              };
             var copy = CopyBySerialization(source, serializationBackend);
-            Assert.That(copy.List, Is.EqualTo(source.List));
+            Assert.Equal(source.List, copy.List);
             Assert.Null(copy.ListNull);
-            Assert.That(copy.ListInterface, Is.EqualTo(source.ListInterface));
+            Assert.Equal(source.ListInterface, copy.ListInterface);
             Assert.Null(copy.ListInterfaceNull);
-            Assert.That(copy.ListClass.Count, Is.EqualTo(source.ListClass.Count));
-            Assert.That(copy.ReadOnlyList.Count, Is.EqualTo(source.ReadOnlyList.Count));
+            Assert.Equal(source.ListClass.Count, copy.ListClass.Count);
+            Assert.Equal(source.ReadOnlyList.Count, copy.ReadOnlyList.Count);
             for (int i = 0; i < source.ListClass.Count; ++i)
             {
-                Assert.That(copy.ListClass[i].A, Is.EqualTo(source.ListClass[i].A));
-                Assert.That(copy.ListClass[i].B, Is.EqualTo(source.ListClass[i].B));
+                Assert.Equal(source.ListClass[i].A, copy.ListClass[i].A);
+                Assert.Equal(source.ListClass[i].B, copy.ListClass[i].B);
             }
 
-            Assert.That(copy.Dictionary, Is.EqualTo(source.Dictionary));
-            Assert.Null(copy.DictionaryNull, null);
+            Assert.Equal(source.Dictionary, copy.Dictionary);
+            Assert.Null(copy.DictionaryNull);
         }
 
-        [TestCase(SerializationBackend.Binary)]
+        [Theory]
+        [InlineData(SerializationBackend.Binary)]
         [Description("Test serialization with type information")]
         public void TestSerializationType(SerializationBackend serializationBackend)
         {
             var source = new SerializeTypeTest { A = new B() };
             var copy = CopyBySerialization(source, serializationBackend);
-            Assert.That(copy.A, Is.InstanceOf(typeof(B)));
+            Assert.True(copy.A is B);
         }
 
-        [TestCase(SerializationBackend.Binary)]
+        [Theory]
+        [InlineData(SerializationBackend.Binary)]
         [Description("Test serialization with type information")]
         public void TestSerializationStructType(SerializationBackend serializationBackend)
         {
             var source = new SerializeTypeTest { A = new S { A = 32 } };
             var copy = CopyBySerialization(source, serializationBackend);
-            Assert.That(copy.A, Is.InstanceOf(typeof(S)));
-            Assert.That(((S)source.A).A, Is.EqualTo(((S)copy.A).A));
+            Assert.True(copy.A is S);
+            Assert.Equal(((S)source.A).A, ((S)copy.A).A);
         }
 
         struct StructWithRef
@@ -283,8 +288,8 @@ namespace Xenko.Core.Tests
             public S A { get; set; }
         }
         
-        //[TestCase(SerializationBackend.Binary)]
-        //[TestCase(SerializationBackend.Xml)]
+        //[InlineData(SerializationBackend.Binary)]
+        //[InlineData(SerializationBackend.Xml)]
         //[Description("Test serialization with type information")]
         //public void TestSerializationPropertyStructType(SerializationBackend serializationBackend)
         //{
@@ -292,7 +297,7 @@ namespace Xenko.Core.Tests
         //    var source = new StructWithRef { A = new S { A = 32 } };
         //    var copy = CopyBySerialization(source, serializationBackend);
         //    Assert.IsInstanceOf<S>(copy.A);
-        //    Assert.AreEqual(((S)source.A).A, ((S)copy.A).A);
+        //    Assert.Equal(((S)source.A).A, ((S)copy.A).A);
         //}
 
     }

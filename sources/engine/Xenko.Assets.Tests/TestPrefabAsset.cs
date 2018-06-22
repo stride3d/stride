@@ -1,10 +1,10 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets;
 using Xenko.Core.Assets.Tests.Helpers;
 using Xenko.Core;
@@ -21,10 +21,9 @@ namespace Xenko.Assets.Tests
         public EntityComponent EntityComponentLink { get; set; }
     }
 
-    [TestFixture]
     public class TestPrefabAsset
     {
-        [Test, Ignore("This test is obsolete, assets require a PropertyGraph to create metadata before being saved")]
+        [Fact(Skip = "This test is obsolete, assets require a PropertyGraph to create metadata before being saved")]
         public void TestSerialization()
         {
             //var originAsset = CreateOriginAsset();
@@ -44,7 +43,7 @@ namespace Xenko.Assets.Tests
             //}
         }
 
-        [Test]
+        [Fact]
         public void TestClone()
         {
             var originAsset = CreateOriginAsset();
@@ -52,7 +51,7 @@ namespace Xenko.Assets.Tests
             CheckAsset(originAsset, newAsset, originAsset.Hierarchy.Parts.Select(x => x.Value.Entity.Id).ToDictionary(x => x, x => x));
         }
 
-        [Test]
+        [Fact]
         public void TestCloneWithNewIds()
         {
             var originAsset = CreateOriginAsset();
@@ -102,12 +101,12 @@ namespace Xenko.Assets.Tests
         private static void CheckAsset(PrefabAsset originAsset, PrefabAsset newAsset, Dictionary<Guid, Guid> idRemapping)
         {
             // Check that we have exactly the same root entities
-            Assert.AreEqual(originAsset.Hierarchy.RootParts.Count, newAsset.Hierarchy.RootParts.Count);
+            Assert.Equal(originAsset.Hierarchy.RootParts.Count, newAsset.Hierarchy.RootParts.Count);
             for (var i = 0; i < originAsset.Hierarchy.RootParts.Count;++i)
             {
-                Assert.AreEqual(idRemapping[originAsset.Hierarchy.RootParts[i].Id], newAsset.Hierarchy.RootParts[i].Id);
+                Assert.Equal(idRemapping[originAsset.Hierarchy.RootParts[i].Id], newAsset.Hierarchy.RootParts[i].Id);
             }
-            Assert.AreEqual(originAsset.Hierarchy.Parts.Count, newAsset.Hierarchy.Parts.Count);
+            Assert.Equal(originAsset.Hierarchy.Parts.Count, newAsset.Hierarchy.Parts.Count);
 
             foreach (var entityDesign in originAsset.Hierarchy.Parts)
             {
@@ -115,24 +114,24 @@ namespace Xenko.Assets.Tests
                 Assert.NotNull(newEntityDesign);
 
                 // Check properties
-                Assert.AreEqual(entityDesign.Value.Entity.Name, newEntityDesign.Entity.Name);
+                Assert.Equal(entityDesign.Value.Entity.Name, newEntityDesign.Entity.Name);
 
                 // Check that we have the same amount of components
-                Assert.AreEqual(entityDesign.Value.Entity.Components.Count, newEntityDesign.Entity.Components.Count);
+                Assert.Equal(entityDesign.Value.Entity.Components.Count, newEntityDesign.Entity.Components.Count);
 
                 // Check that we have the same children
-                Assert.AreEqual(entityDesign.Value.Entity.Transform.Children.Count, newEntityDesign.Entity.Transform.Children.Count);
+                Assert.Equal(entityDesign.Value.Entity.Transform.Children.Count, newEntityDesign.Entity.Transform.Children.Count);
 
                 for (int i = 0; i < entityDesign.Value.Entity.Transform.Children.Count; i++)
                 {
                     var children = entityDesign.Value.Entity.Transform.Children[i];
                     var newChildren = newEntityDesign.Entity.Transform.Children[i];
                     // Make sure that it is the same entity id
-                    Assert.AreEqual(idRemapping[children.Entity.Id], newChildren.Entity.Id);
+                    Assert.Equal(idRemapping[children.Entity.Id], newChildren.Entity.Id);
 
                     // Make sure that we resolve to the global entity and not a copy
                     Assert.True(newAsset.Hierarchy.Parts.ContainsKey(newChildren.Entity.Id));
-                    Assert.AreEqual(newChildren.Entity, newAsset.Hierarchy.Parts[newChildren.Entity.Id].Entity);
+                    Assert.Equal(newChildren.Entity, newAsset.Hierarchy.Parts[newChildren.Entity.Id].Entity);
                 }
             }
 
@@ -148,20 +147,20 @@ namespace Xenko.Assets.Tests
             var newEntityDesign4 = newAsset.Hierarchy.Parts[idRemapping[entity4.Id]];
             
             // Check that Transform.Children is correctly setup
-            Assert.AreEqual(newEntityDesign2.Entity.Transform, newEntityDesign1.Entity.Transform.Children.FirstOrDefault());
+            Assert.Equal(newEntityDesign2.Entity.Transform, newEntityDesign1.Entity.Transform.Children.FirstOrDefault());
 
             // Test entity-entity link from E2 to E1
             {
                 var component = newEntityDesign2.Entity.Get<TestEntityComponent>();
                 Assert.NotNull(component);
-                Assert.AreEqual(newEntityDesign1.Entity, component.EntityLink);
+                Assert.Equal(newEntityDesign1.Entity, component.EntityLink);
             }
 
             // Test entity-component link from E4 to E3
             {
                 var component = newEntityDesign4.Entity.Get<TestEntityComponent>();
                 Assert.NotNull(component);
-                Assert.AreEqual(newEntityDesign3.Entity.Transform, component.EntityComponentLink);
+                Assert.Equal(newEntityDesign3.Entity.Transform, component.EntityComponentLink);
             }
         }
     }

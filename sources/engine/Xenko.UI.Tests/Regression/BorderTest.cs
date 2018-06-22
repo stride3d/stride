@@ -3,7 +3,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
@@ -124,7 +124,7 @@ namespace Xenko.UI.Tests.Regression
             border.LocalMatrix = Matrix.RotationYawPitchRoll(-0.2f, -0.3f, 0.4f);
         }
 
-        [Test]
+        [Fact]
         public void RunBorderTest()
         {
             RunGameTest(new BorderTest());

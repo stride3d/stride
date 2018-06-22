@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +9,9 @@ using Xenko.Core.BuildEngine.Tests.Commands;
 namespace Xenko.Core.BuildEngine.Tests
 {
     // These tests are deprecated, let's ignore them
-    [TestFixture, Ignore("BuildEngine tests are deprecated")]
     public class TestBuilder
     {
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestBlockingCommands()
         {
             Utils.CleanContext();
@@ -26,10 +25,10 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Run(Builder.Mode.Build);
 
             foreach (BuildStep step in steps)
-                Assert.That(step.Status, Is.EqualTo(ResultStatus.Successful));
+                Assert.Equal(ResultStatus.Successful, step.Status);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestAwaitingCommands()
         {
             Utils.CleanContext();
@@ -43,17 +42,17 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Run(Builder.Mode.Build);
 
             foreach (BuildStep step in steps)
-                Assert.That(step.Status, Is.EqualTo(ResultStatus.Successful));
+                Assert.Equal(ResultStatus.Successful, step.Status);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestSpawnAndAwaitCommands()
         {
             Utils.CleanContext();
             ExecuteSimpleBuilder(ResultStatus.Successful);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestRetrievingResultFromCache()
         {
             Utils.CleanContext();
@@ -62,7 +61,7 @@ namespace Xenko.Core.BuildEngine.Tests
             ExecuteSimpleBuilder(ResultStatus.NotTriggeredWasSuccessful);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestSameCommandParallelExecution()
         {
             Utils.CleanContext();
@@ -89,8 +88,8 @@ namespace Xenko.Core.BuildEngine.Tests
                     ++notTriggeredWasSuccessful;
             }
 
-            Assert.That(successful, Is.EqualTo(1));
-            Assert.That(notTriggeredWasSuccessful, Is.EqualTo(commands.Count - 1));
+            Assert.Equal(1, successful);
+            Assert.Equal(commands.Count - 1, notTriggeredWasSuccessful);
         }
 
         private static void ExecuteSimpleBuilder(ResultStatus expectedResult)
@@ -105,7 +104,7 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Run(Builder.Mode.Build);
 
             foreach (BuildStep step in steps)
-                Assert.That(step.Status, Is.EqualTo(expectedResult));
+                Assert.Equal(expectedResult, step.Status);
         }
 
     }

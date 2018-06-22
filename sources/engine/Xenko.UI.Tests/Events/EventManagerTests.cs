@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 
-using NUnit.Framework;
+using Xunit;
 
 using System.Linq;
 
@@ -33,8 +33,7 @@ namespace Xenko.UI.Tests.Events
         /// <summary>
         /// Initialize the test series
         /// </summary>
-        [TestFixtureSetUp]
-        public void Initialize()
+        private void Initialize()
         {
             ResetState();
 
@@ -67,9 +66,11 @@ namespace Xenko.UI.Tests.Events
         /// <summary>
         /// Tests for <see cref="EventManager.RegisterClassHandler{T}"/> and <see cref="EventManager.GetClassHandler"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestClassHandler()
         {
+            Initialize();
+
             // test the ArgumentNullException
             Assert.Throws<ArgumentNullException>(() => EventManager.RegisterClassHandler(null, testBasicHandler, TestRoutedEventHandler));
             Assert.Throws<ArgumentNullException>(() => EventManager.RegisterClassHandler<RoutedEventArgs>(typeof(EventManagerTests), null, TestRoutedEventHandler));
@@ -79,30 +80,32 @@ namespace Xenko.UI.Tests.Events
             
             // test that handlers are correctly registered.
             EventManager.RegisterClassHandler(typeof(EventManagerTests), testBasicHandler, TestRoutedEventHandler);
-            Assert.AreEqual((EventHandler<RoutedEventArgs>)TestRoutedEventHandler, EventManager.GetClassHandler(typeof(EventManagerTests), testBasicHandler).Handler);
+            Assert.Equal((EventHandler<RoutedEventArgs>)TestRoutedEventHandler, EventManager.GetClassHandler(typeof(EventManagerTests), testBasicHandler).Handler);
             EventManager.RegisterClassHandler(typeof(EventManagerTests), testSpecialHandler, TestMyTestRoutedEventHandler);
-            Assert.AreEqual((EventHandler<MyTestRoutedEventArgs>)TestMyTestRoutedEventHandler, EventManager.GetClassHandler(typeof(EventManagerTests), testSpecialHandler).Handler);
+            Assert.Equal((EventHandler<MyTestRoutedEventArgs>)TestMyTestRoutedEventHandler, EventManager.GetClassHandler(typeof(EventManagerTests), testSpecialHandler).Handler);
 
             // test propagation of the handlers via inheritance 
             EventManager.RegisterClassHandler(typeof(Child), testBasicHandler, TestRoutedEventHandler);
-            Assert.AreEqual((EventHandler<RoutedEventArgs>)TestRoutedEventHandler, EventManager.GetClassHandler(typeof(Child), testBasicHandler).Handler);
-            Assert.AreEqual((EventHandler<RoutedEventArgs>)TestRoutedEventHandler, EventManager.GetClassHandler(typeof(GrandChild), testBasicHandler).Handler);
-            Assert.AreEqual(null, EventManager.GetClassHandler(typeof(Parent), testBasicHandler));
+            Assert.Equal((EventHandler<RoutedEventArgs>)TestRoutedEventHandler, EventManager.GetClassHandler(typeof(Child), testBasicHandler).Handler);
+            Assert.Equal((EventHandler<RoutedEventArgs>)TestRoutedEventHandler, EventManager.GetClassHandler(typeof(GrandChild), testBasicHandler).Handler);
+            Assert.Equal(null, EventManager.GetClassHandler(typeof(Parent), testBasicHandler));
             
             // test the value of HandledEventsToo
             EventManager.RegisterClassHandler(typeof(EventManagerTests), testBasicHandler, TestRoutedEventHandler);
-            Assert.AreEqual(false, EventManager.GetClassHandler(typeof(EventManagerTests), testBasicHandler).HandledEventToo);
+            Assert.Equal(false, EventManager.GetClassHandler(typeof(EventManagerTests), testBasicHandler).HandledEventToo);
             EventManager.RegisterClassHandler(typeof(EventManagerTests), testBasicHandler, TestRoutedEventHandler, true);
-            Assert.AreEqual(true, EventManager.GetClassHandler(typeof(EventManagerTests), testBasicHandler).HandledEventToo); 
+            Assert.Equal(true, EventManager.GetClassHandler(typeof(EventManagerTests), testBasicHandler).HandledEventToo); 
         }
 
         /// <summary>
         /// Test function for <see cref="EventManager.RegisterRoutedEvent{T}"/>, <see cref="EventManager.GetRoutedEvent"/>, 
         /// <see cref="EventManager.GetRoutedEvents"/>, <see cref="EventManager.GetRoutedEventsForOwner"/>.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestRoutedEvent()
         {
+            Initialize();
+
             // test argument null exception
             Assert.Throws<ArgumentNullException>(() => EventManager.RegisterRoutedEvent<RoutedEventArgs>(null, RoutingStrategy.Tunnel, typeof(EventManagerTests)));
             Assert.Throws<ArgumentNullException>(() => EventManager.RegisterRoutedEvent<RoutedEventArgs>("Test", RoutingStrategy.Tunnel, null));
@@ -117,33 +120,33 @@ namespace Xenko.UI.Tests.Events
             const RoutingStrategy strategy = RoutingStrategy.Bubble;
             var ownerType = typeof(EventManagerTests);
             var checkValues = EventManager.RegisterRoutedEvent<RoutedEventArgs>(eventName, strategy, ownerType);
-            Assert.AreEqual(eventName, checkValues.Name);
-            Assert.AreEqual(strategy, checkValues.RoutingStrategy);
-            Assert.AreEqual(ownerType, checkValues.OwnerType);
-            Assert.AreEqual(typeof(RoutedEventArgs), checkValues.HandlerSecondArgumentType);
+            Assert.Equal(eventName, checkValues.Name);
+            Assert.Equal(strategy, checkValues.RoutingStrategy);
+            Assert.Equal(ownerType, checkValues.OwnerType);
+            Assert.Equal(typeof(RoutedEventArgs), checkValues.HandlerSecondArgumentType);
 
             // check the get routed events functions
-            Assert.AreEqual(4, EventManager.GetRoutedEvents().Length);
-            Assert.IsTrue(EventManager.GetRoutedEvents().Contains(checkValues));
-            Assert.IsTrue(EventManager.GetRoutedEvents().Contains(testBasicHandler));
-            Assert.IsTrue(EventManager.GetRoutedEvents().Contains(testSpecialHandler));
-            Assert.IsTrue(EventManager.GetRoutedEvents().Contains(testBasicHandlerOtherOwner));
+            Assert.Equal(4, EventManager.GetRoutedEvents().Length);
+            Assert.True(EventManager.GetRoutedEvents().Contains(checkValues));
+            Assert.True(EventManager.GetRoutedEvents().Contains(testBasicHandler));
+            Assert.True(EventManager.GetRoutedEvents().Contains(testSpecialHandler));
+            Assert.True(EventManager.GetRoutedEvents().Contains(testBasicHandlerOtherOwner));
 
             // test ownership
             var testChild = EventManager.RegisterRoutedEvent<RoutedEventArgs>("Test", RoutingStrategy.Tunnel, typeof(Child));
             var testGrandChild = EventManager.RegisterRoutedEvent<RoutedEventArgs>("Test2", RoutingStrategy.Tunnel, typeof(GrandChild));
-            Assert.AreEqual(0, EventManager.GetRoutedEventsForOwner(typeof(Parent)).Length);
-            Assert.AreEqual(1, EventManager.GetRoutedEventsForOwner(typeof(Child)).Length);
-            Assert.AreEqual(testChild, EventManager.GetRoutedEventsForOwner(typeof(Child))[0]);
-            Assert.AreEqual(2, EventManager.GetRoutedEventsForOwner(typeof(GrandChild)).Length);
-            Assert.AreEqual(testGrandChild, EventManager.GetRoutedEventsForOwner(typeof(GrandChild))[0]);
-            Assert.AreEqual(testChild, EventManager.GetRoutedEventsForOwner(typeof(GrandChild))[1]);
+            Assert.Equal(0, EventManager.GetRoutedEventsForOwner(typeof(Parent)).Length);
+            Assert.Equal(1, EventManager.GetRoutedEventsForOwner(typeof(Child)).Length);
+            Assert.Equal(testChild, EventManager.GetRoutedEventsForOwner(typeof(Child))[0]);
+            Assert.Equal(2, EventManager.GetRoutedEventsForOwner(typeof(GrandChild)).Length);
+            Assert.Equal(testGrandChild, EventManager.GetRoutedEventsForOwner(typeof(GrandChild))[0]);
+            Assert.Equal(testChild, EventManager.GetRoutedEventsForOwner(typeof(GrandChild))[1]);
 
             // test research by name
-            Assert.AreEqual(null, EventManager.GetRoutedEvent(typeof(Parent), "Test"));
-            Assert.AreEqual(testChild, EventManager.GetRoutedEvent(typeof(Child), "Test"));
-            Assert.AreEqual(testChild, EventManager.GetRoutedEvent(typeof(GrandChild), "Test"));
-            Assert.AreEqual(testGrandChild, EventManager.GetRoutedEvent(typeof(GrandChild), "Test2"));
+            Assert.Equal(null, EventManager.GetRoutedEvent(typeof(Parent), "Test"));
+            Assert.Equal(testChild, EventManager.GetRoutedEvent(typeof(Child), "Test"));
+            Assert.Equal(testChild, EventManager.GetRoutedEvent(typeof(GrandChild), "Test"));
+            Assert.Equal(testGrandChild, EventManager.GetRoutedEvent(typeof(GrandChild), "Test2"));
         }
     }
 }

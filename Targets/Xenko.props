@@ -17,7 +17,6 @@
     <AndroidSupportedAbis>armeabi-v7a%3barmeabi%3bx86</AndroidSupportedAbis>
     <AndroidStoreUncompressedFileExtensions />
     <MandroidI18n />
-    <NUnitLiteBinDir>$(XenkoCommonDependenciesDir)NUnitLite\net-monodroid\</NUnitLiteBinDir>
     <LanguageTargets>$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets</LanguageTargets>
   </PropertyGroup>
   <!-- Support for TargetFramework uap10.0 -->

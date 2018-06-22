@@ -2,16 +2,15 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.IO;
 
 namespace Xenko.Core.Assets.Tests
 {
-    [TestFixture]
     public class TestAssetReferenceCollection
     {
-        [Test]
+        [Fact]
         public void TestCollectionAddRemove()
         {
             // TODO test to be modified
@@ -33,11 +32,11 @@ namespace Xenko.Core.Assets.Tests
             assets.Add(ref2);
 
             var findRef1 = assets.Find("a/test");
-            Assert.AreEqual(ref1, findRef1);
+            Assert.Equal(ref1, findRef1);
 
             // Test Remove
             assets.Remove(ref1);
-            Assert.AreEqual(assets.Count, 1);
+            Assert.Equal(assets.Count, 1);
 
             // Change location after adding an asset reference
             //ref1.Location = "a/test2.txt";
@@ -45,16 +44,16 @@ namespace Xenko.Core.Assets.Tests
             //ref1.Location = "a/test3.txt";
 
             findRef1 = assets.Find("a/test3");
-            Assert.AreEqual(ref1, findRef1);
-            Assert.AreEqual(assets.Count, 2);
+            Assert.Equal(ref1, findRef1);
+            Assert.Equal(assets.Count, 2);
 
             // Add a reference with the same name
             Assert.Throws<ArgumentException>(() => assets.Add(new AssetItem("a/test3.png", null)));
-            Assert.AreEqual(assets.Count, 2);
+            Assert.Equal(assets.Count, 2);
 
             // Test clear
             assets.Clear();
-            Assert.AreEqual(assets.Count, 0);
+            Assert.Equal(assets.Count, 0);
             * */
         }
     }

@@ -3,14 +3,13 @@
 using System;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
 
 namespace Xenko.Graphics.Tests
 {
-    [TestFixture]
     public class TestSpriteBatch3D : GraphicTestGameBase
     {
         private Sprite3DBatch batch;
@@ -176,7 +175,7 @@ namespace Xenko.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [Fact]
         public void RunTestSpriteBatch3D()
         {
             RunGameTest(new TestSpriteBatch3D());

@@ -1,8 +1,8 @@
-﻿//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 //// This file is distributed under GPL v3. See LICENSE.md for details.
 //using System;
 //
-//using NUnit.Framework;
+//using Xunit;
 //
 //using Xenko.Core;
 //using Xenko.Core.IO;
@@ -15,8 +15,7 @@
 //    /// <summary>
 //    /// Tests for <see cref="SoundEffect"/>.
 //    /// </summary>
-//    [TestFixture]
-//    public class TestSoundEffectInstance
+////    public class TestSoundEffectInstance
 //    {
 //        private AudioEngine defaultEngine;
 //
@@ -79,7 +78,7 @@
 //        ///  - 2 instances of 2 different <see cref="SoundEffect"/> can play at the same time.
 //        ///  - an old instance is correctly stopped if the max number of sound tracks is reached.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestInstanceConcurrency()
 //        {
 //            ////////////////////////////////////////////////////////////////////////////
@@ -87,9 +86,9 @@
 //            monoSoundEffect.Play();
 //            stereoSoundEffect.Play();
 //            continousMonoSoundEffect.Play();
-//            Assert.AreEqual(SoundPlayState.Playing, monoSoundEffect.PlayState);
-//            Assert.AreEqual(SoundPlayState.Playing, stereoSoundEffect.PlayState);
-//            Assert.AreEqual(SoundPlayState.Playing, continousMonoSoundEffect.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, monoSoundEffect.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, stereoSoundEffect.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, continousMonoSoundEffect.PlayState);
 //            Utilities.Sleep(3000);
 //
 //            //////////////////////////////////////////////////////////////////////////////////
@@ -98,27 +97,27 @@
 //            var inst2 = stereoSoundEffect.CreateInstance();
 //            var inst3 = stereoSoundEffect.CreateInstance();
 //            inst1.Play();
-//            Assert.AreEqual(SoundPlayState.Playing, inst1.PlayState);
-//            Assert.AreEqual(SoundPlayState.Stopped, inst2.PlayState);
-//            Assert.AreEqual(SoundPlayState.Stopped, inst3.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, inst1.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, inst2.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, inst3.PlayState);
 //            inst2.Play();
-//            Assert.AreEqual(SoundPlayState.Stopped, inst1.PlayState);
-//            Assert.AreEqual(SoundPlayState.Playing, inst2.PlayState);
-//            Assert.AreEqual(SoundPlayState.Stopped, inst3.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, inst1.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, inst2.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, inst3.PlayState);
 //            Utilities.Sleep(1000); // wait a little bit for hearing checking
 //            inst3.Play();
 //            Utilities.Sleep(1000); // wait a little bit for hearing checking
-//            Assert.AreEqual(SoundPlayState.Stopped, inst1.PlayState);
-//            Assert.AreEqual(SoundPlayState.Stopped, inst2.PlayState);
-//            Assert.AreEqual(SoundPlayState.Playing, inst3.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, inst1.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, inst2.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, inst3.PlayState);
 //            inst3.Pause();
-//            Assert.AreEqual(SoundPlayState.Stopped, inst1.PlayState);
-//            Assert.AreEqual(SoundPlayState.Stopped, inst2.PlayState);
-//            Assert.AreEqual(SoundPlayState.Paused, inst3.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, inst1.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, inst2.PlayState);
+//            Assert.Equal(SoundPlayState.Paused, inst3.PlayState);
 //            inst1.Play();
-//            Assert.AreEqual(SoundPlayState.Playing, inst1.PlayState);
-//            Assert.AreEqual(SoundPlayState.Stopped, inst2.PlayState);
-//            Assert.AreEqual(SoundPlayState.Stopped, inst3.PlayState);
+//            Assert.Equal(SoundPlayState.Playing, inst1.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, inst2.PlayState);
+//            Assert.Equal(SoundPlayState.Stopped, inst3.PlayState);
 //
 //            inst1.Dispose();
 //            inst2.Dispose();
@@ -128,7 +127,7 @@
 //        /// <summary>
 //        /// Test that multiple instances creations does not throw any OutOfMemory exceptions.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestMultipleCreations()
 //        {
 //            ///////////////////////////////////////////////////////////////////////////////////
@@ -156,13 +155,13 @@
 //        /// <summary>
 //        /// Test the behaviour of the dispose function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestDispose()
 //        {
 //            //////////////////////////////////////////////////////////////
 //            // 1. Check the value of the IsDisposed function before Disposal
 //            var seInstance = monoSoundEffect.CreateInstance();
-//            Assert.IsFalse(seInstance.IsDisposed, "The soundEffectInstance returned by CreateInstance is already marked as disposed.");
+//            Assert.False(seInstance.IsDisposed, "The soundEffectInstance returned by CreateInstance is already marked as disposed.");
 //
 //            /////////////////////////////////////////
 //            // 2. Check that dispose does not crash
@@ -170,7 +169,7 @@
 //
 //            ///////////////////////////////////////////////////////////////////
 //            // 3. Check the Disposal status of the instance after Dispose call
-//            Assert.IsTrue(seInstance.IsDisposed, "The soundEffectInstance is not marked as 'Disposed' after call to SoundEffectInstance.Dispose");
+//            Assert.True(seInstance.IsDisposed, "The soundEffectInstance is not marked as 'Disposed' after call to SoundEffectInstance.Dispose");
 //
 //            /////////////////////////////////////////////////////////
 //            // 4. Check that another call to Dispose does not crash
@@ -187,7 +186,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the Play function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestPlay()
 //        {
 //            /////////////////////////////////////
@@ -247,7 +246,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the Pause function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestPause()
 //        {
 //            //////////////////////////////////////////////////////////////////////////////////
@@ -280,7 +279,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the Stop function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestStop()
 //        {
 //            //////////////////////////////////////////////////////////////////////////////////
@@ -317,7 +316,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the ExitLoop function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestExitLoop()
 //        {
 //            //////////////////////////////////////////////////////////////////////////////////
@@ -338,7 +337,7 @@
 //            Utilities.Sleep(10); // Play need to be commited
 //            Assert.DoesNotThrow(loopedInst.ExitLoop, "Call to SoundEffectInstance.ExitLoop crashed throwing an exception.");
 //            Utilities.Sleep(2000);
-//            Assert.IsTrue(loopedInst.PlayState == SoundPlayState.Stopped, "SoundEffectInstance.ExitLoop has not properly stopped the looping proccess");
+//            Assert.True(loopedInst.PlayState == SoundPlayState.Stopped, "SoundEffectInstance.ExitLoop has not properly stopped the looping proccess");
 //
 //            ////////////////////////////////////////////////////////////////////////////////
 //            // 4. Check that a call to ExitLoop does not crash when the sound is not looping
@@ -357,7 +356,7 @@
 //
 //            ////////////////////////////////////////////////////////////////
 //            // 6. Check that ExitLoop does not modify the value of IsLooped 
-//            Assert.AreEqual(true, loopedInst.IsLooped, "SoundEffectInstance.ExitLoop modified the value of IsLooped.");
+//            Assert.Equal(true, loopedInst.IsLooped, "SoundEffectInstance.ExitLoop modified the value of IsLooped.");
 //
 //            loopedInst.Dispose();
 //        }
@@ -365,7 +364,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the Volume function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestVolume()
 //        {
 //            float vol = 0;
@@ -385,7 +384,7 @@
 //
 //            /////////////////////////////////////////////////////
 //            // 3. Check that Volume value is set to 1 by default
-//            Assert.AreEqual(1f, vol, "Default volume value is not 1.");
+//            Assert.Equal(1f, vol, "Default volume value is not 1.");
 //
 //            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //            // 4. Check that modifying the volume works and is correctly clamped (result => sound should go up and back down)
@@ -398,7 +397,7 @@
 //            {
 //                Assert.DoesNotThrow(() => contInst.Volume = currentVol, "SoundEffectInstance.Volume { set } crashed.");
 //                Assert.DoesNotThrow(() => vol = contInst.Volume, "SoundEffectInstance.Volume { get } crashed.");
-//                Assert.AreEqual(MathUtil.Clamp(currentVol, 0, 1), vol, "The volume value is not what is supposed to be.");
+//                Assert.Equal(MathUtil.Clamp(currentVol, 0, 1), vol, "The volume value is not what is supposed to be.");
 //
 //                Utilities.Sleep(10);
 //                if (currentVol > 1.5)
@@ -413,7 +412,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the IsLooped function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestIsLooped()
 //        {
 //            var looped = false;
@@ -433,7 +432,7 @@
 //
 //            /////////////////////////////////////////////////
 //            // 3. Check that IsLooped default value is false
-//            Assert.IsFalse(monoInstance.IsLooped, "Default looping status is not false.");
+//            Assert.False(monoInstance.IsLooped, "Default looping status is not false.");
 //
 //            /////////////////////////////////////////////////////////////
 //            // 4. Check that IsLooped set/get do not crash on valid sound
@@ -448,7 +447,7 @@
 //            loopedInst.IsLooped = true;
 //            loopedInst.Play();
 //            Utilities.Sleep(1500);
-//            Assert.IsTrue(loopedInst.PlayState == SoundPlayState.Playing, "Sound does not loop when Islooped is set to true.");
+//            Assert.True(loopedInst.PlayState == SoundPlayState.Playing, "Sound does not loop when Islooped is set to true.");
 //            loopedInst.Stop();
 //            loopedInst.Dispose();
 //
@@ -458,7 +457,7 @@
 //            contInst.IsLooped = true;
 //            contInst.Play();
 //            Utilities.Sleep(3000);
-//            Assert.IsTrue(contInst.PlayState == SoundPlayState.Playing, "Sound does not loop when Islooped is set to true.");
+//            Assert.True(contInst.PlayState == SoundPlayState.Playing, "Sound does not loop when Islooped is set to true.");
 //            contInst.Stop();
 //            contInst.Dispose();
 //        }
@@ -466,7 +465,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the PlayState function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestPlayState()
 //        {
 //            var state = SoundPlayState.Stopped;
@@ -480,7 +479,7 @@
 //            }
 //            catch (Exception e)
 //            {
-//                Assert.IsFalse(e is ObjectDisposedException, "SoundEffectInstance.PlayState { get } did throw the 'ObjectDisposedException' when called from a disposed object.");
+//                Assert.False(e is ObjectDisposedException, "SoundEffectInstance.PlayState { get } did throw the 'ObjectDisposedException' when called from a disposed object.");
 //            }
 //            
 //            //////////////////////////////////////////////
@@ -489,34 +488,34 @@
 //
 //            ////////////////////////////////////////////////////////////////////
 //            // 3. Check that PlayState default value is SoundPlayState.Stopped.
-//            Assert.AreEqual(SoundPlayState.Stopped, state, "Default value of SoundEffectInstance.PlayState is not SoundPlayState.Stopped.");
+//            Assert.Equal(SoundPlayState.Stopped, state, "Default value of SoundEffectInstance.PlayState is not SoundPlayState.Stopped.");
 //
 //            //////////////////////////////////////////////////////////////////////
 //            // 4. Check that PlayState value after Play is SoundPlayState.Playing.
 //            monoInstance.Play();
-//            Assert.AreEqual(SoundPlayState.Playing, monoInstance.PlayState, "Value of SoundEffectInstance.PlayState is not SoundPlayState.Playing after a call to Play");
+//            Assert.Equal(SoundPlayState.Playing, monoInstance.PlayState, "Value of SoundEffectInstance.PlayState is not SoundPlayState.Playing after a call to Play");
 //
 //            //////////////////////////////////////////////////////////////////////
 //            // 5. Check that PlayState value after Pause is SoundPlayState.Pause.
 //            monoInstance.Pause();
-//            Assert.AreEqual(SoundPlayState.Paused, monoInstance.PlayState, "Value of SoundEffectInstance.PlayState is not SoundPlayState.Pause after a call to Pause");
+//            Assert.Equal(SoundPlayState.Paused, monoInstance.PlayState, "Value of SoundEffectInstance.PlayState is not SoundPlayState.Pause after a call to Pause");
 //
 //            //////////////////////////////////////////////////////////////////////
 //            // 6. Check that PlayState value after Stop is SoundPlayState.Stopped.
 //            monoInstance.Stop();
-//            Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "Value of SoundEffectInstance.PlayState is not SoundPlayState.Stopped after a call to Stop");
+//            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "Value of SoundEffectInstance.PlayState is not SoundPlayState.Stopped after a call to Stop");
 //
 //            //////////////////////////////////////////////////////////////////////////////////////////
 //            // 7. Check that PlayState value is SoundPlayState.Stopped when the sound stops by itself.
 //            monoInstance.Play();
 //            Utilities.Sleep(1500);
-//            Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "Value of SoundEffectInstance.PlayState is not SoundPlayState.Stopped when we reach the sound end");
+//            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "Value of SoundEffectInstance.PlayState is not SoundPlayState.Stopped when we reach the sound end");
 //        }
 //
 //        /// <summary>
 //        /// Test the behaviour of the Pan function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestPan()
 //        {
 //            var pan = 0f;
@@ -536,7 +535,7 @@
 //
 //            /////////////////////////////////////////
 //            // 3. Check that Pan default value is 0f
-//            Assert.AreEqual(0f, monoInstance.Pan, "Default Pan value is not 0f.");
+//            Assert.Equal(0f, monoInstance.Pan, "Default Pan value is not 0f.");
 //
 //            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //            // 4. Check that mono sound is Panning correctly (should listen => sound comming from left -> going to right -> going back to left)
@@ -549,7 +548,7 @@
 //            while (currentPan >= -BornValue)
 //            {
 //                Assert.DoesNotThrow(() => monoContInst.Pan = currentPan, "SoundEffectInstance.Pan { set } crashed with varying values.");
-//                Assert.AreEqual(MathUtil.Clamp(currentPan, -1, 1), monoContInst.Pan, "SoundEffectInstance.Pan { get } is not what it is supposed to be.");
+//                Assert.Equal(MathUtil.Clamp(currentPan, -1, 1), monoContInst.Pan, "SoundEffectInstance.Pan { get } is not what it is supposed to be.");
 //
 //                currentPan += sign * 0.01f;
 //
@@ -583,7 +582,7 @@
 //            while (currentPan >= -BornValue)
 //            {
 //                Assert.DoesNotThrow(() => stereoContInst.Pan = currentPan, "SoundEffectInstance.Pan { set } crashed with varying values.");
-//                Assert.AreEqual(MathUtil.Clamp(currentPan, -1, 1), stereoContInst.Pan, "SoundEffectInstance.Pan { get } is not what it is supposed to be.");
+//                Assert.Equal(MathUtil.Clamp(currentPan, -1, 1), stereoContInst.Pan, "SoundEffectInstance.Pan { get } is not what it is supposed to be.");
 //
 //                currentPan += sign * 0.01f;
 //
@@ -600,7 +599,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the Apply3D function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestApply3D()
 //        {
 //            var list = new AudioListener();
@@ -781,7 +780,7 @@
 //            {
 //                contInst.Volume = volume;
 //                contInst.Apply3D(new AudioListener(), new AudioEmitter());
-//                Assert.AreEqual(MathUtil.Clamp(volume, 0f, 1f), contInst.Volume, "Volume of continous sound is not what it should be.");
+//                Assert.Equal(MathUtil.Clamp(volume, 0f, 1f), contInst.Volume, "Volume of continous sound is not what it should be.");
 //            
 //                volume += sign * 0.01f;
 //
@@ -799,7 +798,7 @@
 //            contInst.Pan = 1;
 //            Utilities.Sleep(1000);
 //            contInst.Apply3D(new AudioListener(), new AudioEmitter { Position = new Vector3(-1,0,0)});
-//            Assert.AreEqual(0, contInst.Pan, "The Pan value has not been reset.");
+//            Assert.Equal(0, contInst.Pan, "The Pan value has not been reset.");
 //            Utilities.Sleep(1000);
 //            contInst.Stop();
 //
@@ -807,7 +806,7 @@
 //            stereoInst.Dispose();
 //        }
 //
-//        [Test]
+//        [Fact]
 //        public void TestReset3D()
 //        {
 //            var list = new AudioListener();
@@ -856,7 +855,7 @@
 //            monoInst.Reset3D();
 //            monoInst.Play();
 //            Utilities.Sleep(1000);
-//            Assert.AreEqual(0.5f, monoInst.Volume, "Reset3D has modified the music Volume");
+//            Assert.Equal(0.5f, monoInst.Volume, "Reset3D has modified the music Volume");
 //            monoInst.Volume = 1f;
 //            Utilities.Sleep(1000);
 //            monoInst.Stop();

@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Design.Tests
 {
@@ -37,26 +37,25 @@ namespace Xenko.Core.Design.Tests
     /// <summary>
     /// Tests for the <see cref="ObjectCache{TKey, TValue}"/> class.
     /// </summary>
-    [TestFixture]
     public class TestObjectCache
     {
-        [Test]
+        [Fact]
         public void TestConstruction()
         {
             var cache = new ObjectCache<Guid, object>();
-            Assert.AreEqual(ObjectCache<Guid, object>.DefaultCacheSize, cache.Size);
-            Assert.AreEqual(0, cache.History().Count);
-            Assert.AreEqual(0, cache.Cache().Count);
-            Assert.AreEqual(0, cache.CurrentAccessCount());
+            Assert.Equal(ObjectCache<Guid, object>.DefaultCacheSize, cache.Size);
+            Assert.Equal(0, cache.History().Count);
+            Assert.Equal(0, cache.Cache().Count);
+            Assert.Equal(0, cache.CurrentAccessCount());
 
             cache = new ObjectCache<Guid, object>(16);
-            Assert.AreEqual(16, cache.Size);
-            Assert.AreEqual(0, cache.History().Count);
-            Assert.AreEqual(0, cache.Cache().Count);
-            Assert.AreEqual(0, cache.CurrentAccessCount());
+            Assert.Equal(16, cache.Size);
+            Assert.Equal(0, cache.History().Count);
+            Assert.Equal(0, cache.Cache().Count);
+            Assert.Equal(0, cache.CurrentAccessCount());
         }
 
-        [Test]
+        [Fact]
         public void TestTryGet()
         {
             var cache = new ObjectCache<Guid, object>(4);
@@ -64,42 +63,42 @@ namespace Xenko.Core.Design.Tests
             var obj = new object();
             cache.Cache(guid, obj);
             var retrieved = cache.TryGet(guid);
-            Assert.AreEqual(1, cache.History().Count);
-            Assert.AreEqual(1, cache.Cache().Count);
-            Assert.AreEqual(2, cache.CurrentAccessCount());
-            Assert.AreEqual(2, cache.History().Single().Key);
-            Assert.AreEqual(guid, cache.History().Single().Value);
-            Assert.AreEqual(true, cache.Cache().ContainsKey(guid));
-            Assert.AreEqual(obj, cache.Cache()[guid]);
-            Assert.AreEqual(obj, retrieved);
+            Assert.Equal(1, cache.History().Count);
+            Assert.Equal(1, cache.Cache().Count);
+            Assert.Equal(2, cache.CurrentAccessCount());
+            Assert.Equal(2, cache.History().Single().Key);
+            Assert.Equal(guid, cache.History().Single().Value);
+            Assert.Equal(true, cache.Cache().ContainsKey(guid));
+            Assert.Equal(obj, cache.Cache()[guid]);
+            Assert.Equal(obj, retrieved);
             retrieved = cache.TryGet(Guid.NewGuid());
-            Assert.AreEqual(1, cache.History().Count);
-            Assert.AreEqual(1, cache.Cache().Count);
-            Assert.AreEqual(2, cache.CurrentAccessCount());
-            Assert.AreEqual(2, cache.History().Single().Key);
-            Assert.AreEqual(guid, cache.History().Single().Value);
-            Assert.AreEqual(true, cache.Cache().ContainsKey(guid));
-            Assert.AreEqual(obj, cache.Cache()[guid]);
-            Assert.AreEqual(null, retrieved);
+            Assert.Equal(1, cache.History().Count);
+            Assert.Equal(1, cache.Cache().Count);
+            Assert.Equal(2, cache.CurrentAccessCount());
+            Assert.Equal(2, cache.History().Single().Key);
+            Assert.Equal(guid, cache.History().Single().Value);
+            Assert.Equal(true, cache.Cache().ContainsKey(guid));
+            Assert.Equal(obj, cache.Cache()[guid]);
+            Assert.Equal(null, retrieved);
         }
 
-        [Test]
+        [Fact]
         public void TestCache()
         {
             var cache = new ObjectCache<Guid, object>(4);
             var guid = Guid.NewGuid();
             var obj = new object();
             cache.Cache(guid, obj);
-            Assert.AreEqual(1, cache.History().Count);
-            Assert.AreEqual(1, cache.Cache().Count);
-            Assert.AreEqual(1, cache.CurrentAccessCount());
-            Assert.AreEqual(1, cache.History().Single().Key);
-            Assert.AreEqual(guid, cache.History().Single().Value);
-            Assert.AreEqual(true, cache.Cache().ContainsKey(guid));
-            Assert.AreEqual(obj, cache.Cache()[guid]);
+            Assert.Equal(1, cache.History().Count);
+            Assert.Equal(1, cache.Cache().Count);
+            Assert.Equal(1, cache.CurrentAccessCount());
+            Assert.Equal(1, cache.History().Single().Key);
+            Assert.Equal(guid, cache.History().Single().Value);
+            Assert.Equal(true, cache.Cache().ContainsKey(guid));
+            Assert.Equal(obj, cache.Cache()[guid]);
         }
 
-        [Test]
+        [Fact]
         public void TestCache2Objs()
         {
             var cache = new ObjectCache<Guid, object>(2);
@@ -109,20 +108,20 @@ namespace Xenko.Core.Design.Tests
             var obj2 = new object();
             cache.Cache(guid1, obj1);
             cache.Cache(guid2, obj2);
-            Assert.AreEqual(2, cache.History().Count);
-            Assert.AreEqual(2, cache.Cache().Count);
-            Assert.AreEqual(2, cache.CurrentAccessCount());
-            Assert.AreEqual(1, cache.History().First().Key);
-            Assert.AreEqual(guid1, cache.History().First().Value);
-            Assert.AreEqual(true, cache.Cache().ContainsKey(guid1));
-            Assert.AreEqual(obj1, cache.Cache()[guid1]);
-            Assert.AreEqual(2, cache.History().Last().Key);
-            Assert.AreEqual(guid2, cache.History().Last().Value);
-            Assert.AreEqual(guid2, cache.Cache().Last().Key);
-            Assert.AreEqual(obj2, cache.Cache().Last().Value);
+            Assert.Equal(2, cache.History().Count);
+            Assert.Equal(2, cache.Cache().Count);
+            Assert.Equal(2, cache.CurrentAccessCount());
+            Assert.Equal(1, cache.History().First().Key);
+            Assert.Equal(guid1, cache.History().First().Value);
+            Assert.Equal(true, cache.Cache().ContainsKey(guid1));
+            Assert.Equal(obj1, cache.Cache()[guid1]);
+            Assert.Equal(2, cache.History().Last().Key);
+            Assert.Equal(guid2, cache.History().Last().Value);
+            Assert.Equal(guid2, cache.Cache().Last().Key);
+            Assert.Equal(obj2, cache.Cache().Last().Value);
         }
 
-        [Test]
+        [Fact]
         public void TestCacheOverflow()
         {
             var cache = new ObjectCache<Guid, object>(2);
@@ -135,18 +134,18 @@ namespace Xenko.Core.Design.Tests
             cache.Cache(guid1, obj1);
             cache.Cache(guid2, obj2);
             cache.Cache(guid3, obj3);
-            Assert.AreEqual(2, cache.History().Count);
-            Assert.AreEqual(2, cache.History().First().Key);
-            Assert.AreEqual(guid2, cache.History().First().Value);
-            Assert.AreEqual(true, cache.Cache().ContainsKey(guid2));
-            Assert.AreEqual(obj2, cache.Cache()[guid2]);
-            Assert.AreEqual(3, cache.History().Last().Key);
-            Assert.AreEqual(guid3, cache.History().Last().Value);
-            Assert.AreEqual(true, cache.Cache().ContainsKey(guid3));
-            Assert.AreEqual(obj3, cache.Cache()[guid3]);
-            Assert.AreEqual(3, cache.CurrentAccessCount());
+            Assert.Equal(2, cache.History().Count);
+            Assert.Equal(2, cache.History().First().Key);
+            Assert.Equal(guid2, cache.History().First().Value);
+            Assert.Equal(true, cache.Cache().ContainsKey(guid2));
+            Assert.Equal(obj2, cache.Cache()[guid2]);
+            Assert.Equal(3, cache.History().Last().Key);
+            Assert.Equal(guid3, cache.History().Last().Value);
+            Assert.Equal(true, cache.Cache().ContainsKey(guid3));
+            Assert.Equal(obj3, cache.Cache()[guid3]);
+            Assert.Equal(3, cache.CurrentAccessCount());
         }
-        [Test]
+        [Fact]
         public void TestCacheAccessAndOverflow()
         {
             var cache = new ObjectCache<Guid, object>(2);
@@ -160,16 +159,16 @@ namespace Xenko.Core.Design.Tests
             cache.Cache(guid2, obj2);
             cache.TryGet(guid1);
             cache.Cache(guid3, obj3);
-            Assert.AreEqual(2, cache.History().Count);
-            Assert.AreEqual(3, cache.History().First().Key);
-            Assert.AreEqual(guid1, cache.History().First().Value);
-            Assert.AreEqual(true, cache.Cache().ContainsKey(guid1));
-            Assert.AreEqual(obj1, cache.Cache()[guid1]);
-            Assert.AreEqual(4, cache.History().Last().Key);
-            Assert.AreEqual(guid3, cache.History().Last().Value);
-            Assert.AreEqual(true, cache.Cache().ContainsKey(guid3));
-            Assert.AreEqual(obj3, cache.Cache()[guid3]);
-            Assert.AreEqual(4, cache.CurrentAccessCount());
+            Assert.Equal(2, cache.History().Count);
+            Assert.Equal(3, cache.History().First().Key);
+            Assert.Equal(guid1, cache.History().First().Value);
+            Assert.Equal(true, cache.Cache().ContainsKey(guid1));
+            Assert.Equal(obj1, cache.Cache()[guid1]);
+            Assert.Equal(4, cache.History().Last().Key);
+            Assert.Equal(guid3, cache.History().Last().Value);
+            Assert.Equal(true, cache.Cache().ContainsKey(guid3));
+            Assert.Equal(obj3, cache.Cache()[guid3]);
+            Assert.Equal(4, cache.CurrentAccessCount());
         }
     }
 }

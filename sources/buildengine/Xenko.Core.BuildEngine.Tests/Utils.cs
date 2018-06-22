@@ -5,7 +5,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.BuildEngine.Tests.Commands;
 using Xenko.Core;
 using Xenko.Core.Diagnostics;
@@ -19,7 +19,7 @@ namespace Xenko.Core.BuildEngine.Tests
 
         private const string FileSourceFolder = "source";
 
-        public static string BuildPath => Path.Combine(PlatformFolders.ApplicationBinaryDirectory, Assembly.GetEntryAssembly() == null? TestContext.CurrentContext.Test.Name: "data/"+Assembly.GetEntryAssembly().GetName().Name);
+        public static string BuildPath => Path.Combine(PlatformFolders.ApplicationBinaryDirectory, "data/" + Assembly.GetEntryAssembly().GetName().Name);
 
         public static Logger CleanContext()
         {

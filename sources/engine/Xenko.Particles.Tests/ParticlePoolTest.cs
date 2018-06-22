@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Particles.Initializers;
 using Xenko.Particles.Modules;
@@ -10,15 +10,15 @@ using Xenko.Particles.Sorters;
 
 namespace Xenko.Particles.Tests
 {
-    class ParticlePoolTest
+    public class ParticlePoolTest
     {       
 
         /// <summary>
         /// Test the <see cref="ParticlePool"/> behavior similar to what an <see cref="ParticleEmitter"/> would do
         /// </summary>
         /// <param name="policy">Stack or Ring allocation policy</param>
-        [TestCase(ParticlePool.ListPolicy.Stack)]
-        [TestCase(ParticlePool.ListPolicy.Ring)]
+        [InlineData(ParticlePool.ListPolicy.Stack)]
+        [InlineData(ParticlePool.ListPolicy.Ring)]
         public unsafe void PoolCapacity(ParticlePool.ListPolicy policy)
         {
             const int maxParticles = 10;
@@ -77,13 +77,13 @@ namespace Xenko.Particles.Tests
                 var i = 0;
                 foreach (var particle in sortedList)
                 {
-                    Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(testPos));
+                    Assert.Equal(testPos, *((Vector3*)particle[positionField]));
 
-                    Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(testLife));
+                    Assert.Equal(testLife, *((float*)particle[lifetimeField]));
 
-                    Assert.That(*((Vector3*)particle[velocityField]), Is.EqualTo(testVel));
+                    Assert.Equal(testVel, *((Vector3*)particle[velocityField]));
 
-                    Assert.That(*((float*)particle[sizeField]), Is.EqualTo(testSize));
+                    Assert.Equal(testSize, *((float*)particle[sizeField]));
 
                     i++;
                 }
@@ -91,7 +91,7 @@ namespace Xenko.Particles.Tests
                 sorter.FreeSortedList(ref sortedList);
 
                 // Assert that the number of living particles is still maxParticles, not maxParticles x2
-                Assert.That(i, Is.EqualTo(maxParticles));
+                Assert.Equal(maxParticles, i);
             }
 
             // Halve the pool capacity from its original size. Now all the particles should still have the same fields
@@ -109,13 +109,13 @@ namespace Xenko.Particles.Tests
                 var i = 0;
                 foreach (var particle in sortedList)
                 {
-                    Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(testPos));
+                    Assert.Equal(testPos, *((Vector3*)particle[positionField]));
 
-                    Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(testLife));
+                    Assert.Equal(testLife, *((float*)particle[lifetimeField]));
 
-                    Assert.That(*((Vector3*)particle[velocityField]), Is.EqualTo(testVel));
+                    Assert.Equal(testVel, *((Vector3*)particle[velocityField]));
 
-                    Assert.That(*((float*)particle[sizeField]), Is.EqualTo(testSize));
+                    Assert.Equal(testSize, *((float*)particle[sizeField]));
 
                     i++;
                 }
@@ -123,7 +123,7 @@ namespace Xenko.Particles.Tests
                 sorter.FreeSortedList(ref sortedList);
 
                 // Assert that the number of living particles is still maxParticles /2, not maxParticles x2
-                Assert.That(i, Is.EqualTo(maxParticles / 2));
+                Assert.Equal(maxParticles / 2, i);
             }
 
         }
@@ -132,8 +132,8 @@ namespace Xenko.Particles.Tests
         /// Test the <see cref="ParticlePool"/> behavior when adding or removing <see cref="ParticleFields"/> to it
         /// </summary>
         /// <param name="policy">Stack or Ring allocation policy</param>
-        [TestCase(ParticlePool.ListPolicy.Stack)]
-        [TestCase(ParticlePool.ListPolicy.Ring)]
+        [InlineData(ParticlePool.ListPolicy.Stack)]
+        [InlineData(ParticlePool.ListPolicy.Ring)]
         public unsafe void PoolFields(ParticlePool.ListPolicy policy)
         {
             const int maxParticles = 10;
@@ -171,7 +171,7 @@ namespace Xenko.Particles.Tests
                 var lifetimeField = pool.GetField(ParticleFields.RemainingLife);
                 foreach (var particle in pool)
                 {
-                    Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(testPos));
+                    Assert.Equal(testPos, *((Vector3*)particle[positionField]));
 
                     *((float*)particle[lifetimeField]) = testLife;
                 }
@@ -190,9 +190,9 @@ namespace Xenko.Particles.Tests
 
                 foreach (var particle in pool)
                 {
-                    Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(testPos));
+                    Assert.Equal(testPos, *((Vector3*)particle[positionField]));
 
-                    Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(testLife));
+                    Assert.Equal(testLife, *((float*)particle[lifetimeField]));
 
                     *((Vector3*)particle[velocityField]) = testVel;
                 }
@@ -211,11 +211,11 @@ namespace Xenko.Particles.Tests
 
                 foreach (var particle in pool)
                 {
-                    Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(testPos));
+                    Assert.Equal(testPos, *((Vector3*)particle[positionField]));
 
-                    Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(testLife));
+                    Assert.Equal(testLife, *((float*)particle[lifetimeField]));
 
-                    Assert.That(*((Vector3*)particle[velocityField]), Is.EqualTo(testVel));
+                    Assert.Equal(testVel, *((Vector3*)particle[velocityField]));
 
                     *((float*)particle[sizeField]) = testSize;
                 }
@@ -236,13 +236,13 @@ namespace Xenko.Particles.Tests
                 var i = 0;
                 foreach (var particle in sortedList)
                 {
-                    Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(testPos));
+                    Assert.Equal(testPos, *((Vector3*)particle[positionField]));
 
-                    Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(testLife));
+                    Assert.Equal(testLife, *((float*)particle[lifetimeField]));
 
-                    Assert.That(*((Vector3*)particle[velocityField]), Is.EqualTo(testVel));
+                    Assert.Equal(testVel, *((Vector3*)particle[velocityField]));
 
-                    Assert.That(*((float*)particle[sizeField]), Is.EqualTo(testSize));
+                    Assert.Equal(testSize, *((float*)particle[sizeField]));
 
                     i++;
                 }
@@ -250,7 +250,7 @@ namespace Xenko.Particles.Tests
                 sorter.FreeSortedList(ref sortedList);
 
                 // Assert that the number of living particles is still maxParticles, not maxParticles x2
-                Assert.That(i, Is.EqualTo(maxParticles));
+                Assert.Equal(maxParticles, i);
             }
 
             // Halve the pool capacity from its original size. Now all the particles should still have the same fields
@@ -268,13 +268,13 @@ namespace Xenko.Particles.Tests
                 var i = 0;
                 foreach (var particle in sortedList)
                 {
-                    Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(testPos));
+                    Assert.Equal(testPos, *((Vector3*)particle[positionField]));
 
-                    Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(testLife));
+                    Assert.Equal(testLife, *((float*)particle[lifetimeField]));
 
-                    Assert.That(*((Vector3*)particle[velocityField]), Is.EqualTo(testVel));
+                    Assert.Equal(testVel, *((Vector3*)particle[velocityField]));
 
-                    Assert.That(*((float*)particle[sizeField]), Is.EqualTo(testSize));
+                    Assert.Equal(testSize, *((float*)particle[sizeField]));
 
                     i++;
                 }
@@ -282,7 +282,7 @@ namespace Xenko.Particles.Tests
                 sorter.FreeSortedList(ref sortedList);
 
                 // Assert that the number of living particles is still maxParticles /2, not maxParticles x2
-                Assert.That(i, Is.EqualTo(maxParticles / 2));
+                Assert.Equal(maxParticles / 2, i);
             }
 
             // III. Remove fields and assert the remaining fields are unchanged
@@ -296,7 +296,7 @@ namespace Xenko.Particles.Tests
                 var velocityField = pool.GetField(ParticleFields.Velocity);
                 var sizeField = pool.GetField(ParticleFields.Size);
 
-                Assert.That(velocityField.IsValid(), Is.EqualTo(false));
+                Assert.Equal(false, velocityField.IsValid());
 
                 var sorter = new ParticleSorterLiving(pool);
                 var sortedList = sorter.GetSortedList(new Vector3(0, 0, -1));
@@ -304,11 +304,11 @@ namespace Xenko.Particles.Tests
                 var i = 0;
                 foreach (var particle in sortedList)
                 {
-                    Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(testPos));
+                    Assert.Equal(testPos, *((Vector3*)particle[positionField]));
 
-                    Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(testLife));
+                    Assert.Equal(testLife, *((float*)particle[lifetimeField]));
 
-                    Assert.That(*((float*)particle[sizeField]), Is.EqualTo(testSize));
+                    Assert.Equal(testSize, *((float*)particle[sizeField]));
 
                     i++;
                 }
@@ -316,7 +316,7 @@ namespace Xenko.Particles.Tests
                 sorter.FreeSortedList(ref sortedList);
 
                 // Assert that the number of living particles is still maxParticles /2, not maxParticles x2
-                Assert.That(i, Is.EqualTo(maxParticles / 2));
+                Assert.Equal(maxParticles / 2, i);
             }
 
             // Remove size
@@ -328,8 +328,8 @@ namespace Xenko.Particles.Tests
                 var velocityField = pool.GetField(ParticleFields.Velocity);
                 var sizeField = pool.GetField(ParticleFields.Size);
 
-                Assert.That(velocityField.IsValid(), Is.EqualTo(false));
-                Assert.That(sizeField.IsValid(), Is.EqualTo(false));
+                Assert.Equal(false, velocityField.IsValid());
+                Assert.Equal(false, sizeField.IsValid());
 
                 var sorter = new ParticleSorterLiving(pool);
                 var sortedList = sorter.GetSortedList(new Vector3(0, 0, -1));
@@ -337,9 +337,9 @@ namespace Xenko.Particles.Tests
                 var i = 0;
                 foreach (var particle in sortedList)
                 {
-                    Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(testPos));
+                    Assert.Equal(testPos, *((Vector3*)particle[positionField]));
 
-                    Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(testLife));
+                    Assert.Equal(testLife, *((float*)particle[lifetimeField]));
 
                     i++;
                 }
@@ -347,7 +347,7 @@ namespace Xenko.Particles.Tests
                 sorter.FreeSortedList(ref sortedList);
 
                 // Assert that the number of living particles is still maxParticles /2, not maxParticles x2
-                Assert.That(i, Is.EqualTo(maxParticles / 2));
+                Assert.Equal(maxParticles / 2, i);
             }
 
             // Remove position
@@ -359,9 +359,9 @@ namespace Xenko.Particles.Tests
                 var velocityField = pool.GetField(ParticleFields.Velocity);
                 var sizeField = pool.GetField(ParticleFields.Size);
 
-                Assert.That(velocityField.IsValid(), Is.EqualTo(false));
-                Assert.That(sizeField.IsValid(), Is.EqualTo(false));
-                Assert.That(positionField.IsValid(), Is.EqualTo(false));
+                Assert.Equal(false, velocityField.IsValid());
+                Assert.Equal(false, sizeField.IsValid());
+                Assert.Equal(false, positionField.IsValid());
 
                 var sorter = new ParticleSorterLiving(pool);
                 var sortedList = sorter.GetSortedList(new Vector3(0, 0, -1));
@@ -369,7 +369,7 @@ namespace Xenko.Particles.Tests
                 var i = 0;
                 foreach (var particle in sortedList)
                 {
-                    Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(testLife));
+                    Assert.Equal(testLife, *((float*)particle[lifetimeField]));
 
                     i++;
                 }
@@ -377,14 +377,14 @@ namespace Xenko.Particles.Tests
                 sorter.FreeSortedList(ref sortedList);
 
                 // Assert that the number of living particles is still maxParticles /2, not maxParticles x2
-                Assert.That(i, Is.EqualTo(maxParticles / 2));
+                Assert.Equal(maxParticles / 2, i);
             }
         }
 
         /// <summary>
         /// Test the <see cref="ParticleEmitter"/> update for 10 seconds
         /// </summary>
-        [Test]
+        [Fact]
         public void EmitterUpdate()
         {
             var emitter = new ParticleEmitter();
@@ -446,8 +446,9 @@ namespace Xenko.Particles.Tests
         }
 
 
-        [TestCase(ParticlePool.ListPolicy.Stack)]
-        [TestCase(ParticlePool.ListPolicy.Ring)]
+        [Theory]
+        [InlineData(ParticlePool.ListPolicy.Stack)]
+        [InlineData(ParticlePool.ListPolicy.Ring)]
         public unsafe void ParticleGetSet(ParticlePool.ListPolicy policy)
         {
             const int maxParticles = 10;
@@ -492,13 +493,13 @@ namespace Xenko.Particles.Tests
             scalarToSet = 0f;
             foreach (var particle in pool)
             {
-                Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(new Vector3(0, scalarToSet, 0)));
+                Assert.Equal(new Vector3(0, scalarToSet, 0), *((Vector3*)particle[positionField]));
 
-                Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(scalarToSet));
+                Assert.Equal(scalarToSet, *((float*)particle[lifetimeField]));
 
-                Assert.That(*((Vector3*)particle[velocityField]), Is.EqualTo(new Vector3(0, scalarToSet, 0)));
+                Assert.Equal(new Vector3(0, scalarToSet, 0), *((Vector3*)particle[velocityField]));
 
-                Assert.That(*((float*)particle[sizeField]), Is.EqualTo(scalarToSet));
+                Assert.Equal(scalarToSet, *((float*)particle[sizeField]));
 
                 scalarToSet++;
             }
@@ -518,9 +519,9 @@ namespace Xenko.Particles.Tests
             scalarToSet = 0f;
             foreach (var particle in pool)
             {
-                Assert.That(*((Vector3*)particle[positionField]), Is.EqualTo(new Vector3(0, scalarToSet, 0) + *((Vector3*)particle[velocityField]) * dt));
+                Assert.Equal(*((Vector3*)particle[positionField]), new Vector3(0, scalarToSet, 0) + *((Vector3*)particle[velocityField]) * dt);
 
-                Assert.That(*((float*)particle[lifetimeField]), Is.EqualTo(scalarToSet + 1));
+                Assert.Equal(scalarToSet + 1, *((float*)particle[lifetimeField]));
 
                 scalarToSet++;
             }

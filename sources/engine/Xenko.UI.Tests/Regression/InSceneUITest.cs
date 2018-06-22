@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
@@ -89,7 +89,7 @@ namespace Xenko.UI.Tests.Regression
             }
         }
 
-        [Test]
+        [Fact]
         public void RunInSceneUITest()
         {
             RunGameTest(new InSceneUITest());

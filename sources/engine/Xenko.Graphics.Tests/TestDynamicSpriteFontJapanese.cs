@@ -1,15 +1,13 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
 
 namespace Xenko.Graphics.Tests
 {
-    [TestFixture]
-    [Description("Check Dynamic Font Japanese characters")]
     public class TestDynamicSpriteFontJapanese : GraphicTestGameBase
     {
         private SpriteFont hanSans13;
@@ -104,7 +102,7 @@ namespace Xenko.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [Fact]
         public void RunDynamicSpriteFontJapanese()
         {
             RunGameTest(new TestDynamicSpriteFontJapanese());

@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Graphics;
 using Xenko.Graphics.Regression;
@@ -15,45 +15,45 @@ namespace Xenko.Engine.Tests
     {
         private const string DefaultName = "toto";
 
-        [Test]
+        [Fact]
         public void Constructor1Tests()
         {
             {
                 // empty
                 var sprite = new Sprite();
                 var sprite2 = new Sprite();
-                Assert.IsNotNull(sprite.Name);
-                Assert.AreNotEqual(sprite.Name, sprite2.Name);
-                Assert.AreEqual(ImageOrientation.AsIs, sprite.Orientation);
-                Assert.AreEqual(Vector2.Zero, sprite.Center);
-                Assert.AreEqual(Vector4.Zero, sprite.Borders);
-                Assert.IsFalse(sprite.HasBorders);
-                Assert.IsNull(sprite.Texture);
-                Assert.IsTrue(sprite.IsTransparent);
-                Assert.AreEqual(new Vector2(100), sprite.PixelsPerUnit);
-                Assert.AreEqual(new RectangleF(), sprite.Region);
-                Assert.AreEqual(Vector2.Zero, sprite.Size);
-                Assert.AreEqual(Vector2.Zero, sprite.SizeInPixels);
+                Assert.NotNull(sprite.Name);
+                Assert.NotEqual(sprite.Name, sprite2.Name);
+                Assert.Equal(ImageOrientation.AsIs, sprite.Orientation);
+                Assert.Equal(Vector2.Zero, sprite.Center);
+                Assert.Equal(Vector4.Zero, sprite.Borders);
+                Assert.False(sprite.HasBorders);
+                Assert.Null(sprite.Texture);
+                Assert.True(sprite.IsTransparent);
+                Assert.Equal(new Vector2(100), sprite.PixelsPerUnit);
+                Assert.Equal(new RectangleF(), sprite.Region);
+                Assert.Equal(Vector2.Zero, sprite.Size);
+                Assert.Equal(Vector2.Zero, sprite.SizeInPixels);
             }
 
             {
                 // name
                 var sprite = new Sprite(DefaultName);
-                Assert.AreEqual(DefaultName, sprite.Name);
-                Assert.AreEqual(ImageOrientation.AsIs, sprite.Orientation);
-                Assert.AreEqual(Vector2.Zero, sprite.Center);
-                Assert.AreEqual(Vector4.Zero, sprite.Borders);
-                Assert.IsFalse(sprite.HasBorders);
-                Assert.IsNull(sprite.Texture);
-                Assert.IsTrue(sprite.IsTransparent);
-                Assert.AreEqual(new Vector2(100), sprite.PixelsPerUnit);
-                Assert.AreEqual(new RectangleF(), sprite.Region);
-                Assert.AreEqual(Vector2.Zero, sprite.Size);
-                Assert.AreEqual(Vector2.Zero, sprite.SizeInPixels);
+                Assert.Equal(DefaultName, sprite.Name);
+                Assert.Equal(ImageOrientation.AsIs, sprite.Orientation);
+                Assert.Equal(Vector2.Zero, sprite.Center);
+                Assert.Equal(Vector4.Zero, sprite.Borders);
+                Assert.False(sprite.HasBorders);
+                Assert.Null(sprite.Texture);
+                Assert.True(sprite.IsTransparent);
+                Assert.Equal(new Vector2(100), sprite.PixelsPerUnit);
+                Assert.Equal(new RectangleF(), sprite.Region);
+                Assert.Equal(Vector2.Zero, sprite.Size);
+                Assert.Equal(Vector2.Zero, sprite.SizeInPixels);
             }
         }
 
-        [Test]
+        [Fact]
         public void Constructor2Tests()
         {
             PerformTest(game =>
@@ -63,18 +63,18 @@ namespace Xenko.Engine.Tests
                 var texture = Texture.New2D(game.GraphicsDevice, (int)textureSize.X, (int)textureSize.Y, 1, PixelFormat.R8G8B8A8_UNorm);
                 var sprite = new Sprite(texture);
                 var sprite2 = new Sprite(texture);
-                Assert.IsNotNull(sprite.Name);
-                Assert.AreNotEqual(sprite.Name, sprite2.Name);
-                Assert.AreEqual(ImageOrientation.AsIs, sprite.Orientation);
-                Assert.AreEqual(textureSize/2, sprite.Center);
-                Assert.AreEqual(Vector4.Zero, sprite.Borders);
-                Assert.IsFalse(sprite.HasBorders);
-                Assert.AreEqual(texture, sprite.Texture);
-                Assert.IsTrue(sprite.IsTransparent);
-                Assert.AreEqual(new Vector2(100), sprite.PixelsPerUnit);
-                Assert.AreEqual(new RectangleF(0, 0, textureSize.X, textureSize.Y), sprite.Region);
-                Assert.AreEqual(textureSize/100, sprite.Size);
-                Assert.AreEqual(textureSize, sprite.SizeInPixels);
+                Assert.NotNull(sprite.Name);
+                Assert.NotEqual(sprite.Name, sprite2.Name);
+                Assert.Equal(ImageOrientation.AsIs, sprite.Orientation);
+                Assert.Equal(textureSize/2, sprite.Center);
+                Assert.Equal(Vector4.Zero, sprite.Borders);
+                Assert.False(sprite.HasBorders);
+                Assert.Equal(texture, sprite.Texture);
+                Assert.True(sprite.IsTransparent);
+                Assert.Equal(new Vector2(100), sprite.PixelsPerUnit);
+                Assert.Equal(new RectangleF(0, 0, textureSize.X, textureSize.Y), sprite.Region);
+                Assert.Equal(textureSize/100, sprite.Size);
+                Assert.Equal(textureSize, sprite.SizeInPixels);
             });
 
             PerformTest(game =>
@@ -83,17 +83,17 @@ namespace Xenko.Engine.Tests
                 var textureSize = new Vector2(50, 75);
                 var texture = Texture.New2D(game.GraphicsDevice, (int)textureSize.X, (int)textureSize.Y, 1, PixelFormat.R8G8B8A8_UNorm);
                 var sprite = new Sprite(DefaultName, texture);
-                Assert.AreEqual(DefaultName, sprite.Name);
-                Assert.AreEqual(ImageOrientation.AsIs, sprite.Orientation);
-                Assert.AreEqual(textureSize / 2, sprite.Center);
-                Assert.AreEqual(Vector4.Zero, sprite.Borders);
-                Assert.IsFalse(sprite.HasBorders);
-                Assert.AreEqual(texture, sprite.Texture);
-                Assert.IsTrue(sprite.IsTransparent);
-                Assert.AreEqual(new Vector2(100), sprite.PixelsPerUnit);
-                Assert.AreEqual(new RectangleF(0, 0, textureSize.X, textureSize.Y), sprite.Region);
-                Assert.AreEqual(textureSize / 100, sprite.Size);
-                Assert.AreEqual(textureSize, sprite.SizeInPixels);
+                Assert.Equal(DefaultName, sprite.Name);
+                Assert.Equal(ImageOrientation.AsIs, sprite.Orientation);
+                Assert.Equal(textureSize / 2, sprite.Center);
+                Assert.Equal(Vector4.Zero, sprite.Borders);
+                Assert.False(sprite.HasBorders);
+                Assert.Equal(texture, sprite.Texture);
+                Assert.True(sprite.IsTransparent);
+                Assert.Equal(new Vector2(100), sprite.PixelsPerUnit);
+                Assert.Equal(new RectangleF(0, 0, textureSize.X, textureSize.Y), sprite.Region);
+                Assert.Equal(textureSize / 100, sprite.Size);
+                Assert.Equal(textureSize, sprite.SizeInPixels);
             });
         }
 
@@ -104,20 +104,20 @@ namespace Xenko.Engine.Tests
             return new Sprite(DefaultName, texture);
         }
 
-        [Test]
+        [Fact]
         public void NamePropertyTests()
         {
             PerformTest(game =>
             {
                 const string otherName = "tutu";
                 var sprite = CreateSprite(game);
-                Assert.AreEqual(DefaultName, sprite.Name);
+                Assert.Equal(DefaultName, sprite.Name);
                 sprite.Name = otherName;
-                Assert.AreEqual(otherName, sprite.Name);
+                Assert.Equal(otherName, sprite.Name);
             });
         }
 
-        [Test]
+        [Fact]
         public void TexturePropertyTests()
         {
             // no checks on texture affectation for the moment.
@@ -128,19 +128,19 @@ namespace Xenko.Engine.Tests
                 var center = sprite.Center;
 
                 sprite.Texture = null;
-                Assert.AreEqual(null, sprite.Texture);
-                Assert.AreEqual(region, sprite.Region);
-                Assert.AreEqual(center, sprite.Center);
+                Assert.Equal(null, sprite.Texture);
+                Assert.Equal(region, sprite.Region);
+                Assert.Equal(center, sprite.Center);
 
                 var otherText = Texture.New2D(game.GraphicsDevice, 10, 20, 1, PixelFormat.R8G8B8A8_UNorm);
                 sprite.Texture = otherText;
-                Assert.AreEqual(otherText, sprite.Texture);
-                Assert.AreEqual(region, sprite.Region);
-                Assert.AreEqual(center, sprite.Center);
+                Assert.Equal(otherText, sprite.Texture);
+                Assert.Equal(region, sprite.Region);
+                Assert.Equal(center, sprite.Center);
             });
         }
 
-        [Test]
+        [Fact]
         public void CenterPropertyTests()
         {
             // no checks on center affectation for the moment.
@@ -149,19 +149,19 @@ namespace Xenko.Engine.Tests
                 var sprite = CreateSprite(game);
                 var textureSize = new Vector2(sprite.Texture.Width, sprite.Texture.Height);
 
-                Assert.AreEqual(textureSize/2, sprite.Center);
+                Assert.Equal(textureSize/2, sprite.Center);
 
                 var newCenter = new Vector2(-1, -2);
                 sprite.Center = newCenter;
-                Assert.AreEqual(newCenter, sprite.Center);
+                Assert.Equal(newCenter, sprite.Center);
                 
                 newCenter = new Vector2(1000, 2000);
                 sprite.Center = newCenter;
-                Assert.AreEqual(newCenter, sprite.Center);
+                Assert.Equal(newCenter, sprite.Center);
             });
         }
 
-        [Test]
+        [Fact]
         public void RegionPropertyTests()
         {
             PerformTest(game =>
@@ -169,27 +169,27 @@ namespace Xenko.Engine.Tests
                 var sprite = CreateSprite(game);
                 var textureSize = new Vector2(sprite.Texture.Width, sprite.Texture.Height);
 
-                Assert.AreEqual(new RectangleF(0, 0, textureSize.X, textureSize.Y), sprite.Region);
-                Assert.AreEqual(textureSize, sprite.SizeInPixels);
-                Assert.AreEqual(new Vector2(textureSize.X/sprite.PixelsPerUnit.X, textureSize.Y/sprite.PixelsPerUnit.Y), sprite.Size);
+                Assert.Equal(new RectangleF(0, 0, textureSize.X, textureSize.Y), sprite.Region);
+                Assert.Equal(textureSize, sprite.SizeInPixels);
+                Assert.Equal(new Vector2(textureSize.X/sprite.PixelsPerUnit.X, textureSize.Y/sprite.PixelsPerUnit.Y), sprite.Size);
 
                 textureSize = new Vector2(3, 4);
                 var newRegion = new RectangleF(1, 2, textureSize.X, textureSize.Y);
                 sprite.Region = newRegion;
-                Assert.AreEqual(newRegion, sprite.Region);
-                Assert.AreEqual(textureSize, sprite.SizeInPixels);
-                Assert.AreEqual(new Vector2(textureSize.X / sprite.PixelsPerUnit.X, textureSize.Y / sprite.PixelsPerUnit.Y), sprite.Size);
+                Assert.Equal(newRegion, sprite.Region);
+                Assert.Equal(textureSize, sprite.SizeInPixels);
+                Assert.Equal(new Vector2(textureSize.X / sprite.PixelsPerUnit.X, textureSize.Y / sprite.PixelsPerUnit.Y), sprite.Size);
 
                 textureSize = new Vector2(0, -1);
                 newRegion = new RectangleF(-10, -20, textureSize.X, textureSize.Y);
                 sprite.Region = newRegion;
-                Assert.AreEqual(newRegion, sprite.Region);
-                Assert.AreEqual(textureSize, sprite.SizeInPixels);
-                Assert.AreEqual(new Vector2(textureSize.X / sprite.PixelsPerUnit.X, textureSize.Y / sprite.PixelsPerUnit.Y), sprite.Size);
+                Assert.Equal(newRegion, sprite.Region);
+                Assert.Equal(textureSize, sprite.SizeInPixels);
+                Assert.Equal(new Vector2(textureSize.X / sprite.PixelsPerUnit.X, textureSize.Y / sprite.PixelsPerUnit.Y), sprite.Size);
             });
         }
         
-        [Test]
+        [Fact]
         public void OrientationPropertyTests()
         {
             PerformTest(game =>
@@ -201,24 +201,24 @@ namespace Xenko.Engine.Tests
                 var center = sprite.Center;
                 var border = sprite.Borders;
                 
-                Assert.AreEqual(ImageOrientation.AsIs, sprite.Orientation);
+                Assert.Equal(ImageOrientation.AsIs, sprite.Orientation);
 
                 sprite.Orientation = ImageOrientation.Rotated90;
                 
-                Assert.AreEqual(ImageOrientation.Rotated90, sprite.Orientation);
+                Assert.Equal(ImageOrientation.Rotated90, sprite.Orientation);
 
                 // this information is region based and should not change
-                Assert.AreEqual(region, sprite.Region);
-                Assert.AreEqual(center, sprite.Center);
-                Assert.AreEqual(border, sprite.Borders);
+                Assert.Equal(region, sprite.Region);
+                Assert.Equal(center, sprite.Center);
+                Assert.Equal(border, sprite.Borders);
 
                 // this information orientation based should change
-                Assert.AreEqual(size.YX(), sprite.Size);
-                Assert.AreEqual(sizePixel.YX(), sprite.SizeInPixels);
+                Assert.Equal(size.YX(), sprite.Size);
+                Assert.Equal(sizePixel.YX(), sprite.SizeInPixels);
             });
         }
 
-        [Test]
+        [Fact]
         public void SizePropertyTests()
         {
             PerformTest(game =>
@@ -228,25 +228,25 @@ namespace Xenko.Engine.Tests
                 var newSize = new Vector2(66, 77);
                 sprite.Region = new RectangleF(1, 2, newSize.X, newSize.Y);
 
-                Assert.AreEqual(new Vector2(newSize.X / sprite.PixelsPerUnit.X, newSize.Y / sprite.PixelsPerUnit.Y), sprite.Size);
+                Assert.Equal(new Vector2(newSize.X / sprite.PixelsPerUnit.X, newSize.Y / sprite.PixelsPerUnit.Y), sprite.Size);
 
                 var newRatio = new Vector2(1, 2);
                 sprite.PixelsPerUnit = newRatio;
-                Assert.AreEqual(newRatio, sprite.PixelsPerUnit);
-                Assert.AreEqual(new Vector2(newSize.X / sprite.PixelsPerUnit.X, newSize.Y / sprite.PixelsPerUnit.Y), sprite.Size);
+                Assert.Equal(newRatio, sprite.PixelsPerUnit);
+                Assert.Equal(new Vector2(newSize.X / sprite.PixelsPerUnit.X, newSize.Y / sprite.PixelsPerUnit.Y), sprite.Size);
 
                 newRatio = new Vector2(-1, 0);
                 sprite.PixelsPerUnit = newRatio;
-                Assert.IsTrue(sprite.PixelsPerUnit.X > 0);
-                Assert.IsTrue(sprite.PixelsPerUnit.Y > 0);
-                Assert.IsFalse(float.IsInfinity(sprite.Size.X));
-                Assert.IsFalse(float.IsInfinity(sprite.Size.Y));
-                Assert.IsFalse(float.IsNaN(sprite.Size.X));
-                Assert.IsFalse(float.IsNaN(sprite.Size.Y));
+                Assert.True(sprite.PixelsPerUnit.X > 0);
+                Assert.True(sprite.PixelsPerUnit.Y > 0);
+                Assert.False(float.IsInfinity(sprite.Size.X));
+                Assert.False(float.IsInfinity(sprite.Size.Y));
+                Assert.False(float.IsNaN(sprite.Size.X));
+                Assert.False(float.IsNaN(sprite.Size.Y));
             });
         }
 
-        [Test]
+        [Fact]
         public void SizeInPixelPropertyTests()
         {
             PerformTest(game =>
@@ -258,23 +258,23 @@ namespace Xenko.Engine.Tests
                 var newSize = new Vector2(66, 77);
                 sprite.Region = new RectangleF(1, 2, newSize.X, newSize.Y);
 
-                Assert.AreEqual(newSize, sprite.SizeInPixels);
-                Assert.IsTrue(sizeChanged);
+                Assert.Equal(newSize, sprite.SizeInPixels);
+                Assert.True(sizeChanged);
 
                 sizeChanged = false;
                 sprite.Orientation = ImageOrientation.Rotated90;
 
-                Assert.IsTrue(sizeChanged);
-                Assert.AreEqual(newSize.YX(), sprite.SizeInPixels);
+                Assert.True(sizeChanged);
+                Assert.Equal(newSize.YX(), sprite.SizeInPixels);
 
                 sizeChanged = false;
                 sprite.Region = sprite.Region;
 
-                Assert.IsFalse(sizeChanged);
+                Assert.False(sizeChanged);
             });
         }
 
-        [Test]
+        [Fact]
         public void CloneMethodTests()
         {
             PerformTest(game =>
@@ -289,17 +289,17 @@ namespace Xenko.Engine.Tests
                 sprite.IsTransparent = true;
 
                 var clone = sprite.Clone();
-                Assert.AreEqual(sprite.Name, clone.Name);
-                Assert.AreEqual(sprite.Texture, clone.Texture);
-                Assert.AreEqual(sprite.Center, clone.Center);
-                Assert.AreEqual(sprite.Region, clone.Region);
-                Assert.AreEqual(sprite.IsTransparent, clone.IsTransparent);
-                Assert.AreEqual(sprite.Orientation, clone.Orientation);
-                Assert.AreEqual(sprite.Borders, clone.Borders);
-                Assert.AreEqual(sprite.HasBorders, clone.HasBorders);
-                Assert.AreEqual(sprite.Size, clone.Size);
-                Assert.AreEqual(sprite.SizeInPixels, clone.SizeInPixels);
-                Assert.AreEqual(sprite.PixelsPerUnit, clone.PixelsPerUnit);
+                Assert.Equal(sprite.Name, clone.Name);
+                Assert.Equal(sprite.Texture, clone.Texture);
+                Assert.Equal(sprite.Center, clone.Center);
+                Assert.Equal(sprite.Region, clone.Region);
+                Assert.Equal(sprite.IsTransparent, clone.IsTransparent);
+                Assert.Equal(sprite.Orientation, clone.Orientation);
+                Assert.Equal(sprite.Borders, clone.Borders);
+                Assert.Equal(sprite.HasBorders, clone.HasBorders);
+                Assert.Equal(sprite.Size, clone.Size);
+                Assert.Equal(sprite.SizeInPixels, clone.SizeInPixels);
+                Assert.Equal(sprite.PixelsPerUnit, clone.PixelsPerUnit);
             });
         }
     }

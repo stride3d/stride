@@ -3,39 +3,38 @@
 
 using System;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.IO;
 // ReSharper disable ObjectCreationAsStatement
 
 namespace Xenko.Core.Design.Tests
 {
-    [TestFixture]
     public class TestUPath
     {
-        [Test]
+        [Fact]
         public void TestUFileConstructor()
         {
-            Assert.DoesNotThrow(() => new UFile(null));
-            Assert.DoesNotThrow(() => new UFile(""));
-            Assert.DoesNotThrow(() => { var s = "a"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = ".txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/b"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/b.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/b/c/d.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/b/c/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a/b"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a/b.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a/b/c/d.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a/b/c/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a/b"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a/b.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a/b/c/d.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a/b/c/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); });
+            new UFile(null);
+            new UFile("");
+            { var s = "a"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "a.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = ".txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "/a"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "/a.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "a/b"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "a/b.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "a/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "a/b/c/d.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "a/b/c/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "/a/b"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "/a/b.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "/a/b/c/d.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "/a/b/c/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "E:/a.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "E:/a/b"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "E:/a/b.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "E:/a/b/c/d.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
+            { var s = "E:/a/b/c/.txt"; new UFile(s); new UFile(s.Replace('/', '\\')); }
             Assert.Throws<ArgumentException>(() => new UFile("a\""));
             Assert.Throws<ArgumentException>(() => new UFile("*.txt"));
             Assert.Throws<ArgumentException>(() => new UFile("/a/"));
@@ -45,64 +44,64 @@ namespace Xenko.Core.Design.Tests
             Assert.Throws<ArgumentException>(() => new UFile("E:e"));
         }
 
-        [Test]
+        [Fact]
         public void TestUDirectoryConstructor()
         {
-            Assert.DoesNotThrow(() => new UDirectory(null));
-            Assert.DoesNotThrow(() => new UDirectory(""));
-            Assert.DoesNotThrow(() => { var s = "a"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a.txt/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = ".txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/b"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/b/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/b.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/b/c/d.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "a/b/c/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a/b"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a/b.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a/b/c/d.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a/b/c/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a.txt/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a/b"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a/b.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a/b/c/d.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/a/b/c/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "E:"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
-            Assert.DoesNotThrow(() => { var s = "/a/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); });
+            new UDirectory(null);
+            new UDirectory("");
+            { var s = "a"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "a/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "a.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "a.txt/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = ".txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "/a"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "/a.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "a/b"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "a/b/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "a/b.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "a/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "a/b/c/d.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "a/b/c/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "/a/b"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "/a/b.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "/a/b/c/d.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "/a/b/c/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "E:/a.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "E:/a.txt/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "E:/a/b"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "E:/a/b.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "E:/a/b/c/d.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "E:/a/b/c/.txt"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "E:/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "E:"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
+            { var s = "/a/"; new UDirectory(s); new UDirectory(s.Replace('/', '\\')); }
             Assert.Throws<ArgumentException>(() => new UDirectory("*.txt"));
             Assert.Throws<ArgumentException>(() => new UDirectory("E:e"));
         }
 
-        [Test]
+        [Fact]
         public void TestUPathFullPath()
         {
-            Assert.AreEqual("a", new UDirectory("a").FullPath);
-            Assert.AreEqual("/a", new UDirectory("/a").FullPath);
-            Assert.AreEqual("a/b", new UDirectory("a/b").FullPath);
-            Assert.AreEqual("/b/c", new UDirectory("/b/c").FullPath);
-            Assert.AreEqual("ab/c", new UDirectory("ab/c").FullPath);
-            Assert.AreEqual("/ab/c", new UDirectory("/ab/c").FullPath);
-            Assert.AreEqual("c:/", new UDirectory("c:/").FullPath);
-            Assert.AreEqual("c:/a", new UDirectory("c:/a").FullPath);
+            Assert.Equal("a", new UDirectory("a").FullPath);
+            Assert.Equal("/a", new UDirectory("/a").FullPath);
+            Assert.Equal("a/b", new UDirectory("a/b").FullPath);
+            Assert.Equal("/b/c", new UDirectory("/b/c").FullPath);
+            Assert.Equal("ab/c", new UDirectory("ab/c").FullPath);
+            Assert.Equal("/ab/c", new UDirectory("/ab/c").FullPath);
+            Assert.Equal("c:/", new UDirectory("c:/").FullPath);
+            Assert.Equal("c:/a", new UDirectory("c:/a").FullPath);
 
             // TODO (include tests with parent and self paths .. and .)
         }
 
-        [Test]
+        [Fact]
         public void TestUPathHasDrive()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathHasDirectory()
         {
             Assert.True(new UFile("/a/b.txt").HasDirectory);
@@ -124,13 +123,13 @@ namespace Xenko.Core.Design.Tests
             Assert.False(new UFile("a").HasDirectory);
         }
 
-        [Test]
+        [Fact]
         public void TestUPathIsRelativeAndIsAbsolute()
         {
             var assert = new Action<UPath, bool>((x, isAbsolute) =>
             {
-                Assert.AreEqual(isAbsolute, x.IsAbsolute);
-                Assert.AreEqual(!isAbsolute, x.IsRelative);
+                Assert.Equal(isAbsolute, x.IsAbsolute);
+                Assert.Equal(!isAbsolute, x.IsRelative);
             });
             assert(new UFile("/a/b/c.txt"), true);
             assert(new UFile("E:/a/b/c.txt"), true);
@@ -140,19 +139,19 @@ namespace Xenko.Core.Design.Tests
             assert(new UFile("../c.txt"), false);
         }
 
-        [Test]
+        [Fact]
         public void TestUPathIsFile()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathPathType()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathIsNullOrEmpty()
         {
             Assert.True(UPath.IsNullOrEmpty(new UFile(null)));
@@ -168,313 +167,313 @@ namespace Xenko.Core.Design.Tests
             Assert.False(UPath.IsNullOrEmpty(new UDirectory("/")));
         }
 
-        [Test]
+        [Fact]
         public void TestUPathGetDrive()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         [Obsolete("Test GetFullDirectory instead")]
         public void TestUPathGetDirectory()
         {
-            Assert.AreEqual("/", new UDirectory("/").GetDirectory());
-            Assert.AreEqual("a", new UDirectory("a").GetDirectory());
-            Assert.AreEqual("/a", new UDirectory("/a").GetDirectory());
-            Assert.AreEqual("a/b", new UDirectory("a/b").GetDirectory());
-            Assert.AreEqual("/b/c", new UDirectory("/b/c").GetDirectory());
-            Assert.AreEqual("ab/c", new UDirectory("ab/c").GetDirectory());
-            Assert.AreEqual("/ab/c", new UDirectory("/ab/c").GetDirectory());
-            Assert.AreEqual("/a/b/c", new UDirectory("/a/b/c").GetDirectory());
-            Assert.AreEqual("/", new UDirectory("c:").GetDirectory());
-            Assert.AreEqual("/", new UDirectory("c:/").GetDirectory());
-            Assert.AreEqual("/a", new UDirectory("c:/a").GetDirectory());
-            Assert.AreEqual("/a/b", new UDirectory("c:/a/b").GetDirectory());
-            Assert.AreEqual("/", new UFile("/a.txt").GetDirectory());
-            Assert.AreEqual("/", new UFile("c:/a.txt").GetDirectory());
+            Assert.Equal("/", new UDirectory("/").GetDirectory());
+            Assert.Equal("a", new UDirectory("a").GetDirectory());
+            Assert.Equal("/a", new UDirectory("/a").GetDirectory());
+            Assert.Equal("a/b", new UDirectory("a/b").GetDirectory());
+            Assert.Equal("/b/c", new UDirectory("/b/c").GetDirectory());
+            Assert.Equal("ab/c", new UDirectory("ab/c").GetDirectory());
+            Assert.Equal("/ab/c", new UDirectory("/ab/c").GetDirectory());
+            Assert.Equal("/a/b/c", new UDirectory("/a/b/c").GetDirectory());
+            Assert.Equal("/", new UDirectory("c:").GetDirectory());
+            Assert.Equal("/", new UDirectory("c:/").GetDirectory());
+            Assert.Equal("/a", new UDirectory("c:/a").GetDirectory());
+            Assert.Equal("/a/b", new UDirectory("c:/a/b").GetDirectory());
+            Assert.Equal("/", new UFile("/a.txt").GetDirectory());
+            Assert.Equal("/", new UFile("c:/a.txt").GetDirectory());
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathGetParent()
         {
             // First directories
             var dir = new UDirectory("c:/");
-            Assert.AreEqual("c:/", dir.GetParent().FullPath);
+            Assert.Equal("c:/", dir.GetParent().FullPath);
 
             dir = new UDirectory("c:/a");
-            Assert.AreEqual("c:/", dir.GetParent().FullPath);
+            Assert.Equal("c:/", dir.GetParent().FullPath);
 
             dir = new UDirectory("c:/a/b");
-            Assert.AreEqual("c:/a", dir.GetParent().FullPath);
+            Assert.Equal("c:/a", dir.GetParent().FullPath);
 
             dir = new UDirectory("/");
-            Assert.AreEqual("/", dir.GetParent().FullPath);
+            Assert.Equal("/", dir.GetParent().FullPath);
 
             dir = new UDirectory("/a");
-            Assert.AreEqual("/", dir.GetParent().FullPath);
+            Assert.Equal("/", dir.GetParent().FullPath);
 
             dir = new UDirectory("/a/b");
-            Assert.AreEqual("/a", dir.GetParent().FullPath);
+            Assert.Equal("/a", dir.GetParent().FullPath);
 
             dir = new UDirectory("a");
-            Assert.AreEqual("", dir.GetParent().FullPath);
+            Assert.Equal("", dir.GetParent().FullPath);
 
             dir = new UDirectory("a/b");
-            Assert.AreEqual("a", dir.GetParent().FullPath);
+            Assert.Equal("a", dir.GetParent().FullPath);
 
             // Now with files.
             var file = new UFile("c:/a.txt");
-            Assert.AreEqual("c:/", file.GetParent().FullPath);
+            Assert.Equal("c:/", file.GetParent().FullPath);
 
             file = new UFile("c:/a/b.txt");
-            Assert.AreEqual("c:/a", file.GetParent().FullPath);
+            Assert.Equal("c:/a", file.GetParent().FullPath);
 
             file = new UFile("/a.txt");
-            Assert.AreEqual("/", file.GetParent().FullPath);
+            Assert.Equal("/", file.GetParent().FullPath);
 
             file = new UFile("/a/b.txt");
-            Assert.AreEqual("/a", file.GetParent().FullPath);
+            Assert.Equal("/a", file.GetParent().FullPath);
 
             file = new UFile("a.txt");
-            Assert.AreEqual("", file.GetParent().FullPath);
+            Assert.Equal("", file.GetParent().FullPath);
 
             file = new UFile("a/b.txt");
-            Assert.AreEqual("a", file.GetParent().FullPath);
+            Assert.Equal("a", file.GetParent().FullPath);
         }
 
-        [Test]
+        [Fact]
         public void TestUPathGetFullDirectory()
         {
-            Assert.AreEqual(new UDirectory("/a"), new UFile("/a/b.txt").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("/a/b"), new UFile("/a/b/c.txt").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("/a/b"), new UFile("/a/b/c").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("/"), new UFile("/a.txt").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("E:/"), new UFile("E:/a.txt").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("E:/a"), new UFile("E:/a/b.txt").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("E:/a/b"), new UFile("E:/a/b/c.txt").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("E:/a/b"), new UFile("E:/a/b/c").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("/a/b/c"), new UDirectory("/a/b/c").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("E:/a/b/c"), new UDirectory("E:/a/b/c").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("/a"), new UDirectory("/a").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("E:/a"), new UDirectory("E:/a").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("/"), new UDirectory("/").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("E:/"), new UDirectory("E:/").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("E:/"), new UDirectory("E:").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("E:"), new UDirectory("E:/").GetFullDirectory());
-            Assert.AreEqual(new UDirectory("E:"), new UDirectory("E:").GetFullDirectory());
-            Assert.AreEqual(new UDirectory(null), new UFile("a.txt").GetFullDirectory());
-            Assert.AreEqual(new UDirectory(null), new UFile("").GetFullDirectory());
+            Assert.Equal(new UDirectory("/a"), new UFile("/a/b.txt").GetFullDirectory());
+            Assert.Equal(new UDirectory("/a/b"), new UFile("/a/b/c.txt").GetFullDirectory());
+            Assert.Equal(new UDirectory("/a/b"), new UFile("/a/b/c").GetFullDirectory());
+            Assert.Equal(new UDirectory("/"), new UFile("/a.txt").GetFullDirectory());
+            Assert.Equal(new UDirectory("E:/"), new UFile("E:/a.txt").GetFullDirectory());
+            Assert.Equal(new UDirectory("E:/a"), new UFile("E:/a/b.txt").GetFullDirectory());
+            Assert.Equal(new UDirectory("E:/a/b"), new UFile("E:/a/b/c.txt").GetFullDirectory());
+            Assert.Equal(new UDirectory("E:/a/b"), new UFile("E:/a/b/c").GetFullDirectory());
+            Assert.Equal(new UDirectory("/a/b/c"), new UDirectory("/a/b/c").GetFullDirectory());
+            Assert.Equal(new UDirectory("E:/a/b/c"), new UDirectory("E:/a/b/c").GetFullDirectory());
+            Assert.Equal(new UDirectory("/a"), new UDirectory("/a").GetFullDirectory());
+            Assert.Equal(new UDirectory("E:/a"), new UDirectory("E:/a").GetFullDirectory());
+            Assert.Equal(new UDirectory("/"), new UDirectory("/").GetFullDirectory());
+            Assert.Equal(new UDirectory("E:/"), new UDirectory("E:/").GetFullDirectory());
+            Assert.Equal(new UDirectory("E:/"), new UDirectory("E:").GetFullDirectory());
+            Assert.Equal(new UDirectory("E:"), new UDirectory("E:/").GetFullDirectory());
+            Assert.Equal(new UDirectory("E:"), new UDirectory("E:").GetFullDirectory());
+            Assert.Equal(new UDirectory(null), new UFile("a.txt").GetFullDirectory());
+            Assert.Equal(new UDirectory(null), new UFile("").GetFullDirectory());
 
-            Assert.AreEqual("a", new UDirectory("a").GetFullDirectory().FullPath);
-            Assert.AreEqual("/a", new UDirectory("/a").GetFullDirectory().FullPath);
-            Assert.AreEqual("a/b", new UDirectory("a/b").GetFullDirectory().FullPath);
-            Assert.AreEqual("/b/c", new UDirectory("/b/c").GetFullDirectory().FullPath);
-            Assert.AreEqual("ab/c", new UDirectory("ab/c").GetFullDirectory().FullPath);
-            Assert.AreEqual("/ab/c", new UDirectory("/ab/c").GetFullDirectory().FullPath);
-            Assert.AreEqual("E:/", new UDirectory("E:/").GetFullDirectory().FullPath);
-            Assert.AreEqual("E:/", new UDirectory("E:").GetFullDirectory().FullPath);
-            Assert.AreEqual("E:/a", new UDirectory("E:/a").GetFullDirectory().FullPath);
+            Assert.Equal("a", new UDirectory("a").GetFullDirectory().FullPath);
+            Assert.Equal("/a", new UDirectory("/a").GetFullDirectory().FullPath);
+            Assert.Equal("a/b", new UDirectory("a/b").GetFullDirectory().FullPath);
+            Assert.Equal("/b/c", new UDirectory("/b/c").GetFullDirectory().FullPath);
+            Assert.Equal("ab/c", new UDirectory("ab/c").GetFullDirectory().FullPath);
+            Assert.Equal("/ab/c", new UDirectory("/ab/c").GetFullDirectory().FullPath);
+            Assert.Equal("E:/", new UDirectory("E:/").GetFullDirectory().FullPath);
+            Assert.Equal("E:/", new UDirectory("E:").GetFullDirectory().FullPath);
+            Assert.Equal("E:/a", new UDirectory("E:/a").GetFullDirectory().FullPath);
         }
 
-        //[Test]
+        //[Fact]
         public void TestUPathGetComponents()
         {
             var d = new UDirectory("a/b");
-            Assert.AreEqual(new UDirectory("").GetComponents().Count(), 0);
-            Assert.AreEqual(new UDirectory("/").GetComponents().Count(), 0);
-            CollectionAssert.AreEqual(new UDirectory("a").GetComponents(), new string[] { "a" });
-            CollectionAssert.AreEqual(new UDirectory("/a").GetComponents(), new string[] { "a" });
-            CollectionAssert.AreEqual(new UDirectory("a/b").GetComponents(), new string[] { "a", "b" });
-            CollectionAssert.AreEqual(new UDirectory("/a/b").GetComponents(), new string[] { "a", "b" });
-            CollectionAssert.AreEqual(new UDirectory("a/b/c").GetComponents(), new string[] { "a", "b", "c" });
-            CollectionAssert.AreEqual(new UDirectory("/a/b/c").GetComponents(), new string[] { "a", "b", "c" });
-            CollectionAssert.AreEqual(new UDirectory("c:").GetComponents(), new string[] { "c:" });
-            CollectionAssert.AreEqual(new UDirectory("c:/a").GetComponents(), new string[] { "c:", "a" });
-            CollectionAssert.AreEqual(new UDirectory("c:/a/b").GetComponents(), new string[] { "c:", "a", "b" });
-            CollectionAssert.AreEqual(new UDirectory("c:/a/b.ext").GetComponents(), new string[] { "c:", "a", "b.ext" });
+            Assert.Equal(new UDirectory("").GetComponents().Count(), 0);
+            Assert.Equal(new UDirectory("/").GetComponents().Count(), 0);
+            Assert.Equal(new UDirectory("a").GetComponents(), new[] { "a" });
+            Assert.Equal(new UDirectory("/a").GetComponents(), new[] { "a" });
+            Assert.Equal(new UDirectory("a/b").GetComponents(), new[] { "a", "b" });
+            Assert.Equal(new UDirectory("/a/b").GetComponents(), new[] { "a", "b" });
+            Assert.Equal(new UDirectory("a/b/c").GetComponents(), new[] { "a", "b", "c" });
+            Assert.Equal(new UDirectory("/a/b/c").GetComponents(), new[] { "a", "b", "c" });
+            Assert.Equal(new UDirectory("c:").GetComponents(), new[] { "c:" });
+            Assert.Equal(new UDirectory("c:/a").GetComponents(), new[] { "c:", "a" });
+            Assert.Equal(new UDirectory("c:/a/b").GetComponents(), new[] { "c:", "a", "b" });
+            Assert.Equal(new UDirectory("c:/a/b.ext").GetComponents(), new[] { "c:", "a", "b.ext" });
 
 
-            CollectionAssert.AreEqual(new UFile("a").GetComponents(), new string[] { "a" });
-            CollectionAssert.AreEqual(new UFile("/a").GetComponents(), new string[] { "a" });
-            CollectionAssert.AreEqual(new UFile("a/b").GetComponents(), new string[] { "a", "b" });
-            CollectionAssert.AreEqual(new UFile("/a/b").GetComponents(), new string[] { "a", "b" });
-            CollectionAssert.AreEqual(new UFile("a/b/c").GetComponents(), new string[] { "a", "b", "c" });
-            CollectionAssert.AreEqual(new UFile("/a/b/c").GetComponents(), new string[] { "a", "b", "c" });
-            CollectionAssert.AreEqual(new UFile("c:/a").GetComponents(), new string[] { "c:", "a" });
-            CollectionAssert.AreEqual(new UFile("c:/a/b").GetComponents(), new string[] { "c:", "a", "b" });
-            CollectionAssert.AreEqual(new UFile("c:/a/b.ext").GetComponents(), new string[] { "c:", "a", "b.ext" });
+            Assert.Equal(new UFile("a").GetComponents(), new[] { "a" });
+            Assert.Equal(new UFile("/a").GetComponents(), new[] { "a" });
+            Assert.Equal(new UFile("a/b").GetComponents(), new[] { "a", "b" });
+            Assert.Equal(new UFile("/a/b").GetComponents(), new[] { "a", "b" });
+            Assert.Equal(new UFile("a/b/c").GetComponents(), new[] { "a", "b", "c" });
+            Assert.Equal(new UFile("/a/b/c").GetComponents(), new[] { "a", "b", "c" });
+            Assert.Equal(new UFile("c:/a").GetComponents(), new[] { "c:", "a" });
+            Assert.Equal(new UFile("c:/a/b").GetComponents(), new[] { "c:", "a", "b" });
+            Assert.Equal(new UFile("c:/a/b.ext").GetComponents(), new[] { "c:", "a", "b.ext" });
         }
 
-        [Test]
+        [Fact]
         public void TestUPathEquals()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathGetHashCode()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathCompare()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathToString()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathToWindowsPath()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathCombine()
         {
             // TODO: not enough test!
-            Assert.AreEqual(new UFile("e.txt"), UPath.Combine(".", new UFile("e.txt")));
-            Assert.AreEqual(new UFile("/a/b/d/e.txt"), UPath.Combine("/a/b/c", new UFile("../d/e.txt")));
-            Assert.AreEqual(new UFile("/d/e.txt"), UPath.Combine("/a/b/c", new UFile("../../../d/e.txt")));
-            Assert.AreEqual(new UFile("/d/e.txt"), UPath.Combine("/a/b/c", new UFile("../../../../../../d/e.txt")));
-            Assert.AreEqual(new UFile("C:/a/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../d/e.txt")));
-            Assert.AreEqual(new UFile("C:/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../../d/e.txt")));
-            Assert.AreEqual(new UFile("C:/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../../../../../d/e.txt")));
-            Assert.AreEqual(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("a.txt")));
-            Assert.AreEqual(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("b.txt")));
-            Assert.AreEqual(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("./a.txt")));
-            Assert.AreEqual(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("./b.txt")));
-            Assert.AreEqual(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("././a.txt")));
-            Assert.AreEqual(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("././b.txt")));
+            Assert.Equal(new UFile("e.txt"), UPath.Combine(".", new UFile("e.txt")));
+            Assert.Equal(new UFile("/a/b/d/e.txt"), UPath.Combine("/a/b/c", new UFile("../d/e.txt")));
+            Assert.Equal(new UFile("/d/e.txt"), UPath.Combine("/a/b/c", new UFile("../../../d/e.txt")));
+            Assert.Equal(new UFile("/d/e.txt"), UPath.Combine("/a/b/c", new UFile("../../../../../../d/e.txt")));
+            Assert.Equal(new UFile("C:/a/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../d/e.txt")));
+            Assert.Equal(new UFile("C:/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../../d/e.txt")));
+            Assert.Equal(new UFile("C:/d/e.txt"), UPath.Combine("C:/a/b/c", new UFile("../../../../../../d/e.txt")));
+            Assert.Equal(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("a.txt")));
+            Assert.Equal(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("b.txt")));
+            Assert.Equal(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("./a.txt")));
+            Assert.Equal(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("./b.txt")));
+            Assert.Equal(new UFile("C:/a.txt"), UPath.Combine("C:/", new UFile("././a.txt")));
+            Assert.Equal(new UFile("C:/a/b.txt"), UPath.Combine("C:/a", new UFile("././b.txt")));
         }
 
-        [Test]
+        [Fact]
         public void TestUPathMakeRelative()
         {
             // TODO
-            //Assert.AreEqual(new UDirectory("../.."), new UDirectory("C:/a").MakeRelative("/a/b/c"));
+            //Assert.Equal(new UDirectory("../.."), new UDirectory("C:/a").MakeRelative("/a/b/c"));
         }
 
-        [Test]
+        [Fact]
         public void TestUPathHasDirectoryChars()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathIsValid()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUPathNormalize()
         {
             // TODO - maybe we should turn this method private? Or keep a single overload public?
-            Assert.AreEqual("test.txt", new UDirectory("test.txt").FullPath);
-            Assert.AreEqual("a", new UDirectory("a").FullPath);
-            Assert.AreEqual("a/b", new UDirectory("a/b").FullPath);
+            Assert.Equal("test.txt", new UDirectory("test.txt").FullPath);
+            Assert.Equal("a", new UDirectory("a").FullPath);
+            Assert.Equal("a/b", new UDirectory("a/b").FullPath);
 
             // Test '..'
-            Assert.AreEqual("../a", new UDirectory("../a").FullPath);
-            Assert.AreEqual("../a/b/c", new UDirectory("../a/b/c").FullPath);
-            Assert.AreEqual("../../a", new UDirectory("../../a").FullPath);
-            Assert.AreEqual("b/c", new UDirectory("a/../b/c").FullPath);
-            Assert.AreEqual("../b/c", new UDirectory("a/../../b/c").FullPath);
-            Assert.AreEqual("a/c", new UDirectory("a/b/../c").FullPath);
-            Assert.AreEqual("../c", new UDirectory("a/../../c").FullPath);
-            Assert.AreEqual("..", new UDirectory("a/../../c/..").FullPath);
-            Assert.AreEqual("../..", new UDirectory("a/../../c/../..").FullPath);
-            Assert.AreEqual("a/b", new UDirectory("a/b/c/..").FullPath);
-            Assert.AreEqual("a/b", new UDirectory("a/b/c/../").FullPath);
+            Assert.Equal("../a", new UDirectory("../a").FullPath);
+            Assert.Equal("../a/b/c", new UDirectory("../a/b/c").FullPath);
+            Assert.Equal("../../a", new UDirectory("../../a").FullPath);
+            Assert.Equal("b/c", new UDirectory("a/../b/c").FullPath);
+            Assert.Equal("../b/c", new UDirectory("a/../../b/c").FullPath);
+            Assert.Equal("a/c", new UDirectory("a/b/../c").FullPath);
+            Assert.Equal("../c", new UDirectory("a/../../c").FullPath);
+            Assert.Equal("..", new UDirectory("a/../../c/..").FullPath);
+            Assert.Equal("../..", new UDirectory("a/../../c/../..").FullPath);
+            Assert.Equal("a/b", new UDirectory("a/b/c/..").FullPath);
+            Assert.Equal("a/b", new UDirectory("a/b/c/../").FullPath);
 
             // Test '.'
-            Assert.AreEqual(".", new UDirectory(".").FullPath);
-            Assert.AreEqual(".", new UDirectory("././.").FullPath);
-            Assert.AreEqual("a/b", new UDirectory("a/././b").FullPath);
-            Assert.AreEqual("a/b", new UDirectory("././a/b").FullPath);
-            Assert.AreEqual("a/b", new UDirectory("a/b/./.").FullPath);
-            Assert.AreEqual("a/b", new UDirectory("a/b/././").FullPath);
+            Assert.Equal(".", new UDirectory(".").FullPath);
+            Assert.Equal(".", new UDirectory("././.").FullPath);
+            Assert.Equal("a/b", new UDirectory("a/././b").FullPath);
+            Assert.Equal("a/b", new UDirectory("././a/b").FullPath);
+            Assert.Equal("a/b", new UDirectory("a/b/./.").FullPath);
+            Assert.Equal("a/b", new UDirectory("a/b/././").FullPath);
 
             // Test duplicate '/'
-            Assert.AreEqual("a/b/c", new UDirectory("a///b/c").FullPath);
-            Assert.AreEqual("a/b/c", new UDirectory("a///b/c/").FullPath);
-            Assert.AreEqual("a/b/c", new UDirectory("a/b/c/////").FullPath);
-            Assert.AreEqual("/a/b/c", new UDirectory("////a/b/c/").FullPath);
-            Assert.AreEqual("/", new UDirectory("/////").FullPath);
+            Assert.Equal("a/b/c", new UDirectory("a///b/c").FullPath);
+            Assert.Equal("a/b/c", new UDirectory("a///b/c/").FullPath);
+            Assert.Equal("a/b/c", new UDirectory("a/b/c/////").FullPath);
+            Assert.Equal("/a/b/c", new UDirectory("////a/b/c/").FullPath);
+            Assert.Equal("/", new UDirectory("/////").FullPath);
 
             // Test '\'
-            Assert.AreEqual("a/b/c", new UDirectory(@"a\b\c").FullPath);
+            Assert.Equal("a/b/c", new UDirectory(@"a\b\c").FullPath);
 
             // Test rooted path
-            Assert.AreEqual("/a/b", new UDirectory("/a/b").FullPath);
+            Assert.Equal("/a/b", new UDirectory("/a/b").FullPath);
 
             // Test drive
-            Assert.AreEqual("C:/a/b/c", new UDirectory("C:/a/b/c").FullPath);
-            Assert.AreEqual("C:/", new UDirectory("C:/..").FullPath);
-            Assert.AreEqual("C:/", new UDirectory("C:/../").FullPath);
-            Assert.AreEqual("C:/", new UDirectory("C:/../..").FullPath);
-            Assert.AreEqual("C:/", new UDirectory("C:/../../").FullPath);
+            Assert.Equal("C:/a/b/c", new UDirectory("C:/a/b/c").FullPath);
+            Assert.Equal("C:/", new UDirectory("C:/..").FullPath);
+            Assert.Equal("C:/", new UDirectory("C:/../").FullPath);
+            Assert.Equal("C:/", new UDirectory("C:/../..").FullPath);
+            Assert.Equal("C:/", new UDirectory("C:/../../").FullPath);
 
 
-            Assert.AreEqual("/", new UDirectory("/..").FullPath);
-            Assert.AreEqual("..", new UDirectory("..").FullPath);
-            Assert.AreEqual("E:/", new UDirectory("E:/..").FullPath);
-            Assert.AreEqual("..", new UDirectory("..").FullPath);
-            Assert.AreEqual("/a", new UDirectory("/a/").FullPath);
-            Assert.AreEqual("../../c.txt", new UFile("a/../../../c.txt").FullPath);
+            Assert.Equal("/", new UDirectory("/..").FullPath);
+            Assert.Equal("..", new UDirectory("..").FullPath);
+            Assert.Equal("E:/", new UDirectory("E:/..").FullPath);
+            Assert.Equal("..", new UDirectory("..").FullPath);
+            Assert.Equal("/a", new UDirectory("/a/").FullPath);
+            Assert.Equal("../../c.txt", new UFile("a/../../../c.txt").FullPath);
         }
 
-        [Test]
+        [Fact]
         public void TestUFileGetDirectoryAndFileName()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUFileGetFileName()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUFileGetFileExtension()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUFileGetFileNameWithExtension()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUFileGetFullPathWithoutExtension()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUFileIsValid()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUDirectoryContains()
         {
             // TODO
         }
 
-        [Test]
+        [Fact]
         public void TestUDirectoryGetDirectoryName()
         {
             // TODO

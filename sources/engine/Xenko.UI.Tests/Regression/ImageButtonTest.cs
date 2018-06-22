@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Graphics;
 using Xenko.Rendering.Sprites;
@@ -49,7 +49,7 @@ namespace Xenko.UI.Tests.Regression
             button.RaiseTouchDownEvent(new TouchEventArgs());
         }
 
-        [Test]
+        [Fact]
         public void RunImageButtonTest()
         {
             RunGameTest(new ImageButtonTest());

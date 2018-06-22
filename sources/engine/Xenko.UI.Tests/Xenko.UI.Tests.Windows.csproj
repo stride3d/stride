@@ -5,7 +5,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Xenko.UI.Tests</RootNamespace>
     <AssemblyName>Xenko.UI.Tests</AssemblyName>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>
@@ -129,6 +129,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="XunitAttributes.cs" />
     <Compile Include="Events\EventManagerTests.cs" />
     <Compile Include="Events\MyTestRoutedEventArgs.cs" />
     <Compile Include="Events\MyTestRoutedEventHandler.cs" />

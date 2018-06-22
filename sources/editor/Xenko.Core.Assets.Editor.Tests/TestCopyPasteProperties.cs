@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Editor.Services;
 using Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
 using Xenko.Core.Assets.Quantum;
@@ -13,7 +13,6 @@ using Xenko.Core.Quantum;
 
 namespace Xenko.Core.Assets.Editor.Tests
 {
-    [TestFixture]
     public sealed class TestCopyPasteProperties
     {
         // Categories
@@ -30,863 +29,809 @@ namespace Xenko.Core.Assets.Editor.Tests
         private ICopyPasteService service;
         private AssetPropertyGraphContainer propertyGraphContainer;
 
-        [OneTimeSetUp]
-        public void Initialize()
+        public TestCopyPasteProperties()
         {
             propertyGraphContainer = new AssetPropertyGraphContainer(new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } });
             service = new CopyPasteService { PropertyGraphContainer = propertyGraphContainer };
             service.RegisterProcessor(new AssetPropertyPasteProcessor());
         }
 
-        [Test]
-        [Category(SimpleProperty)]
+        [Fact]
         public void TestCopyPasteSingleProperty()
         {
             var source = new MyClass { Float = 5.0f };
             var target = new MyClass { Float = 2.0f };
             var copiedText = Copy(source, source.Float);
             Paste(target, copiedText, typeof(float), typeof(float), x => x[nameof(MyClass.Float)], Index.Empty, false);
-            Assert.AreEqual(5.0f, target.Float);
+            Assert.Equal(5.0f, target.Float);
         }
 
-        [Test]
-        [Category(SimpleProperty)]
+        [Fact]
         public void TestPasteStringAsFloatProperty()
         {
             var target = new MyClass { Float = 2.0f };
             Paste(target, "5", typeof(float), typeof(float), x => x[nameof(MyClass.Float)], Index.Empty, false);
-            Assert.AreEqual(5.0f, target.Float);
+            Assert.Equal(5.0f, target.Float);
         }
 
-        [Test]
-        [Category(SimpleProperty)]
+        [Fact]
         public void TestCopyPasteStructMemberProperty()
         {
             var source = new MyClass { Struct = new MyStruct { Integer = 5 } };
             var target = new MyClass { Struct = new MyStruct { Integer = 2 } };
             var copiedText = Copy(source, source.Struct.Integer);
             Paste(target, copiedText, typeof(int), typeof(int), x => x[nameof(MyClass.Struct)].Target[nameof(MyStruct.Integer)], Index.Empty, false);
-            Assert.AreEqual(5, target.Struct.Integer);
+            Assert.Equal(5, target.Struct.Integer);
         }
 
-        [Test]
-        [Category(SimpleProperty)]
+        [Fact]
         public void TestCopyPasteStructProperty()
         {
             var source = new MyClass { Struct = new MyStruct { Integer = 5 } };
             var target = new MyClass { Struct = new MyStruct { Integer = 2 } };
             var copiedText = Copy(source, source.Struct);
             Paste(target, copiedText, typeof(MyStruct), typeof(MyStruct), x => x[nameof(MyClass.Struct)], Index.Empty, false);
-            Assert.AreEqual(5, target.Struct.Integer);
+            Assert.Equal(5, target.Struct.Integer);
         }
 
-        [Test]
-        [Category(SimpleProperty)]
+        [Fact]
         public void TestCopyPasteClassMemberProperty()
         {
             var source = new MyClass { Sub = new MyClass { Float = 5 } };
             var target = new MyClass { Sub = new MyClass { Float = 2 } };
             var copiedText = Copy(source, source.Sub.Float);
             Paste(target, copiedText, typeof(int), typeof(int), x => x[nameof(MyClass.Sub)].Target[nameof(MyClass.Float)], Index.Empty, false);
-            Assert.AreEqual(5, target.Sub.Float);
+            Assert.Equal(5, target.Sub.Float);
         }
 
-        [Test]
-        [Category(SimpleProperty)]
+        [Fact]
         public void TestCopyPasteClassProperty()
         {
             var source = new MyClass { Sub = new MyClass { Float = 5 } };
             var target = new MyClass { Sub = new MyClass { Float = 2 } };
             var copiedText = Copy(source, source.Sub);
             Paste(target, copiedText, typeof(MyClass), typeof(MyClass), x => x[nameof(MyClass.Sub)], Index.Empty, false);
-            Assert.AreEqual(5, target.Sub.Float);
+            Assert.Equal(5, target.Sub.Float);
         }
 
-        [Test]
-        [Category(PasteListIntoList)]
+        [Fact]
         public void TestCopyPasteListDouble()
         {
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList);
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, false);
-            Assert.AreEqual(6, target.DoubleList.Count);
-            Assert.AreEqual(4.0, target.DoubleList[0]);
-            Assert.AreEqual(5.0, target.DoubleList[1]);
-            Assert.AreEqual(6.0, target.DoubleList[2]);
-            Assert.AreEqual(1.0, target.DoubleList[3]);
-            Assert.AreEqual(2.0, target.DoubleList[4]);
-            Assert.AreEqual(3.0, target.DoubleList[5]);
+            Assert.Equal(6, target.DoubleList.Count);
+            Assert.Equal(4.0, target.DoubleList[0]);
+            Assert.Equal(5.0, target.DoubleList[1]);
+            Assert.Equal(6.0, target.DoubleList[2]);
+            Assert.Equal(1.0, target.DoubleList[3]);
+            Assert.Equal(2.0, target.DoubleList[4]);
+            Assert.Equal(3.0, target.DoubleList[5]);
         }
 
-        [Test]
-        [Category(ReplaceListByList)]
+        [Fact]
         public void TestCopyReplaceListDouble()
         {
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList);
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, true);
-            Assert.AreEqual(3, target.DoubleList.Count);
-            Assert.AreEqual(1.0, target.DoubleList[0]);
-            Assert.AreEqual(2.0, target.DoubleList[1]);
-            Assert.AreEqual(3.0, target.DoubleList[2]);
+            Assert.Equal(3, target.DoubleList.Count);
+            Assert.Equal(1.0, target.DoubleList[0]);
+            Assert.Equal(2.0, target.DoubleList[1]);
+            Assert.Equal(3.0, target.DoubleList[2]);
         }
 
-        [Test]
-        [Category(PasteListIntoList)]
+        [Fact]
         public void TestCopyPasteListStruct()
         {
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList);
             Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)], Index.Empty, false);
-            Assert.AreEqual(6, target.StructList.Count);
-            Assert.AreEqual(4.0, target.StructList[0].Integer);
-            Assert.AreEqual(5.0, target.StructList[1].Integer);
-            Assert.AreEqual(6.0, target.StructList[2].Integer);
-            Assert.AreEqual(1.0, target.StructList[3].Integer);
-            Assert.AreEqual(2.0, target.StructList[4].Integer);
-            Assert.AreEqual(3.0, target.StructList[5].Integer);
+            Assert.Equal(6, target.StructList.Count);
+            Assert.Equal(4.0, target.StructList[0].Integer);
+            Assert.Equal(5.0, target.StructList[1].Integer);
+            Assert.Equal(6.0, target.StructList[2].Integer);
+            Assert.Equal(1.0, target.StructList[3].Integer);
+            Assert.Equal(2.0, target.StructList[4].Integer);
+            Assert.Equal(3.0, target.StructList[5].Integer);
         }
 
-        [Test]
-        [Category(ReplaceListByList)]
+        [Fact]
         public void TestCopyReplaceListStruct()
         {
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList);
             Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)], Index.Empty, true);
-            Assert.AreEqual(3, target.StructList.Count);
-            Assert.AreEqual(1.0, target.StructList[0].Integer);
-            Assert.AreEqual(2.0, target.StructList[1].Integer);
-            Assert.AreEqual(3.0, target.StructList[2].Integer);
+            Assert.Equal(3, target.StructList.Count);
+            Assert.Equal(1.0, target.StructList[0].Integer);
+            Assert.Equal(2.0, target.StructList[1].Integer);
+            Assert.Equal(3.0, target.StructList[2].Integer);
         }
 
-        [Test]
-        [Category(PasteListIntoList)]
+        [Fact]
         public void TestCopyPasteListClass()
         {
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList);
             Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)], Index.Empty, false);
-            Assert.AreEqual(6, target.SubList.Count);
-            Assert.AreEqual(4.0, target.SubList[0].Float);
-            Assert.AreEqual(5.0, target.SubList[1].Float);
-            Assert.AreEqual(6.0, target.SubList[2].Float);
-            Assert.AreEqual(1.0, target.SubList[3].Float);
-            Assert.AreEqual(2.0, target.SubList[4].Float);
-            Assert.AreEqual(3.0, target.SubList[5].Float);
+            Assert.Equal(6, target.SubList.Count);
+            Assert.Equal(4.0, target.SubList[0].Float);
+            Assert.Equal(5.0, target.SubList[1].Float);
+            Assert.Equal(6.0, target.SubList[2].Float);
+            Assert.Equal(1.0, target.SubList[3].Float);
+            Assert.Equal(2.0, target.SubList[4].Float);
+            Assert.Equal(3.0, target.SubList[5].Float);
         }
 
-        [Test]
-        [Category(ReplaceListByList)]
+        [Fact]
         public void TestCopyReplaceListClass()
         {
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList);
             Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)], Index.Empty, true);
-            Assert.AreEqual(3, target.SubList.Count);
-            Assert.AreEqual(1.0, target.SubList[0].Float);
-            Assert.AreEqual(2.0, target.SubList[1].Float);
-            Assert.AreEqual(3.0, target.SubList[2].Float);
+            Assert.Equal(3, target.SubList.Count);
+            Assert.Equal(1.0, target.SubList[0].Float);
+            Assert.Equal(2.0, target.SubList[1].Float);
+            Assert.Equal(3.0, target.SubList[2].Float);
         }
 
-        [Test]
-        [Category(PasteListIntoList)]
+        [Fact]
         public void TestCopyPasteListDoubleIntoItem()
         {
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList);
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), false);
-            Assert.AreEqual(6, target.DoubleList.Count);
-            Assert.AreEqual(4.0, target.DoubleList[0]);
-            Assert.AreEqual(1.0, target.DoubleList[1]);
-            Assert.AreEqual(2.0, target.DoubleList[2]);
-            Assert.AreEqual(3.0, target.DoubleList[3]);
-            Assert.AreEqual(5.0, target.DoubleList[4]);
-            Assert.AreEqual(6.0, target.DoubleList[5]);
+            Assert.Equal(6, target.DoubleList.Count);
+            Assert.Equal(4.0, target.DoubleList[0]);
+            Assert.Equal(1.0, target.DoubleList[1]);
+            Assert.Equal(2.0, target.DoubleList[2]);
+            Assert.Equal(3.0, target.DoubleList[3]);
+            Assert.Equal(5.0, target.DoubleList[4]);
+            Assert.Equal(6.0, target.DoubleList[5]);
         }
 
-        [Test]
-        [Category(ReplaceItemInList)]
+        [Fact]
         public void TestCopyReplaceListDoubleIntoItem()
         {
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList);
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), true);
-            Assert.AreEqual(5, target.DoubleList.Count);
-            Assert.AreEqual(4.0, target.DoubleList[0]);
-            Assert.AreEqual(1.0, target.DoubleList[1]);
-            Assert.AreEqual(2.0, target.DoubleList[2]);
-            Assert.AreEqual(3.0, target.DoubleList[3]);
-            Assert.AreEqual(6.0, target.DoubleList[4]);
+            Assert.Equal(5, target.DoubleList.Count);
+            Assert.Equal(4.0, target.DoubleList[0]);
+            Assert.Equal(1.0, target.DoubleList[1]);
+            Assert.Equal(2.0, target.DoubleList[2]);
+            Assert.Equal(3.0, target.DoubleList[3]);
+            Assert.Equal(6.0, target.DoubleList[4]);
         }
 
-        [Test]
-        [Category(PasteListIntoList)]
+        [Fact]
         public void TestCopyPasteListStructIntoItem()
         {
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList);
             Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new Index(1), false);
-            Assert.AreEqual(6, target.StructList.Count);
-            Assert.AreEqual(4.0, target.StructList[0].Integer);
-            Assert.AreEqual(1.0, target.StructList[1].Integer);
-            Assert.AreEqual(2.0, target.StructList[2].Integer);
-            Assert.AreEqual(3.0, target.StructList[3].Integer);
-            Assert.AreEqual(5.0, target.StructList[4].Integer);
-            Assert.AreEqual(6.0, target.StructList[5].Integer);
+            Assert.Equal(6, target.StructList.Count);
+            Assert.Equal(4.0, target.StructList[0].Integer);
+            Assert.Equal(1.0, target.StructList[1].Integer);
+            Assert.Equal(2.0, target.StructList[2].Integer);
+            Assert.Equal(3.0, target.StructList[3].Integer);
+            Assert.Equal(5.0, target.StructList[4].Integer);
+            Assert.Equal(6.0, target.StructList[5].Integer);
         }
 
-        [Test]
-        [Category(ReplaceItemInList)]
+        [Fact]
         public void TestCopyReplaceListStructIntoItem()
         {
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList);
             Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new Index(1), true);
-            Assert.AreEqual(5, target.StructList.Count);
-            Assert.AreEqual(4.0, target.StructList[0].Integer);
-            Assert.AreEqual(1.0, target.StructList[1].Integer);
-            Assert.AreEqual(2.0, target.StructList[2].Integer);
-            Assert.AreEqual(3.0, target.StructList[3].Integer);
-            Assert.AreEqual(6.0, target.StructList[4].Integer);
+            Assert.Equal(5, target.StructList.Count);
+            Assert.Equal(4.0, target.StructList[0].Integer);
+            Assert.Equal(1.0, target.StructList[1].Integer);
+            Assert.Equal(2.0, target.StructList[2].Integer);
+            Assert.Equal(3.0, target.StructList[3].Integer);
+            Assert.Equal(6.0, target.StructList[4].Integer);
         }
 
-        [Test]
-        [Category(PasteListIntoList)]
+        [Fact]
         public void TestCopyPasteListClassIntoItem()
         {
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList);
             Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new Index(1), false);
-            Assert.AreEqual(6, target.SubList.Count);
-            Assert.AreEqual(4.0, target.SubList[0].Float);
-            Assert.AreEqual(1.0, target.SubList[1].Float);
-            Assert.AreEqual(2.0, target.SubList[2].Float);
-            Assert.AreEqual(3.0, target.SubList[3].Float);
-            Assert.AreEqual(5.0, target.SubList[4].Float);
-            Assert.AreEqual(6.0, target.SubList[5].Float);
+            Assert.Equal(6, target.SubList.Count);
+            Assert.Equal(4.0, target.SubList[0].Float);
+            Assert.Equal(1.0, target.SubList[1].Float);
+            Assert.Equal(2.0, target.SubList[2].Float);
+            Assert.Equal(3.0, target.SubList[3].Float);
+            Assert.Equal(5.0, target.SubList[4].Float);
+            Assert.Equal(6.0, target.SubList[5].Float);
         }
 
-        [Test]
-        [Category(ReplaceItemInList)]
+        [Fact]
         public void TestCopyReplaceListClassIntoItem()
         {
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList);
             Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new Index(1), true);
-            Assert.AreEqual(5, target.SubList.Count);
-            Assert.AreEqual(4.0, target.SubList[0].Float);
-            Assert.AreEqual(1.0, target.SubList[1].Float);
-            Assert.AreEqual(2.0, target.SubList[2].Float);
-            Assert.AreEqual(3.0, target.SubList[3].Float);
-            Assert.AreEqual(6.0, target.SubList[4].Float);
+            Assert.Equal(5, target.SubList.Count);
+            Assert.Equal(4.0, target.SubList[0].Float);
+            Assert.Equal(1.0, target.SubList[1].Float);
+            Assert.Equal(2.0, target.SubList[2].Float);
+            Assert.Equal(3.0, target.SubList[3].Float);
+            Assert.Equal(6.0, target.SubList[4].Float);
         }
 
-        [Test]
-        [Category(PasteItemIntoList)]
+        [Fact]
         public void TestCopyPasteDoubleIntoList()
         {
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList[2]);
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), false);
-            Assert.AreEqual(4, target.DoubleList.Count);
-            Assert.AreEqual(4.0, target.DoubleList[0]);
-            Assert.AreEqual(3.0, target.DoubleList[1]);
-            Assert.AreEqual(5.0, target.DoubleList[2]);
-            Assert.AreEqual(6.0, target.DoubleList[3]);
+            Assert.Equal(4, target.DoubleList.Count);
+            Assert.Equal(4.0, target.DoubleList[0]);
+            Assert.Equal(3.0, target.DoubleList[1]);
+            Assert.Equal(5.0, target.DoubleList[2]);
+            Assert.Equal(6.0, target.DoubleList[3]);
 
             target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), false);
-            Assert.AreEqual(4, target.DoubleList.Count);
-            Assert.AreEqual(4.0, target.DoubleList[0]);
-            Assert.AreEqual(2.0, target.DoubleList[1]);
-            Assert.AreEqual(5.0, target.DoubleList[2]);
-            Assert.AreEqual(6.0, target.DoubleList[3]);
+            Assert.Equal(4, target.DoubleList.Count);
+            Assert.Equal(4.0, target.DoubleList[0]);
+            Assert.Equal(2.0, target.DoubleList[1]);
+            Assert.Equal(5.0, target.DoubleList[2]);
+            Assert.Equal(6.0, target.DoubleList[3]);
         }
 
-        [Test]
-        [Category(ReplaceItemInList)]
+        [Fact]
         public void TestCopyReplaceDoubleIntoList()
         {
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList[2]);
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), true);
-            Assert.AreEqual(3, target.DoubleList.Count);
-            Assert.AreEqual(4.0, target.DoubleList[0]);
-            Assert.AreEqual(3.0, target.DoubleList[1]);
-            Assert.AreEqual(6.0, target.DoubleList[2]);
+            Assert.Equal(3, target.DoubleList.Count);
+            Assert.Equal(4.0, target.DoubleList[0]);
+            Assert.Equal(3.0, target.DoubleList[1]);
+            Assert.Equal(6.0, target.DoubleList[2]);
 
             target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), true);
-            Assert.AreEqual(3, target.DoubleList.Count);
-            Assert.AreEqual(4.0, target.DoubleList[0]);
-            Assert.AreEqual(2.0, target.DoubleList[1]);
-            Assert.AreEqual(6.0, target.DoubleList[2]);
+            Assert.Equal(3, target.DoubleList.Count);
+            Assert.Equal(4.0, target.DoubleList[0]);
+            Assert.Equal(2.0, target.DoubleList[1]);
+            Assert.Equal(6.0, target.DoubleList[2]);
         }
 
-        [Test]
-        [Category(PasteItemIntoList)]
+        [Fact]
         public void TestCopyPasteStructIntoList()
         {
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList[2]);
             Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new Index(1), false);
-            Assert.AreEqual(4, target.StructList.Count);
-            Assert.AreEqual(4.0, target.StructList[0].Integer);
-            Assert.AreEqual(3.0, target.StructList[1].Integer);
-            Assert.AreEqual(5.0, target.StructList[2].Integer);
-            Assert.AreEqual(6.0, target.StructList[3].Integer);
+            Assert.Equal(4, target.StructList.Count);
+            Assert.Equal(4.0, target.StructList[0].Integer);
+            Assert.Equal(3.0, target.StructList[1].Integer);
+            Assert.Equal(5.0, target.StructList[2].Integer);
+            Assert.Equal(6.0, target.StructList[3].Integer);
         }
 
-        [Test]
-        [Category(ReplaceItemInList)]
+        [Fact]
         public void TestCopyReplaceStructIntoList()
         {
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList[2]);
             Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new Index(1), true);
-            Assert.AreEqual(3, target.StructList.Count);
-            Assert.AreEqual(4.0, target.StructList[0].Integer);
-            Assert.AreEqual(3.0, target.StructList[1].Integer);
-            Assert.AreEqual(6.0, target.StructList[2].Integer);
+            Assert.Equal(3, target.StructList.Count);
+            Assert.Equal(4.0, target.StructList[0].Integer);
+            Assert.Equal(3.0, target.StructList[1].Integer);
+            Assert.Equal(6.0, target.StructList[2].Integer);
         }
 
-        [Test]
-        [Category(PasteItemIntoList)]
+        [Fact]
         public void TestCopyPasteClassIntoList()
         {
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList[2]);
             Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new Index(1), false);
-            Assert.AreEqual(4, target.SubList.Count);
-            Assert.AreEqual(4.0, target.SubList[0].Float);
-            Assert.AreEqual(3.0, target.SubList[1].Float);
-            Assert.AreEqual(5.0, target.SubList[2].Float);
-            Assert.AreEqual(6.0, target.SubList[3].Float);
+            Assert.Equal(4, target.SubList.Count);
+            Assert.Equal(4.0, target.SubList[0].Float);
+            Assert.Equal(3.0, target.SubList[1].Float);
+            Assert.Equal(5.0, target.SubList[2].Float);
+            Assert.Equal(6.0, target.SubList[3].Float);
         }
 
-        [Test]
-        [Category(ReplaceItemInList)]
+        [Fact]
         public void TestCopyReplaceClassIntoList()
         {
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList[2]);
             Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new Index(1), true);
-            Assert.AreEqual(3, target.SubList.Count);
-            Assert.AreEqual(4.0, target.SubList[0].Float);
-            Assert.AreEqual(3.0, target.SubList[1].Float);
-            Assert.AreEqual(6.0, target.SubList[2].Float);
+            Assert.Equal(3, target.SubList.Count);
+            Assert.Equal(4.0, target.SubList[0].Float);
+            Assert.Equal(3.0, target.SubList[1].Float);
+            Assert.Equal(6.0, target.SubList[2].Float);
         }
 
-        [Test]
-        [Category(PasteItemIntoList)]
+        [Fact]
         public void TestCopyPasteIntoNullList()
         {
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = null };
             var copiedText = Copy(source, source.DoubleList);
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, false);
-            Assert.AreEqual(3, target.DoubleList.Count);
-            Assert.AreEqual(1.0, target.DoubleList[0]);
-            Assert.AreEqual(2.0, target.DoubleList[1]);
-            Assert.AreEqual(3.0, target.DoubleList[2]);
+            Assert.Equal(3, target.DoubleList.Count);
+            Assert.Equal(1.0, target.DoubleList[0]);
+            Assert.Equal(2.0, target.DoubleList[1]);
+            Assert.Equal(3.0, target.DoubleList[2]);
 
             target = new MyClass { DoubleList = null };
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, true);
-            Assert.AreEqual(3, target.DoubleList.Count);
-            Assert.AreEqual(1.0, target.DoubleList[0]);
-            Assert.AreEqual(2.0, target.DoubleList[1]);
-            Assert.AreEqual(3.0, target.DoubleList[2]);
+            Assert.Equal(3, target.DoubleList.Count);
+            Assert.Equal(1.0, target.DoubleList[0]);
+            Assert.Equal(2.0, target.DoubleList[1]);
+            Assert.Equal(3.0, target.DoubleList[2]);
 
             source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             target = new MyClass { DoubleList = null };
             copiedText = Copy(source, source.DoubleList[2]);
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, false);
-            Assert.AreEqual(1, target.DoubleList.Count);
-            Assert.AreEqual(3.0, target.DoubleList[0]);
+            Assert.Equal(1, target.DoubleList.Count);
+            Assert.Equal(3.0, target.DoubleList[0]);
 
             target = new MyClass { DoubleList = null };
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, true);
-            Assert.AreEqual(1, target.DoubleList.Count);
-            Assert.AreEqual(3.0, target.DoubleList[0]);
+            Assert.Equal(1, target.DoubleList.Count);
+            Assert.Equal(3.0, target.DoubleList[0]);
 
             target = new MyClass { DoubleList = null };
             Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, false);
-            Assert.AreEqual(1, target.DoubleList.Count);
-            Assert.AreEqual(2.0, target.DoubleList[0]);
+            Assert.Equal(1, target.DoubleList.Count);
+            Assert.Equal(2.0, target.DoubleList[0]);
 
             target = new MyClass { DoubleList = null };
             Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, true);
-            Assert.AreEqual(1, target.DoubleList.Count);
-            Assert.AreEqual(2.0, target.DoubleList[0]);
+            Assert.Equal(1, target.DoubleList.Count);
+            Assert.Equal(2.0, target.DoubleList[0]);
         }
 
-        [Test]
-        [Category(PasteDictionaryIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryDouble()
         {
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, false);
-            Assert.AreEqual(6, target.DoubleDictionary.Count);
-            Assert.AreEqual(1.0, target.DoubleDictionary["aaa"]);
-            Assert.AreEqual(2.0, target.DoubleDictionary["bbb"]);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
-            Assert.AreEqual(4.0, target.DoubleDictionary["ddd"]);
-            Assert.AreEqual(5.0, target.DoubleDictionary["eee"]);
-            Assert.AreEqual(6.0, target.DoubleDictionary["fff"]);
+            Assert.Equal(6, target.DoubleDictionary.Count);
+            Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
+            Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(4.0, target.DoubleDictionary["ddd"]);
+            Assert.Equal(5.0, target.DoubleDictionary["eee"]);
+            Assert.Equal(6.0, target.DoubleDictionary["fff"]);
         }
 
-        [Test]
-        [Category(ReplaceDictionaryByDictionary)]
+        [Fact]
         public void TestCopyReplaceDictionaryDouble()
         {
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, true);
-            Assert.AreEqual(3, target.DoubleDictionary.Count);
-            Assert.AreEqual(1.0, target.DoubleDictionary["aaa"]);
-            Assert.AreEqual(2.0, target.DoubleDictionary["bbb"]);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(3, target.DoubleDictionary.Count);
+            Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
+            Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
         }
 
-        [Test]
-        [Category(PasteDictionaryIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryStruct()
         {
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)], Index.Empty, false);
-            Assert.AreEqual(6, target.StructDictionary.Count);
-            Assert.AreEqual(1.0, target.StructDictionary["aaa"].Integer);
-            Assert.AreEqual(2.0, target.StructDictionary["bbb"].Integer);
-            Assert.AreEqual(3.0, target.StructDictionary["ccc"].Integer);
-            Assert.AreEqual(4.0, target.StructDictionary["ddd"].Integer);
-            Assert.AreEqual(5.0, target.StructDictionary["eee"].Integer);
-            Assert.AreEqual(6.0, target.StructDictionary["fff"].Integer);
+            Assert.Equal(6, target.StructDictionary.Count);
+            Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
+            Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
+            Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
+            Assert.Equal(4.0, target.StructDictionary["ddd"].Integer);
+            Assert.Equal(5.0, target.StructDictionary["eee"].Integer);
+            Assert.Equal(6.0, target.StructDictionary["fff"].Integer);
         }
 
-        [Test]
-        [Category(ReplaceDictionaryByDictionary)]
+        [Fact]
         public void TestCopyReplaceDictionaryStruct()
         {
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)], Index.Empty, true);
-            Assert.AreEqual(3, target.StructDictionary.Count);
-            Assert.AreEqual(1.0, target.StructDictionary["aaa"].Integer);
-            Assert.AreEqual(2.0, target.StructDictionary["bbb"].Integer);
-            Assert.AreEqual(3.0, target.StructDictionary["ccc"].Integer);
+            Assert.Equal(3, target.StructDictionary.Count);
+            Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
+            Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
+            Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
         }
 
-        [Test]
-        [Category(PasteDictionaryIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryClass()
         {
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)], Index.Empty, false);
-            Assert.AreEqual(6, target.SubDictionary.Count);
-            Assert.AreEqual(1.0, target.SubDictionary["aaa"].Float);
-            Assert.AreEqual(2.0, target.SubDictionary["bbb"].Float);
-            Assert.AreEqual(3.0, target.SubDictionary["ccc"].Float);
-            Assert.AreEqual(4.0, target.SubDictionary["ddd"].Float);
-            Assert.AreEqual(5.0, target.SubDictionary["eee"].Float);
-            Assert.AreEqual(6.0, target.SubDictionary["fff"].Float);
+            Assert.Equal(6, target.SubDictionary.Count);
+            Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
+            Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
+            Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
+            Assert.Equal(4.0, target.SubDictionary["ddd"].Float);
+            Assert.Equal(5.0, target.SubDictionary["eee"].Float);
+            Assert.Equal(6.0, target.SubDictionary["fff"].Float);
         }
 
-        [Test]
-        [Category(ReplaceDictionaryByDictionary)]
+        [Fact]
         public void TestCopyReplaceDictionaryClass()
         {
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)], Index.Empty, true);
-            Assert.AreEqual(3, target.SubDictionary.Count);
-            Assert.AreEqual(1.0, target.SubDictionary["aaa"].Float);
-            Assert.AreEqual(2.0, target.SubDictionary["bbb"].Float);
-            Assert.AreEqual(3.0, target.SubDictionary["ccc"].Float);
+            Assert.Equal(3, target.SubDictionary.Count);
+            Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
+            Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
+            Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
         }
 
-        [Test]
-        [Category(PasteDictionaryIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryDoubleIntoItem()
         {
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(6, target.DoubleDictionary.Count);
-            Assert.AreEqual(1.0, target.DoubleDictionary["aaa"]);
-            Assert.AreEqual(2.0, target.DoubleDictionary["bbb"]);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
-            Assert.AreEqual(4.0, target.DoubleDictionary["ddd"]);
-            Assert.AreEqual(5.0, target.DoubleDictionary["eee"]);
-            Assert.AreEqual(6.0, target.DoubleDictionary["fff"]);
+            Assert.Equal(6, target.DoubleDictionary.Count);
+            Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
+            Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(4.0, target.DoubleDictionary["ddd"]);
+            Assert.Equal(5.0, target.DoubleDictionary["eee"]);
+            Assert.Equal(6.0, target.DoubleDictionary["fff"]);
         }
 
-        [Test]
-        [Category(ReplaceDictionaryByDictionary)]
+        [Fact]
         public void TestCopyReplaceDictionaryDoubleIntoItem()
         {
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), true);
-            Assert.AreEqual(5, target.DoubleDictionary.Count);
-            Assert.AreEqual(4.0, target.DoubleDictionary["ddd"]);
-            Assert.AreEqual(1.0, target.DoubleDictionary["aaa"]);
-            Assert.AreEqual(2.0, target.DoubleDictionary["bbb"]);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
-            Assert.AreEqual(6.0, target.DoubleDictionary["fff"]);
+            Assert.Equal(5, target.DoubleDictionary.Count);
+            Assert.Equal(4.0, target.DoubleDictionary["ddd"]);
+            Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
+            Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(6.0, target.DoubleDictionary["fff"]);
         }
 
-        [Test]
-        [Category(PasteDictionaryIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryStructIntoItem()
         {
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(6, target.StructDictionary.Count);
-            Assert.AreEqual(1.0, target.StructDictionary["aaa"].Integer);
-            Assert.AreEqual(2.0, target.StructDictionary["bbb"].Integer);
-            Assert.AreEqual(3.0, target.StructDictionary["ccc"].Integer);
-            Assert.AreEqual(4.0, target.StructDictionary["ddd"].Integer);
-            Assert.AreEqual(5.0, target.StructDictionary["eee"].Integer);
-            Assert.AreEqual(6.0, target.StructDictionary["fff"].Integer);
+            Assert.Equal(6, target.StructDictionary.Count);
+            Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
+            Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
+            Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
+            Assert.Equal(4.0, target.StructDictionary["ddd"].Integer);
+            Assert.Equal(5.0, target.StructDictionary["eee"].Integer);
+            Assert.Equal(6.0, target.StructDictionary["fff"].Integer);
         }
 
-        [Test]
-        [Category(ReplaceDictionaryByDictionary)]
+        [Fact]
         public void TestCopyReplaceDictionaryStructIntoItem()
         {
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), true);
-            Assert.AreEqual(5, target.StructDictionary.Count);
-            Assert.AreEqual(4.0, target.StructDictionary["ddd"].Integer);
-            Assert.AreEqual(1.0, target.StructDictionary["aaa"].Integer);
-            Assert.AreEqual(2.0, target.StructDictionary["bbb"].Integer);
-            Assert.AreEqual(3.0, target.StructDictionary["ccc"].Integer);
-            Assert.AreEqual(6.0, target.StructDictionary["fff"].Integer);
+            Assert.Equal(5, target.StructDictionary.Count);
+            Assert.Equal(4.0, target.StructDictionary["ddd"].Integer);
+            Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
+            Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
+            Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
+            Assert.Equal(6.0, target.StructDictionary["fff"].Integer);
         }
 
-        [Test]
-        [Category(PasteDictionaryIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryClassIntoItem()
         {
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(6, target.SubDictionary.Count);
-            Assert.AreEqual(1.0, target.SubDictionary["aaa"].Float);
-            Assert.AreEqual(2.0, target.SubDictionary["bbb"].Float);
-            Assert.AreEqual(3.0, target.SubDictionary["ccc"].Float);
-            Assert.AreEqual(4.0, target.SubDictionary["ddd"].Float);
-            Assert.AreEqual(5.0, target.SubDictionary["eee"].Float);
-            Assert.AreEqual(6.0, target.SubDictionary["fff"].Float);
+            Assert.Equal(6, target.SubDictionary.Count);
+            Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
+            Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
+            Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
+            Assert.Equal(4.0, target.SubDictionary["ddd"].Float);
+            Assert.Equal(5.0, target.SubDictionary["eee"].Float);
+            Assert.Equal(6.0, target.SubDictionary["fff"].Float);
         }
 
-        [Test]
-        [Category(ReplaceItemInDictionary)]
+        [Fact]
         public void TestCopyReplaceDictionaryClassIntoItem()
         {
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), true);
-            Assert.AreEqual(5, target.SubDictionary.Count);
-            Assert.AreEqual(4.0, target.SubDictionary["ddd"].Float);
-            Assert.AreEqual(1.0, target.SubDictionary["aaa"].Float);
-            Assert.AreEqual(2.0, target.SubDictionary["bbb"].Float);
-            Assert.AreEqual(3.0, target.SubDictionary["ccc"].Float);
-            Assert.AreEqual(6.0, target.SubDictionary["fff"].Float);
+            Assert.Equal(5, target.SubDictionary.Count);
+            Assert.Equal(4.0, target.SubDictionary["ddd"].Float);
+            Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
+            Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
+            Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
+            Assert.Equal(6.0, target.SubDictionary["fff"].Float);
         }
 
-        [Test]
-        [Category(PasteItemIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDoubleIntoDictionary()
         {
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(4, target.DoubleDictionary.Count);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
-            Assert.AreEqual(4.0, target.DoubleDictionary["ddd"]);
-            Assert.AreEqual(5.0, target.DoubleDictionary["eee"]);
-            Assert.AreEqual(6.0, target.DoubleDictionary["fff"]);
+            Assert.Equal(4, target.DoubleDictionary.Count);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(4.0, target.DoubleDictionary["ddd"]);
+            Assert.Equal(5.0, target.DoubleDictionary["eee"]);
+            Assert.Equal(6.0, target.DoubleDictionary["fff"]);
         }
 
-        [Test]
-        [Category(ReplaceItemInDictionary)]
+        [Fact]
         public void TestCopyReplaceDoubleIntoDictionary()
         {
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), true);
-            Assert.AreEqual(3, target.DoubleDictionary.Count);
-            Assert.AreEqual(4.0, target.DoubleDictionary["ddd"]);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
-            Assert.AreEqual(6.0, target.DoubleDictionary["fff"]);
+            Assert.Equal(3, target.DoubleDictionary.Count);
+            Assert.Equal(4.0, target.DoubleDictionary["ddd"]);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(6.0, target.DoubleDictionary["fff"]);
         }
 
-        [Test]
-        [Category(PasteItemIntoDictionary)]
+        [Fact]
         public void TestCopyPasteStructIntoDictionary()
         {
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(4, target.StructDictionary.Count);
-            Assert.AreEqual(3.0, target.StructDictionary["ccc"].Integer);
-            Assert.AreEqual(4.0, target.StructDictionary["ddd"].Integer);
-            Assert.AreEqual(5.0, target.StructDictionary["eee"].Integer);
-            Assert.AreEqual(6.0, target.StructDictionary["fff"].Integer);
+            Assert.Equal(4, target.StructDictionary.Count);
+            Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
+            Assert.Equal(4.0, target.StructDictionary["ddd"].Integer);
+            Assert.Equal(5.0, target.StructDictionary["eee"].Integer);
+            Assert.Equal(6.0, target.StructDictionary["fff"].Integer);
         }
 
-        [Test]
-        [Category(ReplaceItemInDictionary)]
+        [Fact]
         public void TestCopyReplaceStructIntoDictionary()
         {
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), true);
-            Assert.AreEqual(3, target.StructDictionary.Count);
-            Assert.AreEqual(4.0, target.StructDictionary["ddd"].Integer);
-            Assert.AreEqual(3.0, target.StructDictionary["ccc"].Integer);
-            Assert.AreEqual(6.0, target.StructDictionary["fff"].Integer);
+            Assert.Equal(3, target.StructDictionary.Count);
+            Assert.Equal(4.0, target.StructDictionary["ddd"].Integer);
+            Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
+            Assert.Equal(6.0, target.StructDictionary["fff"].Integer);
         }
 
-        [Test]
-        [Category(PasteItemIntoDictionary)]
+        [Fact]
         public void TestCopyPasteClassIntoDictionary()
         {
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(4, target.SubDictionary.Count);
-            Assert.AreEqual(3.0, target.SubDictionary["ccc"].Float);
-            Assert.AreEqual(4.0, target.SubDictionary["ddd"].Float);
-            Assert.AreEqual(5.0, target.SubDictionary["eee"].Float);
-            Assert.AreEqual(6.0, target.SubDictionary["fff"].Float);
+            Assert.Equal(4, target.SubDictionary.Count);
+            Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
+            Assert.Equal(4.0, target.SubDictionary["ddd"].Float);
+            Assert.Equal(5.0, target.SubDictionary["eee"].Float);
+            Assert.Equal(6.0, target.SubDictionary["fff"].Float);
         }
 
-        [Test]
-        [Category(ReplaceItemInDictionary)]
+        [Fact]
         public void TestCopyReplaceClassIntoDictionary()
         {
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), true);
-            Assert.AreEqual(3, target.SubDictionary.Count);
-            Assert.AreEqual(4.0, target.SubDictionary["ddd"].Float);
-            Assert.AreEqual(3.0, target.SubDictionary["ccc"].Float);
-            Assert.AreEqual(6.0, target.SubDictionary["fff"].Float);
+            Assert.Equal(3, target.SubDictionary.Count);
+            Assert.Equal(4.0, target.SubDictionary["ddd"].Float);
+            Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
+            Assert.Equal(6.0, target.SubDictionary["fff"].Float);
         }
 
-        [Test]
-        [Category(PasteDictionaryIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryDoubleWithCollision()
         {
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ccc", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, false);
-            Assert.AreEqual(5, target.DoubleDictionary.Count);
-            Assert.AreEqual(1.0, target.DoubleDictionary["aaa"]);
-            Assert.AreEqual(2.0, target.DoubleDictionary["bbb"]);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
-            Assert.AreEqual(5.0, target.DoubleDictionary["eee"]);
-            Assert.AreEqual(6.0, target.DoubleDictionary["fff"]);
+            Assert.Equal(5, target.DoubleDictionary.Count);
+            Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
+            Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(5.0, target.DoubleDictionary["eee"]);
+            Assert.Equal(6.0, target.DoubleDictionary["fff"]);
         }
 
-        [Test]
-        [Category(PasteDictionaryIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryStructWithCollision()
         {
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ccc", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)], Index.Empty, false);
-            Assert.AreEqual(5, target.StructDictionary.Count);
-            Assert.AreEqual(1.0, target.StructDictionary["aaa"].Integer);
-            Assert.AreEqual(2.0, target.StructDictionary["bbb"].Integer);
-            Assert.AreEqual(3.0, target.StructDictionary["ccc"].Integer);
-            Assert.AreEqual(5.0, target.StructDictionary["eee"].Integer);
-            Assert.AreEqual(6.0, target.StructDictionary["fff"].Integer);
+            Assert.Equal(5, target.StructDictionary.Count);
+            Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
+            Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
+            Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
+            Assert.Equal(5.0, target.StructDictionary["eee"].Integer);
+            Assert.Equal(6.0, target.StructDictionary["fff"].Integer);
         }
 
-        [Test]
-        [Category(PasteDictionaryIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryClassWithCollision()
         {
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ccc", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)], Index.Empty, false);
-            Assert.AreEqual(5, target.SubDictionary.Count);
-            Assert.AreEqual(1.0, target.SubDictionary["aaa"].Float);
-            Assert.AreEqual(2.0, target.SubDictionary["bbb"].Float);
-            Assert.AreEqual(3.0, target.SubDictionary["ccc"].Float);
-            Assert.AreEqual(5.0, target.SubDictionary["eee"].Float);
-            Assert.AreEqual(6.0, target.SubDictionary["fff"].Float);
+            Assert.Equal(5, target.SubDictionary.Count);
+            Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
+            Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
+            Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
+            Assert.Equal(5.0, target.SubDictionary["eee"].Float);
+            Assert.Equal(6.0, target.SubDictionary["fff"].Float);
         }
 
-        [Test]
-        [Category(PasteItemIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryDoubleIntoItemWithCollision()
         {
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ccc", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(5, target.DoubleDictionary.Count);
-            Assert.AreEqual(1.0, target.DoubleDictionary["aaa"]);
-            Assert.AreEqual(2.0, target.DoubleDictionary["bbb"]);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
-            Assert.AreEqual(5.0, target.DoubleDictionary["eee"]);
-            Assert.AreEqual(6.0, target.DoubleDictionary["fff"]);
+            Assert.Equal(5, target.DoubleDictionary.Count);
+            Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
+            Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(5.0, target.DoubleDictionary["eee"]);
+            Assert.Equal(6.0, target.DoubleDictionary["fff"]);
         }
 
-        [Test]
-        [Category(PasteItemIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryStructIntoItemWithCollision()
         {
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ccc", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(5, target.StructDictionary.Count);
-            Assert.AreEqual(1.0, target.StructDictionary["aaa"].Integer);
-            Assert.AreEqual(2.0, target.StructDictionary["bbb"].Integer);
-            Assert.AreEqual(3.0, target.StructDictionary["ccc"].Integer);
-            Assert.AreEqual(5.0, target.StructDictionary["eee"].Integer);
-            Assert.AreEqual(6.0, target.StructDictionary["fff"].Integer);
+            Assert.Equal(5, target.StructDictionary.Count);
+            Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
+            Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
+            Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
+            Assert.Equal(5.0, target.StructDictionary["eee"].Integer);
+            Assert.Equal(6.0, target.StructDictionary["fff"].Integer);
         }
 
-        [Test]
-        [Category(PasteItemIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDictionaryClassIntoItemWithCollision()
         {
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ccc", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(5, target.SubDictionary.Count);
-            Assert.AreEqual(1.0, target.SubDictionary["aaa"].Float);
-            Assert.AreEqual(2.0, target.SubDictionary["bbb"].Float);
-            Assert.AreEqual(3.0, target.SubDictionary["ccc"].Float);
-            Assert.AreEqual(5.0, target.SubDictionary["eee"].Float);
-            Assert.AreEqual(6.0, target.SubDictionary["fff"].Float);
+            Assert.Equal(5, target.SubDictionary.Count);
+            Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
+            Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
+            Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
+            Assert.Equal(5.0, target.SubDictionary["eee"].Float);
+            Assert.Equal(6.0, target.SubDictionary["fff"].Float);
         }
 
-        [Test]
-        [Category(PasteItemIntoDictionary)]
+        [Fact]
         public void TestCopyPasteDoubleIntoDictionaryWithCollision()
         {
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ccc", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(3, target.DoubleDictionary.Count);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
-            Assert.AreEqual(5.0, target.DoubleDictionary["eee"]);
-            Assert.AreEqual(6.0, target.DoubleDictionary["fff"]);
+            Assert.Equal(3, target.DoubleDictionary.Count);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(5.0, target.DoubleDictionary["eee"]);
+            Assert.Equal(6.0, target.DoubleDictionary["fff"]);
         }
 
-        [Test]
-        [Category(PasteItemIntoDictionary)]
+        [Fact]
         public void TestCopyPasteStructIntoDictionaryWithCollision()
         {
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ccc", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(3, target.StructDictionary.Count);
-            Assert.AreEqual(3.0, target.StructDictionary["ccc"].Integer);
-            Assert.AreEqual(5.0, target.StructDictionary["eee"].Integer);
-            Assert.AreEqual(6.0, target.StructDictionary["fff"].Integer);
+            Assert.Equal(3, target.StructDictionary.Count);
+            Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
+            Assert.Equal(5.0, target.StructDictionary["eee"].Integer);
+            Assert.Equal(6.0, target.StructDictionary["fff"].Integer);
         }
 
-        [Test]
-        [Category(PasteItemIntoDictionary)]
+        [Fact]
         public void TestCopyPasteClassIntoDictionaryWithCollision()
         {
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ccc", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), false);
-            Assert.AreEqual(3, target.SubDictionary.Count);
-            Assert.AreEqual(3.0, target.SubDictionary["ccc"].Float);
-            Assert.AreEqual(5.0, target.SubDictionary["eee"].Float);
-            Assert.AreEqual(6.0, target.SubDictionary["fff"].Float);
+            Assert.Equal(3, target.SubDictionary.Count);
+            Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
+            Assert.Equal(5.0, target.SubDictionary["eee"].Float);
+            Assert.Equal(6.0, target.SubDictionary["fff"].Float);
         }
 
-        [Test]
-        [Category(PasteItemIntoDictionary)]
+        [Fact]
         public void TestCopyPasteIntoNullDictionary()
         {
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = null };
             var copiedText = Copy(source, source.DoubleDictionary);
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, false);
-            Assert.AreEqual(3, target.DoubleDictionary.Count);
-            Assert.AreEqual(1.0, target.DoubleDictionary["aaa"]);
-            Assert.AreEqual(2.0, target.DoubleDictionary["bbb"]);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(3, target.DoubleDictionary.Count);
+            Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
+            Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
 
             target = new MyClass { DoubleDictionary = null };
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, true);
-            Assert.AreEqual(3, target.DoubleDictionary.Count);
-            Assert.AreEqual(1.0, target.DoubleDictionary["aaa"]);
-            Assert.AreEqual(2.0, target.DoubleDictionary["bbb"]);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(3, target.DoubleDictionary.Count);
+            Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
+            Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
 
             source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             target = new MyClass { DoubleDictionary = null };
             copiedText = Copy(source, source.DoubleDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, false);
-            Assert.AreEqual(1, target.DoubleDictionary.Count);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(1, target.DoubleDictionary.Count);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
 
             target = new MyClass { DoubleDictionary = null };
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, true);
-            Assert.AreEqual(1, target.DoubleDictionary.Count);
-            Assert.AreEqual(3.0, target.DoubleDictionary["ccc"]);
+            Assert.Equal(1, target.DoubleDictionary.Count);
+            Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
         }
 
         [DataContract]
@@ -924,25 +869,25 @@ namespace Xenko.Core.Assets.Editor.Tests
         {
             var propertyGraph = ConstructPropertyGraph(asset);
             var copiedText = service.CopyFromAsset(propertyGraph, propertyGraph.Id, assetValue, false);
-            Assert.IsFalse(string.IsNullOrEmpty(copiedText));
+            Assert.False(string.IsNullOrEmpty(copiedText));
             return copiedText;
         }
 
         private void Paste([NotNull] Asset asset, string copiedText, Type deserializedType, [NotNull] Type expectedType, [NotNull] Func<IObjectNode, IGraphNode> targetNodeResolver, Index index, bool replace)
         {
             var propertyGraph = ConstructPropertyGraph(asset);
-            Assert.IsTrue(service.CanPaste(copiedText, asset.GetType(), expectedType));
+            Assert.True(service.CanPaste(copiedText, asset.GetType(), expectedType));
 
             var result = service.DeserializeCopiedData(copiedText, asset, expectedType);
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Items);
-            Assert.AreEqual(1, result.Items.Count);
+            Assert.NotNull(result);
+            Assert.NotNull(result.Items);
+            Assert.Equal(1, result.Items.Count);
 
             var item = result.Items[0];
-            Assert.IsNotNull(item);
-            Assert.IsNotNull(item.Data);
-            Assert.AreEqual(deserializedType, item.Data.GetType());
-            Assert.IsNotNull(item.Processor);
+            Assert.NotNull(item);
+            Assert.NotNull(item.Data);
+            Assert.Equal(deserializedType, item.Data.GetType());
+            Assert.NotNull(item.Processor);
 
             var targetNode = targetNodeResolver(propertyGraph.RootNode);
             var nodeAccessor = new NodeAccessor(targetNode, index);

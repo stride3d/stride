@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 using System.Collections.Generic;
 using System.Threading;
 using Xenko.Core.BuildEngine.Tests.Commands;
@@ -8,10 +8,9 @@ using Xenko.Core.Diagnostics;
 
 namespace Xenko.Core.BuildEngine.Tests
 {
-    [TestFixture, Ignore("BuildEngine tests are deprecated")]
-    class TestCancellation
+    public class TestCancellation
     {
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestCancellationToken()
         {
             Logger logger = Utils.CleanContext();
@@ -34,10 +33,10 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Run(Builder.Mode.Build);
 
             foreach (BuildStep step in steps)
-                Assert.That(step.Status, Is.EqualTo(ResultStatus.Cancelled));
+                Assert.Equal(ResultStatus.Cancelled, step.Status);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestCancelCallback()
         {
             Logger logger = Utils.CleanContext();
@@ -58,10 +57,10 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Run(Builder.Mode.Build);
 
             foreach (BuildStep step in steps)
-                Assert.That(step.Status, Is.EqualTo(ResultStatus.Cancelled));
+                Assert.Equal(ResultStatus.Cancelled, step.Status);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestCancelPrerequisites()
         {
             Logger logger = Utils.CleanContext();
@@ -99,11 +98,11 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Run(Builder.Mode.Build);
 
             foreach (BuildStep step in steps1)
-                Assert.That(step.Status, Is.EqualTo(ResultStatus.Successful));
+                Assert.Equal(ResultStatus.Successful, step.Status);
             foreach (BuildStep step in steps2)
-                Assert.That(step.Status, Is.EqualTo(ResultStatus.Cancelled));
+                Assert.Equal(ResultStatus.Cancelled, step.Status);
             foreach (BuildStep step in steps3)
-                Assert.That(step.Status, Is.EqualTo(ResultStatus.NotTriggeredPrerequisiteFailed));
+                Assert.Equal(ResultStatus.NotTriggeredPrerequisiteFailed, step.Status);
         }
     }
 }

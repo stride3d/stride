@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.UI.Controls;
 using Xenko.UI.Events;
@@ -15,7 +15,6 @@ namespace Xenko.UI.Tests.Events
     /// <summary>
     /// A class that contains test functions for layering of the UIElement class.
     /// </summary>
-    [TestFixture]
     [System.ComponentModel.Description("Tests for UIElement events")]
     public class UIElementEventTests : UIElement
     {
@@ -41,7 +40,7 @@ namespace Xenko.UI.Tests.Events
         /// <summary>
         /// Tests for functions <see cref="UIElement.AddHandler{T}"/> and <see cref="UIElement.RemoveHandler{T}"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestAddRemoveHandler()
         {
             var testRoutedEvent = EventManager.RegisterRoutedEvent<RoutedEventArgs>("Test1", RoutingStrategy.Tunnel, typeof(UIElementLayeringTests));
@@ -71,12 +70,12 @@ namespace Xenko.UI.Tests.Events
 
         private void TestArgsDelegate(object sender, RoutedEventArgs e)
         {
-            Assert.AreEqual(argsPassedToRaiseEvent, e);
-            Assert.AreEqual(eventPassedToRaiseEvent, e.RoutedEvent);
-            Assert.AreEqual(sourcePassedToRaiseEvent, e.Source);
+            Assert.Equal(argsPassedToRaiseEvent, e);
+            Assert.Equal(eventPassedToRaiseEvent, e.RoutedEvent);
+            Assert.Equal(sourcePassedToRaiseEvent, e.Source);
             Assert.Throws<InvalidOperationException>(() => e.Source = null);
             Assert.Throws<InvalidOperationException>(() => e.RoutedEvent = null);
-            Assert.AreEqual(false, e.Handled);
+            Assert.Equal(false, e.Handled);
 
             enteredInTestArgsDelegate = true;
         }
@@ -84,7 +83,7 @@ namespace Xenko.UI.Tests.Events
         /// <summary>
         /// Test for <see cref="UIElement.RaiseEvent"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestRaiseEvent()
         {
             // Test ArgumentNullException
@@ -104,11 +103,11 @@ namespace Xenko.UI.Tests.Events
             RaiseEvent(argsPassedToRaiseEvent);
 
             // check that the delegate has been called
-            Assert.AreEqual(true, enteredInTestArgsDelegate);
+            Assert.Equal(true, enteredInTestArgsDelegate);
 
             // check that value of the event raised can be modified again after being raised
-            Assert.DoesNotThrow(() => argsPassedToRaiseEvent.RoutedEvent = null);
-            Assert.DoesNotThrow(() => argsPassedToRaiseEvent.Source = null);
+            argsPassedToRaiseEvent.RoutedEvent = null;
+            argsPassedToRaiseEvent.Source = null;
 
             // test InvalidOperationException
             var eventMyTest = EventManager.RegisterRoutedEvent<MyTestRoutedEventArgs>("myEventTestRaise", RoutingStrategy.Direct, typeof(UIElementLayeringTests));
@@ -164,7 +163,7 @@ namespace Xenko.UI.Tests.Events
         /// <summary>
         /// Test for <see cref="UIElement.PropagateRoutedEvent"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestPropagateEvent()
         {
             // create a hierarchy of UIElements
@@ -206,48 +205,48 @@ namespace Xenko.UI.Tests.Events
             // tunneling test 1
             senderList.Clear();
             element20.RaiseEvent(new RoutedEventArgs(tunnelingEvent));
-            Assert.AreEqual(3, senderList.Count);
-            Assert.AreEqual(element00, senderList[0]);
-            Assert.AreEqual(element10, senderList[1]);
-            Assert.AreEqual(element20, senderList[2]);
+            Assert.Equal(3, senderList.Count);
+            Assert.Equal(element00, senderList[0]);
+            Assert.Equal(element10, senderList[1]);
+            Assert.Equal(element20, senderList[2]);
 
             // tunneling test 2
             senderList.Clear();
             element31.RaiseEvent(new RoutedEventArgs(tunnelingEvent));
-            Assert.AreEqual(4, senderList.Count);
-            Assert.AreEqual(element00, senderList[0]);
-            Assert.AreEqual(element10, senderList[1]);
-            Assert.AreEqual(element21, senderList[2]);
-            Assert.AreEqual(element31, senderList[3]);
+            Assert.Equal(4, senderList.Count);
+            Assert.Equal(element00, senderList[0]);
+            Assert.Equal(element10, senderList[1]);
+            Assert.Equal(element21, senderList[2]);
+            Assert.Equal(element31, senderList[3]);
 
             // direct test
             senderList.Clear();
             element10.RaiseEvent(new RoutedEventArgs(directEvent));
-            Assert.AreEqual(1, senderList.Count);
-            Assert.AreEqual(element10, senderList[0]);
+            Assert.Equal(1, senderList.Count);
+            Assert.Equal(element10, senderList[0]);
 
             // tunneling test 1
             senderList.Clear();
             element30.RaiseEvent(new RoutedEventArgs(bubblingEvent));
-            Assert.AreEqual(4, senderList.Count);
-            Assert.AreEqual(element30, senderList[0]);
-            Assert.AreEqual(element20, senderList[1]);
-            Assert.AreEqual(element10, senderList[2]);
-            Assert.AreEqual(element00, senderList[3]);
+            Assert.Equal(4, senderList.Count);
+            Assert.Equal(element30, senderList[0]);
+            Assert.Equal(element20, senderList[1]);
+            Assert.Equal(element10, senderList[2]);
+            Assert.Equal(element00, senderList[3]);
 
             // tunneling test 2
             senderList.Clear();
             element20.RaiseEvent(new RoutedEventArgs(bubblingEvent));
-            Assert.AreEqual(3, senderList.Count);
-            Assert.AreEqual(element20, senderList[0]);
-            Assert.AreEqual(element10, senderList[1]);
-            Assert.AreEqual(element00, senderList[2]);
+            Assert.Equal(3, senderList.Count);
+            Assert.Equal(element20, senderList[0]);
+            Assert.Equal(element10, senderList[1]);
+            Assert.Equal(element00, senderList[2]);
 
             // test with another type of handler
             var eventMyTestHandler = EventManager.RegisterRoutedEvent<MyTestRoutedEventArgs>("TestMyTestHandler", RoutingStrategy.Direct, typeof(UIElementLayeringTests));
             AddHandler(eventMyTestHandler, TestMyTestHandler);
             RaiseEvent(new MyTestRoutedEventArgs(eventMyTestHandler));
-            Assert.AreEqual(true, testMyTestHandlerCalled);
+            Assert.Equal(true, testMyTestHandlerCalled);
 
             // test Handled and EventHandledToo
             foreach (var uiElement in elements)
@@ -258,18 +257,18 @@ namespace Xenko.UI.Tests.Events
             senderList.Clear();
             element00.AddHandler(bubblingEvent, TestEventHandledHandler, true);
             element32.RaiseEvent(new RoutedEventArgs(bubblingEvent));
-            Assert.AreEqual(1, senderList.Count);
-            Assert.AreEqual(element32, senderList[0]);
-            Assert.AreEqual(true, testEventHandledTooCalled);
+            Assert.Equal(1, senderList.Count);
+            Assert.Equal(element32, senderList[0]);
+            Assert.Equal(true, testEventHandledTooCalled);
 
             // test class handlers basic working
             foreach (var uiElement in elements)
                 uiElement.RemoveHandler(bubblingEvent, TestHandledHandler);
             EventManager.RegisterClassHandler(typeof(ContentControl), bubblingEvent, TestAddSenderToClassHandlerList);
             element30.RaiseEvent(new RoutedEventArgs(bubblingEvent));
-            Assert.AreEqual(2, classHandlerSenderList.Count);
-            Assert.AreEqual(element20, classHandlerSenderList[0]);
-            Assert.AreEqual(element00, classHandlerSenderList[1]);
+            Assert.Equal(2, classHandlerSenderList.Count);
+            Assert.Equal(element20, classHandlerSenderList[0]);
+            Assert.Equal(element00, classHandlerSenderList[1]);
 
             // test that class handlers are called before instance handlers + test handledEventToo for class handlers
             senderList.Clear();
@@ -279,16 +278,16 @@ namespace Xenko.UI.Tests.Events
             foreach (var uiElement in elements)
                 uiElement.AddHandler(bubblingEvent, TestAddSenderToList);
             element20.RaiseEvent(new RoutedEventArgs(bubblingEvent));
-            Assert.AreEqual(1, classHandlerSenderList.Count);
-            Assert.AreEqual(element20, classHandlerSenderList[0]);
-            Assert.AreEqual(0, senderList.Count);
-            Assert.AreEqual(true, testClassHandlerEventHandledTooCalled);
+            Assert.Equal(1, classHandlerSenderList.Count);
+            Assert.Equal(element20, classHandlerSenderList[0]);
+            Assert.Equal(0, senderList.Count);
+            Assert.Equal(true, testClassHandlerEventHandledTooCalled);
         }
 
         /// <summary>
         /// Test that the handlers can be detached inside the handler itself
         /// </summary>
-        [Test]
+        [Fact]
         public void TestUnregisterHandlerInsideHandler()
         {
             testUnregisterHandlerCallCount = 0;
@@ -297,7 +296,7 @@ namespace Xenko.UI.Tests.Events
             button.Click += TestUnregisterHandlerOnClick;
             button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
 
-            Assert.AreEqual(1, testUnregisterHandlerCallCount);
+            Assert.Equal(1, testUnregisterHandlerCallCount);
         }
 
         private int testUnregisterHandlerCallCount;
@@ -315,7 +314,7 @@ namespace Xenko.UI.Tests.Events
         /// <summary>
         /// Test that the handlers are raised in the same order as they are added.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestHandlerRaiseOrder()
         {
             lastHandlerCalledId = 0;
@@ -328,36 +327,36 @@ namespace Xenko.UI.Tests.Events
 
             button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
 
-            Assert.AreEqual(4, lastHandlerCalledId);
+            Assert.Equal(4, lastHandlerCalledId);
         }
 
         private int lastHandlerCalledId;
 
         private void TestHandlerRaiseOrderOnClick1(object sender, RoutedEventArgs routedEventArgs)
         {
-            Assert.AreEqual(0, lastHandlerCalledId);
+            Assert.Equal(0, lastHandlerCalledId);
             lastHandlerCalledId = 1;
         }
         private void TestHandlerRaiseOrderOnClick2(object sender, RoutedEventArgs routedEventArgs)
         {
-            Assert.AreEqual(1, lastHandlerCalledId);
+            Assert.Equal(1, lastHandlerCalledId);
             lastHandlerCalledId = 2;
         }
         private void TestHandlerRaiseOrderOnClick3(object sender, RoutedEventArgs routedEventArgs)
         {
-            Assert.AreEqual(2, lastHandlerCalledId);
+            Assert.Equal(2, lastHandlerCalledId);
             lastHandlerCalledId = 3;
         }
         private void TestHandlerRaiseOrderOnClick4(object sender, RoutedEventArgs routedEventArgs)
         {
-            Assert.AreEqual(3, lastHandlerCalledId);
+            Assert.Equal(3, lastHandlerCalledId);
             lastHandlerCalledId = 4;
         }
 
         /// <summary>
         /// Test for recursive <see cref="UIElement.RaiseEvent"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestReccursiveRaise()
         {
             clickCount = 0;
@@ -366,7 +365,7 @@ namespace Xenko.UI.Tests.Events
             button.Click += TestReccursiveRaiseOnClick;
             button.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent));
 
-            Assert.AreEqual(10, clickCount);
+            Assert.Equal(10, clickCount);
         }
 
         private int clickCount;

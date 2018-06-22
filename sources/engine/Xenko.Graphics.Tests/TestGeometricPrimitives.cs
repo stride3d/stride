@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Rendering;
 using Xenko.Games;
@@ -12,7 +12,6 @@ using Xenko.Input;
 
 namespace Xenko.Graphics.Tests
 {
-    [TestFixture]
     public class TestGeometricPrimitives : GraphicTestGameBase
     {
         private EffectInstance simpleEffect;
@@ -166,7 +165,7 @@ namespace Xenko.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [Fact]
         public void RunGeometricPrimitives()
         {
             RunGameTest(new TestGeometricPrimitives());

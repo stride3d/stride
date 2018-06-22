@@ -4,7 +4,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
@@ -63,7 +63,7 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.TakeScreenshot();
         }
 
-        [Test]
+        [Fact]
         public void RunBillboardModeTests()
         {
             RunGameTest(new BillboardModeTests());

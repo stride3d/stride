@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Input;
@@ -9,7 +9,6 @@ using Xenko.Games.Testing;
 
 namespace JumpyJetTest
 {
-    [TestFixture]
     public class JumpyJetTest
     {
         private const string Path = "samplesGenerated\\JumpyJet\\Bin\\Windows\\Debug\\JumpyJet.exe";
@@ -22,7 +21,7 @@ namespace JumpyJetTest
         private const PlatformType TestPlatform = PlatformType.Windows;
 #endif
 
-        [Test]
+        [Fact]
         public void TestLaunch()
         {
             using (var game = new GameTestingClient(Path, TestPlatform))
@@ -31,7 +30,7 @@ namespace JumpyJetTest
             }
         }
 
-        [Test]
+        [Fact]
         public void TestInputs()
         {
             using (var game = new GameTestingClient(Path, TestPlatform))

@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
@@ -158,7 +158,7 @@ namespace Xenko.UI.Tests.Regression
             UpdateScrollingText(new TimeSpan(0, 0, 0, 11));
         }
 
-        [Test]
+        [Fact]
         public void RunScrollingTextTest()
         {
             RunGameTest(new ScrollingTextTest());

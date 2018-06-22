@@ -1,58 +1,55 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.TextureConverter.Requests;
 using Xenko.TextureConverter.TexLibraries;
 
 namespace Xenko.TextureConverter.Tests
 {
-    [TestFixture]
-    class ArrayTexLibraryTest
+    public class ArrayTexLibraryTest : IDisposable
     {
+        private readonly ArrayTexLib library;
+        private readonly FITexLib fiLib;
+        private readonly DxtTexLib dxtLib;
 
-        ArrayTexLib library;
-        FITexLib fiLib;
-        DxtTexLib dxtLib;
-
-        [TestFixtureSetUp]
-        public void TestSetUp()
+        public ArrayTexLibraryTest()
         {
             Module.LoadLibraries();
             library = new ArrayTexLib();
             fiLib = new FITexLib();
             dxtLib = new DxtTexLib();
-            Assert.IsTrue(library.SupportBGRAOrder());
+            Assert.True(library.SupportBGRAOrder());
             library.StartLibrary(new TexAtlas());
         }
 
-        [TestFixtureTearDown]
-        public void TestTearDown()
+        public void Dispose()
         {
             library.Dispose();
             fiLib.Dispose();
             dxtLib.Dispose();
         }
 
-        [Test, Ignore("Need check")]
+        [Fact(Skip = "Need check")]
         public void CanHandleRequestTest()
         {
             TexImage image = TestTools.Load(dxtLib, "array_WMipMaps.dds");
-            Assert.IsFalse(library.CanHandleRequest(image, new DecompressingRequest(false)));
-            Assert.IsTrue(library.CanHandleRequest(image, new ArrayCreationRequest(new List<TexImage>())));
-            Assert.IsTrue(library.CanHandleRequest(image, new ArrayExtractionRequest(0)));
-            Assert.IsTrue(library.CanHandleRequest(image, new ArrayUpdateRequest(new TexImage(), 0)));
-            Assert.IsTrue(library.CanHandleRequest(image, new ArrayElementRemovalRequest(0)));
-            Assert.IsTrue(library.CanHandleRequest(image, new ArrayInsertionRequest(new TexImage(), 0)));
-            Assert.IsTrue(library.CanHandleRequest(image, new CubeCreationRequest(new List<TexImage>())));
+            Assert.False(library.CanHandleRequest(image, new DecompressingRequest(false)));
+            Assert.True(library.CanHandleRequest(image, new ArrayCreationRequest(new List<TexImage>())));
+            Assert.True(library.CanHandleRequest(image, new ArrayExtractionRequest(0)));
+            Assert.True(library.CanHandleRequest(image, new ArrayUpdateRequest(new TexImage(), 0)));
+            Assert.True(library.CanHandleRequest(image, new ArrayElementRemovalRequest(0)));
+            Assert.True(library.CanHandleRequest(image, new ArrayInsertionRequest(new TexImage(), 0)));
+            Assert.True(library.CanHandleRequest(image, new CubeCreationRequest(new List<TexImage>())));
             image.Dispose();
         }
 
-        [Ignore("Need check")]
-        [TestCase("stones256.png", "square256.png")]
+        [Theory(Skip = "Need check")]
+        [InlineData("stones256.png", "square256.png")]
         public void CreateArrayTest(string file1, string file2)
         {
             var list = new List<TexImage>();
@@ -70,10 +67,10 @@ namespace Xenko.TextureConverter.Tests
             var array = new TexImage();
             library.Execute(array, new ArrayCreationRequest(list));
 
-            Assert.IsTrue(array.ArraySize == list.Count);
+            Assert.True(array.ArraySize == list.Count);
 
             //Console.WriteLine("ArrayTexLibrary_CreateArray_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2) + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
-            Assert.IsTrue(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_CreateArray_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)]));
+            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_CreateArray_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)]));
 
             array.Dispose();
             foreach (var image in list)
@@ -83,7 +80,8 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [TestCase("array_WMipMaps.dds", 4), Ignore("Need check")]
+        [Theory(Skip = "Need check")]
+        [InlineData("array_WMipMaps.dds", 4)]
         public void ExtractTest(string arrayFile, int indice)
         {
             TexImage array = TestTools.Load(dxtLib, arrayFile);
@@ -95,7 +93,7 @@ namespace Xenko.TextureConverter.Tests
             var extracted = request.Texture;
 
             //Console.WriteLine("ArrayTexLibrary_Extract_" + arrayFile + "." + TestTools.ComputeSHA1(extracted.Data, extracted.DataSize));
-            Assert.IsTrue(TestTools.ComputeSHA1(extracted.Data, extracted.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Extract_" + arrayFile]));
+            Assert.True(TestTools.ComputeSHA1(extracted.Data, extracted.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Extract_" + arrayFile]));
 
             extracted.Dispose();
 
@@ -103,7 +101,8 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [TestCase("atlas/stones256.png", "atlas/square256.png"), Ignore("Need check")]
+        [Theory(Skip = "Need check")]
+        [InlineData("atlas/stones256.png", "atlas/square256.png")]
         public void ExtractAllTest(string file1, string file2)
         {
             var list = new List<TexImage>();
@@ -129,12 +128,12 @@ namespace Xenko.TextureConverter.Tests
             library.Execute(array, request);
             library.EndLibrary(array);
 
-            Assert.IsTrue(list.Count == request.Textures.Count);
+            Assert.True(list.Count == request.Textures.Count);
 
             for(int i = 0; i < array.ArraySize; ++i)
             {
                 var temp = request.Textures[i];
-                Assert.IsTrue(TestTools.ComputeSHA1(temp.Data, temp.DataSize).Equals(TestTools.GetInstance().Checksum["ExtractAll_" + list[i].Name]));
+                Assert.True(TestTools.ComputeSHA1(temp.Data, temp.DataSize).Equals(TestTools.GetInstance().Checksum["ExtractAll_" + list[i].Name]));
                 temp.Dispose();
             }
 
@@ -147,7 +146,8 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [TestCase("array_WOMipMaps.dds", 0, "atlas/stones256.png"), Ignore("Need check")]
+        [Theory(Skip = "Need check")]
+        [InlineData("array_WOMipMaps.dds", 0, "atlas/stones256.png")]
         public void UpdateTest(string arrayFile, int indice, string newTexture)
         {
             TexImage array = TestTools.Load(dxtLib, arrayFile);
@@ -159,14 +159,15 @@ namespace Xenko.TextureConverter.Tests
             library.EndLibrary(array);
 
             //Console.WriteLine("ArrayTexLibrary_Update_" + indice + "_" + arrayFile + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
-            Assert.IsTrue(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Update_" + indice + "_" + arrayFile]));
+            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Update_" + indice + "_" + arrayFile]));
 
             updateTexture.Dispose();
             array.Dispose();
         }
 
 
-        [TestCase("array_WMipMaps.dds", 3), Ignore("Need check")]
+        [Theory(Skip = "Need check")]
+        [InlineData("array_WMipMaps.dds", 3)]
         public void RemoveTest(string arrayFile, int indice)
         {
             TexImage array = TestTools.Load(dxtLib, arrayFile);
@@ -179,16 +180,17 @@ namespace Xenko.TextureConverter.Tests
             array.CurrentLibrary = library;
             array.Update();
 
-            Assert.IsTrue(arraySize == array.ArraySize + 1);
+            Assert.True(arraySize == array.ArraySize + 1);
 
             //Console.WriteLine("ArrayTexLibrary_Remove_" + indice + "_" + arrayFile + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
-            Assert.IsTrue(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Remove_" + indice + "_" + arrayFile]));
+            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Remove_" + indice + "_" + arrayFile]));
 
             array.Dispose();
         }
 
 
-        [TestCase("array_WOMipMaps.dds", "atlas/square256.png", 3), Ignore("Need check")]
+        [Theory(Skip = "Need check")]
+        [InlineData("array_WOMipMaps.dds", "atlas/square256.png", 3)]
         public void InsertTest(string arrayFile, string newTexture, int indice)
         {
             TexImage array = TestTools.Load(dxtLib, arrayFile);
@@ -203,16 +205,16 @@ namespace Xenko.TextureConverter.Tests
             array.CurrentLibrary = library;
             array.Update();
 
-            Assert.IsTrue(arraySize == array.ArraySize - 1);
+            Assert.True(arraySize == array.ArraySize - 1);
 
             //Console.WriteLine("ArrayTexLibrary_Insert_" + Path.GetFileName(newTexture) + "_" + indice + "_" + arrayFile + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
-            Assert.IsTrue(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Insert_" + Path.GetFileName(newTexture) + "_" + indice + "_" + arrayFile]));
+            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Insert_" + Path.GetFileName(newTexture) + "_" + indice + "_" + arrayFile]));
 
             array.Dispose();
         }
 
-        [Ignore("Need check")]
-        [TestCase("stones256.png", "square256.png")]
+        [Theory(Skip = "Need check")]
+        [InlineData("stones256.png", "square256.png")]
         public void CreateCubeTest(string file1, string file2)
         {
             var list = new List<TexImage>();
@@ -230,10 +232,10 @@ namespace Xenko.TextureConverter.Tests
             var cube = new TexImage();
             library.Execute(cube, new CubeCreationRequest(list));
 
-            Assert.IsTrue(cube.ArraySize == list.Count);
+            Assert.True(cube.ArraySize == list.Count);
 
             //Console.WriteLine("ArrayTexLibrary_CreateCube_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2) + "." + TestTools.ComputeSHA1(cube.Data, cube.DataSize));
-            Assert.IsTrue(TestTools.ComputeSHA1(cube.Data, cube.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_CreateCube_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)]));
+            Assert.True(TestTools.ComputeSHA1(cube.Data, cube.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_CreateCube_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)]));
 
             cube.Dispose();
             foreach (var image in list)

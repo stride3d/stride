@@ -1,34 +1,23 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.UI.Controls;
 
 namespace Xenko.UI.Tests.Layering
 {
-    class ContentControlTest : ContentControl
+    public class ContentControlTest : ContentControl
     {
-        private Random rand;
-
-        /// <summary>
-        /// Initialize the series of tests.
-        /// </summary>
-        [TestFixtureSetUp]
-        public void InitializeTest()
-        {
-            // create a rand variable changing from a test to the other
-            rand = new Random(DateTime.Now.Millisecond);
-        }
+        private Random rand = new Random(DateTime.Now.Millisecond);
 
         /// <summary>
         /// Launch all the test of ContentControlTest
         /// </summary>
         public void TestAll()
         {
-            InitializeTest();
             TestProperties();
             TestContent();
             TestCollapseOverride();
@@ -49,40 +38,40 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the properties of <see cref="ContentControl"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestProperties()
         {
             ResetState();
 
             // default values
-            Assert.AreEqual(Matrix.Identity, DependencyProperties.Get(ContentArrangeMatrixPropertyKey));
+            Assert.Equal(Matrix.Identity, DependencyProperties.Get(ContentArrangeMatrixPropertyKey));
         }
 
         /// <summary>
         /// Test <see cref="ContentControl.Content"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestContent()
         {
             ResetState();
 
             // default value
-            Assert.AreEqual(null, Content);
+            Assert.Equal(null, Content);
 
             // test parent setting
             var content = new ContentControlTest();
-            Assert.DoesNotThrow(()=>Content = content);
-            Assert.AreEqual(this, content.Parent);
-            Assert.AreEqual(content, Content);
+            Content = content;
+            Assert.Equal(this, content.Parent);
+            Assert.Equal(content, Content);
 
             // unset content
-            Assert.DoesNotThrow(()=>Content = null);
-            Assert.AreEqual(null, content.Parent);
-            Assert.AreEqual(Content, null);
+            Content = null;
+            Assert.Equal(null, content.Parent);
+            Assert.Equal(Content, null);
             
             // reset the content
             var contentControl = new ContentControlTest { Content = content };
-            Assert.DoesNotThrow(()=>contentControl.Content = content);
+            contentControl.Content = content;
 
             // content reused
             Assert.Throws<InvalidOperationException>(() => Content = content);
@@ -91,7 +80,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test function <see cref="ContentControl.CollapseOverride"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestCollapseOverride()
         {
             ResetState();
@@ -107,13 +96,13 @@ namespace Xenko.UI.Tests.Layering
 
             // arrange and check child render size
             Arrange(1000 * rand.NextVector3(), true);
-            Assert.AreEqual(Vector3.Zero, child.RenderSize);
+            Assert.Equal(Vector3.Zero, child.RenderSize);
         }
 
         /// <summary>
         /// Test for <see cref="ContentControl.MeasureOverride"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMeasureOverride()
         {
             ResetState();
@@ -123,7 +112,7 @@ namespace Xenko.UI.Tests.Layering
             Measure(1000*rand.NextVector3());
             var v0 = Vector3.Zero;
             var expectedSize = CalculateSizeWithThickness(ref v0, ref padding);
-            Assert.AreEqual(expectedSize, DesiredSize);
+            Assert.Equal(expectedSize, DesiredSize);
 
             // test desired size with a child
             var content = new MeasureValidator();
@@ -137,13 +126,13 @@ namespace Xenko.UI.Tests.Layering
             var returnedValueWithMargin = CalculateSizeWithThickness(ref content.ReturnedMeasuredValue, ref content.MarginInternal);
             expectedSize = CalculateSizeWithThickness(ref returnedValueWithMargin, ref padding);
             Measure(availableSize);
-            Assert.AreEqual(expectedSize, DesiredSize);
+            Assert.Equal(expectedSize, DesiredSize);
         }
 
         /// <summary>
         /// Test for <see cref="ContentControl.ArrangeOverride"/>
         /// </summary>
-        [Test]
+        [Fact]
         public void TestArrangeOverride()
         {
             ResetState();
@@ -153,7 +142,7 @@ namespace Xenko.UI.Tests.Layering
             // Test that returned value is the one provided when no content
             var providedSize = 1000 * rand.NextVector3();
             var arrangedSize = ArrangeOverride(providedSize);
-            Assert.AreEqual(providedSize, arrangedSize);
+            Assert.Equal(providedSize, arrangedSize);
 
             ResetState();
 
@@ -165,15 +154,15 @@ namespace Xenko.UI.Tests.Layering
             var providedSizeWithoutPadding = CalculateSizeWithoutThickness(ref providedSize, ref padding);
             content.ExpectedArrangeValue = providedSizeWithoutPadding;
             arrangedSize = ArrangeOverride(providedSize);
-            Assert.AreEqual(providedSize, arrangedSize);
+            Assert.Equal(providedSize, arrangedSize);
             var childOffsets = new Vector3(Padding.Left, Padding.Top, Padding.Front) - arrangedSize / 2;
-            Assert.AreEqual(Matrix.Translation(childOffsets), VisualContent.DependencyProperties.Get(ContentArrangeMatrixPropertyKey));
+            Assert.Equal(Matrix.Translation(childOffsets), VisualContent.DependencyProperties.Get(ContentArrangeMatrixPropertyKey));
         }
 
         /// <summary>
         /// Test the update of the world matrix of children
         /// </summary>
-        [Test]
+        [Fact]
         public void TestUpdateWorldMatrix()
         {
             ResetState();
@@ -188,7 +177,7 @@ namespace Xenko.UI.Tests.Layering
             var worldMatrix = Matrix.Scaling(1f, 0.8f, 0.4f);
             LocalMatrix = localMatrix;
             UpdateWorldMatrix(ref worldMatrix, true);
-            Assert.AreEqual(new Matrix(0.1f, 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0.4f, 0, 0.5f, 0.4f, 0.2f, 1), WorldMatrix);
+            Assert.Equal(new Matrix(0.1f, 0, 0, 0, 0, 0.4f, 0, 0, 0, 0, 0.4f, 0, 0.5f, 0.4f, 0.2f, 1), WorldMatrix);
 
             // add a child and set its local matrix
             var child = new ContentControlTest { DepthAlignment = DepthAlignment.Stretch };
@@ -205,13 +194,13 @@ namespace Xenko.UI.Tests.Layering
 
             // check that the value of the world matrix of the child is correctly updated too
             UpdateWorldMatrix(ref worldMatrix, true);
-            Assert.AreEqual(new Matrix(0, -0.4f, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0.4f, 0, 1.55f, 8.6f, 12.4f, 1), child.WorldMatrix);
+            Assert.Equal(new Matrix(0, -0.4f, 0, 0, 0.1f, 0, 0, 0, 0, 0, 0.4f, 0, 1.55f, 8.6f, 12.4f, 1), child.WorldMatrix);
         }
 
         /// <summary>
         /// Test the invalidations generated object property changes.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestBasicInvalidations()
         {
             ResetState();
@@ -230,7 +219,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the update of the world matrix of children invalidation
         /// </summary>
-        [Test]
+        [Fact]
         public void TestUpdateWorldMatrixInvalidation()
         {
             ResetState();
@@ -247,29 +236,29 @@ namespace Xenko.UI.Tests.Layering
 
             worldMatrix.M11 = 2;
             UpdateWorldMatrix(ref worldMatrix, true);
-            Assert.AreEqual(worldMatrix.M11, children.WorldMatrix.M11);
+            Assert.Equal(worldMatrix.M11, children.WorldMatrix.M11);
 
             worldMatrix.M11 = 3;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(2, children.WorldMatrix.M11);
+            Assert.Equal(2, children.WorldMatrix.M11);
 
             worldMatrix.M11 = 1;
             localMatrix.M11 = 4;
             LocalMatrix = localMatrix;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(localMatrix.M11, children.WorldMatrix.M11);
+            Assert.Equal(localMatrix.M11, children.WorldMatrix.M11);
 
             localMatrix.M11 = 1;
             LocalMatrix = localMatrix;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(localMatrix.M11, children.WorldMatrix.M11);
+            Assert.Equal(localMatrix.M11, children.WorldMatrix.M11);
 
             InvalidateArrange();
             Arrange(Vector3.Zero, false);
 
             worldMatrix.M11 = 5;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(worldMatrix.M11, children.WorldMatrix.M11);
+            Assert.Equal(worldMatrix.M11, children.WorldMatrix.M11);
         }
     }
 }

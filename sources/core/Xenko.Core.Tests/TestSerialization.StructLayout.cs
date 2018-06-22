@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Runtime.InteropServices;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Serialization;
 
 namespace Xenko.Core.Tests
@@ -39,8 +39,8 @@ namespace Xenko.Core.Tests
             public int A;
         }
 
-        [TestCase(TestSerialization.SerializationBackend.Binary)]
-        [Description("Test struct layouting")]
+        [Theory]
+        [InlineData(TestSerialization.SerializationBackend.Binary)]
         public void TestStructLayout(TestSerialization.SerializationBackend serializationBackend)
         {
             var binaryAuto = SerializeBinary(new StructLayoutAuto { C = 1, B = 2, A = 3 });
@@ -52,9 +52,9 @@ namespace Xenko.Core.Tests
             Buffer.BlockCopy(BitConverter.GetBytes(2), 0, binaryExpected, 4, 4);
             Buffer.BlockCopy(BitConverter.GetBytes(3), 0, binaryExpected, 8, 4);
 
-            Assert.That(binaryAuto, Is.EqualTo(binaryExpected));
-            Assert.That(binaryExplicit, Is.EqualTo(binaryExpected));
-            Assert.That(binarySequential, Is.EqualTo(binaryExpected));
+            Assert.Equal(binaryExpected, binaryAuto);
+            Assert.Equal(binaryExpected, binaryExplicit);
+            Assert.Equal(binaryExpected, binarySequential);
         }
     }
 }

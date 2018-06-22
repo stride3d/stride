@@ -4,7 +4,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Engine;
 using Xenko.Graphics.Regression;
 using Xenko.Rendering.Compositing;
@@ -15,7 +15,6 @@ namespace Xenko.Graphics.Tests
     /// Test lighting and shadows.
     /// </summary>
     /// Note: shadows stabilization is still not working, new golds will be needed when fixed.
-    [TestFixture]
     public class LightingTests : GameTestBase
     {
         public Action<LightingTests> SetupLighting { get; set; }
@@ -100,100 +99,116 @@ namespace Xenko.Graphics.Tests
             FrameGameSystem.TakeScreenshot();
         }
 
-        [Test]
+        [Fact]
         public void SceneNoLighting()
         {
-            RunGameTest(new LightingTests { AmbientLight = false }, true);
+            TestName = nameof(SceneNoLighting);
+            RunGameTest(new LightingTests { AmbientLight = false });
         }
 
-        [Test]
+        [Fact]
         public void SceneAmbientLight()
         {
-            RunGameTest(new LightingTests(), true);
+            TestName = nameof(SceneAmbientLight);
+            RunGameTest(new LightingTests());
         }
 
-        [Test]
+        [Fact]
         public void ScenePointLight()
         {
-            RunGameTest(new LightingTests { PointLight = true }, true);
+            TestName = nameof(ScenePointLight);
+            RunGameTest(new LightingTests { PointLight = true });
         }
 
-        [Test]
+        [Fact]
         public void ScenePointLightShadowCubeMap()
         {
-            RunGameTest(new LightingTests { PointLightShadowCubeMap = true }, true);
+            TestName = nameof(ScenePointLightShadowCubeMap);
+            RunGameTest(new LightingTests { PointLightShadowCubeMap = true });
         }
 
-        [Test]
+        [Fact]
         public void ScenePointLightShadowParaboloid()
         {
-            RunGameTest(new LightingTests { PointLightShadowParaboloid = true }, true);
+            TestName = nameof(ScenePointLightShadowParaboloid);
+            RunGameTest(new LightingTests { PointLightShadowParaboloid = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneSpotLight()
         {
-            RunGameTest(new LightingTests { SpotLight = true }, true);
+            TestName = nameof(SceneSpotLight);
+            RunGameTest(new LightingTests { SpotLight = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneSpotLightShadow()
         {
-            RunGameTest(new LightingTests { SpotLightShadow = true }, true);
+            TestName = nameof(SceneSpotLightShadow);
+            RunGameTest(new LightingTests { SpotLightShadow = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneDirectionalLight()
         {
-            RunGameTest(new LightingTests { DirectionalLight = true }, true);
+            TestName = nameof(SceneDirectionalLight);
+            RunGameTest(new LightingTests { DirectionalLight = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneDirectionalLightShadowOneCascade()
         {
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true }, true);
+            TestName = nameof(SceneDirectionalLightShadowOneCascade);
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneTwoDirectionalLightShadowOneCascade()
         {
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowOneCascade2 = true }, true);
+            TestName = nameof(SceneTwoDirectionalLightShadowOneCascade);
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowOneCascade2 = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneDirectionalLightShadowOneFourCascade()
         {
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowFourCascades = true }, true);
+            TestName = nameof(SceneDirectionalLightShadowOneFourCascade);
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascade = true, DirectionalLightShadowFourCascades = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneDirectionalLightShadowOneCascadePCF()
         {
-            RunGameTest(new LightingTests { DirectionalLightShadowOneCascadePCF = true }, true);
+            TestName = nameof(SceneDirectionalLightShadowOneCascadePCF);
+            RunGameTest(new LightingTests { DirectionalLightShadowOneCascadePCF = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneDirectionalLightShadowFourCascades()
         {
-            RunGameTest(new LightingTests { DirectionalLightShadowFourCascades = true }, true);
+            TestName = nameof(SceneDirectionalLightShadowFourCascades);
+            RunGameTest(new LightingTests { DirectionalLightShadowFourCascades = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneSkybox()
         {
-            RunGameTest(new LightingTests { Skybox = true }, true);
+            TestName = nameof(SceneSkybox);
+            RunGameTest(new LightingTests { Skybox = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneSkyboxRotated()
         {
-            RunGameTest(new LightingTests { SkyboxRotated = true }, true);
+            TestName = nameof(SceneSkyboxRotated);
+            RunGameTest(new LightingTests { SkyboxRotated = true });
         }
 
-        [Test]
+        [Fact]
         public void SceneSkyboxMultiple()
         {
-            RunGameTest(new LightingTests { Skybox = true, SkyboxRotated = true }, true);
+            TestName = nameof(SceneSkyboxMultiple);
+            RunGameTest(new LightingTests { Skybox = true, SkyboxRotated = true });
         }
 
     }

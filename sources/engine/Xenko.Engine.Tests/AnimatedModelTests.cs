@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Animations;
@@ -120,7 +120,7 @@ namespace Xenko.Engine.Tests
             }).TakeScreenshot();
         }
 
-        [Test]
+        [Fact]
         public void RunTestGame()
         {
             RunGameTest(new AnimatedModelTests());

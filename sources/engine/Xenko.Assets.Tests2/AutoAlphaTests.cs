@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Assets.Textures;
 using Xenko.Engine;
@@ -45,11 +45,11 @@ namespace Xenko.Assets.Tests2
         {
             var expectedPixelFormat = PlaformAndAlphaToPixelFormats[Tuple.Create(Platform.Type, expectedFormat)];
             var texture = game.Content.Load<Texture>(textureUrl);
-            Assert.AreEqual(expectedPixelFormat, texture.Format);
+            Assert.Equal(expectedPixelFormat, texture.Format);
             game.Content.Unload(texture);
         }
 
-        [TestCase]
+        [Fact]
         public void TextureAlphaFormatTests()
         {
             PerformTest(
@@ -64,7 +64,7 @@ namespace Xenko.Assets.Tests2
                 );
         }
 
-        [TestCase]
+        [Fact]
         public void TextureAutoAlphaResultNoneTests()
         {
             PerformTest(
@@ -79,7 +79,7 @@ namespace Xenko.Assets.Tests2
                 );
         }
 
-        [TestCase]
+        [Fact]
         public void TextureAutoAlphaResultMaskTests()
         {
             PerformTest(
@@ -94,7 +94,7 @@ namespace Xenko.Assets.Tests2
                 );
         }
 
-        [TestCase]
+        [Fact]
         public void TextureAutoAlphaResultInterpolatedTests()
         {
             PerformTest(
@@ -113,17 +113,17 @@ namespace Xenko.Assets.Tests2
 
             // check the textures pixel format
             foreach (var texture in spriteSheet.Sprites.Select(s => s.Texture))
-                Assert.AreEqual(expectedPixelFormat, texture.Format);
+                Assert.Equal(expectedPixelFormat, texture.Format);
 
             for (int i = 0; i < spriteSheet.Sprites.Count; i++)
             {
                 var sprite = spriteSheet.Sprites[i];
-                Assert.AreEqual(i!=0 && alphaFormat != AlphaFormat.None, sprite.IsTransparent); // except sprite 0 all sprites have transparency expect if the texture alpha is 0
+                Assert.Equal(i!=0 && alphaFormat != AlphaFormat.None, sprite.IsTransparent); // except sprite 0 all sprites have transparency expect if the texture alpha is 0
             }
             game.Content.Unload(spriteSheet);
         }
 
-        [TestCase]
+        [Fact]
         public void SpritesSheetNoAlphaTests()
         {
             PerformTest(
@@ -135,7 +135,7 @@ namespace Xenko.Assets.Tests2
                 );
         }
 
-        [TestCase]
+        [Fact]
         public void SpritesSheetMaskAlphaTests()
         {
             PerformTest(
@@ -147,7 +147,7 @@ namespace Xenko.Assets.Tests2
                 );
         }
 
-        [TestCase]
+        [Fact]
         public void SpritesSheetExplicitAlphaTests()
         {
             PerformTest(
@@ -159,7 +159,7 @@ namespace Xenko.Assets.Tests2
                 );
         }
 
-        [TestCase]
+        [Fact]
         public void SpritesSheetInterpolatedAlphaTests()
         {
             PerformTest(
@@ -171,7 +171,7 @@ namespace Xenko.Assets.Tests2
                 );
         }
 
-        [TestCase]
+        [Fact]
         public void SpritesSheetAutoAlphaTests()
         {
             PerformTest(
@@ -187,7 +187,7 @@ namespace Xenko.Assets.Tests2
                 );
         }
 
-        [TestCase]
+        [Fact]
         public void SpritesSheetColorTransparency()
         {
             PerformTest(

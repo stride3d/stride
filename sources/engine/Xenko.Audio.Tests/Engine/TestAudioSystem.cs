@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
@@ -17,13 +17,12 @@ namespace Xenko.Audio.Tests.Engine
     /// But most of them tests the good behavior of the audio system from the user point of view. 
     /// Those tests requires the tester to listen to the speakers output.
     /// </summary>
-    [TestFixture]
     public class TestAudioSystem
     {
         /// <summary>
         /// Test that the audio system retrieved from the game is correct and in a good state.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestAudioEngine()
         {
             TestUtilities.CreateAndRunGame(TestInitializeAudioEngine, TestUtilities.ExitGame);
@@ -32,17 +31,16 @@ namespace Xenko.Audio.Tests.Engine
         private void TestInitializeAudioEngine(Game game)
         {
             var audio = game.Audio;
-            AudioEngine audioEngine = null;
-            Assert.DoesNotThrow(()=>audioEngine = audio.AudioEngine, "Failed to get the AudioEngine");
-            Assert.IsNotNull(audioEngine, "The audio engine is null");
-            Assert.IsFalse(audioEngine.IsDisposed, "The audio engine is disposed");
+            var audioEngine = audio.AudioEngine;
+            Assert.NotNull(audioEngine);
+            Assert.False(audioEngine.IsDisposed, "The audio engine is disposed");
         }
 
         /// <summary>
         /// Check that <see cref="AudioListenerComponent"/> are correctly added and removed to the <see cref="AudioSystem"/> internal structures
         /// using functions <see cref="AudioSystem.AddListener"/> and <see cref="AudioSystem.RemoveListener"/>.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestAddRemoveListener()
         {
             TestUtilities.CreateAndRunGame(TestAddRemoveListenerImpl, TestUtilities.ExitGame);
@@ -55,28 +53,28 @@ namespace Xenko.Audio.Tests.Engine
             var addedToEntityListener = new AudioListenerComponent();
 
             // Add a listenerComponent not present in the entity system yet and check that it is correctly added to the AudioSystem internal data structures
-            Assert.DoesNotThrow(() => audio.AddListener(notAddedToEntityListener), "Adding a listener not present in the entity system failed");
-            Assert.IsTrue(audio.Listeners.ContainsKey(notAddedToEntityListener), "The list of listeners of AudioSystem does not contains the notAddedToEntityListener.");
+            audio.AddListener(notAddedToEntityListener);
+            Assert.True(audio.Listeners.ContainsKey(notAddedToEntityListener), "The list of listeners of AudioSystem does not contains the notAddedToEntityListener.");
 
             // Add a listenerComponent already present in the entity system and check that it is correctly added to the AudioSystem internal data structures
             var entity = new Entity("Test");
             entity.Add(addedToEntityListener);
             Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
             //game.Entities.Add(entity);
-            Assert.DoesNotThrow(() => audio.AddListener(addedToEntityListener), "Adding a listener present in the entity system failed");
-            Assert.IsTrue(audio.Listeners.ContainsKey(addedToEntityListener), "The list of listeners of AudioSystem does not contains the addedToEntityListener.");
+            audio.AddListener(addedToEntityListener);
+            Assert.True(audio.Listeners.ContainsKey(addedToEntityListener), "The list of listeners of AudioSystem does not contains the addedToEntityListener.");
 
             // Add a listenerComponent already added to audio System and check that it does not crash
-            Assert.DoesNotThrow(()=>audio.AddListener(addedToEntityListener), "Adding a listener already added to the audio system failed.");
+            audio.AddListener(addedToEntityListener);
 
             // Remove the listeners from the AudioSystem and check that they are removed from internal data structures.
-            Assert.DoesNotThrow(() => audio.RemoveListener(notAddedToEntityListener), "Removing an listener not present in the entity system failed.");
-            Assert.IsFalse(audio.Listeners.ContainsKey(notAddedToEntityListener), "The list of listeners of AudioSystem still contains the notAddedToEntityListener.");
-            Assert.DoesNotThrow(() => audio.RemoveListener(addedToEntityListener), "Removing an listener present in the entity system fails");
-            Assert.IsFalse(audio.Listeners.ContainsKey(addedToEntityListener), "The list of listeners of AudioSystem still contains the addedToEntityListener.");
+            audio.RemoveListener(notAddedToEntityListener);
+            Assert.False(audio.Listeners.ContainsKey(notAddedToEntityListener), "The list of listeners of AudioSystem still contains the notAddedToEntityListener.");
+            audio.RemoveListener(addedToEntityListener);
+            Assert.False(audio.Listeners.ContainsKey(addedToEntityListener), "The list of listeners of AudioSystem still contains the addedToEntityListener.");
 
             // Remove a listener not present in the AudioSystem anymore and check the thrown exception
-            Assert.Throws<ArgumentException>(() => audio.RemoveListener(addedToEntityListener), "Removing the a non-existing listener did not throw ArgumentException.");
+            Assert.Throws<ArgumentException>(() => audio.RemoveListener(addedToEntityListener));
         }
 
         private List<AudioListenerComponent> listComps;
@@ -185,7 +183,7 @@ namespace Xenko.Audio.Tests.Engine
         /// <summary>
         /// Check the behavior of the system when adding new listeners.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestAddListener()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestAddListenerSetup, null, TestAddListenerLoopImpl);
@@ -254,7 +252,7 @@ namespace Xenko.Audio.Tests.Engine
         /// <summary>
         /// Check the behavior of the system when removing old listeners.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestRemoveListener()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestRemoveListenerSetup, null, TestRemoveListenerLoopImpl);
@@ -319,7 +317,7 @@ namespace Xenko.Audio.Tests.Engine
         /// <summary>
         /// Check the behavior of the system when removing old emitters.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestAddRemoveEmitter()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestAddRemoveEmitterSetup, null, TestAddRemoveEmitterLoopImpl);
@@ -409,7 +407,7 @@ namespace Xenko.Audio.Tests.Engine
         /// <summary>
         /// Check the behavior of the system when combining the use of <see cref="SoundMusic"/> with the use of <see cref="AudioEmitterComponent"/>.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestEffectsAndMusic()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestEffectsAndMusicSetup, null, TestEffectsAndMusicLoopImpl);
@@ -456,7 +454,7 @@ namespace Xenko.Audio.Tests.Engine
         /// <summary>
         /// Check the behavior of the system when using several <see cref="AudioEmitterSoundController"/> for a single <see cref="AudioEmitterComponent"/>.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestSeveralControllers()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestSeveralControllersSetup, null, TestSeveralControllersLoopImpl);
@@ -509,7 +507,7 @@ namespace Xenko.Audio.Tests.Engine
         /// <summary>
         /// Simple test to check that the audio system is applying the Doppler effect as expected.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestDopplerCoherency()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestDopplerCoherencySetup, null, TestDopplerCoherencyLoopImpl);
@@ -549,7 +547,7 @@ namespace Xenko.Audio.Tests.Engine
         /// <summary>
         /// Simple test to check that the audio system is attenuating sound signals as expected.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestAttenuationCoherency()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestAttenuationCoherencySetup, null, TestAttenuationCoherencyLoopImpl);
@@ -584,7 +582,7 @@ namespace Xenko.Audio.Tests.Engine
         /// <summary>
         /// Simple test to check that the audio system is localizing the sounds properly.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestLocalizationCoherency()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestLocalizationCoherencySetup, null, TestLocalizationCoherencyLoopImpl);

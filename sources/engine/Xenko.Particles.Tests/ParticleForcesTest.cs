@@ -2,16 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Particles.Sorters;
 using Xenko.Particles.Updaters.FieldShapes;
 
 namespace Xenko.Particles.Tests
 {
-    internal class ParticleForcesTest
+    public class ParticleForcesTest
     {
-        [Test]
+        [Fact]
         public void ForceFieldShapes()
         {
             var unitPos = new Vector3(0, 0, 0);
@@ -29,85 +29,85 @@ namespace Xenko.Particles.Tests
             shapeSphere.PreUpdateField(unitPos, unitRot, unitScl);
 
             falloff = shapeSphere.GetDistanceToCenter(new Vector3(0.1f, 0, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(0.1f));
-            Assert.That(alongAxis, Is.EqualTo(new Vector3(0, 1, 0)));
-            Assert.That(aroundAxis, Is.EqualTo(new Vector3(0, 0, -1)));
-            Assert.That(awayAxis, Is.EqualTo(new Vector3(1, 0, 0)));
+            Assert.Equal(0.1f, falloff);
+            Assert.Equal(new Vector3(0, 1, 0), alongAxis);
+            Assert.Equal(new Vector3(0, 0, -1), aroundAxis);
+            Assert.Equal(new Vector3(1, 0, 0), awayAxis);
 
             falloff = shapeSphere.GetDistanceToCenter(new Vector3(0.5f, 0, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(0.5f));
-            Assert.That(alongAxis, Is.EqualTo(new Vector3(0, 1, 0)));
-            Assert.That(aroundAxis, Is.EqualTo(new Vector3(0, 0, -1)));
-            Assert.That(awayAxis, Is.EqualTo(new Vector3(1, 0, 0)));
+            Assert.Equal(0.5f, falloff);
+            Assert.Equal(new Vector3(0, 1, 0), alongAxis);
+            Assert.Equal(new Vector3(0, 0, -1), aroundAxis);
+            Assert.Equal(new Vector3(1, 0, 0), awayAxis);
 
             falloff = shapeSphere.GetDistanceToCenter(new Vector3(1, 0, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(1f));
-            Assert.That(alongAxis, Is.EqualTo(new Vector3(0, 1, 0)));
-            Assert.That(aroundAxis, Is.EqualTo(new Vector3(0, 0, -1)));
-            Assert.That(awayAxis, Is.EqualTo(new Vector3(1, 0, 0)));
+            Assert.Equal(1f, falloff);
+            Assert.Equal(new Vector3(0, 1, 0), alongAxis);
+            Assert.Equal(new Vector3(0, 0, -1), aroundAxis);
+            Assert.Equal(new Vector3(1, 0, 0), awayAxis);
 
             // Box
             var shapeBox = new Cube();
             shapeBox.PreUpdateField(unitPos, unitRot, unitScl);
 
             falloff = shapeBox.GetDistanceToCenter(new Vector3(0.3f, 0, 0.4f), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(0.4f)); // Bigger than the two
-            Assert.That(alongAxis, Is.EqualTo(new Vector3(0, 1, 0)));
-            Assert.That(aroundAxis, Is.EqualTo(new Vector3(0.8f, 0, -0.6f)));
-            Assert.That(awayAxis, Is.EqualTo(new Vector3(0.6f, 0, 0.8f)));
+            Assert.Equal(0.4f, falloff); // Bigger than the two
+            Assert.Equal(new Vector3(0, 1, 0), alongAxis);
+            Assert.Equal(new Vector3(0.8f, 0, -0.6f), aroundAxis);
+            Assert.Equal(new Vector3(0.6f, 0, 0.8f), awayAxis);
 
             falloff = shapeBox.GetDistanceToCenter(new Vector3(0.5f, 0, 0.4f), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(0.5f));
-            Assert.That(alongAxis, Is.EqualTo(new Vector3(0, 1, 0)));
+            Assert.Equal(0.5f, falloff);
+            Assert.Equal(new Vector3(0, 1, 0), alongAxis);
 
             falloff = shapeBox.GetDistanceToCenter(new Vector3(1, 0, 0.4f), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(1f));
-            Assert.That(alongAxis, Is.EqualTo(new Vector3(0, 1, 0)));
+            Assert.Equal(1f, falloff);
+            Assert.Equal(new Vector3(0, 1, 0), alongAxis);
 
             // Cylinder
             var shapeCylinder = new Cylinder();
             shapeCylinder.PreUpdateField(unitPos, unitRot, unitScl);
 
             falloff = shapeCylinder.GetDistanceToCenter(new Vector3(0, 0, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(0));
+            Assert.Equal(0, falloff);
 
             falloff = shapeCylinder.GetDistanceToCenter(new Vector3(0, 0.5f, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(0)); // No falloff along the Y-axis
+            Assert.Equal(0, falloff); // No falloff along the Y-axis
 
             falloff = shapeCylinder.GetDistanceToCenter(new Vector3(0, 1, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(1));
+            Assert.Equal(1, falloff);
 
             falloff = shapeCylinder.GetDistanceToCenter(new Vector3(0.5f, 0, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(0.5f));
+            Assert.Equal(0.5f, falloff);
 
             falloff = shapeCylinder.GetDistanceToCenter(new Vector3(1, 0, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(1f));
+            Assert.Equal(1f, falloff);
 
             // Torus
             var shapeTorus = new Torus();
             shapeTorus.PreUpdateField(unitPos, unitRot, unitScl);
 
             falloff = shapeTorus.GetDistanceToCenter(new Vector3(0, 0, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(1)); // This is actually outside the torus
+            Assert.Equal(1, falloff); // This is actually outside the torus
 
             falloff = shapeTorus.GetDistanceToCenter(new Vector3(0.5f, 0, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(1)); // This is on the torus surface, inner circle
-            Assert.That(alongAxis, Is.EqualTo(new Vector3(0, 0, -1)));
-            Assert.That(awayAxis, Is.EqualTo(new Vector3(-1, 0, 0)));
-            Assert.That(aroundAxis, Is.EqualTo(new Vector3(0, 1, 0)));
+            Assert.Equal(1, falloff); // This is on the torus surface, inner circle
+            Assert.Equal(new Vector3(0, 0, -1), alongAxis);
+            Assert.Equal(new Vector3(-1, 0, 0), awayAxis);
+            Assert.Equal(new Vector3(0, 1, 0), aroundAxis);
 
             falloff = shapeTorus.GetDistanceToCenter(new Vector3(1, 0, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(0)); // This is on the torus axis
-            Assert.That(alongAxis, Is.EqualTo(new Vector3(0, 0, -1)));
+            Assert.Equal(0, falloff); // This is on the torus axis
+            Assert.Equal(new Vector3(0, 0, -1), alongAxis);
 
             falloff = shapeTorus.GetDistanceToCenter(new Vector3(1.5f, 0, 0), new Vector3(0, 1, 0), out alongAxis, out aroundAxis, out awayAxis);
-            Assert.That(falloff, Is.EqualTo(1)); // This is on the torus surface, outer circle
-            Assert.That(alongAxis, Is.EqualTo(new Vector3(0, 0, -1)));
-            Assert.That(awayAxis, Is.EqualTo(new Vector3(1, 0, 0)));
-            Assert.That(aroundAxis, Is.EqualTo(new Vector3(0, -1, 0)));
+            Assert.Equal(1, falloff); // This is on the torus surface, outer circle
+            Assert.Equal(new Vector3(0, 0, -1), alongAxis);
+            Assert.Equal(new Vector3(1, 0, 0), awayAxis);
+            Assert.Equal(new Vector3(0, -1, 0), aroundAxis);
         }
 
-        [Test]
+        [Fact]
         public void Sorting()
         {
             var customFieldDesc = new ParticleFieldDescription<UInt32>("SomeField", 0);
@@ -152,7 +152,7 @@ namespace Xenko.Particles.Tests
                 var i = 0;
                 foreach (var particle in pool)
                 {
-                    Assert.That(particle.Get(customField), Is.EqualTo(sortedNone[i++]));
+                    Assert.Equal(sortedNone[i++], particle.Get(customField));
                 }
             }
 
@@ -165,7 +165,7 @@ namespace Xenko.Particles.Tests
                 var i = 0;
                 foreach (var particle in sortedList)
                 {
-                    Assert.That(particle.Get(customField), Is.EqualTo(sortedDepth[i++]));
+                    Assert.Equal(sortedDepth[i++], particle.Get(customField));
                 }
             }
 
@@ -178,7 +178,7 @@ namespace Xenko.Particles.Tests
                 var i = 0;
                 foreach (var particle in sortedList)
                 {
-                    Assert.That(particle.Get(customField), Is.EqualTo(sortedAge[i++]));
+                    Assert.Equal(sortedAge[i++], particle.Get(customField));
                 }
             }
 

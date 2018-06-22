@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
 using Xenko.Graphics;
@@ -119,7 +119,7 @@ namespace Xenko.Input.Tests
             return color;
         }
 
-        [Test]
+        [Fact]
         public void RunTestInputEvents()
         {
             RunGameTest(new TestInputEvents());

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -44,14 +44,14 @@
 // SOFTWARE.
 
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Yaml.Serialization;
 
 namespace Xenko.Core.Yaml.Tests.Serialization
 {
     public class ExceptionWithNestedSerialization
     {
-        [Test]
+        [Fact]
         public void NestedDocumentShouldDeserializeProperly()
         {
             var serializer = new Serializer(new SerializerSettings() {EmitDefaultValues = true});
@@ -81,8 +81,8 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             // deserialize payload - fails if EmitDefaults is set
             var message = deserializer.Deserialize<AMessage>(e2.Payload);
             Assert.NotNull(message.Payload);
-            Assert.AreEqual(message.Payload.X, 5);
-            Assert.AreEqual(message.Payload.Y, 6);
+            Assert.Equal(message.Payload.X, 5);
+            Assert.Equal(message.Payload.Y, 6);
         }
 
         public class Env

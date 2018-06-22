@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Engine.Design;
 using Xenko.Rendering;
@@ -11,14 +11,13 @@ using Xenko.Updater;
 
 namespace Xenko.Engine.Tests
 {
-    [TestFixture]
     public class ParameterCollectionUpdateEngineTest
     {
         public static readonly ValueParameterKey<int> IntKey = ParameterKeys.NewValue<int>();
         public static readonly ValueParameterKey<BlittableStruct> BlittableKey = ParameterKeys.NewValue<BlittableStruct>();
         public static readonly ObjectParameterKey<object> ObjectKey = ParameterKeys.NewObject<object>();
 
-        [Test]
+        [Fact]
         public void TestParameterCollectionResolver()
         {
             var test = new TestParameterCollectionClass();
@@ -39,10 +38,10 @@ namespace Xenko.Engine.Tests
 
             TestUpdateEngine.RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
 
-            Assert.That(test.Parameters.Get(IntKey), Is.EqualTo(123));
-            Assert.That(test.Parameters.Get(BlittableKey).IntField, Is.EqualTo(123));
-            Assert.That(test.Parameters.Get(BlittableKey).IntProperty, Is.EqualTo(123));
-            Assert.That(test.Parameters.Get(ObjectKey), Is.EqualTo(test2));
+            Assert.Equal(123, test.Parameters.Get(IntKey));
+            Assert.Equal(123, test.Parameters.Get(BlittableKey).IntField);
+            Assert.Equal(123, test.Parameters.Get(BlittableKey).IntProperty);
+            Assert.Equal(test2, test.Parameters.Get(ObjectKey));
         }
     }
 

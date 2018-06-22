@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Rendering;
 using Xenko.Engine.Shaders.Mixins;
@@ -17,21 +17,19 @@ using Xenko.Core.Shaders.Ast;
 
 namespace Xenko.Core.Shaders.Tests
 {
-    [TestFixture]
-    internal class TestShaderMixer
+    public class TestShaderMixer
     {
         private ShaderSourceManager sourceManager;
         private ShaderLoader shaderLoader;
 
-        [SetUp]
-        public void Init()
+        public TestShaderMixer()
         {
             sourceManager = new ShaderSourceManager();
             sourceManager.LookupDirectoryList.Add(@"..\..\Shaders");
             shaderLoader = new ShaderLoader(sourceManager);
         }
 
-        [Test]
+        [Fact]
         public void TestRenameBasic() // simple mix with inheritance
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -42,18 +40,18 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mixer = new XenkoShaderMixer(mcm.Mixins["Child"], mcm.Mixins, null);
             mixer.Mix();
 
             //var childMixinInfo = mcm.Mixins["Child"].ParsingInfo;
-            //Assert.AreEqual("Child_AddBaseValue", childMixinInfo.MethodDeclarations.First().Name.Text);
-            //Assert.AreEqual("Parent_AddBaseValue", (childMixinInfo.BaseMethodCalls.First().Target as VariableReferenceExpression).Name.Text);
-            //Assert.AreEqual("Parent_baseValue", childMixinInfo.VariableReferenceExpressions[0].Name.Text);
+            //Assert.Equal("Child_AddBaseValue", childMixinInfo.MethodDeclarations.First().Name.Text);
+            //Assert.Equal("Parent_AddBaseValue", (childMixinInfo.BaseMethodCalls.First().Target as VariableReferenceExpression).Name.Text);
+            //Assert.Equal("Parent_baseValue", childMixinInfo.VariableReferenceExpressions[0].Name.Text);
         }
 
-        [Test]
+        [Fact]
         public void TestRenameStatic() // mix with call to a static method
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -64,17 +62,17 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mixer = new XenkoShaderMixer(mcm.Mixins["StaticCallMixin"], mcm.Mixins, null);
             mixer.Mix();
 
             //var staticCallMixinInfo = mcm.Mixins["StaticCallMixin"].ParsingInfo;
-            //Assert.AreEqual("StaticMixin_staticCall", (staticCallMixinInfo.MethodCalls.First().Target as VariableReferenceExpression).Name.Text);
-            //Assert.AreEqual("StaticMixin_staticMember", ((staticCallMixinInfo.StaticMemberReferences.First().Node as UnaryExpression).Expression as VariableReferenceExpression).Name.Text);
+            //Assert.Equal("StaticMixin_staticCall", (staticCallMixinInfo.MethodCalls.First().Target as VariableReferenceExpression).Name.Text);
+            //Assert.Equal("StaticMixin_staticMember", ((staticCallMixinInfo.StaticMemberReferences.First().Node as UnaryExpression).Expression as VariableReferenceExpression).Name.Text);
         }
 
-        [Test]
+        [Fact]
         public void TestBasicExternMix() // mix with an extern class
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -85,7 +83,7 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mcmFinal = mcm.DeepClone();
             var externDictionary = new Dictionary<Variable, List<ModuleMixin>>();
@@ -95,11 +93,11 @@ namespace Xenko.Core.Shaders.Tests
             mixer.Mix();
 
             //var externTestMixinInfo = mcmFinal.Mixins["ExternTest"].ParsingInfo;
-            //Assert.AreEqual("ExternTest_myExtern_ExternMixin_externFunc", (externTestMixinInfo.ExternMethodCalls.First().MethodInvocation.Target as VariableReferenceExpression).Name.Text);
-            //Assert.AreEqual("ExternTest_myExtern_ExternMixin_externMember", ((externTestMixinInfo.ExternMemberReferences.First().Node as ReturnStatement).Value as VariableReferenceExpression).Name.Text);
+            //Assert.Equal("ExternTest_myExtern_ExternMixin_externFunc", (externTestMixinInfo.ExternMethodCalls.First().MethodInvocation.Target as VariableReferenceExpression).Name.Text);
+            //Assert.Equal("ExternTest_myExtern_ExternMixin_externMember", ((externTestMixinInfo.ExternMemberReferences.First().Node as ReturnStatement).Value as VariableReferenceExpression).Name.Text);
         }
 
-        [Test]
+        [Fact]
         public void TestDeepMix() // mix with multiple levels of extern classes
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -111,7 +109,7 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mcmFinal = mcm.DeepClone();
             var depext = mcm.Mixins["DeepExtern"].DeepClone();
@@ -122,11 +120,11 @@ namespace Xenko.Core.Shaders.Tests
             mixer.Mix();
 
             //var externDeepTest = mcmFinal.Mixins["DeepExternTest"].ParsingInfo;
-            //Assert.AreEqual("DeepExternTest_myExtern_DeepExtern_myExtern_ExternMixin_externFunc", (externDeepTest.ExternMethodCalls.First().MethodInvocation.Target as VariableReferenceExpression).Name.Text);
-            //Assert.AreEqual("DeepExternTest_myExtern_DeepExtern_myExtern_ExternMixin_externMember", ((externDeepTest.ExternMemberReferences.First().Node as ReturnStatement).Value as VariableReferenceExpression).Name.Text);
+            //Assert.Equal("DeepExternTest_myExtern_DeepExtern_myExtern_ExternMixin_externFunc", (externDeepTest.ExternMethodCalls.First().MethodInvocation.Target as VariableReferenceExpression).Name.Text);
+            //Assert.Equal("DeepExternTest_myExtern_DeepExtern_myExtern_ExternMixin_externMember", ((externDeepTest.ExternMemberReferences.First().Node as ReturnStatement).Value as VariableReferenceExpression).Name.Text);
         }
 
-        [Test]
+        [Fact]
         public void TestMultipleStatic() // check that static calls only written once
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -138,7 +136,7 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mcmFinal = mcm.DeepClone();
             var extDictionary = new Dictionary<Variable, List<ModuleMixin>>();
@@ -146,11 +144,11 @@ namespace Xenko.Core.Shaders.Tests
             var mixer = new XenkoShaderMixer(mcmFinal.Mixins["TestMultipleStatic"], mcmFinal.Mixins, extDictionary);
             mixer.Mix();
 
-            //Assert.AreEqual(1, mixer.MixedShader.Members.OfType<MethodDeclaration>().Count(x => x.Name.Text == "StaticMixin_staticCall"));
-            //Assert.AreEqual(1, mixer.MixedShader.Members.OfType<Variable>().Count(x => x.Name.Text == "StaticMixin_staticMember"));
+            //Assert.Equal(1, mixer.MixedShader.Members.OfType<MethodDeclaration>().Count(x => x.Name.Text == "StaticMixin_staticCall"));
+            //Assert.Equal(1, mixer.MixedShader.Members.OfType<Variable>().Count(x => x.Name.Text == "StaticMixin_staticMember"));
         }
 
-        [Test]
+        [Fact]
         public void TestStageCall()
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -162,7 +160,7 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mcmFinal = mcm.DeepClone();
             var extDictionary = new Dictionary<Variable, List<ModuleMixin>>();
@@ -173,18 +171,18 @@ namespace Xenko.Core.Shaders.Tests
             //var extPI = mcmExtern.Mixins["StageCallExtern"].ParsingInfo;
             //var finalPI = mcmFinal.Mixins["StaticStageCallTest"].ParsingInfo;
 
-            //Assert.AreEqual(1, extPI.StageMethodCalls.Count);
-            //Assert.AreEqual(1, finalPI.MethodDeclarations.Count);
-            //Assert.AreEqual(finalPI.MethodDeclarations[0], extPI.StageMethodCalls[0].Target.TypeInference.Declaration);
-            //Assert.AreEqual(finalPI.MethodDeclarations[0].Name.Text, (extPI.StageMethodCalls[0].Target as VariableReferenceExpression).Name.Text);
+            //Assert.Equal(1, extPI.StageMethodCalls.Count);
+            //Assert.Equal(1, finalPI.MethodDeclarations.Count);
+            //Assert.Equal(finalPI.MethodDeclarations[0], extPI.StageMethodCalls[0].Target.TypeInference.Declaration);
+            //Assert.Equal(finalPI.MethodDeclarations[0].Name.Text, (extPI.StageMethodCalls[0].Target as VariableReferenceExpression).Name.Text);
 
-            //Assert.AreEqual(1, extPI.VariableReferenceExpressions.Count);
-            //Assert.AreEqual(2, finalPI.Variables.Count);
-            //Assert.AreEqual(finalPI.Variables[1], extPI.VariableReferenceExpressions[0].TypeInference.Declaration);
-            //Assert.AreEqual(finalPI.Variables[1].Name.Text, extPI.VariableReferenceExpressions[0].TypeInference.Declaration.Name.Text);
+            //Assert.Equal(1, extPI.VariableReferenceExpressions.Count);
+            //Assert.Equal(2, finalPI.Variables.Count);
+            //Assert.Equal(finalPI.Variables[1], extPI.VariableReferenceExpressions[0].TypeInference.Declaration);
+            //Assert.Equal(finalPI.Variables[1].Name.Text, extPI.VariableReferenceExpressions[0].TypeInference.Declaration.Name.Text);
         }
 
-        [Test]
+        [Fact]
         public void TestMergeSemantics()
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -194,15 +192,15 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mixer = new XenkoShaderMixer(mcm.Mixins["SemanticTest"], mcm.Mixins, null);
             mixer.Mix();
 
-            //Assert.AreEqual(1, mixer.MixedShader.Members.OfType<Variable>().Count());
+            //Assert.Equal(1, mixer.MixedShader.Members.OfType<Variable>().Count());
         }
 
-        [Test]
+        [Fact]
         public void TestStreams()
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -212,13 +210,13 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mixer = new XenkoShaderMixer(mcm.Mixins["StreamTest"], mcm.Mixins, null);
             mixer.Mix();
         }
 
-        [Test]
+        [Fact]
         public void TestStageAssignement()
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -229,7 +227,7 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mcmFinal = mcm.DeepClone();
             var extDictionary = new Dictionary<Variable, List<ModuleMixin>>();
@@ -238,7 +236,7 @@ namespace Xenko.Core.Shaders.Tests
             mixerFinal.Mix();
         }
 
-        [Test]
+        [Fact]
         public void TestClone()
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -250,7 +248,7 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mcmFinal = mcm.DeepClone();
             var extDictionary = new Dictionary<Variable, List<ModuleMixin>>();
@@ -261,7 +259,7 @@ namespace Xenko.Core.Shaders.Tests
             mixerFinal.Mix();
         }
 
-        [Test]
+        [Fact]
         public void TestBaseThis()
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -273,13 +271,13 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mixerFinal = new XenkoShaderMixer(mcm.Mixins["BaseTestChild"], mcm.Mixins, null);
             mixerFinal.Mix();
         }
 
-        [Test]
+        [Fact]
         public void TestForEachStatementExpand()
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -289,13 +287,13 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mixerFinal = new XenkoShaderMixer(mcm.Mixins["ForEachTest"], mcm.Mixins, null);
             mixerFinal.Mix();
         }
 
-        [Test]
+        [Fact]
         public void TestStreamSolver()
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -307,13 +305,13 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mixerFinal = new XenkoShaderMixer(mcm.Mixins["StreamChild"], mcm.Mixins, null);
             mixerFinal.Mix();
         }
 
-        [Test]
+        [Fact]
         public void TestNonStageStream()
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -324,7 +322,7 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mcmFinal = mcm.DeepClone();
             var extDictionary = new Dictionary<Variable, List<ModuleMixin>>();
@@ -335,7 +333,7 @@ namespace Xenko.Core.Shaders.Tests
             mixerFinal.Mix();
         }
 
-        [Test]
+        [Fact]
         public void TestStreamSolverExtern()
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -348,7 +346,7 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mcmFinal = mcm.DeepClone();
 
@@ -358,7 +356,7 @@ namespace Xenko.Core.Shaders.Tests
             mixerFinal.Mix();
         }
 
-        [Test]
+        [Fact]
         public void TestExternArray() // check behavior with a array of compositions
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -369,7 +367,7 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mcmFinal = mcm.DeepClone();
 
@@ -380,7 +378,7 @@ namespace Xenko.Core.Shaders.Tests
             mixerFinal.Mix();
         }
 
-        [Test]
+        [Fact]
         public void TestConstantBuffer() // check behavior with a array of compositions
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -390,13 +388,13 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mixerFinal = new XenkoShaderMixer(mcm.Mixins["ConstantBufferTest"], mcm.Mixins, null);
             mixerFinal.Mix();
         }
 
-        [Test]
+        [Fact]
         public void TestComputeShader() // check behavior with a array of compositions
         {
             var shaderClassSourceList = new HashSet<ShaderClassSource>
@@ -406,7 +404,7 @@ namespace Xenko.Core.Shaders.Tests
             var mcm = new ShaderCompilationContext(shaderClassSourceList, shaderLoader.LoadClassSource);
             mcm.Run();
 
-            Assert.IsFalse(mcm.ErrorWarningLog.HasErrors);
+            Assert.False(mcm.ErrorWarningLog.HasErrors);
 
             var mixerFinal = new XenkoShaderMixer(mcm.Mixins["TestComputeShader"], mcm.Mixins, null);
             mixerFinal.Mix();

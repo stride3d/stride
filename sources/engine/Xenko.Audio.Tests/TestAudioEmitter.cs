@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 
@@ -11,7 +11,6 @@ namespace Xenko.Audio.Tests
     /// <summary>
     /// Tests for <see cref="AudioEmitter"/>.
     /// </summary>
-    [TestFixture]
     public class TestAudioEmitter
     {
         private readonly AudioEmitter defaultEmitter = new AudioEmitter();
@@ -19,49 +18,49 @@ namespace Xenko.Audio.Tests
         /// <summary>
         /// Test the behaviour of the Position function.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestPosition()
         {
             //////////////////////////////
             // 1. Check the default value
-            Assert.AreEqual(Vector3.Zero, defaultEmitter.Position, "The AudioEmitter defaul location is not 0");
+            Assert.True(Vector3.Zero == defaultEmitter.Position, "The AudioEmitter defaul location is not 0");
 
             ///////////////////////////////////////////
             // 2. Check for no crash and correct value
-            Assert.DoesNotThrow(() => defaultEmitter.Position = Vector3.One, "AudioEmitter.Position.Set crashed.");
-            Assert.AreEqual(Vector3.One, defaultEmitter.Position, "AudioEmitter.Position value is not what it is supposed to be.");
+            defaultEmitter.Position = Vector3.One;
+            Assert.True(Vector3.One == defaultEmitter.Position, "AudioEmitter.Position value is not what it is supposed to be.");
         }
 
         /// <summary>
         /// Test the behaviour of the Velocity function.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestVelocity()
         {
             //////////////////////////////
             // 1. Check the default value
-            Assert.AreEqual(Vector3.Zero, defaultEmitter.Velocity, "The AudioEmitter defaul Velocity is not 0");
+            Assert.True(Vector3.Zero == defaultEmitter.Velocity, "The AudioEmitter defaul Velocity is not 0");
 
             ///////////////////////////////////////////
             // 2. Check for no crash and correct value
-            Assert.DoesNotThrow(() => defaultEmitter.Velocity = Vector3.One, "AudioEmitter.Velocity.Set crashed.");
-            Assert.AreEqual(Vector3.One, defaultEmitter.Velocity, "AudioEmitter.Velocity value is not what it is supposed to be.");
+            defaultEmitter.Velocity = Vector3.One;
+            Assert.True(Vector3.One == defaultEmitter.Velocity, "AudioEmitter.Velocity value is not what it is supposed to be.");
         }
 
 //        /// <summary>
 //        /// Test the behaviour of the DopplerScale function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestDopplerScale()
 //        {
 //            //////////////////////////////
 //            // 1. Check the default value
-//            Assert.AreEqual(1f, defaultEmitter.DopplerScale, "The AudioEmitter defaul DopplerScale is not 1");
+//            Assert.True(1f, defaultEmitter.DopplerScale, "The AudioEmitter defaul DopplerScale is not 1");
 //
 //            ///////////////////////////////////////////
 //            // 2. Check for no crash and correct value
-//            Assert.DoesNotThrow(() => defaultEmitter.DopplerScale = 5f, "AudioEmitter.DopplerScale.Set crashed.");
-//            Assert.AreEqual(5f, defaultEmitter.DopplerScale, "AudioEmitter.DopplerScale value is not what it is supposed to be.");
+//            defaultEmitter.DopplerScale = 5f;
+//            Assert.Equal(5f, defaultEmitter.DopplerScale, "AudioEmitter.DopplerScale value is not what it is supposed to be.");
 //
 //            /////////////////////////////////////////////////////////////////////////////////////
 //            // 3. Check that a negative value throws the 'ArgumentOutOfRangeException' exception
@@ -71,17 +70,17 @@ namespace Xenko.Audio.Tests
 //        /// <summary>
 //        /// Test the behaviour of the DistanceScale function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestDistanceScale()
 //        {
 //            //////////////////////////////
 //            // 1. Check the default value
-//            Assert.AreEqual(1f, defaultEmitter.DistanceScale, "The AudioEmitter defaul DistanceScale is not 1");
+//            Assert.Equal(1f, defaultEmitter.DistanceScale, "The AudioEmitter defaul DistanceScale is not 1");
 //
 //            ///////////////////////////////////////////
 //            // 2. Check for no crash and correct value
-//            Assert.DoesNotThrow(() => defaultEmitter.DistanceScale = 5f, "AudioEmitter.DistanceScale.Set crashed.");
-//            Assert.AreEqual(5f, defaultEmitter.DistanceScale, "AudioEmitter.DistanceScale value is not what it is supposed to be.");
+//            defaultEmitter.DistanceScale = 5f;
+//            Assert.Equal(5f, defaultEmitter.DistanceScale, "AudioEmitter.DistanceScale value is not what it is supposed to be.");
 //
 //            /////////////////////////////////////////////////////////////////////////////////////
 //            // 3. Check that a negative value throws the 'ArgumentOutOfRangeException' exception

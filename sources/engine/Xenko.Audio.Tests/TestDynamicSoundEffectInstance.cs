@@ -1,10 +1,10 @@
-﻿//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 //// This file is distributed under GPL v3. See LICENSE.md for details.
 //using System;
 //using System.IO;
 //using System.Runtime.InteropServices;
 //
-//using NUnit.Framework;
+//using Xunit;
 //
 //using Xenko.Core;
 //using Xenko.Core.IO;
@@ -17,8 +17,7 @@
 //    /// <summary>
 //    /// Tests for <see cref="DynamicSoundEffectInstance"/>.
 //    /// </summary>
-//    [TestFixture]
-//    public class TestDynamicSoundEffectInstance
+////    public class TestDynamicSoundEffectInstance
 //    {
 //        private AudioEngine defaultEngine;
 //
@@ -42,7 +41,7 @@
 //        /// <summary>
 //        /// Test the behavior of the IsLooped function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestIsLooped()
 //        {
 //            mono8Bits = new DynamicSoundEffectInstance(defaultEngine, 44100, AudioChannels.Mono, AudioDataEncoding.PCM_8Bits);
@@ -61,7 +60,7 @@
 //
 //            ////////////////////////////////////////////////
 //            // 3. Check that the value of IsLooped is false
-//            Assert.IsFalse(mono8Bits.IsLooped, "DynamicSoundEffectInstance.IsLooped { get } did not return 'false'.");
+//            Assert.False(mono8Bits.IsLooped, "DynamicSoundEffectInstance.IsLooped { get } did not return 'false'.");
 //
 //            mono8Bits.Dispose();
 //        }
@@ -69,7 +68,7 @@
 //        /// <summary>
 //        /// Test the behavior of the constructor function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestConstructor()
 //        {
 //            /////////////////////////////////////////////////////////////////////////////////////////
@@ -87,7 +86,7 @@
 //        }
 //
 //
-//        [Test]
+//        [Fact]
 //        public void TestPendingBufferCount()
 //        {
 //            mono8Bits = new DynamicSoundEffectInstance(defaultEngine, 44100, AudioChannels.Mono, AudioDataEncoding.PCM_8Bits);
@@ -106,19 +105,19 @@
 //            ////////////////////////////
 //            // 3. Test the default value
 //            mono8Bits.Stop();
-//            Assert.AreEqual(0, mono8Bits.PendingBufferCount, "PendingBufferCount default value is not 0");
+//            Assert.Equal(0, mono8Bits.PendingBufferCount, "PendingBufferCount default value is not 0");
 //
 //            //////////////////////////////////////////////////
 //            // 4. Check the value after adding some buffers
 //            mono8Bits.SubmitBuffer(generator.Generate(44100, new[] { 0f }, 1, 10000));
 //            mono8Bits.SubmitBuffer(generator.Generate(44100, new[] { 0f }, 1, 10000));
 //            mono8Bits.SubmitBuffer(generator.Generate(44100, new[] { 0f }, 1, 10000));
-//            Assert.AreEqual(3, mono8Bits.PendingBufferCount, "PendingBufferCount value is not 3 after adding buffers");
+//            Assert.Equal(3, mono8Bits.PendingBufferCount, "PendingBufferCount value is not 3 after adding buffers");
 //
 //            //////////////////////////////////
 //            // 5. Check the value after stop
 //            mono8Bits.Stop();
-//            Assert.AreEqual(0, mono8Bits.PendingBufferCount, "PendingBufferCount default value is not 0");
+//            Assert.Equal(0, mono8Bits.PendingBufferCount, "PendingBufferCount default value is not 0");
 //
 //            //////////////////////////////////
 //            // 6 Check the value after play
@@ -126,7 +125,7 @@
 //            mono8Bits.SubmitBuffer(generator.Generate(44100, new[] { 0f }, 1, 1000));
 //            mono8Bits.Play();
 //            Utilities.Sleep(1000);
-//            Assert.AreEqual(0, mono8Bits.PendingBufferCount, "PendingBufferCount value is not 0 after play");
+//            Assert.Equal(0, mono8Bits.PendingBufferCount, "PendingBufferCount value is not 0 after play");
 //            mono8Bits.Stop();
 //
 //            mono8Bits.Dispose();
@@ -154,7 +153,7 @@
 //            //Console.WriteLine("End blocking thread");
 //        }
 //
-//        [Test]
+//        [Fact]
 //        public void TestBufferNeeded()
 //        {
 //            mono8Bits = new DynamicSoundEffectInstance(defaultEngine, 44100, AudioChannels.Mono, AudioDataEncoding.PCM_8Bits);
@@ -171,7 +170,7 @@
 //            // 1. Check that BufferNeeded is thrown when the user call plays with insufficient number of audio data
 //            mono8Bits.Play();
 //            Utilities.Sleep(50);
-//            Assert.IsTrue(bufferNeededHasBeenCalled, "Buffer Needed has not been called when the user played without any buffers");
+//            Assert.True(bufferNeededHasBeenCalled, "Buffer Needed has not been called when the user played without any buffers");
 //            bufferNeededHasBeenCalled = false;
 //            mono8Bits.Stop();
 //            
@@ -180,7 +179,7 @@
 //            bufferNeededHasBeenCalled = false;
 //            mono8Bits.Play();
 //            Utilities.Sleep(50);
-//            Assert.IsTrue(bufferNeededHasBeenCalled, "Buffer Needed has not been called when the user played wit one buffers");
+//            Assert.True(bufferNeededHasBeenCalled, "Buffer Needed has not been called when the user played wit one buffers");
 //            bufferNeededHasBeenCalled = false;
 //            mono8Bits.Stop();
 //            
@@ -188,12 +187,12 @@
 //            // 2. Check that BufferNeeded is thrown when the user call SubmitBuffer with insufficient number of audio data
 //            mono8Bits.SubmitBuffer(generator.Generate(44100, new[] { 0f }, 1, sizeOfOneSubBuffer));
 //            Utilities.Sleep(50);
-//            Assert.IsTrue(bufferNeededHasBeenCalled, "Buffer Needed has not been called when the user submit the first buffer");
+//            Assert.True(bufferNeededHasBeenCalled, "Buffer Needed has not been called when the user submit the first buffer");
 //            bufferNeededHasBeenCalled = false;
 //
 //            mono8Bits.SubmitBuffer(generator.Generate(44100, new[] { 0f }, 1, sizeOfOneSubBuffer));
 //            Utilities.Sleep(50);
-//            Assert.IsTrue(bufferNeededHasBeenCalled, "Buffer Needed has not been called when the user submit the second buffer");
+//            Assert.True(bufferNeededHasBeenCalled, "Buffer Needed has not been called when the user submit the second buffer");
 //            bufferNeededHasBeenCalled = false;
 //            mono8Bits.Stop();
 //            
@@ -214,7 +213,7 @@
 //                if (lastBufferCount != mono8Bits.PendingBufferCount)
 //                {
 //                    lastBufferCount = mono8Bits.PendingBufferCount;
-//                    Assert.IsTrue(bufferNeededHasBeenCalled, "Buffer Needed has not been called when number of buffer pass from "+(lastBufferCount+1)+" to "+lastBufferCount);
+//                    Assert.True(bufferNeededHasBeenCalled, "Buffer Needed has not been called when number of buffer pass from "+(lastBufferCount+1)+" to "+lastBufferCount);
 //                    bufferNeededHasBeenCalled = false;
 //                }
 //                if (lastBufferCount == 0)
@@ -240,7 +239,7 @@
 //            mono8Bits.Dispose();
 //        }
 //
-//        [Test]
+//        [Fact]
 //        public void TestSubmitBuffer()
 //        {
 //            mono8Bits = new DynamicSoundEffectInstance(defaultEngine, 44100, AudioChannels.Mono, AudioDataEncoding.PCM_8Bits);
@@ -343,7 +342,7 @@
 //            ++bufferCount;
 //        }
 //
-//        [Test]
+//        [Fact]
 //        public void TestPlayableInterface()
 //        {
 //            WaveFormat dataFormat;
@@ -367,13 +366,13 @@
 //            // 1. Test play
 //            dynSEInstance.Play();
 //            Utilities.Sleep(2000);
-//            Assert.AreEqual(SoundPlayState.Playing, dynSEInstance.PlayState, "Music is not playing");
+//            Assert.Equal(SoundPlayState.Playing, dynSEInstance.PlayState, "Music is not playing");
 //
 //            //////////////////
 //            // 2. Test Pause
 //            dynSEInstance.Pause();
 //            Utilities.Sleep(600);
-//            Assert.AreEqual(SoundPlayState.Paused, dynSEInstance.PlayState, "Music is not Paused");
+//            Assert.Equal(SoundPlayState.Paused, dynSEInstance.PlayState, "Music is not Paused");
 //            dynSEInstance.Play();
 //            Utilities.Sleep(1000);
 //
@@ -382,7 +381,7 @@
 //            dynSEInstance.Stop();
 //            bufferCount = 0;
 //            Utilities.Sleep(600);
-//            Assert.AreEqual(SoundPlayState.Stopped, dynSEInstance.PlayState, "Music is not Stopped");
+//            Assert.Equal(SoundPlayState.Stopped, dynSEInstance.PlayState, "Music is not Stopped");
 //            dynSEInstance.Play();
 //            Utilities.Sleep(9000);
 //
@@ -504,7 +503,7 @@
 //            sound.Instance = new DynamicSoundEffectInstance(defaultEngine, dataFormat.SampleRate, (AudioChannels)dataFormat.Channels, (AudioDataEncoding)dataFormat.BitsPerSample);
 //        }
 //
-//        [Test]
+//        [Fact]
 //        public void TestImplementationSpecific()
 //        {
 //            bufferNeededHasBeenCalled = false;
@@ -515,7 +514,7 @@
 //            instance1.BufferNeeded += SetBufferNeededHasBeenCalledToTrue; 
 //            instance1.Play();
 //            Utilities.Sleep(50);
-//            Assert.IsTrue(bufferNeededHasBeenCalled, "Buffer Needed has not been called with a first single instance.");
+//            Assert.True(bufferNeededHasBeenCalled, "Buffer Needed has not been called with a first single instance.");
 //            bufferNeededHasBeenCalled = false;
 //            instance1.Stop();
 //
@@ -525,7 +524,7 @@
 //            instance2.BufferNeeded += SetBufferNeededHasBeenCalledToTrue; 
 //            instance2.Play();
 //            Utilities.Sleep(50);
-//            Assert.IsTrue(bufferNeededHasBeenCalled, "Buffer Needed has not been called with a second instance.");
+//            Assert.True(bufferNeededHasBeenCalled, "Buffer Needed has not been called with a second instance.");
 //            bufferNeededHasBeenCalled = false;
 //            instance2.Stop();
 //
@@ -534,7 +533,7 @@
 //            instance1.Dispose();
 //            instance2.Play();
 //            Utilities.Sleep(50);
-//            Assert.IsTrue(bufferNeededHasBeenCalled, "Buffer Needed has not been called with a second single instance.");
+//            Assert.True(bufferNeededHasBeenCalled, "Buffer Needed has not been called with a second single instance.");
 //            bufferNeededHasBeenCalled = false;
 //            instance2.Stop();
 //
@@ -545,7 +544,7 @@
 //            instance1.BufferNeeded += SetBufferNeededHasBeenCalledToTrue; 
 //            instance1.Play();
 //            Utilities.Sleep(50);
-//            Assert.IsTrue(bufferNeededHasBeenCalled, "Buffer Needed has not been called with a single instance after destruct of all instances.");
+//            Assert.True(bufferNeededHasBeenCalled, "Buffer Needed has not been called with a single instance after destruct of all instances.");
 //            bufferNeededHasBeenCalled = false;
 //            instance1.Stop();
 //
@@ -592,7 +591,7 @@
 //            pinnedDataSayuriPart.Free();
 //        }
 //
-//        [Test]
+//        [Fact]
 //        public void TestImplementationSpecificAndroid()
 //        {
 //            int subBufferSize = 1000;
@@ -657,7 +656,7 @@
 //            SubmitSayuriPart(null, null);
 //            sayuriPart.Instance.Play();
 //            Utilities.Sleep(1000);  // should here sound here
-//            Assert.AreEqual(0, sayuriPart.Instance.PendingBufferCount, "The number of pending buffer is not zero after that all audio data have been consumed.");
+//            Assert.Equal(0, sayuriPart.Instance.PendingBufferCount, "The number of pending buffer is not zero after that all audio data have been consumed.");
 //
 //            ///////////////////////////////////////////////////////
 //            // 5. Restart correctly after having consumed all data

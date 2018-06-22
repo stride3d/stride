@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Tests.Helpers;
 using Xenko.Core.Assets.Yaml;
 using Xenko.Core.IO;
@@ -14,16 +14,14 @@ using Xenko.Core.Yaml;
 
 namespace Xenko.Core.Assets.Tests
 {
-    [TestFixture]
     public partial class TestSerializing : TestBase
     {
-        [OneTimeSetUp]
-        public void Initialize()
+        static TestSerializing()
         {
             AssemblyRegistry.Register(typeof(TestSerializing).Assembly, AssemblyCommonCategories.Assets);
         }
 
-        [Test]
+        [Fact]
         public void TestMyAssetObject()
         {
             var assetObject = new MyAsset();
@@ -115,7 +113,7 @@ namespace Xenko.Core.Assets.Tests
         }
 
 
-        [Test]
+        [Fact]
         public void TestAssetItemCollection()
         {
             // Test serialization of asset items.
@@ -130,8 +128,8 @@ namespace Xenko.Core.Assets.Tests
             var asText = ToText(inputs);
             var outputs = FromText(asText);
 
-            Assert.AreEqual(inputs.Select(item => item.Location), outputs.Select(item => item.Location));
-            Assert.AreEqual(inputs.Select(item => item.Asset), outputs.Select(item => item.Asset));
+            Assert.Equal(inputs.Select(item => item.Location), outputs.Select(item => item.Location));
+            Assert.Equal(inputs.Select(item => item.Asset), outputs.Select(item => item.Asset));
         }
 
         private static string ToText(List<AssetItem> assetCollection)

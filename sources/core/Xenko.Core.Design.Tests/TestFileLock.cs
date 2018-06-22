@@ -3,15 +3,14 @@
 
 using System;
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Windows;
 
 namespace Xenko.Core.Design.Tests
 {
-    [TestFixture]
     public class TestFileLock
     {
-        [Test]
+        [Fact]
         public void TestFilelockWait()
         {
             FileLock mutex;
@@ -37,7 +36,7 @@ namespace Xenko.Core.Design.Tests
                 {
                     // This should never happen. So throw an exception and make sure it is not caught by our catch below.
                     flag = true;
-                    Assert.IsTrue(false, "Cannot create a file lock if parent directory does not exist.");
+                    Assert.True(false, "Cannot create a file lock if parent directory does not exist.");
                 }
             }
             catch (Exception)

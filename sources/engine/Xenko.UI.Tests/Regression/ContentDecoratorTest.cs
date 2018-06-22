@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
@@ -83,7 +83,7 @@ namespace Xenko.UI.Tests.Regression
             textBlock.TextSize = 24;
         }
 
-        [Test]
+        [Fact]
         public void RunContentDecoratorTest()
         {
             RunGameTest(new ContentDecoratorTest());

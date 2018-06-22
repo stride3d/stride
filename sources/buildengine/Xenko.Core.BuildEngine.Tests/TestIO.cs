@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Storage;
 using Xenko.Core.BuildEngine.Tests.Commands;
 using Xenko.Core.IO;
@@ -10,8 +10,7 @@ using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Core.BuildEngine.Tests
 {
-    [TestFixture, Ignore("BuildEngine tests are deprecated")]
-    class TestIO
+    public class TestIO
     {
         private static void CommonSingleOutput(bool executeRemotely)
         {
@@ -28,11 +27,11 @@ namespace Xenko.Core.BuildEngine.Tests
 
             ObjectId outputId;
             bool objectIdFound = indexMap.TryGetValue("/db/url1", out outputId);
-            Assert.IsTrue(objectIdFound);
-            Assert.That(step.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url1")], Is.EqualTo(outputId));
+            Assert.True(objectIdFound);
+            Assert.Equal(step.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url1")], outputId);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestSingleOutput()
         {
             Utils.CleanContext();
@@ -40,7 +39,7 @@ namespace Xenko.Core.BuildEngine.Tests
             CommonSingleOutput(false);
         }
 
-        [Test, Ignore("Need check")]
+        [Fact(Skip = "Need check")]
         public void TestRemoteSingleOutput()
         {
             Utils.CleanContext();
@@ -48,7 +47,7 @@ namespace Xenko.Core.BuildEngine.Tests
             CommonSingleOutput(true);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestTwoCommandsSameOutput()
         {
             Utils.CleanContext();
@@ -61,8 +60,8 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Run(Builder.Mode.Build);
             builder.WriteIndexFile(false);
 
-            Assert.IsTrue(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
-            Assert.IsTrue(childStep.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
+            Assert.True(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
+            Assert.True(childStep.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
 
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.UseTransaction = true;
@@ -70,11 +69,11 @@ namespace Xenko.Core.BuildEngine.Tests
 
             ObjectId outputId;
             bool objectIdFound = indexMap.TryGetValue("/db/url1", out outputId);
-            Assert.IsTrue(objectIdFound);
-            Assert.That(childStep.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url1")], Is.EqualTo(outputId));
+            Assert.True(objectIdFound);
+            Assert.Equal(childStep.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url1")], outputId);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestSingleCommandTwiceWithInputChange()
         {
             Utils.CleanContext();
@@ -92,8 +91,8 @@ namespace Xenko.Core.BuildEngine.Tests
             builder2.Run(Builder.Mode.Build);
             builder2.WriteIndexFile(false);
 
-            Assert.IsTrue(step1.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
-            Assert.IsTrue(step2.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
+            Assert.True(step1.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
+            Assert.True(step2.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
 
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.UseTransaction = true;
@@ -101,15 +100,15 @@ namespace Xenko.Core.BuildEngine.Tests
 
             ObjectId outputId;
             bool objectIdFound = indexMap.TryGetValue("/db/url1", out outputId);
-            Assert.IsTrue(objectIdFound);
+            Assert.True(objectIdFound);
 
-            Assert.That(step1.Status, Is.EqualTo(ResultStatus.Successful));
-            Assert.That(step2.Status, Is.EqualTo(ResultStatus.Successful));
-            Assert.That(step1.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url1")], !Is.EqualTo(outputId));
-            Assert.That(step2.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url1")], Is.EqualTo(outputId));
+            Assert.Equal(ResultStatus.Successful, step1.Status);
+            Assert.Equal(ResultStatus.Successful, step2.Status);
+            Assert.NotEqual(step1.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url1")], outputId);
+            Assert.Equal(step2.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url1")], outputId);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestUseBuildCacheOutput()
         {
             Utils.CleanContext();
@@ -124,8 +123,8 @@ namespace Xenko.Core.BuildEngine.Tests
             builder2.Run(Builder.Mode.Build);
             builder2.WriteIndexFile(false);
 
-            Assert.That(step.Status, Is.EqualTo(ResultStatus.NotTriggeredWasSuccessful));
-            Assert.IsTrue(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
+            Assert.Equal(ResultStatus.NotTriggeredWasSuccessful, step.Status);
+            Assert.True(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
 
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.UseTransaction = true;
@@ -133,11 +132,11 @@ namespace Xenko.Core.BuildEngine.Tests
 
             ObjectId outputId;
             bool objectIdFound = indexMap.TryGetValue("/db/url1", out outputId);
-            Assert.IsTrue(objectIdFound);
-            Assert.That(step.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url1")], Is.EqualTo(outputId));
+            Assert.True(objectIdFound);
+            Assert.Equal(step.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url1")], outputId);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestSpawnCommandOutput()
         {
             Utils.CleanContext();
@@ -157,10 +156,10 @@ namespace Xenko.Core.BuildEngine.Tests
 
             ObjectId outputId;
             bool objectIdFound = indexMap.TryGetValue("/db/url2", out outputId);
-            Assert.IsTrue(objectIdFound);
+            Assert.True(objectIdFound);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestInputFromPreviousOutput()
         {
             Utils.CleanContext();
@@ -173,8 +172,8 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Run(Builder.Mode.Build);
             builder.WriteIndexFile(false);
 
-            Assert.IsTrue(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
-            Assert.IsTrue(childStep.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url2")));
+            Assert.True(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
+            Assert.True(childStep.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url2")));
 
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.UseTransaction = true;
@@ -182,11 +181,11 @@ namespace Xenko.Core.BuildEngine.Tests
 
             ObjectId outputId;
             bool objectIdFound = indexMap.TryGetValue("/db/url2", out outputId);
-            Assert.IsTrue(objectIdFound);
-            Assert.That(childStep.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url2")], Is.EqualTo(outputId));
+            Assert.True(objectIdFound);
+            Assert.Equal(childStep.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url2")], outputId);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestInputFromPreviousOutputWithCache()
         {
             Utils.CleanContext();
@@ -205,11 +204,11 @@ namespace Xenko.Core.BuildEngine.Tests
             builder2.Run(Builder.Mode.Build);
             builder2.WriteIndexFile(false);
 
-            Assert.That(step.Status, Is.EqualTo(ResultStatus.NotTriggeredWasSuccessful));
-            Assert.That(childStep.Status, Is.EqualTo(ResultStatus.NotTriggeredWasSuccessful));
+            Assert.Equal(ResultStatus.NotTriggeredWasSuccessful, step.Status);
+            Assert.Equal(ResultStatus.NotTriggeredWasSuccessful, childStep.Status);
 
-            Assert.IsTrue(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
-            Assert.IsTrue(childStep.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url2")));
+            Assert.True(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
+            Assert.True(childStep.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url2")));
 
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.UseTransaction = true;
@@ -217,11 +216,11 @@ namespace Xenko.Core.BuildEngine.Tests
 
             ObjectId outputId;
             bool objectIdFound = indexMap.TryGetValue("/db/url2", out outputId);
-            Assert.IsTrue(objectIdFound);
-            Assert.That(childStep.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url2")], Is.EqualTo(outputId));
+            Assert.True(objectIdFound);
+            Assert.Equal(childStep.Result.OutputObjects[new ObjectUrl(UrlType.Content, "/db/url2")], outputId);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestInputDependencies()
         {
             Utils.CleanContext();
@@ -241,10 +240,10 @@ namespace Xenko.Core.BuildEngine.Tests
 
             ObjectId inputDepId;
             bool inputDepFound = step.Result.InputDependencyVersions.TryGetValue(inputDep, out inputDepId);
-            Assert.IsTrue(inputDepFound);
+            Assert.True(inputDepFound);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestInputDependenciesChange()
         {
             Utils.CleanContext();
@@ -265,16 +264,16 @@ namespace Xenko.Core.BuildEngine.Tests
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.LoadNewValues();
 
-            Assert.That(step1.Status, Is.EqualTo(ResultStatus.Successful));
-            Assert.That(step2.Status, Is.EqualTo(ResultStatus.Successful));
+            Assert.Equal(ResultStatus.Successful, step1.Status);
+            Assert.Equal(ResultStatus.Successful, step2.Status);
             ObjectId inputDepId1;
             ObjectId inputDepId2;
-            Assert.IsTrue(step1.Result.InputDependencyVersions.TryGetValue(inputDep, out inputDepId1));
-            Assert.IsTrue(step2.Result.InputDependencyVersions.TryGetValue(inputDep, out inputDepId2));
-            Assert.That(inputDepId1, !Is.EqualTo(inputDepId2));
+            Assert.True(step1.Result.InputDependencyVersions.TryGetValue(inputDep, out inputDepId1));
+            Assert.True(step2.Result.InputDependencyVersions.TryGetValue(inputDep, out inputDepId2));
+            Assert.NotEqual(inputDepId1, inputDepId2);
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestConcurrencyReadWriteAccess()
         {
             Utils.CleanContext();
@@ -290,10 +289,10 @@ namespace Xenko.Core.BuildEngine.Tests
 
             builder.Run(Builder.Mode.Build);
             var logger = (LoggerResult)builder.Logger;
-            Assert.That(logger.Messages.Any(x => x.Text.Contains("Command InputOutputTestCommand /db/url1 > /db/url1 is writing /db/url1 while command InputOutputTestCommand /db/url1 > /db/url2 is reading it")));
+            Assert.True(logger.Messages.Any(x => x.Text.Contains("Command InputOutputTestCommand /db/url1 > /db/url1 is writing /db/url1 while command InputOutputTestCommand /db/url1 > /db/url2 is reading it")));
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestConcurrencyWriteAccess()
         {
             Utils.CleanContext();
@@ -311,10 +310,10 @@ namespace Xenko.Core.BuildEngine.Tests
 
             builder.Run(Builder.Mode.Build);
             var logger = (LoggerResult)builder.Logger;
-            Assert.That(logger.Messages.Any(x => x.Text.Contains("Commands InputOutputTestCommand /db/url2 > /db/url and InputOutputTestCommand /db/url1 > /db/url are both writing /db/url at the same time")));
+            Assert.Contains(logger.Messages, x => x.Text.Contains("Commands InputOutputTestCommand /db/url2 > /db/url and InputOutputTestCommand /db/url1 > /db/url are both writing /db/url at the same time"));
         }
 
-        [Test]
+        [Fact(Skip = "BuildEngine tests are deprecated")]
         public void TestConcurrencyReadWriteAccess2()
         {
             Utils.CleanContext();
@@ -338,7 +337,7 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Root.Add(buildStepList2);
 
             var buildResult = builder.Run(Builder.Mode.Build);
-            Assert.That(buildResult, Is.EqualTo(BuildResultCode.Successful));
+            Assert.Equal(BuildResultCode.Successful, buildResult);
         }
     }
 }

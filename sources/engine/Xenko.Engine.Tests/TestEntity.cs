@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Engine.Design;
 using Xenko.Rendering;
@@ -14,13 +14,12 @@ namespace Xenko.Engine.Tests
     /// <summary>
     /// Tests for <see cref="Entity"/> and <see cref="EntityComponentCollection"/>.
     /// </summary>
-    [TestFixture]
     public class TestEntity
     {
         /// <summary>
         /// Test various manipulation on Entity.Components with TransformComponent and CustomComponent
         /// </summary>
-        [Test]
+        [Fact]
         public void TestComponents()
         {
             var entity = new Entity();
@@ -31,8 +30,8 @@ namespace Xenko.Engine.Tests
 
             // Make sure that an entity has a transform component
             Assert.NotNull(entity.Transform);
-            Assert.AreEqual(1, entity.Components.Count);
-            Assert.AreEqual(entity.Transform, entity.Components[0]);
+            Assert.Equal(1, entity.Components.Count);
+            Assert.Equal(entity.Transform, entity.Components[0]);
 
             // Remove Transform
             var oldTransform = entity.Transform;
@@ -40,7 +39,7 @@ namespace Xenko.Engine.Tests
             Assert.Null(entity.Transform);
 
             // Check that events is correctly propagated
-            Assert.AreEqual(new List<EntityComponentEvent>() { new EntityComponentEvent(entity, 0, oldTransform, null) }, events);
+            Assert.Equal(new List<EntityComponentEvent>() { new EntityComponentEvent(entity, 0, oldTransform, null) }, events);
             events.Clear();
 
             // Re-add transform
@@ -49,18 +48,18 @@ namespace Xenko.Engine.Tests
             Assert.NotNull(entity.Transform);
 
             // Check that events is correctly propagated
-            Assert.AreEqual(new List<EntityComponentEvent>() { new EntityComponentEvent(entity, 0, null, transform) }, events);
+            Assert.Equal(new List<EntityComponentEvent>() { new EntityComponentEvent(entity, 0, null, transform) }, events);
             events.Clear();
 
             // We cannot add a single component
-            var invalidOpException = Assert.Catch<InvalidOperationException>(() => entity.Components.Add(new TransformComponent()));
-            Assert.AreEqual($"Cannot add a component of type [{typeof(TransformComponent)}] multiple times", invalidOpException.Message);
+            var invalidOpException = Assert.Throws<InvalidOperationException>(() => entity.Components.Add(new TransformComponent()));
+            Assert.Equal($"Cannot add a component of type [{typeof(TransformComponent)}] multiple times", invalidOpException.Message);
 
-            invalidOpException = Assert.Catch<InvalidOperationException>(() => entity.Components.Add(transform));
-            Assert.AreEqual("Cannot add a same component multiple times. Already set at index [0]", invalidOpException.Message);
+            invalidOpException = Assert.Throws<InvalidOperationException>(() => entity.Components.Add(transform));
+            Assert.Equal("Cannot add a same component multiple times. Already set at index [0]", invalidOpException.Message);
 
             // We cannot add a null component
-            Assert.Catch<ArgumentNullException>(() => entity.Components.Add(null));
+            Assert.Throws<ArgumentNullException>(() => entity.Components.Add(null));
 
             // Replace Transform
             var custom = new CustomEntityComponent();
@@ -68,26 +67,26 @@ namespace Xenko.Engine.Tests
             Assert.Null(entity.Transform);
 
             // Check that events is correctly propagated
-            Assert.AreEqual(new List<EntityComponentEvent>() { new EntityComponentEvent(entity, 0, transform, custom) }, events);
+            Assert.Equal(new List<EntityComponentEvent>() { new EntityComponentEvent(entity, 0, transform, custom) }, events);
             events.Clear();
 
             // Add again transform component
             transform = new TransformComponent();
             entity.Components.Add(transform);
             Assert.NotNull(entity.Transform);
-            Assert.AreEqual(transform, entity.Components[1]);
+            Assert.Equal(transform, entity.Components[1]);
 
             // Check that TransformComponent is on index 1 now
-            Assert.AreEqual(new List<EntityComponentEvent>() { new EntityComponentEvent(entity, 1, null, transform) }, events);
+            Assert.Equal(new List<EntityComponentEvent>() { new EntityComponentEvent(entity, 1, null, transform) }, events);
             events.Clear();
 
             // Clear components and check that Transform is also removed
             entity.Components.Clear();
-            Assert.AreEqual(0, entity.Components.Count);
+            Assert.Equal(0, entity.Components.Count);
             Assert.Null(entity.Transform);
 
             // Check that events is correctly propagated
-            Assert.AreEqual(new List<EntityComponentEvent>()
+            Assert.Equal(new List<EntityComponentEvent>()
             {
                 new EntityComponentEvent(entity, 1, transform, null),
                 new EntityComponentEvent(entity, 0, custom, null),
@@ -98,7 +97,7 @@ namespace Xenko.Engine.Tests
         /// <summary>
         /// Tests multiple components.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMultipleComponents()
         {
             // Check that TransformComponent cannot be added multiple times
@@ -114,20 +113,20 @@ namespace Xenko.Engine.Tests
 
             var transform = entity.Get<TransformComponent>();
             Assert.NotNull(transform);
-            Assert.AreEqual(entity.Transform, transform);
+            Assert.Equal(entity.Transform, transform);
 
             var custom = entity.GetOrCreate<CustomEntityComponent>();
             Assert.NotNull(custom);
 
             var custom2 = new CustomEntityComponent();
             entity.Components.Add(custom2);
-            Assert.AreEqual(custom, entity.Get<CustomEntityComponent>());
+            Assert.Equal(custom, entity.Get<CustomEntityComponent>());
 
             var allComponents = entity.GetAll<CustomEntityComponent>().ToList();
-            Assert.AreEqual(new List<EntityComponent>() { custom, custom2 }, allComponents);
+            Assert.Equal(new List<EntityComponent>() { custom, custom2 }, allComponents);
         }
 
-        [Test]
+        [Fact]
         public void TestEntityAndPrefabClone()
         {
             Prefab prefab = null;
@@ -147,21 +146,21 @@ namespace Xenko.Engine.Tests
             // 2nd time: newEntity = prefab.Instantiate()[0];
             check_new_Entity:
             {
-                Assert.AreEqual(1, newEntity.Transform.Children.Count);
+                Assert.Equal(1, newEntity.Transform.Children.Count);
                 var newChildEntity = newEntity.Transform.Children[0].Entity;
-                Assert.AreEqual("Child", newChildEntity.Name);
+                Assert.Equal("Child", newChildEntity.Name);
 
                 Assert.NotNull(newEntity.Get<CustomEntityComponent>());
                 var newCustom = newEntity.Get<CustomEntityComponent>();
 
                 // Make sure that the old component and the new component are different
-                Assert.AreNotEqual(custom, newCustom);
+                Assert.NotEqual(custom, newCustom);
 
                 // Make sure that the property is referencing the new cloned entity
-                Assert.AreEqual(newChildEntity, newCustom.Link);
+                Assert.Equal(newChildEntity, newCustom.Link);
 
                 // Verify that objects references outside the Entity/Component hierarchy are not cloned (shared)
-                Assert.AreEqual(custom.CustomObject, newCustom.CustomObject);
+                Assert.Equal(custom.CustomObject, newCustom.CustomObject);
             }
 
             // Woot, ugly test using a goto, avoid factorizing code in a delegate method, ugly but effective, goto FTW
@@ -171,7 +170,7 @@ namespace Xenko.Engine.Tests
                 prefab = new Prefab();
                 prefab.Entities.Add(entity);
                 var newEntities = prefab.Instantiate();
-                Assert.AreEqual(1, newEntities.Count);
+                Assert.Equal(1, newEntities.Count);
 
                 newEntity = newEntities[0];
                 goto check_new_Entity;

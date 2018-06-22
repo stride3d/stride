@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets;
 using Xenko.Core.Assets.Editor.Services;
 using Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors;
@@ -15,20 +15,18 @@ using Xenko.GameStudio.Tests.Helpers;
 
 namespace Xenko.GameStudio.Tests
 {
-    [TestFixture]
     public sealed class TestCopyPasteProperties
     {
         private ICopyPasteService service;
         private AssetPropertyGraphContainer propertyGraphContainer;
 
-        [OneTimeSetUp]
-        public void Initialize()
+        public TestCopyPasteProperties()
         {
             propertyGraphContainer = new AssetPropertyGraphContainer(new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } });
             service = TestHelper.CreateCopyPasteService(propertyGraphContainer);
         }
 
-        [Test]
+        [Fact]
         public void TestCopyPasteNewComponent()
         {
             var source = new Entity(); source.Components.Add(new ModelComponent() { IsShadowCaster = false });
@@ -36,9 +34,9 @@ namespace Xenko.GameStudio.Tests
             var propertyGraph = CreateScene(source, target);
             var copiedText = Copy(propertyGraph, source.Get<ModelComponent>());
             PasteIntoEntity(propertyGraph, copiedText, typeof(ModelComponent), target, Index.Empty, false);
-            Assert.AreEqual(2, target.Components.Count);
-            Assert.IsInstanceOf<TransformComponent>(target.Components[0]);
-            Assert.IsInstanceOf<ModelComponent>(target.Components[1]);
+            Assert.Equal(2, target.Components.Count);
+            Assert.True(target.Components[0] is TransformComponent);
+            Assert.True(target.Components[1] is ModelComponent);
             Assert.False(target.Get<ModelComponent>().IsShadowCaster);
         }
 
@@ -53,24 +51,24 @@ namespace Xenko.GameStudio.Tests
         private string Copy(AssetPropertyGraph propertyGraph, object assetValue)
         {
             var copiedText = service.CopyFromAsset(propertyGraph, propertyGraph.Id, assetValue, false);
-            Assert.IsFalse(string.IsNullOrEmpty(copiedText));
+            Assert.False(string.IsNullOrEmpty(copiedText));
             return copiedText;
         }
 
         private void Paste(AssetPropertyGraph propertyGraph, string copiedText, Type deserializedType, Type expectedType, Func<IObjectNode, IGraphNode> targetNodeResolver, Index index, bool replace)
         {
             var asset = propertyGraph.RootNode.Retrieve();
-            Assert.IsTrue(service.CanPaste(copiedText, asset.GetType(), expectedType));
+            Assert.True(service.CanPaste(copiedText, asset.GetType(), expectedType));
             var result = service.DeserializeCopiedData(copiedText, asset, expectedType);
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Items);
-            Assert.AreEqual(1, result.Items.Count);
+            Assert.NotNull(result);
+            Assert.NotNull(result.Items);
+            Assert.Equal(1, result.Items.Count);
 
             var item = result.Items[0];
-            Assert.IsNotNull(item);
-            Assert.IsNotNull(item.Data);
-            Assert.AreEqual(deserializedType, item.Data.GetType());
-            Assert.IsNotNull(item.Processor);
+            Assert.NotNull(item);
+            Assert.NotNull(item.Data);
+            Assert.Equal(deserializedType, item.Data.GetType());
+            Assert.NotNull(item.Processor);
 
             var targetNode = targetNodeResolver(propertyGraph.RootNode);
             var nodeAccessor = new NodeAccessor(targetNode, index);

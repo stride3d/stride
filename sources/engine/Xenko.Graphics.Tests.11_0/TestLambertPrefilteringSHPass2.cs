@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Rendering;
@@ -43,7 +43,7 @@ namespace Xenko.Graphics.Tests
         {
         }
 
-        public TestLambertPrefilteringSHPass2(bool assertResults)
+        protected TestLambertPrefilteringSHPass2(bool assertResults)
         {
             this.assertResults = assertResults;
             GraphicsDeviceManager.PreferredBackBufferWidth = screenSize.X;
@@ -97,10 +97,10 @@ namespace Xenko.Graphics.Tests
 
             if (assertResults)
             {
-                Assert.AreEqual(new Vector4(valueSum, 0, 0, 0), result[0]);
-                Assert.AreEqual(new Vector4(0, 2 * valueSum, 0, 0), result[1]);
-                Assert.AreEqual(new Vector4(0, 0, 3 * valueSum, 0), result[2]);
-                Assert.AreEqual(new Vector4(0, 0, 0, 4 * valueSum), result[3]);
+                Assert.Equal(new Vector4(valueSum, 0, 0, 0), result[0]);
+                Assert.Equal(new Vector4(0, 2 * valueSum, 0, 0), result[1]);
+                Assert.Equal(new Vector4(0, 0, 3 * valueSum, 0), result[2]);
+                Assert.Equal(new Vector4(0, 0, 0, 4 * valueSum), result[3]);
             }
         }
 
@@ -120,7 +120,7 @@ namespace Xenko.Graphics.Tests
             }
         }
 
-        [Test]
+        [SkippableFact]
         public void RunTestPass2()
         {
             IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);

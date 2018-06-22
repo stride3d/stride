@@ -3,7 +3,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Games;
 using Xenko.Input;
@@ -64,7 +64,7 @@ namespace Xenko.Audio.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void RunBasicGame()
         {
             RunGameTest(new BasicTest());

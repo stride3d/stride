@@ -4,7 +4,7 @@
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
 using System.IO;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.IO;
 using Xenko.Core.Serialization.Assets;
 using Xenko.Core.Storage;
@@ -16,7 +16,6 @@ using EffectCompiler = Xenko.Shaders.Compiler.EffectCompiler;
 
 namespace Xenko.Graphics
 {
-    [TestFixture]
     public class TestEffect : Game
     {
         private bool isTestGlsl = false;
@@ -54,7 +53,7 @@ namespace Xenko.Graphics
         }
 
 
-        [Test]
+        [Fact]
         public void TestSimpleEffect()
         {
             EffectBytecode effectBytecode;
@@ -90,7 +89,7 @@ namespace Xenko.Graphics
             effect.Apply();
         }
 
-        [Test]
+        [Fact]
         public void TestToGlslEffect()
         {
             isTestGlsl = true;
@@ -135,7 +134,7 @@ namespace Xenko.Graphics
             effect.Apply();
         }
 
-        [Test]
+        [Fact]
         public void TestToGlslESEffect()
         {
             isTestGlslES = true;

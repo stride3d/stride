@@ -3,15 +3,14 @@
 
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Updater;
 
 namespace Xenko.Engine.Tests
 {
-    [TestFixture]
     public class EntityUpdateEngineTest
     {
-        [Test]
+        [Fact]
         public unsafe void TestComponentAccess()
         {
             var entity = new Entity();
@@ -36,8 +35,8 @@ namespace Xenko.Engine.Tests
                 UpdateEngine.Run(entity, compiledUpdate, (IntPtr)dataPtr, new[] { new UpdateObjectData(modelComponent) });
             }
 
-            Assert.That(entity.Get<ModelComponent>(), Is.EqualTo(modelComponent));
-            Assert.That(entity.GetChild(0).Get<LightComponent>().Intensity, Is.EqualTo(32.0f));
+            Assert.Equal(modelComponent, entity.Get<ModelComponent>());
+            Assert.Equal(32.0f, entity.GetChild(0).Get<LightComponent>().Intensity);
         }
 
         struct TestData

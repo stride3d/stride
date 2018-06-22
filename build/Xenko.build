@@ -14,7 +14,7 @@ Example of use:
     <BuildProperties Condition="'$(XenkoSign)' != ''">$(BuildProperties);XenkoSign=$(XenkoSign)</BuildProperties>
     <BuildProperties Condition="'$(XenkoOfficialBuild)' != ''">$(BuildProperties);XenkoOfficialBuild=$(XenkoOfficialBuild)</BuildProperties>
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
-    <NUnitConsolePath>$(XenkoRoot)deps\NUnit\nunit3-console.exe</NUnitConsolePath>
+    <XunitRunnerConsoleVersion>2.3.1</XunitRunnerConsoleVersion>
     <XenkoStoreUrl Condition="'$(XenkoStoreUrl)' == ''">https://xenko-packages.azurewebsites.net/api/v2/package</XenkoStoreUrl>
     <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 14.4.2\bin\x86\advinst.exe')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 14.4.2\bin\x86\advinst.exe</AdvancedInstallerPath>
   </PropertyGroup>
@@ -216,7 +216,16 @@ Example of use:
     <Exec ContinueOnError="true" Command="$(XenkoRoot)deps\GitLink\GitLink.exe $(XenkoRoot) -f build\Xenko.sln -u https://github.com/xenko3d/xenko -s releases/$(XenkoPackageVersionNoRevision)" />
   </Target>
   
-  <Target Name="RunTestsWindows">
+  <Target Name="DownloadXunitRunnerConsole">
+    <MakeDir Directories="$(MSBuildThisFileDirectory)packages"/>
+    <PropertyGroup>
+      <XunitRunnerConsolePath>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net452\xunit.console.exe</XunitRunnerConsolePath>
+    </PropertyGroup>
+    <Exec Command='"$(NuGetPath)" install xunit.runner.console -Version $(XunitRunnerConsoleVersion)' Condition="!Exists('$(XunitRunnerConsolePath)')" WorkingDirectory="$(MSBuildThisFileDirectory)packages" />
+    <Error Text="Could not find xunit.runner at expected location [$(XunitRunnerConsolePath)]" Condition="!Exists('$(XunitRunnerConsolePath)')"/>
+  </Target>
+  
+  <Target Name="RunTestsWindows" DependsOnTargets="DownloadXunitRunnerConsole">
     <!-- By default, enable all known categories -->
     <PropertyGroup>
       <XenkoTestCategories Condition="'$(XenkoTestCategories)' == ''">Simple;Game;VSPackage</XenkoTestCategories>
@@ -338,11 +347,10 @@ Example of use:
     <MSBuild Targets="@(UnitTest->'%(TargetName)');$(XenkoTestExtraTargets)" Projects="%(Solution)" Properties="$(BuildProperties);DeployExtension=true">
         <Output TaskParameter="TargetOutputs" ItemName="AssembliesToTest" />
     </MSBuild>
-    
+	
     <!-- Run unit tests -->
-    <Error Text="Could not find [$(NUnitConsolePath)]" Condition="!Exists('$(NUnitConsolePath)')"/>
     <MakeDir Directories="$(MSBuildThisFileDirectory)TestResults"/>
-    <Exec IgnoreExitCode="True" Command="$(NUnitConsolePath) --process=Separate --x86 --result=&quot;$(MSBuildThisFileDirectory)TestResults\TestResult-$([System.DateTime]::Now.ToString(yyyyMMdd-HHmmss)).xml&quot;;format=nunit3 @(AssembliesToTest->'%(Identity)', ' ')" WorkingDirectory="$(XenkoRootBin)">
+    <Exec IgnoreExitCode="True" Command="&quot;$(XunitRunnerConsolePath)&quot; @(AssembliesToTest->'%(Identity)', ' ')" WorkingDirectory="$(XenkoRootBin)">
       <Output TaskParameter="ExitCode" ItemName="exitCode" />
     </Exec>
     <Error Text="Error while running tests" Condition="@(exitCode) &lt; 0" />
@@ -368,7 +376,7 @@ Example of use:
     <MobileUnitTestApk Include="$(XenkoRoot)\Bin\Android\Tests\OpenGLES\Xenko.Particles.Tests\Xenko.Particles.Tests-Signed.apk"/>
   </ItemGroup>
   
-  <Target Name="RunTestsMobile" Outputs="%(MobileUnitTestProject.Identity)">
+  <Target Name="RunTestsMobile" DependsOnTargets="DownloadXunitRunnerConsole" Outputs="%(MobileUnitTestProject.Identity)">
     <PropertyGroup>
       <XenkoRoot>$(MSBuildThisFileDirectory)..\</XenkoRoot>
       <XenkoRootBin>$(XenkoRoot)Bin\Windows\</XenkoRootBin>

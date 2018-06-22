@@ -1,15 +1,14 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Transactions;
 using Xenko.Core.Presentation.Dirtiables;
 
 namespace Xenko.Core.Presentation.Tests.Dirtiables
 {
-    [TestFixture]
     public class TestDirtiable
     {
-        [Test]
+        [Fact]
         public void TestDoAction()
         {
             var stack = new TransactionStack(5);
@@ -21,11 +20,11 @@ namespace Xenko.Core.Presentation.Tests.Dirtiables
                     var operation = new SimpleDirtyingOperation(dirtiable.Yield());
                     stack.PushOperation(operation);
                 }
-                Assert.AreEqual(true, dirtiable.IsDirty);
+                Assert.Equal(true, dirtiable.IsDirty);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestDoAndSave()
         {
             var stack = new TransactionStack(5);
@@ -37,13 +36,13 @@ namespace Xenko.Core.Presentation.Tests.Dirtiables
                 {
                     stack.PushOperation(operation);
                 }
-                Assert.AreEqual(true, dirtiable.IsDirty);
+                Assert.Equal(true, dirtiable.IsDirty);
                 manager.CreateSnapshot();
-                Assert.AreEqual(false, dirtiable.IsDirty);
+                Assert.Equal(false, dirtiable.IsDirty);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestUndo()
         {
             var stack = new TransactionStack(5);
@@ -55,13 +54,13 @@ namespace Xenko.Core.Presentation.Tests.Dirtiables
                 {
                     stack.PushOperation(operation);
                 }
-                Assert.AreEqual(true, dirtiable.IsDirty);
+                Assert.Equal(true, dirtiable.IsDirty);
                 stack.Rollback();
-                Assert.AreEqual(false, dirtiable.IsDirty);
+                Assert.Equal(false, dirtiable.IsDirty);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestRedo()
         {
             var stack = new TransactionStack(5);
@@ -73,14 +72,14 @@ namespace Xenko.Core.Presentation.Tests.Dirtiables
                 {
                     stack.PushOperation(operation);
                 }
-                Assert.AreEqual(true, dirtiable.IsDirty);
+                Assert.Equal(true, dirtiable.IsDirty);
                 stack.Rollback();
                 stack.Rollforward();
-                Assert.AreEqual(true, dirtiable.IsDirty);
+                Assert.Equal(true, dirtiable.IsDirty);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestSaveUndoSaveRedo()
         {
             var stack = new TransactionStack(5);
@@ -92,17 +91,17 @@ namespace Xenko.Core.Presentation.Tests.Dirtiables
                 {
                     stack.PushOperation(operation);
                 }
-                Assert.AreEqual(true, dirtiable.IsDirty);
+                Assert.Equal(true, dirtiable.IsDirty);
                 manager.CreateSnapshot();
-                Assert.AreEqual(false, dirtiable.IsDirty);
+                Assert.Equal(false, dirtiable.IsDirty);
                 stack.Rollback();
-                Assert.AreEqual(true, dirtiable.IsDirty);
+                Assert.Equal(true, dirtiable.IsDirty);
                 manager.CreateSnapshot();
-                Assert.AreEqual(false, dirtiable.IsDirty);
+                Assert.Equal(false, dirtiable.IsDirty);
                 stack.Rollforward();
-                Assert.AreEqual(true, dirtiable.IsDirty);
+                Assert.Equal(true, dirtiable.IsDirty);
                 manager.CreateSnapshot();
-                Assert.AreEqual(false, dirtiable.IsDirty);
+                Assert.Equal(false, dirtiable.IsDirty);
             }
         }
     }

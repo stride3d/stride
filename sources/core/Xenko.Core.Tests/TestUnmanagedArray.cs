@@ -6,14 +6,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Tests
 {
-    [TestFixture]
     public class TestUnmanagedArray
     {
-        [Test]
+        [Fact]
         public void Base()
         {
             using (var testing = new UnmanagedArray<float>(128))
@@ -24,7 +23,7 @@ namespace Xenko.Core.Tests
                 }
                 for (var i = 0; i < testing.Length; i++)
                 {
-                    Assert.That(testing[i], Is.EqualTo(i));
+                    Assert.Equal(i, testing[i]);
                     testing[i] = -1.0f;
                 }
 
@@ -38,7 +37,7 @@ namespace Xenko.Core.Tests
                 testing.Read(managedArray2);
                 for (var i = 0; i < testing.Length; i++)
                 {
-                    Assert.That(testing[i], Is.EqualTo(i));
+                    Assert.Equal(i, testing[i]);
                 }
             }
         }

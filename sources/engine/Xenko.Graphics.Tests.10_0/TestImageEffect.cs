@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Diagnostics;
 using Xenko.Rendering;
 using Xenko.Rendering.Images;
@@ -12,7 +12,6 @@ using Xenko.Input;
 
 namespace Xenko.Graphics.Tests
 {
-    [TestFixture]
     public class TestImageEffect : GraphicTestGameBase
     {
         private RenderContext drawEffectContext;
@@ -105,7 +104,7 @@ namespace Xenko.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [Fact]
         public void RunImageEffect()
         {
             RunGameTest(new TestImageEffect());

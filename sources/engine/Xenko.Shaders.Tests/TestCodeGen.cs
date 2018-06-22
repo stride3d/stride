@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using System.Text;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Shaders.Parser.Mixins;
 
@@ -14,10 +14,9 @@ namespace Xenko.Shaders.Tests
     /// <summary>
     /// Code used to regenerate all cs files from xksl/xkfx in the project
     /// </summary>
-    [TestFixture]
     public class TestCodeGen
     {
-        //[Test]
+        //[Fact]
         public void Test()
         {
             var filePath = @"D:\Code\Xenko\sources\engine\Xenko.Shaders.Tests\GameAssets\Mixins\A.xksl";
@@ -25,7 +24,7 @@ namespace Xenko.Shaders.Tests
             var content = ShaderMixinCodeGen.GenerateCsharp(source, filePath.Replace("C:", "D:"));
         }
 
-        //[Test] // Decomment this line to regenerate all files (sources and samples)
+        //[Fact] // Decomment this line to regenerate all files (sources and samples)
         public void RebuildAllXkfxXksl()
         {
             RegenerateDirectory(Path.Combine(Environment.CurrentDirectory, @"..\..\sources"));

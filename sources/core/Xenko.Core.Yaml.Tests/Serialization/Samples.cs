@@ -45,14 +45,14 @@
 
 using System;
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Yaml.Serialization;
 
 namespace Xenko.Core.Yaml.Tests.Serialization
 {
     public class Program
     {
-        [Test]
+        [Fact]
         public void LoadYamlStream()
         {
             // Setup the input

@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Collections;
 using Xenko.Core.IO;
 using Xenko.Core.Serialization;
@@ -9,11 +9,10 @@ using Xenko.Core.Serialization.Serializers;
 
 namespace Xenko.Core.Tests
 {
-    [TestFixture]
     [DataSerializerGlobal(null, typeof(KeyValuePair<int, int>))]
     public class TestStore
     {
-        [Test]
+        [Fact]
         public void ListSimple()
         {
             using (var tempFile = new TemporaryFile())
@@ -28,19 +27,19 @@ namespace Xenko.Core.Tests
 
                 // Add a value to store1 without saving
                 store1.AddValue(2);
-                Assert.AreEqual(new[] { 2 }, store1.GetValues());
+                Assert.Equal(new[] { 2 }, store1.GetValues());
 
                 // Check that store1 contains value from store2 first
                 store1.LoadNewValues();
-                Assert.AreEqual(new[] { 1, 2 }, store1.GetValues());
+                Assert.Equal(new[] { 1, 2 }, store1.GetValues());
 
                 // Save and check that results didn't change
                 store1.Save();
-                Assert.AreEqual(new[] { 1, 2 }, store1.GetValues());
+                Assert.Equal(new[] { 1, 2 }, store1.GetValues());
             }
         }
 
-        [Test]
+        [Fact]
         public void DictionarySimple()
         {
             using (var tempFile = new TemporaryFile())
@@ -51,23 +50,23 @@ namespace Xenko.Core.Tests
 
                 // Check successive sets
                 store1[1] = 1;
-                Assert.That(store1[1], Is.EqualTo(1));
+                Assert.Equal(1, store1[1]);
 
                 store1[1] = 2;
-                Assert.That(store1[1], Is.EqualTo(2));
+                Assert.Equal(2, store1[1]);
 
                 // Check saving (before and after completion)
                 store1.Save();
-                Assert.That(store1[1], Is.EqualTo(2));
-                Assert.That(store1[1], Is.EqualTo(2));
+                Assert.Equal(2, store1[1]);
+                Assert.Equal(2, store1[1]);
 
                 // Check set after save
                 store1[1] = 3;
-                Assert.That(store1[1], Is.EqualTo(3));
+                Assert.Equal(3, store1[1]);
 
                 // Check loading from another store
                 store2.LoadNewValues();
-                Assert.That(store2[1], Is.EqualTo(2));
+                Assert.Equal(2, store2[1]);
 
                 // Concurrent changes
                 store1[1] = 5;
@@ -77,14 +76,14 @@ namespace Xenko.Core.Tests
 
                 // Check intermediate state (should get new value for 2, but keep intermediate non-saved value for 1)
                 store1.LoadNewValues();
-                Assert.That(store1[1], Is.EqualTo(5));
-                Assert.That(store1[2], Is.EqualTo(6));
+                Assert.Equal(5, store1[1]);
+                Assert.Equal(6, store1[2]);
 
                 // Check after save/reload, both stores should be synchronized
                 store1.Save();
                 store2.LoadNewValues();
-                Assert.That(store1[1], Is.EqualTo(store2[1]));
-                Assert.That(store1[2], Is.EqualTo(store2[2]));
+                Assert.Equal(store2[1], store1[1]);
+                Assert.Equal(store2[2], store1[2]);
             }
         }
     }

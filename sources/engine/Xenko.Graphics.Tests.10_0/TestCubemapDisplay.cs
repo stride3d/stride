@@ -4,7 +4,7 @@
 using System;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Effects;
@@ -107,7 +107,7 @@ namespace Xenko.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [Fact]
         public void RunCubemapRendering()
         {
             RunGameTest(new TestCubemapDisplay());

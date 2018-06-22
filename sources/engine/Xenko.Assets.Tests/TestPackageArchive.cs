@@ -3,18 +3,17 @@
 
 using System;
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets;
 using Xenko.Core.Diagnostics;
 using Xenko.Assets.Tasks;
 
 namespace Xenko.Assets.Tests
 {
-    [TestFixture]
     public class TestPackageArchive
     {
 
-        [Test, Ignore("Need to check why it was disabled")]
+        [Fact(Skip = "Need to check why it was disabled")]
         public void TestBasicPackageCreateSaveLoad()
         {
             // Override search path since we are in a unit test directory

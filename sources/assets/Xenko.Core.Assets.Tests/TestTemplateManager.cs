@@ -3,7 +3,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Templates;
 
 namespace Xenko.Core.Assets.Tests
@@ -11,20 +11,19 @@ namespace Xenko.Core.Assets.Tests
     /// <summary>
     /// Tests for the <see cref="TemplateManager"/> class.
     /// </summary>
-    [TestFixture]
     public class TestTemplateManager: TemplateGeneratorBase<SessionTemplateGeneratorParameters>
     {
-        [Test, Ignore("Need check")]
+        [Fact(Skip = "Need check")]
         public void TestTemplateDescriptions()
         {
             // Preload templates defined in Xenko.xkpkg
             var descriptions = TemplateManager.FindTemplates().ToList();
 
             // Expect currently 4 templates
-            Assert.AreEqual(23, descriptions.Count);
+            Assert.Equal(23, descriptions.Count);
         }
 
-        [Test]
+        [Fact]
         public void TestTemplateGenerator()
         {
             TemplateManager.Register(this);
@@ -32,11 +31,11 @@ namespace Xenko.Core.Assets.Tests
             // Preload templates defined in Xenko.xkpkg
             var descriptions = TemplateManager.FindTemplates().ToList();
 
-            Assert.Greater(descriptions.Count, 0);
+            Assert.True(descriptions.Count > 0);
 
             var templateGenerator = TemplateManager.FindTemplateGenerator(new SessionTemplateGeneratorParameters());
 
-            Assert.AreEqual(this, templateGenerator);
+            Assert.Equal(this, templateGenerator);
 
             TemplateManager.Unregister(this);
         }

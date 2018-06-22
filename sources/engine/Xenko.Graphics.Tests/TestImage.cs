@@ -24,7 +24,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
@@ -36,14 +36,12 @@ namespace Xenko.Graphics.Tests
     /// <summary>
     /// Tests for <see cref="Texture"/>
     /// </summary>
-    [TestFixture]
-    [Description("Tests for Graphics.Image")]
     public class TestImage : GameTestBase
     {
         /// <summary>
         /// Tests Image 1D.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestImage1D()
         {
             const int Size = 256; // must be > 256 to work
@@ -53,13 +51,13 @@ namespace Xenko.Graphics.Tests
             var source = Image.New1D(Size, true, PixelFormat.R8_UNorm);
 
             // 9 buffers: 256 + 128 + 64 + 32 + 16 + 8 + 4 + 2 + 1
-            Assert.AreEqual(source.TotalSizeInBytes, ExpectedSizePerArraySlice);
-            Assert.AreEqual(source.PixelBuffer.Count, bufferCount);
+            Assert.Equal(source.TotalSizeInBytes, ExpectedSizePerArraySlice);
+            Assert.Equal(source.PixelBuffer.Count, bufferCount);
 
             // Check with array size
             var dest = Image.New1D(Size, true, PixelFormat.R8_UNorm, 6);
-            Assert.AreEqual(dest.TotalSizeInBytes, ExpectedSizePerArraySlice * 6);
-            Assert.AreEqual(dest.PixelBuffer.Count, bufferCount * 6);
+            Assert.Equal(dest.TotalSizeInBytes, ExpectedSizePerArraySlice * 6);
+            Assert.Equal(dest.PixelBuffer.Count, bufferCount * 6);
 
             ManipulateImage(source, dest, 5, 0, 0);
 
@@ -71,7 +69,7 @@ namespace Xenko.Graphics.Tests
         /// <summary>
         /// Tests Image 2D.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestImage2D()
         {
             const int Size = 256; // must be > 256 to work
@@ -81,13 +79,13 @@ namespace Xenko.Graphics.Tests
             var source = Image.New2D(Size, Size, true, PixelFormat.R8_UNorm);
 
             // 9 buffers: 256 + 128 + 64 + 32 + 16 + 8 + 4 + 2 + 1
-            Assert.AreEqual(source.TotalSizeInBytes, expectedSizePerArraySlice);
-            Assert.AreEqual(source.PixelBuffer.Count, bufferCount);
+            Assert.Equal(source.TotalSizeInBytes, expectedSizePerArraySlice);
+            Assert.Equal(source.PixelBuffer.Count, bufferCount);
 
             // Check with array size
             var dest = Image.New2D(Size, Size, true, PixelFormat.R8_UNorm, 6);
-            Assert.AreEqual(dest.TotalSizeInBytes, expectedSizePerArraySlice * 6);
-            Assert.AreEqual(dest.PixelBuffer.Count, bufferCount * 6);
+            Assert.Equal(dest.TotalSizeInBytes, expectedSizePerArraySlice * 6);
+            Assert.Equal(dest.PixelBuffer.Count, bufferCount * 6);
 
             ManipulateImage(source, dest, 5, 0, 0);
 
@@ -99,7 +97,7 @@ namespace Xenko.Graphics.Tests
         /// <summary>
         /// Tests Image 2D.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestImage3D()
         {
             const int Size = 64; // must be > 256 to work
@@ -111,8 +109,8 @@ namespace Xenko.Graphics.Tests
             var source = Image.New3D(Size, Size, Size, true, PixelFormat.R8_UNorm);
 
             // 9 buffers: 256 + 128 + 64 + 32 + 16 + 8 + 4 + 2 + 1
-            Assert.AreEqual(source.TotalSizeInBytes, expectedSizePerArraySlice);
-            Assert.AreEqual(source.PixelBuffer.Count, expectedTotalBufferCount);
+            Assert.Equal(source.TotalSizeInBytes, expectedSizePerArraySlice);
+            Assert.Equal(source.PixelBuffer.Count, expectedTotalBufferCount);
 
             var dest = Image.New3D(Size, Size, Size, true, PixelFormat.R8_UNorm);
 
@@ -137,11 +135,11 @@ namespace Xenko.Graphics.Tests
 
             // Use Get Pixels
             var fromPixels = fromPixelBuffer.GetPixels<byte>();
-            Assert.AreEqual(fromPixels.Length, source.Description.Width * source.Description.Height);
+            Assert.Equal(fromPixels.Length, source.Description.Width * source.Description.Height);
 
             // Check values
-            Assert.AreEqual(fromPixels[0], 255);
-            Assert.AreEqual(fromPixels[16], 128);
+            Assert.Equal(fromPixels[0], 255);
+            Assert.Equal(fromPixels[16], 128);
 
             // Use Set Pixels
             fromPixels[0] = 1;
@@ -149,12 +147,11 @@ namespace Xenko.Graphics.Tests
             fromPixelBuffer.SetPixels(fromPixels);
 
             // Use Get Pixel
-            Assert.AreEqual(fromPixelBuffer.GetPixel<byte>(0, 0), 1);
-            Assert.AreEqual(fromPixelBuffer.GetPixel<byte>(16, 0), 2);
+            Assert.Equal(fromPixelBuffer.GetPixel<byte>(0, 0), 1);
+            Assert.Equal(fromPixelBuffer.GetPixel<byte>(16, 0), 2);
         }
 
-        [Test]
-        [Ignore("")]
+        [Fact(Skip="Ignored")]
         public void TestPerfLoadSave()
         {
             Image image;
@@ -181,7 +178,7 @@ namespace Xenko.Graphics.Tests
             image.Dispose();
         }
 
-        [Test]
+        [Fact]
         public void TestLoadAndSave()
         {
             foreach (ImageFileType sourceFormat in Enum.GetValues(typeof(ImageFileType)))
@@ -212,7 +209,7 @@ namespace Xenko.Graphics.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void TestLoadPremultiplied()
         {
             var intermediateFormat = ImageFileType.Png;
@@ -326,10 +323,10 @@ namespace Xenko.Graphics.Tests
         internal static void CompareImage(Image from, Image to, bool ignoreAlpha, int allowedDifference = 0, string file = null)
         {
             // Check that description is identical to original image loaded from the disk.
-            Assert.AreEqual(from.Description, to.Description, "Image description is different for image [{0}]", file);
+            Assert.True(from.Description == to.Description, $"Image description is different for image [{file}]");
 
             // Check that number of buffers are identical.
-            Assert.AreEqual(from.PixelBuffer.Count, to.PixelBuffer.Count, "PixelBuffer size is different for image [{0}]", file);
+            Assert.True(from.PixelBuffer.Count == to.PixelBuffer.Count, $"PixelBuffer size is different for image [{file}]");
 
             // Compare each pixel buffer
             for (int j = 0; j < from.PixelBuffer.Count; j++)
@@ -338,8 +335,8 @@ namespace Xenko.Graphics.Tests
                 var dstPixelBuffer = to.PixelBuffer[j];
 
                 // Check only row and slice pitchs
-                Assert.AreEqual(srcPixelBuffer.RowStride, dstPixelBuffer.RowStride, "RowPitch are different for index [{0}], image [{1}]", j, file);
-                Assert.AreEqual(srcPixelBuffer.BufferStride, dstPixelBuffer.BufferStride, "SlicePitch are different for index [{0}], image [{1}]", j, file);
+                Assert.True(srcPixelBuffer.RowStride == dstPixelBuffer.RowStride, $"RowPitch are different for index [{j}], image [{file}]");
+                Assert.True(srcPixelBuffer.BufferStride == dstPixelBuffer.BufferStride, $"SlicePitch are different for index [{j}], image [{file}]");
 
                 var isSameBuffer = CompareImageData(srcPixelBuffer.DataPointer, dstPixelBuffer.DataPointer, srcPixelBuffer.BufferStride, ignoreAlpha, allowedDifference);
                 //if (!isSameBuffer)
@@ -352,7 +349,7 @@ namespace Xenko.Graphics.Tests
                 //    stream.Close();
                 //}
 
-                Assert.True(isSameBuffer, "Content of PixelBuffer is different for index [{0}], image [{1}]", j, file);
+                Assert.True(isSameBuffer, $"Content of PixelBuffer is different for index [{j}], image [{file}]");
             }
         }
 

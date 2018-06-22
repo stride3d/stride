@@ -2,11 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Quantum.Tests
 {
-    [TestFixture]
     public class TestGraphVisitor
     {
         public class SimpleClass
@@ -70,7 +69,7 @@ namespace Xenko.Core.Quantum.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleObject()
         {
             var nodeContainer = new NodeContainer();
@@ -102,7 +101,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyNodesAndPath(expectedNodes, expectedPaths, visitor);
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleObjectInitialPath()
         {
             var nodeContainer = new NodeContainer();
@@ -139,7 +138,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyNodesAndPath(expectedNodes, expectedPaths, visitor);
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleObjectWithNull()
         {
             var nodeContainer = new NodeContainer();
@@ -162,7 +161,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyNodesAndPath(expectedNodes, expectedPaths, visitor);
         }
 
-        [Test]
+        [Fact]
         public void TestObjectWithStruct()
         {
             var nodeContainer = new NodeContainer();
@@ -194,7 +193,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyNodesAndPath(expectedNodes, expectedPaths, visitor);
         }
 
-        [Test]
+        [Fact]
         public void TestObjectWithPrimitiveList()
         {
             var nodeContainer = new NodeContainer();
@@ -220,7 +219,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyNodesAndPath(expectedNodes, expectedPaths, visitor);
         }
         
-        [Test]
+        [Fact]
         public void TestObjectWithObjectList()
         {
             var nodeContainer = new NodeContainer();
@@ -265,7 +264,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyNodesAndPath(expectedNodes, expectedPaths, visitor);
         }
 
-        [Test]
+        [Fact]
         public void TestObjectWithStructList()
         {
             var nodeContainer = new NodeContainer();
@@ -310,7 +309,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyNodesAndPath(expectedNodes, expectedPaths, visitor);
         }
 
-        [Test]
+        [Fact]
         public void TestCircularReference()
         {
             var nodeContainer = new NodeContainer();
@@ -370,7 +369,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyNodesAndPath(expectedNodes, expectedPaths, visitor);
         }
 
-        [Test]
+        [Fact]
         public void TestMultipleReferences()
         {
             var nodeContainer = new NodeContainer();
@@ -435,12 +434,12 @@ namespace Xenko.Core.Quantum.Tests
 
         private static void VerifyNodesAndPath(IReadOnlyList<IGraphNode> expectedNodes, IReadOnlyList<GraphNodePath> expectedPaths, TestVisitor visitor)
         {
-            Assert.AreEqual(expectedNodes.Count, visitor.Result.Count);
-            Assert.AreEqual(expectedPaths.Count, visitor.Result.Count);
+            Assert.Equal(expectedNodes.Count, visitor.Result.Count);
+            Assert.Equal(expectedPaths.Count, visitor.Result.Count);
             for (var i = 0; i < expectedNodes.Count; i++)
             {
-                Assert.AreEqual(expectedNodes[i], visitor.Result[i].Item1);
-                Assert.AreEqual(expectedPaths[i], visitor.Result[i].Item2);
+                Assert.Equal(expectedNodes[i], visitor.Result[i].Item1);
+                Assert.Equal(expectedPaths[i], visitor.Result[i].Item2);
             }
         }
     }

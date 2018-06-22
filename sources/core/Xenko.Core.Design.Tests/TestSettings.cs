@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Settings;
 
 namespace Xenko.Core.Design.Tests
@@ -42,16 +42,10 @@ namespace Xenko.Core.Design.Tests
         }
     }
 
-    [TestFixture]
-    class TestSettings
+    public class TestSettings
     {
         public static Guid SessionGuid = Guid.NewGuid();
         public static SettingsContainer SettingsContainer = new SettingsContainer();
-        [SetUp]
-        public static void InitializeSettings()
-        {
-            SettingsContainer.ClearSettings();
-        }
 
         public static string TempPath(string file)
         {
@@ -60,35 +54,40 @@ namespace Xenko.Core.Design.Tests
             return Path.Combine(dir, file);
         }
 
-        [Test]
+        public TestSettings()
+        {
+            SettingsContainer.ClearSettings();
+        }
+
+        [Fact]
         public void TestSettingsInitialization()
         {
             ValueSettingsKeys.Initialize();
-            Assert.AreEqual(10, ValueSettingsKeys.IntValue.GetValue());
-            Assert.AreEqual(3.14, ValueSettingsKeys.DoubleValue.GetValue());
-            Assert.AreEqual("Test string", ValueSettingsKeys.StringValue.GetValue());
+            Assert.Equal(10, ValueSettingsKeys.IntValue.GetValue());
+            Assert.Equal(3.14, ValueSettingsKeys.DoubleValue.GetValue());
+            Assert.Equal("Test string", ValueSettingsKeys.StringValue.GetValue());
         }
 
-        [Test]
+        [Fact]
         public void TestSettingsWrite()
         {
             ValueSettingsKeys.Initialize();
             ValueSettingsKeys.IntValue.SetValue(20);
             ValueSettingsKeys.DoubleValue.SetValue(6.5);
             ValueSettingsKeys.StringValue.SetValue("New string");
-            Assert.AreEqual(20, ValueSettingsKeys.IntValue.GetValue());
-            Assert.AreEqual(6.5, ValueSettingsKeys.DoubleValue.GetValue());
-            Assert.AreEqual("New string", ValueSettingsKeys.StringValue.GetValue());
+            Assert.Equal(20, ValueSettingsKeys.IntValue.GetValue());
+            Assert.Equal(6.5, ValueSettingsKeys.DoubleValue.GetValue());
+            Assert.Equal("New string", ValueSettingsKeys.StringValue.GetValue());
 
             ValueSettingsKeys.IntValue.SetValue(30);
             ValueSettingsKeys.DoubleValue.SetValue(9.1);
             ValueSettingsKeys.StringValue.SetValue("Another string");
-            Assert.AreEqual(30, ValueSettingsKeys.IntValue.GetValue());
-            Assert.AreEqual(9.1, ValueSettingsKeys.DoubleValue.GetValue());
-            Assert.AreEqual("Another string", ValueSettingsKeys.StringValue.GetValue());
+            Assert.Equal(30, ValueSettingsKeys.IntValue.GetValue());
+            Assert.Equal(9.1, ValueSettingsKeys.DoubleValue.GetValue());
+            Assert.Equal("Another string", ValueSettingsKeys.StringValue.GetValue());
         }
 
-        [Test]
+        [Fact]
         public void TestSettingsValueChanged()
         {
             // We use an array to avoid a closure issue (resharper)
@@ -104,11 +103,11 @@ namespace Xenko.Core.Design.Tests
             ValueSettingsKeys.DoubleValue.SetValue(6.5);
             ValueSettingsKeys.StringValue.SetValue("New string");
             SettingsContainer.CurrentProfile.ValidateSettingsChanges();
-            Assert.AreEqual(3, settingsChangedCount[0]);
+            Assert.Equal(3, settingsChangedCount[0]);
             settingsChangedCount[0] = 0;
         }
 
-        [Test]
+        [Fact]
         public void TestSettingsList()
         {
             ListSettingsKeys.Initialize();
@@ -123,14 +122,14 @@ namespace Xenko.Core.Design.Tests
             stringList[2] = "String 2.0";
 
             intList = ListSettingsKeys.IntList.GetValue();
-            Assert.That(intList, Is.EquivalentTo(new[] { 1, 3 }));
+            Assert.Equal(intList, new[] { 1, 3 });
             doubleList = ListSettingsKeys.DoubleList.GetValue();
-            Assert.That(doubleList, Is.EquivalentTo(new[] { 9.0 }));
+            Assert.Equal(doubleList, new[] { 9.0 });
             stringList = ListSettingsKeys.StringList.GetValue();
-            Assert.That(stringList, Is.EquivalentTo(new[] { "String 1", "String 1.5", "String 2.0", "String 3" }));
+            Assert.Equal(stringList, new[] { "String 1", "String 1.5", "String 2.0", "String 3" });
         }
 
-        [Test]
+        [Fact]
         public void TestSettingsSaveAndLoad()
         {
             TestSettingsWrite();
@@ -138,16 +137,16 @@ namespace Xenko.Core.Design.Tests
             SettingsContainer.SaveSettingsProfile(SettingsContainer.CurrentProfile, TempPath("TestSettingsSaveAndLoad.txt"));
             SettingsContainer.LoadSettingsProfile(TempPath("TestSettingsSaveAndLoad.txt"), true);
 
-            Assert.AreEqual(30, ValueSettingsKeys.IntValue.GetValue());
-            Assert.AreEqual(9.1, ValueSettingsKeys.DoubleValue.GetValue());
-            Assert.AreEqual("Another string", ValueSettingsKeys.StringValue.GetValue());
+            Assert.Equal(30, ValueSettingsKeys.IntValue.GetValue());
+            Assert.Equal(9.1, ValueSettingsKeys.DoubleValue.GetValue());
+            Assert.Equal("Another string", ValueSettingsKeys.StringValue.GetValue());
 
             var intList = ListSettingsKeys.IntList.GetValue();
-            Assert.That(intList, Is.EquivalentTo(new[] { 1, 3 }));
+            Assert.Equal(intList, new[] { 1, 3 });
             var doubleList = ListSettingsKeys.DoubleList.GetValue();
-            Assert.That(doubleList, Is.EquivalentTo(new[] { 9.0 }));
+            Assert.Equal(doubleList, new[] { 9.0 });
             var stringList = ListSettingsKeys.StringList.GetValue();
-            Assert.That(stringList, Is.EquivalentTo(new[] { "String 1", "String 1.5", "String 2.0", "String 3" }));
+            Assert.Equal(stringList, new[] { "String 1", "String 1.5", "String 2.0", "String 3" });
         }
 
         const string TestSettingsLoadFileText =
@@ -167,7 +166,7 @@ Settings:
     Test/Simple/IntValue: 45
     Test/Simple/StringValue: 07/25/2004 18:18:00";
 
-        [Test]
+        [Fact]
         public void TestSettingsLoad()
         {
             using (var writer = new StreamWriter(TempPath("TestSettingsLoad.txt")))
@@ -178,15 +177,15 @@ Settings:
 
             ValueSettingsKeys.Initialize();
             ListSettingsKeys.Initialize();
-            Assert.AreEqual(45, ValueSettingsKeys.IntValue.GetValue());
-            Assert.AreEqual(25.0, ValueSettingsKeys.DoubleValue.GetValue());
-            Assert.AreEqual(new DateTime(2004, 7, 25, 18, 18, 00).ToString(CultureInfo.InvariantCulture), ValueSettingsKeys.StringValue.GetValue());
+            Assert.Equal(45, ValueSettingsKeys.IntValue.GetValue());
+            Assert.Equal(25.0, ValueSettingsKeys.DoubleValue.GetValue());
+            Assert.Equal(new DateTime(2004, 7, 25, 18, 18, 00).ToString(CultureInfo.InvariantCulture), ValueSettingsKeys.StringValue.GetValue());
             var intList = ListSettingsKeys.IntList.GetValue();
-            Assert.That(intList, Is.EquivalentTo(new[] { 1, 3 }));
+            Assert.Equal(intList, new[] { 1, 3 });
             var doubleList = ListSettingsKeys.DoubleList.GetValue();
-            Assert.That(doubleList, Is.EquivalentTo(new[] { 9.0 }));
+            Assert.Equal(doubleList, new[] { 9.0 });
             var stringList = ListSettingsKeys.StringList.GetValue();
-            Assert.That(stringList, Is.EquivalentTo(new[] { "String 1", "String 1.5", "String 2", "String 3" }));
+            Assert.Equal(stringList, new[] { "String 1", "String 1.5", "String 2", "String 3" });
         }
 
         const string TestSettingsValueChangedOnLoadText =
@@ -202,7 +201,7 @@ Settings:
     Test/Simple/IntValue: 45 # Different from default
     # String value unset";
         
-        [Test]
+        [Fact]
         public void TestSettingsValueChangedOnLoad()
         {
             ValueSettingsKeys.Initialize();
@@ -228,12 +227,12 @@ Settings:
             SettingsContainer.LoadSettingsProfile(TempPath("TestSettingsValueChangedOnLoadText.txt"), true);
             SettingsContainer.CurrentProfile.ValidateSettingsChanges();
 
-            Assert.AreEqual(1, intValueChangeCount);
-            Assert.AreEqual(0, doubleValueChangeCount);
-            Assert.AreEqual(0, stringValueChangeCount);
-            Assert.AreEqual(1, intListChangeCount);
-            Assert.AreEqual(0, doubleListChangeCount);
-            Assert.AreEqual(0, stringListChangeCount);
+            Assert.Equal(1, intValueChangeCount);
+            Assert.Equal(0, doubleValueChangeCount);
+            Assert.Equal(0, stringValueChangeCount);
+            Assert.Equal(1, intListChangeCount);
+            Assert.Equal(0, doubleListChangeCount);
+            Assert.Equal(0, stringListChangeCount);
         }
 
         const string TestSettingsLoadWrongTypeFileText =
@@ -248,7 +247,7 @@ Settings:
         - String 1
         - String 2";
 
-        [Test]
+        [Fact]
         public void TestSettingsLoadWrongType()
         {
             using (var writer = new StreamWriter(TempPath("TestSettingsLoadWrongType.txt")))
@@ -259,13 +258,13 @@ Settings:
 
             ValueSettingsKeys.Initialize();
             ListSettingsKeys.Initialize();
-            Assert.AreEqual(ValueSettingsKeys.IntValue.DefaultValue, ValueSettingsKeys.IntValue.GetValue());
-            Assert.AreEqual(ValueSettingsKeys.DoubleValue.DefaultValue, ValueSettingsKeys.DoubleValue.GetValue());
-            Assert.AreEqual(ValueSettingsKeys.StringValue.DefaultValue, ValueSettingsKeys.StringValue.GetValue());
+            Assert.Equal(ValueSettingsKeys.IntValue.DefaultValue, ValueSettingsKeys.IntValue.GetValue());
+            Assert.Equal(ValueSettingsKeys.DoubleValue.DefaultValue, ValueSettingsKeys.DoubleValue.GetValue());
+            Assert.Equal(ValueSettingsKeys.StringValue.DefaultValue, ValueSettingsKeys.StringValue.GetValue());
             var intList = ListSettingsKeys.IntList.GetValue();
-            Assert.That(intList, Is.EquivalentTo(ListSettingsKeys.IntList.DefaultValue));
+            Assert.Equal(intList, ListSettingsKeys.IntList.DefaultValue);
             var doubleList = ListSettingsKeys.DoubleList.GetValue();
-            Assert.That(doubleList, Is.EquivalentTo(ListSettingsKeys.DoubleList.DefaultValue));
+            Assert.Equal(doubleList, ListSettingsKeys.DoubleList.DefaultValue);
         }
 
         const string TestSettingsFileModifiedText1 =
@@ -278,7 +277,7 @@ Settings:
 Settings:
     Test/Simple/IntValue: 75";
 
-        [Test]
+        [Fact]
         public void TestSettingsFileModified()
         {
             // NUnit does not support async tests so lets wrap this task into a synchronous operation
@@ -298,7 +297,7 @@ Settings:
                         SettingsContainer.CurrentProfile.FileModified += settingsModified;
                         ValueSettingsKeys.Initialize();
                         ListSettingsKeys.Initialize();
-                        Assert.AreEqual(55, ValueSettingsKeys.IntValue.GetValue());
+                        Assert.Equal(55, ValueSettingsKeys.IntValue.GetValue());
 
                         SettingsContainer.SettingsFileLoaded += settingsLoaded;
 
@@ -310,7 +309,7 @@ Settings:
                         // Gives some time to the file watcher to awake.
                         await tcs.Task;
 
-                        Assert.AreEqual(75, ValueSettingsKeys.IntValue.GetValue());
+                        Assert.Equal(75, ValueSettingsKeys.IntValue.GetValue());
                         SettingsContainer.SettingsFileLoaded -= settingsLoaded;
                     }
                     catch

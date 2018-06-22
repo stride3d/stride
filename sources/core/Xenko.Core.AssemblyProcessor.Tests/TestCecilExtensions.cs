@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Mono.Cecil;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.AssemblyProcessor.Tests
 {
@@ -39,10 +39,10 @@ namespace Xenko.Core.AssemblyProcessor.Tests
         {
             var nameCecil = GenerateNameCecil(type);
             var nameDotNet = GenerateNameDotNet(type);
-            Assert.That(nameCecil, Is.EqualTo(nameDotNet));
+            Assert.Equal(nameDotNet, nameCecil);
         }
 
-        [Test]
+        [Fact]
         public void TestCecilDotNetAssemblyQualifiedNames()
         {
             // Primitive value type

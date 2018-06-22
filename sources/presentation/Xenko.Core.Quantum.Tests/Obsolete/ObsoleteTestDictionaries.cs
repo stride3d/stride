@@ -2,13 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Quantum.References;
 
 namespace Xenko.Core.Quantum.Tests.Obsolete
 {
-    [TestFixture(Ignore = "Obsolete")]
     class ObsoleteTestDictionaries
     {
         #region Test class definitions
@@ -70,7 +69,7 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
         }
         #endregion Test class definitions
 
-        [Test]
+        [Fact]
         public void TestConstruction()
         {
             var obj = new ClassWithDictionaries();
@@ -86,23 +85,23 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
             {
                 enumerator.MoveNext();
                 var keyValuePair = enumerator.Current;
-                Assert.That(reference.Index, Is.EqualTo(keyValuePair.Key));
-                Assert.That(reference.ObjectValue, Is.EqualTo(keyValuePair.Value));
+                Assert.Equal(keyValuePair.Key, reference.Index);
+                Assert.Equal(keyValuePair.Value, reference.ObjectValue);
             }
-            //Assert.That(model.GetChild("SimpleStructList").Children.Count, Is.EqualTo(0));
+            //Assert.Equal(0, model.GetChild("SimpleStructList").Children.Count);
             //Assert.That(model.GetChild("SimpleStructList").Content.Value, Is.SameAs(obj.SimpleStructList));
             //Assert.That(model.GetChild("SimpleStructList").Content.Reference, Is.AssignableFrom(typeof(ReferenceEnumerable)));
-            //Assert.That(model.GetChild("NestedStructList").Children.Count, Is.EqualTo(0));
+            //Assert.Equal(0, model.GetChild("NestedStructList").Children.Count);
             //Assert.That(model.GetChild("NestedStructList").Content.Value, Is.SameAs(obj.NestedStructList));
             //Assert.That(model.GetChild("NestedStructList").Content.Reference, Is.AssignableFrom(typeof(ReferenceEnumerable)));
-            //Assert.That(model.GetChild("ListOfSimpleStructLists").Children.Count, Is.EqualTo(0));
+            //Assert.Equal(0, model.GetChild("ListOfSimpleStructLists").Children.Count);
             //Assert.That(model.GetChild("ListOfSimpleStructLists").Content.Value, Is.SameAs(obj.ListOfSimpleStructLists));
             //Assert.That(model.GetChild("ListOfSimpleStructLists").Content.Reference, Is.AssignableFrom(typeof(ReferenceEnumerable)));
             //foreach (var reference in (ReferenceEnumerable)model.GetChild("ListOfSimpleStructLists").Content.Reference)
             //{
             //    Assert.That(reference, Is.AssignableFrom(typeof(ReferenceEnumerable)));
             //}
-            //Assert.That(model.GetChild("ListOfNestedStructLists").Children.Count, Is.EqualTo(0));
+            //Assert.Equal(0, model.GetChild("ListOfNestedStructLists").Children.Count);
             //Assert.That(model.GetChild("ListOfNestedStructLists").Content.Value, Is.SameAs(obj.ListOfNestedStructLists));
             //Assert.That(model.GetChild("ListOfNestedStructLists").Content.Reference, Is.AssignableFrom(typeof(ReferenceEnumerable)));
             //foreach (var reference in (ReferenceEnumerable)model.GetChild("ListOfNestedStructLists").Content.Reference)
@@ -111,10 +110,10 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
             //}
 
             //Assert.That(container.GetNode(obj.ClassList[0]), !Is.Null);
-            //Assert.That(container.Guids.Count(), Is.EqualTo(10));
+            //Assert.Equal(10, container.Guids.Count());
         }
 
-        [Test]
+        [Fact]
         public void TestPrimitiveItemUpdate()
         {
             var obj = new ClassWithDictionaries();
@@ -122,9 +121,9 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
             var model = container.GetOrCreateNode(obj);
             ((Dictionary<string, int>)model["StringIntDic"].Retrieve())["b"] = 42;
             ((Dictionary<string, int>)model["StringIntDic"].Retrieve()).Add("d", 26);
-            Assert.That(obj.StringIntDic.Count, Is.EqualTo(4));
-            Assert.That(obj.StringIntDic["b"], Is.EqualTo(42));
-            Assert.That(obj.StringIntDic["d"], Is.EqualTo(26));
+            Assert.Equal(4, obj.StringIntDic.Count);
+            Assert.Equal(42, obj.StringIntDic["b"]);
+            Assert.Equal(26, obj.StringIntDic["d"]);
         }
 
     }

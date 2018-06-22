@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Annotations;
 using Xenko.Core.Diagnostics;
 
@@ -54,7 +54,7 @@ namespace Xenko.Core.Assets.Quantum.Tests.Helpers
         {
             var baseGraph = AssetQuantumRegistry.ConstructPropertyGraph(Container, AssetItem, logger);
             Container.RegisterGraph(baseGraph);
-            Assert.IsInstanceOf<TAssetPropertyGraph>(baseGraph);
+            Assert.True(baseGraph is TAssetPropertyGraph);
             Graph = (TAssetPropertyGraph)baseGraph;
         }
 

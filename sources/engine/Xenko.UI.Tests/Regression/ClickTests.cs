@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
@@ -176,7 +176,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        [Test]
+        [Fact]
         public void RunClickTests()
         {
             RunGameTest(new ClickTests());

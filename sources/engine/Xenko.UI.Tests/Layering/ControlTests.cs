@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.UI.Controls;
 
@@ -12,7 +12,7 @@ namespace Xenko.UI.Tests.Layering
     /// <summary>
     /// Unit tests for <see cref="Control"/>
     /// </summary>
-    class ControlTests : Control
+    public class ControlTests : Control
     {
         protected override IEnumerable<IUIElementChildren> EnumerateChildren()
         {
@@ -27,19 +27,19 @@ namespace Xenko.UI.Tests.Layering
             TestProperties();
         }
 
-        [Test]
+        [Fact]
         public void TestProperties()
         {
             var control = new ControlTests();
 
             // test properties default values
-            Assert.AreEqual(Thickness.UniformCuboid(0), control.Padding);
+            Assert.Equal(Thickness.UniformCuboid(0), control.Padding);
         }
         
         /// <summary>
         /// Test the invalidations generated object property changes.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestBasicInvalidations()
         {
             // - test the properties that are not supposed to invalidate the object layout state

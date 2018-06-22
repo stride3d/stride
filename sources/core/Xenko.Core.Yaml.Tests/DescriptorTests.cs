@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Reflection;
 using Xenko.Core.Yaml.Serialization;
 
@@ -97,7 +97,7 @@ namespace Xenko.Core.Yaml.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void TestObjectDescriptor()
         {
             var attributeRegistry = new AttributeRegistry();
@@ -110,10 +110,10 @@ namespace Xenko.Core.Yaml.Tests
             descriptor.Initialize(new DefaultKeyComparer());
 
             // Verify members
-            Assert.AreEqual(8, descriptor.Count);
+            Assert.Equal(8, descriptor.Count);
 
             // Check names and their orders
-            Assert.AreEqual(descriptor.Members.Select(memberDescriptor => memberDescriptor.Name), new[]
+            Assert.Equal(descriptor.Members.Select(memberDescriptor => memberDescriptor.Name), new[]
             {
                 "Collection",
                 "CollectionReadOnly",
@@ -128,14 +128,14 @@ namespace Xenko.Core.Yaml.Tests
             var instance = new TestObject {Name = "Yes", Property = "property"};
 
             // Check field accessor
-            Assert.AreEqual("Yes", descriptor[nameof(TestObject.Name)].Get(instance));
+            Assert.Equal("Yes", descriptor[nameof(TestObject.Name)].Get(instance));
             descriptor[nameof(TestObject.Name)].Set(instance, "No");
-            Assert.AreEqual("No", instance.Name);
+            Assert.Equal("No", instance.Name);
 
             // Check property accessor
-            Assert.AreEqual("property", descriptor[nameof(TestObject.Property)].Get(instance));
+            Assert.Equal("property", descriptor[nameof(TestObject.Property)].Get(instance));
             descriptor[nameof(TestObject.Property)].Set(instance, "property1");
-            Assert.AreEqual("property1", instance.Property);
+            Assert.Equal("property1", instance.Property);
 
             // Check ShouldSerialize
             Assert.True(descriptor[nameof(TestObject.Name)].ShouldSerialize(instance));
@@ -163,7 +163,7 @@ namespace Xenko.Core.Yaml.Tests
             public string CustomName { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void TestObjectWithCustomNamingConvention()
         {
             var attributeRegistry = new AttributeRegistry();
@@ -172,7 +172,7 @@ namespace Xenko.Core.Yaml.Tests
             descriptor.Initialize(new DefaultKeyComparer());
 
             // Check names and their orders
-            Assert.AreEqual(descriptor.Members.Select(memberDescriptor => memberDescriptor.Name), new[]
+            Assert.Equal(descriptor.Members.Select(memberDescriptor => memberDescriptor.Name), new[]
             {
                 "myname",
                 "name",
@@ -188,7 +188,7 @@ namespace Xenko.Core.Yaml.Tests
             public string Name { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void TestCollectionDescriptor()
         {
             var attributeRegistry = new AttributeRegistry();
@@ -197,26 +197,26 @@ namespace Xenko.Core.Yaml.Tests
             descriptor.Initialize(new DefaultKeyComparer());
 
             // No Capacity as a member
-            Assert.AreEqual(0, descriptor.Count);
+            Assert.Equal(0, descriptor.Count);
             Assert.True(descriptor.IsPureCollection);
-            Assert.AreEqual(typeof(string), descriptor.ElementType);
+            Assert.Equal(typeof(string), descriptor.ElementType);
 
             descriptor = new CollectionDescriptor(factory, typeof(NonPureCollection), false,
                 new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
 
             // Has name as a member
-            Assert.AreEqual(1, descriptor.Count);
+            Assert.Equal(1, descriptor.Count);
             Assert.False(descriptor.IsPureCollection);
-            Assert.AreEqual(typeof(int), descriptor.ElementType);
+            Assert.Equal(typeof(int), descriptor.ElementType);
 
             descriptor = new CollectionDescriptor(factory, typeof(ArrayList), false, new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
 
             // No Capacity
-            Assert.AreEqual(0, descriptor.Count);
+            Assert.Equal(0, descriptor.Count);
             Assert.True(descriptor.IsPureCollection);
-            Assert.AreEqual(typeof(object), descriptor.ElementType);
+            Assert.Equal(typeof(object), descriptor.ElementType);
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace Xenko.Core.Yaml.Tests
             public string Name { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void TestDictionaryDescriptor()
         {
             var attributeRegistry = new AttributeRegistry();
@@ -236,21 +236,21 @@ namespace Xenko.Core.Yaml.Tests
                 new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
 
-            Assert.AreEqual(0, descriptor.Count);
+            Assert.Equal(0, descriptor.Count);
             Assert.True(descriptor.IsPureDictionary);
-            Assert.AreEqual(typeof(int), descriptor.KeyType);
-            Assert.AreEqual(typeof(string), descriptor.ValueType);
+            Assert.Equal(typeof(int), descriptor.KeyType);
+            Assert.Equal(typeof(string), descriptor.ValueType);
 
             descriptor = new DictionaryDescriptor(factory, typeof(NonPureDictionary), false,
                 new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
-            Assert.AreEqual(1, descriptor.Count);
+            Assert.Equal(1, descriptor.Count);
             Assert.False(descriptor.IsPureDictionary);
-            Assert.AreEqual(typeof(float), descriptor.KeyType);
-            Assert.AreEqual(typeof(object), descriptor.ValueType);
+            Assert.Equal(typeof(float), descriptor.KeyType);
+            Assert.Equal(typeof(object), descriptor.ValueType);
         }
 
-        [Test]
+        [Fact]
         public void TestArrayDescriptor()
         {
             var attributeRegistry = new AttributeRegistry();
@@ -258,8 +258,8 @@ namespace Xenko.Core.Yaml.Tests
             var descriptor = new ArrayDescriptor(factory, typeof(int[]), false, new DefaultNamingConvention());
             descriptor.Initialize(new DefaultKeyComparer());
 
-            Assert.AreEqual(0, descriptor.Count);
-            Assert.AreEqual(typeof(int), descriptor.ElementType);
+            Assert.Equal(0, descriptor.Count);
+            Assert.Equal(typeof(int), descriptor.ElementType);
         }
 
         public enum MyEnum
@@ -268,13 +268,13 @@ namespace Xenko.Core.Yaml.Tests
             B
         }
 
-        [Test]
+        [Fact]
         public void TestPrimitiveDescriptor()
         {
             var attributeRegistry = new AttributeRegistry();
             var factory = new TypeDescriptorFactory(attributeRegistry);
             var descriptor = new PrimitiveDescriptor(factory, typeof(int), false, new DefaultNamingConvention());
-            Assert.AreEqual(0, descriptor.Count);
+            Assert.Equal(0, descriptor.Count);
 
             Assert.True(PrimitiveDescriptor.IsPrimitive(typeof(MyEnum)));
             Assert.True(PrimitiveDescriptor.IsPrimitive(typeof(object)));

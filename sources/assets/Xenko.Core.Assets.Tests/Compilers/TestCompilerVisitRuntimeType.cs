@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Analysis;
 using Xenko.Core.Assets.Compiler;
 using Xenko.Core.BuildEngine;
@@ -11,12 +11,13 @@ using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Core.Assets.Tests.Compilers
 {
-    [TestFixture]
     public class TestCompilerVisitRuntimeType : CompilerTestBase
     {
-        [Test]
+        [Fact]
         public void CompilerVisitRuntimeType()
         {
+            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+
             var package = new Package();
             // ReSharper disable once UnusedVariable - we need a package session to compile
             var packageSession = new PackageSession(package);
@@ -66,7 +67,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
             var assetBuilder = new PackageCompiler(new RootPackageAssetEnumerator(package));
             context.Properties.Set(BuildAssetNode.VisitRuntimeTypes, true);
             var assetBuildResult = assetBuilder.Prepare(context);
-            Assert.AreEqual(16, assetBuildResult.BuildSteps.Count);
+            Assert.Equal(16, assetBuildResult.BuildSteps.Count);
         }
 
         private static MyRuntimeType CreateRuntimeType(AssetItem beforeReference, AssetItem middleReference, AssetItem afterReference)

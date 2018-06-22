@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
@@ -202,7 +202,7 @@ namespace Xenko.UI.Tests.Regression
             scrollViewer.Content = element;
         }
         
-        [Test]
+        [Fact]
         public void RunScrollViewerAnchorTests()
         {
             RunGameTest(new ScrollViewerAnchorTest());

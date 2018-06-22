@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
@@ -185,7 +185,7 @@ namespace Xenko.Engine.NextGen
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [Fact]
         public void RunNextGenTest()
         {
             RunGameTest(new NextGenTest1());

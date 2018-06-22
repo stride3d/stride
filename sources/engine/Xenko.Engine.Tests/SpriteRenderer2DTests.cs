@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
 using Xenko.Graphics;
@@ -145,7 +145,7 @@ namespace Xenko.Engine.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void SpriteRender2DRun()
         {
             RunGameTest(new SpriteRenderer2DTests());

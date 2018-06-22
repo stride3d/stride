@@ -1,10 +1,9 @@
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Quantum.Tests.Helpers;
 using Xenko.Core.Assets.Tests.Helpers;
 
 namespace Xenko.Core.Assets.Quantum.Tests
 {
-    [TestFixture]
     public class TestAssetCompositeHierarchySerialization
     {
         const string SimpleHierarchyYaml = @"!MyAssetHierarchy
@@ -71,19 +70,19 @@ Hierarchy:
                     - ref!! 00000001-0001-0000-0100-000001000000
 ";
 
-        [Test]
+        [Fact]
         public void TestSimpleDeserialization()
         {
             var asset = AssetFileSerializer.Load<Types.MyAssetHierarchy>(AssetTestContainer.ToStream(SimpleHierarchyYaml), $"MyAsset{Types.FileExtension}");
-            Assert.AreEqual(2, asset.Asset.Hierarchy.RootParts.Count);
-            Assert.AreEqual(GuidGenerator.Get(2), asset.Asset.Hierarchy.RootParts[0].Id);
-            Assert.AreEqual(GuidGenerator.Get(1), asset.Asset.Hierarchy.RootParts[1].Id);
-            Assert.AreEqual(2, asset.Asset.Hierarchy.Parts.Count);
+            Assert.Equal(2, asset.Asset.Hierarchy.RootParts.Count);
+            Assert.Equal(GuidGenerator.Get(2), asset.Asset.Hierarchy.RootParts[0].Id);
+            Assert.Equal(GuidGenerator.Get(1), asset.Asset.Hierarchy.RootParts[1].Id);
+            Assert.Equal(2, asset.Asset.Hierarchy.Parts.Count);
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(1)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(2)));
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleSerialization()
         {
             //var asset = AssetFileSerializer.Load<Types.MyAssetHierarchy>(AssetTestContainer.ToStream(text), $"MyAsset{Types.FileExtension}");
@@ -97,25 +96,25 @@ Hierarchy:
             SerializationHelper.SerializeAndCompare(context.AssetItem, context.Graph, SimpleHierarchyYaml, false);
         }
 
-        [Test]
+        [Fact]
         public void TestNestedDeserialization()
         {
             var asset = AssetFileSerializer.Load<Types.MyAssetHierarchy>(AssetTestContainer.ToStream(NestedHierarchyYaml), $"MyAsset{Types.FileExtension}");
-            Assert.AreEqual(2, asset.Asset.Hierarchy.RootParts.Count);
-            Assert.AreEqual(GuidGenerator.Get(2), asset.Asset.Hierarchy.RootParts[0].Id);
-            Assert.AreEqual(GuidGenerator.Get(1), asset.Asset.Hierarchy.RootParts[1].Id);
-            Assert.AreEqual(4, asset.Asset.Hierarchy.Parts.Count);
+            Assert.Equal(2, asset.Asset.Hierarchy.RootParts.Count);
+            Assert.Equal(GuidGenerator.Get(2), asset.Asset.Hierarchy.RootParts[0].Id);
+            Assert.Equal(GuidGenerator.Get(1), asset.Asset.Hierarchy.RootParts[1].Id);
+            Assert.Equal(4, asset.Asset.Hierarchy.Parts.Count);
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(1)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(2)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(3)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(4)));
-            Assert.AreEqual(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children.Count);
-            Assert.AreEqual(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(2)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children[0]);
-            Assert.AreEqual(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children.Count);
-            Assert.AreEqual(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(1)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children[0]);
+            Assert.Equal(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children.Count);
+            Assert.Equal(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(2)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children[0]);
+            Assert.Equal(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children.Count);
+            Assert.Equal(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(1)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children[0]);
         }
 
-        [Test]
+        [Fact]
         public void TestNestedSerialization()
         {
             //var asset = AssetFileSerializer.Load<Types.MyAssetHierarchy>(AssetTestContainer.ToStream(text), $"MyAsset{Types.FileExtension}");
@@ -131,22 +130,22 @@ Hierarchy:
             SerializationHelper.SerializeAndCompare(context.AssetItem, context.Graph, NestedHierarchyYaml, false);
         }
 
-        [Test]
+        [Fact]
         public void TestMissortedPartsDeserialization()
         {
             var asset = AssetFileSerializer.Load<Types.MyAssetHierarchy>(AssetTestContainer.ToStream(MissortedHierarchyYaml), $"MyAsset{Types.FileExtension}");
-            Assert.AreEqual(2, asset.Asset.Hierarchy.RootParts.Count);
-            Assert.AreEqual(GuidGenerator.Get(2), asset.Asset.Hierarchy.RootParts[0].Id);
-            Assert.AreEqual(GuidGenerator.Get(1), asset.Asset.Hierarchy.RootParts[1].Id);
-            Assert.AreEqual(4, asset.Asset.Hierarchy.Parts.Count);
+            Assert.Equal(2, asset.Asset.Hierarchy.RootParts.Count);
+            Assert.Equal(GuidGenerator.Get(2), asset.Asset.Hierarchy.RootParts[0].Id);
+            Assert.Equal(GuidGenerator.Get(1), asset.Asset.Hierarchy.RootParts[1].Id);
+            Assert.Equal(4, asset.Asset.Hierarchy.Parts.Count);
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(1)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(2)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(3)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(4)));
-            Assert.AreEqual(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children.Count);
-            Assert.AreEqual(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(2)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children[0]);
-            Assert.AreEqual(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children.Count);
-            Assert.AreEqual(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(1)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children[0]);
+            Assert.Equal(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children.Count);
+            Assert.Equal(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(2)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children[0]);
+            Assert.Equal(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children.Count);
+            Assert.Equal(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(1)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children[0]);
         }
     }
 }

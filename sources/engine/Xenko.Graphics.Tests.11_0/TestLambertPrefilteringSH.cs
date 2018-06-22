@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core;
 using Xenko.Core.Mathematics;
@@ -164,7 +164,7 @@ namespace Xenko.Graphics.Tests
             base.Draw(gameTime);
         }
 
-        [Test]
+        [SkippableFact]
         public void RunTestPass2()
         {
             IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);

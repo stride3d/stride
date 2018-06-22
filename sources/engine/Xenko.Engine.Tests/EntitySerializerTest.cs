@@ -3,15 +3,15 @@
 
 using System;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Graphics.Regression;
 
 namespace Xenko.Engine.Tests
 {
-    class EntitySerializerTest : GameTestBase
+    public class EntitySerializerTest : GameTestBase
     {
-        [Test]
+        [Fact]
         public void TestSaveAndLoadEntities()
         {
             PerformTest(game =>
@@ -22,7 +22,7 @@ namespace Xenko.Engine.Tests
                 GC.Collect();
 
                 var entity2 = game.Content.Load<Entity>("EntityAssets/Entity");
-                Assert.AreEqual(entity.Transform.Position, entity2.Transform.Position);
+                Assert.Equal(entity.Transform.Position, entity2.Transform.Position);
             });
         }
     }

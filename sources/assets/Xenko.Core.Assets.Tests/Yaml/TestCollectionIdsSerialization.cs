@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Tests.Helpers;
 using Xenko.Core.Annotations;
 using Xenko.Core.Reflection;
@@ -12,7 +12,6 @@ using Xenko.Core.Yaml;
 
 namespace Xenko.Core.Assets.Tests.Yaml
 {
-    [TestFixture]
     public class TestCollectionIdsSerialization
     {
         public class ContainerCollection
@@ -209,7 +208,7 @@ Objects:
             }
         }
 
-        [Test]
+        [Fact]
         public void TestCollectionSerialization()
         {
             ShadowObject.Enable = true;
@@ -226,10 +225,10 @@ Objects:
             objectIds[0] = IdentifierGenerator.Get(3);
             objectIds[1] = IdentifierGenerator.Get(4);
             var yaml = SerializeAsString(obj);
-            Assert.AreEqual(YamlCollection, yaml);
+            Assert.Equal(YamlCollection, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestCollectionDeserialization()
         {
             ShadowObject.Enable = true;
@@ -240,24 +239,24 @@ Objects:
             stream.Position = 0;
             var instance = AssetYamlSerializer.Default.Deserialize(stream);
             Assert.NotNull(instance);
-            Assert.AreEqual(typeof(ContainerCollection), instance.GetType());
+            Assert.Equal(typeof(ContainerCollection), instance.GetType());
             var obj = (ContainerCollection)instance;
-            Assert.AreEqual("Root", obj.Name);
-            Assert.AreEqual(2, obj.Strings.Count);
-            Assert.AreEqual("aaa", obj.Strings[0]);
-            Assert.AreEqual("bbb", obj.Strings[1]);
-            Assert.AreEqual(2, obj.Objects.Count);
-            Assert.AreEqual("obj1", obj.Objects[0].Name);
-            Assert.AreEqual("obj2", obj.Objects[1].Name);
+            Assert.Equal("Root", obj.Name);
+            Assert.Equal(2, obj.Strings.Count);
+            Assert.Equal("aaa", obj.Strings[0]);
+            Assert.Equal("bbb", obj.Strings[1]);
+            Assert.Equal(2, obj.Objects.Count);
+            Assert.Equal("obj1", obj.Objects[0].Name);
+            Assert.Equal("obj2", obj.Objects[1].Name);
             var stringIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(2), stringIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(1), stringIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(2), stringIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(1), stringIds[1]);
             var objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Objects);
-            Assert.AreEqual(IdentifierGenerator.Get(3), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(4), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(3), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(4), objectIds[1]);
         }
 
-        [Test]
+        [Fact]
         public void TestDictionarySerialization()
         {
             ShadowObject.Enable = true;
@@ -274,10 +273,10 @@ Objects:
             objectIds["key3"] = IdentifierGenerator.Get(3);
             objectIds["key4"] = IdentifierGenerator.Get(4);
             var yaml = SerializeAsString(obj);
-            Assert.AreEqual(YamlDictionary, yaml);
+            Assert.Equal(YamlDictionary, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestDictionaryDeserialization()
         {
             ShadowObject.Enable = true;
@@ -288,24 +287,24 @@ Objects:
             stream.Position = 0;
             var instance = AssetYamlSerializer.Default.Deserialize(stream);
             Assert.NotNull(instance);
-            Assert.AreEqual(typeof(ContainerDictionary), instance.GetType());
+            Assert.Equal(typeof(ContainerDictionary), instance.GetType());
             var obj = (ContainerDictionary)instance;
-            Assert.AreEqual("Root", obj.Name);
-            Assert.AreEqual(2, obj.Strings.Count);
-            Assert.AreEqual("aaa", obj.Strings[GuidGenerator.Get(200)]);
-            Assert.AreEqual("bbb", obj.Strings[GuidGenerator.Get(100)]);
-            Assert.AreEqual(2, obj.Objects.Count);
-            Assert.AreEqual("obj1", obj.Objects["key3"].Name);
-            Assert.AreEqual("obj2", obj.Objects["key4"].Name);
+            Assert.Equal("Root", obj.Name);
+            Assert.Equal(2, obj.Strings.Count);
+            Assert.Equal("aaa", obj.Strings[GuidGenerator.Get(200)]);
+            Assert.Equal("bbb", obj.Strings[GuidGenerator.Get(100)]);
+            Assert.Equal(2, obj.Objects.Count);
+            Assert.Equal("obj1", obj.Objects["key3"].Name);
+            Assert.Equal("obj2", obj.Objects["key4"].Name);
             var stringIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(2), stringIds[GuidGenerator.Get(200)]);
-            Assert.AreEqual(IdentifierGenerator.Get(1), stringIds[GuidGenerator.Get(100)]);
+            Assert.Equal(IdentifierGenerator.Get(2), stringIds[GuidGenerator.Get(200)]);
+            Assert.Equal(IdentifierGenerator.Get(1), stringIds[GuidGenerator.Get(100)]);
             var objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Objects);
-            Assert.AreEqual(IdentifierGenerator.Get(3), objectIds["key3"]);
-            Assert.AreEqual(IdentifierGenerator.Get(4), objectIds["key4"]);
+            Assert.Equal(IdentifierGenerator.Get(3), objectIds["key3"]);
+            Assert.Equal(IdentifierGenerator.Get(4), objectIds["key4"]);
         }
 
-        [Test]
+        [Fact]
         public void TestCollectionDeserializationWithDeleted()
         {
             ShadowObject.Enable = true;
@@ -316,32 +315,32 @@ Objects:
             stream.Position = 0;
             var instance = AssetYamlSerializer.Default.Deserialize(stream);
             Assert.NotNull(instance);
-            Assert.AreEqual(typeof(ContainerCollection), instance.GetType());
+            Assert.Equal(typeof(ContainerCollection), instance.GetType());
             var obj = (ContainerCollection)instance;
-            Assert.AreEqual("Root", obj.Name);
-            Assert.AreEqual(2, obj.Strings.Count);
-            Assert.AreEqual("aaa", obj.Strings[0]);
-            Assert.AreEqual("bbb", obj.Strings[1]);
-            Assert.AreEqual(2, obj.Objects.Count);
-            Assert.AreEqual("obj1", obj.Objects[0].Name);
-            Assert.AreEqual("obj2", obj.Objects[1].Name);
+            Assert.Equal("Root", obj.Name);
+            Assert.Equal(2, obj.Strings.Count);
+            Assert.Equal("aaa", obj.Strings[0]);
+            Assert.Equal("bbb", obj.Strings[1]);
+            Assert.Equal(2, obj.Objects.Count);
+            Assert.Equal("obj1", obj.Objects[0].Name);
+            Assert.Equal("obj2", obj.Objects[1].Name);
             var stringIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(8), stringIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(5), stringIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(8), stringIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(5), stringIds[1]);
             var objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Objects);
-            Assert.AreEqual(IdentifierGenerator.Get(3), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(4), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(3), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(4), objectIds[1]);
             var deletedItems = stringIds.DeletedItems.ToList();
-            Assert.AreEqual(2, deletedItems.Count);
-            Assert.AreEqual(IdentifierGenerator.Get(1), deletedItems[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(3), deletedItems[1]);
+            Assert.Equal(2, deletedItems.Count);
+            Assert.Equal(IdentifierGenerator.Get(1), deletedItems[0]);
+            Assert.Equal(IdentifierGenerator.Get(3), deletedItems[1]);
             deletedItems = objectIds.DeletedItems.ToList();
-            Assert.AreEqual(2, deletedItems.Count);
-            Assert.AreEqual(IdentifierGenerator.Get(1), deletedItems[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(6), deletedItems[1]);
+            Assert.Equal(2, deletedItems.Count);
+            Assert.Equal(IdentifierGenerator.Get(1), deletedItems[0]);
+            Assert.Equal(IdentifierGenerator.Get(6), deletedItems[1]);
         }
 
-        [Test]
+        [Fact]
         public void TestCollectionSerializationWithDeleted()
         {
             ShadowObject.Enable = true;
@@ -362,10 +361,10 @@ Objects:
             objectIds.MarkAsDeleted(IdentifierGenerator.Get(1));
             objectIds.MarkAsDeleted(IdentifierGenerator.Get(6));
             var yaml = SerializeAsString(obj);
-            Assert.AreEqual(YamlCollectionWithDeleted, yaml);
+            Assert.Equal(YamlCollectionWithDeleted, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestDictionaryDeserializationWithDeleted()
         {
             ShadowObject.Enable = true;
@@ -376,32 +375,32 @@ Objects:
             stream.Position = 0;
             var instance = AssetYamlSerializer.Default.Deserialize(stream);
             Assert.NotNull(instance);
-            Assert.AreEqual(typeof(ContainerDictionary), instance.GetType());
+            Assert.Equal(typeof(ContainerDictionary), instance.GetType());
             var obj = (ContainerDictionary)instance;
-            Assert.AreEqual("Root", obj.Name);
-            Assert.AreEqual(2, obj.Strings.Count);
-            Assert.AreEqual("aaa", obj.Strings[GuidGenerator.Get(200)]);
-            Assert.AreEqual("bbb", obj.Strings[GuidGenerator.Get(100)]);
-            Assert.AreEqual(2, obj.Objects.Count);
-            Assert.AreEqual("obj1", obj.Objects["key3"].Name);
-            Assert.AreEqual("obj2", obj.Objects["key4"].Name);
+            Assert.Equal("Root", obj.Name);
+            Assert.Equal(2, obj.Strings.Count);
+            Assert.Equal("aaa", obj.Strings[GuidGenerator.Get(200)]);
+            Assert.Equal("bbb", obj.Strings[GuidGenerator.Get(100)]);
+            Assert.Equal(2, obj.Objects.Count);
+            Assert.Equal("obj1", obj.Objects["key3"].Name);
+            Assert.Equal("obj2", obj.Objects["key4"].Name);
             var stringIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(8), stringIds[GuidGenerator.Get(200)]);
-            Assert.AreEqual(IdentifierGenerator.Get(5), stringIds[GuidGenerator.Get(100)]);
+            Assert.Equal(IdentifierGenerator.Get(8), stringIds[GuidGenerator.Get(200)]);
+            Assert.Equal(IdentifierGenerator.Get(5), stringIds[GuidGenerator.Get(100)]);
             var objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Objects);
-            Assert.AreEqual(IdentifierGenerator.Get(3), objectIds["key3"]);
-            Assert.AreEqual(IdentifierGenerator.Get(4), objectIds["key4"]);
+            Assert.Equal(IdentifierGenerator.Get(3), objectIds["key3"]);
+            Assert.Equal(IdentifierGenerator.Get(4), objectIds["key4"]);
             var deletedItems = stringIds.DeletedItems.ToList();
-            Assert.AreEqual(2, deletedItems.Count);
-            Assert.AreEqual(IdentifierGenerator.Get(1), deletedItems[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(3), deletedItems[1]);
+            Assert.Equal(2, deletedItems.Count);
+            Assert.Equal(IdentifierGenerator.Get(1), deletedItems[0]);
+            Assert.Equal(IdentifierGenerator.Get(3), deletedItems[1]);
             deletedItems = objectIds.DeletedItems.ToList();
-            Assert.AreEqual(2, deletedItems.Count);
-            Assert.AreEqual(IdentifierGenerator.Get(1), deletedItems[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(6), deletedItems[1]);
+            Assert.Equal(2, deletedItems.Count);
+            Assert.Equal(IdentifierGenerator.Get(1), deletedItems[0]);
+            Assert.Equal(IdentifierGenerator.Get(6), deletedItems[1]);
         }
 
-        [Test]
+        [Fact]
         public void TestDictionarySerializationWithDeleted()
         {
             ShadowObject.Enable = true;
@@ -422,10 +421,10 @@ Objects:
             objectIds.MarkAsDeleted(IdentifierGenerator.Get(1));
             objectIds.MarkAsDeleted(IdentifierGenerator.Get(6));
             var yaml = SerializeAsString(obj);
-            Assert.AreEqual(YamlDictionaryWithDeleted, yaml);
+            Assert.Equal(YamlDictionaryWithDeleted, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestCollectionNonIdentifiableItemsSerialization()
         {
             ShadowObject.Enable = true;
@@ -454,10 +453,10 @@ Objects:
             ids[0] = IdentifierGenerator.Get(11);
             ids[1] = IdentifierGenerator.Get(12);
             var yaml = SerializeAsString(obj);
-            Assert.AreEqual(YamlCollectionNotIdentifiable, yaml);
+            Assert.Equal(YamlCollectionNotIdentifiable, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestCollectionNonIdentifiableItemsDeserialization()
         {
             ShadowObject.Enable = true;
@@ -468,50 +467,50 @@ Objects:
             stream.Position = 0;
             var instance = AssetYamlSerializer.Default.Deserialize(stream);
             Assert.NotNull(instance);
-            Assert.AreEqual(typeof(ContainerNonIdentifiableCollection), instance.GetType());
+            Assert.Equal(typeof(ContainerNonIdentifiableCollection), instance.GetType());
             var obj = (ContainerNonIdentifiableCollection)instance;
-            Assert.AreEqual("Root", obj.Name);
-            Assert.AreEqual(2, obj.Objects.Count);
-            Assert.AreEqual("aaa", obj.Objects[0].Name);
-            Assert.AreEqual(2, obj.Objects[0].Strings.Count);
-            Assert.AreEqual("bbb", obj.Objects[0].Strings[0]);
-            Assert.AreEqual("ccc", obj.Objects[0].Strings[1]);
-            Assert.AreEqual("ddd", obj.Objects[1].Name);
-            Assert.AreEqual(2, obj.Objects[1].Strings.Count);
-            Assert.AreEqual("eee", obj.Objects[1].Strings[0]);
-            Assert.AreEqual("fff", obj.Objects[1].Strings[1]);
+            Assert.Equal("Root", obj.Name);
+            Assert.Equal(2, obj.Objects.Count);
+            Assert.Equal("aaa", obj.Objects[0].Name);
+            Assert.Equal(2, obj.Objects[0].Strings.Count);
+            Assert.Equal("bbb", obj.Objects[0].Strings[0]);
+            Assert.Equal("ccc", obj.Objects[0].Strings[1]);
+            Assert.Equal("ddd", obj.Objects[1].Name);
+            Assert.Equal(2, obj.Objects[1].Strings.Count);
+            Assert.Equal("eee", obj.Objects[1].Strings[0]);
+            Assert.Equal("fff", obj.Objects[1].Strings[1]);
             var objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Objects);
-            Assert.AreEqual(IdentifierGenerator.Get(2), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(1), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(2), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(1), objectIds[1]);
             objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Objects[0].Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(5), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(6), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(5), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(6), objectIds[1]);
             objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Objects[1].Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(7), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(8), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(7), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(8), objectIds[1]);
 
-            Assert.AreEqual(2, obj.NonIdentifiableObjects.Count);
-            Assert.AreEqual("ggg", obj.NonIdentifiableObjects[0].Name);
-            Assert.AreEqual(2, obj.NonIdentifiableObjects[0].Strings.Count);
-            Assert.AreEqual("hhh", obj.NonIdentifiableObjects[0].Strings[0]);
-            Assert.AreEqual("iii", obj.NonIdentifiableObjects[0].Strings[1]);
-            Assert.AreEqual("jjj", obj.NonIdentifiableObjects[1].Name);
-            Assert.AreEqual(2, obj.NonIdentifiableObjects[1].Strings.Count);
-            Assert.AreEqual("kkk", obj.NonIdentifiableObjects[1].Strings[0]);
-            Assert.AreEqual("lll", obj.NonIdentifiableObjects[1].Strings[1]);
+            Assert.Equal(2, obj.NonIdentifiableObjects.Count);
+            Assert.Equal("ggg", obj.NonIdentifiableObjects[0].Name);
+            Assert.Equal(2, obj.NonIdentifiableObjects[0].Strings.Count);
+            Assert.Equal("hhh", obj.NonIdentifiableObjects[0].Strings[0]);
+            Assert.Equal("iii", obj.NonIdentifiableObjects[0].Strings[1]);
+            Assert.Equal("jjj", obj.NonIdentifiableObjects[1].Name);
+            Assert.Equal(2, obj.NonIdentifiableObjects[1].Strings.Count);
+            Assert.Equal("kkk", obj.NonIdentifiableObjects[1].Strings[0]);
+            Assert.Equal("lll", obj.NonIdentifiableObjects[1].Strings[1]);
             Assert.False(CollectionItemIdHelper.TryGetCollectionItemIds(obj.NonIdentifiableObjects, out objectIds));
             objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.NonIdentifiableObjects);
-            Assert.AreEqual(0, objectIds.KeyCount);
-            Assert.AreEqual(0, objectIds.DeletedCount);
+            Assert.Equal(0, objectIds.KeyCount);
+            Assert.Equal(0, objectIds.DeletedCount);
             objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.NonIdentifiableObjects[0].Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(9), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(10), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(9), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(10), objectIds[1]);
             objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.NonIdentifiableObjects[1].Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(11), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(12), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(11), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(12), objectIds[1]);
         }
 
-        [Test]
+        [Fact]
         public void TestDictionaryNonIdentifiableItemsSerialization()
         {
             ShadowObject.Enable = true;
@@ -540,10 +539,10 @@ Objects:
             ids[0] = IdentifierGenerator.Get(11);
             ids[1] = IdentifierGenerator.Get(12);
             var yaml = SerializeAsString(obj);
-            Assert.AreEqual(YamlDictionaryNonIdentifiable, yaml);
+            Assert.Equal(YamlDictionaryNonIdentifiable, yaml);
         }
 
-        [Test]
+        [Fact]
         public void TestDictionaryNonIdentifiableItemsDeserialization()
         {
             ShadowObject.Enable = true;
@@ -554,50 +553,50 @@ Objects:
             stream.Position = 0;
             var instance = AssetYamlSerializer.Default.Deserialize(stream);
             Assert.NotNull(instance);
-            Assert.AreEqual(typeof(ContainerNonIdentifiableDictionary), instance.GetType());
+            Assert.Equal(typeof(ContainerNonIdentifiableDictionary), instance.GetType());
             var obj = (ContainerNonIdentifiableDictionary)instance;
-            Assert.AreEqual("Root", obj.Name);
-            Assert.AreEqual(2, obj.Objects.Count);
-            Assert.AreEqual("aaa", obj.Objects["AAA"].Name);
-            Assert.AreEqual(2, obj.Objects["AAA"].Strings.Count);
-            Assert.AreEqual("bbb", obj.Objects["AAA"].Strings[0]);
-            Assert.AreEqual("ccc", obj.Objects["AAA"].Strings[1]);
-            Assert.AreEqual("ddd", obj.Objects["BBB"].Name);
-            Assert.AreEqual(2, obj.Objects["BBB"].Strings.Count);
-            Assert.AreEqual("eee", obj.Objects["BBB"].Strings[0]);
-            Assert.AreEqual("fff", obj.Objects["BBB"].Strings[1]);
+            Assert.Equal("Root", obj.Name);
+            Assert.Equal(2, obj.Objects.Count);
+            Assert.Equal("aaa", obj.Objects["AAA"].Name);
+            Assert.Equal(2, obj.Objects["AAA"].Strings.Count);
+            Assert.Equal("bbb", obj.Objects["AAA"].Strings[0]);
+            Assert.Equal("ccc", obj.Objects["AAA"].Strings[1]);
+            Assert.Equal("ddd", obj.Objects["BBB"].Name);
+            Assert.Equal(2, obj.Objects["BBB"].Strings.Count);
+            Assert.Equal("eee", obj.Objects["BBB"].Strings[0]);
+            Assert.Equal("fff", obj.Objects["BBB"].Strings[1]);
             var objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Objects);
-            Assert.AreEqual(IdentifierGenerator.Get(2), objectIds["AAA"]);
-            Assert.AreEqual(IdentifierGenerator.Get(1), objectIds["BBB"]);
+            Assert.Equal(IdentifierGenerator.Get(2), objectIds["AAA"]);
+            Assert.Equal(IdentifierGenerator.Get(1), objectIds["BBB"]);
             objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Objects["AAA"].Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(5), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(6), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(5), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(6), objectIds[1]);
             objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.Objects["BBB"].Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(7), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(8), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(7), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(8), objectIds[1]);
 
-            Assert.AreEqual(2, obj.NonIdentifiableObjects.Count);
-            Assert.AreEqual("ggg", obj.NonIdentifiableObjects["CCC"].Name);
-            Assert.AreEqual(2, obj.NonIdentifiableObjects["CCC"].Strings.Count);
-            Assert.AreEqual("hhh", obj.NonIdentifiableObjects["CCC"].Strings[0]);
-            Assert.AreEqual("iii", obj.NonIdentifiableObjects["CCC"].Strings[1]);
-            Assert.AreEqual("jjj", obj.NonIdentifiableObjects["DDD"].Name);
-            Assert.AreEqual(2, obj.NonIdentifiableObjects["DDD"].Strings.Count);
-            Assert.AreEqual("kkk", obj.NonIdentifiableObjects["DDD"].Strings[0]);
-            Assert.AreEqual("lll", obj.NonIdentifiableObjects["DDD"].Strings[1]);
+            Assert.Equal(2, obj.NonIdentifiableObjects.Count);
+            Assert.Equal("ggg", obj.NonIdentifiableObjects["CCC"].Name);
+            Assert.Equal(2, obj.NonIdentifiableObjects["CCC"].Strings.Count);
+            Assert.Equal("hhh", obj.NonIdentifiableObjects["CCC"].Strings[0]);
+            Assert.Equal("iii", obj.NonIdentifiableObjects["CCC"].Strings[1]);
+            Assert.Equal("jjj", obj.NonIdentifiableObjects["DDD"].Name);
+            Assert.Equal(2, obj.NonIdentifiableObjects["DDD"].Strings.Count);
+            Assert.Equal("kkk", obj.NonIdentifiableObjects["DDD"].Strings[0]);
+            Assert.Equal("lll", obj.NonIdentifiableObjects["DDD"].Strings[1]);
             Assert.False(CollectionItemIdHelper.TryGetCollectionItemIds(obj.NonIdentifiableObjects, out objectIds));
             objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.NonIdentifiableObjects);
-            Assert.AreEqual(0, objectIds.KeyCount);
-            Assert.AreEqual(0, objectIds.DeletedCount);
+            Assert.Equal(0, objectIds.KeyCount);
+            Assert.Equal(0, objectIds.DeletedCount);
             objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.NonIdentifiableObjects["CCC"].Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(9), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(10), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(9), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(10), objectIds[1]);
             objectIds = CollectionItemIdHelper.GetCollectionItemIds(obj.NonIdentifiableObjects["DDD"].Strings);
-            Assert.AreEqual(IdentifierGenerator.Get(11), objectIds[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(12), objectIds[1]);
+            Assert.Equal(IdentifierGenerator.Get(11), objectIds[0]);
+            Assert.Equal(IdentifierGenerator.Get(12), objectIds[1]);
         }
 
-        [Test]
+        [Fact]
         public void TestIdsGeneration()
         {
             ShadowObject.Enable = true;
@@ -615,8 +614,8 @@ Objects:
             Assert.False(CollectionItemIdHelper.TryGetCollectionItemIds(obj1.Objects, out ids));
             AssetCollectionItemIdHelper.GenerateMissingItemIds(obj1);
             Assert.True(CollectionItemIdHelper.TryGetCollectionItemIds(obj1.Strings, out ids));
-            Assert.AreEqual(3, ids.KeyCount);
-            Assert.AreEqual(0, ids.DeletedCount);
+            Assert.Equal(3, ids.KeyCount);
+            Assert.Equal(0, ids.DeletedCount);
             Assert.True(ids.ContainsKey(0));
             Assert.True(ids.ContainsKey(1));
             Assert.True(ids.ContainsKey(2));
@@ -624,13 +623,13 @@ Objects:
             hashSet.Add(ids[1]);
             hashSet.Add(ids[2]);
             Assert.True(CollectionItemIdHelper.TryGetCollectionItemIds(obj1.Objects, out ids));
-            Assert.AreEqual(2, ids.KeyCount);
-            Assert.AreEqual(0, ids.DeletedCount);
+            Assert.Equal(2, ids.KeyCount);
+            Assert.Equal(0, ids.DeletedCount);
             Assert.True(ids.ContainsKey(0));
             Assert.True(ids.ContainsKey(1));
             hashSet.Add(ids[0]);
             hashSet.Add(ids[1]);
-            Assert.AreEqual(5, hashSet.Count);
+            Assert.Equal(5, hashSet.Count);
 
             var obj2 = new ContainerDictionary("Root")
             {
@@ -644,8 +643,8 @@ Objects:
             Assert.False(CollectionItemIdHelper.TryGetCollectionItemIds(obj2.Objects, out ids));
             AssetCollectionItemIdHelper.GenerateMissingItemIds(obj2);
             Assert.True(CollectionItemIdHelper.TryGetCollectionItemIds(obj2.Strings, out ids));
-            Assert.AreEqual(3, ids.KeyCount);
-            Assert.AreEqual(0, ids.DeletedCount);
+            Assert.Equal(3, ids.KeyCount);
+            Assert.Equal(0, ids.DeletedCount);
             Assert.True(ids.ContainsKey(GuidGenerator.Get(200)));
             Assert.True(ids.ContainsKey(GuidGenerator.Get(100)));
             Assert.True(ids.ContainsKey(GuidGenerator.Get(300)));
@@ -653,13 +652,13 @@ Objects:
             hashSet.Add(ids[GuidGenerator.Get(100)]);
             hashSet.Add(ids[GuidGenerator.Get(300)]);
             Assert.True(CollectionItemIdHelper.TryGetCollectionItemIds(obj2.Objects, out ids));
-            Assert.AreEqual(2, ids.KeyCount);
-            Assert.AreEqual(0, ids.DeletedCount);
+            Assert.Equal(2, ids.KeyCount);
+            Assert.Equal(0, ids.DeletedCount);
             Assert.True(ids.ContainsKey("key3"));
             Assert.True(ids.ContainsKey("key4"));
             hashSet.Add(ids["key3"]);
             hashSet.Add(ids["key4"]);
-            Assert.AreEqual(5, hashSet.Count);
+            Assert.Equal(5, hashSet.Count);
         }
     }
 }

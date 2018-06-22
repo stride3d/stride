@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
@@ -119,19 +119,19 @@ namespace Xenko.UI.Tests.Regression
         {
             ResetStates();
 
-            Assert.AreEqual(MouseOverState.MouseOverNone, canvas.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, button1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, button2.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, edit1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, edit2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, canvas.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, button1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, button2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, edit1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, edit2.MouseOverState);
 
-            Assert.IsFalse(triggeredButton1);
-            Assert.IsFalse(triggeredButton2);
-            Assert.IsFalse(triggeredEdit1);
-            Assert.IsFalse(triggeredEdit2);
-            Assert.IsFalse(triggeredCanvas);
-            Assert.IsFalse(triggeredStackPanel);
+            Assert.False(triggeredButton1);
+            Assert.False(triggeredButton2);
+            Assert.False(triggeredEdit1);
+            Assert.False(triggeredEdit2);
+            Assert.False(triggeredCanvas);
+            Assert.False(triggeredStackPanel);
         }
 
         private void PrepareTest2()
@@ -143,22 +143,22 @@ namespace Xenko.UI.Tests.Regression
 
         private void Test2()
         {
-            Assert.AreEqual(MouseOverState.MouseOverChild, canvas.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverElement, button1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, button2.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, edit1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, edit2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverChild, canvas.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverElement, button1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, button2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, edit1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, edit2.MouseOverState);
 
-            Assert.IsTrue(triggeredButton1);
-            Assert.IsTrue(triggeredCanvas);
-            Assert.IsFalse(triggeredButton2);
-            Assert.IsFalse(triggeredEdit1);
-            Assert.IsFalse(triggeredEdit2);
-            Assert.IsFalse(triggeredStackPanel);
+            Assert.True(triggeredButton1);
+            Assert.True(triggeredCanvas);
+            Assert.False(triggeredButton2);
+            Assert.False(triggeredEdit1);
+            Assert.False(triggeredEdit2);
+            Assert.False(triggeredStackPanel);
 
-            Assert.AreEqual(MouseOverState.MouseOverNone, oldValueButton1);
-            Assert.AreEqual(MouseOverState.MouseOverElement, newValueButton1);
+            Assert.Equal(MouseOverState.MouseOverNone, oldValueButton1);
+            Assert.Equal(MouseOverState.MouseOverElement, newValueButton1);
         }
 
         private void PrepareTest3()
@@ -170,19 +170,19 @@ namespace Xenko.UI.Tests.Regression
 
         private void Test3()
         {
-            Assert.AreEqual(MouseOverState.MouseOverChild, canvas.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, button1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, button2.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverElement, edit1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, edit2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverChild, canvas.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, button1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, button2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverElement, edit1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, edit2.MouseOverState);
 
-            Assert.IsTrue(triggeredButton1);
-            Assert.IsTrue(triggeredEdit1);
-            Assert.IsFalse(triggeredCanvas);
-            Assert.IsFalse(triggeredButton2);
-            Assert.IsFalse(triggeredEdit2);
-            Assert.IsFalse(triggeredStackPanel);
+            Assert.True(triggeredButton1);
+            Assert.True(triggeredEdit1);
+            Assert.False(triggeredCanvas);
+            Assert.False(triggeredButton2);
+            Assert.False(triggeredEdit2);
+            Assert.False(triggeredStackPanel);
         }
         
         private void PrepareTest4()
@@ -194,19 +194,19 @@ namespace Xenko.UI.Tests.Regression
 
         private void Test4()
         {
-            Assert.AreEqual(MouseOverState.MouseOverElement, canvas.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, button1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, button2.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, edit1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, edit2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverElement, canvas.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, stackPanel.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, button1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, button2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, edit1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, edit2.MouseOverState);
 
-            Assert.IsTrue(triggeredEdit1);
-            Assert.IsTrue(triggeredCanvas);
-            Assert.IsFalse(triggeredButton2);
-            Assert.IsFalse(triggeredButton1);
-            Assert.IsFalse(triggeredEdit2);
-            Assert.IsFalse(triggeredStackPanel);
+            Assert.True(triggeredEdit1);
+            Assert.True(triggeredCanvas);
+            Assert.False(triggeredButton2);
+            Assert.False(triggeredButton1);
+            Assert.False(triggeredEdit2);
+            Assert.False(triggeredStackPanel);
         }
         
         private void PrepareTest5()
@@ -218,19 +218,19 @@ namespace Xenko.UI.Tests.Regression
 
         private void Test5()
         {
-            Assert.AreEqual(MouseOverState.MouseOverChild, canvas.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverChild, stackPanel.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, button1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverElement, button2.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, edit1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, edit2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverChild, canvas.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverChild, stackPanel.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, button1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverElement, button2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, edit1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, edit2.MouseOverState);
 
-            Assert.IsTrue(triggeredCanvas);
-            Assert.IsTrue(triggeredButton2);
-            Assert.IsTrue(triggeredStackPanel);
-            Assert.IsFalse(triggeredButton1);
-            Assert.IsFalse(triggeredEdit2);
-            Assert.IsFalse(triggeredEdit1);
+            Assert.True(triggeredCanvas);
+            Assert.True(triggeredButton2);
+            Assert.True(triggeredStackPanel);
+            Assert.False(triggeredButton1);
+            Assert.False(triggeredEdit2);
+            Assert.False(triggeredEdit1);
         }
 
         private void PrepareTest6()
@@ -242,19 +242,19 @@ namespace Xenko.UI.Tests.Regression
 
         private void Test6()
         {
-            Assert.AreEqual(MouseOverState.MouseOverChild, canvas.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverChild, stackPanel.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, button1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, button2.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverNone, edit1.MouseOverState);
-            Assert.AreEqual(MouseOverState.MouseOverElement, edit2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverChild, canvas.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverChild, stackPanel.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, button1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, button2.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverNone, edit1.MouseOverState);
+            Assert.Equal(MouseOverState.MouseOverElement, edit2.MouseOverState);
 
-            Assert.IsTrue(triggeredEdit2);
-            Assert.IsTrue(triggeredButton2);
-            Assert.IsFalse(triggeredCanvas);
-            Assert.IsFalse(triggeredStackPanel);
-            Assert.IsFalse(triggeredButton1);
-            Assert.IsFalse(triggeredEdit1);
+            Assert.True(triggeredEdit2);
+            Assert.True(triggeredButton2);
+            Assert.False(triggeredCanvas);
+            Assert.False(triggeredStackPanel);
+            Assert.False(triggeredButton1);
+            Assert.False(triggeredEdit1);
         }
 
         private void ResetStates()
@@ -281,8 +281,7 @@ namespace Xenko.UI.Tests.Regression
             UI.Update(new GameTime());
         }
 
-        [Test]
-        [Ignore("This test is unreliable, needs reworking")]
+        [SkippableFact(Skip="This test is unreliable, needs reworking")]
         public void RunMouseOversTest()
         {
             RequirePlatform(PlatformType.Windows);

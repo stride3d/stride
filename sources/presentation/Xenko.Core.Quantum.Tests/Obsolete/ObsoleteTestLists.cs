@@ -2,13 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Quantum.References;
 
 namespace Xenko.Core.Quantum.Tests.Obsolete
 {
-    [TestFixture(Ignore = "Obsolete")]
     public class ObsoleteTestLists
     {
         #region Test class definitions
@@ -90,7 +89,7 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
 
         #endregion Test class definitions
 
-        [Test]
+        [Fact]
         public void TestConstruction()
         {
             var obj = new ClassWithLists();
@@ -121,7 +120,7 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
             Assert.That(container.GetNode(obj.ClassList[0]), !Is.Null);
         }
 
-        [Test]
+        [Fact]
         public void TestPrimitiveItemUpdate()
         {
             var obj = new ClassWithLists();
@@ -129,12 +128,12 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
             var model = container.GetOrCreateNode(obj);
             ((List<int>)model["IntList"].Retrieve())[1] = 42;
             ((List<int>)model["IntList"].Retrieve()).Add(26);
-            Assert.That(obj.IntList.Count, Is.EqualTo(4));
-            Assert.That(obj.IntList[1], Is.EqualTo(42));
-            Assert.That(obj.IntList[3], Is.EqualTo(26));
+            Assert.Equal(4, obj.IntList.Count);
+            Assert.Equal(42, obj.IntList[1]);
+            Assert.Equal(26, obj.IntList[3]);
         }
 
-        [Test]
+        [Fact]
         public void TestObjectItemUpdate()
         {
             var obj = new ClassWithLists();
@@ -142,10 +141,10 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
             var model = container.GetOrCreateNode(obj);
             //var objRef = ((ReferenceEnumerable)model["ClassList"].Reference).First();
             //objRef.TargetNode["SecondValue"].Update(32);
-            Assert.That(obj.ClassList[0].SecondValue, Is.EqualTo(32));
+            Assert.Equal(32, obj.ClassList[0].SecondValue);
         }
 
-        [Test]
+        [Fact]
         public void TestStructItemUpdate()
         {
             var obj = new ClassWithLists();
@@ -153,10 +152,10 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
             var model = container.GetOrCreateNode(obj);
             //var objRef = ((ReferenceEnumerable)model["SimpleStructList"].Reference).First();
             //objRef.TargetNode["SecondValue"].Update(32);
-            Assert.That(obj.SimpleStructList[0].SecondValue, Is.EqualTo(32));
+            Assert.Equal(32, obj.SimpleStructList[0].SecondValue);
         }
 
-        [Test]
+        [Fact]
         public void TestNestedStructItemUpdate()
         {
             var obj = new ClassWithLists();
@@ -165,12 +164,12 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
             //var objRef = ((ReferenceEnumerable)model["NestedStructList"].Reference).First();
             //var structNode = container.GetNode(((ObjectReference)objRef.TargetNode["Struct"].Reference).TargetGuid);
             //structNode["SecondValue"].Update(32);
-            Assert.That(obj.NestedStructList[0].Struct.SecondValue, Is.EqualTo(32));
+            Assert.Equal(32, obj.NestedStructList[0].Struct.SecondValue);
             //var visitor = new ModelConsistencyCheckVisitor(container.NodeBuilder);
             //visitor.Check((GraphNode)model, obj, typeof(ClassWithLists), true);
         }
 
-        [Test]
+        [Fact]
         public void TestListOfSimpleStructListsUpdate()
         {
             var obj = new ClassWithLists();
@@ -179,10 +178,10 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
             //var listRef = ((ReferenceEnumerable)model["ListOfSimpleStructLists"].Reference).Last();
             //var objRef = ((ReferenceEnumerable)listRef.TargetNode.Reference).Last();
             //objRef.TargetNode["SecondValue"].Update(32);
-            Assert.That(obj.ListOfSimpleStructLists[1][0].SecondValue, Is.EqualTo(32));
+            Assert.Equal(32, obj.ListOfSimpleStructLists[1][0].SecondValue);
         }
 
-        [Test]
+        [Fact]
         public void TestListOfNestedStructListsUpdate()
         {
             var obj = new ClassWithLists();
@@ -192,7 +191,7 @@ namespace Xenko.Core.Quantum.Tests.Obsolete
             //var objRef = ((ReferenceEnumerable)listRef.TargetNode.Reference).Last();
             //var structNode = container.GetNode(((ObjectReference)objRef.TargetNode["Struct"].Reference).TargetGuid);
             //structNode["SecondValue"].Update(32);
-            Assert.That(obj.ListOfNestedStructLists[1][0].Struct.SecondValue, Is.EqualTo(32));
+            Assert.Equal(32, obj.ListOfNestedStructLists[1][0].Struct.SecondValue);
         }
     }
 }

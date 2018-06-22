@@ -5,7 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core;
 using Xenko.Core.Mathematics;
@@ -53,7 +53,7 @@ namespace Xenko.Graphics.Tests
             
         }
 
-        public TestRadiancePrefilteringGgx(bool filterAtEachFrame)
+        protected TestRadiancePrefilteringGgx(bool filterAtEachFrame)
         {
             this.filterAtEachFrame = filterAtEachFrame;
             GraphicsDeviceManager.PreferredBackBufferWidth = screenSize.X;
@@ -236,7 +236,7 @@ namespace Xenko.Graphics.Tests
             }
         }
 
-        [Test]
+        [SkippableFact]
         public void RunTest()
         {
             IgnoreGraphicPlatform(GraphicsPlatform.OpenGLES);

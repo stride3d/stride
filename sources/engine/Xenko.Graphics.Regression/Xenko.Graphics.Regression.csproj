@@ -12,6 +12,7 @@
     <TargetFramework>$(TargetFramework)</TargetFramework>
     <XenkoPlatformDependent>true</XenkoPlatformDependent>
     <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoSkipUnitTests)' == 'true'">false</XenkoCompilerTargetsEnable>
     <XenkoBuildTags>*</XenkoBuildTags>
   </PropertyGroup>
   
@@ -19,75 +20,12 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Remove="AndrRunner\**\*.cs" />
-    <Compile Remove="TouchRunner\**\*.cs" />
   </ItemGroup>
 
-  <Choose>
-    <When Condition="('$(XenkoRuntime)' == '') and (('$(XenkoPlatform)' == 'Windows') or ('$(XenkoPlatform)' == 'Linux') or ('$(XenkoPlatform)' == 'macOS'))">
-      <ItemGroup>
-        <Reference Include="nunit.framework">
-          <HintPath>$(XenkoCommonDependenciesDir)NUnit\nunit.framework.dll</HintPath>
-          <Private>False</Private>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="('$(XenkoRuntime)' == 'CoreCLR') or ('$(XenkoPlatform)' == 'UWP')">
-      <ItemGroup>
-        <Reference Include="nunitlite">
-          <HintPath>$(XenkoCommonDependenciesDir)NUnitLite\Portable\nunitlite.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-      <ItemGroup>
-        <Reference Include="nunit.framework">
-          <HintPath>$(XenkoCommonDependenciesDir)NUnitLite\Portable\nunit.framework.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </When>
-    <When Condition="'$(XenkoPlatform)' == 'iOS'">
-      <ItemGroup>
-        <Reference Include="MonoTouch.NUnitLite" />
-        <Reference Include="MonoTouch.Dialog-1" />
-        <Reference Include="OpenTK-1.1">
-          <HintPath>$(XenkoDependenciesDir)OpenTK\iOS\OpenTK-1.1.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-      <ItemGroup Condition="'$(XenkoPlatform)' == 'iOS'">
-        <Compile Include="TouchRunner\**\*.cs" />
-      </ItemGroup>
-    </When>
-    <When Condition="'$(XenkoPlatform)' == 'Android'">
-      <ItemGroup>
-        <Reference Include="Xamarin.Android.NUnitLite" />
-      </ItemGroup>
-      <ItemGroup>
-        <Compile Include="AndrRunner\**\*.cs" />
-        <AndroidResource Include="Resources\layout\dialog_achievements.axml" />
-        <AndroidResource Include="Resources\layout\dialog_boolfieldleft.axml" />
-        <AndroidResource Include="Resources\layout\dialog_boolfieldright.axml" />
-        <AndroidResource Include="Resources\layout\dialog_boolfieldsubleft.axml" />
-        <AndroidResource Include="Resources\layout\dialog_boolfieldsubright.axml" />
-        <AndroidResource Include="Resources\layout\dialog_button.axml" />
-        <AndroidResource Include="Resources\layout\dialog_datefield.axml" />
-        <AndroidResource Include="Resources\layout\dialog_fieldsetlabel.axml" />
-        <AndroidResource Include="Resources\layout\dialog_floatimage.axml" />
-        <AndroidResource Include="Resources\layout\dialog_labelfieldbelow.axml" />
-        <AndroidResource Include="Resources\layout\dialog_labelfieldright.axml" />
-        <AndroidResource Include="Resources\layout\dialog_onofffieldright.axml" />
-        <AndroidResource Include="Resources\layout\dialog_panel.axml" />
-        <AndroidResource Include="Resources\layout\dialog_root.axml" />
-        <AndroidResource Include="Resources\layout\dialog_selectlist.axml" />
-        <AndroidResource Include="Resources\layout\dialog_selectlistfield.axml" />
-        <AndroidResource Include="Resources\layout\dialog_textarea.axml" />
-        <AndroidResource Include="Resources\layout\dialog_textfieldbelow.axml" />
-        <AndroidResource Include="Resources\layout\dialog_textfieldright.axml" />
-        <AndroidResource Include="Resources\drawable\dialog_disclosure.png" />
-        <AndroidResource Include="Resources\drawable\dialog_expander_ic_minimized.9.png" />
-      </ItemGroup>
-    </When>
-  </Choose>
-
   <ItemGroup>
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Include="Xunit.SkippableFact" Version="1.3.6" />
     <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj">
       <Private>False</Private>
     </ProjectReference>

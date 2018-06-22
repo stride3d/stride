@@ -5,7 +5,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Xenko.Physics.Tests</RootNamespace>
     <AssemblyName>Xenko.Physics.Tests</AssemblyName>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>
@@ -126,6 +126,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="XunitAttributes.cs" />
     <Compile Include="CharacterTest.cs" />
     <Compile Include="ColliderShapesTest.cs" />
     <Compile Include="GameTest.cs" />

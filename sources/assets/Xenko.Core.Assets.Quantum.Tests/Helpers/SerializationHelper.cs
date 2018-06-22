@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Tests.Helpers;
 using Xenko.Core.Assets.Yaml;
 using Xenko.Core.Reflection;
@@ -20,7 +20,7 @@ namespace Xenko.Core.Assets.Quantum.Tests.Helpers
         public static void SerializeAndCompare(AssetItem assetItem, AssetPropertyGraph graph, string expectedYaml, bool isDerived)
         {
             assetItem.Asset.Id = isDerived ? DerivedId : BaseId;
-            Assert.AreEqual(isDerived, assetItem.Asset.Archetype != null);
+            Assert.Equal(isDerived, assetItem.Asset.Archetype != null);
             if (isDerived)
                 assetItem.Asset.Archetype = new AssetReference(BaseId, assetItem.Asset.Archetype?.Location);
             graph.PrepareForSave(null, assetItem);
@@ -29,7 +29,7 @@ namespace Xenko.Core.Assets.Quantum.Tests.Helpers
             stream.Position = 0;
             var streamReader = new StreamReader(stream);
             var yaml = streamReader.ReadToEnd();
-            Assert.AreEqual(expectedYaml, yaml);
+            Assert.Equal(expectedYaml, yaml);
         }
 
         public static void SerializeAndCompare(object instance, YamlAssetMetadata<OverrideType> overrides, string expectedYaml)
@@ -41,7 +41,7 @@ namespace Xenko.Core.Assets.Quantum.Tests.Helpers
             stream.Position = 0;
             var streamReader = new StreamReader(stream);
             var yaml = streamReader.ReadToEnd();
-            Assert.AreEqual(expectedYaml, yaml);
+            Assert.Equal(expectedYaml, yaml);
         }
     }
 }

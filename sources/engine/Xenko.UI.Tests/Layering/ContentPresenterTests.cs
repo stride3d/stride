@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.UI.Controls;
@@ -10,14 +10,13 @@ namespace Xenko.UI.Tests.Layering
     /// <summary>
     /// A class that contains test functions for layering of the <see cref="ContentPresenter"/> class.
     /// </summary>
-    [TestFixture, Ignore("ContentPresenter is deprecated.")]
     [System.ComponentModel.Description("Tests for ContentPresenter layering")]
     public class ContentPresenterTests : ContentPresenter
     {
         /// <summary>
         /// Test the invalidations generated object property changes.
         /// </summary>
-        [Test]
+        [Fact(Skip = "ContentPresenter is deprecated.")]
         public void TestBasicInvalidations()
         {
             var newButton = new Button();
@@ -34,7 +33,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Test the update of the world matrix of children invalidation
         /// </summary>
-        [Test]
+        [Fact(Skip = "ContentPresenter is deprecated.")]
         public void TestUpdateWorldMatrixInvalidation()
         {
             var children = new Button();
@@ -49,29 +48,29 @@ namespace Xenko.UI.Tests.Layering
 
             worldMatrix.M11 = 2;
             UpdateWorldMatrix(ref worldMatrix, true);
-            Assert.AreEqual(worldMatrix.M11, children.WorldMatrix.M11);
+            Assert.Equal(worldMatrix.M11, children.WorldMatrix.M11);
 
             worldMatrix.M11 = 3;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(2, children.WorldMatrix.M11);
+            Assert.Equal(2, children.WorldMatrix.M11);
 
             worldMatrix.M11 = 1;
             localMatrix.M11 = 4;
             LocalMatrix = localMatrix;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(localMatrix.M11, children.WorldMatrix.M11);
+            Assert.Equal(localMatrix.M11, children.WorldMatrix.M11);
 
             localMatrix.M11 = 1;
             LocalMatrix = localMatrix;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(localMatrix.M11, children.WorldMatrix.M11);
+            Assert.Equal(localMatrix.M11, children.WorldMatrix.M11);
 
             InvalidateArrange();
             Arrange(Vector3.Zero, false);
 
             worldMatrix.M11 = 5;
             UpdateWorldMatrix(ref worldMatrix, false);
-            Assert.AreEqual(worldMatrix.M11, children.WorldMatrix.M11);
+            Assert.Equal(worldMatrix.M11, children.WorldMatrix.M11);
         }
     }
 }

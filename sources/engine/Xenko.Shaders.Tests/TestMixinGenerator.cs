@@ -3,7 +3,7 @@
 using System.IO;
 using System.Linq;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Serialization;
 using Xenko.Rendering;
@@ -13,13 +13,12 @@ namespace Xenko.Shaders.Tests
     /// <summary>
     /// Tests for the mixins code generation and runtime API.
     /// </summary>
-    [TestFixture]
     public partial class TestMixinGenerator
     {
         /// <summary>
         /// Tests a simple mixin.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestSimple()
         {
             var properties = new ShaderMixinParameters();
@@ -31,7 +30,7 @@ namespace Xenko.Shaders.Tests
         /// <summary>
         /// Tests with a child mixin.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestSimpleChild()
         {
             var properties = new ShaderMixinParameters();
@@ -43,7 +42,7 @@ namespace Xenko.Shaders.Tests
         /// <summary>
         /// Tests a simple composition
         /// </summary>
-        [Test]
+        [Fact]
         public void TestSimpleCompose()
         {
             var properties = new ShaderMixinParameters();
@@ -56,7 +55,7 @@ namespace Xenko.Shaders.Tests
         /// <summary>
         /// Tests simgple parameters usage
         /// </summary>
-        [Test]
+        [Fact]
         public void TestSimpleParams()
         {
             var properties = new ShaderMixinParameters();
@@ -78,7 +77,7 @@ namespace Xenko.Shaders.Tests
         /// <summary>
         /// Tests clone.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestSimpleClone()
         {
             var properties = new ShaderMixinParameters();
@@ -94,7 +93,7 @@ namespace Xenko.Shaders.Tests
         /// <summary>
         /// Test parameters
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMixinAndComposeKeys()
         {
             var properties = new ShaderMixinParameters();
@@ -109,21 +108,21 @@ namespace Xenko.Shaders.Tests
             var mixin = GenerateMixin("test_mixin_compose_keys", properties);
             mixin.CheckMixin("A");
 
-            Assert.AreEqual(3, mixin.Compositions.Count);
+            Assert.Equal(3, mixin.Compositions.Count);
 
-            Assert.IsTrue(mixin.Compositions.ContainsKey("SubCompute1"));
-            Assert.IsTrue(mixin.Compositions.ContainsKey("SubCompute2"));
-            Assert.IsTrue(mixin.Compositions.ContainsKey("SubComputes"));
+            Assert.True(mixin.Compositions.ContainsKey("SubCompute1"));
+            Assert.True(mixin.Compositions.ContainsKey("SubCompute2"));
+            Assert.True(mixin.Compositions.ContainsKey("SubComputes"));
 
-            Assert.AreEqual("mixin ComputeColor2", mixin.Compositions["SubCompute1"].ToString());
-            Assert.AreEqual("mixin ComputeColor", mixin.Compositions["SubCompute2"].ToString());
-            Assert.AreEqual("[mixin ComputeColorRedirect [{ColorRedirect = mixin ComputeColor2}]]", mixin.Compositions["SubComputes"].ToString());
+            Assert.Equal("mixin ComputeColor2", mixin.Compositions["SubCompute1"].ToString());
+            Assert.Equal("mixin ComputeColor", mixin.Compositions["SubCompute2"].ToString());
+            Assert.Equal("[mixin ComputeColorRedirect [{ColorRedirect = mixin ComputeColor2}]]", mixin.Compositions["SubComputes"].ToString());
         }
 
         /// <summary>
         /// Tests the complex parameters (array and nested using)
         /// </summary>
-        [Test]
+        [Fact]
         public void TestComplexParams()
         {
             var properties = new ShaderMixinParameters();

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
@@ -22,7 +22,7 @@ namespace Xenko.Input.Tests
     /// <summary>
     /// Interactive test that makes use of sensors
     /// </summary>
-    class SensorGameTest : GameTestBase
+    public class SensorGameTest : GameTestBase
     {
         private SpriteFont font;
 
@@ -331,7 +331,7 @@ namespace Xenko.Input.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void RunSensorTest()
         {
             RunGameTest(new SensorGameTest());

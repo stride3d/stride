@@ -4,7 +4,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets;
 using Xenko.Core;
 using Xenko.Core.Annotations;
@@ -12,14 +12,13 @@ using Xenko.Core.Reflection;
 
 namespace Xenko.GameStudio.Tests
 {
-    [TestFixture]
     public class TestTypes
     {
         /// <summary>
         /// This is not a test method but prints nullable items accepted for collections.
         /// TODO: we could ensure that only a few classes are allowed to allow this.
         /// </summary>
-        [Test]
+        [Fact]
         public void CollectNullableItemsInCollectionTypes()
         {
             foreach (var assembly in AssetRegistry.AssetAssemblies)

@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Engine;
 using Xenko.Graphics.Regression;
@@ -15,7 +15,6 @@ namespace Xenko.Audio.Tests.Engine
     /// <summary>
     /// Test the <see cref="AudioEmitterSoundController"/> class namely its implementation of the IPlayableSound interface.
     /// </summary>
-    [TestFixture]
     public class TestController
     {
         private List<AudioListenerComponent> listComps;
@@ -96,7 +95,7 @@ namespace Xenko.Audio.Tests.Engine
         /// <summary>
         /// Test the default values and states of the <see cref="AudioEmitterSoundController"/> class.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestDefaultValues()
         {
             TestUtilities.CreateAndRunGame(TestDefaultValuesImpl, TestUtilities.ExitGame);
@@ -111,19 +110,19 @@ namespace Xenko.Audio.Tests.Engine
             AddListenersToAudioSystem(game);
             
             // test before the creation of any soundEffectInstances
-            Assert.IsFalse(mainController.IsLooping, "Controller is looped status was true by default.");
-            Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "Controller play state was not set to stopped by default.");
-            Assert.AreEqual(1, mainController.Volume, "The volume of the controller was not 1 by default.");
+            Assert.False(mainController.IsLooping, "Controller is looped status was true by default.");
+            Assert.True(PlayState.Stopped == mainController.PlayState, "Controller play state was not set to stopped by default.");
+            Assert.True(1 == mainController.Volume, "The volume of the controller was not 1 by default.");
 
             AddRootEntityToEntitySystem(game);
 
             // test after the creation of any soundEffectInstances
-            Assert.IsFalse(mainController.IsLooping, "Controller is looped status was true by default.");
-            Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "Controller play state was not set to stopped by default.");
-            Assert.AreEqual(1, mainController.Volume, "The volume of the controller was not 1 by default.");
+            Assert.False(mainController.IsLooping, "Controller is looped status was true by default.");
+            Assert.True(PlayState.Stopped == mainController.PlayState, "Controller play state was not set to stopped by default.");
+            Assert.True(1 == mainController.Volume, "The volume of the controller was not 1 by default.");
         }
 
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestVolume()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestVolumeSetup, null, TestVolumeLoopImpl);
@@ -189,7 +188,7 @@ namespace Xenko.Audio.Tests.Engine
             }
         }
 
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestIsLooped()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestIsLoopedSetup, null, TestIsLoopedLoopImpl);
@@ -216,7 +215,7 @@ namespace Xenko.Audio.Tests.Engine
             // should hear looped sound
             else if (loopCount == 100)
             {
-                Assert.AreEqual(PlayState.Playing, mainController.PlayState, "The sound play status was stopped but the sound is supposed to be looped.");
+                Assert.True(PlayState.Playing == mainController.PlayState, "The sound play status was stopped but the sound is supposed to be looped.");
                 mainController.Stop();
             }
             // should hear nothing
@@ -229,7 +228,7 @@ namespace Xenko.Audio.Tests.Engine
             // should hear not a looped sound
             else if (loopCount == 250)
             {
-                Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "The sound play status was playing but the sound is supposed to do so.");
+                Assert.True(PlayState.Stopped == mainController.PlayState, "The sound play status was playing but the sound is supposed to do so.");
                 mainController.Stop();
             }
             // should hear not a looped sound
@@ -246,7 +245,7 @@ namespace Xenko.Audio.Tests.Engine
             // should hear looped sound
             else if (loopCount == 400)
             {
-                Assert.AreEqual(PlayState.Playing, mainController.PlayState, "The sound play status was stopped but the sound is supposed to be looped.");
+                Assert.True(PlayState.Playing == mainController.PlayState, "The sound play status was stopped but the sound is supposed to be looped.");
                 mainController.Stop();
             }
             // should hear looped sound
@@ -257,12 +256,12 @@ namespace Xenko.Audio.Tests.Engine
             else if (loopCount == 475)
             {
                 // check that IsLooped throws InvalidOperationException when modified while playing.
-                Assert.Throws<InvalidOperationException>(() => mainController.IsLooping = true, "setting isLooped variable during playing sound did not throw InvalidOperationException");
+                Assert.Throws<InvalidOperationException>(() => mainController.IsLooping = true);
                 game.Exit();
             }
         }
 
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestPlay()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestPlaySetup, null, TestPlayLoopImpl);
@@ -287,7 +286,7 @@ namespace Xenko.Audio.Tests.Engine
             // should hear nothing
             else if (loopCount == 100)
             {
-                Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "The sound play status was playing eventhough the entity was not added.");
+                Assert.True(PlayState.Stopped == mainController.PlayState, "The sound play status was playing eventhough the entity was not added.");
 
                 // check the behavious of a basic call to play.
                 AddRootEntityToEntitySystem(game);
@@ -296,7 +295,7 @@ namespace Xenko.Audio.Tests.Engine
             // should hear the beginning of the sound
             else if (loopCount == 120)
             {
-                Assert.AreEqual(PlayState.Playing, mainController.PlayState, "The sound play status was not playing eventhough the entity was added.");
+                Assert.True(PlayState.Playing == mainController.PlayState, "The sound play status was not playing eventhough the entity was added.");
             }
             // should hear the end of the sound
             else if (loopCount == 160)
@@ -313,7 +312,7 @@ namespace Xenko.Audio.Tests.Engine
                 // check that the sound is stopped when removing the listeners.
                 game.Audio.RemoveListener(listComps[0]);
                 game.Audio.RemoveListener(listComps[1]);
-                Assert.AreEqual(PlayState.Stopped, soundControllers[2].PlayState, "The sound has not been stopped when the listeners have been removed.");
+                Assert.True(PlayState.Stopped == soundControllers[2].PlayState, "The sound has not been stopped when the listeners have been removed.");
             }
             // should hear nothing
             else if (loopCount == 360)
@@ -328,7 +327,7 @@ namespace Xenko.Audio.Tests.Engine
                 // check that the sound is stopped when removing the sound Entity from the system.
                 Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
                 //game.Entities.Remove(rootEntity);
-                Assert.AreEqual(PlayState.Stopped, soundControllers[2].PlayState, "The sound has not been stopped when the emitter's entities have been removed.");
+                Assert.True(PlayState.Stopped == soundControllers[2].PlayState, "The sound has not been stopped when the emitter's entities have been removed.");
             }
             // should hear nothing
             else if (loopCount == 560)
@@ -337,7 +336,7 @@ namespace Xenko.Audio.Tests.Engine
             }
         }
 
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestPause()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestPauseSetup, null, TestPauseLoopImpl);
@@ -369,7 +368,7 @@ namespace Xenko.Audio.Tests.Engine
             // should hear nothing
             else if (loopCount == 60)
             {
-                Assert.AreEqual(PlayState.Paused, soundControllers[2].PlayState, "The sound play status was not paused just after play.");
+                Assert.True(PlayState.Paused == soundControllers[2].PlayState, "The sound play status was not paused just after play.");
                 soundControllers[2].Play();
             }
             // should hear the beginning of the sound
@@ -377,7 +376,7 @@ namespace Xenko.Audio.Tests.Engine
             {
                 // test that a basic call the pause works correctly.
                 soundControllers[2].Pause();
-                Assert.AreEqual(PlayState.Paused, soundControllers[2].PlayState, "The sound play status was not paused.");
+                Assert.True(PlayState.Paused == soundControllers[2].PlayState, "The sound play status was not paused.");
             }
             // should hear nothing
             else if (loopCount == 200)
@@ -391,7 +390,7 @@ namespace Xenko.Audio.Tests.Engine
             }
         }
 
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestStop()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestStopSetup, null, TestStopLoopImpl);
@@ -423,7 +422,7 @@ namespace Xenko.Audio.Tests.Engine
             // should hear nothing
             else if (loopCount == 60)
             {
-                Assert.AreEqual(PlayState.Stopped, soundControllers[2].PlayState, "The sound play status was not stopped just after play.");
+                Assert.True(PlayState.Stopped == soundControllers[2].PlayState, "The sound play status was not stopped just after play.");
                 soundControllers[2].Play();
             }
             // should hear the beginning of the sound
@@ -431,7 +430,7 @@ namespace Xenko.Audio.Tests.Engine
             {
                 // test the basic call to stop.
                 soundControllers[2].Stop();
-                Assert.AreEqual(PlayState.Stopped, soundControllers[2].PlayState, "The sound play status was not stopped.");
+                Assert.True(PlayState.Stopped == soundControllers[2].PlayState, "The sound play status was not stopped.");
             }
             // should hear nothing
             else if (loopCount == 200)
@@ -445,7 +444,7 @@ namespace Xenko.Audio.Tests.Engine
             }
         }
 
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestPlayState()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestPlayStateSetup, null, TestPlayStateLoopImpl);
@@ -468,28 +467,28 @@ namespace Xenko.Audio.Tests.Engine
 
             // check that PlayState always returns 'PlayState.Stopped' when there are no listeners
             mainController.Play();
-            Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "Value of playState without listeners is not valid after call to play.");
+            Assert.True(PlayState.Stopped == mainController.PlayState, "Value of playState without listeners is not valid after call to play.");
             mainController.Pause();
-            Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "Value of playState without listeners is not valid after call to Pause.");
+            Assert.True(PlayState.Stopped == mainController.PlayState, "Value of playState without listeners is not valid after call to Pause.");
             mainController.Stop();
-            Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "Value of playState without listeners is not valid after call to Stop.");
+            Assert.True(PlayState.Stopped == mainController.PlayState, "Value of playState without listeners is not valid after call to Stop.");
             
             // check values with listeners
 
             AddListenersToAudioSystem(game);
 
             mainController.Play(); 
-            Assert.AreEqual(PlayState.Playing, mainController.PlayState, "Value of playState with listeners is not valid after call to play.");
+            Assert.True(PlayState.Playing == mainController.PlayState, "Value of playState with listeners is not valid after call to play.");
             mainController.Pause();
-            Assert.AreEqual(PlayState.Paused, mainController.PlayState, "Value of playState with listeners is not valid after call to Pause.");
+            Assert.True(PlayState.Paused == mainController.PlayState, "Value of playState with listeners is not valid after call to Pause.");
             mainController.Stop();
-            Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "Value of playState with listeners is not valid after call to Stop.");
+            Assert.True(PlayState.Stopped == mainController.PlayState, "Value of playState with listeners is not valid after call to Stop.");
             mainController.Play();
-            Assert.AreEqual(PlayState.Playing, mainController.PlayState, "Value of playState with listeners is not valid after a second call to play.");
+            Assert.True(PlayState.Playing == mainController.PlayState, "Value of playState with listeners is not valid after a second call to play.");
             mainController.Pause();
-            Assert.AreEqual(PlayState.Paused, mainController.PlayState, "Value of playState with listeners is not valid after a second call to Pause.");
+            Assert.True(PlayState.Paused == mainController.PlayState, "Value of playState with listeners is not valid after a second call to Pause.");
             mainController.Play();
-            Assert.AreEqual(PlayState.Playing, mainController.PlayState, "Value of playState with listeners is not valid after a third call to play.");
+            Assert.True(PlayState.Playing == mainController.PlayState, "Value of playState with listeners is not valid after a third call to play.");
         }
 
         private void TestPlayStateLoopImpl(Game game, int loopCount, int loopCountSum)
@@ -497,12 +496,12 @@ namespace Xenko.Audio.Tests.Engine
             if (loopCount == 60)
             {
                 // check that PlayState is automatically reset to 'Stopped' when all the subInstances have finished to play.
-                Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "Value of playState with listeners is not valid after the end of the track.");
+                Assert.True(PlayState.Stopped == mainController.PlayState, "Value of playState with listeners is not valid after the end of the track.");
                 game.Exit();
             }
         }
 
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestExitLoop()
         {
             TestUtilities.ExecuteScriptInUpdateLoop(TestExitLoopSetup, null, TestExitLoopLoopImpl);
@@ -535,8 +534,8 @@ namespace Xenko.Audio.Tests.Engine
             // should hear the end of the sound
             else if (loopCount == 60)
             {
-                Assert.IsTrue(mainController.IsLooping, "The value of isLooped has been modified by ExitLoop.");
-                Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "The sound did not stopped after exitloop.");
+                Assert.True(mainController.IsLooping, "The value of isLooped has been modified by ExitLoop.");
+                Assert.True(PlayState.Stopped == mainController.PlayState, "The sound did not stopped after exitloop.");
             }
             // should hear nothing
             else if (loopCount == 80)
@@ -548,8 +547,8 @@ namespace Xenko.Audio.Tests.Engine
             // should hear a sound not looped
             else if (loopCount == 140)
             {
-                Assert.IsTrue(mainController.IsLooping, "The value of isLooped has been modified by ExitLoop just after play.");
-                Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "The sound did not stopped after Exitloop just after play.");
+                Assert.True(mainController.IsLooping, "The value of isLooped has been modified by ExitLoop just after play.");
+                Assert.True(PlayState.Stopped == mainController.PlayState, "The sound did not stopped after Exitloop just after play.");
             }
             // should hear nothing
             else if (loopCount == 160)
@@ -571,8 +570,8 @@ namespace Xenko.Audio.Tests.Engine
             // should hear the end of the sound (not looped)
             else if (loopCount == 270)
             {
-                Assert.IsTrue(mainController.IsLooping, "The value of isLooped has been modified by ExitLoop after pause.");
-                Assert.AreEqual(PlayState.Stopped, mainController.PlayState, "The sound did not stopped after exitloop after pause.");
+                Assert.True(mainController.IsLooping, "The value of isLooped has been modified by ExitLoop after pause.");
+                Assert.True(PlayState.Stopped == mainController.PlayState, "The sound did not stopped after exitloop after pause.");
             }
             // should hear nothing
             else if (loopCount == 320)
@@ -584,8 +583,8 @@ namespace Xenko.Audio.Tests.Engine
             // should hear the sound looping
             else if (loopCount == 500)
             {
-                Assert.IsTrue(mainController.IsLooping, "The value of isLooped has been modified by ExitLoop before play.");
-                Assert.AreEqual(PlayState.Playing, mainController.PlayState, "The sound did not looped.");
+                Assert.True(mainController.IsLooping, "The value of isLooped has been modified by ExitLoop before play.");
+                Assert.True(PlayState.Playing == mainController.PlayState, "The sound did not looped.");
                 game.Exit();
             }
         }

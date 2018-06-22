@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Assets;
 using Xenko.Core.IO;
@@ -19,7 +19,6 @@ using Xenko.TextureConverter;
 
 namespace Xenko.Assets.Tests
 {
-    [TestFixture]
     public class TexturePackerTests
     {
         private static readonly string ApplicationPath = AppDomain.CurrentDomain.BaseDirectory;
@@ -28,19 +27,17 @@ namespace Xenko.Assets.Tests
         private static readonly string ImageInputPath = Path.Combine(TexturePackerFolder, "InputImages") + Path.DirectorySeparatorChar;
         private static readonly string GoldImagePath = Path.Combine(TexturePackerFolder, "GoldImages") + Path.DirectorySeparatorChar;
 
-        public static void LoadXenkoAssemblies()
+        static TexturePackerTests()
         {
             RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);
         }
 
-        [TestFixtureSetUp]
-        public void InitializeTest()
+        public TexturePackerTests()
         {
-            LoadXenkoAssemblies();
             Game.InitializeAssetDatabase();
         }
 
-        [Test]
+        [Fact]
         public void TestMaxRectsPackWithoutRotation()
         {
             var maxRectPacker = new MaxRectanglesBinPack();
@@ -55,11 +52,11 @@ namespace Xenko.Assets.Tests
 
             maxRectPacker.PackRectangles(elementToPack);
 
-            Assert.AreEqual(1, elementToPack.Count);
-            Assert.AreEqual(1, maxRectPacker.PackedElements.Count);
+            Assert.Equal(1, elementToPack.Count);
+            Assert.Equal(1, maxRectPacker.PackedElements.Count);
         }
 
-        [Test]
+        [Fact]
         public void TestMaxRectsPackWithRotation()
         {
             var maxRectPacker = new MaxRectanglesBinPack();
@@ -74,15 +71,15 @@ namespace Xenko.Assets.Tests
 
             maxRectPacker.PackRectangles(packRectangles);
 
-            Assert.AreEqual(0, packRectangles.Count);
-            Assert.AreEqual(2, maxRectPacker.PackedElements.Count);
-            Assert.IsTrue(maxRectPacker.PackedElements.Find(e => e.Name == "B").DestinationRegion.IsRotated);
+            Assert.Equal(0, packRectangles.Count);
+            Assert.Equal(2, maxRectPacker.PackedElements.Count);
+            Assert.True(maxRectPacker.PackedElements.Find(e => e.Name == "B").DestinationRegion.IsRotated);
         }
 
         /// <summary>
         /// Test packing 7 rectangles
         /// </summary>
-        [Test]
+        [Fact]
         public void TestMaxRectsPackArbitaryRectangles()
         {
             var maxRectPacker = new MaxRectanglesBinPack();
@@ -102,11 +99,11 @@ namespace Xenko.Assets.Tests
 
             maxRectPacker.PackRectangles(packRectangles);
 
-            Assert.AreEqual(1, packRectangles.Count);
-            Assert.AreEqual(6, maxRectPacker.PackedElements.Count);
+            Assert.Equal(1, packRectangles.Count);
+            Assert.Equal(6, maxRectPacker.PackedElements.Count);
         }
 
-        [Test]
+        [Fact]
         public void TestTexturePackerFitAllElements()
         {
             var textureElements = CreateFakeTextureElements();
@@ -122,7 +119,7 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
+            Assert.True(canPackAllTextures);
         }
 
         public List<AtlasTextureElement> CreateFakeTextureElements()
@@ -134,7 +131,7 @@ namespace Xenko.Assets.Tests
             };
         }
 
-        [Test]
+        [Fact]
         public void TestTexturePackerEmptyList()
         {
             var textureElements = new List<AtlasTextureElement>();
@@ -149,12 +146,12 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.AreEqual(0, textureElements.Count);
-            Assert.AreEqual(0, texturePacker.AtlasTextureLayouts.Count);
-            Assert.IsTrue(canPackAllTextures);
+            Assert.Equal(0, textureElements.Count);
+            Assert.Equal(0, texturePacker.AtlasTextureLayouts.Count);
+            Assert.True(canPackAllTextures);
         }
 
-        [Test]
+        [Fact]
         public void TestRotationElement1()
         {
             var textureElements = new List<AtlasTextureElement>
@@ -173,15 +170,15 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
-            Assert.AreEqual(1, texturePacker.AtlasTextureLayouts.Count);
+            Assert.True(canPackAllTextures);
+            Assert.Equal(1, texturePacker.AtlasTextureLayouts.Count);
 
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(texturePacker.AtlasTextureLayouts[0], false);
 
             SaveAndCompareTexture(atlasTexture, "TestRotationElement1");
         }
 
-        [Test]
+        [Fact]
         public void TestRotationElement2()
         {
             var textureElements = new List<AtlasTextureElement>
@@ -199,15 +196,15 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
-            Assert.AreEqual(1, texturePacker.AtlasTextureLayouts.Count);
+            Assert.True(canPackAllTextures);
+            Assert.Equal(1, texturePacker.AtlasTextureLayouts.Count);
 
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(texturePacker.AtlasTextureLayouts[0], false);
 
             SaveAndCompareTexture(atlasTexture, "TestRotationElement2");
         }
 
-        [Test]
+        [Fact]
         public void TestTexturePackerWithMultiPack()
         {
             var textureElements = CreateFakeTextureElements();
@@ -222,9 +219,9 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.AreEqual(2, textureElements.Count);
-            Assert.AreEqual(0, texturePacker.AtlasTextureLayouts.Count);
-            Assert.IsFalse(canPackAllTextures);
+            Assert.Equal(2, textureElements.Count);
+            Assert.Equal(0, texturePacker.AtlasTextureLayouts.Count);
+            Assert.False(canPackAllTextures);
 
             texturePacker.Reset();
             texturePacker.MaxWidth = 1500;
@@ -232,15 +229,15 @@ namespace Xenko.Assets.Tests
 
             canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
-            Assert.AreEqual(1, texturePacker.AtlasTextureLayouts.Count);
-            Assert.AreEqual(textureElements.Count, texturePacker.AtlasTextureLayouts[0].Textures.Count);
+            Assert.True(canPackAllTextures);
+            Assert.Equal(1, texturePacker.AtlasTextureLayouts.Count);
+            Assert.Equal(textureElements.Count, texturePacker.AtlasTextureLayouts[0].Textures.Count);
 
-            Assert.IsTrue(MathUtil.IsPow2(texturePacker.AtlasTextureLayouts[0].Width));
-            Assert.IsTrue(MathUtil.IsPow2(texturePacker.AtlasTextureLayouts[0].Height));
+            Assert.True(MathUtil.IsPow2(texturePacker.AtlasTextureLayouts[0].Width));
+            Assert.True(MathUtil.IsPow2(texturePacker.AtlasTextureLayouts[0].Height));
         }
 
-        [Test]
+        [Fact]
         public void TestTexturePackerWithBorder()
         {
             var textureAtlases = new List<AtlasTextureLayout>();
@@ -262,23 +259,23 @@ namespace Xenko.Assets.Tests
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
             textureAtlases.AddRange(texturePacker.AtlasTextureLayouts);
 
-            Assert.IsTrue(canPackAllTextures);
-            Assert.AreEqual(2, textureElements.Count);
-            Assert.AreEqual(1, textureAtlases.Count);
+            Assert.True(canPackAllTextures);
+            Assert.Equal(2, textureElements.Count);
+            Assert.Equal(1, textureAtlases.Count);
 
-            Assert.IsTrue(MathUtil.IsPow2(textureAtlases[0].Width));
-            Assert.IsTrue(MathUtil.IsPow2(textureAtlases[0].Height));
+            Assert.True(MathUtil.IsPow2(textureAtlases[0].Width));
+            Assert.True(MathUtil.IsPow2(textureAtlases[0].Height));
 
             // Test if border is applied in width and height
             var textureA = textureAtlases[0].Textures.Find(rectangle => rectangle.Name == "A");
             var textureB = textureAtlases[0].Textures.Find(rectangle => rectangle.Name == "B");
 
-            Assert.AreEqual(textureA.SourceRegion.Width + 2 * textureA.BorderSize, textureA.DestinationRegion.Width);
-            Assert.AreEqual(textureA.SourceRegion.Height + 2 * textureA.BorderSize, textureA.DestinationRegion.Height);
+            Assert.Equal(textureA.SourceRegion.Width + 2 * textureA.BorderSize, textureA.DestinationRegion.Width);
+            Assert.Equal(textureA.SourceRegion.Height + 2 * textureA.BorderSize, textureA.DestinationRegion.Height);
 
-            Assert.AreEqual(textureB.SourceRegion.Width + 2 * textureB.BorderSize,
+            Assert.Equal(textureB.SourceRegion.Width + 2 * textureB.BorderSize,
                 (!textureB.DestinationRegion.IsRotated) ? textureB.DestinationRegion.Width : textureB.DestinationRegion.Height);
-            Assert.AreEqual(textureB.SourceRegion.Height + 2 * textureB.BorderSize,
+            Assert.Equal(textureB.SourceRegion.Height + 2 * textureB.BorderSize,
                 (!textureB.DestinationRegion.IsRotated) ? textureB.DestinationRegion.Height : textureB.DestinationRegion.Width);
         }
 
@@ -326,7 +323,7 @@ namespace Xenko.Assets.Tests
             return texture;
         }
 
-        [Test]
+        [Fact]
         public void TestTextureAtlasFactory()
         {
             var textureElements = new List<AtlasTextureElement>
@@ -344,20 +341,20 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
+            Assert.True(canPackAllTextures);
 
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.AreEqual(1, textureAtlases.Count);
-            Assert.IsTrue(MathUtil.IsPow2(textureAtlases[0].Width));
-            Assert.IsTrue(MathUtil.IsPow2(textureAtlases[0].Height));
+            Assert.Equal(1, textureAtlases.Count);
+            Assert.True(MathUtil.IsPow2(textureAtlases[0].Width));
+            Assert.True(MathUtil.IsPow2(textureAtlases[0].Height));
 
             // Create atlas texture
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(textureAtlases[0], false);
 
-            Assert.AreEqual(textureAtlases[0].Width, atlasTexture.Description.Width);
-            Assert.AreEqual(textureAtlases[0].Height, atlasTexture.Description.Height);
+            Assert.Equal(textureAtlases[0].Width, atlasTexture.Description.Width);
+            Assert.Equal(textureAtlases[0].Height, atlasTexture.Description.Height);
 
             SaveAndCompareTexture(atlasTexture, "TestTextureAtlasFactory");
 
@@ -365,7 +362,7 @@ namespace Xenko.Assets.Tests
             atlasTexture.Dispose();
         }
 
-        [Test]
+        [Fact]
         public void TestTextureAtlasFactoryRotation()
         {
             var textureElements = new List<AtlasTextureElement>
@@ -385,20 +382,20 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
+            Assert.True(canPackAllTextures);
 
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.AreEqual(1, textureAtlases.Count);
-            Assert.AreEqual(texturePacker.MaxWidth, textureAtlases[0].Width);
-            Assert.AreEqual(texturePacker.MaxHeight, textureAtlases[0].Height);
+            Assert.Equal(1, textureAtlases.Count);
+            Assert.Equal(texturePacker.MaxWidth, textureAtlases[0].Width);
+            Assert.Equal(texturePacker.MaxHeight, textureAtlases[0].Height);
 
             // Create atlas texture
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(textureAtlases[0], false);
 
-            Assert.AreEqual(textureAtlases[0].Width, atlasTexture.Description.Width);
-            Assert.AreEqual(textureAtlases[0].Height, atlasTexture.Description.Height);
+            Assert.Equal(textureAtlases[0].Width, atlasTexture.Description.Width);
+            Assert.Equal(textureAtlases[0].Height, atlasTexture.Description.Height);
 
             SaveAndCompareTexture(atlasTexture, "TestTextureAtlasFactoryRotation");
 
@@ -406,7 +403,7 @@ namespace Xenko.Assets.Tests
             atlasTexture.Dispose();
         }
 
-        [Test]
+        [Fact]
         public void TestTextureAtlasFactoryRotation2()
         {
             var textureElements = new List<AtlasTextureElement>
@@ -426,20 +423,20 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
+            Assert.True(canPackAllTextures);
 
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.AreEqual(1, textureAtlases.Count);
-            Assert.AreEqual(texturePacker.MaxWidth, textureAtlases[0].Width);
-            Assert.AreEqual(texturePacker.MaxHeight, textureAtlases[0].Height);
+            Assert.Equal(1, textureAtlases.Count);
+            Assert.Equal(texturePacker.MaxWidth, textureAtlases[0].Width);
+            Assert.Equal(texturePacker.MaxHeight, textureAtlases[0].Height);
 
             // Create atlas texture
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(textureAtlases[0], false);
 
-            Assert.AreEqual(textureAtlases[0].Width, atlasTexture.Description.Width);
-            Assert.AreEqual(textureAtlases[0].Height, atlasTexture.Description.Height);
+            Assert.Equal(textureAtlases[0].Width, atlasTexture.Description.Width);
+            Assert.Equal(textureAtlases[0].Height, atlasTexture.Description.Height);
 
             SaveAndCompareTexture(atlasTexture, "TestTextureAtlasFactoryRotation2");
 
@@ -447,7 +444,7 @@ namespace Xenko.Assets.Tests
             atlasTexture.Dispose();
         }
 
-        [Test]
+        [Fact]
         public void TestRegionOutOfTexture()
         {
             var textureElements = new List<AtlasTextureElement>
@@ -467,18 +464,18 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
+            Assert.True(canPackAllTextures);
 
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.AreEqual(1, textureAtlases.Count);
+            Assert.Equal(1, textureAtlases.Count);
 
             // Create atlas texture
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(textureAtlases[0], false);
 
-            Assert.AreEqual(textureAtlases[0].Width, atlasTexture.Description.Width);
-            Assert.AreEqual(textureAtlases[0].Height, atlasTexture.Description.Height);
+            Assert.Equal(textureAtlases[0].Width, atlasTexture.Description.Width);
+            Assert.Equal(textureAtlases[0].Height, atlasTexture.Description.Height);
 
             SaveAndCompareTexture(atlasTexture, "TestRegionOutOfTexture");
 
@@ -486,7 +483,7 @@ namespace Xenko.Assets.Tests
             atlasTexture.Dispose();
         }
 
-        [Test]
+        [Fact]
         public void TestTextureAtlasFactoryImageParts()
         {
             var textureElements = new List<AtlasTextureElement>
@@ -510,20 +507,20 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
+            Assert.True(canPackAllTextures);
 
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.AreEqual(1, textureAtlases.Count);
-            Assert.AreEqual(texturePacker.MaxWidth/2, textureAtlases[0].Width);
-            Assert.AreEqual(texturePacker.MaxHeight/4, textureAtlases[0].Height);
+            Assert.Equal(1, textureAtlases.Count);
+            Assert.Equal(texturePacker.MaxWidth/2, textureAtlases[0].Width);
+            Assert.Equal(texturePacker.MaxHeight/4, textureAtlases[0].Height);
 
             // Create atlas texture
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(textureAtlases[0], false);
 
-            Assert.AreEqual(textureAtlases[0].Width, atlasTexture.Description.Width);
-            Assert.AreEqual(textureAtlases[0].Height, atlasTexture.Description.Height);
+            Assert.Equal(textureAtlases[0].Width, atlasTexture.Description.Width);
+            Assert.Equal(textureAtlases[0].Height, atlasTexture.Description.Height);
 
             SaveAndCompareTexture(atlasTexture, "TestTextureAtlasFactoryImageParts");
 
@@ -541,7 +538,7 @@ namespace Xenko.Assets.Tests
             using(var texTool = new TextureTool())
             {
                 var referenceImage = LoadImage(texTool, new UFile(GoldImagePath + "/" + fileName + extension.ToFileExtension()));
-                Assert.IsTrue(CompareImages(outputImage, referenceImage), "The texture outputted differs from the gold image.");
+                Assert.True(CompareImages(outputImage, referenceImage), "The texture outputted differs from the gold image.");
             }
         }
 
@@ -570,7 +567,7 @@ namespace Xenko.Assets.Tests
             return true;
         }
 
-        [Test]
+        [Fact]
         public void TestNullSizeTexture()
         {
             var textureElements = new List<AtlasTextureElement> { CreateElement("A", 0, 0) };
@@ -585,15 +582,15 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
+            Assert.True(canPackAllTextures);
 
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.AreEqual(0, textureAtlases.Count);
+            Assert.Equal(0, textureAtlases.Count);
         }
 
-        [Test]
+        [Fact]
         public void TestNullSizeElements()
         {
             var textureElements = new List<AtlasTextureElement>
@@ -617,137 +614,137 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
+            Assert.True(canPackAllTextures);
 
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.AreEqual(1, textureAtlases.Count);
-            Assert.AreEqual(4, textureAtlases[0].Textures.Count);
-            Assert.IsNull(textureAtlases[0].Textures.Find(e => e.Name == "B"));
-            Assert.IsNull(textureAtlases[0].Textures.Find(e => e.Name == "D"));
-            Assert.IsNull(textureAtlases[0].Textures.Find(e => e.Name == "F"));
-            Assert.IsNotNull(textureAtlases[0].Textures.Find(e => e.Name == "A"));
-            Assert.IsNotNull(textureAtlases[0].Textures.Find(e => e.Name == "C"));
-            Assert.IsNotNull(textureAtlases[0].Textures.Find(e => e.Name == "E"));
-            Assert.IsNotNull(textureAtlases[0].Textures.Find(e => e.Name == "G"));
+            Assert.Equal(1, textureAtlases.Count);
+            Assert.Equal(4, textureAtlases[0].Textures.Count);
+            Assert.Null(textureAtlases[0].Textures.Find(e => e.Name == "B"));
+            Assert.Null(textureAtlases[0].Textures.Find(e => e.Name == "D"));
+            Assert.Null(textureAtlases[0].Textures.Find(e => e.Name == "F"));
+            Assert.NotNull(textureAtlases[0].Textures.Find(e => e.Name == "A"));
+            Assert.NotNull(textureAtlases[0].Textures.Find(e => e.Name == "C"));
+            Assert.NotNull(textureAtlases[0].Textures.Find(e => e.Name == "E"));
+            Assert.NotNull(textureAtlases[0].Textures.Find(e => e.Name == "G"));
         }
 
-        [Test]
+        [Fact]
         public void TestWrapBorderMode()
         {
             // Positive sets
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(0, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(5, AtlasTextureFactory.GetSourceTextureCoordinate(5, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(9, 10, TextureAddressMode.Wrap));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(0, 10, TextureAddressMode.Wrap));
+            Assert.Equal(5, AtlasTextureFactory.GetSourceTextureCoordinate(5, 10, TextureAddressMode.Wrap));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(9, 10, TextureAddressMode.Wrap));
 
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(10, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(5, AtlasTextureFactory.GetSourceTextureCoordinate(15, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(19, 10, TextureAddressMode.Wrap));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(10, 10, TextureAddressMode.Wrap));
+            Assert.Equal(5, AtlasTextureFactory.GetSourceTextureCoordinate(15, 10, TextureAddressMode.Wrap));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(19, 10, TextureAddressMode.Wrap));
 
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(20, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(5, AtlasTextureFactory.GetSourceTextureCoordinate(25, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(29, 10, TextureAddressMode.Wrap));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(20, 10, TextureAddressMode.Wrap));
+            Assert.Equal(5, AtlasTextureFactory.GetSourceTextureCoordinate(25, 10, TextureAddressMode.Wrap));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(29, 10, TextureAddressMode.Wrap));
 
             // Negative sets
-            Assert.AreEqual(6, AtlasTextureFactory.GetSourceTextureCoordinate(-4, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(1, AtlasTextureFactory.GetSourceTextureCoordinate(-9, 10, TextureAddressMode.Wrap));
+            Assert.Equal(6, AtlasTextureFactory.GetSourceTextureCoordinate(-4, 10, TextureAddressMode.Wrap));
+            Assert.Equal(1, AtlasTextureFactory.GetSourceTextureCoordinate(-9, 10, TextureAddressMode.Wrap));
 
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-10, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(6, AtlasTextureFactory.GetSourceTextureCoordinate(-14, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(1, AtlasTextureFactory.GetSourceTextureCoordinate(-19, 10, TextureAddressMode.Wrap));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-10, 10, TextureAddressMode.Wrap));
+            Assert.Equal(6, AtlasTextureFactory.GetSourceTextureCoordinate(-14, 10, TextureAddressMode.Wrap));
+            Assert.Equal(1, AtlasTextureFactory.GetSourceTextureCoordinate(-19, 10, TextureAddressMode.Wrap));
 
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-20, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(6, AtlasTextureFactory.GetSourceTextureCoordinate(-24, 10, TextureAddressMode.Wrap));
-            Assert.AreEqual(1, AtlasTextureFactory.GetSourceTextureCoordinate(-29, 10, TextureAddressMode.Wrap));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-20, 10, TextureAddressMode.Wrap));
+            Assert.Equal(6, AtlasTextureFactory.GetSourceTextureCoordinate(-24, 10, TextureAddressMode.Wrap));
+            Assert.Equal(1, AtlasTextureFactory.GetSourceTextureCoordinate(-29, 10, TextureAddressMode.Wrap));
         }
 
-        [Test]
+        [Fact]
         public void TestClampBorderMode()
         {
             // Positive sets
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(0, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(5, AtlasTextureFactory.GetSourceTextureCoordinate(5, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(9, 10, TextureAddressMode.Clamp));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(0, 10, TextureAddressMode.Clamp));
+            Assert.Equal(5, AtlasTextureFactory.GetSourceTextureCoordinate(5, 10, TextureAddressMode.Clamp));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(9, 10, TextureAddressMode.Clamp));
 
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(10, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(15, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(19, 10, TextureAddressMode.Clamp));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(10, 10, TextureAddressMode.Clamp));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(15, 10, TextureAddressMode.Clamp));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(19, 10, TextureAddressMode.Clamp));
 
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(20, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(25, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(29, 10, TextureAddressMode.Clamp));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(20, 10, TextureAddressMode.Clamp));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(25, 10, TextureAddressMode.Clamp));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(29, 10, TextureAddressMode.Clamp));
 
             // Negative sets
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-4, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-9, 10, TextureAddressMode.Clamp));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-4, 10, TextureAddressMode.Clamp));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-9, 10, TextureAddressMode.Clamp));
 
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-10, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-14, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-19, 10, TextureAddressMode.Clamp));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-10, 10, TextureAddressMode.Clamp));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-14, 10, TextureAddressMode.Clamp));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-19, 10, TextureAddressMode.Clamp));
 
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-20, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-24, 10, TextureAddressMode.Clamp));
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-29, 10, TextureAddressMode.Clamp));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-20, 10, TextureAddressMode.Clamp));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-24, 10, TextureAddressMode.Clamp));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-29, 10, TextureAddressMode.Clamp));
         }
 
-        [Test]
+        [Fact]
         public void TestMirrorBorderMode()
         {
             // Positive sets
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(0, 10, TextureAddressMode.Mirror));
-            Assert.AreEqual(5, AtlasTextureFactory.GetSourceTextureCoordinate(5, 10, TextureAddressMode.Mirror));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(9, 10, TextureAddressMode.Mirror));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(0, 10, TextureAddressMode.Mirror));
+            Assert.Equal(5, AtlasTextureFactory.GetSourceTextureCoordinate(5, 10, TextureAddressMode.Mirror));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(9, 10, TextureAddressMode.Mirror));
 
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(10, 10, TextureAddressMode.Mirror));
-            Assert.AreEqual(8, AtlasTextureFactory.GetSourceTextureCoordinate(11, 10, TextureAddressMode.Mirror));
-            Assert.AreEqual(7, AtlasTextureFactory.GetSourceTextureCoordinate(12, 10, TextureAddressMode.Mirror));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(10, 10, TextureAddressMode.Mirror));
+            Assert.Equal(8, AtlasTextureFactory.GetSourceTextureCoordinate(11, 10, TextureAddressMode.Mirror));
+            Assert.Equal(7, AtlasTextureFactory.GetSourceTextureCoordinate(12, 10, TextureAddressMode.Mirror));
 
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(20, 10, TextureAddressMode.Mirror));
-            Assert.AreEqual(8, AtlasTextureFactory.GetSourceTextureCoordinate(21, 10, TextureAddressMode.Mirror));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(20, 10, TextureAddressMode.Mirror));
+            Assert.Equal(8, AtlasTextureFactory.GetSourceTextureCoordinate(21, 10, TextureAddressMode.Mirror));
 
             // Negative Sets
-            Assert.AreEqual(1, AtlasTextureFactory.GetSourceTextureCoordinate(-1, 10, TextureAddressMode.Mirror));
-            Assert.AreEqual(2, AtlasTextureFactory.GetSourceTextureCoordinate(-2, 10, TextureAddressMode.Mirror));
-            Assert.AreEqual(3, AtlasTextureFactory.GetSourceTextureCoordinate(-3, 10, TextureAddressMode.Mirror));
+            Assert.Equal(1, AtlasTextureFactory.GetSourceTextureCoordinate(-1, 10, TextureAddressMode.Mirror));
+            Assert.Equal(2, AtlasTextureFactory.GetSourceTextureCoordinate(-2, 10, TextureAddressMode.Mirror));
+            Assert.Equal(3, AtlasTextureFactory.GetSourceTextureCoordinate(-3, 10, TextureAddressMode.Mirror));
 
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(-9, 10, TextureAddressMode.Mirror));
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-10, 10, TextureAddressMode.Mirror));
-            Assert.AreEqual(1, AtlasTextureFactory.GetSourceTextureCoordinate(-11, 10, TextureAddressMode.Mirror));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(-9, 10, TextureAddressMode.Mirror));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-10, 10, TextureAddressMode.Mirror));
+            Assert.Equal(1, AtlasTextureFactory.GetSourceTextureCoordinate(-11, 10, TextureAddressMode.Mirror));
 
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(-20, 10, TextureAddressMode.Mirror));
-            Assert.AreEqual(1, AtlasTextureFactory.GetSourceTextureCoordinate(-21, 10, TextureAddressMode.Mirror));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(-20, 10, TextureAddressMode.Mirror));
+            Assert.Equal(1, AtlasTextureFactory.GetSourceTextureCoordinate(-21, 10, TextureAddressMode.Mirror));
         }
 
-        [Test]
+        [Fact]
         public void TestMirrorOnceBorderMode()
         {
             // Positive sets
-            Assert.AreEqual(0, AtlasTextureFactory.GetSourceTextureCoordinate(0, 10, TextureAddressMode.MirrorOnce));
-            Assert.AreEqual(5, AtlasTextureFactory.GetSourceTextureCoordinate(5, 10, TextureAddressMode.MirrorOnce));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(9, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(0, AtlasTextureFactory.GetSourceTextureCoordinate(0, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(5, AtlasTextureFactory.GetSourceTextureCoordinate(5, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(9, 10, TextureAddressMode.MirrorOnce));
 
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(10, 10, TextureAddressMode.MirrorOnce));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(11, 10, TextureAddressMode.MirrorOnce));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(12, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(10, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(11, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(12, 10, TextureAddressMode.MirrorOnce));
 
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(20, 10, TextureAddressMode.MirrorOnce));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(21, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(20, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(21, 10, TextureAddressMode.MirrorOnce));
 
             // Negative Sets
-            Assert.AreEqual(1, AtlasTextureFactory.GetSourceTextureCoordinate(-1, 10, TextureAddressMode.MirrorOnce));
-            Assert.AreEqual(2, AtlasTextureFactory.GetSourceTextureCoordinate(-2, 10, TextureAddressMode.MirrorOnce));
-            Assert.AreEqual(3, AtlasTextureFactory.GetSourceTextureCoordinate(-3, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(1, AtlasTextureFactory.GetSourceTextureCoordinate(-1, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(2, AtlasTextureFactory.GetSourceTextureCoordinate(-2, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(3, AtlasTextureFactory.GetSourceTextureCoordinate(-3, 10, TextureAddressMode.MirrorOnce));
 
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(-9, 10, TextureAddressMode.MirrorOnce));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(-10, 10, TextureAddressMode.MirrorOnce));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(-11, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(-9, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(-10, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(-11, 10, TextureAddressMode.MirrorOnce));
 
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(-20, 10, TextureAddressMode.MirrorOnce));
-            Assert.AreEqual(9, AtlasTextureFactory.GetSourceTextureCoordinate(-21, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(-20, 10, TextureAddressMode.MirrorOnce));
+            Assert.Equal(9, AtlasTextureFactory.GetSourceTextureCoordinate(-21, 10, TextureAddressMode.MirrorOnce));
         }
 
-        [Test]
+        [Fact]
         public void TestImageCreationGetAndSet()
         {
             const int width = 256;
@@ -755,13 +752,13 @@ namespace Xenko.Assets.Tests
 
             var source = Image.New2D(width, height, 1, PixelFormat.R8G8B8A8_UNorm);
 
-            Assert.AreEqual(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes() * width * height);
-            Assert.AreEqual(source.PixelBuffer.Count, 1);
+            Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes() * width * height);
+            Assert.Equal(source.PixelBuffer.Count, 1);
 
-            Assert.AreEqual(1, source.Description.MipLevels);
-            Assert.AreEqual(1, source.Description.ArraySize);
+            Assert.Equal(1, source.Description.MipLevels);
+            Assert.Equal(1, source.Description.ArraySize);
 
-            Assert.AreEqual(width * height * 4,
+            Assert.Equal(width * height * 4,
                 source.PixelBuffer[0].Width * source.PixelBuffer[0].Height * source.PixelBuffer[0].PixelSize);
 
             // Set Pixel
@@ -770,13 +767,13 @@ namespace Xenko.Assets.Tests
 
             // Get Pixel
             var fromPixels = pixelBuffer.GetPixels<byte>();
-            Assert.AreEqual(fromPixels[0], 255);
+            Assert.Equal(fromPixels[0], 255);
 
             // Dispose images
             source.Dispose();
         }
 
-        [Test]
+        [Fact]
         public void TestImageDataPointerManipulation()
         {
             const int width = 256;
@@ -784,13 +781,13 @@ namespace Xenko.Assets.Tests
 
             var source = Image.New2D(width, height, 1, PixelFormat.R8G8B8A8_UNorm);
 
-            Assert.AreEqual(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes() * width * height);
-            Assert.AreEqual(source.PixelBuffer.Count, 1);
+            Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes() * width * height);
+            Assert.Equal(source.PixelBuffer.Count, 1);
 
-            Assert.AreEqual(1, source.Description.MipLevels);
-            Assert.AreEqual(1, source.Description.ArraySize);
+            Assert.Equal(1, source.Description.MipLevels);
+            Assert.Equal(1, source.Description.ArraySize);
 
-            Assert.AreEqual(width * height * 4,
+            Assert.Equal(width * height * 4,
                 source.PixelBuffer[0].Width * source.PixelBuffer[0].Height * source.PixelBuffer[0].PixelSize);
 
             unsafe
@@ -809,13 +806,13 @@ namespace Xenko.Assets.Tests
 
             // Get Pixel
             var fromPixels = pixelBuffer.GetPixels<Color>();
-            Assert.AreEqual(Color.Red, fromPixels[0]);
+            Assert.Equal(Color.Red, fromPixels[0]);
 
             // Dispose images
             source.Dispose();
         }
 
-        [Test]
+        [Fact]
         public void TestCreateTextureAtlasToOutput()
         {
             var textureElements = new List<AtlasTextureElement>
@@ -844,25 +841,25 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
+            Assert.True(canPackAllTextures);
 
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.AreEqual(1, textureAtlases.Count);
+            Assert.Equal(1, textureAtlases.Count);
 
             if (!texturePacker.AllowNonPowerOfTwo)
             {
-                Assert.IsTrue(MathUtil.IsPow2(textureAtlases[0].Width));
-                Assert.IsTrue(MathUtil.IsPow2(textureAtlases[0].Height));
+                Assert.True(MathUtil.IsPow2(textureAtlases[0].Width));
+                Assert.True(MathUtil.IsPow2(textureAtlases[0].Height));
             }
 
             // Create atlas texture
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(textureAtlases[0], false);
             SaveAndCompareTexture(atlasTexture, "TestCreateTextureAtlasToOutput");
 
-            Assert.AreEqual(textureAtlases[0].Width, atlasTexture.Description.Width);
-            Assert.AreEqual(textureAtlases[0].Height, atlasTexture.Description.Height);
+            Assert.Equal(textureAtlases[0].Width, atlasTexture.Description.Width);
+            Assert.Equal(textureAtlases[0].Height, atlasTexture.Description.Height);
 
             atlasTexture.Dispose();
 
@@ -872,7 +869,7 @@ namespace Xenko.Assets.Tests
             }
         }
 
-        [Test]
+        [Fact]
         public void TestLoadImagesToCreateAtlas()
         {
             var textureElements = new List<AtlasTextureElement>();
@@ -893,7 +890,7 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.IsTrue(canPackAllTextures);
+            Assert.True(canPackAllTextures);
 
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;

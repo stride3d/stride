@@ -3,12 +3,11 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Extensions;
 
 namespace Xenko.Core.Design.Tests.Extensions
 {
-    [TestFixture]
     public class TestDesingExtensions
     {
         private class Node
@@ -25,8 +24,7 @@ namespace Xenko.Core.Design.Tests.Extensions
 
         private Node tree;
 
-        [TestFixtureSetUp]
-        public void Setup()
+        public TestDesingExtensions()
         {
             tree = new Node("A")
             {
@@ -58,25 +56,25 @@ namespace Xenko.Core.Design.Tests.Extensions
             };
         }
 
-        [Test]
+        [Fact]
         public void TestBreadthFirst()
         {
             var result = tree.Children.BreadthFirst(n => n.Children).Aggregate(string.Empty, (s, n) => string.Concat(s, n.Value));
-            Assert.AreEqual("BCDEFGH", result);
+            Assert.Equal("BCDEFGH", result);
         }
         
-        [Test]
+        [Fact]
         public void TestDepthFirst()
         {
             var result = tree.Children.DepthFirst(n => n.Children).Aggregate(string.Empty, (s, n) => string.Concat(s, n.Value));
-            Assert.AreEqual("BDEHCFG", result);
+            Assert.Equal("BDEHCFG", result);
         }
 
-        [Test]
+        [Fact]
         public void TestSelectDeep()
         {
             var result = tree.Children.SelectDeep(n => n.Children).Aggregate(string.Empty, (s, n) => string.Concat(s, n.Value));
-            Assert.AreEqual("BCFGDEH", result);
+            Assert.Equal("BCFGDEH", result);
         }
     }
 }

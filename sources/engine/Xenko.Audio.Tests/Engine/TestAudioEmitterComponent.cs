@@ -1,9 +1,9 @@
-﻿//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 //// This file is distributed under GPL v3. See LICENSE.md for details.
 //
 //using System;
 //
-//using NUnit.Framework;
+//using Xunit;
 //
 //using Xenko.Core.IO;
 //using Xenko.Core.Serialization.Assets;
@@ -14,23 +14,22 @@
 //    /// <summary>
 //    /// Test the <see cref="AudioEmitterComponent"/>. Some of the test depends on internal implementation and can failed if implementation has been modified.
 //    /// </summary>
-//    [TestFixture]
-//    public class TestAudioEmitterComponent
+////    public class TestAudioEmitterComponent
 //    {
 //        /// <summary>
 //        /// Test Component default values and states.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestInitialization()
 //        {
 //            var testInst = new AudioEmitterComponent();
-//            Assert.AreEqual(testInst.DistanceScale, 1, "Default value of the distance scale is not correct");
-//            Assert.AreEqual(testInst.DopplerScale, 1, "Default value of the doppler scale is not correct");
-//            Assert.IsFalse(testInst.ShouldBeProcessed, "Default value of ShouldBeProcessed si not correct");
-//            Assert.IsTrue(testInst.SoundEffectToController.Keys.Count ==0, "Controller list is not empty");
+//            Assert.Equal(testInst.DistanceScale, 1, "Default value of the distance scale is not correct");
+//            Assert.Equal(testInst.DopplerScale, 1, "Default value of the doppler scale is not correct");
+//            Assert.False(testInst.ShouldBeProcessed, "Default value of ShouldBeProcessed si not correct");
+//            Assert.True(testInst.SoundEffectToController.Keys.Count ==0, "Controller list is not empty");
 //        }
 //
-//        [Test]
+//        [Fact]
 //        public void TestDistanceDopplerScale()
 //        {
 //            var testInst = new AudioEmitterComponent();
@@ -41,7 +40,7 @@
 //        /// <summary>
 //        /// Test the internal behaviour of the component when attaching and detaching sound to the component.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestAttachDetachSounds()
 //        {
 //            var testInst = new AudioEmitterComponent();
@@ -62,21 +61,21 @@
 //                    AudioEmitterSoundController soundController2 = null;
 //                    Assert.DoesNotThrow(() => testInst.AttachSoundEffect(sound1), "Adding a first soundEffect failed");
 //                    Assert.DoesNotThrow(() => soundController1 = testInst.SoundEffectToController[sound1], "There are no sound controller for sound1.");
-//                    Assert.IsNotNull(soundController1, "Sound controller for sound1 is null");
+//                    Assert.NotNull(soundController1, "Sound controller for sound1 is null");
 //
 //                    Assert.DoesNotThrow(() => testInst.AttachSoundEffect(sound2), "Adding a second soundEffect failed");
 //                    Assert.DoesNotThrow(() => soundController2 = testInst.SoundEffectToController[sound2], "There are no sound controller for sound1.");
-//                    Assert.IsNotNull(soundController2, "Sound controller for sound2 is null");
+//                    Assert.NotNull(soundController2, "Sound controller for sound2 is null");
 //
 //                    // Remove the two soundEffect and check that their controller are correctly erased.
 //
 //                    Assert.DoesNotThrow(() => testInst.DetachSoundEffect(sound2), "Removing a first soundEffect failed");
-//                    Assert.IsFalse(testInst.SoundEffectToController.ContainsKey(sound2), "The controller for sound2 is still present in the list.");
+//                    Assert.False(testInst.SoundEffectToController.ContainsKey(sound2), "The controller for sound2 is still present in the list.");
 //
 //                    Assert.DoesNotThrow(() => testInst.DetachSoundEffect(sound1), "Removing a second soundEffect failed");
-//                    Assert.IsFalse(testInst.SoundEffectToController.ContainsKey(sound1), "The controller for sound1 is still present in the list.");
+//                    Assert.False(testInst.SoundEffectToController.ContainsKey(sound1), "The controller for sound1 is still present in the list.");
 //
-//                    Assert.IsTrue(testInst.SoundEffectToController.Keys.Count == 0, "There are some controller left in the component list.");
+//                    Assert.True(testInst.SoundEffectToController.Keys.Count == 0, "There are some controller left in the component list.");
 //
 //                    // Check the exception thrwon by attachSoundEffect.
 //
@@ -94,7 +93,7 @@
 //        /// <summary>
 //        /// Test the <see cref="AudioEmitterComponent.GetSoundEffectController"/> function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestGetController()
 //        {
 //            var testInst = new AudioEmitterComponent();

@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
@@ -204,7 +204,7 @@ This is the last line.",
             UIComponent.Resolution = new Vector3(GraphicsDevice.Presenter.BackBuffer.Width * 2, GraphicsDevice.Presenter.BackBuffer.Height * 2, 500);
         }
 
-        [Test]
+        [Fact]
         public void RunTextBlockTest()
         {
             RunGameTest(new TextBlockTest());

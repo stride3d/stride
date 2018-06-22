@@ -1,14 +1,13 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Games.Testing;
 
 namespace GeometricPrimitivesTest
 {
-    [TestFixture]
     public class GeometricPrimitivesTest
     {
         private const string Path = "samples\\Graphics\\GeometricPrimitives\\Bin\\Windows-Direct3D11\\Debug\\GeometricPrimitives.exe";
@@ -21,7 +20,7 @@ namespace GeometricPrimitivesTest
         private const PlatformType TestPlatform = PlatformType.Windows;
 #endif
 
-        [Test]
+        [Fact]
         public void TestLaunch()
         {
             using (var game = new GameTestingClient(Path, TestPlatform))
@@ -30,7 +29,7 @@ namespace GeometricPrimitivesTest
             }
         }
 
-        [Test]
+        [Fact]
         public void TestInputs()
         {
             using (var game = new GameTestingClient(Path, TestPlatform))

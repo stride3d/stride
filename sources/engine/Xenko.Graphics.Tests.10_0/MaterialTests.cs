@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Graphics.Regression;
@@ -19,7 +19,6 @@ namespace Xenko.Graphics.Tests
     /// <summary>
     /// Test <see cref="Material"/>.
     /// </summary>
-    [TestFixture]
     public class MaterialTests : GameTestBase
     {
         private string testName;
@@ -76,163 +75,187 @@ namespace Xenko.Graphics.Tests
         }
 
         #region Basic tests (diffuse color/float4)
-        [Test]
+        [Fact]
         public void MaterialDiffuseColor()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseColor")), true);
+            TestName = nameof(MaterialDiffuseColor);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseColor")));
         }
 
-        [Test]
+        [Fact]
         public void MaterialDiffuseFloat4()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseFloat4")), true);
+            TestName = nameof(MaterialDiffuseFloat4);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseFloat4")));
         }
         #endregion
 
         #region Test Diffuse ComputeTextureColor with various parameters
-        [Test]
+        [Fact]
         public void MaterialDiffuseTexture()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTexture")), true);
+            TestName = nameof(MaterialDiffuseTexture);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTexture")));
         }
 
         // Test ComputeTextureColor.Fallback
-        [Test]
+        [Fact]
         public void MaterialDiffuseTextureFallback()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureFallback")), true);
+            TestName = nameof(MaterialDiffuseTextureFallback);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureFallback")));
         }
 
         // Test texcoord offsets
-        [Test]
+        [Fact]
         public void MaterialDiffuseTextureOffset()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureOffset")), true);
+            TestName = nameof(MaterialDiffuseTextureOffset);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureOffset")));
         }
 
         // Test texcoord scaling
-        [Test]
+        [Fact]
         public void MaterialDiffuseTextureScaled()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureScaled")), true);
+            TestName = nameof(MaterialDiffuseTextureScaled);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureScaled")));
         }
 
         // Test texcoord1
-        [Test]
+        [Fact]
         public void MaterialDiffuseTextureCoord1()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureCoord1")), true);
+            TestName = nameof(MaterialDiffuseTextureCoord1);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureCoord1")));
         }
 
         // Test uv address modes
-        [Test]
+        [Fact]
         public void MaterialDiffuseTextureClampMirror()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureClampMirror")), true);
+            TestName = nameof(MaterialDiffuseTextureClampMirror);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Base/MaterialDiffuseTextureClampMirror")));
         }
         #endregion
 
         #region Test diffuse binary operators
-        [Test]
+        [Fact]
         public void MaterialBinaryOperatorMultiply()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorMultiply")), true);
+            TestName = nameof(MaterialBinaryOperatorMultiply);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorMultiply")));
         }
 
-        [Test]
+        [Fact]
         public void MaterialBinaryOperatorAdd()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorAdd")), true);
+            TestName = nameof(MaterialBinaryOperatorAdd);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/BinaryOperators/MaterialBinaryOperatorAdd")));
         }
         #endregion
 
         #region Test diffuse compute color
-        [Test]
+        [Fact]
         public void MaterialDiffuseComputeColorFixed()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/ComputeColors/MaterialDiffuseComputeColorFixed")), true);
+            TestName = nameof(MaterialDiffuseComputeColorFixed);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/ComputeColors/MaterialDiffuseComputeColorFixed")));
         }
         #endregion
 
         #region Test material features (specular, metalness, cavity, normal map, emissive)
-        [Test]
+        [Fact]
         public void MaterialMetalness()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialMetalness")), true);
+            TestName = nameof(MaterialMetalness);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialMetalness")));
         }
 
-        [Test]
+        [Fact]
         public void MaterialSpecular()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialSpecular")), true);
+            TestName = nameof(MaterialSpecular);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialSpecular")));
         }
 
-        [Test]
+        [Fact]
         public void MaterialNormalMap()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMap")), true);
+            TestName = nameof(MaterialNormalMap);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMap")));
         }
 
-        [Test]
+        [Fact]
         public void MaterialNormalMapCompressed()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMapCompressed")), true);
+            TestName = nameof(MaterialNormalMapCompressed);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialNormalMapCompressed")));
         }
 
-        [Test]
+        [Fact]
         public void MaterialEmissive()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialEmissive")), true);
+            TestName = nameof(MaterialEmissive);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialEmissive")));
         }
 
-        [Test]
+        [Fact]
         public void MaterialCavity()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialCavity")), true);
+            TestName = nameof(MaterialCavity);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Features/MaterialCavity")));
         }
         #endregion
 
         #region Test layers with different shading models
         // Layers (A, B and C are shading models; first character is root parent, and next characters are its child)
-        [Test]
+        [Fact]
         public void MaterialLayerAAA()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerAAA")), true);
+            TestName = nameof(MaterialLayerAAA);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerAAA")));
         }
 
-        [Test, Ignore("Disabled until XK-3123 is fixed (material blending SM flush results in layer masks applied improperly)")]
+        [Fact(Skip = "Disabled until XK-3123 is fixed (material blending SM flush results in layer masks applied improperly)")]
         public void MaterialLayerABB()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")), true);
+            TestName = nameof(MaterialLayerABB);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")));
         }
 
-        [Test]
+        [Fact]
         public void MaterialLayerABA()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABA")), true);
+            TestName = nameof(MaterialLayerABA);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABA")));
         }
 
-        [Test]
+        [Fact]
         public void MaterialLayerABC()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABC")), true);
+            TestName = nameof(MaterialLayerABC);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABC")));
         }
 
-        [Test, Ignore("Disabled until XK-3123 is fixed (material blending SM flush results in layer masks applied improperly)")]
+        [Fact(Skip = "Disabled until XK-3123 is fixed (material blending SM flush results in layer masks applied improperly)")]
         public void MaterialLayerBAA()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBAA")), true);
+            TestName = nameof(MaterialLayerBAA);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBAA")));
         }
 
-        [Test]
+        [Fact]
         public void MaterialLayerBBB()
         {
-            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBBB")), true);
+            TestName = nameof(MaterialLayerBBB);
+            RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerBBB")));
         }
 
-        [Test, Ignore("Similar to MaterialLayerABB but using API for easier debugging")]
+        [Fact(Skip = "Similar to MaterialLayerABB but using API for easier debugging")]
         public void MaterialLayerABBWithAPI()
         {
+            TestName = nameof(MaterialLayerABBWithAPI);
             //RunGameTest(new MaterialTests(game => game.Content.Load<Material>("MaterialTests/Layers/MaterialLayerABB")));
             RunGameTest(new MaterialTests(game =>
             {
@@ -290,7 +313,7 @@ namespace Xenko.Graphics.Tests
                 };
 
                 return CreateMaterial(materialDesc, context);
-            }), true);
+            }));
         }
 
         #endregion

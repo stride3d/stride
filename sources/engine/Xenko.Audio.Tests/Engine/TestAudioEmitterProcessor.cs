@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
@@ -16,7 +16,6 @@ namespace Xenko.Audio.Tests.Engine
     /// Test the <see cref="AudioEmitterComponent"/>. All the test are performed on internal members. 
     /// If the implementation of the <see cref="AudioEmitterComponent"/> is modified, those tests may not be valid anymore.
     /// </summary>
-    [TestFixture]
     public class TestAudioEmitterProcessor
     {
         private List<AudioListenerComponent> listComps;
@@ -142,9 +141,9 @@ namespace Xenko.Audio.Tests.Engine
         //                    {
         //                        var currentKey = Tuple.Create(listComp, controller);
         //                        if (shouldExistListeners.Contains(listComp))
-        //                            Assert.IsTrue(data.ListenerControllerToSoundInstance.ContainsKey(currentKey), "Sound Effect instance should exist for registered listener");
+        //                            Assert.True(data.ListenerControllerToSoundInstance.ContainsKey(currentKey), "Sound Effect instance should exist for registered listener");
         //                        else
-        //                            Assert.IsFalse(data.ListenerControllerToSoundInstance.ContainsKey(currentKey), "Sound Effect instance should not exist for not registered listener");
+        //                            Assert.False(data.ListenerControllerToSoundInstance.ContainsKey(currentKey), "Sound Effect instance should not exist for not registered listener");
         //                    }
         //                }
         //            }
@@ -154,13 +153,13 @@ namespace Xenko.Audio.Tests.Engine
         /// Add and remove <see cref="AudioListenerComponent"/> to the <see cref="AudioSystem"/> and check that 
         /// <see cref="SoundEffectInstance"/> dedicated to each <see cref="AudioListenerComponent"/> are correctly created.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestAddRemoveListeners()
         {
-            TestUtilities.CreateAndRunGame(TestAddRemoveListeners, TestUtilities.ExitGame);
+            TestUtilities.CreateAndRunGame(TestAddRemoveListenersHelper, TestUtilities.ExitGame);
         }
 
-        private void TestAddRemoveListeners(Game game)
+        private void TestAddRemoveListenersHelper(Game game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -204,13 +203,13 @@ namespace Xenko.Audio.Tests.Engine
         /// Add entities with <see cref="AudioEmitterComponent"/> associated and check that for each <see cref="AudioListenerComponent"/> existing in the scene
         /// a <see cref="SoundEffectInstance"/> have been created. Then remove the entities and check that they are removed.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestAddRemoveEntityWithEmitter()
         {
-            TestUtilities.CreateAndRunGame(TestAddRemoveEntityWithEmitter, TestUtilities.ExitGame);
+            TestUtilities.CreateAndRunGame(TestAddRemoveEntityWithEmitterHelper, TestUtilities.ExitGame);
         }
 
-        private void TestAddRemoveEntityWithEmitter(Game game)
+        private void TestAddRemoveEntityWithEmitterHelper(Game game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -245,14 +244,14 @@ namespace Xenko.Audio.Tests.Engine
         /// Attach and detach <see cref="SoundEffect"/> to <see cref="AudioEmitterComponent"/> and check that the 
         /// <see cref="AudioEmitterSoundController"/> and <see cref="SoundEffectInstance"/> instances are created correctly.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestAddRemoveSoundEffect()
         {
-            TestUtilities.CreateAndRunGame(TestAddRemoveSoundEffect, TestUtilities.ExitGame);
+            TestUtilities.CreateAndRunGame(TestAddRemoveSoundEffectHelper, TestUtilities.ExitGame);
         }
 
 
-        private void TestAddRemoveSoundEffect(Game game)
+        private void TestAddRemoveSoundEffectHelper(Game game)
         {
             BuildEntityHierarchy();
             CreateAndAddListenerComponentToEntities();
@@ -294,7 +293,7 @@ namespace Xenko.Audio.Tests.Engine
         /// Check that the <see cref="AudioEmitter"/> associated to the <see cref="AudioEmitterComponent"/> are correctly updated
         /// when at least one of the <see cref="AudioEmitterSoundController"/> of the <see cref="AudioEmitterComponent"/> is playing.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestEmitterUpdateValues()
         {
             TestUtilities.ExecuteScriptInDrawLoop(TestEmitterUpdateValuesSetup, EntityPositionAndEmitterbfrUpdate, TestEmitterUpdateValuesAtfUpdate);
@@ -347,39 +346,39 @@ namespace Xenko.Audio.Tests.Engine
         //            var dataComp2 = matchingEntities[compEntities[1]];
         //
         //            // check that the boolean value of the AudioEmitterComponent indicating the processor if the AudioEmitter should be updated is valid.
-        //            Assert.IsTrue(dataComp1.AudioEmitterComponent.ShouldBeProcessed == emitter1ShouldBeValid, "value of ShouldBeProcessed for emitter 1 is not correct at loop turn" + loopCount);
-        //            Assert.IsTrue(dataComp2.AudioEmitterComponent.ShouldBeProcessed == emitter2ShouldBeValid, "value of ShouldBeProcessed for emitter 2 is not correct at loop turn" + loopCount);
+        //            Assert.True(dataComp1.AudioEmitterComponent.ShouldBeProcessed == emitter1ShouldBeValid, "value of ShouldBeProcessed for emitter 1 is not correct at loop turn" + loopCount);
+        //            Assert.True(dataComp2.AudioEmitterComponent.ShouldBeProcessed == emitter2ShouldBeValid, "value of ShouldBeProcessed for emitter 2 is not correct at loop turn" + loopCount);
         //
         //            var emitter1Velocity = 2 * new Vector3(loopCount, 2 * loopCount, 3 * loopCount) + Vector3.One;
         //            if (emitter1ShouldBeValid)
         //            {
         //                // check the AudioEmitter 1 values are updated.
-        //                Assert.AreEqual(emitter1Velocity, dataComp1.AudioEmitter.Velocity, "The velocity of emitter 1 is not valid at loop turn" + loopCount);
-        //                Assert.AreEqual(loopCount, dataComp1.AudioEmitter.DistanceScale, "The distance scale of emitter 1 is not valid at loop turn" + loopCount);
-        //                Assert.AreEqual(2 * loopCount, dataComp1.AudioEmitter.DopplerScale, "The Doppler scale of emitter 1 is not valid at loop turn" + loopCount);
+        //                Assert.Equal(emitter1Velocity, dataComp1.AudioEmitter.Velocity, "The velocity of emitter 1 is not valid at loop turn" + loopCount);
+        //                Assert.Equal(loopCount, dataComp1.AudioEmitter.DistanceScale, "The distance scale of emitter 1 is not valid at loop turn" + loopCount);
+        //                Assert.Equal(2 * loopCount, dataComp1.AudioEmitter.DopplerScale, "The Doppler scale of emitter 1 is not valid at loop turn" + loopCount);
         //            }
         //            else
         //            {
         //                // check the AudioEmitter 1 values are not updated anymore
-        //                Assert.AreNotEqual(emitter1Velocity, dataComp1.AudioEmitter.Velocity, "The velocity of emitter 1 is calculated for nothing at loop turn" + loopCount);
-        //                Assert.AreNotEqual(loopCount, dataComp1.AudioEmitter.DistanceScale, "The distance scale of emitter 1 is calculated for nothing at loop turn" + loopCount);
-        //                Assert.AreNotEqual(2 * loopCount, dataComp1.AudioEmitter.DopplerScale, "The Doppler scale of emitter 1 is calculated for nothing loop turn" + loopCount);
+        //                Assert.NotEqual(emitter1Velocity, dataComp1.AudioEmitter.Velocity, "The velocity of emitter 1 is calculated for nothing at loop turn" + loopCount);
+        //                Assert.NotEqual(loopCount, dataComp1.AudioEmitter.DistanceScale, "The distance scale of emitter 1 is calculated for nothing at loop turn" + loopCount);
+        //                Assert.NotEqual(2 * loopCount, dataComp1.AudioEmitter.DopplerScale, "The Doppler scale of emitter 1 is calculated for nothing loop turn" + loopCount);
         //            }
         //
         //            var emitter2Velocity = new Vector3(loopCount, 2 * loopCount, 3 * loopCount);
         //            if (emitter2ShouldBeValid)
         //            {
         //                // check the AudioEmitter 2 values are updated.
-        //                Assert.AreEqual(emitter2Velocity, dataComp2.AudioEmitter.Velocity, "The velocity of emitter 2 is not valid at loop turn" + loopCount);
-        //                Assert.AreEqual(3 * loopCount, dataComp2.AudioEmitter.DistanceScale, "The distance scale of emitter 2 is not valid at loop turn" + loopCount);
-        //                Assert.AreEqual(4 * loopCount, dataComp2.AudioEmitter.DopplerScale, "The Doppler scale of emitter 2 is not valid at loop turn" + loopCount);
+        //                Assert.Equal(emitter2Velocity, dataComp2.AudioEmitter.Velocity, "The velocity of emitter 2 is not valid at loop turn" + loopCount);
+        //                Assert.Equal(3 * loopCount, dataComp2.AudioEmitter.DistanceScale, "The distance scale of emitter 2 is not valid at loop turn" + loopCount);
+        //                Assert.Equal(4 * loopCount, dataComp2.AudioEmitter.DopplerScale, "The Doppler scale of emitter 2 is not valid at loop turn" + loopCount);
         //            }
         //            else
         //            {
         //                // check the AudioEmitter 2 values are not updated anymore
-        //                Assert.AreNotEqual(emitter2Velocity, dataComp2.AudioEmitter.Velocity, "The velocity of emitter 2 is calculated for nothing at loop turn" + loopCount);
-        //                Assert.AreNotEqual(3 * loopCount, dataComp2.AudioEmitter.DistanceScale, "The distance scale of emitter 2 is calculated for nothing at loop turn" + loopCount);
-        //                Assert.AreNotEqual(4 * loopCount, dataComp2.AudioEmitter.DopplerScale, "The Doppler scale of emitter 2 is calculated for nothing loop turn" + loopCount);
+        //                Assert.NotEqual(emitter2Velocity, dataComp2.AudioEmitter.Velocity, "The velocity of emitter 2 is calculated for nothing at loop turn" + loopCount);
+        //                Assert.NotEqual(3 * loopCount, dataComp2.AudioEmitter.DistanceScale, "The distance scale of emitter 2 is calculated for nothing at loop turn" + loopCount);
+        //                Assert.NotEqual(4 * loopCount, dataComp2.AudioEmitter.DopplerScale, "The Doppler scale of emitter 2 is calculated for nothing loop turn" + loopCount);
         //            }
         //        }
 
@@ -395,8 +394,8 @@ namespace Xenko.Audio.Tests.Engine
             //var dataComp2 = matchingEntities[compEntities[1]];
 
             //// check that AudioEmitters position is always valid. (this is required to ensure that the velocity is valid from the first update).
-            //Assert.AreEqual(2 * new Vector3(loopCountSum, 2 * loopCountSum, 3 * loopCountSum) + (loopCount + 1) * Vector3.One, dataComp1.AudioEmitter.Position, "Position of the emitter 1 is not correct");
-            //Assert.AreEqual(new Vector3(loopCountSum, 2 * loopCountSum, 3 * loopCountSum), dataComp2.AudioEmitter.Position, "Position of the emitter 2 is not correct");
+            //Assert.Equal(2 * new Vector3(loopCountSum, 2 * loopCountSum, 3 * loopCountSum) + (loopCount + 1) * Vector3.One, dataComp1.AudioEmitter.Position, "Position of the emitter 1 is not correct");
+            //Assert.Equal(new Vector3(loopCountSum, 2 * loopCountSum, 3 * loopCountSum), dataComp2.AudioEmitter.Position, "Position of the emitter 2 is not correct");
 
             //if (loopCount == 0)
             //{
@@ -405,7 +404,7 @@ namespace Xenko.Audio.Tests.Engine
 
             //    // check that initially AudioEmitter should not be updated.
             //    foreach (var data in matchingEntities.Values)
-            //        Assert.IsFalse(data.AudioEmitterComponent.ShouldBeProcessed, "Initial value of ShouldBeProcessed is not correct at loop turn"+loopCount);
+            //        Assert.False(data.AudioEmitterComponent.ShouldBeProcessed, "Initial value of ShouldBeProcessed is not correct at loop turn"+loopCount);
 
             //    soundControllers[0].Play();
             //}
@@ -453,7 +452,7 @@ namespace Xenko.Audio.Tests.Engine
         /// <summary>
         /// Tests the behavior of processor when several listener are present in the scene.
         /// </summary>
-        [Test, Ignore("TODO: UPDATE TO USE Scene and Graphics Composer")]
+        [Fact(Skip = "TODO: UPDATE TO USE Scene and Graphics Composer")]
         public void TestMultiListener()
         {
             TestUtilities.ExecuteScriptInDrawLoop(TestEmitterUpdateValuesSetup, TestMulteListenerUpdate);
@@ -476,14 +475,14 @@ namespace Xenko.Audio.Tests.Engine
             //    var tupple1 = Tuple.Create(listComps[0], soundControllers[0]);
             //    var tupple2 = Tuple.Create(listComps[1], soundControllers[0]);
 
-            //    Assert.IsTrue(dataComp1.ListenerControllerToSoundInstance.ContainsKey(tupple1));
-            //    Assert.IsTrue(dataComp1.ListenerControllerToSoundInstance.ContainsKey(tupple2));
+            //    Assert.True(dataComp1.ListenerControllerToSoundInstance.ContainsKey(tupple1));
+            //    Assert.True(dataComp1.ListenerControllerToSoundInstance.ContainsKey(tupple2));
 
             //    var instance1 = dataComp1.ListenerControllerToSoundInstance[tupple1];
             //    var instance2 = dataComp1.ListenerControllerToSoundInstance[tupple2];
 
-            //    Assert.AreEqual(SoundPlayState.Playing, instance1.PlayState);
-            //    Assert.AreEqual(SoundPlayState.Playing, instance2.PlayState);
+            //    Assert.Equal(SoundPlayState.Playing, instance1.PlayState);
+            //    Assert.Equal(SoundPlayState.Playing, instance2.PlayState);
             //}
             //else
             //{

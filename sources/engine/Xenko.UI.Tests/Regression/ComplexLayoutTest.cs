@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
@@ -226,7 +226,7 @@ namespace Xenko.UI.Tests.Regression
             toggle.Visibility = Visibility.Visible;
         }
 
-        [Test]
+        [Fact]
         public void RunComplexLayoutTest()
         {
             RunGameTest(new ComplexLayoutTest());

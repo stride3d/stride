@@ -4,7 +4,7 @@ using System;
 using System.Text;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
@@ -12,8 +12,6 @@ using Xenko.Graphics.Font;
 
 namespace Xenko.Graphics.Tests
 {
-    [TestFixture]
-    [Description("Check Dynamic Font various")]
     public class TestDynamicSpriteFontVarious : GraphicTestGameBase
     {
         private SpriteFont hanSans13;
@@ -166,7 +164,7 @@ namespace Xenko.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [Fact]
         public void RunDynamicSpriteFontVarious()
         {
             RunGameTest(new TestDynamicSpriteFontVarious());

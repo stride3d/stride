@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Quantum.Internal;
 using Xenko.Core.Assets.Quantum.Tests.Helpers;
 using Xenko.Core.Assets.Tests.Helpers;
@@ -8,10 +8,9 @@ using Xenko.Core.Reflection;
 
 namespace Xenko.Core.Assets.Quantum.Tests
 {
-    [TestFixture]
     public class TestAssetPropertyGraph
     {
-        [Test]
+        [Fact]
         public void TestSimpleConstruction()
         {
             var container = new AssetPropertyGraphContainer(new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } });
@@ -21,7 +20,7 @@ namespace Xenko.Core.Assets.Quantum.Tests
             Assert.IsAssignableFrom<AssetObjectNode>(graph.RootNode);
         }
 
-        [Test]
+        [Fact]
         public void TestCollectionConstruction()
         {
             var container = new AssetPropertyGraphContainer(new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } });
@@ -31,14 +30,14 @@ namespace Xenko.Core.Assets.Quantum.Tests
             Assert.IsAssignableFrom<AssetObjectNode>(graph.RootNode);
             CollectionItemIdentifiers ids;
             Assert.True(CollectionItemIdHelper.TryGetCollectionItemIds(asset.MyStrings, out ids));
-            Assert.AreEqual(3, ids.KeyCount);
-            Assert.AreEqual(0, ids.DeletedCount);
+            Assert.Equal(3, ids.KeyCount);
+            Assert.Equal(0, ids.DeletedCount);
             Assert.True(ids.ContainsKey(0));
             Assert.True(ids.ContainsKey(1));
             Assert.True(ids.ContainsKey(2));
         }
 
-        [Test]
+        [Fact]
         public void TestNestedCollectionConstruction()
         {
             var container = new AssetPropertyGraphContainer(new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } });
@@ -48,14 +47,14 @@ namespace Xenko.Core.Assets.Quantum.Tests
             Assert.IsAssignableFrom<AssetObjectNode>(graph.RootNode);
             CollectionItemIdentifiers ids;
             Assert.True(CollectionItemIdHelper.TryGetCollectionItemIds(asset.MyAsset2.MyStrings, out ids));
-            Assert.AreEqual(3, ids.KeyCount);
-            Assert.AreEqual(0, ids.DeletedCount);
+            Assert.Equal(3, ids.KeyCount);
+            Assert.Equal(0, ids.DeletedCount);
             Assert.True(ids.ContainsKey(0));
             Assert.True(ids.ContainsKey(1));
             Assert.True(ids.ContainsKey(2));
         }
 
-        [Test]
+        [Fact]
         public void TestCollectionItemIdentifierWithDuplicates()
         {
             var container = new AssetPropertyGraphContainer(new AssetNodeContainer { NodeBuilder = { NodeFactory = new AssetNodeFactory() } });
@@ -65,18 +64,18 @@ namespace Xenko.Core.Assets.Quantum.Tests
             ids.Add(1, IdentifierGenerator.Get(200));
             ids.Add(2, IdentifierGenerator.Get(100));
             var assetItem = new AssetItem("MyAsset", asset);
-            Assert.AreEqual(IdentifierGenerator.Get(100), ids[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(200), ids[1]);
-            Assert.AreEqual(IdentifierGenerator.Get(100), ids[2]);
+            Assert.Equal(IdentifierGenerator.Get(100), ids[0]);
+            Assert.Equal(IdentifierGenerator.Get(200), ids[1]);
+            Assert.Equal(IdentifierGenerator.Get(100), ids[2]);
             var graph = AssetQuantumRegistry.ConstructPropertyGraph(container, assetItem, null);
             Assert.IsAssignableFrom<AssetObjectNode>(graph.RootNode);
             Assert.True(CollectionItemIdHelper.TryGetCollectionItemIds(asset.MyStrings, out ids));
-            Assert.AreEqual(3, ids.KeyCount);
-            Assert.AreEqual(0, ids.DeletedCount);
-            Assert.AreEqual(IdentifierGenerator.Get(100), ids[0]);
-            Assert.AreEqual(IdentifierGenerator.Get(200), ids[1]);
-            Assert.AreNotEqual(IdentifierGenerator.Get(100), ids[2]);
-            Assert.AreNotEqual(IdentifierGenerator.Get(200), ids[2]);
+            Assert.Equal(3, ids.KeyCount);
+            Assert.Equal(0, ids.DeletedCount);
+            Assert.Equal(IdentifierGenerator.Get(100), ids[0]);
+            Assert.Equal(IdentifierGenerator.Get(200), ids[1]);
+            Assert.NotEqual(IdentifierGenerator.Get(100), ids[2]);
+            Assert.NotEqual(IdentifierGenerator.Get(200), ids[2]);
         }
     }
 }

@@ -4,19 +4,18 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Diagnostics;
 
 namespace Xenko.Core.Tests
 {
-    [TestFixture]
     public class TestProfiler
     {
         public static readonly ProfilingKey TestGroup = new ProfilingKey("TestProfiler");
         public static readonly ProfilingKey TestKey = new ProfilingKey(TestGroup, "Test", ProfilingKeyFlags.Log);
         public static readonly ProfilingKey Test2Key = new ProfilingKey(TestGroup, "Test2", ProfilingKeyFlags.Log);
 
-        [Test]
+        [Fact]
         public void TestSimpleNotEnabled()
         {
             Profiler.Reset();
@@ -30,7 +29,7 @@ namespace Xenko.Core.Tests
             watcher.Finish();
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleEnabled()
         {
             Profiler.Reset();
@@ -51,7 +50,7 @@ namespace Xenko.Core.Tests
             watcher.Finish();
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleNested()
         {
             Profiler.Reset();
@@ -77,7 +76,7 @@ namespace Xenko.Core.Tests
             watcher.Finish();
         }
 
-        [Test]
+        [Fact]
         public void TestWithMarkers()
         {
             Profiler.Reset();
@@ -106,7 +105,7 @@ namespace Xenko.Core.Tests
         }
 
 
-        [Test]
+        [Fact]
         public void TestWitAttributes()
         {
             Profiler.Reset();
@@ -161,9 +160,9 @@ namespace Xenko.Core.Tests
                     {
                         var elapsedStr = match.Groups[1].Value;
                         double elapsed;
-                        Assert.That(double.TryParse(elapsedStr, out elapsed), "Expecting parsable double for elapsed [{0}]", elapsedStr);
+                        Assert.True(double.TryParse(elapsedStr, out elapsed), $"Expecting parsable double for elapsed [{elapsedStr}]");
                         // Note: just checking minimum time (max time depends too much on OS scheduling to be reliable)
-                        Assert.That(elapsed >= expectedElapsed - ElapsedTimeEpsilon, "Elapsed time [{0}] is faster than expected value [{1}]", elapsed, expectedElapsed);
+                        Assert.True(elapsed >= expectedElapsed - ElapsedTimeEpsilon, $"Elapsed time [{elapsed}] is faster than expected value [{expectedElapsed}]");
                     }
                     return true;
                 });
@@ -200,7 +199,7 @@ namespace Xenko.Core.Tests
                     }
                 }
 
-                Assert.That(CurrentMessage, Is.EqualTo(ExpectedMessages.Count), "Invalid number of profiler events received [{0}] Expecting [{1}]. Missing messages: [{2}]", CurrentMessage, ExpectedMessages.Count, missingMessage);
+                Assert.True(CurrentMessage == ExpectedMessages.Count, $"Invalid number of profiler events received [{CurrentMessage}] Expecting [{ExpectedMessages.Count}]. Missing messages: [{missingMessage}]");
             }
         }
 
@@ -213,10 +212,10 @@ namespace Xenko.Core.Tests
                 Console.Out.WriteLine(message.ToString());
                 Console.Out.Flush();
 
-                Assert.That(watcher.CurrentMessage < expectedMessages.Count, "Unexpected message received: [{0}]", messageToString);
+                Assert.True(watcher.CurrentMessage < expectedMessages.Count, $"Unexpected message received: [{messageToString}]");
                 string expectedMessage;
                 var result = expectedMessages[watcher.CurrentMessage](messageToString, out expectedMessage, false);
-                Assert.That(result, "Expecting message [{0}]", expectedMessage);
+                Assert.True(result, $"Expecting message [{expectedMessage}]");
                 watcher.CurrentMessage++;
             };
             GlobalLogger.GlobalMessageLogged += watcher.LogAction;

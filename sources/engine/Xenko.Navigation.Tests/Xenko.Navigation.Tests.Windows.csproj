@@ -5,7 +5,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Xenko.Navigation.Tests</RootNamespace>
     <AssemblyName>Xenko.Navigation.Tests</AssemblyName>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>
@@ -29,6 +29,7 @@
     <StartupObject>Xenko.Navigation.Tests.DynamicBarrierTest</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="XunitAttributes.cs" />
     <Compile Include="PlayerController.cs" />
     <Compile Include="DynamicBarrierTest.cs" />
     <Compile Include="StaticTest.cs" />

@@ -1,13 +1,12 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Selectors;
 using Xenko.Core.Storage;
 
 namespace Xenko.Core.Assets.Tests
 {
-    [TestFixture]
     public class TestPathSelector
     {
         public bool TestSingleUrl(PathSelector pathSelector, string asset)
@@ -22,37 +21,37 @@ namespace Xenko.Core.Assets.Tests
         {
             if (shouldMatch)
             {
-                Assert.IsTrue(TestSingleUrl(pathSelector, pattern));
-                Assert.IsTrue(TestSingleUrl(pathSelector, "a/" + pattern));
-                Assert.IsTrue(TestSingleUrl(pathSelector, pattern + "/b"));
-                Assert.IsTrue(TestSingleUrl(pathSelector, "a/" + pattern + "/b"));
+                Assert.True(TestSingleUrl(pathSelector, pattern));
+                Assert.True(TestSingleUrl(pathSelector, "a/" + pattern));
+                Assert.True(TestSingleUrl(pathSelector, pattern + "/b"));
+                Assert.True(TestSingleUrl(pathSelector, "a/" + pattern + "/b"));
             }
             else
             {
-                Assert.IsFalse(TestSingleUrl(pathSelector, pattern));
-                Assert.IsFalse(TestSingleUrl(pathSelector, "a/" + pattern));
-                Assert.IsFalse(TestSingleUrl(pathSelector, pattern + "/b"));
-                Assert.IsFalse(TestSingleUrl(pathSelector, "a/" + pattern + "/b"));
+                Assert.False(TestSingleUrl(pathSelector, pattern));
+                Assert.False(TestSingleUrl(pathSelector, "a/" + pattern));
+                Assert.False(TestSingleUrl(pathSelector, pattern + "/b"));
+                Assert.False(TestSingleUrl(pathSelector, "a/" + pattern + "/b"));
             }
 
             if (allowSuffix)
             {
-                Assert.IsFalse(TestSingleUrl(pathSelector, pattern + "A"));
-                Assert.IsFalse(TestSingleUrl(pathSelector, "a/" + pattern + "A"));
-                Assert.IsFalse(TestSingleUrl(pathSelector, pattern + "A/b"));
-                Assert.IsFalse(TestSingleUrl(pathSelector, "a/" + pattern + "A/b"));
+                Assert.False(TestSingleUrl(pathSelector, pattern + "A"));
+                Assert.False(TestSingleUrl(pathSelector, "a/" + pattern + "A"));
+                Assert.False(TestSingleUrl(pathSelector, pattern + "A/b"));
+                Assert.False(TestSingleUrl(pathSelector, "a/" + pattern + "A/b"));
             }
 
             if (allowPrefix)
             {
-                Assert.IsFalse(TestSingleUrl(pathSelector, "A" + pattern));
-                Assert.IsFalse(TestSingleUrl(pathSelector, "a/A" + pattern));
-                Assert.IsFalse(TestSingleUrl(pathSelector, "A" + pattern + "/b"));
-                Assert.IsFalse(TestSingleUrl(pathSelector, "a/A" + pattern + "/b"));
+                Assert.False(TestSingleUrl(pathSelector, "A" + pattern));
+                Assert.False(TestSingleUrl(pathSelector, "a/A" + pattern));
+                Assert.False(TestSingleUrl(pathSelector, "A" + pattern + "/b"));
+                Assert.False(TestSingleUrl(pathSelector, "a/A" + pattern + "/b"));
             }
         }
 
-        [Test]
+        [Fact]
         public void TestSimple()
         {
             var pathSelector = new PathSelector();
@@ -61,7 +60,7 @@ namespace Xenko.Core.Assets.Tests
             TestPatterns(pathSelector, "simple", true, true, true);
         }
 
-        [Test]
+        [Fact]
         public void TestDouble()
         {
             var pathSelector = new PathSelector();
@@ -70,33 +69,33 @@ namespace Xenko.Core.Assets.Tests
             TestPatterns(pathSelector, "ab/cd", true, true, true);
         }
 
-        [Test]
+        [Fact]
         public void TestStartEnd()
         {
             var pathSelector = new PathSelector();
             pathSelector.Paths.Add("/ab/cd");
 
-            Assert.IsTrue(TestSingleUrl(pathSelector, "ab/cd"));
-            Assert.IsTrue(TestSingleUrl(pathSelector, "ab/cd/de"));
-            Assert.IsFalse(TestSingleUrl(pathSelector, "test/ab/cd"));
+            Assert.True(TestSingleUrl(pathSelector, "ab/cd"));
+            Assert.True(TestSingleUrl(pathSelector, "ab/cd/de"));
+            Assert.False(TestSingleUrl(pathSelector, "test/ab/cd"));
 
             pathSelector.Paths.Add("ab/cd/");
-            Assert.IsFalse(TestSingleUrl(pathSelector, "xx/ab/cd"));
-            Assert.IsTrue(TestSingleUrl(pathSelector, "xx/ab/cd/"));
-            Assert.IsTrue(TestSingleUrl(pathSelector, "xx/ab/cd/de"));
+            Assert.False(TestSingleUrl(pathSelector, "xx/ab/cd"));
+            Assert.True(TestSingleUrl(pathSelector, "xx/ab/cd/"));
+            Assert.True(TestSingleUrl(pathSelector, "xx/ab/cd/de"));
         }
 
-        [Test]
+        [Fact]
         public void TestEscape()
         {
             var pathSelector = new PathSelector();
             pathSelector.Paths.Add(@"\?\?");
 
-            Assert.IsTrue(TestSingleUrl(pathSelector, "??"));
-            Assert.IsFalse(TestSingleUrl(pathSelector, "ab"));
+            Assert.True(TestSingleUrl(pathSelector, "??"));
+            Assert.False(TestSingleUrl(pathSelector, "ab"));
         }
 
-        [Test]
+        [Fact]
         public void TestWildcard()
         {
             var pathSelector = new PathSelector();

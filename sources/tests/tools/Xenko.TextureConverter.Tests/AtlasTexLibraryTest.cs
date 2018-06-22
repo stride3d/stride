@@ -1,34 +1,29 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.TextureConverter.Requests;
 using Xenko.TextureConverter.TexLibraries;
 
 namespace Xenko.TextureConverter.Tests
 {
-    [TestFixture]
-    class AtlasTexLibraryTest
+    public class AtlasTexLibraryTest : IDisposable
     {
-        AtlasTexLibrary library;
-        FITexLib fiLib;
-        DxtTexLib dxtLib;
+        private readonly AtlasTexLibrary library = new AtlasTexLibrary();
+        private readonly FITexLib fiLib = new FITexLib();
+        private readonly DxtTexLib dxtLib = new DxtTexLib();
 
-        [TestFixtureSetUp]
-        public void TestSetUp()
+        public AtlasTexLibraryTest()
         {
-            library = new AtlasTexLibrary();
-            fiLib = new FITexLib();
-            dxtLib = new DxtTexLib();
-            Assert.IsTrue(library.SupportBGRAOrder());
+            Assert.True(library.SupportBGRAOrder());
             library.StartLibrary(new TexAtlas());
         }
 
-        [TestFixtureTearDown]
-        public void TestTearDown()
+        public void Dispose()
         {
             library.Dispose();
             fiLib.Dispose();
@@ -36,22 +31,22 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Test, Ignore("Need check")]
+        [Fact(Skip = "Need check")]
         public void CanHandleRequestTest()
         {
             TexAtlas atlas = new TexAtlas(TexAtlas.TexLayout.Import(Module.PathToInputImages + Path.GetFileNameWithoutExtension("atlas_WMipMaps.dds") + TexAtlas.TexLayout.Extension), TestTools.Load(dxtLib, "atlas_WMipMaps.dds"));
-            Assert.IsFalse(library.CanHandleRequest(atlas, new DecompressingRequest(false)));
-            Assert.IsTrue(library.CanHandleRequest(atlas, new AtlasCreationRequest(new List<TexImage>())));
-            Assert.IsTrue(library.CanHandleRequest(atlas, new AtlasExtractionRequest(0)));
-            Assert.IsTrue(library.CanHandleRequest(atlas, new AtlasUpdateRequest(new TexImage(), "")));
+            Assert.False(library.CanHandleRequest(atlas, new DecompressingRequest(false)));
+            Assert.True(library.CanHandleRequest(atlas, new AtlasCreationRequest(new List<TexImage>())));
+            Assert.True(library.CanHandleRequest(atlas, new AtlasExtractionRequest(0)));
+            Assert.True(library.CanHandleRequest(atlas, new AtlasUpdateRequest(new TexImage(), "")));
             atlas.Dispose();
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("atlas/", false, false)]
-        [TestCase("atlas/", false, true)]
-        [TestCase("atlas/", true, false)]
+        [Theory(Skip = "Need check")]
+        [InlineData("atlas/", false, false)]
+        [InlineData("atlas/", false, true)]
+        [InlineData("atlas/", true, false)]
         public void CreateAtlasTest(string directory, bool generateMipMaps, bool forceSquaredAtlas)
         {
             string path = Module.PathToInputImages + directory;
@@ -76,9 +71,9 @@ namespace Xenko.TextureConverter.Tests
             library.Execute(atlas, new AtlasCreationRequest(list, forceSquaredAtlas));
 
             //Console.WriteLine("AtlasTexLibrary_CreateAtlas_" + generateMipMaps + "_" + forceSquaredAtlas + "." + TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
-            Assert.IsTrue(TestTools.ComputeSHA1(atlas.Data, atlas.DataSize).Equals(TestTools.GetInstance().Checksum["AtlasTexLibrary_CreateAtlas_" + generateMipMaps + "_" + forceSquaredAtlas]));
+            Assert.True(TestTools.ComputeSHA1(atlas.Data, atlas.DataSize).Equals(TestTools.GetInstance().Checksum["AtlasTexLibrary_CreateAtlas_" + generateMipMaps + "_" + forceSquaredAtlas]));
 
-            if(forceSquaredAtlas) Assert.IsTrue(atlas.Width == atlas.Height);
+            if(forceSquaredAtlas) Assert.True(atlas.Width == atlas.Height);
 
             atlas.Dispose();
 
@@ -89,8 +84,8 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("atlas_WMipMaps.dds", "square256.png")]
+        [Theory(Skip = "Need check")]
+        [InlineData("atlas_WMipMaps.dds", "square256.png")]
         public void ExtractTest(string atlasFile, string extractedName)
         {
             TexAtlas atlas = new TexAtlas(TexAtlas.TexLayout.Import(Module.PathToInputImages+Path.GetFileNameWithoutExtension(atlasFile) + TexAtlas.TexLayout.Extension), TestTools.Load(dxtLib, atlasFile));
@@ -104,7 +99,7 @@ namespace Xenko.TextureConverter.Tests
             string nameWOExtension = Path.GetFileNameWithoutExtension(extractedName);
 
             //Console.WriteLine("AtlasTexLibrary_Extract_" + nameWOExtension + ".dds." + TestTools.ComputeSHA1(extracted.Data, extracted.DataSize));
-            Assert.IsTrue(TestTools.ComputeSHA1(extracted.Data, extracted.DataSize).Equals(TestTools.GetInstance().Checksum["AtlasTexLibrary_Extract_" + nameWOExtension + ".dds"]));
+            Assert.True(TestTools.ComputeSHA1(extracted.Data, extracted.DataSize).Equals(TestTools.GetInstance().Checksum["AtlasTexLibrary_Extract_" + nameWOExtension + ".dds"]));
 
             extracted.Dispose();
 
@@ -112,8 +107,8 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("atlas/")]
+        [Theory(Skip = "Need check")]
+        [InlineData("atlas/")]
         public void ExtractAllTest(string directory)
         {
             string path = Module.PathToInputImages + directory;
@@ -135,11 +130,11 @@ namespace Xenko.TextureConverter.Tests
             library.Execute(atlas, request);
             library.EndLibrary(atlas);
 
-            Assert.IsTrue(list.Count == request.Textures.Count);
+            Assert.True(list.Count == request.Textures.Count);
 
             foreach (var image in request.Textures)
             {
-                Assert.IsTrue(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["ExtractAll_" + image.Name]));
+                Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["ExtractAll_" + image.Name]));
                 image.Dispose();
             }
 
@@ -152,8 +147,8 @@ namespace Xenko.TextureConverter.Tests
         }
 
 
-        [Ignore("Need check")]
-        [TestCase("atlas_WOMipMaps.png", "square256_2.png", "atlas/stones256.png")]
+        [Theory(Skip = "Need check")]
+        [InlineData("atlas_WOMipMaps.png", "square256_2.png", "atlas/stones256.png")]
         public void UpdateTest(string atlasFile, string textureNameToUpdate, string newTexture)
         {
             TexAtlas atlas = new TexAtlas(TexAtlas.TexLayout.Import(Module.PathToInputImages + Path.GetFileNameWithoutExtension(atlasFile) + TexAtlas.TexLayout.Extension), TestTools.Load(fiLib, atlasFile));
@@ -164,7 +159,7 @@ namespace Xenko.TextureConverter.Tests
             library.EndLibrary(atlas);
 
             //Console.WriteLine("AtlasTexLibrary_Update_" + textureNameToUpdate + "_" + atlasFile + "." + TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
-            Assert.IsTrue(TestTools.ComputeSHA1(atlas.Data, atlas.DataSize).Equals(TestTools.GetInstance().Checksum["AtlasTexLibrary_Update_" + textureNameToUpdate + "_" + atlasFile]));
+            Assert.True(TestTools.ComputeSHA1(atlas.Data, atlas.DataSize).Equals(TestTools.GetInstance().Checksum["AtlasTexLibrary_Update_" + textureNameToUpdate + "_" + atlasFile]));
 
             updateTexture.Dispose();
             atlas.Dispose();

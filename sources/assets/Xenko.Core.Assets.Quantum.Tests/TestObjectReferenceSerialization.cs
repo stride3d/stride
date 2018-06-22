@@ -1,7 +1,7 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Quantum.Tests.Helpers;
 using Xenko.Core.Assets.Tests.Helpers;
 using Xenko.Core.Quantum;
@@ -10,7 +10,6 @@ using Xenko.Core.Quantum;
 
 namespace Xenko.Core.Assets.Quantum.Tests
 {
-    [TestFixture]
     public class TestObjectReferenceSerialization
     {
         private const string SimpleReferenceYaml = @"!Xenko.Core.Assets.Quantum.Tests.Helpers.Types+MyAssetWithRef,Xenko.Core.Assets.Quantum.Tests
@@ -24,7 +23,7 @@ MyObjects: {}
 MyNonIdObjects: []
 ";
 
-        [Test]
+        [Fact]
         public void TestSimpleReference()
         {
             Types.AssetWithRefPropertyGraphDefinition.IsObjectReferenceFunc = (targetNode, index) =>
@@ -38,8 +37,8 @@ MyNonIdObjects: []
             SerializationHelper.SerializeAndCompare(context.AssetItem, context.Graph, SimpleReferenceYaml, false);
 
             context = AssetTestContainer<Types.MyAssetWithRef, Types.MyAssetBasePropertyGraph>.LoadFromYaml(SimpleReferenceYaml);
-            Assert.AreEqual(context.Asset.MyObject1, context.Asset.MyObject2);
-            Assert.AreEqual(GuidGenerator.Get(2), context.Asset.MyObject1.Id);
+            Assert.Equal(context.Asset.MyObject1, context.Asset.MyObject2);
+            Assert.Equal(GuidGenerator.Get(2), context.Asset.MyObject1.Id);
         }
     }
 }

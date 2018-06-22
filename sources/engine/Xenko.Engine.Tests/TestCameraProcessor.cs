@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization.Contents;
@@ -18,15 +18,13 @@ namespace Xenko.Engine.Tests
     /// <summary>
     /// Tests for <see cref="TransformComponent"/>.
     /// </summary>
-    [TestFixture]
     public class TestCameraProcessor
     {
         private CustomEntityManager entityManager;
         private GraphicsCompositor graphicsCompositor;
         private SceneSystem sceneSystem;
 
-        [SetUp]
-        public void Init()
+        public TestCameraProcessor()
         {
             var services = new ServiceRegistry();
 
@@ -46,7 +44,7 @@ namespace Xenko.Engine.Tests
             return camera;
         }
 
-        [Test]
+        [Fact]
         public void EnableDisable()
         {
             graphicsCompositor.Cameras.Add(new SceneCameraSlot());
@@ -58,27 +56,27 @@ namespace Xenko.Engine.Tests
             cameraProcessor.Draw(null);
 
             // Check if attached
-            Assert.AreEqual(graphicsCompositor, camera.Slot.AttachedCompositor);
-            Assert.AreEqual(camera, graphicsCompositor.Cameras[0].Camera);
+            Assert.Equal(graphicsCompositor, camera.Slot.AttachedCompositor);
+            Assert.Equal(camera, graphicsCompositor.Cameras[0].Camera);
 
             // Disable camera
             camera.Enabled = false;
             cameraProcessor.Draw(null);
 
             // Check if detached
-            Assert.IsNull(camera.Slot.AttachedCompositor);
-            Assert.IsNull(graphicsCompositor.Cameras[0].Camera);
+            Assert.Null(camera.Slot.AttachedCompositor);
+            Assert.Null(graphicsCompositor.Cameras[0].Camera);
 
             // Enable again
             camera.Enabled = true;
             cameraProcessor.Draw(null);
 
             // Check if attached
-            Assert.AreEqual(graphicsCompositor, camera.Slot.AttachedCompositor);
-            Assert.AreEqual(camera, graphicsCompositor.Cameras[0].Camera);
+            Assert.Equal(graphicsCompositor, camera.Slot.AttachedCompositor);
+            Assert.Equal(camera, graphicsCompositor.Cameras[0].Camera);
         }
 
-        [Test]
+        [Fact]
         public void MoveSlot()
         {
             graphicsCompositor.Cameras.Add(new SceneCameraSlot());
@@ -91,21 +89,21 @@ namespace Xenko.Engine.Tests
             cameraProcessor.Draw(null);
 
             // Check if attached to slot 0
-            Assert.AreEqual(graphicsCompositor, camera.Slot.AttachedCompositor);
-            Assert.AreEqual(camera, graphicsCompositor.Cameras[0].Camera);
-            Assert.IsNull(graphicsCompositor.Cameras[1].Camera);
+            Assert.Equal(graphicsCompositor, camera.Slot.AttachedCompositor);
+            Assert.Equal(camera, graphicsCompositor.Cameras[0].Camera);
+            Assert.Null(graphicsCompositor.Cameras[1].Camera);
 
             // Disable camera
             camera.Slot = graphicsCompositor.Cameras[1].ToSlotId();
             cameraProcessor.Draw(null);
 
             // Check if attached to slot 1
-            Assert.AreEqual(graphicsCompositor, camera.Slot.AttachedCompositor);
-            Assert.AreEqual(camera, graphicsCompositor.Cameras[1].Camera);
-            Assert.IsNull(graphicsCompositor.Cameras[0].Camera);
+            Assert.Equal(graphicsCompositor, camera.Slot.AttachedCompositor);
+            Assert.Equal(camera, graphicsCompositor.Cameras[1].Camera);
+            Assert.Null(graphicsCompositor.Cameras[0].Camera);
         }
 
-        [Test]
+        [Fact]
         public void MissingSlot()
         {
             var sceneCameraSlot = new SceneCameraSlot();
@@ -117,14 +115,14 @@ namespace Xenko.Engine.Tests
             cameraProcessor.Draw(null);
 
             // Check if detached
-            Assert.IsNull(camera.Slot.AttachedCompositor);
+            Assert.Null(camera.Slot.AttachedCompositor);
 
             graphicsCompositor.Cameras.Add(sceneCameraSlot);
             cameraProcessor.Draw(null);
 
             // Check if attached
-            Assert.AreEqual(graphicsCompositor, camera.Slot.AttachedCompositor);
-            Assert.AreEqual(camera, graphicsCompositor.Cameras[0].Camera);
+            Assert.Equal(graphicsCompositor, camera.Slot.AttachedCompositor);
+            Assert.Equal(camera, graphicsCompositor.Cameras[0].Camera);
 
             // Remove and add new slot with same GUID
             graphicsCompositor.Cameras.Clear();
@@ -133,11 +131,11 @@ namespace Xenko.Engine.Tests
             cameraProcessor.Draw(null);
 
             // Check if attached
-            Assert.AreEqual(graphicsCompositor, camera.Slot.AttachedCompositor);
-            Assert.AreEqual(camera, graphicsCompositor.Cameras[0].Camera);
+            Assert.Equal(graphicsCompositor, camera.Slot.AttachedCompositor);
+            Assert.Equal(camera, graphicsCompositor.Cameras[0].Camera);
         }
 
-        [Test]
+        [Fact]
         public void MultipleCameraEnabledSameSlot()
         {
             graphicsCompositor.Cameras.Add(new SceneCameraSlot());
@@ -153,7 +151,7 @@ namespace Xenko.Engine.Tests
             });
         }
 
-        [Test]
+        [Fact]
         public void MultipleCameraOneEnabledSameSlot()
         {
             graphicsCompositor.Cameras.Add(new SceneCameraSlot());
@@ -166,7 +164,7 @@ namespace Xenko.Engine.Tests
             cameraProcessor.Draw(null);
         }
 
-        [Test]
+        [Fact]
         public void ChangeGraphicsCompositor()
         {
             graphicsCompositor.Cameras.Add(new SceneCameraSlot());
@@ -178,8 +176,8 @@ namespace Xenko.Engine.Tests
             cameraProcessor.Draw(null);
 
             // Check if attached to slot 0
-            Assert.AreEqual(graphicsCompositor, camera.Slot.AttachedCompositor);
-            Assert.AreEqual(camera, graphicsCompositor.Cameras[0].Camera);
+            Assert.Equal(graphicsCompositor, camera.Slot.AttachedCompositor);
+            Assert.Equal(camera, graphicsCompositor.Cameras[0].Camera);
 
             // Change graphics compositor
             var newGraphicsCompositor = new GraphicsCompositor();
@@ -188,8 +186,8 @@ namespace Xenko.Engine.Tests
             cameraProcessor.Draw(null);
 
             // Check if detached
-            Assert.IsNull(camera.Slot.AttachedCompositor);
-            Assert.IsNull(graphicsCompositor.Cameras[0].Camera);
+            Assert.Null(camera.Slot.AttachedCompositor);
+            Assert.Null(graphicsCompositor.Cameras[0].Camera);
 
             // Add slot to new graphics compositor and check if attached
             newGraphicsCompositor.Cameras.Add(new SceneCameraSlot { Id = camera.Slot.Id });
@@ -197,8 +195,8 @@ namespace Xenko.Engine.Tests
             cameraProcessor.Draw(null);
 
             // Check if attached to slot 0
-            Assert.AreEqual(newGraphicsCompositor, camera.Slot.AttachedCompositor);
-            Assert.AreEqual(camera, newGraphicsCompositor.Cameras[0].Camera);
+            Assert.Equal(newGraphicsCompositor, camera.Slot.AttachedCompositor);
+            Assert.Equal(camera, newGraphicsCompositor.Cameras[0].Camera);
         }
     }
 }

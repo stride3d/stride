@@ -4,17 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Assets.Analysis;
 using Xenko.Core.IO;
 
 namespace Xenko.Core.Assets.Tests
 {
-    [TestFixture]
     public class TestAssetCollision
     {
-        [Test]
+        [Fact]
         public void TestSimple()
         {
             var inputs = new List<AssetItem>();
@@ -31,32 +30,32 @@ namespace Xenko.Core.Assets.Tests
             AssetCollision.Clean(null, inputs, outputs, new AssetResolver(), true, false);
 
             // Make sure we are generating exactly the same number of elements
-            Assert.AreEqual(inputs.Count, outputs.Count);
+            Assert.Equal(inputs.Count, outputs.Count);
 
             // Make sure that asset has been cloned
-            Assert.AreNotEqual(inputs[0], outputs[0]);
+            Assert.NotEqual(inputs[0], outputs[0]);
 
             // First Id should not change
-            Assert.AreEqual(inputs[0].Id, outputs[0].Id);
+            Assert.Equal(inputs[0].Id, outputs[0].Id);
 
             // Make sure that all ids are different
             var ids = new HashSet<AssetId>(outputs.Select(item => item.Id));
-            Assert.AreEqual(inputs.Count, ids.Count);
+            Assert.Equal(inputs.Count, ids.Count);
 
             // Make sure that all locations are different
             var locations = new HashSet<UFile>(outputs.Select(item => item.Location));
-            Assert.AreEqual(inputs.Count, locations.Count);
+            Assert.Equal(inputs.Count, locations.Count);
 
             // Reference location "bad"should be fixed to "0"
             foreach (var output in outputs)
             {
                 var assetRef = ((AssetObjectTest)output.Asset).Reference;
-                Assert.AreEqual("0", assetRef.Location);
-                Assert.AreEqual(outputs[0].Id, assetRef.Id);
+                Assert.Equal("0", assetRef.Location);
+                Assert.Equal(outputs[0].Id, assetRef.Id);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleNewGuids()
         {
             var inputs = new List<AssetItem>();
@@ -73,32 +72,32 @@ namespace Xenko.Core.Assets.Tests
             AssetCollision.Clean(null, inputs, outputs, new AssetResolver() { AlwaysCreateNewId = true }, true, false);
 
             // Make sure we are generating exactly the same number of elements
-            Assert.AreEqual(inputs.Count, outputs.Count);
+            Assert.Equal(inputs.Count, outputs.Count);
 
             // Make sure that asset has been cloned
-            Assert.AreNotEqual(inputs[0], outputs[0]);
+            Assert.NotEqual(inputs[0], outputs[0]);
 
             // First Id should not change
-            Assert.AreNotEqual(inputs[0].Id, outputs[0].Id);
+            Assert.NotEqual(inputs[0].Id, outputs[0].Id);
 
             // Make sure that all ids are different
             var ids = new HashSet<AssetId>(outputs.Select(item => item.Id));
-            Assert.AreEqual(inputs.Count, ids.Count);
+            Assert.Equal(inputs.Count, ids.Count);
 
             // Make sure that all locations are different
             var locations = new HashSet<UFile>(outputs.Select(item => item.Location));
-            Assert.AreEqual(inputs.Count, locations.Count);
+            Assert.Equal(inputs.Count, locations.Count);
 
             // Reference location "bad"should be fixed to "0"
             foreach (var output in outputs)
             {
                 var assetRef = ((AssetObjectTest)output.Asset).Reference;
-                Assert.AreEqual("0", assetRef.Location);
-                Assert.AreEqual(outputs[0].Id, assetRef.Id);
+                Assert.Equal("0", assetRef.Location);
+                Assert.Equal(outputs[0].Id, assetRef.Id);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestWithPackage()
         {
             var inputs = new List<AssetItem>();
@@ -119,31 +118,31 @@ namespace Xenko.Core.Assets.Tests
             AssetCollision.Clean(null, inputs, outputs, AssetResolver.FromPackage(package), true, false);
 
             // Make sure we are generating exactly the same number of elements
-            Assert.AreEqual(inputs.Count, outputs.Count);
+            Assert.Equal(inputs.Count, outputs.Count);
 
             // Make sure that asset has been cloned
-            Assert.AreNotEqual(inputs[0], outputs[0]);
+            Assert.NotEqual(inputs[0], outputs[0]);
 
             // First Id should not change
-            Assert.AreNotEqual(inputs[0].Id, outputs[0].Id);
+            Assert.NotEqual(inputs[0].Id, outputs[0].Id);
 
             // Make sure that all ids are different
             var ids = new HashSet<AssetId>(outputs.Select(item => item.Id));
-            Assert.AreEqual(inputs.Count, ids.Count);
+            Assert.Equal(inputs.Count, ids.Count);
 
             // Make sure that all locations are different
             var locations = new HashSet<UFile>(outputs.Select(item => item.Location));
-            Assert.AreEqual(inputs.Count, locations.Count);
+            Assert.Equal(inputs.Count, locations.Count);
 
             // Reference location "bad"should be fixed to "0_1" pointing to the first element
             foreach (var output in outputs)
             {
                 // Make sure of none of the locations are using "0"
-                Assert.AreNotEqual("0", output.Location);
+                Assert.NotEqual((UFile)"0", output.Location);
 
                 var assetRef = ((AssetObjectTest)output.Asset).Reference;
-                Assert.AreEqual("0 (2)", assetRef.Location);
-                Assert.AreEqual(outputs[0].Id, assetRef.Id);
+                Assert.Equal("0 (2)", assetRef.Location);
+                Assert.Equal(outputs[0].Id, assetRef.Id);
             }
         }
     }

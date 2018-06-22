@@ -2,15 +2,14 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Animations;
 
 namespace Xenko.Engine.Tests
 {
-    [TestFixture]
     public class AnimationChannelTest
     {
-        [Test, Ignore("Need check")]
+        [Fact(Skip = "Need check")]
         public void TestFitting()
         {
             // Make a sinus between T = 0s to 10s at 60 FPS
@@ -36,11 +35,11 @@ namespace Xenko.Engine.Tests
             for (var time = CompressedTimeSpan.Zero; time < CompressedTimeSpan.FromSeconds(10.0); time += timeStep)
             {
                 var diff = Math.Abs(curve(time) - evaluator.Evaluate(time));
-                Assert.That(diff, Is.LessThanOrEqualTo(maxErrorThreshold));
+                Assert.True(diff <= maxErrorThreshold);
             }
         }
 
-        [Test]
+        [Fact]
         public void TestDiscontinuity()
         {
             var animationChannel = new AnimationChannel();
@@ -55,17 +54,17 @@ namespace Xenko.Engine.Tests
             animationChannel.KeyFrames.Add(new KeyFrameData<float> { Time = CompressedTimeSpan.FromSeconds(2.0), Value = 0.0f });
 
             var evaluator = new AnimationChannel.Evaluator(animationChannel.KeyFrames);
-            Assert.That(evaluator.Evaluate(CompressedTimeSpan.FromSeconds(0.0)), Is.EqualTo(0.0f));
-            Assert.That(evaluator.Evaluate(CompressedTimeSpan.FromSeconds(0.999999)), Is.EqualTo(0.0f));
-            Assert.That(evaluator.Evaluate(CompressedTimeSpan.FromSeconds(1.0)), Is.EqualTo(1.0f));
-            Assert.That(evaluator.Evaluate(CompressedTimeSpan.FromSeconds(1.000001)), Is.EqualTo(1.0f));
-            Assert.That(evaluator.Evaluate(CompressedTimeSpan.FromSeconds(1.999999)), Is.EqualTo(1.0f));
-            Assert.That(evaluator.Evaluate(CompressedTimeSpan.FromSeconds(2.0)), Is.EqualTo(0.0f));
-            Assert.That(evaluator.Evaluate(CompressedTimeSpan.FromSeconds(2.000001)), Is.EqualTo(0.0f));
-            Assert.That(evaluator.Evaluate(CompressedTimeSpan.FromSeconds(2.5)), Is.EqualTo(0.0f));
+            Assert.Equal(0.0f, evaluator.Evaluate(CompressedTimeSpan.FromSeconds(0.0)));
+            Assert.Equal(0.0f, evaluator.Evaluate(CompressedTimeSpan.FromSeconds(0.999999)));
+            Assert.Equal(1.0f, evaluator.Evaluate(CompressedTimeSpan.FromSeconds(1.0)));
+            Assert.Equal(1.0f, evaluator.Evaluate(CompressedTimeSpan.FromSeconds(1.000001)));
+            Assert.Equal(1.0f, evaluator.Evaluate(CompressedTimeSpan.FromSeconds(1.999999)));
+            Assert.Equal(0.0f, evaluator.Evaluate(CompressedTimeSpan.FromSeconds(2.0)));
+            Assert.Equal(0.0f, evaluator.Evaluate(CompressedTimeSpan.FromSeconds(2.000001)));
+            Assert.Equal(0.0f, evaluator.Evaluate(CompressedTimeSpan.FromSeconds(2.5)));
         }
 
-        [Test]
+        [Fact]
         public void TestAnimationClip()
         {
             var clip = new AnimationClip
@@ -93,13 +92,13 @@ namespace Xenko.Engine.Tests
             var optimizedCurvesFloat = (AnimationData<float>)clip.OptimizedAnimationDatas.First();
 
             //we should have 3 frames at this point. the last one will be added by the optimization process...
-            Assert.That(optimizedCurvesFloat.AnimationSortedValueCount, Is.EqualTo(1));
+            Assert.Equal(1, optimizedCurvesFloat.AnimationSortedValueCount);
             //And 2 initial frames            
-            Assert.That(optimizedCurvesFloat.AnimationInitialValues[0].Value1, Is.EqualTo(frame0));
-            Assert.That(optimizedCurvesFloat.AnimationInitialValues[0].Value2, Is.EqualTo(frame1));
-            Assert.That(optimizedCurvesFloat.AnimationSortedValues.Length, Is.EqualTo(1));
-            Assert.That(optimizedCurvesFloat.AnimationSortedValues[0].Length, Is.EqualTo(1));
-            Assert.That(optimizedCurvesFloat.AnimationSortedValues[0][0].Value, Is.EqualTo(frame1));
+            Assert.Equal(frame0, optimizedCurvesFloat.AnimationInitialValues[0].Value1);
+            Assert.Equal(frame1, optimizedCurvesFloat.AnimationInitialValues[0].Value2);
+            Assert.Equal(1, optimizedCurvesFloat.AnimationSortedValues.Length);
+            Assert.Equal(1, optimizedCurvesFloat.AnimationSortedValues[0].Length);
+            Assert.Equal(frame1, optimizedCurvesFloat.AnimationSortedValues[0][0].Value);
         }
     }
 }

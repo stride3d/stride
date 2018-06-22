@@ -5,14 +5,13 @@
 using System;
 using System.IO;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.PublicApiCheck;
 
 namespace Xenko.Graphics
 {
     // CANNOT WORK INSIDE THE SAME SOLUTION. NEED TO RUN THIS OUTSIDE THE SOLUTION
-    [TestFixture]
     [Description("Check public Graphics API consistency between Reference, Direct3D, OpenGL42, OpenGLES")]
     public class TestGraphicsApi
     {
@@ -34,19 +33,19 @@ namespace Xenko.Graphics
         }
 
 
-        [Test]
+        [Fact]
         public void TestDirect3D()
         {
             Assert.That(ApiCheck.DiffAssemblyToString(ReferencePath, GraphicsDirect3DPath), Is.Null);
         }
 
-        [Test]
+        [Fact]
         public void TestOpenGL42()
         {
             Assert.That(ApiCheck.DiffAssemblyToString(ReferencePath, OpenGL4Path), Is.Null);
         }
 
-        [Test]
+        [Fact]
         public void TestOpenGLES()
         {
             Assert.That(ApiCheck.DiffAssemblyToString(ReferencePath, OpenGLESPath), Is.Null);

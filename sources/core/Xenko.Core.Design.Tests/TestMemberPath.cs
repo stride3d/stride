@@ -4,7 +4,7 @@
 using System;
 using System.Linq;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Reflection;
 
@@ -13,22 +13,22 @@ namespace Xenko.Core.Design.Tests
     /// <summary>
     /// Tests for the <see cref="MemberPath"/> class.
     /// </summary>
-    [TestFixture]
     public class TestMemberPath : TestMemberPathBase
     {
         /// <summary>
         /// Initialize the tests.
         /// </summary>
-        [OneTimeSetUp]
         public override void Initialize()
         {
             base.Initialize();
             ShadowObject.Enable = true;
         }
 
-        [Test]
+        [Fact]
         public void TestMyClass()
         {
+            Initialize();
+
             var testClass = new MyClass
             {
                 Sub = new MyClass(),
@@ -41,33 +41,33 @@ namespace Xenko.Core.Design.Tests
             memberPath.Push(MemberValue);
 
             object value;
-            Assert.IsTrue(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
-            Assert.IsTrue(memberPath.TryGetValue(testClass, out value));
-            Assert.AreEqual(1, value);
-            Assert.AreEqual(1, testClass.Value);
-            Assert.IsTrue(memberPath.Match(memberPath.Clone()));
+            Assert.True(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
+            Assert.True(memberPath.TryGetValue(testClass, out value));
+            Assert.Equal(1, value);
+            Assert.Equal(1, testClass.Value);
+            Assert.True(memberPath.Match(memberPath.Clone()));
 
             // 2) MyClass.Sub.Value = 1
             memberPath.Clear();
             memberPath.Push(MemberSub);
             memberPath.Push(MemberValue);
 
-            Assert.IsTrue(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
-            Assert.IsTrue(memberPath.TryGetValue(testClass, out value));
-            Assert.AreEqual(1, value);
-            Assert.AreEqual(1, testClass.Sub.Value);
-            Assert.IsTrue(memberPath.Match(memberPath.Clone()));
+            Assert.True(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
+            Assert.True(memberPath.TryGetValue(testClass, out value));
+            Assert.Equal(1, value);
+            Assert.Equal(1, testClass.Sub.Value);
+            Assert.True(memberPath.Match(memberPath.Clone()));
 
             // 3) MyClass.Struct.X = 1
             memberPath.Clear();
             memberPath.Push(MemberStruct);
             memberPath.Push(MemberX);
 
-            Assert.IsTrue(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
-            Assert.IsTrue(memberPath.TryGetValue(testClass, out value));
-            Assert.AreEqual(1, value);
-            Assert.AreEqual(1, testClass.Struct.X);
-            Assert.IsTrue(memberPath.Match(memberPath.Clone()));
+            Assert.True(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
+            Assert.True(memberPath.TryGetValue(testClass, out value));
+            Assert.Equal(1, value);
+            Assert.Equal(1, testClass.Struct.X);
+            Assert.True(memberPath.Match(memberPath.Clone()));
 
             // 3) MyClass.Maps["XXX"].Value = 1
             memberPath.Clear();
@@ -75,11 +75,11 @@ namespace Xenko.Core.Design.Tests
             memberPath.Push(MapClassDesc, "XXX");
             memberPath.Push(MemberValue);
 
-            Assert.IsTrue(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
-            Assert.IsTrue(memberPath.TryGetValue(testClass, out value));
-            Assert.AreEqual(1, value);
-            Assert.AreEqual(1, testClass.Maps["XXX"].Value);
-            Assert.IsTrue(memberPath.Match(memberPath.Clone()));
+            Assert.True(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
+            Assert.True(memberPath.TryGetValue(testClass, out value));
+            Assert.Equal(1, value);
+            Assert.Equal(1, testClass.Maps["XXX"].Value);
+            Assert.True(memberPath.Match(memberPath.Clone()));
 
             // 4) MyClass.Subs[0].Value = 1
             memberPath.Clear();
@@ -87,11 +87,11 @@ namespace Xenko.Core.Design.Tests
             memberPath.Push(ListClassDesc, 0);
             memberPath.Push(MemberValue);
 
-            Assert.IsTrue(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
-            Assert.IsTrue(memberPath.TryGetValue(testClass, out value));
-            Assert.AreEqual(1, value);
-            Assert.AreEqual(1, testClass.Subs[0].Value);
-            Assert.IsTrue(memberPath.Match(memberPath.Clone()));
+            Assert.True(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
+            Assert.True(memberPath.TryGetValue(testClass, out value));
+            Assert.Equal(1, value);
+            Assert.Equal(1, testClass.Subs[0].Value);
+            Assert.True(memberPath.Match(memberPath.Clone()));
 
             // 5) MyClass.Subs[0].X (invalid)
             memberPath.Clear();
@@ -99,38 +99,38 @@ namespace Xenko.Core.Design.Tests
             memberPath.Push(ListClassDesc, 0);
             memberPath.Push(MemberX);
 
-            Assert.IsFalse(memberPath.TryGetValue(testClass, out value));
-            Assert.IsFalse(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
-            Assert.IsTrue(memberPath.Match(memberPath.Clone()));
+            Assert.False(memberPath.TryGetValue(testClass, out value));
+            Assert.False(memberPath.Apply(testClass, MemberPathAction.ValueSet, 1));
+            Assert.True(memberPath.Match(memberPath.Clone()));
 
             // 6) Remove key MyClass.Maps.Remove("XXX")
             memberPath.Clear();
             memberPath.Push(MemberMaps);
             memberPath.Push(MapClassDesc, "XXX");
-            Assert.IsTrue(memberPath.Apply(testClass, MemberPathAction.DictionaryRemove, null));
-            Assert.IsFalse(testClass.Maps.ContainsKey("XXX"));
-            Assert.IsTrue(memberPath.Match(memberPath.Clone()));
+            Assert.True(memberPath.Apply(testClass, MemberPathAction.DictionaryRemove, null));
+            Assert.False(testClass.Maps.ContainsKey("XXX"));
+            Assert.True(memberPath.Match(memberPath.Clone()));
 
             // 7) Re-add a value to the dictionary
-            Assert.IsTrue(memberPath.Apply(testClass, MemberPathAction.ValueSet, new MyClass()));
-            Assert.IsTrue(testClass.Maps.ContainsKey("XXX"));
-            Assert.IsTrue(memberPath.Match(memberPath.Clone()));
+            Assert.True(memberPath.Apply(testClass, MemberPathAction.ValueSet, new MyClass()));
+            Assert.True(testClass.Maps.ContainsKey("XXX"));
+            Assert.True(memberPath.Match(memberPath.Clone()));
 
             // 8) Remove key MyClass.Subs.Remove(0)
             memberPath.Clear();
             memberPath.Push(MemberSubs);
             memberPath.Push(ListClassDesc, 0);
-            Assert.IsTrue(memberPath.Apply(testClass, MemberPathAction.CollectionRemove, null));
-            Assert.AreEqual(0, testClass.Subs.Count);
-            Assert.IsTrue(memberPath.Match(memberPath.Clone()));
+            Assert.True(memberPath.Apply(testClass, MemberPathAction.CollectionRemove, null));
+            Assert.Equal(0, testClass.Subs.Count);
+            Assert.True(memberPath.Match(memberPath.Clone()));
 
             // 9) Add a key MyClass.Subs.Add(new MyClass())
             memberPath.Clear();
             memberPath.Push(MemberSubs);
             memberPath.Push(ListClassDesc, 0);
-            Assert.IsTrue(memberPath.Apply(testClass, MemberPathAction.CollectionAdd, new MyClass()));
-            Assert.AreEqual(1, testClass.Subs.Count);
-            Assert.IsTrue(memberPath.Match(memberPath.Clone()));
+            Assert.True(memberPath.Apply(testClass, MemberPathAction.CollectionAdd, new MyClass()));
+            Assert.Equal(1, testClass.Subs.Count);
+            Assert.True(memberPath.Match(memberPath.Clone()));
         }
     }
 }

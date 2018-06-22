@@ -3,14 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using NUnit.Framework;
+using Xunit;
 
 namespace Xenko.Core.Assets.Tests
 {
-    [TestFixture]
     public class TestAssetInheritance
     {
-        [Test]
+        [Fact]
         public void TestWithParts()
         {
             // Create a derivative asset with asset parts
@@ -35,19 +34,19 @@ namespace Xenko.Core.Assets.Tests
             Assert.NotNull(childAsset.Archetype);
 
             // Check base asset
-            Assert.AreEqual(assets[0].Id, childAsset.Archetype.Id);
+            Assert.Equal(assets[0].Id, childAsset.Archetype.Id);
 
             // Check that base is correctly setup for the part
             var i = 0;
             var instanceId = Guid.Empty;
             foreach (var part in childAsset.Parts)
             {
-                Assert.AreEqual(assets[0].Id, part.Base.BasePartAsset.Id);
-                Assert.AreEqual(assets[0].Parts[i].Id, part.Base.BasePartId);
+                Assert.Equal(assets[0].Id, part.Base.BasePartAsset.Id);
+                Assert.Equal(assets[0].Parts[i].Id, part.Base.BasePartId);
                 if (instanceId == Guid.Empty)
                     instanceId = part.Base.InstanceId;
-                Assert.AreNotEqual(Guid.Empty, instanceId);
-                Assert.AreEqual(instanceId, part.Base.InstanceId);
+                Assert.NotEqual(Guid.Empty, instanceId);
+                Assert.Equal(instanceId, part.Base.InstanceId);
                 ++i;
             }
         }

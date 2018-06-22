@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 
@@ -41,7 +41,7 @@ namespace Xenko.Physics.Tests
             return false;
         }
 
-        [Test]
+        [Fact]
         public void SkinnedTest1()
         {
             var game = new SkinnedTest();
@@ -67,18 +67,18 @@ namespace Xenko.Physics.Tests
                     await game.Script.NextFrame();
                 }
 
-                Assert.AreEqual(dynamicBody.BoneWorldMatrix, model.Skeleton.NodeTransformations[dynamicBody.BoneIndex].WorldMatrix);
-                Assert.AreNotEqual(pastTransform, model.Skeleton.NodeTransformations[dynamicBody.BoneIndex].WorldMatrix);
+                Assert.Equal(dynamicBody.BoneWorldMatrix, model.Skeleton.NodeTransformations[dynamicBody.BoneIndex].WorldMatrix);
+                Assert.NotEqual(pastTransform, model.Skeleton.NodeTransformations[dynamicBody.BoneIndex].WorldMatrix);
 
                 anim.Play("Run");
 
                 pastTransform = model.Skeleton.NodeTransformations[kinematicBody.BoneIndex].WorldMatrix;
 
-                Assert.AreEqual(kinematicBody.BoneWorldMatrix, pastTransform);
+                Assert.Equal(kinematicBody.BoneWorldMatrix, pastTransform);
 
                 await game.Script.NextFrame();
 
-                Assert.AreNotEqual(kinematicBody.BoneWorldMatrix, pastTransform);
+                Assert.NotEqual(kinematicBody.BoneWorldMatrix, pastTransform);
 
                 game.Exit();
             });

@@ -3,7 +3,7 @@
 using System;
 using System.Collections;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Quantum.References;
 
 namespace Xenko.Core.Quantum.Tests
@@ -22,13 +22,13 @@ namespace Xenko.Core.Quantum.Tests
             if (obj == null) throw new ArgumentNullException(nameof(obj));
 
             // Check that the content is of the expected type.
-            Assert.IsInstanceOf<ObjectNode>(node);
+            Assert.IsAssignableFrom<ObjectNode>(node);
             // A node with an ObjectNode should have the related object as value of its content.
-            Assert.AreEqual(obj, node.Retrieve());
+            Assert.Equal(obj, node.Retrieve());
             // A node with an ObjectNode should not contain a reference if it does not represent a collection.
-            Assert.AreEqual(false, node.IsReference);
+            Assert.Equal(false, node.IsReference);
             // Check that we have the expected number of children.
-            Assert.AreEqual(childCount, ((IObjectNode)node).Members.Count);
+            Assert.Equal(childCount, ((IObjectNode)node).Members.Count);
         }
 
         /// <summary>
@@ -43,22 +43,22 @@ namespace Xenko.Core.Quantum.Tests
             if (obj == null) throw new ArgumentNullException(nameof(obj));
 
             // Check that the content is of the expected type.
-            Assert.IsInstanceOf<ObjectNode>(node);
+            Assert.IsAssignableFrom<ObjectNode>(node);
             // A node with an ObjectNode should have the related object as value of its content.
-            Assert.AreEqual(obj, node.Retrieve());
+            Assert.Equal(obj, node.Retrieve());
             if (isReference)
             {
                 // A node with an ObjectNode representing a collection of reference types should contain an enumerable reference.
-                Assert.AreEqual(true, node.IsReference);
+                Assert.Equal(true, node.IsReference);
                 Assert.NotNull(((IObjectNode)node).ItemReferences);
             }
             else
             {
                 // A node with an ObjectNode representing a collection of primitive or struct types should not contain a refernce.
-                Assert.AreEqual(false, node.IsReference);            
+                Assert.Equal(false, node.IsReference);            
             }
             // A node with an ObjectNode representing a collection should not have any child.
-            Assert.AreEqual(0, ((IObjectNode)node).Members.Count);
+            Assert.Equal(0, ((IObjectNode)node).Members.Count);
         }
 
         /// <summary>
@@ -77,15 +77,15 @@ namespace Xenko.Core.Quantum.Tests
             if (container == null) throw new ArgumentNullException(nameof(container));
 
             // Check that the content is of the expected type.
-            Assert.AreEqual(typeof(MemberNode), memberNode.GetType());
+            Assert.Equal(typeof(MemberNode), memberNode.GetType());
             // A node with a MemberNode should have the same name that the member in the container.
-            Assert.AreEqual(memberName, ((IMemberNode)memberNode).Name);
+            Assert.Equal(memberName, ((IMemberNode)memberNode).Name);
             // A node with a MemberNode should have its container as parent.
-            Assert.AreEqual(containerNode, ((IMemberNode)memberNode).Parent);
+            Assert.Equal(containerNode, ((IMemberNode)memberNode).Parent);
             // A node with a MemberNode should have the member value as value of its content.
-            Assert.AreEqual(member, memberNode.Retrieve());
+            Assert.Equal(member, memberNode.Retrieve());
             // A node with a primitive MemberNode should not contain a reference.
-            Assert.AreEqual(isReference, memberNode.IsReference);
+            Assert.Equal(isReference, memberNode.IsReference);
         }
 
         /// <summary>
@@ -97,13 +97,13 @@ namespace Xenko.Core.Quantum.Tests
         public static void TestNonNullObjectReference(ObjectReference reference, object targetValue, bool hasIndex)
         {
             // Check that the reference is not null.
-            Assert.IsNotNull(reference);
+            Assert.NotNull(reference);
             // Check that the values match.
-            Assert.AreEqual(targetValue, reference.TargetNode.Retrieve());
+            Assert.Equal(targetValue, reference.TargetNode.Retrieve());
             // Check that the values match.
-            Assert.AreEqual(targetValue, reference.ObjectValue);
+            Assert.Equal(targetValue, reference.ObjectValue);
             // Check that that we have an index if expected.
-            Assert.AreEqual(hasIndex, !reference.Index.IsEmpty);
+            Assert.Equal(hasIndex, !reference.Index.IsEmpty);
             // Check that the target is an object content node.
             TestNonCollectionObjectNode(reference.TargetNode, targetValue, reference.TargetNode.Members.Count);
         }
@@ -119,15 +119,15 @@ namespace Xenko.Core.Quantum.Tests
             if (targetNode == null) throw new ArgumentNullException(nameof(targetNode));
 
             // Check that the reference is not null.
-            Assert.IsNotNull(reference);
+            Assert.NotNull(reference);
             // Check that the target node is of the expected type.
-            Assert.IsInstanceOf<ObjectNode>(targetNode);
+            Assert.IsType<ObjectNode>(targetNode);
             // Check that the Guids match.
-            Assert.AreEqual(targetNode.Guid, reference.TargetGuid);
+            Assert.Equal(targetNode.Guid, reference.TargetGuid);
             // Check that the nodes match.
-            Assert.AreEqual(targetNode, reference.TargetNode);
+            Assert.Equal(targetNode, reference.TargetNode);
             // Check that the values match.
-            Assert.AreEqual(targetValue, reference.ObjectValue);
+            Assert.Equal(targetValue, reference.ObjectValue);
             // Check that the target is an object content node.
             TestNonCollectionObjectNode(targetNode, targetValue, ((IObjectNode)targetNode).Members.Count);
         }
@@ -139,13 +139,13 @@ namespace Xenko.Core.Quantum.Tests
         public static void TestNullObjectReference(ObjectReference reference)
         {
             // Check that the reference is not null.
-            Assert.IsNotNull(reference);
+            Assert.NotNull(reference);
             // Check that the Guids match.
-            Assert.AreEqual(Guid.Empty, reference.TargetGuid);
+            Assert.Equal(Guid.Empty, reference.TargetGuid);
             // Check that the nodes match.
-            Assert.AreEqual(null, reference.TargetNode);
+            Assert.Equal(null, reference.TargetNode);
             // Check that the values match.
-            Assert.AreEqual(null, reference.ObjectValue);
+            Assert.Equal(null, reference.ObjectValue);
         }
 
         /// <summary>
@@ -158,14 +158,14 @@ namespace Xenko.Core.Quantum.Tests
             var collection = (ICollection)targetValue;
 
             // Check that the reference is not null.
-            Assert.IsNotNull(reference);
+            Assert.NotNull(reference);
             // Check that the counts match.
-            Assert.AreEqual(collection.Count, reference.Count);
-            Assert.AreEqual(collection.Count, reference.Indices.Count);
+            Assert.Equal(collection.Count, reference.Count);
+            Assert.Equal(collection.Count, reference.Indices.Count);
             // Check that the object references match.
             foreach (var objReference in reference.Zip(collection.Cast<object>(), Tuple.Create))
             {
-                Assert.AreEqual(objReference.Item2, objReference.Item1.ObjectValue);
+                Assert.Equal(objReference.Item2, objReference.Item1.ObjectValue);
                 if (objReference.Item2 != null)
                 {
                     TestNonNullObjectReference(objReference.Item1, objReference.Item2, true);
@@ -176,7 +176,7 @@ namespace Xenko.Core.Quantum.Tests
                 }
             }
             // TODO: rework reference system and enable this
-            //Assert.IsNull(reference.Index);
+            //Assert.Null(reference.Index);
         }
     }
 }

@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Assets.Editor.Quantum;
 using Xenko.Core.Assets.Editor.ViewModel;
 using Xenko.Core.Assets.Quantum;
@@ -15,7 +15,6 @@ namespace Xenko.Core.Assets.Editor.Tests
     /// <summary>
     /// This class repeats the tests done by <see cref="TestArchetypesBasic"/> and verifies that undo/redo works for them.
     /// </summary>
-    [TestFixture]
     public class TestArchetypesBasicUndoRedo
     {
         // TODO: this is a copy of AssetViewModel.AssetPropertyChanged - we'd like to move this out of the view model so we can test the actual normal workflow.
@@ -74,91 +73,91 @@ namespace Xenko.Core.Assets.Editor.Tests
             run.SecondChangeCheck();
         }
 
-        [Test]
+        [Fact]
         public void TestSimplePropertyChange()
         {
             RunTest(TestArchetypesBasic.PrepareSimplePropertyChange());
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractPropertyChange()
         {
             RunTest(TestArchetypesBasic.PrepareAbstractPropertyChange());
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleCollectionUpdate()
         {
             RunTest(TestArchetypesBasic.PrepareSimpleCollectionUpdate());
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleCollectionAdd()
         {
             RunTest(TestArchetypesBasic.PrepareSimpleCollectionAdd());
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleCollectionRemove()
         {
             RunTest(TestArchetypesBasic.PrepareSimpleCollectionRemove());
         }
 
-        [Test]
+        [Fact]
         public void TestCollectionInStructUpdate()
         {
             RunTest(TestArchetypesBasic.PrepareCollectionInStructUpdate());
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleDictionaryUpdate()
         {
             RunTest(TestArchetypesBasic.PrepareSimpleDictionaryUpdate());
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleDictionaryAdd()
         {
             RunTest(TestArchetypesBasic.PrepareSimpleDictionaryAdd());
         }
 
-        [Test]
+        [Fact]
         public void TestSimpleDictionaryRemove()
         {
             RunTest(TestArchetypesBasic.PrepareSimpleDictionaryRemove());
         }
 
-        [Test]
+        [Fact]
         public void TestObjectCollectionUpdate()
         {
             RunTest(TestArchetypesBasic.PrepareObjectCollectionUpdate());
         }
 
-        [Test]
+        [Fact]
         public void TestObjectCollectionAdd()
         {
             RunTest(TestArchetypesBasic.PrepareObjectCollectionAdd());
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractCollectionUpdate()
         {
             RunTest(TestArchetypesBasic.PrepareAbstractCollectionUpdate());
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractCollectionAdd()
         {
             RunTest(TestArchetypesBasic.PrepareAbstractCollectionAdd());
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractDictionaryUpdate()
         {
             RunTest(TestArchetypesBasic.PrepareAbstractDictionaryUpdate());
         }
 
-        [Test]
+        [Fact]
         public void TestAbstractDictionaryAdd()
         {
             RunTest(TestArchetypesBasic.PrepareAbstractDictionaryAdd());

@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 using System.Linq;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
@@ -15,16 +15,13 @@ using Xenko.Core.Shaders.Ast.Hlsl;
 
 namespace Xenko.Shaders.Tests
 {
-    [Ignore("This test fixture is unmaintained and currently doesn't pass")]
-    [TestFixture]
     public class TestGenericClass
     {
         private ShaderSourceManager manager;
         private Xenko.Core.Shaders.Utility.LoggerResult logger;
         private ShaderLoader loader;
 
-        [SetUp]
-        public void Init()
+        private void Init()
         {
             // Create and mount database file system
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();
@@ -37,9 +34,11 @@ namespace Xenko.Shaders.Tests
             loader = new ShaderLoader(manager);
         }
 
-        [Test]
+        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestParsing()
         {
+            Init();
+
             var generics = new object[9];
             generics[0] = "Texturing.Texture1";
             generics[1] = "Texturing.Sampler1";
@@ -52,31 +51,33 @@ namespace Xenko.Shaders.Tests
             generics[8] = "StaticClass.staticFloat";
             var shaderClass = loader.LoadClassSource(new ShaderClassSource("GenericClass", generics), null, logger, false)?.Type;
 
-            Assert.IsNotNull(shaderClass);
+            Assert.NotNull(shaderClass);
 
-            Assert.AreEqual(10, shaderClass.Members.Count);
-            Assert.AreEqual(4, shaderClass.Members.OfType<Variable>().Count(x => x.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Static)));
-            Assert.AreEqual(0, shaderClass.ShaderGenerics.Count);
-            Assert.AreEqual(0, shaderClass.GenericArguments.Count);
-            Assert.AreEqual(0, shaderClass.GenericParameters.Count);
-            Assert.AreEqual(1, shaderClass.BaseClasses.Count);
+            Assert.Equal(10, shaderClass.Members.Count);
+            Assert.Equal(4, shaderClass.Members.OfType<Variable>().Count(x => x.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Static)));
+            Assert.Equal(0, shaderClass.ShaderGenerics.Count);
+            Assert.Equal(0, shaderClass.GenericArguments.Count);
+            Assert.Equal(0, shaderClass.GenericParameters.Count);
+            Assert.Equal(1, shaderClass.BaseClasses.Count);
 
             var linkVar = shaderClass.Members[0] as Variable;
-            Assert.IsNotNull(linkVar);
+            Assert.NotNull(linkVar);
             var linkName = linkVar.Attributes.OfType<AttributeDeclaration>().Where(x => x.Name.Text == "Link").Select(x => x.Parameters[0].Text).FirstOrDefault();
-            Assert.AreEqual("GenericLink.CustomLink", linkName);
+            Assert.Equal("GenericLink.CustomLink", linkName);
 
             var baseClass = shaderClass.BaseClasses[0].Name as IdentifierGeneric;
-            Assert.IsNotNull(baseClass);
-            Assert.AreEqual(3, baseClass.Identifiers.Count);
-            Assert.AreEqual("TEXCOORD0", baseClass.Identifiers[0].Text);
-            Assert.AreEqual("CustomLink", baseClass.Identifiers[1].Text);
-            Assert.AreEqual("float4(5,4,3,2)", baseClass.Identifiers[2].Text);
+            Assert.NotNull(baseClass);
+            Assert.Equal(3, baseClass.Identifiers.Count);
+            Assert.Equal("TEXCOORD0", baseClass.Identifiers[0].Text);
+            Assert.Equal("CustomLink", baseClass.Identifiers[1].Text);
+            Assert.Equal("float4(5,4,3,2)", baseClass.Identifiers[2].Text);
         }
 
-        [Test]
+        [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestShaderCompilation()
         {
+            Init();
+
             var generics = new string[3];
             generics[0] = "Texturing.Texture1";
             generics[1] = "TEXCOORD0";
@@ -100,7 +101,6 @@ namespace Xenko.Shaders.Tests
 
         public void Run()
         {
-            Init();
             TestParsing();
             //TestShaderCompilation();
         }

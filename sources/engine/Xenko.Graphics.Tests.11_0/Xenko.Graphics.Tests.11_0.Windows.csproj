@@ -1,11 +1,11 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Xenko.Graphics.Tests</RootNamespace>
     <AssemblyName>Xenko.Graphics.Tests.11_0</AssemblyName>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>
@@ -134,6 +134,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="XunitAttributes.cs" />
     <Compile Include="Assets\ComputeShaderTestEffect.cs">
       <DependentUpon>ComputeShaderTestEffect.xkfx</DependentUpon>
       <AutoGen>True</AutoGen>

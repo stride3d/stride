@@ -2,14 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
 using Xenko.Graphics.Regression;
 
 namespace Xenko.Graphics.Tests.Regression
 {
-    [TestFixture]
     public class TestMultipleTextures : GameTestBase
     {
         /// <summary>
@@ -61,7 +60,7 @@ namespace Xenko.Graphics.Tests.Regression
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [Fact]
         public void RunTestMultipleTextures()
         {
             RunGameTest(new TestMultipleTextures());

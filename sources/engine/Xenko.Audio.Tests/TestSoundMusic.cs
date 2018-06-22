@@ -1,9 +1,9 @@
-﻿//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+//// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 //// This file is distributed under GPL v3. See LICENSE.md for details.
 //using System;
 //using System.Collections.Generic;
 //using System.IO;
-//using NUnit.Framework;
+//using Xunit;
 //
 //using Xenko.Core.IO;
 //using Xenko.Core.Mathematics;
@@ -15,8 +15,7 @@
 //    /// <summary>
 //    /// Tests for <see cref="SoundMusic"/>.
 //    /// </summary>
-//    [TestFixture]
-//    public class TestSoundMusic
+////    public class TestSoundMusic
 //    {
 //        private AudioEngine defaultEngine;
 //
@@ -66,7 +65,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the load function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestLoad()
 //        {
 //            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,7 +93,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the load and play function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestLoadAndPlayValid()
 //        {
 //            ///////////////////////////
@@ -120,7 +119,7 @@
 //        /// Test the behaviour of the load and play function.
 //        /// </summary>
 //        /// <remarks> Check that the load function throws "InvalidOperationException" when the audio file stream is not valid</remarks>
-//        [Test]
+//        [Fact]
 //        public void TestLoadAndPlayInvalid1()
 //        {
 //            // 3.2 Invalid wav file format (4-channels)
@@ -136,7 +135,7 @@
 //        /// Test the behaviour of the load and play function.
 //        /// </summary>
 //        /// <remarks> Check that the load function throws "InvalidOperationException" when the audio file stream is not valid</remarks>
-//        [Test]
+//        [Fact]
 //        public void TestLoadAndPlayInvalid2()
 //        {
 //            // 3.3 Corrupted Header wav file
@@ -151,7 +150,7 @@
 //        /// Test the behaviour of the load and play function.
 //        /// </summary>
 //        /// <remarks> Check that the load function throws "InvalidOperationException" when the audio file stream is not valid</remarks>
-//        [Test]
+//        [Fact]
 //        public void TestLoadAndPlayInvalid3()
 //        {
 //            // 3.4 Other wav file format
@@ -167,7 +166,7 @@
 //        /// Test the behaviour of the load and play function.
 //        /// </summary>
 //        /// <remarks> Check that the load function throws "InvalidOperationException" when the audio file stream is not valid</remarks>
-//        [Test]
+//        [Fact]
 //        public void TestLoadAndPlayInvalid4()
 //        {
 //            // 3.6 Other file format
@@ -182,13 +181,13 @@
 //        /// <summary>
 //        /// Test the behaviour of the dispose function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestDispose()
 //        {
 //            //////////////////////////////////////////////////////////////
 //            // 1. Check the value of the IsDisposed function before Disposal
 //            var instance = SoundMusic.Load(defaultEngine, OpenDataBaseStream("MusicFishLampMp3"));
-//            Assert.IsFalse(instance.IsDisposed, "The soundEffectInstance returned by CreateInstance is already marked as disposed.");
+//            Assert.False(instance.IsDisposed, "The soundEffectInstance returned by CreateInstance is already marked as disposed.");
 //
 //            /////////////////////////////////////////
 //            // 2. Check that dispose does not crash
@@ -196,7 +195,7 @@
 //
 //            ///////////////////////////////////////////////////////////////////
 //            // 3. Check the Disposal status of the instance after Dispose call
-//            Assert.IsTrue(instance.IsDisposed, "The soundEffectInstance is not marked as 'Disposed' after call to SoundEffectInstance.Dispose");
+//            Assert.True(instance.IsDisposed, "The soundEffectInstance is not marked as 'Disposed' after call to SoundEffectInstance.Dispose");
 //
 //            /////////////////////////////////////////////////////////
 //            // 4. Check that another call to Dispose does not crash
@@ -260,7 +259,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the Play function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestPlay()
 //        {
 //            /////////////////////////////////////
@@ -324,15 +323,15 @@
 //            //////////////////////////////////////////////////////////////////////////////
 //            // 10. Play another music and check that the previous one is correctly stopped
 //            monoInstance.Play();
-//            Assert.AreEqual(SoundPlayState.Playing, monoInstance.PlayState, "Mono intstance play status is not what it is supposed to be.");
-//            Assert.AreEqual(SoundPlayState.Stopped, mp3Instance.PlayState, "MP3 intstance play status is not what it is supposed to be.");
+//            Assert.Equal(SoundPlayState.Playing, monoInstance.PlayState, "Mono intstance play status is not what it is supposed to be.");
+//            Assert.Equal(SoundPlayState.Stopped, mp3Instance.PlayState, "MP3 intstance play status is not what it is supposed to be.");
 //            ActiveAudioEngineUpdate(1500);
 //        }
 //
 //        /// <summary>
 //        /// Test the behaviour of the Pause function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestPause()
 //        {
 //            //////////////////////////////////////////////////////////////////////////////////
@@ -365,7 +364,7 @@
 //            mp3Instance.Play();
 //            monoInstance.Pause();
 //            ActiveAudioEngineUpdate(1000);
-//            Assert.AreEqual(SoundPlayState.Playing, mp3Instance.PlayState, "Pause from another music instance stopped current music.");
+//            Assert.Equal(SoundPlayState.Playing, mp3Instance.PlayState, "Pause from another music instance stopped current music.");
 //            mp3Instance.Stop();
 //            ActiveAudioEngineUpdate(1000);
 //        }
@@ -373,7 +372,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the Stop function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestStop()
 //        {
 //            //////////////////////////////////////////////////////////////////////////////////
@@ -412,7 +411,7 @@
 //            mp3Instance.Play();
 //            monoInstance.Stop();
 //            ActiveAudioEngineUpdate(1000);
-//            Assert.AreEqual(SoundPlayState.Playing, mp3Instance.PlayState, "Stop from another music instance stopped current music.");
+//            Assert.Equal(SoundPlayState.Playing, mp3Instance.PlayState, "Stop from another music instance stopped current music.");
 //            ActiveAudioEngineUpdate(1000);
 //            mp3Instance.Stop();
 //
@@ -422,7 +421,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the ExitLoop function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestExitLoop()
 //        {
 //            //////////////////////////////////////////////////////////////////////////////////
@@ -443,7 +442,7 @@
 //            ActiveAudioEngineUpdate(1000); // Play need to be commited
 //            Assert.DoesNotThrow(loopedInst.ExitLoop, "Call to SoundMusic.ExitLoop crashed throwing an exception.");
 //            ActiveAudioEngineUpdate(1500);
-//            Assert.AreEqual(SoundPlayState.Stopped, loopedInst.PlayState, "SoundMusic.ExitLoop has not properly stopped the looping proccess");
+//            Assert.Equal(SoundPlayState.Stopped, loopedInst.PlayState, "SoundMusic.ExitLoop has not properly stopped the looping proccess");
 //
 //            ////////////////////////////////////////////////////////////////////////////////
 //            // 4. Check that a call to ExitLoop does not crash when the sound is not looping
@@ -462,7 +461,7 @@
 //
 //            ////////////////////////////////////////////////////////////////
 //            // 6. Check that ExitLoop does not modify the value of IsLooped 
-//            Assert.AreEqual(true, loopedInst.IsLooped, "SoundMusic.ExitLoop modified the value of IsLooped.");
+//            Assert.Equal(true, loopedInst.IsLooped, "SoundMusic.ExitLoop modified the value of IsLooped.");
 //
 //            ///////////////////////////////////////////////////////////////////////////////////////////
 //            // 7. Check that a call to ExitLoop from another instance do not affect current instance.
@@ -470,7 +469,7 @@
 //            ActiveAudioEngineUpdate(100); // Play need to be commited
 //            monoInstance.ExitLoop();
 //            ActiveAudioEngineUpdate(2000);
-//            Assert.AreEqual(SoundPlayState.Playing, loopedInst.PlayState, "Call to ExitLoop from another instance influenced current playing instance.");
+//            Assert.Equal(SoundPlayState.Playing, loopedInst.PlayState, "Call to ExitLoop from another instance influenced current playing instance.");
 //            loopedInst.ExitLoop();
 //            ActiveAudioEngineUpdate(1500);
 //        }
@@ -478,7 +477,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the Volume function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestVolume()
 //        {
 //            float vol = 0;
@@ -497,7 +496,7 @@
 //
 //            /////////////////////////////////////////////////////
 //            // 3. Check that Volume value is set to 1 by default
-//            Assert.AreEqual(1f, vol, "Default volume value is not 1.");
+//            Assert.Equal(1f, vol, "Default volume value is not 1.");
 //            
 //            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //            // 4. Check that modifying the volume works and is correctly clamped (result => sound should go up and back down)
@@ -509,7 +508,7 @@
 //            {
 //                Assert.DoesNotThrow(() => volInst.Volume = currentVol, "SoundMusic.Volume { set } crashed.");
 //                Assert.DoesNotThrow(() => vol = volInst.Volume, "SoundMusic.Volume { get } crashed.");
-//                Assert.AreEqual(MathUtil.Clamp(currentVol, 0, 1), vol, "The volume value is not what is supposed to be.");
+//                Assert.Equal(MathUtil.Clamp(currentVol, 0, 1), vol, "The volume value is not what is supposed to be.");
 //
 //                ActiveAudioEngineUpdate(10);
 //                if (currentVol > 1.3)
@@ -574,7 +573,7 @@
 //        /// <summary>
 //        /// Test the behaviour of the IsLooped function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestIsLooped()
 //        {
 //            var looped = false;
@@ -594,7 +593,7 @@
 //
 //            /////////////////////////////////////////////////
 //            // 3. Check that IsLooped default value is false
-//            Assert.IsFalse(loopedWavInstance.IsLooped, "Default looping status is not false.");
+//            Assert.False(loopedWavInstance.IsLooped, "Default looping status is not false.");
 //
 //            /////////////////////////////////////////////////////////////
 //            // 4. Check that IsLooped set/get do not crash on valid sound
@@ -606,7 +605,7 @@
 //            loopedWavInstance.IsLooped = true;
 //            loopedWavInstance.Play();
 //            ActiveAudioEngineUpdate(3000);
-//            Assert.AreEqual(SoundPlayState.Playing, loopedWavInstance.PlayState, "Sound does not loop when Islooped is set to true.");
+//            Assert.Equal(SoundPlayState.Playing, loopedWavInstance.PlayState, "Sound does not loop when Islooped is set to true.");
 //            loopedWavInstance.Stop();
 //            ActiveAudioEngineUpdate(2000);
 //
@@ -616,7 +615,7 @@
 //            loopedMP3Instance.IsLooped = true;
 //            loopedMP3Instance.Play();
 //            ActiveAudioEngineUpdate(3000);
-//            Assert.AreEqual(SoundPlayState.Playing, loopedMP3Instance.PlayState, "Sound does not loop when Islooped is set to true.");
+//            Assert.Equal(SoundPlayState.Playing, loopedMP3Instance.PlayState, "Sound does not loop when Islooped is set to true.");
 //            loopedMP3Instance.Stop();
 //            ActiveAudioEngineUpdate(2000);
 //
@@ -625,14 +624,14 @@
 //            contInstance.IsLooped = true;
 //            contInstance.Play();
 //            ActiveAudioEngineUpdate(3000);
-//            Assert.AreEqual(SoundPlayState.Playing, contInstance.PlayState , "Sound does not loop when Islooped is set to true.");
+//            Assert.Equal(SoundPlayState.Playing, contInstance.PlayState , "Sound does not loop when Islooped is set to true.");
 //            contInstance.Stop();
 //        }
 //
 //        /// <summary>
 //        /// Test the behaviour of the PlayState function.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestPlayState()
 //        {
 //            var state = SoundPlayState.Stopped;
@@ -646,7 +645,7 @@
 //            }
 //            catch (Exception e)
 //            {
-//                Assert.IsFalse(e is ObjectDisposedException, "SoundMusic.PlayState { get } did throw the 'ObjectDisposedException' when called from a disposed object.");
+//                Assert.False(e is ObjectDisposedException, "SoundMusic.PlayState { get } did throw the 'ObjectDisposedException' when called from a disposed object.");
 //            }
 //
 //            //////////////////////////////////////////////
@@ -656,35 +655,35 @@
 //            ////////////////////////////////////////////////////////////////////
 //            // 3. Check that PlayState default value is SoundPlayState.Stopped.
 //            var newInst = SoundMusic.Load(defaultEngine, OpenDataBaseStream("EffectBip"));
-//            Assert.AreEqual(SoundPlayState.Stopped, newInst.PlayState, "Default value of SoundMusic.PlayState is not SoundPlayState.Stopped.");
+//            Assert.Equal(SoundPlayState.Stopped, newInst.PlayState, "Default value of SoundMusic.PlayState is not SoundPlayState.Stopped.");
 //            
 //            //////////////////////////////////////////////////////////////////////
 //            // 4. Check that PlayState value after Play is SoundPlayState.Playing.
 //            monoInstance.Play();
-//            Assert.AreEqual(SoundPlayState.Playing, monoInstance.PlayState, "Value of SoundMusic.PlayState is not SoundPlayState.Playing after a call to Play");
+//            Assert.Equal(SoundPlayState.Playing, monoInstance.PlayState, "Value of SoundMusic.PlayState is not SoundPlayState.Playing after a call to Play");
 //            
 //            //////////////////////////////////////////////////////////////////////
 //            // 5. Check that PlayState value after Pause is SoundPlayState.Pause.
 //            monoInstance.Pause();
-//            Assert.AreEqual(SoundPlayState.Paused, monoInstance.PlayState, "Value of SoundMusic.PlayState is not SoundPlayState.Pause after a call to Pause");
+//            Assert.Equal(SoundPlayState.Paused, monoInstance.PlayState, "Value of SoundMusic.PlayState is not SoundPlayState.Pause after a call to Pause");
 //
 //            //////////////////////////////////////////////////////////////////////
 //            // 6. Check that PlayState value after Stop is SoundPlayState.Stopped.
 //            monoInstance.Stop();
-//            Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "Value of SoundMusic.PlayState is not SoundPlayState.Stopped after a call to Stop");
+//            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "Value of SoundMusic.PlayState is not SoundPlayState.Stopped after a call to Stop");
 //
 //            //////////////////////////////////////////////////////////////////////////////////////////
 //            // 7. Check that PlayState value is SoundMusic.Stopped when the sound stops by itself.
 //            monoInstance.Play();
 //            ActiveAudioEngineUpdate(2500);
-//            Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "Value of SoundMusic.PlayState is not SoundPlayState.Stopped when we reach the sound end");
+//            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "Value of SoundMusic.PlayState is not SoundPlayState.Stopped when we reach the sound end");
 //
 //            //////////////////////////////////////////////////////////////////////////////////////////
 //            // 8. Check that PlayState value is SoundMusic.Stopped when the sound stops by another music.
 //            mp3Instance.Play();
 //            ActiveAudioEngineUpdate(800);
 //            monoInstance.Play();
-//            Assert.AreEqual(SoundPlayState.Stopped, mp3Instance.PlayState, "Value of SoundMusic.PlayState is not SoundPlayState.Stopped when stopped by another music");
+//            Assert.Equal(SoundPlayState.Stopped, mp3Instance.PlayState, "Value of SoundMusic.PlayState is not SoundPlayState.Stopped when stopped by another music");
 //            ActiveAudioEngineUpdate(2500);
 //        }
 //
@@ -694,7 +693,7 @@
 //        /// <summary>
 //        /// Test the various problems that happened are fixed.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestVarious()
 //        {
 //            // test 0
@@ -705,11 +704,11 @@
 //            mp3Instance.Play();
 //            mp3Instance.Stop();
 //            mp3Instance.Play();
-//            Assert.AreEqual(SoundPlayState.Playing, mp3Instance.PlayState, "mp3Instance is not playing (test0)");
+//            Assert.Equal(SoundPlayState.Playing, mp3Instance.PlayState, "mp3Instance is not playing (test0)");
 //            ActiveAudioEngineUpdate(2500);
-//            Assert.AreEqual(SoundPlayState.Playing, mp3Instance.PlayState, "mp3Instance is not still playing (test0)");
+//            Assert.Equal(SoundPlayState.Playing, mp3Instance.PlayState, "mp3Instance is not still playing (test0)");
 //            mp3Instance.Stop();
-//            Assert.AreEqual(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not stopped (test0)");
+//            Assert.Equal(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not stopped (test0)");
 //            
 //            //// test 1
 //            monoInstance.Play();
@@ -719,9 +718,9 @@
 //            monoInstance.Play();
 //            monoInstance.Stop();
 //            monoInstance.Play();
-//            Assert.AreEqual(SoundPlayState.Playing, monoInstance.PlayState, "monoInstance is not playing (test1)");
+//            Assert.Equal(SoundPlayState.Playing, monoInstance.PlayState, "monoInstance is not playing (test1)");
 //            ActiveAudioEngineUpdate(2500);
-//            Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not stopped (test1)");
+//            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not stopped (test1)");
 //
 //            // test 2
 //            mp3Instance.Play();
@@ -730,8 +729,8 @@
 //            monoInstance.Stop();
 //            monoInstance.Play();
 //            ActiveAudioEngineUpdate(2500);
-//            Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not stopped (test2)");
-//            Assert.AreEqual(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not stopped (test2)");
+//            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not stopped (test2)");
+//            Assert.Equal(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not stopped (test2)");
 //            
 //            // test 3
 //            monoInstance.Play();
@@ -739,20 +738,20 @@
 //            monoInstance.Play();
 //            mp3Instance.Play();
 //            ActiveAudioEngineUpdate(2500);
-//            Assert.AreEqual(SoundPlayState.Playing, mp3Instance.PlayState, "mp3Instance is not playing (test3)");
-//            Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not stopped (test3)");
+//            Assert.Equal(SoundPlayState.Playing, mp3Instance.PlayState, "mp3Instance is not playing (test3)");
+//            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not stopped (test3)");
 //            monoInstance.Play();
 //            ActiveAudioEngineUpdate(2500);
-//            Assert.AreEqual(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not stopped (test3)");
-//            Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not playing (test3)");
+//            Assert.Equal(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not stopped (test3)");
+//            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not playing (test3)");
 //
 //            // test 4
 //            monoInstance.Play();
 //            mp3Instance.Play();
 //            monoInstance.Play();
-//            Assert.AreEqual(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not stopped (test4)");
+//            Assert.Equal(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not stopped (test4)");
 //            ActiveAudioEngineUpdate(2500);
-//            Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not Stopped (test4)");
+//            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not Stopped (test4)");
 //
 //            // test 5
 //            monoInstance.Play();
@@ -760,32 +759,32 @@
 //            mp3Instance.Play();
 //            monoInstance.Stop();
 //            contInstance.Stop();
-//            Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not stopped (test5)");
-//            Assert.AreEqual(SoundPlayState.Stopped, contInstance.PlayState, "contInstance is not stopped (test5)");
-//            Assert.AreEqual(SoundPlayState.Playing, mp3Instance.PlayState, "mp3Instance is not playing (test5)");
+//            Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not stopped (test5)");
+//            Assert.Equal(SoundPlayState.Stopped, contInstance.PlayState, "contInstance is not stopped (test5)");
+//            Assert.Equal(SoundPlayState.Playing, mp3Instance.PlayState, "mp3Instance is not playing (test5)");
 //            ActiveAudioEngineUpdate(2100);
-//            Assert.AreEqual(SoundPlayState.Playing, mp3Instance.PlayState, "mp3Instance is not still playing (test5)");
+//            Assert.Equal(SoundPlayState.Playing, mp3Instance.PlayState, "mp3Instance is not still playing (test5)");
 //            
 //            // test 6: delayed Pause after several play
 //            monoInstance.Play();
 //            monoInstance.Pause();
-//            Assert.AreEqual(SoundPlayState.Paused, monoInstance.PlayState, "monoInstance is not Paused 1(test6)");
+//            Assert.Equal(SoundPlayState.Paused, monoInstance.PlayState, "monoInstance is not Paused 1(test6)");
 //            ActiveAudioEngineUpdate(200);
-//            Assert.AreEqual(SoundPlayState.Paused, monoInstance.PlayState, "monoInstance is not Paused 2(test6)");
+//            Assert.Equal(SoundPlayState.Paused, monoInstance.PlayState, "monoInstance is not Paused 2(test6)");
 //            monoInstance.Stop();
 //            monoInstance.Play();
 //            mp3Instance.Play();
 //            mp3Instance.Pause();
-//            Assert.AreEqual(SoundPlayState.Paused, mp3Instance.PlayState, "mp3Instance is not Paused 1(test6)");
+//            Assert.Equal(SoundPlayState.Paused, mp3Instance.PlayState, "mp3Instance is not Paused 1(test6)");
 //            ActiveAudioEngineUpdate(500);
-//            Assert.AreEqual(SoundPlayState.Paused, mp3Instance.PlayState, "mp3Instance is not Paused 2(test6)");
+//            Assert.Equal(SoundPlayState.Paused, mp3Instance.PlayState, "mp3Instance is not Paused 2(test6)");
 //            monoInstance.Play();
 //            contInstance.Play();
 //            mp3Instance.Play();
 //            mp3Instance.Pause();
-//            Assert.AreEqual(SoundPlayState.Paused, mp3Instance.PlayState, "mp3Instance is not Paused 3(test6)");
+//            Assert.Equal(SoundPlayState.Paused, mp3Instance.PlayState, "mp3Instance is not Paused 3(test6)");
 //            ActiveAudioEngineUpdate(500);
-//            Assert.AreEqual(SoundPlayState.Paused, mp3Instance.PlayState, "mp3Instance is not Paused 4(test6)");
+//            Assert.Equal(SoundPlayState.Paused, mp3Instance.PlayState, "mp3Instance is not Paused 4(test6)");
 //          
 //
 //            // test 7 : random tests.
@@ -819,11 +818,11 @@
 //                    actionsSet[rand1.Next(actionsSet.Count)].Invoke();
 //                //Console.WriteLine("monoInstancePlay");
 //                monoInstance.Play();
-//                Assert.AreEqual(SoundPlayState.Playing, monoInstance.PlayState, "monoInstance is not Playing 1(test7)");
-//                Assert.AreEqual(SoundPlayState.Stopped, contInstance.PlayState, "contInstance is not Stopped 1(test7)");
-//                Assert.AreEqual(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not Stopped 1(test7)");
+//                Assert.Equal(SoundPlayState.Playing, monoInstance.PlayState, "monoInstance is not Playing 1(test7)");
+//                Assert.Equal(SoundPlayState.Stopped, contInstance.PlayState, "contInstance is not Stopped 1(test7)");
+//                Assert.Equal(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not Stopped 1(test7)");
 //                ActiveAudioEngineUpdate(2500);
-//                Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not Stopped 2(test7)");
+//                Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not Stopped 2(test7)");
 //
 //
 //                //Console.WriteLine("");
@@ -835,11 +834,11 @@
 //                    actionsSet[rand2.Next(actionsSet.Count)].Invoke();
 //                //Console.WriteLine("contInstancePlay");
 //                contInstance.Play();
-//                Assert.AreEqual(SoundPlayState.Playing, contInstance.PlayState, "contInstance is not Playing 3(test7)");
-//                Assert.AreEqual(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not Stopped 3(test7)");
-//                Assert.AreEqual(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not Stopped 3(test7)");
+//                Assert.Equal(SoundPlayState.Playing, contInstance.PlayState, "contInstance is not Playing 3(test7)");
+//                Assert.Equal(SoundPlayState.Stopped, monoInstance.PlayState, "monoInstance is not Stopped 3(test7)");
+//                Assert.Equal(SoundPlayState.Stopped, mp3Instance.PlayState, "mp3Instance is not Stopped 3(test7)");
 //                ActiveAudioEngineUpdate(3000);
-//                Assert.AreEqual(SoundPlayState.Stopped, contInstance.PlayState, "contInstance is not Stopped 4(test7)");
+//                Assert.Equal(SoundPlayState.Stopped, contInstance.PlayState, "contInstance is not Stopped 4(test7)");
 //            }
 //            contInstance.Stop();
 //            contInstance.IsLooped = true;
@@ -864,7 +863,7 @@
 //        /// <summary>
 //        /// Specific tests based on how it has been implemented.
 //        /// </summary>
-//        [Test]
+//        [Fact]
 //        public void TestImplSpecific()
 //        {
 //            // start a music

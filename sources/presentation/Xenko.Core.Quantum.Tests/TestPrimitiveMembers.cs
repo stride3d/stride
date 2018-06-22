@@ -2,12 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Reflection;
 
 namespace Xenko.Core.Quantum.Tests
 {
-    [TestFixture]
     public class TestPrimitiveMembers
     {
         public enum TestEnum
@@ -61,7 +60,7 @@ namespace Xenko.Core.Quantum.Tests
             public object Member { get; set; }
         }
 
-        [Test]
+        [Fact]
         public void TestIntMember()
         {
             var obj = new IntMember { Member = 5 };
@@ -82,7 +81,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(containerNode, memberNode, obj, obj.Member, nameof(IntMember.Member), false);
         }
 
-        [Test]
+        [Fact]
         public void TestStringMember()
         {
             var obj = new StringMember { Member = "aaa" };
@@ -103,7 +102,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(containerNode, memberNode, obj, obj.Member, nameof(StringMember.Member), false);
         }
 
-        [Test]
+        [Fact]
         public void TestGuidMember()
         {
             var obj = new GuidMember { Member = Guid.NewGuid() };
@@ -124,7 +123,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(containerNode, memberNode, obj, obj.Member, nameof(EnumMember.Member), false);
         }
 
-        [Test]
+        [Fact]
         public void TestEnumMember()
         {
             var obj = new EnumMember { Member = TestEnum.Value1 };
@@ -145,7 +144,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(containerNode, memberNode, obj, obj.Member, nameof(EnumMember.Member), false);
         }
 
-        [Test]
+        [Fact]
         public void TestRegisteredPrimitiveClassMember()
         {
             var obj = new RegisteredPrimitiveClassMember { Member = new PrimitiveClass { Value = 1 } };
@@ -167,7 +166,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(containerNode, memberNode, obj, obj.Member, nameof(RegisteredPrimitiveClassMember.Member), false);
         }
 
-        [Test]
+        [Fact]
         public void TestRegisteredPrimitiveStructMember()
         {
             var obj = new RegisteredPrimitiveStructMember { Member = new PrimitiveStruct { Value = 1 } };
@@ -189,7 +188,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestMemberNode(containerNode, memberNode, obj, obj.Member, nameof(RegisteredPrimitiveStructMember.Member), false);
         }
 
-        [Test]
+        [Fact]
         public void TestBoxedPrimitiveMember()
         {
             var obj = new BoxedPrimitiveMember { Member = 1.0f };
@@ -201,38 +200,38 @@ namespace Xenko.Core.Quantum.Tests
             var memberNode = containerNode.Members.First();
             Helper.TestMemberNode(containerNode, memberNode, obj, obj.Member, nameof(BoxedPrimitiveMember.Member), true);
             Assert.NotNull(memberNode.Target);
-            Assert.AreEqual(0, memberNode.Target.Members.Count);
+            Assert.Equal(0, memberNode.Target.Members.Count);
             Assert.Null(memberNode.Target.Indices);
-            Assert.AreEqual(TypeDescriptorFactory.Default.Find(typeof(float)), memberNode.Target.Descriptor);
-            Assert.AreEqual(false, memberNode.Target.IsReference);
+            Assert.Equal(TypeDescriptorFactory.Default.Find(typeof(float)), memberNode.Target.Descriptor);
+            Assert.Equal(false, memberNode.Target.IsReference);
             Assert.Null(memberNode.Target.ItemReferences);
-            Assert.AreEqual(typeof(float), memberNode.Target.Type);
-            Assert.AreEqual(1.0f, memberNode.Target.Retrieve());
+            Assert.Equal(typeof(float), memberNode.Target.Type);
+            Assert.Equal(1.0f, memberNode.Target.Retrieve());
 
             // Update from object (note: value WILL mismatch here due to the boxing node, so we don't test the value of the target node)
             obj.Member = 2.0f;
             Helper.TestMemberNode(containerNode, memberNode, obj, obj.Member, nameof(BoxedPrimitiveMember.Member), true);
             Assert.True(memberNode.IsReference);
             Assert.NotNull(memberNode.Target);
-            Assert.AreEqual(0, memberNode.Target.Members.Count);
+            Assert.Equal(0, memberNode.Target.Members.Count);
             Assert.Null(memberNode.Target.Indices);
-            Assert.AreEqual(TypeDescriptorFactory.Default.Find(typeof(float)), memberNode.Target.Descriptor);
-            Assert.AreEqual(false, memberNode.Target.IsReference);
+            Assert.Equal(TypeDescriptorFactory.Default.Find(typeof(float)), memberNode.Target.Descriptor);
+            Assert.Equal(false, memberNode.Target.IsReference);
             Assert.Null(memberNode.Target.ItemReferences);
-            Assert.AreEqual(typeof(float), memberNode.Target.Type);
+            Assert.Equal(typeof(float), memberNode.Target.Type);
 
             // Update from Quantum
             containerNode.Members.Last().Update(3.0f);
             Helper.TestMemberNode(containerNode, memberNode, obj, obj.Member, nameof(BoxedPrimitiveMember.Member), true);
             Assert.True(memberNode.IsReference);
             Assert.NotNull(memberNode.Target);
-            Assert.AreEqual(0, memberNode.Target.Members.Count);
+            Assert.Equal(0, memberNode.Target.Members.Count);
             Assert.Null(memberNode.Target.Indices);
-            Assert.AreEqual(TypeDescriptorFactory.Default.Find(typeof(float)), memberNode.Target.Descriptor);
-            Assert.AreEqual(false, memberNode.Target.IsReference);
+            Assert.Equal(TypeDescriptorFactory.Default.Find(typeof(float)), memberNode.Target.Descriptor);
+            Assert.Equal(false, memberNode.Target.IsReference);
             Assert.Null(memberNode.Target.ItemReferences);
-            Assert.AreEqual(typeof(float), memberNode.Target.Type);
-            Assert.AreEqual(3.0f, memberNode.Target.Retrieve());
+            Assert.Equal(typeof(float), memberNode.Target.Type);
+            Assert.Equal(3.0f, memberNode.Target.Retrieve());
         }
     }
 }

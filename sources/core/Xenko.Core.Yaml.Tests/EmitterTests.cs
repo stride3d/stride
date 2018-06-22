@@ -46,7 +46,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Yaml.Events;
 using Xenko.Core.Yaml.Serialization;
 
@@ -54,85 +54,85 @@ namespace Xenko.Core.Yaml.Tests
 {
     public class EmitterTests : YamlTest
     {
-        [Test]
+        [Fact]
         public void EmitExample1()
         {
             ParseAndEmit("test1.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample2()
         {
             ParseAndEmit("test2.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample3()
         {
             ParseAndEmit("test3.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample4()
         {
             ParseAndEmit("test4.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample5()
         {
             ParseAndEmit("test5.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample6()
         {
             ParseAndEmit("test6.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample7()
         {
             ParseAndEmit("test7.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample8()
         {
             ParseAndEmit("test8.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample9()
         {
             ParseAndEmit("test9.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample10()
         {
             ParseAndEmit("test10.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample11()
         {
             ParseAndEmit("test11.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample12()
         {
             ParseAndEmit("test12.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample13()
         {
             ParseAndEmit("test13.yaml");
         }
 
-        [Test]
+        [Fact]
         public void EmitExample14()
         {
             ParseAndEmit("test14.yaml");
@@ -191,9 +191,9 @@ namespace Xenko.Core.Yaml.Tests
             return buffer.ToString();
         }
 
-        [Test]
-        [TestCase("LF hello\nworld")]
-        [TestCase("CRLF hello\r\nworld")]
+        [Theory]
+        [InlineData("LF hello\nworld")]
+        [InlineData("CRLF hello\r\nworld")]
         public void FoldedStyleDoesNotLooseCharacters(string text)
         {
             var yaml = EmitScalar(new Scalar(null, null, text, ScalarStyle.Folded, true, false));
@@ -202,7 +202,7 @@ namespace Xenko.Core.Yaml.Tests
         }
 
         // We are disabling this and want to keep the \n in the output. It is better to have folded > ? 
-        //[Test]
+        //[Fact]
         //public void FoldedStyleIsSelectedWhenNewLinesAreFoundInLiteral()
         //{
         //    var yaml = EmitScalar(new Scalar(null, null, "hello\nworld", ScalarStyle.Any, true, false));
@@ -210,7 +210,7 @@ namespace Xenko.Core.Yaml.Tests
         //    Assert.True(yaml.Contains(">"));
         //}
 
-        [Test]
+        [Fact]
         public void FoldedStyleDoesNotGenerateExtraLineBreaks()
         {
             var yaml = EmitScalar(new Scalar(null, null, "hello\nworld", ScalarStyle.Folded, true, false));
@@ -222,10 +222,10 @@ namespace Xenko.Core.Yaml.Tests
             var sequence = (YamlSequenceNode) stream.Documents[0].RootNode;
             var scalar = (YamlScalarNode) sequence.Children[0];
 
-            Assert.AreEqual("hello\nworld", scalar.Value.Replace(Environment.NewLine, "\n"));
+            Assert.Equal("hello\nworld", scalar.Value.Replace(Environment.NewLine, "\n"));
         }
 
-        [Test]
+        [Fact]
         public void FoldedStyleDoesNotCollapseLineBreaks()
         {
             var yaml = EmitScalar(new Scalar(null, null, ">+\n", ScalarStyle.Folded, true, false));
@@ -236,10 +236,10 @@ namespace Xenko.Core.Yaml.Tests
             var sequence = (YamlSequenceNode) stream.Documents[0].RootNode;
             var scalar = (YamlScalarNode) sequence.Children[0];
 
-            Assert.AreEqual(">+\n", scalar.Value.Replace(Environment.NewLine, "\n"));
+            Assert.Equal(">+\n", scalar.Value.Replace(Environment.NewLine, "\n"));
         }
 
-        [Test]
+        [Fact]
         public void FoldedStylePreservesNewLines()
         {
             var input = "id: 0\nPayload:\n  X: 5\n  Y: 6\n";
@@ -260,7 +260,7 @@ namespace Xenko.Core.Yaml.Tests
 
             var output = value.Value;
             Dump.WriteLine(output);
-            Assert.AreEqual(input, output.Replace(Environment.NewLine, "\n"));
+            Assert.Equal(input, output.Replace(Environment.NewLine, "\n"));
         }
     }
 }

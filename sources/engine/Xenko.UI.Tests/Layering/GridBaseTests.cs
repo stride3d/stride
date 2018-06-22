@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.UI.Panels;
 
@@ -9,14 +9,13 @@ namespace Xenko.UI.Tests.Layering
     /// <summary>
     /// A class that contains test functions for layering of the <see cref="GridBase"/> class.
     /// </summary>
-    [TestFixture]
     [System.ComponentModel.Description("Tests for GridBase layering")]
     public class GridBaseTests : GridBase
     {
         /// <summary>
         /// Test the invalidations generated object property changes.
         /// </summary>
-        [Test]
+        [Fact]
         public void TestBasicInvalidations()
         {
             var grid = new UniformGrid { Rows = 2, Columns = 2, Layers = 2 };

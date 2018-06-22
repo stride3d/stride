@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -44,7 +44,7 @@
 // SOFTWARE.
 
 using System.IO;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Yaml.Serialization;
 
 namespace Xenko.Core.Yaml.Tests.Serialization
@@ -59,7 +59,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
         {
         }
 
-        [Test]
+        [Fact]
         public void NotSpecifyingObjectFactoryUsesDefault()
         {
             var settings = new SerializerSettings();
@@ -67,10 +67,10 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var serializer = new Serializer(settings);
             var result = serializer.Deserialize(new StringReader("!foo {}"));
 
-            Assert.IsInstanceOf<FooBase>(result);
+            Assert.True(result is FooBase);
         }
 
-        [Test]
+        [Fact]
         public void ObjectFactoryIsInvoked()
         {
             var settings = new SerializerSettings()
@@ -83,7 +83,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             var result = serializer.Deserialize(new StringReader("!foo {}"));
 
-            Assert.IsInstanceOf<FooDerived>(result);
+            Assert.True(result is FooDerived);
         }
     }
 }

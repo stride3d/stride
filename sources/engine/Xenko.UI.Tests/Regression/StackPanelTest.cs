@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Games;
 using Xenko.Graphics;
@@ -199,7 +199,7 @@ namespace Xenko.UI.Tests.Regression
         }
 
 
-        [Test]
+        [Fact]
         public void RunStackPanelTest()
         {
             RunGameTest(new StackPanelTest());

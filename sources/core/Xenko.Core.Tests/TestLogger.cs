@@ -2,64 +2,62 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.Diagnostics;
 
 namespace Xenko.Core.Tests
 {
-    [TestFixture]
-    [Description("Tests for Logger")]
     public class TestLogger
     {
-        [Test]
+        [Fact]
         public void TestLocalLogger()
         {
             var log = new LoggerResult();
 
             log.Info("#0");
-            Assert.That(log.Messages.Count, Is.EqualTo(1));
-            Assert.That(log.Messages[0].Type, Is.EqualTo(LogMessageType.Info));
-            Assert.That(log.Messages[0].Text, Is.EqualTo("#0"));
+            Assert.Equal(1, log.Messages.Count);
+            Assert.Equal(LogMessageType.Info, log.Messages[0].Type);
+            Assert.Equal("#0", log.Messages[0].Text);
 
             log.Info("#1");
-            Assert.That(log.Messages.Count, Is.EqualTo(2));
-            Assert.That(log.Messages[1].Type, Is.EqualTo(LogMessageType.Info));
-            Assert.That(log.Messages[1].Text, Is.EqualTo("#1"));
+            Assert.Equal(2, log.Messages.Count);
+            Assert.Equal(LogMessageType.Info, log.Messages[1].Type);
+            Assert.Equal("#1", log.Messages[1].Text);
 
-            Assert.That(log.HasErrors, Is.False);
+            Assert.False(log.HasErrors);
 
             log.Error("#2");
-            Assert.That(log.Messages.Count, Is.EqualTo(3));
-            Assert.That(log.Messages[2].Type, Is.EqualTo(LogMessageType.Error));
-            Assert.That(log.Messages[2].Text, Is.EqualTo("#2"));
+            Assert.Equal(3, log.Messages.Count);
+            Assert.Equal(LogMessageType.Error, log.Messages[2].Type);
+            Assert.Equal("#2", log.Messages[2].Text);
 
-            Assert.That(log.HasErrors, Is.True);
+            Assert.True(log.HasErrors);
 
             log.Error("#3");
-            Assert.That(log.Messages.Count, Is.EqualTo(4));
-            Assert.That(log.Messages[3].Type, Is.EqualTo(LogMessageType.Error));
-            Assert.That(log.Messages[3].Text, Is.EqualTo("#3"));
+            Assert.Equal(4, log.Messages.Count);
+            Assert.Equal(LogMessageType.Error, log.Messages[3].Type);
+            Assert.Equal("#3", log.Messages[3].Text);
 
             // Activate log from Info to Fatal. Verbose won't be logged.
             log.ActivateLog(LogMessageType.Info);
             log.Verbose("#4");
-            Assert.That(log.Messages.Count, Is.EqualTo(4));
+            Assert.Equal(4, log.Messages.Count);
 
             // Activate log from Verbose to Fatal. Verbose will be logged
             log.ActivateLog(LogMessageType.Verbose);
             log.Verbose("#4");
-            Assert.That(log.Messages.Count, Is.EqualTo(5));
+            Assert.Equal(5, log.Messages.Count);
 
             // Activate log from Info to Fatal and only Debug. Verbose won't be logged.
             log.ActivateLog(LogMessageType.Info);
             log.ActivateLog(LogMessageType.Debug, true);
             log.Verbose("#5");
             log.Debug("#6");
-            Assert.That(log.Messages.Count, Is.EqualTo(6));
-            Assert.That(log.Messages[5].Text, Is.EqualTo("#6"));
+            Assert.Equal(6, log.Messages.Count);
+            Assert.Equal("#6", log.Messages[5].Text);
         }
 
-        [Test]
+        [Fact]
         public void TestGlobalLogger()
         {
             var log = GlobalLogger.GetLogger("Module1");
@@ -67,7 +65,7 @@ namespace Xenko.Core.Tests
             var log1x = GlobalLogger.GetLogger("Module1x");
 
             // Check that we get the same instance.
-            Assert.That(log, Is.EqualTo(logbis));
+            Assert.Equal(logbis, log);
 
             // This should work but no handler is installed.
             log.Info("TEST");
@@ -78,25 +76,25 @@ namespace Xenko.Core.Tests
 
             // Log a simple message (disabled by default).
             log.Verbose("#0");
-            Assert.That(messages.Count, Is.EqualTo(0));
+            Assert.Equal(0, messages.Count);
 
             // Activate the log for all loggers starting from Info
             GlobalLogger.ActivateLog(".*", LogMessageType.Verbose);
 
             // Log a simple message
             log.Verbose("#0");
-            Assert.That(messages.Count, Is.EqualTo(1));
-            Assert.That(messages[0].Text, Is.EqualTo("#0"));
+            Assert.Equal(1, messages.Count);
+            Assert.Equal("#0", messages[0].Text);
 
             // Activate the log for Module1x starting from Debug
             GlobalLogger.ActivateLog(".*x", LogMessageType.Debug);
             log1x.Debug("#1");
-            Assert.That(messages.Count, Is.EqualTo(2));
-            Assert.That(messages[1].Text, Is.EqualTo("#1"));
+            Assert.Equal(2, messages.Count);
+            Assert.Equal("#1", messages[1].Text);
         }
 
 
-        [Test]
+        [Fact]
         public void TestCallerInfo()
         {
             var log = new LoggerResult();
@@ -105,12 +103,12 @@ namespace Xenko.Core.Tests
             log.Info("#0", CallerInfo.Get());
             log.Info("#1", CallerInfo.Get());
 
-            Assert.That(log.Messages.Count, Is.EqualTo(2));
-            Assert.That(((LogMessage)log.Messages[0]).CallerInfo, Is.Not.Null);
-            Assert.That(((LogMessage)log.Messages[0]).CallerInfo.FilePath, Is.StringContaining("TestLogger"));
-            Assert.That(((LogMessage)log.Messages[0]).CallerInfo.LineNumber, Is.GreaterThan(0));
-            Assert.That(((LogMessage)log.Messages[1]).CallerInfo, Is.Not.Null);
-            Assert.That(((LogMessage)log.Messages[1]).CallerInfo.LineNumber, Is.EqualTo(((LogMessage)log.Messages[0]).CallerInfo.LineNumber + 1));
+            Assert.Equal(2, log.Messages.Count);
+            Assert.NotNull(((LogMessage)log.Messages[0]).CallerInfo);
+            Assert.Contains("TestLogger", ((LogMessage)log.Messages[0]).CallerInfo.FilePath);
+            Assert.True(((LogMessage)log.Messages[0]).CallerInfo.LineNumber > 0);
+            Assert.NotNull(((LogMessage)log.Messages[1]).CallerInfo);
+            Assert.Equal(((LogMessage)log.Messages[1]).CallerInfo.LineNumber, ((LogMessage)log.Messages[0]).CallerInfo.LineNumber + 1);
         }
     }
 }

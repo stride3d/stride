@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.IO;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
@@ -13,12 +13,12 @@ using Xenko.Core.Storage;
 
 namespace Xenko.Core.Tests
 {
-    [TestFixture]
     [ReferenceSerializer]
     [DataSerializerGlobal(typeof(ReferenceSerializer<A>), Profile = "Content")]
     [DataSerializerGlobal(typeof(ReferenceSerializer<B>), Profile = "Content")]
     [DataSerializerGlobal(typeof(ReferenceSerializer<C>), Profile = "Content")]
     [DataSerializerGlobal(typeof(ReferenceSerializer<D>), Profile = "Content")]
+    [Collection("Non-Parallel Collection")]
     public class TestContentManager
     {
         [ContentSerializer(typeof(DataContentSerializer<A>))]
@@ -69,15 +69,14 @@ namespace Xenko.Core.Tests
             }
         }
 
-        [TestFixtureSetUp]
-        public void SetupDatabase()
+        public TestContentManager()
         {
             VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
             var databaseFileProvider = new DatabaseFileProvider(ContentIndexMap.NewTool(VirtualFileSystem.ApplicationDatabaseIndexName), new ObjectDatabase(VirtualFileSystem.ApplicationDatabasePath, VirtualFileSystem.ApplicationDatabaseIndexName));
             ContentManager.GetFileProvider = () => databaseFileProvider;
         }
 
-        [Test]
+        [Fact]
         public void Simple()
         {
             var a1 = new A { I = 18 };
@@ -90,16 +89,16 @@ namespace Xenko.Core.Tests
             // Use same asset manager
             var a2 = assetManager1.Load<A>("test");
 
-            Assert.That(a2, Is.EqualTo(a1));
+            Assert.Equal(a1, a2);
 
             // Use new asset manager
             var a3 = assetManager2.Load<A>("test");
 
-            Assert.That(a3, Is.Not.EqualTo(a1));
-            Assert.That(a3.I, Is.EqualTo(a1.I));
+            Assert.NotEqual(a3, a1);
+            Assert.Equal(a1.I, a3.I);
         }
 
-        [Test]
+        [Fact]
         public void SimpleWithContentReference()
         {
             var b1 = new B();
@@ -113,11 +112,11 @@ namespace Xenko.Core.Tests
             // Use new asset manager
             var b2 = assetManager2.Load<B>("test");
 
-            Assert.That(b2, Is.Not.EqualTo(b1));
-            Assert.That(b2.A.I, Is.EqualTo(b1.A.I));
+            Assert.NotEqual(b2, b1);
+            Assert.Equal(b1.A.I, b2.A.I);
         }
 
-        [Test]
+        [Fact]
         public void SimpleWithContentReferenceShared()
         {
             var b1 = new B { I = 12 };
@@ -134,11 +133,11 @@ namespace Xenko.Core.Tests
             var b1Loaded = assetManager2.Load<B>("b1");
             var b2Loaded = assetManager2.Load<B>("b2");
 
-            Assert.That(b2Loaded, Is.Not.EqualTo(b1Loaded));
-            Assert.That(b2Loaded.A, Is.EqualTo(b1Loaded.A));
+            Assert.NotEqual(b2Loaded, b1Loaded);
+            Assert.Equal(b1Loaded.A, b2Loaded.A);
         }
 
-        [Test]
+        [Fact]
         public void SimpleLoadData()
         {
             var b1 = new B();
@@ -153,19 +152,19 @@ namespace Xenko.Core.Tests
             // Use new asset manager
             var b2 = assetManager2.Load<B>("test");
 
-            Assert.That(b2, Is.Not.EqualTo(b1));
-            Assert.That(b2.A.I, Is.EqualTo(b1.A.I));
+            Assert.NotEqual(b2, b1);
+            Assert.Equal(b1.A.I, b2.A.I);
 
             // Try to load without references
             var b3 = assetManager3.Load<B>("test", new ContentManagerLoaderSettings { LoadContentReferences = false });
 
-            Assert.That(b3, Is.Not.EqualTo(b1));
+            Assert.NotEqual(b3, b1);
 
             // b3.A should be null
-            Assert.That(b3.A, Is.Null);
+            Assert.Null(b3.A);
         }
 
-        [Test]
+        [Fact]
         public void SimpleSaveData()
         {
             var b1 = new B();
@@ -176,7 +175,7 @@ namespace Xenko.Core.Tests
 
             assetManager1.Save("test", b1);
 
-            Assert.That(AttachedReferenceManager.GetUrl(b1.A), Is.Not.Null);
+            Assert.NotNull(AttachedReferenceManager.GetUrl(b1.A));
             
             var b2 = new B();
             b2.A = new A();
@@ -186,10 +185,10 @@ namespace Xenko.Core.Tests
             assetManager1.Save("test2", b2);
             
             var b3 = assetManager2.Load<B>("test2");
-            Assert.That(b3.A.I, Is.EqualTo(b1.A.I));
+            Assert.Equal(b1.A.I, b3.A.I);
         }
 
-        [Test]
+        [Fact]
         public void LifetimeShared()
         {
             var c1 = new C { I = 16 };
@@ -212,23 +211,23 @@ namespace Xenko.Core.Tests
             assetManager2.Unload(c1Copy);
 
             // Check that everything is properly unloaded
-            Assert.That(((IReferencable)c1Copy).ReferenceCount, Is.EqualTo(0));
-            Assert.That(((IReferencable)c2Copy).ReferenceCount, Is.EqualTo(1));
-            Assert.That(((IReferencable)c1ChildCopy).ReferenceCount, Is.EqualTo(1));
+            Assert.Equal(0, ((IReferencable)c1Copy).ReferenceCount);
+            Assert.Equal(1, ((IReferencable)c2Copy).ReferenceCount);
+            Assert.Equal(1, ((IReferencable)c1ChildCopy).ReferenceCount);
 
             assetManager2.Unload(c2Copy);
 
             // Check that everything is properly unloaded
-            Assert.That(((IReferencable)c2Copy).ReferenceCount, Is.EqualTo(0));
-            Assert.That(((IReferencable)c1ChildCopy).ReferenceCount, Is.EqualTo(1));
+            Assert.Equal(0, ((IReferencable)c2Copy).ReferenceCount);
+            Assert.Equal(1, ((IReferencable)c1ChildCopy).ReferenceCount);
 
             assetManager2.Unload(c1ChildCopy);
 
             // Check that everything is properly unloaded
-            Assert.That(((IReferencable)c1ChildCopy).ReferenceCount, Is.EqualTo(0));
+            Assert.Equal(0, ((IReferencable)c1ChildCopy).ReferenceCount);
         }
 
-        [Test, Ignore("Need check")]
+        [Fact(Skip = "Need check")]
         public void LifetimeNoSimpleConstructor()
         {
             var c1 = new C { I = 18 };
@@ -240,15 +239,15 @@ namespace Xenko.Core.Tests
             assetManager1.Save("c1", c1);
 
             var c1Copy = assetManager2.Load<C>("c1");
-            Assert.That(((IReferencable)c1Copy).ReferenceCount, Is.EqualTo(1));
-            Assert.That(((IReferencable)c1Copy.Child2).ReferenceCount, Is.EqualTo(1));
+            Assert.Equal(1, ((IReferencable)c1Copy).ReferenceCount);
+            Assert.Equal(1, ((IReferencable)c1Copy.Child2).ReferenceCount);
 
             assetManager2.Unload(c1Copy);
-            Assert.That(((IReferencable)c1Copy).ReferenceCount, Is.EqualTo(0));
-            Assert.That(((IReferencable)c1Copy.Child2).ReferenceCount, Is.EqualTo(0));
+            Assert.Equal(0, ((IReferencable)c1Copy).ReferenceCount);
+            Assert.Equal(0, ((IReferencable)c1Copy.Child2).ReferenceCount);
         }
 
-        [Test]
+        [Fact]
         public void LifetimeCycles()
         {
             var c1 = new C { I = 18 };
@@ -262,12 +261,12 @@ namespace Xenko.Core.Tests
             assetManager1.Save("c1", c1);
 
             var c1Copy = assetManager2.Load<C>("c1");
-            Assert.That(((IReferencable)c1Copy).ReferenceCount, Is.EqualTo(1));
-            Assert.That(((IReferencable)c1Copy.Child).ReferenceCount, Is.EqualTo(1));
+            Assert.Equal(1, ((IReferencable)c1Copy).ReferenceCount);
+            Assert.Equal(1, ((IReferencable)c1Copy.Child).ReferenceCount);
 
             assetManager2.Unload(c1Copy);
-            Assert.That(((IReferencable)c1Copy).ReferenceCount, Is.EqualTo(0));
-            Assert.That(((IReferencable)c1Copy.Child).ReferenceCount, Is.EqualTo(0));
+            Assert.Equal(0, ((IReferencable)c1Copy).ReferenceCount);
+            Assert.Equal(0, ((IReferencable)c1Copy.Child).ReferenceCount);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
 using System;
@@ -7,15 +7,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using NUnit.Framework;
+using Xunit;
 using Xenko.Core.IO;
 
 namespace Xenko.Core.Tests
 {
-    [TestFixture, Ignore("Need check")]
     public class TestWatcher
     {
-        [Test]
+        [Fact(Skip = "Need check")]
         public void TestDirectory()
         {
             var tempDirectory = new DirectoryInfo("Temp." + typeof(TestWatcher).Assembly.GetName().Name);
@@ -35,31 +34,31 @@ namespace Xenko.Core.Tests
             var watcher = new DirectoryWatcher();
             watcher.Track(p1);
             var list = watcher.GetTrackedDirectories();
-            Assert.AreEqual(1, list.Count);
-            Assert.AreEqual(p1, list[0]);
+            Assert.Equal(1, list.Count);
+            Assert.Equal(p1, list[0]);
 
             watcher.Track(p2);
             list = watcher.GetTrackedDirectories();
-            Assert.AreEqual(2, list.Count);
-            Assert.AreEqual(p1, list[0]);
-            Assert.AreEqual(p2, list[1]);
+            Assert.Equal(2, list.Count);
+            Assert.Equal(p1, list[0]);
+            Assert.Equal(p2, list[1]);
 
             // Adding p3 should set the track on the parent directory
             watcher.Track(p3);
             list = watcher.GetTrackedDirectories();
-            Assert.AreEqual(1, list.Count);
-            Assert.AreEqual(pb0, list[0]);
+            Assert.Equal(1, list.Count);
+            Assert.Equal(pb0, list[0]);
 
             // Tracking again a child should not add a new track as the parent is already tracking
             watcher.Track(p1);
             list = watcher.GetTrackedDirectories();
-            Assert.AreEqual(1, list.Count);
-            Assert.AreEqual(pb0, list[0]);
+            Assert.Equal(1, list.Count);
+            Assert.Equal(pb0, list[0]);
 
             watcher.Track(pb0);
             list = watcher.GetTrackedDirectories();
-            Assert.AreEqual(1, list.Count);
-            Assert.AreEqual(pb0, list[0]);
+            Assert.Equal(1, list.Count);
+            Assert.Equal(pb0, list[0]);
 
             var events = new List<FileEvent>();
             EventHandler<FileEvent> fileEventHandler = (sender, args) => events.Add(args);
@@ -69,8 +68,8 @@ namespace Xenko.Core.Tests
             Thread.Sleep(20);
             watcher.Modified -= fileEventHandler;
 
-            Assert.AreEqual(1, events.Count);
-            Assert.AreEqual(p4, events[0].FullPath.ToLowerInvariant());
+            Assert.Equal(1, events.Count);
+            Assert.Equal(p4, events[0].FullPath.ToLowerInvariant());
 
             events.Clear();
             watcher.Modified += fileEventHandler;
@@ -78,11 +77,11 @@ namespace Xenko.Core.Tests
             Thread.Sleep(400);
             watcher.Modified -= fileEventHandler;
 
-            Assert.IsTrue(events.All(args => args.ChangeType == FileEventChangeType.Deleted)); // c0, c1, c2, c3 removed
+            Assert.True(events.All(args => args.ChangeType == FileEventChangeType.Deleted)); // c0, c1, c2, c3 removed
 
             //// We should not track any directory
             //list = watcher.GetTrackedDirectories();
-            //Assert.AreEqual(0, list.Count);
+            //Assert.Equal(0, list.Count);
 
             RemoveDirectory(tempDirectory);
         }

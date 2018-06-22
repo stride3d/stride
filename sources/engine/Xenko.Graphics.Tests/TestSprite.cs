@@ -3,14 +3,13 @@
 using System;
 using System.Threading.Tasks;
 
-using NUnit.Framework;
+using Xunit;
 
 using Xenko.Core.Mathematics;
 using Xenko.Games;
 
 namespace Xenko.Graphics.Tests
 {
-    [TestFixture]
     public class TestSprite : GraphicTestGameBase
     {
         private SpriteSheet spriteUv;
@@ -109,7 +108,7 @@ namespace Xenko.Graphics.Tests
         /// <summary>
         /// Run the test
         /// </summary>
-        [Test]
+        [Fact]
         public void RunTestSprite()
         {
             RunGameTest(new TestSprite());

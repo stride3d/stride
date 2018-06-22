@@ -157,21 +157,7 @@ namespace Xenko.Core
         private static string GetApplicationExecutablePath()
         {
 #if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_MONO_MOBILE || XENKO_PLATFORM_UNIX
-            var currentAssembly = Assembly.GetEntryAssembly();
-            if (currentAssembly == null)
-            {
-#if !XENKO_RUNTIME_CORECLR
-                currentAssembly = Assembly.GetExecutingAssembly();
-#else
-                // For the time being we use the location of the application context, and if none
-                // available the one from the current type which is semantically equivalent to Assembly.GetExecutingAssembly.
-                return AppContext.BaseDirectory ?? typeof(PlatformFolders).GetTypeInfo().Assembly.Location;
-#endif
-            }
-            return currentAssembly.Location;
-
-#elif XENKO_PLATFORM_UWP
-            return Path.Combine(Windows.ApplicationModel.Package.Current.InstalledLocation.Path, "XenkoGame.exe"); // Use generic name workaround
+            return Assembly.GetEntryAssembly()?.Location;
 #else
             throw new NotImplementedException();
 #endif
@@ -200,12 +186,22 @@ namespace Xenko.Core
         [NotNull]
         private static string GetApplicationBinaryDirectory()
         {
-            var directoryName = GetApplicationExecutablePath();
-            var result = string.IsNullOrWhiteSpace(directoryName) ? string.Empty : Path.GetDirectoryName(directoryName);
-            if (result == string.Empty)
-                result = ".";
-
-            return result;
+            var executableName = GetApplicationExecutablePath();
+            if (!string.IsNullOrEmpty(executableName))
+            {
+                return Path.GetDirectoryName(executableName);
+            }
+#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_MONO_MOBILE || XENKO_PLATFORM_UNIX
+#if !XENKO_RUNTIME_CORECLR
+            return AppDomain.CurrentDomain.BaseDirectory;
+#else
+            return AppContext.BaseDirectory;
+#endif
+#elif XENKO_PLATFORM_UWP
+            return Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
+#else
+            throw new NotImplementedException();
+#endif
         }
 
         [NotNull]
