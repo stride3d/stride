@@ -33,7 +33,7 @@ namespace Xenko.Core.Assets.Compiler
         {
             // This path for effects xml is now part of this tool, but it should be done in a separate exporter?
             using (var inputStream = File.OpenRead(SourcePath))
-            using (var outputStream = ContentManager.FileProvider.OpenStream(Location, VirtualFileMode.Create, VirtualFileAccess.Write))
+            using (var outputStream = MicrothreadLocalDatabases.DatabaseFileProvider.OpenStream(Location, VirtualFileMode.Create, VirtualFileAccess.Write))
             {
                 inputStream.CopyTo(outputStream);
 
@@ -48,7 +48,7 @@ namespace Xenko.Core.Assets.Compiler
                 // store absolute path to source
                 // TODO: the "/path" is hardcoded, used in EffectSystem and ShaderSourceManager. Find a place to share this correctly.
                 var pathLocation = new UFile(Location.FullPath + "/path");
-                using (var outputStreamPath = ContentManager.FileProvider.OpenStream(pathLocation, VirtualFileMode.Create, VirtualFileAccess.Write))
+                using (var outputStreamPath = MicrothreadLocalDatabases.DatabaseFileProvider.OpenStream(pathLocation, VirtualFileMode.Create, VirtualFileAccess.Write))
                 {
                     using (var sw = new StreamWriter(outputStreamPath))
                     {

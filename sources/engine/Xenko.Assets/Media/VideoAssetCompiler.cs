@@ -232,7 +232,7 @@ namespace Xenko.Assets.Media
 
                         // Write the data
                         using (var reader = new BinaryReader(new FileStream(tempFile, FileMode.Open, FileAccess.Read)))
-                        using (var outputStream = ContentManager.FileProvider.OpenStream(dataUrl, VirtualFileMode.Create, VirtualFileAccess.Write, VirtualFileShare.Read, StreamFlags.Seekable))
+                        using (var outputStream = MicrothreadLocalDatabases.DatabaseFileProvider.OpenStream(dataUrl, VirtualFileMode.Create, VirtualFileAccess.Write, VirtualFileShare.Read, StreamFlags.Seekable))
                         {
                             // For now write everything at once, 1MB at a time
                             var length = reader.BaseStream.Length;
@@ -243,7 +243,7 @@ namespace Xenko.Assets.Media
                             }
                         }
 
-                        var assetManager = new ContentManager();
+                        var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                         assetManager.Save(Url, video);
 
                         return ResultStatus.Successful;

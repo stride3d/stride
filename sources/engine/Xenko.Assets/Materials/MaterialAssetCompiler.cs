@@ -111,7 +111,7 @@ namespace Xenko.Assets.Materials
                 //}
 
                 // Check with Ben why DoCommandOverride is called without going through the constructor?
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 var materialContext = new MaterialGeneratorContext
                 {
                     GraphicsProfile = graphicsProfile,

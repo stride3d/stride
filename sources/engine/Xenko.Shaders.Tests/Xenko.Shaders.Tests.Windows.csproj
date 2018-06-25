@@ -661,6 +661,7 @@
       <DependentUpon>TestVertexStream.xksl</DependentUpon>
     </Compile>
     <Compile Include="TestGenericClass.cs" />
+    <Compile Include="TestHelper.cs" />
     <Compile Include="TestMixinCompiler.cs" />
     <Compile Include="TestMixinGenerator.cs" />
     <Compile Include="TestMixinGenerator.Extensions.cs" />

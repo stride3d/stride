@@ -24,11 +24,11 @@ namespace Xenko.Core.Serialization.Contents
     {
         private static readonly Logger Log = GlobalLogger.GetLogger("ContentManager");
 
-        public static DatabaseFileProvider FileProvider => GetFileProvider?.Invoke();
+        public DatabaseFileProvider FileProvider => databaseFileProvider.FileProvider;
 
-        public static Func<DatabaseFileProvider> GetFileProvider { get; set; }
+        private readonly IDatabaseFileProviderService databaseFileProvider;
 
-        private IServiceRegistry services;
+        private readonly IServiceRegistry services;
 
         public ContentSerializer Serializer { get; }
 
@@ -42,13 +42,14 @@ namespace Xenko.Core.Serialization.Contents
         /// </summary>
         internal readonly Dictionary<object, Reference> LoadedAssetReferences = new Dictionary<object, Reference>();
 
-        public ContentManager() : this(null)
+        public ContentManager(IDatabaseFileProviderService fileProvider)
         {
+            databaseFileProvider = fileProvider;
+            Serializer = new ContentSerializer();
         }
 
-        public ContentManager(IServiceRegistry services)
+        public ContentManager(IServiceRegistry services) : this(services?.GetSafeServiceAs<IDatabaseFileProviderService>())
         {
-            Serializer = new ContentSerializer();
             if (services != null)
             {
 				this.services = services;

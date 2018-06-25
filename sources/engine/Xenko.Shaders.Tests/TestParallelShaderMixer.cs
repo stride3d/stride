@@ -29,9 +29,8 @@ namespace Xenko.Shaders.Tests
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();
             var assetIndexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             var databaseFileProvider = new DatabaseFileProvider(assetIndexMap, objDatabase);
-            ContentManager.GetFileProvider = () => databaseFileProvider;
 
-            compiler = new EffectCompiler();
+            compiler = new EffectCompiler(databaseFileProvider);
             compiler.SourceDirectories.Add("shaders");
             var shaderMixinSource = new ShaderMixinSource();
             shaderMixinSource.Mixins.Add(new ShaderClassSource("ShaderBase"));

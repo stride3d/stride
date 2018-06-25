@@ -5,6 +5,7 @@ using System;
 
 using Xenko.Core;
 using Xenko.Core.Diagnostics;
+using Xenko.Core.IO;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
@@ -23,10 +24,11 @@ namespace Xenko.Assets.Skyboxes
 {
     public class SkyboxGeneratorContext : ShaderGeneratorContext, IDisposable
     {
-        public SkyboxGeneratorContext(SkyboxAsset skybox)
+        public SkyboxGeneratorContext(SkyboxAsset skybox, IDatabaseFileProviderService fileProviderService)
         {
             Skybox = skybox ?? throw new ArgumentNullException(nameof(skybox));
             Services = new ServiceRegistry();
+            Services.AddService(fileProviderService);
             Content = new ContentManager(Services);
             Services.AddService<IContentManager>(Content);
             Services.AddService(Content);
@@ -39,6 +41,8 @@ namespace Xenko.Assets.Skyboxes
             Services.AddService(graphicsContext);
 
             EffectSystem = new EffectSystem(Services);
+            EffectSystem.Compiler = EffectSystem.CreateEffectCompiler(Content.FileProvider, EffectSystem);
+
             Services.AddService(EffectSystem);
             EffectSystem.Initialize();
             ((IContentable)EffectSystem).LoadContent();

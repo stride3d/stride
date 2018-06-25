@@ -11,11 +11,16 @@ namespace Xenko.Shaders.Compiler
 {
     public class NullEffectCompiler : EffectCompilerBase
     {
+        public NullEffectCompiler(IVirtualFileProvider fileProvider)
+        {
+            FileProvider = fileProvider;
+        }
+
         public override ObjectId GetShaderSourceHash(string type)
         {
             var url = GetStoragePathFromShaderType(type);
-            ObjectId shaderSourceId;
-            ContentManager.FileProvider.ContentIndexMap.TryGetValue(url, out shaderSourceId);
+            var shaderSourceId = ObjectId.Empty;
+            (FileProvider as DatabaseFileProvider)?.ContentIndexMap.TryGetValue(url, out shaderSourceId);
             return shaderSourceId;
         }
 

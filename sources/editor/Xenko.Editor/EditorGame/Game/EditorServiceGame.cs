@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Xenko.Core.Annotations;
+using Xenko.Core.BuildEngine;
+using Xenko.Core.IO;
 using Xenko.Core.Mathematics;
 using Xenko.Editor.Build;
 using Xenko.Editor.Engine;
@@ -89,6 +91,14 @@ namespace Xenko.Editor.EditorGame.Game
             {
                 service.UpdateGraphicsCompositor(this);
             }
+        }
+
+        protected override void PrepareContext()
+        {
+            Services.RemoveService<IDatabaseFileProviderService>();
+            Services.AddService(MicrothreadLocalDatabases.ProviderService);
+
+            base.PrepareContext();
         }
 
         /// <inheritdoc />

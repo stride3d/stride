@@ -92,7 +92,7 @@ namespace Xenko.SpriteStudio.Offline
                 var anims = new List<SpriteStudioAnim>();
                 if (!SpriteStudioXmlImport.ParseAnimations(Parameters.Source, anims)) return null;             
 
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
 
                 var sheet = new SpriteSheet();
 

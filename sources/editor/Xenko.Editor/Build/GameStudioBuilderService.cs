@@ -57,8 +57,7 @@ namespace Xenko.Editor.Build
             // so that database created with MountDatabase also have all the newest shaders.
             taskScheduler = new EffectPriorityScheduler(ThreadPriority.BelowNormal, Math.Max(1, Environment.ProcessorCount / 2));
             TaskSchedulerSelector taskSchedulerSelector = (mixinTree, compilerParameters) => taskScheduler.GetOrCreatePriorityGroup(compilerParameters?.TaskPriority ?? 0);
-            effectCompiler = (EffectCompilerBase)EffectSystem.CreateEffectCompiler(taskSchedulerSelector);
-            effectCompiler.FileProvider = MicrothreadLocalDatabases.GetSharedDatabase();
+            effectCompiler = (EffectCompilerBase)EffectSystem.CreateEffectCompiler(MicrothreadLocalDatabases.GetSharedDatabase(), taskSchedulerSelector: taskSchedulerSelector);
 
             StartPushNotificationsTask();
         }

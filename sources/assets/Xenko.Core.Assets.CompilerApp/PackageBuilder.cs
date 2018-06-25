@@ -56,11 +56,6 @@ namespace Xenko.Core.Assets.CompilerApp
             return result;
         }
 
-        private static void PrepareDatabases()
-        {
-            ContentManager.GetFileProvider = () => MicrothreadLocalDatabases.DatabaseFileProvider;
-        }
-
         private BuildResultCode BuildMaster()
         {
             // Only querying graphics platform, let's load package, print it and exit
@@ -291,8 +286,6 @@ namespace Xenko.Core.Assets.CompilerApp
         {
             // Mount build path
             ((FileSystemProvider)VirtualFileSystem.ApplicationData).ChangeBasePath(builderOptions.BuildDirectory);
-
-            PrepareDatabases();
 
             VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
 

@@ -128,7 +128,7 @@ namespace Xenko.Assets.Skyboxes
                 // TODO Convert SkyboxAsset to Skybox and save to Skybox object
                 // TODO Add system to prefilter
 
-                using (var context = new SkyboxGeneratorContext(Parameters))
+                using (var context = new SkyboxGeneratorContext(Parameters, MicrothreadLocalDatabases.ProviderService))
                 {
                     var result = SkyboxGenerator.Compile(Parameters, context);
 

@@ -89,7 +89,8 @@ namespace Xenko.Graphics.Data
                     else
                     {
                         // Deserialize whole texture without streaming feature
-                        DeserializeTexture(texture, ref imageDescription, ref storageHeader);
+                        var contentSerializerContext = stream.Context.Get(ContentSerializerContext.ContentSerializerContextProperty);
+                        DeserializeTexture(contentSerializerContext.ContentManager, texture, ref imageDescription, ref storageHeader);
                     }
                 }
             }
@@ -108,7 +109,7 @@ namespace Xenko.Graphics.Data
             return new Texture();
         }
 
-        private static void DeserializeTexture(Texture texture, ref ImageDescription imageDescription, ref ContentStorageHeader storageHeader)
+        private static void DeserializeTexture(ContentManager contentManager, Texture texture, ref ImageDescription imageDescription, ref ContentStorageHeader storageHeader)
         {
             using (var content = new ContentStreamingService())
             {
@@ -119,7 +120,7 @@ namespace Xenko.Graphics.Data
                 storage.LockChunks();
 
                 // Cache data
-                var fileProvider = ContentManager.FileProvider;
+                var fileProvider = contentManager.FileProvider;
                 var format = imageDescription.Format;
                 bool isBlockCompressed =
                     (format >= PixelFormat.BC1_Typeless && format <= PixelFormat.BC5_SNorm) ||
@@ -246,7 +247,8 @@ namespace Xenko.Graphics.Data
                     ContentStorageHeader.Read(stream, out storageHeader);
 
                     // Deserialize whole texture to image without streaming feature
-                    DeserializeImage(textureData, ref imageDescription, ref storageHeader);
+                    var contentSerializerContext = stream.Context.Get(ContentSerializerContext.ContentSerializerContextProperty);
+                    DeserializeImage(contentSerializerContext.ContentManager, textureData, ref imageDescription, ref storageHeader);
                 }
             }
             else
@@ -260,7 +262,7 @@ namespace Xenko.Graphics.Data
             return new Image();
         }
 
-        private static void DeserializeImage(Image obj, ref ImageDescription imageDescription, ref ContentStorageHeader storageHeader)
+        private static void DeserializeImage(ContentManager contentManager, Image obj, ref ImageDescription imageDescription, ref ContentStorageHeader storageHeader)
         {
             using (var content = new ContentStreamingService())
             {
@@ -271,7 +273,7 @@ namespace Xenko.Graphics.Data
                 storage.LockChunks();
 
                 // Cache data
-                var fileProvider = ContentManager.FileProvider;
+                var fileProvider = contentManager.FileProvider;
                 var format = imageDescription.Format;
                 bool isBlockCompressed =
                     (format >= PixelFormat.BC1_Typeless && format <= PixelFormat.BC5_SNorm) ||

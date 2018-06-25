@@ -59,7 +59,7 @@ namespace Xenko.SpriteStudio.Offline
                     return null;
                 }
 
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
 
                 var anim = anims.First(x => x.Name == Parameters.AnimationName);
 

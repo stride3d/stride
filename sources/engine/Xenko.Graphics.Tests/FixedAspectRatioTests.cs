@@ -32,7 +32,7 @@ namespace Xenko.Graphics.Tests
             Scene = new Scene();
 
             Texture png;
-            using (var pngStream = ContentManager.FileProvider.OpenStream("PngImage", VirtualFileMode.Open, VirtualFileAccess.Read))
+            using (var pngStream = Content.FileProvider.OpenStream("PngImage", VirtualFileMode.Open, VirtualFileAccess.Read))
             using (var pngImage = Image.Load(pngStream, GraphicsDevice.ColorSpace == ColorSpace.Linear))
                 png = Texture.New(GraphicsDevice, pngImage);
 

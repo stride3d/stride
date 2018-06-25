@@ -1,7 +1,9 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Xenko.Core;
+using Xenko.Core.IO;
 using Xenko.Core.Serialization;
+using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Audio
 {
@@ -17,6 +19,7 @@ namespace Xenko.Audio
                 var services = stream.Context.Tags.Get(ServiceRegistry.ServiceRegistryKey);
                 var audioEngine = services.GetService<IAudioEngineProvider>()?.AudioEngine;
 
+                obj.FileProvider = services.GetService<IDatabaseFileProviderService>()?.FileProvider;
                 obj.CompressedDataUrl = stream.ReadString();
                 obj.SampleRate = stream.ReadInt32();
                 obj.Channels = stream.ReadByte();

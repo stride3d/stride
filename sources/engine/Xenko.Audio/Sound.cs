@@ -29,6 +29,8 @@ namespace Xenko.Audio
         [DataMemberIgnore]
         internal AudioLayer.Buffer PreloadedBuffer;
 
+        internal IVirtualFileProvider FileProvider;
+
         /// <summary>
         /// Create a new sound effect instance of the sound effect. 
         /// The audio data are shared between the instances so that useless memory copies is avoided. 
@@ -73,7 +75,7 @@ namespace Xenko.Audio
         {
             if (PreloadedBuffer.Ptr != IntPtr.Zero) return;
 
-            using (var soundStream = ContentManager.FileProvider.OpenStream(CompressedDataUrl, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read, StreamFlags.Seekable))
+            using (var soundStream = FileProvider.OpenStream(CompressedDataUrl, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read, StreamFlags.Seekable))
             using (var decoder = new Celt(SampleRate, CompressedSoundSource.SamplesPerFrame, Channels, true))
             {
                 var reader = new BinarySerializationReader(soundStream);

@@ -99,14 +99,14 @@ namespace Xenko.Streaming
         /// <returns><c>true</c> if this instance can be updated; otherwise, <c>false</c>.</returns>
         internal virtual bool CanBeUpdated => streamingTask == null || streamingTask.IsCompleted;
 
-        protected void Init(ContentStorage storage)
+        protected void Init(IDatabaseFileProviderService databaseFileProviderService, ContentStorage storage)
         {
             Storage?.RemoveDisposeBy(this);
 
             Storage = storage;
-            FileProvider = ContentManager.FileProvider;
+            FileProvider = databaseFileProviderService.FileProvider;
 
-            Storage?.DisposeBy(this);
+            Storage.DisposeBy(this);
         }
 
         /// <summary>

@@ -69,11 +69,10 @@ namespace Xenko.Core.Tests
             }
         }
 
-        public TestContentManager()
+        private IDatabaseFileProviderService CreateDatabaseProvider()
         {
             VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
-            var databaseFileProvider = new DatabaseFileProvider(ContentIndexMap.NewTool(VirtualFileSystem.ApplicationDatabaseIndexName), new ObjectDatabase(VirtualFileSystem.ApplicationDatabasePath, VirtualFileSystem.ApplicationDatabaseIndexName));
-            ContentManager.GetFileProvider = () => databaseFileProvider;
+            return new DatabaseFileProviderService(new DatabaseFileProvider(ContentIndexMap.NewTool(VirtualFileSystem.ApplicationDatabaseIndexName), new ObjectDatabase(VirtualFileSystem.ApplicationDatabasePath, VirtualFileSystem.ApplicationDatabaseIndexName)));
         }
 
         [Fact]
@@ -81,8 +80,9 @@ namespace Xenko.Core.Tests
         {
             var a1 = new A { I = 18 };
 
-            var assetManager1 = new ContentManager();
-            var assetManager2 = new ContentManager();
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
 
             assetManager1.Save("test", a1);
 
@@ -104,8 +104,9 @@ namespace Xenko.Core.Tests
             var b1 = new B();
             b1.A = new A { I = 18 };
 
-            var assetManager1 = new ContentManager();
-            var assetManager2 = new ContentManager();
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
 
             assetManager1.Save("test", b1);
 
@@ -123,8 +124,9 @@ namespace Xenko.Core.Tests
             b1.A = new A { I = 18 };
             var b2 = new B { I = 13, A = b1.A };
 
-            var assetManager1 = new ContentManager();
-            var assetManager2 = new ContentManager();
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
 
             assetManager1.Save("b1", b1);
             assetManager1.Save("b2", b2);
@@ -143,9 +145,10 @@ namespace Xenko.Core.Tests
             var b1 = new B();
             b1.A = new A { I = 18 };
 
-            var assetManager1 = new ContentManager();
-            var assetManager2 = new ContentManager();
-            var assetManager3 = new ContentManager();
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
+            var assetManager3 = new ContentManager(databaseProvider);
 
             assetManager1.Save("test", b1);
 
@@ -170,8 +173,9 @@ namespace Xenko.Core.Tests
             var b1 = new B();
             b1.A = new A { I = 18 };
 
-            var assetManager1 = new ContentManager();
-            var assetManager2 = new ContentManager();
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
 
             assetManager1.Save("test", b1);
 
@@ -198,8 +202,9 @@ namespace Xenko.Core.Tests
 
             AttachedReferenceManager.SetUrl(c1.Child, "cchild");
 
-            var assetManager1 = new ContentManager();
-            var assetManager2 = new ContentManager();
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
 
             assetManager1.Save("c1", c1);
             assetManager1.Save("c2", c2);
@@ -233,8 +238,9 @@ namespace Xenko.Core.Tests
             var c1 = new C { I = 18 };
             c1.Child2 = new D(18);
 
-            var assetManager1 = new ContentManager();
-            var assetManager2 = new ContentManager();
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
 
             assetManager1.Save("c1", c1);
 
@@ -255,8 +261,9 @@ namespace Xenko.Core.Tests
             c1.Child = c2;
             c2.Child = c1;
 
-            var assetManager1 = new ContentManager();
-            var assetManager2 = new ContentManager();
+            var databaseProvider = CreateDatabaseProvider();
+            var assetManager1 = new ContentManager(databaseProvider);
+            var assetManager2 = new ContentManager(databaseProvider);
 
             assetManager1.Save("c1", c1);
 

@@ -43,8 +43,9 @@ namespace Xenko.Shaders.Compiler
         public override IVirtualFileProvider FileProvider { get; set; }
         public bool UseFileSystem { get; set; }
 
-        public EffectCompiler()
+        public EffectCompiler(IVirtualFileProvider fileProvider)
         {
+            FileProvider = fileProvider;
             NativeLibrary.PreloadLibrary("d3dcompiler_47.dll");
             SourceDirectories = new List<string>();
             UrlToFilePath = new Dictionary<string, string>();
@@ -71,7 +72,7 @@ namespace Xenko.Shaders.Compiler
                 // Generate the AST from the mixin description
                 if (shaderMixinParser == null)
                 {
-                    shaderMixinParser = new ShaderMixinParser(FileProvider ?? ContentManager.FileProvider);
+                    shaderMixinParser = new ShaderMixinParser(FileProvider);
                     shaderMixinParser.SourceManager.LookupDirectoryList.AddRange(SourceDirectories); // TODO: temp
                     shaderMixinParser.SourceManager.UseFileSystem = UseFileSystem;
                     shaderMixinParser.SourceManager.UrlToFilePath = UrlToFilePath; // TODO: temp

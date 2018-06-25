@@ -569,7 +569,7 @@ namespace Xenko.Assets.Textures
 
                 // Pack mip maps to the storage container
                 ContentStorageHeader storageHeader;
-                ContentStorage.Create(dataUrl, mipsData, out storageHeader);
+                ContentStorage.Create(assetManager, dataUrl, mipsData, out storageHeader);
 
                 if (cancellationToken.IsCancellationRequested)
                     return ResultStatus.Cancelled;

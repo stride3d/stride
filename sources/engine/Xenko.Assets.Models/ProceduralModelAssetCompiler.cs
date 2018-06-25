@@ -39,7 +39,7 @@ namespace Xenko.Assets.Models
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Save(Url, new ProceduralModelDescriptor(Parameters.Type));
 
                 return Task.FromResult(ResultStatus.Successful);

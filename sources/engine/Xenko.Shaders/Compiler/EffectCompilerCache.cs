@@ -38,8 +38,6 @@ namespace Xenko.Shaders.Compiler
 
         public bool CompileEffectAsynchronously { get; set; }
 
-        public override IVirtualFileProvider FileProvider { get; set; }
-
         /// <summary>
         /// If we have to compile a new shader, what kind of cache are we building?
         /// </summary>
@@ -63,16 +61,7 @@ namespace Xenko.Shaders.Compiler
 
         public override TaskOrResult<EffectBytecodeCompilerResult> Compile(ShaderMixinSource mixin, EffectCompilerParameters effectParameters, CompilerParameters compilerParameters)
         {
-            var database = (FileProvider ?? ContentManager.FileProvider) as DatabaseFileProvider;
-            if (database == null)
-            {
-                throw new NotSupportedException("Using the cache requires to ContentManager.FileProvider to be valid.");
-            }
-
-            // Forward DatabaseFileProvider to actual compiler here
-            // Since we might be in a Task, it has to be forwarded manually (otherwise MicroThreadLocal ones wouldn't work during build)
-            // Note: this system might need an overhaul... (too many states?)
-            base.FileProvider = database;
+            var database = FileProvider as DatabaseFileProvider ?? throw new NotSupportedException("Using the cache requires to ContentManager.FileProvider to be valid.");
 
             var usedParameters = compilerParameters;
             var mixinObjectId = ShaderMixinObjectId.Compute(mixin, usedParameters.EffectParameters);

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -97,6 +97,7 @@ namespace Xenko.Editor.Thumbnails
         {
             // create base services
             Services = new ServiceRegistry();
+            Services.AddService(MicrothreadLocalDatabases.ProviderService);
             ContentManager = new ContentManager(Services);
             Services.AddService<IContentManager>(ContentManager);
             Services.AddService(ContentManager);
@@ -135,11 +136,11 @@ namespace Xenko.Editor.Thumbnails
             gameSystems.Add(sceneSystem);
             EffectSystem.Initialize();
 
+            // Mount the same database for the cache
+            EffectSystem.Compiler = EffectSystem.CreateEffectCompiler(effectCompiler.FileProvider, EffectSystem);
+
             // Deactivate the asynchronous effect compilation
             ((EffectCompilerCache)EffectSystem.Compiler).CompileEffectAsynchronously = false;
-
-            // Mount the same database for the cache
-            ((EffectCompilerCache)EffectSystem.Compiler).FileProvider = effectCompiler.FileProvider;
             
             // load game system content
             gameSystems.LoadContent();

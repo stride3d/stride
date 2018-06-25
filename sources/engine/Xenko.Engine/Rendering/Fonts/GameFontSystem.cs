@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xenko.Core;
+using Xenko.Core.IO;
 using Xenko.Games;
 using Xenko.Graphics.Font;
 
@@ -32,7 +33,7 @@ namespace Xenko.Rendering.Fonts
         {
             base.LoadContent();
 
-            FontSystem.Load(GraphicsDevice);
+            FontSystem.Load(GraphicsDevice, Services.GetSafeServiceAs<IDatabaseFileProviderService>());
         }
 
         protected override void UnloadContent()

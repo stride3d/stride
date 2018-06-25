@@ -58,7 +58,7 @@ namespace Xenko.Assets.Rendering
                 graphicsCompositor.SingleView = Parameters.SingleView;
                 graphicsCompositor.Editor = Parameters.Editor;
 
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Save(Url, graphicsCompositor);
 
                 return Task.FromResult(ResultStatus.Successful);

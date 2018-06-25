@@ -25,9 +25,8 @@ namespace Xenko.Shaders.Tests
             // Create and mount database file system
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();
             var databaseFileProvider = new DatabaseFileProvider(objDatabase);
-            ContentManager.GetFileProvider = () => databaseFileProvider;
 
-            sourceManager = new ShaderSourceManager();
+            sourceManager = new ShaderSourceManager(databaseFileProvider);
             sourceManager.LookupDirectoryList.Add(@"shaders");
             shaderLoader = new ShaderLoader(sourceManager);
         }

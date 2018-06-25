@@ -40,7 +40,7 @@ namespace Xenko.Shaders.Tests
         [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestMaterial()
         {
-            var compiler = new EffectCompiler { UseFileSystem = true };
+            var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider) { UseFileSystem = true };
             var currentPath = Core.PlatformFolders.ApplicationBinaryDirectory;
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Graphics\Shaders"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Engine\Rendering\Shaders"));
@@ -106,7 +106,7 @@ namespace Xenko.Shaders.Tests
         [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestStream()
         {
-            var compiler = new EffectCompiler { UseFileSystem = true };
+            var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider) { UseFileSystem = true };
             var currentPath = Core.PlatformFolders.ApplicationBinaryDirectory;
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Shaders.Tests\GameAssets\Compiler"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Graphics\Shaders"));
@@ -133,7 +133,7 @@ namespace Xenko.Shaders.Tests
         [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
         public void TestMixinAndComposeKeys()
         {
-            var compiler = new EffectCompiler { UseFileSystem = true };
+            var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider) { UseFileSystem = true };
             var currentPath = Core.PlatformFolders.ApplicationBinaryDirectory;
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Graphics\Shaders"));
             compiler.SourceDirectories.Add(Path.Combine(currentPath, @"..\..\sources\engine\Xenko.Shaders.Tests\GameAssets\Mixins"));
@@ -219,7 +219,6 @@ namespace Xenko.Shaders.Tests
             using (var assetIndexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath))
             {
                 var database = new DatabaseFileProvider(assetIndexMap, objDatabase);
-                ContentManager.GetFileProvider = () => database;
 
                 foreach (var shaderName in Directory.EnumerateFiles(@"..\..\sources\shaders", "*.xksl"))
                     CopyStream(database, shaderName);
@@ -227,7 +226,7 @@ namespace Xenko.Shaders.Tests
                 foreach (var shaderName in Directory.EnumerateFiles(@"..\..\sources\engine\Xenko.Shaders.Tests\GameAssets\Compiler", "*.xksl"))
                     CopyStream(database, shaderName);
 
-                var compiler = new EffectCompiler();
+                var compiler = new EffectCompiler(database);
                 compiler.SourceDirectories.Add("assets/shaders");
                 var compilerCache = new EffectCompilerCache(compiler);
 
@@ -246,7 +245,7 @@ namespace Xenko.Shaders.Tests
             VirtualFileSystem.RemountFileSystem("/compiler", "Compiler");
 
 
-            var compiler = new EffectCompiler();
+            var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider);
 
             compiler.SourceDirectories.Add("shaders");
             compiler.SourceDirectories.Add("compiler");
@@ -264,7 +263,7 @@ namespace Xenko.Shaders.Tests
             VirtualFileSystem.RemountFileSystem("/baseShaders", "../../../../engine/Xenko.Graphics/Shaders");
             VirtualFileSystem.RemountFileSystem("/compiler", "Compiler");
 
-            var compiler = new EffectCompiler();
+            var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider);
 
             compiler.SourceDirectories.Add("shaders");
             compiler.SourceDirectories.Add("compiler");

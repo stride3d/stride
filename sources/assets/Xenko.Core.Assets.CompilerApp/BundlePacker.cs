@@ -53,7 +53,6 @@ namespace Xenko.Core.Assets.CompilerApp
                 }
 
                 var databaseFileProvider = new DatabaseFileProvider(objDatabase.ContentIndexMap, objDatabase);
-                ContentManager.GetFileProvider = () => databaseFileProvider;
 
                 // Pass1: Create ResolvedBundle from user Bundle
                 var resolvedBundles = new Dictionary<string, ResolvedBundle>();
@@ -85,7 +84,7 @@ namespace Xenko.Core.Assets.CompilerApp
                     // Compute asset dependencies, and fill bundleAssets with list of all assets contained in bundles (directly or indirectly).
                     foreach (var assetUrl in bundle.Value.AssetUrls)
                     {
-                        CollectReferences(bundle.Value.Source, bundleAssets, assetUrl, objDatabase.ContentIndexMap);
+                        CollectReferences(databaseFileProvider, bundle.Value.Source, bundleAssets, assetUrl);
                     }
                 }
 
@@ -150,7 +149,7 @@ namespace Xenko.Core.Assets.CompilerApp
                     // Those not present in dependencies will be added to this bundle
                     foreach (var assetUrl in bundle.AssetUrls)
                     {
-                        CollectBundle(bundle, assetUrl, objDatabase.ContentIndexMap);
+                        CollectBundle(databaseFileProvider, bundle, assetUrl);
                     }
                 }
 
@@ -287,7 +286,7 @@ namespace Xenko.Core.Assets.CompilerApp
         /// </summary>
         /// <param name="objectId">The object identifier.</param>
         /// <returns>The list of asset url referenced.</returns>
-        private List<string> GetChunkReferences(ref ObjectId objectId)
+        private List<string> GetChunkReferences(DatabaseFileProvider databaseFileProvider, ref ObjectId objectId)
         {
             List<string> references;
 
@@ -298,7 +297,7 @@ namespace Xenko.Core.Assets.CompilerApp
                 referencesByObjectId[objectId] = references = new List<string>();
 
                 // Open stream to read list of chunk references
-                using (var stream = ContentManager.FileProvider.OpenStream(DatabaseFileProvider.ObjectIdUrl + objectId, VirtualFileMode.Open, VirtualFileAccess.Read))
+                using (var stream = databaseFileProvider.OpenStream(DatabaseFileProvider.ObjectIdUrl + objectId, VirtualFileMode.Open, VirtualFileAccess.Read))
                 {
                     // Read chunk header
                     var streamReader = new BinarySerializationReader(stream);
@@ -327,31 +326,31 @@ namespace Xenko.Core.Assets.CompilerApp
             return references;
         }
 
-        private void CollectReferences(Bundle bundle, HashSet<string> assets, string assetUrl, IContentIndexMap contentIndexMap)
+        private void CollectReferences(DatabaseFileProvider databaseFileProvider, Bundle bundle, HashSet<string> assets, string assetUrl)
         {
             // Already included?
             if (!assets.Add(assetUrl))
                 return;
 
             ObjectId objectId;
-            if (!contentIndexMap.TryGetValue(assetUrl, out objectId))
+            if (!databaseFileProvider.ContentIndexMap.TryGetValue(assetUrl, out objectId))
                 throw new InvalidOperationException(string.Format("Could not find asset {0} for bundle {1}", assetUrl, bundle.Name));
 
             // Include references
-            foreach (var reference in GetChunkReferences(ref objectId))
+            foreach (var reference in GetChunkReferences(databaseFileProvider, ref objectId))
             {
-                CollectReferences(bundle, assets, reference, contentIndexMap);
+                CollectReferences(databaseFileProvider, bundle, assets, reference);
             }
         }
 
-        private void CollectBundle(ResolvedBundle resolvedBundle, string assetUrl, IContentIndexMap contentIndexMap)
+        private void CollectBundle(DatabaseFileProvider databaseFileProvider, ResolvedBundle resolvedBundle, string assetUrl)
         {
             // Check if index map contains it already (that also means object id has been stored as well)
             if (resolvedBundle.DependencyIndexMap.ContainsKey(assetUrl) || resolvedBundle.IndexMap.ContainsKey(assetUrl))
                 return;
 
             ObjectId objectId;
-            if (!contentIndexMap.TryGetValue(assetUrl, out objectId))
+            if (!databaseFileProvider.ContentIndexMap.TryGetValue(assetUrl, out objectId))
                 throw new InvalidOperationException(string.Format("Could not find asset {0} for bundle {1}", assetUrl, resolvedBundle.Name));
 
             // Add asset to index map
@@ -362,9 +361,9 @@ namespace Xenko.Core.Assets.CompilerApp
             if (resolvedBundle.DependencyObjectIds.Contains(objectId) || !resolvedBundle.ObjectIds.Add(objectId))
                 return;
 
-            foreach (var reference in GetChunkReferences(ref objectId))
+            foreach (var reference in GetChunkReferences(databaseFileProvider, ref objectId))
             {
-                CollectBundle(resolvedBundle, reference, contentIndexMap);
+                CollectBundle(databaseFileProvider, resolvedBundle, reference);
             }
         }
 

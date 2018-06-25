@@ -26,9 +26,8 @@ namespace Xenko.Shaders.Tests
             // Create and mount database file system
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();
             var databaseFileProvider = new DatabaseFileProvider(objDatabase);
-            ContentManager.GetFileProvider = () => databaseFileProvider;
 
-            manager = new ShaderSourceManager();
+            manager = new ShaderSourceManager(databaseFileProvider);
             manager.LookupDirectoryList.Add("shaders");
             logger = new Xenko.Core.Shaders.Utility.LoggerResult();
             loader = new ShaderLoader(manager);
@@ -92,7 +91,7 @@ namespace Xenko.Shaders.Tests
 
             var log = new CompilerResults();
 
-            var compiler = new EffectCompiler();
+            var compiler = new EffectCompiler(TestHelper.CreateDatabaseProvider().FileProvider);
             compiler.SourceDirectories.Add("shaders");
 
             var effectByteCode = compiler.Compile(mixinSource, compilerParameters.EffectParameters, compilerParameters);
@@ -111,7 +110,6 @@ namespace Xenko.Shaders.Tests
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();
             var assetIndexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             var databaseFileProvider = new DatabaseFileProvider(assetIndexMap, objDatabase);
-            ContentManager.GetFileProvider = () => databaseFileProvider;
 
             var test = new TestGenericClass();
             test.Run();

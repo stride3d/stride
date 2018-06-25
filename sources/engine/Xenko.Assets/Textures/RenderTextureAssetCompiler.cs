@@ -35,7 +35,7 @@ namespace Xenko.Assets.Textures
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Save(Url, new RenderTextureDescriptor
                 {
                     Width = Parameters.Asset.Width,

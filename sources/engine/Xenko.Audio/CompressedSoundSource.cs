@@ -34,6 +34,7 @@ namespace Xenko.Audio
 
         private Celt decoder;
 
+        private readonly IVirtualFileProvider fileProvider;
         private readonly string soundStreamUrl;
 
         private readonly int channels;
@@ -71,17 +72,19 @@ namespace Xenko.Audio
         /// This type of DynamicSoundSource is streamed from Disk and reads compressed Celt encoded data, used internally.
         /// </summary>
         /// <param name="instance">The associated SoundInstance</param>
+        /// <param name="fileProvider">The file provider to read the stream from</param>
         /// <param name="soundStreamUrl">The compressed stream internal URL</param>
         /// <param name="numberOfPackets"></param>
         /// <param name="sampleRate">The sample rate of the compressed data</param>
         /// <param name="channels">The number of channels of the compressed data</param>
         /// <param name="maxCompressedSize">The maximum size of a compressed packet</param>
-        public CompressedSoundSource(SoundInstance instance, string soundStreamUrl, int numberOfPackets, int sampleRate, int channels, int maxCompressedSize) : 
+        public CompressedSoundSource(SoundInstance instance, IVirtualFileProvider fileProvider, string soundStreamUrl, int numberOfPackets, int sampleRate, int channels, int maxCompressedSize) : 
             base(instance, NumberOfBuffers, SamplesPerBuffer * MaxChannels * sizeof(short))
         {
             looped = instance.IsLooping;
             this.channels = channels;
             this.maxCompressedSize = maxCompressedSize;
+            this.fileProvider = fileProvider;
             this.soundStreamUrl = soundStreamUrl;
             this.sampleRate = sampleRate;
             this.numberOfPackets = numberOfPackets;
@@ -122,7 +125,7 @@ namespace Xenko.Audio
         {
             if (soundStreamUrl != null)
             {
-                compressedSoundStream = ContentManager.FileProvider.OpenStream(soundStreamUrl, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read, StreamFlags.Seekable);
+                compressedSoundStream = fileProvider.OpenStream(soundStreamUrl, VirtualFileMode.Open, VirtualFileAccess.Read, VirtualFileShare.Read, StreamFlags.Seekable);
                 decoder = new Celt(sampleRate, SamplesPerFrame, channels, true);
                 compressedBuffer = new byte[maxCompressedSize];
                 reader = new BinarySerializationReader(compressedSoundStream);

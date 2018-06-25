@@ -39,7 +39,7 @@ namespace Xenko.Assets.UI
 
             protected sealed override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
 
                 var uiObject = Create(commandContext);
                 assetManager.Save(Url, uiObject);

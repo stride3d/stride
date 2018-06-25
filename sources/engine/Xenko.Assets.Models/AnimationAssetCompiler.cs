@@ -174,7 +174,7 @@ namespace Xenko.Assets.Models
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
 
                 // Load source and base animations
                 var baseAnimation = assetManager.Load<AnimationClip>(Parameters.BaseUrl);

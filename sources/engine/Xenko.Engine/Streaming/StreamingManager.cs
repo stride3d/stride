@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xenko.Core;
 using Xenko.Core.Annotations;
+using Xenko.Core.IO;
 using Xenko.Core.Streaming;
 using Xenko.Engine;
 using Xenko.Games;
@@ -355,7 +356,7 @@ namespace Xenko.Streaming
             }
 
             // Update resource storage/description information (may be modified on asset rebuilding)
-            resource.Init(storage, ref imageDescription);
+            resource.Init(Services.GetSafeServiceAs<IDatabaseFileProviderService>(), storage, ref imageDescription);
 
             // Check if cannot use streaming
             if (!Enabled)

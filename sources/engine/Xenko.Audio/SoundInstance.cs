@@ -81,7 +81,7 @@ namespace Xenko.Audio
 
             if (streamed)
             {
-                soundSource = new CompressedSoundSource(this, staticSound.CompressedDataUrl, staticSound.NumberOfPackets, staticSound.SampleRate, staticSound.Channels, staticSound.MaxPacketLength);
+                soundSource = new CompressedSoundSource(this, staticSound.FileProvider, staticSound.CompressedDataUrl, staticSound.NumberOfPackets, staticSound.SampleRate, staticSound.Channels, staticSound.MaxPacketLength);
             }
             else
             {

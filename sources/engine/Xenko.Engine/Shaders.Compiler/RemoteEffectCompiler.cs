@@ -20,14 +20,11 @@ namespace Xenko.Shaders.Compiler
         private RemoteEffectCompilerClient remoteEffectCompilerClient;
 
         /// <inheritdoc/>
-        public override IVirtualFileProvider FileProvider
-        {
-            get { return null; }
-            set {}
-        }
+        public override IVirtualFileProvider FileProvider { get; set; }
 
-        public RemoteEffectCompiler(RemoteEffectCompilerClient remoteEffectCompilerClient)
+        public RemoteEffectCompiler(IVirtualFileProvider fileProvider, RemoteEffectCompilerClient remoteEffectCompilerClient)
         {
+            FileProvider = fileProvider;
             this.remoteEffectCompilerClient = remoteEffectCompilerClient;
         }
 
@@ -42,8 +39,7 @@ namespace Xenko.Shaders.Compiler
         public override ObjectId GetShaderSourceHash(string type)
         {
             var url = GetStoragePathFromShaderType(type);
-            ObjectId shaderSourceId;
-            ContentManager.FileProvider.ContentIndexMap.TryGetValue(url, out shaderSourceId);
+            ((DatabaseFileProvider)FileProvider).ContentIndexMap.TryGetValue(url, out var shaderSourceId);
             return shaderSourceId;
         }
 

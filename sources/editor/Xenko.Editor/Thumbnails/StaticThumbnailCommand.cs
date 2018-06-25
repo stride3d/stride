@@ -56,7 +56,7 @@ namespace Xenko.Editor.Thumbnails
                 texTool.Resize(texImage, thumbnailSize.X, thumbnailSize.Y, Filter.Rescaling.Lanczos3);
 
                 // Save
-                using (var outputImageStream = ContentManager.FileProvider.OpenStream(Url, VirtualFileMode.Create, VirtualFileAccess.Write))
+                using (var outputImageStream = MicrothreadLocalDatabases.DatabaseFileProvider.OpenStream(Url, VirtualFileMode.Create, VirtualFileAccess.Write))
                 using (var outputImage = texTool.ConvertToXenkoImage(texImage))
                 {
                     ThumbnailBuildHelper.ApplyThumbnailStatus(outputImage, DependencyBuildStatus);

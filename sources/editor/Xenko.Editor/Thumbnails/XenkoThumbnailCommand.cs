@@ -118,7 +118,7 @@ namespace Xenko.Editor.Thumbnails
             PreloadAsset();
             var graphicsCompositor = GraphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, GraphicsCompositorKey, CreateSharedGraphicsCompositor);
             var scene = CreateScene(graphicsCompositor);
-            var result = Generator.BuildThumbnail(Url, scene, graphicsCompositor, ContentManager.FileProvider, Parameters.ThumbnailSize, Parameters.ColorSpace, Parameters.RenderingMode, commandContext.Logger, DependencyBuildStatus, CustomizeThumbnail);
+            var result = Generator.BuildThumbnail(Url, scene, graphicsCompositor, MicrothreadLocalDatabases.DatabaseFileProvider, Parameters.ThumbnailSize, Parameters.ColorSpace, Parameters.RenderingMode, commandContext.Logger, DependencyBuildStatus, CustomizeThumbnail);
             DestroyScene(scene);
             UnloadAsset();
             return Task.FromResult(result);

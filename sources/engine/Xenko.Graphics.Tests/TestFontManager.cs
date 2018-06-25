@@ -1,10 +1,12 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading;
-
+using Xenko.Core.IO;
 using Xunit;
 
 using Xenko.Core.Mathematics;
+using Xenko.Core.Serialization.Contents;
+using Xenko.Core.Storage;
 using Xenko.Engine;
 using Xenko.Graphics.Font;
 
@@ -20,12 +22,18 @@ namespace Xenko.Graphics.Tests
             Game.InitializeAssetDatabase();
         }
 
+        private IDatabaseFileProviderService CreateDatabaseProvider()
+        {
+            VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
+            return new DatabaseFileProviderService(new DatabaseFileProvider(ObjectDatabase.CreateDefaultDatabase()));
+        }
+
         [Fact]
         public void TestCreationDisposal()
         {
             Init();
 
-            var fontManager = new FontManager();
+            var fontManager = new FontManager(CreateDatabaseProvider());
             fontManager.Dispose();
         }
         
@@ -34,7 +42,7 @@ namespace Xenko.Graphics.Tests
         {
             Init();
 
-            var fontManager = new FontManager();
+            var fontManager = new FontManager(CreateDatabaseProvider());
             Assert.True(fontManager.DoesFontContains("Arial", FontStyle.Regular, 'a'));
             Assert.False(fontManager.DoesFontContains("Arial", FontStyle.Regular, '都'));
             fontManager.Dispose();
@@ -45,7 +53,7 @@ namespace Xenko.Graphics.Tests
         {
             Init();
 
-            var fontManager = new FontManager();
+            var fontManager = new FontManager(CreateDatabaseProvider());
 
             float lineSpacing = 0;
             float baseLine = 0;
@@ -65,7 +73,7 @@ namespace Xenko.Graphics.Tests
         {
             Init();
 
-            var fontManager = new FontManager();
+            var fontManager = new FontManager(CreateDatabaseProvider());
             const int waitTime = 250;
             const int defaultSize = 4;
 

@@ -34,11 +34,11 @@ namespace Xenko.Graphics.Tests
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            using (var pngStream = ContentManager.FileProvider.OpenStream("PngImage", VirtualFileMode.Open, VirtualFileAccess.Read))
+            using (var pngStream = Content.FileProvider.OpenStream("PngImage", VirtualFileMode.Open, VirtualFileAccess.Read))
             using (var pngImage = Image.Load(pngStream, GraphicsDevice.ColorSpace == ColorSpace.Linear))
                 png = Texture.New(GraphicsDevice, pngImage);
 
-            using (var jpgStream = ContentManager.FileProvider.OpenStream("JpegImage", VirtualFileMode.Open, VirtualFileAccess.Read))
+            using (var jpgStream = Content.FileProvider.OpenStream("JpegImage", VirtualFileMode.Open, VirtualFileAccess.Read))
             using (var jpgImage = Image.Load(jpgStream, GraphicsDevice.ColorSpace == ColorSpace.Linear))
                 jpg = Texture.New(GraphicsDevice, jpgImage);
         }

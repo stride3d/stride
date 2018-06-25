@@ -144,10 +144,11 @@ namespace Xenko.Core.Streaming
         /// <summary>
         /// Creates the new storage container at the specified location and generates header for that.
         /// </summary>
+        /// <param name="contentManager">The content manager.</param>
         /// <param name="dataUrl">The file url.</param>
         /// <param name="chunksData">The chunks data.</param>
         /// <param name="header">The header data.</param>
-        public static void Create(string dataUrl, List<byte[]> chunksData, out ContentStorageHeader header)
+        public static void Create(ContentManager contentManager, string dataUrl, List<byte[]> chunksData, out ContentStorageHeader header)
         {
             if (chunksData == null || chunksData.Count == 0 || chunksData.Any(x => x == null || x.Length == 0))
                 throw new ArgumentException(nameof(chunksData));
@@ -189,7 +190,7 @@ namespace Xenko.Core.Streaming
             }
 
             // Create file with a raw data
-            using (var outputStream = ContentManager.FileProvider.OpenStream(dataUrl, VirtualFileMode.Create, VirtualFileAccess.Write, VirtualFileShare.Read, StreamFlags.Seekable))
+            using (var outputStream = contentManager.FileProvider.OpenStream(dataUrl, VirtualFileMode.Create, VirtualFileAccess.Write, VirtualFileShare.Read, StreamFlags.Seekable))
             using (var stream = new BinaryWriter(outputStream))
             {
                 // Write data (one after another)

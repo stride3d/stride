@@ -67,7 +67,7 @@ namespace Xenko.Assets.Physics
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
 
                 // Cloned list of collider shapes
                 var descriptions = Parameters.ColliderShapes.ToList();

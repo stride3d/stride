@@ -140,7 +140,7 @@ namespace Xenko.Assets.Effect
                 if (compiler == null)
                 {
                     // Create compiler
-                    var effectCompiler = new Shaders.Compiler.EffectCompiler();
+                    var effectCompiler = new EffectCompiler(MicrothreadLocalDatabases.DatabaseFileProvider);
                     effectCompiler.SourceDirectories.Add(EffectCompilerBase.DefaultSourceShaderFolder);
                     compiler = new EffectCompilerCache(effectCompiler) { CurrentCache = EffectBytecodeCacheLoadSource.StartupCache };
                     context.Properties.Set(CompilerKey, compiler);

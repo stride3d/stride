@@ -106,7 +106,7 @@ namespace Xenko.Assets
                 //make sure we modify platform specific files to set the wanted orientation
                 SetPlatformOrientation(package, platform, Parameters.GetOrCreate<RenderingSettings>().DisplayOrientation);
 
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Save(Url, result);
 
                 return Task.FromResult(ResultStatus.Successful);

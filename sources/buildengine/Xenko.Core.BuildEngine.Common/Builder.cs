@@ -639,7 +639,6 @@ namespace Xenko.Core.BuildEngine
             }
 
             // Prepare data base directories
-            ContentManager.GetFileProvider = () => MicrothreadLocalDatabases.DatabaseFileProvider;
             var databasePathSplits = VirtualFileSystem.ApplicationDatabasePath.Split('/');
             var accumulatorPath = "/";
             foreach (var pathPart in databasePathSplits.Where(x => x != ""))

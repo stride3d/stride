@@ -24,9 +24,8 @@ namespace Xenko.Shaders.Tests
             // Create and mount database file system
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();
             var databaseFileProvider = new DatabaseFileProvider(objDatabase);
-            ContentManager.GetFileProvider = () => databaseFileProvider;
 
-            Compiler = new EffectCompiler();
+            Compiler = new EffectCompiler(databaseFileProvider);
             Compiler.SourceDirectories.Add("shaders");
             MixinParameters = new CompilerParameters();
             MixinParameters.EffectParameters.Platform = GraphicsPlatform.Direct3D11;

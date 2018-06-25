@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
 using Xenko.Core.Assets;
@@ -25,7 +25,7 @@ namespace Xenko.Assets.Entities
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
 
                 var prefab = new Prefab();
                 foreach (var rootEntity in Parameters.Hierarchy.RootParts)

@@ -125,7 +125,7 @@ namespace Xenko.Assets.Sprite
 
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Serializer.RegisterSerializer(new ImageTextureSerializer());
 
                 // Create atlas texture
@@ -281,7 +281,7 @@ namespace Xenko.Assets.Sprite
             /// <returns>Status of building</returns>
             private ResultStatus CreateAtlasTextures(ICommandContext commandContext, out Dictionary<SpriteInfo, PackedSpriteInfo> spriteToPackedSprite)
             {
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 spriteToPackedSprite = new Dictionary<SpriteInfo, PackedSpriteInfo>();
 
                 // Pack textures

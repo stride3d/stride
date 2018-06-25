@@ -60,14 +60,6 @@ namespace Xenko.Shaders.Parser.Mixins
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ShaderSourceManager"/> class.
-        /// </summary>
-        public ShaderSourceManager()
-            : this(ContentManager.FileProvider)
-        {
-        }
-
-        /// <summary>
         /// Adds the shader source registered manually.
         /// </summary>
         /// <param name="type">The type.</param>

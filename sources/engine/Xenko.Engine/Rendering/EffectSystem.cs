@@ -53,10 +53,7 @@ namespace Xenko.Rendering
         /// <value>
         /// The database file provider.
         /// </value>
-        public IVirtualFileProvider FileProvider
-        {
-            get { return compiler.FileProvider ?? ContentManager.FileProvider; }
-        }
+        public IVirtualFileProvider FileProvider => compiler.FileProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EffectSystem"/> class.
@@ -89,10 +86,6 @@ namespace Xenko.Rendering
             {
                 effectCompilerParameters.ApplyCompilationMode(((Game)Game).Settings.CompilationMode);
             }
-
-            // Make sure default compiler is created (local if possible otherwise none) if nothing else was explicitely set/requested (i.e. by GameSettings)
-            if (Compiler == null)
-                Compiler = CreateEffectCompiler();
         }
 
         protected override void Destroy()
@@ -124,17 +117,6 @@ namespace Xenko.Rendering
             Compiler = null;
 
             base.Destroy();
-        }
-
-        /// <summary>
-        /// Creates an effect compiler, with either specificed <see cref="effectCompiler"/> or default one, wrapped in an <see cref="EffectCompilerCache"/>.
-        /// </summary>
-        /// <param name="effectCompiler">The effect compiler.</param>
-        /// <param name="taskSchedulerSelector">The task scheduler selector.</param>
-        /// <returns></returns>
-        public static IEffectCompiler CreateEffectCompiler(TaskSchedulerSelector taskSchedulerSelector = null)
-        {
-            return CreateEffectCompiler(null, null, EffectCompilationMode.Local, false, taskSchedulerSelector);
         }
 
         public override void Update(GameTime gameTime)
@@ -430,7 +412,7 @@ namespace Xenko.Rendering
             return null;
         }
 
-        internal static IEffectCompiler CreateEffectCompiler(EffectSystem effectSystem, Guid? packageId, EffectCompilationMode effectCompilationMode, bool recordEffectRequested, TaskSchedulerSelector taskSchedulerSelector = null)
+        public static IEffectCompiler CreateEffectCompiler(IVirtualFileProvider fileProvider, EffectSystem effectSystem = null, Guid? packageId = null, EffectCompilationMode effectCompilationMode = EffectCompilationMode.Local, bool recordEffectRequested = false, TaskSchedulerSelector taskSchedulerSelector = null)
         {
             EffectCompilerBase compiler = null;
 
@@ -438,7 +420,7 @@ namespace Xenko.Rendering
             if ((effectCompilationMode & EffectCompilationMode.Local) != 0)
             {
                 // Local allowed and available, let's use that
-                compiler = new EffectCompiler
+                compiler = new EffectCompiler(fileProvider)
                 {
                     SourceDirectories = { EffectCompilerBase.DefaultSourceShaderFolder },
                 };
@@ -462,7 +444,7 @@ namespace Xenko.Rendering
                 if (needRemoteCompiler)
                 {
                     // Create a remote compiler
-                    compiler = new RemoteEffectCompiler(shaderCompilerTarget);
+                    compiler = new RemoteEffectCompiler(fileProvider, shaderCompilerTarget);
                 }
                 else
                 {
@@ -474,7 +456,7 @@ namespace Xenko.Rendering
             // Local not possible or allowed, and remote not allowed either => switch back to null compiler
             if (compiler == null)
             {
-                compiler = new NullEffectCompiler();
+                compiler = new NullEffectCompiler(fileProvider);
             }
 
             return new EffectCompilerCache(compiler, taskSchedulerSelector);

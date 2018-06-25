@@ -102,8 +102,8 @@ namespace Xenko.Editor.Thumbnails
 
             if (lastBuildStep.Succeeded)
             {
-                thumbnailStream = ContentManager.FileProvider.OpenStream(thumbnailStorageUrl, VirtualFileMode.Open, VirtualFileAccess.Read);
-                thumbnailHash = ContentManager.FileProvider.ContentIndexMap[thumbnailStorageUrl];
+                thumbnailStream = MicrothreadLocalDatabases.DatabaseFileProvider.OpenStream(thumbnailStorageUrl, VirtualFileMode.Open, VirtualFileAccess.Read);
+                thumbnailHash = MicrothreadLocalDatabases.DatabaseFileProvider.ContentIndexMap[thumbnailStorageUrl];
             }
 
             try

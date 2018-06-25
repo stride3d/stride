@@ -28,6 +28,7 @@ using Xenko.Games.Time;
 using Xenko.Graphics;
 using Xenko.Core;
 using Xenko.Core.Annotations;
+using Xenko.Core.IO;
 using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Games
@@ -107,10 +108,8 @@ namespace Xenko.Games
             // Externals
             Services = new ServiceRegistry();
 
-            // Content manager
-            Content = new ContentManager(Services);
-            Services.AddService<IContentManager>(Content);
-            Services.AddService(Content);
+            // Database file provider
+            Services.AddService<IDatabaseFileProviderService>(new DatabaseFileProviderService(null));
 
             LaunchParameters = new LaunchParameters();
             GameSystems = new GameSystemCollection(Services);
@@ -487,6 +486,10 @@ namespace Xenko.Games
         /// </summary>
         protected virtual void PrepareContext()
         {
+            // Content manager
+            Content = new ContentManager(Services);
+            Services.AddService<IContentManager>(Content);
+            Services.AddService(Content);
         }
 
         /// <summary>

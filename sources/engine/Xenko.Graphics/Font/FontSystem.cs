@@ -6,6 +6,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 using Xenko.Core;
+using Xenko.Core.IO;
 
 namespace Xenko.Graphics.Font
 {
@@ -32,12 +33,12 @@ namespace Xenko.Graphics.Font
         /// </summary>
         /// <param name="graphicsDevice">The graphics device.</param>
         /// <exception cref="System.ArgumentNullException">graphicsDevice</exception>
-        public void Load(GraphicsDevice graphicsDevice)
+        public void Load(GraphicsDevice graphicsDevice, IDatabaseFileProviderService fileProviderService)
         {
             // TODO possibly load cached character bitmaps from the disk
             if (graphicsDevice == null) throw new ArgumentNullException("graphicsDevice");
             GraphicsDevice = graphicsDevice;
-            FontManager = new FontManager();
+            FontManager = new FontManager(fileProviderService);
             FontCacheManager = new FontCacheManager(this);
         }
 

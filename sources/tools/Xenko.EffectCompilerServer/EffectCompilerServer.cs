@@ -63,18 +63,18 @@ namespace Xenko.EffectCompilerServer
             }
             else
             {
-                // Create an effect compiler per connection
-                var effectCompiler = new EffectCompiler();
 
                 Console.WriteLine(@"Client connected");
-
-                // TODO: This should come from an "init" packet
-                effectCompiler.SourceDirectories.Add(EffectCompilerBase.DefaultSourceShaderFolder);
 
                 // Make a VFS that will access remotely the DatabaseFileProvider
                 // TODO: Is that how we really want to do that in the future?
                 var networkVFS = new NetworkVirtualFileProvider(socketMessageLayer, "/asset");
                 VirtualFileSystem.RegisterProvider(networkVFS);
+
+                // Create an effect compiler per connection
+                var effectCompiler = new EffectCompiler(networkVFS);
+                // TODO: This should come from an "init" packet
+                effectCompiler.SourceDirectories.Add(EffectCompilerBase.DefaultSourceShaderFolder);
                 effectCompiler.FileProvider = networkVFS;
 
                 socketMessageLayer.AddPacketHandler<RemoteEffectCompilerEffectRequest>(packet => ShaderCompilerRequestHandler(socketMessageLayer, effectCompiler, packet));

@@ -77,7 +77,7 @@ namespace Xenko.Core.BuildEngine.Tests.Commands
 
         protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
         {
-            var assetManager = new ContentManager();
+            var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
             DataContainer result = null;
 
             switch (Source.Type)

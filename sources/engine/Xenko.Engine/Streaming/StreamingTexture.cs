@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Xenko.Core;
 using Xenko.Core.Annotations;
+using Xenko.Core.IO;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Streaming;
 using Xenko.Graphics;
@@ -177,12 +178,12 @@ namespace Xenko.Streaming
         /// <inheritdoc />
         internal override bool CanBeUpdated => textureToSync == null && base.CanBeUpdated;
 
-        internal void Init([NotNull] ContentStorage storage, ref ImageDescription imageDescription)
+        internal void Init(IDatabaseFileProviderService databaseFileProviderService, [NotNull] ContentStorage storage, ref ImageDescription imageDescription)
         {
             if(imageDescription.Depth != 1)
                 throw new ContentStreamingException("Texture streaming supports only 2D textures and 2D texture arrays.", storage);
 
-            Init(storage);
+            Init(databaseFileProviderService, storage);
             texture.FullQualitySize = new Size3(imageDescription.Width, imageDescription.Height, imageDescription.Depth);
             description = imageDescription;
             residentMips = 0;

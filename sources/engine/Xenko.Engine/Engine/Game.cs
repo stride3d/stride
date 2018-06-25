@@ -226,8 +226,6 @@ namespace Xenko.Engine
             VRDeviceSystem = new VRDeviceSystem(Services);
             Services.AddService(VRDeviceSystem);
 
-            Content.Serializer.LowLevelSerializerSelector = ParameterContainerExtensions.DefaultSceneSerializerSelector;
-
             // Creates the graphics device manager
             GraphicsDeviceManager = new GraphicsDeviceManager(this);
             Services.AddService<IGraphicsDeviceManager>(GraphicsDeviceManager);
@@ -258,6 +256,7 @@ namespace Xenko.Engine
             if (Context.InitializeDatabase)
             {
                 databaseFileProvider = InitializeAssetDatabase();
+                ((DatabaseFileProviderService)Services.GetService<IDatabaseFileProviderService>()).FileProvider = databaseFileProvider;
 
                 var renderingSettings = new RenderingSettings();
                 if (Content.Exists(GameSettings.AssetUrl))
@@ -351,6 +350,8 @@ namespace Xenko.Engine
             // Initialize the systems
             base.Initialize();
 
+            Content.Serializer.LowLevelSerializerSelector = ParameterContainerExtensions.DefaultSceneSerializerSelector;
+
             // Add the scheduler system
             // - Must be after Input, so that scripts are able to get latest input
             // - Must be before Entities/Camera/Audio/UI, so that scripts can apply
@@ -370,10 +371,7 @@ namespace Xenko.Engine
             Services.AddService(EffectSystem);
 
             // If requested in game settings, compile effects remotely and/or notify new shader requests
-            if (Settings != null)
-            {
-                EffectSystem.Compiler = EffectSystem.CreateEffectCompiler(EffectSystem, Settings.PackageId, Settings.EffectCompilation, Settings.RecordUsedEffects);
-            }
+            EffectSystem.Compiler = EffectSystem.CreateEffectCompiler(Content.FileProvider, EffectSystem, Settings?.PackageId, Settings?.EffectCompilation ?? EffectCompilationMode.Local, Settings?.RecordUsedEffects ?? false);
 
             GameSystems.Add(EffectSystem);
 
@@ -403,8 +401,6 @@ namespace Xenko.Engine
                 var mountPath = VirtualFileSystem.ResolveProviderUnsafe("/asset", true).Provider == null ? "/asset" : null;
                 var result = new DatabaseFileProvider(objDatabase, mountPath);
 
-                ContentManager.GetFileProvider = () => result;
-
                 return result;
             }
         }
@@ -413,7 +409,7 @@ namespace Xenko.Engine
         {
             if (databaseFileProvider != null)
             {
-                ContentManager.GetFileProvider = null;
+                ((DatabaseFileProviderService)Services.GetService<IDatabaseFileProviderService>()).FileProvider = null;
                 databaseFileProvider.Dispose();
                 databaseFileProvider = null;
             }

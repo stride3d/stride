@@ -76,9 +76,9 @@ namespace Xenko.Graphics.Font
         /// <summary>
         /// Create an empty register.
         /// </summary>
-        public FontManager()
+        public FontManager(IDatabaseFileProviderService fileProviderService)
         {
-            contentManager = new ContentManager();
+            contentManager = new ContentManager(fileProviderService);
 
             // Preload proper freetype native library (depending on CPU type)
             Core.NativeLibrary.PreloadLibrary("freetype.dll");

@@ -12,6 +12,7 @@ using Xenko.Streaming;
 using Xenko.Core.Diagnostics;
 using Xenko.Media;
 using Xenko.Audio;
+using Xenko.Core.IO;
 using Xenko.Games;
 
 namespace Xenko.Video
@@ -466,8 +467,10 @@ namespace Xenko.Video
             var dataUrl = videoComponent.Source?.CompressedDataUrl;
             if(dataUrl != null)
             {
-                if (!ContentManager.FileProvider.ContentIndexMap.TryGetValue(dataUrl, out ObjectId objectId) ||
-                    !ContentManager.FileProvider.ObjectDatabase.BundleBackend.TryGetObjectLocation(objectId, out url, out startPosition, out end))
+                var fileProvider = services.GetSafeServiceAs<IDatabaseFileProviderService>().FileProvider;
+
+                if (!fileProvider.ContentIndexMap.TryGetValue(dataUrl, out ObjectId objectId) ||
+                    !fileProvider.ObjectDatabase.BundleBackend.TryGetObjectLocation(objectId, out url, out startPosition, out end))
                 {
                     throw new InvalidOperationException("Video files needs to be stored on the virtual file system in a non-compressed form.");
                 }

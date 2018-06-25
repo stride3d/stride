@@ -80,7 +80,7 @@ namespace Xenko.Assets.Navigation
 
         private class NavmeshBuildCommand : AssetCommand<NavigationMeshAsset>
         {
-            private readonly ContentManager contentManager = new ContentManager();
+            private readonly ContentManager contentManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
             private readonly Dictionary<string, PhysicsColliderShape> loadedColliderShapes = new Dictionary<string, PhysicsColliderShape>();
 
             private NavigationMesh oldNavigationMesh;
@@ -202,7 +202,7 @@ namespace Xenko.Assets.Navigation
             {
                 try
                 {
-                    var objectDatabase = ContentManager.FileProvider.ObjectDatabase;
+                    var objectDatabase = MicrothreadLocalDatabases.DatabaseFileProvider.ObjectDatabase;
                     using (var stream = objectDatabase.OpenStream(objectId))
                     {
                         var reader = new BinarySerializationReader(stream);
@@ -224,7 +224,7 @@ namespace Xenko.Assets.Navigation
             /// <param name="build">The build data to save</param>
             private void SaveIntermediateData(ObjectId objectId, NavigationMesh build)
             {
-                var objectDatabase = ContentManager.FileProvider.ObjectDatabase;
+                var objectDatabase = MicrothreadLocalDatabases.DatabaseFileProvider.ObjectDatabase;
                 using (var stream = objectDatabase.OpenStream(objectId, VirtualFileMode.Create, VirtualFileAccess.Write))
                 {
                     var writer = new BinarySerializationWriter(stream);

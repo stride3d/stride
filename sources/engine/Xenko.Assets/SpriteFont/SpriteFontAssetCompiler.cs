@@ -129,7 +129,7 @@ namespace Xenko.Assets.SpriteFont
                     return Task.FromResult(ResultStatus.Failed);
 
                 // save the data into the database
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Save(Url, staticFont);
 
                 // dispose textures allocated by the StaticFontCompiler
@@ -169,7 +169,7 @@ namespace Xenko.Assets.SpriteFont
                     return Task.FromResult(ResultStatus.Failed);
 
                 // save the data into the database
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Save(Url, scalableFont);
 
                 // dispose textures allocated by the StaticFontCompiler
@@ -194,7 +194,7 @@ namespace Xenko.Assets.SpriteFont
                     Parameters.FontType.AntiAlias, useKerning:false, extraSpacing:Parameters.Spacing, extraLineSpacing:Parameters.LineSpacing, 
                     defaultCharacter:Parameters.DefaultCharacter);
 
-                var assetManager = new ContentManager();
+                var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Save(Url, dynamicFont);
 
                 return Task.FromResult(ResultStatus.Successful);

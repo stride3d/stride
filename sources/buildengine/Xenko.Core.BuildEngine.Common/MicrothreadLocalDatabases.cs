@@ -20,7 +20,11 @@ namespace Xenko.Core.BuildEngine
         static MicrothreadLocalDatabases()
         {
             MicroThreadLocalDatabaseFileProvider = new MicroThreadLocal<DatabaseFileProvider>();
+
+            ProviderService = new MicroThreadLocalProviderService();
         }
+
+        public static IDatabaseFileProviderService ProviderService { get; }
 
         /// <summary>
         /// Gets a value indicating whether this instance has a valid database file provider.
@@ -105,6 +109,11 @@ namespace Xenko.Core.BuildEngine
         private static DatabaseFileProvider CreateDatabase(BuildTransaction transaction)
         {
             return new DatabaseFileProvider(new BuildTransaction.DatabaseContentIndexMap(transaction), Builder.ObjectDatabase);
+        }
+
+        private class MicroThreadLocalProviderService : IDatabaseFileProviderService
+        {
+            public DatabaseFileProvider FileProvider => MicroThreadLocalDatabaseFileProvider.Value;
         }
     }
 }

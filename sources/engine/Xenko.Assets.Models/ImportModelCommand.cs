@@ -57,7 +57,7 @@ namespace Xenko.Assets.Models
         /// <returns>Task{ResultStatus}.</returns>
         protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
         {
-            var assetManager = new ContentManager();
+            var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
 
             while (Interlocked.Increment(ref spawnedCommands) >= 2)
             {

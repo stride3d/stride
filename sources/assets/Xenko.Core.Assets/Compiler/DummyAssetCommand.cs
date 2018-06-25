@@ -23,7 +23,7 @@ namespace Xenko.Core.Assets.Compiler
 
         protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
         {
-            var contentManager = new ContentManager();
+            var contentManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
             var dummyObject = new TContent();
             contentManager.Save(Url, dummyObject);
             return Task.FromResult(ResultStatus.Successful);
