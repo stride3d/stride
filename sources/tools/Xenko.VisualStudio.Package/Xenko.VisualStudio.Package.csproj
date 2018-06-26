@@ -9,6 +9,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
     <TargetVsixContainerName>Xenko.vsix</TargetVsixContainerName>
+    <RootNamespace>Xenko.VisualStudio</RootNamespace>
     <XenkoOutputPath>bin\$(Configuration)\</XenkoOutputPath>
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
@@ -18,6 +19,11 @@
     <XenkoIncludeVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems</XenkoIncludeVSIX>
     <VSSDKTargetPlatformRegRootSuffix>Xenko</VSSDKTargetPlatformRegRootSuffix>
   </PropertyGroup>
+  <ItemGroup>
+    <None Remove="NShader\Common\GLSLKeywords.map" />
+    <None Remove="NShader\Common\HLSLKeywords.map" />
+    <None Remove="NShader\Common\XenkoShaderKeywords.map" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="8.0.1" />
     <PackageReference Include="EnvDTE100" Version="10.0.1" />
@@ -151,6 +157,11 @@
     <Content Include="Resources\Package.ico" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="NShader\Common\GLSLKeywords.map" />
+    <EmbeddedResource Include="NShader\Common\HLSLKeywords.map" />
+    <EmbeddedResource Include="NShader\Common\XenkoShaderKeywords.map" />
+  </ItemGroup>
+  <ItemGroup>
     <Page Include="MyControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -171,7 +182,13 @@
   <Import Project="..\..\assets\Xenko.Core.Assets.Yaml\Xenko.Core.Assets.Yaml.projitems" Label="Shared" />
   <PropertyGroup>
     <UseCodebase>true</UseCodebase>
+    <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeExtraAssemblies</GetVsixSourceItemsDependsOn>
   </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <VSIXCopyLocalReferenceSourceItem Include="$(TargetDir)\NuGet.*.dll" />
+    </ItemGroup>
+  </Target>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <!-- Force NET Sdk to be included before VsSDK -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

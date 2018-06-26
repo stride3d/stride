@@ -1,4 +1,4 @@
-﻿// Guids.cs
+// Guids.cs
 // MUST match guids.h
 using System;
 
@@ -17,5 +17,6 @@ namespace Xenko.VisualStudio
         public static readonly Guid guidXenko_VisualStudio_PackageCmdSet = new Guid(guidXenko_VisualStudio_PackageCmdSetString);
 
         public const string vsContextGuidVCSProject = "{fae04ec1-301f-11d3-bf4b-00c04f79efbc}";
+        public const string vsContextGuidVCSNewProject = "{9A19103F-16F7-4668-BE54-9A1E7A4F7556}";
     };
 }

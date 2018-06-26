@@ -171,6 +171,13 @@
     <Image Include="app.ico" />
   </ItemGroup>
   <ItemGroup>
+    <XenkoNativeLib Include="..\..\..\deps\assimp\bin\assimp_release-dll_x64\assimp-vc120-mt.dll">
+      <Link>x64\%(Filename)%(Extension)</Link>
+      <RelativePath>x64\%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </XenkoNativeLib>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj">
       <Project>{1e54a9a2-4439-4444-ae57-6d2ed3c0dc47}</Project>
       <Private>False</Private>

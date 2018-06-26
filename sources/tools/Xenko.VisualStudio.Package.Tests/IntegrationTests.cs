@@ -123,6 +123,7 @@ namespace Xenko.VisualStudio.Package.Tests
         public IntegrationTests()
         {
             // Make sure solution is closed (i.e. previous test failure)
+            Init();
             var solution = (Solution2)dte.Solution;
             solution.Close();
         }
@@ -130,8 +131,6 @@ namespace Xenko.VisualStudio.Package.Tests
         [Fact]
         public void TestXkslGeneration()
         {
-            Init();
-
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
             // Create temporary folder
@@ -171,9 +170,16 @@ namespace Xenko.VisualStudio.Package.Tests
             finally
             {
                 solution.Close();
-                Directory.Delete(tempDirectory, true);
 
                 Cleanup();
+
+                try
+                {
+                    Directory.Delete(tempDirectory, true);
+                }
+                catch
+                {
+                }
             }
         }
 

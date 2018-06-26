@@ -112,16 +112,6 @@
       <AdditionalLibraryDirectories>$(FbxSdkDir)\lib\$(FbxLibVersionDir)x86\release</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4049 %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <CustomBuildStep>
-      <Command>xcopy /D /Y "$(FbxSdkDir)\lib\$(FbxLibVersionDir)x86\release\libfbxsdk.dll" "$(TargetDir)x86"</Command>
-      <Outputs>$(TargetDir)x86\libfbxsdk.dll;%(Outputs)</Outputs>
-      <Inputs>$(FbxSdkDir)\lib\$(FbxLibVersionDir)x86\release\libfbxsdk.dll</Inputs>
-      <TreatOutputAsContent>true</TreatOutputAsContent>
-    </CustomBuildStep>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -185,6 +175,13 @@
     <ClInclude Include="..\Xenko.Importer.Common\ImporterUtils.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="UtilityFunctions.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <XenkoNativeLib Include="$(FbxSdkDir)\lib\$(FbxLibVersionDir)x64\debug\libfbxsdk.dll">
+      <Link>x64\%(Filename)%(Extension)</Link>
+      <RelativePath>x64\%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </XenkoNativeLib>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj">
