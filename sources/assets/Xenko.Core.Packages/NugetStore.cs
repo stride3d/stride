@@ -912,7 +912,8 @@ namespace Xenko.Core.Packages
 
             public override string GetInstalledPackageFilePath(PackageIdentity packageIdentity)
             {
-                var installPackagePath = GetInstalledPackageFilePath(packageIdentity);
+                var installPath = GetInstallPath(packageIdentity);
+                var installPackagePath = Path.Combine(installPath, packageIdentity.ToString().ToLower() + PackagingCoreConstants.NupkgExtension);
                 return File.Exists(installPackagePath) ? installPackagePath : null;
             }
         }
