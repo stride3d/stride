@@ -317,7 +317,7 @@ namespace Xenko.VisualStudio.Commands
 
             // Check if we are in a root directory with store/packages facilities
             var store = new NugetStore(xenkoSdkDir);
-            NugetPackage xenkoPackage = null;
+            NugetLocalPackage xenkoPackage = null;
 
             // Try to find the package with the expected version
             if (packageInfo.ExpectedVersion != null && packageInfo.ExpectedVersion >= MinimumVersion)
@@ -334,7 +334,7 @@ namespace Xenko.VisualStudio.Commands
             // Return the loaded version and the sdk path
             packageInfo.LoadedVersion = GetVersion(xenkoPackage);
             packageInfo.StorePath = xenkoSdkDir;
-            packageInfo.SdkPath = store.GetInstalledPath(xenkoPackage.Id, xenkoPackage.Version);
+            packageInfo.SdkPath = store.GetRealPath(xenkoPackage);
 
             return packageInfo;
         }
