@@ -350,10 +350,7 @@ Example of use:
 	
     <!-- Run unit tests -->
     <MakeDir Directories="$(MSBuildThisFileDirectory)TestResults"/>
-    <Exec IgnoreExitCode="True" Command="&quot;$(XunitRunnerConsolePath)&quot; @(AssembliesToTest->'%(Identity)', ' ')" WorkingDirectory="$(XenkoRootBin)">
-      <Output TaskParameter="ExitCode" ItemName="exitCode" />
-    </Exec>
-    <Error Text="Error while running tests" Condition="@(exitCode) &lt; 0" />
+    <Exec Command="&quot;$(XunitRunnerConsolePath)&quot; @(AssembliesToTest->'%(Identity)', ' ')" WorkingDirectory="$(XenkoRootBin)"/>
   </Target>
   
   <ItemGroup>
@@ -396,7 +393,7 @@ Example of use:
     </MSBuild>
     <Exec IgnoreExitCode="True" Command='taskkill /F /FI "Imagename eq Xenko.Core.Assets.CompilerApp*"' />
     
-    <Exec Condition="'$(PlatformToBuild)' == 'Android'" IgnoreExitCode="True" Command="$(XenkoRootBin)Xenko.TestRunner.exe %(MobileUnitTestApk.Identity)" WorkingDirectory="$(XenkoRootBin)">
+    <Exec Condition="'$(PlatformToBuild)' == 'Android'" Command="$(XenkoRootBin)Xenko.TestRunner.exe %(MobileUnitTestApk.Identity)" WorkingDirectory="$(XenkoRootBin)">
       <Output TaskParameter="ExitCode" ItemName="exitCode" />
     </Exec>
   </Target>
