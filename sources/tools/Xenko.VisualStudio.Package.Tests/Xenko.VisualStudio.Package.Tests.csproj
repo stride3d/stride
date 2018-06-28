@@ -36,6 +36,7 @@
     <PackageReference Include="stdole" Version="7.0.3301">
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </PackageReference>
+    <PackageReference Include="Xunit.StaFact" Version="0.2.9" />
     <Reference Include="System.Management" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />

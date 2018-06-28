@@ -36,7 +36,6 @@ namespace Xenko.VisualStudio.Package.Tests
     /// Right now it only has a test for .xksl C# code generator, but it also tests a lot of things along the way: VSPackage properly have all dependencies (no missing .dll), IXenkoCommands can be properly found, etc...
     /// Also, it works against a dev version of Xenko, but it could eventually be improved to test against package version as well.
     /// </remarks>
-    //[Apartment(System.Threading.ApartmentState.STA)]
     public class IntegrationTests
     {
         private const string StartArguments = @"/RootSuffix Xenko /resetsettings Profiles\General.vssettings";
@@ -128,7 +127,7 @@ namespace Xenko.VisualStudio.Package.Tests
             solution.Close();
         }
 
-        [Fact]
+        [StaFact]
         public void TestXkslGeneration()
         {
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
