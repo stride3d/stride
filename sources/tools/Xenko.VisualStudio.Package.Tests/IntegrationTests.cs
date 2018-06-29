@@ -8,6 +8,7 @@ using System.Linq;
 using System.Management;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -37,95 +38,94 @@ namespace Xenko.VisualStudio.Package.Tests
     /// Right now it only has a test for .xksl C# code generator, but it also tests a lot of things along the way: VSPackage properly have all dependencies (no missing .dll), IXenkoCommands can be properly found, etc...
     /// Also, it works against a dev version of Xenko, but it could eventually be improved to test against package version as well.
     /// </remarks>
-    public class IntegrationTests
+    public class IntegrationTests : IDisposable
     {
         private const string StartArguments = @"/RootSuffix Xenko /resetsettings Profiles\General.vssettings";
-        private STAContext context = new STAContext();
         private DTE dte;
         private Process process;
         private bool killVisualStudioProcessDuringTearDown;
 
+        public IntegrationTests()
+        {
+            (dte, process, killVisualStudioProcessDuringTearDown) = InitDTE();
+        }
+
         /// <summary>
         /// Start experimental instance of Visual Studio. This will be killed on cleanup, except if a debugger is attached (in which case it can reuse the existing instance).
         /// </summary>
-        private void Init()
+        private static (DTE, Process, bool) InitDTE()
         {
+            bool killVisualStudioProcessDuringTearDown;
             var visualStudioPath = VSLocator.VisualStudioPath;
+            Process process;
 
-            dte = context.Execute(() =>
+            // First, we try to check if an existing instance was launched
+            var searcher = new ManagementObjectSearcher($"select CommandLine,ProcessId from Win32_Process where ExecutablePath='{visualStudioPath.Replace(@"\", @"\\")}' and CommandLine like '% /RootSuffix Exp'");
+            var retObjectCollection = searcher.Get();
+            var result = retObjectCollection.Cast<ManagementObject>().FirstOrDefault();
+            if (result != null)
             {
-                // First, we try to check if an existing instance was launched
-                var searcher = new ManagementObjectSearcher($"select CommandLine,ProcessId from Win32_Process where ExecutablePath='{visualStudioPath.Replace(@"\", @"\\")}' and CommandLine like '% /RootSuffix Exp'");
-                var retObjectCollection = searcher.Get();
-                var result = retObjectCollection.Cast<ManagementObject>().FirstOrDefault();
-                if (result != null)
+                var processId = (uint)result["ProcessId"];
+                process = Process.GetProcessById((int)processId);
+                killVisualStudioProcessDuringTearDown = false;
+            }
+            else
+            {
+                var psi = new ProcessStartInfo
                 {
-                    var processId = (uint)result["ProcessId"];
-                    process = Process.GetProcessById((int)processId);
-                }
-                else
-                {
-                    var psi = new ProcessStartInfo
-                    {
-                        FileName = visualStudioPath,
-                        WorkingDirectory = Path.GetDirectoryName(visualStudioPath),
-                        Arguments = StartArguments,
-                        UseShellExecute = false,
-                    };
-                    
-                    // Override Xenko dir with path relative to test directory
-                    psi.EnvironmentVariables["XenkoDir"] = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..");
+                    FileName = visualStudioPath,
+                    WorkingDirectory = Path.GetDirectoryName(visualStudioPath),
+                    Arguments = StartArguments,
+                    UseShellExecute = false,
+                };
 
-                    process = Process.Start(psi);
-                    if (process == null)
-                        throw new InvalidOperationException("Could not start Visual Studio instance");
+                // Override Xenko dir with path relative to test directory
+                psi.EnvironmentVariables["XenkoDir"] = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..");
 
-                    // Since we are the one starting it, let's close it when we are done
-                    // (except if a debugger is attached, we assume developer want to iterate several time on it and will exit Visual Studio himself)
-                    killVisualStudioProcessDuringTearDown = !Debugger.IsAttached;
-                }
+                process = Process.Start(psi);
+                if (process == null)
+                    throw new InvalidOperationException("Could not start Visual Studio instance");
 
-                // Wait for 60 sec
-                for (int i = 0; i < 60; ++i)
-                {
-                    Thread.Sleep(1000);
+                // Since we are the one starting it, let's close it when we are done
+                // (except if a debugger is attached, we assume developer want to iterate several time on it and will exit Visual Studio himself)
+                killVisualStudioProcessDuringTearDown = !Debugger.IsAttached;
+            }
 
-                    if (process.HasExited)
-                        throw new InvalidOperationException($"Visual Studio process {process.Id} exited before we could connect to it");
+            // Wait for 60 sec
+            for (int i = 0; i < 60; ++i)
+            {
+                if (process.HasExited)
+                    throw new InvalidOperationException($"Visual Studio process {process.Id} exited before we could connect to it");
 
-                    var matchingDte = VisualStudioDTE.GetDTEByProcess(process.Id);
-                    if (matchingDte != null)
-                        return matchingDte;
-                }
+                var matchingDte = VisualStudioDTE.GetDTEByProcess(process.Id);
+                if (matchingDte != null)
+                    return (matchingDte, process, killVisualStudioProcessDuringTearDown);
 
-                throw new InvalidOperationException($"Could not find the Visual Studio DTE for process {process.Id}, or it didn't start in time");
-            });
+                Thread.Sleep(1000);
+            }
+
+            throw new InvalidOperationException($"Could not find the Visual Studio DTE for process {process.Id}, or it didn't start in time");
         }
 
-        private void Cleanup()
+        private static void CloseDTE(DTE dte, Process process)
+        {
+            if (dte != null)
+            {
+                dte.Quit();
+                process?.WaitForExit();
+            }
+            else
+            {
+                process?.Kill();
+            }
+        }
+
+        public void Dispose()
         {
             if (killVisualStudioProcessDuringTearDown)
             {
-                if (dte != null)
-                {
-                    dte.Quit();
-                    process.WaitForExit();
-                }
-                else
-                {
-                    process?.Kill();
-                }
+                CloseDTE(dte, process);
             }
-            context?.Dispose();
-            context = null;
-        }
-
-        public IntegrationTests()
-        {
-            // Make sure solution is closed (i.e. previous test failure)
-            Init();
-            var solution = (Solution2)dte.Solution;
-            solution.Close();
         }
 
         [StaFact]
@@ -144,8 +144,11 @@ namespace Xenko.VisualStudio.Package.Tests
             string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(tempDirectory);
 
-            // Create project
+            // Make sure solution is closed (i.e. previous test failure)
             var solution = (Solution2)dte.Solution;
+            solution.Close();
+
+            // Create project
             try
             {
                 // Create new game
@@ -163,6 +166,15 @@ namespace Xenko.VisualStudio.Package.Tests
                 // Make sure custom tool is properly set
                 Assert.Equal("XenkoShaderKeyGenerator", xkslItem.Properties.Item("CustomTool").Value);
 
+                // Wait for cs file to be generated (up to 5 seconds)
+                // TODO: Is there a better way to wait for it?
+                for (int i = 0; i < 50; ++i)
+                {
+                    if (xkslItem.ProjectItems.Count > 0)
+                        break;
+                    Thread.Sleep(100);
+                }
+
                 // Get generated cs file
                 Assert.Equal(1, xkslItem.ProjectItems.Count);
                 var shaderGeneratedCsharpItem = xkslItem.ProjectItems.OfType<ProjectItem>().First();
@@ -177,8 +189,6 @@ namespace Xenko.VisualStudio.Package.Tests
             finally
             {
                 solution.Close();
-
-                Cleanup();
 
                 try
                 {
