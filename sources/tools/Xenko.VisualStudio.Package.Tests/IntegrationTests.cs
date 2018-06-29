@@ -13,6 +13,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Xunit;
+using Xenko.Core;
 using Xenko.Core.Assets;
 using Xenko.Core.Assets.Templates;
 using Xenko.Core.Diagnostics;
@@ -131,6 +132,13 @@ namespace Xenko.VisualStudio.Package.Tests
         public void TestXkslGeneration()
         {
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+
+            // Running first time?
+            var packageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
+            if (PackageStore.Instance.IsDevelopmentStore)
+            {
+                PackageStore.Instance.CheckDeveloperTargetRedirects("Xenko", packageVersion, PackageStore.Instance.InstallationPath).Wait();
+            }
 
             // Create temporary folder
             string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
