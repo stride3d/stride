@@ -8,7 +8,7 @@ Meta:
     Owners: []
     Dependencies:
         -   Name: Xenko
-            Version: 2.1.0.2
+            Version: 3.0.0.1-dev
             RootAssets: []
 LocalDependencies: []
 Profiles:
@@ -18,6 +18,7 @@ Profiles:
         AssetFolders:
             -   Path: Assets/Shared
             -   Path: SimpleAudio.Game/Effects
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: 88b8b752-b70c-4a4d-8b4f-6d256efbf064
@@ -28,6 +29,7 @@ Profiles:
         InheritProfiles: []
         AssetFolders:
             -   Path: Assets/Windows
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: 22223ce8-bd79-4ef4-abe7-7f4e5d45cd4c

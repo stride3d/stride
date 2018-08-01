@@ -9,7 +9,7 @@ Meta:
     RootNamespace: ParticlesSample
     Dependencies:
         -   Name: Xenko
-            Version: 2.1.0.2
+            Version: 3.0.0.1-dev
             RootAssets: []
 LocalDependencies: []
 Profiles:
@@ -19,6 +19,7 @@ Profiles:
         AssetFolders:
             -   Path: Assets/Shared
             -   Path: ParticlesSample.Game/Effects
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: c821e6b2-04b2-4983-8348-7ac37b23c5e1
@@ -29,6 +30,7 @@ Profiles:
         InheritProfiles: []
         AssetFolders:
             -   Path: Assets/Windows
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: bddd6c01-7873-4066-bc52-3e5847fe9f39

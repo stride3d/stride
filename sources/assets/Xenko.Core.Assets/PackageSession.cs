@@ -229,20 +229,6 @@ namespace Xenko.Core.Assets
         /// Adds an existing package to the current session.
         /// </summary>
         /// <param name="packagePath">The package path.</param>
-        /// <param name="loadParameters">The load parameters.</param>
-        /// <exception cref="System.ArgumentNullException">packagePath</exception>
-        /// <exception cref="System.IO.FileNotFoundException">Unable to find package</exception>
-        public LoggerResult AddExistingPackage(UFile packagePath, PackageLoadParameters loadParameters = null)
-        {
-            var loggerResult = new LoggerResult();
-            AddExistingPackage(packagePath, loggerResult, loadParameters);
-            return loggerResult;
-        }
-
-        /// <summary>
-        /// Adds an existing package to the current session.
-        /// </summary>
-        /// <param name="packagePath">The package path.</param>
         /// <param name="logger">The session result.</param>
         /// <param name="loadParametersArg">The load parameters argument.</param>
         /// <exception cref="System.ArgumentNullException">packagePath</exception>
@@ -266,6 +252,13 @@ namespace Xenko.Core.Assets
                 var packagesLoaded = new PackageCollection();
 
                 package = PreLoadPackage(logger, packagePath, false, packagesLoaded, loadParameters);
+
+                if (loadParameters.AutoCompileProjects && loadParameters.ForceNugetRestore)
+                {
+                    // Note: solution needs to be saved right away so that we can restore nuget packages
+                    Save(logger);
+                    VSProjectHelper.RestoreNugetPackages(logger, SolutionPath).Wait();
+                }
 
                 // Load all missing references/dependencies
                 LoadMissingDependencies(logger, loadParameters);
@@ -546,9 +539,10 @@ namespace Xenko.Core.Assets
         /// </summary>
         /// <param name="log">The <see cref="LoggerResult"/> in which to report result.</param>
         /// <param name="saveParameters">The parameters for the save operation.</param>
-        public void Save(LoggerResult log, PackageSaveParameters saveParameters = null)
+        public void Save(ILogger log, PackageSaveParameters saveParameters = null)
         {
             //var clock = Stopwatch.StartNew();
+            var loggerResult = new ForwardingLoggerResult(log);
             using (var profile = Profiler.Begin(PackageSessionProfilingKeys.Saving))
             {
                 var packagesSaved = false;
@@ -583,7 +577,7 @@ namespace Xenko.Core.Assets
                     sourceTracker?.BeginSavingSession();
 
                     // Return immediately if there is any error
-                    if (log.HasErrors)
+                    if (loggerResult.HasErrors)
                         return;
        
                     //batch projects
@@ -642,14 +636,14 @@ namespace Xenko.Core.Assets
                         {
                             if (assetItem != null)
                             {
-                                log.Error(assetItem.Package, assetItem.ToReference(), AssetMessageCode.AssetCannotDelete, ex, assetPath);
+                                loggerResult.Error(assetItem.Package, assetItem.ToReference(), AssetMessageCode.AssetCannotDelete, ex, assetPath);
                             }
                             else
                             {
                                 var package = assetItemOrPackage as Package;
                                 if (package != null)
                                 {
-                                    log.Error(package, null, AssetMessageCode.AssetCannotDelete, ex, assetPath);
+                                    loggerResult.Error(package, null, AssetMessageCode.AssetCannotDelete, ex, assetPath);
                                 }
                             }
                         }
@@ -667,7 +661,7 @@ namespace Xenko.Core.Assets
                     foreach (var package in LocalPackages)
                     {
                         // Save the package to disk and all its assets
-                        package.Save(log, saveParameters);
+                        package.Save(loggerResult, saveParameters);
 
                         // Check if everything was saved (might not be the case if things are filtered out)
                         if (package.IsDirty || package.Assets.IsDirty)
@@ -689,7 +683,7 @@ namespace Xenko.Core.Assets
                     // be setup for the packages)
                     if (packagesSaved)
                     {
-                        PackageSessionHelper.SaveSolution(this, log);
+                        PackageSessionHelper.SaveSolution(this, loggerResult);
                     }
                     saveCompletion?.SetResult(0);
                     saveCompletion = null;

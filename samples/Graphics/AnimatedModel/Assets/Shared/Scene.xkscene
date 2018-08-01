@@ -103,6 +103,7 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 0.6
         -   Entity:
@@ -118,6 +119,7 @@ Hierarchy:
                     77fd36bd095b584a92ce82be90aa012f: !BackgroundComponent
                         Id: bd36fd77-5b09-4a58-92ce-82be90aa012f
                         Texture: 51b041a7-2f3e-4327-aa2f-9ac598ddedb1:XenkoBackground
+                        Is2D: true
         -   Entity:
                 Id: cbaa8520-30cd-4b52-a6cb-f55adc4dab16
                 Name: RenderToTextureTilted
@@ -156,6 +158,7 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 0.6
         -   Entity:

@@ -22,7 +22,8 @@ Hierarchy:
         - ref!! 2b57370f-e61c-41c5-b8c4-df6619837e29
         - ref!! 88b61bbb-5855-43b2-959d-b5393a6bfe7f
     Parts:
-        -   Entity:
+        -   Folder: GlobalLights
+            Entity:
                 Id: 1ff1c9b8-7a14-4338-b9a1-e4bd7ebcf24e
                 Name: Directional light
                 Components:
@@ -44,9 +45,9 @@ Hierarchy:
                                 Size: XLarge
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 5.0
-            Folder: GlobalLights
         -   Entity:
                 Id: 2b57370f-e61c-41c5-b8c4-df6619837e29
                 Name: EasternChunkLoading
@@ -213,9 +214,9 @@ Hierarchy:
                     1368fd29754b5e48a7a6da94c8c5fe8a: !ModelComponent
                         Id: a8977b74-0f40-4447-a985-adc59698f2de
                         Model: 4d95a3a3-0cbc-4df9-9ec7-31c8f2165248:Cube
+                        IsShadowCaster: false
                         Materials:
                             8f46c33571e26d4bb19356e1ee060013~0: 4de4aa42-6f84-472f-8b50-7f4d8229723a:HighlightMaterial
-                        IsShadowCaster: false
         -   Entity:
                 Id: 7f250db2-af29-4e4e-b6e2-4906b671660f
                 Name: PunchCollision
@@ -253,7 +254,8 @@ Hierarchy:
                                 Is2D: false
                                 Radius: 0.2
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-        -   Entity:
+        -   Folder: null
+            Entity:
                 Id: 88b61bbb-5855-43b2-959d-b5393a6bfe7f
                 Name: WesternChunkLoading
                 Components:
@@ -291,8 +293,8 @@ Hierarchy:
                         Id: 0d6efc2a-7d05-4295-aa27-1438d51972c0
                         Url: WesternChunk
                         Trigger: !RigidbodyComponent ref!! 06ed6375-b5de-40e6-88e8-16ba15e8f474
-            Folder: null
-        -   Entity:
+        -   Folder: GlobalLights
+            Entity:
                 Id: 9112d7e8-fdb1-477e-acd6-58dd61783773
                 Name: Skybox
                 Components:
@@ -311,7 +313,6 @@ Hierarchy:
                         Id: d754d852-ea85-46ee-8b20-67625d64e7af
                         Texture: cf628a7c-f4ca-4fc7-aa7d-27882f030380:Skybox Texture
                         Intensity: 3.0
-            Folder: GlobalLights
         -   Entity:
                 Id: b068b67c-8307-4cd2-85cc-80f255865e54
                 Name: MannequinModel

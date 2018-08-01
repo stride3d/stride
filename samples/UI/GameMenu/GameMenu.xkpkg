@@ -8,7 +8,7 @@ Meta:
     Owners: []
     Dependencies:
         -   Name: Xenko
-            Version: 2.1.0.2
+            Version: 3.0.0.1-dev
             RootAssets: []
 LocalDependencies: []
 Profiles:
@@ -18,6 +18,7 @@ Profiles:
         AssetFolders:
             -   Path: Assets/Shared
             -   Path: GameMenu.Game/Effects
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: 8b89a998-a276-4376-a831-8c9f87042d88
@@ -28,6 +29,7 @@ Profiles:
         InheritProfiles: []
         AssetFolders:
             -   Path: Assets/Windows
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: 3423703a-46ea-4da6-9b57-f0afb9be3ef1

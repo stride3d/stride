@@ -13,7 +13,8 @@ Hierarchy:
         - ref!! 169a784c-d31e-4cf2-848d-e43998cc8439
         - ref!! 5f4d6e71-89b8-4151-b1bf-157c6c743bd0
     Parts:
-        -   Entity:
+        -   Folder: null
+            Entity:
                 Id: 169a784c-d31e-4cf2-848d-e43998cc8439
                 Name: GridBase10x10
                 Components:
@@ -43,8 +44,8 @@ Hierarchy:
                                 Size: {X: 10.0, Y: 0.3, Z: 10.0}
                                 LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-            Folder: null
-        -   Entity:
+        -   Folder: null
+            Entity:
                 Id: 1844178d-5f9a-495e-a07b-fc5fe6d15fef
                 Name: GridBase10x10
                 Components:
@@ -74,7 +75,6 @@ Hierarchy:
                                 Size: {X: 10.0, Y: 0.3, Z: 10.0}
                                 LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-            Folder: null
         -   Entity:
                 Id: 2538db78-4a5e-4063-bdd1-fdc856320f3c
                 Name: GridBase10x10
@@ -118,7 +118,8 @@ Hierarchy:
                     f346bf1d1295a52c9e792fa3a6707ba7: !Xenko.Navigation.NavigationBoundingBoxComponent,Xenko.Navigation
                         Id: ea42173a-a825-4097-96d2-fbcabbdedca0
                         Size: {X: 12.0, Y: 4.0, Z: 12.0}
-        -   Entity:
+        -   Folder: null
+            Entity:
                 Id: ec3ffd0a-e18e-41d1-adcb-0c7af8b3a7ad
                 Name: GridBase10x10
                 Components:
@@ -148,4 +149,3 @@ Hierarchy:
                                 Size: {X: 10.0, Y: 0.3, Z: 10.0}
                                 LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-            Folder: null

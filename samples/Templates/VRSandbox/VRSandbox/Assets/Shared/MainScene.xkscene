@@ -521,8 +521,8 @@ Hierarchy:
                     022b56f7b3282d5b1b8859258ec06f96: !ModelComponent
                         Id: 53b5c0c8-a748-4761-9783-7e67a448fa07
                         Model: fd3d6c5b-67a4-4128-8e51-c4878bfe54f7:Lamp model
-                        Materials: {}
                         IsShadowCaster: false
+                        Materials: {}
         -   Folder: Objects
             Entity:
                 Id: 406bc862-9436-4559-ab37-a22ae82e5c22
@@ -702,8 +702,8 @@ Hierarchy:
                     f4f1e01370771e69202fda990bf75cfb: !ModelComponent
                         Id: 14b8a007-da70-4c57-8c9a-0a335061cdf2
                         Model: fd3d6c5b-67a4-4128-8e51-c4878bfe54f7:Lamp model
-                        Materials: {}
                         IsShadowCaster: false
+                        Materials: {}
         -   Folder: Objects
             Entity:
                 Id: 71e4f1ac-aead-48d6-a9cb-515242389d25
@@ -1585,6 +1585,7 @@ Hierarchy:
                                     IsAutomatic: false
                                     ManualMaxDistance: 20.0
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters:
                                     DepthBias: 0.001
                         Intensity: 1.5

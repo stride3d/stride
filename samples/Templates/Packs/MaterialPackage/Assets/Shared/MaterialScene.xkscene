@@ -282,5 +282,6 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 5.0

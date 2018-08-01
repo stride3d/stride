@@ -47,6 +47,7 @@ Hierarchy:
                     3e7ec2b34cf1514895dca7b08a65791a: !BackgroundComponent
                         Id: b3c27e3e-f14c-4851-95dc-a7b08a65791a
                         Texture: d46cb653-bbdb-4b7b-9449-37beb6774cfd:Materials/XenkoBackground
+                        Is2D: true
         -   Entity:
                 Id: 8c4f3755-c248-48ed-8df8-b86730fe702b
                 Name: crate

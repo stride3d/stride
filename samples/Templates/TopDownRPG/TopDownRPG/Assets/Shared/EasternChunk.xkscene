@@ -14,7 +14,8 @@ Hierarchy:
         - ref!! 3b8cbd7a-511f-4f35-af27-04d5067f18bc
         - ref!! d6ba94c0-c166-4cc5-b0d6-fde08063375a
     Parts:
-        -   Entity:
+        -   Folder: null
+            Entity:
                 Id: 01a2ad3a-6a87-42e5-a2ff-a169d03925cd
                 Name: GridBase10x10
                 Components:
@@ -44,8 +45,8 @@ Hierarchy:
                                 Size: {X: 10.0, Y: 0.3, Z: 10.0}
                                 LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-            Folder: null
-        -   Entity:
+        -   Folder: null
+            Entity:
                 Id: 355edb94-f32d-41ed-adc1-b8204b367e54
                 Name: GridBase10x10
                 Components:
@@ -75,7 +76,6 @@ Hierarchy:
                                 Size: {X: 10.0, Y: 0.3, Z: 10.0}
                                 LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-            Folder: null
         -   Entity:
                 Id: 3b8cbd7a-511f-4f35-af27-04d5067f18bc
                 Name: LootBox
@@ -116,7 +116,8 @@ Hierarchy:
                 BasePartAsset: 95b713fb-b86a-4bdf-90c7-603c78e4e7b5:LootBox
                 BasePartId: 9e2837fb-0640-4774-9d3b-bbf81562d9aa
                 InstanceId: 93549217-00c6-4185-ad91-64e8e2f56e94
-        -   Entity:
+        -   Folder: null
+            Entity:
                 Id: 4ec9dff1-f565-4e0e-b8a1-04cf763cb84e
                 Name: GridBase10x10
                 Components:
@@ -146,7 +147,6 @@ Hierarchy:
                                 Size: {X: 10.0, Y: 0.3, Z: 10.0}
                                 LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-            Folder: null
         -   Entity:
                 Id: 78116cde-2d2e-4c23-8a2f-600edaf08095
                 Name: LootBox

@@ -43,6 +43,7 @@ Hierarchy:
                     212529978559084595d447c3e580f16f: !BackgroundComponent
                         Id: 97292521-5985-4508-95d4-47c3e580f16f
                         Texture: a92a0e5c-6f9f-4d1d-bff8-38b596819274:XenkoBackground
+                        Is2D: true
         -   Entity:
                 Id: 79ed5cbf-60bb-4912-89f5-3c1862a01b98
                 Name: ConeEmitter30
@@ -94,13 +95,13 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
+                                            DisplayParticlePosition: false
+                                            DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: true
-                                            DisplayParticleRotation: false
-                                            DisplayParticlePosition: false
                                             RandomSize: {X: 0.2, Y: 0.1}
                                         dfc542aceb6abd43ac75558566adbf27: !CustomParticleInitializer
                                             DebugDraw: true
@@ -183,13 +184,13 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
+                                            DisplayParticlePosition: false
+                                            DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: true
-                                            DisplayParticleRotation: false
-                                            DisplayParticlePosition: false
                                             RandomSize: {X: 0.2, Y: 0.1}
                                         dfc542aceb6abd43ac75558566adbf27: !CustomParticleInitializer
                                             DebugDraw: true
@@ -306,13 +307,13 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
+                                            DisplayParticlePosition: false
+                                            DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: true
-                                            DisplayParticleRotation: false
-                                            DisplayParticlePosition: false
                                             RandomSize: {X: 0.05, Y: 0.1}
                                         dfc542aceb6abd43ac75558566adbf27: !CustomParticleInitializer
                                             DebugDraw: true
@@ -366,5 +367,6 @@ Hierarchy:
                                 Size: XLarge
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 2.0

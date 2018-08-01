@@ -1,25 +1,16 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1D5D1B2E-B157-4E5B-BE35-2ED9E1C262CB}</ProjectGuid>
+    <TargetFramework>net461</TargetFramework>
+    <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ThirdPersonPlatformer</RootNamespace>
-    <AssemblyName>ThirdPersonPlatformer</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
-    <XenkoPackageGuid>{1adf36a6-5e90-4da5-9e31-2c9fe29cad18}</XenkoPackageGuid>
-    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
-    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+
+    <OutputPath>..\Bin\Windows\$(Configuration)\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)..\ThirdPersonPlatformer.xkpkg</XenkoCurrentPackagePath>
-    <XenkoPackageProps>$([System.IO.Path]::ChangeExtension('$(XenkoCurrentPackagePath)', '.props'))</XenkoPackageProps>
     <XenkoProjectType>Executable</XenkoProjectType>
     <XenkoPlatform>Windows</XenkoPlatform>
     <XenkoBuildProfile>Windows</XenkoBuildProfile>
@@ -65,66 +56,9 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CoreCLR_Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
-    <OutputPath>..\Bin\Windows\CoreCLR_Debug\</OutputPath>
-    <IntermediateOutputPath>obj\Windows\CoreCLR_Debug\</IntermediateOutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <XenkoRuntime Condition="'$(XenkoProjectType)' == 'Executable'">CoreCLR</XenkoRuntime>
-    <XenkoBuildDirExtension Condition="'$(XenkoBuildDirExtension)' == ''">CoreCLR</XenkoBuildDirExtension>
-    <DefineConstants>XENKO_RUNTIME_CORECLR;$(DefineConstants)</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CoreCLR_Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE;XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP</DefineConstants>
-    <OutputPath>..\Bin\Windows\CoreCLR_Release\</OutputPath>
-    <IntermediateOutputPath>obj\Windows\CoreCLR_Release\</IntermediateOutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <XenkoRuntime Condition="'$(XenkoProjectType)' == 'Executable'">CoreCLR</XenkoRuntime>
-    <XenkoBuildDirExtension Condition="'$(XenkoBuildDirExtension)' == ''">CoreCLR</XenkoBuildDirExtension>
-    <DefineConstants>XENKO_RUNTIME_CORECLR;$(DefineConstants)</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Condition="'$(XenkoRuntime)' == ''" Include="System" />
-    <Reference Condition="'$(XenkoRuntime)' == ''" Include="System.Core" />
+    <ProjectReference Include="..\ThirdPersonPlatformer.Game\ThirdPersonPlatformer.Game.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ThirdPersonPlatformer.Game\ThirdPersonPlatformer.Game.csproj">
-      <Project>{6807d261-4af2-405c-8ebf-d8a0b08c7801}</Project>
-      <Name>ThirdPersonPlatformer.Game</Name>
-      <Private>false</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ThirdPersonPlatformerApp.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Resources\Icon.ico" />
-  </ItemGroup>
-  <Import Condition="'$(XenkoRuntime)' == ''" Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(XenkoPackageProps)" Condition="Exists('$(XenkoPackageProps)')" />
-  <Import Project="$(XenkoDir)\Targets\Xenko.Common.targets" Condition="Exists('$(XenkoDir)\Targets\Xenko.Common.targets')" />
-  <Target Name="EnsureXenkoInstalled" BeforeTargets="PrepareForBuild">
-    <Error Condition="'$(XenkoDir)' == ''" Text="Xenko SDK was not found. Check Xenko is installed and the global env variable [XenkoDir] is setup correctly" />
-    <Error Condition="!Exists('$(XenkoDir)\Targets\Xenko.Common.targets')" Text="Invalid Xenko SDK installation. Target file [$(XenkoDir)\Targets\Xenko.Common.targets] was not found." />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-    Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

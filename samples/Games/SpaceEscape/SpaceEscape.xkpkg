@@ -8,7 +8,7 @@ Meta:
     Owners: []
     Dependencies:
         -   Name: Xenko
-            Version: 2.1.0.2
+            Version: 3.0.0.1-dev
             RootAssets: []
 LocalDependencies: []
 Profiles:
@@ -18,6 +18,7 @@ Profiles:
         AssetFolders:
             -   Path: Assets/Shared
             -   Path: SpaceEscape.Game/Effects
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: 8573b1cb-c5a4-47a0-9b8e-092466e1cd0f
@@ -28,6 +29,7 @@ Profiles:
         InheritProfiles: []
         AssetFolders:
             -   Path: Assets/Windows
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: c9b0b66a-5a11-4866-ad75-718c80ec383a

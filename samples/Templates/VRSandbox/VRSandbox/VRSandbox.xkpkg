@@ -9,7 +9,7 @@ Meta:
     RootNamespace: VRSandbox
     Dependencies:
         -   Name: Xenko
-            Version: 2.1.0.2
+            Version: 3.0.0.1-dev
             RootAssets: []
 LocalDependencies:
     - ec64fd24-824f-4da4-b077-3661cf988027:../../Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg
@@ -21,6 +21,7 @@ Profiles:
         AssetFolders:
             -   Path: Assets/Shared
             -   Path: VRSandbox.Game/Effects
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: 577d2166-5b06-4119-96cf-70d6c1716a2f
@@ -31,6 +32,7 @@ Profiles:
         InheritProfiles: []
         AssetFolders:
             -   Path: Assets/Windows
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: bd079676-2c54-43c7-8476-14b007ee6780

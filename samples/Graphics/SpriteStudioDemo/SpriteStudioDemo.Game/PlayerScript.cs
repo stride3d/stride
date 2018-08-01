@@ -198,7 +198,10 @@ namespace SpriteStudioDemo
             if (Input.PointerEvents.Any())
             {
                 var lastPointer = Input.PointerEvents.Last();
-                isPointerDown = lastPointer.EventType != PointerEventType.Released;
+                if (lastPointer.EventType == PointerEventType.Pressed)
+                    isPointerDown = true;
+                else if (lastPointer.EventType == PointerEventType.Released)
+                    isPointerDown = false;
                 pointerState = lastPointer;
             }
 

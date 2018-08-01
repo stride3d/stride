@@ -1378,7 +1378,11 @@ namespace Xenko.Core.Assets
 
             var result = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
                 .Select(x => new UFile(x.EvaluatedInclude)).Where(x => AssetRegistry.IsProjectAssetFileExtension(x.GetFileExtension()))
-                .Select(projectItem => UPath.Combine(dir, projectItem)).ToList();
+                .Select(projectItem => UPath.Combine(dir, projectItem))
+                // avoid duplicates otherwise it might save a single file as separte file with renaming
+                // had issues with case such as Effect.xksl being registered twice (with glob pattern) and being saved as Effect.xksl and Effect (2).xksl
+                .Distinct()
+                .ToList();
 
             project.ProjectCollection.UnloadAllProjects();
             project.ProjectCollection.Dispose();

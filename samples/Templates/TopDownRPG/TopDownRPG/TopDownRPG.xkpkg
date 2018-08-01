@@ -9,7 +9,7 @@ Meta:
     RootNamespace: TopDownRPG
     Dependencies:
         -   Name: Xenko
-            Version: 2.1.0.2
+            Version: 3.0.0.1-dev
             RootAssets: []
 LocalDependencies:
     - ec64fd24-824f-4da4-b077-3661cf988027:../../Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg
@@ -23,6 +23,7 @@ Profiles:
         AssetFolders:
             -   Path: Assets/Shared
             -   Path: TopDownRPG.Game/Effects
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: 92b5077f-3d0d-4043-a3b4-25a32c9d64aa
@@ -33,6 +34,7 @@ Profiles:
         InheritProfiles: []
         AssetFolders:
             -   Path: Assets/Windows
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: 436e0287-cc11-4e08-bd1b-c7ab4b20b0dd

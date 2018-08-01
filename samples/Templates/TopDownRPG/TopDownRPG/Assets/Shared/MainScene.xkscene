@@ -256,7 +256,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 9a7fc2f2-0c61-450f-959c-9d8f7651f2aa
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 021fd395-78f4-4c2b-a41a-a9fc2c738084
                 Name: Ramp1x1_2x1 (15)
                 Components:
@@ -267,7 +268,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! 3ea2802e-d8a4-4aea-87ca-6d214bfee8c7
-            Folder: Platform/Walls
         -   Entity:
                 Id: 02948b79-d355-4e4d-b5e9-326bdd7d9bf2
                 Name: Box3x1x1
@@ -302,7 +302,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 493749c2-4fa0-4097-8779-66cb622d1d42
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 03026493-4830-4066-85bc-d2b584235b5d
                 Name: Box2x1x1 (22)
                 Components:
@@ -313,8 +314,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 778b357d-ea39-46dc-bac1-c91db040c307
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 03b70d82-0404-4be4-8630-c1e2d61d422e
                 Name: Box2x1x1 (12)
                 Components:
@@ -325,7 +326,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 661d66f8-67e9-432d-865b-361822598731
-            Folder: Platform/Walls
         -   Entity:
                 Id: 03f4cfaa-dc81-45a8-986a-89ea55cc9a04
                 Name: Box3x1x1
@@ -360,7 +360,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 323712a0-e257-4333-a21d-fc54e1f58e6c
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 043fe7ca-68d5-4457-a8ac-7b330a21e9a3
                 Name: Box3x1x1 (52)
                 Components:
@@ -371,8 +372,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 83bf439c-83d0-497c-a48b-dad895cd868c
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 04a36478-cf5b-4c12-8414-2dfdad5027ea
                 Name: Box3x1x1 (32)
                 Components:
@@ -383,8 +384,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! b7988d96-fd6c-45fa-a862-f3669a0a9592
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Coins
+            Entity:
                 Id: 065a4aa8-69ec-47d8-b561-6a5847944f26
                 Name: CoinGold (4)
                 Components:
@@ -395,8 +396,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             40bc0789c794df458f3da83107baa90c: ref!! 8907bc40-94c7-45df-8f3d-a83107baa90c
-            Folder: Coins
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 06a671e5-637d-4c4b-afb9-d6a4243e6a1e
                 Name: Box3x1x1 (14)
                 Components:
@@ -407,8 +408,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! cf0d3930-8de4-49ae-b603-0527f33498fc
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 0725de5a-db71-407c-ad52-506b693c932e
                 Name: GridBase10x10 (9)
                 Components:
@@ -419,8 +420,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! c2b3ec4e-ff7a-47e3-8bcc-584553d59e41
-            Folder: Platform/Grid
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 086533ec-a740-458f-9caf-8b4931a69fcf
                 Name: Box3x1x1 (44)
                 Components:
@@ -431,8 +432,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! b3f00711-f2df-48fd-b4b7-3427f82d7f6a
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 0931c92d-d555-43b0-889d-ca50d437c6a3
                 Name: Ramp1x1_2x1
                 Components:
@@ -443,8 +444,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! a36f71b7-ff22-45ef-9b4a-aa9e3ccf1914
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 09bd75de-959c-4ace-a801-4342bc4e131c
                 Name: Box3x1x1 (59)
                 Components:
@@ -455,8 +456,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 4468e89f-0db2-4c21-bce4-e95ec3240660
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 0b7e24eb-59d6-4e1f-b058-a5e6833fc61d
                 Name: Box3x1x1 (73)
                 Components:
@@ -467,7 +468,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 7dd054fd-a78e-4e0e-9255-ec9823b0c666
-            Folder: Platform/Walls
         -   Entity:
                 Id: 0c89722d-06eb-4ca2-8961-9ccc7322ae2a
                 Name: Box3x1x1
@@ -502,7 +502,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 5ebbf2f8-7d30-4fd8-a0ca-3c0600fcd367
-        -   Entity:
+        -   Folder: Coins
+            Entity:
                 Id: 0ddffa94-dc32-47b1-9642-fc445f7db9c3
                 Name: CoinGold (5)
                 Components:
@@ -513,7 +514,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             40bc0789c794df458f3da83107baa90c: ref!! 56205388-76ec-46cf-a6e1-7e8fed89be7a
-            Folder: Coins
         -   Entity:
                 Id: 0df0c7f8-066f-458f-a5ee-fdf954939765
                 Name: Box3x1x1
@@ -828,7 +828,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 1a266f1a-01b8-4b64-bd48-5695d6516bfd
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 199c879f-0ebe-49be-be8c-53e1e824764f
                 Name: Ramp1x1_2x1 (7)
                 Components:
@@ -839,7 +840,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! cebedf8c-961f-4ad9-9c3e-8c742dd16c6f
-            Folder: Platform/Walls
         -   Entity:
                 Id: 19a83937-fabb-4ec6-954d-05a9677d03d1
                 Name: Box3x1x1
@@ -874,7 +874,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 1a6e8e04-4f7c-47c2-989e-de7b532c47d9
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 1abdf12d-eafa-42da-abc9-b50e502f3a9e
                 Name: Box3x1x1 (26)
                 Components:
@@ -885,8 +886,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 63fff38e-1431-424e-824f-aef22311dfdf
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 1c2fa31b-344e-47a2-8a8e-8694eec04a6f
                 Name: Box3x1x1 (9)
                 Components:
@@ -897,7 +898,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 01e9c005-1a62-4e8b-9bea-2e1777c737da
-            Folder: Platform/Walls
         -   Entity:
                 Id: 1ddb0a19-0448-4ca0-8fee-951596eeace5
                 Name: GridBase10x10
@@ -932,7 +932,8 @@ Hierarchy:
                 BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: af0a1a47-a874-4b4c-9510-bdb95c6f0d22
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 1f84cfa4-c2f5-4fa0-a83a-41b08ab0fe32
                 Name: Box3x1x1 (57)
                 Components:
@@ -943,7 +944,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 812fcf6b-edcf-487b-af43-db1da22a1b3c
-            Folder: Platform/Walls
         -   Entity:
                 Id: 2146d1af-a1d9-44d4-8d79-e776292c348a
                 Name: Box3x1x1
@@ -1022,7 +1022,8 @@ Hierarchy:
                 BasePartAsset: 95b713fb-b86a-4bdf-90c7-603c78e4e7b5:LootBox
                 BasePartId: 7482eb0c-78ea-4a3c-8d85-8133ed9d63b2
                 InstanceId: 197367e1-a988-4915-abfd-60b119db2faf
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 22ec2760-8aca-40ac-b033-5198bdf73c2d
                 Name: Box3x1x1 (68)
                 Components:
@@ -1033,7 +1034,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! fed46a69-7fa9-4a45-b085-57b55f108889
-            Folder: Platform/Walls
         -   Entity:
                 Id: 235a7345-3072-4e29-8a4a-02fda780bbe1
                 Name: Box3x1x1
@@ -1105,7 +1105,8 @@ Hierarchy:
                                 Is2D: false
                                 Radius: 0.2
                                 LocalOffset: {X: 0.0, Y: 0.0, Z: 0.0}
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 25121c1d-81be-4559-a5a1-a0abaf4d1d51
                 Name: Ramp1x1_2x1 (3)
                 Components:
@@ -1116,8 +1117,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! 359e60ef-012a-45cb-9bc2-17b1692a591f
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 25bccdee-375a-41aa-95b7-43b6d78fbd98
                 Name: Box3x1x1 (10)
                 Components:
@@ -1128,7 +1129,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 24cc0760-d6fb-4a41-b581-a5e19d351ded
-            Folder: Platform/Walls
         -   Entity:
                 Id: 2627096a-108e-441b-809b-1ab406ee54df
                 Name: Box3x1x1
@@ -1197,7 +1197,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 993bb1db-6846-4fe4-8b45-20ab251f5be6
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 2754b8be-b3f2-40d0-9a75-db7602b4523a
                 Name: Box3x1x1 (67)
                 Components:
@@ -1208,8 +1209,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 8f177c8f-5930-4bab-a34d-d5f65c476a09
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: GlobalLights
+            Entity:
                 Id: 27a91eaf-7622-42b4-89a2-3495a753b8d9
                 Name: Directional light
                 Components:
@@ -1231,10 +1232,11 @@ Hierarchy:
                                 Size: XLarge
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 5.0
-            Folder: GlobalLights
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 29d6292c-4882-4fc9-8967-cf941b25ab01
                 Name: Box3x1x1 (19)
                 Components:
@@ -1245,7 +1247,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! cd55c4d6-ea80-453d-b7da-36393a5970ad
-            Folder: Platform/Walls
         -   Entity:
                 Id: 2cf91bab-cc73-47ff-80ac-54800d671443
                 Name: Point light
@@ -1270,7 +1271,8 @@ Hierarchy:
                 BasePartAsset: e8a0251a-6555-494e-a875-08492e9988e8:CoinGold
                 BasePartId: debc636f-e0c5-4884-9aa6-be4b8287e96a
                 InstanceId: fa985361-eba4-44a7-8d89-55131a395bc0
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 2dd3dcb5-716d-48d0-98b8-61d0c7484765
                 Name: Box3x1x1 (30)
                 Components:
@@ -1281,8 +1283,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 825a10e1-c749-4387-9a31-56d441bdcb8a
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 2dd9ef9e-928f-4ef3-a86f-8d42c364bb4b
                 Name: Box2x1x1 (5)
                 Components:
@@ -1293,8 +1295,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 6f5f76fa-a61d-4f15-aaf2-af54dea1c97f
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 2e4e0a9b-09c2-4b82-9186-97229bf9e78e
                 Name: Box3x1x1 (72)
                 Components:
@@ -1305,7 +1307,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 01b0c1e4-2bd4-445f-9ddf-03d9d81ca9a7
-            Folder: Platform/Walls
         -   Entity:
                 Id: 2ea8e6f8-cdc3-4d09-bd2c-f5cd331e1911
                 Name: GridBase10x10
@@ -1372,7 +1373,8 @@ Hierarchy:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
                 InstanceId: f004fd4f-52d7-4308-aa97-adee61cd5011
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 2fa9dc1d-bfed-4978-817e-012be0b79822
                 Name: Box3x1x1 (41)
                 Components:
@@ -1383,7 +1385,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 8d541e56-dd73-4e12-8d34-a8b72f0fd07f
-            Folder: Platform/Walls
         -   Entity:
                 Id: 30e79489-a4c5-44ed-be9e-6ff6bd966bd5
                 Name: Point light
@@ -1442,7 +1443,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 12db9abd-a162-4997-8818-a1bf3d2058cb
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 31a0d035-614f-4070-bf08-7d09779a7f04
                 Name: Ramp1x1_2x1 (13)
                 Components:
@@ -1453,7 +1455,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! 02e36e6d-d606-4213-988b-df19f5b7926c
-            Folder: Platform/Walls
         -   Entity:
                 Id: 339ba386-9c9d-4645-aa55-96825347194d
                 Name: Box3x1x1
@@ -1554,7 +1555,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: e6be8c39-c5c7-4352-b222-fa09ba4e6bdc
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 37c75b6e-219e-4c75-93f3-c407231fa687
                 Name: Box3x1x1 (60)
                 Components:
@@ -1565,7 +1567,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! ee5854c7-bc99-42f0-a7f3-225152a9648b
-            Folder: Platform/Walls
         -   Entity:
                 Id: 384320ca-23ec-47d3-b0d5-523c74f9b232
                 Name: Box3x1x1
@@ -1600,7 +1601,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: d7a7b9b1-31d8-43f1-b258-2ec7bd00cd44
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 38701c20-00fe-4111-b7a0-bd4791606ee9
                 Name: Box2x1x1 (13)
                 Components:
@@ -1611,7 +1613,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 45c0e447-35d0-4acf-bd60-6c186485118a
-            Folder: Platform/Walls
         -   Entity:
                 Id: 38c4b12a-6767-45e1-9a3e-45f43c4c106d
                 Name: Box3x1x1
@@ -1646,7 +1647,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 49217b70-5810-4626-af8a-e1b7c4dd9170
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 39790120-ebaf-43d5-8b06-e1aaa22d2f51
                 Name: GridBase10x10
                 Components:
@@ -1657,7 +1659,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 84e0908d-d67e-4da0-a3ce-7446882c19de
-            Folder: Platform/Grid
         -   Entity:
                 Id: 3acba833-e365-43f6-be83-265d856c7d4f
                 Name: CoinGold
@@ -1735,7 +1736,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: d26804e3-d55b-4f04-ad63-0aa65a65c6ae
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 3bf399e2-5999-42a2-aee0-99dc46d25d68
                 Name: Box2x1x1 (14)
                 Components:
@@ -1746,7 +1748,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 4b22de93-e290-4a29-896f-8bb03d0c6705
-            Folder: Platform/Walls
         -   Entity:
                 Id: 3bf9b6f7-e853-4159-ae02-acd9240318a9
                 Name: GridBase10x10
@@ -1815,7 +1816,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 1b1b408d-0075-4123-a2e9-3a67bcddcd7c
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 3d574de0-5115-4102-b820-205fee402f2a
                 Name: Box3x1x1 (24)
                 Components:
@@ -1826,8 +1828,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 573f509a-85e4-4d13-8f8e-1dfbe40739a0
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: LootCrates
+            Entity:
                 Id: 3d637909-8d35-4158-bbc1-1e444633500f
                 Name: LootBox (5)
                 Components:
@@ -1838,7 +1840,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4bfa77cbdae1aa40aeba86b0b487ad99: ref!! 7ef369be-0a51-48ce-a968-42aba1211722
-            Folder: LootCrates
         -   Entity:
                 Id: 3dbd4b8d-f8e3-47b8-b341-cf904babd6af
                 Name: Box3x1x1
@@ -1873,7 +1874,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: c2f9edb2-7ee9-4a1c-9bdb-eec68b48d449
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 3f6c30db-f1ee-4476-98fe-7f9a36be4874
                 Name: GridBase10x10 (3)
                 Components:
@@ -1884,7 +1886,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 8b0fbeb4-4d6d-477a-8b00-0081fd803d53
-            Folder: Platform/Grid
         -   Entity:
                 Id: 3fd706fb-ed13-4041-85b0-758de66d8c23
                 Name: Box3x1x1
@@ -1919,7 +1920,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 9d54f83f-5009-440b-890a-1e29ac555eb2
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 3ffe16f4-172c-49fb-a9c4-0fefcc6459e4
                 Name: Box3x1x1 (27)
                 Components:
@@ -1930,7 +1932,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! a235b8c3-b8f9-42d7-bc54-0c5578ec5862
-            Folder: Platform/Walls
         -   Entity:
                 Id: 402c0b1b-6151-498e-85be-a707caead5fc
                 Name: Box3x1x1
@@ -1965,7 +1966,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 19715c26-0714-488b-baf9-9a9b0edb1c98
-        -   Entity:
+        -   Folder: LootCrates
+            Entity:
                 Id: 42a3f18c-3cf8-4687-a87c-ac15d8c26b05
                 Name: LootBox (6)
                 Components:
@@ -1976,8 +1978,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4bfa77cbdae1aa40aeba86b0b487ad99: ref!! 0c3f8592-1302-4efc-8802-3843c0ed0f6c
-            Folder: LootCrates
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 4425dede-ff31-4df8-b9d9-d68526aba429
                 Name: GridBase10x10 (11)
                 Components:
@@ -1988,7 +1990,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 53b00d21-1e59-4deb-aae1-0ee0f423e21b
-            Folder: Platform/Grid
         -   Entity:
                 Id: 4614e299-46ac-45f2-b8bc-ea14c29c99df
                 Name: Ramp1x1_2x1
@@ -2021,7 +2022,8 @@ Hierarchy:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
                 InstanceId: 91543526-c43f-4cc8-afcc-5c50c9c0393f
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 469740a9-afac-4e3c-a944-4926d3b2a8c9
                 Name: Box3x1x1 (47)
                 Components:
@@ -2032,8 +2034,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! ff99e140-934d-49a9-91bf-da8f1c9268c9
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 47c34e6e-6cc2-4663-8a6a-e6c448e233a1
                 Name: Box3x1x1 (20)
                 Components:
@@ -2044,7 +2046,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 003a60f1-4c37-45a7-9630-2a129ddada2a
-            Folder: Platform/Walls
         -   Entity:
                 Id: 48cca2ad-eade-43ee-b87d-dbbd6e32da93
                 Name: Box2x1x1
@@ -2079,7 +2080,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 0b3fcdd8-9096-4815-a729-70078d58139d
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 48ee40a2-cc5d-49e8-94bc-3250f6eaa98a
                 Name: Box3x1x1 (46)
                 Components:
@@ -2090,8 +2092,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 6e0a9170-4f3c-45fe-9d0f-e1408ab88103
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 49c71764-c7e4-4ffb-bbc0-a1970e6a07f6
                 Name: Box2x1x1 (10)
                 Components:
@@ -2102,8 +2104,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 0820368f-6cbf-4ebf-afba-74f63b9249a1
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 49e399de-607e-4b6e-b32f-a9629f8ff3fb
                 Name: Box3x1x1 (38)
                 Components:
@@ -2114,7 +2116,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 0195c1ce-ab00-4e46-9d84-7b6bafbcb517
-            Folder: Platform/Walls
         -   Entity:
                 Id: 4a39feea-408b-4882-8ddf-4f19fbce834c
                 Name: Box2x1x1
@@ -2149,7 +2150,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 80533a5e-e952-4828-9c11-d0441fef4dda
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 4a6068b5-d867-4d1f-9cdb-760b4da5c820
                 Name: Box3x1x1 (42)
                 Components:
@@ -2160,7 +2162,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 4c781783-e1f9-43b9-864f-908a7833f4de
-            Folder: Platform/Walls
         -   Entity:
                 Id: 4b283594-f9dc-49fa-b465-288d1c7114fa
                 Name: Box2x1x1
@@ -2314,7 +2315,8 @@ Hierarchy:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
                 InstanceId: a3afd96e-7c44-408f-af9c-e3ff87fb67e3
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 4eb91cc9-9657-4435-93b9-a1f087e179d6
                 Name: Box3x1x1 (5)
                 Components:
@@ -2325,7 +2327,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! d1f8b05c-7825-49cb-b990-9799a63c380e
-            Folder: Platform/Walls
         -   Entity:
                 Id: 4f669508-23d2-4eae-b007-f220b7b60173
                 Name: GridBase10x10
@@ -2360,7 +2361,8 @@ Hierarchy:
                 BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: 193ba63e-9fa1-43c6-b8a8-2ae62ee1a860
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 4f79d06e-7bb2-4f46-b4b1-0cf4251b674d
                 Name: GridBase10x10 (13)
                 Components:
@@ -2371,7 +2373,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 6e18fb64-201f-4ba7-9068-fa430210ecc5
-            Folder: Platform/Grid
         -   Entity:
                 Id: 502df677-d18f-4eaf-907d-25fc78c19365
                 Name: Box3x1x1
@@ -2440,7 +2441,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 2c2f114a-a441-4cf5-b496-3b0bdd854793
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 50bf3619-6c64-4044-8924-eaeb9d818b40
                 Name: Box2x1x1 (20)
                 Components:
@@ -2451,8 +2453,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 7b7aa074-7f63-4424-ad5b-13d8eefef6db
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 518b23f4-8d4d-4087-96e7-1a8acac2a13c
                 Name: Box3x1x1 (7)
                 Components:
@@ -2463,7 +2465,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! e3a52668-f03a-4c9e-a45f-1d6dfc27c826
-            Folder: Platform/Walls
         -   Entity:
                 Id: 51a86f4d-298c-4fc4-964b-de29f9a624fc
                 Name: MannequinModel
@@ -2491,7 +2492,8 @@ Hierarchy:
                     5847b2c0adfcf347a100f94d96c5d325: !AnimationComponent
                         Id: c0b24758-fcad-47f3-a100-f94d96c5d325
                         Animations: {}
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 51e2b207-6843-4a77-8d7f-cc83f82135fa
                 Name: Box2x1x1 (23)
                 Components:
@@ -2502,8 +2504,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 3a7fcc60-362f-449e-b252-bf24258112a8
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 52830570-5f8e-4da3-b356-68f1eb6ac1c5
                 Name: Box2x1x1 (8)
                 Components:
@@ -2514,8 +2516,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 2daae412-423a-45f2-a76b-0493a9e6340d
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 52dfdd87-6e6b-4fe8-a22c-d530b8b4bddd
                 Name: Box3x1x1 (58)
                 Components:
@@ -2526,8 +2528,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 5ebaa39c-7034-483a-bda0-2bfe02e93199
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 534511ef-1b35-464d-9f97-643fe6b54b92
                 Name: Box2x1x1 (19)
                 Components:
@@ -2538,7 +2540,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 2e8433c4-7785-4c5e-b5b7-70d20c10bfda
-            Folder: Platform/Walls
         -   Entity:
                 Id: 53a06403-5e7c-4eb8-8f8e-417f80e18324
                 Name: Highlight
@@ -2552,9 +2553,9 @@ Hierarchy:
                     1368fd29754b5e48a7a6da94c8c5fe8a: !ModelComponent
                         Id: 29fd6813-4b75-485e-a7a6-da94c8c5fe8a
                         Model: 4d95a3a3-0cbc-4df9-9ec7-31c8f2165248:Cube
+                        IsShadowCaster: false
                         Materials:
                             8f46c33571e26d4bb19356e1ee060013~0: 4de4aa42-6f84-472f-8b50-7f4d8229723a:HighlightMaterial
-                        IsShadowCaster: false
         -   Entity:
                 Id: 5634fa79-783b-496f-917f-0f5d05f7baf0
                 Name: Box3x1x1
@@ -2666,7 +2667,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 7d28de7b-3b15-472f-9700-df0fc26d15d6
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 598b8c78-304d-4ea4-988d-ba47ca29be2a
                 Name: Box3x1x1 (63)
                 Components:
@@ -2677,8 +2679,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! a129d1ca-0512-4928-913c-4ecf613a9f62
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: LootCrates
+            Entity:
                 Id: 5abb848d-028a-4479-a565-dfd78d3e5829
                 Name: LootBox (4)
                 Components:
@@ -2689,8 +2691,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4bfa77cbdae1aa40aeba86b0b487ad99: ref!! 1094873f-01c1-4ddd-81f6-1ebe0725b303
-            Folder: LootCrates
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 5b9e5360-8e60-4255-954e-f92c54f6f58e
                 Name: Ramp1x1_2x1 (9)
                 Components:
@@ -2701,8 +2703,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! 7c7478ef-44f0-4598-9251-9db5f36cf8ae
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: LootCrates
+            Entity:
                 Id: 5bb61fd1-5a4f-4fe3-9ec0-f6e55722d187
                 Name: LootBox (3)
                 Components:
@@ -2713,7 +2715,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4bfa77cbdae1aa40aeba86b0b487ad99: ref!! ce1d766f-8d82-4838-a677-c82e7f656768
-            Folder: LootCrates
         -   Entity:
                 Id: 5c09043b-1c71-4deb-9acc-2219447dee2f
                 Name: Box2x1x1
@@ -2816,7 +2817,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 0b76840f-f802-4514-a365-dea5948d6ec3
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 5d16d0ac-e2cc-4bc0-948b-e9e3fcd6716e
                 Name: Box3x1x1 (13)
                 Components:
@@ -2827,7 +2829,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! eea3c162-5d5b-41f1-9dea-9299b9d2e533
-            Folder: Platform/Walls
         -   Entity:
                 Id: 5d967971-5c5f-4c4a-a4a1-7330b51912b4
                 Name: Box3x1x1
@@ -2862,7 +2863,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: fcd76236-af1a-4d2e-b68e-8deb300dd772
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 5f26c060-0b1f-46e2-9ec1-a551a7e74247
                 Name: Box3x1x1 (3)
                 Components:
@@ -2873,7 +2875,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! d8fb016a-2dd8-4994-9506-24cde9b9a821
-            Folder: Platform/Walls
         -   Entity:
                 Id: 5fc52dcf-f9f8-4c6d-b32d-3fc989aea8ad
                 Name: PlayerCharacter
@@ -2927,7 +2928,8 @@ Hierarchy:
                         Id: 627bae46-b057-4ec8-8a26-b517d4b95492
                         NavigationMesh: e50d6079-dc5b-43a9-a1aa-75cf370f1fc3:NavigationMesh
                         GroupId: 9398904c-72b7-ca9b-e966-23346704ae98
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 6007ab76-1be0-44d1-aee4-55e13a22f5b5
                 Name: Box3x1x1 (28)
                 Components:
@@ -2938,8 +2940,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 5f3b6b5a-ed36-41a4-bbc1-cc35795aa240
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 605ce261-0f03-4563-b2d4-4ed4a7d4cd89
                 Name: GridBase10x10 (2)
                 Components:
@@ -2950,8 +2952,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! d19dd39f-abec-4edf-8bdf-307431c17b5f
-            Folder: Platform/Grid
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 6072a371-12d3-47e5-9142-ef3d59f9357f
                 Name: Box3x1x1 (12)
                 Components:
@@ -2962,8 +2964,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! cc1d2c2d-ceef-4efc-9bec-cdcf40478820
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 6395251e-12a1-4dca-8175-3f5e2ba3431b
                 Name: Box3x1x1 (2)
                 Components:
@@ -2974,8 +2976,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 86e2d38a-9be4-4d84-9990-d8788b9309e6
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 642e0a6d-a3c5-4e67-ba14-acdcd05e5361
                 Name: Box3x1x1 (71)
                 Components:
@@ -2986,8 +2988,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! e7272ff0-39e5-4083-9654-461b879b6dbe
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 643c8f1e-d582-42b6-8dbc-86fcde2e3d95
                 Name: Box3x1x1
                 Components:
@@ -2998,7 +3000,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! b107752a-17d6-436e-be56-172891799320
-            Folder: Platform/Walls
         -   Entity:
                 Id: 64a47be7-cab9-4a89-83ed-dc18edd19229
                 Name: Box3x1x1
@@ -3033,7 +3034,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 66254a96-a573-44e2-af0a-5222ec95172a
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 64a70e65-fadf-4729-bd94-df9cf43bf72a
                 Name: Box3x1x1 (21)
                 Components:
@@ -3044,8 +3046,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 1c628caf-d3ec-401a-a65f-df99a4c9d95e
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 64e17b7e-52cf-4951-9c70-10a096815166
                 Name: Box3x1x1 (74)
                 Components:
@@ -3056,8 +3058,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! e0a77b73-6cfe-4e90-b1d6-621222d651cf
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 64fd9926-0cf3-4d26-bb97-1cf6808bbb97
                 Name: Box3x1x1 (43)
                 Components:
@@ -3068,7 +3070,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 9befd594-b9f4-44cc-8fa6-83663899b2ee
-            Folder: Platform/Walls
         -   Entity:
                 Id: 6528e323-9f6c-472f-9610-1d4bb03d271c
                 Name: Box3x1x1
@@ -3103,7 +3104,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 4e033aaf-8d5c-48c7-b333-a2e3367fdc69
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 65ed7ffd-dbf5-47a7-a2b2-ca5686b0fc2a
                 Name: Box3x1x1 (51)
                 Components:
@@ -3114,8 +3116,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! e8fe5eef-7d44-4e71-a0b9-333891c42a13
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 666f8178-7abb-4eaf-86ae-a0b3b3748c2c
                 Name: Box2x1x1 (9)
                 Components:
@@ -3126,8 +3128,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! b82cbc4b-cf94-45e5-8073-16be0e7ee692
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 68855cb1-f6d4-415d-bc3a-8d766ef2eaf3
                 Name: Box3x1x1 (25)
                 Components:
@@ -3138,8 +3140,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! a81e0666-1da7-41bb-8b73-6d2c5bb079f2
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 68dd0eb3-ba12-4a89-b0ba-4cf437ba88ff
                 Name: Ramp1x1_2x1 (2)
                 Components:
@@ -3150,8 +3152,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! 1f2547e6-7d0b-4d80-8346-24cb9d015bdb
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 69cf2dfc-d5a7-4b36-95cb-4d010024ab03
                 Name: Box1x1x1
                 Components:
@@ -3162,7 +3164,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             cafed28ac2678c4e84c546d7570eabd3: ref!! 8ad2feca-67c2-4e8c-84c5-46d7570eabd3
-            Folder: Platform/Walls
         -   Entity:
                 Id: 69dc5c13-9a69-48a2-a142-99a3f896b161
                 Name: Box2x1x1
@@ -3323,7 +3324,8 @@ Hierarchy:
                 BasePartAsset: 95b713fb-b86a-4bdf-90c7-603c78e4e7b5:LootBox
                 BasePartId: 9e2837fb-0640-4774-9d3b-bbf81562d9aa
                 InstanceId: 4a6199bc-8c29-498c-8291-652a2b1693a7
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 6b137234-14a6-43cc-8cf1-a54ea82f48ae
                 Name: Box3x1x1 (54)
                 Components:
@@ -3334,7 +3336,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! a0bf6c77-3cee-4d00-9922-de5727481abf
-            Folder: Platform/Walls
         -   Entity:
                 Id: 6ba9f258-d438-4677-989c-4d75c580bfbe
                 Name: Box3x1x1
@@ -3403,7 +3404,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 43ebdf6c-7766-4a91-bd88-5f6c563d62e5
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 6bd06c5b-3dc9-4d8c-b57a-90a0ac4b4178
                 Name: Box3x1x1 (33)
                 Components:
@@ -3414,8 +3416,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 419112cf-f4e3-444c-8370-841c36ca2d60
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 6be6b88c-c175-4826-9d50-167a251e30fb
                 Name: Box3x1x1 (37)
                 Components:
@@ -3426,7 +3428,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 7423a5d1-c2fb-4053-8c2f-488fa3efb2c8
-            Folder: Platform/Walls
         -   Entity:
                 Id: 6c694421-2881-460d-99e3-5a8730a9b23d
                 Name: Box3x1x1
@@ -3461,7 +3462,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: de14657a-be5b-423c-aa1d-8201d8b2a20f
-        -   Entity:
+        -   Folder: LootCrates
+            Entity:
                 Id: 6d5985a2-2b3b-49ef-8fdf-e31aaf8d8b9e
                 Name: LootBox (2)
                 Components:
@@ -3472,7 +3474,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4bfa77cbdae1aa40aeba86b0b487ad99: ref!! cb77fa4b-e1da-40aa-aeba-86b0b487ad99
-            Folder: LootCrates
         -   Entity:
                 Id: 6e7c4d89-7e4f-4732-83e3-76a3ab552195
                 Name: Box2x1x1
@@ -3507,7 +3508,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: df956ada-6219-4f51-b90e-ec6d12aee591
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 6f2bcf17-b53b-4b92-bf7c-8bdbeee72a2f
                 Name: Ramp1x1_2x1 (10)
                 Components:
@@ -3518,8 +3520,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! ce9dcf4c-c574-4cfe-ab3f-b30773bb7202
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 6f39ffbc-845d-430e-b3a4-e5f8105bd91a
                 Name: Box3x1x1 (53)
                 Components:
@@ -3531,7 +3533,6 @@ Hierarchy:
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 0db4896b-3749-4965-b9e9-151926ce7407
                             97b2647386d2f947a1ca55435fdec90d: ref!! 7364b297-d286-47f9-a1ca-55435fdec90d
-            Folder: Platform/Walls
         -   Entity:
                 Id: 6f9e2afe-c2cb-4aa7-b1de-ce8f5d4f4ffd
                 Name: GameLogic
@@ -3579,7 +3580,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 67b09993-fc5f-45f4-9556-d01ffb3d0326
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 7052e24d-0d39-4900-a647-f4fab9676b26
                 Name: Box3x1x1 (39)
                 Components:
@@ -3590,8 +3592,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! f7e576f7-fe3f-4920-94c2-56204c4e135b
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 70a832cb-9201-48be-8d53-a4ae155bb528
                 Name: Box3x1x1 (40)
                 Components:
@@ -3602,7 +3604,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! d97494de-45b8-4ed4-b437-45dce46a0294
-            Folder: Platform/Walls
         -   Entity:
                 Id: 719e7468-24fe-4b51-9dc2-c9635a06ff86
                 Name: Box3x1x1
@@ -3637,7 +3638,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: c005d7e1-b5a3-4da4-8991-9425b63bcebd
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 730180ba-e9ad-4e9a-b739-d5204bfbbaed
                 Name: Box3x1x1 (22)
                 Components:
@@ -3648,8 +3650,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 3a5d2b3c-c390-4a4c-8ec9-c919e7c44d88
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 732eac70-c6cb-415b-94cd-371cd2df6e79
                 Name: Box2x1x1 (15)
                 Components:
@@ -3660,8 +3662,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 4ed4b199-8cc9-49c9-b509-78a4d323109f
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 74f63a62-a06e-4cd9-98c4-a09767ddea15
                 Name: Box3x1x1 (77)
                 Components:
@@ -3672,7 +3674,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! a588bc88-eb74-4ee8-a259-e792a580fce7
-            Folder: Platform/Walls
         -   Entity:
                 Id: 75c6062f-6a4d-4c61-8465-84152ffc6cd4
                 Name: LootBox
@@ -3819,7 +3820,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 4f5b8f5d-8734-471f-8857-55afb8dc7eb9
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 772a1ae7-92c8-4b2a-ba03-995c081cc273
                 Name: Box3x1x1 (23)
                 Components:
@@ -3830,8 +3832,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! dbea3b17-98ee-4d6b-8a53-737a11092be6
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 7825035a-fa56-48ef-a582-ec2e4dbd870e
                 Name: Ramp1x1_2x1 (16)
                 Components:
@@ -3842,7 +3844,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! 6fc8e21e-ba1b-4754-95db-c75dc4d9a56e
-            Folder: Platform/Walls
         -   Entity:
                 Id: 7a063617-0ee7-4b34-a6ef-c98c5053a6f8
                 Name: Box3x1x1
@@ -3877,7 +3878,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 7607db4a-3c73-4972-b212-9a8d4274c3a5
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 7a23860a-4f5e-4559-ba3c-89f9d2c66dff
                 Name: GridBase10x10 (4)
                 Components:
@@ -3888,7 +3890,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 4fa13d6f-4725-4bef-9904-f41d2193d968
-            Folder: Platform/Grid
         -   Entity:
                 Id: 7bcdcc67-8a62-4e12-99e4-7d7a81e79234
                 Name: Box3x1x1
@@ -4023,7 +4024,8 @@ Hierarchy:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
                 InstanceId: 2648a82c-87da-4b9f-9a5f-dc3bb9651b97
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 81cbe982-e9af-4818-941b-e3f4832eeeb3
                 Name: Box2x1x1 (3)
                 Components:
@@ -4034,8 +4036,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 3e5d8f7a-7969-4c68-afe5-add60c5589ff
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 81d15261-414c-4b06-9772-2d0b760f49d4
                 Name: Box3x1x1 (34)
                 Components:
@@ -4046,7 +4048,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 38544507-18a1-4732-a4d2-18f0ddea68ca
-            Folder: Platform/Walls
         -   Entity:
                 Id: 83b2f5ac-73de-4635-8c9d-68285fcca81d
                 Name: Ramp1x1_2x1
@@ -4079,7 +4080,8 @@ Hierarchy:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
                 InstanceId: 2b6977f0-6b53-4dd3-8b75-fe111fe588ca
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 83c22d07-3a49-4f6f-9f86-c7782c425f1c
                 Name: Box3x1x1 (36)
                 Components:
@@ -4090,7 +4092,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! dffd53c3-32ab-4c5a-b29a-2d300233cacf
-            Folder: Platform/Walls
         -   Entity:
                 Id: 845d47c4-4880-4ac7-a39a-77bd300e24d6
                 Name: Box3x1x1
@@ -4125,7 +4126,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: b43b8b4d-7463-487d-9881-ffc18aa0bed4
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 861eaa30-5026-4f07-883e-a9c27485e089
                 Name: Ramp1x1_2x1 (6)
                 Components:
@@ -4136,7 +4138,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! a3a705b2-1fc4-40d8-aaa7-a6432e727747
-            Folder: Platform/Walls
         -   Entity:
                 Id: 87216fc0-e225-4ffa-95bf-07e9f1d14bda
                 Name: Box3x1x1
@@ -4271,7 +4272,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 92f41e83-d952-4706-bb27-97bf8767b442
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 8bbedd90-9474-4a3f-928d-f83dc44e0339
                 Name: Ramp1x1_2x1 (12)
                 Components:
@@ -4282,8 +4284,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! a85eecd0-a17f-4c0e-a7b0-392134a5fa86
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 8c787a0d-0b71-4fb5-a853-9c68077d139c
                 Name: Box3x1x1 (49)
                 Components:
@@ -4294,8 +4296,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 439c49c0-8041-46c2-a1f3-401f869017dc
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 8ea4ff39-e9c2-4d75-8b86-b0534d9158ce
                 Name: Box3x1x1 (64)
                 Components:
@@ -4306,7 +4308,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 2722a403-a181-445d-8f7f-bb5b83dddea8
-            Folder: Platform/Walls
         -   Entity:
                 Id: 8f7632d6-7a64-4edd-8647-0d04eb276458
                 Name: CollisionWall
@@ -4336,7 +4337,8 @@ Hierarchy:
                 BasePartAsset: 95b713fb-b86a-4bdf-90c7-603c78e4e7b5:LootBox
                 BasePartId: 9e2837fb-0640-4774-9d3b-bbf81562d9aa
                 InstanceId: bb899d64-dc60-41da-8711-009016c72290
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 8fb30cd2-32b5-4e18-8e0d-93cfbfc87b45
                 Name: Box2x1x1 (11)
                 Components:
@@ -4347,8 +4349,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 37a8f49f-7de5-42e3-a37f-32f1f39acb64
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 8ff0ded4-9782-403c-b299-bbc49da7ced4
                 Name: Box2x1x1 (4)
                 Components:
@@ -4359,7 +4361,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! fc05e77b-faed-4227-9aa4-f373a2ebfbfc
-            Folder: Platform/Walls
         -   Entity:
                 Id: 917f3b2c-f783-478d-bdd7-fb8dfa6e6119
                 Name: Box1x1x1
@@ -4405,7 +4406,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: bc5e6d55-0f73-41f1-b28a-6151ba12f172
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 941260c2-7cf2-4674-a9bb-71b678f2fe64
                 Name: Box3x1x1 (62)
                 Components:
@@ -4416,7 +4418,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 63ae53d9-9b6d-41a3-a8bd-29580be57e3c
-            Folder: Platform/Walls
         -   Entity:
                 Id: 946367f6-86dc-44c0-b54f-9361fbfedb0e
                 Name: Navigation bounding box
@@ -4496,7 +4497,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 632055fe-7761-470e-bc58-b80e1cf0da28
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 96823689-c235-4e20-a4ef-853f6d3feda1
                 Name: Box3x1x1 (4)
                 Components:
@@ -4507,7 +4509,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 8d5d6ebf-06a4-47e6-bf90-8443ab879f98
-            Folder: Platform/Walls
         -   Entity:
                 Id: 97248b8a-5942-4df5-a424-70322f252e07
                 Name: Point light
@@ -4653,7 +4654,8 @@ Hierarchy:
                 BasePartAsset: e8a0251a-6555-494e-a875-08492e9988e8:CoinGold
                 BasePartId: debc636f-e0c5-4884-9aa6-be4b8287e96a
                 InstanceId: f9c24c3f-a096-4b49-bf89-a413c2859298
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 9b9618ba-9bc7-4232-98a2-afbe358eddb8
                 Name: Ramp1x1_2x1 (4)
                 Components:
@@ -4664,8 +4666,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! 5503e005-dce5-44cb-8734-832bed32412a
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 9cca9cb8-fe2a-4ccf-9645-078136fa67cd
                 Name: Box2x1x1 (17)
                 Components:
@@ -4676,7 +4678,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! e1d2ca9b-5191-4bf7-bd54-3dcb2d3da351
-            Folder: Platform/Walls
         -   Entity:
                 Id: 9d2cc735-cc2e-4a99-a7ca-f98596d321c2
                 Name: Box3x1x1
@@ -4711,7 +4712,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 98e498b4-cace-402a-b744-dbe53b7739fd
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 9ded2944-2c7e-4f2d-ad80-9d7c73ac0332
                 Name: Box3x1x1 (16)
                 Components:
@@ -4722,7 +4724,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! f02ed5a7-976c-41b7-96bb-dc2105b76edf
-            Folder: Platform/Walls
         -   Entity:
                 Id: 9ed41fde-ea3d-47fd-a38e-e12909bf42fd
                 Name: GridBase10x10
@@ -4757,7 +4758,8 @@ Hierarchy:
                 BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: 3ce85919-14d2-4ddf-afbc-e17118d4ab2e
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: 9f2a86db-7783-4434-8e09-848b569c6269
                 Name: Box2x1x1 (6)
                 Components:
@@ -4768,8 +4770,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! ed042e23-4969-4e4d-ae49-e1c0e7cde15f
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: a0788fc8-125b-4ff9-b68c-b265fa8ed8b8
                 Name: Box2x1x1 (2)
                 Components:
@@ -4780,8 +4782,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! c0e8fc1b-c14f-493e-9039-7cd853eca0f7
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: a0b570aa-abae-433e-9ae0-902ff4b89208
                 Name: Box3x1x1 (70)
                 Components:
@@ -4792,8 +4794,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! bff899ff-0d64-4beb-a795-96b9f0bef76a
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: a107e50f-9072-4c02-9c13-fcb29705642f
                 Name: Box3x1x1 (61)
                 Components:
@@ -4804,7 +4806,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 1528cc5f-0025-458d-8777-17258fca5c27
-            Folder: Platform/Walls
         -   Entity:
                 Id: a11c5af7-09ac-46df-be4b-bfd2f2597881
                 Name: Box3x1x1
@@ -4882,7 +4883,8 @@ Hierarchy:
                 BasePartAsset: e8a0251a-6555-494e-a875-08492e9988e8:CoinGold
                 BasePartId: 867ee466-6e19-4df6-b805-6b1a8f5dbee5
                 InstanceId: 734b55cb-19d8-4d94-805d-7ac3b1127056
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: a1d46c68-0bdc-4f6e-9a86-26beca3c122c
                 Name: Box2x1x1 (25)
                 Components:
@@ -4893,7 +4895,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 676b39df-7f8c-4fc2-a5bc-cdb5e3f50758
-            Folder: Platform/Walls
         -   Entity:
                 Id: a246b086-8895-4ed0-a25f-2c2228c4adc3
                 Name: Ramp1x1_2x1
@@ -4926,7 +4927,8 @@ Hierarchy:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
                 InstanceId: c20161f9-980c-49b9-972e-856b080f6fd8
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: a3d137de-7d18-4896-b82e-82c165e537a8
                 Name: Box3x1x1 (76)
                 Components:
@@ -4937,7 +4939,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 1277f856-e307-4b42-aa62-37c3defff302
-            Folder: Platform/Walls
         -   Entity:
                 Id: a61d4dd2-c7f9-47f6-aeae-d2b644b1b5dc
                 Name: Box3x1x1
@@ -5006,7 +5007,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 1d793fe5-69bc-41e3-89b0-101bd2d21075
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: a6e6cffa-eee4-448d-b843-f7b8cb6e7d38
                 Name: GridBase10x10 (6)
                 Components:
@@ -5017,7 +5019,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 1de7e4f6-4570-4dfd-88e6-9b338ff61f98
-            Folder: Platform/Grid
         -   Entity:
                 Id: a7039a10-c872-4dff-b868-f669c3c49016
                 Name: Box3x1x1
@@ -5052,7 +5053,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 42ceb7ae-2c3e-48d6-885a-fdc0164de6dc
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: a72cc954-8c42-4995-83f6-d3e5403c18ec
                 Name: Box3x1x1 (35)
                 Components:
@@ -5063,7 +5065,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 83730132-3d71-4ec5-b1dd-6e374eb53404
-            Folder: Platform/Walls
         -   Entity:
                 Id: a7564c4c-7704-4354-a353-9207a2232954
                 Name: CameraTarget
@@ -5090,7 +5091,8 @@ Hierarchy:
                         Name: null
                         Projection: Perspective
                         Slot: c15adccd-88f4-4cd9-a45a-55ce9f8e89e5
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: a908db86-0e56-48c8-a3c0-9408ea498279
                 Name: Box3x1x1 (50)
                 Components:
@@ -5101,7 +5103,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 16204b7c-b6d7-4cd6-8ba3-8f8cb2933f75
-            Folder: Platform/Walls
         -   Entity:
                 Id: aab069cb-c49e-45a5-9d02-8daa63025533
                 Name: Box3x1x1
@@ -5136,7 +5137,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 4969471f-336d-4d1c-bf64-9f03b8ecb080
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: ad02c16f-330f-4bd0-b4ab-cd85c4230c91
                 Name: Box2x1x1 (24)
                 Components:
@@ -5147,8 +5149,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! b6e95ebc-2542-43aa-827e-9e5d3791d972
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Coins
+            Entity:
                 Id: ae721985-2505-45fa-af6d-729b29b69e02
                 Name: CoinGold (3)
                 Components:
@@ -5159,7 +5161,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             40bc0789c794df458f3da83107baa90c: ref!! e3b65d8a-ffc0-4bca-9a47-8140e6cc27a2
-            Folder: Coins
         -   Entity:
                 Id: ae9fc271-73b1-400a-aa52-cf444a787446
                 Name: Box3x1x1
@@ -5194,7 +5195,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 4e220d78-9ac1-4dbb-935b-0ff1e808abfd
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: aea5eafc-596e-407d-828b-213f7a9f556f
                 Name: Ramp1x1_2x1 (14)
                 Components:
@@ -5205,7 +5207,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! 04fbefb7-02d1-4b98-95e7-1a549fb8b91f
-            Folder: Platform/Walls
         -   Entity:
                 Id: aecf0c8f-3fdd-47a6-ac2b-da09947365a0
                 Name: LootBox
@@ -5554,7 +5555,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 25270643-4c33-44a2-aa2f-dc6ca6885068
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: b9570df8-a627-4cb1-af16-992b8198e15b
                 Name: Ramp1x1_2x1 (5)
                 Components:
@@ -5565,8 +5567,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! f458ab8e-a05a-439a-9ebe-0a0ea7753ebc
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: ba92fc8c-380a-4aa5-9113-8411a7b509d9
                 Name: Ramp1x1_2x1 (11)
                 Components:
@@ -5577,8 +5579,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! 77c518bf-a772-474f-b7bc-40cec31b2871
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: baa851a7-3773-4a90-9a5e-9a4ebec59bc1
                 Name: Box3x1x1 (65)
                 Components:
@@ -5589,7 +5591,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 349c102f-8d63-4675-a4c4-1d5db6efeb96
-            Folder: Platform/Walls
         -   Entity:
                 Id: bad0326c-05cb-4a6c-9107-1969aeb5ab91
                 Name: Box2x1x1
@@ -5753,7 +5754,8 @@ Hierarchy:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
                 InstanceId: f6b274da-9622-46fb-bbe0-afae773b9a50
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: bd5f7af2-f7dc-446f-94c6-6aadba0aacb4
                 Name: GridBase10x10 (10)
                 Components:
@@ -5764,8 +5766,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! a7becb3a-0820-43b4-a05b-a113916e8706
-            Folder: Platform/Grid
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: be32265a-1a9b-4fca-aae1-9e330c774467
                 Name: Box3x1x1 (17)
                 Components:
@@ -5776,7 +5778,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 50792007-258e-4000-9566-5b222f9e4228
-            Folder: Platform/Walls
         -   Entity:
                 Id: be76500a-dc25-4b37-9a01-a531f8bdeae7
                 Name: Box3x1x1
@@ -5811,7 +5812,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 1bad4612-62a0-4162-945f-e9dfb7f4496a
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: bed4d577-d701-46bd-bc4d-eda8ac39b287
                 Name: Box3x1x1 (18)
                 Components:
@@ -5822,7 +5824,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! c22459ce-f09e-4825-83ba-2c1c5aa2f12b
-            Folder: Platform/Walls
         -   Entity:
                 Id: bf130150-557e-42d8-bbd2-8cb47880c9f5
                 Name: Box3x1x1
@@ -5889,7 +5890,8 @@ Hierarchy:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
                 InstanceId: c21bff58-14cf-4e51-b0df-3b5590498510
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: bf9bdea5-83c9-40a7-8c45-769933afa8d1
                 Name: Box2x1x1
                 Components:
@@ -5900,7 +5902,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 0f2c81df-ccba-4e7d-899b-6c554e5adf37
-            Folder: Platform/Walls
         -   Entity:
                 Id: c11560f0-d670-4f3c-b390-5cde18e6b918
                 Name: Ramp1x1_2x1
@@ -5933,7 +5934,8 @@ Hierarchy:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
                 InstanceId: 04ca7a88-2fe4-4d82-b9d5-140778cb8bdf
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: c458fb05-2fbc-4e8b-b434-aed4d9554eee
                 Name: Box3x1x1 (45)
                 Components:
@@ -5944,7 +5946,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 2ef505fe-926b-4d77-b6bf-fd19cd96f7f5
-            Folder: Platform/Walls
         -   Entity:
                 Id: c4d25506-6e6c-4be1-9775-36ac517dc530
                 Name: Ramp1x1_2x1
@@ -5977,7 +5978,8 @@ Hierarchy:
                 BasePartAsset: 80a8680c-b826-4513-828a-67d3162d1da0:BlocksPrefabs/Ramp1x1_2x1
                 BasePartId: dcbcec6d-0b9a-404a-87ee-0a0f69fc314e
                 InstanceId: 2e095416-0090-43f4-a008-2b4911ef0388
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: c5d28a0e-c1a7-47df-b49b-8c80a89cc19b
                 Name: Box3x1x1 (31)
                 Components:
@@ -5988,7 +5990,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 718606f3-ae30-40fb-a93b-c5b2c389f623
-            Folder: Platform/Walls
         -   Entity:
                 Id: c7a64972-240d-4ef8-bd47-a794f855313c
                 Name: Box2x1x1
@@ -6023,7 +6024,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: 009c6f4b-1eaa-4888-ad1b-12cb1abab543
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: c7cc9bb3-c078-46a6-ad5a-bf05a66a0830
                 Name: Box3x1x1 (11)
                 Components:
@@ -6034,7 +6036,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 583ee3cf-8a93-4391-91c5-487d94ce1142
-            Folder: Platform/Walls
         -   Entity:
                 Id: c9b7c89b-ed02-4d8d-8d07-6affa74993b4
                 Name: Box3x1x1
@@ -6307,7 +6308,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: ead24f57-7989-4ba9-927a-052211275fc9
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: d50e8dd2-36ac-432a-8768-8b491489b1c8
                 Name: Box3x1x1 (8)
                 Components:
@@ -6318,8 +6320,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 7f634cec-835e-444c-82ad-8ce2e8f54b3c
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: d51ed863-52d2-4179-9fbc-9d323e7846e5
                 Name: Box3x1x1 (48)
                 Components:
@@ -6330,7 +6332,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! c2742c04-3e2a-4d98-92b0-bc33371639aa
-            Folder: Platform/Walls
         -   Entity:
                 Id: d63f8876-64ae-4d08-ba07-939e3512d0e6
                 Name: Box3x1x1
@@ -6431,7 +6432,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 1bc5e9ad-1ee8-4001-85ab-5723bf3e6c7a
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: d872f927-d791-4126-91dc-a766fa441103
                 Name: Ramp1x1_2x1 (8)
                 Components:
@@ -6442,7 +6444,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             2e80a23ea4d8ea4a87ca6d214bfee8c7: ref!! df7c575a-45d7-4ca3-a65d-c9a4edf63828
-            Folder: Platform/Walls
         -   Entity:
                 Id: d8c2c499-e9ff-4587-8f38-ca4e2e95ea41
                 Name: Box3x1x1
@@ -6545,7 +6546,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 55ee642c-3997-4297-936f-e0e65a4a0706
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: de92403a-b4da-465d-9d2b-0f0cd4452d5f
                 Name: Box3x1x1 (75)
                 Components:
@@ -6556,8 +6558,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 63ef4c60-34a2-4cab-9929-7858fac3c600
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: df66f0ad-5614-42bb-82d7-2fe2a6b88b3b
                 Name: Box2x1x1 (18)
                 Components:
@@ -6568,8 +6570,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! befcad48-f9ad-42e9-b5cd-8d9f45504a30
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: GlobalLights
+            Entity:
                 Id: e1d761e6-634d-4773-8d81-75dfc8e8b1c4
                 Name: Skybox
                 Components:
@@ -6588,8 +6590,8 @@ Hierarchy:
                         Id: 2a03610c-5655-4a9f-b84b-f669c4f63b0a
                         Texture: cf628a7c-f4ca-4fc7-aa7d-27882f030380:Skybox Texture
                         Intensity: 3.0
-            Folder: GlobalLights
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: e2049576-c2ae-4965-9774-bf6c7267d3c1
                 Name: Box2x1x1 (21)
                 Components:
@@ -6600,7 +6602,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! c81dfda1-6b66-4dc7-803b-c3d6a7f195b1
-            Folder: Platform/Walls
         -   Entity:
                 Id: e2082058-f35c-4e67-8f82-e7e8f9143c9d
                 Name: Box3x1x1
@@ -6669,7 +6670,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 780d8158-1362-4efb-ba63-40b5ca3c7003
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: e28f9488-a7c7-43fa-86be-f8f8b0f4e895
                 Name: Box3x1x1 (56)
                 Components:
@@ -6680,7 +6682,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 3dfc4f3f-41a5-4a34-a703-257552a2cb90
-            Folder: Platform/Walls
         -   Entity:
                 Id: e4b4af34-78c7-447f-9938-c02ddb15534c
                 Name: LootBox
@@ -6759,7 +6760,8 @@ Hierarchy:
                 BasePartAsset: 796c6be9-120a-4185-bfe5-c72f889a4580:BlocksPrefabs/Box1x1x1
                 BasePartId: 496dab69-b03b-4272-a196-8e81329ce249
                 InstanceId: 1707e45e-3419-488f-b56a-1816ac35f2f9
-        -   Entity:
+        -   Folder: Coins
+            Entity:
                 Id: e643de26-f888-4aa5-b5d3-e6dcce6642d9
                 Name: CoinGold (2)
                 Components:
@@ -6770,7 +6772,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             40bc0789c794df458f3da83107baa90c: ref!! 1a88761a-1d68-416a-a054-c5b6e00a0787
-            Folder: Coins
         -   Entity:
                 Id: e93f16d8-942e-4f8c-b269-2241daad2045
                 Name: Box3x1x1
@@ -6839,7 +6840,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: c503feff-78e0-4a4f-a96f-7bd66b3470a3
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: ebad7305-24b8-4776-9c3e-5907843fb362
                 Name: Box2x1x1 (7)
                 Components:
@@ -6850,7 +6852,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 92fe92dd-0cbf-4f2a-b8fe-e8d130ca054b
-            Folder: Platform/Walls
         -   Entity:
                 Id: ec6ec0a6-b2a8-49ce-afab-bce02e602988
                 Name: Box3x1x1
@@ -6919,7 +6920,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 122f558b-2bde-4753-acb8-99ba8c2a6872
-        -   Entity:
+        -   Folder: LootCrates
+            Entity:
                 Id: efa6ce6a-8c20-41e4-b42b-ae3359fefb9e
                 Name: LootBox
                 Components:
@@ -6930,8 +6932,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4bfa77cbdae1aa40aeba86b0b487ad99: ref!! f35df6f4-1708-4254-879a-642628b3f7c9
-            Folder: LootCrates
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: f0586e40-8fff-4145-a955-1d00aaf4e271
                 Name: Box3x1x1 (6)
                 Components:
@@ -6942,7 +6944,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 2dab2e87-c5b6-4329-aedc-130a47ebb337
-            Folder: Platform/Walls
         -   Entity:
                 Id: f07848df-64d9-4eb6-a110-855cadcfd85f
                 Name: CollisionWall
@@ -6972,7 +6973,8 @@ Hierarchy:
                 BasePartAsset: 95b713fb-b86a-4bdf-90c7-603c78e4e7b5:LootBox
                 BasePartId: 9e2837fb-0640-4774-9d3b-bbf81562d9aa
                 InstanceId: cf5c9d82-5ed5-451a-97f5-10ebccc01e31
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: f0c6fb81-17db-48c7-b05a-ecec414ba17e
                 Name: GridBase10x10 (15)
                 Components:
@@ -6983,8 +6985,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 32176683-d064-4104-8836-74950dfcae2d
-            Folder: Platform/Grid
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: f14aba87-b246-4f89-98cf-a373b07042a9
                 Name: Box3x1x1 (55)
                 Components:
@@ -6995,7 +6997,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 1acad6a2-f6dc-41ec-a4c7-d29eb46ea480
-            Folder: Platform/Walls
         -   Entity:
                 Id: f46ced35-2dbe-4ceb-b432-8bef2962e55c
                 Name: Box3x1x1
@@ -7064,7 +7065,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 69aff841-5b6a-4687-816d-11a38e3b847b
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: f5b98748-d372-4371-bfb9-3976bc5ec0bb
                 Name: GridBase10x10 (12)
                 Components:
@@ -7075,8 +7077,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! f11fdb83-919c-4039-b0af-92cc94c000cc
-            Folder: Platform/Grid
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: f5f5f2ca-1239-403c-811b-86b4e8e0bd1b
                 Name: Box2x1x1 (16)
                 Components:
@@ -7087,8 +7089,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! ec76a287-4347-491b-8df4-9a008d699dcb
-            Folder: Platform/Walls
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: f666025d-6023-4869-9918-50eba0d5efe0
                 Name: Box3x1x1 (69)
                 Components:
@@ -7099,7 +7101,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 0a9c7532-c56f-4f37-ae58-ab97ab8073df
-            Folder: Platform/Walls
         -   Entity:
                 Id: f6a7c392-dab0-4a37-b615-2eacd8d68f75
                 Name: Box3x1x1
@@ -7134,7 +7135,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: 74de8018-b06e-4f91-ac77-d80d4f8fbb08
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: f74b7b21-8928-4702-be11-947da30fd86d
                 Name: GridBase10x10 (5)
                 Components:
@@ -7145,8 +7147,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 01044c1f-ad91-4523-8a05-91888ee2b5ab
-            Folder: Platform/Grid
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: f79dd2d9-d89e-4a30-a2a1-b644fe4c6925
                 Name: Box3x1x1 (66)
                 Components:
@@ -7157,7 +7159,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! b3b3a09c-a77f-494f-8312-4f734b5542d0
-            Folder: Platform/Walls
         -   Entity:
                 Id: fb5f809d-71c0-4b19-a321-29af29f3c097
                 Name: Box3x1x1
@@ -7192,7 +7193,8 @@ Hierarchy:
                 BasePartAsset: 2f747deb-a3df-4160-beca-5b0706068d86:BlocksPrefabs/Box3x1x1
                 BasePartId: b86036f4-0ce3-4794-9947-a61378390d41
                 InstanceId: eaba77ff-ce58-4e70-9109-4d86abaa6e85
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: fbeff20f-bcd1-4b82-965e-51aca8f5cc46
                 Name: Box3x1x1 (15)
                 Components:
@@ -7203,7 +7205,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! ddd2456e-2466-4f0d-9453-8e587768e6ea
-            Folder: Platform/Walls
         -   Entity:
                 Id: fdaf1ec4-385e-446d-8dad-87a369b41a4e
                 Name: Box2x1x1
@@ -7238,7 +7239,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: e62ef8af-1157-40e2-ad00-a25a00435659
-        -   Entity:
+        -   Folder: Platform/Walls
+            Entity:
                 Id: fece533c-a9c4-4b54-8ac0-4e589bbfa6cd
                 Name: Box3x1x1 (29)
                 Components:
@@ -7249,4 +7251,3 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! e2d3a0ca-06c3-46f4-9f74-5bd6a86dc001
-            Folder: Platform/Walls

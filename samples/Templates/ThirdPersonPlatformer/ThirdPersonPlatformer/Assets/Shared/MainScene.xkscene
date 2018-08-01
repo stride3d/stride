@@ -310,7 +310,8 @@ Hierarchy:
                 BasePartAsset: 5a32965c-893e-4f1c-acd5-9eeceb4ebddd:BlocksPrefabs/Ramp1x1_2x2
                 BasePartId: ebb1699f-cbad-48c0-8147-9d3d1236b47b
                 InstanceId: 668a9839-a845-4473-939d-fd1dd73375e6
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 0725de5a-db71-407c-ad52-506b693c932e
                 Name: GridBase10x10 (9)
                 Components:
@@ -321,7 +322,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! c2b3ec4e-ff7a-47e3-8bcc-584553d59e41
-            Folder: Platform/Grid
         -   Entity:
                 Id: 09903575-deb0-40c2-8f55-1f5ab90aae8c
                 Name: Wall0x2x5
@@ -356,7 +356,8 @@ Hierarchy:
                 BasePartAsset: b459d7d8-b0db-4862-8579-6a511f4a9fe5:BlocksPrefabs/Wall0x2x5
                 BasePartId: fbdff817-df62-4a56-83f8-19a9d12589b8
                 InstanceId: 93862e76-f6f9-4327-87f8-3a1cb4f64c3b
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 0997d496-3d18-48fe-8f22-8cacf7afd358
                 Name: Pillar0x5x0 (4)
                 Components:
@@ -367,7 +368,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 0.4, Z: 1.0}
                         Children:
                             e96f0faea3329947a94aed18021d4112: ref!! ae0f6fe9-32a3-4799-a94a-ed18021d4112
-            Folder: Platform
         -   Entity:
                 Id: 0b93d3e4-4f73-4837-91bf-d6568893d9fb
                 Name: Wall0x2x5Window
@@ -422,7 +422,8 @@ Hierarchy:
                 BasePartAsset: 38c97eef-f5cc-4eda-b18c-fbbf3d71a505:BlocksPrefabs/Wall0x2x5Window
                 BasePartId: 2afada92-6bdd-43d2-9806-ce0629937081
                 InstanceId: 57007c89-9196-4928-9aad-1e79bb15dc39
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 0c3bda49-f41b-4976-96a1-5379e0c8e818
                 Name: GridBase10x10 (11)
                 Components:
@@ -433,7 +434,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 0dd99b74-6d84-4bd3-8de6-9e7b1b0c7b91
-            Folder: Platform/Grid
         -   Entity:
                 Id: 0c4e764f-5501-4fa5-921c-849e58f088ef
                 Name: Pillar0x5x0
@@ -552,7 +552,8 @@ Hierarchy:
                 BasePartAsset: 1792404e-9c40-4ba1-b738-2a6d4ebcd2fb:BlocksPrefabs/Floor1x0x1
                 BasePartId: 69eeb2f5-cf60-4018-8efd-3e4352e1779d
                 InstanceId: 495e5488-71b1-4628-a215-55a1203c8b44
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 0efda974-f4b7-4e11-be55-ee8dcb860cd6
                 Name: Ramp1x1_2x2 (2)
                 Components:
@@ -563,7 +564,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             cfce75d38d66e24fae426d1f40aa4f8a: ref!! b858aef6-dcfb-458b-a06a-d1bc0b459a57
-            Folder: Platform
         -   Entity:
                 Id: 102b3205-57b5-46d7-9788-2e61cd87f1c9
                 Name: GridBase10x10
@@ -597,7 +597,8 @@ Hierarchy:
                 BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: 6addb7fe-b0dd-48d9-86bb-a494f66eab17
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 10693b22-4c3a-4094-9c76-36cfeae495ed
                 Name: Floor1x0x1 (5)
                 Components:
@@ -608,7 +609,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10c0801cc1dd4143933cbc13534ebf54: ref!! 3b435207-26f5-40f5-b473-b5b45be32a18
-            Folder: Platform
         -   Entity:
                 Id: 115187f2-194a-4cfc-b346-3ae16415aad5
                 Name: Wall0x2x5 (6)
@@ -620,7 +620,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 00a1728c-8e03-4922-ab7e-dfdbcd96efb9
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 12730ec0-3380-4597-bbf3-0300dfd12286
                 Name: Floor3x0x1
                 Components:
@@ -631,7 +632,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             60662553bdfa37429f6fafb13c6d383f: ref!! 53256660-fabd-4237-9f6f-afb13c6d383f
-            Folder: Platform
         -   Entity:
                 Id: 13644158-ebba-460e-bb29-cc39c14678e6
                 Name: Ramp1x1_2x2
@@ -663,7 +663,8 @@ Hierarchy:
                 BasePartAsset: 5a32965c-893e-4f1c-acd5-9eeceb4ebddd:BlocksPrefabs/Ramp1x1_2x2
                 BasePartId: ebb1699f-cbad-48c0-8147-9d3d1236b47b
                 InstanceId: dd2dfc22-93ff-4385-9c66-9610bbe1a5bb
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 13c7288f-20b4-47eb-bec7-412d3727b650
                 Name: Ramp1x1x1
                 Components:
@@ -674,7 +675,6 @@ Hierarchy:
                         Scale: {X: 0.1, Y: 1.0, Z: 2.0}
                         Children:
                             f209476be8802a4aa93c1768358ae3c4: ref!! 6b4709f2-80e8-4a2a-a93c-1768358ae3c4
-            Folder: Complex
         -   Entity:
                 Id: 14cd726b-4d4b-4f53-9870-984ff3852360
                 Name: Floor3x0x1
@@ -896,7 +896,8 @@ Hierarchy:
                 BasePartAsset: 3cc3c21e-b26c-443d-80bb-cb82044d3220:BlocksPrefabs/Wall0x2x2
                 BasePartId: f73cb16c-30b9-4200-b872-56885e7023e2
                 InstanceId: be8c9d07-6ef0-4296-9bb2-27d6f513d3f0
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 18abac6d-1e59-42e1-b95c-677949a7b9db
                 Name: Table2x2x2 (2)
                 Components:
@@ -907,8 +908,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             fdb3d891ad817d45bc9c9a293736f0e1: ref!! 92654880-a481-4742-b4fe-e72afce7d1bf
-            Folder: Platform
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 18f53e81-f123-4235-811f-92226ad566ee
                 Name: Floor3x0x1 (2)
                 Components:
@@ -919,8 +920,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             60662553bdfa37429f6fafb13c6d383f: ref!! f4910601-97e0-4a87-81a4-051f7f7488fb
-            Folder: Platform
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 1b03b12f-f4a8-435e-8efe-d311f2e10cbf
                 Name: Floor1x0x1
                 Components:
@@ -931,7 +932,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10c0801cc1dd4143933cbc13534ebf54: ref!! 76a3f97d-7bbc-444b-ab9f-b62779c6d367
-            Folder: Platform
         -   Entity:
                 Id: 1c805465-0d5d-4e09-8181-408bc612f040
                 Name: Wall0x2x5Window (6)
@@ -943,7 +943,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             c444819e77a60441a6144bd7bd8a4a23: ref!! acae86ef-3be5-429d-a4ec-f08ea99ac176
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 1d81ab64-07a4-4e25-9db7-a0b5fc917a80
                 Name: Wall_East
                 Components:
@@ -982,8 +983,8 @@ Hierarchy:
                             c25e06787e6b664089dd9cc8f488dc49: !StaticPlaneColliderShapeDesc
                                 Normal: {X: -1.0, Y: 0.0, Z: 0.0}
                                 Offset: 0.0
-            Folder: Platform
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 1db684ad-97dc-48d3-8a87-5561840a4aee
                 Name: Table2x2x2 (5)
                 Components:
@@ -994,7 +995,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             fdb3d891ad817d45bc9c9a293736f0e1: ref!! 2caf95eb-c146-49e9-90ce-6cbac13924ff
-            Folder: Platform
         -   Entity:
                 Id: 1ddb0a19-0448-4ca0-8fee-951596eeace5
                 Name: GridBase10x10
@@ -1194,7 +1194,8 @@ Hierarchy:
                 BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: 15ca8322-84c4-447b-9ca0-f171498f78d8
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 246b207f-0276-49df-be62-411448c2ebbc
                 Name: Floor3x0x1 (3)
                 Components:
@@ -1205,7 +1206,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             60662553bdfa37429f6fafb13c6d383f: ref!! 6f87adbf-f397-4858-9aa1-2aaeea185c49
-            Folder: Platform
         -   Entity:
                 Id: 24bdd238-1ed3-4323-b9a9-30461f37d67b
                 Name: Table2x2x2
@@ -1271,7 +1271,8 @@ Hierarchy:
                 BasePartAsset: 225fba76-f4cb-489d-8bb6-0f7e13a54931:BlocksPrefabs/Table2x2x2
                 BasePartId: c6aca1a5-dba9-46d2-a6f5-c4fc1ab74824
                 InstanceId: e1acb503-ef40-493b-be93-a1d214e6de17
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 26a8a83d-1048-4830-8905-aa83c16df8e5
                 Name: Floor1x0x1 (7)
                 Components:
@@ -1282,8 +1283,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10c0801cc1dd4143933cbc13534ebf54: ref!! 1c80c010-ddc1-4341-933c-bc13534ebf54
-            Folder: Platform
-        -   Entity:
+        -   Folder: GlobalLights
+            Entity:
                 Id: 27a91eaf-7622-42b4-89a2-3495a753b8d9
                 Name: Directional light
                 Components:
@@ -1305,10 +1306,10 @@ Hierarchy:
                                 Size: XLarge
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters:
                                     DepthBias: 0.0015
                         Intensity: 5.0
-            Folder: GlobalLights
         -   Entity:
                 Id: 28004364-5dba-4025-90a7-d91c554c4ac3
                 Name: Wall0x2x5Window
@@ -1363,7 +1364,8 @@ Hierarchy:
                 BasePartAsset: 38c97eef-f5cc-4eda-b18c-fbbf3d71a505:BlocksPrefabs/Wall0x2x5Window
                 BasePartId: 2afada92-6bdd-43d2-9806-ce0629937081
                 InstanceId: 0105dc44-5de9-4732-8c22-2b90d9fdca0f
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 283b970c-a203-4753-a5fb-121a94f5bda4
                 Name: Pillar0x5x0
                 Components:
@@ -1374,7 +1376,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             e96f0faea3329947a94aed18021d4112: ref!! 1dd1f590-5f2c-4bdf-a61d-08457bba0d8c
-            Folder: Platform
         -   Entity:
                 Id: 298c48a6-89cd-40d3-9a9e-26a7455fea6d
                 Name: Wall0x2x5Window
@@ -1429,7 +1430,8 @@ Hierarchy:
                 BasePartAsset: 38c97eef-f5cc-4eda-b18c-fbbf3d71a505:BlocksPrefabs/Wall0x2x5Window
                 BasePartId: 2afada92-6bdd-43d2-9806-ce0629937081
                 InstanceId: ba7465d6-bd23-4687-83ea-d196b6b55a79
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 2a150fb3-ab90-452a-a19f-d896bb3c89c3
                 Name: GridBase10x10 (14)
                 Components:
@@ -1440,7 +1442,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 689cc413-1aaa-4b6e-ab19-9e3a659b1091
-            Folder: Platform/Grid
         -   Entity:
                 Id: 2ab86e14-4c0e-4956-85a6-8438ebe886ac
                 Name: Wall0x2x5Window
@@ -1495,7 +1496,8 @@ Hierarchy:
                 BasePartAsset: 38c97eef-f5cc-4eda-b18c-fbbf3d71a505:BlocksPrefabs/Wall0x2x5Window
                 BasePartId: 2afada92-6bdd-43d2-9806-ce0629937081
                 InstanceId: 872a41fa-aacb-4ff8-8957-58c57a3d6821
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 2b707cf8-8c33-4fdf-a95e-1d9033fc671a
                 Name: Floor2x0x1 (4)
                 Components:
@@ -1506,7 +1508,6 @@ Hierarchy:
                         Scale: {X: 1.2, Y: 1.0, Z: 1.0}
                         Children:
                             983c7b3bf13aac40829f8af4045b77c1: ref!! 3b7b3c98-3af1-40ac-829f-8af4045b77c1
-            Folder: Complex
         -   Entity:
                 Id: 2c0e849b-1174-4401-9314-a9a119e239eb
                 Name: Wall0x2x5 (8)
@@ -1518,7 +1519,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 67531242-b086-4272-8d45-e4c89d409874
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 2c66a19e-36d7-4743-8c68-76f19c002f21
                 Name: Stairs1x1x2 (4)
                 Components:
@@ -1529,7 +1531,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             1fd94bf6112e05418d8b81f8ee7c0a28: ref!! f64bd91f-2e11-4105-8d8b-81f8ee7c0a28
-            Folder: Complex
         -   Entity:
                 Id: 2dae32c3-0510-4572-bfdb-d3e738a73feb
                 Name: Wall0x2x5
@@ -1721,7 +1722,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 116db4d5-0540-4170-97d7-3f8dd7000863
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 3336ef86-ddb7-4d8f-b993-1ffb444c28b1
                 Name: GridBase10x10 (7)
                 Components:
@@ -1732,7 +1734,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! b7084d87-711c-4a8d-9f46-0c4dc0603285
-            Folder: Platform/Grid
         -   Entity:
                 Id: 33bd00f0-ec0b-4e5f-a256-ec27d0df524c
                 Name: Wall0x2x5
@@ -1821,7 +1822,8 @@ Hierarchy:
                 BasePartAsset: 38c97eef-f5cc-4eda-b18c-fbbf3d71a505:BlocksPrefabs/Wall0x2x5Window
                 BasePartId: 2afada92-6bdd-43d2-9806-ce0629937081
                 InstanceId: a608c7bf-af23-43ed-bb1b-d4c4e88b3c6e
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 345daf3e-1c2d-4b1a-b447-68e4dcb57651
                 Name: Floor1x0x1 (2)
                 Components:
@@ -1832,7 +1834,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10c0801cc1dd4143933cbc13534ebf54: ref!! 90cb1af7-c1a5-463e-bd58-ffd78983ca03
-            Folder: Platform
         -   Entity:
                 Id: 36e06fe2-b1ef-4b54-8572-2166bc102ed9
                 Name: Wall0x2x5Window
@@ -1887,7 +1888,8 @@ Hierarchy:
                 BasePartAsset: 38c97eef-f5cc-4eda-b18c-fbbf3d71a505:BlocksPrefabs/Wall0x2x5Window
                 BasePartId: 2afada92-6bdd-43d2-9806-ce0629937081
                 InstanceId: 5f57ecf6-b11d-4933-914c-abc582a61782
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 37ef05ea-dcaa-4701-86ee-b54579b9cbb0
                 Name: Wall0x2x2
                 Components:
@@ -1898,7 +1900,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             674fdd1fb2513d41ab88936773660929: ref!! 1fdd4f67-51b2-413d-ab88-936773660929
-            Folder: Complex
         -   Entity:
                 Id: 38b1ac0d-cd53-4266-85e1-31b78526baae
                 Name: Wall0x2x5 (7)
@@ -1910,7 +1911,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 8b1957ac-9282-4954-9420-80da11ad2304
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 39790120-ebaf-43d5-8b06-e1aaa22d2f51
                 Name: GridBase10x10
                 Components:
@@ -1921,8 +1923,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 9cacd7e8-f527-4f8b-aac8-7f5f5ad854e6
-            Folder: Platform/Grid
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 3a338e29-3929-45de-ac03-da86f7ecd26e
                 Name: Stairs1x1x2 (2)
                 Components:
@@ -1933,7 +1935,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             1fd94bf6112e05418d8b81f8ee7c0a28: ref!! ddf24ffc-c119-4b56-b5b0-47991d303c90
-            Folder: Complex
         -   Entity:
                 Id: 3bf9b6f7-e853-4159-ae02-acd9240318a9
                 Name: GridBase10x10
@@ -1967,7 +1968,8 @@ Hierarchy:
                 BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: cf29671f-6508-4eea-8eb1-22f39d4bc302
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 3eee0685-c355-49d3-9a4d-5de8c1442f08
                 Name: Box2x1x1 (4)
                 Components:
@@ -1978,7 +1980,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 4b22de93-e290-4a29-896f-8bb03d0c6705
-            Folder: Complex
         -   Entity:
                 Id: 3ef139d0-1206-46ac-9880-05fc390da664
                 Name: Wall0x2x5
@@ -2013,7 +2014,8 @@ Hierarchy:
                 BasePartAsset: b459d7d8-b0db-4862-8579-6a511f4a9fe5:BlocksPrefabs/Wall0x2x5
                 BasePartId: fbdff817-df62-4a56-83f8-19a9d12589b8
                 InstanceId: 83641ba9-c64e-4870-97c5-769b6ac8f6b5
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 3f6c30db-f1ee-4476-98fe-7f9a36be4874
                 Name: GridBase10x10 (3)
                 Components:
@@ -2024,7 +2026,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 7485d1f3-9c9b-400e-bcdb-a68c25b71f83
-            Folder: Platform/Grid
         -   Entity:
                 Id: 40b46b79-3e8a-4ce6-8365-8bda51a139e7
                 Name: Stairs1x1x2
@@ -2056,7 +2057,8 @@ Hierarchy:
                 BasePartAsset: d74cc744-2324-4e4b-ad1b-577d83087eea:BlocksPrefabs/Stairs1x1x2
                 BasePartId: b7b6a519-2edb-4e90-88ef-1426d0feac16
                 InstanceId: 1b0ae547-3aeb-483b-8b0a-6d4707d05859
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 41790a91-421d-4b85-84c8-4df802c40e62
                 Name: Stairs1x1x2 (3)
                 Components:
@@ -2067,8 +2069,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             1fd94bf6112e05418d8b81f8ee7c0a28: ref!! 3f6f700d-84d2-41f1-a3bf-2e20a15c1c72
-            Folder: Complex
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 44fbd50a-0c03-4896-9b71-62dddc75ed8d
                 Name: Gate2x3x1
                 Components:
@@ -2079,7 +2081,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4894693aaac93243b362fb156a3825b2: ref!! 3a699448-c9aa-4332-b362-fb156a3825b2
-            Folder: Complex
         -   Entity:
                 Id: 453c8685-fa3e-4ba0-acf7-98c9c827f5ad
                 Name: Wall0x2x2Window
@@ -2163,7 +2164,8 @@ Hierarchy:
                 BasePartAsset: b459d7d8-b0db-4862-8579-6a511f4a9fe5:BlocksPrefabs/Wall0x2x5
                 BasePartId: fbdff817-df62-4a56-83f8-19a9d12589b8
                 InstanceId: df7a9459-a1ae-4da0-9c7b-1cf8be408e62
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 469d9627-230b-4103-9a32-76712acd6ce8
                 Name: Box2x1x1 (2)
                 Components:
@@ -2174,7 +2176,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 15f59e2d-151f-4699-8257-ca183be56d9d
-            Folder: Complex
         -   Entity:
                 Id: 47263f08-8f46-4d59-b60a-6248645c46de
                 Name: Wall0x2x5
@@ -2284,7 +2285,8 @@ Hierarchy:
                 BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: 193ba63e-9fa1-43c6-b8a8-2ae62ee1a860
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 4f79d06e-7bb2-4f46-b4b1-0cf4251b674d
                 Name: GridBase10x10 (13)
                 Components:
@@ -2295,7 +2297,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! e2cc3e4b-5618-4b9a-8ad5-3427c4c46899
-            Folder: Platform/Grid
         -   Entity:
                 Id: 506aba5e-d07b-4bd6-933d-1da67cfcb2ad
                 Name: Wall0x2x5Window
@@ -2553,7 +2554,8 @@ Hierarchy:
                 BasePartAsset: 38c97eef-f5cc-4eda-b18c-fbbf3d71a505:BlocksPrefabs/Wall0x2x5Window
                 BasePartId: 2afada92-6bdd-43d2-9806-ce0629937081
                 InstanceId: 87c4598b-f85a-4cc7-89d4-2bae48396b3e
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 53d7d957-63fa-4380-b82c-7f795d1d65b2
                 Name: Box3x1x1 (3)
                 Components:
@@ -2564,7 +2566,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 1acad6a2-f6dc-41ec-a4c7-d29eb46ea480
-            Folder: Complex
         -   Entity:
                 Id: 544c033e-07dd-42e8-b8be-79c157fe5110
                 Name: Wall0x2x5 (7)
@@ -2644,7 +2645,8 @@ Hierarchy:
                 BasePartAsset: b459d7d8-b0db-4862-8579-6a511f4a9fe5:BlocksPrefabs/Wall0x2x5
                 BasePartId: fbdff817-df62-4a56-83f8-19a9d12589b8
                 InstanceId: 2f1c36e2-ccaa-4a40-b00e-c37596c0ceba
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 56f4d87d-2632-4818-8067-91007acbe2d2
                 Name: Box2x1x1
                 Components:
@@ -2655,7 +2657,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 340096e4-ccc7-4df3-895a-66ccf4851d5f
-            Folder: Complex
         -   Entity:
                 Id: 5891b840-6b81-411f-ae32-c00cb96a2ad3
                 Name: Wall0x2x5Window (3)
@@ -2678,7 +2679,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             c444819e77a60441a6144bd7bd8a4a23: ref!! 526ae396-e6a2-4500-9ce2-473cb80acaed
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 58be24f3-f20a-4e8f-82a3-fee8a5094e9d
                 Name: GridBase10x10 (8)
                 Components:
@@ -2689,7 +2691,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 66df753e-6a36-46e9-b156-9bc86b79cdcb
-            Folder: Platform/Grid
         -   Entity:
                 Id: 596c4723-f7bd-4a65-8eae-6d0a5667aea5
                 Name: Wall0x2x5 (4)
@@ -2811,7 +2812,8 @@ Hierarchy:
                 BasePartAsset: 38c97eef-f5cc-4eda-b18c-fbbf3d71a505:BlocksPrefabs/Wall0x2x5Window
                 BasePartId: 2afada92-6bdd-43d2-9806-ce0629937081
                 InstanceId: baee6a88-67ed-49f8-9cef-c32370d86961
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 5f548076-08bc-4ae8-ac9a-c391acdfd326
                 Name: Floor1x0x1 (6)
                 Components:
@@ -2822,7 +2824,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10c0801cc1dd4143933cbc13534ebf54: ref!! dd001cfe-5325-4164-94e2-28e3916d7c30
-            Folder: Platform
         -   Entity:
                 Id: 5fc52dcf-f9f8-4c6d-b32d-3fc989aea8ad
                 Name: PlayerCharacter
@@ -2877,7 +2878,8 @@ Hierarchy:
                             47b7f2884469c9d74a4712034dba6f5a: Down
                         KeysJump:
                             23fe5ceb28bd9649fa594f451bbef24b: Space
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 605ce261-0f03-4563-b2d4-4ed4a7d4cd89
                 Name: GridBase10x10 (2)
                 Components:
@@ -2888,7 +2890,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 33bd15af-c26f-4b23-af53-e926df080e4c
-            Folder: Platform/Grid
         -   Entity:
                 Id: 606c2900-49c3-48ac-818f-e3af0aa432f4
                 Name: Wall0x2x5 (7)
@@ -2922,7 +2923,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             c444819e77a60441a6144bd7bd8a4a23: ref!! 970a36b4-0974-48c5-bece-3841dfa885a4
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 63ec8ffa-1489-4d84-8484-8574009bebc5
                 Name: Floor2x0x1
                 Components:
@@ -2933,7 +2935,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             983c7b3bf13aac40829f8af4045b77c1: ref!! 664870ee-2282-490b-add8-900eac6fcf34
-            Folder: Complex
         -   Entity:
                 Id: 643f7386-ef5a-4ef2-8220-8c8b1dc87915
                 Name: Wall0x2x5Window
@@ -2999,7 +3000,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! cfafc4e5-2af3-48e3-aae8-3b0f359e09a5
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 65e8a184-3f85-4b14-a650-78987b789449
                 Name: Ramp1x1_2x2 (3)
                 Components:
@@ -3010,7 +3012,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             cfce75d38d66e24fae426d1f40aa4f8a: ref!! d375cecf-668d-4fe2-ae42-6d1f40aa4f8a
-            Folder: Platform
         -   Entity:
                 Id: 66a8c2a2-55ec-4287-8ead-79477c65473a
                 Name: Floor1x0x1
@@ -3045,7 +3046,8 @@ Hierarchy:
                 BasePartAsset: 1792404e-9c40-4ba1-b738-2a6d4ebcd2fb:BlocksPrefabs/Floor1x0x1
                 BasePartId: 69eeb2f5-cf60-4018-8efd-3e4352e1779d
                 InstanceId: 2c75cf52-f3b5-4551-95b7-0026b9c2d38d
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 673c98ad-621c-481c-9da2-88992a469765
                 Name: Box2x1x1 (3)
                 Components:
@@ -3056,7 +3058,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             93de224b90e2294a896f8bb03d0c6705: ref!! 4019f713-b04c-44bf-8863-b5207d46ad20
-            Folder: Complex
         -   Entity:
                 Id: 67a00fc8-b582-4054-b318-23dab0342713
                 Name: Wall0x2x5 (8)
@@ -3068,7 +3069,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 49f03714-786f-4a16-87f4-af3e2df368ee
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 687b88f7-b73c-4f1c-aab1-c9dc0873f68b
                 Name: Floor1x0x1 (3)
                 Components:
@@ -3079,7 +3081,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10c0801cc1dd4143933cbc13534ebf54: ref!! cb540bb9-53ef-41ba-b4a6-c9beb742b5f3
-            Folder: Platform
         -   Entity:
                 Id: 68b80184-aec9-4ed6-8111-569e7659cd26
                 Name: Floor1x0x1
@@ -3224,7 +3225,8 @@ Hierarchy:
                 BasePartAsset: d74cc744-2324-4e4b-ad1b-577d83087eea:BlocksPrefabs/Stairs1x1x2
                 BasePartId: b7b6a519-2edb-4e90-88ef-1426d0feac16
                 InstanceId: e35b1300-d9f3-41b6-bfed-85435f01ed50
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 6e6069e9-61a5-45b1-b8cf-48ed02d39235
                 Name: Wall_South
                 Components:
@@ -3263,7 +3265,6 @@ Hierarchy:
                             28bba53d39b4e04d95e04f5b13c052af: !StaticPlaneColliderShapeDesc
                                 Normal: {X: 1.0, Y: 0.0, Z: 0.0}
                                 Offset: 0.0
-            Folder: Platform
         -   Entity:
                 Id: 6e70b748-4134-45be-88f4-6317e82246f9
                 Name: Wall0x2x5
@@ -3275,7 +3276,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 68fe39d4-805d-4734-8a4f-bcec23dd315d
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 6e73f571-60d8-43b2-8f46-42ef70842ce1
                 Name: GridBase10x10 (16)
                 Components:
@@ -3286,7 +3288,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 7223ea00-1c4b-42c8-88d1-1805db5c5516
-            Folder: Platform/Grid
         -   Entity:
                 Id: 6e879a56-68c2-4726-b607-45e08dd66dc8
                 Name: Floor1x0x1
@@ -3321,7 +3322,8 @@ Hierarchy:
                 BasePartAsset: 1792404e-9c40-4ba1-b738-2a6d4ebcd2fb:BlocksPrefabs/Floor1x0x1
                 BasePartId: 69eeb2f5-cf60-4018-8efd-3e4352e1779d
                 InstanceId: 3c77551c-7a77-4e7b-abe0-1e0123a1156f
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 6eb936a1-6346-4c23-b33b-dac689838fac
                 Name: Wall0x2x2Window (2)
                 Components:
@@ -3332,7 +3334,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             9bd6c2826922c24ba23d41e3a7a958f6: ref!! 1cb55533-d269-423a-9591-1afb387f2d1a
-            Folder: Complex
         -   Entity:
                 Id: 6ee23cd8-8909-447b-a460-cd0a3a8e90e0
                 Name: Wall0x2x5
@@ -3565,7 +3566,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             c444819e77a60441a6144bd7bd8a4a23: ref!! 08b60905-01f4-4341-b688-6f8bbf14ebb0
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 763c04b0-c22a-4485-8a9b-9ae73a177d2a
                 Name: Ramp1x1_2x2
                 Components:
@@ -3576,8 +3578,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             cfce75d38d66e24fae426d1f40aa4f8a: ref!! 02534f6a-8e84-41d5-ac3b-a032a4193226
-            Folder: Platform
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 76771248-c30c-4247-a20e-69306cfdb1cd
                 Name: Pillar0x5x0 (7)
                 Components:
@@ -3588,7 +3590,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             e96f0faea3329947a94aed18021d4112: ref!! ecf1f15b-cb9a-48ad-a82e-80eadf8b9775
-            Folder: Platform
         -   Entity:
                 Id: 76e558a6-6053-43b1-aa0c-7b3f092fe284
                 Name: Wall0x2x5Window (5)
@@ -3779,7 +3780,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             c444819e77a60441a6144bd7bd8a4a23: ref!! 253f1af9-4909-4841-b8c0-989264ef0bc5
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 79b798e6-2b83-4716-8845-e569547eebb6
                 Name: Wall0x1x2
                 Components:
@@ -3790,8 +3792,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             28dde9b7de50404da1714927c7316a8a: ref!! b7e9dd28-50de-4d40-a171-4927c7316a8a
-            Folder: Complex
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 79e614ff-e70b-4e1c-a4ff-49a72208d9af
                 Name: Table2x2x2 (3)
                 Components:
@@ -3802,8 +3804,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             fdb3d891ad817d45bc9c9a293736f0e1: ref!! 91d8b3fd-81ad-457d-bc9c-9a293736f0e1
-            Folder: Platform
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: 7a23860a-4f5e-4559-ba3c-89f9d2c66dff
                 Name: GridBase10x10 (4)
                 Components:
@@ -3814,8 +3816,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! f86fd22b-1175-4a58-ad7a-64da7dd5cd16
-            Folder: Platform/Grid
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 7aac6559-0cef-4f23-b050-50a27353455f
                 Name: Floor2x0x1 (5)
                 Components:
@@ -3826,7 +3828,6 @@ Hierarchy:
                         Scale: {X: 1.2, Y: 1.0, Z: 1.0}
                         Children:
                             983c7b3bf13aac40829f8af4045b77c1: ref!! 4c255378-63a6-43fc-b085-c22169249c80
-            Folder: Complex
         -   Entity:
                 Id: 7d6d0acf-67a9-4663-9025-5f0b0f84d3d8
                 Name: Wall0x2x5
@@ -3926,7 +3927,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 7ed1f31b-f439-4fd9-a5fc-a7c54914b478
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 7f96b6f2-32c6-4c3f-b72a-3e779ddc9622
                 Name: Table2x2x2
                 Components:
@@ -3937,7 +3939,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             fdb3d891ad817d45bc9c9a293736f0e1: ref!! e865844f-b6e3-45aa-b02c-46667a3cc4d7
-            Folder: Platform
         -   Entity:
                 Id: 80220c1c-1163-43c3-8ebe-53c3afcefd49
                 Name: Gate1x2x1
@@ -4509,7 +4510,8 @@ Hierarchy:
                 BasePartAsset: 5a92b94b-cd30-43c1-bcd5-303e6d400eeb:BlocksPrefabs/Floor3x0x1
                 BasePartId: 1067d427-d2bf-41dc-a6a9-edec00e56c37
                 InstanceId: c29ed330-b548-43f6-8439-29e6a03bee25
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 9502fa7b-0ee0-419b-9c5f-931362bbae24
                 Name: Wall_North
                 Components:
@@ -4548,7 +4550,6 @@ Hierarchy:
                             9d5e5408d9b17b429f55a67f6cd0fbf2: !StaticPlaneColliderShapeDesc
                                 Normal: {X: -1.0, Y: 0.0, Z: 0.0}
                                 Offset: 0.0
-            Folder: Platform
         -   Entity:
                 Id: 957a4e32-4406-4a25-803f-f851ec0aaee5
                 Name: Wall0x2x5
@@ -4672,7 +4673,8 @@ Hierarchy:
                 BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: c9902a34-0c19-46a2-ac72-917a8a2da140
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 9c0fa0b3-eaf4-4a9a-9631-51cf24b598a0
                 Name: Gate2x3x1 (2)
                 Components:
@@ -4683,8 +4685,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4894693aaac93243b362fb156a3825b2: ref!! 0dc2098d-b1a9-43f1-ac14-808db0db86be
-            Folder: Complex
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: 9cb7f348-4b35-49b5-bd45-a24e21c66c9b
                 Name: Floor2x0x1 (3)
                 Components:
@@ -4695,8 +4697,8 @@ Hierarchy:
                         Scale: {X: 1.2, Y: 1.0, Z: 1.0}
                         Children:
                             983c7b3bf13aac40829f8af4045b77c1: ref!! aad75466-458b-40b5-884d-dd9dea0394b5
-            Folder: Complex
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: 9d1b2810-2c05-407d-b8bb-ad49d5c734fc
                 Name: Table2x2x2 (6)
                 Components:
@@ -4707,7 +4709,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             fdb3d891ad817d45bc9c9a293736f0e1: ref!! daea8ac7-a52e-4b1b-b5f9-cca0c1e706b6
-            Folder: Platform
         -   Entity:
                 Id: 9d1bddba-016c-48b4-be5f-fd10b0845f85
                 Name: GridBase10x10
@@ -4974,7 +4975,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 998654e2-2552-4dbb-ab84-081012503c7c
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: a64c0c6e-a688-4a61-b889-9c8925a11157
                 Name: Wall0x2x2Window
                 Components:
@@ -4985,7 +4987,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             9bd6c2826922c24ba23d41e3a7a958f6: ref!! 82c2d69b-2269-4bc2-a23d-41e3a7a958f6
-            Folder: Complex
         -   Entity:
                 Id: a6a58bf2-0f1b-413b-bab2-0975547fbfb1
                 Name: Wall0x2x5 (4)
@@ -4997,7 +4998,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 4b6beef9-d2a7-4210-bdb0-670150005c2b
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: a6e6cffa-eee4-448d-b843-f7b8cb6e7d38
                 Name: GridBase10x10 (6)
                 Components:
@@ -5008,7 +5010,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 4451ee48-5587-4a2c-82b5-47104c29000f
-            Folder: Platform/Grid
         -   Entity:
                 Id: a7564c4c-7704-4354-a353-9207a2232954
                 Name: CameraTarget
@@ -5080,7 +5081,8 @@ Hierarchy:
                 BasePartAsset: b459d7d8-b0db-4862-8579-6a511f4a9fe5:BlocksPrefabs/Wall0x2x5
                 BasePartId: fbdff817-df62-4a56-83f8-19a9d12589b8
                 InstanceId: 81d301bf-4ea0-4859-9769-fb4bddadaaa9
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: ab80ffd1-ddd3-4f6e-b860-622a9bda74bd
                 Name: Floor1x0x1 (4)
                 Components:
@@ -5091,8 +5093,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             10c0801cc1dd4143933cbc13534ebf54: ref!! 3ff4bbc3-284d-4204-86ad-b6af88fd7d68
-            Folder: Platform
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: ab8b22ae-d3d3-4f8b-86a1-5c8b17d23722
                 Name: Floor3x0x1 (2)
                 Components:
@@ -5103,7 +5105,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             60662553bdfa37429f6fafb13c6d383f: ref!! c56f8b4a-a1ab-4f91-8547-8a7646ad4858
-            Folder: Complex
         -   Entity:
                 Id: acd6dd56-85f7-42ae-a749-061eec5bbbc0
                 Name: Wall0x2x5
@@ -5888,7 +5889,8 @@ Hierarchy:
                 BasePartAsset: b459d7d8-b0db-4862-8579-6a511f4a9fe5:BlocksPrefabs/Wall0x2x5
                 BasePartId: fbdff817-df62-4a56-83f8-19a9d12589b8
                 InstanceId: 4b5f9764-36ae-4ded-9dcf-672700eff1c8
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: bd5f7af2-f7dc-446f-94c6-6aadba0aacb4
                 Name: GridBase10x10 (10)
                 Components:
@@ -5899,7 +5901,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 9b4722db-d932-415a-a75c-a002d2af6178
-            Folder: Platform/Grid
         -   Entity:
                 Id: bf1e933d-17fe-4380-af20-d3aae709abc7
                 Name: Pillar0x5x0
@@ -6187,7 +6188,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 91c8c130-40c7-4faa-878f-8974bf5dddce
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: c58ce3b1-05ef-4414-9fdf-474e42deb8e5
                 Name: Stairs1x1x2
                 Components:
@@ -6198,7 +6200,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             1fd94bf6112e05418d8b81f8ee7c0a28: ref!! 25e1eca1-18d4-4d3d-ab85-0a7dae2fc85e
-            Folder: Complex
         -   Entity:
                 Id: c5cdd92b-2cf1-4e6b-b42f-3586e10091cf
                 Name: Wall0x2x5Window
@@ -6299,7 +6300,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             c444819e77a60441a6144bd7bd8a4a23: ref!! d0d9cf1b-8144-4b38-accb-174267449160
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: cd68a7d3-5bf4-4282-8fa9-8e727ba2c394
                 Name: Pillar0x5x0 (3)
                 Components:
@@ -6310,7 +6312,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 0.6, Z: 1.0}
                         Children:
                             e96f0faea3329947a94aed18021d4112: ref!! df15c7bc-ec48-4f83-8f1f-1f58f1a3bfc0
-            Folder: Platform
         -   Entity:
                 Id: cfe5fd9e-a3a0-494e-9499-6bce8e9ee4f1
                 Name: GridBase10x10
@@ -6344,7 +6345,8 @@ Hierarchy:
                 BasePartAsset: faca3ec7-598e-40b0-bdd4-7a6dfd9635b0:BlocksPrefabs/GridBase10x10
                 BasePartId: b045349c-565e-4488-9130-a795b0e3b229
                 InstanceId: 8381ca41-afb4-455a-b673-deec35e208e5
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: d0712ec2-3a44-4360-8739-9a351e1843f4
                 Name: Floor3x0x1
                 Components:
@@ -6355,8 +6357,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             60662553bdfa37429f6fafb13c6d383f: ref!! 4b964a5f-470e-42b1-87eb-eef2ac2b8a54
-            Folder: Complex
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: d2c94ef5-0eff-430c-b39c-82088ac927cf
                 Name: Wall0x2x2 (2)
                 Components:
@@ -6367,7 +6369,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             674fdd1fb2513d41ab88936773660929: ref!! b93e3146-b2c6-4c7c-ac9e-b35e0b248984
-            Folder: Complex
         -   Entity:
                 Id: d34145c7-d96a-458b-ba7e-498ca89bce2e
                 Name: Box2x1x1
@@ -6402,7 +6403,8 @@ Hierarchy:
                 BasePartAsset: 08f3be96-87f9-4eb4-b8cb-564eef48da03:BlocksPrefabs/Box2x1x1
                 BasePartId: cfc05c6f-da7c-4ba4-8e09-1a659e64ff2a
                 InstanceId: b10d9ca7-8ffb-401a-ae73-b500c7257899
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: d3903eba-10c6-4a0d-b363-b308c21154c6
                 Name: Floor2x0x1 (2)
                 Components:
@@ -6413,7 +6415,6 @@ Hierarchy:
                         Scale: {X: 1.2, Y: 1.0, Z: 1.0}
                         Children:
                             983c7b3bf13aac40829f8af4045b77c1: ref!! 7988520f-c408-47ff-ae16-438719b2b21e
-            Folder: Complex
         -   Entity:
                 Id: d43c3708-5d2a-4376-b486-d82cef6a3779
                 Name: Wall0x2x5 (5)
@@ -6481,7 +6482,8 @@ Hierarchy:
                 BasePartAsset: 3724e4ed-4cb5-447d-a3ea-86ee8bfec3e5:BlocksPrefabs/Floor2x0x1
                 BasePartId: b7b381ac-aac8-4c5b-8eba-7aabe138ee6f
                 InstanceId: c6f2c938-8957-416f-8b62-ef2f939bba98
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: d61da8f7-a54e-4e0c-b5c1-07241aa9e7ce
                 Name: Table2x2x2 (4)
                 Components:
@@ -6492,8 +6494,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             fdb3d891ad817d45bc9c9a293736f0e1: ref!! b7592626-36e4-48cc-b3ac-634793c440f3
-            Folder: Platform
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: d6ad96b7-a066-451c-b6a5-03f5e8038384
                 Name: Ramp1x1_2x2 (4)
                 Components:
@@ -6504,7 +6506,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             cfce75d38d66e24fae426d1f40aa4f8a: ref!! 6afc8d63-007e-45e0-b5f7-a6bad87a027a
-            Folder: Platform
         -   Entity:
                 Id: d7c1cd9f-e263-4e5e-a74c-8dba331c08a5
                 Name: Wall0x2x5
@@ -6516,7 +6517,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 9dabfe81-649b-4717-82c0-860ee429870a
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: d88222a4-d9b5-4497-ada4-3ef3a0264f72
                 Name: Pillar0x5x0 (2)
                 Components:
@@ -6527,7 +6529,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 0.8, Z: 1.0}
                         Children:
                             e96f0faea3329947a94aed18021d4112: ref!! cc15f502-7390-45d6-90f9-ecc9fd6a4d3d
-            Folder: Platform
         -   Entity:
                 Id: d9fc44f1-c7bb-4ecb-a236-b760855f2646
                 Name: Wall0x2x5 (3)
@@ -6573,7 +6574,8 @@ Hierarchy:
                 BasePartAsset: b459d7d8-b0db-4862-8579-6a511f4a9fe5:BlocksPrefabs/Wall0x2x5
                 BasePartId: fbdff817-df62-4a56-83f8-19a9d12589b8
                 InstanceId: 79981df1-503a-453c-9158-01352008bbe2
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: e03076e0-8d95-4b05-89b7-583c07f80f9d
                 Name: Pillar0x5x0 (5)
                 Components:
@@ -6584,8 +6586,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 0.2, Z: 1.0}
                         Children:
                             e96f0faea3329947a94aed18021d4112: ref!! 3f5ec6ee-a71c-462c-a91a-9f8bf6763dc5
-            Folder: Platform
-        -   Entity:
+        -   Folder: GlobalLights
+            Entity:
                 Id: e1d761e6-634d-4773-8d81-75dfc8e8b1c4
                 Name: Skybox
                 Components:
@@ -6604,8 +6606,8 @@ Hierarchy:
                         Id: 9f228b57-0a04-437b-a78c-3f3a93f80d26
                         Texture: 07f970d2-3e30-47e4-87f6-4c265052a733:Skybox Texture
                         Intensity: 3.0
-            Folder: GlobalLights
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: e21d03c7-0a0e-4a4f-b1d8-4c56eb866706
                 Name: Gate1x2x1
                 Components:
@@ -6616,7 +6618,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             b26400b92086774ea0d1243b9d099112: ref!! b90064b2-8620-4e77-a0d1-243b9d099112
-            Folder: Complex
         -   Entity:
                 Id: e3623e08-f05a-4b7b-8dca-bd6953748a46
                 Name: Wall0x2x5Window
@@ -6759,7 +6760,8 @@ Hierarchy:
                 BasePartAsset: 38c97eef-f5cc-4eda-b18c-fbbf3d71a505:BlocksPrefabs/Wall0x2x5Window
                 BasePartId: 2afada92-6bdd-43d2-9806-ce0629937081
                 InstanceId: 3d99abc7-5a9a-46e3-b6c3-172193da3a2e
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: e719834e-b69b-4ffc-8e49-ed7f10d9da6d
                 Name: Pillar0x5x0 (6)
                 Components:
@@ -6770,8 +6772,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             e96f0faea3329947a94aed18021d4112: ref!! fe3d6ac3-0798-45eb-b42a-5a00b6b0bc73
-            Folder: Platform
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: e7333388-1c34-4faa-8464-8215dc13712b
                 Name: Box3x1x1 (5)
                 Components:
@@ -6782,8 +6784,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 175628b0-75ac-4118-9eb0-18f7f003cebc
-            Folder: Complex
-        -   Entity:
+        -   Folder: Platform
+            Entity:
                 Id: e81d324b-017d-4f74-9521-c63e2e0dbea9
                 Name: Wall_West
                 Components:
@@ -6822,7 +6824,6 @@ Hierarchy:
                             ad408a5e6cdf86458308b7ea95beb969: !StaticPlaneColliderShapeDesc
                                 Normal: {X: 1.0, Y: 0.0, Z: 0.0}
                                 Offset: 0.0
-            Folder: Platform
         -   Entity:
                 Id: e98cb0b8-2cd5-4b03-b25d-6a9fbed23516
                 Name: Wall0x2x5Window (3)
@@ -6876,7 +6877,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 78c16e68-2379-4793-9511-c22f96f43c07
-        -   Entity:
+        -   Folder: Complex
+            Entity:
                 Id: efb97a37-10f1-49c7-8354-8273cba19f53
                 Name: Box3x1x1 (4)
                 Components:
@@ -6887,8 +6889,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             a2d6ca1adcf6ec41a4c7d29eb46ea480: ref!! 27d9f007-2d0d-4b44-afa3-6e93a5780b3f
-            Folder: Complex
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: f0c6fb81-17db-48c7-b05a-ecec414ba17e
                 Name: GridBase10x10 (15)
                 Components:
@@ -6899,7 +6901,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 76c0369c-3365-497f-ae28-32e89ec8fc38
-            Folder: Platform/Grid
         -   Entity:
                 Id: f2f619b0-2cfb-4423-94dd-c02b0ca0862b
                 Name: Wall0x2x5
@@ -6945,7 +6946,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             c444819e77a60441a6144bd7bd8a4a23: ref!! 3acee23d-6c6e-42f6-8184-fcfe04bd6cfa
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: f5b98748-d372-4371-bfb9-3976bc5ec0bb
                 Name: GridBase10x10 (12)
                 Components:
@@ -6956,7 +6958,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 2c45f544-b829-42ba-9101-921947ff5925
-            Folder: Platform/Grid
         -   Entity:
                 Id: f679c58b-53a4-4fbe-b70a-a5c6d143b53e
                 Name: Wall0x2x5 (6)
@@ -7013,7 +7014,8 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             db07bec9b88cb84e9f8d6d3511eb10f2: ref!! 3330fc48-53d5-4c33-b745-e74a8e1a616c
-        -   Entity:
+        -   Folder: Platform/Grid
+            Entity:
                 Id: f74b7b21-8928-4702-be11-947da30fd86d
                 Name: GridBase10x10 (5)
                 Components:
@@ -7024,7 +7026,6 @@ Hierarchy:
                         Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                         Children:
                             4eecb3c27affe3478bcc584553d59e41: ref!! 14f24d43-de78-4ec9-be52-72ebb9175e18
-            Folder: Platform/Grid
         -   Entity:
                 Id: f7ed78ec-c4b2-47b1-ac84-42ee5944ca01
                 Name: Wall0x2x5Window (8)

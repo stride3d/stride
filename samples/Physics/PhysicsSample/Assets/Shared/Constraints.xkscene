@@ -28,6 +28,7 @@ Hierarchy:
                     0f4813fc39653b43aa7822620da5b9dd: !BackgroundComponent
                         Id: fc13480f-6539-433b-aa78-22620da5b9dd
                         Texture: d46cb653-bbdb-4b7b-9449-37beb6774cfd:Materials/XenkoBackground
+                        Is2D: true
         -   Entity:
                 Id: 70f2e3d6-2d8d-4cc5-aa99-1b9cae14aed2
                 Name: sphere
@@ -113,6 +114,7 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters: {}
                         Intensity: 0.75
         -   Entity:

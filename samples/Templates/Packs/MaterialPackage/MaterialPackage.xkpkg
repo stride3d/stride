@@ -8,7 +8,7 @@ Meta:
     Owners: []
     Dependencies:
         -   Name: Xenko
-            Version: 2.1.0.2
+            Version: 3.0.0.1-dev
             RootAssets: []
 LocalDependencies: []
 Profiles:
@@ -17,6 +17,7 @@ Profiles:
         InheritProfiles: []
         AssetFolders:
             -   Path: Assets/Shared
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences: []
 ExplicitFolders: []

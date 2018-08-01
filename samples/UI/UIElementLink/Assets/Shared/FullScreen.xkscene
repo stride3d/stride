@@ -25,6 +25,7 @@ Hierarchy:
                     b155210323b4b54db4cd4538259e1123: !BackgroundComponent
                         Id: 032155b1-b423-4db5-b4cd-4538259e1123
                         Texture: 16a0b153-2f28-481b-a88d-732348e47464:XenkoBackground
+                        Is2D: true
         -   Entity:
                 Id: 57b67568-c112-44f5-8d1a-589ca71f1900
                 Name: FollowingEntity
@@ -62,6 +63,7 @@ Hierarchy:
                                 Size: Large
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
+                                ComputeTransmittance: false
                                 BiasParameters: {}
         -   Entity:
                 Id: 820d34a8-2971-4381-abfa-2965d94ec672
@@ -136,13 +138,13 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
+                                            DisplayParticlePosition: false
+                                            DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: true
-                                            DisplayParticleRotation: false
-                                            DisplayParticlePosition: false
                                             RandomSize: {X: 2.0, Y: 2.5}
                                         6278670e1293b540b6469b6c3168e8b2: !InitialPositionSeed
                                             InheritPosition: true
@@ -150,8 +152,8 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
+                                            Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             SeedOffset: 0
                                             DisplayParticlePosition: false
                                             DisplayParticleRotation: true
@@ -169,10 +171,10 @@ Hierarchy:
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
                                             SeedOffset: 0
+                                            DisplayParticlePosition: false
                                             DisplayParticleRotation: true
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: true
-                                            DisplayParticlePosition: false
                                             VelocityMin: {X: -0.5, Y: 0.5, Z: -0.5}
                                             VelocityMax: {X: 0.5, Y: 1.0, Z: 0.5}
                                         55610940c73b8b44bf39f81bcddf5d90: !InitialRotationSeed
@@ -181,13 +183,13 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
+                                            ScaleUniform: 1.0
                                             SeedOffset: 0
+                                            DisplayParticlePosition: false
+                                            DisplayParticleRotation: false
                                             DisplayParticleScale: false
                                             DisplayParticleScaleUniform: false
-                                            DisplayParticleRotation: false
-                                            DisplayParticlePosition: false
                                             AngularRotation: {X: 0.0, Y: 360.0}
                                     Updaters: {}
         -   Entity:

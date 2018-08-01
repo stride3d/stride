@@ -14,7 +14,8 @@ Hierarchy:
         - ref!! db1f9064-d762-4f9c-9da4-87f504c93c0d
         - ref!! 8cd36697-7ac0-4c57-8178-2f4cf637858f
     Parts:
-        -   Entity:
+        -   Folder: null
+            Entity:
                 Id: 0ac483ab-e1ba-43ef-a771-eaf3793c53ed
                 Name: GridBase10x10
                 Components:
@@ -44,8 +45,8 @@ Hierarchy:
                                 Size: {X: 10.0, Y: 0.3, Z: 10.0}
                                 LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-            Folder: null
-        -   Entity:
+        -   Folder: null
+            Entity:
                 Id: 33896c07-d1d1-4de1-8e08-a2212517849e
                 Name: GridBase10x10
                 Components:
@@ -75,7 +76,6 @@ Hierarchy:
                                 Size: {X: 10.0, Y: 0.3, Z: 10.0}
                                 LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-            Folder: null
         -   Entity:
                 Id: 45846131-e78e-4ee5-8514-747435af6449
                 Name: LootBox
@@ -163,7 +163,8 @@ Hierarchy:
                     ea2defb251ff4de039f3a6aadca6ba04: !Xenko.Navigation.NavigationBoundingBoxComponent,Xenko.Navigation
                         Id: f5e09967-c6d6-44d1-b366-ccee4b63b41d
                         Size: {X: 12.0, Y: 4.0, Z: 12.0}
-        -   Entity:
+        -   Folder: null
+            Entity:
                 Id: b06f6134-7aca-4f98-87e4-e687b74522ce
                 Name: GridBase10x10
                 Components:
@@ -193,7 +194,6 @@ Hierarchy:
                                 Size: {X: 10.0, Y: 0.3, Z: 10.0}
                                 LocalOffset: {X: 0.0, Y: -0.15, Z: 0.0}
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
-            Folder: null
         -   Entity:
                 Id: c3a97553-aa14-4557-bcae-4b467151c6c1
                 Name: CollisionWall

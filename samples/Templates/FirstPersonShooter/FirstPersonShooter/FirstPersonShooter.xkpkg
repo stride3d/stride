@@ -9,7 +9,7 @@ Meta:
     RootNamespace: FirstPersonShooter
     Dependencies:
         -   Name: Xenko
-            Version: 2.1.0.2
+            Version: 3.0.0.1-dev
             RootAssets: []
 LocalDependencies:
     - 575b8dc7-3fad-497d-acf7-fbdfabcece80:../../Packs/VFXPackage/VFXPackage.xkpkg
@@ -23,6 +23,7 @@ Profiles:
         AssetFolders:
             -   Path: Assets/Shared
             -   Path: FirstPersonShooter.Game/Effects
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: a2f50f1f-af89-4264-8327-20be994592d7
@@ -33,6 +34,7 @@ Profiles:
         InheritProfiles: []
         AssetFolders:
             -   Path: Assets/Windows
+        ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences:
             -   Id: 152d59a3-17bf-4a67-abff-b2f6fb2b7dfa

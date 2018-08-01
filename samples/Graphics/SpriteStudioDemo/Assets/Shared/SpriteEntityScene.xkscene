@@ -44,6 +44,7 @@ Hierarchy:
                     e8ffae4e25d2274389df6813f39119d2: !BackgroundComponent
                         Id: 4eaeffe8-d225-4327-89df-6813f39119d2
                         Texture: 4b0f48d8-839e-4c71-8ca5-fc72e88cb68a:Bkg
+                        Is2D: true
         -   Entity:
                 Id: 590ac468-5d53-43d9-81a6-2d43c1c06bc5
                 Name: Enemy02

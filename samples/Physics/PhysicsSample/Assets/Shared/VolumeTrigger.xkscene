@@ -31,6 +31,7 @@ Hierarchy:
                     a8446366ab67a941acea5fc2f72b71b9: !BackgroundComponent
                         Id: 666344a8-67ab-41a9-acea-5fc2f72b71b9
                         Texture: d46cb653-bbdb-4b7b-9449-37beb6774cfd:Materials/XenkoBackground
+                        Is2D: true
         -   Entity:
                 Id: 23416913-f5f1-4f4f-a2e5-d011424ce905
                 Name: KinematicCrate (7)

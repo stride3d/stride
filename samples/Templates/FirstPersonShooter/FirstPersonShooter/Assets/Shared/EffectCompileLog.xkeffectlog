@@ -378,7 +378,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -466,7 +466,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -724,7 +724,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -806,7 +806,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -1086,7 +1086,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -1513,7 +1513,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -1826,7 +1826,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -1957,7 +1957,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -2094,7 +2094,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -2365,7 +2365,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -2699,7 +2699,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -2821,7 +2821,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -3046,7 +3046,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -3128,7 +3128,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -3239,7 +3239,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -3430,7 +3430,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -3516,7 +3516,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -3665,7 +3665,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -4192,7 +4192,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -4318,7 +4318,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -4450,7 +4450,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -4536,7 +4536,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -4631,7 +4631,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -4726,7 +4726,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -4753,7 +4753,7 @@ UsedParameters:
                 Definition: 1
 ---
 !EffectCompileRequest
-EffectName: SkyboxShader
+EffectName: SkyboxShaderCubemap
 UsedParameters: {}
 ---
 !EffectCompileRequest
@@ -4919,7 +4919,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
@@ -5020,7 +5020,7 @@ UsedParameters:
                 -   ClassName: LightDirectionalGroup
                     GenericArguments: [1]
                 -   ClassName: ShadowMapReceiverDirectional
-                    GenericArguments: [4, 1, true, true, false]
+                    GenericArguments: [4, 1, true, true, false, false]
                 -   ClassName: ShadowMapFilterPcf
                     GenericArguments: [PerView.Lighting, 5]
         - !ShaderClassSource
