@@ -85,26 +85,27 @@ namespace Xenko.Core.Tasks
                 var headCommitSha = repo.Head.Commits.FirstOrDefault()?.Sha;
 
                 // Patch NuGetVersion
-                if (!string.IsNullOrEmpty(SpecialVersion) || SpecialVersionGitHeight || SpecialVersionGitCommit)
+                var versionSuffix = SpecialVersion ?? string.Empty;
+                if (SpecialVersionGitHeight)
                 {
-                    var versionSuffix = SpecialVersion ?? string.Empty;
-                    if (SpecialVersionGitHeight)
-                    {
-                        // Compute version based on Git info
-                        var xenkoPackageFileName = Path.GetFileName(PackageFile.ItemSpec);
-                        var height = Nerdbank.GitVersioning.GitExtensions.GetVersionHeight(repo, xenkoPackageFileName);
-                        versionSuffix += height.ToString("D5");
-                    }
-                    if (SpecialVersionGitCommit && headCommitSha != null)
-                    {
-                        if (versionSuffix.Length > 0)
-                            versionSuffix += "-";
-                        versionSuffix += "g" + headCommitSha.Substring(0, 8);
-                    }
-
-                    // Replace NuGetVersionSuffix
-                    versionFileData = Regex.Replace(versionFileData, "NuGetVersionSuffix = (.*);", $"NuGetVersionSuffix = \"-{versionSuffix}\";");
+                    // Compute version based on Git info
+                    var xenkoPackageFileName = Path.GetFileName(PackageFile.ItemSpec);
+                    var height = Nerdbank.GitVersioning.GitExtensions.GetVersionHeight(repo, xenkoPackageFileName);
+                    versionSuffix += height.ToString("D5");
                 }
+                if (SpecialVersionGitCommit && headCommitSha != null)
+                {
+                    if (versionSuffix.Length > 0)
+                        versionSuffix += "-";
+                    versionSuffix += "g" + headCommitSha.Substring(0, 8);
+                }
+
+                // Prefix with dash (if non empty)
+                if (versionSuffix.Length > 0)
+                    versionSuffix = "-" + versionSuffix;
+
+                // Replace NuGetVersionSuffix
+                versionFileData = Regex.Replace(versionFileData, "NuGetVersionSuffix = (.*);", $"NuGetVersionSuffix = \"{versionSuffix}\";");
 
                 var assemblyInformationalSuffix = "NuGetVersionSuffix";
 
@@ -119,6 +120,12 @@ namespace Xenko.Core.Tasks
 
                 // Write back new file
                 File.WriteAllText(GeneratedVersionFile.ItemSpec, versionFileData);
+
+                // Also patch .xkpkg (necessary when compiling editor shaders)
+                // TODO: Find a better way to override this without overwriting file during builds
+                var packageFileContent = File.ReadAllText(PackageFile.ItemSpec);
+                packageFileContent = Regex.Replace(packageFileContent, "^    Version: (.*)$", $"    Version: {XenkoVersion.NuGetVersionSimple + versionSuffix}", RegexOptions.Multiline);
+                File.WriteAllText(PackageFile.ItemSpec, packageFileContent);
 
                 return true;
             }
