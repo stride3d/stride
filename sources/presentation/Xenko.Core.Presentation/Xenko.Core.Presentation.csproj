@@ -2,7 +2,7 @@
 
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-  
+
   <PropertyGroup>
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
@@ -11,6 +11,10 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\..\build\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\VectorResources.xaml" />
+  </ItemGroup>
 
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
@@ -31,6 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Include="Resources\VectorResources.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Themes\ExpressionDark\Theme.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
