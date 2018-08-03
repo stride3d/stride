@@ -101,6 +101,12 @@ namespace Xenko.Starter
             isRunning = false;
         }
         
+        /// <summary>
+        /// When implementing full page or interstitial ads such as google admob a black screen appears on any iOS device after the ad is loaded.
+        /// This is a known problem with OpenTK-1.1 when the game is abound to be placed into suspended mode
+        /// and the solution is to override WillMoveToWindow and only invoke it when the window object is defined.
+        /// </summary>
+        /// <param name="window"></param>
         public override void WillMoveToWindow(UIWindow window)
         {
             if (window != null)
