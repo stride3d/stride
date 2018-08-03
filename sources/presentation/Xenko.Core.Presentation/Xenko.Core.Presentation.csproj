@@ -13,10 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\VectorResources.xaml" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <PackageReference Include="Microsoft.Windows.Shell" Version="3.0.1" />
     <Reference Include="PresentationCore" />

@@ -22,6 +22,7 @@
                     mc:Ignorable="d">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="../generic.xaml"/>
+    <ResourceDictionary Source="pack://application:,,,/Xenko.Core.Presentation;component/Resources/VectorResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
   <!-- Main Colors -->
@@ -37,7 +38,7 @@
   <Color x:Key="BlackColor">#FF000000</Color>
   <Color x:Key="WhiteColor">#FFFFFFFF</Color>
 
-  <SolidColorBrush x:Key="BackgroundBrush" Color="#FF434343"/>
+  <SolidColorBrush x:Key="BackgroundBrush" Color="#FF2D2D30"/>
   <SolidColorBrush x:Key="TextBrush" Color="#FFE0E0E0" />
   <SolidColorBrush x:Key="HyperlinkBrush" Color="#FF00A0FF" />
   <SolidColorBrush x:Key="NormalBrush" Color="#FF595959" />
@@ -173,19 +174,19 @@
               <DockPanel>
                 <DockPanel x:Name="TitleBar" DockPanel.Dock="Top" VerticalAlignment="Top" WindowChrome.IsHitTestVisibleInChrome="False"
                            Height="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(WindowChrome.WindowChrome).ResizeBorderThickness}">
-                  <Button Content="{me:Image {StaticResource ImageCloseWindow}, 16, 16, NearestNeighbor}" Width="28" Height="28" Background="Transparent" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.CloseWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button Content="{me:Image {StaticResource ImageMaximizeWindow}, 16, 16, NearestNeighbor}" Width="28" Height="28" Background="Transparent" x:Name="MaximizeButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.MaximizeWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button Content="{me:Image {StaticResource ImageRestoreWindow}, 16, 16, NearestNeighbor}" Width="28" Height="28" Background="Transparent" x:Name="RestoreButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.RestoreWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button Content="{me:Image {StaticResource ImageMinimizeWindow}, 16, 16, NearestNeighbor}" Width="28" Height="28" Background="Transparent" x:Name="MinimizeButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.MinimizeWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button DockPanel.Dock="Left" Margin="4,0" Padding="0" Background="Transparent" Width="28" Height="28" VerticalAlignment="Center" VerticalContentAlignment="Center" Command="{x:Static cmd:SystemCommands.ShowSystemMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True">
+                  <Button Content="{StaticResource VectorCloseWindow}" Padding="7" Width="30" Height="25" Background="Transparent" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.CloseWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                  <Button Content="{StaticResource VectorMaximizeWindow}" Padding="7" Width="30" Height="25" Background="Transparent" x:Name="MaximizeButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.MaximizeWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                  <Button Content="{StaticResource VectorRestoreWindow}" Padding="7" Width="30" Height="25" Background="Transparent" x:Name="RestoreButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.RestoreWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                  <Button Content="{StaticResource VectorMinimizeWindow}" Padding="7" Width="30" Height="25" Background="Transparent" x:Name="MinimizeButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.MinimizeWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                  <Button DockPanel.Dock="Left" Margin="4,0" Padding="0" Background="Transparent" Width="28" Height="25" VerticalAlignment="Center" VerticalContentAlignment="Center" Command="{x:Static cmd:SystemCommands.ShowSystemMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True">
                     <Button.Template>
                       <ControlTemplate TargetType="Button">
                         <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"/>
                       </ControlTemplate>
                     </Button.Template>
-                    <Image Source="{DynamicResource EditorIcon}" Width="22" Opacity="0.5"/>
+                    <ContentControl Content="{StaticResource VectorEditorIcon}" UseLayoutRounding="True" Width="22" Opacity="0.5"/>
                   </Button>
-                  <TextBlock VerticalAlignment="Center" Text="{TemplateBinding Title}" Margin="0,4" FontSize="14"/>
+                  <TextBlock VerticalAlignment="Center" Text="{TemplateBinding Title}" Margin="0,4" FontSize="13"/>
                 </DockPanel>
                 <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
                   <AdornerDecorator>
@@ -238,23 +239,23 @@
         <DataTemplate>
           <DockPanel LastChildFill="True" Margin="10">
             <!--  BUTTONS  -->
-              <ItemsControl x:Name="ButtonItemsControl" Margin="10,10,10,0" HorizontalAlignment="Right" DockPanel.Dock="Bottom"
+            <ItemsControl x:Name="ButtonItemsControl" Margin="10,10,10,0" HorizontalAlignment="Right" DockPanel.Dock="Bottom"
                             ItemsSource="{Binding ButtonsSource, RelativeSource={RelativeSource AncestorType={x:Type wnd:MessageDialogBase}}}">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <UniformGrid IsItemsHost="True" Rows="1" />
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <ItemContainerTemplate DataType="{x:Type wnd:DialogButtonInfo}">
-                    <Button d:DataContext="{d:DesignInstance wnd:DialogButtonInfo}"
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <UniformGrid IsItemsHost="True" Rows="1" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <ItemContainerTemplate DataType="{x:Type wnd:DialogButtonInfo}">
+                  <Button d:DataContext="{d:DesignInstance wnd:DialogButtonInfo}"
                             Margin="5,0" Padding="20,6" MinWidth="80"
                             Command="{Binding ButtonCommand, RelativeSource={RelativeSource AncestorType={x:Type wnd:MessageDialogBase}}}"
                             CommandParameter="{Binding Result}"
                             Content="{Binding Content}" IsCancel="{Binding IsCancel}" IsDefault="{Binding IsDefault}" />
-                  </ItemContainerTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+                </ItemContainerTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
             <!--  CONTENT  -->
             <ContentPresenter Content="{Binding}"
                               ContentTemplate="{Binding MessageTemplate, RelativeSource={RelativeSource AncestorType={x:Type wnd:MessageDialogBase}}}"
@@ -517,7 +518,6 @@
       </Setter.Value>
     </Setter>
   </Style>
-
 
   <Style TargetType="{x:Type ctrl:ColorPicker}">
     <Setter Property="Focusable" Value="False"/>
@@ -1929,7 +1929,8 @@
           <TextBlock Text="{Binding Mode=OneTime}" IsHitTestVisible="False" FontStyle="Italic" Foreground="Gray"/>
         </DataTemplate>
       </Setter.Value>
-    </Setter>    <Setter Property="interactivity:Interaction.Behaviors">
+    </Setter>
+    <Setter Property="interactivity:Interaction.Behaviors">
       <Setter.Value>
         <interactivity:BehaviorCollection>
           <behaviors:NumericTextBoxDragBehavior UsePreviewEvents="True" DragCursor="/Xenko.Core.Presentation;component/Resources/Cursors/CursorDrag.cur" />
@@ -2046,7 +2047,6 @@
             </Border>
             <Border x:Name="HoverBorder" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource GlyphBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" />
             <Border x:Name="FocusVisualElement" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource HoverShineBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" />
-
 
           </Grid>
           <ControlTemplate.Triggers>
@@ -4171,7 +4171,7 @@
                 <ctrl:NumericTextBox Value="{Binding Y, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}"
                                      DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Center"
                                      WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
-                                     WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>/>
+                                     WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/> />
               </DockPanel>
             </Border>
             <Border Grid.Column="5" CornerRadius="4" Margin="2,0,0,0" Background="{StaticResource BlueBrush}" BorderThickness="1" BorderBrush="Transparent">
@@ -4640,7 +4640,7 @@
                                 VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
                                 Background="{TemplateBinding Panel.Background}"
                                 Padding="{TemplateBinding Control.Padding}"
-                                SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" 
+                                SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}"
                                 Focusable="False">
               <ItemsPresenter x:Name="content" DockPanel.Dock="Top" />
             </ScrollViewer>
@@ -4696,7 +4696,7 @@
               <Rectangle x:Name="SelectedRectangle" IsHitTestVisible="False" Opacity="0" Fill="{StaticResource SelectedBackgroundBrush}"/>
               <DockPanel x:Name="ct" Margin="{TemplateBinding Padding}">
                 <FrameworkElement DockPanel.Dock="Left" Margin="{Binding Offset, RelativeSource={RelativeSource TemplatedParent}, Converter={cvt:NumericToThickness}, ConverterParameter={me:Thickness 1,0,0,0}}"/>
-                <ToggleButton DockPanel.Dock="Left" 
+                <ToggleButton DockPanel.Dock="Left"
                                     IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type ctrl:TreeViewItem}},Path=IsExpanded,FallbackValue={me:False}}"
                                     Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type ctrl:TreeViewItem}},Path=HasItems, Converter={cvt:VisibleOrHidden},FallbackValue={me:Hidden}}"
                                     ClickMode="Press" Name="Expander" HorizontalAlignment="Right">
@@ -4714,7 +4714,7 @@
                   </ToggleButton.Style>
                 </ToggleButton>
                 <ContentPresenter x:Name="content"
-                                  FocusManager.IsFocusScope="True" 
+                                  FocusManager.IsFocusScope="True"
                                   Content="{TemplateBinding HeaderedContentControl.Header}"
                                   ContentTemplate="{TemplateBinding HeaderedContentControl.HeaderTemplate}"
                                   ContentStringFormat="{TemplateBinding HeaderedItemsControl.HeaderStringFormat}"
@@ -4751,9 +4751,9 @@
             </Trigger>
 
             <Trigger Property="ctrl:TreeViewItem.IsEditing" Value="True">
-              <Setter TargetName="content" Property="ContentPresenter.ContentTemplate" 
+              <Setter TargetName="content" Property="ContentPresenter.ContentTemplate"
                       Value="{Binding TemplateEdit, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ctrl:TreeViewItem}, AncestorLevel=1}}"/>
-              <Setter TargetName="content" Property="ContentPresenter.ContentTemplateSelector" 
+              <Setter TargetName="content" Property="ContentPresenter.ContentTemplateSelector"
                       Value="{Binding TemplateSelectorEdit, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ctrl:TreeViewItem}, AncestorLevel=1}}"/>
               <Setter Property="Padding" Value="0" />
             </Trigger>

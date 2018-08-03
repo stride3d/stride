@@ -35,7 +35,7 @@
               <DrawingGroup.Children>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
                 <GeometryDrawing Brush="#F0EFF1" Geometry="F1M14,13L2,13 2,5 14,5z M1,14L15,14 15,2 1,2z" />
-                <GeometryDrawing Brush="#434343" Geometry="F1M14,13L2,13 2,5 14,5z" />
+                <GeometryDrawing Brush="#2D2D30" Geometry="F1M14,13L2,13 2,5 14,5z" />
               </DrawingGroup.Children>
             </DrawingGroup>
           </DrawingBrush.Drawing>
