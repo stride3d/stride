@@ -100,6 +100,12 @@ namespace Xenko.Starter
 
             isRunning = false;
         }
+        
+        public override void WillMoveToWindow(UIWindow window)
+        {
+            if (window != null)
+                base.WillMoveToWindow (window);
+        }
 
         [Export("drawFrame")]
         void DrawFrame()
