@@ -10,29 +10,16 @@
 
       <BitmapImage x:Key="EditorIcon" UriSource="Resources/EditorIcon.png" />
 
-      <Viewbox x:Key="VectorEditorIcon">
-        <Viewbox.Resources>
-          <Rectangle x:Key="HalfXen" RenderTransformOrigin="0.5,0.5">
-            <Rectangle.RenderTransform>
-              <TransformGroup>
-                <ScaleTransform ScaleX="1" ScaleY="0.7" />
-              </TransformGroup>
-            </Rectangle.RenderTransform>
-            <Rectangle.Fill>
-              <DrawingBrush>
-                <DrawingBrush.Drawing>
-                  <DrawingGroup>
-                    <GeometryDrawing Brush="#C7C7C7" Geometry="F1 M0,6.5 L 1.5,6.5 3,4.5 6,4.5 7.5,6.5 9,6.5 7,3.5 2,3.5z M0,0 L 1.5,0 3,2 6,2 7.5,0 9,0 7,3 2,3z " />
-                  </DrawingGroup>
-                </DrawingBrush.Drawing>
-              </DrawingBrush>
-            </Rectangle.Fill>
-          </Rectangle>
-        </Viewbox.Resources>
-        <Canvas Width="16" Height="16">
-          <ContentControl Height="16" Width="16" Content="{StaticResource HalfXen}" />
-        </Canvas>
-      </Viewbox>
+      <DrawingImage x:Key="VectorEditorIcon">
+        <DrawingImage.Drawing>
+          <DrawingGroup>
+            <DrawingGroup.Transform>
+              <ScaleTransform ScaleX="1" ScaleY="0.9" />
+            </DrawingGroup.Transform>
+            <GeometryDrawing Brush="#C7C7C7" Geometry="F1 M0,6.5 L 1.5,6.5 3,4.5 6,4.5 7.5,6.5 9,6.5 7,3.5 2,3.5z M0,0 L 1.5,0 3,2 6,2 7.5,0 9,0 7,3 2,3z " />
+          </DrawingGroup>
+        </DrawingImage.Drawing>
+      </DrawingImage>
 
     </ResourceDictionary>
   </Application.Resources>

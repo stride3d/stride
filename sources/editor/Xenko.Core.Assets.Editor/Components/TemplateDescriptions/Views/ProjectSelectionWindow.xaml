@@ -23,7 +23,7 @@
         <DockPanel DockPanel.Dock="Bottom" Margin="20">
           <Button DockPanel.Dock="Left" Content="{sskk:Localize Browse for existing project, Context=Button}" Command="{Binding BrowseForExistingProjectCommand}" Padding="20,6"/>
           <CheckBox IsChecked="{Binding AutoReloadSession}" Content="{sskk:Localize Reload last session automatically at startup, Context=Button}"
-                    VerticalAlignment="Center" Margin="8"/>
+                    VerticalAlignment="Center" Margin="8" />
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <UniformGrid Rows="1">
               <Button Content="{sskk:Localize Select, Context=Button}" Padding="20,6" Margin="10,0,0,0"
@@ -70,7 +70,7 @@
           <TextBlock Grid.Row="1" Grid.Column="0" Text="{sskk:Localize Location:}" Margin="20,0" VerticalAlignment="Center"/>
           <DockPanel Grid.Row="1" Grid.Column="1">
             <Button Style="{StaticResource ImageButtonStyle}" DockPanel.Dock="Right" Command="{Binding BrowseDirectoryCommand}" CommandParameter="Location" ToolTip="{sskk:Localize Browse directory, Context=ToolTip}">
-              <Image Source="{StaticResource ImageBrowse}" Width="16" Height="16" Margin="-1"/>
+              <Image Source="{StaticResource VectorOpenFolder}" Width="16" Height="16" Margin="-1"/>
             </Button>
             <sskk:TextBox Margin="2" sskk:Trimming.TextTrimming="WordEllipsis" sskk:Trimming.TrimmingSource="Middle" sskk:Trimming.WordSeparators="/\\"
                           Text="{Binding Location, Converter={sskk:UDirectoryToString}}">
@@ -89,7 +89,7 @@
           <TextBlock Grid.Row="3" Grid.Column="0" Text="{sskk:Localize Solution location:}" Margin="20,0" VerticalAlignment="Center"/>
           <DockPanel Grid.Row="3" Grid.Column="1">
             <Button Style="{StaticResource ImageButtonStyle}" DockPanel.Dock="Right" Command="{Binding BrowseDirectoryCommand}" CommandParameter="SolutionLocation" ToolTip="Browse directory">
-              <Image Source="{StaticResource ImageBrowse}" Width="16" Height="16" Margin="-1"/>
+              <Image Source="{StaticResource VectorOpenFolder}" Width="16" Height="16" Margin="-1"/>
             </Button>
             <sskk:TextBox Margin="2" WatermarkContent="{sskk:Localize (Same location)}" sskk:Trimming.TextTrimming="WordEllipsis" sskk:Trimming.TrimmingSource="Middle" sskk:Trimming.WordSeparators="/\\"
                           Text="{Binding SolutionLocation, Converter={sskk:UDirectoryToString}}">
