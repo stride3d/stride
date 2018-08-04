@@ -15,6 +15,5 @@ namespace Xenko.Rendering.Lights
         void UpdateLightCount(int lightLastCount, int lightCurrentCount);
         void ApplyDrawParameters(RenderDrawContext context, ParameterCollection parameters, FastListStruct<LightDynamicEntry> currentLights, ref BoundingBoxExt boundingBox);
         void Collect(RenderContext context, RenderView sourceView, int lightIndex, LightComponent lightComponent); // TODO: Inspect "context" and "sourceView".
-
     }
 }
