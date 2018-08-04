@@ -8,7 +8,7 @@ using Xenko.Shaders;
 
 namespace Xenko.Rendering.Lights
 {
-    public interface ITextureProjectionShaderGroupData // TODO: Move to separate file! // UPD 04.08.18 - moved.
+    public interface ITextureProjectionShaderGroupData
     {
         void ApplyShader(ShaderMixinSource mixin);
         void UpdateLayout(string compositionName);

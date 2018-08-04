@@ -168,16 +168,16 @@ namespace Xenko.Rendering.Lights
 
             public static ResultStruct GetResultStruct(ref LightSpotTextureProjectionShaderData[] lightSpotTextureProjectionShaderDatas)
             {
-                var zx = new ResultStruct(lightSpotTextureProjectionShaderDatas.Length);
+                var result = new ResultStruct(lightSpotTextureProjectionShaderDatas.Length);
                 for (var i = 0; i < lightSpotTextureProjectionShaderDatas.Length; i++)
                 {
-                    zx.WorldToTextureUV[i] = lightSpotTextureProjectionShaderDatas[i].WorldToTextureUV;
-                    zx.ProjectorPlaneMatrices[i] = lightSpotTextureProjectionShaderDatas[i].ProjectorPlaneMatric;
-                    zx.ProjectionTextureMipMapLevels[i] = lightSpotTextureProjectionShaderDatas[i].ProjectiveTextureMipMapLevel;
-                    zx.TransitionAreas[i] = lightSpotTextureProjectionShaderDatas[i].TransitionArea;
+                    result.WorldToTextureUV[i] = lightSpotTextureProjectionShaderDatas[i].WorldToTextureUV;
+                    result.ProjectorPlaneMatrices[i] = lightSpotTextureProjectionShaderDatas[i].ProjectorPlaneMatric;
+                    result.ProjectionTextureMipMapLevels[i] = lightSpotTextureProjectionShaderDatas[i].ProjectiveTextureMipMapLevel;
+                    result.TransitionAreas[i] = lightSpotTextureProjectionShaderDatas[i].TransitionArea;
                 }
 
-                return zx;
+                return result;
             }
 
             internal float ProjectiveTextureMipMapLevel;
@@ -202,7 +202,7 @@ namespace Xenko.Rendering.Lights
             }
         }
 
-        private sealed class LightSpotTextureProjectionGroupShaderData : ITextureProjectionShaderGroupData   // TODO: Make private
+        private sealed class LightSpotTextureProjectionGroupShaderData : ITextureProjectionShaderGroupData
         {
             private const string ShaderNameBase = "TextureProjectionReceiverSpot";
             private const string ShaderNameAttenuation = "LightSpotAttenuationRectangular";
@@ -262,11 +262,8 @@ namespace Xenko.Rendering.Lights
 
             }
 
-            // TODO: This function is not being called anywhere. Find a way to integrate it and do the light attribute extraction here instead of within "ApplyDrawParameters()".
-            public void Collect(RenderContext context, RenderView sourceView, int lightIndex, LightComponent lightComponent)    // TODO: Remove the shadow map parameter.
+            public void Collect(RenderContext context, RenderView sourceView, int lightIndex, LightComponent lightComponent)
             {
-                // TODO(old): Move this to "Collect()" and use "LightSpotTextureProjectionShaderData", but IDK how!
-
                 var spotLight = (LightSpot)lightComponent.Type;
                 lightSpotTextureProjectionShaderData[lightIndex].WorldToTextureUV = ComputeWorldToTextureUVMatrix(lightComponent);
                 lightSpotTextureProjectionShaderData[lightIndex].ProjectorPlaneMatric = ComputeProjectorPlaneMatrix(lightComponent);
