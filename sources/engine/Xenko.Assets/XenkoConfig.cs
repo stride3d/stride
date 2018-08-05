@@ -111,7 +111,7 @@ namespace Xenko.Assets
                     //new SolutionPlatformTemplate("ProjectExecutable.UWP/CoreWindow/ProjectExecutable.UWP.ttproj", "Core Window"),
                     new SolutionPlatformTemplate("ProjectExecutable.UWP/Xaml/ProjectExecutable.UWP.ttproj", "Xaml")
                 },
-                IsAvailable = IsPackageAvailableAnyVersion(UniversalWindowsPlatformComponents),
+                IsAvailable = IsVSComponentAvailableAnyVersion(UniversalWindowsPlatformComponents),
                 UseWithExecutables = false,
                 IncludeInSolution = false,
             };
@@ -190,7 +190,7 @@ namespace Xenko.Assets
                 Name = PlatformType.Android.ToString(),
                 Type = PlatformType.Android,
                 TargetFramework = "monoandroid50",
-                IsAvailable = IsPackageAvailableAnyVersion(XamarinAndroidComponents)
+                IsAvailable = IsVSComponentAvailableAnyVersion(XamarinAndroidComponents)
             };
             androidPlatform.DefineConstants.Add("XENKO_PLATFORM_MONO_MOBILE");
             androidPlatform.DefineConstants.Add("XENKO_PLATFORM_ANDROID");
@@ -217,7 +217,7 @@ namespace Xenko.Assets
                 SolutionName = "iPhone", // For iOS, we need to use iPhone as a solution name
                 Type = PlatformType.iOS,
                 TargetFramework = "xamarinios10",
-                IsAvailable = IsPackageAvailableAnyVersion(XamariniOSComponents)
+                IsAvailable = IsVSComponentAvailableAnyVersion(XamariniOSComponents)
             };
             iphonePlatform.PlatformsPart.Add(new SolutionPlatformPart("iPhoneSimulator"));
             iphonePlatform.DefineConstants.Add("XENKO_PLATFORM_MONO_MOBILE");
@@ -275,15 +275,15 @@ namespace Xenko.Assets
         }
 
         /// <summary>
-        /// Checks if any of the provided package versions are available on this system
+        /// Checks if any of the provided component versions are available on this system
         /// </summary>
-        /// <param name="vsVersionToPackage">A dictionary of Visual Studio versions to their respective paths for a given package</param>
-        /// <returns>true if any of the packages in the dictionary are available, false otherwise</returns>
-        internal static bool IsPackageAvailableAnyVersion(IDictionary<Version, string> vsVersionToPackage)
+        /// <param name="vsVersionToComponent">A dictionary of Visual Studio versions to their respective paths for a given component</param>
+        /// <returns>true if any of the components in the dictionary are available, false otherwise</returns>
+        internal static bool IsVSComponentAvailableAnyVersion(IDictionary<Version, string> vsVersionToComponent)
         {
-            if (vsVersionToPackage == null) { throw new ArgumentNullException("vsVersionToPackage"); }
+            if (vsVersionToComponent == null) { throw new ArgumentNullException("vsVersionToComponent"); }
 
-            foreach (var pair in vsVersionToPackage)
+            foreach (var pair in vsVersionToComponent)
             {
                 if (pair.Key == VS2015Version)
                 {
@@ -300,18 +300,18 @@ namespace Xenko.Assets
         }
 
         /// <summary>
-        /// Check if a particular package set for this IDE version
+        /// Check if a particular component set for this IDE version
         /// </summary>
-        /// <param name="ideInfo">The IDE info to search for the packages</param>
-        /// <param name="vsVersionToPackage">A dictionary of Visual Studio versions to their respective paths for a given package</param>
-        /// <returns>true if the IDE has any of the packages available, false otherwise</returns>
-        internal static bool IsPackageAvailableForIDE(IDEInfo ideInfo, IDictionary<Version, string> vsVersionToPackage)
+        /// <param name="ideInfo">The IDE info to search for the components</param>
+        /// <param name="vsVersionToComponent">A dictionary of Visual Studio versions to their respective paths for a given component</param>
+        /// <returns>true if the IDE has any of the component versions available, false otherwise</returns>
+        internal static bool IsVSComponentAvailableForIDE(IDEInfo ideInfo, IDictionary<Version, string> vsVersionToComponent)
         {
             if (ideInfo == null) { throw new ArgumentNullException("ideInfo"); }
-            if (vsVersionToPackage == null) { throw new ArgumentNullException("vsVersionToPackage"); }
+            if (vsVersionToComponent == null) { throw new ArgumentNullException("vsVersionToComponent"); }
 
             string path = null;
-            if (vsVersionToPackage.TryGetValue(ideInfo.Version, out path))
+            if (vsVersionToComponent.TryGetValue(ideInfo.Version, out path))
             {
                 if (ideInfo.Version == VS2015Version)
                 {
@@ -322,7 +322,7 @@ namespace Xenko.Assets
                     return ideInfo.PackageVersions.ContainsKey(path);
                 }
             }
-            else if (vsVersionToPackage.TryGetValue(VSAnyVersion, out path))
+            else if (vsVersionToComponent.TryGetValue(VSAnyVersion, out path))
             {
                 return ideInfo.PackageVersions.ContainsKey(path);
             }
