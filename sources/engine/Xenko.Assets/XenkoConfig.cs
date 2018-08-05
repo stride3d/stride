@@ -20,7 +20,7 @@ namespace Xenko.Assets
         private static readonly string ProgramFilesX86 = Environment.GetEnvironmentVariable(Environment.Is64BitOperatingSystem ? "ProgramFiles(x86)" : "ProgramFiles");
 
         private static readonly Version VS2015Version = new Version(14, 0);
-        private static readonly Version VSAnyVersion = new Version(int.MinValue, int.MinValue, int.MinValue, int.MinValue);
+        private static readonly Version VSAnyVersion = new Version(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
 
         internal static readonly Dictionary<Version, string> XamariniOSPackages = new Dictionary<Version, string>
         {
