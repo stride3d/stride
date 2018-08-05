@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              xmlns:views="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views"
              xmlns:viewModels="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:TemplateDescriptionCollectionViewModel}"
@@ -21,7 +21,7 @@
                                   SelectedObjectItem="{Binding SelectedTemplate}"
                                   >
     <views:ObjectBrowserUserControl.HierarchyItemContainerStyle>
-      <Style TargetType="sskk:TreeViewItem" BasedOn="{StaticResource {x:Type sskk:TreeViewItem}}">
+      <Style TargetType="xk:TreeViewItem" BasedOn="{StaticResource {x:Type xk:TreeViewItem}}">
         <Setter Property="IsExpanded" Value="True"/>
       </Style>
     </views:ObjectBrowserUserControl.HierarchyItemContainerStyle>
@@ -32,18 +32,18 @@
     </views:ObjectBrowserUserControl.HierarchyItemTemplate>
     <views:ObjectBrowserUserControl.ObjectItemContainerStyle>
       <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-        <Setter Property="sskk:Interaction.Behaviors">
+        <Setter Property="xk:Interaction.Behaviors">
           <Setter.Value>
-            <sskk:BehaviorCollection>
-              <sskk:DoubleClickCloseWindowBehavior DialogResult="OK"/>
-            </sskk:BehaviorCollection>
+            <xk:BehaviorCollection>
+              <xk:DoubleClickCloseWindowBehavior DialogResult="OK"/>
+            </xk:BehaviorCollection>
           </Setter.Value>
         </Setter>
       </Style>
     </views:ObjectBrowserUserControl.ObjectItemContainerStyle>
     <views:ObjectBrowserUserControl.ObjectItemTemplate>
       <DataTemplate DataType="viewModels:ITemplateDescriptionViewModel">
-        <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={sskk:SumNum}, ConverterParameter={sskk:Double -10}}" Margin="0,0,-5,0"  Height="56">
+        <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={xk:SumNum}, ConverterParameter={xk:Double -10}}" Margin="0,0,-5,0"  Height="56">
           <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
           <DockPanel Margin="18,0">
             <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>

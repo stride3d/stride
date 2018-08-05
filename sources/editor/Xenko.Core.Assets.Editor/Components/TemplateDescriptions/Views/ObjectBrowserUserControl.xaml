@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              mc:Ignorable="d" x:Name="ObjectBrowser"
              d:DesignHeight="300" d:DesignWidth="300">
   <UserControl.Resources>
@@ -22,7 +22,7 @@
       <ColumnDefinition Width="220"/>
     </Grid.ColumnDefinitions>
 
-    <sskk:TreeView Grid.Column="0" SelectionMode="Single"
+    <xk:TreeView Grid.Column="0" SelectionMode="Single"
                    ItemsSource="{Binding HierarchyItemsSource, ElementName=ObjectBrowser, Mode=TwoWay}"
                    SelectedItem="{Binding SelectedHierarchyItem, ElementName=ObjectBrowser, Mode=TwoWay}"
                    ItemTemplate="{Binding HierarchyItemTemplate, ElementName=ObjectBrowser, Mode=TwoWay}"

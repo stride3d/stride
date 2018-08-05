@@ -10,7 +10,7 @@
              xmlns:templateViews="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views;assembly=Xenko.Core.Assets.Editor"
              xmlns:converters="clr-namespace:Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor.Converters"
              xmlns:graphX="http://schemas.panthernet.ru/graphx/"
-             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              Focusable="True"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
@@ -28,7 +28,7 @@
             <ControlTemplate TargetType="{x:Type sskkgraph:NodeVertexControl}">
               <Grid>
                 <i:Interaction.Behaviors>
-                  <sskk:FrameworkElementDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanDrag="False" />
+                  <xk:FrameworkElementDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanDrag="False" />
                 </i:Interaction.Behaviors>
 
                 <Grid.Effect>
@@ -61,8 +61,8 @@
                             </Grid.ColumnDefinitions>
 
                             <Ellipse Grid.Column="0" x:Name="connector" DataContext="{Binding}" AllowDrop="True" StrokeThickness="4"
-                                     Stroke="{Binding Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=Connector}, FallbackValue={StaticResource FallbackConnector}}" 
-                                     Fill="{Binding Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=Connector}, FallbackValue={StaticResource FallbackConnector}}"
+                                     Stroke="{Binding Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=Connector}, FallbackValue={StaticResource FallbackConnector}}" 
+                                     Fill="{Binding Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=Connector}, FallbackValue={StaticResource FallbackConnector}}"
                                      VerticalAlignment="Center" HorizontalAlignment="Left" Width="15" Height="15">
                               <i:Interaction.Behaviors>
                                 <sskkgraph:ActiveConnectorBehavior ActiveConnectorHandler="{Binding RelativeSource={RelativeSource AncestorType={x:Type sskkgraph:NodeVertexControl}}}" Slot="{Binding}" />
@@ -73,14 +73,14 @@
                           </Grid>
                           <DataTemplate.Triggers>
                             <!-- Note: We do want to apply IsMouseOver in between so that it looks good on disconnected pins too (stroke change color, center stays transparent) -->
-                            <DataTrigger Binding="{Binding Links.Count, Converter={sskk:NumericToBool}}" Value="False">
-                              <Setter TargetName="connector" Property="Stroke" Value="{Binding Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=ConnectorDisconnected}, FallbackValue={StaticResource FallbackConnectorDisconnected}}" />
+                            <DataTrigger Binding="{Binding Links.Count, Converter={xk:NumericToBool}}" Value="False">
+                              <Setter TargetName="connector" Property="Stroke" Value="{Binding Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=ConnectorDisconnected}, FallbackValue={StaticResource FallbackConnectorDisconnected}}" />
                             </DataTrigger>
                             <Trigger SourceName="connector" Property="IsMouseOver" Value="True">
-                              <Setter TargetName="connector" Property="Stroke" Value="{Binding Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=ConnectorMouseOver}, FallbackValue={StaticResource FallbackConnectorMouseOver}}" />
-                              <Setter TargetName="connector" Property="Fill" Value="{Binding Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=ConnectorMouseOver}, FallbackValue={StaticResource FallbackConnectorMouseOver}}" />
+                              <Setter TargetName="connector" Property="Stroke" Value="{Binding Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=ConnectorMouseOver}, FallbackValue={StaticResource FallbackConnectorMouseOver}}" />
+                              <Setter TargetName="connector" Property="Fill" Value="{Binding Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=ConnectorMouseOver}, FallbackValue={StaticResource FallbackConnectorMouseOver}}" />
                             </Trigger>
-                            <DataTrigger Binding="{Binding Links.Count, Converter={sskk:NumericToBool}}" Value="False">
+                            <DataTrigger Binding="{Binding Links.Count, Converter={xk:NumericToBool}}" Value="False">
                               <Setter TargetName="connector" Property="Fill" Value="Transparent" />
                             </DataTrigger>
                           </DataTemplate.Triggers>
@@ -99,8 +99,8 @@
 
                             <ContentPresenter Grid.Column="0" Content="{Binding}" Margin="10,0,2,0" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                             <Ellipse Grid.Column="1" x:Name="connector" DataContext="{Binding}" AllowDrop="True" StrokeThickness="4"
-                                     Stroke="{Binding Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=Connector}, FallbackValue={StaticResource FallbackConnector}}" 
-                                     Fill="{Binding Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=Connector}, FallbackValue={StaticResource FallbackConnector}}"
+                                     Stroke="{Binding Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=Connector}, FallbackValue={StaticResource FallbackConnector}}" 
+                                     Fill="{Binding Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=Connector}, FallbackValue={StaticResource FallbackConnector}}"
                                      VerticalAlignment="Center" HorizontalAlignment="Left" Width="15" Height="15">
                               <i:Interaction.Behaviors>
                                 <sskkgraph:ActiveConnectorBehavior ActiveConnectorHandler="{Binding RelativeSource={RelativeSource AncestorType={x:Type sskkgraph:NodeVertexControl}}}" Slot="{Binding}" />
@@ -110,14 +110,14 @@
                           </Grid>
                           <DataTemplate.Triggers>
                             <!-- Note: We do want to apply IsMouseOver in between so that it looks good on disconnected pins too (stroke change color, center stays transparent) -->
-                            <DataTrigger Binding="{Binding Links.Count, Converter={sskk:NumericToBool}}" Value="False">
-                              <Setter TargetName="connector" Property="Stroke" Value="{Binding Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=ConnectorDisconnected}, FallbackValue={StaticResource FallbackConnectorDisconnected}}" />
+                            <DataTrigger Binding="{Binding Links.Count, Converter={xk:NumericToBool}}" Value="False">
+                              <Setter TargetName="connector" Property="Stroke" Value="{Binding Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=ConnectorDisconnected}, FallbackValue={StaticResource FallbackConnectorDisconnected}}" />
                             </DataTrigger>
                             <Trigger SourceName="connector" Property="IsMouseOver" Value="True">
-                              <Setter TargetName="connector" Property="Stroke" Value="{Binding Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=ConnectorMouseOver}, FallbackValue={StaticResource FallbackConnectorMouseOver}}" />
-                              <Setter TargetName="connector" Property="Fill" Value="{Binding Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=ConnectorMouseOver}, FallbackValue={StaticResource FallbackConnectorMouseOver}}" />
+                              <Setter TargetName="connector" Property="Stroke" Value="{Binding Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=ConnectorMouseOver}, FallbackValue={StaticResource FallbackConnectorMouseOver}}" />
+                              <Setter TargetName="connector" Property="Fill" Value="{Binding Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=ConnectorMouseOver}, FallbackValue={StaticResource FallbackConnectorMouseOver}}" />
                             </Trigger>
-                            <DataTrigger Binding="{Binding Links.Count, Converter={sskk:NumericToBool}}" Value="False">
+                            <DataTrigger Binding="{Binding Links.Count, Converter={xk:NumericToBool}}" Value="False">
                               <Setter TargetName="connector" Property="Fill" Value="Transparent" />
                             </DataTrigger>
                           </DataTemplate.Triggers>
@@ -133,7 +133,7 @@
                   <Setter TargetName="PART_vertexTitle" Property="Background" Value="{Binding SelectedTitleBackground, RelativeSource={RelativeSource TemplatedParent}}"/>
                   <Setter TargetName="PART_vertexContent" Property="Background" Value="{Binding SelectedContentBackground, RelativeSource={RelativeSource TemplatedParent}}"/>
                 </Trigger>
-                <DataTrigger Binding="{Binding ViewModel.Diagnostics.Count, Converter={sskk:NumericToBool}}" Value="True">
+                <DataTrigger Binding="{Binding ViewModel.Diagnostics.Count, Converter={xk:NumericToBool}}" Value="True">
                   <Setter TargetName="PART_vertexContent" Property="Background" Value="#C05050"/>
                   <Setter Property="ToolTip">
                     <Setter.Value>
@@ -160,10 +160,10 @@
       </Style>
 
       <Style TargetType="{x:Type sskkgraph:NodeEdgeControl}" BasedOn="{StaticResource {x:Type sskkgraph:NodeEdgeControl}}">
-        <Setter Property="MouseOverLinkStroke" Value="{Binding ViewModel.Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=ConnectorMouseOver}, FallbackValue={StaticResource FallbackConnectorMouseOver}}" />
-        <Setter Property="LinkStroke" Value="{Binding ViewModel.Kind, Converter={sskk:Chained {sskk:StringConcat}, {sskk:StaticResourceConverter}, Parameter1=Connector}, FallbackValue={StaticResource FallbackConnector}}" />
+        <Setter Property="MouseOverLinkStroke" Value="{Binding ViewModel.Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=ConnectorMouseOver}, FallbackValue={StaticResource FallbackConnectorMouseOver}}" />
+        <Setter Property="LinkStroke" Value="{Binding ViewModel.Kind, Converter={xk:Chained {xk:StringConcat}, {xk:StaticResourceConverter}, Parameter1=Connector}, FallbackValue={StaticResource FallbackConnector}}" />
         <Style.Triggers>
-          <DataTrigger Binding="{Binding ViewModel.Diagnostics.Count, Converter={sskk:NumericToBool}}" Value="True">
+          <DataTrigger Binding="{Binding ViewModel.Diagnostics.Count, Converter={xk:NumericToBool}}" Value="True">
             <Setter Property="LinkStroke" Value="#C05050"/>
             <Setter Property="MouseOverLinkStroke" Value="#F06060" />
             <Setter Property="ToolTip">
@@ -189,8 +189,8 @@
       </DataTemplate>
 
       <!-- TODO: Put the styles in generic! (same as Sprite Editor) -->
-      <Style TargetType="sskk:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}"/>
-      <Style TargetType="sskk:EditableContentListBox" BasedOn="{StaticResource {x:Type ListBox}}"/>
+      <Style TargetType="xk:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}"/>
+      <Style TargetType="xk:EditableContentListBox" BasedOn="{StaticResource {x:Type ListBox}}"/>
 
       <ContextMenu x:Key="EditorViewContextMenu">
         <ContextMenu.ItemContainerStyle>
@@ -210,8 +210,8 @@
       </ContextMenu>
 
       <ContextMenu x:Key="DropVariableContextMenu">
-        <MenuItem Header="{sskk:Localize Get, Context=Menu}" Click="DropVariableContextMenuGetClicked"/>
-        <MenuItem Header="{sskk:Localize Set, Context=Menu}" Click="DropVariableContextMenuSetClicked"/>
+        <MenuItem Header="{xk:Localize Get, Context=Menu}" Click="DropVariableContextMenuGetClicked"/>
+        <MenuItem Header="{xk:Localize Set, Context=Menu}" Click="DropVariableContextMenuSetClicked"/>
       </ContextMenu>
 
       <Style x:Key="AddMethodComboBox" BasedOn="{StaticResource AddItemComboBox}" TargetType="ComboBox">
@@ -219,7 +219,7 @@
         <Setter Property="ItemTemplate">
           <Setter.Value>
             <DataTemplate>
-              <TextBlock sskk:TextBlockFormatting.FormattedText="{Binding Converter={converters:MethodToDisplayName}}"/>
+              <TextBlock xk:TextBlockFormatting.FormattedText="{Binding Converter={converters:MethodToDisplayName}}"/>
             </DataTemplate>
           </Setter.Value>
         </Setter>
@@ -227,7 +227,7 @@
     </ResourceDictionary>
   </UserControl.Resources>
   <i:Interaction.Behaviors>
-    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Editor.VisibleMethod.DeleteSelectionCommand}" />
+    <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Editor.VisibleMethod.DeleteSelectionCommand}" />
   </i:Interaction.Behaviors>
   <Grid DataContext="{Binding Editor}" d:DataContext="{d:DesignInstance local:VisualScriptEditorViewModel}">
     <Grid.ColumnDefinitions>
@@ -244,158 +244,158 @@
         <RowDefinition Height="Auto"/>
       </Grid.RowDefinitions>
       <DockPanel Grid.Row="0">
-        <sskk:TextBox DockPanel.Dock="Top" Text="{Binding BaseType}" WatermarkContent="Base type..."/>
+        <xk:TextBox DockPanel.Dock="Top" Text="{Binding BaseType}" WatermarkContent="Base type..."/>
         <DockPanel Margin="8" DockPanel.Dock="Top">
           <UniformGrid Rows="1" DockPanel.Dock="Right">
-            <Button Margin="2" Content="{sskk:Image {StaticResource ImageAdd}, 16, 16, NearestNeighbor}" Command="{Binding AddNewPropertyCommand}"/>
-            <Button Margin="2" Content="{sskk:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}" Command="{Binding RemoveSelectedPropertiesCommand}"/>
+            <Button Margin="2" Content="{xk:Image {StaticResource ImageAdd}, 16, 16, NearestNeighbor}" Command="{Binding AddNewPropertyCommand}"/>
+            <Button Margin="2" Content="{xk:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}" Command="{Binding RemoveSelectedPropertiesCommand}"/>
           </UniformGrid>
-          <TextBlock Text="{sskk:Localize Variables:}" VerticalAlignment="Center"/>
+          <TextBlock Text="{xk:Localize Variables:}" VerticalAlignment="Center"/>
         </DockPanel>
-        <sskk:EditableContentListBox Margin="8" ItemsSource="{Binding Properties.Children}" SelectionMode="Extended" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-          <sskk:EditableContentListBox.ItemContainerStyle>
-            <Style TargetType="sskk:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type sskk:EditableContentListBoxItem}}">
-              <Setter Property="sskk:Interaction.Behaviors">
+        <xk:EditableContentListBox Margin="8" ItemsSource="{Binding Properties.Children}" SelectionMode="Extended" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <xk:EditableContentListBox.ItemContainerStyle>
+            <Style TargetType="xk:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type xk:EditableContentListBoxItem}}">
+              <Setter Property="xk:Interaction.Behaviors">
                 <Setter.Value>
-                  <sskk:BehaviorCollection>
-                    <sskk:OnEventSetPropertyBehavior EventName="Cancelled" EventOwnerType="sskk:TextBox" Property="sskk:EditableContentListBoxItem.IsEditing" Value="False"/>
-                    <sskk:OnEventCommandBehavior EventName="MouseDoubleClick" EventOwnerType="Control" HandleEvent="True" Command="{x:Static sskk:EditableContentListBox.BeginEditCommand}"/>
-                  </sskk:BehaviorCollection>
+                  <xk:BehaviorCollection>
+                    <xk:OnEventSetPropertyBehavior EventName="Cancelled" EventOwnerType="xk:TextBox" Property="xk:EditableContentListBoxItem.IsEditing" Value="False"/>
+                    <xk:OnEventCommandBehavior EventName="MouseDoubleClick" EventOwnerType="Control" HandleEvent="True" Command="{x:Static xk:EditableContentListBox.BeginEditCommand}"/>
+                  </xk:BehaviorCollection>
                 </Setter.Value>
               </Setter>
             </Style>
-          </sskk:EditableContentListBox.ItemContainerStyle>
-          <sskk:EditableContentListBox.ItemTemplate>
+          </xk:EditableContentListBox.ItemContainerStyle>
+          <xk:EditableContentListBox.ItemTemplate>
             <DataTemplate>
               <TextBlock Margin="5,0,0,0" TextTrimming="CharacterEllipsis">
                 <Run Text="{Binding Name_.NodeValue}" FontWeight="Bold"/>
-                <Run Text="{Binding Type_.NodeValue, Converter={sskk:FormatString}, ConverterParameter=({0})}" Foreground="Gray"/>
+                <Run Text="{Binding Type_.NodeValue, Converter={xk:FormatString}, ConverterParameter=({0})}" Foreground="Gray"/>
               </TextBlock>
             </DataTemplate>
-          </sskk:EditableContentListBox.ItemTemplate>
-          <sskk:EditableContentListBox.EditItemTemplate>
+          </xk:EditableContentListBox.ItemTemplate>
+          <xk:EditableContentListBox.EditItemTemplate>
             <DataTemplate>
               <DockPanel HorizontalAlignment="Stretch">
-                <sskk:TextBox Text="{Binding Type_.NodeValue}" SelectAllOnFocus="True" DockPanel.Dock="Left" />
-                <sskk:TextBox Text="{Binding Name_.NodeValue}" SelectAllOnFocus="True" GetFocusOnLoad="True" />
+                <xk:TextBox Text="{Binding Type_.NodeValue}" SelectAllOnFocus="True" DockPanel.Dock="Left" />
+                <xk:TextBox Text="{Binding Name_.NodeValue}" SelectAllOnFocus="True" GetFocusOnLoad="True" />
               </DockPanel>
             </DataTemplate>
-          </sskk:EditableContentListBox.EditItemTemplate>
+          </xk:EditableContentListBox.EditItemTemplate>
           <i:Interaction.Behaviors>
-            <sskk:ListBoxBindableSelectedItemsBehavior SelectedItems="{Binding SelectedProperties}"/>
-            <sskk:ListBoxDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
+            <xk:ListBoxBindableSelectedItemsBehavior SelectedItems="{Binding SelectedProperties}"/>
+            <xk:ListBoxDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
           </i:Interaction.Behaviors>
-        </sskk:EditableContentListBox>
+        </xk:EditableContentListBox>
       </DockPanel>
       <GridSplitter Grid.Row="1" Width="5" HorizontalAlignment="Stretch" ResizeBehavior="PreviousAndNext"/>
       <DockPanel Grid.Row="2">
         <DockPanel Margin="8" DockPanel.Dock="Top">
           <UniformGrid Rows="1" DockPanel.Dock="Right">
-            <!--<Button Margin="2" Content="{sskk:Image {StaticResource ImageAdd}, 16, 16, NearestNeighbor}" Command="{Binding AddNewMethodCommand}"/>-->
+            <!--<Button Margin="2" Content="{xk:Image {StaticResource ImageAdd}, 16, 16, NearestNeighbor}" Command="{Binding AddNewMethodCommand}"/>-->
             <ComboBox x:Name="InstanceTypeSelectionComboBox" Style="{StaticResource AddMethodComboBox}" ItemsSource="{Binding OverridableMethods}">
               <i:Interaction.Behaviors>
-                <sskk:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewMethodCommand}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
+                <xk:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewMethodCommand}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
               </i:Interaction.Behaviors>
             </ComboBox>
-            <Button Margin="2" Content="{sskk:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}" Command="{Binding RemoveSelectedMethodCommand}"/>
+            <Button Margin="2" Content="{xk:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}" Command="{Binding RemoveSelectedMethodCommand}"/>
           </UniformGrid>
-          <TextBlock Text="{sskk:Localize Functions:}" VerticalAlignment="Center"/>
+          <TextBlock Text="{xk:Localize Functions:}" VerticalAlignment="Center"/>
         </DockPanel>
-        <sskk:EditableContentListBox Grid.Row="2" Margin="8" ItemsSource="{Binding Methods}" SelectionMode="Single" SelectedItem="{Binding SelectedMethod}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-          <sskk:EditableContentListBox.ItemContainerStyle>
-            <Style TargetType="sskk:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type sskk:EditableContentListBoxItem}}">
-              <Setter Property="sskk:Interaction.Behaviors">
+        <xk:EditableContentListBox Grid.Row="2" Margin="8" ItemsSource="{Binding Methods}" SelectionMode="Single" SelectedItem="{Binding SelectedMethod}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <xk:EditableContentListBox.ItemContainerStyle>
+            <Style TargetType="xk:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type xk:EditableContentListBoxItem}}">
+              <Setter Property="xk:Interaction.Behaviors">
                 <Setter.Value>
-                  <sskk:BehaviorCollection>
-                    <sskk:OnEventSetPropertyBehavior EventName="Validated" EventOwnerType="sskk:TextBox" Property="sskk:EditableContentListBoxItem.IsEditing" Value="False"/>
-                    <sskk:OnEventSetPropertyBehavior EventName="Cancelled" EventOwnerType="sskk:TextBox" Property="sskk:EditableContentListBoxItem.IsEditing" Value="False"/>
-                    <sskk:OnEventCommandBehavior EventName="MouseDoubleClick" EventOwnerType="Control" HandleEvent="True" Command="{x:Static sskk:EditableContentListBox.BeginEditCommand}"/>
-                  </sskk:BehaviorCollection>
+                  <xk:BehaviorCollection>
+                    <xk:OnEventSetPropertyBehavior EventName="Validated" EventOwnerType="xk:TextBox" Property="xk:EditableContentListBoxItem.IsEditing" Value="False"/>
+                    <xk:OnEventSetPropertyBehavior EventName="Cancelled" EventOwnerType="xk:TextBox" Property="xk:EditableContentListBoxItem.IsEditing" Value="False"/>
+                    <xk:OnEventCommandBehavior EventName="MouseDoubleClick" EventOwnerType="Control" HandleEvent="True" Command="{x:Static xk:EditableContentListBox.BeginEditCommand}"/>
+                  </xk:BehaviorCollection>
                 </Setter.Value>
               </Setter>
             </Style>
-          </sskk:EditableContentListBox.ItemContainerStyle>
-          <sskk:EditableContentListBox.ItemTemplate>
+          </xk:EditableContentListBox.ItemContainerStyle>
+          <xk:EditableContentListBox.ItemTemplate>
             <DataTemplate DataType="local:VisualScriptMethodEditorViewModel">
               <TextBlock Text="{Binding Name}" Margin="5,0,0,0" TextTrimming="CharacterEllipsis"/>
             </DataTemplate>
-          </sskk:EditableContentListBox.ItemTemplate>
-          <sskk:EditableContentListBox.EditItemTemplate>
+          </xk:EditableContentListBox.ItemTemplate>
+          <xk:EditableContentListBox.EditItemTemplate>
             <DataTemplate DataType="local:VisualScriptMethodEditorViewModel">
-              <sskk:TextBox Text="{Binding Name}" Width="128" SelectAllOnFocus="True" GetFocusOnLoad="True"/>
+              <xk:TextBox Text="{Binding Name}" Width="128" SelectAllOnFocus="True" GetFocusOnLoad="True"/>
             </DataTemplate>
-          </sskk:EditableContentListBox.EditItemTemplate>
-        </sskk:EditableContentListBox>
+          </xk:EditableContentListBox.EditItemTemplate>
+        </xk:EditableContentListBox>
       </DockPanel>
       <GridSplitter Grid.Row="3" Width="5" HorizontalAlignment="Stretch" ResizeBehavior="PreviousAndNext"/>
       <DockPanel Grid.Row="4" DataContext="{Binding VisibleMethod}">
-        <ComboBox DockPanel.Dock="Top" Margin="2" SelectedItem="{Binding Method.Accessibility}" ItemsSource="{Binding Method.Accessibility, Converter={sskk:Chained {sskk:ObjectToType}, {sskk:EnumValues}}, Mode=OneWay}">
+        <ComboBox DockPanel.Dock="Top" Margin="2" SelectedItem="{Binding Method.Accessibility}" ItemsSource="{Binding Method.Accessibility, Converter={xk:Chained {xk:ObjectToType}, {xk:EnumValues}}, Mode=OneWay}">
           <ComboBox.ItemTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding Converter={sskk:EnumToDisplayName}}"/>
+              <TextBlock Text="{Binding Converter={xk:EnumToDisplayName}}"/>
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <ComboBox DockPanel.Dock="Top" Margin="2" SelectedItem="{Binding Method.VirtualModifier}" ItemsSource="{Binding Method.VirtualModifier, Converter={sskk:Chained {sskk:ObjectToType}, {sskk:EnumValues}}, Mode=OneWay}">
+        <ComboBox DockPanel.Dock="Top" Margin="2" SelectedItem="{Binding Method.VirtualModifier}" ItemsSource="{Binding Method.VirtualModifier, Converter={xk:Chained {xk:ObjectToType}, {xk:EnumValues}}, Mode=OneWay}">
           <ComboBox.ItemTemplate>
             <DataTemplate>
-              <TextBlock Text="{Binding Converter={sskk:EnumToDisplayName}}"/>
+              <TextBlock Text="{Binding Converter={xk:EnumToDisplayName}}"/>
             </DataTemplate>
           </ComboBox.ItemTemplate>
         </ComboBox>
-        <CheckBox DockPanel.Dock="Top" DataContext="{Binding Method.IsStatic}" Content="{sskk:Localize Static method, Context=Button}"/>
-        <sskk:TextBox DockPanel.Dock="Top" Text="{Binding Method.ReturnType}" WatermarkContent="{sskk:Localize Return type...}"/>
+        <CheckBox DockPanel.Dock="Top" DataContext="{Binding Method.IsStatic}" Content="{xk:Localize Static method, Context=Button}"/>
+        <xk:TextBox DockPanel.Dock="Top" Text="{Binding Method.ReturnType}" WatermarkContent="{xk:Localize Return type...}"/>
         <DockPanel>
           <DockPanel Margin="8" DockPanel.Dock="Top">
             <UniformGrid Rows="1" DockPanel.Dock="Right">
-              <Button Margin="2" Content="{sskk:Image {StaticResource ImageAdd}, 16, 16, NearestNeighbor}" Command="{Binding AddNewParameterCommand}"/>
-              <Button Margin="2" Content="{sskk:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}" Command="{Binding RemoveSelectedParametersCommand}"/>
+              <Button Margin="2" Content="{xk:Image {StaticResource ImageAdd}, 16, 16, NearestNeighbor}" Command="{Binding AddNewParameterCommand}"/>
+              <Button Margin="2" Content="{xk:Image {StaticResource ImageRemove}, 16, 16, NearestNeighbor}" Command="{Binding RemoveSelectedParametersCommand}"/>
             </UniformGrid>
-            <TextBlock Text="{sskk:Localize Function parameters:}" VerticalAlignment="Center"/>
+            <TextBlock Text="{xk:Localize Function parameters:}" VerticalAlignment="Center"/>
           </DockPanel>
-          <sskk:EditableContentListBox Margin="8" ItemsSource="{Binding Parameters.Children}" SelectionMode="Extended" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <sskk:EditableContentListBox.ItemContainerStyle>
-              <Style TargetType="sskk:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type sskk:EditableContentListBoxItem}}">
+          <xk:EditableContentListBox Margin="8" ItemsSource="{Binding Parameters.Children}" SelectionMode="Extended" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <xk:EditableContentListBox.ItemContainerStyle>
+              <Style TargetType="xk:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type xk:EditableContentListBoxItem}}">
                 <Setter Property="FocusManager.IsFocusScope" Value="True"/>
-                <Setter Property="sskk:Interaction.Behaviors">
+                <Setter Property="xk:Interaction.Behaviors">
                   <Setter.Value>
-                    <sskk:BehaviorCollection>
-                      <sskk:OnEventSetPropertyBehavior EventName="Cancelled" EventOwnerType="sskk:TextBox" Property="sskk:EditableContentListBoxItem.IsEditing" Value="False"/>
-                      <sskk:OnEventCommandBehavior EventName="MouseDoubleClick" EventOwnerType="Control" HandleEvent="True" Command="{x:Static sskk:EditableContentListBox.BeginEditCommand}"/>
-                    </sskk:BehaviorCollection>
+                    <xk:BehaviorCollection>
+                      <xk:OnEventSetPropertyBehavior EventName="Cancelled" EventOwnerType="xk:TextBox" Property="xk:EditableContentListBoxItem.IsEditing" Value="False"/>
+                      <xk:OnEventCommandBehavior EventName="MouseDoubleClick" EventOwnerType="Control" HandleEvent="True" Command="{x:Static xk:EditableContentListBox.BeginEditCommand}"/>
+                    </xk:BehaviorCollection>
                   </Setter.Value>
                 </Setter>
               </Style>
-            </sskk:EditableContentListBox.ItemContainerStyle>
-            <sskk:EditableContentListBox.ItemTemplate>
+            </xk:EditableContentListBox.ItemContainerStyle>
+            <xk:EditableContentListBox.ItemTemplate>
               <DataTemplate>
                 <TextBlock Margin="5,0,0,0" TextTrimming="CharacterEllipsis">
-                  <Run Text="{Binding RefKind.NodeValue, Converter={sskk:Chained {sskk:EnumToDisplayName}, {sskk:ToLower}, {sskk:ValueToUnset}, {sskk:FormatString}, Parameter3=none, Parameter4='{}{0} '}}"/><Run Text="{Binding Name_.NodeValue}" FontWeight="Bold"/>
-                  <Run Text="{Binding Type_.NodeValue, Converter={sskk:FormatString}, ConverterParameter=({0})}" Foreground="Gray"/>
+                  <Run Text="{Binding RefKind.NodeValue, Converter={xk:Chained {xk:EnumToDisplayName}, {xk:ToLower}, {xk:ValueToUnset}, {xk:FormatString}, Parameter3=none, Parameter4='{}{0} '}}"/><Run Text="{Binding Name_.NodeValue}" FontWeight="Bold"/>
+                  <Run Text="{Binding Type_.NodeValue, Converter={xk:FormatString}, ConverterParameter=({0})}" Foreground="Gray"/>
                 </TextBlock>
               </DataTemplate>
-            </sskk:EditableContentListBox.ItemTemplate>
-            <sskk:EditableContentListBox.EditItemTemplate>
+            </xk:EditableContentListBox.ItemTemplate>
+            <xk:EditableContentListBox.EditItemTemplate>
               <DataTemplate>
                 <DockPanel HorizontalAlignment="Stretch">
                   <ComboBox DockPanel.Dock="Left" DataContext="{Binding RefKind}" Style="{StaticResource EnumComboBox}"/>
-                  <sskk:TextBox Text="{Binding Type_.NodeValue}" SelectAllOnFocus="True" DockPanel.Dock="Left" />
-                  <sskk:TextBox Text="{Binding Name_.NodeValue}" SelectAllOnFocus="True" GetFocusOnLoad="True" />
+                  <xk:TextBox Text="{Binding Type_.NodeValue}" SelectAllOnFocus="True" DockPanel.Dock="Left" />
+                  <xk:TextBox Text="{Binding Name_.NodeValue}" SelectAllOnFocus="True" GetFocusOnLoad="True" />
                 </DockPanel>
               </DataTemplate>
-            </sskk:EditableContentListBox.EditItemTemplate>
+            </xk:EditableContentListBox.EditItemTemplate>
             <i:Interaction.Behaviors>
-              <sskk:ListBoxBindableSelectedItemsBehavior SelectedItems="{Binding SelectedParameters}"/>
-              <sskk:ListBoxDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
+              <xk:ListBoxBindableSelectedItemsBehavior SelectedItems="{Binding SelectedParameters}"/>
+              <xk:ListBoxDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
             </i:Interaction.Behaviors>
-          </sskk:EditableContentListBox>
+          </xk:EditableContentListBox>
         </DockPanel>
       </DockPanel>
     </Grid>
     <GridSplitter Grid.Column="1" Width="5" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext"/>
     <graphx:ZoomControl DataContext="{Binding VisibleMethod}" x:Name="ZoomControl" Grid.Column="2" Background="#49494E" Zoom="1.0" ZoomSensitivity="10.0" IsAnimationEnabled="False" RenderOptions.BitmapScalingMode="HighQuality" ContextMenu="{StaticResource EditorViewContextMenu}">
       <i:Interaction.Behaviors>
-        <sskk:FrameworkElementDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanDrag="False" />
+        <xk:FrameworkElementDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanDrag="False" />
       </i:Interaction.Behaviors>
       <sskkgraph:NodeGraphArea x:Name="Area">
         <i:Interaction.Behaviors>
@@ -407,7 +407,7 @@
       </sskkgraph:NodeGraphArea>
     </graphx:ZoomControl>
     <Popup x:Name="SymbolSearchPopup" Placement="Mouse" IsOpen="{Binding SymbolSearchOpen}" StaysOpen="False">
-      <sskk:FilteringComboBox Width="320" ItemsSource="{Binding SymbolSearchValues}" Text="{Binding SymbolSearchText, UpdateSourceTrigger=PropertyChanged}" ValidatedItem="{Binding SymbolSearchValidatedItem, Mode=TwoWay}"
+      <xk:FilteringComboBox Width="320" ItemsSource="{Binding SymbolSearchValues}" Text="{Binding SymbolSearchText, UpdateSourceTrigger=PropertyChanged}" ValidatedItem="{Binding SymbolSearchValidatedItem, Mode=TwoWay}"
                               IsDropDownOpen="{Binding SymbolSearchOpen, Mode=TwoWay}" IsFiltering="False" Sort="{x:Null}"/>
     </Popup>
   </Grid>

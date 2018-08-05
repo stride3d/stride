@@ -9,7 +9,7 @@ using System.Windows.Markup;
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
-[assembly: XmlnsPrefix("http://schemas.xenko.com/xaml/presentation", "sskk")]
+[assembly: XmlnsPrefix("http://schemas.xenko.com/xaml/presentation", "xk")]
 [assembly: XmlnsDefinition("http://schemas.xenko.com/xaml/presentation", "Xenko.Core.Translation.Presentation")]
 [assembly: XmlnsDefinition("http://schemas.xenko.com/xaml/presentation", "Xenko.Core.Translation.Presentation.MarkupExtensions")]
 [assembly: XmlnsDefinition("http://schemas.xenko.com/xaml/presentation", "Xenko.Core.Translation.Presentation.ValueConverters")]
