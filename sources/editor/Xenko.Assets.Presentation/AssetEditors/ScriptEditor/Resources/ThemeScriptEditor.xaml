@@ -8,7 +8,7 @@
                     xmlns:converters="clr-namespace:Xenko.Assets.Presentation.AssetEditors.ScriptEditor.Converters"
                     xmlns:codeActions="clr-namespace:Microsoft.CodeAnalysis.CodeActions;assembly=Microsoft.CodeAnalysis.Workspaces"
                     xmlns:codeAnalysis="clr-namespace:Microsoft.CodeAnalysis;assembly=Microsoft.CodeAnalysis"
-                    xmlns:sskk="http://schemas.xenko.com/xaml/presentation">
+                    xmlns:xk="http://schemas.xenko.com/xaml/presentation">
   <!-- Various styles and resources needed for the code editor; some of them are based on templates from AvalonEdit (MIT license) and RoslyPad (Apache license) -->
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/RoslynPad.Editor.Windows;component/Themes/Generic.xaml"/>
@@ -104,15 +104,15 @@
               </Grid.RowDefinitions>
 
               <ToggleButton Style="{StaticResource ExpanderToggle}"
-                            ToolTip="{sskk:Localize Toggle between find and replace modes, Context=ToolTip}"
+                            ToolTip="{xk:Localize Toggle between find and replace modes, Context=ToolTip}"
                             IsChecked="{Binding IsReplaceMode, RelativeSource={RelativeSource TemplatedParent}}"
                             Grid.Column="0" Grid.Row="0" Width="16" Margin="2" />
 
-              <sskk:TextBox Name="PART_searchTextBox" Grid.Column="1" Grid.Row="0"
+              <xk:TextBox Name="PART_searchTextBox" Grid.Column="1" Grid.Row="0"
                             Width="150" Height="24" Margin="3,3,3,0"
                             Text="{Binding SearchPattern, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
 
-              <sskk:TextBox Name="ReplaceBox" Visibility="Collapsed" Grid.Column="1" Grid.Row="1"
+              <xk:TextBox Name="ReplaceBox" Visibility="Collapsed" Grid.Column="1" Grid.Row="1"
                             Width="150" Height="24" Margin="3 3 3 0"
                             Text="{Binding ReplacePattern, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True}" />
 
@@ -164,7 +164,7 @@
                         Height="24"
                         Width="24"
                         Command="editor:SearchCommandsEx.ReplaceNext"
-                        ToolTip="{sskk:Localize Replace next (Alt+R), Context=ToolTip}">
+                        ToolTip="{xk:Localize Replace next (Alt+R), Context=ToolTip}">
                   <Image Width="16"
                          Height="16"
                          Stretch="Fill"
@@ -174,7 +174,7 @@
                         Height="24"
                         Width="24"
                         Command="editor:SearchCommandsEx.ReplaceAll"
-                        ToolTip="{sskk:Localize Replace all (Alt+A), Context=ToolTip}">
+                        ToolTip="{xk:Localize Replace all (Alt+A), Context=ToolTip}">
                   <Image Width="16"
                          Height="16"
                          Stretch="Fill"
@@ -250,7 +250,7 @@
 			                      BorderBrush="{TemplateBinding BorderBrush}"
 			                      BorderThickness="{TemplateBinding BorderThickness}">
                       <ListBoxItem Style="{StaticResource CompletionListBoxItem}">
-                        <TextBlock Text="{sskk:Localize No suggestions}"/>
+                        <TextBlock Text="{xk:Localize No suggestions}"/>
                       </ListBoxItem>
                     </Border>
                   </ControlTemplate>

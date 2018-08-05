@@ -10,7 +10,7 @@
              xmlns:panels="clr-namespace:Xenko.UI.Panels;assembly=Xenko.UI"
              xmlns:views="clr-namespace:Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Views"
              xmlns:views1="clr-namespace:Xenko.Assets.Presentation.AssetEditors.UIEditor.Views"
-             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300"
              d:DataContext="{d:DesignInstance viewModel:UIBaseViewModel}">
@@ -34,9 +34,9 @@
 
       <x:Array Type="{x:Type Control}" x:Key="UIElementMenus" x:Shared="False" d:DataContext="{d:DesignInstance uevm:UIElementViewModel}">
         <!-- Layout tools -->
-        <MenuItem Header="{sskk:Localize Layout, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" />
-        <MenuItem Header="{sskk:Localize Group into, Context=Menu}" ItemsSource="{Binding Path=Editor.PanelFactories, Mode=OneWay}"
-                  IsEnabled="{Binding Editor.GroupIntoCommand.IsEnabled, FallbackValue={sskk:False}}">
+        <MenuItem Header="{xk:Localize Layout, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" />
+        <MenuItem Header="{xk:Localize Group into, Context=Menu}" ItemsSource="{Binding Path=Editor.PanelFactories, Mode=OneWay}"
+                  IsEnabled="{Binding Editor.GroupIntoCommand.IsEnabled, FallbackValue={xk:False}}">
           <ItemsControl.ItemContainerStyle>
             <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
               <Setter Property="Header" Value="{Binding Name, Mode=OneWay}" />
@@ -45,13 +45,13 @@
             </Style>
           </ItemsControl.ItemContainerStyle>
         </MenuItem>
-        <Separator Visibility="{Binding Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type uevm:PanelViewModel}}, FallbackValue={sskk:Collapsed}}" />
-        <MenuItem Header="{sskk:Localize Ungroup, Context=Menu}" Command="{Binding UngroupCommand}"
-                  IsEnabled="{Binding Parent, Converter={sskk:MatchType}, ConverterParameter={x:Type uevm:UIElementViewModel}, FallbackValue={sskk:False}}"
-                  Visibility="{Binding Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type uevm:PanelViewModel}}, FallbackValue={sskk:Collapsed}}"
+        <Separator Visibility="{Binding Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type uevm:PanelViewModel}}, FallbackValue={xk:Collapsed}}" />
+        <MenuItem Header="{xk:Localize Ungroup, Context=Menu}" Command="{Binding UngroupCommand}"
+                  IsEnabled="{Binding Parent, Converter={xk:MatchType}, ConverterParameter={x:Type uevm:UIElementViewModel}, FallbackValue={xk:False}}"
+                  Visibility="{Binding Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type uevm:PanelViewModel}}, FallbackValue={xk:Collapsed}}"
                   d:DataContext="{d:DesignInstance uevm:PanelViewModel}" />
-        <MenuItem Header="{sskk:Localize Change layout type, Context=Menu}" ItemsSource="{Binding Path=Editor.PanelFactories, Mode=OneWay}"
-                  Visibility="{Binding Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type uevm:PanelViewModel}}, FallbackValue={sskk:Collapsed}}"
+        <MenuItem Header="{xk:Localize Change layout type, Context=Menu}" ItemsSource="{Binding Path=Editor.PanelFactories, Mode=OneWay}"
+                  Visibility="{Binding Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type uevm:PanelViewModel}}, FallbackValue={xk:Collapsed}}"
                   d:DataContext="{d:DesignInstance uevm:PanelViewModel}">
           <ItemsControl.ItemContainerStyle>
             <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
@@ -64,10 +64,10 @@
 
         <!-- Canvas tools -->
         <MenuItem x:Name="CanvasToolsMenu" Style="{StaticResource MenuGroupSeparatorStyle}"
-                  Header="{Binding Parent.AssetSideUIElement, Converter={sskk:ObjectToTypeName}}"
-                  Visibility="{Binding Parent.AssetSideUIElement, Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type panels:Canvas}}, FallbackValue={sskk:Collapsed}}" />
-        <MenuItem Header="{sskk:Localize Pin origin, Context=Menu}"
-                  Visibility="{Binding Parent.AssetSideUIElement, Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type panels:Canvas}}, FallbackValue={sskk:Collapsed}}">
+                  Header="{Binding Parent.AssetSideUIElement, Converter={xk:ObjectToTypeName}}"
+                  Visibility="{Binding Parent.AssetSideUIElement, Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type panels:Canvas}}, FallbackValue={xk:Collapsed}}" />
+        <MenuItem Header="{xk:Localize Pin origin, Context=Menu}"
+                  Visibility="{Binding Parent.AssetSideUIElement, Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type panels:Canvas}}, FallbackValue={xk:Collapsed}}">
           <!-- TODO: use a more graphical tool such as
           
                      TOP
@@ -80,86 +80,86 @@
                 ■═════●═════■        ╚════════╝
                    BOTTOM
           -->
-          <MenuItem Header="{sskk:Localize Top left, Context=Menu}"     Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinTopLeft}" />
-          <MenuItem Header="{sskk:Localize Top, Context=Menu}"          Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinTop}" />
-          <MenuItem Header="{sskk:Localize Top right, Context=Menu}"    Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinTopRight}" />
-          <MenuItem Header="{sskk:Localize Left, Context=Menu}"         Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinLeft}" />
-          <MenuItem Header="{sskk:Localize Center, Context=Menu}"       Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinCenter}" />
-          <MenuItem Header="{sskk:Localize Right, Context=Menu}"        Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinRight}" />
-          <MenuItem Header="{sskk:Localize Bottom left, Context=Menu}"  Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBottomLeft}" />
-          <MenuItem Header="{sskk:Localize Bottom, Context=Menu}"       Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBottom}" />
-          <MenuItem Header="{sskk:Localize Bottom right, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBottomRight}" />
-          <MenuItem Header="{sskk:Localize Front, Context=Menu}"        Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinFront}" />
-          <MenuItem Header="{sskk:Localize Middle, Context=Menu}"       Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinMiddle}" />
-          <MenuItem Header="{sskk:Localize Back, Context=Menu}"         Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBack}" />
+          <MenuItem Header="{xk:Localize Top left, Context=Menu}"     Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinTopLeft}" />
+          <MenuItem Header="{xk:Localize Top, Context=Menu}"          Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinTop}" />
+          <MenuItem Header="{xk:Localize Top right, Context=Menu}"    Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinTopRight}" />
+          <MenuItem Header="{xk:Localize Left, Context=Menu}"         Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinLeft}" />
+          <MenuItem Header="{xk:Localize Center, Context=Menu}"       Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinCenter}" />
+          <MenuItem Header="{xk:Localize Right, Context=Menu}"        Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinRight}" />
+          <MenuItem Header="{xk:Localize Bottom left, Context=Menu}"  Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBottomLeft}" />
+          <MenuItem Header="{xk:Localize Bottom, Context=Menu}"       Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBottom}" />
+          <MenuItem Header="{xk:Localize Bottom right, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBottomRight}" />
+          <MenuItem Header="{xk:Localize Front, Context=Menu}"        Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinFront}" />
+          <MenuItem Header="{xk:Localize Middle, Context=Menu}"       Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinMiddle}" />
+          <MenuItem Header="{xk:Localize Back, Context=Menu}"         Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.PinBack}" />
         </MenuItem>
         
         <!-- Grid tools -->
         <MenuItem x:Name="GridToolsMenu" Style="{StaticResource MenuGroupSeparatorStyle}"
-                  Header="{Binding Parent.AssetSideUIElement, Converter={sskk:ObjectToTypeName}}"
-                  Visibility="{Binding Parent.AssetSideUIElement, Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type panels:GridBase}}, FallbackValue={sskk:Collapsed}}" />
-        <MenuItem Header="{sskk:Localize Row, Context=Menu}"
-                  Visibility="{Binding Parent.AssetSideUIElement, Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type panels:GridBase}}, FallbackValue={sskk:Collapsed}}">
-          <MenuItem Header="{sskk:Localize Move up, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveUp}" />
-          <MenuItem Header="{sskk:Localize Move down, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveDown}" />
+                  Header="{Binding Parent.AssetSideUIElement, Converter={xk:ObjectToTypeName}}"
+                  Visibility="{Binding Parent.AssetSideUIElement, Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type panels:GridBase}}, FallbackValue={xk:Collapsed}}" />
+        <MenuItem Header="{xk:Localize Row, Context=Menu}"
+                  Visibility="{Binding Parent.AssetSideUIElement, Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type panels:GridBase}}, FallbackValue={xk:Collapsed}}">
+          <MenuItem Header="{xk:Localize Move up, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveUp}" />
+          <MenuItem Header="{xk:Localize Move down, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveDown}" />
         </MenuItem>
-        <MenuItem Header="{sskk:Localize Column, Context=Menu}"
-                  Visibility="{Binding Parent.AssetSideUIElement, Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type panels:GridBase}}, FallbackValue={sskk:Collapsed}}">
-          <MenuItem Header="{sskk:Localize Move left, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveLeft}" />
-          <MenuItem Header="{sskk:Localize Move right, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveRight}" />
+        <MenuItem Header="{xk:Localize Column, Context=Menu}"
+                  Visibility="{Binding Parent.AssetSideUIElement, Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type panels:GridBase}}, FallbackValue={xk:Collapsed}}">
+          <MenuItem Header="{xk:Localize Move left, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveLeft}" />
+          <MenuItem Header="{xk:Localize Move right, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveRight}" />
         </MenuItem>
-        <MenuItem Header="{sskk:Localize Layer, Context=Menu}"
-                  Visibility="{Binding Parent.AssetSideUIElement, Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type panels:GridBase}}, FallbackValue={sskk:Collapsed}}">
-          <MenuItem Header="{sskk:Localize Move back, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveBack}" />
-          <MenuItem Header="{sskk:Localize Move front, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveFront}" />
+        <MenuItem Header="{xk:Localize Layer, Context=Menu}"
+                  Visibility="{Binding Parent.AssetSideUIElement, Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type panels:GridBase}}, FallbackValue={xk:Collapsed}}">
+          <MenuItem Header="{xk:Localize Move back, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveBack}" />
+          <MenuItem Header="{xk:Localize Move front, Context=Menu}" Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveFront}" />
         </MenuItem>
 
         <!-- StackPanel tools -->
         <MenuItem x:Name="StackPanelToolsMenu" Style="{StaticResource MenuGroupSeparatorStyle}"
-                  Header="{Binding Parent.AssetSideUIElement, Converter={sskk:ObjectToTypeName}}"
-                  Visibility="{Binding Parent.AssetSideUIElement, Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type panels:StackPanel}}, FallbackValue={sskk:Collapsed}}" />
-        <MenuItem Header="{sskk:Localize Move up, Context=Menu}"
-                  Visibility="{Binding Parent.AssetSideUIElement, Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type panels:StackPanel}}, FallbackValue={sskk:Collapsed}}"
+                  Header="{Binding Parent.AssetSideUIElement, Converter={xk:ObjectToTypeName}}"
+                  Visibility="{Binding Parent.AssetSideUIElement, Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type panels:StackPanel}}, FallbackValue={xk:Collapsed}}" />
+        <MenuItem Header="{xk:Localize Move up, Context=Menu}"
+                  Visibility="{Binding Parent.AssetSideUIElement, Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type panels:StackPanel}}, FallbackValue={xk:Collapsed}}"
                   Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveUp}" />
-        <MenuItem Header="{sskk:Localize Move down, Context=Menu}"
-                  Visibility="{Binding Parent.AssetSideUIElement, Converter={sskk:Chained {sskk:MatchType}, {sskk:VisibleOrCollapsed}, Parameter1={x:Type panels:StackPanel}}, FallbackValue={sskk:Collapsed}}"
+        <MenuItem Header="{xk:Localize Move down, Context=Menu}"
+                  Visibility="{Binding Parent.AssetSideUIElement, Converter={xk:Chained {xk:MatchType}, {xk:VisibleOrCollapsed}, Parameter1={x:Type panels:StackPanel}}, FallbackValue={xk:Collapsed}}"
                   Command="{Binding PanelCommand}" CommandParameter="{x:Static uevm:PanelCommandMode.MoveDown}" />
 
         <!-- Other available actions -->
-        <MenuItem Header="{sskk:Localize Action, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" />
-        <MenuItem Header="{sskk:Localize Open library in editor, Context=Menu}" Command="{Binding Editor.OpenLibraryEditorCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
-        <MenuItem Header="{sskk:Localize Select library in asset view, Context=Menu}" Command="{Binding Editor.SelectLibraryCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
-        <MenuItem Header="{sskk:Localize Break link to library, Context=Menu}" Command="{Binding Editor.BreakLinkToLibraryCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{xk:Localize Action, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" />
+        <MenuItem Header="{xk:Localize Open library in editor, Context=Menu}" Command="{Binding Editor.OpenLibraryEditorCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{xk:Localize Select library in asset view, Context=Menu}" Command="{Binding Editor.SelectLibraryCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{xk:Localize Break link to library, Context=Menu}" Command="{Binding Editor.BreakLinkToLibraryCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}" />
         <!-- Create other assets from selection -->
-        <MenuItem Header="{sskk:Localize Create page from selection, Context=Menu}" Command="{Binding Editor.CreatePageCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
-        <MenuItem Header="{sskk:Localize Create library from selection, Context=Menu}" Command="{Binding Editor.CreateLibraryCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{xk:Localize Create page from selection, Context=Menu}" Command="{Binding Editor.CreatePageCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}" />
+        <MenuItem Header="{xk:Localize Create library from selection, Context=Menu}" Command="{Binding Editor.CreateLibraryCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}" />
         <Separator/>
-        <MenuItem Header="{sskk:Localize Duplicate, Context=Menu}" InputGestureText="Ctrl+D" Command="{Binding Editor.DuplicateSelectionCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}"/>
-        <MenuItem Command="ApplicationCommands.Cut" Icon="{sskk:Image {StaticResource ImageCut}}" />
-        <MenuItem Command="ApplicationCommands.Copy" Icon="{sskk:Image {StaticResource ImageCopy}}" />
-        <MenuItem Command="ApplicationCommands.Paste" CommandParameter="{Binding Converter={sskk:MatchType}, ConverterParameter={x:Type uevm:UIRootViewModel}, FallbackValue={sskk:True}}" Icon="{sskk:Image {StaticResource ImagePaste}}" />
-        <MenuItem Command="ApplicationCommands.Delete" Icon="{sskk:Image {StaticResource ImageDelete}}"/>
+        <MenuItem Header="{xk:Localize Duplicate, Context=Menu}" InputGestureText="Ctrl+D" Command="{Binding Editor.DuplicateSelectionCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}"/>
+        <MenuItem Command="ApplicationCommands.Cut" Icon="{xk:Image {StaticResource ImageCut}}" />
+        <MenuItem Command="ApplicationCommands.Copy" Icon="{xk:Image {StaticResource ImageCopy}}" />
+        <MenuItem Command="ApplicationCommands.Paste" CommandParameter="{Binding Converter={xk:MatchType}, ConverterParameter={x:Type uevm:UIRootViewModel}, FallbackValue={xk:True}}" Icon="{xk:Image {StaticResource ImagePaste}}" />
+        <MenuItem Command="ApplicationCommands.Delete" Icon="{xk:Image {StaticResource ImageDelete}}"/>
         <Separator/>
-        <MenuItem Header="{sskk:Localize Rename, Context=Menu}" Command="{Binding RenameCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" Icon="{sskk:Image {StaticResource ImageRename}}" InputGestureText="F2" />
+        <MenuItem Header="{xk:Localize Rename, Context=Menu}" Command="{Binding RenameCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}" Icon="{xk:Image {StaticResource ImageRename}}" InputGestureText="F2" />
       </x:Array>
       <ContextMenu x:Key="TreeViewContextMenu" d:DataContext="{d:DesignInstance uevm:UIElementViewModel}" ItemsSource="{StaticResource UIElementMenus}" x:Shared="False" />
       <ContextMenu x:Key="EditorViewContextMenu" d:DataContext="{d:DesignInstance uevm:UIEditorBaseViewModel}" x:Shared="False">
         <i:Interaction.Behaviors>
-          <sskk:OnEventCommandBehavior EventName="Opened" EventOwnerType="{x:Type ContextMenu}" Command="{Binding RefreshSelectableElementsCommand}" />
+          <xk:OnEventCommandBehavior EventName="Opened" EventOwnerType="{x:Type ContextMenu}" Command="{Binding RefreshSelectableElementsCommand}" />
           <!-- For some unknown reason, the command bindings defined globally are not working in this context menu. So we rebind them here. -->
-          <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding CutCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-          <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding CopyCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-          <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding PasteCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-          <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding DeleteCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
+          <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding CutCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+          <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding CopyCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+          <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding PasteCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+          <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding DeleteCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
         </i:Interaction.Behaviors>
         <!-- Set current selection -->
         <MenuItem x:Name="SetCurrentSelectionMenu" Header="Set current selection" ItemsSource="{Binding SelectableElements}"
-                  Visibility="{Binding HasItems, RelativeSource={RelativeSource Self}, Converter={sskk:VisibleOrCollapsed}, FallbackValue={sskk:Collapsed}}">
+                  Visibility="{Binding HasItems, RelativeSource={RelativeSource Self}, Converter={xk:VisibleOrCollapsed}, FallbackValue={xk:Collapsed}}">
           <ItemsControl.ItemContainerStyle>
             <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance uevm:UIElementViewModel}">
               <Setter Property="Command" Value="{Binding DataContext.SetCurrentSelectionCommand, RelativeSource={RelativeSource AncestorType={x:Type MenuItem}}}" />
-              <Setter Property="CommandParameter" Value="{Binding Id, Mode=OneWay, FallbackValue={sskk:Guid}}" />
-              <Setter Property="IsChecked" Value="{sskk:MultiBinding {Binding}, {Binding Editor.LastSelectedElement}, Converter={sskk:AllEqualMultiConverter}, Mode=OneWay, FallbackValue={sskk:False}}" />
+              <Setter Property="CommandParameter" Value="{Binding Id, Mode=OneWay, FallbackValue={xk:Guid}}" />
+              <Setter Property="IsChecked" Value="{xk:MultiBinding {Binding}, {Binding Editor.LastSelectedElement}, Converter={xk:AllEqualMultiConverter}, Mode=OneWay, FallbackValue={xk:False}}" />
             </Style>
           </ItemsControl.ItemContainerStyle>
           <ItemsControl.ItemTemplate>
@@ -175,7 +175,7 @@
         <!-- UIElement context menu -->
         <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
         <MenuItem DataContext="{Binding LastSelectedElement}" ItemsSource="{StaticResource UIElementMenus}"
-                  Visibility="{Binding Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}"
+                  Visibility="{Binding Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}"
                   StaysOpenOnClick="True" IsCheckable="True">
           <MenuItem.Template>
             <ControlTemplate TargetType="{x:Type MenuItem}">
@@ -184,36 +184,36 @@
           </MenuItem.Template>
         </MenuItem>
         <!-- View options -->
-        <MenuItem Header="{sskk:Localize View, Context=Menu}" Style="{StaticResource MenuGroupWithItemsStyle}">
-          <MenuItem Header="{sskk:Localize Zoom in, Context=Menu}" Command="{Binding ZoomInCommand}" />
-          <MenuItem Header="{sskk:Localize Zoom out, Context=Menu}" Command="{Binding ZoomOutCommand}" />
-          <MenuItem Header="{sskk:Localize Reset camera, Context=Menu}" Command="{Binding Camera.ResetCameraCommand}" />
+        <MenuItem Header="{xk:Localize View, Context=Menu}" Style="{StaticResource MenuGroupWithItemsStyle}">
+          <MenuItem Header="{xk:Localize Zoom in, Context=Menu}" Command="{Binding ZoomInCommand}" />
+          <MenuItem Header="{xk:Localize Zoom out, Context=Menu}" Command="{Binding ZoomOutCommand}" />
+          <MenuItem Header="{xk:Localize Reset camera, Context=Menu}" Command="{Binding Camera.ResetCameraCommand}" />
         </MenuItem>
       </ContextMenu>
     </ResourceDictionary>
   </FrameworkElement.Resources>
   <UserControl.InputBindings>
-    <KeyBinding Command="{Binding Editor.DuplicateSelectionCommand}" Gesture="{sskk:KeyGesture {}Ctrl+D}"/>
+    <KeyBinding Command="{Binding Editor.DuplicateSelectionCommand}" Gesture="{xk:KeyGesture {}Ctrl+D}"/>
   </UserControl.InputBindings>
   <i:Interaction.Behaviors>
     <!-- These commands are available globally in the editor.
          Note: this also allows the Edit menu (main menus) to be properly updated. -->
-    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding Editor.CutCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding Editor.CopyCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding Editor.PasteCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Editor.DeleteCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding Editor.CutCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding Editor.CopyCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding Editor.PasteCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Editor.DeleteCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
   </i:Interaction.Behaviors>
 
   <Grid>
     <!-- Loading Message -->
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                Visibility="{Binding Editor, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}, Parameter2={sskk:False}}, FallbackValue={sskk:Visible}}">
-      <TextBlock Text="{sskk:Localize Loading...}" Margin="20" HorizontalAlignment="Center" />
-      <TextBlock Text="{sskk:Localize This might take a few minutes the first time.}" Margin="20" HorizontalAlignment="Center" />
+                Visibility="{Binding Editor, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}, Parameter2={xk:False}}, FallbackValue={xk:Visible}}">
+      <TextBlock Text="{xk:Localize Loading...}" Margin="20" HorizontalAlignment="Center" />
+      <TextBlock Text="{xk:Localize This might take a few minutes the first time.}" Margin="20" HorizontalAlignment="Center" />
       <ProgressBar IsIndeterminate="True" Width="200" Height="20" Margin="20" BorderThickness="1" />
     </StackPanel>
     <!-- UI Editor -->
-    <Grid DataContext="{Binding Editor, Mode=OneWay}" Visibility="{Binding Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}" d:DataContext="{d:DesignInstance uevm:UIEditorBaseViewModel}">
+    <Grid DataContext="{Binding Editor, Mode=OneWay}" Visibility="{Binding Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}" d:DataContext="{d:DesignInstance uevm:UIEditorBaseViewModel}">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*" />
         <ColumnDefinition Width="5" />
@@ -223,7 +223,7 @@
       <!-- Left Panel -->
       <DockPanel Grid.Column="0">
         <Border DockPanel.Dock="Top">
-          <Button Content="{sskk:Localize UI properties, Context=Button}" Margin="8" Padding="4" Command="{Binding ShowPropertiesCommand}" />
+          <Button Content="{xk:Localize UI properties, Context=Button}" Margin="8" Padding="4" Command="{Binding ShowPropertiesCommand}" />
         </Border>
         <Grid>
           <Grid.RowDefinitions>
@@ -234,10 +234,10 @@
 
           <!-- UI Library -->
           <DockPanel Grid.Row="0">
-            <TextBlock DockPanel.Dock="Top" Margin="4"  FontWeight="Bold" Text="{sskk:Localize UI library}" />
+            <TextBlock DockPanel.Dock="Top" Margin="4"  FontWeight="Bold" Text="{xk:Localize UI library}" />
               <ListBox ItemsSource="{Binding Source={StaticResource FactoryCollection}, Mode=OneWay}">
               <i:Interaction.Behaviors>
-                <sskk:ListBoxDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanDrag="True" CanDrop="False" CanInsert="False" />
+                <xk:ListBoxDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanDrag="True" CanDrop="False" CanInsert="False" />
               </i:Interaction.Behaviors>
               <ListBox.GroupStyle>
                   <GroupStyle >
@@ -281,17 +281,17 @@
             <ToolBarTray DockPanel.Dock="Top">
               <ToolBar>
                 <Button Command="{x:Static views:AssetCompositeHierarchyTreeViewHelper.ExpandAllItems}" CommandTarget="{Binding ElementName=HierarchyTreeView}"
-                        ToolTip="{sskk:Localize Expand all elements, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{xk:Localize Expand all elements, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
                   <Image Source="{StaticResource ImageExpandAllFolders}" />
                 </Button>
                 <Button Command="{x:Static views:AssetCompositeHierarchyTreeViewHelper.CollapseAllItems}" CommandTarget="{Binding ElementName=HierarchyTreeView}"
-                        ToolTip="{sskk:Localize Collapse all elements, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                        ToolTip="{xk:Localize Collapse all elements, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
                   <Image Source="{StaticResource ImageCollapseAllFolders}" />
                 </Button>
               </ToolBar>
             </ToolBarTray>
             <Grid>
-              <sskk:TreeView x:Name="HierarchyTreeView" ItemsSource="{Binding RootPart.Children, Mode=OneWay}" SelectionMode="Extended" AllowDrop="True"
+              <xk:TreeView x:Name="HierarchyTreeView" ItemsSource="{Binding RootPart.Children, Mode=OneWay}" SelectionMode="Extended" AllowDrop="True"
                              Grid.IsSharedSizeScope="True" HorizontalContentAlignment="Stretch">
                 <FrameworkElement.Resources>
                   <HierarchicalDataTemplate DataType="{x:Type uevm:UIElementViewModel}" ItemsSource="{Binding Children, Mode=OneWay}">
@@ -304,9 +304,9 @@
                         <Style TargetType="{x:Type Grid}">
                           <Style.Triggers>
                             <!-- Display active root in Bold -->
-                            <DataTrigger Binding="{sskk:MultiBinding {Binding Editor.ActiveRoot}, {Binding},
-                                                                     Converter={sskk:AllEqualMultiConverter}, FallbackValue={sskk:False}}"
-                                         Value="{sskk:True}">
+                            <DataTrigger Binding="{xk:MultiBinding {Binding Editor.ActiveRoot}, {Binding},
+                                                                     Converter={xk:AllEqualMultiConverter}, FallbackValue={xk:False}}"
+                                         Value="{xk:True}">
                               <Setter Property="TextBlock.FontWeight" Value="Bold" />
                             </DataTrigger>
                           </Style.Triggers>
@@ -320,24 +320,24 @@
                         <TextBlock Text="{Binding SourceLibrary.Name, Mode=OneWay, StringFormat=(Library: {0}), FallbackValue={}}" Foreground="#FFB0FFD3" />
                       </StackPanel>
                       <TextBlock Grid.Column="1" VerticalAlignment="Center"
-                                 Text="{Binding Children.Count, StringFormat={}({0}), Mode=OneWay}" Visibility="{Binding Children.Count, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}" />
+                                 Text="{Binding Children.Count, StringFormat={}({0}), Mode=OneWay}" Visibility="{Binding Children.Count, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}" />
                     </Grid>
                   </HierarchicalDataTemplate>
                 </FrameworkElement.Resources>
                 <i:Interaction.Behaviors>
-                  <sskk:DragOverAutoScrollBehavior />
-                  <sskk:TreeViewAutoExpandBehavior />
-                  <sskk:TreeViewDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanInsert="True" AllowDropOnEmptyArea="True" />
-                  <sskk:TreeViewBindableSelectedItemsBehavior SelectedItems="{Binding SelectedContent}" GiveFocusOnSelectionChange="False" />
+                  <xk:DragOverAutoScrollBehavior />
+                  <xk:TreeViewAutoExpandBehavior />
+                  <xk:TreeViewDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanInsert="True" AllowDropOnEmptyArea="True" />
+                  <xk:TreeViewBindableSelectedItemsBehavior SelectedItems="{Binding SelectedContent}" GiveFocusOnSelectionChange="False" />
                 </i:Interaction.Behaviors>
                 <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>
-                    <sskk:VirtualizingTreePanel Background="Transparent" DataContext="{Binding RootPart}"
+                    <xk:VirtualizingTreePanel Background="Transparent" DataContext="{Binding RootPart}"
                                                 ContextMenu="{StaticResource TreeViewContextMenu}"/>
                   </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemContainerStyle>
-                  <Style TargetType="{x:Type sskk:TreeViewItem}" BasedOn="{StaticResource {x:Type sskk:TreeViewItem}}" d:DataContext="{d:DesignInstance uevm:UIElementViewModel}">
+                  <Style TargetType="{x:Type xk:TreeViewItem}" BasedOn="{StaticResource {x:Type xk:TreeViewItem}}" d:DataContext="{d:DesignInstance uevm:UIElementViewModel}">
                     <Setter Property="ContextMenu" Value="{StaticResource TreeViewContextMenu}" />
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                     <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=OneTime}" />
@@ -346,21 +346,21 @@
                       <Setter.Value>
                         <DataTemplate DataType="{x:Type uevm:UIElementViewModel}">
                           <StackPanel Orientation="Horizontal">
-                            <sskk:TextBox Text="{Binding Name, Mode=TwoWay}" GetFocusOnLoad="True" SelectAllOnFocus="True" Margin="2" />
+                            <xk:TextBox Text="{Binding Name, Mode=TwoWay}" GetFocusOnLoad="True" SelectAllOnFocus="True" Margin="2" />
                           </StackPanel>
                         </DataTemplate>
                       </Setter.Value>
                     </Setter>
-                    <Setter Property="sskk:Interaction.Behaviors">
+                    <Setter Property="xk:Interaction.Behaviors">
                       <Setter.Value>
-                        <sskk:BehaviorCollection>
-                          <sskk:TreeViewStopEditOnLostFocusBehavior />
-                        </sskk:BehaviorCollection>
+                        <xk:BehaviorCollection>
+                          <xk:TreeViewStopEditOnLostFocusBehavior />
+                        </xk:BehaviorCollection>
                       </Setter.Value>
                     </Setter>
                   </Style>
                 </ItemsControl.ItemContainerStyle>
-              </sskk:TreeView>
+              </xk:TreeView>
             </Grid>
           </DockPanel>
         </Grid>
@@ -373,32 +373,32 @@
         <ToolBarTray DockPanel.Dock="Top" IsLocked="True">
           <ToolBar>
             <Button Background="Transparent" Margin="2"
-                    Content="{sskk:Image {StaticResource ImageZoomDefault}, 16, 16, NearestNeighbor}"
+                    Content="{xk:Image {StaticResource ImageZoomDefault}, 16, 16, NearestNeighbor}"
                     Command="{Binding ResetZoomCommand}"
-                    ToolTip="{sskk:Localize Reset zoom, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                    ToolTip="{xk:Localize Reset zoom, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
             <Button Background="Transparent" Margin="2"
-                    Content="{sskk:Image {StaticResource ImageZoomOut}, 16, 16, NearestNeighbor}"
+                    Content="{xk:Image {StaticResource ImageZoomOut}, 16, 16, NearestNeighbor}"
                     Command="{Binding ZoomOutCommand}"
-                    ToolTip="{sskk:Localize Zoom out, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                    ToolTip="{xk:Localize Zoom out, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
             <Button Background="Transparent" Margin="2"
-                    Content="{sskk:Image {StaticResource ImageZoomIn}, 16, 16, NearestNeighbor}"
+                    Content="{xk:Image {StaticResource ImageZoomIn}, 16, 16, NearestNeighbor}"
                     Command="{Binding ZoomInCommand}"
-                    ToolTip="{sskk:Localize Zoom in, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                    ToolTip="{xk:Localize Zoom in, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
           </ToolBar>
           <ToolBar>
-            <sskk:NumericTextBox Margin="2" Width="50" ToolTip="{sskk:Localize Snaps to this value (0 to disable), Context=ToolTip}"
+            <xk:NumericTextBox Margin="2" Width="50" ToolTip="{xk:Localize Snaps to this value (0 to disable), Context=ToolTip}"
                                  Value="{Binding SnapValue}" DecimalPlaces="3" Minimum="0" />
           </ToolBar>
           <ToolBar>
-            <ToggleButton x:Name="ToggleSettings" Content="{sskk:Image {StaticResource ImageView}, 24, 24, NearestNeighbor}" Background="Transparent">
+            <ToggleButton x:Name="ToggleSettings" Content="{xk:Image {StaticResource ImageView}, 24, 24, NearestNeighbor}" Background="Transparent">
               <i:Interaction.Behaviors>
-                <sskk:ToggleButtonPopupBehavior/>
+                <xk:ToggleButtonPopupBehavior/>
               </i:Interaction.Behaviors>
             </ToggleButton>
             <Popup IsOpen="{Binding ElementName=ToggleSettings, Path=IsChecked}" StaysOpen="False" PlacementTarget="{Binding ElementName=ToggleSettings}">
               <StackPanel Background="{StaticResource BackgroundBrush}">
                 <Border Padding="8,2" Background="{StaticResource NormalBrush}" HorizontalAlignment="Stretch">
-                  <TextBlock Text="{sskk:Localize Colors}" FontWeight="Bold"/>
+                  <TextBlock Text="{xk:Localize Colors}" FontWeight="Bold"/>
                 </Border>
                 <Grid Margin="4">
                   <Grid.ColumnDefinitions>
@@ -414,68 +414,68 @@
                   </Grid.RowDefinitions>
 
                   <!-- Guideline -->
-                  <TextBlock Grid.Row="0" Grid.Column="0" Margin="4" Text="{sskk:Localize Guideline}" />
+                  <TextBlock Grid.Row="0" Grid.Column="0" Margin="4" Text="{xk:Localize Guideline}" />
                   <ToggleButton Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2"
                                 x:Name="GuidelineToggle" Background="Transparent">
-                    <Border BorderThickness="1" BorderBrush="{Binding GuidelineColor, Converter={sskk:ColorConverter}}" Width="16" Height="16" />
+                    <Border BorderThickness="1" BorderBrush="{Binding GuidelineColor, Converter={xk:ColorConverter}}" Width="16" Height="16" />
                     <i:Interaction.Behaviors>
-                      <sskk:ToggleButtonPopupBehavior/>
+                      <xk:ToggleButtonPopupBehavior/>
                     </i:Interaction.Behaviors>
                   </ToggleButton>
                   <Popup Grid.Row="0" Grid.Column="1" IsOpen="{Binding IsChecked, ElementName=GuidelineToggle}" StaysOpen="False">
                     <Grid Background="{StaticResource BackgroundBrush}">
-                      <sskk:ColorPicker Color="{Binding GuidelineColor, Converter={sskk:ColorConverter}}"/>
+                      <xk:ColorPicker Color="{Binding GuidelineColor, Converter={xk:ColorConverter}}"/>
                     </Grid>
                   </Popup>
-                  <sskk:NumericTextBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center"
+                  <xk:NumericTextBox Grid.Row="0" Grid.Column="2" VerticalAlignment="Center"
                                        Value="{Binding GuidelineThickness, Mode=TwoWay}" DecimalPlaces="0" Minimum="1" />
                   <!-- Highlight -->
-                  <TextBlock Grid.Row="1" Grid.Column="0" Margin="4" Text="{sskk:Localize Highlight}" />
+                  <TextBlock Grid.Row="1" Grid.Column="0" Margin="4" Text="{xk:Localize Highlight}" />
                   <ToggleButton Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2"
                                 x:Name="HighlightToggle" Background="Transparent">
-                    <Border BorderThickness="1" BorderBrush="{Binding HighlightColor, Converter={sskk:ColorConverter}}" Width="16" Height="16" />
+                    <Border BorderThickness="1" BorderBrush="{Binding HighlightColor, Converter={xk:ColorConverter}}" Width="16" Height="16" />
                     <i:Interaction.Behaviors>
-                      <sskk:ToggleButtonPopupBehavior/>
+                      <xk:ToggleButtonPopupBehavior/>
                     </i:Interaction.Behaviors>
                   </ToggleButton>
                   <Popup Grid.Row="1" Grid.Column="1" IsOpen="{Binding IsChecked, ElementName=HighlightToggle}" StaysOpen="False">
                     <Grid Background="{StaticResource BackgroundBrush}">
-                      <sskk:ColorPicker Color="{Binding HighlightColor, Converter={sskk:ColorConverter}}"/>
+                      <xk:ColorPicker Color="{Binding HighlightColor, Converter={xk:ColorConverter}}"/>
                     </Grid>
                   </Popup>
-                  <sskk:NumericTextBox Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"
+                  <xk:NumericTextBox Grid.Row="1" Grid.Column="2" VerticalAlignment="Center"
                                        Value="{Binding HighlightThickness, Mode=TwoWay}" DecimalPlaces="0" Minimum="1" />
                   <!-- Selection -->
-                  <TextBlock Grid.Row="2" Grid.Column="0" Margin="4" Text="{sskk:Localize Selection}" />
+                  <TextBlock Grid.Row="2" Grid.Column="0" Margin="4" Text="{xk:Localize Selection}" />
                   <ToggleButton Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2"
                                 x:Name="SelectionToggle" Background="Transparent">
-                    <Border BorderThickness="1" BorderBrush="{Binding SelectionColor, Converter={sskk:ColorConverter}}" Width="16" Height="16" />
+                    <Border BorderThickness="1" BorderBrush="{Binding SelectionColor, Converter={xk:ColorConverter}}" Width="16" Height="16" />
                     <i:Interaction.Behaviors>
-                      <sskk:ToggleButtonPopupBehavior/>
+                      <xk:ToggleButtonPopupBehavior/>
                     </i:Interaction.Behaviors>
                   </ToggleButton>
                   <Popup Grid.Row="2" Grid.Column="1" IsOpen="{Binding IsChecked, ElementName=SelectionToggle}" StaysOpen="False">
                     <Grid Background="{StaticResource BackgroundBrush}">
-                      <sskk:ColorPicker Color="{Binding SelectionColor, Converter={sskk:ColorConverter}}"/>
+                      <xk:ColorPicker Color="{Binding SelectionColor, Converter={xk:ColorConverter}}"/>
                     </Grid>
                   </Popup>
-                  <sskk:NumericTextBox Grid.Row="2" Grid.Column="2" VerticalAlignment="Center"
+                  <xk:NumericTextBox Grid.Row="2" Grid.Column="2" VerticalAlignment="Center"
                                        Value="{Binding SelectionThickness, Mode=TwoWay}" DecimalPlaces="0" Minimum="1" />
                   <!-- Sizing -->
-                  <TextBlock Grid.Row="3" Grid.Column="0" Margin="4" Text="{sskk:Localize Sizing}" />
+                  <TextBlock Grid.Row="3" Grid.Column="0" Margin="4" Text="{xk:Localize Sizing}" />
                   <ToggleButton Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="2"
                                 x:Name="SizingToggle" Background="Transparent">
-                    <Border BorderThickness="1" BorderBrush="{Binding SizingColor, Converter={sskk:ColorConverter}}" Width="16" Height="16" />
+                    <Border BorderThickness="1" BorderBrush="{Binding SizingColor, Converter={xk:ColorConverter}}" Width="16" Height="16" />
                     <i:Interaction.Behaviors>
-                      <sskk:ToggleButtonPopupBehavior/>
+                      <xk:ToggleButtonPopupBehavior/>
                     </i:Interaction.Behaviors>
                   </ToggleButton>
                   <Popup Grid.Row="3" Grid.Column="1" IsOpen="{Binding IsChecked, ElementName=SizingToggle}" StaysOpen="False">
                     <Grid Background="{StaticResource BackgroundBrush}">
-                      <sskk:ColorPicker Color="{Binding SizingColor, Converter={sskk:ColorConverter}}"/>
+                      <xk:ColorPicker Color="{Binding SizingColor, Converter={xk:ColorConverter}}"/>
                     </Grid>
                   </Popup>
-                  <sskk:NumericTextBox Grid.Row="3" Grid.Column="2" VerticalAlignment="Center"
+                  <xk:NumericTextBox Grid.Row="3" Grid.Column="2" VerticalAlignment="Center"
                                        Value="{Binding SizingThickness, Mode=TwoWay}" DecimalPlaces="0" Minimum="1" />
                 </Grid>
               </StackPanel>
@@ -484,13 +484,13 @@
         </ToolBarTray>
         <Grid Background="Transparent" Focusable="True" PreviewKeyDown="EditorPreviewKeyDown" ContextMenu="{StaticResource EditorViewContextMenu}">
           <i:Interaction.Behaviors>
-            <sskk:FrameworkElementDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanDrag="False" />
+            <xk:FrameworkElementDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}" CanDrag="False" />
           </i:Interaction.Behaviors>
           <Grid>
-            <ContentPresenter x:Name="SceneView" Visibility="{Binding LastException, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}"/>
+            <ContentPresenter x:Name="SceneView" Visibility="{Binding LastException, Converter={xk:Chained {xk:ObjectToBool}, {xk:InvertBool}, {xk:VisibleOrCollapsed}}}"/>
             
             <!-- Crash message -->
-            <Grid Visibility="{Binding LastException, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}}">
+            <Grid Visibility="{Binding LastException, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}">
               <Border HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
                       Background="{StaticResource BackgroundBrush}" />
@@ -511,11 +511,11 @@
                          IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="Transparent" Grid.Row="1"
                          ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Hidden" />
                 <StackPanel Grid.Row="2" Orientation="Vertical" Margin="20">
-                  <TextBlock Text="{sskk:Localize Before you resume\, fix the failing asset (likely a UI page or UI library).}" Margin="0,0,0,4" HorizontalAlignment="Center"/>
+                  <TextBlock Text="{xk:Localize Before you resume\, fix the failing asset (likely a UI page or UI library).}" Margin="0,0,0,4" HorizontalAlignment="Center"/>
                   <UniformGrid HorizontalAlignment="Center" Rows="1" Columns="2">
-                    <Button Content="{sskk:Localize Resume, Context=Button}" Command="{Binding ResumeCommand}"
+                    <Button Content="{xk:Localize Resume, Context=Button}" Command="{Binding ResumeCommand}"
                             Padding="24,8" HorizontalAlignment="Stretch" Margin="10,0"/>
-                    <Button Content="{sskk:Localize Copy error to clipboard, Context=Button}" Command="{Binding CopyErrorToClipboardCommand}"
+                    <Button Content="{xk:Localize Copy error to clipboard, Context=Button}" Command="{Binding CopyErrorToClipboardCommand}"
                             Padding="24,8" HorizontalAlignment="Stretch" Margin="10,0"/>
                   </UniformGrid>
                 </StackPanel>
