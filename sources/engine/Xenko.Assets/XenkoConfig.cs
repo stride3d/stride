@@ -15,13 +15,30 @@ namespace Xenko.Assets
     {
         public const string PackageName = "Xenko";
 
-        private const string XamariniOSBuild = @"MSBuild\Xamarin\iOS\Xamarin.iOS.CSharp.targets";
-        private const string XamarinAndroidBuild = @"MSBuild\Xamarin\Android\Xamarin.Android.CSharp.targets";
+        public static readonly PackageVersion LatestPackageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
 
-        private const string UniversalWindowsPlatformRuntimeBuild = @"MSBuild\Microsoft\WindowsXaml\v14.0\8.2\Microsoft.Windows.UI.Xaml.Common.Targets";
         private static readonly string ProgramFilesX86 = Environment.GetEnvironmentVariable(Environment.Is64BitOperatingSystem ? "ProgramFiles(x86)" : "ProgramFiles");
 
-        public static readonly PackageVersion LatestPackageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
+        private static readonly Version VS2015Version = new Version(14, 0);
+        private static readonly Version VSAnyVersion = new Version(int.MinValue, int.MinValue, int.MinValue, int.MinValue);
+
+        internal static readonly Dictionary<Version, string> XamariniOSPackages = new Dictionary<Version, string>
+        {
+            { VSAnyVersion, @"Xamarin.VisualStudio.IOS.Designer" },
+            { VS2015Version, @"MSBuild\Xamarin\iOS\Xamarin.iOS.CSharp.targets" }
+        };
+
+        internal static readonly Dictionary<Version, string> XamarinAndroidPackages = new Dictionary<Version, string>
+        {
+            { VSAnyVersion, @"Xamarin.Android.Sdk" },
+            { VS2015Version, @"MSBuild\Xamarin\Android\Xamarin.Android.CSharp.targets" }
+        };
+
+        internal static readonly Dictionary<Version, string> UniversalWindowsPlatformPackages = new Dictionary<Version, string>
+        {
+            { VSAnyVersion, @"Microsoft.VisualStudio.Component.UWP.Support" },
+            { VS2015Version, @"MSBuild\Microsoft\WindowsXaml\v14.0\8.2\Microsoft.Windows.UI.Xaml.Common.Targets" }
+        };
 
         public static PackageDependency GetLatestPackageDependency()
         {
@@ -94,7 +111,7 @@ namespace Xenko.Assets
                     //new SolutionPlatformTemplate("ProjectExecutable.UWP/CoreWindow/ProjectExecutable.UWP.ttproj", "Core Window"),
                     new SolutionPlatformTemplate("ProjectExecutable.UWP/Xaml/ProjectExecutable.UWP.ttproj", "Xaml")
                 },
-                IsAvailable = IsFileInProgramFilesx86Exist(UniversalWindowsPlatformRuntimeBuild),
+                IsAvailable = IsPackageAvailableAnyVersion(UniversalWindowsPlatformPackages),
                 UseWithExecutables = false,
                 IncludeInSolution = false,
             };
@@ -173,7 +190,7 @@ namespace Xenko.Assets
                 Name = PlatformType.Android.ToString(),
                 Type = PlatformType.Android,
                 TargetFramework = "monoandroid50",
-                IsAvailable = IsFileInProgramFilesx86Exist(XamarinAndroidBuild)
+                IsAvailable = IsPackageAvailableAnyVersion(XamarinAndroidPackages)
             };
             androidPlatform.DefineConstants.Add("XENKO_PLATFORM_MONO_MOBILE");
             androidPlatform.DefineConstants.Add("XENKO_PLATFORM_ANDROID");
@@ -200,7 +217,7 @@ namespace Xenko.Assets
                 SolutionName = "iPhone", // For iOS, we need to use iPhone as a solution name
                 Type = PlatformType.iOS,
                 TargetFramework = "xamarinios10",
-                IsAvailable = IsFileInProgramFilesx86Exist(XamariniOSBuild)
+                IsAvailable = IsPackageAvailableAnyVersion(XamariniOSPackages)
             };
             iphonePlatform.PlatformsPart.Add(new SolutionPlatformPart("iPhoneSimulator"));
             iphonePlatform.DefineConstants.Add("XENKO_PLATFORM_MONO_MOBILE");
@@ -257,6 +274,62 @@ namespace Xenko.Assets
             AssetRegistry.RegisterSupportedPlatforms(solutionPlatforms);
         }
 
+        /// <summary>
+        /// Checks if any of the provided package versions are available on this system
+        /// </summary>
+        /// <param name="vsVersionToPackage">A dictionary of Visual Studio versions to their respective paths for a given package</param>
+        /// <returns>true if any of the packages in the dictionary are available, false otherwise</returns>
+        internal static bool IsPackageAvailableAnyVersion(IDictionary<Version, string> vsVersionToPackage)
+        {
+            if (vsVersionToPackage == null) { throw new ArgumentNullException("vsVersionToPackage"); }
+
+            foreach (var pair in vsVersionToPackage)
+            {
+                if (pair.Key == VS2015Version)
+                {
+                    return IsFileInProgramFilesx86Exist(pair.Value);
+                }
+                else
+                {
+                    return VisualStudioVersions.AvailableVisualStudioInstances.Any(
+                        ideInfo => ideInfo.PackageVersions.ContainsKey(pair.Value)
+                    );
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Check if a particular package set for this IDE version
+        /// </summary>
+        /// <param name="ideInfo">The IDE info to search for the packages</param>
+        /// <param name="vsVersionToPackage">A dictionary of Visual Studio versions to their respective paths for a given package</param>
+        /// <returns>true if the IDE has any of the packages available, false otherwise</returns>
+        internal static bool IsPackageAvailableForIDE(IDEInfo ideInfo, IDictionary<Version, string> vsVersionToPackage)
+        {
+            if (ideInfo == null) { throw new ArgumentNullException("ideInfo"); }
+            if (vsVersionToPackage == null) { throw new ArgumentNullException("vsVersionToPackage"); }
+
+            string path = null;
+            if (vsVersionToPackage.TryGetValue(ideInfo.Version, out path))
+            {
+                if (ideInfo.Version == VS2015Version)
+                {
+                    return IsFileInProgramFilesx86Exist(path);
+                }
+                else
+                {
+                    return ideInfo.PackageVersions.ContainsKey(path);
+                }
+            }
+            else if (vsVersionToPackage.TryGetValue(VSAnyVersion, out path))
+            {
+                return ideInfo.PackageVersions.ContainsKey(path);
+            }
+            return false;
+        }
+
+        // For VS 2015
         internal static bool IsFileInProgramFilesx86Exist(string path)
         {
             return (ProgramFilesX86 != null && File.Exists(Path.Combine(ProgramFilesX86, path)));
