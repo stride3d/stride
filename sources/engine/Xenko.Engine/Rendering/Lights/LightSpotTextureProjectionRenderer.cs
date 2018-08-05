@@ -13,10 +13,25 @@ namespace Xenko.Rendering.Lights
 {
     public struct SpotLightTextureParameters
     {
-        public Vector2 UVScale => spotLightParameters.UVScale;
-        public Vector2 UVOffset => spotLightParameters.UVOffset;
-        public LightSpot.FlipModeEnum FlipMode => spotLightParameters.FlipMode;
-        public Texture ProjectionTexture => spotLightParameters.ProjectionTexture;
+        public Vector2 UVScale
+        {
+            get => spotLightParameters.UVScale;
+        }
+
+        public Vector2 UVOffset
+        {
+            get => spotLightParameters.UVOffset;
+        }
+
+        public LightSpot.FlipModeEnum FlipMode
+        {
+            get => spotLightParameters.FlipMode;
+        }
+
+        public Texture ProjectionTexture
+        {
+            get => spotLightParameters.ProjectionTexture;
+        }
 
         /// <summary>
         /// Contains struct data fields
@@ -31,7 +46,10 @@ namespace Xenko.Rendering.Lights
             internal Texture ProjectionTexture;
         }
 
-        public static SpotLightTextureParameters Default => new SpotLightTextureParameters(Vector2.One, Vector2.Zero, null, LightSpot.FlipModeEnum.None);
+        public static SpotLightTextureParameters Default
+        {
+            get => new SpotLightTextureParameters(Vector2.One, Vector2.Zero, null, LightSpot.FlipModeEnum.None);
+        }
 
         public SpotLightTextureParameters(Vector2 uvScale, Vector2 uvOffset, Texture projectionTexture, LightSpot.FlipModeEnum flipMode)
         {
@@ -68,7 +86,7 @@ namespace Xenko.Rendering.Lights
             unchecked
             {
                 int hashCode = ProjectionTexture != null ? ProjectionTexture.GetHashCode() : 0;
-                hashCode = (hashCode * 397) ^ (int)FlipMode;
+                hashCode = (hashCode * 397) ^ (int)FlipMode; // todo: what is 397?
                 hashCode = (hashCode * 397) ^ UVScale.GetHashCode();
                 hashCode = (hashCode * 397) ^ UVOffset.GetHashCode();
 
