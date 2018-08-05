@@ -22,19 +22,19 @@ namespace Xenko.Assets
         private static readonly Version VS2015Version = new Version(14, 0);
         private static readonly Version VSAnyVersion = new Version(int.MaxValue, int.MaxValue, int.MaxValue, int.MaxValue);
 
-        internal static readonly Dictionary<Version, string> XamariniOSPackages = new Dictionary<Version, string>
+        internal static readonly Dictionary<Version, string> XamariniOSComponents = new Dictionary<Version, string>
         {
-            { VSAnyVersion, @"Xamarin.VisualStudio.IOS.Designer" },
+            { VSAnyVersion, @"Component.Xamarin" },
             { VS2015Version, @"MSBuild\Xamarin\iOS\Xamarin.iOS.CSharp.targets" }
         };
 
-        internal static readonly Dictionary<Version, string> XamarinAndroidPackages = new Dictionary<Version, string>
+        internal static readonly Dictionary<Version, string> XamarinAndroidComponents = new Dictionary<Version, string>
         {
-            { VSAnyVersion, @"Xamarin.Android.Sdk" },
+            { VSAnyVersion, @"Component.Xamarin" },
             { VS2015Version, @"MSBuild\Xamarin\Android\Xamarin.Android.CSharp.targets" }
         };
 
-        internal static readonly Dictionary<Version, string> UniversalWindowsPlatformPackages = new Dictionary<Version, string>
+        internal static readonly Dictionary<Version, string> UniversalWindowsPlatformComponents = new Dictionary<Version, string>
         {
             { VSAnyVersion, @"Microsoft.VisualStudio.Component.UWP.Support" },
             { VS2015Version, @"MSBuild\Microsoft\WindowsXaml\v14.0\8.2\Microsoft.Windows.UI.Xaml.Common.Targets" }
@@ -111,7 +111,7 @@ namespace Xenko.Assets
                     //new SolutionPlatformTemplate("ProjectExecutable.UWP/CoreWindow/ProjectExecutable.UWP.ttproj", "Core Window"),
                     new SolutionPlatformTemplate("ProjectExecutable.UWP/Xaml/ProjectExecutable.UWP.ttproj", "Xaml")
                 },
-                IsAvailable = IsPackageAvailableAnyVersion(UniversalWindowsPlatformPackages),
+                IsAvailable = IsPackageAvailableAnyVersion(UniversalWindowsPlatformComponents),
                 UseWithExecutables = false,
                 IncludeInSolution = false,
             };
@@ -190,7 +190,7 @@ namespace Xenko.Assets
                 Name = PlatformType.Android.ToString(),
                 Type = PlatformType.Android,
                 TargetFramework = "monoandroid50",
-                IsAvailable = IsPackageAvailableAnyVersion(XamarinAndroidPackages)
+                IsAvailable = IsPackageAvailableAnyVersion(XamarinAndroidComponents)
             };
             androidPlatform.DefineConstants.Add("XENKO_PLATFORM_MONO_MOBILE");
             androidPlatform.DefineConstants.Add("XENKO_PLATFORM_ANDROID");
@@ -217,7 +217,7 @@ namespace Xenko.Assets
                 SolutionName = "iPhone", // For iOS, we need to use iPhone as a solution name
                 Type = PlatformType.iOS,
                 TargetFramework = "xamarinios10",
-                IsAvailable = IsPackageAvailableAnyVersion(XamariniOSPackages)
+                IsAvailable = IsPackageAvailableAnyVersion(XamariniOSComponents)
             };
             iphonePlatform.PlatformsPart.Add(new SolutionPlatformPart("iPhoneSimulator"));
             iphonePlatform.DefineConstants.Add("XENKO_PLATFORM_MONO_MOBILE");
