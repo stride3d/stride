@@ -29,18 +29,8 @@
     <PackageReference Include="EnvDTE100" Version="10.0.1" />
     <PackageReference Include="EnvDTE80" Version="8.0.1" />
     <PackageReference Include="EnvDTE90" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Build" Version="14.3.0">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Engine" Version="14.3.0">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Framework" Version="14.3.0">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Build" Version="15.7.179" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.7.179" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="1.1.4322" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="14.0.23205" />

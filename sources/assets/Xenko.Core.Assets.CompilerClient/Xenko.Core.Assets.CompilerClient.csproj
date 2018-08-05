@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
@@ -26,6 +26,10 @@
     <Compile Include="..\Xenko.Core.Assets\Package.Constants.cs">
       <Link>Package.Constants.cs</Link>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="15.7.179" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.0.18" ExcludeAssets="runtime" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\tools\Xenko.ExecServer\Xenko.ExecServer.csproj">

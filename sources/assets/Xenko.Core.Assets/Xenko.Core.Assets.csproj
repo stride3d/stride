@@ -12,21 +12,11 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="15.6.82">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Engine" Version="15.6.82">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.0.7-preview-ge60d679b53" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="15.6.82">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.6.82">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.ServiceModel" />
+    <PackageReference Include="Microsoft.Build" Version="15.7.179" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.0.18" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.7.179" ExcludeAssets="runtime" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.7.0" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="WindowsBase" />
@@ -85,7 +75,6 @@
     <None Include="Diagrams\AssetsDiagram.cd" />
     <None Include="Diagrams\BuildCommands.cd" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="..\Xenko.Core.Assets.Yaml\Xenko.Core.Assets.Yaml.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
