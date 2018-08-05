@@ -11,37 +11,56 @@ using Xenko.Shaders;
 
 namespace Xenko.Rendering.Lights
 {
-    public interface ITextureProjectionShaderGroupData // TODO: Move to separate file!
-    {
-        void ApplyShader(ShaderMixinSource mixin);
-        void UpdateLayout(string compositionName);
-        void UpdateLightCount(int lightLastCount, int lightCurrentCount);
-        void ApplyDrawParameters(RenderDrawContext context, ParameterCollection parameters, FastListStruct<LightDynamicEntry> currentLights, ref BoundingBoxExt boundingBox);
-    }
-
-    /// <summary>
-    /// Interface to project a texture onto geometry.
-    /// </summary>
-    public interface ITextureProjectionRenderer // TODO: Move to separate file!
-    {
-        ITextureProjectionShaderGroupData CreateShaderGroupData();
-        void Collect(RenderContext context, RenderView sourceView, LightShadowMapTexture lightShadowMap);
-    }
-
     public struct SpotLightTextureParameters
     {
-        public Texture ProjectionTexture;
-        public LightSpot.FlipModeEnum FlipMode;
-        public Vector2 UVScale;
-        public Vector2 UVOffset;
-
-        public static SpotLightTextureParameters Default = new SpotLightTextureParameters
+        public Vector2 UVScale
         {
-            ProjectionTexture = null,
-            FlipMode = LightSpot.FlipModeEnum.None,
-            UVScale = Vector2.One,
-            UVOffset = Vector2.Zero,
-        };
+            get => spotLightParameters.UVScale;
+        }
+
+        public Vector2 UVOffset
+        {
+            get => spotLightParameters.UVOffset;
+        }
+
+        public LightSpot.FlipModeEnum FlipMode
+        {
+            get => spotLightParameters.FlipMode;
+        }
+
+        public Texture ProjectionTexture
+        {
+            get => spotLightParameters.ProjectionTexture;
+        }
+
+        /// <summary>
+        /// Contains struct data fields
+        /// </summary>
+        private readonly SpotLightParametersStruct spotLightParameters;
+
+        private struct SpotLightParametersStruct
+        {
+            internal Vector2 UVScale;
+            internal Vector2 UVOffset;
+            internal LightSpot.FlipModeEnum FlipMode;
+            internal Texture ProjectionTexture;
+        }
+
+        public static SpotLightTextureParameters Default
+        {
+            get => new SpotLightTextureParameters(Vector2.One, Vector2.Zero, null, LightSpot.FlipModeEnum.None);
+        }
+
+        public SpotLightTextureParameters(Vector2 uvScale, Vector2 uvOffset, Texture projectionTexture, LightSpot.FlipModeEnum flipMode)
+        {
+            spotLightParameters = new SpotLightParametersStruct
+            {
+                UVScale = uvScale,
+                UVOffset = uvOffset,
+                FlipMode = flipMode,
+                ProjectionTexture = projectionTexture
+            };
+        }
 
         public bool Equals(ref SpotLightTextureParameters other)
         {
@@ -58,16 +77,16 @@ namespace Xenko.Rendering.Lights
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is SpotLightTextureParameters && Equals((SpotLightTextureParameters)obj);
+            if (obj is null) return false;
+            return obj is SpotLightTextureParameters targetObj && Equals(targetObj);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                var hashCode = (ProjectionTexture != null ? ProjectionTexture.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (int)FlipMode;
+                int hashCode = ProjectionTexture != null ? ProjectionTexture.GetHashCode() : 0;
+                hashCode = (hashCode * 397) ^ (int)FlipMode; // todo: what is 397?
                 hashCode = (hashCode * 397) ^ UVScale.GetHashCode();
                 hashCode = (hashCode * 397) ^ UVOffset.GetHashCode();
 
@@ -80,7 +99,7 @@ namespace Xenko.Rendering.Lights
     /// </summary>
     public class LightSpotTextureProjectionRenderer : ITextureProjectionRenderer
     {
-        private PoolListStruct<LightSpotTextureProjectionShaderData> shaderDataPool;
+        //private PoolListStruct<LightSpotTextureProjectionShaderData> shaderDataPool;
         private readonly SpotLightTextureParameters lightParameters;
 
         /// <summary>
@@ -89,7 +108,8 @@ namespace Xenko.Rendering.Lights
         public LightSpotTextureProjectionRenderer(SpotLightTextureParameters parameters)
         {
             // TODO: What is this?
-            shaderDataPool = new PoolListStruct<LightSpotTextureProjectionShaderData>(8, CreateLightSpotTextureProjectionShaderData);
+            // commented as not used
+            //shaderDataPool = new PoolListStruct<LightSpotTextureProjectionShaderData>(8, LightSpotTextureProjectionShaderData.ReturnInstanceFunc);
             lightParameters = parameters;
         }
 
@@ -116,11 +136,10 @@ namespace Xenko.Rendering.Lights
             // TODO: PERFORMANCE: This does redundant work. The view projection matrix is already calculated within "LightSpotShadowMapRenderer".
 
             // TODO: Calculation of near and far is hardcoded/approximated. We should find a better way to calculate it.
-            var nearClip = 0.01f;   // TODO: This should be configurable.
-            var farClip = spotLight.Range;  // Removed the multiplication by two because I didn't see the point in it.
-            var projectionMatrix = Matrix.PerspectiveFovRH(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip); // Perspective Projection for spotlights
-            Matrix viewProjectionMatrix;
-            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out viewProjectionMatrix);
+            const float nearClip = 0.01f; // TODO: This should be configurable.
+            float farClip = spotLight.Range;  // Removed the multiplication by two because I didn't see the point in it.
+            Matrix projectionMatrix = Matrix.PerspectiveFovRH(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip); // Perspective Projection for spotlights
+            Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out Matrix viewProjectionMatrix);
 
             // TODO: Add an offset so we don't have to do it in the shader?
 
@@ -133,7 +152,7 @@ namespace Xenko.Rendering.Lights
             var spotLight = (LightSpot)lightComponent.Type;
 
             // Calculate the width and height of the near plane in world space:
-            var nearClipDistance = Math.Min(spotLight.ProjectionPlaneDistance, spotLight.Range);
+            float nearClipDistance = Math.Min(spotLight.ProjectionPlaneDistance, spotLight.Range);
             float angleOuterInRadians = MathUtil.DegreesToRadians(Math.Max(spotLight.AngleInner, spotLight.AngleOuter));
             float height = (float)Math.Tan(angleOuterInRadians / 2.0f) * nearClipDistance;  // TODO: Is this correct?
             float width = height * spotLight.AspectRatio;  // TODO: Is this correct?
@@ -155,42 +174,59 @@ namespace Xenko.Rendering.Lights
             viewMatrix.M21 *= -height;
             viewMatrix.M22 *= -height;   // Invert the matrix so we don't have to do it in the shader.
             viewMatrix.M23 *= -height;
-            
+
             return viewMatrix; // Model matrix of the projector plane.
         }
 
-        // TODO: This function is not being called anywhere. Find a way to integrate it and do the light attribute extraction here instead of within "ApplyDrawParameters()".
-        public void Collect(RenderContext context, RenderView sourceView, LightShadowMapTexture lightShadowMap)    // TODO: Remove the shadow map parameter.
-        {
-            // Computes the cascade splits
-            var lightComponent = lightShadowMap.LightComponent;
-            var spotLight = (LightSpot)lightComponent.Type;
-
-            // Get new shader data from pool
-            var shaderData = shaderDataPool.Add();
-            lightShadowMap.ShaderData = shaderData;
-
-            shaderData.ProjectiveTextureMipMapLevel = (float)(lightParameters.ProjectionTexture.MipLevels - 1) * spotLight.MipMapScale; // "- 1" because the lowest mip level is 0, not 1.
-            shaderData.WorldToTextureUV = ComputeWorldToTextureUVMatrix(lightComponent); // View-projection matrix without offset to cascade.
-        }
-
         // TODO: Find a way to use this class!
-        private class LightSpotTextureProjectionShaderData : ILightShadowMapShaderData
+        public class LightSpotTextureProjectionShaderData : ILightShadowMapShaderData
         {
-            public float ProjectiveTextureMipMapLevel; 
-            public Matrix WorldToTextureUV; 
+            //private static LightSpotTextureProjectionShaderData GetInstance => new LightSpotTextureProjectionShaderData();
+            //public static Func<LightSpotTextureProjectionShaderData> ReturnInstanceFunc => () => GetInstance;
+
+            public static ResultStruct GetResultStruct(ref LightSpotTextureProjectionShaderData[] lightSpotTextureProjectionShaderDatas)
+            {
+                var result = new ResultStruct(lightSpotTextureProjectionShaderDatas.Length);
+                for (var i = 0; i < lightSpotTextureProjectionShaderDatas.Length; i++)
+                {
+                    result.WorldToTextureUV[i] = lightSpotTextureProjectionShaderDatas[i].WorldToTextureUV;
+                    result.ProjectorPlaneMatrices[i] = lightSpotTextureProjectionShaderDatas[i].ProjectorPlaneMatric;
+                    result.ProjectionTextureMipMapLevels[i] = lightSpotTextureProjectionShaderDatas[i].ProjectiveTextureMipMapLevel;
+                    result.TransitionAreas[i] = lightSpotTextureProjectionShaderDatas[i].TransitionArea;
+                }
+
+                return result;
+            }
+
+            internal float ProjectiveTextureMipMapLevel;
+            internal float TransitionArea;
+            internal Matrix WorldToTextureUV;
+            internal Matrix ProjectorPlaneMatric;
+
+            public struct ResultStruct
+            {
+                internal readonly Matrix[] WorldToTextureUV;
+                internal readonly Matrix[] ProjectorPlaneMatrices;
+                internal readonly float[] ProjectionTextureMipMapLevels;
+                internal readonly float[] TransitionAreas;
+
+                internal ResultStruct(int arrayLength)
+                {
+                    WorldToTextureUV = new Matrix[arrayLength];
+                    ProjectorPlaneMatrices = new Matrix[arrayLength];
+                    ProjectionTextureMipMapLevels = new float[arrayLength];
+                    TransitionAreas = new float[arrayLength];
+                }
+            }
         }
 
-        public class LightSpotTextureProjectionGroupShaderData : ITextureProjectionShaderGroupData  // TODO: Make private
+        private sealed class LightSpotTextureProjectionGroupShaderData : ITextureProjectionShaderGroupData
         {
             private const string ShaderNameBase = "TextureProjectionReceiverSpot";
             private const string ShaderNameAttenuation = "LightSpotAttenuationRectangular";
 
             // Values:
-            private Matrix[] worldToTextureUV;
-            private Matrix[] projectorPlaneMatrices;
-            private float[] projectionTextureMipMapLevels;
-            private float[] transitionAreas;
+            private LightSpotTextureProjectionShaderData[] lightSpotTextureProjectionShaderData;
             private readonly SpotLightTextureParameters lightParameters;
 
             // Keys:
@@ -201,21 +237,19 @@ namespace Xenko.Rendering.Lights
             private ValueParameterKey<Matrix> projectorPlaneMatricesKey;
             private ValueParameterKey<float> projectionTextureMipMapLevelsKey;
             private ValueParameterKey<float> transitionAreasKey;
-            public ShaderMixinSource TextureProjectionShader { get; private set; }
+            private ShaderMixinSource textureProjectionShader;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="LightSpotTextureProjectionGroupShaderData" /> class.
             /// </summary>
-            /// <param name="shadowType">Type of the shadow.</param>
-            /// <param name="lightCountMax">The light count maximum.</param>
             public LightSpotTextureProjectionGroupShaderData(SpotLightTextureParameters parameters)
             {
                 lightParameters = parameters;
             }
 
-            public virtual void ApplyShader(ShaderMixinSource mixin)
+            public void ApplyShader(ShaderMixinSource mixin)
             {
-                mixin.CloneFrom(TextureProjectionShader);
+                mixin.CloneFrom(textureProjectionShader);
             }
 
             public void UpdateLayout(string compositionName)
@@ -231,35 +265,47 @@ namespace Xenko.Rendering.Lights
 
             public void UpdateLightCount(int lightLastCount, int lightCurrentCount)
             {
-                TextureProjectionShader = new ShaderMixinSource();
+                textureProjectionShader = new ShaderMixinSource();
 
                 // Add the shader for projecting the texture:
-                TextureProjectionShader.Mixins.Add(new ShaderClassSource(ShaderNameBase, "PerDraw.Lighting", lightCurrentCount, (int)lightParameters.FlipMode));
+                textureProjectionShader.Mixins.Add(new ShaderClassSource(ShaderNameBase, "PerDraw.Lighting", lightCurrentCount, (int)lightParameters.FlipMode));
 
                 // Add the rectangular attenuation shader so the light doesn't use angular attenuation anymore because we want to show the full, square texture:
-                TextureProjectionShader.Mixins.Add(new ShaderClassSource(ShaderNameAttenuation));
+                textureProjectionShader.Mixins.Add(new ShaderClassSource(ShaderNameAttenuation));
 
-                Array.Resize(ref worldToTextureUV, lightCurrentCount);
-                Array.Resize(ref projectorPlaneMatrices, lightCurrentCount);
-                Array.Resize(ref projectionTextureMipMapLevels, lightCurrentCount);
-                Array.Resize(ref transitionAreas, lightCurrentCount);
+
+                lightSpotTextureProjectionShaderData = new LightSpotTextureProjectionShaderData[lightCurrentCount];
+                for (var i = 0; i < lightSpotTextureProjectionShaderData.Length; i++)
+                    lightSpotTextureProjectionShaderData[i] = new LightSpotTextureProjectionShaderData();
+
+            }
+
+            public void Collect(RenderContext context, RenderView sourceView, int lightIndex, LightComponent lightComponent)
+            {
+                var spotLight = (LightSpot)lightComponent.Type;
+                lightSpotTextureProjectionShaderData[lightIndex].WorldToTextureUV = ComputeWorldToTextureUVMatrix(lightComponent);
+                lightSpotTextureProjectionShaderData[lightIndex].ProjectorPlaneMatric = ComputeProjectorPlaneMatrix(lightComponent);
+
+                // We use the maximum number of mips instead of the actual number,
+                // so things like video textures behave more consistently when changing the number of mip maps to generate.
+                int maxMipMapCount = Texture.CountMips(lightParameters.ProjectionTexture.Width, lightParameters.ProjectionTexture.Height);
+                float projectiveTextureMipMapLevel = (maxMipMapCount - 1f) * spotLight.MipMapScale; // "- 1" because the lowest mip level is 0, not 1.
+                lightSpotTextureProjectionShaderData[lightIndex].ProjectiveTextureMipMapLevel = projectiveTextureMipMapLevel;
+                lightSpotTextureProjectionShaderData[lightIndex].TransitionArea = Math.Max(spotLight.TransitionArea, 0.001f);   // Keep the value just above zero. This is to prevent some issues with the "smoothstep()" function on OpenGL and OpenGL ES.
             }
 
             public void ApplyDrawParameters(RenderDrawContext context, ParameterCollection parameters, FastListStruct<LightDynamicEntry> currentLights, ref BoundingBoxExt boundingBox)
             {
                 var boundingBoxCasted = (BoundingBox)boundingBox;
-                int lightIndex = 0;
+                var lightIndex = 0;
 
-                for (int i = 0; i < currentLights.Count; ++i)
+                foreach (LightDynamicEntry lightEntry in currentLights)
                 {
-                    LightDynamicEntry lightEntry = currentLights[i];
                     LightComponent lightComponent = lightEntry.Light;
 
-                    if (lightComponent.BoundingBox.Intersects(ref boundingBoxCasted))
-                    {
-                        var spotLight = (LightSpot)lightComponent.Type;
+                    if (!lightComponent.BoundingBox.Intersects(ref boundingBoxCasted)) continue;
 
-                        /*
+                    /*
                         // TODO: Just save the shaderdata struct directly within "LightDynamicEntry"?
                         var singleLightData = (LightSpotTextureProjectionShaderData)lightEntry.ShadowMapTexture.ShaderData;   // TODO: This must not depend on the shadow map texture!
                         
@@ -268,36 +314,23 @@ namespace Xenko.Rendering.Lights
                         projectiveTexture = singleLightData.ProjectiveTexture;
                         */
 
-                        // TODO: Move this to "Collect()" and use "LightSpotTextureProjectionShaderData", but IDK how!
-                        worldToTextureUV[lightIndex] = ComputeWorldToTextureUVMatrix(lightComponent);
-                        projectorPlaneMatrices[lightIndex] = ComputeProjectorPlaneMatrix(lightComponent);
+                    Collect(null, null, lightIndex, lightComponent);
 
-                        // We use the maximum number of mips instead of the actual number,
-                        // so things like video textures behave more consistently when changing the number of mip maps to generate.
-                        int maxMipMapCount = Texture.CountMips(lightParameters.ProjectionTexture.Width, lightParameters.ProjectionTexture.Height);
-                        float projectiveTextureMipMapLevel = (float)(maxMipMapCount - 1) * spotLight.MipMapScale; // "- 1" because the lowest mip level is 0, not 1.
-                        projectionTextureMipMapLevels[lightIndex] = projectiveTextureMipMapLevel;
-                        transitionAreas[lightIndex] = Math.Max(spotLight.TransitionArea, 0.001f);   // Keep the value just above zero. This is to prevent some issues with the "smoothstep()" function on OpenGL and OpenGL ES.
-
-                        ++lightIndex;
-                    }
+                    ++lightIndex;
                 }
+
+                LightSpotTextureProjectionShaderData.ResultStruct collectResultStruct = LightSpotTextureProjectionShaderData.GetResultStruct(ref lightSpotTextureProjectionShaderData);
 
                 // TODO: Why is this set if it's already in the collection?
                 // TODO: Does this get set once per group or something? 
                 parameters.Set(projectiveTextureKey, lightParameters.ProjectionTexture);
                 parameters.Set(uvScale, lightParameters.UVScale);
                 parameters.Set(uvOffset, lightParameters.UVOffset);
-                parameters.Set(worldToProjectiveTextureUVsKey, worldToTextureUV); 
-                parameters.Set(projectorPlaneMatricesKey, projectorPlaneMatrices);
-                parameters.Set(projectionTextureMipMapLevelsKey, projectionTextureMipMapLevels);
-                parameters.Set(transitionAreasKey, transitionAreas);
+                parameters.Set(worldToProjectiveTextureUVsKey, collectResultStruct.WorldToTextureUV);
+                parameters.Set(projectorPlaneMatricesKey, collectResultStruct.ProjectorPlaneMatrices);
+                parameters.Set(projectionTextureMipMapLevelsKey, collectResultStruct.ProjectionTextureMipMapLevels);
+                parameters.Set(transitionAreasKey, collectResultStruct.TransitionAreas);
             }
-        }
-
-        private static LightSpotTextureProjectionShaderData CreateLightSpotTextureProjectionShaderData()
-        {
-            return new LightSpotTextureProjectionShaderData();
         }
     }
 }

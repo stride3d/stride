@@ -164,7 +164,7 @@ namespace Xenko.Rendering.Lights
                 // TODO: Eventually move this loop to a separate function that returns a structure.
 
                 // These variables will contain the relevant parameters of the next usable light:
-                var nextGroupParameters = SpotLightGroupParameters.Null;
+                SpotLightGroupParameters nextGroupParameters = SpotLightGroupParameters.Null;
                 LightShadowMapTexture nextShadowTexture = null;
                 LightComponent nextLight = null;
 
@@ -177,10 +177,7 @@ namespace Xenko.Rendering.Lights
                     {
                         if (spotLight.ProjectiveTexture != null)    // TODO: Remove this branch?!
                         {
-                            nextGroupParameters.SpotParameters.ProjectionTexture = spotLight.ProjectiveTexture;
-                            nextGroupParameters.SpotParameters.FlipMode = spotLight.FlipMode;
-                            nextGroupParameters.SpotParameters.UVScale = spotLight.UVScale;
-                            nextGroupParameters.SpotParameters.UVOffset = spotLight.UVOffset;
+                            nextGroupParameters.SpotParameters = new SpotLightTextureParameters(spotLight.UVScale, spotLight.UVOffset, spotLight.ProjectiveTexture, spotLight.FlipMode);
                         }
                     }
 
