@@ -15,7 +15,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.ServiceModel" />
     <PackageReference Include="Microsoft.Build" Version="15.7.179" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.0.18" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.0.18" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.7.179" ExcludeAssets="runtime" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.7.0" />
     <Reference Include="System.Windows.Forms" />
