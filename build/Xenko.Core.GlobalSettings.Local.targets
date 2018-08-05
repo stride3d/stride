@@ -1,9 +1,6 @@
 <!-- Build file pre-included by all Xenko projects -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <!--  Defines the API used by Xenko - Values are Direct3D/Null/OpenGL/OpenGLES -->
-    <XenkoGraphicsApi Condition=" '$(XenkoGraphicsApi)' == '' ">Direct3D11</XenkoGraphicsApi>
-
     <!-- Define the location where to build assemblies. -->
     <XenkoBuildDirectory>$(XenkoPlatformFullName)</XenkoBuildDirectory>
     <XenkoOutputCommonDir>$(MSBuildThisFileDirectory)..\Bin\$(XenkoBuildDirectory)\</XenkoOutputCommonDir>

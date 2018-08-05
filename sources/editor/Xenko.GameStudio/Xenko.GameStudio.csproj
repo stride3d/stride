@@ -4,7 +4,7 @@
   <Import Project="..\..\tools\Xenko.Core.VisualStudio\Xenko.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="..\Xenko.Editor.CrashReport\Xenko.Editor.CrashReport.projitems" Label="Shared" />
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -99,9 +99,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="..\..\shared\ToolAssemblyResolveModuleInitializer.cs">
-      <Link>ToolAssemblyResolveModuleInitializer.cs</Link>
-    </Compile>
     <Compile Update="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -140,110 +137,39 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets.Quantum\Xenko.Core.Assets.Quantum.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Packages\Xenko.Core.Packages.csproj">
-      <Project>{ACD2C831-BDA2-4512-B4CC-75E8E1804F73}</Project>
-      <Name>Xenko.Core.Packages</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Translation\Xenko.Core.Translation.csproj">
-      <Project>{6A7B231E-36AA-4647-8C1A-FB1540ABC813}</Project>
-      <Name>Xenko.Core.Translation</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Dialogs\Xenko.Core.Presentation.Dialogs.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Quantum\Xenko.Core.Presentation.Quantum.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation\Xenko.Core.Presentation.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Quantum\Xenko.Core.Quantum.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Translation.Presentation\Xenko.Core.Translation.Presentation.csproj">
-      <Project>{b686c194-d71d-4ff0-8b4f-f53afbcd962f}</Project>
-      <Name>Xenko.Core.Translation.Presentation</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Assets\Xenko.Assets.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Debugger\Xenko.Debugger.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Games\Xenko.Games.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Input\Xenko.Input.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Physics\Xenko.Physics.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Shaders.Compiler\Xenko.Shaders.Compiler.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Shaders\Xenko.Shaders.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.SpriteStudio.Offline\Xenko.SpriteStudio.Offline.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.SpriteStudio.Runtime\Xenko.SpriteStudio.Runtime.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\tools\Xenko.ConnectionRouter\Xenko.ConnectionRouter.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\tools\Xenko.Graphics.RenderDocPlugin\Xenko.Graphics.RenderDocPlugin.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Core.Assets.Editor\Xenko.Core.Assets.Editor.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Editor\Xenko.Editor.csproj">
-      <Private>False</Private>
-    </ProjectReference>
+    <ProjectReference Include="..\..\assets\Xenko.Core.Assets.Quantum\Xenko.Core.Assets.Quantum.csproj" />
+    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
+    <ProjectReference Include="..\..\assets\Xenko.Core.Packages\Xenko.Core.Packages.csproj" />
+    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Translation\Xenko.Core.Translation.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Dialogs\Xenko.Core.Presentation.Dialogs.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Quantum\Xenko.Core.Presentation.Quantum.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation\Xenko.Core.Presentation.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Quantum\Xenko.Core.Quantum.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Translation.Presentation\Xenko.Core.Translation.Presentation.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Assets\Xenko.Assets.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Debugger\Xenko.Debugger.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Games\Xenko.Games.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Input\Xenko.Input.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Physics\Xenko.Physics.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Shaders.Compiler\Xenko.Shaders.Compiler.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Shaders\Xenko.Shaders.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.SpriteStudio.Offline\Xenko.SpriteStudio.Offline.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.SpriteStudio.Runtime\Xenko.SpriteStudio.Runtime.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj" />
+    <ProjectReference Include="..\..\tools\Xenko.ConnectionRouter\Xenko.ConnectionRouter.csproj" />
+    <ProjectReference Include="..\..\tools\Xenko.Graphics.RenderDocPlugin\Xenko.Graphics.RenderDocPlugin.csproj" />
+    <ProjectReference Include="..\Xenko.Core.Assets.Editor\Xenko.Core.Assets.Editor.csproj" />
+    <ProjectReference Include="..\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj" />
+    <ProjectReference Include="..\Xenko.Editor\Xenko.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Logo.ico" />
@@ -336,7 +262,7 @@
     <Resource Include="Images\VTabGroup.png" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
     <PostBuildEvent>Path=$(MSBuildBinPath)\Roslyn;$(Path)
 IF EXIST "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" $(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe --lib-dir $(SolutionDir)..\deps\Gettext.Net --resource $(TargetName) -d $(TargetDir) --locale ja "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" --verbose</PostBuildEvent>

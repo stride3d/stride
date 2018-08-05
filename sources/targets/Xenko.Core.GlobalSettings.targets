@@ -3,13 +3,11 @@
 
   <!-- Sdk settings -->
   <PropertyGroup>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <!-- Include proper language targets for temporary WPF projects. See https://github.com/dotnet/project-system/issues/1467 -->
-    <LanguageTargets Condition="'$(MSBuildProjectExtension)' == '.tmp_proj'">$(MSBuildToolsPath)\Microsoft.CSharp.targets</LanguageTargets>
     <!-- Customize GenerateAssemblyInfo -->
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <PackageVersion Condition=" '$(PackageVersion)' == '' ">3.1.0.1-dev</PackageVersion>
     <Copyright>Copyright © Xenko contributors and Silicon Studio Corp.</Copyright>
   </PropertyGroup>
   
@@ -29,49 +27,33 @@
   <PropertyGroup>
     <XenkoCommonDependenciesDir Condition="'$(XenkoCommonDependenciesDir)' == ''">$(MSBuildThisFileDirectory)..\..\deps\</XenkoCommonDependenciesDir>
     <XenkoCommonDependenciesDir Condition="'$(XenkoCommonDependenciesDir)' != '' and !HasTrailingSlash('$(XenkoCommonDependenciesDir)')">$(XenkoCommonDependenciesDir)\</XenkoCommonDependenciesDir>
-    <XenkoBuildDirectory>$(XenkoPlatform)-$(XenkoGraphicsApi)</XenkoBuildDirectory>
-    <XenkoBuildDirectory Condition="'$(XenkoBuildDirExtension)' != ''">$(XenkoBuildDirectory)-$(XenkoBuildDirExtension)</XenkoBuildDirectory>
     <ErrorReport>prompt</ErrorReport>
     <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(BaseIntermediateOutputPath)' == '' or '$(BaseIntermediateOutputPath)' == 'obj\' ">
-    <!-- Define the location where to build assemblies. -->
-    <BaseIntermediateOutputPath>obj\$(XenkoBuildDirectory)\</BaseIntermediateOutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <!-- Exclude the whole obj folder (which will contain other platforms) -->
-    <DefaultItemExcludes>$(DefaultItemExcludes);obj\**</DefaultItemExcludes>
-    <ProjectAssetsFile>$(BaseIntermediateOutputPath)project.assets.json</ProjectAssetsFile>
-    <ProjectLockFile>$(ProjectAssetsFile)</ProjectLockFile>
   </PropertyGroup>
 
   <!-- 
     Settings XenkoPlatform specific
   -->
+  <PropertyGroup>
+    <XenkoRuntimeTargetFrameworks>net45;uap10.0;monoandroid50;xamarin.ios10</XenkoRuntimeTargetFrameworks>
+    <XenkoRuntimeTargetFramework>net45</XenkoRuntimeTargetFramework>
+    <RuntimeIdentifiers Condition=" '$(TargetFramework)' == 'net451' ">win</RuntimeIdentifiers>
+    <ExtrasBuildEachRuntimeIdentifier Condition=" '$(TargetFramework)' == 'net451' ">true</ExtrasBuildEachRuntimeIdentifier>
+    <TargetFrameworkTool>net462</TargetFrameworkTool>
+    <TargetFrameworkVersionTool>v4.6.2</TargetFrameworkVersionTool>
+    <XenkoPlatformDefines>XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP;NET45</XenkoPlatformDefines>
+  </PropertyGroup>
+
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Windows' ">
     <!-- Limited version used by tools but that doesn't require installation of .NET on most computers (4.5.1 is default of many OS, 4.5.2/4.6 isn't) -->
-    <TargetFrameworkToolLow>net451</TargetFrameworkToolLow>
-    <TargetFrameworkTool>net462</TargetFrameworkTool>
-    <TargetFramework>net45</TargetFramework>
-    <TargetFrameworkVersionTool>v4.6.2</TargetFrameworkVersionTool>
     <XenkoPlatformDefines>XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP;NET45</XenkoPlatformDefines>
     <NUnitLiteBinDir>$(XenkoCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
   </PropertyGroup>
-
+  
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'UWP' ">
-    <TargetFramework>uap10.0</TargetFramework>
-    <TargetFrameworkIdentifier>.NETCore</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.17134.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
-    <NugetTargetMoniker>UAP,Version=v10.0</NugetTargetMoniker>
-    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
-    <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <XenkoPlatformDefines>XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_UWP;NET45;NETFX_CORE;WINDOWS_UAP</XenkoPlatformDefines>
     <NUnitLiteBinDir>$(XenkoCommonDependenciesDir)NUnitLite\net-win10\</NUnitLiteBinDir>
-    <LanguageTargets>$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets</LanguageTargets>
   </PropertyGroup>
   <Choose>
     <When Condition=" '$(XenkoPlatform)' == 'UWP' ">
@@ -82,30 +64,20 @@
   </Choose>
 
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Linux' ">
-    <!-- Limited version used by tools but that doesn't require installation of .NET on most computers (4.5.1 is default of many OS, 4.5.2/4.6 isn't) -->
-    <TargetFramework>netstandard2.0</TargetFramework>
     <XenkoPlatformDefines>XENKO_PLATFORM_LINUX;XENKO_PLATFORM_UNIX;NET45</XenkoPlatformDefines>
     <NUnitLiteBinDir>$(XenkoCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'macOS' ">
-    <!-- Limited version used by tools but that doesn't require installation of .NET on most computers (4.5.1 is default of many OS, 4.5.2/4.6 isn't) -->
-    <TargetFramework>netstandard2.0</TargetFramework>
     <XenkoPlatformDefines>XENKO_PLATFORM_MACOS;XENKO_PLATFORM_UNIX;NET45</XenkoPlatformDefines>
     <NUnitLiteBinDir>$(XenkoCommonDependenciesDir)NUnitLite\net-4.0\</NUnitLiteBinDir>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Android' ">
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <TargetFramework>monoandroid50</TargetFramework>
-    <TargetFrameworkIdentifier>MonoAndroid</TargetFrameworkIdentifier>
     <XenkoPlatformDefines>XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID;NET45</XenkoPlatformDefines>
     <AndroidSupportedAbis>armeabi-v7a%3barmeabi%3bx86</AndroidSupportedAbis>
     <AndroidStoreUncompressedFileExtensions />
     <MandroidI18n />
-    <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <NUnitLiteBinDir>$(XenkoCommonDependenciesDir)NUnitLite\net-monodroid\</NUnitLiteBinDir>
-    <LanguageTargets>$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets</LanguageTargets>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Android' And '$(OutputType)' == 'Exe' ">
     <AndroidApplication>true</AndroidApplication>
@@ -131,13 +103,7 @@
 
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'iOS' ">
     <Platform Condition=" '$(Platform)' == '' ">iPhone</Platform>
-    <TargetFrameworkVersion>v1.0</TargetFrameworkVersion>
-    <TargetFramework>xamarinios10</TargetFramework>
-    <TargetFrameworkIdentifier>Xamarin.iOS</TargetFrameworkIdentifier>
     <XenkoPlatformDefines>XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_IOS;NET45</XenkoPlatformDefines>
-    <ProjectTypeGuids>{FEACFBD2-3405-455C-9665-78FE426C6842};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
-    <LanguageTargets>$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets</LanguageTargets>
   </PropertyGroup>
 
   <Choose>
@@ -145,8 +111,8 @@
       <ItemGroup>
         <Reference Include="System" />
         <Reference Include="System.Core" />
-        <Reference Include="System.XML" />
-        <Reference Include="System.XML.Linq" />
+        <Reference Include="System.Xml" />
+        <Reference Include="System.Xml.Linq" />
       </ItemGroup>
     </When>
   </Choose>
@@ -197,6 +163,13 @@
   <!-- Copy the libcore.a and libfreetype.a libraries to the project root directory for future native link.
        Note: this target is redefined in References.targets for user projects -->
   <Target Name="CopyXenkoNativeLibraries" Condition=" '$(XenkoPlatform)' == 'iOS' and '$(OutputType)' == 'Exe'">
+  </Target>
+
+  <!-- Auto NuGet build packages and deploy them -->
+  <Target Name="XenkoAutoPackDeploy" AfterTargets="Build" DependsOnTargets="Pack" Condition="$(DesignTimeBuild) != 'true'">
+    <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)"/>
+    <!-- Deleting .sha512 file seems to be enough for NuGet restore to force extract new package and properly compile dependent projects -->
+    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\$(PackageId).$(PackageVersion).nupkg.sha512"/>
   </Target>
   
 </Project>

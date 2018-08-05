@@ -1,6 +1,6 @@
 <Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
     <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
     <OutputType>Exe</OutputType>
@@ -17,9 +17,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="..\..\shared\ToolAssemblyResolveModuleInitializer.cs">
-      <Link>ToolAssemblyResolveModuleInitializer.cs</Link>
-    </Compile>
     <Compile Include="..\Xenko.Core.Assets\DirectoryHelper.cs">
       <Link>DirectoryHelper.cs</Link>
     </Compile>
@@ -28,10 +25,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\tools\Xenko.ExecServer\Xenko.ExecServer.csproj">
-      <Private>False</Private>
-    </ProjectReference>
+    <ProjectReference Include="..\..\tools\Xenko.ExecServer\Xenko.ExecServer.csproj" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
 </Project>

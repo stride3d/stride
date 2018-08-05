@@ -22,7 +22,12 @@
     <XenkoWindowsOnly Condition="'$(XenkoWindowsOnly)' == ''">false</XenkoWindowsOnly>
 
     <!-- Default values -->
-    <XenkoPlatform Condition=" '$(XenkoPlatform)' == '' ">Windows</XenkoPlatform>
+    <XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And ('$(RuntimeIdentifer)' == '' Or $(RuntimeIdentifer.StartsWith('win'))) ">Windows</XenkoPlatform>
+	<XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And $(RuntimeIdentifer.StartsWith('unix')) ">Linux</XenkoPlatform>
+	<XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And $(RuntimeIdentifer.StartsWith('osx')) ">macOS</XenkoPlatform>
+	<XenkoPlatform Condition=" '$(TargetFramework)' == 'uap10.0' ">UWP</XenkoPlatform>
+	<XenkoPlatform Condition=" '$(TargetFramework)' == 'monoandroid50' ">Android</XenkoPlatform>
+	<XenkoPlatform Condition=" '$(TargetFramework)' == 'xamarin.ios10' ">iOS</XenkoPlatform>
     <XenkoUI Condition="'$(XenkoUI)' == '' AND '$(XenkoPlatform)' == 'Windows'">SDL;WINFORMS;WPF</XenkoUI>
 
     <XenkoPlatformFullName Condition="'$(XenkoPlatformFullName)' == ''">$(XenkoPlatform)</XenkoPlatformFullName>

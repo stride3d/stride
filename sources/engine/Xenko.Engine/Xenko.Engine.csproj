@@ -1,17 +1,17 @@
-<Project>
+﻿<Project>
 
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
   </PropertyGroup>
 
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
 
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <XenkoPlatformDependent>true</XenkoPlatformDependent>
     <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorDefaultOptions)</XenkoAssemblyProcessorOptions>
     <XenkoProjectPlatformDependentWindows>true</XenkoProjectPlatformDependentWindows>
@@ -4031,71 +4031,19 @@
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.7.0" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
-      <Project>{0e916ab7-5a6c-4820-8ab1-aa492fe66d68}</Project>
-      <Name>Xenko.Core</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Audio\Xenko.Audio.csproj">
-      <Project>{de042125-c270-4d1d-9270-0759c167567a}</Project>
-      <Name>Xenko.Audio</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj">
-      <Project>{42780cbd-3fe7-48e3-bd5b-59945ea20137}</Project>
-      <Name>Xenko.Games</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj">
-      <Project>{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}</Project>
-      <Name>Xenko.Graphics</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj">
-      <Project>{1de01410-22c9-489b-9796-1addab1f64e5}</Project>
-      <Name>Xenko.Core.IO</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj">
-      <Project>{1320f627-ee43-4115-8e89-19d1753e51f2}</Project>
-      <Name>Xenko.Core.MicroThreading</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
-      <Project>{5210fb81-b807-49bb-af0d-31fb6a83a572}</Project>
-      <Name>Xenko.Core.Serialization</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj">
-      <Project>{1677b922-ccf0-44de-b57e-1cdd3d2b8e8a}</Project>
-      <Name>Xenko.Core.Mathematics</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Input\Xenko.Input.csproj">
-      <Project>{84deb606-77ed-49cd-9aed-d2b13c1f5a1e}</Project>
-      <Name>Xenko.Input</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj">
-      <Project>{1dbbc150-f085-43ef-b41d-27c72d133770}</Project>
-      <Name>Xenko.Native</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj">
-      <Project>{273BDD15-7392-4078-91F0-AF23594A3D7B}</Project>
-      <Name>Xenko.Shaders</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.VirtualReality\Xenko.VirtualReality.csproj">
-      <Project>{53782603-3096-40c2-abd3-f8f311bae4be}</Project>
-      <Name>Xenko.VirtualReality</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko\Xenko.csproj">
-      <Project>{72390339-b2a1-4f61-a800-31ed0975b515}</Project>
-      <Name>Xenko</Name>
-      <Private>False</Private>
-    </ProjectReference>
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
+    <ProjectReference Include="..\Xenko.Audio\Xenko.Audio.csproj" />
+    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
+    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
+    <ProjectReference Include="..\Xenko.Input\Xenko.Input.csproj" />
+    <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj" />
+    <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj" />
+    <ProjectReference Include="..\Xenko.VirtualReality\Xenko.VirtualReality.csproj" />
+    <ProjectReference Include="..\Xenko\Xenko.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Rendering\Properties.tt">
@@ -4116,7 +4064,7 @@
     </When>
   </Choose>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

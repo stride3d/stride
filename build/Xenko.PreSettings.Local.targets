@@ -3,9 +3,6 @@
   <PropertyGroup>
     <XenkoCommonPreSettingsName>Xenko</XenkoCommonPreSettingsName>
     
-    <!--  Defines the API used by Xenko - Values are Direct3D/Null/OpenGL/OpenGLES -->
-    <XenkoGraphicsApi Condition=" '$(XenkoGraphicsApi)' == '' ">Direct3D11</XenkoGraphicsApi>
-
     <!-- Defines the platform used by Xenko - Values are Windows/Android/iOS...etc. -->
     <XenkoPlatform Condition=" '$(XenkoPlatform)' == '' ">Windows</XenkoPlatform>
   </PropertyGroup>

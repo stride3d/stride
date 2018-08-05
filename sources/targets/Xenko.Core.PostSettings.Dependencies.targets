@@ -1,6 +1,9 @@
 ﻿<!-- Build file post-included by all Xenko projects -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <PropertyGroup>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>.ssdeps; $(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
   <!-- 
   *****************************************************************************************************************************
   Dependencies reading (from .ssdeps)
@@ -60,15 +63,11 @@
   -->
   <Target Name="_XenkoSetupNativeLibraries" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoDependenciesCopy)' != 'false'">
     <!-- Windows, UWP, Linux & macOS -->
-    <ItemGroup Condition=" '$(XenkoPlatform)' == '' Or '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'macOS' ">
+    <ItemGroup Condition=" '$(XenkoPlatform)' == '' Or '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'macOS' Or '$(XenkoPlatform)' == 'UWP' ">
       <None Include="@(_XenkoDependencyNativeLib)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
     </ItemGroup>
-
-    <!-- TODO: Implement this for UWP unit tests (need to know current CPU? or maybe there is a CPU-agnostic way?)
-         Note: already implemented in Xenko.targets for Game (one solution platform per CPU) -->
-    <Error Condition="'$(XenkoPlatform)' == 'UWP'" Message="Native Library copy for UWP inside dev solution is not supported yet"/>
 
     <!-- Android -->
     <ItemGroup Condition=" '$(XenkoPlatform)' == 'Android' ">

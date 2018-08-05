@@ -1,6 +1,6 @@
 ﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
@@ -380,144 +380,50 @@
 	<None Remove="EditorPackage\outputpath\**" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets.CompilerApp\Xenko.Core.Assets.CompilerApp.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets.Quantum\Xenko.Core.Assets.Quantum.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Packages\Xenko.Core.Packages.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Yaml\Xenko.Core.Yaml.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Translation\Xenko.Core.Translation.csproj">
-      <Project>{6a7b231e-36aa-4647-8c1a-fb1540abc813}</Project>
-      <Name>Xenko.Core.Translation</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Dialogs\Xenko.Core.Presentation.Dialogs.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Graph\Xenko.Core.Presentation.Graph.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Quantum\Xenko.Core.Presentation.Quantum.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation\Xenko.Core.Presentation.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Quantum\Xenko.Core.Quantum.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Translation.Presentation\Xenko.Core.Translation.Presentation.csproj">
-      <Project>{b686c194-d71d-4ff0-8b4f-f53afbcd962f}</Project>
-      <Name>Xenko.Core.Translation.Presentation</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\shaders\Xenko.Core.Shaders\Xenko.Core.Shaders.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Assets.Models\Xenko.Assets.Models.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Assets\Xenko.Assets.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Audio\Xenko.Audio.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Games\Xenko.Games.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Input\Xenko.Input.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Navigation\Xenko.Navigation.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Particles\Xenko.Particles.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Physics\Xenko.Physics.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Shaders\Xenko.Shaders.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.SpriteStudio.Offline\Xenko.SpriteStudio.Offline.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.SpriteStudio.Runtime\Xenko.SpriteStudio.Runtime.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.UI\Xenko.UI.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko.Video\Xenko.Video.csproj">
-      <Project>{DA355C86-866F-4843-9B4D-63A173C750FB}</Project>
-      <Name>Xenko.Video</Name>
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\tools\Xenko.ConnectionRouter\Xenko.ConnectionRouter.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\tools\Xenko.Graphics.RenderDocPlugin\Xenko.Graphics.RenderDocPlugin.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\tools\Xenko.Core.ProjectTemplating\Xenko.Core.ProjectTemplating.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\tools\Xenko.TextureConverter\Xenko.TextureConverter.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Core.Assets.Editor\Xenko.Core.Assets.Editor.csproj">
-      <Private>False</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Editor\Xenko.Editor.csproj">
-      <Private>False</Private>
-    </ProjectReference>
+    <ProjectReference Include="..\..\assets\Xenko.Core.Assets.CompilerApp\Xenko.Core.Assets.CompilerApp.csproj" />
+    <ProjectReference Include="..\..\assets\Xenko.Core.Assets.Quantum\Xenko.Core.Assets.Quantum.csproj" />
+    <ProjectReference Include="..\..\assets\Xenko.Core.Packages\Xenko.Core.Packages.csproj" />
+    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Yaml\Xenko.Core.Yaml.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Translation\Xenko.Core.Translation.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Dialogs\Xenko.Core.Presentation.Dialogs.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Graph\Xenko.Core.Presentation.Graph.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation.Quantum\Xenko.Core.Presentation.Quantum.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation\Xenko.Core.Presentation.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Quantum\Xenko.Core.Quantum.csproj" />
+    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
+    <ProjectReference Include="..\..\presentation\Xenko.Core.Translation.Presentation\Xenko.Core.Translation.Presentation.csproj" />
+    <ProjectReference Include="..\..\shaders\Xenko.Core.Shaders\Xenko.Core.Shaders.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Assets.Models\Xenko.Assets.Models.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Assets\Xenko.Assets.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Audio\Xenko.Audio.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Games\Xenko.Games.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Input\Xenko.Input.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Navigation\Xenko.Navigation.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Particles\Xenko.Particles.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Physics\Xenko.Physics.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Shaders\Xenko.Shaders.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.SpriteStudio.Offline\Xenko.SpriteStudio.Offline.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.SpriteStudio.Runtime\Xenko.SpriteStudio.Runtime.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.UI\Xenko.UI.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko.Video\Xenko.Video.csproj" />
+    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj" />
+    <ProjectReference Include="..\..\tools\Xenko.ConnectionRouter\Xenko.ConnectionRouter.csproj" />
+    <ProjectReference Include="..\..\tools\Xenko.Graphics.RenderDocPlugin\Xenko.Graphics.RenderDocPlugin.csproj" />
+    <ProjectReference Include="..\..\tools\Xenko.Core.ProjectTemplating\Xenko.Core.ProjectTemplating.csproj" />
+    <ProjectReference Include="..\..\tools\Xenko.TextureConverter\Xenko.TextureConverter.csproj" />
+    <ProjectReference Include="..\Xenko.Core.Assets.Editor\Xenko.Core.Assets.Editor.csproj" />
+    <ProjectReference Include="..\Xenko.Editor\Xenko.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="AssetEditors\GraphicsCompositorEditor\Views\GraphicsCompositorEditorView.xaml">
@@ -970,7 +876,7 @@
     <Resource Include="Resources\Components\video-16.png" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <Target Name="RemoveVisualStudioRoslynDependencies" AfterTargets="ResolveAssemblyReferences">
     <ItemGroup>
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.FileName)').StartsWith('Microsoft.VisualStudio.'))" />

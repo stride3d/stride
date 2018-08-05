@@ -6,7 +6,7 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
     <TargetVsixContainerName>Xenko.vsix</TargetVsixContainerName>
     <RootNamespace>Xenko.VisualStudio</RootNamespace>
@@ -181,6 +181,6 @@
   </Target>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <!-- Force NET Sdk to be included before VsSDK -->
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
 </Project>

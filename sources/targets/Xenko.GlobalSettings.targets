@@ -1,9 +1,16 @@
-﻿<!-- Global settings used to configure the XenkoGraphicsApi -->
+<!-- Global settings used to configure the XenkoGraphicsApi -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- Default values -->
   <PropertyGroup>
-    <XenkoGraphicsApi Condition=" '$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
+    <!-- Defaults for CPU and GraphicsApi based on platform-->
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'Windows'">Direct3D11</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'UWP'">Direct3D11</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'Android'">OpenGLES</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'iOS'">OpenGLES</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'Linux'">OpenGL</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'macOS'">OpenGL</XenkoDefaultGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == '' and '$(XenkoDefaultGraphicsApi)' != ''">$(XenkoDefaultGraphicsApi)</XenkoGraphicsApi>
     <XenkoAssemblyProcessorOptions Condition="'$(XenkoAssemblyProcessorOptions)' == ''">$(XenkoAssemblyProcessorDefaultOptions)</XenkoAssemblyProcessorOptions>
   </PropertyGroup>
 

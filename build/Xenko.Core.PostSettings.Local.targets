@@ -5,13 +5,6 @@
     <XenkoAssemblyProcessorGlobal>true</XenkoAssemblyProcessorGlobal>
     <XenkoAssemblyProcessorPath>$(XenkoPackageXenko)\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe</XenkoAssemblyProcessorPath>
 
-    <!-- Don't copy dependencies (from .ssdeps) if we output in the main folder -->
-    <XenkoDependenciesCopy Condition="'$(XenkoOutputPath)' == '' and '$(XenkoOutputFolder)' == ''">false</XenkoDependenciesCopy>
-
-    <XenkoOutputCommonDir Condition="'$(XenkoGraphicsApiDependent)' == 'true'">$(XenkoOutputCommonDir)$(XenkoGraphicsApi)\</XenkoOutputCommonDir>
-    <XenkoOutputPath Condition="'$(XenkoOutputPath)' == ''">$(XenkoOutputCommonDir)</XenkoOutputPath>
-    <XenkoOutputPath Condition="'$(XenkoOutputFolder)' != ''">$(XenkoOutputPath)$(XenkoOutputFolder)\</XenkoOutputPath>
-   
     <XenkoDependenciesDir Condition="'$(XenkoDependenciesDir)' == ''">$(XenkoPackageXenko)\deps\</XenkoDependenciesDir>
     <XenkoDependenciesDir Condition="'$(XenkoDependenciesDir)' != '' and !HasTrailingSlash('$(XenkoDependenciesDir)')">$(XenkoDependenciesDir)\</XenkoDependenciesDir>
 

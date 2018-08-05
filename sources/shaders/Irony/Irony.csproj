@@ -1,7 +1,7 @@
 ﻿<Project>
 
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   
   <PropertyGroup>
     <ProductVersion>9.0.30729</ProductVersion>
@@ -11,7 +11,7 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <XenkoBuildTags>*</XenkoBuildTags>
-    <TargetFramework>$(TargetFramework)</TargetFramework>
+    <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <AssemblyName>Xenko.Irony</AssemblyName>
   </PropertyGroup>
   
@@ -54,10 +54,11 @@
     <Compile Include="Parsing\Grammar\Grammar.cs" />
     <Compile Include="Parsing\TokenFilters\TokenFilter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    
     <Compile Include="Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
+      <SubType>Code</SubType>
+      <Generator>MSBuild:Compile</Generator>
       <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
@@ -75,6 +76,6 @@
   </ItemGroup>
   
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   
 </Project>

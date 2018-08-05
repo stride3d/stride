@@ -14,12 +14,6 @@
   <Import Project="$(SolutionDir)$(SolutionName).PostSettings.Local.targets" Condition="Exists('$(SolutionDir)$(SolutionName).PostSettings.Local.targets')" />
   <Import Project="$(SolutionDir)Xenko.Core.PostSettings.Local.targets" Condition="Exists('$(SolutionDir)Xenko.Core.PostSettings.Local.targets')" />
   
-  <PropertyGroup>
-    <XenkoOutputPath Condition=" $(XenkoOutputPath) == '' ">Bin\$(XenkoBuildDirectory)\</XenkoOutputPath>
-    <OutputPath>$(XenkoOutputPath)</OutputPath>
-    <OutDir>$(OutputPath)</OutDir>
-  </PropertyGroup>
-
   <!-- Include platform dependent assembly when specified -->
   <Choose>
     <When Condition="'$(XenkoPlatformDependent)' == 'true'">
@@ -66,11 +60,7 @@
     <!-- On Android, everything is library (even Exe) -->
     <OutputType Condition=" '$(XenkoPlatform)' == 'Android' ">Library</OutputType>
 
-    <XenkoGenerateDoc Condition="'$(XenkoPublicApi)' == 'true'">true</XenkoGenerateDoc>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(XenkoGenerateDoc)' == 'true' ">
-    <DocumentationFile>$(OutputPath)\$(AssemblyName).xml</DocumentationFile>
+    <GenerateDocumentationFile Condition="'$(XenkoPublicApi)' == 'true'">true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>
