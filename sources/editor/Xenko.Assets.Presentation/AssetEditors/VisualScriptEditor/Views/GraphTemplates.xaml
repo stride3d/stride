@@ -1,7 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-                    xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+                    xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                     xmlns:tp="clr-namespace:Xenko.Assets.Presentation.TemplateProviders"
                     xmlns:scriptEditor="clr-namespace:Xenko.Assets.Presentation.AssetEditors.ScriptEditor">
 
@@ -10,7 +10,7 @@
     <ResourceDictionary Source="/Xenko.Assets.Presentation;component/View/ImageDictionary.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
-  <tp:ScriptTextEditorTemplateProvider x:Key="ScriptTextEditorTemplateProvider" OverrideRule="All" sskk:PropertyViewHelper.TemplateCategory="PropertyHeader">
+  <tp:ScriptTextEditorTemplateProvider x:Key="ScriptTextEditorTemplateProvider" OverrideRule="All" xk:PropertyViewHelper.TemplateCategory="PropertyHeader">
     <DataTemplate>
       <scriptEditor:ScriptTextEditor VerticalAlignment="Stretch" Text="{Binding NodeValue}" MinHeight="280">
         <i:Interaction.Behaviors>

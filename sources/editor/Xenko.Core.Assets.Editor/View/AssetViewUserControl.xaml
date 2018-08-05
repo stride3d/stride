@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModel="clr-namespace:Xenko.Core.Assets.Editor.ViewModel"
-             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              xmlns:view="clr-namespace:Xenko.Core.Assets.Editor.View"
              xmlns:controls="clr-namespace:Xenko.Core.Assets.Editor.View.Controls"
@@ -35,7 +35,7 @@
             <DataTemplate x:Key="ItemTemplate" DataType="{x:Type viewModel:ISessionObjectViewModel}">
               <HeaderedContentControl SnapsToDevicePixels="True" ToolTipService.InitialShowDelay="1">
                 <i:Interaction.Behaviors>
-                  <sskk:OnEventCommandBehavior EventName="MouseDoubleClick" Command="{Binding AssetDoubleClick, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"
+                  <xk:OnEventCommandBehavior EventName="MouseDoubleClick" Command="{Binding AssetDoubleClick, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"
                                                CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=controls:EditableContentListBox}}"/>
                 </i:Interaction.Behaviors>
                 <HeaderedContentControl.Header>
@@ -46,10 +46,10 @@
                              Height="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"/>
                     </Border>
                     <ProgressBar Width="32" Height="8"
-                               IsIndeterminate="{Binding ThumbnailData, Mode=OneWay, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:InvertBool}}}"
-                               Visibility="{Binding ThumbnailData, Mode=OneWay, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}"/>
+                               IsIndeterminate="{Binding ThumbnailData, Mode=OneWay, Converter={xk:Chained {xk:ObjectToBool}, {xk:InvertBool}}}"
+                               Visibility="{Binding ThumbnailData, Mode=OneWay, Converter={xk:Chained {xk:ObjectToBool}, {xk:InvertBool}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}"/>
                     <Border BorderBrush="{StaticResource NormalBorderBrush}" BorderThickness="2" CornerRadius="3" Background="{StaticResource NormalBrush}"
-                          HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="{Binding Sources.NeedUpdateFromSource, Converter={sskk:VisibleOrHidden}, FallbackValue={sskk:Hidden}}" Margin="0,3,0,0">
+                          HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="{Binding Sources.NeedUpdateFromSource, Converter={xk:VisibleOrHidden}, FallbackValue={xk:Hidden}}" Margin="0,3,0,0">
                       <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding Sources.UpdateFromSourceCommand}" Margin="0">
                         <Image Source="{StaticResource UpdateSelectedAssetsFromSource}" Width="16" Height="16" Margin="-1"/>
                       </Button>
@@ -67,16 +67,16 @@
                         </Style>
                       </Button.Style>
                       <Grid Background="Transparent">
-                        <Image Source="{StaticResource ImageAssetIsRoot}" Width="16" Height="16" Visibility="{Binding Dependencies.IsRoot, Converter={sskk:VisibleOrHidden}, FallbackValue={sskk:Hidden}}"/>
-                        <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="16" Height="16" Visibility="{Binding Dependencies.IsIndirectlyIncluded, Converter={sskk:VisibleOrHidden}, FallbackValue={sskk:Hidden}}"/>
-                        <Image Source="{StaticResource ImageAssetIsExcluded}" Width="16" Height="16" Visibility="{Binding Dependencies.IsExcluded, Converter={sskk:VisibleOrHidden}, FallbackValue={sskk:Hidden}}"/>
+                        <Image Source="{StaticResource ImageAssetIsRoot}" Width="16" Height="16" Visibility="{Binding Dependencies.IsRoot, Converter={xk:VisibleOrHidden}, FallbackValue={xk:Hidden}}"/>
+                        <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="16" Height="16" Visibility="{Binding Dependencies.IsIndirectlyIncluded, Converter={xk:VisibleOrHidden}, FallbackValue={xk:Hidden}}"/>
+                        <Image Source="{StaticResource ImageAssetIsExcluded}" Width="16" Height="16" Visibility="{Binding Dependencies.IsExcluded, Converter={xk:VisibleOrHidden}, FallbackValue={xk:Hidden}}"/>
                       </Grid>
                     </Button>
                   </Grid>
                 </HeaderedContentControl.Header>
                 <StackPanel Background="Transparent" Width="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}" Height="48">
                   <DockPanel HorizontalAlignment="Center" LastChildFill="False">
-                    <TextBlock DockPanel.Dock="Right" Text="{Binding IsDirty, Converter={sskk:BoolToParam}, ConverterParameter=*}" HorizontalAlignment="Center"
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding IsDirty, Converter={xk:BoolToParam}, ConverterParameter=*}" HorizontalAlignment="Center"
                                VerticalAlignment="Bottom" TextAlignment="Center" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="{Binding Name, Converter={cvt:NameBreakingLine}}" TextAlignment="Center" TextTrimming="CharacterEllipsis" TextWrapping="Wrap" MaxHeight="32"/>
                   </DockPanel>
@@ -88,35 +88,35 @@
                       <!-- default template (fallback) -->
                       <DataTemplate DataType="{x:Type viewModel:SessionObjectViewModel}">
                         <StackPanel>
-                          <TextBlock Text="{Binding Name, StringFormat={sskk:Localize Name: {0}}}" FontWeight="Bold"/>
-                          <TextBlock Text="{Binding TypeDisplayName, StringFormat={sskk:Localize Type: {0}}}"/>
+                          <TextBlock Text="{Binding Name, StringFormat={xk:Localize Name: {0}}}" FontWeight="Bold"/>
+                          <TextBlock Text="{Binding TypeDisplayName, StringFormat={xk:Localize Type: {0}}}"/>
                         </StackPanel>
                       </DataTemplate>
                       <!-- asset -->
                       <DataTemplate DataType="{x:Type viewModel:AssetViewModel}">
                         <StackPanel>
-                          <TextBlock Text="{Binding Url, StringFormat={sskk:Localize URL: {0}}}" FontWeight="Bold"/>
-                          <TextBlock Text="{Binding TypeDisplayName, StringFormat={sskk:Localize Type: {0}}}"/>
-                          <TextBlock Text="{Binding Tags, Converter={sskk:JoinStrings}, StringFormat={sskk:Localize Tags: {0}}}"  Visibility="{Binding Tags, Converter={sskk:Chained {sskk:CountEnumerable}, {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}"/>
-                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsRoot, Converter={sskk:VisibleOrCollapsed}, FallbackValue={sskk:Collapsed}}">
+                          <TextBlock Text="{Binding Url, StringFormat={xk:Localize URL: {0}}}" FontWeight="Bold"/>
+                          <TextBlock Text="{Binding TypeDisplayName, StringFormat={xk:Localize Type: {0}}}"/>
+                          <TextBlock Text="{Binding Tags, Converter={xk:JoinStrings}, StringFormat={xk:Localize Tags: {0}}}"  Visibility="{Binding Tags, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}"/>
+                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsRoot, Converter={xk:VisibleOrCollapsed}, FallbackValue={xk:Collapsed}}">
                             <Image Source="{StaticResource ImageAssetIsRoot}" Width="16" Height="16" Margin="0,2,0,0"/>
-                            <TextBlock Text="{sskk:Localize Included in build as root}"/>
+                            <TextBlock Text="{xk:Localize Included in build as root}"/>
                           </StackPanel>
-                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsIndirectlyIncluded, Converter={sskk:VisibleOrCollapsed}, FallbackValue={sskk:Collapsed}}">
+                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsIndirectlyIncluded, Converter={xk:VisibleOrCollapsed}, FallbackValue={xk:Collapsed}}">
                             <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="16" Height="16" Margin="0,2,0,0"/>
-                            <TextBlock Text="{sskk:Localize Included in build as dependency}"/>
+                            <TextBlock Text="{xk:Localize Included in build as dependency}"/>
                           </StackPanel>
-                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsExcluded, Converter={sskk:VisibleOrCollapsed}, FallbackValue={sskk:Collapsed}}">
+                          <StackPanel Orientation="Horizontal" Visibility="{Binding Dependencies.IsExcluded, Converter={xk:VisibleOrCollapsed}, FallbackValue={xk:Collapsed}}">
                             <Image Source="{StaticResource ImageAssetIsExcluded}" Width="16" Height="16" Margin="0,2,0,0"/>
-                            <TextBlock Text="{sskk:Localize Excluded from build}"/>
+                            <TextBlock Text="{xk:Localize Excluded from build}"/>
                           </StackPanel>
                         </StackPanel>
                       </DataTemplate>
                       <!-- folder -->
                       <DataTemplate DataType="{x:Type viewModel:DirectoryViewModel}">
                         <StackPanel>
-                          <TextBlock Text="{Binding Path, StringFormat={sskk:Localize URL: {0}}}" FontWeight="Bold"/>
-                          <TextBlock Text="{Binding TypeDisplayName, StringFormat={sskk:Localize Type: {0}}}"/>
+                          <TextBlock Text="{Binding Path, StringFormat={xk:Localize URL: {0}}}" FontWeight="Bold"/>
+                          <TextBlock Text="{Binding TypeDisplayName, StringFormat={xk:Localize Type: {0}}}"/>
                           </StackPanel>
                       </DataTemplate>
                     </FrameworkElement.Resources>
@@ -135,11 +135,11 @@
                              Width="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"
                              Height="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"/>
                     </Border>
-                    <ProgressBar Width="32" Height="8" IsIndeterminate="{Binding ThumbnailData, Mode=OneWay, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:InvertBool}}}"
-                                 Visibility="{Binding ThumbnailData, Mode=OneWay, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}"/>
+                    <ProgressBar Width="32" Height="8" IsIndeterminate="{Binding ThumbnailData, Mode=OneWay, Converter={xk:Chained {xk:ObjectToBool}, {xk:InvertBool}}}"
+                                 Visibility="{Binding ThumbnailData, Mode=OneWay, Converter={xk:Chained {xk:ObjectToBool}, {xk:InvertBool}, {xk:VisibleOrCollapsed}}}"/>
                   </Grid>
                 </HeaderedContentControl.Header>
-                <sskk:TextBox Text="{Binding Name}" Width="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"
+                <xk:TextBox Text="{Binding Name}" Width="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"
                               Margin="0,5,0,0" GetFocusOnLoad="True" SelectAllOnFocus="True"/>
               </HeaderedContentControl>
             </DataTemplate>
@@ -150,34 +150,34 @@
                                            ItemTemplate="{StaticResource ItemTemplate}" EditItemTemplate="{StaticResource EditItemTemplate}">
             <controls:EditableContentListBox.ItemsPanel>
               <ItemsPanelTemplate>
-                <sskk:VirtualizingTilePanel MaximumItemSpacing="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={sskk:Multiply}, ConverterParameter=0.375}" MinimumItemSpacing="4"
-                                            ItemSlotSize="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={sskk:Chained {sskk:NumericToSize}, {sskk:SumSize}, Parameter1={sskk:Size 1,1}, Parameter2={sskk:Size 18,64}}}">
+                <xk:VirtualizingTilePanel MaximumItemSpacing="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:Multiply}, ConverterParameter=0.375}" MinimumItemSpacing="4"
+                                            ItemSlotSize="{Binding TileThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:Chained {xk:NumericToSize}, {xk:SumSize}, Parameter1={xk:Size 1,1}, Parameter2={xk:Size 18,64}}}">
                   <i:Interaction.Behaviors>
-                    <sskk:TilePanelNavigationBehavior/>
+                    <xk:TilePanelNavigationBehavior/>
                   </i:Interaction.Behaviors>
-                </sskk:VirtualizingTilePanel>
+                </xk:VirtualizingTilePanel>
               </ItemsPanelTemplate>
             </controls:EditableContentListBox.ItemsPanel>
             <controls:EditableContentListBox.ItemContainerStyle>
               <Style TargetType="controls:EditableContentListBoxItem" BasedOn="{StaticResource {x:Type controls:EditableContentListBoxItem}}" d:DataContext="{d:DesignInstance viewModel:AssetViewModel}">
-                <Setter Property="CanEdit" Value="{Binding IsLocked, Converter={sskk:InvertBool}}"/>
+                <Setter Property="CanEdit" Value="{Binding IsLocked, Converter={xk:InvertBool}}"/>
                 <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
-                <Setter Property="sskk:Interaction.Behaviors">
+                <Setter Property="xk:Interaction.Behaviors">
                   <Setter.Value>
-                    <sskk:BehaviorCollection>
-                      <sskk:OnEventSetPropertyBehavior EventName="Validated" EventOwnerType="sskk:TextBox" Property="controls:EditableContentListBoxItem.IsEditing" Value="False"/>
-                      <sskk:OnEventSetPropertyBehavior EventName="Cancelled" EventOwnerType="sskk:TextBox" Property="controls:EditableContentListBoxItem.IsEditing" Value="False"/>
-                    </sskk:BehaviorCollection>
+                    <xk:BehaviorCollection>
+                      <xk:OnEventSetPropertyBehavior EventName="Validated" EventOwnerType="xk:TextBox" Property="controls:EditableContentListBoxItem.IsEditing" Value="False"/>
+                      <xk:OnEventSetPropertyBehavior EventName="Cancelled" EventOwnerType="xk:TextBox" Property="controls:EditableContentListBoxItem.IsEditing" Value="False"/>
+                    </xk:BehaviorCollection>
                   </Setter.Value>
                 </Setter>
               </Style>
             </controls:EditableContentListBox.ItemContainerStyle>
             <i:Interaction.Behaviors>
-              <sskk:ListBoxBindableSelectedItemsBehavior SelectedItems="{Binding SelectedContent}" GiveFocusOnSelectionChange="{Binding GiveFocusOnSelectionChange, ElementName=AssetView}"/>
+              <xk:ListBoxBindableSelectedItemsBehavior SelectedItems="{Binding SelectedContent}" GiveFocusOnSelectionChange="{Binding GiveFocusOnSelectionChange, ElementName=AssetView}"/>
               <behaviors:ListBoxDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
               <behaviors:TilePanelThumbnailPrioritizationBehavior/>
               <behaviors:BringSelectionToViewBehavior/>
-              <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding DeleteContentCommand}" IsEnabled="{Binding CanDeleteAssets, ElementName=AssetView}"/>
+              <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding DeleteContentCommand}" IsEnabled="{Binding CanDeleteAssets, ElementName=AssetView}"/>
             </i:Interaction.Behaviors>
           </controls:EditableContentListBox>
         </DataTemplate>
@@ -187,30 +187,30 @@
         <DataTemplate x:Key="AssetGridView">
           <view:DataGridEx ItemsSource="{Binding Source={StaticResource FilteredContentView}}" AutoCreateColumns="False" ItemScrollingBehavior="Immediate" IsTextSearchEnabled="True" TextSearch.TextPath="Name">
             <xcdg:DataGridControl.Resources>
-              <sskk:BindingProxy x:Key="GridThumbnailSize" Data="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"/>
+              <xk:BindingProxy x:Key="GridThumbnailSize" Data="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"/>
             </xcdg:DataGridControl.Resources>
             <xcdg:DataGridControl.Columns>
               <xcdg:Column FieldName="ThumbnailData" ReadOnly="True" AllowSort="False"
-                         MinWidth="{Binding Data, Source={StaticResource GridThumbnailSize}, Converter={sskk:SumNum}, ConverterParameter={sskk:Double 8}}"
-                         MaxWidth="{Binding Data, Source={StaticResource GridThumbnailSize}, Converter={sskk:SumNum}, ConverterParameter={sskk:Double 8}}">
+                         MinWidth="{Binding Data, Source={StaticResource GridThumbnailSize}, Converter={xk:SumNum}, ConverterParameter={xk:Double 8}}"
+                         MaxWidth="{Binding Data, Source={StaticResource GridThumbnailSize}, Converter={xk:SumNum}, ConverterParameter={xk:Double 8}}">
                 <xcdg:Column.CellContentTemplate>
                   <DataTemplate DataType="{x:Type services:ThumbnailData}">
                     <Image Margin="2" Source="{Binding Presenter, Mode=OneWay}" RenderOptions.BitmapScalingMode="Linear" SnapsToDevicePixels="True"
-                                                    Width="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={sskk:SumNum}}"
-                                                    Height="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={sskk:SumNum}}"/>
+                                                    Width="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:SumNum}}"
+                                                    Height="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:SumNum}}"/>
                   </DataTemplate>
                 </xcdg:Column.CellContentTemplate>
               </xcdg:Column>
-              <xcdg:Column Width="2*" FieldName="Name" Title="{sskk:Localize Name}" AllowSort="True" CellEditorDisplayConditions="RowIsBeingEdited"/>
-              <xcdg:Column Width="2*" FieldName="TypeDisplayName" Title="{sskk:Localize Type}" AllowSort="True" ReadOnly="True" />
-              <xcdg:Column Width="4*" FieldName="Url" Title="{sskk:Localize URL}" AllowSort="True" ReadOnly="True" />
-              <xcdg:Column FieldName="Dependencies" Title="{sskk:Localize Included}" AllowSort="False" ReadOnly="True" >
+              <xcdg:Column Width="2*" FieldName="Name" Title="{xk:Localize Name}" AllowSort="True" CellEditorDisplayConditions="RowIsBeingEdited"/>
+              <xcdg:Column Width="2*" FieldName="TypeDisplayName" Title="{xk:Localize Type}" AllowSort="True" ReadOnly="True" />
+              <xcdg:Column Width="4*" FieldName="Url" Title="{xk:Localize URL}" AllowSort="True" ReadOnly="True" />
+              <xcdg:Column FieldName="Dependencies" Title="{xk:Localize Included}" AllowSort="False" ReadOnly="True" >
                 <xcdg:Column.CellContentTemplate>
                   <DataTemplate DataType="viewModel:AssetDependenciesViewModel">
                     <Grid Background="Transparent">
-                      <Image Source="{StaticResource ImageAssetIsRoot}" Width="16" Height="16" Visibility="{Binding IsRoot, Converter={sskk:VisibleOrHidden}}"/>
-                      <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="16" Height="16" Visibility="{Binding IsIndirectlyIncluded, Converter={sskk:VisibleOrHidden}}"/>
-                      <Image Source="{StaticResource ImageAssetIsExcluded}" Width="16" Height="16" Visibility="{Binding IsExcluded, Converter={sskk:VisibleOrHidden}}"/>
+                      <Image Source="{StaticResource ImageAssetIsRoot}" Width="16" Height="16" Visibility="{Binding IsRoot, Converter={xk:VisibleOrHidden}}"/>
+                      <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="16" Height="16" Visibility="{Binding IsIndirectlyIncluded, Converter={xk:VisibleOrHidden}}"/>
+                      <Image Source="{StaticResource ImageAssetIsExcluded}" Width="16" Height="16" Visibility="{Binding IsExcluded, Converter={xk:VisibleOrHidden}}"/>
                     </Grid>
                   </DataTemplate>
                 </xcdg:Column.CellContentTemplate>
@@ -219,23 +219,23 @@
             </xcdg:DataGridControl.Columns>
             <xcdg:DataGridControl.ItemContainerStyle>
               <Style TargetType="xcdg:DataRow" BasedOn="{StaticResource {x:Type xcdg:DataRow}}" d:DataContext="{d:DesignInstance viewModel:AssetViewModel}">
-                <Setter Property="Height" Value="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={sskk:SumNum}, ConverterParameter={sskk:Double 8}}"/>
+                <Setter Property="Height" Value="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:SumNum}, ConverterParameter={xk:Double 8}}"/>
                 <Setter Property="MinHeight" Value="26"/>
                 <Setter Property="MaxHeight" Value="{x:Static system:Double.PositiveInfinity}"/>
-                <Setter Property="sskk:Interaction.Behaviors">
+                <Setter Property="xk:Interaction.Behaviors">
                   <Setter.Value>
-                    <sskk:BehaviorCollection>
-                      <sskk:OnEventCommandBehavior EventName="MouseDoubleClick"
+                    <xk:BehaviorCollection>
+                      <xk:OnEventCommandBehavior EventName="MouseDoubleClick"
                                                    Command="{Binding AssetDoubleClick, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"
                                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=controls:EditableContentListBox}}"/>
-                    </sskk:BehaviorCollection>
+                    </xk:BehaviorCollection>
                   </Setter.Value>
                 </Setter>
               </Style>
             </xcdg:DataGridControl.ItemContainerStyle>
             <xcdg:DataGridControl.View>
               <!-- Don't forget to change TableflowViewItemsHost in TableflowView.GridElementTemplates.xaml -->
-              <!--<xcdg:TableflowView ContainerHeight="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={sskk:Chained {sskk:SumNum}, {sskk:MaxNum}, Parameter1={sskk:Double 8}, Parameter2={sskk:Double 26}}}"
+              <!--<xcdg:TableflowView ContainerHeight="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:Chained {xk:SumNum}, {xk:MaxNum}, Parameter1={xk:Double 8}, Parameter2={xk:Double 26}}}"
                                             ScrollingAnimationDuration="0" RowFadeInAnimationDuration="0" IsColumnVirtualizationEnabled="False"/>-->
               <xcdg:TableView AllowRowResize="False" IsColumnVirtualizationEnabled="False"/>
             </xcdg:DataGridControl.View>
@@ -244,7 +244,7 @@
               <behaviors:XceedDataGridDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
               <behaviors:XceedDataGridThumbnailPrioritizationBehavior/>
               <behaviors:XceedDataGridResizableColumnsBehavior/>
-              <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding DeleteContentCommand}" IsEnabled="{Binding CanDeleteAssets, ElementName=AssetView}"/>
+              <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding DeleteContentCommand}" IsEnabled="{Binding CanDeleteAssets, ElementName=AssetView}"/>
             </i:Interaction.Behaviors>
           </view:DataGridEx>
         </DataTemplate>
@@ -257,19 +257,19 @@
           <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor" />
         </Style>
       </FrameworkElement.Resources>
-      <ToolBar Visibility="{Binding PrimaryToolBarItems.Count, ElementName=AssetView, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}" ItemsSource="{Binding PrimaryToolBarItems, ElementName=AssetView}" />
+      <ToolBar Visibility="{Binding PrimaryToolBarItems.Count, ElementName=AssetView, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}" ItemsSource="{Binding PrimaryToolBarItems, ElementName=AssetView}" />
       <!--  SECONDARY TOOLBAR  -->
       <ToolBar>
         <!--  NEW ASSET  -->
         <ToggleButton x:Name="Toggle" Style="{StaticResource {x:Static ToolBar.ToggleButtonStyleKey}}"
-                      ToolTip="{sskk:Localize Add an asset to this location, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}"
-                      Visibility="{Binding CanAddAssets, ElementName=AssetView, Converter={sskk:VisibleOrCollapsed}}">
+                      ToolTip="{xk:Localize Add an asset to this location, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}"
+                      Visibility="{Binding CanAddAssets, ElementName=AssetView, Converter={xk:VisibleOrCollapsed}}">
           <StackPanel Orientation="Horizontal">
             <Image Source="{StaticResource ImageNewAsset}" />
-            <TextBlock Text="{sskk:Localize Add asset}" Margin="2,2,4,2" VerticalAlignment="Center"/>
+            <TextBlock Text="{xk:Localize Add asset}" Margin="2,2,4,2" VerticalAlignment="Center"/>
           </StackPanel>
           <i:Interaction.Behaviors>
-            <sskk:ToggleButtonPopupBehavior/>
+            <xk:ToggleButtonPopupBehavior/>
           </i:Interaction.Behaviors>
         </ToggleButton>
         <Popup IsOpen="{Binding IsChecked, ElementName=Toggle, Mode=TwoWay}" StaysOpen="False" AllowsTransparency="True">
@@ -282,19 +282,19 @@
                                               SelectFilesToCreateItemCommand="{Binding SelectFilesToCreateAssetCommand}"/>
           </Border>
           <i:Interaction.Behaviors>
-            <sskk:OnEventSetPropertyBehavior EventName="Validated" EventOwnerType="sskk:FilteringComboBox" Property="{x:Static Popup.IsOpenProperty}" Value="{sskk:False}"/>
+            <xk:OnEventSetPropertyBehavior EventName="Validated" EventOwnerType="xk:FilteringComboBox" Property="{x:Static Popup.IsOpenProperty}" Value="{xk:False}"/>
           </i:Interaction.Behaviors>
         </Popup>
         <!--  UPDATE ASSETS FROM SOURCE BUTTON  -->
         <Button Command="{Binding Session.SourceTracker.UpdateAllAssetsWithModifiedSourceCommand}"
-                ToolTip="{sskk:ToolTip {sskk:Localize Update assets whose source files have changed, Context=ToolTip}, {x:Static strings:KeyGestures.UpdateAllAssetsWithModifiedSource}}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
-                Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sskk:VisibleOrCollapsed}}">
+                ToolTip="{xk:ToolTip {xk:Localize Update assets whose source files have changed, Context=ToolTip}, {x:Static strings:KeyGestures.UpdateAllAssetsWithModifiedSource}}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"
+                Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={xk:VisibleOrCollapsed}}">
           <DockPanel>
-            <TextBlock DockPanel.Dock="Right" Margin="3,0" Visibility="{Binding Session.SourceTracker.AssetsToUpdate.Count, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}"
+            <TextBlock DockPanel.Dock="Right" Margin="3,0" Visibility="{Binding Session.SourceTracker.AssetsToUpdate.Count, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}"
                        Text="{Binding Session.SourceTracker.AssetsToUpdate.Count, StringFormat=({0})}" VerticalAlignment="Center" />
             <Grid>
               <Image Source="{StaticResource UpdateAllAssetsWithModifiedSource}"/>
-              <Rectangle Fill="{StaticResource NormalBrush}" Visibility="{Binding Session.SourceTracker.AssetsToUpdate.Count, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}">
+              <Rectangle Fill="{StaticResource NormalBrush}" Visibility="{Binding Session.SourceTracker.AssetsToUpdate.Count, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}">
                 <Rectangle.OpacityMask>
                   <ImageBrush ImageSource="{StaticResource UpdateAllAssetsWithModifiedSource}"/>
                 </Rectangle.OpacityMask>
@@ -312,15 +312,15 @@
           </DockPanel>
         </Button>
         <Button Command="{Binding Session.ImportEffectLogCommand}"
-                IsEnabled="{Binding Session.ImportEffectLogPendingCount, Converter={sskk:NumericToBool}}"
-                Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sskk:VisibleOrCollapsed}}"
-                ToolTip="{sskk:Localize Import last effects compiled remotely, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                IsEnabled="{Binding Session.ImportEffectLogPendingCount, Converter={xk:NumericToBool}}"
+                Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={xk:VisibleOrCollapsed}}"
+                ToolTip="{xk:Localize Import last effects compiled remotely, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
           <DockPanel>
-            <TextBlock DockPanel.Dock="Right" Margin="3,0" Visibility="{Binding Session.ImportEffectLogPendingCount, Converter={sskk:Chained {sskk:IsGreater}, {sskk:VisibleOrCollapsed},  Parameter1={sskk:Double 0}}}"
+            <TextBlock DockPanel.Dock="Right" Margin="3,0" Visibility="{Binding Session.ImportEffectLogPendingCount, Converter={xk:Chained {xk:IsGreater}, {xk:VisibleOrCollapsed},  Parameter1={xk:Double 0}}}"
                        Text="{Binding Session.ImportEffectLogPendingCount, StringFormat=({0})}" VerticalAlignment="Center" />
             <Grid>
               <Image Source="{StaticResource ImageReimportEffects}"/>
-              <Rectangle Fill="{StaticResource NormalBrush}" Visibility="{Binding Session.ImportEffectLogPendingCount, Converter={sskk:Chained {sskk:IsGreater}, {sskk:VisibleOrCollapsed},  Parameter1={sskk:Double 0}}}">
+              <Rectangle Fill="{StaticResource NormalBrush}" Visibility="{Binding Session.ImportEffectLogPendingCount, Converter={xk:Chained {xk:IsGreater}, {xk:VisibleOrCollapsed},  Parameter1={xk:Double 0}}}">
                 <Rectangle.OpacityMask>
                   <ImageBrush ImageSource="{StaticResource ImageReimportEffects}"/>
                 </Rectangle.OpacityMask>
@@ -339,62 +339,62 @@
         </Button>
         <Separator/>
         <!--  EDIT  -->
-        <Button Command="{Binding Session.EditSelectedContentCommand}" Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sskk:VisibleOrCollapsed}}"
-                ToolTip="{sskk:ToolTip {sskk:Localize Open asset in dedicated editor, Context=ToolTip}, {x:Static strings:KeyGestures.EditAsset}}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+        <Button Command="{Binding Session.EditSelectedContentCommand}" Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={xk:VisibleOrCollapsed}}"
+                ToolTip="{xk:ToolTip {xk:Localize Open asset in dedicated editor, Context=ToolTip}, {x:Static strings:KeyGestures.EditAsset}}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
           <Image Source="{StaticResource ImageEditAsset}" />
         </Button>
-        <Separator Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={sskk:VisibleOrCollapsed}}" />
+        <Separator Visibility="{Binding CanEditAssets, ElementName=AssetView, Converter={xk:VisibleOrCollapsed}}" />
         <!-- VIEW OPTIONS -->
         <Menu Background="Transparent">
           <MenuItem StaysOpenOnClick="True" Style="{StaticResource ToolBarIconMenuItemStyle}">
             <MenuItem.Icon>
               <Image Source="{StaticResource ImageView}" MaxHeight="24" MaxWidth="24"
-                     ToolTip="{sskk:Localize Asset view options, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
+                     ToolTip="{xk:Localize Asset view options, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True"/>
             </MenuItem.Icon>
             <MenuItem.Resources>
               <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" />
             </MenuItem.Resources>
-            <MenuItem Header="{sskk:Localize Display, Context=Menu}" Style="{StaticResource MenuGroupWithItemsStyle}" Visibility="{Binding CanRecursivelyDisplayAssets, ElementName=AssetView, Converter={sskk:VisibleOrCollapsed}}">
-              <MenuItem Header="{sskk:Localize Assets in selected folder only, Context=Menu}" IsCheckable="False"
+            <MenuItem Header="{xk:Localize Display, Context=Menu}" Style="{StaticResource MenuGroupWithItemsStyle}" Visibility="{Binding CanRecursivelyDisplayAssets, ElementName=AssetView, Converter={xk:VisibleOrCollapsed}}">
+              <MenuItem Header="{xk:Localize Assets in selected folder only, Context=Menu}" IsCheckable="False"
                         Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderOnly}"
-                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sskk:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderOnly}}" />
-              <MenuItem Header="{sskk:Localize Assets and folders in selected folder, Context=Menu}" IsCheckable="False"
+                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={xk:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderOnly}}" />
+              <MenuItem Header="{xk:Localize Assets and folders in selected folder, Context=Menu}" IsCheckable="False"
                         Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static viewModel:DisplayAssetMode.AssetAndFolderInSelectedFolder}"
-                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sskk:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetAndFolderInSelectedFolder}}" />
-              <MenuItem Header="{sskk:Localize Assets in selected folder and subfolders, Context=Menu}" IsCheckable="False"
+                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={xk:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetAndFolderInSelectedFolder}}" />
+              <MenuItem Header="{xk:Localize Assets in selected folder and subfolders, Context=Menu}" IsCheckable="False"
                         Command="{Binding ChangeDisplayAssetModeCommand}" CommandParameter="{x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}"
-                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={sskk:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}}" />
+                        IsChecked="{Binding DisplayAssetMode, Mode=OneWay, Converter={xk:IsEqualToParam}, ConverterParameter={x:Static viewModel:DisplayAssetMode.AssetInSelectedFolderAndSubFolder}}" />
             </MenuItem>
             <MenuItem Header="Sort by" Style="{StaticResource MenuGroupSeparatorStyle}" />
-            <MenuItem Header="{sskk:Localize Name, Context=Menu}" IsCheckable="False"
+            <MenuItem Header="{xk:Localize Name, Context=Menu}" IsCheckable="False"
                       Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.Name}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sskk:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.Name}}"/>
-            <MenuItem Header="{sskk:Localize Date modified, Context=Menu}" IsCheckable="False"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={xk:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.Name}}"/>
+            <MenuItem Header="{xk:Localize Date modified, Context=Menu}" IsCheckable="False"
                       Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.ModificationDateThenName}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sskk:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.ModificationDateThenName}}"/>
-            <MenuItem Header="{sskk:Localize Type, Context=Menu}" IsCheckable="False"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={xk:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.ModificationDateThenName}}"/>
+            <MenuItem Header="{xk:Localize Type, Context=Menu}" IsCheckable="False"
                       Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.TypeOrderThenName}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sskk:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.TypeOrderThenName}}"/>
-            <MenuItem Header="{sskk:Localize Unsaved changes, Context=Menu}" IsCheckable="False"
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={xk:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.TypeOrderThenName}}"/>
+            <MenuItem Header="{xk:Localize Unsaved changes, Context=Menu}" IsCheckable="False"
                       Command="{Binding SortAssetsCommand}" CommandParameter="{x:Static viewModel:SortRule.DirtyThenName}"
-                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={sskk:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.DirtyThenName}}"/>
+                      IsChecked="{Binding SortRule, Mode=OneWay, Converter={xk:IsEqualToParam}, ConverterParameter={x:Static viewModel:SortRule.DirtyThenName}}"/>
             <MenuItem Style="{StaticResource MenuGroupWithItemsStyle}">
               <MenuItem.Header>
                 <DockPanel LastChildFill="False">
                   <TextBlock DockPanel.Dock="Left" Text="View" FontWeight="Bold" />
                   <Button DockPanel.Dock="Right" Margin="4 0 0 0" Background="Transparent"
                           Command="view:AssetViewUserControl.ZoomInCommand"
-                          ToolTip="{sskk:Localize Zoom in, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                          ToolTip="{xk:Localize Zoom in, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
                     <Image Source="{StaticResource ImageZoomIn}"/>
                   </Button>
                   <Button DockPanel.Dock="Right" Background="Transparent"
                           Command="view:AssetViewUserControl.ZoomOutCommand"
-                          ToolTip="{sskk:Localize Zoom out, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+                          ToolTip="{xk:Localize Zoom out, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
                     <Image Source="{StaticResource ImageZoomOut}"/>
                   </Button>
                 </DockPanel>
               </MenuItem.Header>
-              <MenuItem Header="{sskk:Localize Grid, Context=Menu}" CommandParameter="{StaticResource AssetGridView}">
+              <MenuItem Header="{xk:Localize Grid, Context=Menu}" CommandParameter="{StaticResource AssetGridView}">
                 <MenuItem.Command>
                   <view:SetContentTemplateCommand Target="{x:Reference AssetViewPresenter}"/>
                 </MenuItem.Command>
@@ -402,7 +402,7 @@
                   <Image Grid.Column="0" Source="{StaticResource ImageShowGrid}"/>
                 </MenuItem.Icon>
               </MenuItem>
-              <MenuItem Header="{sskk:Localize Tiles, Context=Menu}" CommandParameter="{StaticResource AssetTileView}">
+              <MenuItem Header="{xk:Localize Tiles, Context=Menu}" CommandParameter="{StaticResource AssetTileView}">
                 <MenuItem.Command>
                   <view:SetContentTemplateCommand Target="{x:Reference AssetViewPresenter}"/>
                 </MenuItem.Command>
@@ -414,12 +414,12 @@
           </MenuItem>
         </Menu>
         <!--  FILTER  -->
-        <sskk:SearchComboBox Width="120" WatermarkContent="{sskk:Localize Add a filter...}"
+        <xk:SearchComboBox Width="120" WatermarkContent="{xk:Localize Add a filter...}"
                              ItemsSource="{Binding AvailableAssetFilters}" SearchText="{Binding AssetFilterPattern}" ClearTextAfterSelection="True"
                              Command="{Binding AddAssetFilterCommand}" AlternativeCommand="{Binding RefreshAssetFilterCommand}" AlternativeModifiers="Shift"
                              Grid.IsSharedSizeScope="True" x:Name="FilterSearchComboBox" status:ToolTipHelper.Status="{Binding Session.Editor.Status}"
-                             ToolTip="{sskk:Localize Filter assets by name\, type or tag}" ToolTipService.ShowOnDisabled="True">
-          <sskk:SearchComboBox.ItemTemplate>
+                             ToolTip="{xk:Localize Filter assets by name\, type or tag}" ToolTipService.ShowOnDisabled="True">
+          <xk:SearchComboBox.ItemTemplate>
             <DataTemplate>
               <Grid>
                 <Grid.ColumnDefinitions>
@@ -441,10 +441,10 @@
                 <TextBlock Margin="4,0" Grid.Column="1" Text="{Binding Converter={cvt:AssetFilterViewModelToFullDisplayName}}" VerticalAlignment="Center" />
               </Grid>
             </DataTemplate>
-          </sskk:SearchComboBox.ItemTemplate>
-        </sskk:SearchComboBox>
-        <Button Command="{Binding ClearAssetFiltersCommand}" Visibility="{Binding CurrentAssetFilters.Count, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}"
-                ToolTip="{sskk:Localize Clear filters, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
+          </xk:SearchComboBox.ItemTemplate>
+        </xk:SearchComboBox>
+        <Button Command="{Binding ClearAssetFiltersCommand}" Visibility="{Binding CurrentAssetFilters.Count, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}"
+                ToolTip="{xk:Localize Clear filters, Context=ToolTip}" status:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
           <Image Source="{StaticResource ImageClearFilters}"/>
         </Button>
       </ToolBar>
@@ -452,10 +452,10 @@
       <ToolBar ItemsSource="{Binding CurrentAssetFilters}" Style="{StaticResource TagToolBarStyle}" HorizontalAlignment="Stretch">
         <ToolBar.ItemTemplate>
           <DataTemplate>
-            <sskk:TagControl Height="20" Margin="2" ToolTip="{Binding Converter={cvt:AssetFilterViewModelToFullDisplayName}}"
+            <xk:TagControl Height="20" Margin="2" ToolTip="{Binding Converter={cvt:AssetFilterViewModelToFullDisplayName}}"
                              VerticalAlignment="Center" CloseTagCommand="{Binding RemoveFilterCommand}">
-              <sskk:TagControl.Style>
-                <Style TargetType="{x:Type sskk:TagControl}" BasedOn="{StaticResource {x:Type sskk:TagControl}}">
+              <xk:TagControl.Style>
+                <Style TargetType="{x:Type xk:TagControl}" BasedOn="{StaticResource {x:Type xk:TagControl}}">
                   <Style.Triggers>
                     <!--  Background Color  -->
                     <DataTrigger Binding="{Binding Category}" Value="{x:Static viewModel:FilterCategory.AssetType}">
@@ -470,7 +470,7 @@
                     </DataTrigger>
                   </Style.Triggers>
                 </Style>
-              </sskk:TagControl.Style>
+              </xk:TagControl.Style>
               <Button Command="{Binding ToggleIsActiveCommand}" VerticalAlignment="Center">
                 <Button.Template>
                   <ControlTemplate>
@@ -478,22 +478,22 @@
                   </ControlTemplate>
                 </Button.Template>
               </Button>
-            </sskk:TagControl>
+            </xk:TagControl>
           </DataTemplate>
         </ToolBar.ItemTemplate>
       </ToolBar>
     </ToolBarTray>
     <Grid ContextMenu="{Binding AssetContextMenu, ElementName=AssetView}" Background="Transparent">
       <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False"
-                  Visibility="{Binding FilteredContent.Count, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}">
-        <TextBlock Text="{sskk:Localize No asset to display in this folder or no folder selected. Check your active filters.}"
+                  Visibility="{Binding FilteredContent.Count, Converter={xk:Chained {xk:NumericToBool}, {xk:InvertBool}, {xk:VisibleOrCollapsed}}}">
+        <TextBlock Text="{xk:Localize No asset to display in this folder or no folder selected. Check your active filters.}"
                    HorizontalAlignment="Center" IsHitTestVisible="False"
-                   Visibility="{Binding CanRecursivelyDisplayAssets, ElementName=AssetView, Converter={sskk:VisibleOrCollapsed}}"/>
-        <TextBlock Text="{sskk:Localize You can also drop files here to import assets.}" HorizontalAlignment="Center" IsHitTestVisible="False"
-                   Visibility="{Binding CanRecursivelyDisplayAssets, ElementName=AssetView, Converter={sskk:VisibleOrCollapsed}}"/>
+                   Visibility="{Binding CanRecursivelyDisplayAssets, ElementName=AssetView, Converter={xk:VisibleOrCollapsed}}"/>
+        <TextBlock Text="{xk:Localize You can also drop files here to import assets.}" HorizontalAlignment="Center" IsHitTestVisible="False"
+                   Visibility="{Binding CanRecursivelyDisplayAssets, ElementName=AssetView, Converter={xk:VisibleOrCollapsed}}"/>
       </StackPanel>
       <ContentPresenter x:Name="AssetViewPresenter" Content="{Binding}" ContentTemplate="{StaticResource AssetTileView}"
-                        Visibility="{Binding FilteredContent.Count, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}">
+                        Visibility="{Binding FilteredContent.Count, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}">
       </ContentPresenter>
       <i:Interaction.Behaviors>
         <behaviors:FrameworkElementDragDropBehavior CanDrag="False" UsePreviewEvents="True" CanDrop="{Binding CanAddAssets, ElementName=AssetView}"
