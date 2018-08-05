@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
              xmlns:behaviors="clr-namespace:Xenko.Core.Assets.Editor.View.Behaviors"
-             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              xmlns:view="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views"
              xmlns:viewModels="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
              mc:Ignorable="d" 
@@ -17,12 +17,12 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
-  <sskk:FilteringComboBox DataContext="{Binding TemplateCollection, RelativeSource={RelativeSource AncestorType=view:AddItemUserControl}}"
-                          Text="{Binding SearchToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" WatermarkContent="{sskk:Localize Search}"
+  <xk:FilteringComboBox DataContext="{Binding TemplateCollection, RelativeSource={RelativeSource AncestorType=view:AddItemUserControl}}"
+                          Text="{Binding SearchToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" WatermarkContent="{xk:Localize Search}"
                           ItemsSource="{Binding Templates}" SortMemberPath="Name" x:Name="FilteringComboBox"
                           ClearTextAfterValidation="True" ValidateOnLostFocus="False">
-    <sskk:FilteringComboBox.Template>
-      <ControlTemplate TargetType="{x:Type sskk:FilteringComboBox}">
+    <xk:FilteringComboBox.Template>
+      <ControlTemplate TargetType="{x:Type xk:FilteringComboBox}">
         <Grid>
           <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
@@ -33,19 +33,19 @@
             <DockPanel Margin="4" DockPanel.Dock="Top">
               <Button VerticalAlignment="Center" Margin="8,0,0,0" Style="{StaticResource ImageButtonStyle}"
                       DockPanel.Dock="Right" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
-                      Visibility="{Binding SelectFilesToCreateItemCommand, RelativeSource={RelativeSource AncestorType=view:AddItemUserControl}, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}}"
+                      Visibility="{Binding SelectFilesToCreateItemCommand, RelativeSource={RelativeSource AncestorType=view:AddItemUserControl}, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}"
                       Command="{Binding SelectFilesToCreateItemCommand, RelativeSource={RelativeSource AncestorType=view:AddItemUserControl}}"
-                      ToolTip="{sskk:Localize Import directly from files, Context=ToolTip}" Width="20" Height="20" Padding="2">
+                      ToolTip="{xk:Localize Import directly from files, Context=ToolTip}" Width="20" Height="20" Padding="2">
                 <Image Source="{StaticResource ImageImportAsset}" Width="16" Height="16"/>
               </Button>
-              <sskk:TextBox x:Name="PART_EditableTextBox" ValidateOnLostFocus="False" VerticalAlignment="Center" Focusable="True"
-                                    WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource AncestorType=sskk:FilteringComboBox}}"
-                                    Text="{Binding Text, RelativeSource={RelativeSource AncestorType=sskk:FilteringComboBox},
+              <xk:TextBox x:Name="PART_EditableTextBox" ValidateOnLostFocus="False" VerticalAlignment="Center" Focusable="True"
+                                    WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
+                                    Text="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox},
                                     UpdateSourceTrigger=PropertyChanged}" ValidateOnTextChange="False" GetFocusOnLoad="True"
                                     IsEnabled="{TemplateBinding IsEnabled}" CancelWithEscape="False"/>
             </DockPanel>
             <ListBox x:Name="GroupList" ItemsSource="{Binding RootGroup.SubGroups, Mode=OneWay}" MinWidth="160" VerticalAlignment="Top"
-                     IsEnabled="{Binding SearchToken, Converter={sskk:Chained {sskk:CountEnumerable}, {sskk:NumericToBool}, {sskk:InvertBool}}}">
+                     IsEnabled="{Binding SearchToken, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:InvertBool}}}">
               <ListBox.Style>
                 <Style TargetType="{x:Type ListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
                   <Style.Triggers>
@@ -92,7 +92,7 @@
                 </DataTemplate>
               </ListBox.ItemTemplate>
               <i:Interaction.Behaviors>
-                <behaviors:ListBoxHighlightedItemBehavior IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=sskk:FilteringComboBox}, Converter={sskk:EmptyStringToBool}}"
+                <behaviors:ListBoxHighlightedItemBehavior IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Converter={xk:EmptyStringToBool}}"
                                                           HighlightedItem="{Binding SelectedGroup, Mode=OneWayToSource}"
                                                           SelectHighlightedWhenEnteringControl="{Binding ElementName=PART_ListBox}"
                                                           UseSelectedItemIfAvailable="True" DelayToUpdate="0.2"/>
@@ -100,18 +100,18 @@
             </ListBox>
           </DockPanel>
           <Separator Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="1" Background="{StaticResource NormalBrush}"
-                     Visibility="{Binding Items.Count, ElementName=PART_ListBox, Converter={sskk:VisibleOrCollapsed}}"/>
+                     Visibility="{Binding Items.Count, ElementName=PART_ListBox, Converter={xk:VisibleOrCollapsed}}"/>
           <ListBox x:Name="PART_ListBox" SnapsToDevicePixels="True" Width="{x:Static view:AddItemUserControl.TemplateListWidth}"
                     Margin="4" Grid.Column="2" Height="{Binding ActualHeight, ElementName=LeftPanel}"
                     FocusManager.IsFocusScope="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                    ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=sskk:FilteringComboBox}}"
-                    SelectedIndex="{Binding SelectedIndex, RelativeSource={RelativeSource AncestorType=sskk:FilteringComboBox}, Mode=TwoWay}"
-                    SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=sskk:FilteringComboBox}, Mode=TwoWay}"
-                    SelectedValue="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=sskk:FilteringComboBox}, Mode=TwoWay}"
-                    SelectedValuePath="{Binding SelectedValuePath, RelativeSource={RelativeSource AncestorType=sskk:FilteringComboBox}, Mode=OneWay}"
+                    ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
+                    SelectedIndex="{Binding SelectedIndex, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
+                    SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
+                    SelectedValue="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
+                    SelectedValuePath="{Binding SelectedValuePath, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=OneWay}"
                     ItemTemplate="{TemplateBinding ItemTemplate}" ItemTemplateSelector="{TemplateBinding ItemTemplateSelector}"
                     ItemStringFormat="{TemplateBinding ItemStringFormat}"
-                    Visibility="{Binding Items.Count, RelativeSource={RelativeSource Self}, Converter={sskk:VisibleOrCollapsed}}">
+                    Visibility="{Binding Items.Count, RelativeSource={RelativeSource Self}, Converter={xk:VisibleOrCollapsed}}">
             <ListBox.ItemContainerStyle>
               <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                 <Setter Property="Background" Value="Transparent"/>
@@ -120,8 +120,8 @@
           </ListBox>
         </Grid>
       </ControlTemplate>
-    </sskk:FilteringComboBox.Template>
-    <sskk:FilteringComboBox.ItemTemplate>
+    </xk:FilteringComboBox.Template>
+    <xk:FilteringComboBox.ItemTemplate>
       <DataTemplate DataType="viewModels:ITemplateDescriptionViewModel">
         <DockPanel Height="56">
           <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
@@ -131,9 +131,9 @@
           </DockPanel>
         </DockPanel>
       </DataTemplate>
-    </sskk:FilteringComboBox.ItemTemplate>
+    </xk:FilteringComboBox.ItemTemplate>
     <i:Interaction.Behaviors>
-      <sskk:OnEventCommandBehavior EventName="Validated" Command="{Binding AddItemCommand, RelativeSource={RelativeSource AncestorType=view:AddItemUserControl}}" CommandParameter="{Binding ValidatedItem, RelativeSource={RelativeSource AncestorType=sskk:FilteringComboBox}}"/>
+      <xk:OnEventCommandBehavior EventName="Validated" Command="{Binding AddItemCommand, RelativeSource={RelativeSource AncestorType=view:AddItemUserControl}}" CommandParameter="{Binding ValidatedItem, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"/>
     </i:Interaction.Behaviors>
-  </sskk:FilteringComboBox>
+  </xk:FilteringComboBox>
 </UserControl>

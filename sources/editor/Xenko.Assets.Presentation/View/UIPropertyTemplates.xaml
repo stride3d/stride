@@ -3,22 +3,22 @@
                     xmlns:view="clr-namespace:Xenko.Core.Presentation.Quantum.View;assembly=Xenko.Core.Presentation.Quantum"
                     xmlns:ui="clr-namespace:Xenko.UI;assembly=Xenko.UI"
                     xmlns:views="clr-namespace:Xenko.Assets.Presentation.AssetEditors.UIEditor.Views"
-                    xmlns:sskk="http://schemas.xenko.com/xaml/presentation">
+                    xmlns:xk="http://schemas.xenko.com/xaml/presentation">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/DefaultPropertyTemplateProviders.xaml"/>
     <ResourceDictionary Source="ImageDictionary.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
-  <view:TypeMatchTemplateProvider x:Key="StripDefinitionTemplateProvider" Type="{x:Type ui:StripDefinition}" sskk:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <view:TypeMatchTemplateProvider x:Key="StripDefinitionTemplateProvider" Type="{x:Type ui:StripDefinition}" xk:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate>
       <UniformGrid Rows="1">
-        <ContentPresenter Content="{Binding SizeValue}" ContentTemplateSelector="{x:Static sskk:PropertyViewHelper.EditorProviders}" />
-        <ContentPresenter Content="{Binding Type_}" ContentTemplateSelector="{x:Static sskk:PropertyViewHelper.EditorProviders}" />
+        <ContentPresenter Content="{Binding SizeValue}" ContentTemplateSelector="{x:Static xk:PropertyViewHelper.EditorProviders}" />
+        <ContentPresenter Content="{Binding Type_}" ContentTemplateSelector="{x:Static xk:PropertyViewHelper.EditorProviders}" />
       </UniformGrid>
     </DataTemplate>
   </view:TypeMatchTemplateProvider>
 
-  <view:TypeMatchTemplateProvider x:Key="ThicknessTemplateProvider" Type="{x:Type ui:Thickness}" sskk:PropertyViewHelper.TemplateCategory="PropertyEditor">
+  <view:TypeMatchTemplateProvider x:Key="ThicknessTemplateProvider" Type="{x:Type ui:Thickness}" xk:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate>
       <DataTemplate.Resources>
         <Style TargetType="views:ThicknessEditor">
@@ -42,37 +42,37 @@
                   <!-- Left -->
                   <Image Grid.Row="0" Grid.Column="0" ToolTip="Left" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"
                          Source="{StaticResource ImageThicknessLeft}" />
-                  <sskk:NumericTextBox Grid.Row="0" Grid.Column="1" TextAlignment="Center" SelectAllOnFocus="True"
+                  <xk:NumericTextBox Grid.Row="0" Grid.Column="1" TextAlignment="Center" SelectAllOnFocus="True"
                                        Value="{Binding Left, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                                        DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
                   <!-- Right -->
                   <Image Grid.Row="0" Grid.Column="2" ToolTip="Right" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"
                          Source="{StaticResource ImageThicknessRight}" />
-                  <sskk:NumericTextBox Grid.Row="0" Grid.Column="3" TextAlignment="Center" SelectAllOnFocus="True"
+                  <xk:NumericTextBox Grid.Row="0" Grid.Column="3" TextAlignment="Center" SelectAllOnFocus="True"
                                        Value="{Binding Right, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                                        DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
                   <!-- Top -->
                   <Image Grid.Row="1" Grid.Column="0" ToolTip="Top" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"
                          Source="{StaticResource ImageThicknessUp}" />
-                  <sskk:NumericTextBox Grid.Row="1" Grid.Column="1" TextAlignment="Center" SelectAllOnFocus="True"
+                  <xk:NumericTextBox Grid.Row="1" Grid.Column="1" TextAlignment="Center" SelectAllOnFocus="True"
                                        Value="{Binding Top, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                                        DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
                   <!-- Bottom -->
                   <Image Grid.Row="1" Grid.Column="2" ToolTip="Bottom" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"
                          Source="{StaticResource ImageThicknessDown}" />
-                  <sskk:NumericTextBox Grid.Row="1" Grid.Column="3" TextAlignment="Center" SelectAllOnFocus="True"
+                  <xk:NumericTextBox Grid.Row="1" Grid.Column="3" TextAlignment="Center" SelectAllOnFocus="True"
                                        Value="{Binding Bottom, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                                        DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
                   <!-- Back -->
                   <Image Grid.Row="2" Grid.Column="0" ToolTip="Back" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"
                          Source="{StaticResource ImageThicknessBack}" />
-                  <sskk:NumericTextBox Grid.Row="2" Grid.Column="1" TextAlignment="Center" SelectAllOnFocus="True"
+                  <xk:NumericTextBox Grid.Row="2" Grid.Column="1" TextAlignment="Center" SelectAllOnFocus="True"
                                        Value="{Binding Back, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                                        DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
                   <!-- Front -->
                   <Image Grid.Row="2" Grid.Column="2" ToolTip="Front" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"
                          Source="{StaticResource ImageThicknessFront}" />
-                  <sskk:NumericTextBox Grid.Row="2" Grid.Column="3" TextAlignment="Center" SelectAllOnFocus="True"
+                  <xk:NumericTextBox Grid.Row="2" Grid.Column="3" TextAlignment="Center" SelectAllOnFocus="True"
                                        Value="{Binding Front, RelativeSource={RelativeSource Mode=TemplatedParent}}"
                                        DecimalPlaces="{Binding DecimalPlaces, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
                 </Grid>

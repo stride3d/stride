@@ -4,10 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:debug="clr-namespace:Xenko.Core.Assets.Editor.View.DebugTools"
-             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance debug:DebugLogUserControl}">
     <DockPanel>
-        <sskk:TextLogViewer LogMessages="{Binding Logger.Messages, RelativeSource={RelativeSource AncestorType=debug:DebugLogUserControl}}"/>
+        <xk:TextLogViewer LogMessages="{Binding Logger.Messages, RelativeSource={RelativeSource AncestorType=debug:DebugLogUserControl}}"/>
     </DockPanel>
 </UserControl>

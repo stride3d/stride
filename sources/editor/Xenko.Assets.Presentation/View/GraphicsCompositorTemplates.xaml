@@ -3,7 +3,7 @@
                     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
                     xmlns:view="clr-namespace:Xenko.Core.Presentation.Quantum.View;assembly=Xenko.Core.Presentation.Quantum"
                     xmlns:rendering="clr-namespace:Xenko.Rendering;assembly=Xenko.Engine"
-                    xmlns:sskk="http://schemas.xenko.com/xaml/presentation">
+                    xmlns:xk="http://schemas.xenko.com/xaml/presentation">
 
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/DefaultPropertyTemplateProviders.xaml"/>

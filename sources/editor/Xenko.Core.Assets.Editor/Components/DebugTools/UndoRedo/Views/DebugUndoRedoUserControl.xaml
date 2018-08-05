@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              xmlns:undoRedo="clr-namespace:Xenko.Core.Assets.Editor.Components.DebugTools.UndoRedo"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance undoRedo:DebugUndoRedoViewModel}">
@@ -50,24 +50,24 @@
       </Grid.ColumnDefinitions>
       <DockPanel>
         <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Height="20" Text="Current action items"/>
-        <sskk:TreeView ItemsSource="{Binding Transactions}">
-          <sskk:TreeView.ItemContainerStyle>
-            <Style TargetType="sskk:TreeViewItem" BasedOn="{StaticResource {x:Type sskk:TreeViewItem}}">
+        <xk:TreeView ItemsSource="{Binding Transactions}">
+          <xk:TreeView.ItemContainerStyle>
+            <Style TargetType="xk:TreeViewItem" BasedOn="{StaticResource {x:Type xk:TreeViewItem}}">
               <Setter Property="IsExpanded" Value="True"/>
             </Style>
-          </sskk:TreeView.ItemContainerStyle>
-        </sskk:TreeView>
+          </xk:TreeView.ItemContainerStyle>
+        </xk:TreeView>
       </DockPanel>
       <GridSplitter Grid.Column="1" VerticalAlignment="Stretch" ResizeBehavior="PreviousAndNext" Width="5"/>
       <!--<DockPanel Grid.Column="2">
         <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Height="20" Text="Discarded action items"/>
-        <sskk:TreeView ItemsSource="{Binding DiscardedActionItems}">
-          <sskk:TreeView.ItemContainerStyle>
-            <Style TargetType="sskk:TreeViewItem" BasedOn="{StaticResource {x:Type sskk:TreeViewItem}}">
+        <xk:TreeView ItemsSource="{Binding DiscardedActionItems}">
+          <xk:TreeView.ItemContainerStyle>
+            <Style TargetType="xk:TreeViewItem" BasedOn="{StaticResource {x:Type xk:TreeViewItem}}">
               <Setter Property="IsExpanded" Value="True"/>
             </Style>
-          </sskk:TreeView.ItemContainerStyle>
-        </sskk:TreeView>
+          </xk:TreeView.ItemContainerStyle>
+        </xk:TreeView>
       </DockPanel>-->
     </Grid>
   </DockPanel>
