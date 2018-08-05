@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:debug="clr-namespace:Xenko.Core.Assets.Editor.View.DebugTools"
-             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              xmlns:q="clr-namespace:Xenko.Core.Quantum;assembly=Xenko.Core.Quantum"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
@@ -76,12 +76,12 @@
         <Button Content="Refresh" Command="{Binding RefreshQuantumNodesCommand}"/>
       </ToolBar>
     </ToolBarTray>
-    <sskk:TreeView ItemsSource="{Binding AssetNodes}" SelectedItem="{Binding SelectedNode, Mode=TwoWay}" SelectionMode="Single">
+    <xk:TreeView ItemsSource="{Binding AssetNodes}" SelectedItem="{Binding SelectedNode, Mode=TwoWay}" SelectionMode="Single">
       <ItemsControl.ItemContainerStyle>
-        <Style TargetType="{x:Type sskk:TreeViewItem}" BasedOn="{StaticResource {x:Type sskk:TreeViewItem}}">
+        <Style TargetType="{x:Type xk:TreeViewItem}" BasedOn="{StaticResource {x:Type xk:TreeViewItem}}">
           <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
           </Style>
         </ItemsControl.ItemContainerStyle>
-    </sskk:TreeView>
+    </xk:TreeView>
   </DockPanel>
 </UserControl>

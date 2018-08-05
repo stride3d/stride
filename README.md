@@ -15,7 +15,7 @@ To learn more about Xenko, visit [xenko.com](https://xenko.com/).
 
 Xenko is covered by [MIT](LICENSE.md), unless stated otherwise (i.e. for some files that are copied from other projects).
 
-You can find the list of third party projects [THIRD PARTY.md](here).
+You can find the list of third party projects [here](THIRD%20PARTY.md).
 
 Contributors need to sign the following [Contribution License Agreement](doc/ContributorLicenseAgreement.md).
 

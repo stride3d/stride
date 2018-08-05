@@ -10,7 +10,7 @@ namespace Xenko.Core.Presentation.ValueConverters
 {
     /// <summary>
     /// This converter will sum a given <see cref="Size"/> with a <see cref="Size"/> passed as parameter. You can use the <see cref="MarkupExtensions.SizeExtension"/>
-    /// markup extension to easily pass one, with the following syntax: {sskk:Size (arguments)}. 
+    /// markup extension to easily pass one, with the following syntax: {xk:Size (arguments)}. 
     /// </summary>
     [ValueConversion(typeof(Size), typeof(Size))]
     public class SumSize : ValueConverterBase<SumSize>

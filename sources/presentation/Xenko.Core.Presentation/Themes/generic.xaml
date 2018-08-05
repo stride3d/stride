@@ -7,7 +7,7 @@
                     xmlns:interactivity="clr-namespace:Xenko.Core.Presentation.Interactivity"
                     xmlns:behaviors="clr-namespace:Xenko.Core.Presentation.Behaviors"
                     xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-                    xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+                    xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                     mc:Ignorable="d">
 
     <!--<Style TargetType="{x:Type ctrl:PropertyGrid}">
@@ -341,7 +341,7 @@
                             </Grid.RowDefinitions>
                             <GroupBox Header="RGBA" VerticalAlignment="Top" Grid.Column="0" HorizontalContentAlignment="Stretch" BorderThickness="0" Margin="2" Focusable="False">
                                 <ctrl:KeyValueGrid x:Name="RGBGrid" HorizontalAlignment="Stretch" Focusable="False">
-                                    <TextBlock Margin="4,0" Text="{sskk:Localize R:, Context=RGBA}" ToolTipService.ToolTip="{sskk:Localize Red, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                                    <TextBlock Margin="4,0" Text="{xk:Localize R:, Context=RGBA}" ToolTipService.ToolTip="{xk:Localize Red, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                                     <StackPanel Margin="0,2">
                                         <ctrl:NumericTextBox x:Name="RedTextBox" Value="{Binding Red, RelativeSource={RelativeSource Mode=TemplatedParent}}" SelectionBrush="{StaticResource RedBrush}" Minimum="0" Maximum="255" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                                         <Rectangle Height="3" Fill="{StaticResource RedBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -350,7 +350,7 @@
                                             </Rectangle.RenderTransform>
                                         </Rectangle>
                                     </StackPanel>
-                                    <TextBlock Margin="4,0" Text="{sskk:Localize G:, Context=RGBA}" ToolTipService.ToolTip="{sskk:Localize Green, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                                    <TextBlock Margin="4,0" Text="{xk:Localize G:, Context=RGBA}" ToolTipService.ToolTip="{xk:Localize Green, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                                     <StackPanel Margin="0,2">
                                         <ctrl:NumericTextBox x:Name="GreenTextBox" Value="{Binding Green, RelativeSource={RelativeSource Mode=TemplatedParent}}" SelectionBrush="{StaticResource GreenBrush}" Minimum="0" Maximum="255" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                                         <Rectangle Height="3" Fill="{StaticResource GreenBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -359,7 +359,7 @@
                                             </Rectangle.RenderTransform>
                                         </Rectangle>
                                     </StackPanel>
-                                    <TextBlock Margin="4,0" Text="{sskk:Localize B:, Context=RGBA}" ToolTipService.ToolTip="{sskk:Localize Blue, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                                    <TextBlock Margin="4,0" Text="{xk:Localize B:, Context=RGBA}" ToolTipService.ToolTip="{xk:Localize Blue, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                                     <StackPanel Margin="0,2">
                                         <ctrl:NumericTextBox x:Name="BlueTextBox" Value="{Binding Blue, RelativeSource={RelativeSource Mode=TemplatedParent}}" SelectionBrush="{StaticResource BlueBrush}" Minimum="0" Maximum="255" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                                         <Rectangle Height="3" Fill="{StaticResource BlueBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -368,7 +368,7 @@
                                             </Rectangle.RenderTransform>
                                         </Rectangle>
                                     </StackPanel>
-                                    <TextBlock x:Name="AlphaTextBlock" Margin="4,0" Text="{sskk:Localize A:, Context=RGBA}" ToolTipService.ToolTip="{sskk:Localize Alpha, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                                    <TextBlock x:Name="AlphaTextBlock" Margin="4,0" Text="{xk:Localize A:, Context=RGBA}" ToolTipService.ToolTip="{xk:Localize Alpha, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                                     <StackPanel Margin="0,2" x:Name="AlphaValue">
                                         <ctrl:NumericTextBox x:Name="AlphaTextBox" Value="{Binding Alpha, RelativeSource={RelativeSource Mode=TemplatedParent}}" SelectionBrush="{StaticResource AlphaBrush}" Minimum="0" Maximum="255" Margin="0"/>
                                         <Rectangle Height="3" Fill="{StaticResource AlphaBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -381,7 +381,7 @@
                             </GroupBox>
                             <GroupBox Header="HSB" VerticalAlignment="Top" d:LayoutOverrides="Width" BorderThickness="0" Grid.Row="1" Margin="2" Focusable="False">
                                 <ctrl:KeyValueGrid Focusable="False">
-                                    <TextBlock Margin="4,0" Text="{sskk:Localize H:, Context=HSB}" ToolTipService.ToolTip="{sskk:Localize Hue, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                                    <TextBlock Margin="4,0" Text="{xk:Localize H:, Context=HSB}" ToolTipService.ToolTip="{xk:Localize Hue, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                                     <StackPanel Margin="0,2">
                                         <ctrl:NumericTextBox x:Name="HueTextBox" Value="{Binding Hue, RelativeSource={RelativeSource Mode=TemplatedParent}}" DecimalPlaces="0" SelectionBrush="{StaticResource AlphaBrush}" Minimum="0" Maximum="360" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                                         <Rectangle Height="3" Fill="{StaticResource AlphaBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -390,7 +390,7 @@
                                             </Rectangle.RenderTransform>
                                         </Rectangle>
                                     </StackPanel>
-                                    <TextBlock Margin="4,0" Text="{sskk:Localize S:, Context=HSB}" ToolTipService.ToolTip="{sskk:Localize Saturation, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                                    <TextBlock Margin="4,0" Text="{xk:Localize S:, Context=HSB}" ToolTipService.ToolTip="{xk:Localize Saturation, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                                     <StackPanel Margin="0,2">
                                         <ctrl:NumericTextBox x:Name="SaturationTextBox" Value="{Binding Saturation, RelativeSource={RelativeSource Mode=TemplatedParent}}" DecimalPlaces="0" SelectionBrush="{StaticResource AlphaBrush}" Minimum="0" Maximum="100" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                                         <Rectangle Height="3" Fill="{StaticResource AlphaBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">
@@ -399,7 +399,7 @@
                                             </Rectangle.RenderTransform>
                                         </Rectangle>
                                     </StackPanel>
-                                    <TextBlock Margin="4,0" Text="{sskk:Localize B:, Context=HSB}" ToolTipService.ToolTip="{sskk:Localize Value, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
+                                    <TextBlock Margin="4,0" Text="{xk:Localize B:, Context=HSB}" ToolTipService.ToolTip="{xk:Localize Value, Context=ToolTip}" VerticalAlignment="Center" HorizontalAlignment="Left" Focusable="False"/>
                                     <StackPanel Margin="0,2">
                                         <ctrl:NumericTextBox x:Name="BrightnessTextBox" Value="{Binding Brightness, RelativeSource={RelativeSource Mode=TemplatedParent}}" DecimalPlaces="0" SelectionBrush="{StaticResource AlphaBrush}" Minimum="0" Maximum="100" Margin="0" MouseValidationTrigger="OnMouseMove"/>
                                         <Rectangle Height="3" Fill="{StaticResource AlphaBrush}" HorizontalAlignment="Stretch" VerticalAlignment="Bottom">

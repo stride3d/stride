@@ -3,14 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+             xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              xmlns:view="clr-namespace:Xenko.Assets.Presentation.View"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" d:DataContext="{d:DesignInstance view:DebugEntityHierarchyEditorUserControl+DebugEntityHierarchyEditorViewModel}">
   <DockPanel>
     <ToolBarTray DockPanel.Dock="Top">
       <ToolBar>
-        <Button Content="{sskk:Localize Refresh, Context=Button}" Command="{Binding RefreshCommand}"/>
+        <Button Content="{xk:Localize Refresh, Context=Button}" Command="{Binding RefreshCommand}"/>
       </ToolBar>
     </ToolBarTray>
     <Grid>

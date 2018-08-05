@@ -10,7 +10,7 @@ using System.Windows.Markup;
 
 [assembly: InternalsVisibleTo("Xenko.Core.Presentation.Tests")]
 
-[assembly: XmlnsPrefix("http://schemas.xenko.com/xaml/presentation", "sskk")]
+[assembly: XmlnsPrefix("http://schemas.xenko.com/xaml/presentation", "xk")]
 [assembly: XmlnsDefinition("http://schemas.xenko.com/xaml/presentation", "Xenko.Core.Presentation")]
 [assembly: XmlnsDefinition("http://schemas.xenko.com/xaml/presentation", "Xenko.Core.Presentation.Behaviors")]
 [assembly: XmlnsDefinition("http://schemas.xenko.com/xaml/presentation", "Xenko.Core.Presentation.Collections")]

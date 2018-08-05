@@ -71,6 +71,7 @@ namespace Xenko.Core
         /// <summary>
         /// Get the path to the application executable.
         /// </summary>
+        /// <remarks>Might be null if start executable is unknown.</remarks>
         public static readonly string ApplicationExecutablePath = GetApplicationExecutablePath();
 
         private static string applicationDataSubDirectory = "";
@@ -159,7 +160,7 @@ namespace Xenko.Core
 #if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_MONO_MOBILE || XENKO_PLATFORM_UNIX
             return Assembly.GetEntryAssembly()?.Location;
 #else
-            throw new NotImplementedException();
+            return null;
 #endif
         }
 
@@ -186,17 +187,17 @@ namespace Xenko.Core
         [NotNull]
         private static string GetApplicationBinaryDirectory()
         {
+#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_MONO_MOBILE || XENKO_PLATFORM_UNIX
             var executableName = GetApplicationExecutablePath();
             if (!string.IsNullOrEmpty(executableName))
             {
                 return Path.GetDirectoryName(executableName);
             }
-#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_MONO_MOBILE || XENKO_PLATFORM_UNIX
-#if !XENKO_RUNTIME_CORECLR
-            return AppDomain.CurrentDomain.BaseDirectory;
-#else
+    #if XENKO_RUNTIME_CORECLR
             return AppContext.BaseDirectory;
-#endif
+    #else
+            return AppDomain.CurrentDomain.BaseDirectory;
+    #endif
 #elif XENKO_PLATFORM_UWP
             return Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
 #else

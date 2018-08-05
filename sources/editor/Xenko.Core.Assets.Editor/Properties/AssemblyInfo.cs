@@ -36,7 +36,7 @@ using System.Windows.Markup;
     // app, or any theme specific resource dictionaries)
 )]
 
-[assembly: XmlnsPrefix("http://schemas.xenko.com/xaml/presentation", "sskk")]
+[assembly: XmlnsPrefix("http://schemas.xenko.com/xaml/presentation", "xk")]
 [assembly: XmlnsDefinition("http://schemas.xenko.com/xaml/presentation", "Xenko.Core.Assets.Editor")]
 [assembly: XmlnsDefinition("http://schemas.xenko.com/xaml/presentation", "Xenko.Core.Assets.Editor.Components.Status.Views")]
 [assembly: XmlnsDefinition("http://schemas.xenko.com/xaml/presentation", "Xenko.Core.Assets.Editor.Quantum.ViewModels")]
