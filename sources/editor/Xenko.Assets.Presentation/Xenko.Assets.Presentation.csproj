@@ -10,13 +10,8 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Build" Version="15.7.179" ExcludeAssets="runtime" />
     <PackageReference Include="RoslynPad.Editor.Windows" Version="1.0.4" />
-    <PackageReference Include="Microsoft.Build" Version="15.6.82">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Framework" Version="15.6.82">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
     <Reference Include="QuickGraph">
       <HintPath>$(XenkoCommonDependenciesDir)GraphX\QuickGraph.dll</HintPath>
     </Reference>
