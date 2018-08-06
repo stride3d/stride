@@ -43,75 +43,75 @@ namespace Xenko.Core.Mathematics
     /// <summary>
     /// Represents a four dimensional mathematical vector.
     /// </summary>
-    [DataContract("real_t4")]
+    [DataContract("double4")]
     [DataStyle(DataStyle.Compact)]
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct Vector4 : IEquatable<Vector4>, IFormattable
+    public struct Double4 : IEquatable<Double4>, IFormattable
     {
         /// <summary>
-        /// The size of the <see cref="Xenko.Core.Mathematics.Vector4"/> type, in bytes.
+        /// The size of the <see cref="Xenko.Core.Mathematics.Double4"/> type, in bytes.
         /// </summary>
-        public static readonly int SizeInBytes = Utilities.SizeOf<Vector4>();
+        public static readonly int SizeInBytes = Utilities.SizeOf<Double4>();
 
         /// <summary>
-        /// A <see cref="Xenko.Core.Mathematics.Vector4"/> with all of its components set to zero.
+        /// A <see cref="Xenko.Core.Mathematics.Double4"/> with all of its components set to zero.
         /// </summary>
-        public static readonly Vector4 Zero = new Vector4();
+        public static readonly Double4 Zero = new Double4();
 
         /// <summary>
-        /// The X unit <see cref="Xenko.Core.Mathematics.Vector4"/> (1, 0, 0, 0).
+        /// The X unit <see cref="Xenko.Core.Mathematics.Double4"/> (1, 0, 0, 0).
         /// </summary>
-        public static readonly Vector4 UnitX = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+        public static readonly Double4 UnitX = new Double4(1.0, 0.0, 0.0, 0.0);
 
         /// <summary>
-        /// The Y unit <see cref="Xenko.Core.Mathematics.Vector4"/> (0, 1, 0, 0).
+        /// The Y unit <see cref="Xenko.Core.Mathematics.Double4"/> (0, 1, 0, 0).
         /// </summary>
-        public static readonly Vector4 UnitY = new Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+        public static readonly Double4 UnitY = new Double4(0.0, 1.0, 0.0, 0.0);
 
         /// <summary>
-        /// The Z unit <see cref="Xenko.Core.Mathematics.Vector4"/> (0, 0, 1, 0).
+        /// The Z unit <see cref="Xenko.Core.Mathematics.Double4"/> (0, 0, 1, 0).
         /// </summary>
-        public static readonly Vector4 UnitZ = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
+        public static readonly Double4 UnitZ = new Double4(0.0, 0.0, 1.0, 0.0);
 
         /// <summary>
-        /// The W unit <see cref="Xenko.Core.Mathematics.Vector4"/> (0, 0, 0, 1).
+        /// The W unit <see cref="Xenko.Core.Mathematics.Double4"/> (0, 0, 0, 1).
         /// </summary>
-        public static readonly Vector4 UnitW = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+        public static readonly Double4 UnitW = new Double4(0.0, 0.0, 0.0, 1.0);
 
         /// <summary>
-        /// A <see cref="Xenko.Core.Mathematics.Vector4"/> with all of its components set to one.
+        /// A <see cref="Xenko.Core.Mathematics.Double4"/> with all of its components set to one.
         /// </summary>
-        public static readonly Vector4 One = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+        public static readonly Double4 One = new Double4(1.0, 1.0, 1.0, 1.0);
 
         /// <summary>
         /// The X component of the vector.
         /// </summary>
         [DataMember(0)]
-        public real_t X;
+        public double X;
 
         /// <summary>
         /// The Y component of the vector.
         /// </summary>
         [DataMember(1)]
-        public real_t Y;
+        public double Y;
 
         /// <summary>
         /// The Z component of the vector.
         /// </summary>
         [DataMember(2)]
-        public real_t Z;
+        public double Z;
 
         /// <summary>
         /// The W component of the vector.
         /// </summary>
         [DataMember(3)]
-        public real_t W;
+        public double W;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Vector4"/> struct.
+        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Double4"/> struct.
         /// </summary>
         /// <param name="value">The value that will be assigned to all components.</param>
-        public Vector4(real_t value)
+        public Double4(double value)
         {
             X = value;
             Y = value;
@@ -120,13 +120,13 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Vector4"/> struct.
+        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Double4"/> struct.
         /// </summary>
         /// <param name="x">Initial value for the X component of the vector.</param>
         /// <param name="y">Initial value for the Y component of the vector.</param>
         /// <param name="z">Initial value for the Z component of the vector.</param>
         /// <param name="w">Initial value for the W component of the vector.</param>
-        public Vector4(real_t x, real_t y, real_t z, real_t w)
+        public Double4(double x, double y, double z, double w)
         {
             X = x;
             Y = y;
@@ -135,11 +135,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Vector4"/> struct.
+        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Double4"/> struct.
         /// </summary>
         /// <param name="value">A vector containing the values with which to initialize the X, Y, and Z components.</param>
         /// <param name="w">Initial value for the W component of the vector.</param>
-        public Vector4(Vector3 value, real_t w)
+        public Double4(Double3 value, double w)
         {
             X = value.X;
             Y = value.Y;
@@ -148,12 +148,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Vector4"/> struct.
+        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Double4"/> struct.
         /// </summary>
         /// <param name="value">A vector containing the values with which to initialize the X and Y components.</param>
         /// <param name="z">Initial value for the Z component of the vector.</param>
         /// <param name="w">Initial value for the W component of the vector.</param>
-        public Vector4(Vector2 value, real_t z, real_t w)
+        public Double4(Double2 value, double z, double w)
         {
             X = value.X;
             Y = value.Y;
@@ -162,17 +162,17 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Vector4"/> struct.
+        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Double4"/> struct.
         /// </summary>
         /// <param name="values">The values to assign to the X, Y, Z, and W components of the vector. This must be an array with four elements.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than four elements.</exception>
-        public Vector4(real_t[] values)
+        public Double4(double[] values)
         {
             if (values == null)
                 throw new ArgumentNullException("values");
             if (values.Length != 4)
-                throw new ArgumentOutOfRangeException("values", "There must be four and only four input values for Vector4.");
+                throw new ArgumentOutOfRangeException("values", "There must be four and only four input values for Double4.");
 
             X = values[0];
             Y = values[1];
@@ -181,10 +181,10 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Vector4"/> struct.
+        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Double4"/> struct.
         /// </summary>
-        /// <param name="v">The Single4 to construct the Vector4 from.</param>
-        public Vector4(Single4 v)
+        /// <param name="v">The Single4 to construct the Double4 from.</param>
+        public Double4(Single4 v)
         {
             X = v.X;
             Y = v.Y;
@@ -193,15 +193,15 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Vector4"/> struct.
+        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Double4"/> struct.
         /// </summary>
-        /// <param name="v">The Double4 to construct the Vector4 from.</param>
-        public Vector4(Double4 v)
+        /// <param name="v">The Vector4 to construct the Double4 from.</param>
+        public Double4(Vector4 v)
         {
-            X = (real_t)v.X;
-            Y = (real_t)v.Y;
-            Z = (real_t)v.Z;
-            W = (real_t)v.W;
+            X = v.X;
+            Y = v.Y;
+            Z = v.Z;
+            W = v.W;
         }
 
         /// <summary>
@@ -219,7 +219,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="index">The index of the component to access. Use 0 for the X component, 1 for the Y component, 2 for the Z component, and 3 for the W component.</param>
         /// <returns>The value of the component at the specified index.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 3].</exception>
-        public real_t this[int index]
+        public double this[int index]
         {
             get
             {
@@ -231,7 +231,7 @@ namespace Xenko.Core.Mathematics
                     case 3: return W;
                 }
 
-                throw new ArgumentOutOfRangeException("index", "Indices for Vector4 run from 0 to 3, inclusive.");
+                throw new ArgumentOutOfRangeException("index", "Indices for Double4 run from 0 to 3, inclusive.");
             }
 
             set
@@ -242,7 +242,7 @@ namespace Xenko.Core.Mathematics
                     case 1: Y = value; break;
                     case 2: Z = value; break;
                     case 3: W = value; break;
-                    default: throw new ArgumentOutOfRangeException("index", "Indices for Vector4 run from 0 to 3, inclusive.");
+                    default: throw new ArgumentOutOfRangeException("index", "Indices for Double4 run from 0 to 3, inclusive.");
                 }
             }
         }
@@ -252,13 +252,13 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <returns>The length of the vector.</returns>
         /// <remarks>
-        /// <see cref="Xenko.Core.Mathematics.Vector4.LengthSquared"/> may be preferred when only the relative length is needed
+        /// <see cref="Xenko.Core.Mathematics.Double4.LengthSquared"/> may be preferred when only the relative length is needed
         /// and speed is of the essence.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public real_t Length()
+        public double Length()
         {
-            return (real_t)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
+            return (double)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
         }
 
         /// <summary>
@@ -266,11 +266,11 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <returns>The squared length of the vector.</returns>
         /// <remarks>
-        /// This method may be preferred to <see cref="Xenko.Core.Mathematics.Vector4.Length"/> when only a relative length is needed
+        /// This method may be preferred to <see cref="Xenko.Core.Mathematics.Double4.Length"/> when only a relative length is needed
         /// and speed is of the essence.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public real_t LengthSquared()
+        public double LengthSquared()
         {
             return (X * X) + (Y * Y) + (Z * Z) + (W * W);
         }
@@ -281,10 +281,10 @@ namespace Xenko.Core.Mathematics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Normalize()
         {
-            real_t length = Length();
+            double length = Length();
             if (length > MathUtil.ZeroTolerance)
             {
-                real_t inverse = 1.0f / length;
+                double inverse = 1.0 / length;
                 X *= inverse;
                 Y *= inverse;
                 Z *= inverse;
@@ -296,21 +296,21 @@ namespace Xenko.Core.Mathematics
         /// Raises the exponent for each components.
         /// </summary>
         /// <param name="exponent">The exponent.</param>
-        public void Pow(real_t exponent)
+        public void Pow(double exponent)
         {
-            X = (real_t)Math.Pow(X, exponent);
-            Y = (real_t)Math.Pow(Y, exponent);
-            Z = (real_t)Math.Pow(Z, exponent);
-            W = (real_t)Math.Pow(W, exponent);
+            X = (double)Math.Pow(X, exponent);
+            Y = (double)Math.Pow(Y, exponent);
+            Z = (double)Math.Pow(Z, exponent);
+            W = (double)Math.Pow(W, exponent);
         }
 
         /// <summary>
         /// Creates an array containing the elements of the vector.
         /// </summary>
         /// <returns>A four-element array containing the components of the vector.</returns>
-        public real_t[] ToArray()
+        public double[] ToArray()
         {
-            return new real_t[] { X, Y, Z, W };
+            return new double[] { X, Y, Z, W };
         }
 
         /// <summary>
@@ -320,9 +320,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to add.</param>
         /// <param name="result">When the method completes, contains the sum of the two vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Add(ref Vector4 left, ref Vector4 right, out Vector4 result)
+        public static void Add(ref Double4 left, ref Double4 right, out Double4 result)
         {
-            result = new Vector4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
+            result = new Double4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
         }
 
         /// <summary>
@@ -332,9 +332,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to add.</param>
         /// <returns>The sum of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Add(Vector4 left, Vector4 right)
+        public static Double4 Add(Double4 left, Double4 right)
         {
-            return new Vector4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
+            return new Double4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
         }
 
         /// <summary>
@@ -344,9 +344,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to subtract.</param>
         /// <param name="result">When the method completes, contains the difference of the two vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Subtract(ref Vector4 left, ref Vector4 right, out Vector4 result)
+        public static void Subtract(ref Double4 left, ref Double4 right, out Double4 result)
         {
-            result = new Vector4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
+            result = new Double4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
         }
 
         /// <summary>
@@ -356,9 +356,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to subtract.</param>
         /// <returns>The difference of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Subtract(Vector4 left, Vector4 right)
+        public static Double4 Subtract(Double4 left, Double4 right)
         {
-            return new Vector4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
+            return new Double4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
         }
 
         /// <summary>
@@ -368,9 +368,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <param name="result">When the method completes, contains the scaled vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Multiply(ref Vector4 value, real_t scale, out Vector4 result)
+        public static void Multiply(ref Double4 value, double scale, out Double4 result)
         {
-            result = new Vector4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
+            result = new Double4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
 
         /// <summary>
@@ -380,9 +380,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Multiply(Vector4 value, real_t scale)
+        public static Double4 Multiply(Double4 value, double scale)
         {
-            return new Vector4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
+            return new Double4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
 
         /// <summary>
@@ -392,9 +392,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to modulate.</param>
         /// <param name="result">When the method completes, contains the modulated vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Modulate(ref Vector4 left, ref Vector4 right, out Vector4 result)
+        public static void Modulate(ref Double4 left, ref Double4 right, out Double4 result)
         {
-            result = new Vector4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
+            result = new Double4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
         }
 
         /// <summary>
@@ -404,9 +404,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to modulate.</param>
         /// <returns>The modulated vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Modulate(Vector4 left, Vector4 right)
+        public static Double4 Modulate(Double4 left, Double4 right)
         {
-            return new Vector4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
+            return new Double4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
         }
 
         /// <summary>
@@ -416,9 +416,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <param name="result">When the method completes, contains the scaled vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Divide(ref Vector4 value, real_t scale, out Vector4 result)
+        public static void Divide(ref Double4 value, double scale, out Double4 result)
         {
-            result = new Vector4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
+            result = new Double4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
         }
 
         /// <summary>
@@ -428,9 +428,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Divide(Vector4 value, real_t scale)
+        public static Double4 Divide(Double4 value, double scale)
         {
-            return new Vector4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
+            return new Double4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
         }
         
         /// <summary>
@@ -440,9 +440,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to demodulate.</param>
         /// <param name="result">When the method completes, contains the demodulated vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Demodulate(ref Vector4 left, ref Vector4 right, out Vector4 result)
+        public static void Demodulate(ref Double4 left, ref Double4 right, out Double4 result)
         {
-            result = new Vector4(left.X / right.X, left.Y / right.Y, left.Z / right.Z, left.W / right.W);
+            result = new Double4(left.X / right.X, left.Y / right.Y, left.Z / right.Z, left.W / right.W);
         }
 
         /// <summary>
@@ -452,9 +452,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to demodulate.</param>
         /// <returns>The demodulated vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Demodulate(Vector4 left, Vector4 right)
+        public static Double4 Demodulate(Double4 left, Double4 right)
         {
-            return new Vector4(left.X / right.X, left.Y / right.Y, left.Z / right.Z, left.W / right.W);
+            return new Double4(left.X / right.X, left.Y / right.Y, left.Z / right.Z, left.W / right.W);
         }
 
         /// <summary>
@@ -463,9 +463,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The vector to negate.</param>
         /// <param name="result">When the method completes, contains a vector facing in the opposite direction.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Negate(ref Vector4 value, out Vector4 result)
+        public static void Negate(ref Double4 value, out Double4 result)
         {
-            result = new Vector4(-value.X, -value.Y, -value.Z, -value.W);
+            result = new Double4(-value.X, -value.Y, -value.Z, -value.W);
         }
 
         /// <summary>
@@ -474,40 +474,40 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The vector to negate.</param>
         /// <returns>A vector facing in the opposite direction.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Negate(Vector4 value)
+        public static Double4 Negate(Double4 value)
         {
-            return new Vector4(-value.X, -value.Y, -value.Z, -value.W);
+            return new Double4(-value.X, -value.Y, -value.Z, -value.W);
         }
 
         /// <summary>
-        /// Returns a <see cref="Xenko.Core.Mathematics.Vector4"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 4D triangle.
+        /// Returns a <see cref="Xenko.Core.Mathematics.Double4"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 4D triangle.
         /// </summary>
-        /// <param name="value1">A <see cref="Xenko.Core.Mathematics.Vector4"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>
-        /// <param name="value2">A <see cref="Xenko.Core.Mathematics.Vector4"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.</param>
-        /// <param name="value3">A <see cref="Xenko.Core.Mathematics.Vector4"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.</param>
+        /// <param name="value1">A <see cref="Xenko.Core.Mathematics.Double4"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>
+        /// <param name="value2">A <see cref="Xenko.Core.Mathematics.Double4"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.</param>
+        /// <param name="value3">A <see cref="Xenko.Core.Mathematics.Double4"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.</param>
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
         /// <param name="result">When the method completes, contains the 4D Cartesian coordinates of the specified point.</param>
-        public static void Barycentric(ref Vector4 value1, ref Vector4 value2, ref Vector4 value3, real_t amount1, real_t amount2, out Vector4 result)
+        public static void Barycentric(ref Double4 value1, ref Double4 value2, ref Double4 value3, double amount1, double amount2, out Double4 result)
         {
-            result = new Vector4((value1.X + (amount1 * (value2.X - value1.X))) + (amount2 * (value3.X - value1.X)),
+            result = new Double4((value1.X + (amount1 * (value2.X - value1.X))) + (amount2 * (value3.X - value1.X)),
                 (value1.Y + (amount1 * (value2.Y - value1.Y))) + (amount2 * (value3.Y - value1.Y)),
                 (value1.Z + (amount1 * (value2.Z - value1.Z))) + (amount2 * (value3.Z - value1.Z)),
                 (value1.W + (amount1 * (value2.W - value1.W))) + (amount2 * (value3.W - value1.W)));
         }
 
         /// <summary>
-        /// Returns a <see cref="Xenko.Core.Mathematics.Vector4"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 4D triangle.
+        /// Returns a <see cref="Xenko.Core.Mathematics.Double4"/> containing the 4D Cartesian coordinates of a point specified in Barycentric coordinates relative to a 4D triangle.
         /// </summary>
-        /// <param name="value1">A <see cref="Xenko.Core.Mathematics.Vector4"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>
-        /// <param name="value2">A <see cref="Xenko.Core.Mathematics.Vector4"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.</param>
-        /// <param name="value3">A <see cref="Xenko.Core.Mathematics.Vector4"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.</param>
+        /// <param name="value1">A <see cref="Xenko.Core.Mathematics.Double4"/> containing the 4D Cartesian coordinates of vertex 1 of the triangle.</param>
+        /// <param name="value2">A <see cref="Xenko.Core.Mathematics.Double4"/> containing the 4D Cartesian coordinates of vertex 2 of the triangle.</param>
+        /// <param name="value3">A <see cref="Xenko.Core.Mathematics.Double4"/> containing the 4D Cartesian coordinates of vertex 3 of the triangle.</param>
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
-        /// <returns>A new <see cref="Xenko.Core.Mathematics.Vector4"/> containing the 4D Cartesian coordinates of the specified point.</returns>
-        public static Vector4 Barycentric(Vector4 value1, Vector4 value2, Vector4 value3, real_t amount1, real_t amount2)
+        /// <returns>A new <see cref="Xenko.Core.Mathematics.Double4"/> containing the 4D Cartesian coordinates of the specified point.</returns>
+        public static Double4 Barycentric(Double4 value1, Double4 value2, Double4 value3, double amount1, double amount2)
         {
-            Vector4 result;
+            Double4 result;
             Barycentric(ref value1, ref value2, ref value3, amount1, amount2, out result);
             return result;
         }
@@ -519,25 +519,25 @@ namespace Xenko.Core.Mathematics
         /// <param name="min">The minimum value.</param>
         /// <param name="max">The maximum value.</param>
         /// <param name="result">When the method completes, contains the clamped value.</param>
-        public static void Clamp(ref Vector4 value, ref Vector4 min, ref Vector4 max, out Vector4 result)
+        public static void Clamp(ref Double4 value, ref Double4 min, ref Double4 max, out Double4 result)
         {
-            real_t x = value.X;
+            double x = value.X;
             x = (x > max.X) ? max.X : x;
             x = (x < min.X) ? min.X : x;
 
-            real_t y = value.Y;
+            double y = value.Y;
             y = (y > max.Y) ? max.Y : y;
             y = (y < min.Y) ? min.Y : y;
 
-            real_t z = value.Z;
+            double z = value.Z;
             z = (z > max.Z) ? max.Z : z;
             z = (z < min.Z) ? min.Z : z;
 
-            real_t w = value.W;
+            double w = value.W;
             w = (w > max.W) ? max.W : w;
             w = (w < min.W) ? min.W : w;
 
-            result = new Vector4(x, y, z, w);
+            result = new Double4(x, y, z, w);
         }
 
         /// <summary>
@@ -547,9 +547,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="min">The minimum value.</param>
         /// <param name="max">The maximum value.</param>
         /// <returns>The clamped value.</returns>
-        public static Vector4 Clamp(Vector4 value, Vector4 min, Vector4 max)
+        public static Double4 Clamp(Double4 value, Double4 min, Double4 max)
         {
-            Vector4 result;
+            Double4 result;
             Clamp(ref value, ref min, ref max, out result);
             return result;
         }
@@ -561,17 +561,17 @@ namespace Xenko.Core.Mathematics
         /// <param name="value2">The second vector.</param>
         /// <param name="result">When the method completes, contains the distance between the two vectors.</param>
         /// <remarks>
-        /// <see cref="Xenko.Core.Mathematics.Vector4.DistanceSquared(ref Vector4, ref Vector4, out real_t)"/> may be preferred when only the relative distance is needed
+        /// <see cref="Xenko.Core.Mathematics.Double4.DistanceSquared(ref Double4, ref Double4, out double)"/> may be preferred when only the relative distance is needed
         /// and speed is of the essence.
         /// </remarks>
-        public static void Distance(ref Vector4 value1, ref Vector4 value2, out real_t result)
+        public static void Distance(ref Double4 value1, ref Double4 value2, out double result)
         {
-            real_t x = value1.X - value2.X;
-            real_t y = value1.Y - value2.Y;
-            real_t z = value1.Z - value2.Z;
-            real_t w = value1.W - value2.W;
+            double x = value1.X - value2.X;
+            double y = value1.Y - value2.Y;
+            double z = value1.Z - value2.Z;
+            double w = value1.W - value2.W;
 
-            result = (real_t)Math.Sqrt((x * x) + (y * y) + (z * z) + (w * w));
+            result = (double)Math.Sqrt((x * x) + (y * y) + (z * z) + (w * w));
         }
 
         /// <summary>
@@ -581,17 +581,17 @@ namespace Xenko.Core.Mathematics
         /// <param name="value2">The second vector.</param>
         /// <returns>The distance between the two vectors.</returns>
         /// <remarks>
-        /// <see cref="Xenko.Core.Mathematics.Vector4.DistanceSquared(Vector4, Vector4)"/> may be preferred when only the relative distance is needed
+        /// <see cref="Xenko.Core.Mathematics.Double4.DistanceSquared(Double4, Double4)"/> may be preferred when only the relative distance is needed
         /// and speed is of the essence.
         /// </remarks>
-        public static real_t Distance(Vector4 value1, Vector4 value2)
+        public static double Distance(Double4 value1, Double4 value2)
         {
-            real_t x = value1.X - value2.X;
-            real_t y = value1.Y - value2.Y;
-            real_t z = value1.Z - value2.Z;
-            real_t w = value1.W - value2.W;
+            double x = value1.X - value2.X;
+            double y = value1.Y - value2.Y;
+            double z = value1.Z - value2.Z;
+            double w = value1.W - value2.W;
 
-            return (real_t)Math.Sqrt((x * x) + (y * y) + (z * z) + (w * w));
+            return (double)Math.Sqrt((x * x) + (y * y) + (z * z) + (w * w));
         }
 
         /// <summary>
@@ -607,12 +607,12 @@ namespace Xenko.Core.Mathematics
         /// involves two square roots, which are computationally expensive. However, using distance squared 
         /// provides the same information and avoids calculating two square roots.
         /// </remarks>
-        public static void DistanceSquared(ref Vector4 value1, ref Vector4 value2, out real_t result)
+        public static void DistanceSquared(ref Double4 value1, ref Double4 value2, out double result)
         {
-            real_t x = value1.X - value2.X;
-            real_t y = value1.Y - value2.Y;
-            real_t z = value1.Z - value2.Z;
-            real_t w = value1.W - value2.W;
+            double x = value1.X - value2.X;
+            double y = value1.Y - value2.Y;
+            double z = value1.Z - value2.Z;
+            double w = value1.W - value2.W;
 
             result = (x * x) + (y * y) + (z * z) + (w * w);
         }
@@ -630,12 +630,12 @@ namespace Xenko.Core.Mathematics
         /// involves two square roots, which are computationally expensive. However, using distance squared 
         /// provides the same information and avoids calculating two square roots.
         /// </remarks>
-        public static real_t DistanceSquared(Vector4 value1, Vector4 value2)
+        public static double DistanceSquared(Double4 value1, Double4 value2)
         {
-            real_t x = value1.X - value2.X;
-            real_t y = value1.Y - value2.Y;
-            real_t z = value1.Z - value2.Z;
-            real_t w = value1.W - value2.W;
+            double x = value1.X - value2.X;
+            double y = value1.Y - value2.Y;
+            double z = value1.Z - value2.Z;
+            double w = value1.W - value2.W;
 
             return (x * x) + (y * y) + (z * z) + (w * w);
         }
@@ -647,7 +647,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">Second source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of the two vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Dot(ref Vector4 left, ref Vector4 right, out real_t result)
+        public static void Dot(ref Double4 left, ref Double4 right, out double result)
         {
             result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
         }
@@ -659,7 +659,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">Second source vector.</param>
         /// <returns>The dot product of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static real_t Dot(Vector4 left, Vector4 right)
+        public static double Dot(Double4 left, Double4 right)
         {
             return (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
         }
@@ -670,9 +670,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The vector to normalize.</param>
         /// <param name="result">When the method completes, contains the normalized vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Normalize(ref Vector4 value, out Vector4 result)
+        public static void Normalize(ref Double4 value, out Double4 result)
         {
-            Vector4 temp = value;
+            Double4 temp = value;
             result = temp;
             result.Normalize();
         }
@@ -683,7 +683,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The vector to normalize.</param>
         /// <returns>The normalized vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Normalize(Vector4 value)
+        public static Double4 Normalize(Double4 value)
         {
             value.Normalize();
             return value;
@@ -701,7 +701,7 @@ namespace Xenko.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
         /// </remarks>
-        public static void Lerp(ref Vector4 start, ref Vector4 end, real_t amount, out Vector4 result)
+        public static void Lerp(ref Double4 start, ref Double4 end, double amount, out Double4 result)
         {
             result.X = start.X + ((end.X - start.X) * amount);
             result.Y = start.Y + ((end.Y - start.Y) * amount);
@@ -721,9 +721,9 @@ namespace Xenko.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
         /// </remarks>
-        public static Vector4 Lerp(Vector4 start, Vector4 end, real_t amount)
+        public static Double4 Lerp(Double4 start, Double4 end, double amount)
         {
-            Vector4 result;
+            Double4 result;
             Lerp(ref start, ref end, amount, out result);
             return result;
         }
@@ -735,9 +735,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="end">End vector.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <param name="result">When the method completes, contains the cubic interpolation of the two vectors.</param>
-        public static void SmoothStep(ref Vector4 start, ref Vector4 end, real_t amount, out Vector4 result)
+        public static void SmoothStep(ref Double4 start, ref Double4 end, double amount, out Double4 result)
         {
-            amount = (amount > 1.0f) ? 1.0f : ((amount < 0.0f) ? 0.0f : amount);
+            amount = (amount > 1.0) ? 1.0 : ((amount < 0.0) ? 0.0 : amount);
             amount = (amount * amount) * (3.0f - (2.0f * amount));
 
             result.X = start.X + ((end.X - start.X) * amount);
@@ -753,9 +753,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="end">End vector.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <returns>The cubic interpolation of the two vectors.</returns>
-        public static Vector4 SmoothStep(Vector4 start, Vector4 end, real_t amount)
+        public static Double4 SmoothStep(Double4 start, Double4 end, double amount)
         {
-            Vector4 result;
+            Double4 result;
             SmoothStep(ref start, ref end, amount, out result);
             return result;
         }
@@ -769,16 +769,16 @@ namespace Xenko.Core.Mathematics
         /// <param name="tangent2">Second source tangent vector.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <param name="result">When the method completes, contains the result of the Hermite spline interpolation.</param>
-        public static void Hermite(ref Vector4 value1, ref Vector4 tangent1, ref Vector4 value2, ref Vector4 tangent2, real_t amount, out Vector4 result)
+        public static void Hermite(ref Double4 value1, ref Double4 tangent1, ref Double4 value2, ref Double4 tangent2, double amount, out Double4 result)
         {
-            real_t squared = amount * amount;
-            real_t cubed = amount * squared;
-            real_t part1 = ((2.0f * cubed) - (3.0f * squared)) + 1.0f;
-            real_t part2 = (-2.0f * cubed) + (3.0f * squared);
-            real_t part3 = (cubed - (2.0f * squared)) + amount;
-            real_t part4 = cubed - squared;
+            double squared = amount * amount;
+            double cubed = amount * squared;
+            double part1 = ((2.0f * cubed) - (3.0f * squared)) + 1.0;
+            double part2 = (-2.0f * cubed) + (3.0f * squared);
+            double part3 = (cubed - (2.0f * squared)) + amount;
+            double part4 = cubed - squared;
 
-            result = new Vector4((((value1.X * part1) + (value2.X * part2)) + (tangent1.X * part3)) + (tangent2.X * part4),
+            result = new Double4((((value1.X * part1) + (value2.X * part2)) + (tangent1.X * part3)) + (tangent2.X * part4),
                 (((value1.Y * part1) + (value2.Y * part2)) + (tangent1.Y * part3)) + (tangent2.Y * part4),
                 (((value1.Z * part1) + (value2.Z * part2)) + (tangent1.Z * part3)) + (tangent2.Z * part4),
                 (((value1.W * part1) + (value2.W * part2)) + (tangent1.W * part3)) + (tangent2.W * part4));
@@ -793,9 +793,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="tangent2">Second source tangent vector.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <returns>The result of the Hermite spline interpolation.</returns>
-        public static Vector4 Hermite(Vector4 value1, Vector4 tangent1, Vector4 value2, Vector4 tangent2, real_t amount)
+        public static Double4 Hermite(Double4 value1, Double4 tangent1, Double4 value2, Double4 tangent2, double amount)
         {
-            Vector4 result;
+            Double4 result;
             Hermite(ref value1, ref tangent1, ref value2, ref tangent2, amount, out result);
             return result;
         }
@@ -809,10 +809,10 @@ namespace Xenko.Core.Mathematics
         /// <param name="value4">The fourth position in the interpolation.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <param name="result">When the method completes, contains the result of the Catmull-Rom interpolation.</param>
-        public static void CatmullRom(ref Vector4 value1, ref Vector4 value2, ref Vector4 value3, ref Vector4 value4, real_t amount, out Vector4 result)
+        public static void CatmullRom(ref Double4 value1, ref Double4 value2, ref Double4 value3, ref Double4 value4, double amount, out Double4 result)
         {
-            real_t squared = amount * amount;
-            real_t cubed = amount * squared;
+            double squared = amount * amount;
+            double cubed = amount * squared;
 
             result.X = 0.5f * ((((2.0f * value2.X) + ((-value1.X + value3.X) * amount)) + (((((2.0f * value1.X) - (5.0f * value2.X)) + (4.0f * value3.X)) - value4.X) * squared)) + ((((-value1.X + (3.0f * value2.X)) - (3.0f * value3.X)) + value4.X) * cubed));
             result.Y = 0.5f * ((((2.0f * value2.Y) + ((-value1.Y + value3.Y) * amount)) + (((((2.0f * value1.Y) - (5.0f * value2.Y)) + (4.0f * value3.Y)) - value4.Y) * squared)) + ((((-value1.Y + (3.0f * value2.Y)) - (3.0f * value3.Y)) + value4.Y) * cubed));
@@ -829,9 +829,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="value4">The fourth position in the interpolation.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <returns>A vector that is the result of the Catmull-Rom interpolation.</returns>
-        public static Vector4 CatmullRom(Vector4 value1, Vector4 value2, Vector4 value3, Vector4 value4, real_t amount)
+        public static Double4 CatmullRom(Double4 value1, Double4 value2, Double4 value3, Double4 value4, double amount)
         {
-            Vector4 result;
+            Double4 result;
             CatmullRom(ref value1, ref value2, ref value3, ref value4, amount, out result);
             return result;
         }
@@ -843,7 +843,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second source vector.</param>
         /// <param name="result">When the method completes, contains an new vector composed of the largest components of the source vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Max(ref Vector4 left, ref Vector4 right, out Vector4 result)
+        public static void Max(ref Double4 left, ref Double4 right, out Double4 result)
         {
             result.X = (left.X > right.X) ? left.X : right.X;
             result.Y = (left.Y > right.Y) ? left.Y : right.Y;
@@ -858,9 +858,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second source vector.</param>
         /// <returns>A vector containing the largest components of the source vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Max(Vector4 left, Vector4 right)
+        public static Double4 Max(Double4 left, Double4 right)
         {
-            Vector4 result;
+            Double4 result;
             Max(ref left, ref right, out result);
             return result;
         }
@@ -872,7 +872,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second source vector.</param>
         /// <param name="result">When the method completes, contains an new vector composed of the smallest components of the source vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Min(ref Vector4 left, ref Vector4 right, out Vector4 result)
+        public static void Min(ref Double4 left, ref Double4 right, out Double4 result)
         {
             result.X = (left.X < right.X) ? left.X : right.X;
             result.Y = (left.Y < right.Y) ? left.Y : right.Y;
@@ -887,9 +887,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second source vector.</param>
         /// <returns>A vector containing the smallest components of the source vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 Min(Vector4 left, Vector4 right)
+        public static Double4 Min(Double4 left, Double4 right)
         {
-            Vector4 result;
+            Double4 result;
             Min(ref left, ref right, out result);
             return result;
         }
@@ -910,7 +910,7 @@ namespace Xenko.Core.Mathematics
         /// </remarks>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-        public static void Orthogonalize(Vector4[] destination, params Vector4[] source)
+        public static void Orthogonalize(Double4[] destination, params Double4[] source)
         {
             //Uses the modified Gram-Schmidt process.
             //q1 = m1
@@ -928,11 +928,11 @@ namespace Xenko.Core.Mathematics
 
             for (int i = 0; i < source.Length; ++i)
             {
-                Vector4 newvector = source[i];
+                Double4 newvector = source[i];
 
                 for (int r = 0; r < i; ++r)
                 {
-                    newvector -= (Vector4.Dot(destination[r], newvector) / Vector4.Dot(destination[r], destination[r])) * destination[r];
+                    newvector -= (Double4.Dot(destination[r], newvector) / Double4.Dot(destination[r], destination[r])) * destination[r];
                 }
 
                 destination[i] = newvector;
@@ -955,7 +955,7 @@ namespace Xenko.Core.Mathematics
         /// </remarks>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-        public static void Orthonormalize(Vector4[] destination, params Vector4[] source)
+        public static void Orthonormalize(Double4[] destination, params Double4[] source)
         {
             //Uses the modified Gram-Schmidt process.
             //Because we are making unit vectors, we can optimize the math for orthogonalization
@@ -975,11 +975,11 @@ namespace Xenko.Core.Mathematics
 
             for (int i = 0; i < source.Length; ++i)
             {
-                Vector4 newvector = source[i];
+                Double4 newvector = source[i];
 
                 for (int r = 0; r < i; ++r)
                 {
-                    newvector -= Vector4.Dot(destination[r], newvector) * destination[r];
+                    newvector -= Double4.Dot(destination[r], newvector) * destination[r];
                 }
 
                 newvector.Normalize();
@@ -992,26 +992,26 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="vector">The vector to rotate.</param>
         /// <param name="rotation">The <see cref="Xenko.Core.Mathematics.Quaternion"/> rotation to apply.</param>
-        /// <param name="result">When the method completes, contains the transformed <see cref="Xenko.Core.Mathematics.Vector4"/>.</param>
-        public static void Transform(ref Vector4 vector, ref Quaternion rotation, out Vector4 result)
+        /// <param name="result">When the method completes, contains the transformed <see cref="Xenko.Core.Mathematics.Double4"/>.</param>
+        public static void Transform(ref Double4 vector, ref Quaternion rotation, out Double4 result)
         {
-            real_t x = rotation.X + rotation.X;
-            real_t y = rotation.Y + rotation.Y;
-            real_t z = rotation.Z + rotation.Z;
-            real_t wx = rotation.W * x;
-            real_t wy = rotation.W * y;
-            real_t wz = rotation.W * z;
-            real_t xx = rotation.X * x;
-            real_t xy = rotation.X * y;
-            real_t xz = rotation.X * z;
-            real_t yy = rotation.Y * y;
-            real_t yz = rotation.Y * z;
-            real_t zz = rotation.Z * z;
+            double x = rotation.X + rotation.X;
+            double y = rotation.Y + rotation.Y;
+            double z = rotation.Z + rotation.Z;
+            double wx = rotation.W * x;
+            double wy = rotation.W * y;
+            double wz = rotation.W * z;
+            double xx = rotation.X * x;
+            double xy = rotation.X * y;
+            double xz = rotation.X * z;
+            double yy = rotation.Y * y;
+            double yz = rotation.Y * z;
+            double zz = rotation.Z * z;
 
-            result = new Vector4(
-                ((vector.X * ((1.0f - yy) - zz)) + (vector.Y * (xy - wz))) + (vector.Z * (xz + wy)),
-                ((vector.X * (xy + wz)) + (vector.Y * ((1.0f - xx) - zz))) + (vector.Z * (yz - wx)),
-                ((vector.X * (xz - wy)) + (vector.Y * (yz + wx))) + (vector.Z * ((1.0f - xx) - yy)),
+            result = new Double4(
+                ((vector.X * ((1.0 - yy) - zz)) + (vector.Y * (xy - wz))) + (vector.Z * (xz + wy)),
+                ((vector.X * (xy + wz)) + (vector.Y * ((1.0 - xx) - zz))) + (vector.Z * (yz - wx)),
+                ((vector.X * (xz - wy)) + (vector.Y * (yz + wx))) + (vector.Z * ((1.0 - xx) - yy)),
                 vector.W);
         }
 
@@ -1020,10 +1020,10 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="vector">The vector to rotate.</param>
         /// <param name="rotation">The <see cref="Xenko.Core.Mathematics.Quaternion"/> rotation to apply.</param>
-        /// <returns>The transformed <see cref="Xenko.Core.Mathematics.Vector4"/>.</returns>
-        public static Vector4 Transform(Vector4 vector, Quaternion rotation)
+        /// <returns>The transformed <see cref="Xenko.Core.Mathematics.Double4"/>.</returns>
+        public static Double4 Transform(Double4 vector, Quaternion rotation)
         {
-            Vector4 result;
+            Double4 result;
             Transform(ref vector, ref rotation, out result);
             return result;
         }
@@ -1037,7 +1037,7 @@ namespace Xenko.Core.Mathematics
         /// This array may be the same array as <paramref name="source"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-        public static void Transform(Vector4[] source, ref Quaternion rotation, Vector4[] destination)
+        public static void Transform(Double4[] source, ref Quaternion rotation, Double4[] destination)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -1046,32 +1046,32 @@ namespace Xenko.Core.Mathematics
             if (destination.Length < source.Length)
                 throw new ArgumentOutOfRangeException("destination", "The destination array must be of same length or larger length than the source array.");
 
-            real_t x = rotation.X + rotation.X;
-            real_t y = rotation.Y + rotation.Y;
-            real_t z = rotation.Z + rotation.Z;
-            real_t wx = rotation.W * x;
-            real_t wy = rotation.W * y;
-            real_t wz = rotation.W * z;
-            real_t xx = rotation.X * x;
-            real_t xy = rotation.X * y;
-            real_t xz = rotation.X * z;
-            real_t yy = rotation.Y * y;
-            real_t yz = rotation.Y * z;
-            real_t zz = rotation.Z * z;
+            double x = rotation.X + rotation.X;
+            double y = rotation.Y + rotation.Y;
+            double z = rotation.Z + rotation.Z;
+            double wx = rotation.W * x;
+            double wy = rotation.W * y;
+            double wz = rotation.W * z;
+            double xx = rotation.X * x;
+            double xy = rotation.X * y;
+            double xz = rotation.X * z;
+            double yy = rotation.Y * y;
+            double yz = rotation.Y * z;
+            double zz = rotation.Z * z;
 
-            real_t num1 = ((1.0f - yy) - zz);
-            real_t num2 = (xy - wz);
-            real_t num3 = (xz + wy);
-            real_t num4 = (xy + wz);
-            real_t num5 = ((1.0f - xx) - zz);
-            real_t num6 = (yz - wx);
-            real_t num7 = (xz - wy);
-            real_t num8 = (yz + wx);
-            real_t num9 = ((1.0f - xx) - yy);
+            double num1 = ((1.0 - yy) - zz);
+            double num2 = (xy - wz);
+            double num3 = (xz + wy);
+            double num4 = (xy + wz);
+            double num5 = ((1.0 - xx) - zz);
+            double num6 = (yz - wx);
+            double num7 = (xz - wy);
+            double num8 = (yz + wx);
+            double num9 = ((1.0 - xx) - yy);
 
             for (int i = 0; i < source.Length; ++i)
             {
-                destination[i] = new Vector4(
+                destination[i] = new Double4(
                     ((source[i].X * num1) + (source[i].Y * num2)) + (source[i].Z * num3),
                     ((source[i].X * num4) + (source[i].Y * num5)) + (source[i].Z * num6),
                     ((source[i].X * num7) + (source[i].Y * num8)) + (source[i].Z * num9),
@@ -1084,10 +1084,10 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="vector">The source vector.</param>
         /// <param name="transform">The transformation <see cref="Xenko.Core.Mathematics.Matrix"/>.</param>
-        /// <param name="result">When the method completes, contains the transformed <see cref="Xenko.Core.Mathematics.Vector4"/>.</param>
-        public static void Transform(ref Vector4 vector, ref Matrix transform, out Vector4 result)
+        /// <param name="result">When the method completes, contains the transformed <see cref="Xenko.Core.Mathematics.Double4"/>.</param>
+        public static void Transform(ref Double4 vector, ref Matrix transform, out Double4 result)
         {
-            result = new Vector4(
+            result = new Double4(
                 (vector.X * transform.M11) + (vector.Y * transform.M21) + (vector.Z * transform.M31) + (vector.W * transform.M41),
                 (vector.X * transform.M12) + (vector.Y * transform.M22) + (vector.Z * transform.M32) + (vector.W * transform.M42),
                 (vector.X * transform.M13) + (vector.Y * transform.M23) + (vector.Z * transform.M33) + (vector.W * transform.M43),
@@ -1099,10 +1099,10 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="vector">The source vector.</param>
         /// <param name="transform">The transformation <see cref="Xenko.Core.Mathematics.Matrix"/>.</param>
-        /// <returns>The transformed <see cref="Xenko.Core.Mathematics.Vector4"/>.</returns>
-        public static Vector4 Transform(Vector4 vector, Matrix transform)
+        /// <returns>The transformed <see cref="Xenko.Core.Mathematics.Double4"/>.</returns>
+        public static Double4 Transform(Double4 vector, Matrix transform)
         {
-            Vector4 result;
+            Double4 result;
             Transform(ref vector, ref transform, out result);
             return result;
         }
@@ -1116,7 +1116,7 @@ namespace Xenko.Core.Mathematics
         /// This array may be the same array as <paramref name="source"/>.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="destination"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="destination"/> is shorter in length than <paramref name="source"/>.</exception>
-        public static void Transform(Vector4[] source, ref Matrix transform, Vector4[] destination)
+        public static void Transform(Double4[] source, ref Matrix transform, Double4[] destination)
         {
             if (source == null)
                 throw new ArgumentNullException("source");
@@ -1138,9 +1138,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to add.</param>
         /// <returns>The sum of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 operator +(Vector4 left, Vector4 right)
+        public static Double4 operator +(Double4 left, Double4 right)
         {
-            return new Vector4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
+            return new Double4(left.X + right.X, left.Y + right.Y, left.Z + right.Z, left.W + right.W);
         }
 
         /// <summary>
@@ -1149,7 +1149,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The vector to assert (unchange).</param>
         /// <returns>The asserted (unchanged) vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 operator +(Vector4 value)
+        public static Double4 operator +(Double4 value)
         {
             return value;
         }
@@ -1161,9 +1161,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to subtract.</param>
         /// <returns>The difference of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 operator -(Vector4 left, Vector4 right)
+        public static Double4 operator -(Double4 left, Double4 right)
         {
-            return new Vector4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
+            return new Double4(left.X - right.X, left.Y - right.Y, left.Z - right.Z, left.W - right.W);
         }
 
         /// <summary>
@@ -1172,9 +1172,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The vector to negate.</param>
         /// <returns>A vector facing in the opposite direction.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 operator -(Vector4 value)
+        public static Double4 operator -(Double4 value)
         {
-            return new Vector4(-value.X, -value.Y, -value.Z, -value.W);
+            return new Double4(-value.X, -value.Y, -value.Z, -value.W);
         }
 
         /// <summary>
@@ -1184,9 +1184,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 operator *(real_t scale, Vector4 value)
+        public static Double4 operator *(double scale, Double4 value)
         {
-            return new Vector4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
+            return new Double4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
 
         /// <summary>
@@ -1196,9 +1196,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 operator *(Vector4 value, real_t scale)
+        public static Double4 operator *(Double4 value, double scale)
         {
-            return new Vector4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
+            return new Double4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
 
         /// <summary>
@@ -1208,9 +1208,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">The second vector to multiply.</param>
         /// <returns>The multiplication of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 operator *(Vector4 left, Vector4 right)
+        public static Double4 operator *(Double4 left, Double4 right)
         {
-            return new Vector4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
+            return new Double4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
         }
 
         /// <summary>
@@ -1220,9 +1220,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 operator /(Vector4 value, real_t scale)
+        public static Double4 operator /(Double4 value, double scale)
         {
-            return new Vector4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
+            return new Double4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
         }
 
         /// <summary>
@@ -1232,9 +1232,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The value.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 operator /(real_t numerator, Vector4 value)
+        public static Double4 operator /(double numerator, Double4 value)
         {
-            return new Vector4(numerator / value.X, numerator / value.Y, numerator / value.Z, numerator / value.W);
+            return new Double4(numerator / value.X, numerator / value.Y, numerator / value.Z, numerator / value.W);
         }
 
         /// <summary>
@@ -1244,9 +1244,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="by">The by.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector4 operator /(Vector4 value, Vector4 by)
+        public static Double4 operator /(Double4 value, Double4 by)
         {
-            return new Vector4(value.X / by.X, value.Y / by.Y, value.Z / by.Z, value.W / by.W);
+            return new Double4(value.X / by.X, value.Y / by.Y, value.Z / by.Z, value.W / by.W);
         }
 
         /// <summary>
@@ -1255,7 +1255,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The first value to compare.</param>
         /// <param name="right">The second value to compare.</param>
         /// <returns><c>true</c> if <paramref name="left"/> has the same value as <paramref name="right"/>; otherwise, <c>false</c>.</returns>
-        public static bool operator ==(Vector4 left, Vector4 right)
+        public static bool operator ==(Double4 left, Double4 right)
         {
             return left.Equals(right);
         }
@@ -1266,49 +1266,49 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The first value to compare.</param>
         /// <param name="right">The second value to compare.</param>
         /// <returns><c>true</c> if <paramref name="left"/> has a different value than <paramref name="right"/>; otherwise, <c>false</c>.</returns>
-        public static bool operator !=(Vector4 left, Vector4 right)
+        public static bool operator !=(Double4 left, Double4 right)
         {
             return !left.Equals(right);
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Vector4"/> to <see cref="Xenko.Core.Mathematics.Double4"/>.
+        /// Performs an explicit conversion from <see cref="Xenko.Core.Mathematics.Double4"/> to <see cref="Xenko.Core.Mathematics.Vector4"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static implicit operator Double4(Vector4 value)
+        public static explicit operator Vector4(Double4 value)
         {
-            return new Double4(value);
+            return new Vector4(value);
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Xenko.Core.Mathematics.Vector4"/> to <see cref="Xenko.Core.Mathematics.Single4"/>.
+        /// Performs an explicit conversion from <see cref="Xenko.Core.Mathematics.Double4"/> to <see cref="Xenko.Core.Mathematics.Single4"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator Single4(Vector4 value)
+        public static explicit operator Single4(Double4 value)
         {
             return new Single4(value);
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Xenko.Core.Mathematics.Vector4"/> to <see cref="Xenko.Core.Mathematics.Vector2"/>.
+        /// Performs an explicit conversion from <see cref="Xenko.Core.Mathematics.Double4"/> to <see cref="Xenko.Core.Mathematics.Double2"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator Vector2(Vector4 value)
+        public static explicit operator Double2(Double4 value)
         {
-            return new Vector2(value.X, value.Y);
+            return new Double2(value.X, value.Y);
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Xenko.Core.Mathematics.Vector4"/> to <see cref="Xenko.Core.Mathematics.Vector3"/>.
+        /// Performs an explicit conversion from <see cref="Xenko.Core.Mathematics.Double4"/> to <see cref="Xenko.Core.Mathematics.Double3"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator Vector3(Vector4 value)
+        public static explicit operator Double3(Double4 value)
         {
-            return new Vector3(value.X, value.Y, value.Z);
+            return new Double3(value.X, value.Y, value.Z);
         }
 
         /// <summary>
@@ -1379,18 +1379,18 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="Xenko.Core.Mathematics.Vector4"/> is equal to this instance.
+        /// Determines whether the specified <see cref="Xenko.Core.Mathematics.Double4"/> is equal to this instance.
         /// </summary>
-        /// <param name="other">The <see cref="Xenko.Core.Mathematics.Vector4"/> to compare with this instance.</param>
+        /// <param name="other">The <see cref="Xenko.Core.Mathematics.Double4"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="Xenko.Core.Mathematics.Vector4"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="Xenko.Core.Mathematics.Double4"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(Vector4 other)
+        public bool Equals(Double4 other)
         {
-            return ((real_t)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-                (real_t)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
-                (real_t)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
-                (real_t)Math.Abs(other.W - W) < MathUtil.ZeroTolerance);
+            return ((double)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
+                (double)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
+                (double)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
+                (double)Math.Abs(other.W - W) < MathUtil.ZeroTolerance);
         }
 
         /// <summary>
@@ -1408,50 +1408,50 @@ namespace Xenko.Core.Mathematics
             if (value.GetType() != GetType())
                 return false;
 
-            return Equals((Vector4)value);
+            return Equals((Double4)value);
         }
 
 #if WPFInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Vector4"/> to <see cref="System.Windows.Media.Media3D.Point4D"/>.
+        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Double4"/> to <see cref="System.Windows.Media.Media3D.Point4D"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static implicit operator System.Windows.Media.Media3D.Point4D(Vector4 value)
+        public static implicit operator System.Windows.Media.Media3D.Point4D(Double4 value)
         {
             return new System.Windows.Media.Media3D.Point4D(value.X, value.Y, value.Z, value.W);
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Point4D"/> to <see cref="Xenko.Core.Mathematics.Vector4"/>.
+        /// Performs an explicit conversion from <see cref="System.Windows.Media.Media3D.Point4D"/> to <see cref="Xenko.Core.Mathematics.Double4"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static explicit operator Vector4(System.Windows.Media.Media3D.Point4D value)
+        public static explicit operator Double4(System.Windows.Media.Media3D.Point4D value)
         {
-            return new Vector4((real_t)value.X, (real_t)value.Y, (real_t)value.Z, (real_t)value.W);
+            return new Double4((double)value.X, (double)value.Y, (double)value.Z, (double)value.W);
         }
 #endif
 
 #if XnaInterop
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Vector4"/> to <see cref="Microsoft.Xna.Framework.Vector4"/>.
+        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Double4"/> to <see cref="Microsoft.Xna.Framework.Vector4"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static implicit operator Microsoft.Xna.Framework.Vector4(Vector4 value)
+        public static implicit operator Microsoft.Xna.Framework.Vector4(Double4 value)
         {
             return new Microsoft.Xna.Framework.Vector4(value.X, value.Y, value.Z, value.W);
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector4"/> to <see cref="Xenko.Core.Mathematics.Vector4"/>.
+        /// Performs an implicit conversion from <see cref="Microsoft.Xna.Framework.Vector4"/> to <see cref="Xenko.Core.Mathematics.Double4"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
-        public static implicit operator Vector4(Microsoft.Xna.Framework.Vector4 value)
+        public static implicit operator Double4(Microsoft.Xna.Framework.Vector4 value)
         {
-            return new Vector4(value.X, value.Y, value.Z, value.W);
+            return new Double4(value.X, value.Y, value.Z, value.W);
         }
 #endif
     }

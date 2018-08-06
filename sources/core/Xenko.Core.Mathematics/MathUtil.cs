@@ -30,6 +30,12 @@
 using System;
 using System.Runtime.CompilerServices;
 
+#if REAL_T_IS_DOUBLE
+using real_t = System.Double; // For now, this compilation setting is unsupported.
+#else
+using real_t = System.Single;
+#endif
+
 namespace Xenko.Core.Mathematics
 {
     /// <summary>
@@ -40,7 +46,7 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// The value for which all absolute numbers smaller than are considered equal to zero.
         /// </summary>
-        public const float ZeroTolerance = 1e-6f; // Value a 8x higher than 1.19209290E-07F
+        public const real_t ZeroTolerance = 1e-6f; // Value a 8x higher than 1.19209290E-07F
 
         /// <summary>
         /// The value for which all absolute numbers smaller than are considered equal to zero.
@@ -50,22 +56,22 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// A value specifying the approximation of π which is 180 degrees.
         /// </summary>
-        public const float Pi = (float)Math.PI;
+        public const real_t Pi = (real_t)Math.PI;
 
         /// <summary>
         /// A value specifying the approximation of 2π which is 360 degrees.
         /// </summary>
-        public const float TwoPi = (float)(2 * Math.PI);
+        public const real_t TwoPi = (real_t)(2 * Math.PI);
 
         /// <summary>
         /// A value specifying the approximation of π/2 which is 90 degrees.
         /// </summary>
-        public const float PiOverTwo = (float)(Math.PI / 2);
+        public const real_t PiOverTwo = (real_t)(Math.PI / 2);
 
         /// <summary>
         /// A value specifying the approximation of π/4 which is 45 degrees.
         /// </summary>
-        public const float PiOverFour = (float)(Math.PI / 4);
+        public const real_t PiOverFour = (real_t)(Math.PI / 4);
 
         /// <summary>
         /// Checks if a and b are almost equals, taking into account the magnitude of floating point numbers (unlike <see cref="WithinEpsilon"/> method). See Remarks.
@@ -76,9 +82,9 @@ namespace Xenko.Core.Mathematics
         /// <returns><c>true</c> if a almost equal to b, <c>false</c> otherwise</returns>
         /// <remarks>
         /// The code is using the technique described by Bruce Dawson in 
-        /// <a href="http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">Comparing Floating point numbers 2012 edition</a>. 
+        /// <a href="http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">Comparing floating point numbers 2012 edition</a>. 
         /// </remarks>
-        public unsafe static bool NearEqual(float a, float b)
+        public unsafe static bool NearEqual(real_t a, real_t b)
         {
             // Check if the numbers are really close -- needed
             // when comparing numbers near zero.
@@ -107,7 +113,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="a">The floating value.</param>
         /// <returns><c>true</c> if the specified value is close to zero (0.0f); otherwise, <c>false</c>.</returns>
-        public static bool IsZero(float a)
+        public static bool IsZero(real_t a)
         {
             return Math.Abs(a) < ZeroTolerance;
         }
@@ -127,21 +133,21 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="a">The floating value.</param>
         /// <returns><c>true</c> if the specified value is close to one (1.0f); otherwise, <c>false</c>.</returns>
-        public static bool IsOne(float a)
+        public static bool IsOne(real_t a)
         {
             return IsZero(a - 1.0f);
         }
 
         /// <summary>
-        /// Checks if a - b are almost equals within a float epsilon.
+        /// Checks if a - b are almost equals within a real_t epsilon.
         /// </summary>
         /// <param name="a">The left value to compare.</param>
         /// <param name="b">The right value to compare.</param>
         /// <param name="epsilon">Epsilon value</param>
-        /// <returns><c>true</c> if a almost equal to b within a float epsilon, <c>false</c> otherwise</returns>
-        public static bool WithinEpsilon(float a, float b, float epsilon)
+        /// <returns><c>true</c> if a almost equal to b within a real_t epsilon, <c>false</c> otherwise</returns>
+        public static bool WithinEpsilon(real_t a, real_t b, real_t epsilon)
         {
-            float num = a - b;
+            real_t num = a - b;
             return ((-epsilon <= num) && (num <= epsilon));
         }
 
@@ -166,7 +172,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="revolution">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float RevolutionsToDegrees(float revolution)
+        public static real_t RevolutionsToDegrees(real_t revolution)
         {
             return revolution * 360.0f;
         }
@@ -176,7 +182,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="revolution">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float RevolutionsToRadians(float revolution)
+        public static real_t RevolutionsToRadians(real_t revolution)
         {
             return revolution * TwoPi;
         }
@@ -186,7 +192,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="revolution">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float RevolutionsToGradians(float revolution)
+        public static real_t RevolutionsToGradians(real_t revolution)
         {
             return revolution * 400.0f;
         }
@@ -196,7 +202,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="degree">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float DegreesToRevolutions(float degree)
+        public static real_t DegreesToRevolutions(real_t degree)
         {
             return degree / 360.0f;
         }
@@ -206,7 +212,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="degree">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float DegreesToRadians(float degree)
+        public static real_t DegreesToRadians(real_t degree)
         {
             return degree * (Pi / 180.0f);
         }
@@ -216,7 +222,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="radian">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float RadiansToRevolutions(float radian)
+        public static real_t RadiansToRevolutions(real_t radian)
         {
             return radian / TwoPi;
         }
@@ -226,7 +232,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="radian">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float RadiansToGradians(float radian)
+        public static real_t RadiansToGradians(real_t radian)
         {
             return radian * (200.0f / Pi);
         }
@@ -236,7 +242,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="gradian">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float GradiansToRevolutions(float gradian)
+        public static real_t GradiansToRevolutions(real_t gradian)
         {
             return gradian / 400.0f;
         }
@@ -246,7 +252,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="gradian">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float GradiansToDegrees(float gradian)
+        public static real_t GradiansToDegrees(real_t gradian)
         {
             return gradian * (9.0f / 10.0f);
         }
@@ -256,7 +262,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="gradian">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float GradiansToRadians(float gradian)
+        public static real_t GradiansToRadians(real_t gradian)
         {
             return gradian * (Pi / 200.0f);
         }
@@ -266,7 +272,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="radian">The value to convert.</param>
         /// <returns>The converted value.</returns>
-        public static float RadiansToDegrees(float radian)
+        public static real_t RadiansToDegrees(real_t radian)
         {
             return radian * (180.0f / Pi);
         }
@@ -278,7 +284,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="min">The min.</param>
         /// <param name="max">The max.</param>
         /// <returns>The result of clamping a value between min and max</returns>
-        public static float Clamp(float value, float min, float max)
+        public static real_t Clamp(real_t value, real_t min, real_t max)
         {
             return value < min ? min : value > max ? max : value;
         }
@@ -314,10 +320,10 @@ namespace Xenko.Core.Mathematics
         /// <param name="min">Minimum value that takes place in inverse-interpolation.</param>
         /// <param name="max">Maximum value that takes place in inverse-interpolation.</param>
         /// <returns>Returns an inverse-linearly interpolated coeficient.</returns>
-        public static float InverseLerp(float min, float max, float value)
+        public static real_t InverseLerp(real_t min, real_t max, real_t value)
         {
             if (IsZero(Math.Abs(max - min)))
-                return float.NaN;
+                return real_t.NaN;
             return (value - min) / (max - min);
         }
 
@@ -362,7 +368,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="to">Value to interpolate to.</param>
         /// <param name="amount">Interpolation amount.</param>
         /// <returns>The result of linear interpolation of values based on the amount.</returns>
-        public static float Lerp(float from, float to, float amount)
+        public static real_t Lerp(real_t from, real_t to, real_t amount)
         {
             return (1 - amount) * from + amount * to;
         }
@@ -378,9 +384,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="to">Value to interpolate to.</param>
         /// <param name="amount">Interpolation amount.</param>
         /// <returns>The result of linear interpolation of values based on the amount.</returns>
-        public static byte Lerp(byte from, byte to, float amount)
+        public static byte Lerp(byte from, byte to, real_t amount)
         {
-            return (byte)Lerp((float)from, (float)to, amount);
+            return (byte)Lerp((real_t)from, (real_t)to, amount);
         }
 
         /// <summary>
@@ -390,7 +396,7 @@ namespace Xenko.Core.Mathematics
         /// See https://en.wikipedia.org/wiki/Smoothstep
         /// </remarks>
         /// <param name="amount">Value between 0 and 1 indicating interpolation amount.</param>
-        public static float SmoothStep(float amount)
+        public static real_t SmoothStep(real_t amount)
         {
             return (amount <= 0) ? 0
                 : (amount >= 1) ? 1
@@ -404,7 +410,7 @@ namespace Xenko.Core.Mathematics
         /// See https://en.wikipedia.org/wiki/Smoothstep
         /// </remarks>
         /// <param name="amount">Value between 0 and 1 indicating interpolation amount.</param>
-        public static float SmootherStep(float amount)
+        public static real_t SmootherStep(real_t amount)
         {
             return (amount <= 0) ? 0
                 : (amount >= 1) ? 1
@@ -418,7 +424,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="min">The minimum value of the range.</param>
         /// <param name="max">The maximum value of the range.</param>
         /// <returns><c>true</c> if value is inside the specified range; otherwise, <c>false</c>.</returns>
-        public static bool IsInRange(float value, float min, float max)
+        public static bool IsInRange(real_t value, real_t min, real_t max)
         {
             return min <= value && value <= max;
         }
@@ -446,35 +452,35 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Converts a float value from sRGB to linear.
+        /// Converts a real_t value from sRGB to linear.
         /// </summary>
         /// <param name="sRgbValue">The sRGB value.</param>
         /// <returns>A linear value.</returns>
-        public static float SRgbToLinear(float sRgbValue)
+        public static real_t SRgbToLinear(real_t sRgbValue)
         {
             if (sRgbValue < 0.04045f) return sRgbValue / 12.92f;
-            return (float)Math.Pow((sRgbValue + 0.055) / 1.055, 2.4);
+            return (real_t)Math.Pow((sRgbValue + 0.055) / 1.055, 2.4);
         }
 
         /// <summary>
-        /// Converts a float value from linear to sRGB.
+        /// Converts a real_t value from linear to sRGB.
         /// </summary>
         /// <param name="linearValue">The linear value.</param>
         /// <returns>The encoded sRGB value.</returns>
-        public static float LinearToSRgb(float linearValue)
+        public static real_t LinearToSRgb(real_t linearValue)
         {
             if (linearValue < 0.0031308f) return linearValue * 12.92f;
-            return (float)(1.055 * Math.Pow(linearValue, 1 / 2.4) - 0.055);
+            return (real_t)(1.055 * Math.Pow(linearValue, 1 / 2.4) - 0.055);
         }
 
         /// <summary>
         /// Calculate the logarithm 2 of a floating point.
         /// </summary>
-        /// <param name="x">The input float</param>
+        /// <param name="x">The input real_t</param>
         /// <returns><value>Log2(x)</value></returns>
-        public static float Log2(float x)
+        public static real_t Log2(real_t x)
         {
-            return (float) Math.Log(x) / 0.6931471805599453f;
+            return (real_t) Math.Log(x) / 0.6931471805599453f;
         }
 
         /// <summary>
@@ -517,9 +523,9 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="size">The size.</param>
         /// <returns>System.Int32.</returns>
-        public static float NextPowerOfTwo(float size)
+        public static real_t NextPowerOfTwo(real_t size)
         {
-            return (float)Math.Pow(2, Math.Ceiling(Math.Log(size, 2)));
+            return (real_t)Math.Pow(2, Math.Ceiling(Math.Log(size, 2)));
         }
 
         /// <summary>
@@ -532,12 +538,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Get the previous power of two of the provided float.
+        /// Get the previous power of two of the provided real_t.
         /// </summary>
         /// <param name="size">The value</param>
-        public static float PreviousPowerOfTwo(float size)
+        public static real_t PreviousPowerOfTwo(real_t size)
         {
-            return (float)Math.Pow(2, Math.Floor(Math.Log(size, 2)));
+            return (real_t)Math.Pow(2, Math.Floor(Math.Log(size, 2)));
         }
 
         /// <summary>
@@ -584,11 +590,11 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The value to snap.</param>
         /// <param name="gap">The interval gap.</param>
         /// <returns>The nearest interval to the provided value.</returns>
-        public static float Snap(float value, float gap)
+        public static real_t Snap(real_t value, real_t gap)
         {
             if (gap == 0)
                 return value;
-            return (float)Math.Round((value / gap), MidpointRounding.AwayFromZero) * gap;
+            return (real_t)Math.Round((value / gap), MidpointRounding.AwayFromZero) * gap;
         }
 
         /// <summary>
@@ -610,13 +616,13 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The vector to snap.</param>
         /// <param name="gap">The interval gap.</param>
         /// <returns>A vector which components are snapped to the nearest interval.</returns>
-        public static Vector2 Snap(Vector2 value, float gap)
+        public static Vector2 Snap(Vector2 value, real_t gap)
         {
             if (gap == 0)
                 return value;
             return new Vector2(
-                (float)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap);
+                (real_t)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
+                (real_t)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap);
         }
 
         /// <summary>
@@ -625,14 +631,14 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The vector to snap.</param>
         /// <param name="gap">The interval gap.</param>
         /// <returns>A vector which components are snapped to the nearest interval.</returns>
-        public static Vector3 Snap(Vector3 value, float gap)
+        public static Vector3 Snap(Vector3 value, real_t gap)
         {
             if (gap == 0)
                 return value;
             return new Vector3(
-                (float)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap);
+                (real_t)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
+                (real_t)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
+                (real_t)Math.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap);
         }
 
         /// <summary>
@@ -641,15 +647,15 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The vector to snap.</param>
         /// <param name="gap">The interval gap.</param>
         /// <returns>A vector which components are snapped to the nearest interval.</returns>
-        public static Vector4 Snap(Vector4 value, float gap)
+        public static Vector4 Snap(Vector4 value, real_t gap)
         {
             if (gap == 0)
                 return value;
             return new Vector4(
-                (float)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap,
-                (float)Math.Round((value.W / gap), MidpointRounding.AwayFromZero) * gap);
+                (real_t)Math.Round((value.X / gap), MidpointRounding.AwayFromZero) * gap,
+                (real_t)Math.Round((value.Y / gap), MidpointRounding.AwayFromZero) * gap,
+                (real_t)Math.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap,
+                (real_t)Math.Round((value.W / gap), MidpointRounding.AwayFromZero) * gap);
         }
     }
 }

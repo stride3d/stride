@@ -153,13 +153,53 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Vector4"/> to <see cref="Half4"/>.
+        /// Performs an explicit conversion from <see cref="Half4"/> to <see cref="Vector4"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator Vector4(Half4 value)
         {
             return new Vector4(value.X, value.Y, value.Z, value.W);
+        }
+
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="Single4"/> to <see cref="Half4"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Half4(Single4 value)
+        {
+            return new Half4((Half)value.X, (Half)value.Y, (Half)value.Z, (Half)value.W);
+        }
+
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="Half4"/> to <see cref="Single4"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Single4(Half4 value)
+        {
+            return new Single4(value.X, value.Y, value.Z, value.W);
+        }
+
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="Double4"/> to <see cref="Half4"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Half4(Double4 value)
+        {
+            return new Half4((Half)value.X, (Half)value.Y, (Half)value.Z, (Half)value.W);
+        }
+
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="Half4"/> to <see cref="Double4"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Double4(Half4 value)
+        {
+            return new Double4(value.X, value.Y, value.Z, value.W);
         }
 
         /// <summary>

@@ -32,6 +32,12 @@ using System.Runtime.InteropServices;
 using System.ComponentModel;
 using Xenko.Core.Serialization;
 
+#if REAL_T_IS_DOUBLE
+using real_t = System.Double; // For now, this compilation setting is unsupported.
+#else
+using real_t = System.Single;
+#endif
+
 namespace Xenko.Core.Mathematics
 {
     /// <summary>
@@ -49,13 +55,13 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// The distance of the plane along its normal from the origin.
         /// </summary>
-        public float D;
+        public real_t D;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Plane"/> struct.
         /// </summary>
         /// <param name="value">The value that will be assigned to all components.</param>
-        public Plane(float value)
+        public Plane(real_t value)
         {
             Normal.X = Normal.Y = Normal.Z = D = value;
         }
@@ -67,7 +73,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="b">The Y component of the normal.</param>
         /// <param name="c">The Z component of the normal.</param>
         /// <param name="d">The distance of the plane along its normal from the origin.</param>
-        public Plane(float a, float b, float c, float d)
+        public Plane(real_t a, real_t b, real_t c, real_t d)
         {
             Normal.X = a;
             Normal.Y = b;
@@ -91,7 +97,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="value">The normal of the plane.</param>
         /// <param name="d">The distance of the plane along its normal from the origin</param>
-        public Plane(Vector3 value, float d)
+        public Plane(Vector3 value, real_t d)
         {
             Normal = value;
             D = d;
@@ -105,16 +111,16 @@ namespace Xenko.Core.Mathematics
         /// <param name="point3">Third point of a triangle defining the plane.</param>
         public Plane(Vector3 point1, Vector3 point2, Vector3 point3)
         {
-            float x1 = point2.X - point1.X;
-            float y1 = point2.Y - point1.Y;
-            float z1 = point2.Z - point1.Z;
-            float x2 = point3.X - point1.X;
-            float y2 = point3.Y - point1.Y;
-            float z2 = point3.Z - point1.Z;
-            float yz = (y1 * z2) - (z1 * y2);
-            float xz = (z1 * x2) - (x1 * z2);
-            float xy = (x1 * y2) - (y1 * x2);
-            float invPyth = 1.0f / (float)(Math.Sqrt((yz * yz) + (xz * xz) + (xy * xy)));
+            real_t x1 = point2.X - point1.X;
+            real_t y1 = point2.Y - point1.Y;
+            real_t z1 = point2.Z - point1.Z;
+            real_t x2 = point3.X - point1.X;
+            real_t y2 = point3.Y - point1.Y;
+            real_t z2 = point3.Z - point1.Z;
+            real_t yz = (y1 * z2) - (z1 * y2);
+            real_t xz = (z1 * x2) - (x1 * z2);
+            real_t xy = (x1 * y2) - (y1 * x2);
+            real_t invPyth = 1.0f / (real_t)(Math.Sqrt((yz * yz) + (xz * xz) + (xy * xy)));
 
             Normal.X = yz * invPyth;
             Normal.Y = xz * invPyth;
@@ -128,7 +134,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="values">The values to assign to the A, B, C, and D components of the plane. This must be an array with four elements.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than four elements.</exception>
-        public Plane(float[] values)
+        public Plane(real_t[] values)
         {
             if (values == null)
                 throw new ArgumentNullException("values");
@@ -148,7 +154,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="index">The index of the component to access. Use 0 for the A component, 1 for the B component, 2 for the C component, and 3 for the D component.</param>
         /// <returns>The value of the component at the specified index.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 3].</exception>
-        public float this[int index]
+        public real_t this[int index]
         {
             get
             {
@@ -192,7 +198,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         public void Normalize()
         {
-            float magnitude = 1.0f / (float)(Math.Sqrt((Normal.X * Normal.X) + (Normal.Y * Normal.Y) + (Normal.Z * Normal.Z)));
+            real_t magnitude = 1.0f / (real_t)(Math.Sqrt((Normal.X * Normal.X) + (Normal.Y * Normal.Y) + (Normal.Z * Normal.Z)));
 
             Normal.X *= magnitude;
             Normal.Y *= magnitude;
@@ -204,9 +210,9 @@ namespace Xenko.Core.Mathematics
         /// Creates an array containing the elements of the plane.
         /// </summary>
         /// <returns>A four-element array containing the components of the plane.</returns>
-        public float[] ToArray()
+        public real_t[] ToArray()
         {
-            return new float[] { Normal.X, Normal.Y, Normal.Z, D };
+            return new real_t[] { Normal.X, Normal.Y, Normal.Z, D };
         }
 
         /// <summary>
@@ -226,7 +232,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>Whether the two objects intersected.</returns>
         public bool Intersects(ref Ray ray)
         {
-            float distance;
+            real_t distance;
             return CollisionHelper.RayIntersectsPlane(ref ray, ref this, out distance);
         }
 
@@ -237,7 +243,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Ray ray, out float distance)
+        public bool Intersects(ref Ray ray, out real_t distance)
         {
             return CollisionHelper.RayIntersectsPlane(ref ray, ref this, out distance);
         }
@@ -314,7 +320,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The plane to scale.</param>
         /// <param name="scale">The amount by which to scale the plane.</param>
         /// <param name="result">When the method completes, contains the scaled plane.</param>
-        public static void Multiply(ref Plane value, float scale, out Plane result)
+        public static void Multiply(ref Plane value, real_t scale, out Plane result)
         {
             result.Normal.X = value.Normal.X * scale;
             result.Normal.Y = value.Normal.Y * scale;
@@ -328,7 +334,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The plane to scale.</param>
         /// <param name="scale">The amount by which to scale the plane.</param>
         /// <returns>The scaled plane.</returns>
-        public static Plane Multiply(Plane value, float scale)
+        public static Plane Multiply(Plane value, real_t scale)
         {
             return new Plane(value.Normal.X * scale, value.Normal.Y * scale, value.Normal.Z * scale, value.D * scale);
         }
@@ -339,7 +345,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The source plane.</param>
         /// <param name="right">The source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of the specified plane and vector.</param>
-        public static void Dot(ref Plane left, ref Vector4 right, out float result)
+        public static void Dot(ref Plane left, ref Vector4 right, out real_t result)
         {
             result = (left.Normal.X * right.X) + (left.Normal.Y * right.Y) + (left.Normal.Z * right.Z) + (left.D * right.W);
         }
@@ -350,7 +356,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The source plane.</param>
         /// <param name="right">The source vector.</param>
         /// <returns>The dot product of the specified plane and vector.</returns>
-        public static float Dot(Plane left, Vector4 right)
+        public static real_t Dot(Plane left, Vector4 right)
         {
             return (left.Normal.X * right.X) + (left.Normal.Y * right.Y) + (left.Normal.Z * right.Z) + (left.D * right.W);
         }
@@ -361,7 +367,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The source plane.</param>
         /// <param name="right">The source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of a specified vector and the normal of the Plane plus the distance value of the plane.</param>
-        public static void DotCoordinate(ref Plane left, ref Vector3 right, out float result)
+        public static void DotCoordinate(ref Plane left, ref Vector3 right, out real_t result)
         {
             result = (left.Normal.X * right.X) + (left.Normal.Y * right.Y) + (left.Normal.Z * right.Z) + left.D;
         }
@@ -372,7 +378,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The source plane.</param>
         /// <param name="right">The source vector.</param>
         /// <returns>The dot product of a specified vector and the normal of the Plane plus the distance value of the plane.</returns>
-        public static float DotCoordinate(Plane left, Vector3 right)
+        public static real_t DotCoordinate(Plane left, Vector3 right)
         {
             return (left.Normal.X * right.X) + (left.Normal.Y * right.Y) + (left.Normal.Z * right.Z) + left.D;
         }
@@ -383,7 +389,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The source plane.</param>
         /// <param name="right">The source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of the specified vector and the normal of the plane.</param>
-        public static void DotNormal(ref Plane left, ref Vector3 right, out float result)
+        public static void DotNormal(ref Plane left, ref Vector3 right, out real_t result)
         {
             result = (left.Normal.X * right.X) + (left.Normal.Y * right.Y) + (left.Normal.Z * right.Z);
         }
@@ -394,7 +400,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The source plane.</param>
         /// <param name="right">The source vector.</param>
         /// <returns>The dot product of the specified vector and the normal of the plane.</returns>
-        public static float DotNormal(Plane left, Vector3 right)
+        public static real_t DotNormal(Plane left, Vector3 right)
         {
             return (left.Normal.X * right.X) + (left.Normal.Y * right.Y) + (left.Normal.Z * right.Z);
         }
@@ -407,7 +413,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">The projected point.</param>
         public static void Project(ref Plane plane, ref Vector3 point, out Vector3 result)
         {
-            float distance;
+            real_t distance;
             DotCoordinate(ref plane, ref point, out distance);
 
             // compute: point - distance * plane.Normal
@@ -435,7 +441,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the normalized plane.</param>
         public static void Normalize(ref Plane plane, out Plane result)
         {
-            float magnitude = 1.0f / (float)(Math.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z)));
+            real_t magnitude = 1.0f / (real_t)(Math.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z)));
 
             result.Normal.X = plane.Normal.X * magnitude;
             result.Normal.Y = plane.Normal.Y * magnitude;
@@ -450,7 +456,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The normalized plane.</returns>
         public static Plane Normalize(Plane plane)
         {
-            float magnitude = 1.0f / (float)(Math.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z)));
+            real_t magnitude = 1.0f / (real_t)(Math.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z)));
             return new Plane(plane.Normal.X * magnitude, plane.Normal.Y * magnitude, plane.Normal.Z * magnitude, plane.D * magnitude);
         }
 
@@ -474,7 +480,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The flipped plane.</returns>
         public static Plane Negate(Plane plane)
         {
-            float magnitude = 1.0f / (float)(Math.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z)));
+            real_t magnitude = 1.0f / (real_t)(Math.Sqrt((plane.Normal.X * plane.Normal.X) + (plane.Normal.Y * plane.Normal.Y) + (plane.Normal.Z * plane.Normal.Z)));
             return new Plane(plane.Normal.X * magnitude, plane.Normal.Y * magnitude, plane.Normal.Z * magnitude, plane.D * magnitude);
         }
 
@@ -486,22 +492,22 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the transformed plane.</param>
         public static void Transform(ref Plane plane, ref Quaternion rotation, out Plane result)
         {
-            float x2 = rotation.X + rotation.X;
-            float y2 = rotation.Y + rotation.Y;
-            float z2 = rotation.Z + rotation.Z;
-            float wx = rotation.W * x2;
-            float wy = rotation.W * y2;
-            float wz = rotation.W * z2;
-            float xx = rotation.X * x2;
-            float xy = rotation.X * y2;
-            float xz = rotation.X * z2;
-            float yy = rotation.Y * y2;
-            float yz = rotation.Y * z2;
-            float zz = rotation.Z * z2;
+            real_t x2 = rotation.X + rotation.X;
+            real_t y2 = rotation.Y + rotation.Y;
+            real_t z2 = rotation.Z + rotation.Z;
+            real_t wx = rotation.W * x2;
+            real_t wy = rotation.W * y2;
+            real_t wz = rotation.W * z2;
+            real_t xx = rotation.X * x2;
+            real_t xy = rotation.X * y2;
+            real_t xz = rotation.X * z2;
+            real_t yy = rotation.Y * y2;
+            real_t yz = rotation.Y * z2;
+            real_t zz = rotation.Z * z2;
 
-            float x = plane.Normal.X;
-            float y = plane.Normal.Y;
-            float z = plane.Normal.Z;
+            real_t x = plane.Normal.X;
+            real_t y = plane.Normal.Y;
+            real_t z = plane.Normal.Z;
 
             result.Normal.X = ((x * ((1.0f - yy) - zz)) + (y * (xy - wz))) + (z * (xz + wy));
             result.Normal.Y = ((x * (xy + wz)) + (y * ((1.0f - xx) - zz))) + (z * (yz - wx));
@@ -518,22 +524,22 @@ namespace Xenko.Core.Mathematics
         public static Plane Transform(Plane plane, Quaternion rotation)
         {
             Plane result;
-            float x2 = rotation.X + rotation.X;
-            float y2 = rotation.Y + rotation.Y;
-            float z2 = rotation.Z + rotation.Z;
-            float wx = rotation.W * x2;
-            float wy = rotation.W * y2;
-            float wz = rotation.W * z2;
-            float xx = rotation.X * x2;
-            float xy = rotation.X * y2;
-            float xz = rotation.X * z2;
-            float yy = rotation.Y * y2;
-            float yz = rotation.Y * z2;
-            float zz = rotation.Z * z2;
+            real_t x2 = rotation.X + rotation.X;
+            real_t y2 = rotation.Y + rotation.Y;
+            real_t z2 = rotation.Z + rotation.Z;
+            real_t wx = rotation.W * x2;
+            real_t wy = rotation.W * y2;
+            real_t wz = rotation.W * z2;
+            real_t xx = rotation.X * x2;
+            real_t xy = rotation.X * y2;
+            real_t xz = rotation.X * z2;
+            real_t yy = rotation.Y * y2;
+            real_t yz = rotation.Y * z2;
+            real_t zz = rotation.Z * z2;
 
-            float x = plane.Normal.X;
-            float y = plane.Normal.Y;
-            float z = plane.Normal.Z;
+            real_t x = plane.Normal.X;
+            real_t y = plane.Normal.Y;
+            real_t z = plane.Normal.Z;
 
             result.Normal.X = ((x * ((1.0f - yy) - zz)) + (y * (xy - wz))) + (z * (xz + wy));
             result.Normal.Y = ((x * (xy + wz)) + (y * ((1.0f - xx) - zz))) + (z * (yz - wx));
@@ -554,24 +560,24 @@ namespace Xenko.Core.Mathematics
             if (planes == null)
                 throw new ArgumentNullException("planes");
 
-            float x2 = rotation.X + rotation.X;
-            float y2 = rotation.Y + rotation.Y;
-            float z2 = rotation.Z + rotation.Z;
-            float wx = rotation.W * x2;
-            float wy = rotation.W * y2;
-            float wz = rotation.W * z2;
-            float xx = rotation.X * x2;
-            float xy = rotation.X * y2;
-            float xz = rotation.X * z2;
-            float yy = rotation.Y * y2;
-            float yz = rotation.Y * z2;
-            float zz = rotation.Z * z2;
+            real_t x2 = rotation.X + rotation.X;
+            real_t y2 = rotation.Y + rotation.Y;
+            real_t z2 = rotation.Z + rotation.Z;
+            real_t wx = rotation.W * x2;
+            real_t wy = rotation.W * y2;
+            real_t wz = rotation.W * z2;
+            real_t xx = rotation.X * x2;
+            real_t xy = rotation.X * y2;
+            real_t xz = rotation.X * z2;
+            real_t yy = rotation.Y * y2;
+            real_t yz = rotation.Y * z2;
+            real_t zz = rotation.Z * z2;
 
             for (int i = 0; i < planes.Length; ++i)
             {
-                float x = planes[i].Normal.X;
-                float y = planes[i].Normal.Y;
-                float z = planes[i].Normal.Z;
+                real_t x = planes[i].Normal.X;
+                real_t y = planes[i].Normal.Y;
+                real_t z = planes[i].Normal.Z;
 
                 /*
                  * Note:
@@ -591,10 +597,10 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the transformed plane.</param>
         public static void Transform(ref Plane plane, ref Matrix transformation, out Plane result)
         {
-            float x = plane.Normal.X;
-            float y = plane.Normal.Y;
-            float z = plane.Normal.Z;
-            float d = plane.D;
+            real_t x = plane.Normal.X;
+            real_t y = plane.Normal.Y;
+            real_t z = plane.Normal.Z;
+            real_t d = plane.D;
 
             Matrix inverse;
             Matrix.Invert(ref transformation, out inverse);
@@ -614,10 +620,10 @@ namespace Xenko.Core.Mathematics
         public static Plane Transform(Plane plane, Matrix transformation)
         {
             Plane result;
-            float x = plane.Normal.X;
-            float y = plane.Normal.Y;
-            float z = plane.Normal.Z;
-            float d = plane.D;
+            real_t x = plane.Normal.X;
+            real_t y = plane.Normal.Y;
+            real_t z = plane.Normal.Z;
+            real_t d = plane.D;
 
             transformation.Invert();
             result.Normal.X = (((x * transformation.M11) + (y * transformation.M12)) + (z * transformation.M13)) + (d * transformation.M14);
@@ -654,7 +660,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the plane.</param>
         /// <param name="plane">The plane to scale.</param>
         /// <returns>The scaled plane.</returns>
-        public static Plane operator *(float scale, Plane plane)
+        public static Plane operator *(real_t scale, Plane plane)
         {
             return new Plane(plane.Normal.X * scale, plane.Normal.Y * scale, plane.Normal.Z * scale, plane.D * scale);
         }
@@ -665,7 +671,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="plane">The plane to scale.</param>
         /// <param name="scale">The amount by which to scale the plane.</param>
         /// <returns>The scaled plane.</returns>
-        public static Plane operator *(Plane plane, float scale)
+        public static Plane operator *(Plane plane, real_t scale)
         {
             return new Plane(plane.Normal.X * scale, plane.Normal.Y * scale, plane.Normal.Z * scale, plane.D * scale);
         }

@@ -32,6 +32,12 @@ using System.Runtime.InteropServices;
 using System.ComponentModel;
 using Xenko.Core.Serialization;
 
+#if REAL_T_IS_DOUBLE
+using real_t = System.Double; // For now, this compilation setting is unsupported.
+#else
+using real_t = System.Single;
+#endif
+
 namespace Xenko.Core.Mathematics
 {
     /// <summary>
@@ -102,7 +108,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>Whether the two objects intersected.</returns>
         public bool Intersects(ref Plane plane)
         {
-            float distance;
+            real_t distance;
             return CollisionHelper.RayIntersectsPlane(ref this, ref plane, out distance);
         }
 
@@ -113,7 +119,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Plane plane, out float distance)
+        public bool Intersects(ref Plane plane, out real_t distance)
         {
             return CollisionHelper.RayIntersectsPlane(ref this, ref plane, out distance);
         }
@@ -139,7 +145,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>Whether the two objects intersected.</returns>
         public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3)
         {
-            float distance;
+            real_t distance;
             return CollisionHelper.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out distance);
         }
 
@@ -152,7 +158,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out float distance)
+        public bool Intersects(ref Vector3 vertex1, ref Vector3 vertex2, ref Vector3 vertex3, out real_t distance)
         {
             return CollisionHelper.RayIntersectsTriangle(ref this, ref vertex1, ref vertex2, ref vertex3, out distance);
         }
@@ -178,7 +184,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>Whether the two objects intersected.</returns>
         public bool Intersects(ref BoundingBox box)
         {
-            float distance;
+            real_t distance;
             return CollisionHelper.RayIntersectsBox(ref this, ref box, out distance);
         }
 
@@ -189,7 +195,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingBox box, out float distance)
+        public bool Intersects(ref BoundingBox box, out real_t distance)
         {
             return CollisionHelper.RayIntersectsBox(ref this, ref box, out distance);
         }
@@ -213,7 +219,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>Whether the two objects intersected.</returns>
         public bool Intersects(ref BoundingSphere sphere)
         {
-            float distance;
+            real_t distance;
             return CollisionHelper.RayIntersectsSphere(ref this, ref sphere, out distance);
         }
 
@@ -224,7 +230,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="distance">When the method completes, contains the distance of the intersection,
         /// or 0 if there was no intersection.</param>
         /// <returns>Whether the two objects intersected.</returns>
-        public bool Intersects(ref BoundingSphere sphere, out float distance)
+        public bool Intersects(ref BoundingSphere sphere, out real_t distance)
         {
             return CollisionHelper.RayIntersectsSphere(ref this, ref sphere, out distance);
         }
