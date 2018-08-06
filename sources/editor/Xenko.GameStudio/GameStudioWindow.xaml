@@ -1,7 +1,7 @@
 <Window x:Class="Xenko.GameStudio.GameStudioWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:strings="clr-namespace:Xenko.GameStudio.Resources.Strings"
@@ -25,10 +25,10 @@
 
       <DataTemplate x:Key="AvalonDock_GameStudio_TitleTemplate">
         <DockPanel LastChildFill="False">
-          <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Top" 
+          <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Top"
                      Visibility="{Binding Path=Content.DataContext.IsDirty, Converter={sskk:VisibleOrCollapsed}, FallbackValue={sskk:Collapsed}}"
                      Text="*" TextAlignment="Center"/>
-          <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+          <TextBlock Margin="3 0 0 0" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
         </DockPanel>
       </DataTemplate>
 
@@ -117,7 +117,7 @@
     </Grid.RowDefinitions>
 
     <!-- MENU ROW -->
-    <Menu Grid.Row="0">
+    <Menu Grid.Row="0" FontSize="12">
       <!-- File Menu -->
       <MenuItem Header="{sskk:Localize File, Context=Menu}">
         <MenuItem Command="ApplicationCommands.New" Icon="{sskk:Image {StaticResource ImageNewSolution}}"/>
@@ -335,7 +335,7 @@
         <ToolBar>
           <Button Command="{Binding Session.OpenInIDECommand}" Margin="2,0,0,0"
                   ToolTip="{sskk:Localize Open in IDE, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
-            <Image Source="{StaticResource ImageVisualStudio}" />
+            <Image Source="{StaticResource ImageVisualStudio}" Width="16" Height="16" />
           </Button>
           <Menu Background="Transparent"
                 ToolTip="{sskk:Localize Open with..., Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
@@ -413,7 +413,7 @@
                 <xcad:LayoutAnchorablePane DockWidth="240">
                   <!-- SOLUTION EXPLORER -->
                   <xcad:LayoutAnchorable ContentId="SolutionExplorer" Title="{Binding Source={sskk:Localize Solution explorer, Context=View}}"
-                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay, 
+                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay,
                                          Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
                     <DockPanel>
                       <ToolBarTray DockPanel.Dock="Top">
@@ -548,7 +548,7 @@
                 <xcad:LayoutDocumentPane>
                   <!-- ASSET VIEW -->
                   <xcad:LayoutAnchorable ContentId="AssetView" Title="{Binding Source={sskk:Localize Asset view, Context=View}}"
-                                           gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetViewPanelVisible, Mode=TwoWay, 
+                                           gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetViewPanelVisible, Mode=TwoWay,
                                            Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
                     <sskk:AssetViewUserControl AssetCollection="{Binding Session.ActiveAssetView}" AssetContextMenu="{StaticResource AssetContextMenu}"
                                            AssetDoubleClick="{Binding Session.EditSelectedContentCommand}">
@@ -569,7 +569,7 @@
               <xcad:LayoutAnchorablePane DockHeight="195">
                 <!-- REFERENCES -->
                 <xcad:LayoutAnchorable ContentId="References" Title="{Binding Source={sskk:Localize References, Context=View}}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.ReferencesPanelVisible, Mode=TwoWay, 
+                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.ReferencesPanelVisible, Mode=TwoWay,
                                        Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
                   <DockPanel LastChildFill="True" x:Name="RefViewDockPanel">
                     <!-- stats -->
@@ -598,13 +598,13 @@
                 <!-- ASSET LOG -->
                 <xcad:LayoutAnchorable ContentId="AssetLog"
                                        Title="{sskk:Localize Asset error ({0}), Plural=Asset errors ({0}), Count={Binding Session.AssetLog.ErrorCount, Source={x:Static gs:GameStudioViewModel.GameStudio}}, IsStringFormat=True, Context=View}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay, 
+                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay,
                                        Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
                   <sskk:GridLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages}" Session="{Binding Session}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
                 </xcad:LayoutAnchorable>
                 <!-- BUILD LOG -->
                 <xcad:LayoutAnchorable ContentId="BuildLog" Title="{Binding Debugging.OutputTitle, Source={x:Static gs:GameStudioViewModel.GameStudio}}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.BuildLogPanelVisible, Mode=TwoWay, 
+                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.BuildLogPanelVisible, Mode=TwoWay,
                                        Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
                   <TabControl x:Name="LogTabControl">
                     <TabItem DataContext="{Binding Debugging.BuildLog}">
@@ -650,7 +650,7 @@
               <xcad:LayoutAnchorablePane DockHeight="2*">
                 <!-- PROPERTY GRID -->
                 <xcad:LayoutAnchorable ContentId="PropertyGrid" Title="{Binding Source={sskk:Localize Property grid, Context=View}}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay, 
+                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay,
                                        Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
                   <Grid Background="{StaticResource ToolBarBackgroundBrush}">
                     <Grid.RowDefinitions>
@@ -783,7 +783,7 @@
                                                         Content="{TemplateBinding HeaderedContentControl.Header}"
                                                         ContentTemplate="{TemplateBinding HeaderTemplate}"
                                                         ContentTemplateSelector="{TemplateBinding HeaderTemplateSelector}"
-                                                        ContentStringFormat="{TemplateBinding HeaderedItemsControl.HeaderStringFormat}"                                                       
+                                                        ContentStringFormat="{TemplateBinding HeaderedItemsControl.HeaderStringFormat}"
                                                         HorizontalAlignment="{TemplateBinding Control.HorizontalContentAlignment}"
                                                         SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}"
                                                         Visibility="{sskk:MultiBinding {Binding DataContext.Session.ActiveProperties.ShowOverridesOnly, Converter={sskk:InvertBool}, RelativeSource={RelativeSource AncestorType=sskk:PropertyView}},
@@ -867,7 +867,7 @@
                 <xcad:LayoutAnchorablePane>
                   <!-- ASSET PREVIEW -->
                   <xcad:LayoutAnchorable ContentId="AssetPreview" Title="{Binding Source={sskk:Localize Asset preview, Context=View}}"
-                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetPreviewPanelVisible, Mode=TwoWay, 
+                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetPreviewPanelVisible, Mode=TwoWay,
                                          Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
                     <DockPanel LastChildFill="True">
                       <ContentPresenter Content="{Binding Preview.PreviewObject}"/>
@@ -875,7 +875,7 @@
                   </xcad:LayoutAnchorable>
                   <!-- ACTION HISTORY -->
                   <xcad:LayoutAnchorable ContentId="ActionHistory" Title="{Binding Source={sskk:Localize Edit history, Context=View}}"
-                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay, 
+                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay,
                                          Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
                     <ListBox ItemsSource="{Binding Session.ActionHistory.Transactions}" HorizontalContentAlignment="Stretch">
                       <ListBox.ItemContainerStyle>

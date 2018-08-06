@@ -1,11 +1,11 @@
-﻿<!--***********************************************************************************
+<!--***********************************************************************************
 
    Extended WPF Toolkit
 
    Copyright (C) 2007-2013 Xceed Software Inc.
 
    This program is provided to you under the terms of the Microsoft Public
-   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license 
+   License (Ms-PL) as published at http://wpftoolkit.codeplex.com/license
 
    For more features, controls, and fast professional support,
    pick up the Plus Edition at http://xceed.com/wpf_toolkit
@@ -23,10 +23,12 @@
     xmlns:avalonDockConverters="clr-namespace:Xceed.Wpf.AvalonDock.Converters;assembly=Xceed.Wpf.AvalonDock"
     xmlns:avalonDockProperties="clr-namespace:Xceed.Wpf.AvalonDock.Properties;assembly=Xceed.Wpf.AvalonDock"
     xmlns:view="clr-namespace:Xenko.GameStudio.View">
-
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/CommonResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
+
+  <SolidColorBrush x:Key="DarkDefaultBackground" Color="#101011" />
+  <SolidColorBrush x:Key="DarkDefaultForeground" Color="#0395D7" />
 
   <avalonDockConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
   <avalonDockConverters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
@@ -120,6 +122,7 @@
       <Setter.Value>
         <Style TargetType="{x:Type TabItem}">
           <Setter Property="Focusable" Value="False"/>
+          <Setter Property="MinWidth" Value="60" />
           <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
           <Setter Property="Background" Value="{StaticResource NormalBrush}"/>
           <Setter Property="BorderBrush" Value="{StaticResource SolidBorderBrush}"/>
@@ -293,11 +296,12 @@
                   <Trigger Property="Selector.IsSelected"
                Value="true">
                     <Setter Property="Background"
-            Value="{StaticResource SelectedBackgroundBrush}" />
+            Value="{StaticResource DarkDefaultBackground}" />
                     <Setter Property="Foreground"
-            Value="{StaticResource TextBrush}" />
+            Value="{StaticResource DarkDefaultForeground}" />
                     <Setter Property="Panel.ZIndex"
                               Value="1" />
+                    <Setter Property="TextBlock.Foreground" TargetName="Content" Value="{StaticResource DarkDefaultForeground}" />
                   </Trigger>
                   <MultiTrigger>
                     <MultiTrigger.Conditions>
@@ -369,7 +373,6 @@
                             ContentTemplateSelector="{Binding Model.Root.Manager.AnchorableTitleTemplateSelector, RelativeSource={RelativeSource TemplatedParent}}"/>
               </avalonDockControls:DropDownControlArea>
 
-
               <avalonDockControls:DropDownButton
                          x:Name="MenuDropDownButton"
                          VerticalAlignment="Center"
@@ -407,7 +410,7 @@
                          Command="{Binding Path=LayoutItem.HideCommand, RelativeSource={RelativeSource TemplatedParent}}"
                          Visibility="{Binding Path=IsEnabled, RelativeSource={RelativeSource Self}, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                          ToolTip="{x:Static avalonDockProperties:Resources.Anchorable_BtnClose_Hint}">
-                <Image x:Name="PART_ImgHidePin" Source="Images/PinClose.png"/>
+                <Image x:Name="PART_ImgHidePin" Width="10" Source="{DynamicResource VectorCloseWindow}"/>
               </Button>
 
             </Grid>
@@ -635,6 +638,7 @@
       <DataTrigger Binding="{Binding IconSource}" Value="{x:Null}">
         <Setter Property="Margin" Value="0" TargetName="title"/>
       </DataTrigger>
+
     </DataTemplate.Triggers>
   </DataTemplate>
 
@@ -814,7 +818,7 @@
                             Command="{Binding Path=LayoutItem.CloseCommand, RelativeSource={RelativeSource TemplatedParent}}"
                             ToolTip="{x:Static avalonDockProperties:Resources.Document_Close}">
                   <Image x:Name="PART_ImgPinClose"
-                                  Source="Images/PinClose.png"/>
+                                  Source="{DynamicResource VectorCloseWindow}" Width="10"/>
                 </Button>
               </Grid>
             </Border>
@@ -832,7 +836,6 @@
             <DataTrigger Binding="{Binding Path=CanClose}" Value="false">
               <Setter Property="Visibility" Value="Collapsed" TargetName="DocumentCloseButton"  />
             </DataTrigger>
-
 
           </ControlTemplate.Triggers>
         </ControlTemplate>
@@ -890,8 +893,8 @@
                          FlowDirection="{TemplateBinding FlowDirection}"
                          Content="{Binding LayoutItem.View, RelativeSource={RelativeSource TemplatedParent}}"/>
 
-              <!--<ContentPresenter 
-                                Content="{Binding Model.Content, RelativeSource={RelativeSource TemplatedParent}}" 
+              <!--<ContentPresenter
+                                Content="{Binding Model.Content, RelativeSource={RelativeSource TemplatedParent}}"
                                 ContentTemplate="{Binding LayoutItemTemplate, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type avalonDock:DockingManager}, Mode=FindAncestor}}"
                                 ContentTemplateSelector="{Binding LayoutItemTemplateSelector, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type avalonDock:DockingManager}, Mode=FindAncestor}}"
                                 Grid.Row="1"/>-->
@@ -949,7 +952,6 @@
                     <ContentPresenter Content="{Binding Model.RootDocument, RelativeSource={RelativeSource TemplatedParent}}"
                                         ContentTemplate="{Binding Model.Root.Manager.DocumentTitleTemplate, RelativeSource={RelativeSource TemplatedParent}}"
                                         ContentTemplateSelector="{Binding Model.Root.Manager.DocumentTitleTemplateSelector, RelativeSource={RelativeSource TemplatedParent}}"/>
-
 
                     <avalonDockControls:DropDownButton
                                   x:Name="ContextMenuDropdownButton"
@@ -1164,7 +1166,6 @@
   <Style x:Key="{x:Type avalonDockControls:LayoutAutoHideWindowControl}" TargetType="{x:Type avalonDockControls:LayoutAutoHideWindowControl}">
     <Setter Property="Background" Value="{StaticResource NormalBrush}"/>
   </Style>
-
 
   <Style x:Key="AvalonDock_ThemeAero_NavigatorWindowListBoxItemFocusVisual">
     <Setter Property="Control.Template">
@@ -1383,6 +1384,5 @@
     </Setter>
 
   </Style>
-
 
 </ResourceDictionary>

@@ -133,7 +133,7 @@
     <Setter Property="ContentTemplate">
       <Setter.Value>
         <DataTemplate>
-          <Image Source="{StaticResource ImageRemove}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+          <Image Source="{DynamicResource ImageClose}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
         </DataTemplate>
       </Setter.Value>
     </Setter>
@@ -404,7 +404,7 @@
           </ComboBox>
         </StackPanel>
         <TextBlock Margin="2">
-          <Run Text="{sskk:Localize List}"/> - 
+          <Run Text="{sskk:Localize List}"/> -
           <Run Text="{sskk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
         </TextBlock>
       </DockPanel>
@@ -468,7 +468,7 @@
           <Image Source="{StaticResource ImageAdd}" Width="16" Height="16" Margin="-1"/>
         </Button>
         <TextBlock Margin="2">
-                    <Run Text="{sskk:Localize Dictionary}"/> - 
+                    <Run Text="{sskk:Localize Dictionary}"/> -
                     <Run Text="{sskk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
         </TextBlock>
       </DockPanel>
@@ -526,7 +526,7 @@
           </ComboBox.Template>
         </ComboBox>
         <TextBlock Margin="2" DockPanel.Dock="Left">
-          <Run Text="{sskk:Localize Dictionary}"/> - 
+          <Run Text="{sskk:Localize Dictionary}"/> -
           <Run Text="{sskk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
         </TextBlock>
       </DockPanel>
@@ -657,7 +657,7 @@
                              Maximum="{Binding Maximum, FallbackValue={x:Static s:Double.MaxValue}, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
                              SmallChange="{Binding SmallStep, FallbackValue=1, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
                              LargeChange="{Binding LargeStep, FallbackValue=10, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                             DecimalPlaces="{Binding DecimalPlaces, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}, FallbackValue=6}"                             
+                             DecimalPlaces="{Binding DecimalPlaces, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}, FallbackValue=6}"
                              WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                              DisplayUpDownButtons="False">
           <!--<i:Interaction.Behaviors>
@@ -961,7 +961,7 @@
         </Button>
         <sskk:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
                       sskk:Trimming.TextTrimming="WordEllipsis" sskk:Trimming.TrimmingSource="Middle" sskk:Trimming.WordSeparators="/\\"
-                      Text="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:UDirectoryToString}}}"                      
+                      Text="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:UDirectoryToString}}}"
                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
           <i:Interaction.Behaviors>
             <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="ExternalOnly"/>

@@ -1,6 +1,6 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
                     xmlns:view="clr-namespace:Xenko.Core.Assets.Editor.View"
@@ -149,7 +149,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="MenuItem">
-          <Grid Background="{StaticResource NormalBrush}" MinHeight="20">
+          <Grid Background="{StaticResource BackgroundBrush}" MinHeight="20">
             <ContentPresenter ContentSource="Header" Margin="8,2" TextBlock.FontWeight="Bold" VerticalAlignment="Center">
               <ContentPresenter.Resources>
                 <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -167,7 +167,7 @@
       </Setter.Value>
     </Setter>
   </Style>
-  
+
   <Style x:Key="MenuGroupWithItemsStyle" TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
     <Setter Property="Margin" Value="0" />
     <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
