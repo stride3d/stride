@@ -29,10 +29,10 @@ Find explanations and information about Xenko:
 ## Community
 
 Ask for help or report issues:
-* [Chat with the community](https://gitter.im/xenko3d/xenko?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-* [Ask and answer questions](http://answers.xenko.com/)
+* Chat with the community [![Join the chat at https://gitter.im/xenko3d/xenko](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/xenko3d/xenko?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 * [Discuss topics on our forums](http://forums.xenko.com/)
 * [Report engine issues](https://github.com/xenko3d/xenko/issues)
+* [Donate to support the project](https://www.patreon.com/xenko)
 
 ## Building from source
 
@@ -45,6 +45,14 @@ Ask for help or report issues:
   * Optional: Universal Windows Platform development
   * Optional: Mobile development with .NET
 3. [FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)
+
+### Build Xenko
+
+1. Clone Xenko: `git clone https://github.com/xenko3d/xenko.git`
+2. Set *XenkoDir* environment variable to point to your `<XenkoDir>`
+3. Open `<XenkoDir>\build\Xenko.sln` with Visual Studio 2017, and build.
+4. Open `<XenkoDir>\samples\XenkoSamples.sln` and play with the samples.
+5. Optionally, open and build `Xenko.Android.sln`, `Xenko.iOS.sln`, etc...
 
 ### Build Status
 
