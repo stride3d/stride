@@ -71,13 +71,13 @@ namespace Xenko.Video
 
         partial void SeekImpl(TimeSpan time)
         {
-            mediaEngine.CurrentTime = time.TotalSeconds;
+            mediaEngine.SetCurrentTime(time.TotalSeconds);
             reachedEOF = false;
         }
 
         partial void ChangePlaySpeedImpl()
         {
-            mediaEngine.PlaybackRate = SpeedFactor;
+            mediaEngine.SetPlaybackRate(SpeedFactor);
         }
 
         partial void UpdatePlayRangeImpl()
@@ -88,7 +88,7 @@ namespace Xenko.Video
 
         partial void UpdateAudioVolumeImpl(float volume)
         {
-            mediaEngine.Volume = volume;
+            mediaEngine.SetVolume(volume);
         }
 
         partial void UpdateImpl(ref TimeSpan elapsed)
@@ -212,7 +212,7 @@ namespace Xenko.Video
             AllocateVideoTexture(videoWidth, videoHeight);
 
             if (videoComponent.PlayAudio != true || videoComponent.AudioEmitters.Any(e => e != null))
-                mediaEngine.Muted = true;
+                mediaEngine.SetMuted(true);
         }
 
         /// <summary>
