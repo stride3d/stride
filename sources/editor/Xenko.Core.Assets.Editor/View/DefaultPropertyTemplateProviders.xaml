@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+                    xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                     xmlns:view="clr-namespace:Xenko.Core.Presentation.Quantum.View;assembly=Xenko.Core.Presentation.Quantum"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:s="clr-namespace:System;assembly=mscorlib"
@@ -21,12 +21,12 @@
   </ResourceDictionary.MergedDictionaries>
 
   <Style x:Key="AddNewItemButtonStyle" BasedOn="{StaticResource ImageButtonStyle}" TargetType="Button">
-    <Setter Property="Visibility" Value="{sskk:MultiBinding {Binding HasCommand_AddNewItem}, {Binding HasCollection},
-                                                            {Binding HasAssociatedData_ReadOnlyCollection, Converter={sskk:InvertBool}},
-                                                            {Binding HasAssociatedData_AbstractNodeMatchingEntries, Converter={sskk:InvertBool}},
-                                                            Converter={sskk:MultiChained {sskk:AndMultiConverter}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}"/>
+    <Setter Property="Visibility" Value="{xk:MultiBinding {Binding HasCommand_AddNewItem}, {Binding HasCollection},
+                                                            {Binding HasAssociatedData_ReadOnlyCollection, Converter={xk:InvertBool}},
+                                                            {Binding HasAssociatedData_AbstractNodeMatchingEntries, Converter={xk:InvertBool}},
+                                                            Converter={xk:MultiChained {xk:AndMultiConverter}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}"/>
     <Setter Property="Command" Value="{Binding AddNewItem}"/>
-    <Setter Property="ToolTip" Value="{sskk:Localize Add..., Context=ToolTip}"/>
+    <Setter Property="ToolTip" Value="{xk:Localize Add..., Context=ToolTip}"/>
     <Setter Property="ContentTemplate">
       <Setter.Value>
         <DataTemplate>
@@ -39,11 +39,11 @@
   <Style x:Key="EnumComboBox" BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
     <Setter Property="Margin" Value="2"/>
     <Setter Property="SelectedItem" Value="{Binding NodeValue}"/>
-    <Setter Property="ItemsSource" Value="{Binding Type, Converter={sskk:EnumValues}, Mode=OneWay}"/>
+    <Setter Property="ItemsSource" Value="{Binding Type, Converter={xk:EnumValues}, Mode=OneWay}"/>
     <Setter Property="ItemTemplate">
       <Setter.Value>
         <DataTemplate>
-          <TextBlock Text="{Binding Converter={sskk:EnumToDisplayName}}"/>
+          <TextBlock Text="{Binding Converter={xk:EnumToDisplayName}}"/>
         </DataTemplate>
       </Setter.Value>
     </Setter>
@@ -51,12 +51,12 @@
 
   <Style x:Key="AbstractTypeSelectionComboBox" BasedOn="{StaticResource {x:Type ComboBox}}" TargetType="ComboBox">
     <Setter Property="IsEditable" Value="False"/>
-    <Setter Property="ToolTip" Value="{sskk:Localize Replace..., Context=ToolTip}"/>
+    <Setter Property="ToolTip" Value="{xk:Localize Replace..., Context=ToolTip}"/>
     <!-- Visible if: we have the command to create a new instance, we're not read-only, we not a collection -->
-    <Setter Property="Visibility" Value="{sskk:MultiBinding {Binding HasCommand_CreateNewInstance},
-                                                            {Binding IsReadOnly, Converter={sskk:InvertBool}},
-                                                            {Binding HasCollection, Converter={sskk:InvertBool}},
-                                         Converter={sskk:MultiChained {sskk:AndMultiConverter}, {sskk:VisibleOrCollapsed}}}"/>
+    <Setter Property="Visibility" Value="{xk:MultiBinding {Binding HasCommand_CreateNewInstance},
+                                                            {Binding IsReadOnly, Converter={xk:InvertBool}},
+                                                            {Binding HasCollection, Converter={xk:InvertBool}},
+                                         Converter={xk:MultiChained {xk:AndMultiConverter}, {xk:VisibleOrCollapsed}}}"/>
     <Setter Property="BorderBrush" Value="{StaticResource NormalBorderBrush}"/>
     <Setter Property="BorderThickness" Value="0"/>
     <Setter Property="Tag" Value="{StaticResource ImageDropDown}"/>
@@ -65,9 +65,9 @@
         <DataTemplate>
           <TextBlock x:Name="TypeTextBlock"
                      Text="{Binding Converter={cvt:AbstractNodeEntryToDisplayName}}"
-                     Foreground="{sskk:MultiBinding {Binding}, {Binding DataContext.NodeValue, RelativeSource={RelativeSource AncestorType=ComboBox}},
+                     Foreground="{xk:MultiBinding {Binding}, {Binding DataContext.NodeValue, RelativeSource={RelativeSource AncestorType=ComboBox}},
                                  Converter={cvt:AbstractNodeEntryToBrush}, FallbackValue={StaticResource TextBrush}}"
-                     FontWeight="{sskk:MultiBinding {Binding}, {Binding DataContext.NodeValue, RelativeSource={RelativeSource AncestorType=ComboBox}},
+                     FontWeight="{xk:MultiBinding {Binding}, {Binding DataContext.NodeValue, RelativeSource={RelativeSource AncestorType=ComboBox}},
                                  Converter={cvt:AbstractNodeEntryToFontWeight}, FallbackValue={x:Static FontWeights.Normal}}"/>
         </DataTemplate>
       </Setter.Value>
@@ -118,18 +118,18 @@
     <Setter Property="Height" Value="16"/>
     <Setter Property="BorderBrush" Value="Transparent"/>
     <Setter Property="VerticalAlignment" Value="Center"/>
-    <Setter Property="Visibility" Value="{sskk:MultiBinding {Binding HasCommand_AddNewItem}, {Binding HasCollection}, {Binding HasAssociatedData_AbstractNodeMatchingEntries},
-                                                            Converter={sskk:MultiChained {sskk:AndMultiConverter}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}"/>
-    <Setter Property="ToolTip" Value="{sskk:Localize Add..., Context=ToolTip}" />
+    <Setter Property="Visibility" Value="{xk:MultiBinding {Binding HasCommand_AddNewItem}, {Binding HasCollection}, {Binding HasAssociatedData_AbstractNodeMatchingEntries},
+                                                            Converter={xk:MultiChained {xk:AndMultiConverter}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}"/>
+    <Setter Property="ToolTip" Value="{xk:Localize Add..., Context=ToolTip}" />
     <Setter Property="Tag" Value="{StaticResource ImageAdd}"/>
   </Style>
 
   <Style x:Key="RemoveItemButtonStyle" BasedOn="{StaticResource ImageButtonStyle}" TargetType="Button">
-    <Setter Property="Visibility" Value="{sskk:MultiBinding {Binding HasCommand_RemoveItem},
-                                                            {Binding HasAssociatedData_ReadOnlyCollection, Converter={sskk:InvertBool}},
-                                          Converter={sskk:MultiChained {sskk:AndMultiConverter}, {sskk:VisibleOrCollapsed}}}"/>
+    <Setter Property="Visibility" Value="{xk:MultiBinding {Binding HasCommand_RemoveItem},
+                                                            {Binding HasAssociatedData_ReadOnlyCollection, Converter={xk:InvertBool}},
+                                          Converter={xk:MultiChained {xk:AndMultiConverter}, {xk:VisibleOrCollapsed}}}"/>
     <Setter Property="Command" Value="{Binding RemoveItem}"/>
-    <Setter Property="ToolTip" Value="{sskk:Localize Delete, Context=ToolTip}"/>
+    <Setter Property="ToolTip" Value="{xk:Localize Delete, Context=ToolTip}"/>
     <Setter Property="ContentTemplate">
       <Setter.Value>
         <DataTemplate>
@@ -144,16 +144,16 @@
   </DataTemplate>
 
   <DataTemplate x:Key="DefaultPropertyHeaderTemplate" DataType="qvm:NodeViewModel">
-    <Grid x:Name="Grid" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="{Binding IsVisible, Converter={sskk:VisibleOrCollapsed}}">
+    <Grid x:Name="Grid" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="{Binding IsVisible, Converter={xk:VisibleOrCollapsed}}">
       <Grid.ColumnDefinitions>
         <!-- Parameters of the SumNum converters used here must be the total width of fixed columns + MinWidths of sizable columns: 8+5+64=77 -->
         <ColumnDefinition Width="8"/>
-        <ColumnDefinition Width="{Binding NameColumnSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type sskk:PropertyView}}, Mode=TwoWay}"
-                          MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sskk:SumNum}, ConverterParameter={sskk:Double -77}}" MinWidth="64"/>
+        <ColumnDefinition Width="{Binding NameColumnSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xk:PropertyView}}, Mode=TwoWay}"
+                          MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={xk:SumNum}, ConverterParameter={xk:Double -77}}" MinWidth="64"/>
         <ColumnDefinition Width="5"/>
-        <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sskk:SumNum}, ConverterParameter={sskk:Double -77}}" MinWidth="64"/>
+        <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={xk:SumNum}, ConverterParameter={xk:Double -77}}" MinWidth="64"/>
       </Grid.ColumnDefinitions>
-      <Border Width="8" Margin="4,4,0,4" Visibility="{Binding ReorderCollectionItem, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}" Background="Transparent">
+      <Border Width="8" Margin="4,4,0,4" Visibility="{Binding ReorderCollectionItem, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}" Background="Transparent">
         <Rectangle Focusable="False" Cursor="SizeAll">
           <Rectangle.Fill>
             <DrawingBrush Viewport="0,0,8,4" TileMode="Tile" ViewportUnits="Absolute">
@@ -184,25 +184,25 @@
       <Border x:Name="PART_Name" Grid.Column="1" MinHeight="23" Margin="2" VerticalAlignment="Top" HorizontalAlignment="Stretch" ToolTip="{Binding Documentation}">
         <Grid>
           <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" MinWidth="{Binding Offset, RelativeSource={RelativeSource AncestorType=sskk:PropertyViewItem}, Mode=OneWay}"/>
+            <ColumnDefinition Width="Auto" MinWidth="{Binding Offset, RelativeSource={RelativeSource AncestorType=xk:PropertyViewItem}, Mode=OneWay}"/>
             <ColumnDefinition Width="16"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
           <ToggleButton Grid.Column="1" Template="{StaticResource DarkExpanderToggleButton}" Width="12" Height="12" HorizontalAlignment="Left"
-                                        IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=sskk:PropertyViewItem}}"
-                                        Visibility="{Binding VisibleChildrenCount, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}"/>
+                                        IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=xk:PropertyViewItem}}"
+                                        Visibility="{Binding VisibleChildrenCount, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}"/>
           <TextBlock x:Name="PropertyNameBlock" Grid.Column="2" Text="{Binding DisplayName}" HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                     TextTrimming="CharacterEllipsis" Visibility="{Binding HasCommand_RenameStringKey, Converter={sskk:Chained {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}"/>
-          <sskk:TextBox x:Name="PropertyNameBox" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
-                        CancelOnLostFocus="True" SelectAllOnFocus="True" sskk:Trimming.TextTrimming="WordEllipsis"
+                     TextTrimming="CharacterEllipsis" Visibility="{Binding HasCommand_RenameStringKey, Converter={xk:Chained {xk:InvertBool}, {xk:VisibleOrCollapsed}}}"/>
+          <xk:TextBox x:Name="PropertyNameBox" Grid.Column="2" HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                        CancelOnLostFocus="True" SelectAllOnFocus="True" xk:Trimming.TextTrimming="WordEllipsis"
                         Text="{Binding DisplayName, Mode=OneWay}"
                         ValidateCommand="{Binding RenameStringKey}"
                         ValidateCommandParameter="{Binding Text, RelativeSource={RelativeSource Self}}"
-                        Visibility="{Binding HasCommand_RenameStringKey, Converter={sskk:VisibleOrCollapsed}}"
-                        ContextMenu="{Binding ContextMenu, RelativeSource={RelativeSource AncestorType={x:Type sskk:PropertyViewItem}}}">
-            <sskk:TextBox.Style>
-              <Style TargetType="{x:Type sskk:TextBox}" BasedOn="{StaticResource {x:Type sskk:TextBox}}">
+                        Visibility="{Binding HasCommand_RenameStringKey, Converter={xk:VisibleOrCollapsed}}"
+                        ContextMenu="{Binding ContextMenu, RelativeSource={RelativeSource AncestorType={x:Type xk:PropertyViewItem}}}">
+            <xk:TextBox.Style>
+              <Style TargetType="{x:Type xk:TextBox}" BasedOn="{StaticResource {x:Type xk:TextBox}}">
                 <Style.Triggers>
                   <Trigger Property="IsKeyboardFocused" Value="False">
                     <Setter Property="Background" Value="Transparent" />
@@ -214,12 +214,12 @@
                   </Trigger>
                 </Style.Triggers>
               </Style>
-            </sskk:TextBox.Style>
-          </sskk:TextBox>
+            </xk:TextBox.Style>
+          </xk:TextBox>
           <CheckBox Grid.Column="3" Margin="2,0" VerticalAlignment="Center" HorizontalAlignment="Left"
-                    IsThreeState="{Binding Enabled.NodeValue, Converter={sskk:IsEqualToParam}, ConverterParameter={x:Static qvm:NodeViewModel.DifferentValues}}"
+                    IsThreeState="{Binding Enabled.NodeValue, Converter={xk:IsEqualToParam}, ConverterParameter={x:Static qvm:NodeViewModel.DifferentValues}}"
                     IsChecked="{Binding Enabled.NodeValue, Converter={view:DifferentValueToParam}, ConverterParameter={x:Null}}"
-                    Visibility="{Binding HasChild_Enabled, Converter={sskk:VisibleOrCollapsed}}"/>
+                    Visibility="{Binding HasChild_Enabled, Converter={xk:VisibleOrCollapsed}}"/>
         </Grid>
       </Border>
       <GridSplitter Grid.Column="2" ResizeBehavior="PreviousAndNext" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent"/>
@@ -229,18 +229,18 @@
       </Border>
     </Grid>
     <DataTemplate.Triggers>
-      <DataTrigger Binding="{sskk:MultiBinding {Binding IsOverridden},
+      <DataTrigger Binding="{xk:MultiBinding {Binding IsOverridden},
                                                {Binding Enabled.IsOverridden},
                                                {Binding InlinedProperty.IsOverridden},
-                                               Converter={sskk:OrMultiConverter}}" Value="{sskk:True}">
+                                               Converter={xk:OrMultiConverter}}" Value="{xk:True}">
         <Setter TargetName="PropertyNameBlock" Property="FontWeight" Value="Bold"/>
         <Setter TargetName="PropertyNameBox" Property="FontWeight" Value="Bold"/>
       </DataTrigger>
-      <DataTrigger Binding="{sskk:MultiBinding {Binding HasBase, FallbackValue={sskk:False}},
-                                               {Binding IsInherited, FallbackValue={sskk:True}},
-                                               {Binding Enabled.IsInherited, FallbackValue={sskk:True}},
-                                               {Binding InlinedProperty.IsInherited, FallbackValue={sskk:True}},
-                                               Converter={sskk:AndMultiConverter}}" Value="{sskk:True}">
+      <DataTrigger Binding="{xk:MultiBinding {Binding HasBase, FallbackValue={xk:False}},
+                                               {Binding IsInherited, FallbackValue={xk:True}},
+                                               {Binding Enabled.IsInherited, FallbackValue={xk:True}},
+                                               {Binding InlinedProperty.IsInherited, FallbackValue={xk:True}},
+                                               Converter={xk:AndMultiConverter}}" Value="{xk:True}">
         <Setter TargetName="PropertyNameBlock" Property="Opacity" Value="0.5"/>
         <Setter TargetName="PropertyNameBox" Property="Opacity" Value="0.5"/>
       </DataTrigger>
@@ -248,9 +248,9 @@
   </DataTemplate>
 
   <DataTemplate x:Key="HeaderReadOnlyProperty" DataType="qvm:NodeViewModel">
-    <Grid Visibility="{Binding IsVisible, Converter={sskk:VisibleOrCollapsed}}" edvw:PropertyViewHelper.Increment="0"
-              Margin="{Binding Offset, Converter={sskk:NumericToThickness}, ConverterParameter={sskk:Thickness 1,0,0,0},
-                               RelativeSource={RelativeSource AncestorType=sskk:PropertyViewItem}, Mode=OneWay}" x:Name="Grid">
+    <Grid Visibility="{Binding IsVisible, Converter={xk:VisibleOrCollapsed}}" edvw:PropertyViewHelper.Increment="0"
+              Margin="{Binding Offset, Converter={xk:NumericToThickness}, ConverterParameter={xk:Thickness 1,0,0,0},
+                               RelativeSource={RelativeSource AncestorType=xk:PropertyViewItem}, Mode=OneWay}" x:Name="Grid">
       <Border x:Name="PART_Name" MinHeight="26" Margin="6" Background="{StaticResource EmphasisColorBrush}"
                     VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ToolTip="{Binding Documentation}"/>
       <DockPanel Margin="10,8" x:Name="HeaderDockPanel">
@@ -264,14 +264,14 @@
           </ComboBox>
         </StackPanel>
         <ToggleButton DockPanel.Dock="Left" Template="{StaticResource DarkExpanderToggleButton}" Width="16" Height="16"
-                                    IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=sskk:PropertyViewItem}}"
-                                    Visibility="{Binding VisibleChildrenCount, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}"/>
+                                    IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=xk:PropertyViewItem}}"
+                                    Visibility="{Binding VisibleChildrenCount, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}"/>
         <StackPanel Orientation="Horizontal" Margin="8,0,0,0">
           <CheckBox Margin="4,0" VerticalAlignment="Center"
-                    IsThreeState="{Binding Enabled.NodeValue, Converter={sskk:IsEqualToParam}, ConverterParameter={x:Static qvm:NodeViewModel.DifferentValues}}"
+                    IsThreeState="{Binding Enabled.NodeValue, Converter={xk:IsEqualToParam}, ConverterParameter={x:Static qvm:NodeViewModel.DifferentValues}}"
                     IsChecked="{Binding Enabled.NodeValue, Converter={view:DifferentValueToParam}, ConverterParameter={x:Null}}"
-                    Visibility="{Binding HasChild_Enabled, Converter={sskk:VisibleOrCollapsed}}"/>
-          <Image Source="{Binding NodeValue, Converter={sskk:Chained {sskk:ObjectToType}, {cvt:TypeToResource}}}" MaxWidth="16" MaxHeight="16"
+                    Visibility="{Binding HasChild_Enabled, Converter={xk:VisibleOrCollapsed}}"/>
+          <Image Source="{Binding NodeValue, Converter={xk:Chained {xk:ObjectToType}, {cvt:TypeToResource}}}" MaxWidth="16" MaxHeight="16"
                             RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="0,0,4,0"/>
           <TextBlock x:Name="HeaderTextBlock" FontSize="16" TextTrimming="CharacterEllipsis"
                      Text="{Binding DisplayName, Mode=OneWay}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
@@ -282,27 +282,27 @@
       </i:Interaction.Behaviors>
     </Grid>
     <DataTemplate.Triggers>
-      <DataTrigger Binding="{sskk:MultiBinding {Binding IsOverridden},
+      <DataTrigger Binding="{xk:MultiBinding {Binding IsOverridden},
                                                {Binding Enabled.IsOverridden},
                                                {Binding InlinedProperty.IsOverridden},
-                                               Converter={sskk:OrMultiConverter}}" Value="{sskk:True}">
+                                               Converter={xk:OrMultiConverter}}" Value="{xk:True}">
         <Setter TargetName="HeaderTextBlock" Property="FontWeight" Value="Bold"/>
       </DataTrigger>
-      <DataTrigger Binding="{sskk:MultiBinding {Binding HasBase, FallbackValue={sskk:False}},
-                                               {Binding IsInherited, FallbackValue={sskk:True}},
-                                               {Binding Enabled.IsInherited, FallbackValue={sskk:True}},
-                                               {Binding InlinedProperty.IsInherited, FallbackValue={sskk:True}},
-                                               Converter={sskk:AndMultiConverter}}" Value="{sskk:True}">
+      <DataTrigger Binding="{xk:MultiBinding {Binding HasBase, FallbackValue={xk:False}},
+                                               {Binding IsInherited, FallbackValue={xk:True}},
+                                               {Binding Enabled.IsInherited, FallbackValue={xk:True}},
+                                               {Binding InlinedProperty.IsInherited, FallbackValue={xk:True}},
+                                               Converter={xk:AndMultiConverter}}" Value="{xk:True}">
         <Setter TargetName="HeaderTextBlock" Property="Opacity" Value="0.5"/>
       </DataTrigger>
       <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-        <Setter TargetName="HeaderTextBlock" Property="Text" Value="{sskk:Localize (Different values)}"/>
+        <Setter TargetName="HeaderTextBlock" Property="Text" Value="{xk:Localize (Different values)}"/>
       </DataTrigger>
-      <DataTrigger Binding="{Binding Level, Converter={sskk:IsEqual}, ConverterParameter=2}" Value="True">
+      <DataTrigger Binding="{Binding Level, Converter={xk:IsEqual}, ConverterParameter=2}" Value="True">
         <Setter TargetName="PART_Name" Property="Opacity" Value="0.6"/>
         <Setter TargetName="HeaderTextBlock" Property="FontSize" Value="14"/>
       </DataTrigger>
-      <DataTrigger Binding="{Binding Level, Converter={sskk:IsGreater}, ConverterParameter=2}" Value="True">
+      <DataTrigger Binding="{Binding Level, Converter={xk:IsGreater}, ConverterParameter=2}" Value="True">
         <Setter TargetName="PART_Name" Property="Opacity" Value="0.5"/>
         <Setter TargetName="HeaderTextBlock" Property="FontSize" Value="12"/>
         <Setter TargetName="HeaderDockPanel" Property="Margin" Value="10,4"/>
@@ -312,14 +312,14 @@
   </DataTemplate>
 
   <!-- Base provider for property footer: nothing inside! -->
-  <sskk:DefaultTemplateProvider x:Key="DefaultPropertyFooterTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyFooter" OverrideRule="None">
+  <xk:DefaultTemplateProvider x:Key="DefaultPropertyFooterTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyFooter" OverrideRule="None">
     <DataTemplate/>
-  </sskk:DefaultTemplateProvider>
+  </xk:DefaultTemplateProvider>
 
   <!-- Base provider for properties: ToggleButton for expander, TextBlock for property name (respecting alignment), and a ContentControl for the actual property editor -->
-  <sskk:DefaultTemplateProvider x:Key="DefaultPropertyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyHeader" OverrideRule="None"
+  <xk:DefaultTemplateProvider x:Key="DefaultPropertyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyHeader" OverrideRule="None"
                                   Template="{StaticResource DefaultPropertyHeaderTemplate}">
-  </sskk:DefaultTemplateProvider>
+  </xk:DefaultTemplateProvider>
 
   <pvdr:CategoryNodeTemplateProvider x:Key="CategoryNodeTemplateProvider" Template="{StaticResource HeaderReadOnlyProperty}"
                                                     edvw:PropertyViewHelper.TemplateCategory="PropertyHeader"/>
@@ -334,8 +334,8 @@
         <ComboBox x:Name="InstanceTypeSelectionComboBox" DockPanel.Dock="Right" Style="{StaticResource AbstractTypeSelectionComboBox}"
                   ItemsSource="{Binding AbstractNodeMatchingEntries}"
                   DisplayMemberPath="DisplayValue"
-                  Visibility="{sskk:MultiBinding {Binding HasCommand_CreateNewInstance}, {Binding IsReadOnly, Converter={sskk:InvertBool}},
-                                                 Converter={sskk:MultiChained {sskk:AndMultiConverter}, {sskk:VisibleOrCollapsed}}}">
+                  Visibility="{xk:MultiBinding {Binding HasCommand_CreateNewInstance}, {Binding IsReadOnly, Converter={xk:InvertBool}},
+                                                 Converter={xk:MultiChained {xk:AndMultiConverter}, {xk:VisibleOrCollapsed}}}">
           <i:Interaction.Behaviors>
             <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding CreateNewInstance}"
                                                              CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
@@ -344,7 +344,7 @@
         <ContentControl x:Name="ContentControl" Content="{Binding}" ContentTemplateSelector="{x:Static edvw:PropertyViewHelper.EditorProviders}"/>
       </DockPanel>
       <DataTemplate.Triggers>
-        <DataTrigger Binding="{Binding NodeValue, Converter={sskk:ObjectToBool}}" Value="False">
+        <DataTrigger Binding="{Binding NodeValue, Converter={xk:ObjectToBool}}" Value="False">
           <Setter Property="Opacity" Value="0.5" TargetName="ContentControl"/>
         </DataTrigger>
       </DataTemplate.Triggers>
@@ -369,13 +369,13 @@
     <DataTemplate>
       <Grid>
         <!-- Fallback when the node has multiple values to display -->
-        <TextBlock Margin="2,0" VerticalAlignment="Center" Text="{sskk:Localize (Different values)}"
-                   Visibility="{Binding NodeValue, Converter={sskk:Chained {sskk:IsEqualToParam}, {sskk:VisibleOrCollapsed},
+        <TextBlock Margin="2,0" VerticalAlignment="Center" Text="{xk:Localize (Different values)}"
+                   Visibility="{Binding NodeValue, Converter={xk:Chained {xk:IsEqualToParam}, {xk:VisibleOrCollapsed},
                                Parameter1={x:Static qvm:NodeViewModel.DifferentValues}}}"/>
         <!-- Fallback when the value does not have an inline property -->
-        <ContentControl x:Name="ContentControl" Content="{sskk:PriorityBinding {Binding InlinedProperty}, {Binding}}"
+        <ContentControl x:Name="ContentControl" Content="{xk:PriorityBinding {Binding InlinedProperty}, {Binding}}"
                         ContentTemplateSelector="{x:Static edvw:PropertyViewHelper.EditorProviders}"
-                        Visibility="{Binding NodeValue, Converter={sskk:Chained {sskk:IsEqualToParam}, {sskk:InvertBool}, {sskk:VisibleOrCollapsed},
+                        Visibility="{Binding NodeValue, Converter={xk:Chained {xk:IsEqualToParam}, {xk:InvertBool}, {xk:VisibleOrCollapsed},
                                     Parameter1={x:Static qvm:NodeViewModel.DifferentValues}}}"/>
       </Grid>
     </DataTemplate>
@@ -404,8 +404,8 @@
           </ComboBox>
         </StackPanel>
         <TextBlock Margin="2">
-          <Run Text="{sskk:Localize List}"/> -
-          <Run Text="{sskk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
+          <Run Text="{xk:Localize List}"/> - 
+          <Run Text="{xk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
         </TextBlock>
       </DockPanel>
     </DataTemplate>
@@ -415,22 +415,22 @@
   <pvdr:ListTemplateProvider x:Key="ListPropertyFooterTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyFooter">
     <DataTemplate DataType="qvm:NodeViewModel">
       <Grid x:Name="Grid" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="{StaticResource BackgroundBrush}"
-            Visibility="{sskk:MultiBinding {Binding IsVisible}, {Binding HasCommand_AddNewItem}, {Binding HasCollection},
-                                           {Binding VisibleChildrenCount, Converter={sskk:IsGreater}, ConverterParameter={sskk:Int 0}},
-                                           Converter={sskk:MultiChained {sskk:AndMultiConverter}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}">
+            Visibility="{xk:MultiBinding {Binding IsVisible}, {Binding HasCommand_AddNewItem}, {Binding HasCollection},
+                                           {Binding VisibleChildrenCount, Converter={xk:IsGreater}, ConverterParameter={xk:Int 0}},
+                                           Converter={xk:MultiChained {xk:AndMultiConverter}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}">
         <Grid.ColumnDefinitions>
           <!-- Parameters of the SumNum converters used here must be the total width of fixed columns + MinWidths of sizable columns: 8+5+64=77 -->
           <ColumnDefinition Width="8"/>
-          <ColumnDefinition Width="{Binding NameColumnSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type sskk:PropertyView}}, Mode=TwoWay}"
-                            MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sskk:SumNum}, ConverterParameter={sskk:Double -77}}" MinWidth="64"/>
+          <ColumnDefinition Width="{Binding NameColumnSize, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xk:PropertyView}}, Mode=TwoWay}"
+                            MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={xk:SumNum}, ConverterParameter={xk:Double -77}}" MinWidth="64"/>
           <ColumnDefinition Width="5"/>
-          <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={sskk:SumNum}, ConverterParameter={sskk:Double -77}}" MinWidth="64"/>
+          <ColumnDefinition Width="*" MaxWidth="{Binding ActualWidth, ElementName=Grid, Converter={xk:SumNum}, ConverterParameter={xk:Double -77}}" MinWidth="64"/>
         </Grid.ColumnDefinitions>
 
         <Border Grid.Column="1" MinHeight="23" Margin="2">
           <Grid>
             <Grid.ColumnDefinitions>
-              <ColumnDefinition Width="Auto" MinWidth="{Binding Offset, RelativeSource={RelativeSource AncestorType=sskk:PropertyViewItem}, Mode=OneWay}"/>
+              <ColumnDefinition Width="Auto" MinWidth="{Binding Offset, RelativeSource={RelativeSource AncestorType=xk:PropertyViewItem}, Mode=OneWay}"/>
               <ColumnDefinition Width="16"/>
               <ColumnDefinition Width="*"/>
               <ColumnDefinition Width="Auto"/>
@@ -447,7 +447,7 @@
                     <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}" CommandParameter="{Binding SelectedItem, ElementName=InstanceTypeSelectionComboBox}"/>
                   </i:Interaction.Behaviors>
                 </ComboBox>
-                <TextBlock Text="{Binding DisplayName, StringFormat={sskk:Localize Add to {0}}}" TextTrimming="CharacterEllipsis" FontStyle="Italic"/>
+                <TextBlock Text="{Binding DisplayName, StringFormat={xk:Localize Add to {0}}}" TextTrimming="CharacterEllipsis" FontStyle="Italic"/>
               </DockPanel>
             </Grid>
           </Grid>
@@ -462,14 +462,14 @@
     <DataTemplate DataType="qvm:NodeViewModel">
       <DockPanel>
         <Button Style="{StaticResource ImageButtonStyle}" DockPanel.Dock="Right" Command="{Binding AddPrimitiveKey}"
-                Visibility="{sskk:MultiBinding {Binding HasCommand_AddPrimitiveKey}, {Binding HasAssociatedData_ReadOnlyCollection, Converter={sskk:InvertBool}},
-                             Converter={sskk:MultiChained {sskk:AndMultiConverter}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}"
-                    ToolTip="{sskk:Localize Add a new entry to the dictionary, Context=ToolTip}">
+                Visibility="{xk:MultiBinding {Binding HasCommand_AddPrimitiveKey}, {Binding HasAssociatedData_ReadOnlyCollection, Converter={xk:InvertBool}},
+                             Converter={xk:MultiChained {xk:AndMultiConverter}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}"
+                    ToolTip="{xk:Localize Add a new entry to the dictionary, Context=ToolTip}">
           <Image Source="{StaticResource ImageAdd}" Width="16" Height="16" Margin="-1"/>
         </Button>
         <TextBlock Margin="2">
-                    <Run Text="{sskk:Localize Dictionary}"/> -
-                    <Run Text="{sskk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
+                    <Run Text="{xk:Localize Dictionary}"/> - 
+                    <Run Text="{xk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
         </TextBlock>
       </DockPanel>
     </DataTemplate>
@@ -483,14 +483,14 @@
     <DataTemplate DataType="qvm:NodeViewModel">
       <DockPanel>
         <ComboBox DockPanel.Dock="Right" Margin="2,0"
-                  Visibility="{sskk:MultiBinding {Binding HasCommand_AddPrimitiveKey}, {Binding HasAssociatedData_ReadOnlyCollection, Converter={sskk:InvertBool}},
-                                                 Converter={sskk:MultiChained {sskk:AndMultiConverter}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}">
+                  Visibility="{xk:MultiBinding {Binding HasCommand_AddPrimitiveKey}, {Binding HasAssociatedData_ReadOnlyCollection, Converter={xk:InvertBool}},
+                                                 Converter={xk:MultiChained {xk:AndMultiConverter}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}">
           <ComboBox.Template>
             <ControlTemplate TargetType="{x:Type ComboBox}">
               <Grid x:Name="grid">
                 <ToggleButton x:Name="ToggleButton" Width="16" Height="16" Background="Transparent"
                               Focusable="false" ClickMode="Press"
-                              ToolTip="{sskk:Localize Add a new entry to the dictionary, Context=ToolTip}" SnapsToDevicePixels="True"
+                              ToolTip="{xk:Localize Add a new entry to the dictionary, Context=ToolTip}" SnapsToDevicePixels="True"
                               IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                   <Image Source="{StaticResource ImageAdd}" Width="16" Height="16" Margin="-1"/>
                 </ToggleButton>
@@ -501,9 +501,9 @@
                   <DockPanel MaxHeight="{TemplateBinding MaxDropDownHeight}" SnapsToDevicePixels="True"
                              Background="{DynamicResource ControlBackgroundBrush}" Margin="10">
                     <TextBlock DockPanel.Dock="Left" Margin="8,0,0,0" VerticalAlignment="Center"
-                               Text="{sskk:Localize Key name:}"/>
-                    <sskk:TextBox sskk:FocusManager.IsFocused="{Binding IsOpen, ElementName=Popup}" CancelOnLostFocus="True"
-                                  Text="{sskk:Localize New key}" Margin="8" SelectAllOnFocus="True" Width="160"
+                               Text="{xk:Localize Key name:}"/>
+                    <xk:TextBox xk:FocusManager.IsFocused="{Binding IsOpen, ElementName=Popup}" CancelOnLostFocus="True"
+                                  Text="{xk:Localize New key}" Margin="8" SelectAllOnFocus="True" Width="160"
                                   ValidateCommand="{Binding AddPrimitiveKey}" x:Name="TextBox"
                                   ValidateCommandParameter="{Binding Text, RelativeSource={RelativeSource Self}}"/>
                   </DockPanel>
@@ -519,15 +519,15 @@
                   <Setter Property="Text" TargetName="TextBox" Value="" />
                 </Trigger>
                 <Trigger Property="IsOpen" SourceName="Popup" Value="True">
-                  <Setter Property="Text" TargetName="TextBox" Value="{sskk:Localize New key}" />
+                  <Setter Property="Text" TargetName="TextBox" Value="{xk:Localize New key}" />
                 </Trigger>
               </ControlTemplate.Triggers>
             </ControlTemplate>
           </ComboBox.Template>
         </ComboBox>
         <TextBlock Margin="2" DockPanel.Dock="Left">
-          <Run Text="{sskk:Localize Dictionary}"/> -
-          <Run Text="{sskk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
+          <Run Text="{xk:Localize Dictionary}"/> - 
+          <Run Text="{xk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
         </TextBlock>
       </DockPanel>
     </DataTemplate>
@@ -537,7 +537,7 @@
   <view:TypeMatchTemplateProvider x:Key="BoolPropertyTemplateProvider" Type="{x:Type s:Boolean}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
       <CheckBox x:Name="CheckBox" Margin="2" HorizontalAlignment="Left"
-                IsThreeState="{Binding NodeValue, Converter={sskk:IsEqualToParam}, ConverterParameter={x:Static qvm:NodeViewModel.DifferentValues}}"
+                IsThreeState="{Binding NodeValue, Converter={xk:IsEqualToParam}, ConverterParameter={x:Static qvm:NodeViewModel.DifferentValues}}"
                 IsChecked="{Binding NodeValue, Converter={view:DifferentValueToParam}, ConverterParameter={x:Null}}"/>
     </DataTemplate>
   </view:TypeMatchTemplateProvider>
@@ -551,25 +551,25 @@
           <ColumnDefinition Width="3*"/>
         </Grid.ColumnDefinitions>
         <TextBox Grid.Column="0" Margin="2" Width="40" TextAlignment="Center"
-                 Text="{Binding NodeValue, Converter={sskk:CharToString}}"
-                 ToolTip="{sskk:Localize Character, Context=ToolTIp}">
+                 Text="{Binding NodeValue, Converter={xk:CharToString}}"
+                 ToolTip="{xk:Localize Character, Context=ToolTIp}">
           <i:Interaction.Behaviors>
-            <sskk:CharInputBehavior/>
+            <xk:CharInputBehavior/>
           </i:Interaction.Behaviors>
         </TextBox>
-        <sskk:NumericTextBox x:Name="TextBox" TextAlignment="Center" Grid.Column="1" Margin="2" SelectAllOnFocus="True"
-                             Value="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:CharToUnicode}}}"
-                             SmallChange="1" LargeChange="10" DecimalPlaces="0" Minimum="0" ToolTip="{sskk:Localize Unicode value, Context=ToolTip}"
+        <xk:NumericTextBox x:Name="TextBox" TextAlignment="Center" Grid.Column="1" Margin="2" SelectAllOnFocus="True"
+                             Value="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:CharToUnicode}}}"
+                             SmallChange="1" LargeChange="10" DecimalPlaces="0" Minimum="0" ToolTip="{xk:Localize Unicode value, Context=ToolTip}"
                              WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                              DisplayUpDownButtons="False">
           <!--<i:Interaction.Behaviors>
-            <sskk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
+            <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
           </i:Interaction.Behaviors>-->
-        </sskk:NumericTextBox>
+        </xk:NumericTextBox>
       </Grid>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sskk:Localize (Different values)}"/>
+          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{xk:Localize (Different values)}"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
@@ -586,31 +586,31 @@
         <ToggleButton.Template>
           <ControlTemplate TargetType="ToggleButton">
             <Rectangle VerticalAlignment="Center" Width="20" Height="20" Stroke="Black" StrokeThickness="1"
-                       Fill="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ColorConverter}}, FallbackValue={x:Static Brushes.Black}}"/>
+                       Fill="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ColorConverter}}, FallbackValue={x:Static Brushes.Black}}"/>
           </ControlTemplate>
         </ToggleButton.Template>
         <i:Interaction.Behaviors>
-          <sskk:ToggleButtonPopupBehavior/>
+          <xk:ToggleButtonPopupBehavior/>
         </i:Interaction.Behaviors>
       </ToggleButton>
-      <sskk:TextBox x:Name="TextBox" Grid.Column="1" Margin="2" SelectAllOnFocus="True" VerticalAlignment="Center"
-                    Text="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ColorConverter}}}"
+      <xk:TextBox x:Name="TextBox" Grid.Column="1" Margin="2" SelectAllOnFocus="True" VerticalAlignment="Center"
+                    Text="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ColorConverter}}}"
                     WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"/>
       <Popup Grid.Column="0" IsOpen="{Binding ElementName=PickerToggleButton, Path=IsChecked}" StaysOpen="False">
         <Grid Background="{StaticResource BackgroundBrush}" MinWidth="200" MinHeight="200" MaxWidth="400" MaxHeight="400">
           <TabControl>
             <TabItem Header="Color picker">
-              <sskk:ColorPicker Color="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ColorConverter}}, FallbackValue={x:Static math:Color4.Black}}"
-                                ShowAlpha="{Binding Type, Mode=OneWay, Converter={sskk:Chained {sskk:IsEqualToParam}, {sskk:InvertBool}, Parameter1={x:Type math:Color3}}}"/>
+              <xk:ColorPicker Color="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ColorConverter}}, FallbackValue={x:Static math:Color4.Black}}"
+                                ShowAlpha="{Binding Type, Mode=OneWay, Converter={xk:Chained {xk:IsEqualToParam}, {xk:InvertBool}, Parameter1={x:Type math:Color3}}}"/>
             </TabItem>
             <TabItem Header="Palette">
               <ListBox ItemsSource="{x:Static viewModel:ColorPaletteViewModel.Colors}" SelectedValuePath="Value"
-                       SelectedValue="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ColorConverter}}}">
+                       SelectedValue="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ColorConverter}}}">
                 <ListBox.ItemTemplate>
                   <DataTemplate>
                     <DockPanel>
                       <Rectangle DockPanel.Dock="Left" Stroke="Black" StrokeThickness="1" Width="28" Height="20" Margin="6,2"
-                                 Fill="{Binding Value, Converter={sskk:ColorConverter}}"/>
+                                 Fill="{Binding Value, Converter={xk:ColorConverter}}"/>
                       <TextBlock Text="{Binding Key}" VerticalAlignment="Center"/>
                     </DockPanel>
                   </DataTemplate>
@@ -623,7 +623,7 @@
     </Grid>
     <DataTemplate.Triggers>
       <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-        <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sskk:Localize (Different values)}"/>
+        <Setter TargetName="TextBox" Property="WatermarkContent" Value="{xk:Localize (Different values)}"/>
       </DataTrigger>
     </DataTemplate.Triggers>
   </DataTemplate>
@@ -641,29 +641,29 @@
         </Grid.ColumnDefinitions>
         <Slider Grid.Column="0" Height="22" VerticalAlignment="Center"
                 Value="{Binding Value, ElementName=TextBox, Mode=TwoWay}"
-                IsEnabled="{sskk:MultiBinding {Binding Minimum}, {Binding Maximum}, Converter={sskk:MultiChained {sskk:AllEqualMultiConverter}, {sskk:InvertBool}}, Mode=OneWay}"
-                Minimum="{Binding Minimum, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                Maximum="{Binding Maximum, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                SmallChange="{Binding SmallStep, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                LargeChange="{Binding LargeStep, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}">
+                IsEnabled="{xk:MultiBinding {Binding Minimum}, {Binding Maximum}, Converter={xk:MultiChained {xk:AllEqualMultiConverter}, {xk:InvertBool}}, Mode=OneWay}"
+                Minimum="{Binding Minimum, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                Maximum="{Binding Maximum, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                SmallChange="{Binding SmallStep, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                LargeChange="{Binding LargeStep, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}">
           <i:Interaction.Behaviors>
             <behaviors:ValidateTextBoxAfterSlidingBehavior TextBox="{Binding ElementName=TextBox}"/>
-            <sskk:ChangeCursorOnSliderThumbBehavior/>
+            <xk:ChangeCursorOnSliderThumbBehavior/>
           </i:Interaction.Behaviors>
         </Slider>
-        <sskk:NumericTextBox x:Name="TextBox" Grid.Column="1" SelectAllOnFocus="True" Margin="6,2,2,2"
-                             Value="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                             Minimum="{Binding Minimum, FallbackValue={x:Static s:Double.MinValue}, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                             Maximum="{Binding Maximum, FallbackValue={x:Static s:Double.MaxValue}, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                             SmallChange="{Binding SmallStep, FallbackValue=1, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                             LargeChange="{Binding LargeStep, FallbackValue=10, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                             DecimalPlaces="{Binding DecimalPlaces, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}, FallbackValue=6}"
+        <xk:NumericTextBox x:Name="TextBox" Grid.Column="1" SelectAllOnFocus="True" Margin="6,2,2,2"
+                             Value="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                             Minimum="{Binding Minimum, FallbackValue={x:Static s:Double.MinValue}, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                             Maximum="{Binding Maximum, FallbackValue={x:Static s:Double.MaxValue}, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                             SmallChange="{Binding SmallStep, FallbackValue=1, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                             LargeChange="{Binding LargeStep, FallbackValue=10, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                             DecimalPlaces="{Binding DecimalPlaces, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=6}"                             
                              WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                              DisplayUpDownButtons="False">
           <!--<i:Interaction.Behaviors>
-            <sskk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
+            <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
           </i:Interaction.Behaviors>-->
-        </sskk:NumericTextBox>
+        </xk:NumericTextBox>
       </Grid>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
@@ -675,22 +675,22 @@
 
   <!-- Providers for floating-point number editors -->
   <DataTemplate x:Key="FloatEditorTemplate" DataType="qvm:NodeViewModel">
-    <sskk:NumericTextBox x:Name="TextBox" SelectAllOnFocus="True" Margin="2"
-                         Value="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                         Minimum="{Binding Minimum, FallbackValue={x:Static s:Double.MinValue}, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                         Maximum="{Binding Maximum, FallbackValue={x:Static s:Double.MaxValue}, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                         SmallChange="{Binding SmallStep, FallbackValue=1, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                         LargeChange="{Binding LargeStep, FallbackValue=10, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                         DecimalPlaces="{Binding DecimalPlaces, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}, FallbackValue=6}"
+    <xk:NumericTextBox x:Name="TextBox" SelectAllOnFocus="True" Margin="2"
+                         Value="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                         Minimum="{Binding Minimum, FallbackValue={x:Static s:Double.MinValue}, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                         Maximum="{Binding Maximum, FallbackValue={x:Static s:Double.MaxValue}, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                         SmallChange="{Binding SmallStep, FallbackValue=1, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                         LargeChange="{Binding LargeStep, FallbackValue=10, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                         DecimalPlaces="{Binding DecimalPlaces, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=6}"
                          WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                          DisplayUpDownButtons="False">
       <!--<i:Interaction.Behaviors>
-        <sskk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
+        <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
       </i:Interaction.Behaviors>-->
-    </sskk:NumericTextBox>
+    </xk:NumericTextBox>
     <DataTemplate.Triggers>
       <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-        <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sskk:Localize (Different values)}"/>
+        <Setter TargetName="TextBox" Property="WatermarkContent" Value="{xk:Localize (Different values)}"/>
       </DataTrigger>
     </DataTemplate.Triggers>
   </DataTemplate>
@@ -699,22 +699,22 @@
 
   <!-- Providers for fixed-point number editors -->
   <DataTemplate x:Key="IntEditorTemplate" DataType="qvm:NodeViewModel">
-    <sskk:NumericTextBox x:Name="TextBox" SelectAllOnFocus="True" Margin="2"
-                         Value="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                         Minimum="{Binding Minimum, FallbackValue={x:Static s:Double.MinValue}, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                         Maximum="{Binding Maximum, FallbackValue={x:Static s:Double.MaxValue}, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                         SmallChange="{Binding SmallStep, FallbackValue=1, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
-                         LargeChange="{Binding LargeStep, FallbackValue=10, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}}"
+    <xk:NumericTextBox x:Name="TextBox" SelectAllOnFocus="True" Margin="2"
+                         Value="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                         Minimum="{Binding Minimum, FallbackValue={x:Static s:Double.MinValue}, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                         Maximum="{Binding Maximum, FallbackValue={x:Static s:Double.MaxValue}, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                         SmallChange="{Binding SmallStep, FallbackValue=1, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
+                         LargeChange="{Binding LargeStep, FallbackValue=10, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
                          DecimalPlaces="0"
                          WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                          DisplayUpDownButtons="False">
       <!--<i:Interaction.Behaviors>
-        <sskk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
+        <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
       </i:Interaction.Behaviors>-->
-    </sskk:NumericTextBox>
+    </xk:NumericTextBox>
     <DataTemplate.Triggers>
       <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-        <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sskk:Localize (Different values)}"/>
+        <Setter TargetName="TextBox" Property="WatermarkContent" Value="{xk:Localize (Different values)}"/>
       </DataTrigger>
     </DataTemplate.Triggers>
   </DataTemplate>
@@ -732,22 +732,22 @@
   <view:TypeMatchTemplateProvider x:Key="TimeSpanPropertyTemplateProvider" Type="{x:Type s:TimeSpan}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
       <!-- Note: timespan are displayed in seconds -->
-      <sskk:NumericTextBox x:Name="TextBox" SelectAllOnFocus="True" Margin="2"
-                           Value="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:TimeSpanToDouble}}}"
-                           Minimum="{Binding Minimum, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}, FallbackValue=0}"
-                           Maximum="{Binding Maximum, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}, FallbackValue={x:Static s:Double.MaxValue}}"
-                           SmallChange="{Binding SmallStep, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}, FallbackValue=0.1}"
-                           LargeChange="{Binding LargeStep, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}, FallbackValue=1}"
-                           DecimalPlaces="{Binding DecimalPlaces, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ToDouble}}, FallbackValue=3}"
+      <xk:NumericTextBox x:Name="TextBox" SelectAllOnFocus="True" Margin="2"
+                           Value="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:TimeSpanToDouble}}}"
+                           Minimum="{Binding Minimum, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=0}"
+                           Maximum="{Binding Maximum, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue={x:Static s:Double.MaxValue}}"
+                           SmallChange="{Binding SmallStep, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=0.1}"
+                           LargeChange="{Binding LargeStep, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=1}"
+                           DecimalPlaces="{Binding DecimalPlaces, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=3}"
                            WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                            DisplayUpDownButtons="False">
         <!--<i:Interaction.Behaviors>
-          <sskk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
+          <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
         </i:Interaction.Behaviors>-->
-      </sskk:NumericTextBox>
+      </xk:NumericTextBox>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sskk:Localize (Different values)}"/>
+          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{xk:Localize (Different values)}"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
@@ -756,12 +756,12 @@
   <!-- Provider for string editor -->
   <view:TypeMatchTemplateProvider x:Key="StringPropertyTemplateProvider" Type="{x:Type s:String}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
+      <xk:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
                     Text="{Binding NodeValue, Converter={cvt:DifferentValuesToString}}"
                     WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"/>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sskk:Localize (Different values)}"/>
+          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{xk:Localize (Different values)}"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
@@ -770,7 +770,7 @@
   <!-- Provider for vector2 editor -->
   <view:TypeMatchTemplateProvider x:Key="Vector2PropertyTemplateProvider" Type="{x:Type math:Vector2}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:Vector2Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
+      <xk:Vector2Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" DecimalPlaces="3" x:Name="VectorEditor"/>
       <DataTemplate.Triggers>
@@ -784,7 +784,7 @@
   <!-- Provider for vector3 editor -->
   <view:TypeMatchTemplateProvider x:Key="Vector3PropertyTemplateProvider" Type="{x:Type math:Vector3}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:Vector3Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
+      <xk:Vector3Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Z="{Binding Z.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" DecimalPlaces="3" x:Name="VectorEditor"/>
@@ -799,7 +799,7 @@
   <!-- Provider for vector4 editor -->
   <view:TypeMatchTemplateProvider x:Key="Vector4PropertyTemplateProvider" Type="{x:Type math:Vector4}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:Vector4Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
+      <xk:Vector4Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Z="{Binding Z.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           W="{Binding W.NodeValue, Converter={cvt:DifferentValuesToNull}}"
@@ -815,7 +815,7 @@
   <!-- Provider for int2 editor -->
   <view:TypeMatchTemplateProvider x:Key="Int2PropertyTemplateProvider" Type="{x:Type math:Int2}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:Int2Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
+      <xk:Int2Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" x:Name="VectorEditor"/>
       <DataTemplate.Triggers>
@@ -829,7 +829,7 @@
   <!-- Provider for int3 editor -->
   <view:TypeMatchTemplateProvider x:Key="Int3PropertyTemplateProvider" Type="{x:Type math:Int3}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:Int3Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
+      <xk:Int3Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        Z="{Binding Z.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" x:Name="VectorEditor"/>
@@ -844,7 +844,7 @@
   <!-- Provider for int4 editor -->
   <view:TypeMatchTemplateProvider x:Key="Int4PropertyTemplateProvider" Type="{x:Type math:Int4}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:Int4Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
+      <xk:Int4Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        Z="{Binding Z.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        W="{Binding W.NodeValue, Converter={cvt:DifferentValuesToNull}}"
@@ -860,7 +860,7 @@
   <!-- Provider for rectangleF editor -->
   <view:TypeMatchTemplateProvider x:Key="RectangleFPropertyTemplateProvider" Type="{x:Type math:RectangleF}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:RectangleFEditor RectX="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
+      <xk:RectangleFEditor RectX="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                              RectY="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                              RectWidth="{Binding Width.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                              RectHeight="{Binding Height.NodeValue, Converter={cvt:DifferentValuesToNull}}"
@@ -876,7 +876,7 @@
   <!-- Provider for rectangle editor -->
   <view:TypeMatchTemplateProvider x:Key="RectanglePropertyTemplateProvider" Type="{x:Type math:Rectangle}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:RectangleEditor RectX="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
+      <xk:RectangleEditor RectX="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                             RectY="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                             RectWidth="{Binding Width.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                             RectHeight="{Binding Height.NodeValue, Converter={cvt:DifferentValuesToNull}}"
@@ -892,7 +892,7 @@
   <!-- Provider for rotation editor -->
   <view:TypeMatchTemplateProvider x:Key="RotationPropertyTemplateProvider" Type="{x:Type math:Quaternion}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:RotationEditor Value="{Binding NodeValue, Converter={cvt:DifferentValuesToNull}}"
+      <xk:RotationEditor Value="{Binding NodeValue, Converter={cvt:DifferentValuesToNull}}"
                            WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" DecimalPlaces="3" x:Name="VectorEditor"/>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
@@ -905,7 +905,7 @@
   <!-- Provider for matrix editor -->
   <view:TypeMatchTemplateProvider x:Key="MatrixPropertyTemplateProvider" Type="{x:Type math:Matrix}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:MatrixEditor M11="{Binding M11.NodeValue, Converter={cvt:DifferentValuesToNull}}"
+      <xk:MatrixEditor M11="{Binding M11.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                          M12="{Binding M12.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                          M13="{Binding M13.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                          M14="{Binding M14.NodeValue, Converter={cvt:DifferentValuesToNull}}"
@@ -933,18 +933,18 @@
   <!-- Provider for angleSingle editor -->
   <view:TypeMatchTemplateProvider x:Key="AnglePropertyTemplateProvider" Type="{x:Type math:AngleSingle}" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate DataType="qvm:NodeViewModel">
-      <sskk:NumericTextBox x:Name="TextBox" DecimalPlaces="3"
-                           Value="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:AngleSingleToDegrees}}}"
-                           ToolTip="{sskk:Localize Angle in degrees, Context=ToolTip}"
+      <xk:NumericTextBox x:Name="TextBox" DecimalPlaces="3"
+                           Value="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:AngleSingleToDegrees}}}"
+                           ToolTip="{xk:Localize Angle in degrees, Context=ToolTip}"
                            WatermarkContent="≠" WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                            DisplayUpDownButtons="False">
         <!--<i:Interaction.Behaviors>
-          <sskk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
+          <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
         </i:Interaction.Behaviors>-->
-      </sskk:NumericTextBox>
+      </xk:NumericTextBox>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sskk:Localize (Different values)}"/>
+          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{xk:Localize (Different values)}"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
@@ -955,22 +955,22 @@
     <DataTemplate DataType="qvm:NodeViewModel">
       <DockPanel>
         <Button Style="{StaticResource ImageButtonStyle}" DockPanel.Dock="Right" Command="{Binding BrowseDirectory}"
-                Visibility="{Binding HasCommand_BrowseDirectory, Converter={sskk:VisibleOrCollapsed}}"
-                ToolTip="{sskk:Localize Browse directory, Context=ToolTip}">
+                Visibility="{Binding HasCommand_BrowseDirectory, Converter={xk:VisibleOrCollapsed}}"
+                ToolTip="{xk:Localize Browse directory, Context=ToolTip}">
           <Image Source="{StaticResource ImageBrowse}" Width="16" Height="16" Margin="-1"/>
         </Button>
-        <sskk:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
-                      sskk:Trimming.TextTrimming="WordEllipsis" sskk:Trimming.TrimmingSource="Middle" sskk:Trimming.WordSeparators="/\\"
-                      Text="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:UDirectoryToString}}}"
+        <xk:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
+                      xk:Trimming.TextTrimming="WordEllipsis" xk:Trimming.TrimmingSource="Middle" xk:Trimming.WordSeparators="/\\"
+                      Text="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:UDirectoryToString}}}"                      
                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
           <i:Interaction.Behaviors>
             <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="ExternalOnly"/>
           </i:Interaction.Behaviors>
-        </sskk:TextBox>
+        </xk:TextBox>
       </DockPanel>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sskk:Localize (Different values)}"/>
+          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{xk:Localize (Different values)}"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
@@ -981,22 +981,22 @@
     <DataTemplate DataType="qvm:NodeViewModel">
       <DockPanel>
         <Button Style="{StaticResource ImageButtonStyle}" DockPanel.Dock="Right" Command="{Binding BrowseFile}"
-                Visibility="{Binding HasCommand_BrowseFile, Converter={sskk:VisibleOrCollapsed}}"
-                ToolTip="{sskk:Localize Browse file, Context=ToolTip}">
+                Visibility="{Binding HasCommand_BrowseFile, Converter={xk:VisibleOrCollapsed}}"
+                ToolTip="{xk:Localize Browse file, Context=ToolTip}">
           <Image Source="{StaticResource ImageBrowse}" Width="16" Height="16" Margin="-1"/>
         </Button>
-        <sskk:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
-                      sskk:Trimming.TextTrimming="WordEllipsis" sskk:Trimming.TrimmingSource="Middle" sskk:Trimming.WordSeparators="/\\"
-                      Text="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:UFileToString}}}"
+        <xk:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
+                      xk:Trimming.TextTrimming="WordEllipsis" xk:Trimming.TrimmingSource="Middle" xk:Trimming.WordSeparators="/\\"
+                      Text="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:UFileToString}}}"
                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
           <i:Interaction.Behaviors>
             <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="ExternalOnly"/>
           </i:Interaction.Behaviors>
-        </sskk:TextBox>
+        </xk:TextBox>
       </DockPanel>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{sskk:Localize (Different values)}"/>
+          <Setter TargetName="TextBox" Property="WatermarkContent" Value="{xk:Localize (Different values)}"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
@@ -1011,7 +1011,7 @@
       </Grid>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-          <Setter TargetName="TextBlock" Property="Text" Value="{sskk:Localize (Different values)}"/>
+          <Setter TargetName="TextBlock" Property="Text" Value="{xk:Localize (Different values)}"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
@@ -1024,27 +1024,27 @@
     </pvdr:EnumTemplateProvider.OverriddenProviderNames>
     <DataTemplate DataType="qvm:NodeViewModel">
       <Grid>
-        <ToggleButton x:Name="ToggleButton" VerticalAlignment="Center" Margin="2" Content="{sskk:Localize Change values..., Context=Button}">
+        <ToggleButton x:Name="ToggleButton" VerticalAlignment="Center" Margin="2" Content="{xk:Localize Change values..., Context=Button}">
           <i:Interaction.Behaviors>
-            <sskk:ToggleButtonPopupBehavior/>
+            <xk:ToggleButtonPopupBehavior/>
           </i:Interaction.Behaviors>
         </ToggleButton>
         <Popup Grid.Column="0" IsOpen="{Binding ElementName=ToggleButton, Path=IsChecked}" StaysOpen="False">
           <Grid Background="{StaticResource BackgroundBrush}" MinWidth="200" MaxWidth="400" MaxHeight="200">
             <DockPanel>
               <UniformGrid DockPanel.Dock="Bottom" Columns="3">
-                <Button Content="{sskk:Localize All, Context=Button}" ToolTip="{sskk:Localize Select all values, Context=ToolTip}"
+                <Button Content="{xk:Localize All, Context=Button}" ToolTip="{xk:Localize Select all values, Context=ToolTip}"
                         Command="{Binding FlagEnumSelectAll}" Margin="1"/>
-                <Button Content="{sskk:Localize None, Context=Button}" ToolTip="{sskk:Localize Clear selection, Context=ToolTip}"
+                <Button Content="{xk:Localize None, Context=Button}" ToolTip="{xk:Localize Clear selection, Context=ToolTip}"
                         Command="{Binding FlagEnumSelectNone}" Margin="1"/>
-                <Button Content="{sskk:Localize Invert, Context=Button}" ToolTip="{sskk:Localize Invert selection, Context=ToolTip}"
+                <Button Content="{xk:Localize Invert, Context=Button}" ToolTip="{xk:Localize Invert selection, Context=ToolTip}"
                         Command="{Binding FlagEnumSelectInvert}" Margin="1"/>
               </UniformGrid>
               <ListBox Margin="0" Padding="2" Background="Transparent" BorderThickness="0" SelectionMode="Multiple"
-                                 ItemsSource="{Binding Type, Converter={sskk:EnumValues}, Mode=OneWay}" Focusable="False"
+                                 ItemsSource="{Binding Type, Converter={xk:EnumValues}, Mode=OneWay}" Focusable="False"
                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto">
                 <i:Interaction.Behaviors>
-                  <sskk:ListBoxBindableSelectedItemsBehavior SelectedItems="{sskk:MultiBinding {Binding}, {Binding NodeValue, Converter={cvt:DifferentValuesToNull}}, Converter={cvt:FlagEnumToObservableList}}"/>
+                  <xk:ListBoxBindableSelectedItemsBehavior SelectedItems="{xk:MultiBinding {Binding}, {Binding NodeValue, Converter={cvt:DifferentValuesToNull}}, Converter={cvt:FlagEnumToObservableList}}"/>
                 </i:Interaction.Behaviors>
                 <ListBox.ItemContainerStyle>
                   <Style BasedOn="{StaticResource {x:Type ListBoxItem}}" TargetType="ListBoxItem">
@@ -1066,7 +1066,7 @@
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                   <DataTemplate>
-                    <TextBlock Text="{Binding Converter={sskk:EnumToDisplayName}}"/>
+                    <TextBlock Text="{Binding Converter={xk:EnumToDisplayName}}"/>
                   </DataTemplate>
                 </ListBox.ItemTemplate>
               </ListBox>
@@ -1076,7 +1076,7 @@
       </Grid>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-          <Setter TargetName="ToggleButton" Property="Content" Value="{sskk:Localize (Different values)}"/>
+          <Setter TargetName="ToggleButton" Property="Content" Value="{xk:Localize (Different values)}"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
@@ -1088,9 +1088,9 @@
       <s:String>Enum</s:String>
     </pvdr:EnumTemplateProvider.OverriddenProviderNames>
     <DataTemplate DataType="qvm:NodeViewModel">
-      <ListBox Margin="0" Padding="2" Background="Transparent" BorderThickness="0" sskk:BehaviorProperties.HandlesMouseWheelScrolling="False"
+      <ListBox Margin="0" Padding="2" Background="Transparent" BorderThickness="0" xk:BehaviorProperties.HandlesMouseWheelScrolling="False"
                ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled" Focusable="False"
-               ItemsSource="{Binding Type, Converter={sskk:EnumValues}, Mode=OneWay}"
+               ItemsSource="{Binding Type, Converter={xk:EnumValues}, Mode=OneWay}"
                SelectedItem="{Binding NodeValue, Converter={cvt:DifferentValuesToNull}}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
@@ -1123,9 +1123,9 @@
     </pvdr:EnumTemplateProvider.OverriddenProviderNames>
     <DataTemplate>
       <ListBox Margin="0" Padding="2" Background="Transparent" BorderThickness="0" SelectionMode="Multiple"
-               sskk:BehaviorProperties.HandlesMouseWheelScrolling="False" Focusable="False"
+               xk:BehaviorProperties.HandlesMouseWheelScrolling="False" Focusable="False"
                ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Disabled"
-               ItemsSource="{Binding Type, Converter={sskk:EnumValues}, Mode=OneWay}">
+               ItemsSource="{Binding Type, Converter={xk:EnumValues}, Mode=OneWay}">
         <ItemsControl.ItemTemplate>
           <DataTemplate>
             <Border Width="20" Height="20" Margin="0,0,1,0" ToolTip="{Binding}">
@@ -1145,7 +1145,7 @@
           </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <i:Interaction.Behaviors>
-          <sskk:ListBoxBindableSelectedItemsBehavior SelectedItems="{sskk:MultiBinding {Binding}, {Binding NodeValue, Converter={cvt:DifferentValuesToNull}},
+          <xk:ListBoxBindableSelectedItemsBehavior SelectedItems="{xk:MultiBinding {Binding}, {Binding NodeValue, Converter={cvt:DifferentValuesToNull}},
                                                                     Converter={cvt:FlagEnumToObservableList}}"/>
         </i:Interaction.Behaviors>
       </ListBox>
@@ -1153,45 +1153,45 @@
   </pvdr:EnumTemplateProvider>
 
   <ContextMenu x:Key="ReferenceContextMenu">
-    <MenuItem Icon="{sskk:Image {StaticResource ImageFetchAsset}}"
-              Header="{sskk:Localize Select the referenced asset}"
+    <MenuItem Icon="{xk:Image {StaticResource ImageFetchAsset}}"
+              Header="{xk:Localize Select the referenced asset}"
               Command="{Binding FetchAsset}"
-              IsEnabled="{Binding NodeValue, Converter={sskk:Chained {cvt:DifferentValuesToNull}, {sskk:ObjectToBool}}}"
-              Visibility="{Binding HasCommand_FetchAsset, Converter={sskk:VisibleOrCollapsed}, FallbackValue=Collapsed}"/>
-    <MenuItem Icon="{sskk:Image {StaticResource ImagePickup}}"
-              Header="{sskk:Localize Select an asset}"
+              IsEnabled="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ObjectToBool}}}"
+              Visibility="{Binding HasCommand_FetchAsset, Converter={xk:VisibleOrCollapsed}, FallbackValue=Collapsed}"/>
+    <MenuItem Icon="{xk:Image {StaticResource ImagePickup}}"
+              Header="{xk:Localize Select an asset}"
               Command="{Binding PickupAsset}"
               CommandParameter="{Binding Type}"
-              Visibility="{Binding HasCommand_PickupAsset, Converter={sskk:VisibleOrCollapsed}, FallbackValue=Collapsed}"/>
-    <MenuItem Icon="{sskk:Image {StaticResource ImageClear}}"
-              Header="{sskk:Localize Clear this reference}"
+              Visibility="{Binding HasCommand_PickupAsset, Converter={xk:VisibleOrCollapsed}, FallbackValue=Collapsed}"/>
+    <MenuItem Icon="{xk:Image {StaticResource ImageClear}}"
+              Header="{xk:Localize Clear this reference}"
               Command="{Binding CreateNewInstance}"
               CommandParameter="{x:Static assetCommands:AbstractNodeValue.Null}"
-              Visibility="{Binding HasCommand_CreateNewInstance, Converter={sskk:VisibleOrCollapsed}, FallbackValue=Collapsed}"/>
+              Visibility="{Binding HasCommand_CreateNewInstance, Converter={xk:VisibleOrCollapsed}, FallbackValue=Collapsed}"/>
   </ContextMenu>
 
   <DataTemplate x:Key="SimpleContentReferencePropertyTemplate">
     <DockPanel>
       <UniformGrid Rows="1" DockPanel.Dock="Right">
         <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding PickupAsset}" CommandParameter="{Binding Type}"
-                ToolTip="{sskk:Localize Select an asset, Context=ToolTip}">
+                ToolTip="{xk:Localize Select an asset, Context=ToolTip}">
           <Image Source="{StaticResource ImagePickup}" Width="16" Height="16" Margin="-1"/>
         </Button>
         <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding CreateNewInstance}" CommandParameter="{x:Static assetCommands:AbstractNodeValue.Null}"
-                ToolTip="{sskk:Localize Clear the reference, Context=ToolTip}">
+                ToolTip="{xk:Localize Clear the reference, Context=ToolTip}">
           <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
         </Button>
         <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding FetchAsset}"
-                ToolTip="{sskk:Localize Select the referenced asset, Context=ToolTip}">
+                ToolTip="{xk:Localize Select the referenced asset, Context=ToolTip}">
           <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16" Margin="-1"/>
         </Button>
       </UniformGrid>
-      <sskk:TextBox SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={cvt:ContentReferenceToUrl}}" Margin="5"
+      <xk:TextBox SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={cvt:ContentReferenceToUrl}}" Margin="5"
                     ContextMenu="{StaticResource ReferenceContextMenu}" IsReadOnly="{Binding IsReadOnly}">
         <i:Interaction.Behaviors>
           <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
         </i:Interaction.Behaviors>
-      </sskk:TextBox>
+      </xk:TextBox>
     </DockPanel>
   </DataTemplate>
 
@@ -1206,24 +1206,24 @@
         <Border BorderThickness="1" BorderBrush="Black" Background="Transparent" DockPanel.Dock="Right"
                 Cursor="Hand" Margin="0,1" ContextMenu="{StaticResource ReferenceContextMenu}">
           <Grid>
-            <Border Width="64" Height="64" Background="Transparent" ToolTip="{sskk:Localize Select the referenced asset, Context=ToolTip}"
+            <Border Width="64" Height="64" Background="Transparent" ToolTip="{xk:Localize Select the referenced asset, Context=ToolTip}"
                     Visibility="{Binding Visibility,ElementName=ThumbnailImage}">
               <Image x:Name="ThumbnailImage" DataContext="{Binding NodeValue, Converter={cvt:ContentReferenceToAsset}}" Width="64" Height="64"
                      Source="{Binding ThumbnailData.Presenter, Mode=OneWay}"/>
               <i:Interaction.Behaviors>
-                <sskk:OnEventCommandBehavior EventName="MouseLeftButtonDown" Command="{Binding FetchAsset}"/>
+                <xk:OnEventCommandBehavior EventName="MouseLeftButtonDown" Command="{Binding FetchAsset}"/>
               </i:Interaction.Behaviors>
             </Border>
             <ProgressBar DataContext="{Binding NodeValue, Converter={cvt:ContentReferenceToAsset}}" Width="16" Height="4" IsIndeterminate="True"
-                         Visibility="{Binding ThumbnailData, Mode=OneWay, FallbackValue={sskk:Collapsed},
-                                                          Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:InvertBool}, {sskk:VisibleOrHidden}}}"/>
-            <Border Width="64" Height="64" Background="Transparent" ToolTip="{sskk:Localize Select an asset, Context=ToolTip}"
+                         Visibility="{Binding ThumbnailData, Mode=OneWay, FallbackValue={xk:Collapsed},
+                                                          Converter={xk:Chained {xk:ObjectToBool}, {xk:InvertBool}, {xk:VisibleOrHidden}}}"/>
+            <Border Width="64" Height="64" Background="Transparent" ToolTip="{xk:Localize Select an asset, Context=ToolTip}"
                     Visibility="{Binding Visibility,ElementName=PickupImage}">
               <Image x:Name="PickupImage" Source="{StaticResource ImagePickup}" Width="16" Height="16"
                      DataContext="{Binding NodeValue, Converter={cvt:ContentReferenceToAsset}}"
-                     Visibility="{Binding Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:InvertBool}, {sskk:VisibleOrHidden}}, Mode=OneWay}"/>
+                     Visibility="{Binding Converter={xk:Chained {xk:ObjectToBool}, {xk:InvertBool}, {xk:VisibleOrHidden}}, Mode=OneWay}"/>
               <i:Interaction.Behaviors>
-                <sskk:OnEventCommandBehavior EventName="MouseLeftButtonDown" Command="{Binding PickupAsset}" CommandParameter="{Binding Type}"/>
+                <xk:OnEventCommandBehavior EventName="MouseLeftButtonDown" Command="{Binding PickupAsset}" CommandParameter="{Binding Type}"/>
               </i:Interaction.Behaviors>
             </Border>
           </Grid>
@@ -1232,20 +1232,20 @@
           </i:Interaction.Behaviors>
         </Border>
         <DockPanel>
-          <sskk:TextBox DockPanel.Dock="Top" SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={cvt:ContentReferenceToUrl}}"
+          <xk:TextBox DockPanel.Dock="Top" SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={cvt:ContentReferenceToUrl}}"
                                   Margin="2,0,5,5" ContextMenu="{StaticResource ReferenceContextMenu}" IsReadOnly="{Binding IsReadOnly}">
             <i:Interaction.Behaviors>
               <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
             </i:Interaction.Behaviors>
-          </sskk:TextBox>
+          </xk:TextBox>
           <UniformGrid Rows="1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6,0">
             <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding PickupAsset}" CommandParameter="{Binding Type}"
-                    ToolTip="{sskk:Localize Select an asset, Context=ToolTip}" Visibility="{Binding HasCommand_PickupAsset, Converter={sskk:VisibleOrCollapsed}}">
+                    ToolTip="{xk:Localize Select an asset, Context=ToolTip}" Visibility="{Binding HasCommand_PickupAsset, Converter={xk:VisibleOrCollapsed}}">
               <Image Source="{StaticResource ImagePickup}" Width="16" Height="16" Margin="-1"/>
             </Button>
             <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding CreateNewInstance}"
                     CommandParameter="{x:Static assetCommands:AbstractNodeValue.Null}"
-                    ToolTip="{sskk:Localize Clear the reference, Context=ToolTip}" Visibility="{Binding HasCommand_CreateNewInstance, Converter={sskk:VisibleOrCollapsed}}">
+                    ToolTip="{xk:Localize Clear the reference, Context=ToolTip}" Visibility="{Binding HasCommand_CreateNewInstance, Converter={xk:VisibleOrCollapsed}}">
               <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
             </Button>
           </UniformGrid>
@@ -1257,21 +1257,21 @@
   <pvdr:NullableTemplateProvider x:Key="NullableStructPropertyTemplateProvider" Struct="True" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor">
     <DataTemplate>
       <DockPanel>
-        <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasCommand_CreateNewInstance, Converter={sskk:VisibleOrCollapsed}}" Orientation="Horizontal">
-          <Button Style="{StaticResource ImageButtonStyle}" ToolTip="{sskk:Localize Create an instance of this structure, Context=ToolTip}"
-                  Command="{Binding CreateNewInstance, Mode=OneWay}" CommandParameter="{Binding Type, Converter={sskk:UnderlyingType}, Mode=OneWay}"
-                  Visibility="{Binding NodeValue, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}">
+        <StackPanel DockPanel.Dock="Right" Visibility="{Binding HasCommand_CreateNewInstance, Converter={xk:VisibleOrCollapsed}}" Orientation="Horizontal">
+          <Button Style="{StaticResource ImageButtonStyle}" ToolTip="{xk:Localize Create an instance of this structure, Context=ToolTip}"
+                  Command="{Binding CreateNewInstance, Mode=OneWay}" CommandParameter="{Binding Type, Converter={xk:UnderlyingType}, Mode=OneWay}"
+                  Visibility="{Binding NodeValue, Converter={xk:Chained {xk:ObjectToBool}, {xk:InvertBool}, {xk:VisibleOrCollapsed}}}">
             <Image Source="{StaticResource ImageCreateInstance}" Width="16" Height="16" Margin="-1"/>
           </Button>
-          <Button Style="{StaticResource ImageButtonStyle}" ToolTip="{sskk:Localize Clear value (set to null), Context=ToolTip}"
+          <Button Style="{StaticResource ImageButtonStyle}" ToolTip="{xk:Localize Clear value (set to null), Context=ToolTip}"
                   Command="{Binding CreateNewInstance, Mode=OneWay}" CommandParameter="{x:Static assetCommands:AbstractNodeValue.Null}"
-                  Visibility="{Binding NodeValue, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}}"
+                  Visibility="{Binding NodeValue, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}"
                   VerticalAlignment="Center">
             <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
           </Button>
         </StackPanel>
-        <TextBlock Text="{sskk:Localize (null)}"  Visibility="{Binding NodeValue, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}"/>
-        <ContentControl Visibility="{Binding NodeValue, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}}"  Content="{Binding}"
+        <TextBlock Text="{xk:Localize (null)}"  Visibility="{Binding NodeValue, Converter={xk:Chained {xk:ObjectToBool}, {xk:InvertBool}, {xk:VisibleOrCollapsed}}}"/>
+        <ContentControl Visibility="{Binding NodeValue, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}"  Content="{Binding}"
                         ContentTemplateSelector="{x:Static edvw:PropertyViewHelper.EditorProviders}"/>
       </DockPanel>
     </DataTemplate>
@@ -1296,17 +1296,17 @@
   </edvw:SettingsStringFromAcceptableValuesTemplateProvider>
 
   <!-- Fallback terminal provider -->
-  <sskk:DefaultTemplateProvider x:Key="ObjectPropertyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="None">
+  <xk:DefaultTemplateProvider x:Key="ObjectPropertyTemplateProvider" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="None">
     <DataTemplate DataType="qvm:NodeViewModel">
       <TextBlock Margin="2,0" VerticalAlignment="Center" x:Name="DefaultTextBlock"
-                       Text="{sskk:PriorityBinding {Binding AttributeDisplayName, Mode=OneWay}, {Binding NodeValue, Mode=OneWay, Converter={sskk:ObjectToTypeName}}}"/>
+                       Text="{xk:PriorityBinding {Binding AttributeDisplayName, Mode=OneWay}, {Binding NodeValue, Mode=OneWay, Converter={xk:ObjectToTypeName}}}"/>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
-          <Setter TargetName="DefaultTextBlock" Property="Text" Value="{sskk:Localize (Different values)}"/>
+          <Setter TargetName="DefaultTextBlock" Property="Text" Value="{xk:Localize (Different values)}"/>
         </DataTrigger>
       </DataTemplate.Triggers>
     </DataTemplate>
-  </sskk:DefaultTemplateProvider>
+  </xk:DefaultTemplateProvider>
 
   <pvdr:UnloadableObjectTemplateProvider x:Key="YamlProxyTemplateProvider" OverrideRule="All" edvw:PropertyViewHelper.TemplateCategory="PropertyHeader">
     <DataTemplate DataType="qvm:NodeViewModel">
@@ -1315,7 +1315,7 @@
           <StackPanel Orientation="Vertical">
             <TextBlock Foreground="Orange" Margin="8" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis">
               <TextBlock.Text>
-                <MultiBinding StringFormat="{sskk:Localize Unable to load the object of type {0} from assembly {1}}">
+                <MultiBinding StringFormat="{xk:Localize Unable to load the object of type {0} from assembly {1}}">
                   <Binding Path="NodeValue.TypeName" />
                   <Binding Path="NodeValue.AssemblyName" />
                 </MultiBinding>

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -139,7 +140,9 @@ namespace Xenko.Core.Packages
 
                         if (tries >= request.MaxTries)
                         {
-                            throw;
+                            // Note: we override nuget default behavior by ignoring http errors (NoContent is ignored in V2FeedParser)
+                            //throw;
+                            return new HttpResponseMessage(HttpStatusCode.NoContent);
                         }
 
                         log.LogInformation(string.Format(

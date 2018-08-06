@@ -9,7 +9,7 @@
         xmlns:vs="clr-namespace:Xenko.Core.VisualStudio;assembly=Xenko.Core.Design"
         xmlns:gs="clr-namespace:Xenko.GameStudio"
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
-        xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+        xmlns:xk="http://schemas.xenko.com/xaml/presentation"
         xmlns:viewModels="clr-namespace:Xenko.Core.Presentation.Quantum.ViewModels;assembly=Xenko.Core.Presentation.Quantum"
         xmlns:viewModels1="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels;assembly=Xenko.Core.Assets.Editor"
         mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="300"
@@ -25,8 +25,8 @@
 
       <DataTemplate x:Key="AvalonDock_GameStudio_TitleTemplate">
         <DockPanel LastChildFill="False">
-          <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Top"
-                     Visibility="{Binding Path=Content.DataContext.IsDirty, Converter={sskk:VisibleOrCollapsed}, FallbackValue={sskk:Collapsed}}"
+          <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Top" 
+                     Visibility="{Binding Path=Content.DataContext.IsDirty, Converter={xk:VisibleOrCollapsed}, FallbackValue={xk:Collapsed}}"
                      Text="*" TextAlignment="Center"/>
           <TextBlock Margin="3 0 0 0" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
         </DockPanel>
@@ -35,19 +35,19 @@
       <!-- TODO: Migrate ImageDictionary from Editor to here -->
       <BitmapImage x:Key="ImageReloadProject" UriSource="../Resources/Icons/reload-project.png" />
 
-      <ContextMenu x:Key="AssetContextMenu" d:DataContext="{d:DesignInstance sskk:AssetCollectionViewModel}">
+      <ContextMenu x:Key="AssetContextMenu" d:DataContext="{d:DesignInstance xk:AssetCollectionViewModel}">
         <!-- Asset -->
-        <MenuItem Header="{sskk:Localize Asset, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
-        <MenuItem Header="{sskk:Localize Edit asset..., Context=Menu}" Command="{Binding Session.EditSelectedContentCommand}" Icon="{sskk:Image {StaticResource ImageEditAsset}}" InputGestureText="{x:Static strings:KeyGestures.EditAsset}"/>
-        <MenuItem Header="{Binding Session.SelectionIsRoot, Converter={sskk:BoolToParam}, ConverterParameter={sskk:Localize Don\'t include in build as root asset, Context=Menu},
-                          FallbackValue={sskk:Localize Include in build as root asset, Context=Menu}}" Command="{Binding Session.ToggleIsRootOnSelectedAssetCommand}"
-                          Icon="{sskk:Image {StaticResource ImageAssetIsRoot}}"/>
-        <Separator Visibility="{Binding Session.ActiveAssetView.SingleSelectedAsset.AssetCommands.Count, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}, FallbackValue={sskk:Collapsed}}" />
+        <MenuItem Header="{xk:Localize Asset, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{xk:Localize Edit asset..., Context=Menu}" Command="{Binding Session.EditSelectedContentCommand}" Icon="{xk:Image {StaticResource ImageEditAsset}}" InputGestureText="{x:Static strings:KeyGestures.EditAsset}"/>
+        <MenuItem Header="{Binding Session.SelectionIsRoot, Converter={xk:BoolToParam}, ConverterParameter={xk:Localize Don\'t include in build as root asset, Context=Menu},
+                          FallbackValue={xk:Localize Include in build as root asset, Context=Menu}}" Command="{Binding Session.ToggleIsRootOnSelectedAssetCommand}"
+                          Icon="{xk:Image {StaticResource ImageAssetIsRoot}}"/>
+        <Separator Visibility="{Binding Session.ActiveAssetView.SingleSelectedAsset.AssetCommands.Count, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}, FallbackValue={xk:Collapsed}}" />
         <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
         <MenuItem ItemsSource="{Binding Session.ActiveAssetView.SingleSelectedAsset.AssetCommands}" IsCheckable="True"
-                  Visibility="{Binding HasItems, RelativeSource={RelativeSource Self}, Converter={sskk:VisibleOrCollapsed}, FallbackValue={sskk:Collapsed}}">
+                  Visibility="{Binding HasItems, RelativeSource={RelativeSource Self}, Converter={xk:VisibleOrCollapsed}, FallbackValue={xk:Collapsed}}">
           <MenuItem.ItemContainerStyle>
-            <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance sskk:MenuCommandInfo}">
+            <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance xk:MenuCommandInfo}">
               <Setter Property="Command" Value="{Binding Command}" />
               <Setter Property="CommandParameter" Value="{Binding}" />
               <Setter Property="Header" Value="{Binding DisplayName}" />
@@ -64,48 +64,48 @@
           </MenuItem.Template>
         </MenuItem>
         <Separator/>
-        <MenuItem Command="ApplicationCommands.Cut" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{sskk:Image {StaticResource ImageCut}}"/>
-        <MenuItem Command="ApplicationCommands.Copy" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{sskk:Image {StaticResource ImageCopy}}"/>
-        <MenuItem Header="{sskk:Localize Copy with dependencies, Context=Menu}" Command="{Binding CopyAssetsRecursivelyCommand}" InputGestureText="{x:Static strings:KeyGestures.CopyAssetRecursively}" Icon="{sskk:Image {StaticResource ImageCopyRecursively}}"/>
-        <MenuItem Command="ApplicationCommands.Paste" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{sskk:Image {StaticResource ImagePaste}}"/>
-        <MenuItem Command="ApplicationCommands.Delete" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{sskk:Image {StaticResource ImageDelete}}"/>
+        <MenuItem Command="ApplicationCommands.Cut" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{xk:Image {StaticResource ImageCut}}"/>
+        <MenuItem Command="ApplicationCommands.Copy" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{xk:Image {StaticResource ImageCopy}}"/>
+        <MenuItem Header="{xk:Localize Copy with dependencies, Context=Menu}" Command="{Binding CopyAssetsRecursivelyCommand}" InputGestureText="{x:Static strings:KeyGestures.CopyAssetRecursively}" Icon="{xk:Image {StaticResource ImageCopyRecursively}}"/>
+        <MenuItem Command="ApplicationCommands.Paste" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{xk:Image {StaticResource ImagePaste}}"/>
+        <MenuItem Command="ApplicationCommands.Delete" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{xk:Image {StaticResource ImageDelete}}"/>
         <Separator/>
-        <MenuItem Header="{sskk:Localize Copy asset URL, Context=Menu}" Command="{Binding CopyAssetUrlCommand}" />
-        <MenuItem Header="{sskk:Localize Rename, Context=Menu}" Command="sskk:AssetViewUserControl.BeginEditCommand" Icon="{sskk:Image {StaticResource ImageRename}}" InputGestureText="F2"/>
+        <MenuItem Header="{xk:Localize Copy asset URL, Context=Menu}" Command="{Binding CopyAssetUrlCommand}" />
+        <MenuItem Header="{xk:Localize Rename, Context=Menu}" Command="xk:AssetViewUserControl.BeginEditCommand" Icon="{xk:Image {StaticResource ImageRename}}" InputGestureText="F2"/>
         <Separator/>
-        <MenuItem Header="{sskk:Localize Create folder, Context=Menu}" Command="{Binding Session.NewDirectoryCommand}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{sskk:Image {StaticResource ImageNewFolder}}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}" />
-        <MenuItem Header="{sskk:Localize Add asset..., Context=Menu}" Command="{Binding Session.ActiveAssetView.ShowAddAssetDialogCommand}" InputGestureText="{x:Static strings:KeyGestures.AddAsset}" Icon="{sskk:Image {StaticResource ImageNewAsset}}" Visibility="{Binding Session.ActiveAssetView.ShowAddAssetDialogCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-        <MenuItem Header="{sskk:Localize Update selected assets from their source, Context=Menu}" Command="{Binding Session.SourceTracker.UpdateSelectedAssetsFromSourceCommand}" InputGestureText="{x:Static stringsEd:KeyGestures.UpdateSelectedAssetsFromSource}" Icon="{sskk:Image {StaticResource UpdateSelectedAssetsFromSource}}"/>
-        <MenuItem Header="{sskk:Localize Update all assets with modified source, Context=Menu}" Command="{Binding Session.SourceTracker.UpdateAllAssetsWithModifiedSourceCommand}" InputGestureText="{x:Static stringsEd:KeyGestures.UpdateAllAssetsWithModifiedSource}" Icon="{sskk:Image {StaticResource UpdateAllAssetsWithModifiedSource}}"/>
+        <MenuItem Header="{xk:Localize Create folder, Context=Menu}" Command="{Binding Session.NewDirectoryCommand}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{xk:Image {StaticResource ImageNewFolder}}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}" />
+        <MenuItem Header="{xk:Localize Add asset..., Context=Menu}" Command="{Binding Session.ActiveAssetView.ShowAddAssetDialogCommand}" InputGestureText="{x:Static strings:KeyGestures.AddAsset}" Icon="{xk:Image {StaticResource ImageNewAsset}}" Visibility="{Binding Session.ActiveAssetView.ShowAddAssetDialogCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+        <MenuItem Header="{xk:Localize Update selected assets from their source, Context=Menu}" Command="{Binding Session.SourceTracker.UpdateSelectedAssetsFromSourceCommand}" InputGestureText="{x:Static stringsEd:KeyGestures.UpdateSelectedAssetsFromSource}" Icon="{xk:Image {StaticResource UpdateSelectedAssetsFromSource}}"/>
+        <MenuItem Header="{xk:Localize Update all assets with modified source, Context=Menu}" Command="{Binding Session.SourceTracker.UpdateAllAssetsWithModifiedSourceCommand}" InputGestureText="{x:Static stringsEd:KeyGestures.UpdateAllAssetsWithModifiedSource}" Icon="{xk:Image {StaticResource UpdateAllAssetsWithModifiedSource}}"/>
         <!-- Explore -->
-        <MenuItem Header="{sskk:Localize Explore, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
-        <MenuItem Header="{sskk:Localize Open with text editor, Context=Menu}" Command="{Binding Session.OpenWithTextEditorCommand}" CommandParameter="{Binding SingleSelectedAsset}" Icon="{sskk:Image {StaticResource ImageOpenWithTextEditor}}"/>
-        <MenuItem Header="{sskk:Localize Open asset file, Context=Menu}" Command="{Binding Session.OpenAssetFileCommand}" CommandParameter="{Binding SingleSelectedAsset}" Icon="{sskk:Image {StaticResource ImageOpenAssetFile}}"/>
-        <MenuItem Header="{sskk:Localize Open source file, Context=Menu}" Command="{Binding Session.OpenSourceFileCommand}" CommandParameter="{Binding SingleSelectedAsset}" Icon="{sskk:Image {StaticResource ImageOpenSourceFile}}"/>
-        <MenuItem Header="{sskk:Localize Show in Explorer, Context=Menu}" Command="{Binding Session.ExploreCommand}" CommandParameter="{Binding SelectedContent}" Icon="{sskk:Image {StaticResource ImageExplore}}"/>
+        <MenuItem Header="{xk:Localize Explore, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{xk:Localize Open with text editor, Context=Menu}" Command="{Binding Session.OpenWithTextEditorCommand}" CommandParameter="{Binding SingleSelectedAsset}" Icon="{xk:Image {StaticResource ImageOpenWithTextEditor}}"/>
+        <MenuItem Header="{xk:Localize Open asset file, Context=Menu}" Command="{Binding Session.OpenAssetFileCommand}" CommandParameter="{Binding SingleSelectedAsset}" Icon="{xk:Image {StaticResource ImageOpenAssetFile}}"/>
+        <MenuItem Header="{xk:Localize Open source file, Context=Menu}" Command="{Binding Session.OpenSourceFileCommand}" CommandParameter="{Binding SingleSelectedAsset}" Icon="{xk:Image {StaticResource ImageOpenSourceFile}}"/>
+        <MenuItem Header="{xk:Localize Show in Explorer, Context=Menu}" Command="{Binding Session.ExploreCommand}" CommandParameter="{Binding SelectedContent}" Icon="{xk:Image {StaticResource ImageExplore}}"/>
       </ContextMenu>
 
     </ResourceDictionary>
   </Window.Resources>
 
   <Window.InputBindings>
-    <KeyBinding Command="{Binding Session.ActiveAssetView.CopyAssetsRecursivelyCommand}" Gesture="{sskk:KeyGesture {x:Static strings:KeyGestures.CopyAssetRecursively}}" />
-    <KeyBinding Command="{Binding Session.EditSelectedContentCommand}" Gesture="{sskk:KeyGesture {x:Static strings:KeyGestures.EditAsset}}"/>
-    <KeyBinding Command="{Binding Session.ActiveAssetView.ShowAddAssetDialogCommand}" Gesture="{sskk:KeyGesture {x:Static strings:KeyGestures.AddAsset}}"/>
-    <KeyBinding Command="{Binding Session.SourceTracker.UpdateSelectedAssetsFromSourceCommand}" Gesture="{sskk:KeyGesture {x:Static stringsEd:KeyGestures.UpdateSelectedAssetsFromSource}}"/>
-    <KeyBinding Command="{Binding Session.SourceTracker.UpdateAllAssetsWithModifiedSourceCommand}" Gesture="{sskk:KeyGesture {x:Static stringsEd:KeyGestures.UpdateAllAssetsWithModifiedSource}}"/>
-    <KeyBinding Command="{Binding Debugging.BuildProjectCommand}" Gesture="{sskk:KeyGesture {x:Static strings:KeyGestures.BuildProject}}"/>
-    <KeyBinding Command="{Binding Debugging.StartProjectCommand}" Gesture="{sskk:KeyGesture {x:Static strings:KeyGestures.StartProject}}"/>
-    <KeyBinding Command="{Binding Debugging.CancelBuildCommand}" Gesture="{sskk:KeyGesture {x:Static strings:KeyGestures.CancelBuild}}"/>
-    <KeyBinding Command="{Binding OpenDebugWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}" Gesture="{sskk:KeyGesture {x:Static strings:KeyGestures.OpenDebugWindow}}"/>
+    <KeyBinding Command="{Binding Session.ActiveAssetView.CopyAssetsRecursivelyCommand}" Gesture="{xk:KeyGesture {x:Static strings:KeyGestures.CopyAssetRecursively}}" />
+    <KeyBinding Command="{Binding Session.EditSelectedContentCommand}" Gesture="{xk:KeyGesture {x:Static strings:KeyGestures.EditAsset}}"/>
+    <KeyBinding Command="{Binding Session.ActiveAssetView.ShowAddAssetDialogCommand}" Gesture="{xk:KeyGesture {x:Static strings:KeyGestures.AddAsset}}"/>
+    <KeyBinding Command="{Binding Session.SourceTracker.UpdateSelectedAssetsFromSourceCommand}" Gesture="{xk:KeyGesture {x:Static stringsEd:KeyGestures.UpdateSelectedAssetsFromSource}}"/>
+    <KeyBinding Command="{Binding Session.SourceTracker.UpdateAllAssetsWithModifiedSourceCommand}" Gesture="{xk:KeyGesture {x:Static stringsEd:KeyGestures.UpdateAllAssetsWithModifiedSource}}"/>
+    <KeyBinding Command="{Binding Debugging.BuildProjectCommand}" Gesture="{xk:KeyGesture {x:Static strings:KeyGestures.BuildProject}}"/>
+    <KeyBinding Command="{Binding Debugging.StartProjectCommand}" Gesture="{xk:KeyGesture {x:Static strings:KeyGestures.StartProject}}"/>
+    <KeyBinding Command="{Binding Debugging.CancelBuildCommand}" Gesture="{xk:KeyGesture {x:Static strings:KeyGestures.CancelBuild}}"/>
+    <KeyBinding Command="{Binding OpenDebugWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}" Gesture="{xk:KeyGesture {x:Static strings:KeyGestures.OpenDebugWindow}}"/>
   </Window.InputBindings>
 
   <i:Interaction.Behaviors>
-    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.New" Command="{Binding NewSessionCommand}"/>
-    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Open" Command="{Binding OpenSessionCommand}"/>
-    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Save" Command="{Binding Session.SaveSessionCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Undo" Command="{Binding Session.ActionHistory.UndoCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-    <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Redo" Command="{Binding Session.ActionHistory.RedoCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.New" Command="{Binding NewSessionCommand}"/>
+    <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Open" Command="{Binding OpenSessionCommand}"/>
+    <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Save" Command="{Binding Session.SaveSessionCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Undo" Command="{Binding Session.ActionHistory.UndoCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+    <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Redo" Command="{Binding Session.ActionHistory.RedoCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
   </i:Interaction.Behaviors>
 
   <Grid>
@@ -119,23 +119,23 @@
     <!-- MENU ROW -->
     <Menu Grid.Row="0" FontSize="12">
       <!-- File Menu -->
-      <MenuItem Header="{sskk:Localize File, Context=Menu}">
-        <MenuItem Command="ApplicationCommands.New" Icon="{sskk:Image {StaticResource ImageNewSolution}}"/>
-        <MenuItem Command="ApplicationCommands.Open" Icon="{sskk:Image {StaticResource ImageOpen}}"/>
-        <MenuItem Header="{sskk:Localize Open recent, Context=Menu}" Icon="{sskk:Image {StaticResource ImageOpen}}" IsEnabled="{Binding MRU.MostRecentlyUsedFiles.Count, Converter={sskk:NumericToBool}}">
+      <MenuItem Header="{xk:Localize File, Context=Menu}">
+        <MenuItem Command="ApplicationCommands.New" Icon="{xk:Image {StaticResource ImageNewSolution}}"/>
+        <MenuItem Command="ApplicationCommands.Open" Icon="{xk:Image {StaticResource ImageOpen}}"/>
+        <MenuItem Header="{xk:Localize Open recent, Context=Menu}" Icon="{xk:Image {StaticResource ImageOpen}}" IsEnabled="{Binding MRU.MostRecentlyUsedFiles.Count, Converter={xk:NumericToBool}}">
           <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
-          <MenuItem ItemsSource="{Binding MRU.MostRecentlyUsedFiles, Converter={sskk:Take}, ConverterParameter={sskk:Int 10}}" IsCheckable="True">
+          <MenuItem ItemsSource="{Binding MRU.MostRecentlyUsedFiles, Converter={xk:Take}, ConverterParameter={xk:Int 10}}" IsCheckable="True">
             <MenuItem.ItemTemplate>
               <DataTemplate>
-                <Grid HorizontalAlignment="Stretch" ToolTip="{Binding FilePath, Converter={sskk:UFileToString}, Mode=OneWay}">
+                <Grid HorizontalAlignment="Stretch" ToolTip="{Binding FilePath, Converter={xk:UFileToString}, Mode=OneWay}">
                   <Grid.ColumnDefinitions >
                     <ColumnDefinition Width="30"/>
                     <ColumnDefinition MaxWidth="320"/>
                   </Grid.ColumnDefinitions>
                   <TextBlock Grid.Column="0" Text="{Binding Version}" FontWeight="Bold" />
                   <TextBlock Grid.Column="1"
-                             Text="{sskk:MultiBinding {Binding FilePath, Converter={sskk:UFileToString}, Mode=OneWay}, {Binding RelativeSource={RelativeSource Self}},
-                                                      Converter={sskk:TrimString MaxWidth=320, TextTrimming=WordEllipsis, TrimmingSource=Middle, WordSeparators=/\\}}"/>
+                             Text="{xk:MultiBinding {Binding FilePath, Converter={xk:UFileToString}, Mode=OneWay}, {Binding RelativeSource={RelativeSource Self}},
+                                                      Converter={xk:TrimString MaxWidth=320, TextTrimming=WordEllipsis, TrimmingSource=Middle, WordSeparators=/\\}}"/>
                 </Grid>
               </DataTemplate>
             </MenuItem.ItemTemplate>
@@ -152,42 +152,42 @@
             </MenuItem.Template>
           </MenuItem>
           <Separator/>
-          <MenuItem Header="{sskk:Localize Clear list, Context=Menu}" Command="{Binding ClearMRUCommand}" Icon="{sskk:Image {StaticResource ImageDelete}}"/>
+          <MenuItem Header="{xk:Localize Clear list, Context=Menu}" Command="{Binding ClearMRUCommand}" Icon="{xk:Image {StaticResource ImageDelete}}"/>
         </MenuItem>
-        <MenuItem Command="ApplicationCommands.Save" Icon="{sskk:Image {StaticResource ImageSave}}"/>
+        <MenuItem Command="ApplicationCommands.Save" Icon="{xk:Image {StaticResource ImageSave}}"/>
         <Separator/>
-        <MenuItem Header="{sskk:Localize Reload project, Context=Menu}" Command="{Binding ReloadSessionCommand}" Icon="{sskk:Image {StaticResource ImageReloadProject}}"/>
+        <MenuItem Header="{xk:Localize Reload project, Context=Menu}" Command="{Binding ReloadSessionCommand}" Icon="{xk:Image {StaticResource ImageReloadProject}}"/>
         <Separator/>
-        <MenuItem Header="{sskk:Localize Quit, Context=Menu}">
+        <MenuItem Header="{xk:Localize Quit, Context=Menu}">
           <i:Interaction.Behaviors>
-            <sskk:MenuItemCloseWindowBehavior/>
+            <xk:MenuItemCloseWindowBehavior/>
           </i:Interaction.Behaviors>
         </MenuItem>
       </MenuItem>
       <!-- Edit Menu -->
-      <MenuItem Header="{sskk:Localize Edit, Context=Menu}">
-        <MenuItem Command="ApplicationCommands.Undo" Icon="{sskk:Image {StaticResource ImageUndo}}"/>
-        <MenuItem Command="ApplicationCommands.Redo" Icon="{sskk:Image {StaticResource ImageRedo}}"/>
+      <MenuItem Header="{xk:Localize Edit, Context=Menu}">
+        <MenuItem Command="ApplicationCommands.Undo" Icon="{xk:Image {StaticResource ImageUndo}}"/>
+        <MenuItem Command="ApplicationCommands.Redo" Icon="{xk:Image {StaticResource ImageRedo}}"/>
         <Separator/>
-        <MenuItem Command="ApplicationCommands.Cut" Icon="{sskk:Image {StaticResource ImageCut}}" />
-        <MenuItem Command="ApplicationCommands.Copy" Icon="{sskk:Image {StaticResource ImageCopy}}" />
-        <MenuItem Command="ApplicationCommands.Paste" Icon="{sskk:Image {StaticResource ImagePaste}}" />
-        <MenuItem Command="ApplicationCommands.Delete" Icon="{sskk:Image {StaticResource ImageDelete}}"/>
+        <MenuItem Command="ApplicationCommands.Cut" Icon="{xk:Image {StaticResource ImageCut}}" />
+        <MenuItem Command="ApplicationCommands.Copy" Icon="{xk:Image {StaticResource ImageCopy}}" />
+        <MenuItem Command="ApplicationCommands.Paste" Icon="{xk:Image {StaticResource ImagePaste}}" />
+        <MenuItem Command="ApplicationCommands.Delete" Icon="{xk:Image {StaticResource ImageDelete}}"/>
         <Separator/>
-        <MenuItem Header="{sskk:Localize Settings, Context=Menu}" Command="{Binding OpenSettingsWindowCommand}" Icon="{sskk:Image {StaticResource ImageSettings}}"/>
+        <MenuItem Header="{xk:Localize Settings, Context=Menu}" Command="{Binding OpenSettingsWindowCommand}" Icon="{xk:Image {StaticResource ImageSettings}}"/>
       </MenuItem>
       <!-- Project Menu -->
-      <MenuItem Header="{sskk:Localize Project, Context=Menu}" IsEnabled="{Binding Session, Converter={sskk:ObjectToBool}}">
-        <MenuItem Header="{sskk:Localize Build project, Context=Menu}" Command="{Binding Debugging.BuildProjectCommand}" Icon="{sskk:Image {StaticResource ImageBuildProject}}" InputGestureText="{x:Static strings:KeyGestures.BuildProject}"/>
-        <MenuItem Header="{sskk:Localize Start project, Context=Menu}" Command="{Binding Debugging.StartProjectCommand}" Icon="{sskk:Image {StaticResource ImageStartProject}}" InputGestureText="{x:Static strings:KeyGestures.StartProject}"/>
+      <MenuItem Header="{xk:Localize Project, Context=Menu}" IsEnabled="{Binding Session, Converter={xk:ObjectToBool}}">
+        <MenuItem Header="{xk:Localize Build project, Context=Menu}" Command="{Binding Debugging.BuildProjectCommand}" Icon="{xk:Image {StaticResource ImageBuildProject}}" InputGestureText="{x:Static strings:KeyGestures.BuildProject}"/>
+        <MenuItem Header="{xk:Localize Start project, Context=Menu}" Command="{Binding Debugging.StartProjectCommand}" Icon="{xk:Image {StaticResource ImageStartProject}}" InputGestureText="{x:Static strings:KeyGestures.StartProject}"/>
         <!-- Disable live-scripting commands until it is working -->
-        <MenuItem Header="{sskk:Localize Start live-scripting, Context=Menu}" Command="{Binding Debugging.LivePlayProjectCommand}" Icon="{sskk:Image {StaticResource ImageLiveScripting}}" Visibility="Collapsed"/>
-        <MenuItem Header="{sskk:Localize Cancel build, Context=Menu}" Command="{Binding Debugging.CancelBuildCommand}" Icon="{sskk:Image {StaticResource ImageStopBuild}}" InputGestureText="{x:Static strings:KeyGestures.CancelBuild}"/>
-        <MenuItem Header="{sskk:Localize Folder, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
-        <MenuItem Header="{sskk:Localize Create folder, Context=Menu}" Command="{Binding Session.NewDirectoryCommand}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{sskk:Image {StaticResource ImageNewFolder}}"/>
+        <MenuItem Header="{xk:Localize Start live-scripting, Context=Menu}" Command="{Binding Debugging.LivePlayProjectCommand}" Icon="{xk:Image {StaticResource ImageLiveScripting}}" Visibility="Collapsed"/>
+        <MenuItem Header="{xk:Localize Cancel build, Context=Menu}" Command="{Binding Debugging.CancelBuildCommand}" Icon="{xk:Image {StaticResource ImageStopBuild}}" InputGestureText="{x:Static strings:KeyGestures.CancelBuild}"/>
+        <MenuItem Header="{xk:Localize Folder, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{xk:Localize Create folder, Context=Menu}" Command="{Binding Session.NewDirectoryCommand}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{xk:Image {StaticResource ImageNewFolder}}"/>
 
-        <MenuItem Header="{sskk:Localize Package, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
-        <MenuItem Header="{sskk:Localize Update package, Context=Menu}" ItemsSource="{Binding Session.UpdatePackageViewModel.Templates}" Icon="{sskk:Image {StaticResource ImageAddNewProject}}" Visibility="{Binding Session.IsUpdatePackageEnabled, Converter={sskk:VisibleOrCollapsed}}">
+        <MenuItem Header="{xk:Localize Package, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{xk:Localize Update package, Context=Menu}" ItemsSource="{Binding Session.UpdatePackageViewModel.Templates}" Icon="{xk:Image {StaticResource ImageAddNewProject}}" Visibility="{Binding Session.IsUpdatePackageEnabled, Converter={xk:VisibleOrCollapsed}}">
           <MenuItem.ItemContainerStyle>
             <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance viewModels1:TemplateDescriptionViewModel}">
               <Setter Property="Command" Value="{Binding UpdatePackageCommand}"/>
@@ -205,59 +205,59 @@
             </DataTemplate>
           </MenuItem.ItemTemplate>
         </MenuItem>
-        <MenuItem Header="{sskk:Localize Add existing project..., Context=Menu}" Command="{Binding Session.AddExistingProjectCommand}" Icon="{sskk:Image {StaticResource ImageAddExistingProject}}"/>
-        <MenuItem Header="{sskk:Localize Add dependency..., Context=Menu}" Command="{Binding Session.AddDependencyCommand}" Icon="{sskk:Image {StaticResource ImageAddDependency}}"/>
-        <MenuItem Header="{sskk:Localize Set as current package, Context=Menu}" Command="{Binding Session.SetCurrentPackageCommand}" CommandParameter="{Binding}" Icon="{sskk:Image {StaticResource ImageStartupProject}}"/>
-        <MenuItem Header="{sskk:Localize Package properties, Context=Menu}" Command="{Binding Session.ActivatePackagePropertiesCommand}" Icon="{sskk:Image {StaticResource ImagePackageProperties}}"/>
+        <MenuItem Header="{xk:Localize Add existing project..., Context=Menu}" Command="{Binding Session.AddExistingProjectCommand}" Icon="{xk:Image {StaticResource ImageAddExistingProject}}"/>
+        <MenuItem Header="{xk:Localize Add dependency..., Context=Menu}" Command="{Binding Session.AddDependencyCommand}" Icon="{xk:Image {StaticResource ImageAddDependency}}"/>
+        <MenuItem Header="{xk:Localize Set as current package, Context=Menu}" Command="{Binding Session.SetCurrentPackageCommand}" CommandParameter="{Binding}" Icon="{xk:Image {StaticResource ImageStartupProject}}"/>
+        <MenuItem Header="{xk:Localize Package properties, Context=Menu}" Command="{Binding Session.ActivatePackagePropertiesCommand}" Icon="{xk:Image {StaticResource ImagePackageProperties}}"/>
 
-        <MenuItem Header="{sskk:Localize Solution, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
-        <MenuItem Header="{sskk:Localize New package..., Context=Menu}" Command="{Binding Session.NewPackageCommand}" Icon="{sskk:Image {StaticResource ImageAddNewPackage}}"/>
-        <MenuItem Header="{sskk:Localize Add existing package..., Context=Menu}" Command="{Binding Session.AddExistingPackageCommand}" Icon="{sskk:Image {StaticResource ImageAddExistingPackage}}"/>
-        <MenuItem Header="{sskk:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{sskk:Image {StaticResource ImageVisualStudio}}"/>
-        <MenuItem Header="{sskk:Localize Reload game assemblies, Context=Menu}" Command="{Binding Debugging.ReloadAssembliesCommand}" Icon="{sskk:Image {StaticResource ImageReloadAssemblies}}"/>
+        <MenuItem Header="{xk:Localize Solution, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{xk:Localize New package..., Context=Menu}" Command="{Binding Session.NewPackageCommand}" Icon="{xk:Image {StaticResource ImageAddNewPackage}}"/>
+        <MenuItem Header="{xk:Localize Add existing package..., Context=Menu}" Command="{Binding Session.AddExistingPackageCommand}" Icon="{xk:Image {StaticResource ImageAddExistingPackage}}"/>
+        <MenuItem Header="{xk:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{xk:Image {StaticResource ImageVisualStudio}}"/>
+        <MenuItem Header="{xk:Localize Reload game assemblies, Context=Menu}" Command="{Binding Debugging.ReloadAssembliesCommand}" Icon="{xk:Image {StaticResource ImageReloadAssemblies}}"/>
 
-        <MenuItem Header="{sskk:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
-        <MenuItem Header="{sskk:Localize Delete, Context=Menu}" Command="{Binding Session.DeleteSelectedSolutionItemsCommand}" Icon="{sskk:Image {StaticResource ImageDelete}}"/>
-        <MenuItem Header="{sskk:Localize Rename, Context=Menu}" Command="{Binding Session.RenameDirectoryOrPackageCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{sskk:Image {StaticResource ImageRename}}" InputGestureText="F2"/>
+        <MenuItem Header="{xk:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{xk:Localize Delete, Context=Menu}" Command="{Binding Session.DeleteSelectedSolutionItemsCommand}" Icon="{xk:Image {StaticResource ImageDelete}}"/>
+        <MenuItem Header="{xk:Localize Rename, Context=Menu}" Command="{Binding Session.RenameDirectoryOrPackageCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{xk:Image {StaticResource ImageRename}}" InputGestureText="F2"/>
 
-        <MenuItem Header="{sskk:Localize Asset, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
-        <MenuItem Header="{sskk:Localize Add asset..., Context=Menu}" Command="{Binding Session.ActiveAssetView.ShowAddAssetDialogCommand}" InputGestureText="{x:Static strings:KeyGestures.AddAsset}" Icon="{sskk:Image {StaticResource ImageNewAsset}}"/>
-        <MenuItem Header="{sskk:Localize Update selected assets from their source, Context=Menu}" Command="{Binding Session.SourceTracker.UpdateSelectedAssetsFromSourceCommand}" InputGestureText="{x:Static stringsEd:KeyGestures.UpdateSelectedAssetsFromSource}" Icon="{sskk:Image {StaticResource UpdateSelectedAssetsFromSource}}"/>
-        <MenuItem Header="{sskk:Localize Update all assets with modified source, Context=Menu}" Command="{Binding Session.SourceTracker.UpdateAllAssetsWithModifiedSourceCommand}" InputGestureText="{x:Static stringsEd:KeyGestures.UpdateAllAssetsWithModifiedSource}" Icon="{sskk:Image {StaticResource UpdateAllAssetsWithModifiedSource}}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-        <MenuItem Header="{sskk:Localize Explore, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{Binding Session.ExploreCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-        <MenuItem Header="{sskk:Localize Show in Explorer, Context=Menu}" Command="{Binding Session.ExploreCommand}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{sskk:Image {StaticResource ImageExplore}}" Visibility="{Binding Session.ExploreCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
+        <MenuItem Header="{xk:Localize Asset, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+        <MenuItem Header="{xk:Localize Add asset..., Context=Menu}" Command="{Binding Session.ActiveAssetView.ShowAddAssetDialogCommand}" InputGestureText="{x:Static strings:KeyGestures.AddAsset}" Icon="{xk:Image {StaticResource ImageNewAsset}}"/>
+        <MenuItem Header="{xk:Localize Update selected assets from their source, Context=Menu}" Command="{Binding Session.SourceTracker.UpdateSelectedAssetsFromSourceCommand}" InputGestureText="{x:Static stringsEd:KeyGestures.UpdateSelectedAssetsFromSource}" Icon="{xk:Image {StaticResource UpdateSelectedAssetsFromSource}}"/>
+        <MenuItem Header="{xk:Localize Update all assets with modified source, Context=Menu}" Command="{Binding Session.SourceTracker.UpdateAllAssetsWithModifiedSourceCommand}" InputGestureText="{x:Static stringsEd:KeyGestures.UpdateAllAssetsWithModifiedSource}" Icon="{xk:Image {StaticResource UpdateAllAssetsWithModifiedSource}}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+        <MenuItem Header="{xk:Localize Explore, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{Binding Session.ExploreCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+        <MenuItem Header="{xk:Localize Show in Explorer, Context=Menu}" Command="{Binding Session.ExploreCommand}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{xk:Image {StaticResource ImageExplore}}" Visibility="{Binding Session.ExploreCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
       </MenuItem>
       <!-- View Menu -->
-      <MenuItem Header="{sskk:Localize View, Context=Menu}" IsEnabled="{Binding Session, Converter={sskk:ObjectToBool}}">
-        <MenuItem Header="{sskk:Localize Solution explorer, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay}"/>
-        <MenuItem Header="{sskk:Localize Asset view, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.AssetViewPanelVisible, Mode=TwoWay}"/>
-        <MenuItem Header="{sskk:Localize References, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.ReferencesPanelVisible, Mode=TwoWay}"/>
+      <MenuItem Header="{xk:Localize View, Context=Menu}" IsEnabled="{Binding Session, Converter={xk:ObjectToBool}}">
+        <MenuItem Header="{xk:Localize Solution explorer, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay}"/>
+        <MenuItem Header="{xk:Localize Asset view, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.AssetViewPanelVisible, Mode=TwoWay}"/>
+        <MenuItem Header="{xk:Localize References, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.ReferencesPanelVisible, Mode=TwoWay}"/>
         <Separator/>
-        <MenuItem Header="{sskk:Localize Asset preview, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.AssetPreviewPanelVisible, Mode=TwoWay}"/>
+        <MenuItem Header="{xk:Localize Asset preview, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.AssetPreviewPanelVisible, Mode=TwoWay}"/>
 
         <Separator/>
-        <MenuItem Header="{sskk:Localize Property grid, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay}"/>
-        <MenuItem Header="{sskk:Localize Edit history, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay}"/>
+        <MenuItem Header="{xk:Localize Property grid, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay}"/>
+        <MenuItem Header="{xk:Localize Edit history, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay}"/>
 
         <Separator/>
-        <MenuItem Header="{sskk:Localize Asset errors, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay}"/>
-        <MenuItem Header="{sskk:Localize Output, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.BuildLogPanelVisible, Mode=TwoWay}"/>
+        <MenuItem Header="{xk:Localize Asset errors, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay}"/>
+        <MenuItem Header="{xk:Localize Output, Context=Menu}" IsCheckable="True" IsChecked="{Binding Panels.BuildLogPanelVisible, Mode=TwoWay}"/>
 
       </MenuItem>
       <!-- Help Menu -->
-      <MenuItem Header="{sskk:Localize Help, Context=Menu}">
-        <MenuItem Header="{sskk:Localize Online documentation, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:XenkoGameStudio.DocumentationUrl}"/>
+      <MenuItem Header="{xk:Localize Help, Context=Menu}">
+        <MenuItem Header="{xk:Localize Online documentation, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:XenkoGameStudio.DocumentationUrl}"/>
         <Separator/>
-        <MenuItem Header="{sskk:Localize Questions and answers, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:XenkoGameStudio.AnswersUrl}"/>
-        <MenuItem Header="{sskk:Localize Report an issue..., Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:XenkoGameStudio.ReportIssueUrl}"/>
-        <MenuItem Header="{sskk:Localize Community forums, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:XenkoGameStudio.ForumsUrl}"/>
+        <MenuItem Header="{xk:Localize Questions and answers, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:XenkoGameStudio.AnswersUrl}"/>
+        <MenuItem Header="{xk:Localize Report an issue..., Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:XenkoGameStudio.ReportIssueUrl}"/>
+        <MenuItem Header="{xk:Localize Community forums, Context=Menu}" Command="{Binding OpenWebPageCommand}" CommandParameter="{x:Static gs:XenkoGameStudio.ForumsUrl}"/>
         <Separator/>
-        <MenuItem Header="{sskk:Localize Show debug window, Context=Menu}" Command="{Binding OpenDebugWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}" InputGestureText="{x:Static strings:KeyGestures.OpenDebugWindow}"/>
+        <MenuItem Header="{xk:Localize Show debug window, Context=Menu}" Command="{Binding OpenDebugWindowCommand, RelativeSource={RelativeSource AncestorType=Window}}" InputGestureText="{x:Static strings:KeyGestures.OpenDebugWindow}"/>
         <Separator/>
-        <MenuItem Header="{sskk:Localize About..., Context=Menu}" Command="{Binding OpenAboutPageCommand}"/>
+        <MenuItem Header="{xk:Localize About..., Context=Menu}" Command="{Binding OpenAboutPageCommand}"/>
       </MenuItem>
       <!-- Debug Menu -->
-      <MenuItem Header="Debug" Visibility="{Binding IsTestMenuVisible, ElementName=EditorWindow, Converter={sskk:VisibleOrCollapsed}}">
+      <MenuItem Header="Debug" Visibility="{Binding IsTestMenuVisible, ElementName=EditorWindow, Converter={xk:VisibleOrCollapsed}}">
         <MenuItem Header="Create test asset" Command="{Binding CreateTestAssetCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
         <MenuItem Header="Create unit test asset" Command="{Binding CreateUnitTestAssetCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
         <Separator/>
@@ -277,31 +277,31 @@
       </Grid.RowDefinitions>
 
       <!-- TOOLBAR ROW -->
-      <ToolBarTray Grid.Row="0" Visibility="{Binding Session, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}}">
+      <ToolBarTray Grid.Row="0" Visibility="{Binding Session, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}">
         <ToolBar>
           <Button Command="ApplicationCommands.New"
-                  ToolTip="{sskk:Localize Create a project, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:Localize Create a project, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageNewSolution}" />
           </Button>
           <Button Command="ApplicationCommands.Open" Margin="2,0,0,0"
-                  ToolTip="{sskk:Localize Open an existing project, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:Localize Open an existing project, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageOpen}" />
           </Button>
           <Menu Background="Transparent" Margin="0"
-                ToolTip="{sskk:Localize Open recent, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True"
-                ToolTipService.IsEnabled="{Binding ElementName=MRUMenu, Path=IsSubmenuOpen, Converter={sskk:InvertBool}}">
-            <MenuItem x:Name="MRUMenu" ItemsSource="{Binding MRU.MostRecentlyUsedFiles, Converter={sskk:Take}, ConverterParameter={sskk:Int 10}}" Style="{StaticResource ToolBarDropDownMenuItemStyle}">
+                ToolTip="{xk:Localize Open recent, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True"
+                ToolTipService.IsEnabled="{Binding ElementName=MRUMenu, Path=IsSubmenuOpen, Converter={xk:InvertBool}}">
+            <MenuItem x:Name="MRUMenu" ItemsSource="{Binding MRU.MostRecentlyUsedFiles, Converter={xk:Take}, ConverterParameter={xk:Int 10}}" Style="{StaticResource ToolBarDropDownMenuItemStyle}">
               <MenuItem.ItemTemplate>
                 <DataTemplate>
-                  <Grid HorizontalAlignment="Stretch" ToolTip="{Binding FilePath, Converter={sskk:UFileToString}, Mode=OneWay}">
+                  <Grid HorizontalAlignment="Stretch" ToolTip="{Binding FilePath, Converter={xk:UFileToString}, Mode=OneWay}">
                     <Grid.ColumnDefinitions >
                       <ColumnDefinition Width="30"/>
                       <ColumnDefinition MaxWidth="320"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="{Binding Version}" FontWeight="Bold" />
                     <TextBlock Grid.Column="1"
-                               Text="{sskk:MultiBinding {Binding FilePath, Converter={sskk:UFileToString}, Mode=OneWay}, {Binding RelativeSource={RelativeSource Self}},
-                                                        Converter={sskk:TrimString MaxWidth=320, TextTrimming=WordEllipsis, TrimmingSource=Middle, WordSeparators=/\\}}"/>
+                               Text="{xk:MultiBinding {Binding FilePath, Converter={xk:UFileToString}, Mode=OneWay}, {Binding RelativeSource={RelativeSource Self}},
+                                                        Converter={xk:TrimString MaxWidth=320, TextTrimming=WordEllipsis, TrimmingSource=Middle, WordSeparators=/\\}}"/>
                   </Grid>
                 </DataTemplate>
               </MenuItem.ItemTemplate>
@@ -314,31 +314,31 @@
             </MenuItem>
           </Menu>
           <Button Command="ApplicationCommands.Save"
-                  ToolTip="{sskk:Localize Save the project and all its documents, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:Localize Save the project and all its documents, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageSave}" />
           </Button>
           <Separator/>
           <Button Command="{Binding ReloadSessionCommand}"
-                  ToolTip="{sskk:Localize Reload current project (ask to save), Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:Localize Reload current project (ask to save), Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageReloadProject}" />
           </Button>
           <Separator/>
           <Button Command="ApplicationCommands.Undo"
-                  ToolTip="{sskk:Localize Undo last action, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:Localize Undo last action, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageUndo}" />
           </Button>
           <Button Command="ApplicationCommands.Redo"
-                  ToolTip="{sskk:Localize Redo last cancelled action, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:Localize Redo last cancelled action, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageRedo}" />
           </Button>
         </ToolBar>
         <ToolBar>
           <Button Command="{Binding Session.OpenInIDECommand}" Margin="2,0,0,0"
-                  ToolTip="{sskk:Localize Open in IDE, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:Localize Open in IDE, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageVisualStudio}" Width="16" Height="16" />
           </Button>
           <Menu Background="Transparent"
-                ToolTip="{sskk:Localize Open with..., Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                ToolTip="{xk:Localize Open with..., Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <MenuItem ItemsSource="{Binding AvailableIDEs}" Style="{StaticResource ToolBarDropDownMenuItemStyle}">
               <MenuItem.ItemContainerStyle>
                 <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
@@ -349,10 +349,10 @@
             </MenuItem>
           </Menu>
           <Button Command="{Binding Debugging.ReloadAssembliesCommand}"
-                  ToolTip="{sskk:Localize Reload game assemblies and update scripts, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:Localize Reload game assemblies and update scripts, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Grid>
               <Image Source="{StaticResource ImageReloadAssemblies}"/>
-              <Rectangle Fill="White" Visibility="{Binding Debugging.ReloadAssembliesCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}">
+              <Rectangle Fill="White" Visibility="{Binding Debugging.ReloadAssembliesCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}">
                 <Rectangle.OpacityMask>
                   <ImageBrush ImageSource="{StaticResource ImageReloadAssemblies}"/>
                 </Rectangle.OpacityMask>
@@ -370,22 +370,22 @@
           </Button>
           <Separator/>
           <Button Command="{Binding Debugging.BuildProjectCommand}"
-                  ToolTip="{sskk:ToolTip {sskk:Localize Build the project, Context=ToolTip}, {x:Static strings:KeyGestures.BuildProject}}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:ToolTip {xk:Localize Build the project, Context=ToolTip}, {x:Static strings:KeyGestures.BuildProject}}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageBuildProject}"/>
           </Button>
           <Button Command="{Binding Debugging.StartProjectCommand}"
-                  ToolTip="{sskk:ToolTip {sskk:Localize Build the project and start the game, Context=ToolTip}, {x:Static strings:KeyGestures.StartProject}}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:ToolTip {xk:Localize Build the project and start the game, Context=ToolTip}, {x:Static strings:KeyGestures.StartProject}}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageStartProject}"/>
           </Button>
           <!-- Live Scripting -->
           <!-- FIXME live scripting is disabled (XK-4309) -->
           <Button Command="{Binding Debugging.LivePlayProjectCommand}"
-                  ToolTip="{sskk:Localize Start project in live-scripting mode, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True"
+                  ToolTip="{xk:Localize Start project in live-scripting mode, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True"
                   Visibility="Collapsed">
             <Image Source="{StaticResource ImageLiveScripting}"/>
           </Button>
           <Button Command="{Binding Debugging.CancelBuildCommand}"
-                  ToolTip="{sskk:ToolTip {sskk:Localize Cancel the current build, Context=ToolTip}, {x:Static strings:KeyGestures.CancelBuild}}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                  ToolTip="{xk:ToolTip {xk:Localize Cancel the current build, Context=ToolTip}, {x:Static strings:KeyGestures.CancelBuild}}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageStopBuild}"/>
           </Button>
 
@@ -393,7 +393,7 @@
             <ComboBox.ItemTemplate>
               <DataTemplate>
                 <StackPanel Orientation="Horizontal">
-                  <Image Width="16" Height="16" Source="{Binding Platform, Converter={sskk:StaticResourceConverter}}" Margin="0,0,4,0"/>
+                  <Image Width="16" Height="16" Source="{Binding Platform, Converter={xk:StaticResourceConverter}}" Margin="0,0,4,0"/>
                   <TextBlock Text="{Binding Name}"/>
                 </StackPanel>
               </DataTemplate>
@@ -403,7 +403,7 @@
       </ToolBarTray>
 
       <!-- DOCKING ROW -->
-      <xcad:DockingManager x:Name="Docking" Grid.Row="1" Visibility="{Binding Session, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}}"
+      <xcad:DockingManager x:Name="Docking" Grid.Row="1" Visibility="{Binding Session, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}"
                            AllowMixedOrientation="True"
                            DocumentHeaderTemplate="{StaticResource AvalonDock_GameStudio_TitleTemplate}" DocumentTitleTemplate="{StaticResource AvalonDock_GameStudio_TitleTemplate}" AnchorableTitleTemplate="{StaticResource AvalonDock_GameStudio_TitleTemplate}">
         <xcad:LayoutRoot>
@@ -412,62 +412,62 @@
               <xcad:LayoutPanel Orientation="Horizontal">
                 <xcad:LayoutAnchorablePane DockWidth="240">
                   <!-- SOLUTION EXPLORER -->
-                  <xcad:LayoutAnchorable ContentId="SolutionExplorer" Title="{Binding Source={sskk:Localize Solution explorer, Context=View}}"
-                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay,
-                                         Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
+                  <xcad:LayoutAnchorable ContentId="SolutionExplorer" Title="{Binding Source={xk:Localize Solution explorer, Context=View}}"
+                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay, 
+                                         Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                     <DockPanel>
                       <ToolBarTray DockPanel.Dock="Top">
                         <ToolBar>
                           <Button Command="{Binding Session.NewPackageCommand}"
-                            ToolTip="{sskk:Localize Create a package..., Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                            ToolTip="{xk:Localize Create a package..., Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageAddNewPackage}" />
                           </Button>
                           <Button Command="{Binding Session.NewDirectoryCommand}" CommandParameter="{Binding SelectedItems, ElementName=DirectoryTreeView}"
-                            ToolTip="{sskk:Localize Create a folder, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                            ToolTip="{xk:Localize Create a folder, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageNewFolder}" />
                           </Button>
                           <Separator/>
                           <Button Command="{Binding Session.ActivatePackagePropertiesCommand}"
-                            ToolTip="{sskk:Localize Display the properties of the selected package in the property grid, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                            ToolTip="{xk:Localize Display the properties of the selected package in the property grid, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImagePackageProperties}" />
                           </Button>
-                          <Button Command="{Binding Session.RenameDirectoryOrPackageCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" CommandParameter="{Binding SelectedItems, ElementName=DirectoryTreeView}"
-                            ToolTip="{sskk:Localize Rename the selected folder or package, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                          <Button Command="{Binding Session.RenameDirectoryOrPackageCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}" CommandParameter="{Binding SelectedItems, ElementName=DirectoryTreeView}"
+                            ToolTip="{xk:Localize Rename the selected folder or package, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageRename}" />
                           </Button>
                           <Button Command="{Binding Session.DeleteSelectedSolutionItemsCommand}"
-                            ToolTip="{sskk:Localize Delete the selected items, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                            ToolTip="{xk:Localize Delete the selected items, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageDelete}" />
                           </Button>
                           <Separator/>
-                          <Button Command="{x:Static sskk:SessionExplorerHelper.ExpandAssetFolders}" CommandTarget="{Binding ElementName=DirectoryTreeView}"
-                            ToolTip="{sskk:Localize Expand all asset folders, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                          <Button Command="{x:Static xk:SessionExplorerHelper.ExpandAssetFolders}" CommandTarget="{Binding ElementName=DirectoryTreeView}"
+                            ToolTip="{xk:Localize Expand all asset folders, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageExpandAssetFolders}" />
                           </Button>
-                          <Button Command="{x:Static sskk:SessionExplorerHelper.ExpandAllFolders}" CommandTarget="{Binding ElementName=DirectoryTreeView}"
-                            ToolTip="{sskk:Localize Expand all, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                          <Button Command="{x:Static xk:SessionExplorerHelper.ExpandAllFolders}" CommandTarget="{Binding ElementName=DirectoryTreeView}"
+                            ToolTip="{xk:Localize Expand all, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageExpandAllFolders}" />
                           </Button>
-                          <Button Command="{x:Static sskk:SessionExplorerHelper.CollapseAllFolders}" CommandTarget="{Binding ElementName=DirectoryTreeView}"
-                            ToolTip="{sskk:Localize Collapse all, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                          <Button Command="{x:Static xk:SessionExplorerHelper.CollapseAllFolders}" CommandTarget="{Binding ElementName=DirectoryTreeView}"
+                            ToolTip="{xk:Localize Collapse all, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageCollapseAllFolders}" />
                           </Button>
                           <Separator/>
                           <Button Command="{Binding Session.ExploreCommand}" CommandParameter="{Binding SelectedItems, ElementName=DirectoryTreeView}"
-                            ToolTip="{sskk:Localize Show in Explorer, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                            ToolTip="{xk:Localize Show in Explorer, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageExplore}" />
                           </Button>
                         </ToolBar>
                       </ToolBarTray>
                       <!-- TODO: SearchText -->
-                      <sskk:TreeView x:Name="DirectoryTreeView" ItemsSource="{Binding Session.PackageCategories.Values}" AllowDrop="True" IsVirtualizing="False">
-                        <sskk:TreeView.Resources>
+                      <xk:TreeView x:Name="DirectoryTreeView" ItemsSource="{Binding Session.PackageCategories.Values}" AllowDrop="True" IsVirtualizing="False">
+                        <xk:TreeView.Resources>
                           <ContextMenu x:Key="ContextMenu">
-                            <MenuItem Header="{sskk:Localize Folder, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{sskk:Localize Create folder, Context=Menu}" Command="{Binding Session.NewDirectoryCommand}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{sskk:Image {StaticResource ImageNewFolder}}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Folder, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Create folder, Context=Menu}" Command="{Binding Session.NewDirectoryCommand}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{xk:Image {StaticResource ImageNewFolder}}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
 
-                            <MenuItem Header="{sskk:Localize Package, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{sskk:MultiBinding {Binding Session.IsUpdatePackageEnabled}, {Binding Session.AddExistingProjectCommand.IsEnabled}, {Binding Session.AddDependencyCommand.IsEnabled}, {Binding Session.SetCurrentPackageCommand.IsEnabled}, Converter={sskk:MultiChained {sskk:OrMultiConverter}, {sskk:VisibleOrCollapsed}}}"/>
-                            <MenuItem Header="{sskk:Localize Update package, Context=Menu}" ItemsSource="{Binding Session.UpdatePackageViewModel.Templates}" Icon="{sskk:Image {StaticResource ImageAddNewProject}}" Visibility="{Binding Session.IsUpdatePackageEnabled, Converter={sskk:VisibleOrCollapsed}}">
+                            <MenuItem Header="{xk:Localize Package, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{xk:MultiBinding {Binding Session.IsUpdatePackageEnabled}, {Binding Session.AddExistingProjectCommand.IsEnabled}, {Binding Session.AddDependencyCommand.IsEnabled}, {Binding Session.SetCurrentPackageCommand.IsEnabled}, Converter={xk:MultiChained {xk:OrMultiConverter}, {xk:VisibleOrCollapsed}}}"/>
+                            <MenuItem Header="{xk:Localize Update package, Context=Menu}" ItemsSource="{Binding Session.UpdatePackageViewModel.Templates}" Icon="{xk:Image {StaticResource ImageAddNewProject}}" Visibility="{Binding Session.IsUpdatePackageEnabled, Converter={xk:VisibleOrCollapsed}}">
                               <MenuItem.ItemContainerStyle>
                                 <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance viewModels1:TemplateDescriptionViewModel}">
                                   <Setter Property="Command" Value="{Binding UpdatePackageCommand}"/>
@@ -485,81 +485,81 @@
                                 </DataTemplate>
                               </MenuItem.ItemTemplate>
                             </MenuItem>
-                            <MenuItem Header="{sskk:Localize Add existing project..., Context=Menu}" Command="{Binding Session.AddExistingProjectCommand}" Icon="{sskk:Image {StaticResource ImageAddExistingProject}}" Visibility="{Binding Session.AddExistingProjectCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{sskk:Localize Add dependency..., Context=Menu}" Command="{Binding Session.AddDependencyCommand}" Icon="{sskk:Image {StaticResource ImageAddDependency}}" Visibility="{Binding Session.AddDependencyCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{sskk:Localize Set as current package, Context=Menu}" Command="{Binding Session.SetCurrentPackageCommand}" CommandParameter="{Binding}" Icon="{sskk:Image {StaticResource ImageStartupProject}}" Visibility="{Binding Session.SetCurrentPackageCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{sskk:Localize Package properties, Context=Menu}" Command="{Binding Session.ActivatePackagePropertiesCommand}" Icon="{sskk:Image {StaticResource ImagePackageProperties}}" Visibility="{Binding Session.ActivatePackagePropertiesCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Add existing project..., Context=Menu}" Command="{Binding Session.AddExistingProjectCommand}" Icon="{xk:Image {StaticResource ImageAddExistingProject}}" Visibility="{Binding Session.AddExistingProjectCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Add dependency..., Context=Menu}" Command="{Binding Session.AddDependencyCommand}" Icon="{xk:Image {StaticResource ImageAddDependency}}" Visibility="{Binding Session.AddDependencyCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Set as current package, Context=Menu}" Command="{Binding Session.SetCurrentPackageCommand}" CommandParameter="{Binding}" Icon="{xk:Image {StaticResource ImageStartupProject}}" Visibility="{Binding Session.SetCurrentPackageCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Package properties, Context=Menu}" Command="{Binding Session.ActivatePackagePropertiesCommand}" Icon="{xk:Image {StaticResource ImagePackageProperties}}" Visibility="{Binding Session.ActivatePackagePropertiesCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
 
-                            <MenuItem Header="{sskk:Localize Solution, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{sskk:MultiBinding {Binding Session.NewPackageCommand.IsEnabled}, {Binding Session.AddExistingPackageCommand.IsEnabled}, {Binding Session.OpenInIDECommand.IsEnabled}, Converter={sskk:MultiChained {sskk:OrMultiConverter}, {sskk:VisibleOrCollapsed}}}"/>
-                            <MenuItem Header="{sskk:Localize New package..., Context=Menu}" Command="{Binding Session.NewPackageCommand}" Icon="{sskk:Image {StaticResource ImageAddNewPackage}}" Visibility="{Binding Session.NewPackageCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{sskk:Localize Add existing package..., Context=Menu}" Command="{Binding Session.AddExistingPackageCommand}" Icon="{sskk:Image {StaticResource ImageAddExistingPackage}}" Visibility="{Binding Session.AddExistingPackageCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{sskk:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{sskk:Image {StaticResource ImageVisualStudio}}" Visibility="{Binding Session.OpenInIDECommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Solution, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{xk:MultiBinding {Binding Session.NewPackageCommand.IsEnabled}, {Binding Session.AddExistingPackageCommand.IsEnabled}, {Binding Session.OpenInIDECommand.IsEnabled}, Converter={xk:MultiChained {xk:OrMultiConverter}, {xk:VisibleOrCollapsed}}}"/>
+                            <MenuItem Header="{xk:Localize New package..., Context=Menu}" Command="{Binding Session.NewPackageCommand}" Icon="{xk:Image {StaticResource ImageAddNewPackage}}" Visibility="{Binding Session.NewPackageCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Add existing package..., Context=Menu}" Command="{Binding Session.AddExistingPackageCommand}" Icon="{xk:Image {StaticResource ImageAddExistingPackage}}" Visibility="{Binding Session.AddExistingPackageCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Open in IDE, Context=Menu}" Command="{Binding Session.OpenInIDECommand}" Icon="{xk:Image {StaticResource ImageVisualStudio}}" Visibility="{Binding Session.OpenInIDECommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
 
-                            <MenuItem Header="{sskk:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
-                            <MenuItem Command="ApplicationCommands.Cut" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{sskk:Image {StaticResource ImageCut}}"/>
-                            <MenuItem Command="ApplicationCommands.Copy" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{sskk:Image {StaticResource ImageCopy}}"/>
-                            <MenuItem Command="ApplicationCommands.Paste" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{sskk:Image {StaticResource ImagePaste}}"/>
-                            <MenuItem Command="ApplicationCommands.Delete" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{sskk:Image {StaticResource ImageDelete}}"/>
-                            <MenuItem Header="{sskk:Localize Rename, Context=Menu}" Command="{Binding Session.RenameDirectoryOrPackageCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{sskk:Image {StaticResource ImageRename}}" Visibility="{Binding Session.RenameDirectoryOrPackageCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}" InputGestureText="F2"/>
+                            <MenuItem Header="{xk:Localize Actions, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
+                            <MenuItem Command="ApplicationCommands.Cut" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{xk:Image {StaticResource ImageCut}}"/>
+                            <MenuItem Command="ApplicationCommands.Copy" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{xk:Image {StaticResource ImageCopy}}"/>
+                            <MenuItem Command="ApplicationCommands.Paste" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{xk:Image {StaticResource ImagePaste}}"/>
+                            <MenuItem Command="ApplicationCommands.Delete" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type ContextMenu}}}" Icon="{xk:Image {StaticResource ImageDelete}}"/>
+                            <MenuItem Header="{xk:Localize Rename, Context=Menu}" Command="{Binding Session.RenameDirectoryOrPackageCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{xk:Image {StaticResource ImageRename}}" Visibility="{Binding Session.RenameDirectoryOrPackageCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}" InputGestureText="F2"/>
 
-                            <MenuItem Header="{sskk:Localize Asset, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{sskk:Localize Add asset..., Context=Menu}" Command="{Binding Session.ActiveAssetView.ShowAddAssetDialogCommand}" InputGestureText="{x:Static strings:KeyGestures.AddAsset}" Icon="{sskk:Image {StaticResource ImageNewAsset}}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Asset, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Add asset..., Context=Menu}" Command="{Binding Session.ActiveAssetView.ShowAddAssetDialogCommand}" InputGestureText="{x:Static strings:KeyGestures.AddAsset}" Icon="{xk:Image {StaticResource ImageNewAsset}}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
 
-                            <MenuItem Header="{sskk:Localize Explore, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{Binding Session.ExploreCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{sskk:Localize Show in Explorer, Context=Menu}" Command="{Binding Session.ExploreCommand}" CommandParameter="{Binding}" Icon="{sskk:Image {StaticResource ImageExplore}}" Visibility="{Binding Session.ExploreCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Explore, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{Binding Session.ExploreCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Show in Explorer, Context=Menu}" Command="{Binding Session.ExploreCommand}" CommandParameter="{Binding}" Icon="{xk:Image {StaticResource ImageExplore}}" Visibility="{Binding Session.ExploreCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
 
                           </ContextMenu>
-                        </sskk:TreeView.Resources>
+                        </xk:TreeView.Resources>
                         <i:Interaction.Behaviors>
-                          <sskk:DragOverAutoScrollBehavior/>
-                          <sskk:TreeViewAutoExpandBehavior/>
-                          <sskk:TreeViewDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
-                          <sskk:TreeViewBindableSelectedItemsBehavior SelectedItems="{Binding Session.ActiveAssetView.SelectedLocations}"/>
-                          <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding Session.ActiveAssetView.CutLocationsCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-                          <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding Session.ActiveAssetView.CopyLocationsCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-                          <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding Session.ActiveAssetView.PasteCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-                          <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Session.DeleteSelectedSolutionItemsCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                          <xk:DragOverAutoScrollBehavior/>
+                          <xk:TreeViewAutoExpandBehavior/>
+                          <xk:TreeViewDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
+                          <xk:TreeViewBindableSelectedItemsBehavior SelectedItems="{Binding Session.ActiveAssetView.SelectedLocations}"/>
+                          <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding Session.ActiveAssetView.CutLocationsCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                          <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding Session.ActiveAssetView.CopyLocationsCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                          <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding Session.ActiveAssetView.PasteCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                          <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Session.DeleteSelectedSolutionItemsCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
                         </i:Interaction.Behaviors>
-                        <sskk:TreeView.ItemContainerStyle>
-                          <Style TargetType="{x:Type sskk:TreeViewItem}" BasedOn="{StaticResource {x:Type sskk:TreeViewItem}}">
-                            <Setter Property="IsExpanded" Value="{Binding Mode=OneTime, Converter={sskk:AssetToExpandedAtInitialization}}"/>
-                            <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=OneTime}" d:DataContext="{d:DesignInstance sskk:IIsEditableViewModel}"/>
-                            <Setter Property="IsEditing" Value="{Binding IsEditing, Mode=TwoWay}" d:DataContext="{d:DesignInstance sskk:IIsEditableViewModel}"/>
+                        <xk:TreeView.ItemContainerStyle>
+                          <Style TargetType="{x:Type xk:TreeViewItem}" BasedOn="{StaticResource {x:Type xk:TreeViewItem}}">
+                            <Setter Property="IsExpanded" Value="{Binding Mode=OneTime, Converter={xk:AssetToExpandedAtInitialization}}"/>
+                            <Setter Property="IsEditable" Value="{Binding IsEditable, Mode=OneTime}" d:DataContext="{d:DesignInstance xk:IIsEditableViewModel}"/>
+                            <Setter Property="IsEditing" Value="{Binding IsEditing, Mode=TwoWay}" d:DataContext="{d:DesignInstance xk:IIsEditableViewModel}"/>
                             <Setter Property="ContextMenu" Value="{StaticResource ContextMenu}"/>
                             <Setter Property="TemplateSelectorEdit" Value="{StaticResource SolutionTreeViewEditTemplate}"/>
-                            <Setter Property="sskk:Interaction.Behaviors">
+                            <Setter Property="xk:Interaction.Behaviors">
                               <Setter.Value>
-                                <sskk:BehaviorCollection>
-                                  <sskk:TreeViewStopEditOnLostFocusBehavior/>
-                                </sskk:BehaviorCollection>
+                                <xk:BehaviorCollection>
+                                  <xk:TreeViewStopEditOnLostFocusBehavior/>
+                                </xk:BehaviorCollection>
                               </Setter.Value>
                             </Setter>
                           </Style>
-                        </sskk:TreeView.ItemContainerStyle>
-                        <sskk:TreeView.ItemTemplate>
+                        </xk:TreeView.ItemContainerStyle>
+                        <xk:TreeView.ItemTemplate>
                           <HierarchicalDataTemplate ItemsSource="{Binding Content}" ItemTemplateSelector="{StaticResource SolutionTreeViewTemplate}">
                             <TextBlock Text="{Binding Name}"/>
                           </HierarchicalDataTemplate>
-                        </sskk:TreeView.ItemTemplate>
-                      </sskk:TreeView>
+                        </xk:TreeView.ItemTemplate>
+                      </xk:TreeView>
                     </DockPanel>
                   </xcad:LayoutAnchorable>
                 </xcad:LayoutAnchorablePane>
                 <xcad:LayoutDocumentPane>
                   <!-- ASSET VIEW -->
-                  <xcad:LayoutAnchorable ContentId="AssetView" Title="{Binding Source={sskk:Localize Asset view, Context=View}}"
-                                           gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetViewPanelVisible, Mode=TwoWay,
-                                           Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
-                    <sskk:AssetViewUserControl AssetCollection="{Binding Session.ActiveAssetView}" AssetContextMenu="{StaticResource AssetContextMenu}"
+                  <xcad:LayoutAnchorable ContentId="AssetView" Title="{Binding Source={xk:Localize Asset view, Context=View}}"
+                                           gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetViewPanelVisible, Mode=TwoWay, 
+                                           Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
+                    <xk:AssetViewUserControl AssetCollection="{Binding Session.ActiveAssetView}" AssetContextMenu="{StaticResource AssetContextMenu}"
                                            AssetDoubleClick="{Binding Session.EditSelectedContentCommand}">
                       <i:Interaction.Behaviors>
-                        <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding Session.ActiveAssetView.CutContentCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-                        <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding Session.ActiveAssetView.CopyContentCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-                        <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding Session.ActiveAssetView.PasteCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-                        <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Session.ActiveAssetView.DeleteContentCommand}"/>
+                        <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding Session.ActiveAssetView.CutContentCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                        <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding Session.ActiveAssetView.CopyContentCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                        <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" Command="{Binding Session.ActiveAssetView.PasteCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                        <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding Session.ActiveAssetView.DeleteContentCommand}"/>
                         <gs:ActivateParentPaneOnGotFocusBehavior/>
                       </i:Interaction.Behaviors>
-                    </sskk:AssetViewUserControl>
+                    </xk:AssetViewUserControl>
                     <i:Interaction.Behaviors>
                       <gs:LayoutAnchorableActivateOnLocationChangedBehavior Collection="{Binding Session.ActiveAssetView.SelectedLocations}" />
                     </i:Interaction.Behaviors>
@@ -568,9 +568,9 @@
               </xcad:LayoutPanel>
               <xcad:LayoutAnchorablePane DockHeight="195">
                 <!-- REFERENCES -->
-                <xcad:LayoutAnchorable ContentId="References" Title="{Binding Source={sskk:Localize References, Context=View}}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.ReferencesPanelVisible, Mode=TwoWay,
-                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
+                <xcad:LayoutAnchorable ContentId="References" Title="{Binding Source={xk:Localize References, Context=View}}"
+                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.ReferencesPanelVisible, Mode=TwoWay, 
+                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                   <DockPanel LastChildFill="True" x:Name="RefViewDockPanel">
                     <!-- stats -->
                     <Border DockPanel.Dock="Bottom" Padding="10,5">
@@ -581,65 +581,65 @@
                       </TextBlock>
                     </Border>
                     <!-- view -->
-                    <sskk:AssetViewUserControl AssetCollection="{Binding Session.References.DisplayedReferences}" AssetContextMenu="{StaticResource AssetContextMenu}" GiveFocusOnSelectionChange="False"
+                    <xk:AssetViewUserControl AssetCollection="{Binding Session.References.DisplayedReferences}" AssetContextMenu="{StaticResource AssetContextMenu}" GiveFocusOnSelectionChange="False"
                                                CanEditAssets="False" CanAddAssets="False" CanDeleteAssets="False" CanRecursivelyDisplayAssets="False" TileThumbnailSize="64" AssetDoubleClick="{Binding Session.ActiveAssetView.SelectAssetCommand}"
                                                BorderThickness="0">
-                      <sskk:AssetViewUserControl.PrimaryToolBarItems>
-                        <ToggleButton IsChecked="{Binding Session.References.ShowReferencers, Converter={sskk:InvertBool}}" Content="{sskk:Localize References}" MinWidth="80"/>
-                        <ToggleButton IsChecked="{Binding Session.References.ShowReferencers}" Content="{sskk:Localize Referenced by}" MinWidth="80"/>
-                      </sskk:AssetViewUserControl.PrimaryToolBarItems>
+                      <xk:AssetViewUserControl.PrimaryToolBarItems>
+                        <ToggleButton IsChecked="{Binding Session.References.ShowReferencers, Converter={xk:InvertBool}}" Content="{xk:Localize References}" MinWidth="80"/>
+                        <ToggleButton IsChecked="{Binding Session.References.ShowReferencers}" Content="{xk:Localize Referenced by}" MinWidth="80"/>
+                      </xk:AssetViewUserControl.PrimaryToolBarItems>
                       <i:Interaction.Behaviors>
-                        <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding Session.References.DisplayedReferences.CutContentCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-                        <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding Session.References.DisplayedReferences.CopyContentCommand, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                        <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Cut" Command="{Binding Session.References.DisplayedReferences.CutContentCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                        <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" Command="{Binding Session.References.DisplayedReferences.CopyContentCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
                       </i:Interaction.Behaviors>
-                    </sskk:AssetViewUserControl>
+                    </xk:AssetViewUserControl>
                   </DockPanel>
                 </xcad:LayoutAnchorable>
                 <!-- ASSET LOG -->
                 <xcad:LayoutAnchorable ContentId="AssetLog"
-                                       Title="{sskk:Localize Asset error ({0}), Plural=Asset errors ({0}), Count={Binding Session.AssetLog.ErrorCount, Source={x:Static gs:GameStudioViewModel.GameStudio}}, IsStringFormat=True, Context=View}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay,
-                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
-                  <sskk:GridLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages}" Session="{Binding Session}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
+                                       Title="{xk:Localize Asset error ({0}), Plural=Asset errors ({0}), Count={Binding Session.AssetLog.ErrorCount, Source={x:Static gs:GameStudioViewModel.GameStudio}}, IsStringFormat=True, Context=View}"
+                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay, 
+                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
+                  <xk:GridLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages}" Session="{Binding Session}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
                 </xcad:LayoutAnchorable>
                 <!-- BUILD LOG -->
                 <xcad:LayoutAnchorable ContentId="BuildLog" Title="{Binding Debugging.OutputTitle, Source={x:Static gs:GameStudioViewModel.GameStudio}}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.BuildLogPanelVisible, Mode=TwoWay,
-                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
+                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.BuildLogPanelVisible, Mode=TwoWay, 
+                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                   <TabControl x:Name="LogTabControl">
                     <TabItem DataContext="{Binding Debugging.BuildLog}">
                       <TabItem.Header>
-                        <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={sskk:BoolToParam},
+                        <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={xk:BoolToParam},
                                     ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}">
-                                    <Run Text="{sskk:Localize Build}"/>
-                                    <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={sskk:BoolToParam}, ConverterParameter=*}"/>
+                                    <Run Text="{xk:Localize Build}"/>
+                                    <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={xk:BoolToParam}, ConverterParameter=*}"/>
                         </TextBlock>
                       </TabItem.Header>
-                      <sskk:TextLogViewer LogMessages="{Binding Messages}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="True"/>
+                      <xk:TextLogViewer LogMessages="{Binding Messages}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="True"/>
                       <i:Interaction.Behaviors>
-                        <sskk:TabItemActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Messages}"/>
+                        <xk:TabItemActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Messages}"/>
                       </i:Interaction.Behaviors>
                     </TabItem>
                     <!-- FIXME live scripting is disabled (XK-4309) -->
                     <TabItem DataContext="{Binding Debugging.LiveScriptingLog}" Visibility="Collapsed">
                       <TabItem.Header>
-                        <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={sskk:BoolToParam},
+                        <TextBlock FontWeight="{Binding HasNewMessages, Mode=OneWay, Converter={xk:BoolToParam},
                                     ConverterParameter={x:Static FontWeights.Bold}, FallbackValue={x:Static FontWeights.Normal}}">
-                                    <Run Text="{sskk:Localize Live-scripting}"/>
-                                    <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={sskk:BoolToParam}, ConverterParameter=*}"/>
+                                    <Run Text="{xk:Localize Live-scripting}"/>
+                                    <Run Text="{Binding HasNewMessages, Mode=OneWay, Converter={xk:BoolToParam}, ConverterParameter=*}"/>
                         </TextBlock>
                       </TabItem.Header>
-                      <sskk:TextLogViewer LogMessages="{Binding Messages}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="True"/>
+                      <xk:TextLogViewer LogMessages="{Binding Messages}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="True"/>
                       <i:Interaction.Behaviors>
-                        <sskk:TabItemActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Messages}"/>
+                        <xk:TabItemActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Messages}"/>
                       </i:Interaction.Behaviors>
                     </TabItem>
                     <i:Interaction.Behaviors>
-                      <sskk:OnEventCommandBehavior Command="{Binding SelectedItem.DataContext.ClearNewMessageFlagCommand, ElementName=LogTabControl}" EventName="SelectionChanged"/>
+                      <xk:OnEventCommandBehavior Command="{Binding SelectedItem.DataContext.ClearNewMessageFlagCommand, ElementName=LogTabControl}" EventName="SelectionChanged"/>
                     </i:Interaction.Behaviors>
                   </TabControl>
                   <i:Interaction.Behaviors>
-                    <sskk:OnEventCommandBehavior Command="{Binding Debugging.ResetOutputTitleCommand}" EventName="IsActiveChanged"/>
+                    <xk:OnEventCommandBehavior Command="{Binding Debugging.ResetOutputTitleCommand}" EventName="IsActiveChanged"/>
                     <gs:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.BuildLog.Messages}"/>
                     <gs:LayoutAnchorableActivateOnLogBehavior MinimumLevel="Error" Collection="{Binding Debugging.LiveScriptingLog.Messages}"/>
                   </i:Interaction.Behaviors>
@@ -649,9 +649,9 @@
             <xcad:LayoutPanel Orientation="Vertical" DockWidth="400">
               <xcad:LayoutAnchorablePane DockHeight="2*">
                 <!-- PROPERTY GRID -->
-                <xcad:LayoutAnchorable ContentId="PropertyGrid" Title="{Binding Source={sskk:Localize Property grid, Context=View}}"
-                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay,
-                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
+                <xcad:LayoutAnchorable ContentId="PropertyGrid" Title="{Binding Source={xk:Localize Property grid, Context=View}}"
+                                       gs:AvalonDockHelper.IsVisible="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay, 
+                                       Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                   <Grid Background="{StaticResource ToolBarBackgroundBrush}">
                     <Grid.RowDefinitions>
                       <RowDefinition Height="Auto"/>
@@ -664,20 +664,20 @@
                     </Grid.RowDefinitions>
                     <DockPanel Margin="6,6,6,2">
                       <!-- Adding tag -->
-                      <sskk:TextBox MinWidth="90" DockPanel.Dock="Right" ValidateOnLostFocus="False" WatermarkContent="{sskk:Localize Add new tag}" x:Name="NewTagTextBox"  Visibility="{Binding Session.ActiveAssetView.SelectedAssets.Count, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}">
+                      <xk:TextBox MinWidth="90" DockPanel.Dock="Right" ValidateOnLostFocus="False" WatermarkContent="{xk:Localize Add new tag}" x:Name="NewTagTextBox"  Visibility="{Binding Session.ActiveAssetView.SelectedAssets.Count, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}">
                         <i:Interaction.Behaviors>
-                          <sskk:OnEventCommandBehavior EventName="Validated" Command="{Binding Session.AssetTags.AddTagCommand}" CommandParameter="{Binding Text, ElementName=NewTagTextBox}"/>
-                          <sskk:OnEventCommandBehavior EventName="Validated" Command="{x:Static sskk:TextBox.ClearTextCommand}"/>
+                          <xk:OnEventCommandBehavior EventName="Validated" Command="{Binding Session.AssetTags.AddTagCommand}" CommandParameter="{Binding Text, ElementName=NewTagTextBox}"/>
+                          <xk:OnEventCommandBehavior EventName="Validated" Command="{x:Static xk:TextBox.ClearTextCommand}"/>
                         </i:Interaction.Behaviors>
-                      </sskk:TextBox>
+                      </xk:TextBox>
                       <!-- Navigation -->
                       <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,0,6" VerticalAlignment="Center">
-                        <Button Content="{sskk:Image {StaticResource ImagePrevious}, 16, 16, HighQuality}" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+                        <Button Content="{xk:Image {StaticResource ImagePrevious}, 16, 16, HighQuality}" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
                             Command="{Binding Session.PreviousSelectionCommand}"
-                            ToolTip="{sskk:Localize Previous selection, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
-                        <Button Content="{sskk:Image {StaticResource ImageNext}, 16, 16, HighQuality}" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
+                            ToolTip="{xk:Localize Previous selection, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                        <Button Content="{xk:Image {StaticResource ImageNext}, 16, 16, HighQuality}" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
                             Command="{Binding Session.NextSelectionCommand}"
-                            ToolTip="{sskk:Localize Next selection, Context=ToolTip}" sskk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
+                            ToolTip="{xk:Localize Next selection, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
                       </StackPanel>
                       <!-- Description -->
                       <TextBlock TextTrimming="CharacterEllipsis" VerticalAlignment="Center">
@@ -686,81 +686,81 @@
                       </TextBlock>
                     </DockPanel>
                     <!--  TAGS  -->
-                    <ToolBar Grid.Row="1" Margin="6,2" ItemsSource="{Binding Session.AssetTags.Tags}" HorizontalAlignment="Stretch" Visibility="{Binding Session.AssetTags.Tags.Count, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}"
+                    <ToolBar Grid.Row="1" Margin="6,2" ItemsSource="{Binding Session.AssetTags.Tags}" HorizontalAlignment="Stretch" Visibility="{Binding Session.AssetTags.Tags.Count, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}"
                              Style="{StaticResource TagToolBarStyle}">
                       <ToolBar.ItemTemplate>
                         <DataTemplate>
-                          <sskk:TagControl Height="20" Margin="2" ToolTip="{Binding Name}" Visibility="{Binding Assets.Count, Converter={sskk:Chained {sskk:NumericToBool}, {sskk:VisibleOrCollapsed}}}"
+                          <xk:TagControl Height="20" Margin="2" ToolTip="{Binding Name}" Visibility="{Binding Assets.Count, Converter={xk:Chained {xk:NumericToBool}, {xk:VisibleOrCollapsed}}}"
                                        VerticalAlignment="Center" CloseTagCommand="{Binding RemoveTagCommand}">
                             <StackPanel Orientation="Horizontal">
                               <TextBlock Margin="2,0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" MaxWidth="100" VerticalAlignment="Center" />
-                              <TextBlock Text="{Binding Counter}" Cursor="Hand" IsEnabled="{Binding Counter, Converter={sskk:Chained {sskk:StringEquals}, {sskk:InvertBool}, Parameter1={} (all)}}"
-                                         ToolTip="{sskk:Localize Add tag to all, Context=ToolTip}">
+                              <TextBlock Text="{Binding Counter}" Cursor="Hand" IsEnabled="{Binding Counter, Converter={xk:Chained {xk:StringEquals}, {xk:InvertBool}, Parameter1={} (all)}}"
+                                         ToolTip="{xk:Localize Add tag to all, Context=ToolTip}">
                             <i:Interaction.Behaviors>
-                              <sskk:OnEventCommandBehavior EventName="MouseDown" Command="{Binding AddTagToAllCommand}"/>
+                              <xk:OnEventCommandBehavior EventName="MouseDown" Command="{Binding AddTagToAllCommand}"/>
                             </i:Interaction.Behaviors>
                               </TextBlock>
                             </StackPanel>
-                          </sskk:TagControl>
+                          </xk:TagControl>
                         </DataTemplate>
                       </ToolBar.ItemTemplate>
                     </ToolBar>
 
                     <DockPanel Grid.Row="3" Margin="6,2">
                       <Button Command="{Binding Session.EditSelectedContentCommand}" DockPanel.Dock="Top" HorizontalContentAlignment="Center" Margin="0,0,0,8"
-                              Visibility="{Binding Session.EditSelectedContentCommand.IsEnabled, Converter={sskk:VisibleOrCollapsed}, FallbackValue={sskk:Collapsed}}">
+                              Visibility="{Binding Session.EditSelectedContentCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}, FallbackValue={xk:Collapsed}}">
                         <Grid>
-                          <DockPanel Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={sskk:VisibleOrCollapsed}}">
+                          <DockPanel Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={xk:VisibleOrCollapsed}}">
                             <Image Source="{StaticResource ImageEditAsset}" Margin="4" DockPanel.Dock="Left" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
-                            <TextBlock Text="{sskk:Localize Open this asset in editor}" Margin="0,4,4,4" VerticalAlignment="Center" />
+                            <TextBlock Text="{xk:Localize Open this asset in editor}" Margin="0,4,4,4" VerticalAlignment="Center" />
                           </DockPanel>
-                          <TextBlock Text="{sskk:Localize Show this asset in editor}" Margin="0,4,4,4" VerticalAlignment="Center"
-                                     Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={sskk:Chained {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}" />
+                          <TextBlock Text="{xk:Localize Show this asset in editor}" Margin="0,4,4,4" VerticalAlignment="Center"
+                                     Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={xk:Chained {xk:InvertBool}, {xk:VisibleOrCollapsed}}}" />
                         </Grid>
                       </Button>
-                      <DockPanel Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={sskk:VisibleOrCollapsed}}">
+                      <DockPanel Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={xk:VisibleOrCollapsed}}">
                         <!-- TODO: Disabling this button for now, it is relatively terrible in term of UX -->
-                        <ToggleButton Margin="4,0" Height="22" Width="22" Content="{sskk:Image {StaticResource ImageAssetOverride}, 16, 16}"
-                                      IsChecked="{Binding Session.ActiveProperties.ShowOverridesOnly}" ToolTip="{sskk:Localize Display only overridden properties, Context=ToolTip}"
+                        <ToggleButton Margin="4,0" Height="22" Width="22" Content="{xk:Image {StaticResource ImageAssetOverride}, 16, 16}"
+                                      IsChecked="{Binding Session.ActiveProperties.ShowOverridesOnly}" ToolTip="{xk:Localize Display only overridden properties, Context=ToolTip}"
                                       Visibility="Collapsed"/>
                         <AdornerDecorator>
-                          <sskk:TextBox UseTimedValidation="True" x:Name="PropertyFilterTextBox" WatermarkContent="{sskk:Localize Search properties}">
+                          <xk:TextBox UseTimedValidation="True" x:Name="PropertyFilterTextBox" WatermarkContent="{xk:Localize Search properties}">
                             <i:Interaction.Behaviors>
-                              <sskk:ContainTextAdornerBehavior />
+                              <xk:ContainTextAdornerBehavior />
                             </i:Interaction.Behaviors>
-                          </sskk:TextBox>
+                          </xk:TextBox>
                         </AdornerDecorator>
                       </DockPanel>
                     </DockPanel>
 
                     <TextBlock Grid.Row="4" Text="{Binding Session.ActiveProperties.FallbackMessage}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                           Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={sskk:Chained {sskk:InvertBool}, {sskk:VisibleOrCollapsed}}}"/>
-                    <sskk:PropertyView x:Name="AssetPropertyView" Grid.Row="4"
+                           Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={xk:Chained {xk:InvertBool}, {xk:VisibleOrCollapsed}}}"/>
+                    <xk:PropertyView x:Name="AssetPropertyView" Grid.Row="4"
                                        ItemsSource="{Binding Session.ActiveProperties.ViewModel.RootNode.Children}"
-                                       Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={sskk:VisibleOrCollapsed}}">
-                      <sskk:PropertyView.Resources>
+                                       Visibility="{Binding Session.ActiveProperties.CanDisplayProperties, Converter={xk:VisibleOrCollapsed}}">
+                      <xk:PropertyView.Resources>
                         <SolidColorBrush x:Key="ItemHoverBrush" Color="#FF525252" />
                         <RoutedUICommand x:Key="ReplaceCommand" Text="Replace">
                           <RoutedUICommand.InputGestures>
                             <KeyGesture>Ctrl+Shift+V</KeyGesture>
                           </RoutedUICommand.InputGestures>
                         </RoutedUICommand>
-                      </sskk:PropertyView.Resources>
-                      <sskk:PropertyView.ItemContainerStyle>
-                        <Style BasedOn="{StaticResource {x:Type sskk:PropertyViewItem}}" TargetType="sskk:PropertyViewItem">
+                      </xk:PropertyView.Resources>
+                      <xk:PropertyView.ItemContainerStyle>
+                        <Style BasedOn="{StaticResource {x:Type xk:PropertyViewItem}}" TargetType="xk:PropertyViewItem">
                           <Setter Property="Background" Value="Transparent"/>
                           <Setter Property="ContextMenu">
                             <Setter.Value>
-                              <ContextMenu Visibility="{Binding HasItems, RelativeSource={RelativeSource Self}, Converter={sskk:VisibleOrHidden}, FallbackValue={sskk:Hidden}}">
-                                <MenuItem Header="{sskk:Localize Reset to base value, Context=Menu}" Command="{Binding ResetOverride, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"
+                              <ContextMenu Visibility="{Binding HasItems, RelativeSource={RelativeSource Self}, Converter={xk:VisibleOrHidden}, FallbackValue={xk:Hidden}}">
+                                <MenuItem Header="{xk:Localize Reset to base value, Context=Menu}" Command="{Binding ResetOverride, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"
                                           IsEnabled="{Binding HasBase}"/>
                                 <Separator />
-                                <MenuItem Icon="{sskk:Image {StaticResource ImageCopy}}"
+                                <MenuItem Icon="{xk:Image {StaticResource ImageCopy}}"
                                           Command="ApplicationCommands.Copy" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type MenuBase}}}"/>
-                                <MenuItem Icon="{sskk:Image {StaticResource ImagePaste}}"
+                                <MenuItem Icon="{xk:Image {StaticResource ImagePaste}}"
                                           Command="ApplicationCommands.Paste" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type MenuBase}}}" />
-                                <MenuItem Icon="{sskk:Image {StaticResource ImagePaste}}"
-                                          Visibility="{Binding HasCommand_ReplaceProperty, Converter={sskk:VisibleOrCollapsed}, FallbackValue={sskk:Collapsed}}"
+                                <MenuItem Icon="{xk:Image {StaticResource ImagePaste}}"
+                                          Visibility="{Binding HasCommand_ReplaceProperty, Converter={xk:VisibleOrCollapsed}, FallbackValue={xk:Collapsed}}"
                                           Command="{StaticResource ReplaceCommand}" CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType={x:Type MenuBase}}}"/>
                               </ContextMenu>
                             </Setter.Value>
@@ -768,15 +768,15 @@
                           <Setter Property="HeaderTemplate">
                             <Setter.Value>
                               <HierarchicalDataTemplate ItemsSource="{Binding Children, Mode=OneWay}" DataType="viewModels:NodeViewModel">
-                                <ContentPresenter Content="{Binding}" ContentTemplateSelector="{x:Static sskk:PropertyViewHelper.HeaderProviders}"/>
+                                <ContentPresenter Content="{Binding}" ContentTemplateSelector="{x:Static xk:PropertyViewHelper.HeaderProviders}"/>
                               </HierarchicalDataTemplate>
                             </Setter.Value>
                           </Setter>
                           <Setter Property="Template">
                             <Setter.Value>
-                              <ControlTemplate TargetType="sskk:PropertyViewItem">
+                              <ControlTemplate TargetType="xk:PropertyViewItem">
                                 <Border BorderThickness="{TemplateBinding Border.BorderThickness}" BorderBrush="{TemplateBinding Border.BorderBrush}" SnapsToDevicePixels="True"
-                                        Visibility="{Binding IsVisible, Converter={sskk:VisibleOrCollapsed}}" d:DataContext="{d:DesignInstance viewModels:NodeViewModel}">
+                                        Visibility="{Binding IsVisible, Converter={xk:VisibleOrCollapsed}}" d:DataContext="{d:DesignInstance viewModels:NodeViewModel}">
                                   <DockPanel>
                                     <Border DockPanel.Dock="Top" Background="{TemplateBinding Background}">
                                       <ContentPresenter ContentSource="Header" Name="PART_Header"
@@ -786,10 +786,10 @@
                                                         ContentStringFormat="{TemplateBinding HeaderedItemsControl.HeaderStringFormat}"
                                                         HorizontalAlignment="{TemplateBinding Control.HorizontalContentAlignment}"
                                                         SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}"
-                                                        Visibility="{sskk:MultiBinding {Binding DataContext.Session.ActiveProperties.ShowOverridesOnly, Converter={sskk:InvertBool}, RelativeSource={RelativeSource AncestorType=sskk:PropertyView}},
+                                                        Visibility="{xk:MultiBinding {Binding DataContext.Session.ActiveProperties.ShowOverridesOnly, Converter={xk:InvertBool}, RelativeSource={RelativeSource AncestorType=xk:PropertyView}},
                                                                                        {Binding IsOverridden},
-                                                                                       {Binding HasBase, Converter={sskk:InvertBool}},
-                                                                                       Converter={sskk:MultiChained {sskk:OrMultiConverter}, {sskk:VisibleOrCollapsed}}}"/>
+                                                                                       {Binding HasBase, Converter={xk:InvertBool}},
+                                                                                       Converter={xk:MultiChained {xk:OrMultiConverter}, {xk:VisibleOrCollapsed}}}"/>
                                     </Border>
                                     <Expander x:Name="propertyExpander" IsExpanded="{TemplateBinding IsExpanded}" Style="{StaticResource PropertyExpanderStyle}" IsEnabled="True">
                                       <StackPanel>
@@ -797,13 +797,13 @@
                                         <Border Background="{TemplateBinding Background}">
                                           <ContentPresenter Name="PART_Footer"
                                                             Content="{TemplateBinding HeaderedContentControl.Header}"
-                                                            ContentTemplateSelector="{x:Static sskk:PropertyViewHelper.FooterProviders}"
+                                                            ContentTemplateSelector="{x:Static xk:PropertyViewHelper.FooterProviders}"
                                                             HorizontalAlignment="{TemplateBinding Control.HorizontalContentAlignment}"
                                                             SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}"
-                                                            Visibility="{sskk:MultiBinding {Binding DataContext.Session.ActiveProperties.ShowOverridesOnly, Converter={sskk:InvertBool}, RelativeSource={RelativeSource AncestorType=sskk:PropertyView}},
+                                                            Visibility="{xk:MultiBinding {Binding DataContext.Session.ActiveProperties.ShowOverridesOnly, Converter={xk:InvertBool}, RelativeSource={RelativeSource AncestorType=xk:PropertyView}},
                                                                                            {Binding IsOverridden},
-                                                                                           {Binding HasBase, Converter={sskk:InvertBool}},
-                                                                                           Converter={sskk:MultiChained {sskk:OrMultiConverter}, {sskk:VisibleOrCollapsed}}}"/>
+                                                                                           {Binding HasBase, Converter={xk:InvertBool}},
+                                                                                           Converter={xk:MultiChained {xk:OrMultiConverter}, {xk:VisibleOrCollapsed}}}"/>
                                         </Border>
                                       </StackPanel>
                                     </Expander>
@@ -812,15 +812,15 @@
                               </ControlTemplate>
                             </Setter.Value>
                           </Setter>
-                          <Setter Property="sskk:Interaction.Behaviors">
+                          <Setter Property="xk:Interaction.Behaviors">
                             <Setter.Value>
-                              <sskk:BehaviorCollection>
-                                <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" ContinueRouting="False" Command="{Binding CopyProperty, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-                                <sskk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" ContinueRouting="False" Command="{Binding PasteProperty, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}"/>
-                                <sskk:CommandBindingBehavior RoutedCommand="{StaticResource ReplaceCommand}" ContinueRouting="False" Command="{Binding ReplaceProperty, FallbackValue={x:Static sskk:DisabledCommand.Instance}, Mode=OneWay}" />
-                                <sskk:PropertyViewFilteringBehavior FilterToken="{Binding Text, ElementName=PropertyFilterTextBox, Mode=OneWay}"/>
-                                <sskk:PropertyViewItemDragDropBehavior CanDrop="False" CanDrag="False" CanInsert="True"/>
-                              </sskk:BehaviorCollection>
+                              <xk:BehaviorCollection>
+                                <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Copy" ContinueRouting="False" Command="{Binding CopyProperty, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                                <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Paste" ContinueRouting="False" Command="{Binding PasteProperty, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}"/>
+                                <xk:CommandBindingBehavior RoutedCommand="{StaticResource ReplaceCommand}" ContinueRouting="False" Command="{Binding ReplaceProperty, FallbackValue={x:Static xk:DisabledCommand.Instance}, Mode=OneWay}" />
+                                <xk:PropertyViewFilteringBehavior FilterToken="{Binding Text, ElementName=PropertyFilterTextBox, Mode=OneWay}"/>
+                                <xk:PropertyViewItemDragDropBehavior CanDrop="False" CanDrag="False" CanInsert="True"/>
+                              </xk:BehaviorCollection>
                             </Setter.Value>
                           </Setter>
                           <Style.Triggers>
@@ -838,19 +838,19 @@
                             </Trigger>
                           </Style.Triggers>
                           <Style.Resources>
-                            <Style TargetType="{x:Type sskk:TextBox}" BasedOn="{StaticResource {x:Type sskk:TextBox}}">
+                            <Style TargetType="{x:Type xk:TextBox}" BasedOn="{StaticResource {x:Type xk:TextBox}}">
                               <Setter Property="ToolTip" Value="{Binding Text, RelativeSource={RelativeSource Self}}" />
-                              <Setter Property="ToolTipService.IsEnabled" Value="{Binding Text, RelativeSource={RelativeSource Self}, Converter={sskk:Chained {sskk:EmptyStringToBool}, {sskk:InvertBool}, Parameter1={sskk:True}}}" />
+                              <Setter Property="ToolTipService.IsEnabled" Value="{Binding Text, RelativeSource={RelativeSource Self}, Converter={xk:Chained {xk:EmptyStringToBool}, {xk:InvertBool}, Parameter1={xk:True}}}" />
                             </Style>
                           </Style.Resources>
                         </Style>
-                      </sskk:PropertyView.ItemContainerStyle>
+                      </xk:PropertyView.ItemContainerStyle>
                       <i:Interaction.Behaviors>
-                        <sskk:PropertyViewDragDropBehavior Target="{Binding Session.ActiveProperties.ViewModel}" CanDrag="False" CanDrop="True" CanInsert="False" />
-                        <sskk:PropertyViewFilteringBehavior FilterToken="{Binding Text, ElementName=PropertyFilterTextBox, Mode=OneWay}"/>
-                        <sskk:PropertyViewAutoExpandNodesBehavior ViewModel="{Binding Session.ActiveProperties.ViewModel, Mode=OneWay}"/>
+                        <xk:PropertyViewDragDropBehavior Target="{Binding Session.ActiveProperties.ViewModel}" CanDrag="False" CanDrop="True" CanInsert="False" />
+                        <xk:PropertyViewFilteringBehavior FilterToken="{Binding Text, ElementName=PropertyFilterTextBox, Mode=OneWay}"/>
+                        <xk:PropertyViewAutoExpandNodesBehavior ViewModel="{Binding Session.ActiveProperties.ViewModel, Mode=OneWay}"/>
                       </i:Interaction.Behaviors>
-                    </sskk:PropertyView>
+                    </xk:PropertyView>
 
                     <GridSplitter Grid.Row="5" HorizontalAlignment="Stretch" Height="5" ResizeBehavior="PreviousAndNext"/>
 
@@ -866,17 +866,17 @@
               <xcad:LayoutAnchorablePaneGroup DockHeight="1*">
                 <xcad:LayoutAnchorablePane>
                   <!-- ASSET PREVIEW -->
-                  <xcad:LayoutAnchorable ContentId="AssetPreview" Title="{Binding Source={sskk:Localize Asset preview, Context=View}}"
-                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetPreviewPanelVisible, Mode=TwoWay,
-                                         Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
+                  <xcad:LayoutAnchorable ContentId="AssetPreview" Title="{Binding Source={xk:Localize Asset preview, Context=View}}"
+                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetPreviewPanelVisible, Mode=TwoWay, 
+                                         Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                     <DockPanel LastChildFill="True">
                       <ContentPresenter Content="{Binding Preview.PreviewObject}"/>
                     </DockPanel>
                   </xcad:LayoutAnchorable>
                   <!-- ACTION HISTORY -->
-                  <xcad:LayoutAnchorable ContentId="ActionHistory" Title="{Binding Source={sskk:Localize Edit history, Context=View}}"
-                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay,
-                                         Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={sskk:True}}">
+                  <xcad:LayoutAnchorable ContentId="ActionHistory" Title="{Binding Source={xk:Localize Edit history, Context=View}}"
+                                         gs:AvalonDockHelper.IsVisible="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay, 
+                                         Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                     <ListBox ItemsSource="{Binding Session.ActionHistory.Transactions}" HorizontalContentAlignment="Stretch">
                       <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
@@ -907,7 +907,7 @@
           </xcad:LayoutPanel>
         </xcad:LayoutRoot>
       </xcad:DockingManager>
-      <StatusBar Grid.Row="2" Visibility="{Binding Session, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}}">
+      <StatusBar Grid.Row="2" Visibility="{Binding Session, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}">
         <StatusBar.ItemsPanel>
           <ItemsPanelTemplate>
             <Grid>
@@ -926,8 +926,8 @@
         <Separator Grid.Column="1"/>
         <StatusBarItem Grid.Column="2">
           <TextBlock>
-            <Run Text="{sskk:Localize {}{0} item, Plural={}{0} items, Count={Binding Session.ActiveAssetView.FilteredContent.Count, Mode=OneWay}, IsStringFormat=True, Context=StatusBar}"/>
-            <Run Text="{sskk:Localize ({0} selected), Plural=({0} selected), Count={Binding Session.ActiveAssetView.SelectedContent.Count, Mode=OneWay}, IsStringFormat=True, Context=StatusBar}"/>
+            <Run Text="{xk:Localize {}{0} item, Plural={}{0} items, Count={Binding Session.ActiveAssetView.FilteredContent.Count, Mode=OneWay}, IsStringFormat=True, Context=StatusBar}"/>
+            <Run Text="{xk:Localize ({0} selected), Plural=({0} selected), Count={Binding Session.ActiveAssetView.SelectedContent.Count, Mode=OneWay}, IsStringFormat=True, Context=StatusBar}"/>
           </TextBlock>
         </StatusBarItem>
         <Separator Grid.Column="3"/>
@@ -935,7 +935,7 @@
           <TextBlock Margin="5,0" Text="{Binding Status.CurrentJob.Message}"/>
         </StatusBarItem>
         <StatusBarItem Grid.Column="5" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-          <ProgressBar Visibility="{Binding Status.CurrentJob, Converter={sskk:Chained {sskk:ObjectToBool}, {sskk:VisibleOrCollapsed}}}"
+          <ProgressBar Visibility="{Binding Status.CurrentJob, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}"
                        IsIndeterminate="{Binding Status.CurrentJob.IsIndeterminate}" Maximum="{Binding Status.CurrentJob.Total}"
                        Value="{Binding Status.CurrentJob.Current}">
           </ProgressBar>

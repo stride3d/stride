@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
+                    xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                     xmlns:view="clr-namespace:Xenko.Core.Assets.Editor.View"
                     xmlns:viewModel="clr-namespace:Xenko.Core.Assets.Editor.ViewModel"
                     xmlns:behaviors="clr-namespace:Xenko.Core.Assets.Editor.View.Behaviors"
@@ -118,15 +118,15 @@
               <StackPanel Orientation="Horizontal">
                 <Image Source="{StaticResource ImageFolder}" Margin="0,0,5,0"/>
                 <!-- ReSharper disable Xaml.BindingWithContextNotResolved - This is why we use a PriorityBinding, we don't know what object is bound. -->
-                <TextBlock Text="{sskk:PriorityBinding {Binding DisplayName, Mode=OneWay}, {Binding Name, Mode=OneWay}, {Binding Mode=OneWay}}"/>
+                <TextBlock Text="{xk:PriorityBinding {Binding DisplayName, Mode=OneWay}, {Binding Name, Mode=OneWay}, {Binding Mode=OneWay}}"/>
                 <!-- ReSharper restore Xaml.BindingWithContextNotResolved -->
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
         <StackPanel Orientation="Horizontal">
-          <Image Source="{StaticResource ImageAcceptingDrop}" Margin="0,0,5,0" Visibility="{Binding IsAccepted, Converter={sskk:VisibleOrCollapsed}}"/>
-          <Image Source="{StaticResource ImageRejectingDrop}" Margin="0,0,5,0" Visibility="{Binding IsRejected, Converter={sskk:VisibleOrCollapsed}}"/>
+          <Image Source="{StaticResource ImageAcceptingDrop}" Margin="0,0,5,0" Visibility="{Binding IsAccepted, Converter={xk:VisibleOrCollapsed}}"/>
+          <Image Source="{StaticResource ImageRejectingDrop}" Margin="0,0,5,0" Visibility="{Binding IsRejected, Converter={xk:VisibleOrCollapsed}}"/>
           <TextBlock Text="{Binding Message, Mode=OneWay}"/>
         </StackPanel>
       </StackPanel>
@@ -190,11 +190,11 @@
   <view:TreeViewTemplateSelector x:Key="SolutionTreeViewTemplate">
     <view:TreeViewTemplateSelector.PackageTemplate>
       <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="viewModel:PackageViewModel">
-        <StackPanel Orientation="Horizontal" ToolTip="{Binding PackagePath, Converter={sskk:UDirectoryToString}}">
+        <StackPanel Orientation="Horizontal" ToolTip="{Binding PackagePath, Converter={xk:UDirectoryToString}}">
           <Image Source="{StaticResource ImagePackage}" Margin="0,0,5,0"/>
           <TextBlock x:Name="PackageText">
-                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={sskk:BoolToParam}, ConverterParameter=*}"/>
-                        <Run Text="{Binding IsLoaded, Mode=OneWay, Converter={sskk:Chained {sskk:InvertBool}, {sskk:BoolToParam}, Parameter2=(Errors)}}"/>
+                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={xk:BoolToParam}, ConverterParameter=*}"/>
+                        <Run Text="{Binding IsLoaded, Mode=OneWay, Converter={xk:Chained {xk:InvertBool}, {xk:BoolToParam}, Parameter2=(Errors)}}"/>
           </TextBlock>
         </StackPanel>
         <HierarchicalDataTemplate.Triggers>
@@ -209,7 +209,7 @@
         <StackPanel Orientation="Horizontal">
           <Image x:Name="DirectoryImage" Source="{StaticResource ImageRootFolder}" Margin="0,0,5,0"/>
           <TextBlock>
-                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={sskk:BoolToParam}, ConverterParameter=*}"/>
+                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={xk:BoolToParam}, ConverterParameter=*}"/>
           </TextBlock>
         </StackPanel>
       </HierarchicalDataTemplate>
@@ -219,7 +219,7 @@
         <StackPanel Orientation="Horizontal">
           <Image x:Name="DirectoryImage" Source="{StaticResource ImageFolder}" Margin="0,0,5,0"/>
           <TextBlock>
-                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={sskk:BoolToParam}, ConverterParameter=*}"/>
+                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={xk:BoolToParam}, ConverterParameter=*}"/>
           </TextBlock>
         </StackPanel>
       </HierarchicalDataTemplate>
@@ -229,7 +229,7 @@
         <StackPanel Orientation="Horizontal">
           <Image Source="{StaticResource ImageDepsRoot}" Margin="0,0,5,0"/>
           <TextBlock>
-                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={sskk:BoolToParam}, ConverterParameter=*}"/>
+                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={xk:BoolToParam}, ConverterParameter=*}"/>
           </TextBlock>
         </StackPanel>
       </HierarchicalDataTemplate>
@@ -237,9 +237,9 @@
     <view:TreeViewTemplateSelector.ProjectTemplate>
       <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:ProjectViewModel">
         <StackPanel Orientation="Horizontal">
-          <Image Width="16" Height="16" Source="{Binding GenericType, Converter={sskk:StaticResourceConverter}}" Margin="0,0,5,0"/>
+          <Image Width="16" Height="16" Source="{Binding GenericType, Converter={xk:StaticResourceConverter}}" Margin="0,0,5,0"/>
           <TextBlock x:Name="ProjectText">
-                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={sskk:BoolToParam}, ConverterParameter=*}"/>
+                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={xk:BoolToParam}, ConverterParameter=*}"/>
           </TextBlock>
         </StackPanel>
         <DataTemplate.Triggers>
@@ -264,7 +264,7 @@
       <HierarchicalDataTemplate ItemsSource="{Binding AssetMountPoint.SubDirectories}" DataType="viewModel:PackageViewModel">
         <StackPanel Orientation="Horizontal" Margin="0,2">
           <Image Source="{StaticResource ImagePackage}" Margin="0,0,5,0"/>
-          <sskk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
+          <xk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
         </StackPanel>
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.PackageTemplate>
@@ -272,7 +272,7 @@
       <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:AssetMountPointViewModel">
         <StackPanel Orientation="Horizontal" Margin="0,2">
           <Image Source="{StaticResource ImageRootFolder}" Margin="0,0,5,0"/>
-          <sskk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
+          <xk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
         </StackPanel>
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.AssetMountPointTemplate>
@@ -280,7 +280,7 @@
       <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:DirectoryViewModel">
         <StackPanel Orientation="Horizontal" Margin="0,2">
           <Image Source="{StaticResource ImageFolder}" Margin="0,0,5,0"/>
-          <sskk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
+          <xk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
         </StackPanel>
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.DirectoryTemplate>
@@ -288,15 +288,15 @@
       <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="viewModel:ICategoryViewModel">
         <StackPanel Orientation="Horizontal" Margin="0,2">
           <Image Source="{StaticResource ImageDepsRoot}" Margin="0,0,5,0"/>
-          <sskk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
+          <xk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
         </StackPanel>
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.DependencyCategoryTemplate>
     <view:TreeViewTemplateSelector.ProjectTemplate>
       <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:ProjectViewModel">
         <StackPanel Orientation="Horizontal" Margin="0,2">
-          <Image Width="16" Height="16" Source="{Binding GenericType, Converter={sskk:StaticResourceConverter}}" Margin="0,0,5,0"/>
-          <sskk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
+          <Image Width="16" Height="16" Source="{Binding GenericType, Converter={xk:StaticResourceConverter}}" Margin="0,0,5,0"/>
+          <xk:TextBox Text="{Binding Name}" GetFocusOnLoad="True" SelectAllOnFocus="True" ValidateOnLostFocus="True"/>
         </StackPanel>
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.ProjectTemplate>

@@ -2,8 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-        xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
-        Title="{sskk:Localize Notification}" Width="300" SizeToContent="Height" ShowInTaskbar="False"
+        xmlns:xk="http://schemas.xenko.com/xaml/presentation"
+        Title="{xk:Localize Notification}" Width="300" SizeToContent="Height" ShowInTaskbar="False"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent">
   <Window.Resources>
     <ResourceDictionary>
@@ -31,7 +31,7 @@
         <DockPanel>
           <Button DockPanel.Dock="Right" Width="12" Height="12" VerticalAlignment="Top">
             <i:Interaction.Behaviors>
-              <sskk:ButtonCloseWindowBehavior/>
+              <xk:ButtonCloseWindowBehavior/>
             </i:Interaction.Behaviors>
             <Path Width="8" Height="8" Stretch="Fill" Fill="{StaticResource TextBrush}" Data="F1 M 26.9166,22.1667L 37.9999,33.25L 49.0832,22.1668L 53.8332,26.9168L 42.7499,38L 53.8332,49.0834L 49.0833,53.8334L 37.9999,42.75L 26.9166,53.8334L 22.1666,49.0833L 33.25,38L 22.1667,26.9167L 26.9166,22.1667 Z "/>
           </Button>
@@ -41,7 +41,7 @@
           <Hyperlink Command="{Binding Command}" CommandParameter="{Binding CommandParameter}">
               <Run Text="{Binding Message, Mode=OneWay}"/>
               <i:Interaction.Behaviors>
-                  <sskk:HyperlinkCloseWindowBehavior/>
+                  <xk:HyperlinkCloseWindowBehavior/>
               </i:Interaction.Behaviors>
           </Hyperlink>
         </TextBlock>
