@@ -347,7 +347,7 @@ namespace Xenko.Core.Design.Tests
         {
             Assert.Equal("test", new UFile("test.txt").GetFileNameWithoutExtension());
             Assert.Equal(".txt", new UFile("test.txt").GetFileExtension());
-            Assert.Equal(null, new UFile(".txt").GetFileNameWithoutExtension());
+            Assert.Null(new UFile(".txt").GetFileNameWithoutExtension());
 
             Assert.Equal("test.another", new UFile("test.another.txt").GetFileNameWithoutExtension());
             Assert.Equal(".txt", new UFile("test.another.txt").GetFileExtension());
@@ -385,7 +385,7 @@ namespace Xenko.Core.Design.Tests
             var assetPath = new UFile("/a/b/c");
             Assert.Equal("/a/b", assetPath.GetDirectory());
             Assert.Equal("c", assetPath.GetFileNameWithoutExtension());
-            Assert.Equal(null, assetPath.GetFileExtension());
+            Assert.Null(assetPath.GetFileExtension());
             Assert.Equal("/a/b/c", assetPath.GetDirectoryAndFileNameWithoutExtension());
             Assert.Equal("/a/b/c", assetPath.FullPath);
         }

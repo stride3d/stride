@@ -306,13 +306,13 @@ namespace Xenko.Input.Tests
             Assert.Equal(0, gamePad0.Index);
             Assert.Equal(1, gamePad1.Index);
 
-            Assert.Equal(1, Input.GetGamePadsByIndex(0).Count());
-            Assert.Equal(1, Input.GetGamePadsByIndex(1).Count());
+            Assert.Single(Input.GetGamePadsByIndex(0));
+            Assert.Single(Input.GetGamePadsByIndex(1));
 
             // Test putting both gamepads on the same index
             gamePad1.Index = 0;
             Assert.Equal(2, Input.GetGamePadsByIndex(0).Count());
-            Assert.Equal(0, Input.GetGamePadsByIndex(1).Count());
+            Assert.Empty(Input.GetGamePadsByIndex(1));
 
             // Test reassign suggestions
             gamePad1.Index = Input.GetFreeGamePadIndex(gamePad1);

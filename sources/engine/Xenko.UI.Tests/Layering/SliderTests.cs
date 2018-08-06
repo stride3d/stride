@@ -37,10 +37,10 @@ namespace Xenko.UI.Tests.Layering
             Assert.Equal(0.1f, slider.Step);
             Assert.Equal(0, slider.Value);
             Assert.Equal(5, slider.DrawLayerNumber);
-            Assert.Equal(false, slider.IsDirectionReversed);
-            Assert.Equal(false, slider.AreTicksDisplayed);
-            Assert.Equal(false, slider.ShouldSnapToTicks);
-            Assert.Equal(true, slider.CanBeHitByUser);
+            Assert.False(slider.IsDirectionReversed);
+            Assert.False(slider.AreTicksDisplayed);
+            Assert.False(slider.ShouldSnapToTicks);
+            Assert.True(slider.CanBeHitByUser);
             Assert.Equal(Orientation.Horizontal, slider.Orientation);
             Assert.Equal(HorizontalAlignment.Center, slider.HorizontalAlignment);
             Assert.Equal(VerticalAlignment.Center, slider.VerticalAlignment);
@@ -127,32 +127,32 @@ namespace Xenko.UI.Tests.Layering
             slider.ValueChanged += (s, e) => valueChanged = true;
 
             slider.Value = 0;
-            Assert.Equal(false, valueChanged);
+            Assert.False(valueChanged);
             valueChanged = false;
 
             slider.Value = 1;
-            Assert.Equal(true, valueChanged);
+            Assert.True(valueChanged);
             valueChanged = false;
 
             slider.Value = 2;
-            Assert.Equal(false, valueChanged); // because of maximum
+            Assert.False(valueChanged); // because of maximum
             valueChanged = false;
 
             slider.Value = 0.55f;
             valueChanged = false;
             slider.SnapToClosestTick();
-            Assert.Equal(true, valueChanged);
+            Assert.True(valueChanged);
             valueChanged = false;
 
             slider.Value = 0.5f;
             valueChanged = false;
             slider.TickFrequency = 3f;
             slider.ShouldSnapToTicks = true;
-            Assert.Equal(true, valueChanged);
+            Assert.True(valueChanged);
             valueChanged = false;
 
             slider.TickFrequency = 4f;
-            Assert.Equal(true, valueChanged);
+            Assert.True(valueChanged);
             valueChanged = false;
         }
 

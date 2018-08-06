@@ -296,7 +296,7 @@ namespace Xenko.Particles.Tests
                 var velocityField = pool.GetField(ParticleFields.Velocity);
                 var sizeField = pool.GetField(ParticleFields.Size);
 
-                Assert.Equal(false, velocityField.IsValid());
+                Assert.False(velocityField.IsValid());
 
                 var sorter = new ParticleSorterLiving(pool);
                 var sortedList = sorter.GetSortedList(new Vector3(0, 0, -1));
@@ -328,8 +328,8 @@ namespace Xenko.Particles.Tests
                 var velocityField = pool.GetField(ParticleFields.Velocity);
                 var sizeField = pool.GetField(ParticleFields.Size);
 
-                Assert.Equal(false, velocityField.IsValid());
-                Assert.Equal(false, sizeField.IsValid());
+                Assert.False(velocityField.IsValid());
+                Assert.False(sizeField.IsValid());
 
                 var sorter = new ParticleSorterLiving(pool);
                 var sortedList = sorter.GetSortedList(new Vector3(0, 0, -1));
@@ -359,9 +359,9 @@ namespace Xenko.Particles.Tests
                 var velocityField = pool.GetField(ParticleFields.Velocity);
                 var sizeField = pool.GetField(ParticleFields.Size);
 
-                Assert.Equal(false, velocityField.IsValid());
-                Assert.Equal(false, sizeField.IsValid());
-                Assert.Equal(false, positionField.IsValid());
+                Assert.False(velocityField.IsValid());
+                Assert.False(sizeField.IsValid());
+                Assert.False(positionField.IsValid());
 
                 var sorter = new ParticleSorterLiving(pool);
                 var sortedList = sorter.GetSortedList(new Vector3(0, 0, -1));

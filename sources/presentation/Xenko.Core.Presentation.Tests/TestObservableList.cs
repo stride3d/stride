@@ -14,10 +14,10 @@ namespace Xenko.Core.Presentation.Tests
         {
             var list = new List<string> { "aaa", "bbb", "ccc" };
             var set = new ObservableList<string>(list);
-            Assert.Equal(set.Count, list.Count);
-            Assert.Equal(set[0], "aaa");
-            Assert.Equal(set[1], "bbb");
-            Assert.Equal(set[2], "ccc");
+            Assert.Equal(list.Count, set.Count);
+            Assert.Equal("aaa", set[0]);
+            Assert.Equal("bbb", set[1]);
+            Assert.Equal("ccc", set[2]);
         }
 
         [Fact]
@@ -25,7 +25,7 @@ namespace Xenko.Core.Presentation.Tests
         {
             var list = new List<string> { "aaa", "bbb", "ccc" };
             var set = new ObservableList<string>(list) { [1] = "ddd" };
-            Assert.Equal(set.Count, 3);
+            Assert.Equal(3, set.Count);
             Assert.Contains("aaa", set);
             Assert.Contains("ddd", set);
             Assert.Contains("ccc", set);
@@ -41,23 +41,23 @@ namespace Xenko.Core.Presentation.Tests
             Assert.Equal(set.Count, list.Count);
             set.PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(e.PropertyName, nameof(ObservableList<string>.Count));
+                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
             {
-                Assert.Equal(e.Action, NotifyCollectionChangedAction.Add);
-                Assert.Equal(e.NewStartingIndex, 3);
+                Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+                Assert.Equal(3, e.NewStartingIndex);
                 Assert.NotNull(e.NewItems);
-                Assert.Equal(e.NewItems.Count, 1);
-                Assert.Equal(e.NewItems[0], "ddd");
+                Assert.Equal(1, e.NewItems.Count);
+                Assert.Equal("ddd", e.NewItems[0]);
                 collectionChangedInvoked = true;
             };
             set.Add("ddd");
-            Assert.Equal(set[0], "aaa");
-            Assert.Equal(set[1], "bbb");
-            Assert.Equal(set[2], "ccc");
-            Assert.Equal(set[3], "ddd");
+            Assert.Equal("aaa", set[0]);
+            Assert.Equal("bbb", set[1]);
+            Assert.Equal("ccc", set[2]);
+            Assert.Equal("ddd", set[3]);
             Assert.True(propertyChangedInvoked);
             Assert.True(collectionChangedInvoked);
         }
@@ -72,26 +72,26 @@ namespace Xenko.Core.Presentation.Tests
             bool collectionChangedInvoked = false;
             set.PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(e.PropertyName, nameof(ObservableList<string>.Count));
+                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
             {
-                Assert.Equal(e.Action, NotifyCollectionChangedAction.Add);
-                Assert.Equal(e.NewStartingIndex, 3);
+                Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+                Assert.Equal(3, e.NewStartingIndex);
                 Assert.NotNull(e.NewItems);
-                Assert.Equal(e.NewItems.Count, 2);
-                Assert.Equal(e.NewItems[0], "ddd");
-                Assert.Equal(e.NewItems[1], "eee");
+                Assert.Equal(2, e.NewItems.Count);
+                Assert.Equal("ddd", e.NewItems[0]);
+                Assert.Equal("eee", e.NewItems[1]);
                 collectionChangedInvoked = true;
             };
             set.AddRange(new[] { "ddd", "eee" });
-            Assert.Equal(set.Count, 5);
-            Assert.Equal(set[0], "aaa");
-            Assert.Equal(set[1], "bbb");
-            Assert.Equal(set[2], "ccc");
-            Assert.Equal(set[3], "ddd");
-            Assert.Equal(set[4], "eee");
+            Assert.Equal(5, set.Count);
+            Assert.Equal("aaa", set[0]);
+            Assert.Equal("bbb", set[1]);
+            Assert.Equal("ccc", set[2]);
+            Assert.Equal("ddd", set[3]);
+            Assert.Equal("eee", set[4]);
             Assert.True(propertyChangedInvoked);
             Assert.True(collectionChangedInvoked);
         }
@@ -106,16 +106,16 @@ namespace Xenko.Core.Presentation.Tests
             bool collectionChangedInvoked = false;
             set.PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(e.PropertyName, nameof(ObservableList<string>.Count));
+                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
             {
-                Assert.Equal(e.Action, NotifyCollectionChangedAction.Reset);
+                Assert.Equal(NotifyCollectionChangedAction.Reset, e.Action);
                 collectionChangedInvoked = true;
             };
             set.Clear();
-            Assert.Equal(set.Count, 0);
+            Assert.Empty(set);
             Assert.True(propertyChangedInvoked);
             Assert.True(collectionChangedInvoked);
         }
@@ -141,22 +141,22 @@ namespace Xenko.Core.Presentation.Tests
             bool collectionChangedInvoked = false;
             set.PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(e.PropertyName, nameof(ObservableList<string>.Count));
+                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
             {
-                Assert.Equal(e.Action, NotifyCollectionChangedAction.Remove);
-                Assert.Equal(e.OldStartingIndex, 1);
+                Assert.Equal(NotifyCollectionChangedAction.Remove, e.Action);
+                Assert.Equal(1, e.OldStartingIndex);
                 Assert.NotNull(e.OldItems);
-                Assert.Equal(e.OldItems.Count, 1);
-                Assert.Equal(e.OldItems[0], "bbb");
+                Assert.Equal(1, e.OldItems.Count);
+                Assert.Equal("bbb", e.OldItems[0]);
                 collectionChangedInvoked = true;
             };
             set.Remove("bbb");
-            Assert.Equal(set.Count, 2);
-            Assert.Equal(set[0], "aaa");
-            Assert.Equal(set[1], "ccc");
+            Assert.Equal(2, set.Count);
+            Assert.Equal("aaa", set[0]);
+            Assert.Equal("ccc", set[1]);
             Assert.True(propertyChangedInvoked);
             Assert.True(collectionChangedInvoked);
         }
@@ -166,15 +166,15 @@ namespace Xenko.Core.Presentation.Tests
         {
             var list = new List<string> { "aaa", "bbb", "ccc" };
             var set = new ObservableList<string>(list);
-            Assert.Equal(set.IndexOf("aaa"), 0);
-            Assert.Equal(set.IndexOf("bbb"), 1);
-            Assert.Equal(set.IndexOf("ccc"), 2);
-            Assert.Equal(set.IndexOf("ddd"), -1);
+            Assert.Equal(0, set.IndexOf("aaa"));
+            Assert.Equal(1, set.IndexOf("bbb"));
+            Assert.Equal(2, set.IndexOf("ccc"));
+            Assert.Equal(-1, set.IndexOf("ddd"));
             set.Add("ddd");
-            Assert.Equal(set.IndexOf("ddd"), 3);
+            Assert.Equal(3, set.IndexOf("ddd"));
             set.Remove("bbb");
-            Assert.Equal(set.IndexOf("bbb"), -1);
-            Assert.Equal(set.IndexOf("ddd"), 2);
+            Assert.Equal(-1, set.IndexOf("bbb"));
+            Assert.Equal(2, set.IndexOf("ddd"));
         }
 
         [Fact]
@@ -187,24 +187,24 @@ namespace Xenko.Core.Presentation.Tests
             bool collectionChangedInvoked = false;
             set.PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(e.PropertyName, nameof(ObservableList<string>.Count));
+                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
             {
-                Assert.Equal(e.Action, NotifyCollectionChangedAction.Add);
-                Assert.Equal(e.NewStartingIndex, 1);
+                Assert.Equal(NotifyCollectionChangedAction.Add, e.Action);
+                Assert.Equal(1, e.NewStartingIndex);
                 Assert.NotNull(e.NewItems);
-                Assert.Equal(e.NewItems.Count, 1);
-                Assert.Equal(e.NewItems[0], "ddd");
+                Assert.Equal(1, e.NewItems.Count);
+                Assert.Equal("ddd", e.NewItems[0]);
                 collectionChangedInvoked = true;
             };
             set.Insert(1, "ddd");
-            Assert.Equal(set.Count, 4);
-            Assert.Equal(set[0], "aaa");
-            Assert.Equal(set[1], "ddd");
-            Assert.Equal(set[2], "bbb");
-            Assert.Equal(set[3], "ccc");
+            Assert.Equal(4, set.Count);
+            Assert.Equal("aaa", set[0]);
+            Assert.Equal("ddd", set[1]);
+            Assert.Equal("bbb", set[2]);
+            Assert.Equal("ccc", set[3]);
             Assert.True(propertyChangedInvoked);
             Assert.True(collectionChangedInvoked);
         }
@@ -219,22 +219,22 @@ namespace Xenko.Core.Presentation.Tests
             bool collectionChangedInvoked = false;
             set.PropertyChanged += (sender, e) =>
             {
-                Assert.Equal(e.PropertyName, nameof(ObservableList<string>.Count));
+                Assert.Equal(nameof(ObservableList<string>.Count), e.PropertyName);
                 propertyChangedInvoked = true;
             };
             set.CollectionChanged += (sender, e) =>
             {
-                Assert.Equal(e.Action, NotifyCollectionChangedAction.Remove);
-                Assert.Equal(e.OldStartingIndex, 1);
+                Assert.Equal(NotifyCollectionChangedAction.Remove, e.Action);
+                Assert.Equal(1, e.OldStartingIndex);
                 Assert.NotNull(e.OldItems);
-                Assert.Equal(e.OldItems.Count, 1);
-                Assert.Equal(e.OldItems[0], "bbb");
+                Assert.Equal(1, e.OldItems.Count);
+                Assert.Equal("bbb", e.OldItems[0]);
                 collectionChangedInvoked = true;
             };
             set.RemoveAt(1);
-            Assert.Equal(set.Count, 2);
-            Assert.Equal(set[0], "aaa");
-            Assert.Equal(set[1], "ccc");
+            Assert.Equal(2, set.Count);
+            Assert.Equal("aaa", set[0]);
+            Assert.Equal("ccc", set[1]);
             Assert.True(propertyChangedInvoked);
             Assert.True(collectionChangedInvoked);
         }

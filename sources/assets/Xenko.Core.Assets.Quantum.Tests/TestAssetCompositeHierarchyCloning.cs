@@ -26,10 +26,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             var cloneRoot = clone.Parts[clone.RootParts.Single().Id];
             Assert.Empty(remapping);
             Assert.Equal(3, clone.Parts.Count);
-            Assert.Equal(1, clone.RootParts.Count);
+            Assert.Single(clone.RootParts);
             foreach (var rootPart in clone.RootParts)
             {
-                Assert.True(clone.Parts.Values.Select(x => x.Part).Contains(rootPart));
+                Assert.Contains(rootPart, clone.Parts.Values.Select(x => x.Part));
             }
             foreach (var part in clone.Parts.Values)
             {
@@ -61,10 +61,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             var cloneRoot = clone.Parts[clone.RootParts.Single().Id];
             Assert.Empty(remapping);
             Assert.Equal(3, clone.Parts.Count);
-            Assert.Equal(1, clone.RootParts.Count);
+            Assert.Single(clone.RootParts);
             foreach (var rootPart in clone.RootParts)
             {
-                Assert.True(clone.Parts.Values.Select(x => x.Part).Contains(rootPart));
+                Assert.Contains(rootPart, clone.Parts.Values.Select(x => x.Part));
             }
             foreach (var part in clone.Parts.Values)
             {
@@ -97,10 +97,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             var cloneRoot = clone.Parts[clone.RootParts.Single().Id];
             Assert.Empty(remapping);
             Assert.Equal(3, clone.Parts.Count);
-            Assert.Equal(1, clone.RootParts.Count);
+            Assert.Single(clone.RootParts);
             foreach (var rootPart in clone.RootParts)
             {
-                Assert.True(clone.Parts.Values.Select(x => x.Part).Contains(rootPart));
+                Assert.Contains(rootPart, clone.Parts.Values.Select(x => x.Part));
             }
             foreach (var part in clone.Parts.Values)
             {
@@ -133,10 +133,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             var cloneRoot = clone.Parts[clone.RootParts.Single().Id];
             Assert.Empty(remapping);
             Assert.Equal(3, clone.Parts.Count);
-            Assert.Equal(1, clone.RootParts.Count);
+            Assert.Single(clone.RootParts);
             foreach (var rootPart in clone.RootParts)
             {
-                Assert.True(clone.Parts.Values.Select(x => x.Part).Contains(rootPart));
+                Assert.Contains(rootPart, clone.Parts.Values.Select(x => x.Part));
             }
             foreach (var part in clone.Parts.Values)
             {
@@ -168,10 +168,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             var cloneRoot = clone.Parts[clone.RootParts.Single().Id];
             Assert.Empty(remapping);
             Assert.Equal(3, clone.Parts.Count);
-            Assert.Equal(1, clone.RootParts.Count);
+            Assert.Single(clone.RootParts);
             foreach (var rootPart in clone.RootParts)
             {
-                Assert.True(clone.Parts.Values.Select(x => x.Part).Contains(rootPart));
+                Assert.Contains(rootPart, clone.Parts.Values.Select(x => x.Part));
             }
             foreach (var part in clone.Parts.Values)
             {
@@ -204,10 +204,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             var cloneRoot = clone.Parts[clone.RootParts.Single().Id];
             Assert.Empty(remapping);
             Assert.Equal(3, clone.Parts.Count);
-            Assert.Equal(1, clone.RootParts.Count);
+            Assert.Single(clone.RootParts);
             foreach (var rootPart in clone.RootParts)
             {
-                Assert.True(clone.Parts.Values.Select(x => x.Part).Contains(rootPart));
+                Assert.Contains(rootPart, clone.Parts.Values.Select(x => x.Part));
             }
             foreach (var part in clone.Parts.Values)
             {
@@ -226,7 +226,7 @@ namespace Xenko.Core.Assets.Quantum.Tests
             Assert.NotEqual(originalRoot.Part.Children[1].Parent, cloneRoot.Part.Children[1].Parent);
             Assert.Equal(cloneRoot.Part, cloneRoot.Part.Children[0].Parent);
             Assert.Equal(cloneRoot.Part, cloneRoot.Part.Children[1].Parent);
-            Assert.Equal(null, cloneRoot.Part.Children[0].MyReferences[0]);
+            Assert.Null(cloneRoot.Part.Children[0].MyReferences[0]);
         }
 
 
@@ -241,10 +241,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             var cloneRoot = clone.Parts[clone.RootParts.Single().Id];
             Assert.NotNull(remapping);
             Assert.Equal(3, clone.Parts.Count);
-            Assert.Equal(1, clone.RootParts.Count);
+            Assert.Single(clone.RootParts);
             foreach (var rootPart in clone.RootParts)
             {
-                Assert.True(clone.Parts.Values.Select(x => x.Part).Contains(rootPart));
+                Assert.Contains(rootPart, clone.Parts.Values.Select(x => x.Part));
             }
             foreach (var part in clone.Parts.Values)
             {
@@ -296,10 +296,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             cloneAsset.Graph.RefreshBase();
             Assert.Empty(remapping);
             Assert.Equal(4, clone.Parts.Count);
-            Assert.Equal(1, clone.RootParts.Count);
+            Assert.Single(clone.RootParts);
             foreach (var rootPart in clone.RootParts)
             {
-                Assert.True(clone.Parts.Values.Select(x => x.Part).Contains(rootPart));
+                Assert.Contains(rootPart, clone.Parts.Values.Select(x => x.Part));
             }
             foreach (var part in clone.Parts.Values)
             {
@@ -347,10 +347,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             cloneAsset.Graph.RefreshBase();
             Assert.Empty(remapping);
             Assert.Equal(4, clone.Parts.Count);
-            Assert.Equal(1, clone.RootParts.Count);
+            Assert.Single(clone.RootParts);
             foreach (var rootPart in clone.RootParts)
             {
-                Assert.True(clone.Parts.Values.Select(x => x.Part).Contains(rootPart));
+                Assert.Contains(rootPart, clone.Parts.Values.Select(x => x.Part));
             }
             foreach (var part in clone.Parts.Values)
             {

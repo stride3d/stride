@@ -76,17 +76,17 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var titleNode = viewModel.RootNode.GetChild(Title);
             var nameNode = viewModel.RootNode.GetChild(Instance).GetChild(Name);
 
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("Test", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(0, titleNode.AssociatedData[UpdateCountKey]);
 
             nameNode.NodeValue = "NewValue";
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(1, titleNode.AssociatedData[UpdateCountKey]);
 
             nameNode.NodeValue = "NewValue2";
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue2", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(2, titleNode.AssociatedData[UpdateCountKey]);
         }
@@ -102,17 +102,17 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var titleNode = viewModel.RootNode.GetChild(Title);
             var instanceNode = viewModel.RootNode.GetChild(Instance);
 
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("Test", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(0, titleNode.AssociatedData[UpdateCountKey]);
 
             instanceNode.NodeValue = new Types.SimpleObject { Name = "NewValue" };
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(1, titleNode.AssociatedData[UpdateCountKey]);
 
             instanceNode.NodeValue = new Types.SimpleObject { Name = "NewValue2" };
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue2", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(2, titleNode.AssociatedData[UpdateCountKey]);
         }
@@ -128,17 +128,17 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var titleNode = viewModel.RootNode.GetChild(Title);
             var instanceNode = viewModel.RootNode.GetChild(Instance);
 
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("Test", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(0, titleNode.AssociatedData[UpdateCountKey]);
 
             instanceNode.NodeValue = new Types.SimpleObject { Name = "NewValue" };
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(1, titleNode.AssociatedData[UpdateCountKey]);
 
             instanceNode.NodeValue = new Types.SimpleObject { Name = "NewValue2" };
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue2", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(2, titleNode.AssociatedData[UpdateCountKey]);
         }
@@ -154,17 +154,17 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var titleNode = viewModel.RootNode.GetChild(Title);
             var nameNode = viewModel.RootNode.GetChild(Instance).GetChild(Name);
 
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("Test", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(0, titleNode.AssociatedData[UpdateCountKey]);
 
             nameNode.NodeValue = "NewValue";
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(1, titleNode.AssociatedData[UpdateCountKey]);
 
             nameNode.NodeValue = "NewValue2";
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue2", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(2, titleNode.AssociatedData[UpdateCountKey]);
         }
@@ -181,28 +181,28 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var instanceNode = viewModel.RootNode.GetChild(Instance);
 
             var nameNode = viewModel.RootNode.GetChild(Instance).GetChild(Name);
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("Test", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(0, titleNode.AssociatedData[UpdateCountKey]);
 
             nameNode.NodeValue = "NewValue";
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(1, titleNode.AssociatedData[UpdateCountKey]);
 
             instanceNode.NodeValue = new Types.SimpleObject { Name = "NewValue2" };
             nameNode = viewModel.RootNode.GetChild(Instance).GetChild(Name);
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue2", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(2, titleNode.AssociatedData[UpdateCountKey]);
 
             nameNode.NodeValue = "NewValue3";
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue3", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(3, titleNode.AssociatedData[UpdateCountKey]);
 
             instanceNode.NodeValue = new Types.SimpleObject { Name = "NewValue4" };
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue4", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(4, titleNode.AssociatedData[UpdateCountKey]);
         }
@@ -219,27 +219,27 @@ namespace Xenko.Core.Presentation.Quantum.Tests
             var nameNode = viewModel.RootNode.GetChild(Instance).GetChild(Name);
             var namNode = viewModel.RootNode.GetChild(Instance).GetChild(Nam);
 
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("Test", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(0, titleNode.AssociatedData[UpdateCountKey]);
 
             namNode.NodeValue = "NewValue";
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("Test", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(0, titleNode.AssociatedData[UpdateCountKey]);
 
             nameNode.NodeValue = "NewValue2";
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue2", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(1, titleNode.AssociatedData[UpdateCountKey]);
 
             namNode.NodeValue = "NewValue3";
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue2", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(1, titleNode.AssociatedData[UpdateCountKey]);
 
             nameNode.NodeValue = "NewValue4";
-            Assert.Equal(true, titleNode.AssociatedData.ContainsKey(TestDataKey));
+            Assert.True(titleNode.AssociatedData.ContainsKey(TestDataKey));
             Assert.Equal("NewValue4", titleNode.AssociatedData[TestDataKey]);
             Assert.Equal(2, titleNode.AssociatedData[UpdateCountKey]);
         }

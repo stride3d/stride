@@ -38,7 +38,7 @@ namespace Xenko.Engine.Tests
             entityManager.EntityRemoved += (sender, entity1) => entityRemoved.Add(entity1);
 
             // No processors registered by default
-            Assert.Equal(0, entityManager.Processors.Count);
+            Assert.Empty(entityManager.Processors);
 
             // ================================================================
             // 1) Add an entity with the default TransformComponent to the Entity Manager
@@ -48,31 +48,31 @@ namespace Xenko.Engine.Tests
             entityManager.Add(entity);
 
             // Check types are correctly registered
-            Assert.Equal(1, componentTypes.Count);
+            Assert.Single(componentTypes);
             Assert.Equal(typeof(TransformComponent), componentTypes[0]);
 
             // Check entity correctly added
-            Assert.Equal(1, entityManager.Count);
+            Assert.Single(entityManager);
             Assert.True(entityManager.Contains(entity));
-            Assert.Equal(1, entityAdded.Count);
+            Assert.Single(entityAdded);
             Assert.Equal(entity, entityAdded[0]);
-            Assert.Equal(0, entityRemoved.Count);
+            Assert.Empty(entityRemoved);
 
             // We should have 1 processor
-            Assert.Equal(1, entityManager.Processors.Count);
+            Assert.Single(entityManager.Processors);
 
             var transformProcessor = entityManager.Processors[0] as TransformProcessor;
             Assert.NotNull(transformProcessor);
 
-            Assert.Equal(1, transformProcessor.TransformationRoots.Count);
+            Assert.Single(transformProcessor.TransformationRoots);
             // TODO: Check the root entity.Transform
 
             // Check internal mapping of component types => EntityProcessor
-            Assert.Equal(1, entityManager.MapComponentTypeToProcessors.Count);
+            Assert.Single(entityManager.MapComponentTypeToProcessors);
             Assert.True(entityManager.MapComponentTypeToProcessors.ContainsKey(typeof(TransformComponent).GetTypeInfo()));
 
             var processorListForTransformComponentType = entityManager.MapComponentTypeToProcessors[typeof(TransformComponent).GetTypeInfo()];
-            Assert.Equal(1, processorListForTransformComponentType.Count);
+            Assert.Single(processorListForTransformComponentType);
             Assert.True(processorListForTransformComponentType[0] is TransformProcessor);
 
             // clear events collector
@@ -88,17 +88,17 @@ namespace Xenko.Engine.Tests
             entityManager.Add(newEntity);
 
             // We should not have new component types registered
-            Assert.Equal(0, componentTypes.Count);
+            Assert.Empty(componentTypes);
 
             // Check entity correctly added
             Assert.Equal(2, entityManager.Count);
             Assert.True(entityManager.Contains(newEntity));
-            Assert.Equal(1, entityAdded.Count);
+            Assert.Single(entityAdded);
             Assert.Equal(newEntity, entityAdded[0]);
-            Assert.Equal(0, entityRemoved.Count);
+            Assert.Empty(entityRemoved);
 
             // We should still have 2 processors
-            Assert.Equal(1, entityManager.Processors.Count);
+            Assert.Single(entityManager.Processors);
             Assert.Equal(2, transformProcessor.TransformationRoots.Count);
 
             componentTypes.Clear();
@@ -112,13 +112,13 @@ namespace Xenko.Engine.Tests
             entityManager.Remove(newEntity);
 
             // Check entity correctly removed
-            Assert.Equal(1, entityManager.Count);
+            Assert.Single(entityManager);
             Assert.False(entityManager.Contains(newEntity));
-            Assert.Equal(0, entityAdded.Count);
-            Assert.Equal(1, entityRemoved.Count);
+            Assert.Empty(entityAdded);
+            Assert.Single(entityRemoved);
             Assert.Equal(newEntity, entityRemoved[0]);
 
-            Assert.Equal(1, transformProcessor.TransformationRoots.Count);
+            Assert.Single(transformProcessor.TransformationRoots);
 
             componentTypes.Clear();
             entityAdded.Clear();
@@ -153,14 +153,14 @@ namespace Xenko.Engine.Tests
             entityManager.Add(entity);
 
             // Check that component was correctly processed when first adding the entity
-            Assert.Equal(1, entityManager.Count);
+            Assert.Single(entityManager);
             Assert.Equal(2, entityManager.Processors.Count);
 
             // Verify that the processor has correctly registered the component
             var customProcessor = entityManager.GetProcessor<CustomEntityComponentProcessor>();
             Assert.NotNull(customProcessor);
 
-            Assert.Equal(1, customProcessor.CurrentComponentDatas.Count);
+            Assert.Single(customProcessor.CurrentComponentDatas);
             Assert.True(customProcessor.CurrentComponentDatas.ContainsKey(customComponent));
 
             // Verify that events are correctly propagated
@@ -203,10 +203,10 @@ namespace Xenko.Engine.Tests
             entity.Components.Remove(customComponent);
 
             // Verify that the processor has correctly removed the component
-            Assert.Equal(1, customProcessor.CurrentComponentDatas.Count);
+            Assert.Single(customProcessor.CurrentComponentDatas);
             Assert.False(customProcessor.CurrentComponentDatas.ContainsKey(customComponent));
 
-            Assert.Equal(null, customComponent.Entity);
+            Assert.Null(customComponent.Entity);
             expectedEvents = new List<CustomEntityComponentEventArgs>()
             {
                 new CustomEntityComponentEventArgs(CustomEntityComponentEventType.EntityComponentRemoved, entity, customComponent),
@@ -222,10 +222,10 @@ namespace Xenko.Engine.Tests
             entity.Components.Remove(customComponent2);
 
             // Verify that the processor has correctly removed the component
-            Assert.Equal(0, customProcessor.CurrentComponentDatas.Count);
+            Assert.Empty(customProcessor.CurrentComponentDatas);
             Assert.False(customProcessor.CurrentComponentDatas.ContainsKey(customComponent2));
 
-            Assert.Equal(null, customComponent2.Entity);
+            Assert.Null(customComponent2.Entity);
             expectedEvents = new List<CustomEntityComponentEventArgs>()
             {
                 new CustomEntityComponentEventArgs(CustomEntityComponentEventType.EntityComponentRemoved, entity, customComponent2),
@@ -275,14 +275,14 @@ namespace Xenko.Engine.Tests
             var processorsForTransform = entityManager.MapComponentTypeToProcessors[typeof(TransformComponent).GetTypeInfo()];
 
             // there is the HierarchicalProcessor and TransformProcessor
-            Assert.Equal(1, processorsForTransform.Count);
+            Assert.Single(processorsForTransform);
             Assert.NotNull(processorsForTransform.Dependencies);
-            Assert.Equal(1, processorsForTransform.Dependencies.Count);
+            Assert.Single(processorsForTransform.Dependencies);
             Assert.Equal(customProcessor, processorsForTransform.Dependencies[0]);
             
             // Check that the custom processor is empty
             var processorsForCustom = entityManager.MapComponentTypeToProcessors[typeof(CustomEntityComponentWithDependency).GetTypeInfo()];
-            Assert.Equal(1, processorsForCustom.Count);
+            Assert.Single(processorsForCustom);
             Assert.Null(processorsForCustom.Dependencies);
 
             // ================================================================
@@ -305,8 +305,8 @@ namespace Xenko.Engine.Tests
             entity.Components.RemoveAt(0);
 
             // The link is not updated, but it is ok, as it is an associated data that is no longer part of the processor
-            Assert.Equal(null, customComponent.Link);
-            Assert.Equal(0, customProcessor.CurrentComponentDatas.Count);
+            Assert.Null(customComponent.Link);
+            Assert.Empty(customProcessor.CurrentComponentDatas);
         }
 
         [Fact]
@@ -328,17 +328,17 @@ namespace Xenko.Engine.Tests
             Assert.NotNull(transformProcessor);
 
             Assert.Equal(2, entityManager.Count);
-            Assert.Equal(1, transformProcessor.TransformationRoots.Count);
-            Assert.True(transformProcessor.TransformationRoots.Contains(entity.Transform));
+            Assert.Single(transformProcessor.TransformationRoots);
+            Assert.Contains(entity.Transform, transformProcessor.TransformationRoots);
 
             // ================================================================
             // 2) Remove child from entity while the Entity is still in the EntityManager
             // ================================================================
             entity.Transform.Children.RemoveAt(0);
 
-            Assert.Equal(1, entityManager.Count);
-            Assert.Equal(1, transformProcessor.TransformationRoots.Count);
-            Assert.True(transformProcessor.TransformationRoots.Contains(entity.Transform));
+            Assert.Single(entityManager);
+            Assert.Single(transformProcessor.TransformationRoots);
+            Assert.Contains(entity.Transform, transformProcessor.TransformationRoots);
 
             // ================================================================
             // 3) Add a child to the root entity while the Entity is still in the EntityManager
@@ -347,16 +347,16 @@ namespace Xenko.Engine.Tests
             entity.AddChild(childEntity);
 
             Assert.Equal(2, entityManager.Count);
-            Assert.Equal(1, transformProcessor.TransformationRoots.Count);
-            Assert.True(transformProcessor.TransformationRoots.Contains(entity.Transform));
+            Assert.Single(transformProcessor.TransformationRoots);
+            Assert.Contains(entity.Transform, transformProcessor.TransformationRoots);
 
             // ================================================================
             // 3) Remove top level entity
             // ================================================================
             entityManager.Remove(entity);
 
-            Assert.Equal(0, entityManager.Count);
-            Assert.Equal(0, transformProcessor.TransformationRoots.Count);
+            Assert.Empty(entityManager);
+            Assert.Empty(transformProcessor.TransformationRoots);
         }
 
         [Fact]
@@ -378,18 +378,18 @@ namespace Xenko.Engine.Tests
             Assert.NotNull(transformProcessor);
 
             Assert.Equal(2, entityManager.Count);
-            Assert.Equal(1, transformProcessor.TransformationRoots.Count);
-            Assert.True(transformProcessor.TransformationRoots.Contains(entity.Transform));
+            Assert.Single(transformProcessor.TransformationRoots);
+            Assert.Contains(entity.Transform, transformProcessor.TransformationRoots);
 
             // ================================================================
             // 2) Reset the manager
             // ================================================================
             entityManager.Reset();
 
-            Assert.Equal(0, entityManager.Count);
-            Assert.Equal(0, entityManager.MapComponentTypeToProcessors.Count);
-            Assert.Equal(0, entityManager.Processors.Count);
-            Assert.Equal(0, transformProcessor.TransformationRoots.Count);
+            Assert.Empty(entityManager);
+            Assert.Empty(entityManager.MapComponentTypeToProcessors);
+            Assert.Empty(entityManager.Processors);
+            Assert.Empty(transformProcessor.TransformationRoots);
             Assert.Null(transformProcessor.EntityManager);
         }
 

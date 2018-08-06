@@ -60,8 +60,8 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Run(Builder.Mode.Build);
             builder.WriteIndexFile(false);
 
-            Assert.True(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
-            Assert.True(childStep.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
+            Assert.Contains(new ObjectUrl(UrlType.Content, "/db/url1"), step.Result.OutputObjects.Keys);
+            Assert.Contains(new ObjectUrl(UrlType.Content, "/db/url1"), childStep.Result.OutputObjects.Keys);
 
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.UseTransaction = true;
@@ -91,8 +91,8 @@ namespace Xenko.Core.BuildEngine.Tests
             builder2.Run(Builder.Mode.Build);
             builder2.WriteIndexFile(false);
 
-            Assert.True(step1.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
-            Assert.True(step2.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
+            Assert.Contains(new ObjectUrl(UrlType.Content, "/db/url1"), step1.Result.OutputObjects.Keys);
+            Assert.Contains(new ObjectUrl(UrlType.Content, "/db/url1"), step2.Result.OutputObjects.Keys);
 
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.UseTransaction = true;
@@ -124,7 +124,7 @@ namespace Xenko.Core.BuildEngine.Tests
             builder2.WriteIndexFile(false);
 
             Assert.Equal(ResultStatus.NotTriggeredWasSuccessful, step.Status);
-            Assert.True(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
+            Assert.Contains(new ObjectUrl(UrlType.Content, "/db/url1"), step.Result.OutputObjects.Keys);
 
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.UseTransaction = true;
@@ -172,8 +172,8 @@ namespace Xenko.Core.BuildEngine.Tests
             builder.Run(Builder.Mode.Build);
             builder.WriteIndexFile(false);
 
-            Assert.True(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
-            Assert.True(childStep.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url2")));
+            Assert.Contains(new ObjectUrl(UrlType.Content, "/db/url1"), step.Result.OutputObjects.Keys);
+            Assert.Contains(new ObjectUrl(UrlType.Content, "/db/url2"), childStep.Result.OutputObjects.Keys);
 
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.UseTransaction = true;
@@ -207,8 +207,8 @@ namespace Xenko.Core.BuildEngine.Tests
             Assert.Equal(ResultStatus.NotTriggeredWasSuccessful, step.Status);
             Assert.Equal(ResultStatus.NotTriggeredWasSuccessful, childStep.Status);
 
-            Assert.True(step.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url1")));
-            Assert.True(childStep.Result.OutputObjects.Keys.Contains(new ObjectUrl(UrlType.Content, "/db/url2")));
+            Assert.Contains(new ObjectUrl(UrlType.Content, "/db/url1"), step.Result.OutputObjects.Keys);
+            Assert.Contains(new ObjectUrl(UrlType.Content, "/db/url2"), childStep.Result.OutputObjects.Keys);
 
             var indexMap = ContentIndexMap.Load(VirtualFileSystem.ApplicationDatabaseIndexPath);
             indexMap.UseTransaction = true;
@@ -289,7 +289,7 @@ namespace Xenko.Core.BuildEngine.Tests
 
             builder.Run(Builder.Mode.Build);
             var logger = (LoggerResult)builder.Logger;
-            Assert.True(logger.Messages.Any(x => x.Text.Contains("Command InputOutputTestCommand /db/url1 > /db/url1 is writing /db/url1 while command InputOutputTestCommand /db/url1 > /db/url2 is reading it")));
+            Assert.Contains("Command InputOutputTestCommand /db/url1 > /db/url1 is writing /db/url1 while command InputOutputTestCommand /db/url1 > /db/url2 is reading it", logger.Messages.Select(x => x.Text));
         }
 
         [Fact(Skip = "BuildEngine tests are deprecated")]

@@ -26,7 +26,7 @@ namespace Xenko.Core.Quantum.Tests
             // A node with an ObjectNode should have the related object as value of its content.
             Assert.Equal(obj, node.Retrieve());
             // A node with an ObjectNode should not contain a reference if it does not represent a collection.
-            Assert.Equal(false, node.IsReference);
+            Assert.False(node.IsReference);
             // Check that we have the expected number of children.
             Assert.Equal(childCount, ((IObjectNode)node).Members.Count);
         }
@@ -49,13 +49,13 @@ namespace Xenko.Core.Quantum.Tests
             if (isReference)
             {
                 // A node with an ObjectNode representing a collection of reference types should contain an enumerable reference.
-                Assert.Equal(true, node.IsReference);
+                Assert.True(node.IsReference);
                 Assert.NotNull(((IObjectNode)node).ItemReferences);
             }
             else
             {
                 // A node with an ObjectNode representing a collection of primitive or struct types should not contain a refernce.
-                Assert.Equal(false, node.IsReference);            
+                Assert.False(node.IsReference);            
             }
             // A node with an ObjectNode representing a collection should not have any child.
             Assert.Equal(0, ((IObjectNode)node).Members.Count);
@@ -143,9 +143,9 @@ namespace Xenko.Core.Quantum.Tests
             // Check that the Guids match.
             Assert.Equal(Guid.Empty, reference.TargetGuid);
             // Check that the nodes match.
-            Assert.Equal(null, reference.TargetNode);
+            Assert.Null(reference.TargetNode);
             // Check that the values match.
-            Assert.Equal(null, reference.ObjectValue);
+            Assert.Null(reference.ObjectValue);
         }
 
         /// <summary>
