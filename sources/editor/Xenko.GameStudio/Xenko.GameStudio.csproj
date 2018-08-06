@@ -41,9 +41,6 @@
   <ItemGroup>
     <PackageReference Include="SharpDX" Version="4.0.1" />
     <PackageReference Include="EnvDTE" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="15.6.82">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
     <PackageReference Include="System.Management.dll" Version="1.0.0" />
     <Reference Include="Mono.Cecil">
       <SpecificVersion>False</SpecificVersion>
