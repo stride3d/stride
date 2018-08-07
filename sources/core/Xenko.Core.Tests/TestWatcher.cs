@@ -34,7 +34,7 @@ namespace Xenko.Core.Tests
             var watcher = new DirectoryWatcher();
             watcher.Track(p1);
             var list = watcher.GetTrackedDirectories();
-            Assert.Equal(1, list.Count);
+            Assert.Single(list);
             Assert.Equal(p1, list[0]);
 
             watcher.Track(p2);
@@ -46,18 +46,18 @@ namespace Xenko.Core.Tests
             // Adding p3 should set the track on the parent directory
             watcher.Track(p3);
             list = watcher.GetTrackedDirectories();
-            Assert.Equal(1, list.Count);
+            Assert.Single(list);
             Assert.Equal(pb0, list[0]);
 
             // Tracking again a child should not add a new track as the parent is already tracking
             watcher.Track(p1);
             list = watcher.GetTrackedDirectories();
-            Assert.Equal(1, list.Count);
+            Assert.Single(list);
             Assert.Equal(pb0, list[0]);
 
             watcher.Track(pb0);
             list = watcher.GetTrackedDirectories();
-            Assert.Equal(1, list.Count);
+            Assert.Single(list);
             Assert.Equal(pb0, list[0]);
 
             var events = new List<FileEvent>();
@@ -68,7 +68,7 @@ namespace Xenko.Core.Tests
             Thread.Sleep(20);
             watcher.Modified -= fileEventHandler;
 
-            Assert.Equal(1, events.Count);
+            Assert.Single(events);
             Assert.Equal(p4, events[0].FullPath.ToLowerInvariant());
 
             events.Clear();

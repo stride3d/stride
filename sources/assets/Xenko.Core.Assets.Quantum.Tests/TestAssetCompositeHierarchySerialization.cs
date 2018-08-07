@@ -108,9 +108,9 @@ Hierarchy:
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(2)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(3)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(4)));
-            Assert.Equal(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children.Count);
+            Assert.Single(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children);
             Assert.Equal(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(2)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children[0]);
-            Assert.Equal(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children.Count);
+            Assert.Single(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children);
             Assert.Equal(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(1)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children[0]);
         }
 
@@ -142,9 +142,9 @@ Hierarchy:
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(2)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(3)));
             Assert.True(asset.Asset.Hierarchy.Parts.ContainsKey(GuidGenerator.Get(4)));
-            Assert.Equal(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children.Count);
+            Assert.Single(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children);
             Assert.Equal(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(2)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(3)].Part.Children[0]);
-            Assert.Equal(1, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children.Count);
+            Assert.Single(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children);
             Assert.Equal(asset.Asset.Hierarchy.Parts[GuidGenerator.Get(1)].Part, asset.Asset.Hierarchy.Parts[GuidGenerator.Get(4)].Part.Children[0]);
         }
     }

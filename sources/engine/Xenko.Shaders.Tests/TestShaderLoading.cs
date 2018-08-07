@@ -54,7 +54,7 @@ namespace Xenko.Shaders.Tests
 
             var simple = shaderLoader.LoadClassSource(new ShaderClassSource("Simple"), new Xenko.Core.Shaders.Parser.ShaderMacro[0], log, false)?.Type;
 
-            Assert.Equal(1, simple.Members.Count);
+            Assert.Single(simple.Members);
 
             var simple2 = shaderLoader.LoadClassSource(new ShaderClassSource("Simple"), new Xenko.Core.Shaders.Parser.ShaderMacro[0], log, false)?.Type;
 

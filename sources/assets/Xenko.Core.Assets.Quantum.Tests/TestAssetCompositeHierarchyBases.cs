@@ -28,10 +28,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             baseRootPartNode[nameof(Types.MyPart.Name)].Update("NewBaseName2");
             Assert.Equal("NewBaseName2", derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part.Name);
             derivedRootPartNode[nameof(Types.MyPart.Name)].Update("NewDerivedName");
-            Assert.Equal(true, derivedRootPartNode[nameof(Types.MyPart.Name)].IsContentOverridden());
+            Assert.True(derivedRootPartNode[nameof(Types.MyPart.Name)].IsContentOverridden());
             Assert.Equal("NewDerivedName", derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part.Name);
             baseRootPartNode[nameof(Types.MyPart.Name)].Update("NewBaseName3");
-            Assert.Equal(true, derivedRootPartNode[nameof(Types.MyPart.Name)].IsContentOverridden());
+            Assert.True(derivedRootPartNode[nameof(Types.MyPart.Name)].IsContentOverridden());
             Assert.Equal("NewDerivedName", derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part.Name);
         }
 
@@ -55,10 +55,10 @@ namespace Xenko.Core.Assets.Quantum.Tests
             baseRootPartNode[nameof(Types.SomeObject.Value)].Update("NewBaseName2");
             Assert.Equal("NewBaseName2", derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part.Object.Value);
             derivedRootPartNode[nameof(Types.SomeObject.Value)].Update("NewDerivedName");
-            Assert.Equal(true, derivedRootPartNode[nameof(Types.SomeObject.Value)].IsContentOverridden());
+            Assert.True(derivedRootPartNode[nameof(Types.SomeObject.Value)].IsContentOverridden());
             Assert.Equal("NewDerivedName", derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part.Object.Value);
             baseRootPartNode[nameof(Types.SomeObject.Value)].Update("NewBaseName3");
-            Assert.Equal(true, derivedRootPartNode[nameof(Types.SomeObject.Value)].IsContentOverridden());
+            Assert.True(derivedRootPartNode[nameof(Types.SomeObject.Value)].IsContentOverridden());
             Assert.Equal("NewDerivedName", derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part.Object.Value);
         }
 
@@ -83,12 +83,12 @@ namespace Xenko.Core.Assets.Quantum.Tests
             Assert.Equal("NewBaseName2", derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part.Object.Value);
             var derivedRootPartNode = (IAssetObjectNode)baseAsset.Graph.Container.NodeContainer.GetNode(derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part);
             derivedRootPartNode[nameof(Types.MyPart.Object)].Update(new Types.SomeObject { Value = "NewDerivedName" });
-            Assert.Equal(true, derivedRootPartNode[nameof(Types.MyPart.Object)].IsContentOverridden());
+            Assert.True(derivedRootPartNode[nameof(Types.MyPart.Object)].IsContentOverridden());
             Assert.Equal("NewDerivedName", derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part.Object.Value);
             baseRootPartNode = (IAssetObjectNode)baseAsset.Graph.Container.NodeContainer.GetNode(baseAsset.Asset.Hierarchy.Parts[baseRootId].Part);
             derivedRootPartNode = (IAssetObjectNode)baseAsset.Graph.Container.NodeContainer.GetNode(derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part);
             baseRootPartNode[nameof(Types.MyPart.Object)].Update(new Types.SomeObject { Value = "NewBaseName3" });
-            Assert.Equal(true, derivedRootPartNode[nameof(Types.MyPart.Object)].IsContentOverridden());
+            Assert.True(derivedRootPartNode[nameof(Types.MyPart.Object)].IsContentOverridden());
             Assert.Equal("NewDerivedName", derivedAsset.Asset.Hierarchy.Parts[derivedRootId].Part.Object.Value);
         }
 

@@ -161,7 +161,7 @@ namespace Xenko.TextureConverter.Tests
                     Assert.True(File.Exists(file));
 
                     //Console.WriteLine("FITexLibTest_ExportArrayTest_" + minMipMapSize + "_" + fileName + "-ind_" + i + "-mip_" + j + ".png" + "." + TestTools.ComputeSHA1(file));
-                    Assert.True(TestTools.ComputeSHA1(file).Equals(TestTools.GetInstance().Checksum["FITexLibTest_ExportArrayTest_" + minMipMapSize + "_" + fileName + "-ind_" + i + "-mip_" + j + ".png"]));
+                    Assert.Equal(TestTools.GetInstance().Checksum["FITexLibTest_ExportArrayTest_" + minMipMapSize + "_" + fileName + "-ind_" + i + "-mip_" + j + ".png"], TestTools.ComputeSHA1(file));
                     File.Delete(file);
                     ++ct;
                 }

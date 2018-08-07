@@ -72,12 +72,12 @@ namespace Xenko.Core.Assets.Tests
             Assert.False(sessionResult.HasErrors);
 
             var sessionReload = sessionResult.Session;
-            Assert.Equal(1, sessionReload.LocalPackages.Count());
+            Assert.Single(sessionReload.LocalPackages);
             Assert.Equal(project.Id, sessionReload.LocalPackages.First().Id);
-            Assert.Equal(1, sessionReload.LocalPackages.First().Profiles.Count);
+            Assert.Single(sessionReload.LocalPackages.First().Profiles);
 
             var sharedProfileReload = sessionReload.LocalPackages.First().Profiles.First();
-            Assert.Equal(1, sharedProfileReload.ProjectReferences.Count);
+            Assert.Single(sharedProfileReload.ProjectReferences);
             Assert.Equal(projectReference, sharedProfileReload.ProjectReferences[0]);
         }
 
@@ -216,7 +216,7 @@ namespace Xenko.Core.Assets.Tests
                 var assetChanged = (AssetObjectTest)assetItemChanged.Asset;
                 Assert.Equal(new UFile(Path.Combine(Environment.CurrentDirectory, DirectoryTestBase) + "/TestPackage/SubFolder/TestAsset.xktest"), assetChanged.RawAsset);
                 var text = File.ReadAllText(assetItemChanged.FullPath);
-                Assert.True(text.Contains("../../TestPackage/SubFolder/TestAsset.xktest"));
+                Assert.Contains("../../TestPackage/SubFolder/TestAsset.xktest", text);
 
                 Assert.Equal("subTest/TestAsset2", assetChanged.Reference.Location);
             }

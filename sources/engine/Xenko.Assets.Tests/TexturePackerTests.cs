@@ -52,8 +52,8 @@ namespace Xenko.Assets.Tests
 
             maxRectPacker.PackRectangles(elementToPack);
 
-            Assert.Equal(1, elementToPack.Count);
-            Assert.Equal(1, maxRectPacker.PackedElements.Count);
+            Assert.Single(elementToPack);
+            Assert.Single(maxRectPacker.PackedElements);
         }
 
         [Fact]
@@ -71,7 +71,7 @@ namespace Xenko.Assets.Tests
 
             maxRectPacker.PackRectangles(packRectangles);
 
-            Assert.Equal(0, packRectangles.Count);
+            Assert.Empty(packRectangles);
             Assert.Equal(2, maxRectPacker.PackedElements.Count);
             Assert.True(maxRectPacker.PackedElements.Find(e => e.Name == "B").DestinationRegion.IsRotated);
         }
@@ -99,7 +99,7 @@ namespace Xenko.Assets.Tests
 
             maxRectPacker.PackRectangles(packRectangles);
 
-            Assert.Equal(1, packRectangles.Count);
+            Assert.Single(packRectangles);
             Assert.Equal(6, maxRectPacker.PackedElements.Count);
         }
 
@@ -146,8 +146,8 @@ namespace Xenko.Assets.Tests
 
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
-            Assert.Equal(0, textureElements.Count);
-            Assert.Equal(0, texturePacker.AtlasTextureLayouts.Count);
+            Assert.Empty(textureElements);
+            Assert.Empty(texturePacker.AtlasTextureLayouts);
             Assert.True(canPackAllTextures);
         }
 
@@ -171,7 +171,7 @@ namespace Xenko.Assets.Tests
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
             Assert.True(canPackAllTextures);
-            Assert.Equal(1, texturePacker.AtlasTextureLayouts.Count);
+            Assert.Single(texturePacker.AtlasTextureLayouts);
 
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(texturePacker.AtlasTextureLayouts[0], false);
 
@@ -197,7 +197,7 @@ namespace Xenko.Assets.Tests
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
             Assert.True(canPackAllTextures);
-            Assert.Equal(1, texturePacker.AtlasTextureLayouts.Count);
+            Assert.Single(texturePacker.AtlasTextureLayouts);
 
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(texturePacker.AtlasTextureLayouts[0], false);
 
@@ -220,7 +220,7 @@ namespace Xenko.Assets.Tests
             var canPackAllTextures = texturePacker.PackTextures(textureElements);
 
             Assert.Equal(2, textureElements.Count);
-            Assert.Equal(0, texturePacker.AtlasTextureLayouts.Count);
+            Assert.Empty(texturePacker.AtlasTextureLayouts);
             Assert.False(canPackAllTextures);
 
             texturePacker.Reset();
@@ -230,7 +230,7 @@ namespace Xenko.Assets.Tests
             canPackAllTextures = texturePacker.PackTextures(textureElements);
 
             Assert.True(canPackAllTextures);
-            Assert.Equal(1, texturePacker.AtlasTextureLayouts.Count);
+            Assert.Single(texturePacker.AtlasTextureLayouts);
             Assert.Equal(textureElements.Count, texturePacker.AtlasTextureLayouts[0].Textures.Count);
 
             Assert.True(MathUtil.IsPow2(texturePacker.AtlasTextureLayouts[0].Width));
@@ -261,7 +261,7 @@ namespace Xenko.Assets.Tests
 
             Assert.True(canPackAllTextures);
             Assert.Equal(2, textureElements.Count);
-            Assert.Equal(1, textureAtlases.Count);
+            Assert.Single(textureAtlases);
 
             Assert.True(MathUtil.IsPow2(textureAtlases[0].Width));
             Assert.True(MathUtil.IsPow2(textureAtlases[0].Height));
@@ -346,7 +346,7 @@ namespace Xenko.Assets.Tests
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.Equal(1, textureAtlases.Count);
+            Assert.Single(textureAtlases);
             Assert.True(MathUtil.IsPow2(textureAtlases[0].Width));
             Assert.True(MathUtil.IsPow2(textureAtlases[0].Height));
 
@@ -387,7 +387,7 @@ namespace Xenko.Assets.Tests
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.Equal(1, textureAtlases.Count);
+            Assert.Single(textureAtlases);
             Assert.Equal(texturePacker.MaxWidth, textureAtlases[0].Width);
             Assert.Equal(texturePacker.MaxHeight, textureAtlases[0].Height);
 
@@ -428,7 +428,7 @@ namespace Xenko.Assets.Tests
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.Equal(1, textureAtlases.Count);
+            Assert.Single(textureAtlases);
             Assert.Equal(texturePacker.MaxWidth, textureAtlases[0].Width);
             Assert.Equal(texturePacker.MaxHeight, textureAtlases[0].Height);
 
@@ -469,7 +469,7 @@ namespace Xenko.Assets.Tests
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.Equal(1, textureAtlases.Count);
+            Assert.Single(textureAtlases);
 
             // Create atlas texture
             var atlasTexture = AtlasTextureFactory.CreateTextureAtlas(textureAtlases[0], false);
@@ -512,7 +512,7 @@ namespace Xenko.Assets.Tests
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.Equal(1, textureAtlases.Count);
+            Assert.Single(textureAtlases);
             Assert.Equal(texturePacker.MaxWidth/2, textureAtlases[0].Width);
             Assert.Equal(texturePacker.MaxHeight/4, textureAtlases[0].Height);
 
@@ -587,7 +587,7 @@ namespace Xenko.Assets.Tests
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.Equal(0, textureAtlases.Count);
+            Assert.Empty(textureAtlases);
         }
 
         [Fact]
@@ -619,7 +619,7 @@ namespace Xenko.Assets.Tests
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.Equal(1, textureAtlases.Count);
+            Assert.Single(textureAtlases);
             Assert.Equal(4, textureAtlases[0].Textures.Count);
             Assert.Null(textureAtlases[0].Textures.Find(e => e.Name == "B"));
             Assert.Null(textureAtlases[0].Textures.Find(e => e.Name == "D"));
@@ -753,7 +753,7 @@ namespace Xenko.Assets.Tests
             var source = Image.New2D(width, height, 1, PixelFormat.R8G8B8A8_UNorm);
 
             Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes() * width * height);
-            Assert.Equal(source.PixelBuffer.Count, 1);
+            Assert.Equal(1, source.PixelBuffer.Count);
 
             Assert.Equal(1, source.Description.MipLevels);
             Assert.Equal(1, source.Description.ArraySize);
@@ -767,7 +767,7 @@ namespace Xenko.Assets.Tests
 
             // Get Pixel
             var fromPixels = pixelBuffer.GetPixels<byte>();
-            Assert.Equal(fromPixels[0], 255);
+            Assert.Equal(255, fromPixels[0]);
 
             // Dispose images
             source.Dispose();
@@ -782,7 +782,7 @@ namespace Xenko.Assets.Tests
             var source = Image.New2D(width, height, 1, PixelFormat.R8G8B8A8_UNorm);
 
             Assert.Equal(source.TotalSizeInBytes, PixelFormat.R8G8B8A8_UNorm.SizeInBytes() * width * height);
-            Assert.Equal(source.PixelBuffer.Count, 1);
+            Assert.Equal(1, source.PixelBuffer.Count);
 
             Assert.Equal(1, source.Description.MipLevels);
             Assert.Equal(1, source.Description.ArraySize);
@@ -846,7 +846,7 @@ namespace Xenko.Assets.Tests
             // Obtain texture atlases
             var textureAtlases = texturePacker.AtlasTextureLayouts;
 
-            Assert.Equal(1, textureAtlases.Count);
+            Assert.Single(textureAtlases);
 
             if (!texturePacker.AllowNonPowerOfTwo)
             {

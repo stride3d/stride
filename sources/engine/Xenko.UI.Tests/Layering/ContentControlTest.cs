@@ -56,7 +56,7 @@ namespace Xenko.UI.Tests.Layering
             ResetState();
 
             // default value
-            Assert.Equal(null, Content);
+            Assert.Null(Content);
 
             // test parent setting
             var content = new ContentControlTest();
@@ -66,8 +66,8 @@ namespace Xenko.UI.Tests.Layering
 
             // unset content
             Content = null;
-            Assert.Equal(null, content.Parent);
-            Assert.Equal(Content, null);
+            Assert.Null(content.Parent);
+            Assert.Null(Content);
             
             // reset the content
             var contentControl = new ContentControlTest { Content = content };

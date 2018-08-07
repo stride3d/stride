@@ -85,7 +85,7 @@ namespace Xenko.GameStudio.Tests
 
             var pastedEntity = assetTest.Asset.Hierarchy.Parts.Values.Single(x => x != entity);
             Assert.Equal(2, assetTest.Asset.Hierarchy.RootParts.Count);
-            Assert.True(assetTest.Asset.Hierarchy.RootParts.Contains(pastedEntity.Entity));
+            Assert.Contains(pastedEntity.Entity, assetTest.Asset.Hierarchy.RootParts);
             Assert.Equal(string.Empty, pastedEntity.Folder);
             Assert.NotEqual(entity.Entity.Id, pastedEntity.Entity.Id);
             Assert.NotEqual(entity.Entity.Transform.Id, pastedEntity.Entity.Transform.Id);
@@ -110,13 +110,13 @@ namespace Xenko.GameStudio.Tests
             Assert.True(assetTest.Asset.Hierarchy.Parts.Values.Contains(entity));
 
             var pastedEntity = assetTest.Asset.Hierarchy.Parts.Values.Single(x => x != entity);
-            Assert.Equal(1, assetTest.Asset.Hierarchy.RootParts.Count);
-            Assert.True(assetTest.Asset.Hierarchy.RootParts.Contains(entity.Entity));
+            Assert.Single(assetTest.Asset.Hierarchy.RootParts);
+            Assert.Contains(entity.Entity, assetTest.Asset.Hierarchy.RootParts);
             Assert.Equal(string.Empty, pastedEntity.Folder);
             Assert.NotEqual(entity.Entity.Id, pastedEntity.Entity.Id);
             Assert.NotEqual(entity.Entity.Transform.Id, pastedEntity.Entity.Transform.Id);
             Assert.Equal(entity.Entity.Transform, pastedEntity.Entity.Transform.Parent);
-            Assert.True(entity.Entity.Transform.Children.Contains(pastedEntity.Entity.Transform));
+            Assert.Contains(pastedEntity.Entity.Transform, entity.Entity.Transform.Children);
             Assert.Equal(Vector3.UnitZ, pastedEntity.Entity.Transform.Position);
         }
 

@@ -121,7 +121,7 @@ namespace Xenko.Core.Design.Tests
             memberPath.Push(MemberSubs);
             memberPath.Push(ListClassDesc, 0);
             Assert.True(memberPath.Apply(testClass, MemberPathAction.CollectionRemove, null));
-            Assert.Equal(0, testClass.Subs.Count);
+            Assert.Empty(testClass.Subs);
             Assert.True(memberPath.Match(memberPath.Clone()));
 
             // 9) Add a key MyClass.Subs.Add(new MyClass())
@@ -129,7 +129,7 @@ namespace Xenko.Core.Design.Tests
             memberPath.Push(MemberSubs);
             memberPath.Push(ListClassDesc, 0);
             Assert.True(memberPath.Apply(testClass, MemberPathAction.CollectionAdd, new MyClass()));
-            Assert.Equal(1, testClass.Subs.Count);
+            Assert.Single(testClass.Subs);
             Assert.True(memberPath.Match(memberPath.Clone()));
         }
     }

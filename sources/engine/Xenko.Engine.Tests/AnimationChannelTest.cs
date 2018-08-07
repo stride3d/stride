@@ -96,8 +96,8 @@ namespace Xenko.Engine.Tests
             //And 2 initial frames            
             Assert.Equal(frame0, optimizedCurvesFloat.AnimationInitialValues[0].Value1);
             Assert.Equal(frame1, optimizedCurvesFloat.AnimationInitialValues[0].Value2);
-            Assert.Equal(1, optimizedCurvesFloat.AnimationSortedValues.Length);
-            Assert.Equal(1, optimizedCurvesFloat.AnimationSortedValues[0].Length);
+            Assert.Single(optimizedCurvesFloat.AnimationSortedValues);
+            Assert.Single(optimizedCurvesFloat.AnimationSortedValues[0]);
             Assert.Equal(frame1, optimizedCurvesFloat.AnimationSortedValues[0][0].Value);
         }
     }

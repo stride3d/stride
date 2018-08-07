@@ -15,9 +15,9 @@ namespace Xenko.Core.Design.Tests.Transactions
             {
                 // Empty transaction
             }
-            Assert.Equal(true, stack.IsEmpty);
-            Assert.Equal(false, stack.CanRollback);
-            Assert.Equal(false, stack.CanRollforward);
+            Assert.True(stack.IsEmpty);
+            Assert.False(stack.CanRollback);
+            Assert.False(stack.CanRollforward);
             Assert.Throws<TransactionException>(() => stack.Rollback());
         }
 
@@ -33,9 +33,9 @@ namespace Xenko.Core.Design.Tests.Transactions
                 }
             }
 
-            Assert.Equal(true, stack.IsEmpty);
-            Assert.Equal(false, stack.CanRollback);
-            Assert.Equal(false, stack.CanRollforward);
+            Assert.True(stack.IsEmpty);
+            Assert.False(stack.CanRollback);
+            Assert.False(stack.CanRollforward);
             Assert.Throws<TransactionException>(() => stack.Rollback());
         }
 
@@ -49,10 +49,10 @@ namespace Xenko.Core.Design.Tests.Transactions
                 operation = new SimpleOperation();
                 stack.PushOperation(new SimpleOperation());
             }
-            Assert.Equal(false, stack.IsEmpty);
-            Assert.Equal(true, stack.CanRollback);
-            Assert.Equal(false, stack.CanRollforward);
-            Assert.Equal(true, operation.IsDone);
+            Assert.False(stack.IsEmpty);
+            Assert.True(stack.CanRollback);
+            Assert.False(stack.CanRollforward);
+            Assert.True(operation.IsDone);
             Assert.Equal(0, operation.RollbackCount);
             Assert.Equal(0, operation.RollforwardCount);
         }
@@ -69,10 +69,10 @@ namespace Xenko.Core.Design.Tests.Transactions
             }
             // Above code must be similar to TestSingleOperationTransaction
             stack.Rollback();
-            Assert.Equal(false, stack.IsEmpty);
-            Assert.Equal(false, stack.CanRollback);
-            Assert.Equal(true, stack.CanRollforward);
-            Assert.Equal(false, operation.IsDone);
+            Assert.False(stack.IsEmpty);
+            Assert.False(stack.CanRollback);
+            Assert.True(stack.CanRollforward);
+            Assert.False(operation.IsDone);
             Assert.Equal(1, operation.RollbackCount);
             Assert.Equal(0, operation.RollforwardCount);
         }
@@ -90,10 +90,10 @@ namespace Xenko.Core.Design.Tests.Transactions
             stack.Rollback();
             // Above code must be similar to TestSingleOperationTransactionRollback
             stack.Rollforward();
-            Assert.Equal(false, stack.IsEmpty);
-            Assert.Equal(true, stack.CanRollback);
-            Assert.Equal(false, stack.CanRollforward);
-            Assert.Equal(true, operation.IsDone);
+            Assert.False(stack.IsEmpty);
+            Assert.True(stack.CanRollback);
+            Assert.False(stack.CanRollforward);
+            Assert.True(operation.IsDone);
             Assert.Equal(1, operation.RollbackCount);
             Assert.Equal(1, operation.RollforwardCount);
         }
@@ -112,9 +112,9 @@ namespace Xenko.Core.Design.Tests.Transactions
                     stack.PushOperation(operation);
                 }
             }
-            Assert.Equal(false, stack.IsEmpty);
-            Assert.Equal(true, stack.CanRollback);
-            Assert.Equal(false, stack.CanRollforward);
+            Assert.False(stack.IsEmpty);
+            Assert.True(stack.CanRollback);
+            Assert.False(stack.CanRollforward);
         }
 
         [Fact]
@@ -133,13 +133,13 @@ namespace Xenko.Core.Design.Tests.Transactions
             }
             // Above code must be similar to TestMultipleOperationsTransaction
             stack.Rollback();
-            Assert.Equal(false, stack.IsEmpty);
-            Assert.Equal(false, stack.CanRollback);
-            Assert.Equal(true, stack.CanRollforward);
+            Assert.False(stack.IsEmpty);
+            Assert.False(stack.CanRollback);
+            Assert.True(stack.CanRollforward);
             Assert.Equal(operations.Length, counter.Value);
             foreach (var operation in operations)
             {
-                Assert.Equal(false, operation.IsDone);
+                Assert.False(operation.IsDone);
                 Assert.Equal(1, operation.RollbackCount);
                 Assert.Equal(0, operation.RollforwardCount);
             }
@@ -163,13 +163,13 @@ namespace Xenko.Core.Design.Tests.Transactions
             // Above code must be similar to TestMultipleOperationsTransactionRollback
             counter.Reset();
             stack.Rollforward();
-            Assert.Equal(false, stack.IsEmpty);
-            Assert.Equal(true, stack.CanRollback);
-            Assert.Equal(false, stack.CanRollforward);
+            Assert.False(stack.IsEmpty);
+            Assert.True(stack.CanRollback);
+            Assert.False(stack.CanRollforward);
             Assert.Equal(operations.Length, counter.Value);
             foreach (var operation in operations)
             {
-                Assert.Equal(true, operation.IsDone);
+                Assert.True(operation.IsDone);
                 Assert.Equal(1, operation.RollbackCount);
                 Assert.Equal(1, operation.RollforwardCount);
             }
@@ -189,14 +189,14 @@ namespace Xenko.Core.Design.Tests.Transactions
                 }
             }
             stack.Clear();
-            Assert.Equal(false, stack.CanRollback);
-            Assert.Equal(false, stack.CanRollforward);
+            Assert.False(stack.CanRollback);
+            Assert.False(stack.CanRollforward);
             Assert.Equal(5, stack.Capacity);
-            Assert.Equal(true, stack.IsEmpty);
-            Assert.Equal(false, stack.IsFull);
+            Assert.True(stack.IsEmpty);
+            Assert.False(stack.IsFull);
             foreach (var operation in operations)
             {
-                Assert.Equal(true, operation.IsFrozen);
+                Assert.True(operation.IsFrozen);
             }
         }
 
@@ -214,10 +214,10 @@ namespace Xenko.Core.Design.Tests.Transactions
                 }
             }
 
-            Assert.Equal(true, operations[0].IsFrozen);
+            Assert.True(operations[0].IsFrozen);
             for (var i = 1; i < operations.Length; ++i)
             {
-                Assert.Equal(false, operations[i].IsFrozen);
+                Assert.False(operations[i].IsFrozen);
                 Assert.Equal(operations[i], ((TransactionStack)stack).Transactions[i - 1].Operations[0]);
             }
         }
@@ -238,11 +238,11 @@ namespace Xenko.Core.Design.Tests.Transactions
 
             for (int i = 0; i < 3; ++i)
             {
-                Assert.Equal(true, operations[0].IsFrozen);
+                Assert.True(operations[0].IsFrozen);
             }
             for (var i = 3; i < operations.Length; ++i)
             {
-                Assert.Equal(false, operations[i].IsFrozen);
+                Assert.False(operations[i].IsFrozen);
                 Assert.Equal(operations[i], ((TransactionStack)stack).Transactions[i - 3].Operations[0]);
             }
         }
@@ -269,12 +269,12 @@ namespace Xenko.Core.Design.Tests.Transactions
 
             for (var i = 0; i < 4; ++i)
             {
-                Assert.Equal(false, operations[i].IsFrozen);
+                Assert.False(operations[i].IsFrozen);
                 Assert.Equal(operations[i], ((TransactionStack)stack).Transactions[i].Operations[0]);
             }
             // operations[4] is the discarded transaction
-            Assert.Equal(true, operations[4].IsFrozen);
-            Assert.Equal(false, operations[5].IsFrozen);
+            Assert.True(operations[4].IsFrozen);
+            Assert.False(operations[5].IsFrozen);
             Assert.Equal(operations[5], ((TransactionStack)stack).Transactions[4].Operations[0]);
         }
     }

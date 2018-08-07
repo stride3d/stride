@@ -44,14 +44,14 @@ namespace Xenko.Core.Design.Tests
         {
             var cache = new ObjectCache<Guid, object>();
             Assert.Equal(ObjectCache<Guid, object>.DefaultCacheSize, cache.Size);
-            Assert.Equal(0, cache.History().Count);
-            Assert.Equal(0, cache.Cache().Count);
+            Assert.Empty(cache.History());
+            Assert.Empty(cache.Cache());
             Assert.Equal(0, cache.CurrentAccessCount());
 
             cache = new ObjectCache<Guid, object>(16);
             Assert.Equal(16, cache.Size);
-            Assert.Equal(0, cache.History().Count);
-            Assert.Equal(0, cache.Cache().Count);
+            Assert.Empty(cache.History());
+            Assert.Empty(cache.Cache());
             Assert.Equal(0, cache.CurrentAccessCount());
         }
 
@@ -63,23 +63,23 @@ namespace Xenko.Core.Design.Tests
             var obj = new object();
             cache.Cache(guid, obj);
             var retrieved = cache.TryGet(guid);
-            Assert.Equal(1, cache.History().Count);
-            Assert.Equal(1, cache.Cache().Count);
+            Assert.Single(cache.History());
+            Assert.Single(cache.Cache());
             Assert.Equal(2, cache.CurrentAccessCount());
             Assert.Equal(2, cache.History().Single().Key);
             Assert.Equal(guid, cache.History().Single().Value);
-            Assert.Equal(true, cache.Cache().ContainsKey(guid));
+            Assert.True(cache.Cache().ContainsKey(guid));
             Assert.Equal(obj, cache.Cache()[guid]);
             Assert.Equal(obj, retrieved);
             retrieved = cache.TryGet(Guid.NewGuid());
-            Assert.Equal(1, cache.History().Count);
-            Assert.Equal(1, cache.Cache().Count);
+            Assert.Single(cache.History());
+            Assert.Single(cache.Cache());
             Assert.Equal(2, cache.CurrentAccessCount());
             Assert.Equal(2, cache.History().Single().Key);
             Assert.Equal(guid, cache.History().Single().Value);
-            Assert.Equal(true, cache.Cache().ContainsKey(guid));
+            Assert.True(cache.Cache().ContainsKey(guid));
             Assert.Equal(obj, cache.Cache()[guid]);
-            Assert.Equal(null, retrieved);
+            Assert.Null(retrieved);
         }
 
         [Fact]
@@ -89,12 +89,12 @@ namespace Xenko.Core.Design.Tests
             var guid = Guid.NewGuid();
             var obj = new object();
             cache.Cache(guid, obj);
-            Assert.Equal(1, cache.History().Count);
-            Assert.Equal(1, cache.Cache().Count);
+            Assert.Single(cache.History());
+            Assert.Single(cache.Cache());
             Assert.Equal(1, cache.CurrentAccessCount());
             Assert.Equal(1, cache.History().Single().Key);
             Assert.Equal(guid, cache.History().Single().Value);
-            Assert.Equal(true, cache.Cache().ContainsKey(guid));
+            Assert.True(cache.Cache().ContainsKey(guid));
             Assert.Equal(obj, cache.Cache()[guid]);
         }
 
@@ -113,7 +113,7 @@ namespace Xenko.Core.Design.Tests
             Assert.Equal(2, cache.CurrentAccessCount());
             Assert.Equal(1, cache.History().First().Key);
             Assert.Equal(guid1, cache.History().First().Value);
-            Assert.Equal(true, cache.Cache().ContainsKey(guid1));
+            Assert.True(cache.Cache().ContainsKey(guid1));
             Assert.Equal(obj1, cache.Cache()[guid1]);
             Assert.Equal(2, cache.History().Last().Key);
             Assert.Equal(guid2, cache.History().Last().Value);
@@ -137,11 +137,11 @@ namespace Xenko.Core.Design.Tests
             Assert.Equal(2, cache.History().Count);
             Assert.Equal(2, cache.History().First().Key);
             Assert.Equal(guid2, cache.History().First().Value);
-            Assert.Equal(true, cache.Cache().ContainsKey(guid2));
+            Assert.True(cache.Cache().ContainsKey(guid2));
             Assert.Equal(obj2, cache.Cache()[guid2]);
             Assert.Equal(3, cache.History().Last().Key);
             Assert.Equal(guid3, cache.History().Last().Value);
-            Assert.Equal(true, cache.Cache().ContainsKey(guid3));
+            Assert.True(cache.Cache().ContainsKey(guid3));
             Assert.Equal(obj3, cache.Cache()[guid3]);
             Assert.Equal(3, cache.CurrentAccessCount());
         }
@@ -162,11 +162,11 @@ namespace Xenko.Core.Design.Tests
             Assert.Equal(2, cache.History().Count);
             Assert.Equal(3, cache.History().First().Key);
             Assert.Equal(guid1, cache.History().First().Value);
-            Assert.Equal(true, cache.Cache().ContainsKey(guid1));
+            Assert.True(cache.Cache().ContainsKey(guid1));
             Assert.Equal(obj1, cache.Cache()[guid1]);
             Assert.Equal(4, cache.History().Last().Key);
             Assert.Equal(guid3, cache.History().Last().Value);
-            Assert.Equal(true, cache.Cache().ContainsKey(guid3));
+            Assert.True(cache.Cache().ContainsKey(guid3));
             Assert.Equal(obj3, cache.Cache()[guid3]);
             Assert.Equal(4, cache.CurrentAccessCount());
         }
