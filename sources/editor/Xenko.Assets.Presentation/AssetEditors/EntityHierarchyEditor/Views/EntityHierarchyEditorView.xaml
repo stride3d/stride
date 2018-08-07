@@ -682,7 +682,7 @@
                                                  Converter={xk:Chained {xk:IsEqualToParam}, {xk:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Translation}}}"
                             ToolTip="{xk:Localize Snap translations to this value, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
                 <StackPanel Orientation="Horizontal">
-                  <Image Source="{StaticResource ImageTranslateSnap}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                  <Image Source="{StaticResource ImageTranslateSnap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                   <xk:NumericTextBox Width="50" Value="{Binding Transform.TranslationSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
                 </StackPanel>
               </ToggleButton>
@@ -691,7 +691,7 @@
                                                  Converter={xk:Chained {xk:IsEqualToParam}, {xk:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Rotation}}}"
                             ToolTip="{xk:Localize Snap rotations to this value, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
                 <StackPanel Orientation="Horizontal">
-                  <Image Source="{StaticResource ImageRotateSnap}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                  <Image Source="{StaticResource ImageRotateSnap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                   <xk:NumericTextBox Width="50" Value="{Binding Transform.RotationSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
                 </StackPanel>
               </ToggleButton>
@@ -700,7 +700,7 @@
                                                  Converter={xk:Chained {xk:IsEqualToParam}, {xk:VisibleOrCollapsed}, Parameter1={x:Static gameEditor:Transformation.Scale}}}"
                             ToolTip="{xk:Localize Snap scale to this factor, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True">
                 <StackPanel Orientation="Horizontal">
-                  <Image Source="{StaticResource ImageScaleSnap}" Width="24" Height="24" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                  <Image Source="{StaticResource ImageScaleSnap}" Width="16" Height="16" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
                   <xk:NumericTextBox Width="50" Value="{Binding Transform.ScaleSnap.Value}" Minimum="0" DecimalPlaces="3" Margin="2"/>
                 </StackPanel>
               </ToggleButton>
