@@ -29,6 +29,8 @@ Thank you everybody for your generous contributions!
 * Dmitry Terentev
 * Chance McDonald
 * Shane
+* Chris Beckwith
+* Harald Mühleder
 
 ## Mini Backers
 
