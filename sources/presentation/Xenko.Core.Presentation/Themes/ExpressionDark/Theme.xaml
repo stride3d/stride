@@ -425,9 +425,9 @@
         <ColumnDefinition />
         <ColumnDefinition Width="16" />
       </Grid.ColumnDefinitions>
-      <Rectangle Grid.ColumnSpan="2" HorizontalAlignment="Stretch" x:Name="Rectangle" VerticalAlignment="Stretch" RadiusX="2" RadiusY="2" Fill="{DynamicResource LightBrush}" Stroke="{DynamicResource NormalBorderBrush}" />
-      <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RadiusX="2" RadiusY="2" Fill="{DynamicResource LightBrush}" Stroke="{DynamicResource NormalBorderBrush}" />
-      <Border Margin="1" Grid.Column="1" Background="{DynamicResource ToggleButtonNormalBackground}" CornerRadius="2" x:Name="border" />
+      <Rectangle Grid.ColumnSpan="2" HorizontalAlignment="Stretch" x:Name="Rectangle" VerticalAlignment="Stretch" Fill="{DynamicResource LightBrush}" Stroke="{DynamicResource NormalBorderBrush}" />
+      <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="{DynamicResource LightBrush}" Stroke="{DynamicResource NormalBorderBrush}" />
+      <Border Margin="1" Grid.Column="1" Background="{DynamicResource ToggleButtonNormalBackground}" x:Name="border" />
       <Path Grid.Column="1" HorizontalAlignment="Center" x:Name="Arrow" VerticalAlignment="Center" Data="M0.5,0.5 L3,6.5 5.5,0.5" Stroke="{DynamicResource TextBrush}" Margin="0" Height="5.5" StrokeThickness="2" Stretch="Fill" Width="9.8" />
     </Grid>
     <ControlTemplate.Triggers>
@@ -1891,7 +1891,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ctrl:NumericTextBox">
-          <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}" CornerRadius="4">
+          <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
             <DockPanel LastChildFill="True">
               <UniformGrid x:Name="upDownButtons" HorizontalAlignment="Stretch" DockPanel.Dock="Right" Rows="2" Focusable="False" Visibility="Collapsed" MaxWidth="16">
                 <RepeatButton x:Name="PART_IncreaseButton" Command="{x:Static ctrl:NumericTextBox.SmallIncreaseCommand}">
