@@ -65,7 +65,7 @@
         </Hyperlink>
       </TextBlock>
       <!-- Backers -->
-      <xk:MarkdownTextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" x:Name="BackersPanel" Text="{Binding MarkdownBackers, Mode=OneWay}"
+      <xk:MarkdownTextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" x:Name="BackersPanel" Text="{Binding Path=MarkdownBackers, Mode=OneWay}"
                             Width="{Binding ElementName=Logo, Path=ActualWidth, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" MaxHeight="300px"/>
     </Grid>
     <!-- Button -->

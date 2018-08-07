@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Xenko.Core.Assets;
 using Xenko.Core.Assets.Editor.Services;
-using Xenko.PrivacyPolicy;
-using Xenko.Core.Presentation.Controls;
+using Xenko.Core.Extensions;
 
 namespace Xenko.GameStudio.View
 {
@@ -17,15 +16,17 @@ namespace Xenko.GameStudio.View
     /// </summary>
     public partial class AboutPage
     {
-        const string MarkdownNotLoaded = "Unable to load the file.";
-        private readonly Task<string> markdownBackers;
+        private const string MarkdownNotLoaded = "Unable to load the file.";
+
+        public static readonly DependencyProperty MarkdownBackersProperty =
+            DependencyProperty.Register("MarkdownBackers", typeof(string), typeof(AboutPage), new PropertyMetadata(null));
 
         public AboutPage()
         {
             InitializeComponent();
 
             DataContext = this;
-            markdownBackers = Task.Run(() => LoadMarkdown("BACKERS.md"));
+            LoadBakers().Forget();
         }
 
         public AboutPage(IEditorDialogService service)
@@ -34,9 +35,13 @@ namespace Xenko.GameStudio.View
             Service = service;
         }
 
-        private IEditorDialogService Service { get; }
+        public string MarkdownBackers
+        {
+            get { return (string)GetValue(MarkdownBackersProperty); }
+            set { SetValue(MarkdownBackersProperty, value); }
+        }
 
-        public string MarkdownBackers => markdownBackers.Result;
+        private IEditorDialogService Service { get; }
 
         private void ButtonCloseClick(object sender, RoutedEventArgs e)
         {
@@ -52,7 +57,7 @@ namespace Xenko.GameStudio.View
         {
             Service.MessageBox(LoadMarkdown("THIRD PARTY.md"));
         }
-
+        
         private static string LoadMarkdown(string file)
         {
             try
@@ -73,6 +78,11 @@ namespace Xenko.GameStudio.View
             {
                 return MarkdownNotLoaded;
             }
+        }
+
+        private async Task LoadBakers()
+        {
+            MarkdownBackers = await Task.Run(() => LoadMarkdown("BACKERS.md")).ConfigureAwait(true);
         }
     }
 }
