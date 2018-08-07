@@ -75,7 +75,7 @@ namespace Xenko.UI.Tests.Events
             Assert.Equal(sourcePassedToRaiseEvent, e.Source);
             Assert.Throws<InvalidOperationException>(() => e.Source = null);
             Assert.Throws<InvalidOperationException>(() => e.RoutedEvent = null);
-            Assert.Equal(false, e.Handled);
+            Assert.False(e.Handled);
 
             enteredInTestArgsDelegate = true;
         }
@@ -103,7 +103,7 @@ namespace Xenko.UI.Tests.Events
             RaiseEvent(argsPassedToRaiseEvent);
 
             // check that the delegate has been called
-            Assert.Equal(true, enteredInTestArgsDelegate);
+            Assert.True(enteredInTestArgsDelegate);
 
             // check that value of the event raised can be modified again after being raised
             argsPassedToRaiseEvent.RoutedEvent = null;
@@ -222,7 +222,7 @@ namespace Xenko.UI.Tests.Events
             // direct test
             senderList.Clear();
             element10.RaiseEvent(new RoutedEventArgs(directEvent));
-            Assert.Equal(1, senderList.Count);
+            Assert.Single(senderList);
             Assert.Equal(element10, senderList[0]);
 
             // tunneling test 1
@@ -246,7 +246,7 @@ namespace Xenko.UI.Tests.Events
             var eventMyTestHandler = EventManager.RegisterRoutedEvent<MyTestRoutedEventArgs>("TestMyTestHandler", RoutingStrategy.Direct, typeof(UIElementLayeringTests));
             AddHandler(eventMyTestHandler, TestMyTestHandler);
             RaiseEvent(new MyTestRoutedEventArgs(eventMyTestHandler));
-            Assert.Equal(true, testMyTestHandlerCalled);
+            Assert.True(testMyTestHandlerCalled);
 
             // test Handled and EventHandledToo
             foreach (var uiElement in elements)
@@ -257,9 +257,9 @@ namespace Xenko.UI.Tests.Events
             senderList.Clear();
             element00.AddHandler(bubblingEvent, TestEventHandledHandler, true);
             element32.RaiseEvent(new RoutedEventArgs(bubblingEvent));
-            Assert.Equal(1, senderList.Count);
+            Assert.Single(senderList);
             Assert.Equal(element32, senderList[0]);
-            Assert.Equal(true, testEventHandledTooCalled);
+            Assert.True(testEventHandledTooCalled);
 
             // test class handlers basic working
             foreach (var uiElement in elements)
@@ -278,10 +278,10 @@ namespace Xenko.UI.Tests.Events
             foreach (var uiElement in elements)
                 uiElement.AddHandler(bubblingEvent, TestAddSenderToList);
             element20.RaiseEvent(new RoutedEventArgs(bubblingEvent));
-            Assert.Equal(1, classHandlerSenderList.Count);
+            Assert.Single(classHandlerSenderList);
             Assert.Equal(element20, classHandlerSenderList[0]);
-            Assert.Equal(0, senderList.Count);
-            Assert.Equal(true, testClassHandlerEventHandledTooCalled);
+            Assert.Empty(senderList);
+            Assert.True(testClassHandlerEventHandledTooCalled);
         }
 
         /// <summary>

@@ -30,7 +30,7 @@ namespace Xenko.Engine.Tests
 
             // Make sure that an entity has a transform component
             Assert.NotNull(entity.Transform);
-            Assert.Equal(1, entity.Components.Count);
+            Assert.Single(entity.Components);
             Assert.Equal(entity.Transform, entity.Components[0]);
 
             // Remove Transform
@@ -82,7 +82,7 @@ namespace Xenko.Engine.Tests
 
             // Clear components and check that Transform is also removed
             entity.Components.Clear();
-            Assert.Equal(0, entity.Components.Count);
+            Assert.Empty(entity.Components);
             Assert.Null(entity.Transform);
 
             // Check that events is correctly propagated
@@ -146,7 +146,7 @@ namespace Xenko.Engine.Tests
             // 2nd time: newEntity = prefab.Instantiate()[0];
             check_new_Entity:
             {
-                Assert.Equal(1, newEntity.Transform.Children.Count);
+                Assert.Single(newEntity.Transform.Children);
                 var newChildEntity = newEntity.Transform.Children[0].Entity;
                 Assert.Equal("Child", newChildEntity.Name);
 
@@ -170,7 +170,7 @@ namespace Xenko.Engine.Tests
                 prefab = new Prefab();
                 prefab.Entities.Add(entity);
                 var newEntities = prefab.Instantiate();
-                Assert.Equal(1, newEntities.Count);
+                Assert.Single(newEntities);
 
                 newEntity = newEntities[0];
                 goto check_new_Entity;

@@ -69,7 +69,7 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(depth == img.Depth);
             Assert.True(subImageArrayLenght == img.SubImageArray.Length);
 
-            Assert.True(TestTools.ComputeSHA1(img.Data, img.DataSize).Equals(TestTools.GetInstance().Checksum["DecompressTest_TextureArray_WMipMaps_BC3.dds"]));
+            Assert.Equal(TestTools.GetInstance().Checksum["DecompressTest_TextureArray_WMipMaps_BC3.dds"], TestTools.ComputeSHA1(img.Data, img.DataSize));
             img.Dispose();
 
             // ------------------- Test with uncompress image -------------------
@@ -91,7 +91,7 @@ namespace Xenko.TextureConverter.Tests
             texTool.Flip(image, orientation);
             image.Update();
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_Flip_" + orientation + "_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Flip_" + orientation + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_Flip_" + orientation + "_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
 
             image.Dispose();
@@ -106,7 +106,7 @@ namespace Xenko.TextureConverter.Tests
 
             texTool.PreMultiplyAlpha(image);
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_PreMultiplyAlpha_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_PreMultiplyAlpha_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_PreMultiplyAlpha_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
 
             image.Dispose();
@@ -124,7 +124,7 @@ namespace Xenko.TextureConverter.Tests
             texTool.Compress(image, format);
             Assert.True(image.Format == format);
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_Compress_" + format + "_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Compress_" + format + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_Compress_" + format + "_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
 
             image.Dispose();
@@ -139,7 +139,7 @@ namespace Xenko.TextureConverter.Tests
             texTool.GenerateMipMaps(image, filter);
             Assert.True(image.MipmapCount > 1);
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_GenerateMipMap_" + filter + "_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_GenerateMipMap_" + filter + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_GenerateMipMap_" + filter + "_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
 
             image.Dispose();
@@ -153,7 +153,7 @@ namespace Xenko.TextureConverter.Tests
             texTool.CorrectGamma(image, 1/2.2);
             image.Update();
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_CorrectGamma_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_CorrectGamma_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_CorrectGamma_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
 
             image.Dispose();
@@ -195,7 +195,7 @@ namespace Xenko.TextureConverter.Tests
             TexImage image = texTool.Load(Module.PathToInputImages + file);
             var normal = texTool.GenerateNormalMap(image, 0.5f);
 
-            Assert.True(TestTools.ComputeSHA1(normal.Data, normal.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_GenerateNormalMap_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_GenerateNormalMap_" + image.Name], TestTools.ComputeSHA1(normal.Data, normal.DataSize));
             //Console.WriteLine("TextureTool_GenerateNormalMap_" + image.Name + "." + TestTools.ComputeSHA1(normal.Data, normal.DataSize));
 
             normal.Dispose();
@@ -216,7 +216,7 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(image.Height == height / 2);
             Assert.True(image.MipmapCount == 1);
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_Rescale_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Rescale_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_Rescale_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
 
             image.Dispose();
@@ -236,7 +236,7 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(image.Height == height / 2);
             Assert.True(image.MipmapCount == 1);
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_Rescale_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Rescale_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_Rescale_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
 
             image.Dispose();
@@ -254,7 +254,7 @@ namespace Xenko.TextureConverter.Tests
 
             Assert.True(isInBgraOrder != image.Format.IsBGRAOrder());
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_SwitchChannel_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_SwitchChannel_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("TextureTool_SwitchChannel_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
 
             image.Dispose();
@@ -283,7 +283,7 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(File.Exists(Module.PathToOutputImages + output));
             var loaded = texTool.Load(Module.PathToOutputImages + output);
 
-            Assert.True(TestTools.ComputeSHA1(loaded.Data, loaded.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_Save_" + compressionFormat + "_" + minimumMipmapSize + "_" + loaded.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Save_" + compressionFormat + "_" + minimumMipmapSize + "_" + loaded.Name], TestTools.ComputeSHA1(loaded.Data, loaded.DataSize));
             //Console.WriteLine("TextureTool_Save_" + compressionFormat + "_" + minimumMipmapSize + "_" + loaded.Name + "." + TestTools.ComputeSHA1(loaded.Data, loaded.DataSize));
 
             File.Delete(Module.PathToOutputImages + output);
@@ -316,7 +316,7 @@ namespace Xenko.TextureConverter.Tests
             texTool.Save(normalMap, Module.PathToOutputImages + output, format, normalMap.Width / 2);
             normalMap.Dispose();
 
-            Assert.True(TestTools.ComputeSHA1(Module.PathToOutputImages + output).Equals(TestTools.GetInstance().Checksum[output]));
+            Assert.Equal(TestTools.GetInstance().Checksum[output], TestTools.ComputeSHA1(Module.PathToOutputImages + output));
             //Console.WriteLine(output + "." + TestTools.ComputeSHA1(Module.PathToOutputImages + output));
             File.Delete(Module.PathToOutputImages + output);
 
@@ -328,7 +328,7 @@ namespace Xenko.TextureConverter.Tests
             texTool.Save(image, Module.PathToOutputImages + output, format, 4);
             image.Dispose();
 
-            Assert.True(TestTools.ComputeSHA1(Module.PathToOutputImages + output).Equals(TestTools.GetInstance().Checksum[output]));
+            Assert.Equal(TestTools.GetInstance().Checksum[output], TestTools.ComputeSHA1(Module.PathToOutputImages + output));
             //Console.WriteLine(output + "." + TestTools.ComputeSHA1(Module.PathToOutputImages + output));
             File.Delete(Module.PathToOutputImages + output);
 
@@ -349,7 +349,7 @@ namespace Xenko.TextureConverter.Tests
 
             var atlas = texTool.CreateAtlas(list);
 
-            Assert.True(TestTools.ComputeSHA1(atlas.Data, atlas.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_CreateAtlas"]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_CreateAtlas"], TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
             //Console.WriteLine("TextureTool_CreateAtlas." + TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
 
             atlas.Dispose();
@@ -382,7 +382,7 @@ namespace Xenko.TextureConverter.Tests
             var atlas = texTool.LoadAtlas(Module.PathToInputImages + atlasFile);
             var extracted = texTool.Extract(atlas, textureName, 16);
 
-            Assert.True(TestTools.ComputeSHA1(extracted.Data, extracted.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_ExtractAtlas_" + atlasFile + "_" + textureName]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_ExtractAtlas_" + atlasFile + "_" + textureName], TestTools.ComputeSHA1(extracted.Data, extracted.DataSize));
             //Console.WriteLine("TextureTool_ExtractAtlas_" + atlasFile + "_" + textureName + "." + TestTools.ComputeSHA1(extracted.Data, extracted.DataSize));
 
             extracted.Dispose();
@@ -429,7 +429,7 @@ namespace Xenko.TextureConverter.Tests
 
             foreach (var image in extracted)
             {
-                Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["ExtractAll_" + image.Name]));
+                Assert.Equal(TestTools.GetInstance().Checksum["ExtractAll_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
                 image.Dispose();
             }
 
@@ -450,7 +450,7 @@ namespace Xenko.TextureConverter.Tests
 
             texTool.Update(atlas, updateTexture);
 
-            Assert.True(TestTools.ComputeSHA1(atlas.Data, atlas.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_UpdateAtlas_" + atlasFile + "_" + Path.GetFileName(textureName)]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_UpdateAtlas_" + atlasFile + "_" + Path.GetFileName(textureName)], TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
             //Console.WriteLine("TextureTool_UpdateAtlas_" + atlasFile + "_" + Path.GetFileName(textureName) + "." + TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
 
             atlas.Dispose();
@@ -499,7 +499,7 @@ namespace Xenko.TextureConverter.Tests
 
             var array = texTool.CreateTextureArray(list);
 
-            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_CreateArray_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_CreateArray_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)], TestTools.ComputeSHA1(array.Data, array.DataSize));
             //Console.WriteLine("TextureTool_CreateArray_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2) + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
 
             array.Dispose();
@@ -551,7 +551,7 @@ namespace Xenko.TextureConverter.Tests
 
             var array = texTool.CreateTextureCube(list);
 
-            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_CreateCube_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_CreateCube_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)], TestTools.ComputeSHA1(array.Data, array.DataSize));
             //Console.WriteLine("TextureTool_CreateCube_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2) + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
 
             array.Dispose();
@@ -598,7 +598,7 @@ namespace Xenko.TextureConverter.Tests
             var extracted = texTool.Extract(array, indice);
 
             //Console.WriteLine("TextureTool_Extract_" + indice + "_" + arrayFile + "." + TestTools.ComputeSHA1(extracted.Data, extracted.DataSize));
-            Assert.True(TestTools.ComputeSHA1(extracted.Data, extracted.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_Extract_" + indice + "_" + arrayFile]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Extract_" + indice + "_" + arrayFile], TestTools.ComputeSHA1(extracted.Data, extracted.DataSize));
 
             extracted.Dispose();
             array.Dispose();
@@ -646,7 +646,7 @@ namespace Xenko.TextureConverter.Tests
 
             for (int i = 0; i < array.ArraySize; ++i)
             {
-                Assert.True(TestTools.ComputeSHA1(extracted[i].Data, extracted[i].DataSize).Equals(TestTools.GetInstance().Checksum["ExtractAll_" + list[i].Name]));
+                Assert.Equal(TestTools.GetInstance().Checksum["ExtractAll_" + list[i].Name], TestTools.ComputeSHA1(extracted[i].Data, extracted[i].DataSize));
                 extracted[i].Dispose();
             }
 
@@ -669,7 +669,7 @@ namespace Xenko.TextureConverter.Tests
             texTool.Insert(array, texture, indice);
 
             //Console.WriteLine("TextureTool_Insert_" + indice + "_" + Path.GetFileName(newTexture) + "_" + arrayFile + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
-            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_Insert_" + indice + "_" + Path.GetFileName(newTexture) + "_" + arrayFile]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Insert_" + indice + "_" + Path.GetFileName(newTexture) + "_" + arrayFile], TestTools.ComputeSHA1(array.Data, array.DataSize));
 
             try
             {
@@ -694,7 +694,7 @@ namespace Xenko.TextureConverter.Tests
             texTool.Remove(array, indice);
 
             //Console.WriteLine("TextureTool_Remove_" + indice + "_" + arrayFile + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
-            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_Remove_" + indice + "_" + arrayFile]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_Remove_" + indice + "_" + arrayFile], TestTools.ComputeSHA1(array.Data, array.DataSize));
 
             try
             {
@@ -719,7 +719,7 @@ namespace Xenko.TextureConverter.Tests
 
             texTool.Update(array, updateTexture, indice);
 
-            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["TextureTool_UpdateArray_" + arrayFile + "_" + indice + "_" + Path.GetFileName(textureName)]));
+            Assert.Equal(TestTools.GetInstance().Checksum["TextureTool_UpdateArray_" + arrayFile + "_" + indice + "_" + Path.GetFileName(textureName)], TestTools.ComputeSHA1(array.Data, array.DataSize));
             //Console.WriteLine("TextureTool_UpdateArray_" + arrayFile + "_" + indice + "_" + Path.GetFileName(textureName) + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
 
             array.Dispose();

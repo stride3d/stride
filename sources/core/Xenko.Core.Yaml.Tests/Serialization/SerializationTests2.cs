@@ -768,7 +768,7 @@ ListByContent:
             settings.RegisterTagMapping("ClassWithObjectAndScalar", typeof(ClassWithObjectAndScalar));
             var serializer = new Serializer(settings);
             var text = serializer.Serialize(new ClassWithObjectAndScalar {Value4 = new ClassWithObjectAndScalar()});
-            Assert.False(text.Contains("!"));
+            Assert.DoesNotContain("!", text);
         }
 
         [Fact]
@@ -1316,7 +1316,7 @@ Enum: OldValue2
             var value = new TestWithMemberRenamed {Base = "Test"};
             var serializer = new Serializer(settings);
             var text = serializer.Serialize(value);
-            Assert.True(text.Contains("~Base"));
+            Assert.Contains("~Base", text);
 
             settings = new SerializerSettings();
             settings.RegisterAssembly(typeof(TestWithMemberRenamed).Assembly);
@@ -1437,7 +1437,7 @@ Enum: OldValue2
             var text = serializer.Serialize(item);
 
             var newItem = (ObjectWithDictionaryAndObjectValue) serializer.Deserialize(text);
-            Assert.Equal(1, newItem.Values.Count);
+            Assert.Single(newItem.Values);
             Assert.True(newItem.Values.ContainsKey("Test"));
             Assert.Equal(item.Values["Test"], newItem.Values["Test"]);
         }
@@ -1466,9 +1466,9 @@ Enum: OldValue2
             var newItem = (ObjectWithMask) serializer.Deserialize(text);
 
             // Default: mask != 1 is ignored
-            Assert.Equal(newItem.Int1, item.Int1);
-            Assert.Equal(newItem.Int2, 0);
-            Assert.Equal(newItem.Int3, 0);
+            Assert.Equal(item.Int1, newItem.Int1);
+            Assert.Equal(0, newItem.Int2);
+            Assert.Equal(0, newItem.Int3);
 
             settings = new SerializerSettings();
             settings.RegisterTagMapping("ObjectWithMask", typeof(ObjectWithMask));
@@ -1478,9 +1478,9 @@ Enum: OldValue2
             newItem = (ObjectWithMask) serializer.Deserialize(text);
 
             // Only Int2 and Int3 should be serialized
-            Assert.Equal(newItem.Int1, 0);
-            Assert.Equal(newItem.Int2, item.Int2);
-            Assert.Equal(newItem.Int3, item.Int3);
+            Assert.Equal(0, newItem.Int1);
+            Assert.Equal(item.Int2, newItem.Int2);
+            Assert.Equal(item.Int3, newItem.Int3);
 
             settings = new SerializerSettings();
             settings.RegisterTagMapping("ObjectWithMask", typeof(ObjectWithMask));

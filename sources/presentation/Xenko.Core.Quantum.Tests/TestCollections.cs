@@ -134,7 +134,7 @@ namespace Xenko.Core.Quantum.Tests
             containerNode[nameof(ListContainer.ObjectMember)].Update(values[1]);
             Assert.Equal(values[1], container.ObjectMember);
             Assert.Equal(container.ObjectMember, containerNode[nameof(ListContainer.ObjectMember)].Retrieve());
-            Assert.Equal(true, containerNode[nameof(ListContainer.ObjectMember)].IsReference);
+            Assert.True(containerNode[nameof(ListContainer.ObjectMember)].IsReference);
             Assert.NotNull(containerNode[nameof(ListContainer.ObjectMember)].Target.Indices);
             Assert.Equal(2, containerNode[nameof(ListContainer.ObjectMember)].Target.Indices.Count());
             Assert.Equal(new Index(0), containerNode[nameof(ListContainer.ObjectMember)].Target.Indices.ToList()[0]);
@@ -164,7 +164,7 @@ namespace Xenko.Core.Quantum.Tests
             Assert.NotNull(enumRef.ToList()[index].TargetNode);
             Assert.Equal(expectedValue, enumRef.ToList()[index].TargetNode.Retrieve());
             Assert.Equal(TypeDescriptorFactory.Default.Find(expectedValue.GetType()), enumRef.ToList()[index].TargetNode.Descriptor);
-            Assert.Equal(false, enumRef.ToList()[index].TargetNode.IsReference);
+            Assert.False(enumRef.ToList()[index].TargetNode.IsReference);
             Assert.Equal(expectedValue.GetType(), enumRef.ToList()[index].TargetNode.Type);
             Assert.Equal(expectedValue, enumRef.ToList()[index].TargetNode.Retrieve());
         }

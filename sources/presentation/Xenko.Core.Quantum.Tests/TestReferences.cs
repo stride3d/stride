@@ -151,8 +151,8 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestReferenceEnumerable(memberNode.Target.ItemReferences, container.Instances);
 
             Assert.Equal(container.Instances, memberNode.Retrieve());
-            Assert.Equal(null, memberNode.Retrieve(new Index(0)));
-            Assert.Equal(null, memberNode.Retrieve(new Index(1)));
+            Assert.Null(memberNode.Retrieve(new Index(0)));
+            Assert.Null(memberNode.Retrieve(new Index(1)));
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace Xenko.Core.Quantum.Tests
             memberNode.Target.Update(null, new Index(1));
             Assert.Equal(container.Instances, memberNode.Retrieve());
             Assert.Equal(newInstance, memberNode.Retrieve(new Index(0)));
-            Assert.Equal(null, memberNode.Retrieve(new Index(1)));
+            Assert.Null(memberNode.Retrieve(new Index(1)));
             Helper.TestReferenceEnumerable(memberNode.Target.ItemReferences, container.Instances);
 
             var newReference = memberNode.Target.ItemReferences;
@@ -265,7 +265,7 @@ namespace Xenko.Core.Quantum.Tests
             Assert.Equal(1, containerNode.Members.Count);
             var memberNode = containerNode.Members.First();
             Assert.Equal(instance, memberNode.Retrieve());
-            Assert.Equal(true, memberNode.IsReference);
+            Assert.True(memberNode.IsReference);
             Assert.Equal(instanceNode, memberNode.TargetReference.TargetNode);
         }
 
@@ -284,7 +284,7 @@ namespace Xenko.Core.Quantum.Tests
             Assert.Equal(1, containerNode.Members.Count);
             var memberNode = containerNode.Members.First();
             Assert.Equal(instance, memberNode.Retrieve());
-            Assert.Equal(true, memberNode.IsReference);
+            Assert.True(memberNode.IsReference);
             Assert.Equal(instanceNode, memberNode.TargetReference.TargetNode);
         }
 
@@ -304,7 +304,7 @@ namespace Xenko.Core.Quantum.Tests
             var instance2Node = nodeContainer.GetOrCreateNode(instance2);
             Assert.Equal(1, containerNode.Members.Count);
             var memberNode = containerNode.Members.First();
-            Assert.Equal(true, memberNode.IsReference);
+            Assert.True(memberNode.IsReference);
             var reference = memberNode.Target.ItemReferences;
             Assert.Equal(2, reference.Indices.Count);
             var reference1 = reference.First();

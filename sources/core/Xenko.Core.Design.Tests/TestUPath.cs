@@ -280,8 +280,8 @@ namespace Xenko.Core.Design.Tests
         public void TestUPathGetComponents()
         {
             var d = new UDirectory("a/b");
-            Assert.Equal(new UDirectory("").GetComponents().Count(), 0);
-            Assert.Equal(new UDirectory("/").GetComponents().Count(), 0);
+            Assert.Empty(new UDirectory("").GetComponents());
+            Assert.Empty(new UDirectory("/").GetComponents());
             Assert.Equal(new UDirectory("a").GetComponents(), new[] { "a" });
             Assert.Equal(new UDirectory("/a").GetComponents(), new[] { "a" });
             Assert.Equal(new UDirectory("a/b").GetComponents(), new[] { "a", "b" });

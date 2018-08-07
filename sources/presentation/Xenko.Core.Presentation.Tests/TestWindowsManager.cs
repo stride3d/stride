@@ -182,7 +182,7 @@ namespace Xenko.Core.Presentation.Tests
             }
             else
             {
-                Assert.Equal(null, WindowManager.MainWindow);
+                Assert.Null(WindowManager.MainWindow);
             }
             if (modalWindow != null)
             {

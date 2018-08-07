@@ -128,7 +128,7 @@ namespace Xenko.Engine.Tests
                 var center = sprite.Center;
 
                 sprite.Texture = null;
-                Assert.Equal(null, sprite.Texture);
+                Assert.Null(sprite.Texture);
                 Assert.Equal(region, sprite.Region);
                 Assert.Equal(center, sprite.Center);
 

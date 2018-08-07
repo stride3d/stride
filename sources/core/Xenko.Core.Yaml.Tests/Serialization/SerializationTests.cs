@@ -247,7 +247,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             var bufferAsText = buffer.ToString();
             var result = (IEnumerable<Z>) serializer.Deserialize(bufferAsText, typeof(IEnumerable<Z>));
-            Assert.Equal(1, result.Count());
+            Assert.Single(result);
             Assert.Equal("Yo", result.First().aaa);
         }
 
@@ -421,9 +421,9 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var parsed = serializer.Deserialize<Dictionary<string, string>>(bufferText);
 
             Assert.NotNull(parsed);
-            Assert.Equal(1, parsed.Count);
+            Assert.Single(parsed);
             Assert.True(parsed.ContainsKey("Key"));
-            Assert.Equal(parsed["Key"], "3");
+            Assert.Equal("3", parsed["Key"]);
         }
 
         [Fact]
@@ -439,7 +439,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             Dump.WriteLine(buffer);
             var bufferText = buffer.ToString();
-            Assert.True(bufferText.Contains("MyString"));
+            Assert.Contains("MyString", bufferText);
         }
 
         [Fact]
@@ -456,7 +456,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             Dump.WriteLine(buffer);
             var bufferText = buffer.ToString();
-            Assert.False(bufferText.Contains("MyString"));
+            Assert.DoesNotContain("MyString", bufferText);
         }
 
         [Fact]
@@ -472,7 +472,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             Dump.WriteLine(buffer);
             var bufferText = buffer.ToString();
-            Assert.True(bufferText.Contains("MyString"));
+            Assert.Contains("MyString", bufferText);
         }
 
         [Fact]
@@ -568,7 +568,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var serialized = writer.ToString();
 
             // Ensure serialisation is correct
-            Assert.True(serialized.Contains("fourthTest: Fourth"));
+            Assert.Contains("fourthTest: Fourth", serialized);
 
             var output = serializer.Deserialize<ConventionTest>(serialized);
 
@@ -605,7 +605,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var serialized = writer.ToString();
 
             Dump.WriteLine(serialized);
-            Assert.False(serialized.Contains("Value"));
+            Assert.DoesNotContain("Value", serialized);
         }
 
         [Fact]
@@ -619,7 +619,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             var serialized = writer.ToString();
 
             Dump.WriteLine(serialized);
-            Assert.True(serialized.Contains("Value"));
+            Assert.Contains("Value", serialized);
         }
 
         [Fact]
@@ -634,7 +634,7 @@ namespace Xenko.Core.Yaml.Tests.Serialization
 
             Dump.WriteLine(serialized);
 
-            Assert.True(serialized.Contains("Value"));
+            Assert.Contains("Value", serialized);
         }
 
         public class HasDefaults

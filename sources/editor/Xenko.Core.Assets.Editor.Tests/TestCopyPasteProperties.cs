@@ -393,22 +393,22 @@ namespace Xenko.Core.Assets.Editor.Tests
             target = new MyClass { DoubleList = null };
             copiedText = Copy(source, source.DoubleList[2]);
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, false);
-            Assert.Equal(1, target.DoubleList.Count);
+            Assert.Single(target.DoubleList);
             Assert.Equal(3.0, target.DoubleList[0]);
 
             target = new MyClass { DoubleList = null };
             Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, true);
-            Assert.Equal(1, target.DoubleList.Count);
+            Assert.Single(target.DoubleList);
             Assert.Equal(3.0, target.DoubleList[0]);
 
             target = new MyClass { DoubleList = null };
             Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, false);
-            Assert.Equal(1, target.DoubleList.Count);
+            Assert.Single(target.DoubleList);
             Assert.Equal(2.0, target.DoubleList[0]);
 
             target = new MyClass { DoubleList = null };
             Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, true);
-            Assert.Equal(1, target.DoubleList.Count);
+            Assert.Single(target.DoubleList);
             Assert.Equal(2.0, target.DoubleList[0]);
         }
 
@@ -825,12 +825,12 @@ namespace Xenko.Core.Assets.Editor.Tests
             target = new MyClass { DoubleDictionary = null };
             copiedText = Copy(source, source.DoubleDictionary.Single(x => x.Key == "ccc"));
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, false);
-            Assert.Equal(1, target.DoubleDictionary.Count);
+            Assert.Single(target.DoubleDictionary);
             Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
 
             target = new MyClass { DoubleDictionary = null };
             Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, true);
-            Assert.Equal(1, target.DoubleDictionary.Count);
+            Assert.Single(target.DoubleDictionary);
             Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
         }
 

@@ -198,7 +198,7 @@ namespace Xenko.Core.Yaml.Tests
         {
             var yaml = EmitScalar(new Scalar(null, null, text, ScalarStyle.Folded, true, false));
             Dump.WriteLine(yaml);
-            Assert.True(yaml.Contains("world"));
+            Assert.Contains("world", yaml);
         }
 
         // We are disabling this and want to keep the \n in the output. It is better to have folded > ? 

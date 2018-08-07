@@ -156,7 +156,7 @@ namespace Xenko.Core.Design.Tests.Transactions
                 Assert.Equal(1, e.Transactions.Count);
                 Assert.NotNull(e.Transactions[0]);
                 Assert.Equal((object)transactions[0], e.Transactions[0]);
-                Assert.Equal(true, ((Operation)e.Transactions[0]).IsFrozen);
+                Assert.True(((Operation)e.Transactions[0]).IsFrozen);
                 ++expectedRaiseCount;
             };
             for (var j = 0; j < stack.Capacity; ++j)
@@ -199,7 +199,7 @@ namespace Xenko.Core.Design.Tests.Transactions
                 Assert.Equal(1, e.Transactions.Count);
                 Assert.NotNull(e.Transactions[0]);
                 Assert.Equal((object)transactions[4], e.Transactions[0]);
-                Assert.Equal(true, ((Operation)e.Transactions[0]).IsFrozen);
+                Assert.True(((Operation)e.Transactions[0]).IsFrozen);
                 ++expectedRaiseCount;
             };
             for (var j = 0; j < stack.Capacity; ++j)
@@ -245,7 +245,7 @@ namespace Xenko.Core.Design.Tests.Transactions
                 for (int i = 0; i < 3; ++i)
                 {
                     Assert.NotNull(e.Transactions[i]);
-                    Assert.Equal(true, ((Operation)e.Transactions[i]).IsFrozen);
+                    Assert.True(((Operation)e.Transactions[i]).IsFrozen);
                 }
                 Assert.Equal((object)transactions[2], e.Transactions[0]);
                 Assert.Equal((object)transactions[3], e.Transactions[1]);
@@ -298,7 +298,7 @@ namespace Xenko.Core.Design.Tests.Transactions
                 {
                     Assert.NotNull(e.Transactions[i]);
                     Assert.Equal((object)transactions[i], e.Transactions[i]);
-                    Assert.Equal(true, ((Operation)e.Transactions[i]).IsFrozen);
+                    Assert.True(((Operation)e.Transactions[i]).IsFrozen);
                 }
                 ++expectedRaiseCount;
             };
