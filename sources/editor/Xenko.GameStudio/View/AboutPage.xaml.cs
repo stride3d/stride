@@ -48,31 +48,36 @@ namespace Xenko.GameStudio.View
             Close();
         }
 
-        private void License_OnClick(object sender, RoutedEventArgs e)
+        private async void License_OnClick(object sender, RoutedEventArgs e)
         {
-            Service.MessageBox(LoadMarkdown("LICENSE.md"));
+            var message = await LoadMarkdown("LICENSE.md");
+            Service.MessageBox(message).Forget();
         }
 
-        private void ThirdParty_OnClick(object sender, RoutedEventArgs e)
+        private async void ThirdParty_OnClick(object sender, RoutedEventArgs e)
         {
-            Service.MessageBox(LoadMarkdown("THIRD PARTY.md"));
+            var message = await LoadMarkdown("THIRD PARTY.md");
+            Service.MessageBox(message).Forget();
         }
         
-        private static string LoadMarkdown(string file)
+        private async static Task<string> LoadMarkdown(string file)
         {
             try
             {
-                var filePath = Path.Combine(PackageStore.Instance.DefaultPackage.RootDirectory, file);
-                string fileMarkdown;
-                using (var fileStream = new FileStream(filePath, FileMode.Open))
+                return await Task.Run(() =>
                 {
-                    using (var reader = new StreamReader(fileStream))
+                    var filePath = Path.Combine(PackageStore.Instance.DefaultPackage.RootDirectory, file);
+                    string fileMarkdown;
+                    using (var fileStream = new FileStream(filePath, FileMode.Open))
                     {
-                        fileMarkdown = reader.ReadToEnd();
+                        using (var reader = new StreamReader(fileStream))
+                        {
+                            fileMarkdown = reader.ReadToEnd();
+                        }
                     }
-                }
 
-                return fileMarkdown;
+                    return fileMarkdown;
+                });
             }
             catch (Exception)
             {
@@ -82,7 +87,7 @@ namespace Xenko.GameStudio.View
 
         private async Task LoadBakers()
         {
-            MarkdownBackers = await Task.Run(() => LoadMarkdown("BACKERS.md")).ConfigureAwait(true);
+            MarkdownBackers = await LoadMarkdown("BACKERS.md").ConfigureAwait(true);
         }
     }
 }
