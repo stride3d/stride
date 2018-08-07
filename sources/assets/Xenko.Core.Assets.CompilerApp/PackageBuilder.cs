@@ -68,10 +68,15 @@ namespace Xenko.Core.Assets.CompilerApp
             PackageSession projectSession = null;
             try
             {
-                if (!PackageSessionPublicHelper.FindAndSetMSBuildVersion())
+                try
+                {
+                    PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+                }
+                catch (Exception e)
                 {
                     var message = "Could not find a compatible version of MSBuild.\r\n\r\n" +
-                                  "Check that you have a valid installation with the required workloads, or go to [www.visualstudio.com/downloads](https://www.visualstudio.com/downloads) to install a new one.";
+                                  "Check that you have a valid installation with the required workloads, or go to [www.visualstudio.com/downloads](https://www.visualstudio.com/downloads) to install a new one.\r\n\r\n" +
+                                  e;
                     builderOptions.Logger.Error(message);
                     return BuildResultCode.BuildError;
                 }
