@@ -60,8 +60,8 @@
     <ProjectReference Include="..\Xenko\Xenko.csproj">
       <Private>False</Private>
     </ProjectReference>
-    <PackageReference Include="SharpDX.MediaFoundation" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
+    <PackageReference Include="SharpDX.MediaFoundation" Version="4.1.0" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.1.0" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
     <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D12'" />
   </ItemGroup>
   <Choose>

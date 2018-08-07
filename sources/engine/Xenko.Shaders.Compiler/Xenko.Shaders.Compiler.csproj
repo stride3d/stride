@@ -45,7 +45,7 @@
     <ProjectReference Include="..\Xenko\Xenko.csproj">
       <Private>False</Private>
     </ProjectReference>
-    <PackageReference Include="SharpDX.D3DCompiler" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoGraphicsApi)' == 'Direct3D11' Or '$(XenkoGraphicsApi)' == 'Direct3D12'" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.1.0" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoGraphicsApi)' == 'Direct3D11' Or '$(XenkoGraphicsApi)' == 'Direct3D12'" />
   </ItemGroup>
   <ItemGroup Condition="'$(XenkoPlatform)' == 'Windows'">
     <XenkoNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">

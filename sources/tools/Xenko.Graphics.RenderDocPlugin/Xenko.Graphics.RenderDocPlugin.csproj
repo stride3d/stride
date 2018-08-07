@@ -17,7 +17,7 @@
     <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj">
       <Private>False</Private>
     </ProjectReference>
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.1.0" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />

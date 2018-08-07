@@ -42,9 +42,9 @@
     <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj">
       <Private>False</Private>
     </ProjectReference>
-    <PackageReference Include="SharpDX.RawInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
-    <PackageReference Include="SharpDX.DirectInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
-    <PackageReference Include="SharpDX.XInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.RawInput" Version="4.1.0" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.DirectInput" Version="4.1.0" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.XInput" Version="4.1.0" Condition="'$(XenkoPlatform)' == 'Windows'" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(XenkoPostSettingsTargets)" />
