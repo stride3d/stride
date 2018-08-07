@@ -273,8 +273,7 @@ namespace Xenko.ProjectGenerator
 
             try
             {
-                if (!PackageSessionPublicHelper.FindAndSetMSBuildVersion())
-                    throw new InvalidOperationException();
+                PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
                 Microsoft.Build.Evaluation.Project p = new Microsoft.Build.Evaluation.Project(Path.Combine(outputDirectory, name));
 
