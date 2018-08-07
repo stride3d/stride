@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using Xenko.Core.Assets;
 using Xenko.Core.Assets.Editor.Services;
@@ -17,10 +18,14 @@ namespace Xenko.GameStudio.View
     public partial class AboutPage
     {
         const string MarkdownNotLoaded = "Unable to load the file.";
+        private readonly Task<string> markdownBackers;
 
         public AboutPage()
         {
             InitializeComponent();
+
+            DataContext = this;
+            markdownBackers = Task.Run(() => LoadMarkdown("BACKERS.md"));
         }
 
         public AboutPage(IEditorDialogService service)
@@ -30,6 +35,8 @@ namespace Xenko.GameStudio.View
         }
 
         private IEditorDialogService Service { get; }
+
+        public string MarkdownBackers => markdownBackers.Result;
 
         private void ButtonCloseClick(object sender, RoutedEventArgs e)
         {

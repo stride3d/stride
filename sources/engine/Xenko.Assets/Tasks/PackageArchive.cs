@@ -79,6 +79,7 @@ namespace Xenko.Assets.Tasks
                     NewFile(@"tools\**\*.dll", "tools"),
                     NewFile(@"LICENSE.md", @""),
                     NewFile(@"THIRD PARTY.md", @""),
+                    NewFile(@"BACKERS.md", @""),
                 };
 
             // Handle Assets
