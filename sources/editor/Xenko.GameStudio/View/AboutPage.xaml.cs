@@ -26,7 +26,7 @@ namespace Xenko.GameStudio.View
             InitializeComponent();
 
             DataContext = this;
-            LoadBakers().Forget();
+            LoadBackers().Forget();
         }
 
         public AboutPage(IEditorDialogService service)
@@ -85,7 +85,7 @@ namespace Xenko.GameStudio.View
             }
         }
 
-        private async Task LoadBakers()
+        private async Task LoadBackers()
         {
             MarkdownBackers = await LoadMarkdown("BACKERS.md").ConfigureAwait(true);
         }
