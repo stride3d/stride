@@ -11,6 +11,9 @@ namespace Xenko.Core.Presentation.Extensions
 {
     using Media = System.Windows.Media;
 
+    /// <summary>
+    /// This class contains properties to controll theming of icons, etc.
+    /// </summary>
     public class ThemeController : DependencyObject
     {
         public static bool GetIsDark(DependencyObject obj)
@@ -19,11 +22,18 @@ namespace Xenko.Core.Presentation.Extensions
         public static void SetIsDark(DependencyObject obj, bool value)
          => obj.SetValue(IsDarkProperty, value);
 
+        /// <summary>
+        /// The main purpose of this property is for Luminosity Check feature of
+        /// <see cref="ImageThemingUtilities.TransformDrawing(System.Windows.Media.Drawing, IconTheme, bool)"/>.
+        /// </summary>
         public static readonly DependencyProperty IsDarkProperty =
             DependencyProperty.RegisterAttached("IsDark", typeof(bool), typeof(ThemeController), new PropertyMetadata(false));
 
     }
 
+    /// <summary>
+    /// Contains a predefined set of <see cref="IconTheme"/>
+    /// </summary>
     public static class IconThemeSelector
     {
         public enum KnownThemes
@@ -60,6 +70,14 @@ namespace Xenko.Core.Presentation.Extensions
     public static class ImageThemingUtilities
     {
 
+        /// <summary>
+        /// This method transforms colors of a geometry-based drawing to a desired theme.
+        /// </summary>
+        /// <param name="drawing">The input drawing</param>
+        /// <param name="theme">The desired theme</param>
+        /// <param name="checkLuminosity">If check uminosity is on, a dark drawing only can be converted to a light one, this is specially used
+        /// when you don't want your dark icon reveted to light when called twice</param>
+        /// <returns>A new drawing with converted colors</returns>
         public static Media.Drawing TransformDrawing(Media.Drawing drawing, IconTheme theme, bool checkLuminosity = true)
         {
             var isDark = ThemeController.GetIsDark(drawing);
@@ -73,6 +91,11 @@ namespace Xenko.Core.Presentation.Extensions
             return newDrawing;
         }
 
+        /// <summary>
+        /// Transforms every single part of a geomtry-based drawing.
+        /// </summary>
+        /// <param name="drawing"></param>
+        /// <param name="theme"></param>
         private static void TransformParts(this Media.Drawing drawing, IconTheme theme)
         {
             if (drawing is GeometryDrawing gd && gd.Brush is SolidColorBrush s)
@@ -96,6 +119,12 @@ namespace Xenko.Core.Presentation.Extensions
 
         private static bool IsDark(double luminosity) => luminosity < 0.5;
 
+        /// <summary>
+        /// Transforms luminosity of an HSL color based on background
+        /// </summary>
+        /// <param name="hsl"></param>
+        /// <param name="backgroundLuminosity"></param>
+        /// <returns></returns>
         private static double TransformLuminosity(HslColor hsl, double backgroundLuminosity)
         {
             var hue = hsl.Hue;
