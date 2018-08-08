@@ -10,7 +10,7 @@ Thank you everybody for your generous contributions!
 ## Super Backers
 
 * Robert Campbell
-* vvvv
+* [vvvv.org](https://vvvv.org/)
 * Jason Kinzer
 
 ## Backers
@@ -29,6 +29,8 @@ Thank you everybody for your generous contributions!
 * Dmitry Terentev
 * Chance McDonald
 * Shane
+* Chris Beckwith
+* Harald Mühleder
 
 ## Mini Backers
 
