@@ -38,8 +38,8 @@ namespace Xenko.Core.Assets.Tests
                     });
             var result = analysis.Run();
             Assert.False(result.HasErrors);
-            Assert.Equal(1, result.Messages.Count);
-            Assert.True(result.Messages[0].ToString().Contains("changed"));
+            Assert.Single(result.Messages);
+            Assert.Contains("changed", result.Messages[0].ToString());
 
             var asset = (AssetObjectTest)assetItem.Asset;
             Assert.Equal(goodAsset.Id, asset.Reference.Id);

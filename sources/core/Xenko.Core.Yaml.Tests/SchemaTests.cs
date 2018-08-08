@@ -66,7 +66,7 @@ namespace Xenko.Core.Yaml.Tests
             TestJsonSchemaCommon(schema);
 
             // Json should not accept plain literal
-            Assert.Equal(null, schema.GetDefaultTag(new Scalar(null, null, "boom", ScalarStyle.Plain, true, false)));
+            Assert.Null(schema.GetDefaultTag(new Scalar(null, null, "boom", ScalarStyle.Plain, true, false)));
         }
 
         [Fact]

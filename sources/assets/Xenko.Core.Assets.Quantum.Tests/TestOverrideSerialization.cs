@@ -786,14 +786,14 @@ Value*: OverriddenString
 
             var overrides = AssetPropertyGraph.GenerateOverridesForSerialization(derivedPropertyNode);
             var overridesAsDictionary = overrides.ToDictionary(x => x.Key, x => x.Value, YamlAssetPathComparer.Default);
-            Assert.Equal(1, overridesAsDictionary.Count);
+            Assert.Single(overridesAsDictionary);
             Assert.True(overridesAsDictionary.ContainsKey(expectedPath));
             Assert.Equal(OverrideType.New, overridesAsDictionary[expectedPath]);
 
             // We expect the same resulting path both from the member node and the target object node
             overrides = AssetPropertyGraph.GenerateOverridesForSerialization(derivedPropertyNode.Target);
             overridesAsDictionary = overrides.ToDictionary(x => x.Key, x => x.Value, YamlAssetPathComparer.Default);
-            Assert.Equal(1, overridesAsDictionary.Count);
+            Assert.Single(overridesAsDictionary);
             Assert.True(overridesAsDictionary.ContainsKey(expectedPath));
             Assert.Equal(OverrideType.New, overridesAsDictionary[expectedPath]);
 
@@ -806,7 +806,7 @@ Value*: OverriddenString
             Assert.NotNull(overrides);
             overridesAsDictionary = overrides.ToDictionary(x => x.Key, x => x.Value, YamlAssetPathComparer.Default);
             Assert.Equal("OverriddenString", instance.Value);
-            Assert.Equal(1, overridesAsDictionary.Count);
+            Assert.Single(overridesAsDictionary);
             Assert.True(overridesAsDictionary.ContainsKey(expectedPath));
             Assert.Equal(OverrideType.New, overridesAsDictionary[expectedPath]);
         }
@@ -826,7 +826,7 @@ Value*: OverriddenString
 
             var overrides = AssetPropertyGraph.GenerateOverridesForSerialization(derivedPropertyNode);
             var overridesAsDictionary = overrides.ToDictionary(x => x.Key, x => x.Value, YamlAssetPathComparer.Default);
-            Assert.Equal(1, overridesAsDictionary.Count);
+            Assert.Single(overridesAsDictionary);
             Assert.True(overridesAsDictionary.ContainsKey(expectedPath));
             Assert.Equal(OverrideType.New, overridesAsDictionary[expectedPath]);
 
@@ -839,7 +839,7 @@ Value*: OverriddenString
             Assert.NotNull(overrides);
             overridesAsDictionary = overrides.ToDictionary(x => x.Key, x => x.Value, YamlAssetPathComparer.Default);
             Assert.Equal("OverriddenString", instance.Value);
-            Assert.Equal(1, overridesAsDictionary.Count);
+            Assert.Single(overridesAsDictionary);
             Assert.True(overridesAsDictionary.ContainsKey(expectedPath));
             Assert.Equal(OverrideType.New, overridesAsDictionary[expectedPath]);
         }

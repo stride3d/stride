@@ -15,7 +15,7 @@ namespace Xenko.Core.Tests
             var log = new LoggerResult();
 
             log.Info("#0");
-            Assert.Equal(1, log.Messages.Count);
+            Assert.Single(log.Messages);
             Assert.Equal(LogMessageType.Info, log.Messages[0].Type);
             Assert.Equal("#0", log.Messages[0].Text);
 
@@ -76,14 +76,14 @@ namespace Xenko.Core.Tests
 
             // Log a simple message (disabled by default).
             log.Verbose("#0");
-            Assert.Equal(0, messages.Count);
+            Assert.Empty(messages);
 
             // Activate the log for all loggers starting from Info
             GlobalLogger.ActivateLog(".*", LogMessageType.Verbose);
 
             // Log a simple message
             log.Verbose("#0");
-            Assert.Equal(1, messages.Count);
+            Assert.Single(messages);
             Assert.Equal("#0", messages[0].Text);
 
             // Activate the log for Module1x starting from Debug

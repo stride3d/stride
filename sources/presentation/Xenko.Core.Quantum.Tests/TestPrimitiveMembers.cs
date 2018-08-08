@@ -203,7 +203,7 @@ namespace Xenko.Core.Quantum.Tests
             Assert.Equal(0, memberNode.Target.Members.Count);
             Assert.Null(memberNode.Target.Indices);
             Assert.Equal(TypeDescriptorFactory.Default.Find(typeof(float)), memberNode.Target.Descriptor);
-            Assert.Equal(false, memberNode.Target.IsReference);
+            Assert.False(memberNode.Target.IsReference);
             Assert.Null(memberNode.Target.ItemReferences);
             Assert.Equal(typeof(float), memberNode.Target.Type);
             Assert.Equal(1.0f, memberNode.Target.Retrieve());
@@ -216,7 +216,7 @@ namespace Xenko.Core.Quantum.Tests
             Assert.Equal(0, memberNode.Target.Members.Count);
             Assert.Null(memberNode.Target.Indices);
             Assert.Equal(TypeDescriptorFactory.Default.Find(typeof(float)), memberNode.Target.Descriptor);
-            Assert.Equal(false, memberNode.Target.IsReference);
+            Assert.False(memberNode.Target.IsReference);
             Assert.Null(memberNode.Target.ItemReferences);
             Assert.Equal(typeof(float), memberNode.Target.Type);
 
@@ -228,7 +228,7 @@ namespace Xenko.Core.Quantum.Tests
             Assert.Equal(0, memberNode.Target.Members.Count);
             Assert.Null(memberNode.Target.Indices);
             Assert.Equal(TypeDescriptorFactory.Default.Find(typeof(float)), memberNode.Target.Descriptor);
-            Assert.Equal(false, memberNode.Target.IsReference);
+            Assert.False(memberNode.Target.IsReference);
             Assert.Null(memberNode.Target.ItemReferences);
             Assert.Equal(typeof(float), memberNode.Target.Type);
             Assert.Equal(3.0f, memberNode.Target.Retrieve());

@@ -97,7 +97,7 @@ namespace Xenko.Graphics.Tests
             fontManager.GenerateBitmap(characterTo, false);
             fontManager.GenerateBitmap(characterB, false);
             WaitAndCheck(characterB, 2 * waitTime);
-            Assert.Equal(null, characterTo.Bitmap);
+            Assert.Null(characterTo.Bitmap);
 
             // test that trying to render a character that does not exist does not crash the system
             var characterC = new CharacterSpecification('c', "Arial", -1 * Vector2.One, FontStyle.Regular, FontAntiAliasMode.Default);
@@ -105,7 +105,7 @@ namespace Xenko.Graphics.Tests
             fontManager.GenerateBitmap(characterC, false);
             fontManager.GenerateBitmap(characterD, false);
             WaitAndCheck(characterD, 2 * waitTime);
-            Assert.Equal(null, characterC.Bitmap);
+            Assert.Null(characterC.Bitmap);
             
             fontManager.Dispose();
         }
@@ -113,7 +113,7 @@ namespace Xenko.Graphics.Tests
         private void WaitAndCheck(CharacterSpecification character, int sleepTime)
         {
             Thread.Sleep(sleepTime);
-            Assert.NotEqual(null, character.Bitmap);
+            Assert.NotNull(character.Bitmap);
         }
     }
 }

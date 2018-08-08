@@ -22,7 +22,7 @@
   </Window.Resources>
   <StackPanel Margin="20">
     <!-- Xenko logo -->
-    <Image DockPanel.Dock="Top"
+    <Image DockPanel.Dock="Top" x:Name="Logo"
            HorizontalAlignment="Center" VerticalAlignment="Center" 
            Height="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelHeight)}"
            Width="{Binding RelativeSource={RelativeSource Self}, Path=Source.(BitmapSource.PixelWidth)}"
@@ -50,22 +50,23 @@
           <Run Text="{xk:Localize MIT License, Context=About}" />
         </Hyperlink>
       </TextBlock>
-      <!-- Open-source notice -->
-      <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
-                 IsEnabled="True">
-        <Run Text="{xk:Localize Xenko uses open-source software., Context=About}" />
+      <TextBlock Grid.Row="0" Grid.Column="2"
+                 HorizontalAlignment="Right" VerticalAlignment="Top" FlowDirection="RightToLeft" IsEnabled="True">
+        <!-- Open-source notice -->
+        <Run Text="{xk:Localize Xenko uses open-source software, Context=About}" /><LineBreak />
         <Hyperlink TextDecorations="Underline" Click="ThirdParty_OnClick">
           <Run Text="{xk:Localize See the list, Context=About}" />
         </Hyperlink>
-      </TextBlock>
-      <!-- Privacy policy -->
-      <TextBlock Grid.Row="0" Grid.Column="2"
-                 HorizontalAlignment="Right" VerticalAlignment="Top" FlowDirection="RightToLeft" IsEnabled="True">
+        <LineBreak /><LineBreak />
+        <!-- Privacy policy -->
         <Hyperlink TextDecorations="Underline"
                    CommandParameter="{x:Static crashReport:CrashReportForm.PrivacyPolicyUrl}" Command="{x:Static xk:UtilityCommands.OpenHyperlinkCommand}">
           <Run Text="{xk:Localize Privacy policy, Context=About}" />
         </Hyperlink>
       </TextBlock>
+      <!-- Backers -->
+      <xk:MarkdownTextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" x:Name="BackersPanel" Text="{Binding Path=MarkdownBackers, Mode=OneWay}"
+                            Width="{Binding ElementName=Logo, Path=ActualWidth, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" MaxHeight="300px"/>
     </Grid>
     <!-- Button -->
     <Button HorizontalAlignment="Center" Padding="20,6" MinWidth="80"

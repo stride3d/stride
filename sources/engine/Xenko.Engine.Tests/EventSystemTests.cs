@@ -386,7 +386,7 @@ namespace Xenko.Engine.Tests
                     if (frameCount == 20)
                     {
                         var manyEvents = rcv.TryReceiveAll();
-                        Assert.Equal(manyEvents, 21);
+                        Assert.Equal(21, manyEvents);
                         game.Exit();
                     }
                     await game.NextFrame();

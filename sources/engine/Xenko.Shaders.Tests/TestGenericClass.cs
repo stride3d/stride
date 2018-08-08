@@ -54,10 +54,10 @@ namespace Xenko.Shaders.Tests
 
             Assert.Equal(10, shaderClass.Members.Count);
             Assert.Equal(4, shaderClass.Members.OfType<Variable>().Count(x => x.Qualifiers.Contains(Xenko.Core.Shaders.Ast.Hlsl.StorageQualifier.Static)));
-            Assert.Equal(0, shaderClass.ShaderGenerics.Count);
-            Assert.Equal(0, shaderClass.GenericArguments.Count);
-            Assert.Equal(0, shaderClass.GenericParameters.Count);
-            Assert.Equal(1, shaderClass.BaseClasses.Count);
+            Assert.Empty(shaderClass.ShaderGenerics);
+            Assert.Empty(shaderClass.GenericArguments);
+            Assert.Empty(shaderClass.GenericParameters);
+            Assert.Single(shaderClass.BaseClasses);
 
             var linkVar = shaderClass.Members[0] as Variable;
             Assert.NotNull(linkVar);

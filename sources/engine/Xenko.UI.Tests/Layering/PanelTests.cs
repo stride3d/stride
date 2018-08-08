@@ -40,7 +40,7 @@ namespace Xenko.UI.Tests.Layering
 
             // default values
             Assert.Equal(0, DependencyProperties.Get(ZIndexPropertyKey));
-            Assert.Equal(false, ClipToBounds);
+            Assert.False(ClipToBounds);
             Assert.Equal(Matrix.Identity, DependencyProperties.Get(PanelArrangeMatrixPropertyKey));
         }
 
@@ -54,39 +54,39 @@ namespace Xenko.UI.Tests.Layering
 
             // Check that parent is added to child
             var newChild = new PanelTests { Name = "child 1"};
-            Assert.Equal(null, newChild.Parent);
+            Assert.Null(newChild.Parent);
             Children.Add(newChild);
             Assert.Equal(this, newChild.Parent);
 
             // check that parent is removed from child
             Children.Remove(newChild);
-            Assert.Equal(null, newChild.Parent);
+            Assert.Null(newChild.Parent);
 
             // check that adding or removing a child invalidate the measure
             Measure(Vector3.Zero);
             Children.Add(newChild);
-            Assert.Equal(false, IsMeasureValid);
+            Assert.False(IsMeasureValid);
             Measure(Vector3.Zero);
             Children.Remove(newChild);
-            Assert.Equal(false, IsMeasureValid);
+            Assert.False(IsMeasureValid);
 
             // test that children are correctly ordered by Z
             var newChild2 = new PanelTests { Name = "child 2" };
             newChild2.DependencyProperties.Set(ZIndexPropertyKey, 2);
             Children.Add(newChild2);
             Children.Add(newChild);
-            Assert.Equal(VisualChildrenCollection.Count, 2);
+            Assert.Equal(2, VisualChildrenCollection.Count);
             Assert.Equal(newChild, VisualChildrenCollection[0]);
             Assert.Equal(newChild2, VisualChildrenCollection[1]);
             newChild.DependencyProperties.Set(ZIndexPropertyKey, 3);
-            Assert.Equal(VisualChildrenCollection.Count, 2);
+            Assert.Equal(2, VisualChildrenCollection.Count);
             Assert.Equal(newChild2, VisualChildrenCollection[0]);
             Assert.Equal(newChild, VisualChildrenCollection[1]);
             Children.Remove(newChild);
-            Assert.Equal(VisualChildrenCollection.Count, 1);
+            Assert.Single(VisualChildrenCollection);
             Assert.Equal(newChild2, VisualChildrenCollection[0]);
             Children.Remove(newChild2);
-            Assert.Equal(VisualChildrenCollection.Count, 0);
+            Assert.Empty(VisualChildrenCollection);
         }
 
         /// <summary>
@@ -218,13 +218,13 @@ namespace Xenko.UI.Tests.Layering
         public void TestScrollOwner()
         {
             var grid = new UniformGrid();
-            Assert.Equal(null, grid.ScrollOwner);
+            Assert.Null(grid.ScrollOwner);
 
             var scrollViewer = new ScrollViewer { Content = grid };
             Assert.Equal(scrollViewer, grid.ScrollOwner);
 
             scrollViewer.Content = null;
-            Assert.Equal(null, grid.ScrollOwner);
+            Assert.Null(grid.ScrollOwner);
 
             var scrollViewer2 = new ScrollViewer { Content = grid };
             Assert.Equal(scrollViewer2, grid.ScrollOwner);

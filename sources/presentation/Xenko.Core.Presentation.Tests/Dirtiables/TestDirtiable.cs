@@ -20,7 +20,7 @@ namespace Xenko.Core.Presentation.Tests.Dirtiables
                     var operation = new SimpleDirtyingOperation(dirtiable.Yield());
                     stack.PushOperation(operation);
                 }
-                Assert.Equal(true, dirtiable.IsDirty);
+                Assert.True(dirtiable.IsDirty);
             }
         }
 
@@ -36,9 +36,9 @@ namespace Xenko.Core.Presentation.Tests.Dirtiables
                 {
                     stack.PushOperation(operation);
                 }
-                Assert.Equal(true, dirtiable.IsDirty);
+                Assert.True(dirtiable.IsDirty);
                 manager.CreateSnapshot();
-                Assert.Equal(false, dirtiable.IsDirty);
+                Assert.False(dirtiable.IsDirty);
             }
         }
 
@@ -54,9 +54,9 @@ namespace Xenko.Core.Presentation.Tests.Dirtiables
                 {
                     stack.PushOperation(operation);
                 }
-                Assert.Equal(true, dirtiable.IsDirty);
+                Assert.True(dirtiable.IsDirty);
                 stack.Rollback();
-                Assert.Equal(false, dirtiable.IsDirty);
+                Assert.False(dirtiable.IsDirty);
             }
         }
 
@@ -72,10 +72,10 @@ namespace Xenko.Core.Presentation.Tests.Dirtiables
                 {
                     stack.PushOperation(operation);
                 }
-                Assert.Equal(true, dirtiable.IsDirty);
+                Assert.True(dirtiable.IsDirty);
                 stack.Rollback();
                 stack.Rollforward();
-                Assert.Equal(true, dirtiable.IsDirty);
+                Assert.True(dirtiable.IsDirty);
             }
         }
 
@@ -91,17 +91,17 @@ namespace Xenko.Core.Presentation.Tests.Dirtiables
                 {
                     stack.PushOperation(operation);
                 }
-                Assert.Equal(true, dirtiable.IsDirty);
+                Assert.True(dirtiable.IsDirty);
                 manager.CreateSnapshot();
-                Assert.Equal(false, dirtiable.IsDirty);
+                Assert.False(dirtiable.IsDirty);
                 stack.Rollback();
-                Assert.Equal(true, dirtiable.IsDirty);
+                Assert.True(dirtiable.IsDirty);
                 manager.CreateSnapshot();
-                Assert.Equal(false, dirtiable.IsDirty);
+                Assert.False(dirtiable.IsDirty);
                 stack.Rollforward();
-                Assert.Equal(true, dirtiable.IsDirty);
+                Assert.True(dirtiable.IsDirty);
                 manager.CreateSnapshot();
-                Assert.Equal(false, dirtiable.IsDirty);
+                Assert.False(dirtiable.IsDirty);
             }
         }
     }

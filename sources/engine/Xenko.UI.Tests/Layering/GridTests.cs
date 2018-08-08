@@ -69,7 +69,7 @@ namespace Xenko.UI.Tests.Layering
 
         private void TestDefinitionsDefaultState(StripDefinitionCollection definitions)
         {
-            Assert.Equal(0, definitions.Count);
+            Assert.Empty(definitions);
         }
 
         /// <summary>
@@ -98,9 +98,9 @@ namespace Xenko.UI.Tests.Layering
             grid.Measure(Vector3.Zero);
             grid.Arrange(Vector3.Zero, false);
 
-            Assert.Equal(grid.ColumnDefinitions.Count, 0);
-            Assert.Equal(grid.RowDefinitions.Count, 0);
-            Assert.Equal(grid.LayerDefinitions.Count, 0);
+            Assert.Empty(grid.ColumnDefinitions);
+            Assert.Empty(grid.RowDefinitions);
+            Assert.Empty(grid.LayerDefinitions);
         }
 
         /// <summary>

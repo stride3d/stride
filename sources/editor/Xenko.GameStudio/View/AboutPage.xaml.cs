@@ -3,11 +3,11 @@
 
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using Xenko.Core.Assets;
 using Xenko.Core.Assets.Editor.Services;
-using Xenko.PrivacyPolicy;
-using Xenko.Core.Presentation.Controls;
+using Xenko.Core.Extensions;
 
 namespace Xenko.GameStudio.View
 {
@@ -16,17 +16,29 @@ namespace Xenko.GameStudio.View
     /// </summary>
     public partial class AboutPage
     {
-        const string MarkdownNotLoaded = "Unable to load the file.";
+        private const string MarkdownNotLoaded = "Unable to load the file.";
+
+        public static readonly DependencyProperty MarkdownBackersProperty =
+            DependencyProperty.Register("MarkdownBackers", typeof(string), typeof(AboutPage), new PropertyMetadata(null));
 
         public AboutPage()
         {
             InitializeComponent();
+
+            DataContext = this;
+            LoadBackers().Forget();
         }
 
         public AboutPage(IEditorDialogService service)
             : this()
         {
             Service = service;
+        }
+
+        public string MarkdownBackers
+        {
+            get { return (string)GetValue(MarkdownBackersProperty); }
+            set { SetValue(MarkdownBackersProperty, value); }
         }
 
         private IEditorDialogService Service { get; }
@@ -36,36 +48,46 @@ namespace Xenko.GameStudio.View
             Close();
         }
 
-        private void License_OnClick(object sender, RoutedEventArgs e)
+        private async void License_OnClick(object sender, RoutedEventArgs e)
         {
-            Service.MessageBox(LoadMarkdown("LICENSE.md"));
+            var message = await LoadMarkdown("LICENSE.md");
+            Service.MessageBox(message).Forget();
         }
 
-        private void ThirdParty_OnClick(object sender, RoutedEventArgs e)
+        private async void ThirdParty_OnClick(object sender, RoutedEventArgs e)
         {
-            Service.MessageBox(LoadMarkdown("THIRD PARTY.md"));
+            var message = await LoadMarkdown("THIRD PARTY.md");
+            Service.MessageBox(message).Forget();
         }
-
-        private static string LoadMarkdown(string file)
+        
+        private async static Task<string> LoadMarkdown(string file)
         {
             try
             {
-                var filePath = Path.Combine(PackageStore.Instance.DefaultPackage.RootDirectory, file);
-                string fileMarkdown;
-                using (var fileStream = new FileStream(filePath, FileMode.Open))
+                return await Task.Run(() =>
                 {
-                    using (var reader = new StreamReader(fileStream))
+                    var filePath = Path.Combine(PackageStore.Instance.DefaultPackage.RootDirectory, file);
+                    string fileMarkdown;
+                    using (var fileStream = new FileStream(filePath, FileMode.Open))
                     {
-                        fileMarkdown = reader.ReadToEnd();
+                        using (var reader = new StreamReader(fileStream))
+                        {
+                            fileMarkdown = reader.ReadToEnd();
+                        }
                     }
-                }
 
-                return fileMarkdown;
+                    return fileMarkdown;
+                });
             }
             catch (Exception)
             {
                 return MarkdownNotLoaded;
             }
+        }
+
+        private async Task LoadBackers()
+        {
+            MarkdownBackers = await LoadMarkdown("BACKERS.md").ConfigureAwait(true);
         }
     }
 }

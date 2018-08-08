@@ -239,10 +239,15 @@ namespace Xenko.GameStudio
                 InitializeLanguageSettings();
                 var serviceProvider = InitializeServiceProvider();
 
-                if (!PackageSessionPublicHelper.FindAndSetMSBuildVersion())
+                try
+                {
+                    PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+                }
+                catch (Exception e)
                 {
                     var message = "Could not find a compatible version of MSBuild.\r\n\r\n" +
-                                  "Check that you have a valid installation with the required workloads, or go to [www.visualstudio.com/downloads](https://www.visualstudio.com/downloads) to install a new one.";
+                                  "Check that you have a valid installation with the required workloads, or go to [www.visualstudio.com/downloads](https://www.visualstudio.com/downloads) to install a new one.\r\n\r\n" +
+                                  e;
                     await serviceProvider.Get<IEditorDialogService>().MessageBox(message, Core.Presentation.Services.MessageBoxButton.OK, Core.Presentation.Services.MessageBoxImage.Error);
                     app.Shutdown();
                     return;

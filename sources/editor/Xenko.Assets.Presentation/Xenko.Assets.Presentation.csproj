@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
@@ -737,7 +737,7 @@
     <Resource Include="Resources\Icons\wand-magic.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="Resources\MagicWand.cur" />
+    <EmbeddedResource Include="Resources\MagicWand.cur" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Icons\image-select.png" />
@@ -753,7 +753,7 @@
     <Resource Include="Resources\Icons\pipette.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="Resources\ColorPicker.cur" />
+    <EmbeddedResource Include="Resources\ColorPicker.cur" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Components\spritestudio-16.png" />

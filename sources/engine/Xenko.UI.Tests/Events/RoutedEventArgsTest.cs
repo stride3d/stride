@@ -29,21 +29,21 @@ namespace Xenko.UI.Tests.Events
         public void TestEventFreezing()
         {
             // check that values can freely be modified by default
-            Assert.Equal(false, IsBeingRouted);
+            Assert.False(IsBeingRouted);
             var image = new ImageElement();
             var routedEvent = EventManager.RegisterRoutedEvent<RoutedEventArgs>("test", RoutingStrategy.Tunnel, typeof(RoutedEventArgsTest));
             Source = image;
             Assert.Equal(image, Source);
             Source = null;
-            Assert.Equal(null, Source);
+            Assert.Null(Source);
             RoutedEvent = routedEvent;
             Assert.Equal(routedEvent, RoutedEvent);
             RoutedEvent = null;
-            Assert.Equal(null, RoutedEvent);
+            Assert.Null(RoutedEvent);
 
             // check that value of IsBeingRouted is updated
             StartEventRouting();
-            Assert.Equal(true, IsBeingRouted);
+            Assert.True(IsBeingRouted);
 
             // check that modifications are now prohibited
             Assert.Throws<InvalidOperationException>(() => Source = null);
@@ -51,7 +51,7 @@ namespace Xenko.UI.Tests.Events
 
             // check that value of IsBeingRouted is update
             EndEventRouting();
-            Assert.Equal(false, IsBeingRouted);
+            Assert.False(IsBeingRouted);
         }
     }
 }

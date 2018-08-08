@@ -70,7 +70,7 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(array.ArraySize == list.Count);
 
             //Console.WriteLine("ArrayTexLibrary_CreateArray_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2) + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
-            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_CreateArray_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)]));
+            Assert.Equal(TestTools.GetInstance().Checksum["ArrayTexLibrary_CreateArray_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)], TestTools.ComputeSHA1(array.Data, array.DataSize));
 
             array.Dispose();
             foreach (var image in list)
@@ -93,7 +93,7 @@ namespace Xenko.TextureConverter.Tests
             var extracted = request.Texture;
 
             //Console.WriteLine("ArrayTexLibrary_Extract_" + arrayFile + "." + TestTools.ComputeSHA1(extracted.Data, extracted.DataSize));
-            Assert.True(TestTools.ComputeSHA1(extracted.Data, extracted.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Extract_" + arrayFile]));
+            Assert.Equal(TestTools.GetInstance().Checksum["ArrayTexLibrary_Extract_" + arrayFile], TestTools.ComputeSHA1(extracted.Data, extracted.DataSize));
 
             extracted.Dispose();
 
@@ -133,7 +133,7 @@ namespace Xenko.TextureConverter.Tests
             for(int i = 0; i < array.ArraySize; ++i)
             {
                 var temp = request.Textures[i];
-                Assert.True(TestTools.ComputeSHA1(temp.Data, temp.DataSize).Equals(TestTools.GetInstance().Checksum["ExtractAll_" + list[i].Name]));
+                Assert.Equal(TestTools.GetInstance().Checksum["ExtractAll_" + list[i].Name], TestTools.ComputeSHA1(temp.Data, temp.DataSize));
                 temp.Dispose();
             }
 
@@ -159,7 +159,7 @@ namespace Xenko.TextureConverter.Tests
             library.EndLibrary(array);
 
             //Console.WriteLine("ArrayTexLibrary_Update_" + indice + "_" + arrayFile + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
-            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Update_" + indice + "_" + arrayFile]));
+            Assert.Equal(TestTools.GetInstance().Checksum["ArrayTexLibrary_Update_" + indice + "_" + arrayFile], TestTools.ComputeSHA1(array.Data, array.DataSize));
 
             updateTexture.Dispose();
             array.Dispose();
@@ -183,7 +183,7 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(arraySize == array.ArraySize + 1);
 
             //Console.WriteLine("ArrayTexLibrary_Remove_" + indice + "_" + arrayFile + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
-            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Remove_" + indice + "_" + arrayFile]));
+            Assert.Equal(TestTools.GetInstance().Checksum["ArrayTexLibrary_Remove_" + indice + "_" + arrayFile], TestTools.ComputeSHA1(array.Data, array.DataSize));
 
             array.Dispose();
         }
@@ -208,7 +208,7 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(arraySize == array.ArraySize - 1);
 
             //Console.WriteLine("ArrayTexLibrary_Insert_" + Path.GetFileName(newTexture) + "_" + indice + "_" + arrayFile + "." + TestTools.ComputeSHA1(array.Data, array.DataSize));
-            Assert.True(TestTools.ComputeSHA1(array.Data, array.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_Insert_" + Path.GetFileName(newTexture) + "_" + indice + "_" + arrayFile]));
+            Assert.Equal(TestTools.GetInstance().Checksum["ArrayTexLibrary_Insert_" + Path.GetFileName(newTexture) + "_" + indice + "_" + arrayFile], TestTools.ComputeSHA1(array.Data, array.DataSize));
 
             array.Dispose();
         }
@@ -235,7 +235,7 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(cube.ArraySize == list.Count);
 
             //Console.WriteLine("ArrayTexLibrary_CreateCube_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2) + "." + TestTools.ComputeSHA1(cube.Data, cube.DataSize));
-            Assert.True(TestTools.ComputeSHA1(cube.Data, cube.DataSize).Equals(TestTools.GetInstance().Checksum["ArrayTexLibrary_CreateCube_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)]));
+            Assert.Equal(TestTools.GetInstance().Checksum["ArrayTexLibrary_CreateCube_" + Path.GetFileName(file1) + "_" + Path.GetFileName(file2)], TestTools.ComputeSHA1(cube.Data, cube.DataSize));
 
             cube.Dispose();
             foreach (var image in list)

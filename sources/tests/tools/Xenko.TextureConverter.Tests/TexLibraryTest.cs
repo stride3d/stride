@@ -43,7 +43,7 @@ namespace Xenko.TextureConverter.Tests
 
             image.Update();
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["FactorRescaleTest_" + filter + "_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["FactorRescaleTest_" + filter + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("FactorRescaleTest_" + filter + "_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
@@ -60,7 +60,7 @@ namespace Xenko.TextureConverter.Tests
 
             image.Update();
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["FixedRescaleTest_" + filter + "_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["FixedRescaleTest_" + filter + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("FixedRescaleTest_" + filter + "_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
@@ -71,14 +71,14 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(image.Format.IsRGBAOrder() != isInRgbaOrder);
 
             //Console.WriteLine("SwitchChannelsTest_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["SwitchChannelsTest_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["SwitchChannelsTest_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
         public static void FlipTest(TexImage image, ITexLibrary library, Orientation orientation)
         {
             library.Execute(image, new FlippingRequest(orientation));
 
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["FlipTest_" + orientation + "_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["FlipTest_" + orientation + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("FlipTest_" + orientation + "_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
@@ -87,7 +87,7 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(image.Format.IsCompressed());
             library.Execute(image, new DecompressingRequest(false));
             Assert.True(image.Format == PixelFormat.R8G8B8A8_UNorm);
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["DecompressTest_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["DecompressTest_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("DecompressTest_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
@@ -97,7 +97,7 @@ namespace Xenko.TextureConverter.Tests
             library.Execute(image, new CompressingRequest(format));
 
             Assert.True(image.Format == format);
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["CompressTest_"+format+"_"+image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["CompressTest_" + format + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("CompressTest_" + format + "_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
@@ -107,7 +107,7 @@ namespace Xenko.TextureConverter.Tests
             if (image.Format.IsCompressed()) library.Execute(image, new DecompressingRequest(false));
             library.Execute(image, new MipMapsGenerationRequest(filter));
             Assert.True(image.MipmapCount > 1);
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["GenerateMipMapTest_" + filter + "_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["GenerateMipMapTest_" + filter + "_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
             //Console.WriteLine("GenerateMipMapTest_" + filter + "_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
@@ -117,7 +117,7 @@ namespace Xenko.TextureConverter.Tests
             var request = new NormalMapGenerationRequest(1);
             library.Execute(image, request);
 
-            Assert.True(TestTools.ComputeSHA1(request.NormalMap.Data, request.NormalMap.DataSize).Equals(TestTools.GetInstance().Checksum["GenerateNormalMapTest_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["GenerateNormalMapTest_" + image.Name], TestTools.ComputeSHA1(request.NormalMap.Data, request.NormalMap.DataSize));
             //Console.WriteLine("GenerateNormalMapTest_" + image.Name + "." + TestTools.ComputeSHA1(request.NormalMap.Data, request.NormalMap.DataSize));
 
             request.NormalMap.Dispose();
@@ -129,7 +129,7 @@ namespace Xenko.TextureConverter.Tests
             library.Execute(image, new ExportRequest(Module.PathToOutputImages + outputFile, 0));
 
             //Console.WriteLine("ExportTest_" + file + "." + TestTools.ComputeSHA1(Module.PathToOutputImages + outputFile));
-            Assert.True(TestTools.ComputeSHA1(Module.PathToOutputImages + outputFile).Equals(TestTools.GetInstance().Checksum["ExportTest_" + file]));
+            Assert.Equal(TestTools.GetInstance().Checksum["ExportTest_" + file], TestTools.ComputeSHA1(Module.PathToOutputImages + outputFile));
             File.Delete(Module.PathToOutputImages + outputFile);
         }
 
@@ -138,7 +138,7 @@ namespace Xenko.TextureConverter.Tests
             library.Execute(image, new PreMultiplyAlphaRequest());
 
             //Console.WriteLine("PreMultiplyAlphaTest_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["PreMultiplyAlphaTest_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["PreMultiplyAlphaTest_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
         public static void CorrectGammaTest(TexImage image, ITexLibrary library)
@@ -146,7 +146,7 @@ namespace Xenko.TextureConverter.Tests
             library.Execute(image, new GammaCorrectionRequest(1 / 2.2));
 
             //Console.WriteLine("CorrectGammaTest_" + image.Name + "." + TestTools.ComputeSHA1(image.Data, image.DataSize));
-            Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["CorrectGammaTest_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["CorrectGammaTest_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
         }
 
         public static void ExportMinMipMapTest(TexImage image, ITexLibrary library, int minMipMapSize)
@@ -171,7 +171,7 @@ namespace Xenko.TextureConverter.Tests
 
 
             //Console.WriteLine("ExportMinMipMapTest_" + minMipMapSize + "_" + image.Name + "." + TestTools.ComputeSHA1(Module.PathToOutputImages + outputFile));
-            Assert.True(TestTools.ComputeSHA1(Module.PathToOutputImages + outputFile).Equals(TestTools.GetInstance().Checksum["ExportMinMipMapTest_" + minMipMapSize + "_" + image.Name]));
+            Assert.Equal(TestTools.GetInstance().Checksum["ExportMinMipMapTest_" + minMipMapSize + "_" + image.Name], TestTools.ComputeSHA1(Module.PathToOutputImages + outputFile));
             File.Delete(Module.PathToOutputImages + outputFile);
 
             image2.Dispose();

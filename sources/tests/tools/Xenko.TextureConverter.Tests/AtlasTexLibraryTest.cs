@@ -71,7 +71,7 @@ namespace Xenko.TextureConverter.Tests
             library.Execute(atlas, new AtlasCreationRequest(list, forceSquaredAtlas));
 
             //Console.WriteLine("AtlasTexLibrary_CreateAtlas_" + generateMipMaps + "_" + forceSquaredAtlas + "." + TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
-            Assert.True(TestTools.ComputeSHA1(atlas.Data, atlas.DataSize).Equals(TestTools.GetInstance().Checksum["AtlasTexLibrary_CreateAtlas_" + generateMipMaps + "_" + forceSquaredAtlas]));
+            Assert.Equal(TestTools.GetInstance().Checksum["AtlasTexLibrary_CreateAtlas_" + generateMipMaps + "_" + forceSquaredAtlas], TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
 
             if(forceSquaredAtlas) Assert.True(atlas.Width == atlas.Height);
 
@@ -99,7 +99,7 @@ namespace Xenko.TextureConverter.Tests
             string nameWOExtension = Path.GetFileNameWithoutExtension(extractedName);
 
             //Console.WriteLine("AtlasTexLibrary_Extract_" + nameWOExtension + ".dds." + TestTools.ComputeSHA1(extracted.Data, extracted.DataSize));
-            Assert.True(TestTools.ComputeSHA1(extracted.Data, extracted.DataSize).Equals(TestTools.GetInstance().Checksum["AtlasTexLibrary_Extract_" + nameWOExtension + ".dds"]));
+            Assert.Equal(TestTools.GetInstance().Checksum["AtlasTexLibrary_Extract_" + nameWOExtension + ".dds"], TestTools.ComputeSHA1(extracted.Data, extracted.DataSize));
 
             extracted.Dispose();
 
@@ -134,7 +134,7 @@ namespace Xenko.TextureConverter.Tests
 
             foreach (var image in request.Textures)
             {
-                Assert.True(TestTools.ComputeSHA1(image.Data, image.DataSize).Equals(TestTools.GetInstance().Checksum["ExtractAll_" + image.Name]));
+                Assert.Equal(TestTools.GetInstance().Checksum["ExtractAll_" + image.Name], TestTools.ComputeSHA1(image.Data, image.DataSize));
                 image.Dispose();
             }
 
@@ -159,7 +159,7 @@ namespace Xenko.TextureConverter.Tests
             library.EndLibrary(atlas);
 
             //Console.WriteLine("AtlasTexLibrary_Update_" + textureNameToUpdate + "_" + atlasFile + "." + TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
-            Assert.True(TestTools.ComputeSHA1(atlas.Data, atlas.DataSize).Equals(TestTools.GetInstance().Checksum["AtlasTexLibrary_Update_" + textureNameToUpdate + "_" + atlasFile]));
+            Assert.Equal(TestTools.GetInstance().Checksum["AtlasTexLibrary_Update_" + textureNameToUpdate + "_" + atlasFile], TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
 
             updateTexture.Dispose();
             atlas.Dispose();

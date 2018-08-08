@@ -140,7 +140,7 @@ namespace Xenko.Engine.Tests
         {
             graphicsCompositor.Cameras.Add(new SceneCameraSlot());
 
-            Assert.Throws(typeof(InvalidOperationException), () =>
+            Assert.Throws<InvalidOperationException>(() =>
             {
                 var camera1 = AddCamera(true, graphicsCompositor.Cameras[0].ToSlotId());
                 var camera2 = AddCamera(true, graphicsCompositor.Cameras[0].ToSlotId());

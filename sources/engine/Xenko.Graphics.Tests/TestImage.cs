@@ -138,8 +138,8 @@ namespace Xenko.Graphics.Tests
             Assert.Equal(fromPixels.Length, source.Description.Width * source.Description.Height);
 
             // Check values
-            Assert.Equal(fromPixels[0], 255);
-            Assert.Equal(fromPixels[16], 128);
+            Assert.Equal(255, fromPixels[0]);
+            Assert.Equal(128, fromPixels[16]);
 
             // Use Set Pixels
             fromPixels[0] = 1;
@@ -147,8 +147,8 @@ namespace Xenko.Graphics.Tests
             fromPixelBuffer.SetPixels(fromPixels);
 
             // Use Get Pixel
-            Assert.Equal(fromPixelBuffer.GetPixel<byte>(0, 0), 1);
-            Assert.Equal(fromPixelBuffer.GetPixel<byte>(16, 0), 2);
+            Assert.Equal(1, fromPixelBuffer.GetPixel<byte>(0, 0));
+            Assert.Equal(2, fromPixelBuffer.GetPixel<byte>(16, 0));
         }
 
         [Fact(Skip="Ignored")]

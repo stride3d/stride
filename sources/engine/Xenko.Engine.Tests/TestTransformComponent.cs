@@ -28,7 +28,7 @@ namespace Xenko.Engine.Tests
 
             // Make sure that an entity has a transform component
             Assert.NotNull(trans);
-            Assert.Equal(1, entity.Components.Count);
+            Assert.Single(entity.Components);
             Assert.Equal(entity.Transform, entity.Components[0]);
 
             // Test point to world/local space conversion

@@ -49,7 +49,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
             MyAsset1Compiler.AssertFunc = (url, ass, pkg) =>
             {
                 // Nothing must have been compiled before
-                AssertInThread(ref ex, () => Assert.Equal(0, TestCompilerBase.CompiledAssets.Count));
+                AssertInThread(ref ex, () => Assert.Empty(TestCompilerBase.CompiledAssets));
             };
 
             var assetBuilder = new PackageCompiler(new RootPackageAssetEnumerator(package));
@@ -96,7 +96,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
             Exception ex = null;
             MyAsset1Compiler.AssertFunc = (url, ass, pkg) =>
             {
-                AssertInThread(ref ex, () => Assert.Equal(1, TestCompilerBase.CompiledAssets.Count));
+                AssertInThread(ref ex, () => Assert.Single(TestCompilerBase.CompiledAssets));
                 AssertInThread(ref ex, () => Assert.Equal(asset3.Id, TestCompilerBase.CompiledAssets.First().Id));
             };
 
@@ -145,7 +145,7 @@ namespace Xenko.Core.Assets.Tests.Compilers
             Exception ex = null;
             MyAsset1Compiler.AssertFunc = (url, ass, pkg) =>
             {
-                AssertInThread(ref ex, () => Assert.Equal(1, TestCompilerBase.CompiledAssets.Count));
+                AssertInThread(ref ex, () => Assert.Single(TestCompilerBase.CompiledAssets));
                 AssertInThread(ref ex, () => Assert.Equal(compileAssetReference.Id, TestCompilerBase.CompiledAssets.First().Id));
             };
 

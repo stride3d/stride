@@ -81,8 +81,8 @@ namespace Xenko.Core.Yaml.Tests.Serialization
             // deserialize payload - fails if EmitDefaults is set
             var message = deserializer.Deserialize<AMessage>(e2.Payload);
             Assert.NotNull(message.Payload);
-            Assert.Equal(message.Payload.X, 5);
-            Assert.Equal(message.Payload.Y, 6);
+            Assert.Equal(5, message.Payload.X);
+            Assert.Equal(6, message.Payload.Y);
         }
 
         public class Env
