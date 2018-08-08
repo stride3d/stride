@@ -1,37 +1,42 @@
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Markup;
 using System.Windows.Media;
 using Xenko.Core.Annotations;
-using Xenko.Core.Presentation.Drawing;
 
 namespace Xenko.Core.Presentation.MarkupExtensions
 {
 
+    using Xenko.Core.Presentation.Extensions;
+    using static Xenko.Core.Presentation.Extensions.IconThemeSelector;
+
     [MarkupExtensionReturnType(typeof(ImageSource))]
     public class ThemedSourceExtension : MarkupExtension
     {
-
-        private readonly ImageSource source;
-        private readonly KnownThemes theme;
+        public ThemedSourceExtension() { }
 
         public ThemedSourceExtension(ImageSource source, KnownThemes theme)
         {
-            this.source = source;
-            this.theme = theme;
+            this.Source = source;
+            this.Theme = theme.GetIconTheme();
         }
+
+        [ConstructorArgument("source")]
+        private ImageSource Source { get; }
+
+        [ConstructorArgument("theme")]
+        private IconTheme Theme { get; }
 
         [NotNull]
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            if (source is DrawingImage) return new DrawingImage
+            if (Source is DrawingImage) return new DrawingImage
             {
-                Drawing = ImageThemingUtilities.TransformDrawing((source as DrawingImage)?.Drawing, theme)
+                Drawing = ImageThemingUtilities.TransformDrawing((Source as DrawingImage)?.Drawing, Theme)
             };
-            else return source;
+            else return Source;
         }
     }
 }

@@ -1,41 +1,63 @@
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Markup;
 using System.Windows.Media;
-using Xenko.Core.Annotations;
 using Xenko.Core.Presentation.Drawing;
 
-namespace Xenko.Core.Presentation.Drawing
+namespace Xenko.Core.Presentation.Extensions
 {
     using Media = System.Windows.Media;
 
-    public enum KnownThemes
+    public static class IconThemeSelector
     {
-        Light, Dark
+        public enum KnownThemes
+        {
+            Light,
+            Dark
+        }
+
+        public static IconTheme GetIconTheme(this KnownThemes theme)
+        {
+            switch (theme)
+            {
+                case KnownThemes.Dark: return new IconTheme("Dark", Color.FromRgb(16, 16, 17));
+                case KnownThemes.Light: return new IconTheme("Light", Color.FromRgb(245, 245, 245));
+                default:return default(IconTheme);
+            }
+        }
+
+    }
+
+    public struct IconTheme
+    {
+        public IconTheme(string name, Color backgroundColor)
+        {
+            this.Name = name;
+            this.BackgroundColor = backgroundColor;
+        }
+        public string Name { get; }
+        public Color BackgroundColor { get; }
+        public double BackgroundLuminosity => BackgroundColor.ToHslColor().Luminosity;
+
     }
 
     public static class ImageThemingUtilities
     {
 
-        private static readonly double DarkLuminosity = Color.FromRgb(16, 16, 17).ToHslColor().Luminosity;
-        private static readonly double LightLuminosity = Color.FromRgb(245, 245, 245).ToHslColor().Luminosity;
-
-        public static Media.Drawing TransformDrawing(Media.Drawing drawing, KnownThemes theme)
+        public static Media.Drawing TransformDrawing(Media.Drawing drawing, IconTheme theme)
         {
             var newDrawing = drawing.CloneCurrentValue();
             newDrawing.TransformParts(theme);
             return newDrawing;
         }
 
-        private static void TransformParts(this Media.Drawing drawing, KnownThemes theme)
+        private static void TransformParts(this Media.Drawing drawing, IconTheme theme)
         {
             if (drawing is GeometryDrawing gd && gd.Brush is SolidColorBrush s)
             {
                 var hsl = s.Color.ToHslColor();
-                var newL = TransformLuminosity(hsl, (theme == KnownThemes.Light) ? LightLuminosity : DarkLuminosity);
+                var newL = TransformLuminosity(hsl, theme.BackgroundLuminosity);
                 var newColor = new HslColor(hsl.Hue, hsl.Saturation, newL, hsl.Alpha).ToColor();
                 s.Color = newColor;
             }
