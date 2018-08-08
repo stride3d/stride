@@ -27,11 +27,11 @@ namespace Xenko.Core.Presentation.MarkupExtensions
         [NotNull]
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            if (source == null) return source;
-            return new DrawingImage {
+            if (source is DrawingImage) return new DrawingImage
+            {
                 Drawing = ImageThemingUtilities.TransformDrawing((source as DrawingImage)?.Drawing, theme)
             };
-
+            else return source;
         }
     }
 }
