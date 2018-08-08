@@ -24,7 +24,7 @@ namespace Xenko
         /// <summary>
         /// The version used by editor for display purpose. 4th digit needs to be at least 1 if used (due to NuGet special cases).
         /// </summary>
-        public const string PublicVersion = "3.0.0.2";
+        public const string PublicVersion = "3.0.0.3";
 
         /// <summary>
         /// The current assembly version as text, currently same as <see cref="PublicVersion"/>.
