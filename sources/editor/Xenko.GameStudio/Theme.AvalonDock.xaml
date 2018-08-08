@@ -384,7 +384,7 @@
                          DropDownContextMenuDataContext="{Binding Path=LayoutItem, RelativeSource={RelativeSource TemplatedParent}}"
                          ToolTip="{x:Static avalonDockProperties:Resources.Anchorable_CxMenu_Hint}"
                                 >
-                <Image x:Name="PART_ImgMenuPin" Source="Images/PinMenu.png"/>
+                <Image x:Name="PART_ImgMenuPin" Source="{DynamicResource VectorGlyphDown}"/>
               </avalonDockControls:DropDownButton>
 
               <Button x:Name="PART_AutoHidePin"
@@ -398,7 +398,7 @@
                          Visibility="{Binding Path=IsEnabled, RelativeSource={RelativeSource Self}, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
                          ToolTip="{x:Static avalonDockProperties:Resources.Anchorable_BtnAutoHide_Hint}"
                                 >
-                <Image x:Name="PART_ImgAutoHidePin" Source="Images/PinAutoHide.png"/>
+                <Image x:Name="PART_ImgAutoHidePin" Source="{DynamicResource VectorPin}"/>
               </Button>
               <Button x:Name="PART_HidePin"
                          Grid.Column="3"
