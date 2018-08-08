@@ -3,6 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:components="clr-namespace:Xenko.Particles.Components;assembly=Xenko.Particles"
     xmlns:data="clr-namespace:Xenko.Data;assembly=Xenko"
+    xmlns:drawing="clr-namespace:Xenko.Core.Presentation.Drawing;assembly=Xenko.Core.Presentation"
     xmlns:engine="clr-namespace:Xenko.Engine;assembly=Xenko.Engine"
     xmlns:engine-ui="clr-namespace:Xenko.Engine;assembly=Xenko.UI"
     xmlns:font="clr-namespace:Xenko.Graphics.Font;assembly=Xenko.Graphics"
@@ -13,7 +14,7 @@
     xmlns:ss-runtime="clr-namespace:Xenko.SpriteStudio.Runtime;assembly=Xenko.SpriteStudio.Runtime"
     xmlns:video="clr-namespace:Xenko.Video;assembly=Xenko.Video">
 
-    <DrawingImage x:Key="ImageUp">
+    <DrawingImage x:Key="ImageUp" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -23,7 +24,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageDown">
+    <DrawingImage x:Key="ImageDown" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -33,7 +34,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageDuplicateSprite">
+    <DrawingImage x:Key="ImageDuplicateSprite" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -44,7 +45,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImagePlay">
+    <DrawingImage x:Key="ImagePlay" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -54,7 +55,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImagePause">
+    <DrawingImage x:Key="ImagePause" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -64,7 +65,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageScaleOnRealSize">
+    <DrawingImage x:Key="ImageScaleOnRealSize" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M12.5856,-0.000199999999999534L11.9996,0.5858 11.9996,1.9998 3.9996,1.9998 3.9996,0.5858 3.4136,-0.000199999999999534 -0.000400000000000844,-0.000199999999999534 -0.000400000000000844,3.4148 0.585599999999999,4.0008 1.9996,4.0008 1.9996,12.0008 0.585599999999999,12.0008 -0.000400000000000844,12.5868 -0.000400000000000844,15.9998 3.4136,15.9998 3.9996,15.4138 3.9996,13.9998 11.9996,13.9998 11.9996,15.4138 12.5856,15.9998 16.0006,15.9998 16.0006,12.5868 15.4146,12.0008 14.0006,12.0008 14.0006,4.0008 15.4146,4.0008 16.0006,3.4148 16.0006,-0.000199999999999534z" />
@@ -80,7 +81,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageFitOnScreen">
+    <DrawingImage x:Key="ImageFitOnScreen" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -91,7 +92,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageFocusOnRegion">
+    <DrawingImage x:Key="ImageFocusOnRegion" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -101,7 +102,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageMagicWand">
+    <DrawingImage x:Key="ImageMagicWand" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -111,7 +112,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageSelectAll">
+    <DrawingImage x:Key="ImageSelectAll" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#FF00539C" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -125,7 +126,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImagePicker">
+    <DrawingImage x:Key="ImagePicker" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,15.978L0,15.978 0,-0.0219999999999985 16,-0.0219999999999985z" />
@@ -135,7 +136,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageHighlightMaterial">
+    <DrawingImage x:Key="ImageHighlightMaterial" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -149,7 +150,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageHighlightSelection">
+    <DrawingImage x:Key="ImageHighlightSelection" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -164,7 +165,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageLocked">
+    <DrawingImage x:Key="ImageLocked" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -175,7 +176,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageUnlocked">
+    <DrawingImage x:Key="ImageUnlocked" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -187,7 +188,7 @@
     </DrawingImage>
 
     <!--  Curve editor icons  -->
-    <DrawingImage x:Key="ImageEditCurve">
+    <DrawingImage x:Key="ImageEditCurve" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -209,7 +210,7 @@
         UriSource="../Resources/Icons/play-32.png" />
 
     <!--  Arrows  -->
-    <DrawingImage x:Key="ImageThicknessLeft">
+    <DrawingImage x:Key="ImageThicknessLeft" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -218,7 +219,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageThicknessRight">
+    <DrawingImage x:Key="ImageThicknessRight" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z" />
@@ -227,7 +228,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageThicknessUp">
+    <DrawingImage x:Key="ImageThicknessUp" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -236,7 +237,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageThicknessDown">
+    <DrawingImage x:Key="ImageThicknessDown" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z" />
@@ -245,7 +246,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageThicknessBack">
+    <DrawingImage x:Key="ImageThicknessBack" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -256,7 +257,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageThicknessFront">
+    <DrawingImage x:Key="ImageThicknessFront" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -267,7 +268,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageResetCamera">
+    <DrawingImage x:Key="ImageResetCamera" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -280,7 +281,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageWarning">
+    <DrawingImage x:Key="ImageWarning" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -291,7 +292,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static font:FontStyle.Bold}">
+    <DrawingImage x:Key="{x:Static font:FontStyle.Bold}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -301,7 +302,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static font:FontStyle.Italic}">
+    <DrawingImage x:Key="{x:Static font:FontStyle.Italic}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -311,7 +312,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static components:StateControl.Play}">
+    <DrawingImage x:Key="{x:Static components:StateControl.Play}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -321,7 +322,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static components:StateControl.Pause}">
+    <DrawingImage x:Key="{x:Static components:StateControl.Pause}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -331,7 +332,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static components:StateControl.Stop}">
+    <DrawingImage x:Key="{x:Static components:StateControl.Stop}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -350,7 +351,7 @@
     <BitmapImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Cone}" UriSource="../Resources/Icons/cone.png" />
     <BitmapImage x:Key="{x:Static preview:MaterialPreviewPrimitive.Capsule}" UriSource="../Resources/Icons/capsule.png" />
 
-    <DrawingImage x:Key="{x:Static gameEditor:Transformation.Translation}">
+    <DrawingImage x:Key="{x:Static gameEditor:Transformation.Translation}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.2738,-0.000199999999999534L4.7688,2.5058 4.7688,3.7268 3.5478,3.7268 -0.000200000000000422,7.2738 -0.000200000000000422,7.6008 3.5478,11.1478 4.7688,11.1478 4.7688,12.3698 8.3988,15.9998 8.5608,15.9998 12.1908,12.3698 12.1908,11.1478 13.4118,11.1478 15.9998,8.5608 15.9998,6.3138 13.4118,3.7268 12.1908,3.7268 12.1908,2.5058 9.6858,-0.000199999999999534z" />
@@ -363,7 +364,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static gameEditor:Transformation.Rotation}">
+    <DrawingImage x:Key="{x:Static gameEditor:Transformation.Rotation}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M13,7.8813L13,7.2343C13.172,7.3823,13.328,7.5363,13.456,7.6953z M6.238,11.9613L5.767,12.3453 5.77,10.9663 5.771,10.7733 6.84,11.4593C6.578,11.6823,6.363,11.8583,6.238,11.9613 M3,8.8823C2.696,8.6183 2.449,8.3353 2.283,8.0373 2.291,8.0253 2.302,8.0123 2.31,8.0003 2.475,7.7203 2.706,7.4533 3,7.2013z M14.242,3.0073C13.971,2.7803 13.725,2.5993 13.465,2.4373 12.562,1.8743 11.476,1.4853 10.31,1.2513L8.385,0.000299999999999301 7.615,0.000299999999999301 5.709,1.2393C4.522,1.4713 3.419,1.8633 2.506,2.4363 2.255,2.5943 2.018,2.7683 1.759,2.9853 0.632,3.9263 0.00300000000000011,5.1233 0,6.3563L0,9.7093C-0.00500000000000078,11.2473 0.896000000000001,12.6593 2.538,13.6843 3.105,14.0393 3.749,14.3363 4.451,14.5663L5.76,14.9983 5.763,13.6193 5.765,13.0433 6.163,13.4413C7.146,14.4263,7.947,15.1323,9.06,16.0003L11.207,16.0003C11.55,15.9013,11.886,15.7913,12.205,15.6603L13.988,14.9313 12.712,14.1143C12.984,13.9823 13.244,13.8393 13.492,13.6833 15.102,12.6723 15.996,11.2793 16,9.7613L16,6.4093C16.004,5.1683,15.38,3.9603,14.242,3.0073" />
@@ -375,7 +376,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static gameEditor:Transformation.Scale}">
+    <DrawingImage x:Key="{x:Static gameEditor:Transformation.Scale}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -392,7 +393,7 @@
     <BitmapImage x:Key="{x:Static data:ConfigPlatforms.Windows}" UriSource="../Resources/Icons/windows.png" />
     <BitmapImage x:Key="{x:Static data:ConfigPlatforms.UWP}" UriSource="../Resources/Icons/uwp.png" />
 
-    <DrawingImage x:Key="ImageFetchEntity">
+    <DrawingImage x:Key="ImageFetchEntity" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -403,7 +404,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageLoadEntity">
+    <DrawingImage x:Key="ImageLoadEntity" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -413,7 +414,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageUnloadEntity">
+    <DrawingImage x:Key="ImageUnloadEntity" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -423,7 +424,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageLockEntity">
+    <DrawingImage x:Key="ImageLockEntity" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -434,7 +435,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageUnlockEntity">
+    <DrawingImage x:Key="ImageUnlockEntity" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -445,7 +446,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageTranslateSnap">
+    <DrawingImage x:Key="ImageTranslateSnap" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -474,7 +475,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageRotateSnap">
+    <DrawingImage x:Key="ImageRotateSnap" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -502,7 +503,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageScaleSnap">
+    <DrawingImage x:Key="ImageScaleSnap" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -528,7 +529,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageAmbientLightForeground">
+    <DrawingImage x:Key="ImageAmbientLightForeground" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -538,7 +539,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageToggleMaterialMode">
+    <DrawingImage x:Key="ImageToggleMaterialMode" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -549,7 +550,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageToggleSelectionMask">
+    <DrawingImage x:Key="ImageToggleSelectionMask" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -559,7 +560,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageGizmos">
+    <DrawingImage x:Key="ImageGizmos" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -570,7 +571,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageLighting">
+    <DrawingImage x:Key="ImageLighting" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -581,7 +582,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageNavigation">
+    <DrawingImage x:Key="ImageNavigation" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -616,7 +617,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageCameraSettings">
+    <DrawingImage x:Key="ImageCameraSettings" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -626,7 +627,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageGenerateCubeMap">
+    <DrawingImage x:Key="ImageGenerateCubeMap" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -639,7 +640,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageLightProbesCompute">
+    <DrawingImage x:Key="ImageLightProbesCompute" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -655,7 +656,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageLightProbesReset">
+    <DrawingImage x:Key="ImageLightProbesReset" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -684,7 +685,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static gameEditor:TransformationSpace.WorldSpace}">
+    <DrawingImage x:Key="{x:Static gameEditor:TransformationSpace.WorldSpace}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -694,7 +695,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static gameEditor:TransformationSpace.ObjectSpace}">
+    <DrawingImage x:Key="{x:Static gameEditor:TransformationSpace.ObjectSpace}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -705,7 +706,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static gameEditor:TransformationSpace.ViewSpace}">
+    <DrawingImage x:Key="{x:Static gameEditor:TransformationSpace.ViewSpace}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -716,7 +717,7 @@
     </DrawingImage>
 
     <!--  Default fallback for entity component without icons  -->
-    <DrawingImage x:Key="{x:Type engine:EntityComponent}">
+    <DrawingImage x:Key="{x:Type engine:EntityComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -772,7 +773,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:AnimationComponent}">
+    <DrawingImage x:Key="{x:Type engine:AnimationComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -782,7 +783,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:AudioEmitterComponent}">
+    <DrawingImage x:Key="{x:Type engine:AudioEmitterComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -792,7 +793,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:AudioListenerComponent}">
+    <DrawingImage x:Key="{x:Type engine:AudioListenerComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -803,7 +804,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:BackgroundComponent}">
+    <DrawingImage x:Key="{x:Type engine:BackgroundComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -814,7 +815,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:CameraComponent}">
+    <DrawingImage x:Key="{x:Type engine:CameraComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -824,7 +825,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:LightComponent}">
+    <DrawingImage x:Key="{x:Type engine:LightComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -839,7 +840,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type components:ParticleSystemComponent}">
+    <DrawingImage x:Key="{x:Type components:ParticleSystemComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -849,7 +850,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:ModelComponent}">
+    <DrawingImage x:Key="{x:Type engine:ModelComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -860,7 +861,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:ModelNodeLinkComponent}">
+    <DrawingImage x:Key="{x:Type engine:ModelNodeLinkComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,0L16,16 0,16 0,0z" />
@@ -870,7 +871,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type physics:PhysicsComponent}">
+    <DrawingImage x:Key="{x:Type physics:PhysicsComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -880,7 +881,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:ScriptComponent}">
+    <DrawingImage x:Key="{x:Type engine:ScriptComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -891,7 +892,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:SpriteComponent}">
+    <DrawingImage x:Key="{x:Type engine:SpriteComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -902,7 +903,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type ss:SpriteStudioComponent}">
+    <DrawingImage x:Key="{x:Type ss:SpriteStudioComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -912,7 +913,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type ss-runtime:SpriteStudioNodeLinkComponent}">
+    <DrawingImage x:Key="{x:Type ss-runtime:SpriteStudioNodeLinkComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,0L16,16 0,16 0,0z" />
@@ -922,7 +923,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine:TransformComponent}">
+    <DrawingImage x:Key="{x:Type engine:TransformComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -978,7 +979,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine-ui:UIComponent}">
+    <DrawingImage x:Key="{x:Type engine-ui:UIComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -989,7 +990,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type engine-ui:UIElementLinkComponent}">
+    <DrawingImage x:Key="{x:Type engine-ui:UIElementLinkComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,0L16,16 0,16 0,0z" />
@@ -999,7 +1000,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Type video:VideoComponent}">
+    <DrawingImage x:Key="{x:Type video:VideoComponent}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -1011,7 +1012,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="FolderIcon">
+    <DrawingImage x:Key="FolderIcon" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z" />
@@ -1022,7 +1023,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="SceneIcon">
+    <DrawingImage x:Key="SceneIcon" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />

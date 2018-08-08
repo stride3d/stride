@@ -2,10 +2,11 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:assets="clr-namespace:Xenko.Core.Assets;assembly=Xenko.Core.Assets"
-    xmlns:core="clr-namespace:Xenko.Core;assembly=Xenko.Core">
+    xmlns:core="clr-namespace:Xenko.Core;assembly=Xenko.Core"
+    xmlns:drawing="clr-namespace:Xenko.Core.Presentation.Drawing;assembly=Xenko.Core.Presentation">
 
     <!--  Generic action-related icons  -->
-    <DrawingImage x:Key="ImageNew">
+    <DrawingImage x:Key="ImageNew" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -15,7 +16,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageOpen">
+    <DrawingImage x:Key="ImageOpen" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z" />
@@ -25,7 +26,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageClose">
+    <DrawingImage x:Key="ImageClose" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -35,7 +36,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageSave">
+    <DrawingImage x:Key="ImageSave" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -46,7 +47,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageUndo">
+    <DrawingImage x:Key="ImageUndo" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -56,7 +57,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageRedo">
+    <DrawingImage x:Key="ImageRedo" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -66,7 +67,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageCut">
+    <DrawingImage x:Key="ImageCut" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -77,7 +78,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageCopy">
+    <DrawingImage x:Key="ImageCopy" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -88,7 +89,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageCopyRecursively">
+    <DrawingImage x:Key="ImageCopyRecursively" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -99,7 +100,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImagePaste">
+    <DrawingImage x:Key="ImagePaste" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -110,7 +111,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImagePrevious">
+    <DrawingImage x:Key="ImagePrevious" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -121,7 +122,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageNext">
+    <DrawingImage x:Key="ImageNext" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -132,7 +133,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageRename">
+    <DrawingImage x:Key="ImageRename" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -143,7 +144,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageDelete">
+    <DrawingImage x:Key="ImageDelete" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#F3816A" Geometry="F1M10.8008,11L13.4678,7.871 13.0218,7.871 9.9998,10.246 8.3948,8.094C8.1208,7.782 7.5668,7.823 7.2968,8.094 7.0188,8.373 6.9628,8.869 7.2968,9.207L9.2178,11 6.1988,13.656C5.8908,13.967 5.8908,14.457 6.1988,14.768 6.5048,15.078 6.9878,15.078 7.2968,14.768L10.0098,11.83 13.5718,14.996 13.9678,14.996z" />
@@ -151,17 +152,17 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageAcceptingDrop">
+    <DrawingImage x:Key="ImageAcceptingDrop" >
         <DrawingImage.Drawing>
             <DrawingGroup>
-                <GeometryDrawing Brush="Transparent" Geometry="M16,0V16H0V0Z" />
+                <GeometryDrawing Brush="#00ffffff" Geometry="M16,0V16H0V0Z" />
                 <GeometryDrawing Brush="#f6f6f6" Geometry="M16,4.586v.242l-10,10-6-6V8.586L2.707,5.879,6,9.172l7.293-7.293Z" />
                 <GeometryDrawing Brush="#388a34" Geometry="M14.707,4.707,6,13.414,1.293,8.707,2.707,7.293,6,10.586l7.293-7.293Z" />
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageRejectingDrop">
+    <DrawingImage x:Key="ImageRejectingDrop" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -171,7 +172,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageOpenWithTextEditor">
+    <DrawingImage x:Key="ImageOpenWithTextEditor" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -183,7 +184,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageOpenAssetFile">
+    <DrawingImage x:Key="ImageOpenAssetFile" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -200,7 +201,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageOpenSourceFile">
+    <DrawingImage x:Key="ImageOpenSourceFile" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -215,7 +216,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageExplore">
+    <DrawingImage x:Key="ImageExplore" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -228,7 +229,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageVisualStudio">
+    <DrawingImage x:Key="ImageVisualStudio" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#FFFFFF" Geometry="M 26.9982,0 V 30.9195 L 0,26.9091 26.9982,36 35.9973,32.256 V 3.744 Z m -17.721,17.3196 8.2683,8.1801 4.95,-2.106 V 7.3557 l -4.95,-2.106 -8.2683,8.181 -4.9788,-3.753 -2.0511,0.6867 v 10.0215 l 2.0511,0.6867 z m 8.2683,-6.2325 v 8.577 l -5.6889,-4.2885 z m -13.2471,1.3068 3.0132,2.9808 -3.0132,2.9817 z" />
@@ -236,7 +237,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageSettings">
+    <DrawingImage x:Key="ImageSettings" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -247,7 +248,7 @@
     </DrawingImage>
 
     <!--  Solution icons  -->
-    <DrawingImage x:Key="ImageNewSolution">
+    <DrawingImage x:Key="ImageNewSolution" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -285,7 +286,7 @@
 
     <!--  Package icons  -->
     <!--  ImagePackage: This icon can be considered as default Xenko solution  -->
-    <DrawingImage x:Key="ImagePackage">
+    <DrawingImage x:Key="ImagePackage" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -307,7 +308,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageAddNewPackage">
+    <DrawingImage x:Key="ImageAddNewPackage" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -342,7 +343,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageAddExistingPackage">
+    <DrawingImage x:Key="ImageAddExistingPackage" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -377,7 +378,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImagePackageReference">
+    <DrawingImage x:Key="ImagePackageReference" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -399,7 +400,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImagePackageProperties">
+    <DrawingImage x:Key="ImagePackageProperties" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -413,7 +414,7 @@
     </DrawingImage>
 
     <!--  Asset folder icons  -->
-    <DrawingImage x:Key="ImageRootFolder">
+    <DrawingImage x:Key="ImageRootFolder" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -425,7 +426,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageFolder">
+    <DrawingImage x:Key="ImageFolder" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -437,7 +438,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageNewFolder">
+    <DrawingImage x:Key="ImageNewFolder" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -452,7 +453,7 @@
     </DrawingImage>
 
     <!--  Project icons  -->
-    <DrawingImage x:Key="ImageAddNewProject">
+    <DrawingImage x:Key="ImageAddNewProject" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -489,7 +490,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageAddExistingProject">
+    <DrawingImage x:Key="ImageAddExistingProject" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -524,7 +525,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageReloadAssemblies">
+    <DrawingImage x:Key="ImageReloadAssemblies" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -559,7 +560,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageAddDependency">
+    <DrawingImage x:Key="ImageAddDependency" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -572,7 +573,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageStartupProject">
+    <DrawingImage x:Key="ImageStartupProject" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -586,7 +587,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageCodeRoot">
+    <DrawingImage x:Key="ImageCodeRoot" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -615,7 +616,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageDepsRoot">
+    <DrawingImage x:Key="ImageDepsRoot" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -629,7 +630,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageExpandAssetFolders">
+    <DrawingImage x:Key="ImageExpandAssetFolders" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -689,7 +690,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageExpandAllFolders">
+    <DrawingImage x:Key="ImageExpandAllFolders" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -749,7 +750,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageCollapseAllFolders">
+    <DrawingImage x:Key="ImageCollapseAllFolders" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -809,7 +810,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static assets:ProjectType.Executable}">
+    <DrawingImage x:Key="{x:Static assets:ProjectType.Executable}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -822,7 +823,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="{x:Static assets:ProjectType.Library}">
+    <DrawingImage x:Key="{x:Static assets:ProjectType.Library}" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -855,7 +856,7 @@
     <BitmapImage x:Key="UpdateSelectedAssetsFromSource" UriSource="../Resources/Icons/reimport-24.png" />
     <BitmapImage x:Key="UpdateAllAssetsWithModifiedSource" UriSource="../Resources/Icons/reimport-24.png" />
     <BitmapImage x:Key="ImageReimportEffects" UriSource="../Resources/Icons/teapot-24.png" />
-    <DrawingImage x:Key="ImageAssetIsRoot">
+    <DrawingImage x:Key="ImageAssetIsRoot" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -866,7 +867,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageAssetIsIndirectlyIncluded">
+    <DrawingImage x:Key="ImageAssetIsIndirectlyIncluded" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -877,7 +878,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageAssetIsExcluded">
+    <DrawingImage x:Key="ImageAssetIsExcluded" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -888,7 +889,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageAssetOverride">
+    <DrawingImage x:Key="ImageAssetOverride" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -901,7 +902,7 @@
     </DrawingImage>
 
     <!--  Property edition icons  -->
-    <DrawingImage x:Key="ImageDropDown">
+    <DrawingImage x:Key="ImageDropDown" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -912,7 +913,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageAdd">
+    <DrawingImage x:Key="ImageAdd" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -923,7 +924,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageRemove">
+    <DrawingImage x:Key="ImageRemove" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -934,7 +935,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageClear">
+    <DrawingImage x:Key="ImageClear" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -946,7 +947,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageBrowse">
+    <DrawingImage x:Key="ImageBrowse" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -958,7 +959,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageFetchAsset">
+    <DrawingImage x:Key="ImageFetchAsset" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -983,7 +984,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImagePickup">
+    <DrawingImage x:Key="ImagePickup" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
@@ -993,7 +994,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageCreateInstance">
+    <DrawingImage x:Key="ImageCreateInstance" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -1021,12 +1022,12 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageClearText">
+    <DrawingImage x:Key="ImageClearText" >
         <DrawingImage.Drawing>
             <GeometryDrawing Brush="#F3816A" Geometry="F1M10.8008,11L13.4678,7.871 13.0218,7.871 9.9998,10.246 8.3948,8.094C8.1208,7.782 7.5668,7.823 7.2968,8.094 7.0188,8.373 6.9628,8.869 7.2968,9.207L9.2178,11 6.1988,13.656C5.8908,13.967 5.8908,14.457 6.1988,14.768 6.5048,15.078 6.9878,15.078 7.2968,14.768L10.0098,11.83 13.5718,14.996 13.9678,14.996z" />
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageTags">
+    <DrawingImage x:Key="ImageTags" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1048,7 +1049,7 @@
     <BitmapImage x:Key="{x:Static core:PlatformType.UWP}" UriSource="../Resources/Icons/uwp.png" />
 
     <!--  Build icons  -->
-    <DrawingImage x:Key="ImageBuildProject">
+    <DrawingImage x:Key="ImageBuildProject" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1060,7 +1061,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageStartProject">
+    <DrawingImage x:Key="ImageStartProject" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1072,7 +1073,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageLiveScripting">
+    <DrawingImage x:Key="ImageLiveScripting" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1105,7 +1106,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageStopBuild">
+    <DrawingImage x:Key="ImageStopBuild" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1118,7 +1119,7 @@
     </DrawingImage>
 
     <!--  Asset view icons  -->
-    <DrawingImage x:Key="ImageClearFilters">
+    <DrawingImage x:Key="ImageClearFilters" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1131,7 +1132,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageFilter">
+    <DrawingImage x:Key="ImageFilter" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1143,7 +1144,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageRecursiveDisplay">
+    <DrawingImage x:Key="ImageRecursiveDisplay" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1158,7 +1159,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageRefresh">
+    <DrawingImage x:Key="ImageRefresh" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1170,17 +1171,17 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageShowTiles">
+    <DrawingImage x:Key="ImageShowTiles" >
         <DrawingImage.Drawing>
             <DrawingGroup>
-                <GeometryDrawing Brush="Transparent" Geometry="M16 16h-16v-16h16v16z" />
+                <GeometryDrawing Brush="#00ffffff" Geometry="M16 16h-16v-16h16v16z" />
                 <GeometryDrawing Brush="#f6f6f6" Geometry="M16 16h-16v-16h16v16z" />
                 <GeometryDrawing Brush="#424242" Geometry="M13 7h-4v-4h4v4zm-6-4h-4v4h4v-4zm6 6h-4v4h4v-4zm-6 0h-4v4h4v-4zm8-8v14h-14v-14h14zm-1 1h-12v12h12v-12z" />
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageShowGrid">
+    <DrawingImage x:Key="ImageShowGrid" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#f6f6f6" Geometry="M16 15h-15v-14h15v14z" />
@@ -1190,7 +1191,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageShowTree">
+    <DrawingImage x:Key="ImageShowTree" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup>
@@ -1217,7 +1218,7 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
-    <DrawingImage x:Key="ImageSort">
+    <DrawingImage x:Key="ImageSort" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1231,7 +1232,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageView">
+    <DrawingImage x:Key="ImageView" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1243,7 +1244,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageZoomDefault">
+    <DrawingImage x:Key="ImageZoomDefault" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1255,7 +1256,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageZoomIn">
+    <DrawingImage x:Key="ImageZoomIn" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1269,7 +1270,7 @@
         </DrawingImage.Drawing>
     </DrawingImage>
 
-    <DrawingImage x:Key="ImageZoomOut">
+    <DrawingImage x:Key="ImageZoomOut" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <DrawingGroup.Children>
@@ -1290,7 +1291,7 @@
     <Geometry x:Key="GeometryRightArrow">F1 M 19.0002,34L 19.0002,42L 43.7502,42L 33.7502,52L 44.2502,52L 58.2502,38L 44.2502,24L 33.7502,24L 43.7502,34L 19.0002,34 Z</Geometry>
 
     <!--  Vector Icons  -->
-    <DrawingImage x:Key="VectorOpenFolder">
+    <DrawingImage x:Key="VectorOpenFolder" >
         <DrawingImage.Drawing>
             <DrawingGroup>
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
