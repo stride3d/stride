@@ -545,7 +545,7 @@
                 <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
                 <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M8,0C3.582,0 0,3.582 0,8 0,12.418 3.582,16 8,16 12.418,16 16,12.418 16,8 16,3.582 12.418,0 8,0" />
                 <GeometryDrawing Brush="#FF414141" Geometry="F1M8,14L8,2C11.313,2 14,4.687 14,8 14,11.313 11.313,14 8,14 M8,1C4.134,1 1,4.134 1,8 1,11.866 4.134,15 8,15 11.866,15 15,11.866 15,8 15,4.134 11.866,1 8,1" />
-                <GeometryDrawing Brush="#F78F8F" Geometry="F1M8,2L8,14C11.313,14 14,11.313 14,8 14,4.687 11.313,2 8,2" />
+                <GeometryDrawing Brush="#A1260D" Geometry="F1M8,2L8,14C11.313,14 14,11.313 14,8 14,4.687 11.313,2 8,2" />
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
