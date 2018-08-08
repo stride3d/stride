@@ -371,8 +371,6 @@ namespace Xenko.Core.Assets
                     if (PackageSessionHelper.IsSolutionFile(filePath))
                     {
                         PackageSessionHelper.LoadSolution(session, filePath, packagePaths, sessionResult);
-                        if (loadParameters.AutoCompileProjects && loadParameters.ForceNugetRestore)
-                            VSProjectHelper.RestoreNugetPackages(sessionResult, filePath).Wait();
                     }
                     else if (PackageSessionHelper.IsPackageFile(filePath))
                     {
@@ -401,9 +399,17 @@ namespace Xenko.Core.Assets
 
                     if (loadParameters.AutoCompileProjects && loadParameters.ForceNugetRestore && PackageSessionHelper.IsPackageFile(filePath))
                     {
-                        // No .sln, run NuGet restore for each project
-                        foreach (var package in session.Packages)
-                            package.RestoreNugetPackages(sessionResult);
+                        // Restore nuget packages
+                        if (PackageSessionHelper.IsSolutionFile(filePath))
+                        {
+                            VSProjectHelper.RestoreNugetPackages(sessionResult, filePath).Wait();
+                        }
+                        else
+                        {
+                            // No .sln, run NuGet restore for each project
+                            foreach (var package in session.Packages)
+                                package.RestoreNugetPackages(sessionResult);
+                        }
                     }
 
                     // Load all missing references/dependencies
