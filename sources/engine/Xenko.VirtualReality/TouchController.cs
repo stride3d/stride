@@ -36,6 +36,8 @@ namespace Xenko.VirtualReality
 
         public abstract Vector2 ThumbAxis { get; }
 
+        public abstract Vector2 ThumbstickAxis { get; }
+
         /// <summary>
         /// Returns true if in this frame the button switched to pressed state
         /// </summary>

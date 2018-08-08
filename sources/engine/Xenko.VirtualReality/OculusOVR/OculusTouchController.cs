@@ -129,6 +129,8 @@ namespace Xenko.VirtualReality
 
         public override Vector2 ThumbAxis => currentThumbstick;
 
+        public override Vector2 ThumbstickAxis => currentThumbstick;
+
         public OculusTouchController(TouchControllerHand hand)
         {
             this.hand = hand;

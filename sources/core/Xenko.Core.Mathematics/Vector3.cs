@@ -1688,6 +1688,27 @@ namespace Xenko.Core.Mathematics
             return Equals((Vector3)value);
         }
 
+#if XENKO_PLATFORM_UWP
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Vector3"/> to <see cref="System.Numerics.Vector3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator System.Numerics.Vector3(Vector3 value)
+        {
+            return new System.Numerics.Vector3(value.X, value.Y, value.Z);
+        }
+
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="System.Numerics.Vector3"/> to <see cref="Xenko.Core.Mathematics.Vector3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Vector3(System.Numerics.Vector3 value)
+        {
+            return new Vector3(value.X, value.Y, value.Z);
+        }
+#endif
 
 #if WPFInterop
         /// <summary>

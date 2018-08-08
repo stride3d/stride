@@ -182,7 +182,18 @@ namespace Xenko.Games
                 var size = GetRequestedSize(out resizeFormat);
                 var presentationParameters = new PresentationParameters((int)size.X, (int)size.Y, Window.NativeWindow, resizeFormat) { DepthStencilFormat = PreferredDepthStencilFormat };
                 presentationParameters.PresentationInterval = PresentInterval.Immediate;
-                Presenter = new SwapChainGraphicsPresenter(GraphicsDevice, presentationParameters);
+
+#if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
+                if (Game.Context is GameContextUWPCoreWindow context && context.IsWindowMixedReality)
+                {
+                    Presenter = new WindowsMixedRealityGraphicsPresenter(GraphicsDevice, presentationParameters);
+                }
+                else
+#endif
+                {
+                    Presenter = new SwapChainGraphicsPresenter(GraphicsDevice, presentationParameters);
+                }
+
                 isBackBufferToResize = false;
             }
         }

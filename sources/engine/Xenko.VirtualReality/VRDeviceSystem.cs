@@ -80,20 +80,30 @@ namespace Xenko.VirtualReality
 #endif
                         }
                             break;
-//                        case VRApi.Fove:
-//                        {
-//#if XENKO_GRAPHICS_API_DIRECT3D11
-//                            Device = new FoveHmd();
-//#endif
-//                        }
-//                            break;
-//                        case VRApi.Google:
-//                        {
-//#if XENKO_PLATFORM_IOS || XENKO_PLATFORM_ANDROID
-//                                VRDevice = new GoogleVrHmd();
-//#endif
-//                        }
-//                            break;
+                        case VRApi.WindowsMixedReality:
+                        {
+#if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
+                            if (Windows.Graphics.Holographic.HolographicSpace.IsAvailable && GraphicsDevice.Presenter is WindowsMixedRealityGraphicsPresenter)
+                            {
+                                Device = new WindowsMixedRealityHmd();
+                            }
+#endif
+                        }
+                            break;
+                        //                        case VRApi.Fove:
+                        //                        {
+                        //#if XENKO_GRAPHICS_API_DIRECT3D11
+                        //                            Device = new FoveHmd();
+                        //#endif
+                        //                        }
+                        //                            break;
+                        //                        case VRApi.Google:
+                        //                        {
+                        //#if XENKO_PLATFORM_IOS || XENKO_PLATFORM_ANDROID
+                        //                                VRDevice = new GoogleVrHmd();
+                        //#endif
+                        //                        }
+                        //                            break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
