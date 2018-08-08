@@ -2,12 +2,27 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using Xenko.Core.Presentation.Drawing;
 
 namespace Xenko.Core.Presentation.Extensions
 {
     using Media = System.Windows.Media;
+
+    public class ThemeController : DependencyObject
+    {
+        public static bool GetIsDark(DependencyObject obj)
+         => (bool)obj.GetValue(IsDarkProperty);
+
+        public static void SetIsDark(DependencyObject obj, bool value)
+         => obj.SetValue(IsDarkProperty, value);
+
+        public static readonly DependencyProperty IsDarkProperty =
+            DependencyProperty.RegisterAttached("IsDark", typeof(bool), typeof(ThemeController), new PropertyMetadata(false));
+
+    }
 
     public static class IconThemeSelector
     {
@@ -45,10 +60,16 @@ namespace Xenko.Core.Presentation.Extensions
     public static class ImageThemingUtilities
     {
 
-        public static Media.Drawing TransformDrawing(Media.Drawing drawing, IconTheme theme)
+        public static Media.Drawing TransformDrawing(Media.Drawing drawing, IconTheme theme, bool checkLuminosity = true)
         {
+            var isDark = ThemeController.GetIsDark(drawing);
+            if (checkLuminosity)
+            {
+                if (isDark == IsDark(theme.BackgroundLuminosity)) return drawing;
+            }
             var newDrawing = drawing.CloneCurrentValue();
             newDrawing.TransformParts(theme);
+            ThemeController.SetIsDark(newDrawing, !isDark);
             return newDrawing;
         }
 
@@ -72,6 +93,8 @@ namespace Xenko.Core.Presentation.Extensions
                 }
             }
         }
+
+        private static bool IsDark(double luminosity) => luminosity < 0.5;
 
         private static double TransformLuminosity(HslColor hsl, double backgroundLuminosity)
         {
