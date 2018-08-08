@@ -43,6 +43,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+
   </ItemGroup>
 
   <ItemGroup>

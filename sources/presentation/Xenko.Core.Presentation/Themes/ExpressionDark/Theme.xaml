@@ -19,6 +19,7 @@
                     xmlns:wnd="clr-namespace:Xenko.Core.Presentation.Windows"
                     xmlns:local="clr-namespace:Xenko.Core.Presentation"
                     xmlns:xk="http://schemas.xenko.com/xaml/presentation"
+                    x:Class="Xenko.Core.Presentation.Themes.ExpressionDark.ExpressionDarkTheme"
                     mc:Ignorable="d">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="../generic.xaml"/>
@@ -4732,6 +4733,7 @@
   <Style TargetType="{x:Type Image}">
     <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor"/>
     <Setter Property="SnapsToDevicePixels" Value="True"/>
+    <EventSetter Event="Loaded" Handler="Image_Loaded" />
   </Style>
 
   <!--  TREE VIEWS  -->
