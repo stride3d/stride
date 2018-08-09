@@ -31,7 +31,7 @@ Example of use:
   <!--
   Package Xenko to a nupkg
   -->
-  <Target Name="Package" DependsOnTargets="GitLinkPdb">
+  <Target Name="Package">
     <ItemGroup>
         <FilesToDeletePackage Include="$(MSBuildThisFileDirectory)Xenko.??.*.nupkg"/>
     </ItemGroup>    
@@ -207,13 +207,6 @@ Example of use:
     </PackageGetVersionTask>
     <Delete Files="$(MSBuildThisFileDirectory)Xenko.version"/>
     <WriteLinesToFile File="$(MSBuildThisFileDirectory)Xenko.version" Lines="$(XenkoPackageVersion)" />
-  </Target>
-  
-  <Target Name="GitLinkPdb" Condition="'$(XenkoOfficialBuild)' == 'true'">
-    <PackageGetVersionTask File="$(XenkoPackage)">
-      <Output TaskParameter="NugetVersionSimpleNoRevision" PropertyName="XenkoPackageVersionNoRevision"/>
-    </PackageGetVersionTask>
-    <Exec ContinueOnError="true" Command="$(XenkoRoot)deps\GitLink\GitLink.exe $(XenkoRoot) -f build\Xenko.sln -u https://github.com/xenko3d/xenko -s releases/$(XenkoPackageVersionNoRevision)" />
   </Target>
   
   <Target Name="DownloadXunitRunnerConsole">
