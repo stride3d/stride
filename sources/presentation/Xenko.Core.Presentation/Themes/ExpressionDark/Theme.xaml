@@ -101,7 +101,7 @@
   <SolidColorBrush x:Key="ToolBarMenuBorder" Color="#FFFFFFFF"/>
   <SolidColorBrush x:Key="InnerExpanderBorderBrush" Color="#FF424242" />
   <SolidColorBrush x:Key="InnerExpanderBackgroundBrush" Color="#FF525252"/>
-  <SolidColorBrush x:Key="ToolBarBackgroundBrush" Color="#FF595959"/>
+  <SolidColorBrush x:Key="ToolBarBackgroundBrush" Color="#FF101011"/>
 
   <SolidColorBrush x:Key="MenuBlueGlyphs" Color="#007ACC" />
 
@@ -3690,7 +3690,7 @@
               <ToggleButton Margin="2" Visibility="{TemplateBinding HasOverflowItems, Converter={cvt:VisibleOrCollapsed}}" x:Name="OverflowButton" ClickMode="Press" IsChecked="{Binding IsOverflowOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" Background="{StaticResource TagBackgroundBrush}" Padding="2,0">
                 <ToggleButton.Template>
                   <ControlTemplate>
-                    <Border Background="{StaticResource TagBackgroundBrush}" CornerRadius="3">
+                    <Border Background="{StaticResource TagBackgroundBrush}">
                       <TextBlock Margin="2,0" Text="…"/>
                     </Border>
                   </ControlTemplate>
