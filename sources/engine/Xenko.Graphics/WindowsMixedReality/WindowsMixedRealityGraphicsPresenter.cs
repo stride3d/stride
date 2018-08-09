@@ -40,9 +40,7 @@ namespace Xenko.Graphics
 
             holographicSpace.SetDirect3D11Device(d3DInteropDevice);
 
-            HolographicFrame = holographicSpace.CreateNextFrame();
-
-            UpdateBackBuffer();
+            BeginDraw(null);
             ResizeDepthStencilBuffer(backBuffer.Width, backBuffer.Height, 0);
 
             // Set a dummy back buffer as we use a seperate one for each eye.
@@ -93,12 +91,15 @@ namespace Xenko.Graphics
             return d3DSurface;
         }
 
+        public override void BeginDraw(CommandList commandList)
+        {
+            HolographicFrame = holographicSpace.CreateNextFrame();
+            UpdateBackBuffer();
+        }
+
         public override void Present()
         {
             HolographicFrame.PresentUsingCurrentPrediction();
-            HolographicFrame = holographicSpace.CreateNextFrame();
-
-            UpdateBackBuffer();
         }
 
         public void UpdateBackBuffer()

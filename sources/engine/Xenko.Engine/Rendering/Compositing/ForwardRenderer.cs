@@ -656,6 +656,8 @@ namespace Xenko.Rendering.Compositing
                                 if (drawContext.GraphicsDevice.Presenter is WindowsMixedRealityGraphicsPresenter graphicsPresenter)
                                 {
                                     isWindowsMixedReality = true;
+
+                                    MSAALevel = MultisampleCount.None;
                                     currentRenderTargets.Clear();
 
                                     if (i == 0)
