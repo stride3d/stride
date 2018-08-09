@@ -321,7 +321,7 @@ namespace Xenko.Games
             graphicsDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
 
 #if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
-            if (game.Context is GameContextUWPCoreWindow context && context.IsWindowMixedReality)
+            if (game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
             {
                 graphicsDevice.Recreate(deviceInformation.Adapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags |= DeviceCreationFlags.BgraSupport, gameWindow.NativeWindow);
                 graphicsDevice.Presenter = new WindowsMixedRealityGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);

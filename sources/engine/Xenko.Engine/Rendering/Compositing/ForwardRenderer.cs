@@ -34,6 +34,8 @@ namespace Xenko.Rendering.Compositing
         private MultisampleCount actualMultisampleCount = MultisampleCount.None;
         private VRDeviceSystem vrSystem;
 
+        private readonly Logger logger = GlobalLogger.GetLogger(nameof(ForwardRenderer));
+
         private readonly FastList<Texture> currentRenderTargets = new FastList<Texture>();
         private readonly FastList<Texture> currentRenderTargetsNonMSAA = new FastList<Texture>();
         private Texture currentDepthStencil;
@@ -116,8 +118,6 @@ namespace Xenko.Rendering.Compositing
         [DefaultValue(true)]
         public bool BindDepthAsResourceDuringTransparentRendering { get; set; } = true;
 
-        private Logger Logger { get; } = GlobalLogger.GetLogger(nameof(ForwardRenderer));
-
         protected override void InitializeCore()
         {
             base.InitializeCore();
@@ -144,7 +144,7 @@ namespace Xenko.Rendering.Compositing
 
                 if (actualMultisampleCount != MSAALevel)
                 {
-                    Logger.Warning("Multisample count of " + (int)MSAALevel + " samples not supported. Falling back to highest supported sample count of " + (int)actualMultisampleCount + " samples.");
+                    logger.Warning("Multisample count of " + (int)MSAALevel + " samples not supported. Falling back to highest supported sample count of " + (int)actualMultisampleCount + " samples.");
                 }
 
 #if XENKO_PLATFORM_IOS

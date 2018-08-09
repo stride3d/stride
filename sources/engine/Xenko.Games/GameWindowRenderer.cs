@@ -184,7 +184,7 @@ namespace Xenko.Games
                 presentationParameters.PresentationInterval = PresentInterval.Immediate;
 
 #if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
-                if (Game.Context is GameContextUWPCoreWindow context && context.IsWindowMixedReality)
+                if (Game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
                 {
                     Presenter = new WindowsMixedRealityGraphicsPresenter(GraphicsDevice, presentationParameters);
                 }

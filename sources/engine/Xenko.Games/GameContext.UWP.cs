@@ -43,14 +43,14 @@ namespace Xenko.Games
     public class GameContextUWPCoreWindow : GameContextWindows<CoreWindow>
     {
         /// <inheritDoc/>
-        public GameContextUWPCoreWindow(CoreWindow control, int requestedWidth = 0, int requestedHeight = 0, bool isWindowMixedReality = false)
+        public GameContextUWPCoreWindow(CoreWindow control, int requestedWidth = 0, int requestedHeight = 0, bool isWindowsMixedReality = false)
             : base(control ?? CoreWindow.GetForCurrentThread(), requestedWidth, requestedHeight)
         {
             ContextType = AppContextType.UWPCoreWindow;
-            IsWindowMixedReality = isWindowMixedReality;
+            IsWindowsMixedReality = isWindowsMixedReality;
         }
 
-        public bool IsWindowMixedReality { get; }
+        internal bool IsWindowsMixedReality { get; }
     }
 }
 #endif

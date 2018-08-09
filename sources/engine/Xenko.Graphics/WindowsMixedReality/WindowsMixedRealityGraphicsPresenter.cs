@@ -14,7 +14,7 @@ namespace Xenko.Graphics
 {
     public class WindowsMixedRealityGraphicsPresenter : GraphicsPresenter
     {
-        public static readonly Guid ID3D11Resource = new Guid("DC8E63F3-D12B-4952-B47B-5E45026A862D");
+        private static readonly Guid ID3D11Resource = new Guid("DC8E63F3-D12B-4952-B47B-5E45026A862D");
 
         private readonly HolographicSpace holographicSpace;
         private Texture backBuffer;
@@ -65,21 +65,13 @@ namespace Xenko.Graphics
 
         public override bool IsFullScreen { get; set; }
 
-        public HolographicFrame HolographicFrame { get; set; }
+        internal HolographicFrame HolographicFrame { get; set; }
 
-        public Texture LeftEyeBuffer { get; private set; }
+        internal Texture LeftEyeBuffer { get; private set; }
 
-        public Texture RightEyeBuffer { get; private set; }
+        internal Texture RightEyeBuffer { get; private set; }
 
-        [DllImport("d3d11.dll", EntryPoint = "CreateDirect3D11DeviceFromDXGIDevice",
-            SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
-        public static extern uint CreateDirect3D11DeviceFromDXGIDevice(IntPtr dxgiDevice, out IntPtr graphicsDevice);
-
-        [DllImport("d3d11.dll", EntryPoint = "CreateDirect3D11SurfaceFromDXGISurface",
-            SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
-        public static extern uint CreateDirect3D11SurfaceFromDXGISurface(IntPtr dxgiSurface, out IntPtr direct3DSurface);
-
-        public static IDirect3DSurface CreateDirect3DSurface(IntPtr dxgiSurface)
+        internal static IDirect3DSurface CreateDirect3DSurface(IntPtr dxgiSurface)
         {
             uint hr = CreateDirect3D11SurfaceFromDXGISurface(dxgiSurface, out IntPtr inspectableSurface);
 
@@ -105,33 +97,6 @@ namespace Xenko.Graphics
             HolographicFrame.PresentUsingCurrentPrediction();
         }
 
-        public void UpdateBackBuffer()
-        {
-            IDirect3DSurface surface = HolographicFrame.GetRenderingParameters(HolographicFrame.CurrentPrediction.CameraPoses[0]).Direct3D11BackBuffer;
-            IDirect3DDxgiInterfaceAccess surfaceDxgiInterfaceAccess = surface as IDirect3DDxgiInterfaceAccess;
-            IntPtr resource = surfaceDxgiInterfaceAccess.GetInterface(ID3D11Resource);
-
-            if (backBuffer == null || backBuffer.NativeResource.NativePointer != resource)
-            {
-                // Clean up references to previous resources.
-                backBuffer?.Dispose();
-
-                // This can change every frame as the system moves to the next buffer in the
-                // swap chain. This mode of operation will occur when certain rendering modes
-                // are activated.
-                Texture2D d3DBackBuffer = new Texture2D(resource);
-
-                backBuffer = new Texture(GraphicsDevice).InitializeFromImpl(d3DBackBuffer, false);
-
-                LeftEyeBuffer = backBuffer.ToTextureView(new TextureViewDescription() { ArraySlice = 0, Type = ViewType.Single });
-                RightEyeBuffer = backBuffer.ToTextureView(new TextureViewDescription() { ArraySlice = 1, Type = ViewType.Single });
-            }
-
-            Description.BackBufferFormat = backBuffer.Format;
-            Description.BackBufferWidth = backBuffer.Width;
-            Description.BackBufferHeight = backBuffer.Height;
-        }
-
         protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
         {
             UpdateBackBuffer();
@@ -148,6 +113,43 @@ namespace Xenko.Graphics
 
             // Put it in our back buffer texture.
             DepthStencilBuffer.InitializeFrom(newTextureDescription);
+        }
+
+        [DllImport("d3d11.dll", EntryPoint = "CreateDirect3D11DeviceFromDXGIDevice",
+            SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
+        private static extern uint CreateDirect3D11DeviceFromDXGIDevice(IntPtr dxgiDevice, out IntPtr graphicsDevice);
+
+        [DllImport("d3d11.dll", EntryPoint = "CreateDirect3D11SurfaceFromDXGISurface",
+            SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
+        private static extern uint CreateDirect3D11SurfaceFromDXGISurface(IntPtr dxgiSurface, out IntPtr direct3DSurface);
+
+        private void UpdateBackBuffer()
+        {
+            IDirect3DSurface surface = HolographicFrame.GetRenderingParameters(HolographicFrame.CurrentPrediction.CameraPoses[0]).Direct3D11BackBuffer;
+            IDirect3DDxgiInterfaceAccess surfaceDxgiInterfaceAccess = surface as IDirect3DDxgiInterfaceAccess;
+            IntPtr resource = surfaceDxgiInterfaceAccess.GetInterface(ID3D11Resource);
+
+            if (backBuffer == null || backBuffer.NativeResource.NativePointer != resource)
+            {
+                // Clean up references to previous resources.
+                backBuffer?.Dispose();
+                LeftEyeBuffer?.Dispose();
+                RightEyeBuffer?.Dispose();
+
+                // This can change every frame as the system moves to the next buffer in the
+                // swap chain. This mode of operation will occur when certain rendering modes
+                // are activated.
+                Texture2D d3DBackBuffer = new Texture2D(resource);
+
+                backBuffer = new Texture(GraphicsDevice).InitializeFromImpl(d3DBackBuffer, false);
+
+                LeftEyeBuffer = backBuffer.ToTextureView(new TextureViewDescription() { ArraySlice = 0, Type = ViewType.Single });
+                RightEyeBuffer = backBuffer.ToTextureView(new TextureViewDescription() { ArraySlice = 1, Type = ViewType.Single });
+            }
+
+            Description.BackBufferFormat = backBuffer.Format;
+            Description.BackBufferWidth = backBuffer.Width;
+            Description.BackBufferHeight = backBuffer.Height;
         }
     }
 }
