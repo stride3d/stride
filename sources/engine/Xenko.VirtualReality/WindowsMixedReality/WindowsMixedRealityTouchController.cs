@@ -1,8 +1,9 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
 
+using Windows.Perception;
 using Windows.Perception.Spatial;
 using Windows.UI.Input.Spatial;
 using Xenko.Core.Mathematics;
@@ -14,14 +15,12 @@ namespace Xenko.VirtualReality
         private readonly SpatialInteractionSourceHandedness hand;
         private readonly SpatialInteractionManager interactionManager;
 
-        private SpatialInteractionController controller;
         private Vector3 currentAngularVelocity;
         private Vector3 currentLinearVelocity;
         private Vector3 currentPosition;
-        private Quaternion currentRotation;
+        private Quaternion currentRotation = Quaternion.Identity;
         private SpatialInteractionSourceState currentState;
         private DeviceState internalState;
-        private SpatialInteractionSourceLocation pose;
         private SpatialInteractionSourceState previousState;
 
         internal WindowsMixedRealityTouchController(TouchControllerHand hand, SpatialInteractionManager interactionManager)
@@ -29,9 +28,7 @@ namespace Xenko.VirtualReality
             this.hand = (SpatialInteractionSourceHandedness)(hand + 1);
             this.interactionManager = interactionManager;
 
-            interactionManager.SourceDetected += InteractionManager_SourceDetected;
             interactionManager.SourceLost += InteractionManager_SourceLost;
-            interactionManager.SourceUpdated += InteractionManager_SourceUpdated;
         }
 
         public override Vector3 Position => currentPosition;
@@ -60,42 +57,63 @@ namespace Xenko.VirtualReality
 
         public override Vector2 ThumbstickAxis => new Vector2((float)currentState.ControllerProperties.ThumbstickX, (float)currentState.ControllerProperties.ThumbstickY);
 
-        public override bool IsPressed(TouchControllerButton button) => !IsButtonPressed(button, previousState) ? IsButtonPressed(button, currentState) : false;
+        public override bool IsPressed(TouchControllerButton button) => IsButtonPressed(button, currentState);
 
-        public override bool IsPressedDown(TouchControllerButton button) => IsButtonPressed(button, currentState);
+        public override bool IsPressedDown(TouchControllerButton button) => !IsButtonPressed(button, previousState) ? IsButtonPressed(button, currentState) : false;
 
-        public override bool IsPressReleased(TouchControllerButton button) => !IsButtonPressed(button, currentState);
+        public override bool IsPressReleased(TouchControllerButton button) => IsButtonPressed(button, previousState) ? !IsButtonPressed(button, currentState) : false;
 
-        public override bool IsTouched(TouchControllerButton button) => !IsButtonTouched(button, previousState) ? IsButtonTouched(button, currentState) : false;
+        public override bool IsTouched(TouchControllerButton button) => !IsButtonTouched(button, currentState);
 
-        public override bool IsTouchedDown(TouchControllerButton button) => IsButtonTouched(button, currentState);
+        public override bool IsTouchedDown(TouchControllerButton button) => !IsButtonTouched(button, previousState) ? IsButtonTouched(button, currentState) : false;
 
-        public override bool IsTouchReleased(TouchControllerButton button) => !IsButtonTouched(button, currentState);
+        public override bool IsTouchReleased(TouchControllerButton button) => IsButtonTouched(button, previousState) ? !IsButtonTouched(button, currentState) : false;
 
-        internal SpatialCoordinateSystem CoordinateSystem { get; set; }
+        public void Update(PerceptionTimestamp timeStamp, SpatialCoordinateSystem coordinateSystem)
+        {
+            var states = interactionManager.GetDetectedSourcesAtTimestamp(timeStamp);
+
+            foreach (SpatialInteractionSourceState state in states)
+            {
+                if (state.Source.Handedness == hand)
+                {
+                    SpatialInteractionSourceLocation location = state.Properties.TryGetLocation(coordinateSystem);
+
+                    if (location != null)
+                    {
+                        SetSpatialInteractionSourceLocation(location);
+                    }
+
+                    previousState = currentState;
+                    currentState = state;
+
+                    internalState = previousState != null ? DeviceState.Valid : DeviceState.Invalid;
+                }
+            }
+        }
 
         private bool IsButtonPressed(TouchControllerButton button, SpatialInteractionSourceState state)
         {
             switch (button)
             {
                 case TouchControllerButton.Thumbstick:
-                    return currentState.ControllerProperties.IsThumbstickPressed;
+                    return state.ControllerProperties.IsThumbstickPressed;
                 case TouchControllerButton.Touchpad:
-                    return currentState.ControllerProperties.IsTouchpadPressed;
-                case TouchControllerButton.A when currentState.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Right:
+                    return state.ControllerProperties.IsTouchpadPressed;
+                case TouchControllerButton.A when state.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Right:
                     return ThumbAxis.X >= 0.0f;
-                case TouchControllerButton.B when currentState.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Right:
+                case TouchControllerButton.B when state.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Right:
                     return ThumbAxis.X < 0.0f;
-                case TouchControllerButton.X when currentState.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Left:
+                case TouchControllerButton.X when state.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Left:
                     return ThumbAxis.X < 0.0f;
-                case TouchControllerButton.Y when currentState.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Left:
+                case TouchControllerButton.Y when state.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Left:
                     return ThumbAxis.X >= 0.0f;
                 case TouchControllerButton.Trigger:
-                    return currentState.SelectPressedValue == 1.0 ? true : false;
+                    return state.IsSelectPressed;
                 case TouchControllerButton.Grip:
-                    return currentState.IsGrasped;
+                    return state.IsGrasped;
                 case TouchControllerButton.Menu:
-                    return currentState.IsMenuPressed;
+                    return state.IsMenuPressed;
                 default:
                     return false;
             }
@@ -106,32 +124,17 @@ namespace Xenko.VirtualReality
             switch (button)
             {
                 case TouchControllerButton.Touchpad:
-                    return currentState.ControllerProperties.IsTouchpadTouched;
-                case TouchControllerButton.A when currentState.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Right:
+                    return state.ControllerProperties.IsTouchpadTouched;
+                case TouchControllerButton.A when state.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Right:
                     return ThumbAxis.X >= 0.0f;
-                case TouchControllerButton.B when currentState.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Right:
+                case TouchControllerButton.B when state.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Right:
                     return ThumbAxis.X < 0.0f;
-                case TouchControllerButton.X when currentState.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Left:
+                case TouchControllerButton.X when state.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Left:
                     return ThumbAxis.X < 0.0f;
-                case TouchControllerButton.Y when currentState.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Left:
+                case TouchControllerButton.Y when state.ControllerProperties.IsTouchpadPressed && hand == SpatialInteractionSourceHandedness.Left:
                     return ThumbAxis.X >= 0.0f;
                 default:
                     return false;
-            }
-        }
-
-        private void InteractionManager_SourceDetected(SpatialInteractionManager sender, SpatialInteractionSourceEventArgs args)
-        {
-            if (args.State.Source.Handedness == hand)
-            {
-                controller = args.State.Source.Controller;
-                internalState = DeviceState.Valid;
-
-                pose = args.State.Properties.TryGetLocation(CoordinateSystem);
-                SetSpatialInteractionSourceLocation(pose);
-
-                previousState = currentState;
-                currentState = args.State;
             }
         }
 
@@ -139,32 +142,19 @@ namespace Xenko.VirtualReality
         {
             if (args.State.Source.Handedness == hand)
             {
-                controller = null;
                 internalState = DeviceState.Invalid;
 
-                previousState = currentState;
-                currentState = args.State;
+                previousState = null;
+                currentState = null;
             }
         }
 
-        private void InteractionManager_SourceUpdated(SpatialInteractionManager sender, SpatialInteractionSourceEventArgs args)
+        private void SetSpatialInteractionSourceLocation(SpatialInteractionSourceLocation location)
         {
-            if (args.State.Source.Handedness == hand)
-            {
-                pose = args.State.Properties.TryGetLocation(CoordinateSystem);
-                SetSpatialInteractionSourceLocation(pose);
-
-                previousState = currentState;
-                currentState = args.State;
-            }
-        }
-
-        private void SetSpatialInteractionSourceLocation(SpatialInteractionSourceLocation pose)
-        {
-            currentPosition = pose.Position ?? currentPosition;
-            currentRotation = pose.Orientation ?? currentRotation;
-            currentLinearVelocity = pose.Velocity ?? currentLinearVelocity;
-            currentAngularVelocity = pose.AngularVelocity ?? currentAngularVelocity;
+            currentPosition = location.Position?.ToVector3() ?? currentPosition;
+            currentRotation = location.Orientation?.ToQuaternion() ?? currentRotation;
+            currentLinearVelocity = location.Velocity?.ToVector3() ?? currentLinearVelocity;
+            currentAngularVelocity = location.AngularVelocity?.ToVector3() ?? currentAngularVelocity;
         }
     }
 }

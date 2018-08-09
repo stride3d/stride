@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
@@ -23,9 +23,9 @@ namespace Xenko.VirtualReality
         private DeviceState internalState;
         private WindowsMixedRealityTouchController leftHandController;
         private WindowsMixedRealityTouchController rightHandController;
+        private SpatialLocation spatialLocation;
         private SpatialLocator spatialLocator;
         private SpatialStationaryFrameOfReference stationaryReferenceFrame;
-        private SpatialLocation spatialLocation;
 
         public WindowsMixedRealityHmd()
         {
@@ -51,13 +51,13 @@ namespace Xenko.VirtualReality
 
         public override DeviceState State => internalState;
 
-        public override Vector3 HeadPosition => spatialLocation.Position;
+        public override Vector3 HeadPosition => spatialLocation.Position.ToVector3();
 
-        public override Quaternion HeadRotation => spatialLocation.Orientation;
+        public override Quaternion HeadRotation => spatialLocation.Orientation.ToQuaternion();
 
-        public override Vector3 HeadLinearVelocity => spatialLocation.AbsoluteLinearVelocity;
+        public override Vector3 HeadLinearVelocity => spatialLocation.AbsoluteLinearVelocity.ToVector3();
 
-        public override Vector3 HeadAngularVelocity => ((Quaternion)spatialLocation.AbsoluteAngularVelocity).YawPitchRoll;
+        public override Vector3 HeadAngularVelocity => spatialLocation.AbsoluteAngularVelocity.ToQuaternion().YawPitchRoll;
 
         public override TouchController LeftHand => leftHandController;
 
@@ -122,8 +122,8 @@ namespace Xenko.VirtualReality
             if (viewTransform.HasValue)
             {
                 currentView = eye == Eyes.Left
-                    ? viewTransform.Value.Left
-                    : viewTransform.Value.Right;
+                    ? viewTransform.Value.Left.ToMatrix()
+                    : viewTransform.Value.Right.ToMatrix();
             }
 
             if (ignoreHeadPosition)
@@ -142,8 +142,8 @@ namespace Xenko.VirtualReality
             view = Matrix.Translation(-cameraPosition) * cameraRotation * currentView;
 
             projection = eye == Eyes.Left
-                ? cameraPose.ProjectionTransform.Left
-                : cameraPose.ProjectionTransform.Right;
+                ? cameraPose.ProjectionTransform.Left.ToMatrix()
+                : cameraPose.ProjectionTransform.Right.ToMatrix();
         }
 
         public override void Update(GameTime gameTime)
@@ -153,11 +153,8 @@ namespace Xenko.VirtualReality
             SpatialCoordinateSystem coordinateSystem = stationaryReferenceFrame.CoordinateSystem;
             spatialLocation = spatialLocator.TryLocateAtTimestamp(prediction.Timestamp, coordinateSystem);
 
-            leftHandController.CoordinateSystem = coordinateSystem;
-            rightHandController.CoordinateSystem = coordinateSystem;
-
-            leftHandController.Update(gameTime);
-            rightHandController.Update(gameTime);
+            leftHandController.Update(prediction.Timestamp, coordinateSystem);
+            rightHandController.Update(prediction.Timestamp, coordinateSystem);
         }
 
         private void HolographicSpace_IsAvailableChanged(object sender, object e)

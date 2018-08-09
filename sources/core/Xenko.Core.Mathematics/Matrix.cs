@@ -3379,40 +3379,6 @@ namespace Xenko.Core.Mathematics
             return Equals((Matrix)value);
         }
 
-#if XENKO_PLATFORM_UWP
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Matrix"/> to <see cref="System.Numerics.Matrix4x4"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator System.Numerics.Matrix4x4(Matrix value)
-        {
-            return new System.Numerics.Matrix4x4()
-            {
-                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
-                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
-                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
-                M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
-            };
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="System.Numerics.Matrix4x4"/> to <see cref="Xenko.Core.Mathematics.Matrix"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator Matrix(System.Numerics.Matrix4x4 value)
-        {
-            return new Matrix()
-            {
-                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
-                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
-                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
-                M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
-            };
-        }
-#endif
-
 #if SlimDX1xInterop
         /// <summary>
         /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Matrix"/> to <see cref="SlimDX.Matrix"/>.

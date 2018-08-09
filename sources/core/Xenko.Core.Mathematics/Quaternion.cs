@@ -1358,28 +1358,6 @@ namespace Xenko.Core.Mathematics
             return Equals((Quaternion)value);
         }
 
-#if XENKO_PLATFORM_UWP
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Quaternion"/> to <see cref="System.Numerics.Quaternion"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator System.Numerics.Quaternion(Quaternion value)
-        {
-            return new System.Numerics.Quaternion(value.X, value.Y, value.Z, value.W);
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="System.Numerics.Quaternion"/> to <see cref="Xenko.Core.Mathematics.Quaternion"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        public static implicit operator Quaternion(System.Numerics.Quaternion value)
-        {
-            return new Quaternion(value.X, value.Y, value.Z, value.W);
-        }
-#endif
-
 #if SlimDX1xInterop
         /// <summary>
         /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Quaternion"/> to <see cref="SlimDX.Quaternion"/>.
