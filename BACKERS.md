@@ -7,6 +7,10 @@ Xenko is a MIT-licensed opensource project, supported by generous [sponsors and 
 
 Thank you everybody for your generous contributions!
 
+## Sponsor
+
+* Chance McDonald
+
 ## Super Backers
 
 * Robert Campbell
@@ -27,10 +31,10 @@ Thank you everybody for your generous contributions!
 * Nathan Warden
 * Empty Keys
 * Dmitry Terentev
-* Chance McDonald
 * Shane
 * Chris Beckwith
 * Harald Mühleder
+* Szymon Kobalczyk
 
 ## Mini Backers
 
