@@ -260,6 +260,13 @@ namespace Xenko.UI.Controls
 
         private void UpdateWrappedText(Vector3 availableSpace)
         {
+            if (string.IsNullOrEmpty(text))
+            {
+                wrappedText = string.Empty;
+
+                return;
+            }
+
             var availableWidth = availableSpace.X;
             var currentLine = new StringBuilder(text.Length);
             var currentText = new StringBuilder(2 * text.Length);
