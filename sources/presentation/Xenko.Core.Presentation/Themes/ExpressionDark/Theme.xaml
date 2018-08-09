@@ -2314,84 +2314,26 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type MenuItem}">
-          <Border
-                            x:Name="Border"
-                            Margin="3,0"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="0,0,0,0">
+          <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0,0,0,0" Margin="3,0">
             <Grid x:Name="Grid">
               <Grid.ColumnDefinitions>
-                <ColumnDefinition
-                                        x:Name="IconColumn"
-                                        MinWidth="17"
-                                        SharedSizeGroup="MenuItemIconColumnGroup" />
+                <ColumnDefinition x:Name="IconColumn" MinWidth="17" Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup" />
                 <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemContentColumnGroup" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIGTColumnGroup" />
                 <ColumnDefinition x:Name="ArrowColumn" Width="14" />
               </Grid.ColumnDefinitions>
-              <Border
-                                    x:Name="HoverBorder"
-                                    Grid.Column="0"
-                                    Grid.ColumnSpan="5"
-                                    Background="{DynamicResource MenuHoverBrush}"
-                                    Opacity="0" />
-              <ContentPresenter
-                                    x:Name="Icon"
-                                    Grid.Column="0"
-                                    MaxHeight="14"
-                                    Margin="5,5"
-                                    VerticalAlignment="Center"
-                                    ContentSource="Icon" />
-              <Grid
-                                    x:Name="GlyphPanel"
-                                    Grid.Column="0"
-                                    Margin="4,2"
-                                    VerticalAlignment="Center"
-                                    Visibility="Hidden">
-                <Path
-                                        x:Name="GlyphPanelpath"
-                                        VerticalAlignment="Center"
-                                        Data="M0,2 L0,4.8 L2.5,7.4 L7.1,2.8 L7.1,0 L2.5,4.6 z"
-                                        Fill="{TemplateBinding Foreground}"
-                                        FlowDirection="LeftToRight" />
+              <Border Grid.Column="0" Grid.ColumnSpan="5" Background="{DynamicResource MenuHoverBrush}" Opacity="0" x:Name="HoverBorder" />
+              <ContentPresenter Grid.Column="0" Margin="5,5" x:Name="Icon" MaxHeight="14" VerticalAlignment="Center" ContentSource="Icon" />
+              <Grid Grid.Column="0" Visibility="Hidden" Margin="4,2" x:Name="GlyphPanel" VerticalAlignment="Center">
+                <Path x:Name="GlyphPanelpath" VerticalAlignment="Center" Fill="{TemplateBinding Foreground}" Data="M0,2 L0,4.8 L2.5,7.4 L7.1,2.8 L7.1,0 L2.5,4.6 z" FlowDirection="LeftToRight" />
               </Grid>
-              <ContentPresenter
-                                    x:Name="HeaderHost"
-                                    Grid.Column="1"
-                                    Margin="0,3"
-                                    HorizontalAlignment="Stretch"
-                                    VerticalAlignment="Center"
-                                    ContentSource="Header"
-                                    RecognizesAccessKey="True"
-                                    SnapsToDevicePixels="True" />
-              <TextBlock
-                                    x:Name="IGTTextBlock"
-                                    Grid.Column="3"
-                                    Margin="{TemplateBinding Control.Padding}"
-                                    Padding="0,3"
-                                    VerticalAlignment="Center"
-                                    IsEnabled="{TemplateBinding IsEnabled}"
-                                    Text="{TemplateBinding MenuItem.InputGestureText}"
-                                    Visibility="Visible" />
-              <Grid
-                                    x:Name="ArrowPanel"
-                                    Grid.Column="4"
-                                    Margin="4,2"
-                                    VerticalAlignment="Center">
-                <Path
-                                        x:Name="ArrowPanelPath"
-                                        VerticalAlignment="Center"
-                                        Data="M0,0 L0,8 L4,4 z"
-                                        Fill="{TemplateBinding Foreground}" />
+              <ContentPresenter Grid.Column="1" x:Name="HeaderHost" RecognizesAccessKey="True" ContentSource="Header" Margin="0,3" VerticalAlignment="Center" HorizontalAlignment="Stretch" SnapsToDevicePixels="True" />
+              <TextBlock x:Name="IGTTextBlock" Grid.Column="3" Text="{TemplateBinding MenuItem.InputGestureText}" IsEnabled="{TemplateBinding IsEnabled}" Margin="{TemplateBinding Control.Padding}" VerticalAlignment="Center" Visibility="Visible" Padding="0,3" />
+              <Grid Grid.Column="4" Margin="4,2" x:Name="ArrowPanel" VerticalAlignment="Center">
+                <Path x:Name="ArrowPanelPath" VerticalAlignment="Center" Fill="{TemplateBinding Foreground}" Data="M0,0 L0,8 L4,4 z" />
               </Grid>
-              <Popup
-                                    x:Name="SubMenuPopup"
-                                    AllowsTransparency="true"
-                                    Focusable="false"
-                                    IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
-                                    Placement="Right"
-                                    PopupAnimation="{DynamicResource {x:Static SystemParameters.MenuPopupAnimationKey}}">
+              <Popup IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" Placement="Right" x:Name="SubMenuPopup" Focusable="false" AllowsTransparency="true" PopupAnimation="{DynamicResource {x:Static SystemParameters.MenuPopupAnimationKey}}">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="3" />
@@ -2400,88 +2342,65 @@
                   </Grid.RowDefinitions>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1" />
-                    <ColumnDefinition />
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="1" />
                   </Grid.ColumnDefinitions>
-                  <Border
-                                            Grid.Row="0"
-                                            Grid.ColumnSpan="3"
-                                            Background="{StaticResource MenuBackgroundBrush}" />
-                  <Border
-                                            Grid.Row="2"
-                                            Grid.ColumnSpan="3"
-                                            Background="{StaticResource MenuBackgroundBrush}" />
-                  <Border
-                                            x:Name="SubmenuMainWrapperBorder"
-                                            Grid.RowSpan="3"
-                                            Grid.ColumnSpan="3"
-                                            Background="{StaticResource MenuBackgroundBrush}"
-                                            BorderBrush="{StaticResource MenuBorderBrush}"
-                                            BorderThickness="0.5" />
-                  <Grid
-                                            x:Name="SubMenu"
-                                            Grid.Row="1"
-                                            Grid.Column="1">
-                    <Border
-                                                x:Name="SubMenuBorder"
-                                                Background="{DynamicResource MenuBackgroundBrush}"
-                                                BorderBrush="{DynamicResource MenuBorderBrush}"
-                                                BorderThickness="0" />
-                    <StackPanel
-                                                Grid.IsSharedSizeScope="true"
-                                                IsItemsHost="True"
-                                                KeyboardNavigation.DirectionalNavigation="Cycle" />
+                  <Border Grid.Row="0" Grid.ColumnSpan="3" Background="{StaticResource MenuBackgroundBrush}" />
+                  <Border Grid.Row="2" Grid.ColumnSpan="3" Background="{StaticResource MenuBackgroundBrush}" />
+                  <Border x:Name="SubmenuMainWrapperBorder" Grid.RowSpan="3" Grid.ColumnSpan="3" Background="{StaticResource MenuBackgroundBrush}" BorderBrush="{StaticResource MenuBorderBrush}" BorderThickness="0.5" />
+                  <Grid x:Name="SubMenu" Grid.Row="1" Grid.Column="1">
+                    <Border x:Name="SubMenuBorder" Background="{DynamicResource MenuBackgroundBrush}" BorderBrush="{DynamicResource MenuBorderBrush}" BorderThickness="0" />
+                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" Grid.IsSharedSizeScope="true" />
                   </Grid>
                 </Grid>
-
               </Popup>
             </Grid>
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="Role" Value="TopLevelHeader">
-              <Setter TargetName="HeaderHost" Property="Margin" Value="10,2" />
+              <Setter Property="Margin" Value="10,2" TargetName="HeaderHost" />
               <Setter Property="Grid.IsSharedSizeScope" Value="true" />
-              <Setter TargetName="SubMenuPopup" Property="Placement" Value="Bottom" />
-              <Setter TargetName="GlyphPanel" Property="Visibility" Value="Collapsed" />
-              <Setter TargetName="ArrowPanel" Property="Visibility" Value="Collapsed" />
-              <Setter TargetName="Icon" Property="Visibility" Value="Collapsed" />
-              <Setter TargetName="IconColumn" Property="MinWidth" Value="0" />
-              <Setter TargetName="ArrowColumn" Property="Width" Value="0" />
+              <Setter Property="Placement" Value="Bottom" TargetName="SubMenuPopup" />
+              <Setter Property="Visibility" Value="Collapsed" TargetName="GlyphPanel" />
+              <Setter Property="Visibility" Value="Collapsed" TargetName="ArrowPanel" />
+              <Setter Property="Visibility" Value="Collapsed" TargetName="Icon" />
+              <Setter Property="MinWidth" Value="0" TargetName="IconColumn" />
+              <Setter Property="Width" Value="0" TargetName="ArrowColumn" />
             </Trigger>
             <Trigger Property="Role" Value="TopLevelItem">
-              <Setter TargetName="HeaderHost" Property="Margin" Value="10,2" />
-              <Setter TargetName="GlyphPanel" Property="Visibility" Value="Collapsed" />
-              <Setter TargetName="ArrowPanel" Property="Visibility" Value="Collapsed" />
-              <Setter TargetName="Icon" Property="Visibility" Value="Collapsed" />
-              <Setter TargetName="IconColumn" Property="MinWidth" Value="0" />
-              <Setter TargetName="ArrowColumn" Property="Width" Value="0" />
+              <Setter Property="Margin" Value="10,2" TargetName="HeaderHost" />
+              <Setter Property="Visibility" Value="Collapsed" TargetName="GlyphPanel" />
+              <Setter Property="Visibility" Value="Collapsed" TargetName="ArrowPanel" />
+              <Setter Property="Visibility" Value="Collapsed" TargetName="Icon" />
+              <Setter Property="MinWidth" Value="0" TargetName="IconColumn" />
+              <Setter Property="Width" Value="0" TargetName="ArrowColumn" />
             </Trigger>
             <Trigger Property="Role" Value="SubmenuHeader">
               <Setter Property="DockPanel.Dock" Value="Top" />
               <Setter Property="Grid.IsSharedSizeScope" Value="true" />
-              <Setter TargetName="IGTTextBlock" Property="MinWidth" Value="70" />
+              <Setter Property="MinWidth" Value="70" TargetName="IGTTextBlock" />
             </Trigger>
             <Trigger Property="Role" Value="SubmenuItem">
               <Setter Property="DockPanel.Dock" Value="Top" />
-              <Setter TargetName="ArrowPanel" Property="Visibility" Value="Hidden" />
+              <Setter Property="Visibility" Value="Hidden" TargetName="ArrowPanel" />
               <Setter Property="Grid.IsSharedSizeScope" Value="true" />
-              <Setter TargetName="IGTTextBlock" Property="MinWidth" Value="70" />
+              <Setter Property="MinWidth" Value="70" TargetName="IGTTextBlock" />
             </Trigger>
             <Trigger Property="IsSuspendingPopupAnimation" Value="true">
-              <Setter TargetName="SubMenuPopup" Property="PopupAnimation" Value="None" />
+              <Setter Property="PopupAnimation" Value="None" TargetName="SubMenuPopup" />
             </Trigger>
             <Trigger Property="IsChecked" Value="true">
-              <Setter TargetName="GlyphPanel" Property="Visibility" Value="Visible" />
-              <Setter TargetName="Icon" Property="Visibility" Value="Collapsed" />
+              <Setter Property="Visibility" Value="Visible" TargetName="GlyphPanel" />
+              <Setter Property="Visibility" Value="Collapsed" TargetName="Icon" />
             </Trigger>
-            <Trigger SourceName="SubMenuPopup" Property="AllowsTransparency" Value="true">
-              <Setter TargetName="SubMenu" Property="Margin" Value="0" />
-              <Setter TargetName="SubMenu" Property="SnapsToDevicePixels" Value="true" />
+            <Trigger Property="AllowsTransparency" SourceName="SubMenuPopup" Value="true">
+              <Setter Property="Margin" Value="0" TargetName="SubMenu" />
+              <Setter Property="SnapsToDevicePixels" Value="true" TargetName="SubMenu" />
             </Trigger>
             <Trigger Property="IsHighlighted" Value="True">
-              <Setter TargetName="HoverBorder" Property="Opacity" Value="1" />
-              <Setter TargetName="GlyphPanelpath" Property="Fill" Value="{StaticResource MenuBlueGlyphs}" />
-              <Setter TargetName="ArrowPanelPath" Property="Fill" Value="{StaticResource MenuBlueGlyphs}" />
+              <Setter Property="Opacity" TargetName="HoverBorder" Value="1" />
+              <Setter Property="Fill" Value="{StaticResource MenuBlueGlyphs}" TargetName="GlyphPanelpath" />
+              <Setter Property="Fill" Value="{StaticResource MenuBlueGlyphs}" TargetName="ArrowPanelPath" />
 
             </Trigger>
             <MultiTrigger>
@@ -2490,11 +2409,11 @@
                 <Condition Property="Role" Value="TopLevelHeader" />
               </MultiTrigger.Conditions>
               <MultiTrigger.Setters>
-                <Setter TargetName="HoverBorder" Property="Opacity" Value="0" />
-                <Setter TargetName="Border" Property="Background" Value="{StaticResource MenuBackgroundBrush}" />
-                <Setter TargetName="SubmenuMainWrapperBorder" Property="BorderThickness" Value="0.5,0,0.5,0.5" />
-                <Setter TargetName="Border" Property="BorderThickness" Value="0.5,0.5,0.5,0" />
-                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource MenuBorderBrush}" />
+                <Setter Property="Opacity" Value="0" TargetName="HoverBorder" />
+                <Setter Property="Background" Value="{StaticResource MenuBackgroundBrush}" TargetName="Border" />
+                <Setter Property="BorderThickness" Value="0.5,0,0.5,0.5" TargetName="SubmenuMainWrapperBorder" />
+                <Setter Property="BorderThickness" Value="0.5,0.5,0.5,0" TargetName="Border" />
+                <Setter Property="BorderBrush" Value="{StaticResource MenuBorderBrush}" TargetName="Border" />
               </MultiTrigger.Setters>
             </MultiTrigger>
             <Trigger Property="IsEnabled" Value="False">

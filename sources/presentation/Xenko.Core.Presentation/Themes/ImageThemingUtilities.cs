@@ -1,75 +1,17 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using Xenko.Core.Presentation.Drawing;
 
-namespace Xenko.Core.Presentation.Extensions
+namespace Xenko.Core.Presentation.Themes
 {
     using Media = System.Windows.Media;
 
-    /// <summary>
-    /// This class contains properties to controll theming of icons, etc.
-    /// </summary>
-    public class ThemeController : DependencyObject
-    {
-        public static bool GetIsDark(DependencyObject obj)
-         => (bool)obj.GetValue(IsDarkProperty);
-
-        public static void SetIsDark(DependencyObject obj, bool value)
-         => obj.SetValue(IsDarkProperty, value);
-
-        /// <summary>
-        /// The main purpose of this property is for Luminosity Check feature of
-        /// <see cref="ImageThemingUtilities.TransformDrawing(System.Windows.Media.Drawing, IconTheme, bool)"/>.
-        /// </summary>
-        public static readonly DependencyProperty IsDarkProperty =
-            DependencyProperty.RegisterAttached("IsDark", typeof(bool), typeof(ThemeController), new PropertyMetadata(false));
-
-    }
-
-    /// <summary>
-    /// Contains a predefined set of <see cref="IconTheme"/>
-    /// </summary>
-    public static class IconThemeSelector
-    {
-        public enum KnownThemes
-        {
-            Light,
-            Dark
-        }
-
-        public static IconTheme GetIconTheme(this KnownThemes theme)
-        {
-            switch (theme)
-            {
-                case KnownThemes.Dark: return new IconTheme("Dark", Color.FromRgb(16, 16, 17));
-                case KnownThemes.Light: return new IconTheme("Light", Color.FromRgb(245, 245, 245));
-                default:return default(IconTheme);
-            }
-        }
-
-    }
-
-    public struct IconTheme
-    {
-        public IconTheme(string name, Color backgroundColor)
-        {
-            this.Name = name;
-            this.BackgroundColor = backgroundColor;
-        }
-        public string Name { get; }
-        public Color BackgroundColor { get; }
-        public double BackgroundLuminosity => BackgroundColor.ToHslColor().Luminosity;
-
-    }
-
     public static class ImageThemingUtilities
     {
-
         /// <summary>
         /// This method transforms colors of a geometry-based drawing to a desired theme.
         /// </summary>
@@ -83,10 +25,11 @@ namespace Xenko.Core.Presentation.Extensions
             var isDark = ThemeController.GetIsDark(drawing);
             if (checkLuminosity)
             {
-                if (isDark == IsDark(theme.BackgroundLuminosity)) return drawing;
+                if (isDark == IsDark(theme.BackgroundLuminosity))
+                    return drawing;
             }
             var newDrawing = drawing.CloneCurrentValue();
-            newDrawing.TransformParts(theme);
+            TransformParts(newDrawing, theme);
             ThemeController.SetIsDark(newDrawing, !isDark);
             return newDrawing;
         }
@@ -96,7 +39,7 @@ namespace Xenko.Core.Presentation.Extensions
         /// </summary>
         /// <param name="drawing"></param>
         /// <param name="theme"></param>
-        private static void TransformParts(this Media.Drawing drawing, IconTheme theme)
+        private static void TransformParts(Media.Drawing drawing, IconTheme theme)
         {
             if (drawing is GeometryDrawing gd && gd.Brush is SolidColorBrush s)
             {
