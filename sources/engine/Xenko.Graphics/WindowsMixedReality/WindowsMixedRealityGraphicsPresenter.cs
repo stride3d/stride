@@ -1,3 +1,6 @@
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 #if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
 
 using System;
@@ -106,9 +109,9 @@ namespace Xenko.Graphics
         {
             IDirect3DSurface surface = HolographicFrame.GetRenderingParameters(HolographicFrame.CurrentPrediction.CameraPoses[0]).Direct3D11BackBuffer;
             IDirect3DDxgiInterfaceAccess surfaceDxgiInterfaceAccess = surface as IDirect3DDxgiInterfaceAccess;
-            IntPtr pResource = surfaceDxgiInterfaceAccess.GetInterface(ID3D11Resource);
+            IntPtr resource = surfaceDxgiInterfaceAccess.GetInterface(ID3D11Resource);
 
-            if (backBuffer == null || backBuffer.NativeResource.NativePointer != pResource)
+            if (backBuffer == null || backBuffer.NativeResource.NativePointer != resource)
             {
                 // Clean up references to previous resources.
                 backBuffer?.Dispose();
@@ -116,7 +119,7 @@ namespace Xenko.Graphics
                 // This can change every frame as the system moves to the next buffer in the
                 // swap chain. This mode of operation will occur when certain rendering modes
                 // are activated.
-                Texture2D d3DBackBuffer = new Texture2D(pResource);
+                Texture2D d3DBackBuffer = new Texture2D(resource);
 
                 backBuffer = new Texture(GraphicsDevice).InitializeFromImpl(d3DBackBuffer, false);
 
