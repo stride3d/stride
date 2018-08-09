@@ -122,7 +122,7 @@
       <Setter.Value>
         <Style TargetType="{x:Type TabItem}">
           <Setter Property="Focusable" Value="False"/>
-          <Setter Property="MinWidth" Value="60" />
+          <Setter Property="MinWidth" Value="80" />
           <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
           <Setter Property="Background" Value="{StaticResource NormalBrush}"/>
           <Setter Property="BorderBrush" Value="{StaticResource SolidBorderBrush}"/>
@@ -136,7 +136,7 @@
                 <Grid SnapsToDevicePixels="true">
 
                   <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="2"/>
                     <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
 
