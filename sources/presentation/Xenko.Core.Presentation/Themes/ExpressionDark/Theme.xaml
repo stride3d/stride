@@ -2377,11 +2377,13 @@
             </Trigger>
             <Trigger Property="Role" Value="SubmenuHeader">
               <Setter Property="DockPanel.Dock" Value="Top" />
+              <Setter Property="Width" Value="24" TargetName="IconColumn" />
               <Setter Property="Grid.IsSharedSizeScope" Value="true" />
               <Setter Property="MinWidth" Value="70" TargetName="IGTTextBlock" />
             </Trigger>
             <Trigger Property="Role" Value="SubmenuItem">
               <Setter Property="DockPanel.Dock" Value="Top" />
+              <Setter Property="Width" Value="24" TargetName="IconColumn" />
               <Setter Property="Visibility" Value="Hidden" TargetName="ArrowPanel" />
               <Setter Property="Grid.IsSharedSizeScope" Value="true" />
               <Setter Property="MinWidth" Value="70" TargetName="IGTTextBlock" />
