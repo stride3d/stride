@@ -694,7 +694,7 @@
                         </i:Interaction.Behaviors>
                       </xk:TextBox>
                       <!-- Navigation -->
-                      <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,0,6" VerticalAlignment="Center">
+                      <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,6,0" VerticalAlignment="Center">
                         <Button Content="{xk:Image {StaticResource ImagePrevious}, 16, 16, HighQuality}" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
                             Command="{Binding Session.PreviousSelectionCommand}"
                             ToolTip="{xk:Localize Previous selection, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
