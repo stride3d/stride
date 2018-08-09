@@ -5,11 +5,11 @@ using System;
 using System.Windows.Markup;
 using System.Windows.Media;
 using Xenko.Core.Annotations;
+using Xenko.Core.Presentation.Themes;
 
 namespace Xenko.Core.Presentation.MarkupExtensions
 {
-    using Xenko.Core.Presentation.Extensions;
-    using static Xenko.Core.Presentation.Extensions.IconThemeSelector;
+    using static Xenko.Core.Presentation.Themes.IconThemeSelector;
 
     [MarkupExtensionReturnType(typeof(ImageSource))]
     public class ThemedSourceExtension : MarkupExtension
@@ -18,8 +18,8 @@ namespace Xenko.Core.Presentation.MarkupExtensions
 
         public ThemedSourceExtension(ImageSource source, KnownThemes theme)
         {
-            this.Source = source;
-            this.Theme = theme.GetIconTheme();
+            Source = source;
+            Theme = theme.GetIconTheme();
         }
 
         [ConstructorArgument("source")]
@@ -31,11 +31,17 @@ namespace Xenko.Core.Presentation.MarkupExtensions
         [NotNull]
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            if (Source is DrawingImage) return new DrawingImage
+            if (Source is DrawingImage drawingImage)
             {
-                Drawing = ImageThemingUtilities.TransformDrawing((Source as DrawingImage)?.Drawing, Theme)
-            };
-            else return Source;
+                return new DrawingImage
+                {
+                    Drawing = ImageThemingUtilities.TransformDrawing(drawingImage.Drawing, Theme)
+                };
+            }
+            else
+            {
+                return Source;
+            }
         }
     }
 }

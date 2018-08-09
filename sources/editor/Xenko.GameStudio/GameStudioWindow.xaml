@@ -6,7 +6,6 @@
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:strings="clr-namespace:Xenko.GameStudio.Resources.Strings"
         xmlns:stringsEd="clr-namespace:Xenko.Core.Assets.Editor.Resources.Strings;assembly=Xenko.Core.Assets.Editor"
-        xmlns:vs="clr-namespace:Xenko.Core.VisualStudio;assembly=Xenko.Core.Design"
         xmlns:gs="clr-namespace:Xenko.GameStudio"
         xmlns:xcad="http://schemas.xceed.com/wpf/xaml/avalondock"
         xmlns:xk="http://schemas.xenko.com/xaml/presentation"

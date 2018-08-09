@@ -37,42 +37,42 @@ namespace Xenko.Core.Presentation.Drawing
         /// <param name="alpha">The alpha.</param>
         public HslColor(double hue, double saturation, double luminosity, double alpha)
         {
-            this._hue = HslColor.LimitRange(hue, 0.0, 360.0);
-            this._saturation = HslColor.LimitRange(saturation, 0.0, 1.0);
-            this._luminosity = HslColor.LimitRange(luminosity, 0.0, 1.0);
-            this._alpha = HslColor.LimitRange(alpha, 0.0, 1.0);
+            _hue = LimitRange(hue, 0.0, 360.0);
+            _saturation = LimitRange(saturation, 0.0, 1.0);
+            _luminosity = LimitRange(luminosity, 0.0, 1.0);
+            _alpha = LimitRange(alpha, 0.0, 1.0);
         }
 
         /// <summary>Gets or sets the HslColor's Hue component</summary>
         /// <returns>The HslColor's Hue component.</returns>
         public double Hue
         {
-            get => this._hue;
-            set => this._hue = HslColor.LimitRange(value, 0.0, 360.0);
+            get => _hue;
+            set => _hue = LimitRange(value, 0.0, 360.0);
         }
 
         /// <summary>Gets or sets the HslColor's Saturation component.</summary>
         /// <returns>The HslColor's Saturation component.</returns>
         public double Saturation
         {
-            get => this._saturation;
-            set => this._saturation = HslColor.LimitRange(value, 0.0, 1.0);
+            get => _saturation;
+            set => _saturation = LimitRange(value, 0.0, 1.0);
         }
 
         /// <summary>Gets or sets the HslColor's Luminosity component</summary>
         /// <returns>The HslColor's Luminosity component.</returns>
         public double Luminosity
         {
-            get => this._luminosity;
-            set => this._luminosity = HslColor.LimitRange(value, 0.0, 1.0);
+            get => _luminosity;
+            set => _luminosity = LimitRange(value, 0.0, 1.0);
         }
 
         /// <summary>Gets or sets the HslColor's Alpha component.</summary>
         /// <returns>The HslColor's Alpha component.</returns>
         public double Alpha
         {
-            get => this._alpha;
-            set => this._alpha = HslColor.LimitRange(value, 0.0, 1.0);
+            get => _alpha;
+            set => _alpha = LimitRange(value, 0.0, 1.0);
         }
 
         /// <summary>Converts a Color value to an HslColor. The algorithm is based on pseudocode available on HSL and HSV.</summary>
@@ -85,13 +85,13 @@ namespace Xenko.Core.Presentation.Drawing
             byte b = color.B;
             byte num1 = Math.Max(r, Math.Max(g, b));
             byte num2 = Math.Min(r, Math.Min(g, b));
-            double num3 = (double)((int)num1 - (int)num2);
-            double num4 = (double)num1 / (double)byte.MaxValue;
-            double num5 = (double)num2 / (double)byte.MaxValue;
-            double hue = (int)num1 != (int)num2 ? ((int)num1 != (int)r ? ((int)num1 != (int)g ? 60.0 * (double)((int)r - (int)g) / num3 + 240.0 : 60.0 * (double)((int)b - (int)r) / num3 + 120.0) : (double)((int)(60.0 * (double)((int)g - (int)b) / num3 + 360.0) % 360)) : 0.0;
-            double alpha = (double)color.A / (double)byte.MaxValue;
+            double num3 = num1 - num2;
+            double num4 = num1 / (double)byte.MaxValue;
+            double num5 = num2 / (double)byte.MaxValue;
+            double hue = num1 != num2 ? num1 != r ? num1 != g ? 60.0 * (r - g) / num3 + 240.0 : 60.0 * (b - r) / num3 + 120.0 : (int)(60.0 * (g - b) / num3 + 360.0) % 360 : 0.0;
+            double alpha = color.A / (double)byte.MaxValue;
             double luminosity = 0.5 * (num4 + num5);
-            double saturation = (int)num1 != (int)num2 ? (luminosity > 0.5 ? (num4 - num5) / (2.0 - 2.0 * luminosity) : (num4 - num5) / (2.0 * luminosity)) : 0.0;
+            double saturation = num1 != num2 ? (luminosity > 0.5 ? (num4 - num5) / (2.0 - 2.0 * luminosity) : (num4 - num5) / (2.0 * luminosity)) : 0.0;
             return new HslColor(hue, saturation, luminosity, alpha);
         }
 
@@ -99,13 +99,13 @@ namespace Xenko.Core.Presentation.Drawing
         /// <returns>The converted color.</returns>
         public Color ToColor()
         {
-            double q = this.Luminosity < 0.5 ? this.Luminosity * (1.0 + this.Saturation) : this.Luminosity + this.Saturation - this.Luminosity * this.Saturation;
-            double p = 2.0 * this.Luminosity - q;
-            double num = this.Hue / 360.0;
-            double tC1 = HslColor.ModOne(num + 1.0 / 3.0);
+            double q = Luminosity < 0.5 ? Luminosity * (1.0 + Saturation) : Luminosity + Saturation - Luminosity * Saturation;
+            double p = 2.0 * Luminosity - q;
+            double num = Hue / 360.0;
+            double tC1 = ModOne(num + 1.0 / 3.0);
             double tC2 = num;
-            double tC3 = HslColor.ModOne(num - 1.0 / 3.0);
-            return Color.FromArgb((byte)(this.Alpha * (double)byte.MaxValue), (byte)(HslColor.ComputeRGBComponent(p, q, tC1) * (double)byte.MaxValue), (byte)(HslColor.ComputeRGBComponent(p, q, tC2) * (double)byte.MaxValue), (byte)(HslColor.ComputeRGBComponent(p, q, tC3) * (double)byte.MaxValue));
+            double tC3 = ModOne(num - 1.0 / 3.0);
+            return Color.FromArgb((byte)(Alpha * byte.MaxValue), (byte)(ComputeRGBComponent(p, q, tC1) * byte.MaxValue), (byte)(ComputeRGBComponent(p, q, tC2) * byte.MaxValue), (byte)(ComputeRGBComponent(p, q, tC3) * byte.MaxValue));
         }
 
         private static double ModOne(double value)

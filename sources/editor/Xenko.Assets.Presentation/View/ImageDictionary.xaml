@@ -1,18 +1,16 @@
-<ResourceDictionary
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:components="clr-namespace:Xenko.Particles.Components;assembly=Xenko.Particles"
-    xmlns:data="clr-namespace:Xenko.Data;assembly=Xenko"
-    xmlns:drawing="clr-namespace:Xenko.Core.Presentation.Drawing;assembly=Xenko.Core.Presentation"
-    xmlns:engine="clr-namespace:Xenko.Engine;assembly=Xenko.Engine"
-    xmlns:engine-ui="clr-namespace:Xenko.Engine;assembly=Xenko.UI"
-    xmlns:font="clr-namespace:Xenko.Graphics.Font;assembly=Xenko.Graphics"
-    xmlns:gameEditor="clr-namespace:Xenko.Assets.Presentation.AssetEditors.GameEditor"
-    xmlns:physics="clr-namespace:Xenko.Engine;assembly=Xenko.Physics"
-    xmlns:preview="clr-namespace:Xenko.Assets.Presentation.Preview"
-    xmlns:ss="clr-namespace:Xenko.Engine;assembly=Xenko.SpriteStudio.Runtime"
-    xmlns:ss-runtime="clr-namespace:Xenko.SpriteStudio.Runtime;assembly=Xenko.SpriteStudio.Runtime"
-    xmlns:video="clr-namespace:Xenko.Video;assembly=Xenko.Video">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:components="clr-namespace:Xenko.Particles.Components;assembly=Xenko.Particles"
+                    xmlns:data="clr-namespace:Xenko.Data;assembly=Xenko"
+                    xmlns:engine="clr-namespace:Xenko.Engine;assembly=Xenko.Engine"
+                    xmlns:engine-ui="clr-namespace:Xenko.Engine;assembly=Xenko.UI"
+                    xmlns:font="clr-namespace:Xenko.Graphics.Font;assembly=Xenko.Graphics"
+                    xmlns:gameEditor="clr-namespace:Xenko.Assets.Presentation.AssetEditors.GameEditor"
+                    xmlns:physics="clr-namespace:Xenko.Engine;assembly=Xenko.Physics"
+                    xmlns:preview="clr-namespace:Xenko.Assets.Presentation.Preview"
+                    xmlns:ss="clr-namespace:Xenko.Engine;assembly=Xenko.SpriteStudio.Runtime"
+                    xmlns:ss-runtime="clr-namespace:Xenko.SpriteStudio.Runtime;assembly=Xenko.SpriteStudio.Runtime"
+                    xmlns:video="clr-namespace:Xenko.Video;assembly=Xenko.Video">
 
     <DrawingImage x:Key="ImageUp" >
         <DrawingImage.Drawing>

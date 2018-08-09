@@ -39,6 +39,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Update="Themes\ExpressionDark\Theme.xaml.cs">
+      <DependentUpon>Themes\ExpressionDark\Theme.xaml</DependentUpon>
+    </Compile>
     <Page Include="Themes\generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
