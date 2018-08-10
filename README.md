@@ -23,7 +23,7 @@ Contributors need to sign the following [Contribution License Agreement](doc/Con
 
 Find explanations and information about Xenko:
 * [Xenko Manual](https://doc.xenko.com/latest/manual/index.html)
-* [API Reference](https://doc.xenko.com/latest/api/Xenko.Core.Assets.html)
+* [API Reference](https://doc.xenko.com/latest/api/index.html)
 * [Release Notes](https://doc.xenko.com/latest/ReleaseNotes/index.html)
 
 ## Community
