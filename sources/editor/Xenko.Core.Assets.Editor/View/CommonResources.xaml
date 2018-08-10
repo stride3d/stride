@@ -177,7 +177,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="MenuItem">
           <StackPanel>
-            <Grid Background="{StaticResource NormalBrush}" MinHeight="20">
+            <Grid Background="{StaticResource BackgroundBrush}" MinHeight="20">
               <ContentPresenter ContentSource="Header" Margin="8,2" TextBlock.FontWeight="Bold" VerticalAlignment="Center"/>
             </Grid>
             <StackPanel IsItemsHost="True" />
