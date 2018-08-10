@@ -82,7 +82,19 @@
                     </avalonDockControls:ContextMenuEx.ItemContainerStyle>
                   </avalonDockControls:ContextMenuEx>
                 </avalonDockControls:DropDownButton.DropDownContextMenu>
-                <Image Source="Images/PinDocMenu.png"/>
+                <Image>
+                  <Image.Source>
+                    <DrawingImage>
+                      <DrawingImage.Drawing>
+                        <DrawingGroup>
+                          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16 16h-16v-16h16v16z" />
+                          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M12 5v3.414l-4 4-4-4v-3.414h8z" />
+                          <GeometryDrawing Brush="#FF424242" Geometry="F1M11 7h-6v-1h6v1zm0 1h-6l3 3 3-3z" />
+                        </DrawingGroup>
+                      </DrawingImage.Drawing>
+                    </DrawingImage>
+                  </Image.Source>
+                </Image>
               </avalonDockControls:DropDownButton>
             </Grid>
             <Border x:Name="ContentPanel"
@@ -122,13 +134,13 @@
       <Setter.Value>
         <Style TargetType="{x:Type TabItem}">
           <Setter Property="Focusable" Value="False"/>
-          <Setter Property="MinWidth" Value="80" />
           <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
           <Setter Property="Background" Value="{StaticResource NormalBrush}"/>
           <Setter Property="BorderBrush" Value="{StaticResource SolidBorderBrush}"/>
           <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
           <Setter Property="ToolTip" Value="{Binding ToolTip}"/>
           <Setter Property="Padding" Value="2,1,2,1"/>
+          <Setter Property="FontSize" Value="13" />
           <Setter Property="Margin" Value="1,0,0,0"/>
           <Setter Property="Template">
             <Setter.Value>
@@ -174,7 +186,7 @@
                     <!--<Setter Property="Margin" Value="-1,0,-16,-1"/>
                     <Setter Property="Margin" TargetName="BdInternal" Value="0,0,0,-1"/>
                     <Setter Property="Margin" TargetName="splineBd" Value="0,0,0,-1.0"/>-->
-                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="FontWeight" Value="Normal"/>
                     <Setter Property="Panel.ZIndex"
                                   Value="1" />
                   </Trigger>
@@ -786,6 +798,7 @@
   </Style>
 
   <Style TargetType="{x:Type avalonDockControls:LayoutDocumentTabItem}">
+    <Setter Property="MinWidth" Value="120" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type avalonDockControls:LayoutDocumentTabItem}">

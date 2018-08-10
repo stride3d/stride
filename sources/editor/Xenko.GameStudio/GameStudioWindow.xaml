@@ -24,10 +24,10 @@
 
       <DataTemplate x:Key="AvalonDock_GameStudio_TitleTemplate">
         <DockPanel LastChildFill="False">
-          <TextBlock DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Top"
+          <TextBlock Margin="3 0" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+          <TextBlock DockPanel.Dock="Left" HorizontalAlignment="Center" VerticalAlignment="Top"
                      Visibility="{Binding Path=Content.DataContext.IsDirty, Converter={xk:VisibleOrCollapsed}, FallbackValue={xk:Collapsed}}"
                      Text="*" TextAlignment="Center"/>
-          <TextBlock Margin="3 0 0 0" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
         </DockPanel>
       </DataTemplate>
 
