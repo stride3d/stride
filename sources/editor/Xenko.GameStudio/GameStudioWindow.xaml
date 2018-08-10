@@ -930,7 +930,7 @@
           </xcad:LayoutPanel>
         </xcad:LayoutRoot>
       </xcad:DockingManager>
-      <StatusBar Grid.Row="2" Visibility="{Binding Session, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}">
+      <StatusBar Grid.Row="2" Background="#007ACC" Visibility="{Binding Session, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrCollapsed}}}">
         <StatusBar.ItemsPanel>
           <ItemsPanelTemplate>
             <Grid>
