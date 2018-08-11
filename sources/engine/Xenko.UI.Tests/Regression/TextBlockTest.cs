@@ -107,87 +107,87 @@ This is the last line.",
             FrameGameSystem.Draw(Draw14).TakeScreenshot();
         }
 
-        public void Draw0()
+        private void Draw0()
         {
             textBlock.TextAlignment = TextAlignment.Left;
             textBlock.VerticalAlignment = VerticalAlignment.Stretch;
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
-        public void Draw1()
+        private void Draw1()
         {
             textBlock.TextAlignment = TextAlignment.Center;
             textBlock.VerticalAlignment = VerticalAlignment.Stretch;
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
-        public void Draw2()
+        private void Draw2()
         {
             textBlock.TextAlignment = TextAlignment.Right;
             textBlock.VerticalAlignment = VerticalAlignment.Stretch;
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
-        public void Draw3()
+        private void Draw3()
         {
             textBlock.TextAlignment = TextAlignment.Left;
             textBlock.VerticalAlignment = VerticalAlignment.Top;
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
-        public void Draw4()
+        private void Draw4()
         {
             textBlock.TextAlignment = TextAlignment.Left;
             textBlock.VerticalAlignment = VerticalAlignment.Bottom;
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
-        public void Draw5()
+        private void Draw5()
         {
             textBlock.TextAlignment = TextAlignment.Left;
             textBlock.VerticalAlignment = VerticalAlignment.Center;
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
-        public void Draw6()
+        private void Draw6()
         {
             textBlock.TextAlignment = TextAlignment.Left;
             textBlock.VerticalAlignment = VerticalAlignment.Center;
             textBlock.HorizontalAlignment = HorizontalAlignment.Left;
         }
-        public void Draw7()
+        private void Draw7()
         {
             textBlock.TextAlignment = TextAlignment.Left;
             textBlock.VerticalAlignment = VerticalAlignment.Center;
             textBlock.HorizontalAlignment = HorizontalAlignment.Right;
         }
-        public void Draw8()
+        private void Draw8()
         {
             textBlock.TextAlignment = TextAlignment.Left;
             textBlock.VerticalAlignment = VerticalAlignment.Center;
             textBlock.HorizontalAlignment = HorizontalAlignment.Center;
         }
-        public void Draw9()
+        private void Draw9()
         {
             textBlock.TextAlignment = TextAlignment.Center;
             textBlock.VerticalAlignment = VerticalAlignment.Center;
             textBlock.HorizontalAlignment = HorizontalAlignment.Center;
         }
-        public void Draw10()
+        private void Draw10()
         {
             textBlock.TextAlignment = TextAlignment.Right;
             textBlock.VerticalAlignment = VerticalAlignment.Center;
             textBlock.HorizontalAlignment = HorizontalAlignment.Center;
         }
-        public void Draw11()
+        private void Draw11()
         {
             textBlock.TextSize = textBlock.Font.Size * 2;
             textBlock.TextAlignment = TextAlignment.Left;
             textBlock.VerticalAlignment = VerticalAlignment.Center;
             textBlock.HorizontalAlignment = HorizontalAlignment.Center;
         }
-        public void Draw12()
+        private void Draw12()
         {
             textBlock.TextSize = textBlock.Font.Size / 2;
             textBlock.TextAlignment = TextAlignment.Left;
             textBlock.VerticalAlignment = VerticalAlignment.Center;
             textBlock.HorizontalAlignment = HorizontalAlignment.Center;
         }
-        public void Draw13()
+        private void Draw13()
         {
             textBlock.TextSize = textBlock.Font.Size;
             textBlock.TextAlignment = TextAlignment.Left;
@@ -195,7 +195,7 @@ This is the last line.",
             textBlock.HorizontalAlignment = HorizontalAlignment.Center;
             UIComponent.Resolution = new Vector3(GraphicsDevice.Presenter.BackBuffer.Width / 2, GraphicsDevice.Presenter.BackBuffer.Height / 2, 500);
         }
-        public void Draw14()
+        private void Draw14()
         {
             textBlock.TextSize = textBlock.Font.Size;
             textBlock.TextAlignment = TextAlignment.Left;
@@ -213,7 +213,7 @@ This is the last line.",
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TextBlockTest())
                 game.Run();

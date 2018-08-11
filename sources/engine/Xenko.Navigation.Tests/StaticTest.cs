@@ -105,7 +105,7 @@ namespace Xenko.Navigation.Tests
             game.Dispose();
         }
 
-        public static void Main()
+        internal static void Main()
         {
             StaticTest1();
         }

@@ -155,21 +155,21 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(DrawTest12).TakeScreenshot();
         }
 
-        public void DrawTest0()
+        private void DrawTest0()
         {
             MoveElementToLeftTopCorner();
             element1.ClipToBounds = true;
             element2.ClipToBounds = false;
             element3.ClipToBounds = false;
         }
-        public void DrawTest1()
+        private void DrawTest1()
         {
             MoveElementToLeftTopCorner();
             element1.ClipToBounds = false;
             element2.ClipToBounds = true;
             element3.ClipToBounds = false;
         }
-        public void DrawTest2()
+        private void DrawTest2()
         {
             MoveElementToLeftTopCorner();
             element1.ClipToBounds = false;
@@ -178,21 +178,21 @@ namespace Xenko.UI.Tests.Regression
         }
 
 
-        public void DrawTest3()
+        private void DrawTest3()
         {
             MoveElementToRightTopCorner();
             element1.ClipToBounds = true;
             element2.ClipToBounds = false;
             element3.ClipToBounds = false;
         }
-        public void DrawTest4()
+        private void DrawTest4()
         {
             MoveElementToRightTopCorner();
             element1.ClipToBounds = false;
             element2.ClipToBounds = true;
             element3.ClipToBounds = false;
         }
-        public void DrawTest5()
+        private void DrawTest5()
         {
             MoveElementToRightTopCorner();
             element1.ClipToBounds = false;
@@ -201,21 +201,21 @@ namespace Xenko.UI.Tests.Regression
         }
 
 
-        public void DrawTest6()
+        private void DrawTest6()
         {
             MoveElementToRightBottomCorner();
             element1.ClipToBounds = true;
             element2.ClipToBounds = false;
             element3.ClipToBounds = false;
         }
-        public void DrawTest7()
+        private void DrawTest7()
         {
             MoveElementToRightBottomCorner();
             element1.ClipToBounds = false;
             element2.ClipToBounds = true;
             element3.ClipToBounds = false;
         }
-        public void DrawTest8()
+        private void DrawTest8()
         {
             MoveElementToRightBottomCorner();
             element1.ClipToBounds = false;
@@ -224,28 +224,28 @@ namespace Xenko.UI.Tests.Regression
         }
 
 
-        public void DrawTest9()
+        private void DrawTest9()
         {
             MoveElementToIntersection();
             element1.ClipToBounds = true;
             element2.ClipToBounds = false;
             element3.ClipToBounds = false;
         }
-        public void DrawTest10()
+        private void DrawTest10()
         {
             MoveElementToIntersection();
             element1.ClipToBounds = false;
             element2.ClipToBounds = true;
             element3.ClipToBounds = false;
         }
-        public void DrawTest11()
+        private void DrawTest11()
         {
             MoveElementToIntersection();
             element1.ClipToBounds = false;
             element2.ClipToBounds = false;
             element3.ClipToBounds = true;
         }
-        public void DrawTest12()
+        private void DrawTest12()
         {
             MoveElementToIntersection();
             element1.ClipToBounds = false;
@@ -262,7 +262,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new ClippingTest())
                 game.Run();

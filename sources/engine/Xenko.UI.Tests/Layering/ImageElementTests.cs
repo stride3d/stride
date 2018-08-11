@@ -103,7 +103,7 @@ namespace Xenko.UI.Tests.Layering
             Assert.Equal(new Vector3(100, 50, 0), image.DesiredSizeWithMargins);
         }
 
-        public void TestMeasureOverrideInfiniteValues(StretchType stretch)
+        private void TestMeasureOverrideInfiniteValues(StretchType stretch)
         {
             var imageSize = new Vector3(100, 50, 0);
             var sprite = new Sprite { Region = new Rectangle(0, 0, (int)imageSize.X, (int)imageSize.Y), Borders = new Vector4(1, 2, 3, 4) };
@@ -175,7 +175,7 @@ namespace Xenko.UI.Tests.Layering
             Assert.Equal(new Vector3(100, 50, 0), image.RenderSize);
         }
 
-        public void TestArrangeOverrideInfiniteValues(StretchType stretch)
+        private void TestArrangeOverrideInfiniteValues(StretchType stretch)
         {
             var imageSize = new Vector3(100, 50, 0);
             var sprite = new Sprite { Region = new Rectangle(0, 0, (int)imageSize.X, (int)imageSize.Y), Borders = new Vector4(1, 2, 3, 4) };

@@ -16,7 +16,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Launch all the test of ContentControlTest
         /// </summary>
-        public void TestAll()
+        internal void TestAll()
         {
             TestProperties();
             TestContent();

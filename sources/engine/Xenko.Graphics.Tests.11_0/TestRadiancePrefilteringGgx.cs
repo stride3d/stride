@@ -244,7 +244,7 @@ namespace Xenko.Graphics.Tests
             RunGameTest(new TestRadiancePrefilteringGgx());
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestRadiancePrefilteringGgx(true))
                 game.Run();

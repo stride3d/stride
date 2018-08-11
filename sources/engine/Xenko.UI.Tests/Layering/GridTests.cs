@@ -20,7 +20,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// launch all the tests of <see cref="GridTests"/>
         /// </summary>
-        public void TestAll()
+        internal void TestAll()
         {
             TestGridDefaultState();
             TestDefinitionNoCompletion();

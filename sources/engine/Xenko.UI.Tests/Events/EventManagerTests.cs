@@ -18,7 +18,7 @@ namespace Xenko.UI.Tests.Events
         /// <summary>
         /// Launch all the tests of <see cref="EventManagerTests"/>
         /// </summary>
-        public void TestAll()
+        internal void TestAll()
         {
             Initialize();
             TestClassHandler();

@@ -14,8 +14,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 {
     public class ReorderCollectionItemViewModel : IReorderItemViewModel
     {
-        private NodeViewModel targetNode;
-        
+       
         public bool CanInsertChildren(IReadOnlyCollection<object> children, InsertPosition position, AddChildModifiers modifiers, out string message)
         {
             // FIXME: This feature is disabled for now.

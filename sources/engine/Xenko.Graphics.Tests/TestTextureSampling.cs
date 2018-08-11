@@ -136,7 +136,7 @@ namespace Xenko.Graphics.Tests
             }
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestTextureSampling())
                 game.Run();

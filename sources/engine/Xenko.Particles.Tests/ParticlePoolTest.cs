@@ -19,6 +19,7 @@ namespace Xenko.Particles.Tests
         /// <param name="policy">Stack or Ring allocation policy</param>
         [InlineData(ParticlePool.ListPolicy.Stack)]
         [InlineData(ParticlePool.ListPolicy.Ring)]
+        [Theory]
         public unsafe void PoolCapacity(ParticlePool.ListPolicy policy)
         {
             const int maxParticles = 10;
@@ -134,6 +135,7 @@ namespace Xenko.Particles.Tests
         /// <param name="policy">Stack or Ring allocation policy</param>
         [InlineData(ParticlePool.ListPolicy.Stack)]
         [InlineData(ParticlePool.ListPolicy.Ring)]
+        [Theory]
         public unsafe void PoolFields(ParticlePool.ListPolicy policy)
         {
             const int maxParticles = 10;

@@ -68,17 +68,17 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(DrawTest2).TakeScreenshot();
         }
 
-        public void DrawTest0()
+        private void DrawTest0()
         {
             textBlock.TextSize = 12;
         }
 
-        public void DrawTest1()
+        private void DrawTest1()
         {
             textBlock.TextSize = 18;
         }
 
-        public void DrawTest2()
+        private void DrawTest2()
         {
             textBlock.TextSize = 24;
         }
@@ -92,7 +92,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new ContentDecoratorTest())
                 game.Run();

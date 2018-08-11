@@ -129,7 +129,7 @@ namespace Xenko.Core.Assets.Tests
             TestUpgrade(asset, false);
         }
 
-        public void TestUpgrade(MyUpgradedAsset asset, bool needMigration)
+        private void TestUpgrade(MyUpgradedAsset asset, bool needMigration)
         {
             var loadingFilePath = new PackageLoadingAssetFile(Path.Combine(DirectoryTestBase, "TestUpgrade\\Asset1.xkobj"), DirectoryTestBase);
             var outputFilePath = loadingFilePath.FilePath.FullPath;

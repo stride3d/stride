@@ -177,73 +177,73 @@ namespace Xenko.UI.Tests.Regression
             }
         }
 
-        public void DrawTest1()
+        private void DrawTest1()
         {
             edit1.IsSelectionActive = true;
         }
 
-        public void DrawTest2()
+        private void DrawTest2()
         {
             edit1.IsSelectionActive = true;
             edit1.Select(1, 5);
         }
 
-        public void DrawTest2Bis()
+        private void DrawTest2Bis()
         {
             edit1.IsSelectionActive = true;
             edit1.Select(1, 5, true);
         }
 
-        public void DrawTest3()
+        private void DrawTest3()
         {
             edit1.IsSelectionActive = true;
             edit1.Select(1, 5);
             edit1.SelectedText = "-Text inserted in the midle-";
         }
 
-        public void DrawTest4()
+        private void DrawTest4()
         {
             edit1.IsSelectionActive = true;
             edit1.IsEnabled = false;
         }
 
-        public void DrawTest5()
+        private void DrawTest5()
         {
             edit2.IsSelectionActive = true;
             edit2.SelectionStart = 0;
         }
 
-        public void DrawTest6()
+        private void DrawTest6()
         {
             edit2.IsSelectionActive = true;
             edit2.Clear();
         }
 
-        public void DrawTest7()
+        private void DrawTest7()
         {
             edit2.IsSelectionActive = true;
             edit2.AppendText("Too long Text for the edit");
         }
 
-        public void DrawTest8()
+        private void DrawTest8()
         {
             edit2.IsSelectionActive = true;
             edit1.IsSelectionActive = true;
         }
 
-        public void DrawTest9()
+        private void DrawTest9()
         {
             edit4.TextAlignment = TextAlignment.Center;
             edit4.IsSelectionActive = true;
         }
 
-        public void DrawTest10()
+        private void DrawTest10()
         {
             edit4.ResetCaretBlinking(); // ensure that caret is visible if time since last frame is more than caret flickering duration.
             edit4.TextAlignment = TextAlignment.Right;
         }
 
-        public void SelectionTest1()
+        private void SelectionTest1()
         {
             edit4.TextAlignment = TextAlignment.Center;
             edit4.IsSelectionActive = false;
@@ -252,7 +252,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        public void SelectionTest2()
+        private void SelectionTest2()
         {
             Assert.Equal(5, edit4.SelectionStart);
             Assert.Equal(0, edit4.SelectionLength);
@@ -264,7 +264,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        public void SelectionTest3()
+        private void SelectionTest3()
         {
             Assert.Equal(6, edit4.SelectionStart);
             Assert.Equal(0, edit4.SelectionLength);
@@ -273,7 +273,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        public void SelectionTest4()
+        private void SelectionTest4()
         {
             Assert.Equal(6, edit4.SelectionStart);
             Assert.Equal(3, edit4.SelectionLength);
@@ -282,7 +282,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        public void SelectionTest5()
+        private void SelectionTest5()
         {
             Assert.Equal(6, edit4.SelectionStart);
             Assert.Equal(6, edit4.SelectionLength);
@@ -291,7 +291,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        public void SelectionTest6()
+        private void SelectionTest6()
         {
             Assert.Equal(6, edit4.SelectionStart);
             Assert.Equal(5, edit4.SelectionLength);
@@ -300,7 +300,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        public void SelectionTest7()
+        private void SelectionTest7()
         {
             Assert.Equal(5, edit4.SelectionStart);
             Assert.Equal(1, edit4.SelectionLength);
@@ -309,7 +309,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        public void SelectionTest8()
+        private void SelectionTest8()
         {
             Assert.Equal(0, edit4.SelectionStart);
             Assert.Equal(6, edit4.SelectionLength);
@@ -318,7 +318,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        public void SelectionTest9()
+        private void SelectionTest9()
         {
             Assert.Equal(3, edit4.SelectionStart);
             Assert.Equal(3, edit4.SelectionLength);
@@ -328,7 +328,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        public void SelectionGraphicTest1()
+        private void SelectionGraphicTest1()
         {
             Assert.Equal(6, edit4.SelectionStart);
             Assert.Equal(0, edit4.SelectionLength);
@@ -340,13 +340,13 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
         }
 
-        public void SelectionGraphicTest2()
+        private void SelectionGraphicTest2()
         {
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.57f, 0.8f));
             Input.Update(new GameTime());
         }
 
-        public void SelectionGraphicTest3()
+        private void SelectionGraphicTest3()
         {
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.42f, 0.8f));
             AddPointerEvent(PointerEventType.Released, new Vector2(0.42f, 0.8f));
@@ -362,7 +362,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new EditTextTest())
                 game.Run();

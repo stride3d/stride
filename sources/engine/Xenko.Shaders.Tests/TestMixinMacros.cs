@@ -130,13 +130,13 @@ namespace Xenko.Shaders.Tests
         }
 
 
-        public void Run()
+        private void Run()
         {
             //TestMacros();
             TestMacrosArray();
         }
 
-        public static void Main()
+        internal static void Main()
         {
             var test = new TestMixinMacros();
             test.Run();

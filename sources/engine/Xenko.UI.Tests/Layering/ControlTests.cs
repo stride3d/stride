@@ -22,7 +22,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Launch all the tests contained in <see cref="ControlTests"/>
         /// </summary>
-        public void TestAll()
+        internal void TestAll()
         {
             TestProperties();
         }

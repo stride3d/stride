@@ -185,19 +185,19 @@ namespace Xenko.UI.Tests.Regression
             scrollViewer.HideScrollBars();
         }
 
-        public void ScrollWithoutSnapping()
+        private void ScrollWithoutSnapping()
         {
             scrollViewer.SnapToAnchors = false;
             scrollViewer.ScrollTo(scrollValue);
         }
 
-        public void ScrollWithSnapping()
+        private void ScrollWithSnapping()
         {
             scrollViewer.SnapToAnchors = true;
             scrollViewer.ScrollTo(scrollValue);
         }
 
-        public void SetContentTo(UIElement element)
+        private void SetContentTo(UIElement element)
         {
             scrollViewer.Content = element;
         }
@@ -211,7 +211,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new ScrollViewerAnchorTest())
                 game.Run();

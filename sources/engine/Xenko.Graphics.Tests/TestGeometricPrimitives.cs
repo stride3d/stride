@@ -155,8 +155,8 @@ namespace Xenko.Graphics.Tests
                 primitive.Draw(GraphicsContext, simpleEffect);
             }
         }
-        
-        public static void Main()
+
+        internal static void Main()
         {
             using (var game = new TestGeometricPrimitives())
                 game.Run();

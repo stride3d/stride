@@ -26,7 +26,7 @@ namespace Xenko.UI.Tests.Events
         /// <summary>
         /// Performs all the tests
         /// </summary>
-        public void TestAll()
+        internal void TestAll()
         {
             TestAddRemoveHandler();
             TestRaiseEvent();

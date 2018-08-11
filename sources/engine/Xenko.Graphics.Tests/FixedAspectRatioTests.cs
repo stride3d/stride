@@ -50,7 +50,7 @@ namespace Xenko.Graphics.Tests
             RunGameTest(new FixedAspectRatioTests());
         }
 
-        public static void Main(string[] args)
+        internal static void Main(string[] args)
         {
             using (Game game = new FixedAspectRatioTests())
             {

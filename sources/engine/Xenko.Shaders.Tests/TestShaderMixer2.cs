@@ -52,7 +52,7 @@ namespace Xenko.Shaders.Tests
             mixinSource.AddComposition("albedoDiffuse", compMixin);
 
             var byteCode = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
-            Assert.NotNull(byteCode);
+            Assert.NotEqual(default(TaskOrResult<EffectBytecodeCompilerResult>), byteCode);
         }
 
         [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
@@ -76,7 +76,7 @@ namespace Xenko.Shaders.Tests
             mixinSource.AddComposition("albedoDiffuse", compMixin);
 
             var byteCode = Compiler.Compile(mixinSource, MixinParameters.EffectParameters, MixinParameters);
-            Assert.NotNull(byteCode);
+            Assert.NotEqual(default(TaskOrResult<EffectBytecodeCompilerResult>), byteCode);
         }
 
         [Fact(Skip = "This test fixture is unmaintained and currently doesn't pass")]
@@ -96,7 +96,7 @@ namespace Xenko.Shaders.Tests
             TestRenaming();
         }
 
-        public static void Main4()
+        internal static void Main4()
         {
             var testClass = new TestShaderMixer2();
             testClass.Init();

@@ -93,7 +93,7 @@ namespace Xenko.Graphics.Tests
             RunGameTest(new TestComputeShader());
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestComputeShader())
                 game.Run();

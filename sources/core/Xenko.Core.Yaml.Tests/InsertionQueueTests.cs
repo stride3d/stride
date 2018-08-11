@@ -138,7 +138,7 @@ namespace Xenko.Core.Yaml.Tests
             }
         }
 
-        public void PerformTimes(int times, Func<int> func)
+        private void PerformTimes(int times, Func<int> func)
         {
             WithTheRange(0, times).Perform(func);
         }

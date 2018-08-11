@@ -29,9 +29,9 @@ namespace Xenko.Core.Assets.CompilerApp
 
                 return returnValue;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Console.WriteLine("Unexpected exception in AssetCompiler: {0}", ex);
+                Console.WriteLine("Unexpected exception in AssetCompiler: {0}", ex);
                 return 1;
             }
             finally

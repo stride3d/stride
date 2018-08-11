@@ -18,7 +18,7 @@ namespace Xenko.UI.Tests.Layering
     {
         private Random rand = new Random(DateTime.Now.Millisecond);
 
-        public void TestAll()
+        internal void TestAll()
         {
             TestProperties();
             TestCollapseOverride();
