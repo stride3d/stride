@@ -127,7 +127,7 @@
           <HintPath>$(XenkoPackageXenkoPlatformBin)\$(XenkoGraphicsApi)\Xenko.VirtualReality.dll</HintPath>
         </Reference>
         <Reference Include="Xenko.Video">
-          <HintPath>$(XenkoPackageXenkoPlatformBin)\Xenko.Video.dll</HintPath>
+          <HintPath>$(XenkoPackageXenkoPlatformBin)\$(XenkoGraphicsApi)\Xenko.Video.dll</HintPath>
         </Reference>
       </ItemGroup>
     </When>
@@ -180,7 +180,7 @@
       <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Native.dll"</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.UI.dll"</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Navigation.dll"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Video.dll"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\$(XenkoGraphicsApi)\Xenko.Video.dll"</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions Condition="'$(XenkoAutoTesting)' == 'true'">$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Games.Testing.dll"</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)XenkoReferences.cache"</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --platform=$(XenkoPlatform) --targetFramework=$(XenkoNETFrameworkVersion) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</XenkoAssemblyProcessorOptions>
