@@ -34,6 +34,12 @@ using System.ComponentModel;
 using System.Globalization;
 using Xenko.Core.Serialization;
 
+#if REAL_T_IS_DOUBLE
+using real_t = System.Double; // For now, this compilation setting is unsupported.
+#else
+using real_t = System.Single;
+#endif
+
 namespace Xenko.Core.Mathematics
 {
     /// <summary>
@@ -67,28 +73,28 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// The X component of the quaternion.
         /// </summary>
-        public float X;
+        public real_t X;
 
         /// <summary>
         /// The Y component of the quaternion.
         /// </summary>
-        public float Y;
+        public real_t Y;
 
         /// <summary>
         /// The Z component of the quaternion.
         /// </summary>
-        public float Z;
+        public real_t Z;
 
         /// <summary>
         /// The W component of the quaternion.
         /// </summary>
-        public float W;
+        public real_t W;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Quaternion"/> struct.
         /// </summary>
         /// <param name="value">The value that will be assigned to all components.</param>
-        public Quaternion(float value)
+        public Quaternion(real_t value)
         {
             X = value;
             Y = value;
@@ -113,7 +119,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="value">A vector containing the values with which to initialize the X, Y, and Z components.</param>
         /// <param name="w">Initial value for the W component of the quaternion.</param>
-        public Quaternion(Vector3 value, float w)
+        public Quaternion(Vector3 value, real_t w)
         {
             X = value.X;
             Y = value.Y;
@@ -127,7 +133,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">A vector containing the values with which to initialize the X and Y components.</param>
         /// <param name="z">Initial value for the Z component of the quaternion.</param>
         /// <param name="w">Initial value for the W component of the quaternion.</param>
-        public Quaternion(Vector2 value, float z, float w)
+        public Quaternion(Vector2 value, real_t z, real_t w)
         {
             X = value.X;
             Y = value.Y;
@@ -142,7 +148,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="y">Initial value for the Y component of the quaternion.</param>
         /// <param name="z">Initial value for the Z component of the quaternion.</param>
         /// <param name="w">Initial value for the W component of the quaternion.</param>
-        public Quaternion(float x, float y, float z, float w)
+        public Quaternion(real_t x, real_t y, real_t z, real_t w)
         {
             X = x;
             Y = y;
@@ -156,7 +162,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="values">The values to assign to the X, Y, Z, and W components of the quaternion. This must be an array with four elements.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than four elements.</exception>
-        public Quaternion(float[] values)
+        public Quaternion(real_t[] values)
         {
             if (values == null)
                 throw new ArgumentNullException("values");
@@ -192,15 +198,15 @@ namespace Xenko.Core.Mathematics
         /// Gets the angle of the quaternion.
         /// </summary>
         /// <value>The quaternion's angle.</value>
-        public float Angle
+        public real_t Angle
         {
             get
             {
-                float length = (X * X) + (Y * Y) + (Z * Z);
+                real_t length = (X * X) + (Y * Y) + (Z * Z);
                 if (length < MathUtil.ZeroTolerance)
                     return 0.0f;
 
-                return (float)(2.0 * Math.Acos(W));
+                return (real_t)(2.0 * Math.Acos(W));
             }
         }
 
@@ -212,11 +218,11 @@ namespace Xenko.Core.Mathematics
         {
             get
             {
-                float length = (X * X) + (Y * Y) + (Z * Z);
+                real_t length = (X * X) + (Y * Y) + (Z * Z);
                 if (length < MathUtil.ZeroTolerance)
                     return Vector3.UnitX;
 
-                float inv = 1.0f / length;
+                real_t inv = 1.0f / length;
                 return new Vector3(X * inv, Y * inv, Z * inv);
             }
         }
@@ -241,7 +247,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="index">The index of the component to access. Use 0 for the X component, 1 for the Y component, 2 for the Z component, and 3 for the W component.</param>
         /// <returns>The value of the component at the specified index.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 3].</exception>
-        public float this[int index]
+        public real_t this[int index]
         {
             get
             {
@@ -284,7 +290,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         public void Invert()
         {
-            float lengthSq = LengthSquared();
+            real_t lengthSq = LengthSquared();
             if (lengthSq > MathUtil.ZeroTolerance)
             {
                 lengthSq = 1.0f / lengthSq;
@@ -304,9 +310,9 @@ namespace Xenko.Core.Mathematics
         /// <see cref="Xenko.Core.Mathematics.Quaternion.LengthSquared"/> may be preferred when only the relative length is needed
         /// and speed is of the essence.
         /// </remarks>
-        public float Length()
+        public real_t Length()
         {
-            return (float)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
+            return (real_t)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
         }
 
         /// <summary>
@@ -317,7 +323,7 @@ namespace Xenko.Core.Mathematics
         /// This method may be preferred to <see cref="Xenko.Core.Mathematics.Quaternion.Length"/> when only a relative length is needed
         /// and speed is of the essence.
         /// </remarks>
-        public float LengthSquared()
+        public real_t LengthSquared()
         {
             return (X * X) + (Y * Y) + (Z * Z) + (W * W);
         }
@@ -327,10 +333,10 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         public void Normalize()
         {
-            float length = Length();
+            real_t length = Length();
             if (length > MathUtil.ZeroTolerance)
             {
-                float inverse = 1.0f / length;
+                real_t inverse = 1.0f / length;
                 X *= inverse;
                 Y *= inverse;
                 Z *= inverse;
@@ -342,9 +348,9 @@ namespace Xenko.Core.Mathematics
         /// Creates an array containing the elements of the quaternion.
         /// </summary>
         /// <returns>A four-element array containing the components of the quaternion.</returns>
-        public float[] ToArray()
+        public real_t[] ToArray()
         {
-            return new float[] { X, Y, Z, W };
+            return new real_t[] { X, Y, Z, W };
         }
 
         /// <summary>
@@ -407,7 +413,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The quaternion to scale.</param>
         /// <param name="scale">The amount by which to scale the quaternion.</param>
         /// <param name="result">When the method completes, contains the scaled quaternion.</param>
-        public static void Multiply(ref Quaternion value, float scale, out Quaternion result)
+        public static void Multiply(ref Quaternion value, real_t scale, out Quaternion result)
         {
             result.X = value.X * scale;
             result.Y = value.Y * scale;
@@ -421,7 +427,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The quaternion to scale.</param>
         /// <param name="scale">The amount by which to scale the quaternion.</param>
         /// <returns>The scaled quaternion.</returns>
-        public static Quaternion Multiply(Quaternion value, float scale)
+        public static Quaternion Multiply(Quaternion value, real_t scale)
         {
             Quaternion result;
             Multiply(ref value, scale, out result);
@@ -436,14 +442,14 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the moethod completes, contains the modulated quaternion.</param>
         public static void Multiply(ref Quaternion left, ref Quaternion right, out Quaternion result)
         {
-            float lx = left.X;
-            float ly = left.Y;
-            float lz = left.Z;
-            float lw = left.W;
-            float rx = right.X;
-            float ry = right.Y;
-            float rz = right.Z;
-            float rw = right.W;
+            real_t lx = left.X;
+            real_t ly = left.Y;
+            real_t lz = left.Z;
+            real_t lw = left.W;
+            real_t rx = right.X;
+            real_t ry = right.Y;
+            real_t rz = right.Z;
+            real_t rw = right.W;
 
             result.X = (rx * lw + lx * rw + ry * lz) - (rz * ly);
             result.Y = (ry * lw + ly * rw + rz * lx) - (rx * lz);
@@ -498,7 +504,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
         /// <param name="result">When the method completes, contains a new <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of the specified point.</param>
-        public static void Barycentric(ref Quaternion value1, ref Quaternion value2, ref Quaternion value3, float amount1, float amount2, out Quaternion result)
+        public static void Barycentric(ref Quaternion value1, ref Quaternion value2, ref Quaternion value3, real_t amount1, real_t amount2, out Quaternion result)
         {
             Quaternion start, end;
             Slerp(ref value1, ref value2, amount1 + amount2, out start);
@@ -515,7 +521,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
         /// <returns>A new <see cref="Xenko.Core.Mathematics.Quaternion"/> containing the 4D Cartesian coordinates of the specified point.</returns>
-        public static Quaternion Barycentric(Quaternion value1, Quaternion value2, Quaternion value3, float amount1, float amount2)
+        public static Quaternion Barycentric(Quaternion value1, Quaternion value2, Quaternion value3, real_t amount1, real_t amount2)
         {
             Quaternion result;
             Barycentric(ref value1, ref value2, ref value3, amount1, amount2, out result);
@@ -553,7 +559,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">First source quaternion.</param>
         /// <param name="right">Second source quaternion.</param>
         /// <param name="result">When the method completes, contains the dot product of the two quaternions.</param>
-        public static void Dot(ref Quaternion left, ref Quaternion right, out float result)
+        public static void Dot(ref Quaternion left, ref Quaternion right, out real_t result)
         {
             result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
         }
@@ -564,7 +570,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">First source quaternion.</param>
         /// <param name="right">Second source quaternion.</param>
         /// <returns>The dot product of the two quaternions.</returns>
-        public static float Dot(Quaternion left, Quaternion right)
+        public static real_t Dot(Quaternion left, Quaternion right)
         {
             return (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
         }
@@ -576,12 +582,12 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the exponentiated quaternion.</param>
         public static void Exponential(ref Quaternion value, out Quaternion result)
         {
-            float angle = (float)Math.Sqrt((value.X * value.X) + (value.Y * value.Y) + (value.Z * value.Z));
-            float sin = (float)Math.Sin(angle);
+            real_t angle = (real_t)Math.Sqrt((value.X * value.X) + (value.Y * value.Y) + (value.Z * value.Z));
+            real_t sin = (real_t)Math.Sin(angle);
 
             if (Math.Abs(sin) >= MathUtil.ZeroTolerance)
             {
-                float coeff = sin / angle;
+                real_t coeff = sin / angle;
                 result.X = coeff * value.X;
                 result.Y = coeff * value.Y;
                 result.Z = coeff * value.Z;
@@ -591,7 +597,7 @@ namespace Xenko.Core.Mathematics
                 result = value;
             }
 
-            result.W = (float)Math.Cos(angle);
+            result.W = (real_t)Math.Cos(angle);
         }
 
         /// <summary>
@@ -641,9 +647,9 @@ namespace Xenko.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
         /// </remarks>
-        public static void Lerp(ref Quaternion start, ref Quaternion end, float amount, out Quaternion result)
+        public static void Lerp(ref Quaternion start, ref Quaternion end, real_t amount, out Quaternion result)
         {
-            float inverse = 1.0f - amount;
+            real_t inverse = 1.0f - amount;
 
             if (Dot(start, end) >= 0.0f)
             {
@@ -675,7 +681,7 @@ namespace Xenko.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
         /// </remarks>
-        public static Quaternion Lerp(Quaternion start, Quaternion end, float amount)
+        public static Quaternion Lerp(Quaternion start, Quaternion end, real_t amount)
         {
             Quaternion result;
             Lerp(ref start, ref end, amount, out result);
@@ -691,12 +697,12 @@ namespace Xenko.Core.Mathematics
         {
             if (Math.Abs(value.W) < 1.0)
             {
-                float angle = (float)Math.Acos(value.W);
-                float sin = (float)Math.Sin(angle);
+                real_t angle = (real_t)Math.Acos(value.W);
+                real_t sin = (real_t)Math.Sin(angle);
 
                 if (Math.Abs(sin) >= MathUtil.ZeroTolerance)
                 {
-                    float coeff = angle / sin;
+                    real_t coeff = angle / sin;
                     result.X = value.X * coeff;
                     result.Y = value.Y * coeff;
                     result.Z = value.Z * coeff;
@@ -769,14 +775,14 @@ namespace Xenko.Core.Mathematics
         /// <param name="axis">The axis of rotation.</param>
         /// <param name="angle">The angle of rotation.</param>
         /// <param name="result">When the method completes, contains the newly created quaternion.</param>
-        public static void RotationAxis(ref Vector3 axis, float angle, out Quaternion result)
+        public static void RotationAxis(ref Vector3 axis, real_t angle, out Quaternion result)
         {
             Vector3 normalized;
             Vector3.Normalize(ref axis, out normalized);
 
-            float half = angle * 0.5f;
-            float sin = (float)Math.Sin(half);
-            float cos = (float)Math.Cos(half);
+            real_t half = angle * 0.5f;
+            real_t sin = (real_t)Math.Sin(half);
+            real_t cos = (real_t)Math.Cos(half);
 
             result.X = normalized.X * sin;
             result.Y = normalized.Y * sin;
@@ -790,7 +796,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="axis">The axis of rotation.</param>
         /// <param name="angle">The angle of rotation.</param>
         /// <returns>The newly created quaternion.</returns>
-        public static Quaternion RotationAxis(Vector3 axis, float angle)
+        public static Quaternion RotationAxis(Vector3 axis, real_t angle)
         {
             Quaternion result;
             RotationAxis(ref axis, angle, out result);
@@ -804,13 +810,13 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the newly created quaternion.</param>
         public static void RotationMatrix(ref Matrix matrix, out Quaternion result)
         {
-            float sqrt;
-            float half;
-            float scale = matrix.M11 + matrix.M22 + matrix.M33;
+            real_t sqrt;
+            real_t half;
+            real_t scale = matrix.M11 + matrix.M22 + matrix.M33;
 
             if (scale > 0.0f)
             {
-                sqrt = (float)Math.Sqrt(scale + 1.0f);
+                sqrt = (real_t)Math.Sqrt(scale + 1.0f);
                 result.W = sqrt * 0.5f;
                 sqrt = 0.5f / sqrt;
 
@@ -820,7 +826,7 @@ namespace Xenko.Core.Mathematics
             }
             else if ((matrix.M11 >= matrix.M22) && (matrix.M11 >= matrix.M33))
             {
-                sqrt = (float)Math.Sqrt(1.0f + matrix.M11 - matrix.M22 - matrix.M33);
+                sqrt = (real_t)Math.Sqrt(1.0f + matrix.M11 - matrix.M22 - matrix.M33);
                 half = 0.5f / sqrt;
 
                 result.X = 0.5f * sqrt;
@@ -830,7 +836,7 @@ namespace Xenko.Core.Mathematics
             }
             else if (matrix.M22 > matrix.M33)
             {
-                sqrt = (float)Math.Sqrt(1.0f + matrix.M22 - matrix.M11 - matrix.M33);
+                sqrt = (real_t)Math.Sqrt(1.0f + matrix.M22 - matrix.M11 - matrix.M33);
                 half = 0.5f / sqrt;
 
                 result.X = (matrix.M21 + matrix.M12) * half;
@@ -840,7 +846,7 @@ namespace Xenko.Core.Mathematics
             }
             else
             {
-                sqrt = (float)Math.Sqrt(1.0f + matrix.M33 - matrix.M11 - matrix.M22);
+                sqrt = (real_t)Math.Sqrt(1.0f + matrix.M33 - matrix.M11 - matrix.M22);
                 half = 0.5f / sqrt;
 
                 result.X = (matrix.M31 + matrix.M13) * half;
@@ -867,10 +873,10 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians.</param>
         /// <param name="result">When the method completes, contains the newly created quaternion.</param>
-        public static void RotationX(float angle, out Quaternion result)
+        public static void RotationX(real_t angle, out Quaternion result)
         {
-            float halfAngle = angle * 0.5f;
-            result = new Quaternion((float)Math.Sin(halfAngle), 0.0f, 0.0f, (float)Math.Cos(halfAngle));
+            real_t halfAngle = angle * 0.5f;
+            result = new Quaternion((real_t)Math.Sin(halfAngle), 0.0f, 0.0f, (real_t)Math.Cos(halfAngle));
         }
 
         /// <summary>
@@ -878,7 +884,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians.</param>
         /// <returns>The created rotation quaternion.</returns>
-        public static Quaternion RotationX(float angle)
+        public static Quaternion RotationX(real_t angle)
         {
             Quaternion result;
             RotationX(angle, out result);
@@ -890,10 +896,10 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians.</param>
         /// <param name="result">When the method completes, contains the newly created quaternion.</param>
-        public static void RotationY(float angle, out Quaternion result)
+        public static void RotationY(real_t angle, out Quaternion result)
         {
-            float halfAngle = angle * 0.5f;
-            result = new Quaternion(0.0f, (float)Math.Sin(halfAngle), 0.0f, (float)Math.Cos(halfAngle));
+            real_t halfAngle = angle * 0.5f;
+            result = new Quaternion(0.0f, (real_t)Math.Sin(halfAngle), 0.0f, (real_t)Math.Cos(halfAngle));
         }
 
         /// <summary>
@@ -901,7 +907,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians.</param>
         /// <returns>The created rotation quaternion.</returns>
-        public static Quaternion RotationY(float angle)
+        public static Quaternion RotationY(real_t angle)
         {
             Quaternion result;
             RotationY(angle, out result);
@@ -913,10 +919,10 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians.</param>
         /// <param name="result">When the method completes, contains the newly created quaternion.</param>
-        public static void RotationZ(float angle, out Quaternion result)
+        public static void RotationZ(real_t angle, out Quaternion result)
         {
-            float halfAngle = angle * 0.5f;
-            result = new Quaternion(0.0f, 0.0f, (float)Math.Sin(halfAngle), (float)Math.Cos(halfAngle));
+            real_t halfAngle = angle * 0.5f;
+            result = new Quaternion(0.0f, 0.0f, (real_t)Math.Sin(halfAngle), (real_t)Math.Cos(halfAngle));
         }
 
         /// <summary>
@@ -924,7 +930,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="angle">Angle of rotation in radians.</param>
         /// <returns>The created rotation quaternion.</returns>
-        public static Quaternion RotationZ(float angle)
+        public static Quaternion RotationZ(real_t angle)
         {
             Quaternion result;
             RotationZ(angle, out result);
@@ -938,7 +944,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="yaw">The yaw component</param>
         /// <param name="pitch">The pitch component</param>
         /// <param name="roll">The roll component</param>
-        public static void RotationYawPitchRoll(ref Quaternion rotation, out float yaw, out float pitch, out float roll)
+        public static void RotationYawPitchRoll(ref Quaternion rotation, out real_t yaw, out real_t pitch, out real_t roll)
         {
             // Equivalent to:
             //  Matrix rotationMatrix;
@@ -955,16 +961,16 @@ namespace Xenko.Core.Mathematics
             var yz = rotation.Y * rotation.Z;
             var xw = rotation.X * rotation.W;
 
-            pitch = (float)Math.Asin(2.0f * (xw - yz));
+            pitch = (real_t)Math.Asin(2.0f * (xw - yz));
             double test = Math.Cos(pitch);
             if (test > MathUtil.ZeroTolerance)
             {
-                roll = (float)Math.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (zz + xx)));
-                yaw = (float)Math.Atan2(2.0f * (zx + yw), 1.0f - (2.0f * (yy + xx)));
+                roll = (real_t)Math.Atan2(2.0f * (xy + zw), 1.0f - (2.0f * (zz + xx)));
+                yaw = (real_t)Math.Atan2(2.0f * (zx + yw), 1.0f - (2.0f * (yy + xx)));
             }
             else
             {
-                roll = (float)Math.Atan2(-2.0f * (xy - zw), 1.0f - (2.0f * (yy + zz)));
+                roll = (real_t)Math.Atan2(-2.0f * (xy - zw), 1.0f - (2.0f * (yy + zz)));
                 yaw = 0.0f;
             }
         }
@@ -976,18 +982,18 @@ namespace Xenko.Core.Mathematics
         /// <param name="pitch">The pitch of rotation in radians.</param>
         /// <param name="roll">The roll of rotation in radians.</param>
         /// <param name="result">When the method completes, contains the newly created quaternion.</param>
-        public static void RotationYawPitchRoll(float yaw, float pitch, float roll, out Quaternion result)
+        public static void RotationYawPitchRoll(real_t yaw, real_t pitch, real_t roll, out Quaternion result)
         {
             var  halfRoll = roll * 0.5f;
             var  halfPitch = pitch * 0.5f;
             var  halfYaw = yaw * 0.5f;
             
-            var  sinRoll = (float)Math.Sin(halfRoll);
-            var  cosRoll = (float)Math.Cos(halfRoll);
-            var  sinPitch = (float)Math.Sin(halfPitch);
-            var  cosPitch = (float)Math.Cos(halfPitch);
-            var  sinYaw = (float)Math.Sin(halfYaw);
-            var  cosYaw = (float)Math.Cos(halfYaw);
+            var  sinRoll = (real_t)Math.Sin(halfRoll);
+            var  cosRoll = (real_t)Math.Cos(halfRoll);
+            var  sinPitch = (real_t)Math.Sin(halfPitch);
+            var  cosPitch = (real_t)Math.Cos(halfPitch);
+            var  sinYaw = (real_t)Math.Sin(halfYaw);
+            var  cosYaw = (real_t)Math.Cos(halfYaw);
 
             var cosYawPitch = cosYaw * cosPitch;
             var sinYawPitch = sinYaw * sinPitch;
@@ -1005,7 +1011,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="pitch">The pitch of rotation.</param>
         /// <param name="roll">The roll of rotation.</param>
         /// <returns>The newly created quaternion.</returns>
-        public static Quaternion RotationYawPitchRoll(float yaw, float pitch, float roll)
+        public static Quaternion RotationYawPitchRoll(real_t yaw, real_t pitch, real_t roll)
         {
             Quaternion result;
             RotationYawPitchRoll(yaw, pitch, roll, out result);
@@ -1033,7 +1039,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">The resulting quaternion corresponding to the transformation of the source vector to the target vector.</param>
         public static void BetweenDirections(ref Vector3 source, ref Vector3 target, out Quaternion result)
         {
-            var norms = (float)Math.Sqrt(source.LengthSquared() * target.LengthSquared());
+            var norms = (real_t)Math.Sqrt(source.LengthSquared() * target.LengthSquared());
             var real = norms + Vector3.Dot(source, target);
             if (real < MathUtil.ZeroTolerance * norms)
             {
@@ -1059,11 +1065,11 @@ namespace Xenko.Core.Mathematics
         /// <param name="end">End quaternion.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <param name="result">When the method completes, contains the spherical linear interpolation of the two quaternions.</param>
-        public static void Slerp(ref Quaternion start, ref Quaternion end, float amount, out Quaternion result)
+        public static void Slerp(ref Quaternion start, ref Quaternion end, real_t amount, out Quaternion result)
         {
-            float opposite;
-            float inverse;
-            float dot = Dot(start, end);
+            real_t opposite;
+            real_t inverse;
+            real_t dot = Dot(start, end);
 
             if (Math.Abs(dot) > 1.0f - MathUtil.ZeroTolerance)
             {
@@ -1072,11 +1078,11 @@ namespace Xenko.Core.Mathematics
             }
             else
             {
-                float acos = (float)Math.Acos(Math.Abs(dot));
-                float invSin = (float)(1.0 / Math.Sin(acos));
+                real_t acos = (real_t)Math.Acos(Math.Abs(dot));
+                real_t invSin = (real_t)(1.0 / Math.Sin(acos));
 
-                inverse = (float)Math.Sin((1.0f - amount) * acos) * invSin;
-                opposite = (float)Math.Sin(amount * acos) * invSin * Math.Sign(dot);
+                inverse = (real_t)Math.Sin((1.0f - amount) * acos) * invSin;
+                opposite = (real_t)Math.Sin(amount * acos) * invSin * Math.Sign(dot);
             }
 
             result.X = (inverse * start.X) + (opposite * end.X);
@@ -1092,7 +1098,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="end">End quaternion.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <returns>The spherical linear interpolation of the two quaternions.</returns>
-        public static Quaternion Slerp(Quaternion start, Quaternion end, float amount)
+        public static Quaternion Slerp(Quaternion start, Quaternion end, real_t amount)
         {
             Quaternion result;
             Slerp(ref start, ref end, amount, out result);
@@ -1108,7 +1114,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value4">Fourth source quaternion.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of interpolation.</param>
         /// <param name="result">When the method completes, contains the spherical quadrangle interpolation of the quaternions.</param>
-        public static void Squad(ref Quaternion value1, ref Quaternion value2, ref Quaternion value3, ref Quaternion value4, float amount, out Quaternion result)
+        public static void Squad(ref Quaternion value1, ref Quaternion value2, ref Quaternion value3, ref Quaternion value4, real_t amount, out Quaternion result)
         {
             Quaternion start, end;
             Slerp(ref value1, ref value4, amount, out start);
@@ -1125,7 +1131,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value4">Fourth source quaternion.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of interpolation.</param>
         /// <returns>The spherical quadrangle interpolation of the quaternions.</returns>
-        public static Quaternion Squad(Quaternion value1, Quaternion value2, Quaternion value3, Quaternion value4, float amount)
+        public static Quaternion Squad(Quaternion value1, Quaternion value2, Quaternion value3, Quaternion value4, real_t amount)
         {
             Quaternion result;
             Squad(ref value1, ref value2, ref value3, ref value4, amount, out result);
@@ -1203,7 +1209,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The quaternion to scale.</param>
         /// <param name="scale">The amount by which to scale the quaternion.</param>
         /// <returns>The scaled quaternion.</returns>
-        public static Quaternion operator *(float scale, Quaternion value)
+        public static Quaternion operator *(real_t scale, Quaternion value)
         {
             Quaternion result;
             Multiply(ref value, scale, out result);
@@ -1216,7 +1222,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The quaternion to scale.</param>
         /// <param name="scale">The amount by which to scale the quaternion.</param>
         /// <returns>The scaled quaternion.</returns>
-        public static Quaternion operator *(Quaternion value, float scale)
+        public static Quaternion operator *(Quaternion value, real_t scale)
         {
             Quaternion result;
             Multiply(ref value, scale, out result);
@@ -1334,10 +1340,10 @@ namespace Xenko.Core.Mathematics
         /// </returns>
         public bool Equals(Quaternion other)
         {
-            return ((float)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.W - W) < MathUtil.ZeroTolerance);
+            return ((real_t)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
+                (real_t)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance &&
+                (real_t)Math.Abs(other.Z - Z) < MathUtil.ZeroTolerance &&
+                (real_t)Math.Abs(other.W - W) < MathUtil.ZeroTolerance);
         }
 
         /// <summary>
@@ -1398,7 +1404,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The result of the conversion.</returns>
         public static explicit operator Quaternion(System.Windows.Media.Media3D.Quaternion value)
         {
-            return new Quaternion((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
+            return new Quaternion((real_t)value.X, (real_t)value.Y, (real_t)value.Z, (real_t)value.W);
         }
 #endif
 

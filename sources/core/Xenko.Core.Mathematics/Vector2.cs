@@ -32,12 +32,18 @@ using System.Runtime.InteropServices;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
+#if REAL_T_IS_DOUBLE
+using real_t = System.Double; // For now, this compilation setting is unsupported.
+#else
+using real_t = System.Single;
+#endif
+
 namespace Xenko.Core.Mathematics
 {
     /// <summary>
     /// Represents a two dimensional mathematical vector.
     /// </summary>
-    [DataContract("float2")]
+    [DataContract("real_t2")]
     [DataStyle(DataStyle.Compact)]
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Vector2 : IEquatable<Vector2>, IFormattable
@@ -71,19 +77,19 @@ namespace Xenko.Core.Mathematics
         /// The X component of the vector.
         /// </summary>
         [DataMember(0)]
-        public float X;
+        public real_t X;
 
         /// <summary>
         /// The Y component of the vector.
         /// </summary>
         [DataMember(1)]
-        public float Y;
+        public real_t Y;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Vector2"/> struct.
         /// </summary>
         /// <param name="value">The value that will be assigned to all components.</param>
-        public Vector2(float value)
+        public Vector2(real_t value)
         {
             X = value;
             Y = value;
@@ -94,7 +100,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="x">Initial value for the X component of the vector.</param>
         /// <param name="y">Initial value for the Y component of the vector.</param>
-        public Vector2(float x, float y)
+        public Vector2(real_t x, real_t y)
         {
             X = x;
             Y = y;
@@ -106,7 +112,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="values">The values to assign to the X and Y components of the vector. This must be an array with two elements.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="values"/> is <c>null</c>.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="values"/> contains more or less than two elements.</exception>
-        public Vector2(float[] values)
+        public Vector2(real_t[] values)
         {
             if (values == null)
                 throw new ArgumentNullException("values");
@@ -115,6 +121,26 @@ namespace Xenko.Core.Mathematics
 
             X = values[0];
             Y = values[1];
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Vector2"/> struct.
+        /// </summary>
+        /// <param name="v">The Single2 to construct the Vector2 from.</param>
+        public Vector2(Single2 v)
+        {
+            X = v.X;
+            Y = v.Y;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.Vector2"/> struct.
+        /// </summary>
+        /// <param name="v">The Double2 to construct the Vector2 from.</param>
+        public Vector2(Double2 v)
+        {
+            X = (real_t)v.X;
+            Y = (real_t)v.Y;
         }
 
         /// <summary>
@@ -132,7 +158,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="index">The index of the component to access. Use 0 for the X component and 1 for the Y component.</param>
         /// <returns>The value of the component at the specified index.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">Thrown when the <paramref name="index"/> is out of the range [0, 1].</exception>
-        public float this[int index]
+        public real_t this[int index]
         {
             get
             {
@@ -165,9 +191,9 @@ namespace Xenko.Core.Mathematics
         /// and speed is of the essence.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float Length()
+        public real_t Length()
         {
-            return (float)Math.Sqrt((X * X) + (Y * Y));
+            return (real_t)Math.Sqrt((X * X) + (Y * Y));
         }
 
         /// <summary>
@@ -179,7 +205,7 @@ namespace Xenko.Core.Mathematics
         /// and speed is of the essence.
         /// </remarks>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public float LengthSquared()
+        public real_t LengthSquared()
         {
             return (X * X) + (Y * Y);
         }
@@ -190,10 +216,10 @@ namespace Xenko.Core.Mathematics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Normalize()
         {
-            float length = Length();
+            real_t length = Length();
             if (length > MathUtil.ZeroTolerance)
             {
-                float inv = 1.0f / length;
+                real_t inv = 1.0f / length;
                 X *= inv;
                 Y *= inv;
             }
@@ -203,9 +229,9 @@ namespace Xenko.Core.Mathematics
         /// Creates an array containing the elements of the vector.
         /// </summary>
         /// <returns>A two-element array containing the components of the vector.</returns>
-        public float[] ToArray()
+        public real_t[] ToArray()
         {
-            return new float[] { X, Y };
+            return new real_t[] { X, Y };
         }
 
         /// <summary>
@@ -263,7 +289,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <param name="result">When the method completes, contains the scaled vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Multiply(ref Vector2 value, float scale, out Vector2 result)
+        public static void Multiply(ref Vector2 value, real_t scale, out Vector2 result)
         {
             result = new Vector2(value.X * scale, value.Y * scale);
         }
@@ -275,7 +301,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 Multiply(Vector2 value, float scale)
+        public static Vector2 Multiply(Vector2 value, real_t scale)
         {
             return new Vector2(value.X * scale, value.Y * scale);
         }
@@ -311,7 +337,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <param name="result">When the method completes, contains the scaled vector.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Divide(ref Vector2 value, float scale, out Vector2 result)
+        public static void Divide(ref Vector2 value, real_t scale, out Vector2 result)
         {
             result = new Vector2(value.X / scale, value.Y / scale);
         }
@@ -323,7 +349,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 Divide(Vector2 value, float scale)
+        public static Vector2 Divide(Vector2 value, real_t scale)
         {
             return new Vector2(value.X / scale, value.Y / scale);
         }
@@ -383,7 +409,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
         /// <param name="result">When the method completes, contains the 2D Cartesian coordinates of the specified point.</param>
-        public static void Barycentric(ref Vector2 value1, ref Vector2 value2, ref Vector2 value3, float amount1, float amount2, out Vector2 result)
+        public static void Barycentric(ref Vector2 value1, ref Vector2 value2, ref Vector2 value3, real_t amount1, real_t amount2, out Vector2 result)
         {
             result = new Vector2((value1.X + (amount1 * (value2.X - value1.X))) + (amount2 * (value3.X - value1.X)),
                 (value1.Y + (amount1 * (value2.Y - value1.Y))) + (amount2 * (value3.Y - value1.Y)));
@@ -398,7 +424,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="amount1">Barycentric coordinate b2, which expresses the weighting factor toward vertex 2 (specified in <paramref name="value2"/>).</param>
         /// <param name="amount2">Barycentric coordinate b3, which expresses the weighting factor toward vertex 3 (specified in <paramref name="value3"/>).</param>
         /// <returns>A new <see cref="Xenko.Core.Mathematics.Vector2"/> containing the 2D Cartesian coordinates of the specified point.</returns>
-        public static Vector2 Barycentric(Vector2 value1, Vector2 value2, Vector2 value3, float amount1, float amount2)
+        public static Vector2 Barycentric(Vector2 value1, Vector2 value2, Vector2 value3, real_t amount1, real_t amount2)
         {
             Vector2 result;
             Barycentric(ref value1, ref value2, ref value3, amount1, amount2, out result);
@@ -414,11 +440,11 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the clamped value.</param>
         public static void Clamp(ref Vector2 value, ref Vector2 min, ref Vector2 max, out Vector2 result)
         {
-            float x = value.X;
+            real_t x = value.X;
             x = (x > max.X) ? max.X : x;
             x = (x < min.X) ? min.X : x;
 
-            float y = value.Y;
+            real_t y = value.Y;
             y = (y > max.Y) ? max.Y : y;
             y = (y < min.Y) ? min.Y : y;
 
@@ -446,15 +472,15 @@ namespace Xenko.Core.Mathematics
         /// <param name="value2">The second vector.</param>
         /// <param name="result">When the method completes, contains the distance between the two vectors.</param>
         /// <remarks>
-        /// <see cref="Xenko.Core.Mathematics.Vector2.DistanceSquared(ref Vector2, ref Vector2, out float)"/> may be preferred when only the relative distance is needed
+        /// <see cref="Xenko.Core.Mathematics.Vector2.DistanceSquared(ref Vector2, ref Vector2, out real_t)"/> may be preferred when only the relative distance is needed
         /// and speed is of the essence.
         /// </remarks>
-        public static void Distance(ref Vector2 value1, ref Vector2 value2, out float result)
+        public static void Distance(ref Vector2 value1, ref Vector2 value2, out real_t result)
         {
-            float x = value1.X - value2.X;
-            float y = value1.Y - value2.Y;
+            real_t x = value1.X - value2.X;
+            real_t y = value1.Y - value2.Y;
 
-            result = (float)Math.Sqrt((x * x) + (y * y));
+            result = (real_t)Math.Sqrt((x * x) + (y * y));
         }
 
         /// <summary>
@@ -467,12 +493,12 @@ namespace Xenko.Core.Mathematics
         /// <see cref="Xenko.Core.Mathematics.Vector2.DistanceSquared(Vector2, Vector2)"/> may be preferred when only the relative distance is needed
         /// and speed is of the essence.
         /// </remarks>
-        public static float Distance(Vector2 value1, Vector2 value2)
+        public static real_t Distance(Vector2 value1, Vector2 value2)
         {
-            float x = value1.X - value2.X;
-            float y = value1.Y - value2.Y;
+            real_t x = value1.X - value2.X;
+            real_t y = value1.Y - value2.Y;
 
-            return (float)Math.Sqrt((x * x) + (y * y));
+            return (real_t)Math.Sqrt((x * x) + (y * y));
         }
 
         /// <summary>
@@ -488,10 +514,10 @@ namespace Xenko.Core.Mathematics
         /// involves two square roots, which are computationally expensive. However, using distance squared 
         /// provides the same information and avoids calculating two square roots.
         /// </remarks>
-        public static void DistanceSquared(ref Vector2 value1, ref Vector2 value2, out float result)
+        public static void DistanceSquared(ref Vector2 value1, ref Vector2 value2, out real_t result)
         {
-            float x = value1.X - value2.X;
-            float y = value1.Y - value2.Y;
+            real_t x = value1.X - value2.X;
+            real_t y = value1.Y - value2.Y;
 
             result = (x * x) + (y * y);
         }
@@ -509,10 +535,10 @@ namespace Xenko.Core.Mathematics
         /// involves two square roots, which are computationally expensive. However, using distance squared 
         /// provides the same information and avoids calculating two square roots.
         /// </remarks>
-        public static float DistanceSquared(Vector2 value1, Vector2 value2)
+        public static real_t DistanceSquared(Vector2 value1, Vector2 value2)
         {
-            float x = value1.X - value2.X;
-            float y = value1.Y - value2.Y;
+            real_t x = value1.X - value2.X;
+            real_t y = value1.Y - value2.Y;
 
             return (x * x) + (y * y);
         }
@@ -524,7 +550,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">Second source vector.</param>
         /// <param name="result">When the method completes, contains the dot product of the two vectors.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Dot(ref Vector2 left, ref Vector2 right, out float result)
+        public static void Dot(ref Vector2 left, ref Vector2 right, out real_t result)
         {
             result = (left.X * right.X) + (left.Y * right.Y);
         }
@@ -536,7 +562,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="right">Second source vector.</param>
         /// <returns>The dot product of the two vectors.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float Dot(Vector2 left, Vector2 right)
+        public static real_t Dot(Vector2 left, Vector2 right)
         {
             return (left.X * right.X) + (left.Y * right.Y);
         }
@@ -577,7 +603,7 @@ namespace Xenko.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
         /// </remarks>
-        public static void Lerp(ref Vector2 start, ref Vector2 end, float amount, out Vector2 result)
+        public static void Lerp(ref Vector2 start, ref Vector2 end, real_t amount, out Vector2 result)
         {
             result.X = start.X + ((end.X - start.X) * amount);
             result.Y = start.Y + ((end.Y - start.Y) * amount);
@@ -595,7 +621,7 @@ namespace Xenko.Core.Mathematics
         /// <code>start + (end - start) * amount</code>
         /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
         /// </remarks>
-        public static Vector2 Lerp(Vector2 start, Vector2 end, float amount)
+        public static Vector2 Lerp(Vector2 start, Vector2 end, real_t amount)
         {
             Vector2 result;
             Lerp(ref start, ref end, amount, out result);
@@ -609,7 +635,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="end">End vector.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <param name="result">When the method completes, contains the cubic interpolation of the two vectors.</param>
-        public static void SmoothStep(ref Vector2 start, ref Vector2 end, float amount, out Vector2 result)
+        public static void SmoothStep(ref Vector2 start, ref Vector2 end, real_t amount, out Vector2 result)
         {
             amount = (amount > 1.0f) ? 1.0f : ((amount < 0.0f) ? 0.0f : amount);
             amount = (amount * amount) * (3.0f - (2.0f * amount));
@@ -625,7 +651,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="end">End vector.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
         /// <returns>The cubic interpolation of the two vectors.</returns>
-        public static Vector2 SmoothStep(Vector2 start, Vector2 end, float amount)
+        public static Vector2 SmoothStep(Vector2 start, Vector2 end, real_t amount)
         {
             Vector2 result;
             SmoothStep(ref start, ref end, amount, out result);
@@ -641,14 +667,14 @@ namespace Xenko.Core.Mathematics
         /// <param name="tangent2">Second source tangent vector.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <param name="result">When the method completes, contains the result of the Hermite spline interpolation.</param>
-        public static void Hermite(ref Vector2 value1, ref Vector2 tangent1, ref Vector2 value2, ref Vector2 tangent2, float amount, out Vector2 result)
+        public static void Hermite(ref Vector2 value1, ref Vector2 tangent1, ref Vector2 value2, ref Vector2 tangent2, real_t amount, out Vector2 result)
         {
-            float squared = amount * amount;
-            float cubed = amount * squared;
-            float part1 = ((2.0f * cubed) - (3.0f * squared)) + 1.0f;
-            float part2 = (-2.0f * cubed) + (3.0f * squared);
-            float part3 = (cubed - (2.0f * squared)) + amount;
-            float part4 = cubed - squared;
+            real_t squared = amount * amount;
+            real_t cubed = amount * squared;
+            real_t part1 = ((2.0f * cubed) - (3.0f * squared)) + 1.0f;
+            real_t part2 = (-2.0f * cubed) + (3.0f * squared);
+            real_t part3 = (cubed - (2.0f * squared)) + amount;
+            real_t part4 = cubed - squared;
 
             result.X = (((value1.X * part1) + (value2.X * part2)) + (tangent1.X * part3)) + (tangent2.X * part4);
             result.Y = (((value1.Y * part1) + (value2.Y * part2)) + (tangent1.Y * part3)) + (tangent2.Y * part4);
@@ -663,7 +689,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="tangent2">Second source tangent vector.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <returns>The result of the Hermite spline interpolation.</returns>
-        public static Vector2 Hermite(Vector2 value1, Vector2 tangent1, Vector2 value2, Vector2 tangent2, float amount)
+        public static Vector2 Hermite(Vector2 value1, Vector2 tangent1, Vector2 value2, Vector2 tangent2, real_t amount)
         {
             Vector2 result;
             Hermite(ref value1, ref tangent1, ref value2, ref tangent2, amount, out result);
@@ -679,10 +705,10 @@ namespace Xenko.Core.Mathematics
         /// <param name="value4">The fourth position in the interpolation.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <param name="result">When the method completes, contains the result of the Catmull-Rom interpolation.</param>
-        public static void CatmullRom(ref Vector2 value1, ref Vector2 value2, ref Vector2 value3, ref Vector2 value4, float amount, out Vector2 result)
+        public static void CatmullRom(ref Vector2 value1, ref Vector2 value2, ref Vector2 value3, ref Vector2 value4, real_t amount, out Vector2 result)
         {
-            float squared = amount * amount;
-            float cubed = amount * squared;
+            real_t squared = amount * amount;
+            real_t cubed = amount * squared;
 
             result.X = 0.5f * ((((2.0f * value2.X) + ((-value1.X + value3.X) * amount)) +
             (((((2.0f * value1.X) - (5.0f * value2.X)) + (4.0f * value3.X)) - value4.X) * squared)) +
@@ -702,7 +728,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value4">The fourth position in the interpolation.</param>
         /// <param name="amount">Weighting factor.</param>
         /// <returns>A vector that is the result of the Catmull-Rom interpolation.</returns>
-        public static Vector2 CatmullRom(Vector2 value1, Vector2 value2, Vector2 value3, Vector2 value4, float amount)
+        public static Vector2 CatmullRom(Vector2 value1, Vector2 value2, Vector2 value3, Vector2 value4, real_t amount)
         {
             Vector2 result;
             CatmullRom(ref value1, ref value2, ref value3, ref value4, amount, out result);
@@ -773,7 +799,7 @@ namespace Xenko.Core.Mathematics
         /// whether the original vector was close enough to the surface to hit it.</remarks>
         public static void Reflect(ref Vector2 vector, ref Vector2 normal, out Vector2 result)
         {
-            float dot = (vector.X * normal.X) + (vector.Y * normal.Y);
+            real_t dot = (vector.X * normal.X) + (vector.Y * normal.Y);
 
             result.X = vector.X - ((2.0f * dot) * normal.X);
             result.Y = vector.Y - ((2.0f * dot) * normal.Y);
@@ -895,14 +921,14 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the transformed <see cref="Xenko.Core.Mathematics.Vector4"/>.</param>
         public static void Transform(ref Vector2 vector, ref Quaternion rotation, out Vector2 result)
         {
-            float x = rotation.X + rotation.X;
-            float y = rotation.Y + rotation.Y;
-            float z = rotation.Z + rotation.Z;
-            float wz = rotation.W * z;
-            float xx = rotation.X * x;
-            float xy = rotation.X * y;
-            float yy = rotation.Y * y;
-            float zz = rotation.Z * z;
+            real_t x = rotation.X + rotation.X;
+            real_t y = rotation.Y + rotation.Y;
+            real_t z = rotation.Z + rotation.Z;
+            real_t wz = rotation.W * z;
+            real_t xx = rotation.X * x;
+            real_t xy = rotation.X * y;
+            real_t yy = rotation.Y * y;
+            real_t zz = rotation.Z * z;
 
             result = new Vector2((vector.X * (1.0f - yy - zz)) + (vector.Y * (xy - wz)), (vector.X * (xy + wz)) + (vector.Y * (1.0f - xx - zz)));
         }
@@ -938,19 +964,19 @@ namespace Xenko.Core.Mathematics
             if (destination.Length < source.Length)
                 throw new ArgumentOutOfRangeException("destination", "The destination array must be of same length or larger length than the source array.");
 
-            float x = rotation.X + rotation.X;
-            float y = rotation.Y + rotation.Y;
-            float z = rotation.Z + rotation.Z;
-            float wz = rotation.W * z;
-            float xx = rotation.X * x;
-            float xy = rotation.X * y;
-            float yy = rotation.Y * y;
-            float zz = rotation.Z * z;
+            real_t x = rotation.X + rotation.X;
+            real_t y = rotation.Y + rotation.Y;
+            real_t z = rotation.Z + rotation.Z;
+            real_t wz = rotation.W * z;
+            real_t xx = rotation.X * x;
+            real_t xy = rotation.X * y;
+            real_t yy = rotation.Y * y;
+            real_t zz = rotation.Z * z;
 
-            float num1 = (1.0f - yy - zz);
-            float num2 = (xy - wz);
-            float num3 = (xy + wz);
-            float num4 = (1.0f - xx - zz);
+            real_t num1 = (1.0f - yy - zz);
+            real_t num2 = (xy - wz);
+            real_t num3 = (xy + wz);
+            real_t num4 = (1.0f - xx - zz);
 
             for (int i = 0; i < source.Length; ++i)
             {
@@ -1222,7 +1248,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 operator *(float scale, Vector2 value)
+        public static Vector2 operator *(real_t scale, Vector2 value)
         {
             return new Vector2(value.X * scale, value.Y * scale);
         }
@@ -1234,7 +1260,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 operator *(Vector2 value, float scale)
+        public static Vector2 operator *(Vector2 value, real_t scale)
         {
             return new Vector2(value.X * scale, value.Y * scale);
         }
@@ -1246,7 +1272,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="scale">The amount by which to scale the vector.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 operator /(Vector2 value, float scale)
+        public static Vector2 operator /(Vector2 value, real_t scale)
         {
             return new Vector2(value.X / scale, value.Y / scale);
         }
@@ -1258,7 +1284,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="value">The value.</param>
         /// <returns>The scaled vector.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 operator /(float numerator, Vector2 value)
+        public static Vector2 operator /(real_t numerator, Vector2 value)
         {
             return new Vector2(numerator / value.X, numerator / value.Y);
         }
@@ -1295,6 +1321,26 @@ namespace Xenko.Core.Mathematics
         public static bool operator !=(Vector2 left, Vector2 right)
         {
             return !left.Equals(right);
+        }
+
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Vector2"/> to <see cref="Xenko.Core.Mathematics.Double2"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static implicit operator Double2(Vector2 value)
+        {
+            return new Double2(value);
+        }
+
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="Xenko.Core.Mathematics.Vector2"/> to <see cref="Xenko.Core.Mathematics.Single2"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Single2(Vector2 value)
+        {
+            return new Single2(value);
         }
 
         /// <summary>
@@ -1391,8 +1437,8 @@ namespace Xenko.Core.Mathematics
         /// </returns>
         public bool Equals(Vector2 other)
         {
-            return ((float)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
-                (float)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance);
+            return ((real_t)Math.Abs(other.X - X) < MathUtil.ZeroTolerance &&
+                (real_t)Math.Abs(other.Y - Y) < MathUtil.ZeroTolerance);
         }
 
         /// <summary>
@@ -1431,7 +1477,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The result of the conversion.</returns>
         public static explicit operator Vector2(System.Windows.Point value)
         {
-            return new Vector2((float)value.X, (float)value.Y);
+            return new Vector2((real_t)value.X, (real_t)value.Y);
         }
 #endif
 

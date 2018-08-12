@@ -165,7 +165,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Vector3"/> to <see cref="Half3"/>.
+        /// Performs an explicit conversion from <see cref="Vector2"/> to <see cref="Half2"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -175,13 +175,53 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Vector3"/> to <see cref="Half3"/>.
+        /// Performs an explicit conversion from <see cref="Half2"/> to <see cref="Vector2"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
         public static explicit operator Vector2(Half2 value)
         {
             return new Vector2(value.X, value.Y);
+        }
+
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="Single2"/> to <see cref="Half2"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Half2(Single2 value)
+        {
+            return new Half2((Half)value.X, (Half)value.Y);
+        }
+
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="Half2"/> to <see cref="Single2"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Single2(Half2 value)
+        {
+            return new Single2(value.X, value.Y);
+        }
+
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="Double2"/> to <see cref="Half2"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Half2(Double2 value)
+        {
+            return new Half2((Half)value.X, (Half)value.Y);
+        }
+
+        /// <summary>
+        /// Performs an explicit conversion from <see cref="Half2"/> to <see cref="Double2"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        public static explicit operator Double2(Half2 value)
+        {
+            return new Double2(value.X, value.Y);
         }
     }
 }
