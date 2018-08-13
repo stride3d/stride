@@ -29,6 +29,7 @@
 
   <SolidColorBrush x:Key="DarkDefaultBackground" Color="#101011" />
   <SolidColorBrush x:Key="DarkDefaultForeground" Color="#0395D7" />
+  <SolidColorBrush x:Key="NormalDarkBackground" Color="#1A1A1D" />
 
   <avalonDockConverters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
   <avalonDockConverters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
@@ -112,7 +113,7 @@
                           BorderBrush="{TemplateBinding BorderBrush}"
                           BorderThickness="{TemplateBinding BorderThickness}"
                           Background="{TemplateBinding Background}"
-                          Margin="2">
+                          >
                 <ContentPresenter x:Name="PART_SelectedContentHost"
                                         ContentSource="SelectedContent"
                                         SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
@@ -281,7 +282,7 @@
       <Setter.Value>
         <Style TargetType="{x:Type TabItem}">
           <Setter Property="Focusable" Value="False"/>
-          <Setter Property="Background" Value="{StaticResource NormalBrush}"/>
+          <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
           <Setter Property="BorderBrush" Value="{StaticResource SolidBorderBrush}"/>
           <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
           <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
@@ -718,7 +719,7 @@
 
   <!--DockingManager-->
   <Style x:Key="{x:Type avalonDock:DockingManager}" TargetType="{x:Type avalonDock:DockingManager}">
-    <Setter Property="Background" Value="{StaticResource ControlBackgroundBrush}"/>
+    <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
     <Setter Property="DocumentPaneControlStyle" Value="{StaticResource AvalonDock_ThemeAero_DocumentPaneControlStyle}"/>
     <Setter Property="AnchorablePaneControlStyle" Value="{StaticResource AvalonDock_ThemeAero_AnchorablePaneControlStyle}"/>
     <Setter Property="AnchorSideTemplate" Value="{StaticResource AvalonDock_ThemeAero_AnchorSideTemplate}"/>
