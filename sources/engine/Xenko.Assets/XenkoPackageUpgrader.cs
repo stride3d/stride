@@ -42,7 +42,7 @@ namespace Xenko.Assets
 
         public static readonly Guid UpdatePlatformsTemplateId = new Guid("446B52D3-A6A8-4274-A357-736ADEA87321");
 
-        public override bool Upgrade(PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, IList<PackageLoadingAssetFile> assetFiles)
+        public override bool Upgrade(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, IList<PackageLoadingAssetFile> assetFiles)
         {
 #if XENKO_SUPPORT_BETA_UPGRADE
             // Graphics Compositor asset
@@ -388,7 +388,7 @@ namespace Xenko.Assets
         }
 
         /// <inheritdoc/>
-        public override bool UpgradeAfterAssetsLoaded(PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, PackageVersionRange dependencyVersionBeforeUpdate)
+        public override bool UpgradeAfterAssetsLoaded(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, PackageVersionRange dependencyVersionBeforeUpdate)
         {
             if (dependencyVersionBeforeUpdate.MinVersion < new PackageVersion("1.3.0-alpha02"))
             {
@@ -415,7 +415,7 @@ namespace Xenko.Assets
             return true;
         }
 
-        public override bool UpgradeBeforeAssembliesLoaded(PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
+        public override bool UpgradeBeforeAssembliesLoaded(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
         {
             if (dependency.Version.MinVersion < new PackageVersion("2.3.0.1-dev"))
             {
@@ -526,15 +526,18 @@ namespace Xenko.Assets
             }
 
             // Run NuGet restore
-            if (session.SolutionPath != null)
+            if (loadParameters.AutoCompileProjects)
             {
-                // .sln needs to be up to date -> save everything
-                session.Save(new ForwardingLoggerResult(log));
-                VSProjectHelper.RestoreNugetPackages(log, session.SolutionPath).Wait();
-            }
-            else
-            {
-                dependentPackage.RestoreNugetPackages(log);
+                if (session.SolutionPath != null)
+                {
+                    // .sln needs to be up to date -> save everything
+                    session.Save(new ForwardingLoggerResult(log));
+                    VSProjectHelper.RestoreNugetPackages(log, session.SolutionPath).Wait();
+                }
+                else
+                {
+                    dependentPackage.RestoreNugetPackages(log);
+                }
             }
 
             return true;

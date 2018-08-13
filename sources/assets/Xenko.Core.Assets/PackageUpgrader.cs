@@ -18,13 +18,14 @@ namespace Xenko.Core.Assets
         /// <summary>
         /// Performs a preprocessing step of package migration, before assembly references are loaded.
         /// </summary>
+        /// <param name="loadParameters">The load parameters.</param>
         /// <param name="session">The session.</param>
         /// <param name="log">The log.</param>
         /// <param name="dependentPackage">The source package.</param>
         /// <param name="dependency">The dependency.</param>
         /// <param name="dependencyPackage">The dependency package.</param>
         /// <returns></returns>
-        public virtual bool UpgradeBeforeAssembliesLoaded(PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
+        public virtual bool UpgradeBeforeAssembliesLoaded(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
         {
             return true;
         }
@@ -32,6 +33,7 @@ namespace Xenko.Core.Assets
         /// <summary>
         /// Performs the package migration, before assets are loaded
         /// </summary>
+        /// <param name="loadParameters">The load parameters.</param>
         /// <param name="session">The session.</param>
         /// <param name="log">The log.</param>
         /// <param name="dependentPackage">The source package.</param>
@@ -39,11 +41,12 @@ namespace Xenko.Core.Assets
         /// <param name="dependencyPackage">The dependency package.</param>
         /// <param name="assetFiles">The asset files.</param>
         /// <returns></returns>
-        public abstract bool Upgrade(PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, IList<PackageLoadingAssetFile> assetFiles);
+        public abstract bool Upgrade(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, IList<PackageLoadingAssetFile> assetFiles);
 
         /// <summary>
         /// Performs the second step of package migration, after assets have been loaded.
         /// </summary>
+        /// <param name="loadParameters">The load parameters.</param>
         /// <param name="session">The session.</param>
         /// <param name="log">The log.</param>
         /// <param name="dependentPackage">The source package.</param>
@@ -51,7 +54,7 @@ namespace Xenko.Core.Assets
         /// <param name="dependencyPackage">The dependency package.</param>
         /// <param name="dependencyVersionBeforeUpdate">The version before the update.</param>
         /// <returns></returns>
-        public virtual bool UpgradeAfterAssetsLoaded(PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, PackageVersionRange dependencyVersionBeforeUpdate)
+        public virtual bool UpgradeAfterAssetsLoaded(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage, PackageVersionRange dependencyVersionBeforeUpdate)
         {
             return true;
         }
