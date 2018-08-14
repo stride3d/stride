@@ -24,7 +24,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
 
         // Local copies at creation time
         private RoslynWorkspace workspace;
-        //private ProjectId projectId;
 
         /// <summary>
         /// Identifies the <see cref="Workspace"/> dependency property.

@@ -222,7 +222,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             /// <summary>
             /// The inner compositor to draw inside the viewport.
             /// </summary>
-            new public ISceneRenderer Content { get; set; }
+            public new ISceneRenderer Content { get; set; }
 
             public IGameSettingsAccessor GameSettingsAccessor { get; set; }
 
