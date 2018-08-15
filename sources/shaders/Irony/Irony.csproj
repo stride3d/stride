@@ -7,7 +7,7 @@
     <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>irony.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>irony_xenko.snk</AssemblyOriginatorKeyFile>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <XenkoBuildTags>*</XenkoBuildTags>
@@ -67,10 +67,6 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <None Include="irony.snk" />
   </ItemGroup>
   
   <ItemGroup>
