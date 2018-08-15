@@ -29,7 +29,7 @@ using Xenko.Core.Serialization;
 namespace Xenko.Core.Mathematics
 {
     /// <summary>
-    /// Defines a three component vector, using half precision floating point coordinates.
+    /// Represents a three dimensional mathematical vector with half-precision floats.
     /// </summary>
     [DataContract]
     [StructLayout(LayoutKind.Sequential, Pack = 2)]
@@ -171,7 +171,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Vector3"/> to <see cref="Half3"/>.
+        /// Performs an explicit conversion from <see cref="Half3"/> to <see cref="Vector3"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
