@@ -404,7 +404,7 @@
           </ComboBox>
         </StackPanel>
         <TextBlock Margin="2">
-          <Run Text="{xk:Localize List}"/> - 
+          <Run Text="{xk:Localize List}"/> -
           <Run Text="{xk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
         </TextBlock>
       </DockPanel>
@@ -468,7 +468,7 @@
           <Image Source="{StaticResource ImageAdd}" Width="16" Height="16" Margin="-1"/>
         </Button>
         <TextBlock Margin="2">
-                    <Run Text="{xk:Localize Dictionary}"/> - 
+                    <Run Text="{xk:Localize Dictionary}"/> -
                     <Run Text="{xk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
         </TextBlock>
       </DockPanel>
@@ -526,7 +526,7 @@
           </ComboBox.Template>
         </ComboBox>
         <TextBlock Margin="2" DockPanel.Dock="Left">
-          <Run Text="{xk:Localize Dictionary}"/> - 
+          <Run Text="{xk:Localize Dictionary}"/> -
           <Run Text="{xk:Localize {}{0} item, Plural={}{0} items, Count={Binding Children.Count, Mode=OneWay}, IsStringFormat=True}"/>
         </TextBlock>
       </DockPanel>
@@ -657,7 +657,7 @@
                              Maximum="{Binding Maximum, FallbackValue={x:Static s:Double.MaxValue}, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
                              SmallChange="{Binding SmallStep, FallbackValue=1, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
                              LargeChange="{Binding LargeStep, FallbackValue=10, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}}"
-                             DecimalPlaces="{Binding DecimalPlaces, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=6}"                             
+                             DecimalPlaces="{Binding DecimalPlaces, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=6}"
                              WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                              DisplayUpDownButtons="False">
           <!--<i:Interaction.Behaviors>
@@ -961,7 +961,7 @@
         </Button>
         <xk:TextBox x:Name="TextBox" Margin="2" SelectAllOnFocus="True"
                       xk:Trimming.TextTrimming="WordEllipsis" xk:Trimming.TrimmingSource="Middle" xk:Trimming.WordSeparators="/\\"
-                      Text="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:UDirectoryToString}}}"                      
+                      Text="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:UDirectoryToString}}}"
                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
           <i:Interaction.Behaviors>
             <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="ExternalOnly"/>

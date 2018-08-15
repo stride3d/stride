@@ -70,7 +70,7 @@
           <TextBlock Grid.Row="1" Grid.Column="0" Text="{xk:Localize Location:}" Margin="20,0" VerticalAlignment="Center"/>
           <DockPanel Grid.Row="1" Grid.Column="1">
             <Button Style="{StaticResource ImageButtonStyle}" DockPanel.Dock="Right" Command="{Binding BrowseDirectoryCommand}" CommandParameter="Location" ToolTip="{xk:Localize Browse directory, Context=ToolTip}">
-              <Image Source="{StaticResource ImageBrowse}" Width="16" Height="16" Margin="-1"/>
+              <Image Source="{StaticResource VectorOpenFolder}" Width="16" Height="16" Margin="-1"/>
             </Button>
             <xk:TextBox Margin="2" xk:Trimming.TextTrimming="WordEllipsis" xk:Trimming.TrimmingSource="Middle" xk:Trimming.WordSeparators="/\\"
                           Text="{Binding Location, Converter={xk:UDirectoryToString}}">
@@ -89,7 +89,7 @@
           <TextBlock Grid.Row="3" Grid.Column="0" Text="{xk:Localize Solution location:}" Margin="20,0" VerticalAlignment="Center"/>
           <DockPanel Grid.Row="3" Grid.Column="1">
             <Button Style="{StaticResource ImageButtonStyle}" DockPanel.Dock="Right" Command="{Binding BrowseDirectoryCommand}" CommandParameter="SolutionLocation" ToolTip="Browse directory">
-              <Image Source="{StaticResource ImageBrowse}" Width="16" Height="16" Margin="-1"/>
+              <Image Source="{StaticResource VectorOpenFolder}" Width="16" Height="16" Margin="-1"/>
             </Button>
             <xk:TextBox Margin="2" WatermarkContent="{xk:Localize (Same location)}" xk:Trimming.TextTrimming="WordEllipsis" xk:Trimming.TrimmingSource="Middle" xk:Trimming.WordSeparators="/\\"
                           Text="{Binding SolutionLocation, Converter={xk:UDirectoryToString}}">

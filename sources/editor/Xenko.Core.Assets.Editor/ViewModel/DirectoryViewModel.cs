@@ -30,9 +30,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         public DirectoryViewModel(string name, DirectoryBaseViewModel parent, bool canUndoRedoCreation)
             : base(parent.SafeArgument(nameof(parent)).Package)
         {
-            if (name == null) throw new ArgumentNullException(nameof(name));
-            string errorMessage;
-            this.name = name;
+            this.name = name ?? throw new ArgumentNullException(nameof(name));
             // Update property to make the directory dirty. The name must be already set here!
             if (canUndoRedoCreation)
             {
@@ -43,7 +41,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 this.parent = parent;
                 SetParent(null, parent);
             }
-            if (!IsValidName(name, out errorMessage)) throw new ArgumentException(errorMessage);
+            if (!IsValidName(name, out string errorMessage)) throw new ArgumentException(errorMessage);
             RenameCommand = new AnonymousCommand(ServiceProvider, () => IsEditing = true);
         }
 
