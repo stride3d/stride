@@ -149,7 +149,7 @@ namespace Xenko.Engine.Tests
             RunGameTest(new SpriteRenderer3DTests());
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new SpriteRenderer3DTests())
                 game.Run();

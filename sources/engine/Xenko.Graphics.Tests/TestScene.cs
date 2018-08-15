@@ -99,7 +99,7 @@ namespace Xenko.Graphics.Tests
         //    GraphicsDevice.DrawQuad(effectInstance.Effect, effectParameters);
         //}
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestScene())
                 game.Run();

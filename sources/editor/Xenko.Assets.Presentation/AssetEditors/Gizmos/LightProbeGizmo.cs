@@ -22,7 +22,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
         public const RenderGroupMask LightProbeGroupMask = RenderGroupMask.Group17;
 
         private Material lightProbeMaterial;
-        private ModelComponent modelComponent;
 
         public LightProbeGizmo(EntityComponent component)
             : base(component)

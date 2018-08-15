@@ -208,7 +208,7 @@ namespace Xenko.Engine.Tests
             RunGameTest(new TesselationTest());
         }
 
-        static public void Main()
+        internal static void Main()
         {
             using (var game = new TesselationTest(true))
             {

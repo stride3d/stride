@@ -358,8 +358,8 @@ namespace Xenko.Core.Tests
             Assert.Equal(0, scheduler.MicroThreads.Count());
             Assert.Equal(1, completed);
         }*/
-        
-        public async Task TestTaskCompletionSourceAsync(TaskCompletionSource<int> tcs, Action completed)
+
+        private async Task TestTaskCompletionSourceAsync(TaskCompletionSource<int> tcs, Action completed)
         {
             await tcs.Task;
             completed();

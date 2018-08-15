@@ -181,27 +181,27 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(DrawTest7).TakeScreenshot();
         }
 
-        public void DrawTest0()
+        private void DrawTest0()
         {
             scrollViewer.ClipToBounds = false;
         }
 
-        public void DrawTest1()
+        private void DrawTest1()
         {
             scrollViewer.ClipToBounds = true;
         }
 
-        public void DrawTest2()
+        private void DrawTest2()
         {
             stackPanel.Opacity = 0.5f;
         }
 
-        public void DrawTest3()
+        private void DrawTest3()
         {
             stackPanel.Opacity = 0f;
         }
 
-        public void DrawTest4()
+        private void DrawTest4()
         {
             stackPanel.Opacity = 1f;
             // set the scrolling text to a fixed position
@@ -211,17 +211,17 @@ namespace Xenko.UI.Tests.Regression
             scrollViewer.ScrollTo(new Vector3(50, 100, 0));
         }
 
-        public void DrawTest5()
+        private void DrawTest5()
         {
             toggle.Visibility = Visibility.Hidden;
         }
 
-        public void DrawTest6()
+        private void DrawTest6()
         {
             toggle.Visibility = Visibility.Collapsed;
         }
 
-        public void DrawTest7()
+        private void DrawTest7()
         {
             toggle.Visibility = Visibility.Visible;
         }
@@ -235,7 +235,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new ComplexLayoutTest())
             {

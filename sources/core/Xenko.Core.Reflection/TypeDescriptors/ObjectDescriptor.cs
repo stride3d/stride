@@ -110,7 +110,6 @@ namespace Xenko.Core.Reflection
             {
                 if (mapMembers == null)
                     throw new KeyNotFoundException();
-                IMemberDescriptor member;
                 return mapMembers[name];
             }
         }

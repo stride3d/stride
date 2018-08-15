@@ -17,7 +17,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
         /// <summary>
         /// The inner compositor to draw inside the viewport.
         /// </summary>
-        public ISceneRenderer Content { get; set; }
+        public new ISceneRenderer Content { get; set; }
 
         /// <summary>
         /// The camera to use.

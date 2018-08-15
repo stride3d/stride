@@ -360,7 +360,7 @@ namespace Xenko.Input.Tests
             RunGameTest(new TestInput());
         }
 
-        public static void Main()
+        internal static void Main()
         {
             RunInputTest();
         }

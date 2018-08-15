@@ -154,7 +154,7 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(Draw4).TakeScreenshot();
         }
 
-        public void Draw1()
+        private void Draw1()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.125f, 0.15f));
             AddPointerEvent(PointerEventType.Released,   new Vector2(0.125f, 0.15f));
@@ -163,7 +163,7 @@ namespace Xenko.UI.Tests.Regression
             UI.Update(new GameTime());
         }
 
-        public void Draw2()
+        private void Draw2()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.5f, 0.85f));
             AddPointerEvent(PointerEventType.Released, new Vector2(0.5f, 0.85f));
@@ -172,7 +172,7 @@ namespace Xenko.UI.Tests.Regression
             UI.Update(new GameTime());
         }
 
-        public void Draw3()
+        private void Draw3()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.05f, 0.95f));
             AddPointerEvent(PointerEventType.Released, new Vector2(0.05f, 0.95f));
@@ -181,7 +181,7 @@ namespace Xenko.UI.Tests.Regression
             UI.Update(new GameTime());
         }
 
-        public void Draw4()
+        private void Draw4()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.5f, 0.5f));
             AddPointerEvent(PointerEventType.Released, new Vector2(0.5f, 0.5f));
@@ -199,7 +199,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new ModalElementTest())
                 game.Run();

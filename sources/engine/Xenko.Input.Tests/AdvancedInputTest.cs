@@ -325,7 +325,7 @@ namespace Xenko.Input.Tests
             RunGameTest(new AdvancedInputTest());
         }
 
-        public static void Main(string[] args)
+        internal static void Main(string[] args)
         {
             using (var game = new AdvancedInputTest())
                 game.Run();

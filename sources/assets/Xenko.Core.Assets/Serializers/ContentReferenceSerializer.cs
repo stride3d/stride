@@ -26,7 +26,6 @@ namespace Xenko.Core.Assets.Serializers
         {
             AssetId guid;
             UFile location;
-            Guid referenceId;
             if (!AssetReference.TryParse(fromScalar.Value, out guid, out location))
             {
                 throw new YamlException(fromScalar.Start, fromScalar.End, "Unable to decode asset reference [{0}]. Expecting format GUID:LOCATION".ToFormat(fromScalar.Value));

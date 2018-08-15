@@ -27,7 +27,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// Performs all the tests
         /// </summary>
-        public void TestAll()
+        internal void TestAll()
         {
             TestCalculateAdjustmentOffsets();
             TestCalculateAvailableSizeWithoutThickness();
@@ -904,29 +904,29 @@ namespace Xenko.UI.Tests.Layering
             TestArrangeInvalidation(() => DepthAlignment = DepthAlignment.Center);
         }
 
-        public void TestMeasureInvalidation(Action changeProperty)
+        internal void TestMeasureInvalidation(Action changeProperty)
         {
             TestMeasureInvalidation(this, changeProperty);
         }
 
-        public void TestArrangeInvalidation(Action changeProperty)
+        internal void TestArrangeInvalidation(Action changeProperty)
         {
             TestArrangeInvalidation(this, changeProperty);
         }
 
-        public void TestNoInvalidation(Action changeProperty)
+        internal void TestNoInvalidation(Action changeProperty)
         {
             TestNoInvalidation(this, changeProperty);
         }
 
-        public static void TestMeasureInvalidation(UIElement element, Action changeProperty)
+        internal static void TestMeasureInvalidation(UIElement element, Action changeProperty)
         {
             element.Measure(Vector3.Zero);
             changeProperty();
             Assert.False(element.IsMeasureValid);
         }
 
-        public static void TestArrangeInvalidation(UIElement element, Action changeProperty)
+        internal static void TestArrangeInvalidation(UIElement element, Action changeProperty)
         {
             element.Measure(Vector3.Zero);
             element.Arrange(Vector3.Zero, false);
@@ -935,7 +935,7 @@ namespace Xenko.UI.Tests.Layering
             Assert.False(element.IsArrangeValid);
         }
 
-        public static void TestNoInvalidation(UIElement element, Action changeProperty)
+        internal static void TestNoInvalidation(UIElement element, Action changeProperty)
         {
             element.Measure(Vector3.Zero);
             element.Arrange(Vector3.Zero, false);

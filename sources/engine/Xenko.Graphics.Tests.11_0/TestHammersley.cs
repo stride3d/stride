@@ -77,7 +77,7 @@ namespace Xenko.Graphics.Tests
             base.Draw(gameTime);
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestHammersley())
                 game.Run();

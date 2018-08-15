@@ -12,7 +12,6 @@ using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Extensions;
 using Xenko.Core.IO;
-using Xenko.Core.VisualStudio;
 using Xenko.Core.MostRecentlyUsedFiles;
 using Xenko.Core.Presentation.Commands;
 using Xenko.Core.Presentation.Services;

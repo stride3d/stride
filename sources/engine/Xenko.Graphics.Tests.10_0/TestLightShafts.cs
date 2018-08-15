@@ -51,7 +51,7 @@ namespace Xenko.Graphics.Tests
             FrameGameSystem.TakeScreenshot(2);
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestLightShafts())
                 game.Run();

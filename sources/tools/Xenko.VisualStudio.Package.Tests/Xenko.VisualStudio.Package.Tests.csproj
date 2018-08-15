@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
@@ -48,6 +48,7 @@
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
     <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
     <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Tasks\Xenko.Core.Tasks.csproj" />
     <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\..\editor\Xenko.Core.Assets.Editor\Xenko.Core.Assets.Editor.csproj" />
     <ProjectReference Include="..\..\editor\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj" />

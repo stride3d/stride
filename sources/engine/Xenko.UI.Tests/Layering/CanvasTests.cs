@@ -20,7 +20,7 @@ namespace Xenko.UI.Tests.Layering
         /// <summary>
         /// launch all the tests of <see cref="CanvasTests"/>
         /// </summary>
-        public void TestAll()
+        internal void TestAll()
         {
             TestProperties();
             TestCollapseOverride();

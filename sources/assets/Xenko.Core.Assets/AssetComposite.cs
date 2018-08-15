@@ -14,6 +14,7 @@ namespace Xenko.Core.Assets
     /// </summary>
     public abstract class AssetComposite : Asset, IAssetComposite
     {
+        [Obsolete("The AssetPart struct might be removed soon")]
         public abstract IEnumerable<AssetPart> CollectParts();
 
         public abstract IIdentifiable FindPart(Guid partId);

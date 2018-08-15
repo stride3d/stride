@@ -49,7 +49,7 @@ namespace Xenko.Graphics.Tests.Regression
             DrawTexture();
         }
 
-        public void DrawTexture()
+        private void DrawTexture()
         {
             GraphicsContext.CommandList.Clear(GraphicsDevice.Presenter.BackBuffer, Color.Black);
             GraphicsContext.CommandList.Clear(GraphicsDevice.Presenter.DepthStencilBuffer, DepthStencilClearOptions.DepthBuffer);

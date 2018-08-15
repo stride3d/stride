@@ -95,7 +95,7 @@ namespace Xenko.Graphics.Tests
             postProcessingEffects.Draw(context);
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestImageEffect())
                 game.Run();

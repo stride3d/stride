@@ -78,19 +78,19 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(Draw3).TakeScreenshot();
         }
 
-        public void Draw0()
+        private void Draw0()
         {
             element1.LocalMatrix = Matrix.Translation(0, 0, 0);
         }
 
-        public void Draw1()
+        private void Draw1()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.5f, 0.75f));
             Input.Update(new GameTime());
             UI.Update(new GameTime());
         }
 
-        public void Draw2()
+        private void Draw2()
         {
             AddPointerEvent(PointerEventType.Released, new Vector2(0.5f, 0.75f));
             Input.Update(new GameTime());
@@ -99,7 +99,7 @@ namespace Xenko.UI.Tests.Regression
             element1.LocalMatrix = Matrix.Translation(0, 0, -100);
         }
 
-        public void Draw3()
+        private void Draw3()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.5f, 0.75f));
             Input.Update(new GameTime());
@@ -115,7 +115,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TransparencyTest())
             {

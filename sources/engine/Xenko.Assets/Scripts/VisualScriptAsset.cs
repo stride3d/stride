@@ -64,6 +64,7 @@ namespace Xenko.Assets.Scripts
         #endregion
 
         /// <inheritdoc/>
+        [Obsolete("The AssetPart struct might be removed soon")]
         public override IEnumerable<AssetPart> CollectParts()
         {
             foreach (var member in Properties)

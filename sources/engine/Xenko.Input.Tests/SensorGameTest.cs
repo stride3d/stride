@@ -323,7 +323,7 @@ namespace Xenko.Input.Tests
             batch.End();
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new SensorGameTest())
             {

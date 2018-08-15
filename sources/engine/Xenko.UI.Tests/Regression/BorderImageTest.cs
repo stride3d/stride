@@ -50,17 +50,17 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(DrawBiggerElement).TakeScreenshot();
         }
 
-        public void DrawSmallerElement()
+        private void DrawSmallerElement()
         {
             stackPanel?.ScrolllToElement(0);
         }
 
-        public void DrawRealSizeElement()
+        private void DrawRealSizeElement()
         {
             stackPanel?.ScrolllToElement(1);
         }
 
-        public void DrawBiggerElement()
+        private void DrawBiggerElement()
         {
             stackPanel?.ScrolllToElement(2);
         }
@@ -74,7 +74,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new BorderImageTest())
                 game.Run();

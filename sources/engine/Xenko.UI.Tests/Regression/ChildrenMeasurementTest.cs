@@ -63,7 +63,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Sets manually the size of the panel (all dimensions are set).
         /// </summary>
-        public void DrawTest0()
+        private void DrawTest0()
         {
             var resolution = UIComponent.Resolution;
             resolution.Z = 0;
@@ -73,7 +73,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Changes the child StackPanel background color, to visualize its rendered size.
         /// </summary>
-        public void DrawTest1()
+        private void DrawTest1()
         {
             stackPanel.BackgroundColor = Color.Gray;
         }
@@ -82,7 +82,7 @@ namespace Xenko.UI.Tests.Regression
         /// Resets root panel size to undetermined (float.NaN).
         /// Also changes the child StackPanel background color to generate a different image.
         /// </summary>
-        public void DrawTest2()
+        private void DrawTest2()
         {
             canvas.Size = new Vector3(float.NaN);
             stackPanel.BackgroundColor = Color.LightGray;
@@ -91,7 +91,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Changes orientation of the child StackPanel.
         /// </summary>
-        public void DrawTest3()
+        private void DrawTest3()
         {
             stackPanel.Orientation = Orientation.Horizontal;
         }
@@ -105,7 +105,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new ChildrenMeasurementTest())
             {

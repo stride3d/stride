@@ -98,13 +98,13 @@ namespace Xenko.Shaders.Tests
         }
 
 
-        public void Run()
+        private void Run()
         {
             TestParsing();
             //TestShaderCompilation();
         }
 
-        public static void Main5()
+        private static void Main5()
         {
             // Create and mount database file system
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();

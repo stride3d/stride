@@ -276,7 +276,7 @@ namespace Xenko.Core.Design.Tests
             Assert.Equal("E:/a", new UDirectory("E:/a").GetFullDirectory().FullPath);
         }
 
-        //[Fact]
+        [Fact]
         public void TestUPathGetComponents()
         {
             var d = new UDirectory("a/b");

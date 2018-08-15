@@ -93,14 +93,14 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(Draw11).TakeScreenshot();
         }
 
-        public void Draw1()
+        private void Draw1()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.125f, 0.25f));
 
             Input.Update(new GameTime());
             UI.Update(new GameTime());
         }
-        public void Draw2()
+        private void Draw2()
         {
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.925f, 0.25f));
             AddPointerEvent(PointerEventType.Released, new Vector2(0.925f, 0.25f));
@@ -108,28 +108,28 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
             UI.Update(new GameTime());
         }
-        public void Draw3()
+        private void Draw3()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.125f, 0.25f));
 
             Input.Update(new GameTime());
             UI.Update(new GameTime());
         }
-        public void Draw4()
+        private void Draw4()
         {
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.125f, 0.15f));
 
             Input.Update(new GameTime());
             UI.Update(new GameTime());
         }
-        public void Draw5()
+        private void Draw5()
         {
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.125f, 0.05f));
 
             Input.Update(new GameTime());
             UI.Update(new GameTime());
         }
-        public void Draw6()
+        private void Draw6()
         {
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.925f, 0.05f));
             AddPointerEvent(PointerEventType.Released, new Vector2(0.925f, 0.05f));
@@ -137,14 +137,14 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
             UI.Update(new GameTime());
         }
-        public void Draw7()
+        private void Draw7()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.4f, 0.65f));
 
             Input.Update(new GameTime());
             UI.Update(new GameTime());
         }
-        public void Draw8()
+        private void Draw8()
         {
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.6f, 0.65f));
             AddPointerEvent(PointerEventType.Released, new Vector2(0.6f, 0.65f));
@@ -152,7 +152,7 @@ namespace Xenko.UI.Tests.Regression
             Input.Update(new GameTime());
             UI.Update(new GameTime());
         }
-        public void Draw9()
+        private void Draw9()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.6f, 0.65f));
 
@@ -160,7 +160,7 @@ namespace Xenko.UI.Tests.Regression
             UI.Update(new GameTime());
         }
 
-        public void Draw10()
+        private void Draw10()
         {
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.6f, 0.85f));
 
@@ -168,7 +168,7 @@ namespace Xenko.UI.Tests.Regression
             UI.Update(new GameTime());
         }
 
-        public void Draw11()
+        private void Draw11()
         {
             AddPointerEvent(PointerEventType.Moved, new Vector2(0.4f, 0.85f));
 
@@ -185,7 +185,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new LeaveEnterTest())
                 game.Run();

@@ -50,7 +50,7 @@ namespace Xenko.Audio.Tests
             RunGameTest(new PauseResumeTest());
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new PauseResumeTest())
                 game.Run();

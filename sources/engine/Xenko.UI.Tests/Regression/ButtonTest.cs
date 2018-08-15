@@ -38,7 +38,7 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(DrawTest1).TakeScreenshot();
         }
 
-        public void DrawTest1()
+        private void DrawTest1()
         {
             button.RaiseTouchDownEvent(new TouchEventArgs());
         }
@@ -52,7 +52,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new ButtonTest())
                 game.Run();
