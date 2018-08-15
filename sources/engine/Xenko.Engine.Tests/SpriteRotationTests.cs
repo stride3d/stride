@@ -91,7 +91,7 @@ namespace Xenko.Engine.Tests
             RunGameTest(new SpriteRotationTests());
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new SpriteRotationTests())
                 game.Run();

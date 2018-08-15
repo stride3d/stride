@@ -99,7 +99,7 @@ namespace Xenko.Graphics.Tests
             spriteBatch.End();
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestSprite())
                 game.Run();

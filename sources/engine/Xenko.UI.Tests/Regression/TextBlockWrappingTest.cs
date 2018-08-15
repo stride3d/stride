@@ -105,7 +105,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
             FrameGameSystem.Draw(Draw9).TakeScreenshot();
         }
 
-        public void Draw0()
+        private void Draw0()
         {
             textBlock.WrapText = false;
             textBlock.TextAlignment = TextAlignment.Left;
@@ -113,7 +113,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
 
-        public void Draw1()
+        private void Draw1()
         {
             textBlock.WrapText = true;
             textBlock.TextAlignment = TextAlignment.Left;
@@ -121,7 +121,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
 
-        public void Draw2()
+        private void Draw2()
         {
             textBlock.WrapText = true;
             textBlock.TextAlignment = TextAlignment.Center;
@@ -129,7 +129,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
 
-        public void Draw3()
+        private void Draw3()
         {
             textBlock.WrapText = true;
             textBlock.TextAlignment = TextAlignment.Right;
@@ -137,7 +137,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
 
-        public void Draw4()
+        private void Draw4()
         {
             textBlock.WrapText = true;
             textBlock.TextAlignment = TextAlignment.Left;
@@ -145,7 +145,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
 
-        public void Draw5()
+        private void Draw5()
         {
             textBlock.WrapText = true;
             textBlock.TextAlignment = TextAlignment.Left;
@@ -153,7 +153,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
 
-        public void Draw6()
+        private void Draw6()
         {
             textBlock.WrapText = true;
             textBlock.TextAlignment = TextAlignment.Left;
@@ -161,7 +161,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
             textBlock.HorizontalAlignment = HorizontalAlignment.Stretch;
         }
 
-        public void Draw7()
+        private void Draw7()
         {
             textBlock.WrapText = true;
             textBlock.TextAlignment = TextAlignment.Left;
@@ -169,7 +169,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
             textBlock.HorizontalAlignment = HorizontalAlignment.Left;
         }
 
-        public void Draw8()
+        private void Draw8()
         {
             textBlock.WrapText = true;
             textBlock.TextAlignment = TextAlignment.Left;
@@ -177,7 +177,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
             textBlock.HorizontalAlignment = HorizontalAlignment.Center;
         }
 
-        public void Draw9()
+        private void Draw9()
         {
             textBlock.WrapText = true;
             textBlock.TextAlignment = TextAlignment.Left;
@@ -194,7 +194,7 @@ Does it work with kanjis too? let's see that in the following line. Here we goes
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TextBlockWrappingTest())
                 game.Run();

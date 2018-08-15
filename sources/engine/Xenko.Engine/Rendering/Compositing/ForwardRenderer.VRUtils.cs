@@ -2,17 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using Xenko.Core.Extensions;
 using Xenko.Core.Mathematics;
-using Xenko.Core.Storage;
-using Xenko.Graphics;
-using Xenko.Rendering.Lights;
-using Xenko.Rendering.Shadows;
-using Xenko.VirtualReality;
-using Xenko.Core.Mathematics;
-using Xenko.Rendering.Images;
 
 namespace Xenko.Rendering.Compositing
 {

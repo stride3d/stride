@@ -152,8 +152,8 @@ namespace Xenko.Navigation.Tests
             game.Run();
             game.Dispose();
         }
-        
-        public static void Main()
+
+        internal static void Main()
         {
             DynamicBarrierTest1();
         }

@@ -20,6 +20,7 @@ namespace Xenko.Assets.Presentation.ViewModel
         {
         }
 
+        [Obsolete]
         protected override void OnAssetPropertyChanged(string propertyName, IGraphNode node, Index index, object oldValue, object newValue)
         {
             base.OnAssetPropertyChanged(propertyName, node, index, oldValue, newValue);

@@ -126,7 +126,7 @@ namespace Xenko.Engine.Tests
             RunGameTest(new AnimatedModelTests());
         }
 
-        static public void Main()
+        internal static void Main()
         {
             using (var game = new AnimatedModelTests())
             {

@@ -19,9 +19,11 @@
                     xmlns:wnd="clr-namespace:Xenko.Core.Presentation.Windows"
                     xmlns:local="clr-namespace:Xenko.Core.Presentation"
                     xmlns:xk="http://schemas.xenko.com/xaml/presentation"
+                    x:Class="Xenko.Core.Presentation.Themes.ExpressionDark.ExpressionDarkTheme"
                     mc:Ignorable="d">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="../generic.xaml"/>
+    <ResourceDictionary Source="pack://application:,,,/Xenko.Core.Presentation;component/Resources/VectorResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
   <!-- Main Colors -->
@@ -30,6 +32,7 @@
   <Color x:Key="HoverColor">#FF393939</Color>
   <Color x:Key="DefaultColor">#FF9BB1C5</Color>
   <SolidColorBrush x:Key="LightBrush" Color="#FF333333" />
+  <SolidColorBrush x:Key="ComboBoxBackground" Color="#212125" />
 
   <Color x:Key="TopGradientSelectColor">#FFFFFFFF</Color>
   <Color x:Key="BottomGradientSelectColor">#FF737373</Color>
@@ -37,13 +40,17 @@
   <Color x:Key="BlackColor">#FF000000</Color>
   <Color x:Key="WhiteColor">#FFFFFFFF</Color>
 
-  <SolidColorBrush x:Key="BackgroundBrush" Color="#FF434343"/>
-  <SolidColorBrush x:Key="TextBrush" Color="#FFE0E0E0" />
+  <SolidColorBrush x:Key="BackgroundBrush" Color="#1A1A1D"/>
+  <SolidColorBrush x:Key="TextBrush" Color="#E6E6E6" />
   <SolidColorBrush x:Key="HyperlinkBrush" Color="#FF00A0FF" />
-  <SolidColorBrush x:Key="NormalBrush" Color="#FF595959" />
+  <SolidColorBrush x:Key="NormalBrush" Color="#3E3E40" />
   <SolidColorBrush x:Key="NormalBorderBrush" Color="#FF333333" />
   <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" />
   <SolidColorBrush x:Key="GlyphBrush" Color="#FFD1D1D1" />
+
+  <SolidColorBrush x:Key="ScrollbarBackgroundNormal" Color="#161616" />
+  <SolidColorBrush x:Key="ScrollbarThumbNormal" Color="#333333" />
+  <SolidColorBrush x:Key="ScrollbarThumbHover" Color="#6F6F73" />
 
   <SolidColorBrush x:Key="PressedBrush" Color="#7E000000"/>
 
@@ -53,9 +60,9 @@
   <SolidColorBrush x:Key="AlphaBrush" Color="#FFBCBCBC"/>
   <SolidColorBrush x:Key="LengthBrush" Color="#FFBCBCBC"/>
 
-  <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#FF333333" />
+  <SolidColorBrush x:Key="ControlBackgroundBrush" Color="#101011" />
 
-  <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#FF969696"/>
+  <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#3399FF"/>
 
   <Color x:Key="EmphasisGreenColor">#FF8ABB2E</Color>
   <SolidColorBrush x:Key="EmphasisGreenBrush" Color="{StaticResource EmphasisGreenColor}"/>
@@ -63,12 +70,14 @@
   <Color x:Key="EmphasisYellowColor">#FFFFCF00</Color>
   <SolidColorBrush x:Key="EmphasisYellowBrush" Color="{StaticResource EmphasisYellowColor}"/>
 
-  <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#888" />
-  <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#FF787878" />
+  <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#656565" />
+  <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#040405" />
   <SolidColorBrush x:Key="DisabledBorderBrush" Color="#AAA" />
   <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FF595959" />
 
   <SolidColorBrush x:Key="ToggleButtonNormalBackground" Color="#FF808080"/>
+  <SolidColorBrush x:Key="ComboToggleButtonBackground" Color="Transparent" />
+  <SolidColorBrush x:Key="ComboToggleButtonHoverBackground" Color="#1F1F20" />
 
   <SolidColorBrush x:Key="ToggleButtonHoverBackground" Color="#FFAAAAAA"/>
 
@@ -78,20 +87,20 @@
   <SolidColorBrush x:Key="DefaultedBorderBrush" Color="{StaticResource DefaultColor}" />
   <SolidColorBrush x:Key="SolidBorderBrush" Color="#888" />
   <SolidColorBrush x:Key="TextBoxBackgroundBrush" Color="#FF333333"/>
-  <SolidColorBrush x:Key="ButtonHoverBackgroundBrush" Color="#FF9D9D9D"/>
-  <SolidColorBrush x:Key="MenuHoverBrush" Color="#FFAAAAAA"/>
+  <SolidColorBrush x:Key="ButtonHoverBackgroundBrush" Color="#3E3E40"/>
+  <SolidColorBrush x:Key="MenuHoverBrush" Color="#333334"/>
 
   <SolidColorBrush x:Key="CheckBoxBorderFocusBrush" Color="#FFE5E5E5"/>
   <SolidColorBrush x:Key="HoverTextBorderBrush" Color="#FF6A6A6A"/>
 
-  <SolidColorBrush x:Key="MenuBackgroundBrush" Color="#FF3C3C3C"/>
+  <SolidColorBrush x:Key="MenuBackgroundBrush" Color="#040405"/>
   <SolidColorBrush x:Key="ButtonNormalBorder" Color="#FF888888" />
-  <SolidColorBrush x:Key="ButtonNormalBackground" Color="#FF707070"/>
+  <SolidColorBrush x:Key="ButtonNormalBackground" Color="#2D2D2D"/>
 
   <SolidColorBrush x:Key="NormalTextBorderBrush" Color="#FF494949"/>
 
   <SolidColorBrush x:Key="ToolBarButtonHover" Color="{StaticResource MainColor}" />
-  <SolidColorBrush x:Key="MenuBorderBrush" Color="#FF595959"/>
+  <SolidColorBrush x:Key="MenuBorderBrush" Color="#212125"/>
 
   <SolidColorBrush x:Key="ListBorder" Color="#828790" />
   <SolidColorBrush x:Key="ToolBarGripper" Color="#3A3A3A"/>
@@ -99,7 +108,9 @@
   <SolidColorBrush x:Key="ToolBarMenuBorder" Color="#FFFFFFFF"/>
   <SolidColorBrush x:Key="InnerExpanderBorderBrush" Color="#FF424242" />
   <SolidColorBrush x:Key="InnerExpanderBackgroundBrush" Color="#FF525252"/>
-  <SolidColorBrush x:Key="ToolBarBackgroundBrush" Color="#FF595959"/>
+  <SolidColorBrush x:Key="ToolBarBackgroundBrush" Color="#FF101011"/>
+
+  <SolidColorBrush x:Key="MenuBlueGlyphs" Color="#007ACC" />
 
   <DropShadowBitmapEffect x:Key="PopupDropShadow" ShadowDepth="1.5" Softness="0.15" />
   <!-- EXPRESSION COMMON VALUES -->
@@ -168,24 +179,24 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Window">
-          <Grid Background="#05000000" Margin="6">
+          <Grid Background="#1A1A1D" Margin="6">
             <Border x:Name="ContentBorder" Background="{StaticResource BackgroundBrush}" BorderBrush="Black" BorderThickness="1" IsHitTestVisible="True">
               <DockPanel>
                 <DockPanel x:Name="TitleBar" DockPanel.Dock="Top" VerticalAlignment="Top" WindowChrome.IsHitTestVisibleInChrome="False"
                            Height="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(WindowChrome.WindowChrome).ResizeBorderThickness}">
-                  <Button Content="{me:Image {StaticResource ImageCloseWindow}, 16, 16, NearestNeighbor}" Width="28" Height="28" Background="Transparent" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.CloseWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button Content="{me:Image {StaticResource ImageMaximizeWindow}, 16, 16, NearestNeighbor}" Width="28" Height="28" Background="Transparent" x:Name="MaximizeButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.MaximizeWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button Content="{me:Image {StaticResource ImageRestoreWindow}, 16, 16, NearestNeighbor}" Width="28" Height="28" Background="Transparent" x:Name="RestoreButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.RestoreWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button Content="{me:Image {StaticResource ImageMinimizeWindow}, 16, 16, NearestNeighbor}" Width="28" Height="28" Background="Transparent" x:Name="MinimizeButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.MinimizeWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
-                  <Button DockPanel.Dock="Left" Margin="4,0" Padding="0" Background="Transparent" Width="28" Height="28" VerticalAlignment="Center" VerticalContentAlignment="Center" Command="{x:Static cmd:SystemCommands.ShowSystemMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True">
+                  <Button Content="{me:Image {StaticResource VectorCloseWindow}, 10, 10, NearestNeighbor}"  Width="30" Height="25" Background="Transparent" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.CloseWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                  <Button Content="{me:Image {StaticResource VectorMaximizeWindow}, 12, 12, NearestNeighbor}"  Width="30" Height="25" Background="Transparent" x:Name="MaximizeButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.MaximizeWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                  <Button Content="{me:Image {StaticResource VectorRestoreWindow}, 12, 12, NearestNeighbor}" Width="30" Height="25" Background="Transparent" x:Name="RestoreButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.RestoreWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                  <Button Content="{me:Image {StaticResource VectorMinimizeWindow}, 12, 12, NearestNeighbor}"  Width="30" Height="25" Background="Transparent" x:Name="MinimizeButton" DockPanel.Dock="Right" HorizontalAlignment="Center" VerticalAlignment="Center" Command="{x:Static cmd:SystemCommands.MinimizeWindowCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True"/>
+                  <Button DockPanel.Dock="Left" Margin="4,0" Padding="0" Background="Transparent" Width="28" Height="25" VerticalAlignment="Center" VerticalContentAlignment="Center" Command="{x:Static cmd:SystemCommands.ShowSystemMenuCommand}" CommandParameter="{Binding RelativeSource={RelativeSource TemplatedParent}}" WindowChrome.IsHitTestVisibleInChrome="True">
                     <Button.Template>
                       <ControlTemplate TargetType="Button">
                         <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True"/>
                       </ControlTemplate>
                     </Button.Template>
-                    <Image Source="{DynamicResource EditorIcon}" Width="22" Opacity="0.5"/>
+                    <Image Source="{DynamicResource VectorEditorIcon}" Width="22" Opacity="0.5"/>
                   </Button>
-                  <TextBlock VerticalAlignment="Center" Text="{TemplateBinding Title}" Margin="0,4" FontSize="14"/>
+                  <TextBlock VerticalAlignment="Center" Text="{TemplateBinding Title}" Margin="0,4" FontSize="13"/>
                 </DockPanel>
                 <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
                   <AdornerDecorator>
@@ -238,23 +249,23 @@
         <DataTemplate>
           <DockPanel LastChildFill="True" Margin="10">
             <!--  BUTTONS  -->
-              <ItemsControl x:Name="ButtonItemsControl" Margin="10,10,10,0" HorizontalAlignment="Right" DockPanel.Dock="Bottom"
+            <ItemsControl x:Name="ButtonItemsControl" Margin="10,10,10,0" HorizontalAlignment="Right" DockPanel.Dock="Bottom"
                             ItemsSource="{Binding ButtonsSource, RelativeSource={RelativeSource AncestorType={x:Type wnd:MessageDialogBase}}}">
-                <ItemsControl.ItemsPanel>
-                  <ItemsPanelTemplate>
-                    <UniformGrid IsItemsHost="True" Rows="1" />
-                  </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                  <ItemContainerTemplate DataType="{x:Type wnd:DialogButtonInfo}">
-                    <Button d:DataContext="{d:DesignInstance wnd:DialogButtonInfo}"
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <UniformGrid IsItemsHost="True" Rows="1" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <ItemContainerTemplate DataType="{x:Type wnd:DialogButtonInfo}">
+                  <Button d:DataContext="{d:DesignInstance wnd:DialogButtonInfo}"
                             Margin="5,0" Padding="20,6" MinWidth="80"
                             Command="{Binding ButtonCommand, RelativeSource={RelativeSource AncestorType={x:Type wnd:MessageDialogBase}}}"
                             CommandParameter="{Binding Result}"
                             Content="{Binding Content}" IsCancel="{Binding IsCancel}" IsDefault="{Binding IsDefault}" />
-                  </ItemContainerTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+                </ItemContainerTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
             <!--  CONTENT  -->
             <ContentPresenter Content="{Binding}"
                               ContentTemplate="{Binding MessageTemplate, RelativeSource={RelativeSource AncestorType={x:Type wnd:MessageDialogBase}}}"
@@ -422,17 +433,17 @@
         <ColumnDefinition />
         <ColumnDefinition Width="16" />
       </Grid.ColumnDefinitions>
-      <Rectangle Grid.ColumnSpan="2" HorizontalAlignment="Stretch" x:Name="Rectangle" VerticalAlignment="Stretch" RadiusX="2" RadiusY="2" Fill="{DynamicResource LightBrush}" Stroke="{DynamicResource NormalBorderBrush}" />
-      <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Stretch" RadiusX="2" RadiusY="2" Fill="{DynamicResource LightBrush}" Stroke="{DynamicResource NormalBorderBrush}" />
-      <Border Margin="1" Grid.Column="1" Background="{DynamicResource ToggleButtonNormalBackground}" CornerRadius="2" x:Name="border" />
+      <Rectangle Grid.ColumnSpan="2" HorizontalAlignment="Stretch" x:Name="Rectangle" VerticalAlignment="Stretch" Fill="{DynamicResource LightBrush}" Stroke="{DynamicResource NormalBorderBrush}" />
+      <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="{DynamicResource ComboBoxBackground}" Stroke="{DynamicResource NormalBorderBrush}" />
+      <Border Margin="1" Grid.Column="1" Background="{DynamicResource ComboToggleButtonBackground}" x:Name="border" />
       <Path Grid.Column="1" HorizontalAlignment="Center" x:Name="Arrow" VerticalAlignment="Center" Data="M0.5,0.5 L3,6.5 5.5,0.5" Stroke="{DynamicResource TextBrush}" Margin="0" Height="5.5" StrokeThickness="2" Stretch="Fill" Width="9.8" />
     </Grid>
     <ControlTemplate.Triggers>
       <Trigger Property="IsMouseOver" Value="true">
-        <Setter Property="Background" TargetName="border" Value="{DynamicResource ToggleButtonHoverBackground}"/>
+        <Setter Property="Background" TargetName="border" Value="{DynamicResource ComboToggleButtonHoverBackground}"/>
       </Trigger>
       <Trigger Property="IsChecked" Value="true" >
-        <Setter Property="Background" TargetName="border" Value="{DynamicResource ToggleButtonHoverBackground}"/>
+        <Setter Property="Background" TargetName="border" Value="{DynamicResource ComboToggleButtonHoverBackground}"/>
       </Trigger>
       <Trigger Property="IsEnabled" Value="False">
         <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
@@ -450,7 +461,7 @@
       <TextBox Visibility="Hidden" Template="{DynamicResource ComboBoxTextBox}" HorizontalAlignment="Left" Margin="3,2,23,2" x:Name="PART_EditableTextBox" Style="{x:Null}" VerticalAlignment="Center" Focusable="True" Background="{TemplateBinding Background}" IsReadOnly="{TemplateBinding IsReadOnly}" BorderBrush="{DynamicResource NormalBorderBrush}" Foreground="{DynamicResource TextBrush}" />
       <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" x:Name="Popup" Focusable="False" AllowsTransparency="True" PopupAnimation="Slide">
         <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}" x:Name="DropDown" SnapsToDevicePixels="True">
-          <Border x:Name="DropDownBorder" Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="3,3,3,3" />
+          <Border x:Name="DropDownBorder" Background="{DynamicResource ControlBackgroundBrush}" />
           <ScrollViewer Margin="1" Style="{DynamicResource NuclearScrollViewer}" SnapsToDevicePixels="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" CanContentScroll="True" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}">
             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
           </ScrollViewer>
@@ -486,7 +497,7 @@
   <Style TargetType="{x:Type ComboBox}">
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
     <Setter Property="SnapsToDevicePixels" Value="true" />
-    <Setter Property="Background" Value="{DynamicResource LightBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource LightComboBrush}"/>
     <Setter Property="Template" Value="{DynamicResource ComboBoxTemplate}" />
   </Style>
 
@@ -517,7 +528,6 @@
       </Setter.Value>
     </Setter>
   </Style>
-
 
   <Style TargetType="{x:Type ctrl:ColorPicker}">
     <Setter Property="Focusable" Value="False"/>
@@ -1153,12 +1163,12 @@
             </Storyboard>
           </ControlTemplate.Resources>
           <Grid Margin="0,0,0,0" x:Name="Grid">
-            <Rectangle HorizontalAlignment="Stretch" x:Name="HoverRectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" RadiusX="3" RadiusY="4" Stroke="{x:Null}" Margin="4.5,-2,4.5,-2" Opacity="0.3" MinHeight="10">
+            <Rectangle HorizontalAlignment="Stretch" x:Name="HoverRectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" Stroke="{x:Null}" Margin="4.5,-2,4.5,-2" Opacity="0.3" MinHeight="10">
               <Rectangle.Fill>
                 <SolidColorBrush Color="{DynamicResource WhiteColor}" />
               </Rectangle.Fill>
             </Rectangle>
-            <Rectangle HorizontalAlignment="Stretch" x:Name="PressedRectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" RadiusX="3" RadiusY="4" Stroke="{x:Null}" Margin="4.5,-2,4.5,-2" Opacity="0.3" MinHeight="10">
+            <Rectangle HorizontalAlignment="Stretch" x:Name="PressedRectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" Stroke="{x:Null}" Margin="4.5,-2,4.5,-2" Opacity="0.3" MinHeight="10">
               <Rectangle.Fill>
                 <SolidColorBrush Color="{DynamicResource WhiteColor}" />
               </Rectangle.Fill>
@@ -1218,12 +1228,12 @@
             </Storyboard>
           </ControlTemplate.Resources>
           <Grid Margin="0,0,0,0" x:Name="Grid">
-            <Rectangle HorizontalAlignment="Stretch" x:Name="HoverRectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" RadiusX="4" RadiusY="3" Stroke="{x:Null}" Margin="-2,4.5,-2,4.5" Opacity="0.3" MinWidth="10">
+            <Rectangle HorizontalAlignment="Stretch" x:Name="HoverRectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" Stroke="{x:Null}" Margin="-2,4.5,-2,4.5" Opacity="0.3" MinWidth="10">
               <Rectangle.Fill>
                 <SolidColorBrush Color="{DynamicResource WhiteColor}" />
               </Rectangle.Fill>
             </Rectangle>
-            <Rectangle HorizontalAlignment="Stretch" x:Name="PressedRectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" RadiusX="4" RadiusY="3" Stroke="{x:Null}" Margin="-2,4.5,-2,4.5" Opacity="0.3" MinWidth="10">
+            <Rectangle HorizontalAlignment="Stretch" x:Name="PressedRectangle" VerticalAlignment="Stretch" Width="Auto" Height="Auto" Stroke="{x:Null}" Margin="-2,4.5,-2,4.5" Opacity="0.3" MinWidth="10">
               <Rectangle.Fill>
                 <SolidColorBrush Color="{DynamicResource WhiteColor}" />
               </Rectangle.Fill>
@@ -1273,7 +1283,7 @@
   </Style>
 
   <ControlTemplate x:Key="VerticalScrollBarControlTemplate" TargetType="{x:Type ScrollBar}">
-    <Grid x:Name="GridRoot" Width="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}" Background="{DynamicResource NormalBrush}">
+    <Grid x:Name="GridRoot" Width="{DynamicResource {x:Static SystemParameters.VerticalScrollBarWidthKey}}" Background="{DynamicResource ScrollbarBackgroundNormal}">
       <Grid.RowDefinitions>
         <RowDefinition MaxHeight="18" />
         <RowDefinition Height="*" />
@@ -1308,7 +1318,7 @@
   </ControlTemplate>
 
   <ControlTemplate x:Key="HorizontalScrollBarControlTemplate" TargetType="{x:Type ScrollBar}">
-    <Grid x:Name="GridRoot" Height="{DynamicResource {x:Static SystemParameters.HorizontalScrollBarHeightKey}}" Background="{DynamicResource NormalBrush}">
+    <Grid x:Name="GridRoot" Height="{DynamicResource {x:Static SystemParameters.HorizontalScrollBarHeightKey}}" Background="{DynamicResource ScrollbarBackgroundNormal}">
       <Grid.ColumnDefinitions>
         <ColumnDefinition MaxWidth="18" />
         <ColumnDefinition Width="*" />
@@ -1407,7 +1417,7 @@
             <Rectangle x:Name="HoverRectangle" IsHitTestVisible="False" Opacity="0" Fill="{StaticResource NormalBrush}"/>
             <Rectangle x:Name="SelectedRectangle" IsHitTestVisible="False" Opacity="0" Fill="{StaticResource SelectedBackgroundBrush}"/>
             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="{TemplateBinding Padding}" x:Name="contentPresenter" />
-            <Rectangle x:Name="FocusVisualElement" Stroke="{StaticResource HoverShineBrush}" StrokeThickness="0" RadiusX="1" RadiusY="1" Opacity="0" IsHitTestVisible="False" Margin="1,1,1,1"/>
+            <Rectangle x:Name="FocusVisualElement" Stroke="{StaticResource HoverShineBrush}" StrokeThickness="0" Opacity="0" IsHitTestVisible="False" Margin="1,1,1,1"/>
           </Grid>
           <ControlTemplate.Triggers>
             <Trigger Property="IsFocused" Value="True">
@@ -1855,7 +1865,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ctrl:TextBox">
-          <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}" CornerRadius="4">
+          <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
             <Grid>
               <ScrollViewer x:Name="PART_ContentHost" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Padding="{TemplateBinding Padding}" Visibility="{TemplateBinding IsFocused, Converter={cvt:VisibleOrCollapsed}}"/>
               <ContentControl x:Name="Watermark" Content="{TemplateBinding WatermarkContent}" ContentTemplate="{TemplateBinding WatermarkContentTemplate}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="6,2,2,2" Focusable="False"/>
@@ -1889,7 +1899,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="ctrl:NumericTextBox">
-          <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}" CornerRadius="4">
+          <Border BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}" Background="{TemplateBinding Background}">
             <DockPanel LastChildFill="True">
               <UniformGrid x:Name="upDownButtons" HorizontalAlignment="Stretch" DockPanel.Dock="Right" Rows="2" Focusable="False" Visibility="Collapsed" MaxWidth="16">
                 <RepeatButton x:Name="PART_IncreaseButton" Command="{x:Static ctrl:NumericTextBox.SmallIncreaseCommand}">
@@ -1929,7 +1939,8 @@
           <TextBlock Text="{Binding Mode=OneTime}" IsHitTestVisible="False" FontStyle="Italic" Foreground="Gray"/>
         </DataTemplate>
       </Setter.Value>
-    </Setter>    <Setter Property="interactivity:Interaction.Behaviors">
+    </Setter>
+    <Setter Property="interactivity:Interaction.Behaviors">
       <Setter.Value>
         <interactivity:BehaviorCollection>
           <behaviors:NumericTextBoxDragBehavior UsePreviewEvents="True" DragCursor="/Xenko.Core.Presentation;component/Resources/Cursors/CursorDrag.cur" />
@@ -1964,7 +1975,7 @@
       </Storyboard>
     </ControlTemplate.Resources>
     <Grid>
-      <Border x:Name="Border" Opacity="1" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" Background="{TemplateBinding Background}">
+      <Border x:Name="Border" Opacity="1" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
         <Grid>
           <Border BorderThickness="1">
             <ScrollViewer Margin="0" x:Name="PART_ContentHost" Style="{DynamicResource NuclearScrollViewer}" />
@@ -2046,7 +2057,6 @@
             </Border>
             <Border x:Name="HoverBorder" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource GlyphBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" />
             <Border x:Name="FocusVisualElement" IsHitTestVisible="False" Opacity="0" BorderBrush="{StaticResource HoverShineBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="2,2,2,2" />
-
 
           </Grid>
           <ControlTemplate.Triggers>
@@ -2210,13 +2220,13 @@
   </Style>
 
   <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="{x:Type Separator}">
-    <Setter Property="Background" Value="{DynamicResource MenuBorderBrush}"/>
-    <Setter Property="Height" Value="1"/>
-    <Setter Property="Margin" Value="2,6"/>
+    <Setter Property="Background" Value="{DynamicResource MenuBorderBrush}" />
+    <Setter Property="Height" Value="0" />
+    <Setter Property="Margin" Value="18,0,4,0" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Separator}">
-          <Border Background="{TemplateBinding Background}" BorderThickness="0" />
+          <Border Background="{TemplateBinding Background}" BorderThickness="0,0.5,0,0" />
         </ControlTemplate>
       </Setter.Value>
     </Setter>
@@ -2225,7 +2235,7 @@
   <Style x:Key="ComboBoxSeparator" TargetType="{x:Type Separator}">
     <Setter Property="Background" Value="{DynamicResource MenuBorderBrush}"/>
     <Setter Property="Height" Value="1"/>
-    <Setter Property="Margin" Value="2,6"/>
+    <Setter Property="Margin" Value="2,0"/>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Separator}">
@@ -2247,7 +2257,7 @@
         <ContentPresenter Grid.Column="1" x:Name="HeaderHost" RecognizesAccessKey="True" ContentSource="Header" Margin="2,1,2,1" VerticalAlignment="Center" HorizontalAlignment="Stretch" SnapsToDevicePixels="True"/>
         <Popup Grid.Column="0" Grid.ColumnSpan="2" IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" Placement="Bottom" x:Name="SubMenuPopup" Focusable="false" AllowsTransparency="true" PopupAnimation="{DynamicResource {x:Static SystemParameters.MenuPopupAnimationKey}}">
           <Grid x:Name="SubMenu">
-            <Border x:Name="SubMenuBorder" Background="{DynamicResource MenuBackgroundBrush}" BorderBrush="{DynamicResource MenuBorderBrush}" BorderThickness="1"/>
+            <Border x:Name="SubMenuBorder" Background="{DynamicResource MenuBackgroundBrush}" BorderBrush="{DynamicResource MenuBorderBrush}" BorderThickness="0"/>
             <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" />
           </Grid>
         </Popup>
@@ -2299,39 +2309,56 @@
   </ControlTemplate>
 
   <Style TargetType="{x:Type MenuItem}">
-    <Setter Property="OverridesDefaultStyle" Value="True"/>
+    <Setter Property="OverridesDefaultStyle" Value="True" />
     <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
     <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" />
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="MinHeight" Value="18" />
+    <Setter Property="BorderThickness" Value="0.5" />
+    <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-    <Setter Property="Grid.IsSharedSizeScope" Value="True"/>
+    <Setter Property="Grid.IsSharedSizeScope" Value="True" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type MenuItem}">
-          <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0,0,0,0" Margin="2">
+          <Border x:Name="Border" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0,0,0,0" Margin="3,0">
             <Grid x:Name="Grid">
               <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="IconColumn"  MinWidth="17" Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup" />
+                <ColumnDefinition x:Name="IconColumn" MinWidth="17" Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup" />
                 <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemContentColumnGroup" />
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIGTColumnGroup" />
                 <ColumnDefinition x:Name="ArrowColumn" Width="14" />
               </Grid.ColumnDefinitions>
-              <Border Grid.Column="0" Grid.ColumnSpan="5" Background="{DynamicResource MenuHoverBrush}" Opacity="0" x:Name="HoverBorder"/>
-              <ContentPresenter Grid.Column="0" Margin="4,2" x:Name="Icon" VerticalAlignment="Center" ContentSource="Icon" />
+              <Border Grid.Column="0" Grid.ColumnSpan="5" Background="{DynamicResource MenuHoverBrush}" Opacity="0" x:Name="HoverBorder" />
+              <ContentPresenter Grid.Column="0" Margin="5,5" x:Name="Icon" MaxHeight="14" VerticalAlignment="Center" ContentSource="Icon" />
               <Grid Grid.Column="0" Visibility="Hidden" Margin="4,2" x:Name="GlyphPanel" VerticalAlignment="Center">
                 <Path x:Name="GlyphPanelpath" VerticalAlignment="Center" Fill="{TemplateBinding Foreground}" Data="M0,2 L0,4.8 L2.5,7.4 L7.1,2.8 L7.1,0 L2.5,4.6 z" FlowDirection="LeftToRight" />
               </Grid>
-              <ContentPresenter Grid.Column="1" x:Name="HeaderHost" RecognizesAccessKey="True" ContentSource="Header" Margin="4,2,16,2" VerticalAlignment="Center" HorizontalAlignment="Stretch" SnapsToDevicePixels="True"/>
-              <TextBlock x:Name="IGTTextBlock" Grid.Column="3" Text="{TemplateBinding MenuItem.InputGestureText}" IsEnabled="{TemplateBinding IsEnabled}" Margin="{TemplateBinding Control.Padding}" VerticalAlignment="Center" Visibility="Visible"/>
+              <ContentPresenter Grid.Column="1" x:Name="HeaderHost" RecognizesAccessKey="True" ContentSource="Header" Margin="0,3" VerticalAlignment="Center" HorizontalAlignment="Stretch" SnapsToDevicePixels="True" />
+              <TextBlock x:Name="IGTTextBlock" Grid.Column="3" Text="{TemplateBinding MenuItem.InputGestureText}" IsEnabled="{TemplateBinding IsEnabled}" Margin="{TemplateBinding Control.Padding}" VerticalAlignment="Center" Visibility="Visible" Padding="0,3" />
               <Grid Grid.Column="4" Margin="4,2" x:Name="ArrowPanel" VerticalAlignment="Center">
                 <Path x:Name="ArrowPanelPath" VerticalAlignment="Center" Fill="{TemplateBinding Foreground}" Data="M0,0 L0,8 L4,4 z" />
               </Grid>
               <Popup IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" Placement="Right" x:Name="SubMenuPopup" Focusable="false" AllowsTransparency="true" PopupAnimation="{DynamicResource {x:Static SystemParameters.MenuPopupAnimationKey}}">
-                <Grid x:Name="SubMenu">
-                  <Border x:Name="SubMenuBorder" Background="{DynamicResource MenuBackgroundBrush}" BorderBrush="{DynamicResource MenuBorderBrush}" BorderThickness="1"/>
-                  <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" Grid.IsSharedSizeScope="true"/>
+                <Grid>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="3" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="3" />
+                  </Grid.RowDefinitions>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="1" />
+                  </Grid.ColumnDefinitions>
+                  <Border Grid.Row="0" Grid.ColumnSpan="3" Background="{StaticResource MenuBackgroundBrush}" />
+                  <Border Grid.Row="2" Grid.ColumnSpan="3" Background="{StaticResource MenuBackgroundBrush}" />
+                  <Border x:Name="SubmenuMainWrapperBorder" Grid.RowSpan="3" Grid.ColumnSpan="3" Background="{StaticResource MenuBackgroundBrush}" BorderBrush="{StaticResource MenuBorderBrush}" BorderThickness="0.5" />
+                  <Grid x:Name="SubMenu" Grid.Row="1" Grid.Column="1">
+                    <Border x:Name="SubMenuBorder" Background="{DynamicResource MenuBackgroundBrush}" BorderBrush="{DynamicResource MenuBorderBrush}" BorderThickness="0" />
+                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" Grid.IsSharedSizeScope="true" />
+                  </Grid>
                 </Grid>
               </Popup>
             </Grid>
@@ -2357,12 +2384,16 @@
             </Trigger>
             <Trigger Property="Role" Value="SubmenuHeader">
               <Setter Property="DockPanel.Dock" Value="Top" />
+              <Setter Property="Width" Value="24" TargetName="IconColumn" />
               <Setter Property="Grid.IsSharedSizeScope" Value="true" />
+              <Setter Property="MinWidth" Value="70" TargetName="IGTTextBlock" />
             </Trigger>
             <Trigger Property="Role" Value="SubmenuItem">
               <Setter Property="DockPanel.Dock" Value="Top" />
+              <Setter Property="Width" Value="24" TargetName="IconColumn" />
               <Setter Property="Visibility" Value="Hidden" TargetName="ArrowPanel" />
               <Setter Property="Grid.IsSharedSizeScope" Value="true" />
+              <Setter Property="MinWidth" Value="70" TargetName="IGTTextBlock" />
             </Trigger>
             <Trigger Property="IsSuspendingPopupAnimation" Value="true">
               <Setter Property="PopupAnimation" Value="None" TargetName="SubMenuPopup" />
@@ -2372,13 +2403,28 @@
               <Setter Property="Visibility" Value="Collapsed" TargetName="Icon" />
             </Trigger>
             <Trigger Property="AllowsTransparency" SourceName="SubMenuPopup" Value="true">
-              <Setter Property="Margin" Value="0,0,3,3" TargetName="SubMenu" />
+              <Setter Property="Margin" Value="0" TargetName="SubMenu" />
               <Setter Property="SnapsToDevicePixels" Value="true" TargetName="SubMenu" />
             </Trigger>
             <Trigger Property="IsHighlighted" Value="True">
-              <Setter Property="Opacity" TargetName="HoverBorder" Value="1"/>
-              <Setter Property="Foreground" Value="Black" />
+              <Setter Property="Opacity" TargetName="HoverBorder" Value="1" />
+              <Setter Property="Fill" Value="{StaticResource MenuBlueGlyphs}" TargetName="GlyphPanelpath" />
+              <Setter Property="Fill" Value="{StaticResource MenuBlueGlyphs}" TargetName="ArrowPanelPath" />
+
             </Trigger>
+            <MultiTrigger>
+              <MultiTrigger.Conditions>
+                <Condition Property="IsSubmenuOpen" Value="True" />
+                <Condition Property="Role" Value="TopLevelHeader" />
+              </MultiTrigger.Conditions>
+              <MultiTrigger.Setters>
+                <Setter Property="Opacity" Value="0" TargetName="HoverBorder" />
+                <Setter Property="Background" Value="{StaticResource MenuBackgroundBrush}" TargetName="Border" />
+                <Setter Property="BorderThickness" Value="0.5,0,0.5,0.5" TargetName="SubmenuMainWrapperBorder" />
+                <Setter Property="BorderThickness" Value="0.5,0.5,0.5,0" TargetName="Border" />
+                <Setter Property="BorderBrush" Value="{StaticResource MenuBorderBrush}" TargetName="Border" />
+              </MultiTrigger.Setters>
+            </MultiTrigger>
             <Trigger Property="IsEnabled" Value="False">
               <Setter Property="Foreground" Value="Gray" />
               <Setter TargetName="IGTTextBlock" Property="Foreground" Value="Gray" />
@@ -2391,7 +2437,7 @@
   </Style>
   <Style TargetType="{x:Type Separator}">
     <Setter Property="Background" Value="{DynamicResource SolidBorderBrush}"/>
-    <Setter Property="Margin" Value="0,2,0,2" />
+    <Setter Property="Margin" Value="0,0,0,0" />
     <Setter Property="Focusable" Value="false" />
     <Setter Property="Template">
       <Setter.Value>
@@ -2402,7 +2448,7 @@
     </Setter>
   </Style>
   <Style TargetType="{x:Type TabControl}">
-    <Setter Property="Background" Value="{DynamicResource LightBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
     <Setter Property="ItemsPanel">
       <Setter.Value>
         <ItemsPanelTemplate>
@@ -2528,6 +2574,7 @@
   </Style>
   <Style d:IsControlPart="True" TargetType="{x:Type TabItem}">
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+    <Setter Property="Background" Value="{StaticResource BackgroundBrush}" />
     <Setter Property="Padding" Value="8,4" />
     <Setter Property="Template">
       <Setter.Value>
@@ -2651,6 +2698,7 @@
                 <BeginStoryboard Storyboard="{StaticResource SelectedOn}" x:Name="SelectedOn_BeginStoryboard"/>
               </Trigger.EnterActions>
               <Setter Property="Panel.ZIndex" Value="100" />
+              <Setter Property="Foreground" Value="#0088cc" />
             </Trigger>
             <MultiTrigger>
               <MultiTrigger.Conditions>
@@ -2773,7 +2821,7 @@
               <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <TickBar Visibility="Collapsed" x:Name="TopTick" Height="4" SnapsToDevicePixels="True" Placement="Top" Fill="{DynamicResource GlyphBrush}" />
-            <Border Grid.Row="1" Margin="0" x:Name="Border" Height="4" CornerRadius="2" Background="{DynamicResource LightBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1,1,1,1" />
+            <Border Grid.Row="1" Margin="0" x:Name="Border" Height="4" Background="{DynamicResource LightBrush}" BorderBrush="{DynamicResource NormalBorderBrush}" BorderThickness="1,1,1,1" />
             <Track Grid.Row="1" x:Name="PART_Track">
               <Track.Thumb>
                 <Thumb Style="{DynamicResource NuclearSliderThumb}" Background="{DynamicResource NormalBrush}" Foreground="{x:Null}" Width="10" Height="{TemplateBinding ActualHeight}"/>
@@ -3437,7 +3485,7 @@
 
   <Style x:Key="{x:Static ToolBar.ComboBoxStyleKey}" TargetType="{x:Type ComboBox}">
     <Setter Property="SnapsToDevicePixels" Value="true" />
-    <Setter Property="Background" Value="{DynamicResource LightBrush}"/>
+    <Setter Property="Background" Value="{DynamicResource ComboBoxBackground}"/>
     <Setter Property="Template" Value="{DynamicResource ComboBoxTemplate}" />
     <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
   </Style>
@@ -3652,7 +3700,7 @@
               <ToggleButton Margin="2" Visibility="{TemplateBinding HasOverflowItems, Converter={cvt:VisibleOrCollapsed}}" x:Name="OverflowButton" ClickMode="Press" IsChecked="{Binding IsOverflowOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" Background="{StaticResource TagBackgroundBrush}" Padding="2,0">
                 <ToggleButton.Template>
                   <ControlTemplate>
-                    <Border Background="{StaticResource TagBackgroundBrush}" CornerRadius="3">
+                    <Border Background="{StaticResource TagBackgroundBrush}">
                       <TextBlock Margin="2,0" Text="…"/>
                     </Border>
                   </ControlTemplate>
@@ -3730,7 +3778,7 @@
                     Background="{x:Null}"
                     BorderBrush="{x:Null}"
                     BorderThickness="0" />
-        <Border Visibility="Collapsed" BorderThickness="1,0,1,1" CornerRadius="3,3,3,3" x:Name="border" Margin="1,1,1,1" Focusable="False">
+        <Border Visibility="Collapsed" BorderThickness="1,0,1,1" x:Name="border" Margin="1,1,1,1" Focusable="False">
           <ContentPresenter Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="1,1,1,1" x:Name="ExpandSite" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" DockPanel.Dock="Bottom" />
         </Border>
       </DockPanel>
@@ -4171,7 +4219,7 @@
                 <ctrl:NumericTextBox Value="{Binding Y, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={cvt:ToDouble}}"
                                      DecimalPlaces="0" DisplayUpDownButtons="False" SelectAllOnFocus="True" Margin="-1" TextAlignment="Center"
                                      WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource Mode=TemplatedParent}}"
-                                     WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>/>
+                                     WatermarkContentTemplate="{Binding WatermarkContentTemplate, RelativeSource={RelativeSource Mode=TemplatedParent}}"/> />
               </DockPanel>
             </Border>
             <Border Grid.Column="5" CornerRadius="4" Margin="2,0,0,0" Background="{StaticResource BlueBrush}" BorderThickness="1" BorderBrush="Transparent">
@@ -4614,6 +4662,7 @@
   <Style TargetType="{x:Type Image}">
     <Setter Property="RenderOptions.BitmapScalingMode" Value="NearestNeighbor"/>
     <Setter Property="SnapsToDevicePixels" Value="True"/>
+    <EventSetter Event="Loaded" Handler="Image_Loaded" />
   </Style>
 
   <!--  TREE VIEWS  -->
@@ -4640,7 +4689,7 @@
                                 VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
                                 Background="{TemplateBinding Panel.Background}"
                                 Padding="{TemplateBinding Control.Padding}"
-                                SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" 
+                                SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}"
                                 Focusable="False">
               <ItemsPresenter x:Name="content" DockPanel.Dock="Top" />
             </ScrollViewer>
@@ -4696,7 +4745,7 @@
               <Rectangle x:Name="SelectedRectangle" IsHitTestVisible="False" Opacity="0" Fill="{StaticResource SelectedBackgroundBrush}"/>
               <DockPanel x:Name="ct" Margin="{TemplateBinding Padding}">
                 <FrameworkElement DockPanel.Dock="Left" Margin="{Binding Offset, RelativeSource={RelativeSource TemplatedParent}, Converter={cvt:NumericToThickness}, ConverterParameter={me:Thickness 1,0,0,0}}"/>
-                <ToggleButton DockPanel.Dock="Left" 
+                <ToggleButton DockPanel.Dock="Left"
                                     IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type ctrl:TreeViewItem}},Path=IsExpanded,FallbackValue={me:False}}"
                                     Visibility="{Binding RelativeSource={RelativeSource AncestorType={x:Type ctrl:TreeViewItem}},Path=HasItems, Converter={cvt:VisibleOrHidden},FallbackValue={me:Hidden}}"
                                     ClickMode="Press" Name="Expander" HorizontalAlignment="Right">
@@ -4714,7 +4763,7 @@
                   </ToggleButton.Style>
                 </ToggleButton>
                 <ContentPresenter x:Name="content"
-                                  FocusManager.IsFocusScope="True" 
+                                  FocusManager.IsFocusScope="True"
                                   Content="{TemplateBinding HeaderedContentControl.Header}"
                                   ContentTemplate="{TemplateBinding HeaderedContentControl.HeaderTemplate}"
                                   ContentStringFormat="{TemplateBinding HeaderedItemsControl.HeaderStringFormat}"
@@ -4751,9 +4800,9 @@
             </Trigger>
 
             <Trigger Property="ctrl:TreeViewItem.IsEditing" Value="True">
-              <Setter TargetName="content" Property="ContentPresenter.ContentTemplate" 
+              <Setter TargetName="content" Property="ContentPresenter.ContentTemplate"
                       Value="{Binding TemplateEdit, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ctrl:TreeViewItem}, AncestorLevel=1}}"/>
-              <Setter TargetName="content" Property="ContentPresenter.ContentTemplateSelector" 
+              <Setter TargetName="content" Property="ContentPresenter.ContentTemplateSelector"
                       Value="{Binding TemplateSelectorEdit, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ctrl:TreeViewItem}, AncestorLevel=1}}"/>
               <Setter Property="Padding" Value="0" />
             </Trigger>

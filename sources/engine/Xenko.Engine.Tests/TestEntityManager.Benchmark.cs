@@ -121,7 +121,7 @@ namespace Xenko.Engine.Tests
 
             Console.WriteLine($"Total Time: {totalTime}ms");
         }
-        public static void DumpGC(string text)
+        internal static void DumpGC(string text)
         {
             var totalMemory = GC.GetTotalMemory(false);
             var collect0 = GC.CollectionCount(0);

@@ -1014,7 +1014,7 @@ namespace Xenko.Core.Assets
                     {
                         var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
                         var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
-                        if (!packageUpgrader.UpgradeBeforeAssembliesLoaded(session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage))
+                        if (!packageUpgrader.UpgradeBeforeAssembliesLoaded(loadParameters, session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage))
                         {
                             log.Error($"Error while upgrading package [{package.Meta.Name}] for [{dependencyPackage.Meta.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{dependencyPackage.Meta.Version}]");
                             return false;
@@ -1039,7 +1039,7 @@ namespace Xenko.Core.Assets
                     {
                         var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
                         var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
-                        if (!packageUpgrader.Upgrade(session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage, newLoadParameters.AssetFiles))
+                        if (!packageUpgrader.Upgrade(loadParameters, session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage, newLoadParameters.AssetFiles))
                         {
                             log.Error($"Error while upgrading package [{package.Meta.Name}] for [{dependencyPackage.Meta.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{dependencyPackage.Meta.Version}]");
                             return false;
@@ -1066,7 +1066,7 @@ namespace Xenko.Core.Assets
                     {
                         var packageUpgrader = pendingPackageUpgrade.PackageUpgrader;
                         var dependencyPackage = pendingPackageUpgrade.DependencyPackage;
-                        if (!packageUpgrader.UpgradeAfterAssetsLoaded(session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage, pendingPackageUpgrade.DependencyVersionBeforeUpgrade))
+                        if (!packageUpgrader.UpgradeAfterAssetsLoaded(loadParameters, session, log, package, pendingPackageUpgrade.Dependency, dependencyPackage, pendingPackageUpgrade.DependencyVersionBeforeUpgrade))
                         {
                             log.Error($"Error while upgrading package [{package.Meta.Name}] for [{dependencyPackage.Meta.Name}] from version [{pendingPackageUpgrade.Dependency.Version}] to [{dependencyPackage.Meta.Version}]");
                             return false;

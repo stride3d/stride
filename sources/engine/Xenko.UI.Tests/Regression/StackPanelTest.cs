@@ -191,7 +191,7 @@ namespace Xenko.UI.Tests.Regression
             currentStackPanel.InvalidateArrange();
         }
 
-        public void Draw0()
+        private void Draw0()
         {
             // check that scrolling works before any layouting
             scrollViewer.ScrollToEnd(Orientation.Vertical);
@@ -208,7 +208,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        private static void Main()
         {
             using (var game = new StackPanelTest())
                 game.Run();

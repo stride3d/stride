@@ -166,7 +166,7 @@ namespace Xenko.Graphics.Tests
             return new RectangleF(sphereX * (SphereWidth + SphereSpace), sphereY * (SphereHeight + SphereSpace), SphereWidth, SphereHeight);
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestSpriteBatch3D())
                 game.Run();

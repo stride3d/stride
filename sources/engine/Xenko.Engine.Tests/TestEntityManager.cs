@@ -453,7 +453,7 @@ namespace Xenko.Engine.Tests
             Assert.True(prevRootAsChildCheck);
         }
 
-        public static void Main()
+        internal static void Main()
         {
         }
     }

@@ -132,7 +132,7 @@ namespace Xenko.Graphics.Tests
             y += 1.4f * dim.Y;
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestSpriteBatchResolution())
                 game.Run();

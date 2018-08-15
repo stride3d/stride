@@ -88,7 +88,7 @@ namespace Xenko.Core.Yaml.Tests
             TryParse(schema, "2002-12-14 21:59:43.234", ExtendedSchema.TimestampShortTag, new DateTime(2002, 12, 14, 21, 59, 43, 234));
         }
 
-        public void TestFailsafeSchemaCommon(IYamlSchema schema)
+        private void TestFailsafeSchemaCommon(IYamlSchema schema)
         {
             Assert.Equal(SchemaBase.StrShortTag, schema.GetDefaultTag(new Scalar("true")));
             Assert.Equal(SchemaBase.StrShortTag, schema.GetDefaultTag(new Scalar("custom", "boom")));
@@ -106,7 +106,7 @@ namespace Xenko.Core.Yaml.Tests
             TryParse(schema, "true", SchemaBase.StrShortTag, "true");
         }
 
-        public void TestJsonSchemaCommon(IYamlSchema schema)
+        private void TestJsonSchemaCommon(IYamlSchema schema)
         {
             Assert.Equal(SchemaBase.StrShortTag, schema.GetDefaultTag(new Scalar(null, null, "true", ScalarStyle.DoubleQuoted, false, false)));
             Assert.Equal(JsonSchema.BoolShortTag, schema.GetDefaultTag(new Scalar("true")));
@@ -132,7 +132,7 @@ namespace Xenko.Core.Yaml.Tests
             TryParse(schema, ".inf", JsonSchema.FloatShortTag, double.PositiveInfinity);
         }
 
-        public void TestCoreSchemaCommon(IYamlSchema schema)
+        private void TestCoreSchemaCommon(IYamlSchema schema)
         {
             TestJsonSchemaCommon(schema);
 

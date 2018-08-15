@@ -148,7 +148,7 @@ namespace Xenko.Core.Settings
                     SettingsYamlSerializer.Default.Deserialize(stream, settingsFile);
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return null;
             }

@@ -56,7 +56,7 @@ namespace Xenko.Core.Assets.Tests
             return true;
         }
 
-        public static void Main()
+        internal static void Main()
         {
             var test = new TestTemplateManager();
             test.TestTemplateDescriptions();

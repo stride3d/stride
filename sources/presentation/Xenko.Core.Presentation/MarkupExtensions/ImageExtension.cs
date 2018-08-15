@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
 using Xenko.Core.Annotations;
+using Xenko.Core.Presentation.Themes;
 
 namespace Xenko.Core.Presentation.MarkupExtensions
 {
@@ -42,6 +43,14 @@ namespace Xenko.Core.Presentation.MarkupExtensions
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
             var image = new Image { Source = source };
+            if (source is DrawingImage drawingImage)
+            {
+                image.Source = new DrawingImage()
+                {
+                    Drawing = ImageThemingUtilities.TransformDrawing((source as DrawingImage)?.Drawing, IconThemeSelector.KnownThemes.Dark.GetIconTheme())
+                };
+            }
+
             RenderOptions.SetBitmapScalingMode(image, scalingMode);
             if (width >= 0 && height >= 0)
             {

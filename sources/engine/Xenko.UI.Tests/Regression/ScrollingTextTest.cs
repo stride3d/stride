@@ -121,18 +121,18 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(Draw6).TakeScreenshot();
         }
 
-        public void Draw1()
+        private void Draw1()
         {
             UpdateScrollingText(new TimeSpan(0, 0, 0, 5, 500));
         }
 
-        public void Draw2()
+        private void Draw2()
         {
             //test text wrapping
             UpdateScrollingText(new TimeSpan(0, 0, 0, 5, 500));
         }
 
-        public void Draw3()
+        private void Draw3()
         {
             // test higher speed (result should be same as Draw1)
             textScroller.Text = InitialText;
@@ -140,18 +140,18 @@ namespace Xenko.UI.Tests.Regression
             UpdateScrollingText(new TimeSpan(0, 0, 0, 2, 750));
             textScroller.ScrollingSpeed = textScroller.ScrollingSpeed / 2;
         }
-        
-        public void Draw4()
+
+        private void Draw4()
         {
             DecreaseButtonSize();
         }
 
-        public void Draw5()
+        private void Draw5()
         {
             IncreaseButtonSize();
         }
 
-        public void Draw6()
+        private void Draw6()
         {
             //test no text wrapping
             textScroller.RepeatText = false;
@@ -167,7 +167,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new ScrollingTextTest())
             {

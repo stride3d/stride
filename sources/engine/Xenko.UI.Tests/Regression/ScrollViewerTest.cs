@@ -132,14 +132,14 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(Draw14).TakeScreenshot();
         }
 
-        public void Draw0()
+        private void Draw0()
         {
             // check that scrolling works before any layouting
             scrollViewer.ScrollToEnd(Orientation.Vertical);
             scrollViewer.ScrollToEnd(Orientation.Horizontal);
         }
 
-        public void Draw1()
+        private void Draw1()
         {
             // show the scroll bars
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.5f, 0.5f));
@@ -149,38 +149,38 @@ namespace Xenko.UI.Tests.Regression
             UI.Update(new GameTime(new TimeSpan(), new TimeSpan(0, 0, 0, 0, 500)));
         }
 
-        public void Draw2()
+        private void Draw2()
         {
             // check that ScrollTo works properly for a content not implementing IScrollInfo
             scrollViewer.ScrollTo(new Vector3(1000, 1000, 1000));
         }
 
-        public void Draw3()
+        private void Draw3()
         {
             // check that scrolling force arrange update when scrolling is delayed to arrange function
             contentDecorator.InvalidateMeasure(); // invalidate parent layout -> invalidate scroll viewer layout but do not force update
             scrollViewer.ScrollToEnd(Orientation.Vertical); // should delay scroll in next draw and force arrange update to have correct result.
         }
 
-        public void Draw4()
+        private void Draw4()
         {
             // check that changing mode correctly update layout and reset offsets
             scrollViewer.ScrollMode = ScrollingMode.Vertical;
         }
 
-        public void Draw5()
+        private void Draw5()
         {
             // check that ScrollOf works properly for a content not implementing IScrollInfo
             scrollViewer.ScrollOf(new Vector3(400,400,400));
         }
 
-        public void Draw6()
+        private void Draw6()
         {
             // check that changing mode correctly update layout and reset offsets
             scrollViewer.ScrollMode = ScrollingMode.Horizontal;
         }
 
-        public void Draw7()
+        private void Draw7()
         {
             // check that ScrollToEnd properly works if layout is invalidated
             scrollViewer.ScrollMode = ScrollingMode.HorizontalVertical;
@@ -188,44 +188,44 @@ namespace Xenko.UI.Tests.Regression
             scrollViewer.ScrollToEnd(Orientation.Horizontal);
         }
 
-        public void Draw8()
+        private void Draw8()
         {
             // check that scroll offset are correctly updated when layout is invalidated
             grid.Height = 100;
         }
 
-        public void Draw9()
+        private void Draw9()
         {
             // check that layout/offsets are correctly updated when content is changed
             scrollViewer.Content = stackPanel;
         }
 
-        public void Draw10()
+        private void Draw10()
         {
             // check that ScrollToEnd works properly with children implementing  IScrollInfo
             scrollViewer.ScrollToEnd(Orientation.Horizontal);
             scrollViewer.ScrollToEnd(Orientation.Vertical);
         }
 
-        public void Draw11()
+        private void Draw11()
         {
             // check that changing scroll mode update properly layout and offset with children implementing  IScrollInfo
             scrollViewer.ScrollMode = ScrollingMode.Horizontal;
         }
 
-        public void Draw12()
+        private void Draw12()
         {
             // check that ScrollOf works properly for a content implementing IScrollInfo
             scrollViewer.ScrollOf(new Vector3(400, 400, 400));
         }
 
-        public void Draw13()
+        private void Draw13()
         {
             // check that changing scroll mode update properly layout and offset with children implementing  IScrollInfo
             scrollViewer.ScrollMode = ScrollingMode.Vertical;
         }
 
-        public void Draw14()
+        private void Draw14()
         {
             // check that ScrollTo works properly for a content implementing IScrollInfo
             scrollViewer.ScrollTo(new Vector3(300, 300, 300));
@@ -240,7 +240,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new ScrollViewerTest())
                 game.Run();

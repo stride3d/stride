@@ -24,7 +24,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
 
         // Local copies at creation time
         private RoslynWorkspace workspace;
-        private ProjectId projectId;
 
         /// <summary>
         /// Identifies the <see cref="Workspace"/> dependency property.
@@ -105,7 +104,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
             if (workspace != null)
             {
                 // Anything changed?
-                if (workspace == Workspace && projectId == ProjectId)
+                if (workspace == Workspace/* && projectId == ProjectId*/)
                 {
                     return;
                 }

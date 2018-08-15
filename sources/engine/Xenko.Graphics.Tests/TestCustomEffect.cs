@@ -60,7 +60,7 @@ namespace Xenko.Graphics.Tests
             GraphicsContext.DrawQuad(effectInstance);
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestCustomEffect())
                 game.Run();

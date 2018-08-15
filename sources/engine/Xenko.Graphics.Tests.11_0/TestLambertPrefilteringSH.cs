@@ -172,7 +172,7 @@ namespace Xenko.Graphics.Tests
             RunGameTest(new TestLambertPrefilteringSH());
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestLambertPrefilteringSH())
                 game.Run();

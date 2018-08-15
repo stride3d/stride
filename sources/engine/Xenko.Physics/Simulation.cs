@@ -30,6 +30,10 @@ namespace Xenko.Physics
 
         internal readonly bool CanCcd;
 
+#if DEBUG
+        private readonly static Logger Log = GlobalLogger.GetLogger(typeof(Simulation).FullName);
+#endif
+
         public bool ContinuousCollisionDetection
         {
             get
@@ -1068,10 +1072,9 @@ namespace Xenko.Physics
             {
 #if DEBUG
                 //should not happen?
-                throw new Exception("Pair not present.");
-#else
-                return;
+                Log.Warning("Pair not present.");
 #endif
+                return;
             }
 
             if (existingPair.Contacts.Contains(contact))
@@ -1092,7 +1095,7 @@ namespace Xenko.Physics
             {
 #if DEBUG
                 //should not happen?
-                throw new Exception("Contact not in pair.");
+                Log.Warning("Contact not in pair.");
 #endif
             }
         }
@@ -1143,10 +1146,9 @@ namespace Xenko.Physics
                     {
 #if DEBUG
                         //should not happen?
-                        throw new Exception("Contact already added.");
-#else
-                        continue;
+                        Log.Warning("Contact already added.");
 #endif
+                        continue;
                     }
 
                     existingPair.Contacts.Add(contact);
@@ -1193,7 +1195,7 @@ namespace Xenko.Physics
                     {
 #if DEBUG
                         //should not happen?
-                        throw new Exception("Contact not in pair.");
+                        Log.Warning("Contact not in pair.");
 #endif
                     }
                 }
@@ -1201,7 +1203,7 @@ namespace Xenko.Physics
                 {
 #if DEBUG
                     //should not happen?
-                    throw new Exception("Pair not present.");
+                    Log.Warning("Pair not present.");
 #endif
                 }
             }

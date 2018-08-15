@@ -70,7 +70,7 @@ namespace Xenko.Audio.Tests
             RunGameTest(new BasicTest());
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new BasicTest())
                 game.Run();

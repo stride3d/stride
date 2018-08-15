@@ -30,7 +30,7 @@ namespace Xenko.Shaders.Tests
     /// </summary>
     public partial class TestMixinCompiler
     {
-        public static void Main()
+        internal static void Main()
         {
             new TestMixinCompiler().TestMaterial();
         }
@@ -212,7 +212,7 @@ namespace Xenko.Shaders.Tests
             //Assert.Equal(results11.MainBytecode.Time, results01.MainBytecode.Time); -> crash, MainBytecode == null
         }
 
-        public void TestNoClean(out CompilerResults left, out CompilerResults right)
+        private void TestNoClean(out CompilerResults left, out CompilerResults right)
         {
             // Create and mount database file system
             var objDatabase = ObjectDatabase.CreateDefaultDatabase();

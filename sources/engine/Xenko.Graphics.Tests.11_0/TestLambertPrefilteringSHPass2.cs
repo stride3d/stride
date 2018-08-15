@@ -128,7 +128,7 @@ namespace Xenko.Graphics.Tests
             RunGameTest(new TestLambertPrefilteringSHPass2());
         }
 
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new TestLambertPrefilteringSHPass2(false))
             {

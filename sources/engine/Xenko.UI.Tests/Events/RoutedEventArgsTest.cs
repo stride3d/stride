@@ -17,7 +17,7 @@ namespace Xenko.UI.Tests.Events
         /// <summary>
         /// Launch all tests of the class
         /// </summary>
-        public void TestAll()
+        internal void TestAll()
         {
             TestEventFreezing();
         }

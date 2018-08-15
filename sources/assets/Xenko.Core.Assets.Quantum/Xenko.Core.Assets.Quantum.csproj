@@ -13,9 +13,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="NuGet">
-      <HintPath>..\..\..\deps\Nuget\NuGet.core.dll</HintPath>
-    </Reference>
     <PackageReference Include="Microsoft.Build" Version="15.7.179" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.7.179" ExcludeAssets="runtime" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />

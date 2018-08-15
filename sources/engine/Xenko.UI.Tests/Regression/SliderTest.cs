@@ -152,64 +152,64 @@ namespace Xenko.UI.Tests.Regression
             grid.Columns = grid.Columns % 2 + 1;
         }
 
-        public void DrawTest1()
+        private void DrawTest1()
         {
             slider.Value = 0.25f;
         }
 
-        public void DrawTest2()
+        private void DrawTest2()
         {
             slider.AreTicksDisplayed = true;
             slider.VerticalAlignment = VerticalAlignment.Stretch;
         }
 
-        public void DrawTest3()
+        private void DrawTest3()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.75f, 0.5f));
             AddPointerEvent(PointerEventType.Released, new Vector2(0.75f, 0.5f));
             Input.Update(new GameTime());
         }
 
-        public void DrawTest4()
+        private void DrawTest4()
         {
             slider.VerticalAlignment = VerticalAlignment.Center;
             slider.IsDirectionReversed = true;
         }
 
-        public void DrawTest5()
+        private void DrawTest5()
         {
             slider.IsDirectionReversed = false;
             slider.ShouldSnapToTicks = true;
         }
 
-        public void DrawTest6()
+        private void DrawTest6()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.54f, 0.5f));
             AddPointerEvent(PointerEventType.Released, new Vector2(0.54f, 0.5f));
             Input.Update(new GameTime());
         }
 
-        public void DrawTest7()
+        private void DrawTest7()
         {
             SetSliderImages(true);
         }
 
-        public void DrawTest8()
+        private void DrawTest8()
         {
             slider.Orientation = Orientation.Vertical;
         }
 
-        public void DrawTest9()
+        private void DrawTest9()
         {
             SetSliderImages(false);
         }
 
-        public void DrawTest10()
+        private void DrawTest10()
         {
             ChangeGridColumnRowNumbers();
         }
 
-        public void DrawTest11()
+        private void DrawTest11()
         {
             slider.LocalMatrix = Matrix.Translation(20, 30, 0) * Matrix.RotationYawPitchRoll(-0.1f, -0.2f, 0.3f);
         }
@@ -223,7 +223,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new SliderTest())
                 game.Run();

@@ -130,46 +130,46 @@ namespace Xenko.UI.Tests.Regression
             FrameGameSystem.Draw(Draw6).TakeScreenshot();
         }
 
-        public void SetElement2Matrix(Matrix matrix)
+        private void SetElement2Matrix(Matrix matrix)
         {
             elements[1].LocalMatrix = matrix;
         }
 
-        public void Draw1()
+        private void Draw1()
         {
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.4f, 0.6f));
             Input.Update(new GameTime());
         }
 
-        public void Draw2()
+        private void Draw2()
         {
             AddPointerEvent(PointerEventType.Released, new Vector2(0.4f, 0.6f));
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.6f, 0.4f));
             Input.Update(new GameTime());
         }
 
-        public void Draw3()
+        private void Draw3()
         {
             AddPointerEvent(PointerEventType.Released, new Vector2(0.6f, 0.4f));
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.4f, 0.6f));
             Input.Update(new GameTime());
         }
 
-        public void Draw4()
+        private void Draw4()
         {
             AddPointerEvent(PointerEventType.Released, new Vector2(0.4f, 0.6f));
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.4f, 0.4f));
             Input.Update(new GameTime());
         }
 
-        public void Draw5()
+        private void Draw5()
         {
             AddPointerEvent(PointerEventType.Released, new Vector2(0.4f, 0.6f));
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.27625f, 0.5667f));
             Input.Update(new GameTime());
         }
 
-        public void Draw6()
+        private void Draw6()
         {
             AddPointerEvent(PointerEventType.Released, new Vector2(0.348f, 0.231f));
             AddPointerEvent(PointerEventType.Pressed, new Vector2(0.441f, 0.418f));
@@ -185,7 +185,7 @@ namespace Xenko.UI.Tests.Regression
         /// <summary>
         /// Launch the Image test.
         /// </summary>
-        public static void Main()
+        internal static void Main()
         {
             using (var game = new ClickTests())
             {

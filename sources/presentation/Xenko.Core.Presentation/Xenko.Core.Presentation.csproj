@@ -2,7 +2,7 @@
 
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-  
+
   <PropertyGroup>
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
@@ -31,14 +31,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Include="Resources\VectorResources.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Themes\ExpressionDark\Theme.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Update="Themes\ExpressionDark\Theme.xaml.cs">
+      <DependentUpon>Themes\ExpressionDark\Theme.xaml</DependentUpon>
+    </Compile>
     <Page Include="Themes\generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+
   </ItemGroup>
 
   <ItemGroup>
