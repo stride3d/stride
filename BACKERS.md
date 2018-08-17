@@ -35,6 +35,8 @@ Thank you everybody for your generous contributions!
 * Chris Beckwith
 * Harald Mühleder
 * Szymon Kobalczyk
+* Philippe Monteil
+* Cobalt
 
 ## Mini Backers
 
