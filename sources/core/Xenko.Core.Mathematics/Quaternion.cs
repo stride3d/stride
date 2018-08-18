@@ -27,12 +27,8 @@
 * THE SOFTWARE.
 */
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.ComponentModel;
 using System.Globalization;
-using Xenko.Core.Serialization;
+using System.Runtime.InteropServices;
 
 namespace Xenko.Core.Mathematics
 {
@@ -752,7 +748,7 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// Rotates a Vector3 by the specified quaternion rotation.
         /// </summary>
-        /// <param name="vector"></param>
+        /// <param name="vector">The vector to rotate.</param>
         public void Rotate(ref Vector3 vector)
         {
             var pureQuaternion = new Quaternion(vector, 0);
@@ -978,16 +974,16 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the newly created quaternion.</param>
         public static void RotationYawPitchRoll(float yaw, float pitch, float roll, out Quaternion result)
         {
-            var  halfRoll = roll * 0.5f;
-            var  halfPitch = pitch * 0.5f;
-            var  halfYaw = yaw * 0.5f;
+            var halfRoll = roll * 0.5f;
+            var halfPitch = pitch * 0.5f;
+            var halfYaw = yaw * 0.5f;
             
-            var  sinRoll = (float)Math.Sin(halfRoll);
-            var  cosRoll = (float)Math.Cos(halfRoll);
-            var  sinPitch = (float)Math.Sin(halfPitch);
-            var  cosPitch = (float)Math.Cos(halfPitch);
-            var  sinYaw = (float)Math.Sin(halfYaw);
-            var  cosYaw = (float)Math.Cos(halfYaw);
+            var sinRoll = (float)Math.Sin(halfRoll);
+            var cosRoll = (float)Math.Cos(halfRoll);
+            var sinPitch = (float)Math.Sin(halfPitch);
+            var cosPitch = (float)Math.Cos(halfPitch);
+            var sinYaw = (float)Math.Sin(halfYaw);
+            var cosYaw = (float)Math.Cos(halfYaw);
 
             var cosYawPitch = cosYaw * cosPitch;
             var sinYawPitch = sinYaw * sinPitch;
@@ -1259,10 +1255,10 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public override string ToString()
         {
@@ -1270,11 +1266,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(string format)
         {
@@ -1286,11 +1282,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="formatProvider">The format provider.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(IFormatProvider formatProvider)
         {
@@ -1298,12 +1294,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <param name="formatProvider">The format provider.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(string format, IFormatProvider formatProvider)
         {
@@ -1341,11 +1337,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
         /// </summary>
-        /// <param name="value">The <see cref="System.Object"/> to compare with this instance.</param>
+        /// <param name="value">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object value)
         {

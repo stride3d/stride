@@ -119,11 +119,11 @@ namespace Xenko.Physics
         {
             get
             {
-                return ProtectedColliderShape;
+                return colliderShape;
             }
             set
             {
-                ProtectedColliderShape = value;
+                colliderShape = value;
 
                 if (value == null)
                     return;
@@ -134,7 +134,7 @@ namespace Xenko.Physics
                 if (NativeCollisionObject != null)
                     NativeCollisionObject.CollisionShape = value.InternalShape;
 
-                var inertia = ProtectedColliderShape.InternalShape.CalculateLocalInertia(mass);
+                var inertia = colliderShape.InternalShape.CalculateLocalInertia(mass);
                 InternalRigidBody.SetMassProps(mass, inertia);
                 InternalRigidBody.UpdateInertiaTensor(); //this was the major headache when I had to debug Slider and Hinge constraint
             }
@@ -326,7 +326,7 @@ namespace Xenko.Physics
 
             InternalRigidBody = new BulletSharp.RigidBody(0.0f, MotionState, ColliderShape.InternalShape, Vector3.Zero)
             {
-                UserObject = this
+                UserObject = this,
             };
 
             NativeCollisionObject = InternalRigidBody;

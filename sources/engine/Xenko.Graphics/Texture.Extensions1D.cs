@@ -35,9 +35,9 @@ namespace Xenko.Graphics
         /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
         /// <param name="width">The width.</param>
         /// <param name="format">Describes the format to use.</param>
-        /// <param name="usage">The usage.</param>
         /// <param name="textureFlags">true if the texture needs to support unordered read write.</param>
         /// <param name="arraySize">Size of the texture 2D array, default to 1.</param>
+        /// <param name="usage">The usage.</param>
         /// <returns>
         /// A new instance of 1D <see cref="Texture"/> class.
         /// </returns>
@@ -53,9 +53,9 @@ namespace Xenko.Graphics
         /// <param name="width">The width.</param>
         /// <param name="mipCount">Number of mipmaps, set to true to have all mipmaps, set to an int >=1 for a particular mipmap count.</param>
         /// <param name="format">Describes the format to use.</param>
-        /// <param name="usage">The usage.</param>
         /// <param name="textureFlags">true if the texture needs to support unordered read write.</param>
         /// <param name="arraySize">Size of the texture 2D array, default to 1.</param>
+        /// <param name="usage">The usage.</param>
         /// <returns>
         /// A new instance of 1D <see cref="Texture"/> class.
         /// </returns>
@@ -71,14 +71,14 @@ namespace Xenko.Graphics
         /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
         /// <param name="width">The width.</param>
         /// <param name="format">Describes the format to use.</param>
-        /// <param name="usage">The usage.</param>
         /// <param name="textureData">Texture data. Size of must be equal to sizeof(Format) * width </param>
         /// <param name="textureFlags">true if the texture needs to support unordered read write.</param>
+        /// <param name="usage">The usage.</param>
         /// <returns>A new instance of <see cref="Texture" /> class.</returns>
         /// <remarks>
         /// The first dimension of mipMapTextures describes the number of array (Texture Array), second dimension is the mipmap, the third is the texture data for a particular mipmap.
         /// </remarks>
-        public unsafe static Texture New1D<T>(GraphicsDevice device, int width, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : struct
+        public static unsafe Texture New1D<T>(GraphicsDevice device, int width, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : struct
         {
             return New(device, TextureDescription.New1D(width, format, textureFlags, usage), new[] { GetDataBox(format, width, 1, 1, textureData, (IntPtr)Interop.Fixed(textureData)) });
         }

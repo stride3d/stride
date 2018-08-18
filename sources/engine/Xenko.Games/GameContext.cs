@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -20,14 +20,14 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+#pragma warning disable SA1402 // File may only contain a single type
 
 using System;
-using Xenko.Graphics;
 using System.Reflection;
+using Xenko.Graphics;
 
 namespace Xenko.Games
 {
- 
     /// <summary>
     /// Contains context used to render the game (Control for WinForm, a DrawingSurface for WP8...etc.).
     /// </summary>
@@ -96,7 +96,7 @@ namespace Xenko.Games
 
         /// <summary>
         /// Product location of game.
-		/// TODO: Only used for retrieving game's icon. See ProductName for future refactoring
+        /// TODO: Only used for retrieving game's icon. See ProductName for future refactoring
         /// </summary>
         public static string ProductLocation
         {
@@ -120,12 +120,11 @@ namespace Xenko.Games
         /// </summary>
         /// <param name="control">Winform control</param>
         /// <returns>The result of the conversion.</returns>
-        [Obsolete ("Use new GameContextWinforms(control) instead.")]
+        [Obsolete("Use new GameContextWinforms(control) instead.")]
         public static implicit operator GameContext(System.Windows.Forms.Control control)
         {
             return new GameContextWinforms(control);
         }
-
 
 #if XENKO_GRAPHICS_API_OPENGL
         /// <summary>

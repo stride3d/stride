@@ -10,8 +10,8 @@ namespace Xenko.Core.IO
     /// <li>The <see cref="UPath"/> class allows manipulation of paths and provides various operation such as absolute/relative path conversion, normalization, etc.</li>
     /// </ul>
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

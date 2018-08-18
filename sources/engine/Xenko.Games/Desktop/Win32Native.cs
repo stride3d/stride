@@ -22,6 +22,9 @@
 // THE SOFTWARE.
 
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
+#pragma warning disable SA1310 // Field names should not contain underscore
+#pragma warning disable SA1132 // Do not combine fields
+#pragma warning disable SA1307 // Accessible fields should begin with upper-case letter
 
 using System;
 using System.Runtime.InteropServices;
@@ -78,7 +81,7 @@ namespace Xenko.Games
             Style = (-16),
             ExtendedStyle = (-20),
             UserData = (-21),
-            Id = (-12)
+            Id = (-12),
         }
 
         public delegate IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);

@@ -48,16 +48,13 @@ namespace Xenko.Graphics
         /// </summary>
         public static readonly int Size = 28;
 
-
         /// <summary>
         /// The vertex layout of this structure.
         /// </summary>
         public static readonly VertexDeclaration Layout = new VertexDeclaration(
             VertexElement.Position<Vector3>(),
             VertexElement.Normal<Vector3>(),
-            VertexElement.Color<Color>()
-            );
-
+            VertexElement.Color<Color>());
 
         public bool Equals(VertexPositionNormalColor other)
         {

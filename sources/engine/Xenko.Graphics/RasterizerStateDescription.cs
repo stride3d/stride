@@ -121,15 +121,15 @@ namespace Xenko.Graphics
             unchecked
             {
                 var hashCode = (int)FillMode;
-                hashCode = (hashCode*397) ^ (int)CullMode;
-                hashCode = (hashCode*397) ^ FrontFaceCounterClockwise.GetHashCode();
-                hashCode = (hashCode*397) ^ DepthBias;
-                hashCode = (hashCode*397) ^ DepthBiasClamp.GetHashCode();
-                hashCode = (hashCode*397) ^ SlopeScaleDepthBias.GetHashCode();
-                hashCode = (hashCode*397) ^ DepthClipEnable.GetHashCode();
-                hashCode = (hashCode*397) ^ ScissorTestEnable.GetHashCode();
-                hashCode = (hashCode*397) ^ (int)MultisampleCount;
-                hashCode = (hashCode*397) ^ MultisampleAntiAliasLine.GetHashCode();
+                hashCode = (hashCode * 397) ^ (int)CullMode;
+                hashCode = (hashCode * 397) ^ FrontFaceCounterClockwise.GetHashCode();
+                hashCode = (hashCode * 397) ^ DepthBias;
+                hashCode = (hashCode * 397) ^ DepthBiasClamp.GetHashCode();
+                hashCode = (hashCode * 397) ^ SlopeScaleDepthBias.GetHashCode();
+                hashCode = (hashCode * 397) ^ DepthClipEnable.GetHashCode();
+                hashCode = (hashCode * 397) ^ ScissorTestEnable.GetHashCode();
+                hashCode = (hashCode * 397) ^ (int)MultisampleCount;
+                hashCode = (hashCode * 397) ^ MultisampleAntiAliasLine.GetHashCode();
                 return hashCode;
             }
         }

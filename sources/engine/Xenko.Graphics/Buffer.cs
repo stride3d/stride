@@ -55,7 +55,6 @@ namespace Xenko.Graphics
         {
         }
 
-
         /// <summary>
         /// Gets the description of this buffer.
         /// </summary>
@@ -64,9 +63,9 @@ namespace Xenko.Graphics
             get { return bufferDescription; }
         }
 
-        /// <summary>	
+        /// <summary>
         /// Value that identifies how the buffer is to be read from and written to.
-        /// </summary>	
+        /// </summary>
         public GraphicsResourceUsage Usage
         {
             get { return bufferDescription.Usage; }
@@ -91,9 +90,9 @@ namespace Xenko.Graphics
             get { return bufferDescription.SizeInBytes; }
         }
 
-        /// <summary>	
+        /// <summary>
         /// The size of the structure (in bytes) when it represents a structured/typed buffer.
-        /// </summary>	
+        /// </summary>
         public int StructureByteStride
         {
             get { return bufferDescription.StructureByteStride; }
@@ -277,7 +276,6 @@ namespace Xenko.Graphics
         {
             SetData(commandList, new DataPointer(Interop.Fixed(fromData), (fromData.Length * Utilities.SizeOf<TData>())), offsetInBytes);
         }
-
 
         /// <summary>
         /// Copies the content of this buffer from GPU memory to a CPU memory using a specific staging resource.
@@ -573,7 +571,8 @@ namespace Xenko.Graphics
 
         private static BufferDescription NewDescription(int bufferSize, int elementSize, BufferFlags bufferFlags, GraphicsResourceUsage usage)
         {
-            return new BufferDescription() {
+            return new BufferDescription()
+            {
                 SizeInBytes = bufferSize,
                 StructureByteStride = (bufferFlags & BufferFlags.StructuredBuffer) != 0 ? elementSize : 0,
                 BufferFlags = bufferFlags,
@@ -624,7 +623,6 @@ namespace Xenko.Graphics
     /// <typeparam name="T">Type of an element of this buffer.</typeparam>
     public class Buffer<T> : Buffer where T : struct
     {
-
         protected internal Buffer(GraphicsDevice device, BufferDescription description, BufferFlags viewFlags, PixelFormat viewFormat, IntPtr dataPointer) : base(device)
         {
             InitializeFromImpl(description, viewFlags, viewFormat, dataPointer);

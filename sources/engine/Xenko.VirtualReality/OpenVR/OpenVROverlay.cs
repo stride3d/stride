@@ -14,7 +14,7 @@ namespace Xenko.VirtualReality
         public OpenVROverlay()
         {
             overlayId = OpenVR.CreateOverlay();
-            if(overlayId == 0)
+            if (overlayId == 0)
             {
                 throw new System.Exception("Failed to create OpenVR overlay.");
             }

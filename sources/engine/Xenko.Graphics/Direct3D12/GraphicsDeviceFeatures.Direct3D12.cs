@@ -38,7 +38,7 @@ namespace Xenko.Graphics
     /// </remarks>
     public partial struct GraphicsDeviceFeatures
     {
-        private readonly static List<SharpDX.DXGI.Format> ObsoleteFormatToExcludes = new List<SharpDX.DXGI.Format>() { Format.R1_UNorm, Format.B5G6R5_UNorm, Format.B5G5R5A1_UNorm };
+        private static readonly List<SharpDX.DXGI.Format> ObsoleteFormatToExcludes = new List<SharpDX.DXGI.Format>() { Format.R1_UNorm, Format.B5G6R5_UNorm, Format.B5G5R5A1_UNorm };
 
         internal GraphicsDeviceFeatures(GraphicsDevice deviceRoot)
         {
@@ -81,7 +81,7 @@ namespace Xenko.Graphics
                     formatSupportData.Format = dxgiFormat;
                     formatSupportData.Support1 = FormatSupport1.None;
                     formatSupportData.Support2 = FormatSupport2.None;
-                    if(nativeDevice.CheckFeatureSupport(SharpDX.Direct3D12.Feature.FormatSupport, ref formatSupportData))
+                    if (nativeDevice.CheckFeatureSupport(SharpDX.Direct3D12.Feature.FormatSupport, ref formatSupportData))
                         formatSupport = (FormatSupport)formatSupportData.Support1;
                     maximumMultisampleCount = GetMaximumMultisampleCount(nativeDevice, dxgiFormat);
                 }

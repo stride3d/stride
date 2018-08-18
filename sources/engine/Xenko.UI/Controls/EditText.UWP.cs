@@ -164,7 +164,7 @@ namespace Xenko.UI.Controls
 
         private void OnTouchUpImpl(TouchEventArgs args)
         {
-            if(editText.FocusState == FocusState.Unfocused)
+            if (editText.FocusState == FocusState.Unfocused)
                 editText.Focus(FocusState.Programmatic);
         }
 

@@ -1,5 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -32,11 +34,8 @@ namespace Xenko.Core.Serialization
         public readonly Type SerializerType;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="AssemblySerializerEntry"/>.
+        /// Initializes a new instance of the <see cref="AssemblySerializerEntry"/> struct.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="objectType"></param>
-        /// <param name="serializerType"></param>
         public AssemblySerializerEntry(ObjectId id, Type objectType, Type serializerType)
         {
             Id = id;

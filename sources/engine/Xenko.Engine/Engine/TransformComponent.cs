@@ -13,12 +13,6 @@ using Xenko.Engine.Processors;
 
 namespace Xenko.Engine
 {
-    // TODO: temporary, will be removed once we have better way to detect when we're visiting this collection
-    [DataContract]
-    public class TransformChildrenCollection : TrackingCollection<TransformComponent>
-    {
-    }
-
     /// <summary>
     /// Defines Position, Rotation and Scale of its <see cref="Entity"/>.
     /// </summary>
@@ -29,7 +23,7 @@ namespace Xenko.Engine
     [ComponentOrder(0)]
     public sealed class TransformComponent : EntityComponent //, IEnumerable<TransformComponent> Check why this is not working
     {
-        private static readonly TransformOperation[] emptyTransformOperations = new TransformOperation[0];
+        private static readonly TransformOperation[] EmptyTransformOperations = new TransformOperation[0];
 
         // When false, transformation should be computed in TransformProcessor (no dependencies).
         // When true, transformation is computed later by another system.
@@ -46,7 +40,7 @@ namespace Xenko.Engine
         /// This is where we can register some custom work to be done after world matrix has been computed, such as updating model node hierarchy or physics for local node.
         /// </summary>
         [DataMemberIgnore]
-        public FastListStruct<TransformOperation> PostOperations = new FastListStruct<TransformOperation>(emptyTransformOperations);
+        public FastListStruct<TransformOperation> PostOperations = new FastListStruct<TransformOperation>(EmptyTransformOperations);
 
         /// <summary>
         /// The world matrix.

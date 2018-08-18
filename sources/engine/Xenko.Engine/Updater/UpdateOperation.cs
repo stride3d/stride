@@ -5,7 +5,7 @@ namespace Xenko.Updater
     /// <summary>
     /// Defines an update operation for internal use by <see cref="UpdateEngine"/>.
     /// </summary>
-    struct UpdateOperation
+    internal struct UpdateOperation
     {
         internal UpdateOperationType Type;
         internal UpdatableMember Member;

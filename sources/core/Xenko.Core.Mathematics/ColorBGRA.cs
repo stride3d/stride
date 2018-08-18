@@ -286,7 +286,8 @@ namespace Xenko.Core.Mathematics
 
             float max, min;
 
-            max = r; min = r;
+            max = r;
+            min = r;
 
             if (g > max) max = g;
             if (b > max) max = b;
@@ -314,7 +315,8 @@ namespace Xenko.Core.Mathematics
             float delta;
             float hue = 0.0f;
 
-            max = r; min = r;
+            max = r;
+            min = r;
 
             if (g > max) max = g;
             if (b > max) max = b;
@@ -358,7 +360,8 @@ namespace Xenko.Core.Mathematics
             float max, min;
             float l, s = 0;
 
-            max = r; min = r;
+            max = r;
+            min = r;
 
             if (g > max) max = g;
             if (b > max) max = b;
@@ -368,7 +371,6 @@ namespace Xenko.Core.Mathematics
 
             // if max == min, then there is no color and
             // the saturation is zero.
-            //
             if (max != min)
             {
                 l = (max + min) / 2;
@@ -966,7 +968,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="ColorBGRA"/> to <see cref="System.Int32"/>.
+        /// Performs an explicit conversion from <see cref="ColorBGRA"/> to <see cref="int"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>
@@ -978,7 +980,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="System.Int32"/> to <see cref="ColorBGRA"/>.
+        /// Performs an explicit conversion from <see cref="int"/> to <see cref="ColorBGRA"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>
@@ -1068,11 +1070,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
         /// </summary>
-        /// <param name="value">The <see cref="System.Object"/> to compare with this instance.</param>
+        /// <param name="value">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object value)
         {

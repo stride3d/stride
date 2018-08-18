@@ -337,7 +337,7 @@ namespace Xenko.Video
                 var adjustedTime = TimeSpanExtensions.Clamp(time, playRange.Start, playRange.End);
                 SeekImpl(adjustedTime);
                 CurrentTime = adjustedTime;
-                if (adjustedTime> playRange.Start && PlayState == PlayState.Stopped) // Stop -> currentTime == playRange.Start
+                if (adjustedTime > playRange.Start && PlayState == PlayState.Stopped) // Stop -> currentTime == playRange.Start
                     Pause();
             }
         }
@@ -349,7 +349,6 @@ namespace Xenko.Video
         {
             Seek(playRange.Start);
         }
-
 
         /// <summary>
         /// Stops the video.
@@ -465,7 +464,7 @@ namespace Xenko.Video
             long end = 0;
 
             var dataUrl = videoComponent.Source?.CompressedDataUrl;
-            if(dataUrl != null)
+            if (dataUrl != null)
             {
                 var fileProvider = services.GetSafeServiceAs<IDatabaseFileProviderService>().FileProvider;
 

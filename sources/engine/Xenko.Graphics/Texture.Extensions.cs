@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
+#pragma warning disable SA1649 // File name should match first type name
 using System;
 using System.IO;
 
@@ -8,7 +8,6 @@ namespace Xenko.Graphics
 {
     public static class TextureExtensions
     {
-
         public static Texture ToTextureView(this Texture texture, ViewType type, int arraySlice, int mipLevel)
         {
             var viewDescription = texture.ViewDescription;

@@ -46,7 +46,7 @@ namespace Xenko.Graphics
             /// <returns>A Typed buffer</returns>
             public static Buffer New(GraphicsDevice device, int count, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device,count * viewFormat.SizeInBytes(), BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, count * viewFormat.SizeInBytes(), BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
             }
 
             /// <summary>
@@ -61,7 +61,7 @@ namespace Xenko.Graphics
             /// <returns>A Typed buffer</returns>
             public static Buffer<T> New<T>(GraphicsDevice device, T[] value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default) where T : struct
             {
-                return Buffer.New(device,value, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, value, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
             }
 
             /// <summary>
@@ -73,9 +73,9 @@ namespace Xenko.Graphics
             /// <param name="isUnorderedAccess">if set to <c>true</c> this buffer supports unordered access (RW in HLSL).</param>
             /// <param name="usage">The usage of this resource.</param>
             /// <returns>A Typed buffer</returns>
-            public static Buffer New(GraphicsDevice device,DataPointer value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            public static Buffer New(GraphicsDevice device, DataPointer value, PixelFormat viewFormat, bool isUnorderedAccess = false, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
             {
-                return Buffer.New(device,value, 0, BufferFlags.ShaderResource | (isUnorderedAccess?BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
+                return Buffer.New(device, value, 0, BufferFlags.ShaderResource | (isUnorderedAccess ? BufferFlags.UnorderedAccess : BufferFlags.None), viewFormat, usage);
             }
         }
     }

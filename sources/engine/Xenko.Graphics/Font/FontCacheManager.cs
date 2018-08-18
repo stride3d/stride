@@ -62,11 +62,11 @@ namespace Xenko.Graphics.Font
         /// <param name="character">The character specifications corresponding to the bitmap</param>
         public void UploadCharacterBitmap(CommandList commandList, CharacterSpecification character)
         {
-            if(character.Bitmap == null)
+            if (character.Bitmap == null)
                 throw new ArgumentNullException("character");
 
-            if(character.IsBitmapUploaded)
-                throw new InvalidOperationException("The character '"+character.Character+"' upload has been requested while its current glyph is valid.");
+            if (character.IsBitmapUploaded)
+                throw new InvalidOperationException($"The character '{character.Character}' upload has been requested while its current glyph is valid.");
 
             var targetSize = new Int2(character.Bitmap.Width, character.Bitmap.Rows);
             if (!packer.Insert(targetSize.X, targetSize.Y, ref character.Glyph.Subrect))
@@ -125,7 +125,7 @@ namespace Xenko.Graphics.Font
         {
             character.LastUsedFrame = system.FrameCount;
 
-            if(character.ListNode.List != null)
+            if (character.ListNode.List != null)
                 cachedCharacters.Remove(character.ListNode);
             cachedCharacters.AddFirst(character.ListNode);
         }

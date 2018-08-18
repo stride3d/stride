@@ -8,14 +8,21 @@ namespace Xenko.VirtualReality
     internal class OculusTouchController : TouchController
     {
         private readonly TouchControllerHand hand;
-        private Vector3 currentPos, currentLinearVelocity, currentAngularVelocity;
+        private Vector3 currentPos;
+        private Vector3 currentLinearVelocity;
+        private Vector3 currentAngularVelocity;
         private Quaternion currentRot;
         private DeviceState currentState;
-        private float currentTrigger, currentGrip, previousTrigger, previousGrip;
-        private uint currentTouchesState, previousTouchesState;
-        private uint currentButtonsState, previousButtonsState;
+        private float currentTrigger;
+        private float currentGrip;
+        private float previousTrigger;
+        private float previousGrip;
+        private uint currentTouchesState;
+        private uint previousTouchesState;
+        private uint currentButtonsState;
+        private uint previousButtonsState;
         private Vector2 currentThumbstick;
-        private const float triggerAndGripDeadzone = 0.00001f;
+        private const float TriggerAndGripDeadzone = 0.00001f;
 
         public override Vector3 Position => currentPos;
 
@@ -228,9 +235,9 @@ namespace Xenko.VirtualReality
                     //ovrButton_Y
                     return (previousButtonsState & 0x00000200) != 0x00000200 && (currentButtonsState & 0x00000200) == 0x00000200;
                 case TouchControllerButton.Trigger:
-                    return previousTrigger <= triggerAndGripDeadzone && currentTrigger > triggerAndGripDeadzone;
+                    return previousTrigger <= TriggerAndGripDeadzone && currentTrigger > TriggerAndGripDeadzone;
                 case TouchControllerButton.Grip:
-                    return previousGrip <= triggerAndGripDeadzone && currentGrip > triggerAndGripDeadzone;
+                    return previousGrip <= TriggerAndGripDeadzone && currentGrip > TriggerAndGripDeadzone;
                 case TouchControllerButton.Menu:
                     return (previousButtonsState & 0x00100000) != 0x00100000 && (currentButtonsState & 0x00100000) == 0x00100000;
                 default:
@@ -259,9 +266,9 @@ namespace Xenko.VirtualReality
                     //ovrButton_Y
                     return (previousTouchesState & 0x00000200) != 0x00000200 && (currentTouchesState & 0x00000200) == 0x00000200;
                 case TouchControllerButton.Trigger:
-                    return previousTrigger <= triggerAndGripDeadzone && currentTrigger > triggerAndGripDeadzone;
+                    return previousTrigger <= TriggerAndGripDeadzone && currentTrigger > TriggerAndGripDeadzone;
                 case TouchControllerButton.Grip:
-                    return previousGrip <= triggerAndGripDeadzone && currentGrip > triggerAndGripDeadzone;
+                    return previousGrip <= TriggerAndGripDeadzone && currentGrip > TriggerAndGripDeadzone;
                 case TouchControllerButton.Menu:
                     return (previousTouchesState & 0x00100000) != 0x00100000 && (currentTouchesState & 0x00100000) == 0x00100000;
                 default:
@@ -290,9 +297,9 @@ namespace Xenko.VirtualReality
                     //ovrButton_Y
                     return (currentButtonsState & 0x00000200) == 0x00000200;
                 case TouchControllerButton.Trigger:
-                    return currentTrigger > triggerAndGripDeadzone;
+                    return currentTrigger > TriggerAndGripDeadzone;
                 case TouchControllerButton.Grip:
-                    return currentGrip > triggerAndGripDeadzone;
+                    return currentGrip > TriggerAndGripDeadzone;
                 case TouchControllerButton.Menu:
                     return (currentButtonsState & 0x00100000) == 0x00100000;
                 default:
@@ -321,9 +328,9 @@ namespace Xenko.VirtualReality
                     //ovrButton_Y
                     return (currentTouchesState & 0x00000200) == 0x00000200;
                 case TouchControllerButton.Trigger:
-                    return currentTrigger > triggerAndGripDeadzone;
+                    return currentTrigger > TriggerAndGripDeadzone;
                 case TouchControllerButton.Grip:
-                    return currentGrip > triggerAndGripDeadzone;
+                    return currentGrip > TriggerAndGripDeadzone;
                 case TouchControllerButton.Menu:
                     return (currentTouchesState & 0x00100000) == 0x00100000;
                 default:
@@ -352,9 +359,9 @@ namespace Xenko.VirtualReality
                     //ovrButton_Y
                     return (previousButtonsState & 0x00000200) == 0x00000200 && (currentButtonsState & 0x00000200) != 0x00000200;
                 case TouchControllerButton.Trigger:
-                    return previousTrigger > triggerAndGripDeadzone && currentTrigger <= triggerAndGripDeadzone;
+                    return previousTrigger > TriggerAndGripDeadzone && currentTrigger <= TriggerAndGripDeadzone;
                 case TouchControllerButton.Grip:
-                    return previousGrip > triggerAndGripDeadzone && currentGrip <= triggerAndGripDeadzone;
+                    return previousGrip > TriggerAndGripDeadzone && currentGrip <= TriggerAndGripDeadzone;
                 case TouchControllerButton.Menu:
                     return (previousButtonsState & 0x00100000) == 0x00100000 && (currentButtonsState & 0x00100000) != 0x00100000;
                 default:
@@ -383,9 +390,9 @@ namespace Xenko.VirtualReality
                     //ovrButton_Y
                     return (previousTouchesState & 0x00000200) == 0x00000200 && (currentTouchesState & 0x00000200) != 0x00000200;
                 case TouchControllerButton.Trigger:
-                    return previousTrigger > triggerAndGripDeadzone && currentTrigger <= triggerAndGripDeadzone;
+                    return previousTrigger > TriggerAndGripDeadzone && currentTrigger <= TriggerAndGripDeadzone;
                 case TouchControllerButton.Grip:
-                    return previousGrip > triggerAndGripDeadzone && currentGrip <= triggerAndGripDeadzone;
+                    return previousGrip > TriggerAndGripDeadzone && currentGrip <= TriggerAndGripDeadzone;
                 case TouchControllerButton.Menu:
                     return (previousTouchesState & 0x00100000) == 0x00100000 && (currentTouchesState & 0x00100000) != 0x00100000;
                 default:

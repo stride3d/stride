@@ -1,4 +1,4 @@
-﻿<!-- Build file post-included by all Xenko projects -->
+<!-- Build file post-included by all Xenko projects -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- Add Default targets used by Msbuild for undefined Platforms / or when skipping compilation under a platform -->
@@ -43,10 +43,23 @@
     <VisualStudioVersion>11.0</VisualStudioVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(XenkoPublicApi)' == 'true'">
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)public_api.ruleset</CodeAnalysisRuleSet>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  <PropertyGroup Condition="'$(XenkoCodeAnalysis)' == 'true'">
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Xenko.ruleset</CodeAnalysisRuleSet>
+    <!--<TreatWarningsAsErrors>true</TreatWarningsAsErrors>-->
   </PropertyGroup>
+  <ItemGroup Condition="'$(XenkoCodeAnalysis)' == 'true'">
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" PrivateAssets="All" />
+  </ItemGroup>
+  <!-- Disable analyzers unless XenkoEnableCodeAnalysis is set (note: PackageReference can't depend on external Condition) -->
+  <Target Name="DisableAnalyzersForXenkoBuild"
+        BeforeTargets="CoreCompile"
+        Condition="'$(XenkoEnableCodeAnalysis)' != 'true'">
+    <ItemGroup>
+      <Analyzer Remove="@(Analyzer)"/>
+    </ItemGroup>
+  </Target>
+  
 
   <!-- Setup compiler targets per platform / language -->
   <PropertyGroup>

@@ -300,7 +300,7 @@
 //                ActiveAudioEngineUpdate(1000);
 //                timeCount += 1000;
 //
-//                if(timeCount>3000)
+//                if (timeCount>3000)
 //                    Assert.Fail("SoundMusic.Play has not finished after 3 seconds."); 
 //            }
 //

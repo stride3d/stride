@@ -386,7 +386,6 @@ namespace Xenko.Rendering
         /// <param name="context"></param>
         public virtual void PrepareEffectPermutationsImpl(RenderDrawContext context)
         {
-            
         }
 
         /// <param name="context"></param>
@@ -1020,7 +1019,7 @@ namespace Xenko.Rendering
             base.Destroy();
         }
 
-        struct NamedSlotDefinition
+        private struct NamedSlotDefinition
         {
             public readonly string Variable;
 

@@ -15,7 +15,7 @@ namespace Xenko.Input
         /// <summary>
         /// Should direction controller 0 be mapped to the directional pad?
         /// </summary>
-        protected bool MapFirstPovToPad = true;
+        protected bool mapFirstPovToPad = true;
 
         private List<GamePadButton> buttonMap = new List<GamePadButton>();
         private List<GamePadButton> axisToButtonMap = new List<GamePadButton>();
@@ -126,7 +126,7 @@ namespace Xenko.Input
                         target.Add(buttonEvent1);
                     }
                 }
-                else if (MapFirstPovToPad)
+                else if (mapFirstPovToPad)
                 {
                     var directionEvent = controllerEvent as GameControllerDirectionEvent;
                     if (directionEvent?.Index == 0)

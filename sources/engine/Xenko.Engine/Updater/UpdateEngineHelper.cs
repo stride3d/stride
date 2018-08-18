@@ -47,7 +47,7 @@ namespace Xenko.Updater
             throw new NotImplementedException();
         }
 
-        static int ComputeArrayFirstElementOffset()
+        private static int ComputeArrayFirstElementOffset()
         {
             var testArray = new int[1];
             fixed (int* testArrayStart = testArray)

@@ -28,6 +28,5 @@ namespace Xenko.Rendering.ProceduralModels
 
             proceduralModel.GenerateModel(services, model);
         }
-
     }
 }

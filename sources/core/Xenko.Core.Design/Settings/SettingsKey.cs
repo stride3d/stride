@@ -224,7 +224,6 @@ namespace Xenko.Core.Settings
                 try
                 {
                     return (T)value;
-
                 }
                 catch (Exception)
                 {

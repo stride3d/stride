@@ -137,7 +137,6 @@ namespace Xenko.Core.Extensions
         /// <summary>
         /// Enumerates the linked list nodes.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="list">The linked list.</param>
         /// <returns>An enumeration of the linked list nodes.</returns>
         [ItemNotNull, NotNull, Pure]

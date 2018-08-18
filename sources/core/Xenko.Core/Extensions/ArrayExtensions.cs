@@ -146,7 +146,7 @@ namespace Xenko.Core.Extensions
                 var hash = 17 + data.Count;
                 var result = hash;
                 foreach (var unknown in data)
-                    result = result*31 + comparer.GetHashCode(unknown);
+                    result = result * 31 + comparer.GetHashCode(unknown);
                 return result;
             }
         }

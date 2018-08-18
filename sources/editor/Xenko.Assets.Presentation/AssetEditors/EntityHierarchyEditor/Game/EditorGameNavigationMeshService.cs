@@ -154,7 +154,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             sceneEditorController.InvokeAsync(() =>
             {
                 NavigationMeshDisplayGroup displayGroup;
-                if(groupDisplaySettings.TryGetValue(groupId, out displayGroup))
+                if (groupDisplaySettings.TryGetValue(groupId, out displayGroup))
                 {
                     displayGroup.IsVisible = isVisible;
                     foreach (var component in debugVisuals)

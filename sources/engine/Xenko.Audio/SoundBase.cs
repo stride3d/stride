@@ -132,13 +132,13 @@ namespace Xenko.Audio
         protected void RegisterInstance(SoundInstance instance)
         {
             Instances.Add(instance);
-            IntancesCreationCount++;
+            intancesCreationCount++;
         }
 
         /// <summary>
         /// The number of Instances Created so far by this SoundEffect. Used only to give a unique name to the SoundEffectInstance.
         /// </summary>
-        protected int IntancesCreationCount;
+        protected int intancesCreationCount;
 
         /// <summary>
         /// Destroys the instance.

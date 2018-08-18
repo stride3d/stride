@@ -60,7 +60,7 @@ namespace Xenko.Graphics.Tests
 
             accumulatedSeconds += 1 / 60f;
 
-            if(!ScreenShotAutomationEnabled)
+            if (!ScreenShotAutomationEnabled)
                 DrawText();
         }
 

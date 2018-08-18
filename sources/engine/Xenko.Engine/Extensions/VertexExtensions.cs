@@ -3,10 +3,9 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Xenko.Rendering.Data;
 using Xenko.Core;
-using Xenko.Rendering;
 using Xenko.Graphics.Data;
+using Xenko.Rendering;
 
 namespace Xenko.Extensions
 {
@@ -41,7 +40,7 @@ namespace Xenko.Extensions
             var handleInput = GCHandle.Alloc(meshData.VertexBuffers[0].Buffer.GetSerializationData().Content, GCHandleType.Pinned);
             var ptrInput = handleInput.AddrOfPinnedObject();
 
-            for(int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 foreach (var vertexElementWithOffset in offsets)
                 {

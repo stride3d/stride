@@ -1,6 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if XENKO_GRAPHICS_API_DIRECT3D11
+#pragma warning disable SA1405 // Debug.Assert must provide message text
 using System;
 using System.Diagnostics;
 

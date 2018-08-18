@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
@@ -46,10 +46,10 @@
 * THE SOFTWARE.
 */
 #if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_GRAPHICS_API_DIRECT3D || XENKO_GRAPHICS_API_VULKAN) && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
-using System.Runtime.InteropServices;
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Xenko.Games
@@ -60,6 +60,7 @@ namespace Xenko.Games
     [DesignerCategory("Code")]
     public class GameForm : Form
     {
+#pragma warning disable SA1310 // Field names should not contain underscore
         private const int SIZE_RESTORED = 0;
         private const int SIZE_MINIMIZED = 1;
         private const int SIZE_MAXIMIZED = 2;
@@ -73,6 +74,8 @@ namespace Xenko.Games
         private const int MNC_CLOSE = 1;
         private const byte VK_RETURN = 0x0D;
         private const byte VK_TAB = 0x09;
+#pragma warning restore SA1310 // Field names should not contain underscore
+
         private Size cachedSize;
         private FormWindowState previousWindowState;
         private bool isUserResizing;
@@ -153,7 +156,7 @@ namespace Xenko.Games
         /// </summary>
         public event EventHandler<EventArgs> FullscreenToggle;
 
-        protected bool EnableFullscreenToggle = true;
+        protected bool enableFullscreenToggle = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is processing keys. By default is <c>false</c>
@@ -403,10 +406,10 @@ namespace Xenko.Games
                     }
                     break;
                 case Win32Native.WM_SYSKEYDOWN: //alt is down
-                    if(wparam == VK_RETURN)
+                    if (wparam == VK_RETURN)
                     {
                         isSwitchingFullScreen = true;
-                        if (!EnableFullscreenToggle) return;
+                        if (!enableFullscreenToggle) return;
                         OnFullscreenToggle(new EventArgs()); //we handle alt enter manually
                         isSwitchingFullScreen = false;
                     }

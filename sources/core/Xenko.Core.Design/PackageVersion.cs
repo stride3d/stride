@@ -121,7 +121,6 @@ namespace Xenko.Core
         {
             if (!string.IsNullOrEmpty(originalString))
             {
-
                 // search the start of the SpecialVersion part, if any
                 int dashIndex = originalString.IndexOf('-');
                 var original = dashIndex != -1 ? originalString.Substring(0, dashIndex) : originalString;
@@ -146,7 +145,7 @@ namespace Xenko.Core
             {
                 // if 'a' has less than 4 elements, we pad the '0' at the end
                 // to make it 4.
-                string [] b = { "0", "0", "0", "0" };
+                string[] b = { "0", "0", "0", "0" };
                 Array.Copy(a, 0, b, 0, a.Length);
                 return b;
             }
@@ -209,7 +208,7 @@ namespace Xenko.Core
                 return false;
             }
 
-            semVer = new PackageVersion(NormalizeVersionValue(versionValue), match.Groups["Release"].Value.TrimStart('-'), version.Replace(" ", ""));
+            semVer = new PackageVersion(NormalizeVersionValue(versionValue), match.Groups["Release"].Value.TrimStart('-'), version.Replace(" ", string.Empty));
             return true;
         }
 

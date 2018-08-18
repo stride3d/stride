@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
   </PropertyGroup>
@@ -12,6 +12,7 @@
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
     <TargetFramework>$(TargetFramework)</TargetFramework>
     <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
+    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
   <Choose>
     <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">

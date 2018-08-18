@@ -249,7 +249,7 @@ namespace Xenko.Assets.Models
                     }
                 }
 
-                if(ImportCustomAttributes)
+                if (ImportCustomAttributes)
                 {
                     // Add clips clips animating other properties than node transformations
                     foreach (var nodeAnimationClipPair in animationClips)
@@ -272,7 +272,7 @@ namespace Xenko.Assets.Models
             {
                 var logString = $"File {SourcePath} doesn't have any animation information.";
 
-                if(failOnEmptyAnimation)
+                if (failOnEmptyAnimation)
                 {
                     commandContext.Logger.Error(logString);
                     return null;

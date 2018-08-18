@@ -183,8 +183,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
                     break;
                 case TransformationSpace.ObjectSpace:
                     var parentMatrix = Matrix.Identity;
-                    if(AnchorEntity.GetParent() != null)
-                        parentMatrix = AnchorEntity.transform.Parent.WorldMatrix;
+                    if (AnchorEntity.GetParent() != null)
+                        parentMatrix = AnchorEntity.TransformValue.Parent.WorldMatrix;
 
                     // We don't use the entity's "WorldMatrix" because it's scale could be zero, which would break the gizmo.
                     worldMatrix = Matrix.RotationQuaternion(AnchorEntity.Transform.Rotation) *
@@ -394,7 +394,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
                 var initialTransfo = InitialTransformations[entity];
                 var entityTransfo = entity.Transform;
                 
-                if(initialTransfo.InverseParentMatrix == Matrix.Zero)
+                if (initialTransfo.InverseParentMatrix == Matrix.Zero)
                 {
                     // This usually occurs when at least one axis is scaled to zero (because the matrix inversion
                     // function returns Matrix.Zero if the determinant is too small).

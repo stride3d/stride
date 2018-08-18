@@ -8,9 +8,9 @@ using Xenko.Core.Annotations;
 using Xenko.Core.Collections;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
+using Xenko.Core.MicroThreading;
 using Xenko.Engine.Design;
 using Xenko.Physics;
-using Xenko.Core.MicroThreading;
 using Xenko.Physics.Engine;
 
 namespace Xenko.Engine
@@ -22,7 +22,7 @@ namespace Xenko.Engine
     [ComponentOrder(3000)]
     public abstract class PhysicsComponent : ActivableEntityComponent
     {
-        protected static Logger Logger = GlobalLogger.GetLogger("PhysicsComponent");
+        protected static Logger logger = GlobalLogger.GetLogger("PhysicsComponent");
 
         static PhysicsComponent()
         {
@@ -360,18 +360,18 @@ namespace Xenko.Engine
         public bool ColliderShapeChanged { get; private set; }
 
         [DataMemberIgnore]
-        protected ColliderShape ProtectedColliderShape;
+        protected ColliderShape colliderShape;
 
         [DataMemberIgnore]
         public virtual ColliderShape ColliderShape
         {
             get
             {
-                return ProtectedColliderShape;
+                return colliderShape;
             }
             set
             {
-                ProtectedColliderShape = value;
+                colliderShape = value;
 
                 if (value == null)
                     return;
@@ -689,7 +689,7 @@ namespace Xenko.Engine
 
             if (ColliderShapes.Count == 0)
             {
-                Logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
+                logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
                 return; //no shape no purpose
             }
 
@@ -697,7 +697,7 @@ namespace Xenko.Engine
 
             if (ColliderShape == null)
             {
-                Logger.Error($"Entity {Entity.Name} has a PhysicsComponent but it failed to compose the collider shape.");
+                logger.Error($"Entity {Entity.Name} has a PhysicsComponent but it failed to compose the collider shape.");
                 return; //no shape no purpose
             }
 

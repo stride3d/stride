@@ -1,5 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
 using System;
 
 namespace Xenko.Audio
@@ -12,7 +14,8 @@ namespace Xenko.Audio
     {
         internal AudioInitializationException()
             : base("Initialization of the audio engine failed. This may be due to missing audio hardware or missing connected audio outputs.")
-        {}
+        {
+        }
     }
 
     /// <summary>

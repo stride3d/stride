@@ -68,13 +68,13 @@ namespace Xenko.Graphics
             unchecked
             {
                 var hashCode = BlendEnable.GetHashCode();
-                hashCode = (hashCode*397) ^ (int)ColorSourceBlend;
-                hashCode = (hashCode*397) ^ (int)ColorDestinationBlend;
-                hashCode = (hashCode*397) ^ (int)ColorBlendFunction;
-                hashCode = (hashCode*397) ^ (int)AlphaSourceBlend;
-                hashCode = (hashCode*397) ^ (int)AlphaDestinationBlend;
-                hashCode = (hashCode*397) ^ (int)AlphaBlendFunction;
-                hashCode = (hashCode*397) ^ (int)ColorWriteChannels;
+                hashCode = (hashCode * 397) ^ (int)ColorSourceBlend;
+                hashCode = (hashCode * 397) ^ (int)ColorDestinationBlend;
+                hashCode = (hashCode * 397) ^ (int)ColorBlendFunction;
+                hashCode = (hashCode * 397) ^ (int)AlphaSourceBlend;
+                hashCode = (hashCode * 397) ^ (int)AlphaDestinationBlend;
+                hashCode = (hashCode * 397) ^ (int)AlphaBlendFunction;
+                hashCode = (hashCode * 397) ^ (int)ColorWriteChannels;
                 return hashCode;
             }
         }

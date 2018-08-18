@@ -55,7 +55,7 @@ namespace Xenko.Rendering.LightProbes
         {
             lightprobeGroup.AddView(parameters.ViewIndex, parameters.View, parameters.LightIndices.Count);
 
-            foreach(var index in parameters.LightIndices)
+            foreach (var index in parameters.LightIndices)
             {
                 lightprobeGroup.AddLight(parameters.LightCollection[index], null);
             }
@@ -69,7 +69,7 @@ namespace Xenko.Rendering.LightProbes
             shaderEntry.EnvironmentLights.Add(lightprobeGroup);
         }
 
-        class LightProbeShaderGroupData : LightShaderGroupDynamic
+        private class LightProbeShaderGroupData : LightShaderGroupDynamic
         {
             private readonly LightProbeRenderer lightProbeRenderer;
             private readonly RenderContext renderContext;

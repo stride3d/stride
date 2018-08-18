@@ -23,7 +23,7 @@ namespace Xenko.Rendering.Shadows
         public static readonly ProfilingKey ProfilingKey = new ProfilingKey(nameof(ShadowMapRenderer));
 
         // TODO: Extract a common interface and implem for shadow renderer (not only shadow maps)
-        private readonly int MaximumTextureSize = (int)(ReferenceShadowSize * ComputeSizeFactor(LightShadowMapSize.XLarge) * 2.0f);
+        private readonly int maximumTextureSize = (int)(ReferenceShadowSize * ComputeSizeFactor(LightShadowMapSize.XLarge) * 2.0f);
         private const float ReferenceShadowSize = 1024;
 
         private readonly List<RenderStage> shadowMapRenderStages;
@@ -208,7 +208,7 @@ namespace Xenko.Rendering.Shadows
                     // TODO: This does not work for Omni lights
                     // TODO: Allow format selection externally
 
-                    var texture = Texture.New2D(RenderSystem.GraphicsDevice, MaximumTextureSize, MaximumTextureSize, 1, PixelFormat.D32_Float, TextureFlags.DepthStencil | TextureFlags.ShaderResource);
+                    var texture = Texture.New2D(RenderSystem.GraphicsDevice, maximumTextureSize, maximumTextureSize, 1, PixelFormat.D32_Float, TextureFlags.DepthStencil | TextureFlags.ShaderResource);
                     currentAtlas = new ShadowMapAtlasTexture(texture, atlases.Count) { FilterType = lightShadowMapTexture.FilterType };
                     atlases.Add(currentAtlas);
 

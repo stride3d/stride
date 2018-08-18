@@ -3,9 +3,9 @@
 
 using System;
 using System.ComponentModel;
-using Xenko.Core.Assets;
 using Xenko.Core;
 using Xenko.Core.Annotations;
+using Xenko.Core.Assets;
 
 namespace Xenko.Rendering.Materials
 {

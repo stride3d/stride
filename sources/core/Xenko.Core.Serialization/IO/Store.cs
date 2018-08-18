@@ -56,7 +56,6 @@ namespace Xenko.Core.IO
         /// Adds multiple values to the store
         /// </summary>
         /// <param name="values">The values.</param>
-        /// <returns></returns>
         public void AddValues(IEnumerable<T> values)
         {
             var shouldSaveValues = !UseTransaction;
@@ -83,7 +82,7 @@ namespace Xenko.Core.IO
             }
             finally
             {
-                if(shouldSaveValues)
+                if (shouldSaveValues)
                     Monitor.Exit(stream);
             }
         }
@@ -92,7 +91,6 @@ namespace Xenko.Core.IO
         /// Adds a value to the store.
         /// </summary>
         /// <param name="item">The item.</param>
-        /// <returns></returns>
         public void AddValue(T item)
         {
             var shouldSaveValue = !UseTransaction;
@@ -211,7 +209,8 @@ namespace Xenko.Core.IO
             if (stream == null)
                 throw new InvalidOperationException("No active stream.");
 
-            lock (stream) // need to lock stream first and only then lockObject to avoid dead locks with other threads
+            // need to lock stream first and only then lockObject to avoid dead locks with other threads
+            lock (stream)
             {
                 lock (lockObject)
                 {
@@ -249,7 +248,7 @@ namespace Xenko.Core.IO
         /// <summary>
         /// Refreshes URL to ObjectId mapping from the latest results in the index file.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True on success.</returns>
         public bool LoadNewValues()
         {
             if (stream == null)
@@ -307,7 +306,7 @@ namespace Xenko.Core.IO
 
             var overlapped = new NativeOverlapped()
                 {
-                    InternalLow= IntPtr.Zero,
+                    InternalLow = IntPtr.Zero,
                     InternalHigh = IntPtr.Zero,
                     OffsetLow = (int)(offset & 0x00000000FFFFFFFF),
                     OffsetHigh = (int)(offset >> 32),
@@ -445,9 +444,7 @@ namespace Xenko.Core.IO
         /// Gets the list of pending items for a given transaction index.
         /// </summary>
         /// <param name="transaction">The transaction index.</param>
-        /// <returns></returns>
         protected abstract IEnumerable<T> GetPendingItems(int transaction);
-
 
         protected virtual object BuildContext(Stream stream)
         {

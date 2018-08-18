@@ -51,7 +51,6 @@ namespace Xenko.Rendering.Materials.ComputeColors
             }
         }
 
-
         /// <inheritdoc/>
         public override string ToString()
         {
@@ -76,12 +75,10 @@ namespace Xenko.Rendering.Materials.ComputeColors
             }
             else if (key is ValueParameterKey<Color3>)
             {
-
                 context.Parameters.Set((ValueParameterKey<Color3>)key, (Color3)(Vector3)color);
             }
             else if (key is ValueParameterKey<Vector3>)
             {
-
                 context.Parameters.Set((ValueParameterKey<Vector3>)key, (Vector3)color);
             }
             else

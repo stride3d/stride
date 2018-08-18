@@ -1,3 +1,5 @@
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
 using System.Collections.Generic;
@@ -21,7 +23,7 @@ namespace Xenko.Media
 
         //We can ask the scheduler to hold on to give some time for all media extractors to get ready (after a Seek requests for example)
         private TimeSpan syncUpWaitingTime = TimeSpan.Zero;
-        private readonly TimeSpan DefaultSyncUpWaitingTime = TimeSpan.FromSeconds(2);  //Max time we wait while the media extractors gets ready to play
+        private readonly TimeSpan defaultSyncUpWaitingTime = TimeSpan.FromSeconds(2);  //Max time we wait while the media extractors gets ready to play
 
         private TimeSpan userStateSeekTimeRequest;
         private TimeSpan timeToWaitBeforeCheckingForTerminationConditions;
@@ -35,7 +37,7 @@ namespace Xenko.Media
         //The media scheduler can sync up on the audio extractor
         private IMediaExtractor audioMediaExtractor = null;
 
-        private static Object lockObject = new Object();
+        private static object lockObject = new object();
 
         private PlayRange playRange;
         private float speedFactor = 1f;
@@ -48,8 +50,8 @@ namespace Xenko.Media
             Pause,
             Stop,
             Seek,
-            Undefined
-        };
+            Undefined,
+        }
 
         public float SpeedFactor
         {
@@ -182,7 +184,7 @@ namespace Xenko.Media
             Logger.Verbose("Scheduler seeking at: " + seekTime);
             
             CurrentPresentationTime = seekTime;
-            syncUpWaitingTime = DefaultSyncUpWaitingTime;
+            syncUpWaitingTime = defaultSyncUpWaitingTime;
             ForEachSafe(mediaReaders, r => r.Seek(seekTime));
         }
 
@@ -195,7 +197,7 @@ namespace Xenko.Media
 
         public bool IsWaitingForSynchronization()
         {
-            return syncUpWaitingTime>TimeSpan.Zero;
+            return syncUpWaitingTime > TimeSpan.Zero;
         }
 
         private bool HaveAllExtractorsReachedEOF()
@@ -237,11 +239,11 @@ namespace Xenko.Media
             }
         }
 
-        private void CheckAndUnregisterDisposedMedia<T>(List<T> itemsList) where T: IMediaReader
+        private void CheckAndUnregisterDisposedMedia<T>(List<T> itemsList) where T : IMediaReader
         {
-            for (var i=itemsList.Count-1; i >= 0; --i)
+            for (var i = itemsList.Count - 1; i >= 0; --i)
             {
-                if(itemsList[i].IsDisposed)
+                if (itemsList[i].IsDisposed)
                     itemsList.RemoveAt(i);
             }
         }
@@ -263,7 +265,7 @@ namespace Xenko.Media
             }
 
             // Update the media presentation time
-            if(State == PlayState.Playing)
+            if (State == PlayState.Playing)
             {
                 if (SpeedFactor != 1.0f)
                     timeElapsed = TimeSpan.FromMilliseconds(timeElapsed.TotalMilliseconds * SpeedFactor);
@@ -292,13 +294,13 @@ namespace Xenko.Media
                     break;
 
                 case CommandRequestStateEnum.Pause:
-                        State = PlayState.Paused;
-                        ForEachSafe(mediaPlayers, p => p.Pause());
+                    State = PlayState.Paused;
+                    ForEachSafe(mediaPlayers, p => p.Pause());
                     break;
 
                 case CommandRequestStateEnum.Stop:
-                        StopInternal();
-                        break;
+                    StopInternal();
+                    break;
 
                 case CommandRequestStateEnum.Seek:
                     SeekInternal(userStateSeekTimeRequest);
@@ -328,7 +330,7 @@ namespace Xenko.Media
                 {
                     terminate = true;
                 }
-                else if(State == PlayState.Playing)
+                else if (State == PlayState.Playing)
                 {
                     terminate = HaveAllExtractorsReachedEOF();
                 }

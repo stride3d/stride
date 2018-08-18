@@ -45,7 +45,7 @@ namespace Xenko.Navigation
                 Guid = collider.Id,
                 ParameterHash = entityColliderHash,
                 Planes = new List<Plane>(planes),
-                InputBuilder = data
+                InputBuilder = data,
             });
         }
     }

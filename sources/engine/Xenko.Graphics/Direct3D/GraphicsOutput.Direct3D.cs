@@ -38,9 +38,9 @@ namespace Xenko.Graphics
     /// <summary>
     /// Provides methods to retrieve and manipulate an graphics output (a monitor), it is equivalent to <see cref="Output"/>.
     /// </summary>
-    /// <msdn-id>bb174546</msdn-id>	
-    /// <unmanaged>IDXGIOutput</unmanaged>	
-    /// <unmanaged-short>IDXGIOutput</unmanaged-short>	
+    /// <msdn-id>bb174546</msdn-id>
+    /// <unmanaged>IDXGIOutput</unmanaged>
+    /// <unmanaged-short>IDXGIOutput</unmanaged-short>
     public partial class GraphicsOutput
     {
         private readonly int outputIndex;
@@ -103,7 +103,7 @@ namespace Xenko.Graphics
                 RefreshRate = mode.RefreshRate.ToSharpDX(),
                 Format = (SharpDX.DXGI.Format)mode.Format,
                 Scaling = DisplayModeScaling.Unspecified,
-                ScanlineOrdering = DisplayModeScanlineOrder.Unspecified
+                ScanlineOrdering = DisplayModeScanlineOrder.Unspecified,
             };
             using (var device = deviceTemp)
                 output.GetClosestMatchingMode(device, description, out closestDescription);
@@ -114,9 +114,9 @@ namespace Xenko.Graphics
         /// <summary>
         /// Retrieves the handle of the monitor associated with this <see cref="GraphicsOutput"/>.
         /// </summary>
-        /// <msdn-id>bb173068</msdn-id>	
-        /// <unmanaged>HMONITOR Monitor</unmanaged>	
-        /// <unmanaged-short>HMONITOR Monitor</unmanaged-short>	
+        /// <msdn-id>bb173068</msdn-id>
+        /// <unmanaged>HMONITOR Monitor</unmanaged>
+        /// <unmanaged-short>HMONITOR Monitor</unmanaged-short>
         public IntPtr MonitorHandle { get { return outputDescription.MonitorHandle; } }
 
         /// <summary>

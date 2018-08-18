@@ -141,7 +141,7 @@ namespace Xenko.Graphics
                 RestoreColorMask();
             }
 
-            if(!blendEnable && oldBlendState.blendEnable)
+            if (!blendEnable && oldBlendState.blendEnable)
                 GL.Disable(EnableCap.Blend);
         }
 

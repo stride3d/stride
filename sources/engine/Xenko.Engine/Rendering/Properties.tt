@@ -1,7 +1,9 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // AUTO-GENERATED, DO NOT EDIT!
+#pragma warning disable SA1649 // File name must match first type name
+#pragma warning disable SA1402 // File may only contain a single class
 
 <#@ template debug="false" hostspecific="false" language="C#" #>
 <#@ assembly name="System.Core" #>
@@ -32,7 +34,7 @@ namespace Xenko.Rendering
         public ref T this[<#=type#>NodeReference index] => ref Data[index.Index];
     }
 
-	public struct <#=type#>PropertyKey<T>
+    public struct <#=type#>PropertyKey<T>
     {
         internal readonly int Index;
 
@@ -42,18 +44,18 @@ namespace Xenko.Rendering
         }
     }
 
-	public class <#=type#>PropertyDefinition<T>
+    public class <#=type#>PropertyDefinition<T>
     {
     }
 
-	public partial struct <#=type#>NodeReference
+    public partial struct <#=type#>NodeReference
     {
         public readonly int Index;
 
         /// <summary>
         /// Invalid slot.
         /// </summary>
-		public static readonly <#=type#>NodeReference Invalid = new <#=type#>NodeReference(-1);
+        public static readonly <#=type#>NodeReference Invalid = new <#=type#>NodeReference(-1);
 
         public <#=type#>NodeReference(int index)
         {
@@ -75,32 +77,32 @@ namespace Xenko.Rendering
             return a.Index == b.Index;
         }
 
-		public override bool Equals(object other)
-		{
-			if (other is <#=type#>NodeReference)
-			{
-				<#=type#>NodeReference p = (<#=type#>NodeReference) other;
-				return Index == p.Index;
-			}
-			else
-			{
-				return false;
-			}
-		}
+        public override bool Equals(object other)
+        {
+            if (other is <#=type#>NodeReference)
+            {
+                <#=type#>NodeReference p = (<#=type#>NodeReference)other;
+                return Index == p.Index;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		public override int GetHashCode()
-		{
-			return Index;
-		}
+        public override int GetHashCode()
+        {
+            return Index;
+        }
 
-		public static bool operator !=(<#=type#>NodeReference a, <#=type#>NodeReference b)
+        public static bool operator !=(<#=type#>NodeReference a, <#=type#>NodeReference b)
         {
             return a.Index != b.Index;
         }
     }
 
-	partial struct RenderDataHolder
-	{
+    partial struct RenderDataHolder
+    {
         public <#=type#>PropertyKey<T> Create<#=type#>Key<T>(<#=type#>PropertyDefinition<T> definition = null, int multiplier = 1)
         {
             if (definition != null)
@@ -113,25 +115,25 @@ namespace Xenko.Rendering
             }
 
             var dataArraysIndex = dataArrays.Count;
-			dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.<#=type#>, multiplier)));
+            dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.<#=type#>, multiplier)));
             return new <#=type#>PropertyKey<T>(dataArraysIndex);
         }
 
-		/// <summary>
+        /// <summary>
         /// Get data from its key.
         /// </summary>
-		public <#=type#>PropertyData<T> GetData<T>(<#=type#>PropertyKey<T> key)
+        public <#=type#>PropertyData<T> GetData<T>(<#=type#>PropertyKey<T> key)
         {
             return new <#=type#>PropertyData<T>((T[])dataArrays[key.Index].Array);
         }
 
-		/// <summary>
+        /// <summary>
         /// Change data multiplier (i.e. how many data entries per item there will be).
         /// </summary>
         public void ChangeDataMultiplier<T>(<#=type#>PropertyKey<T> key, int multiplier)
         {
             dataArrays[key.Index].Info.ChangeMutiplier(ref dataArrays.Items[key.Index].Array, multiplier);
         }
-	}
+    }
 <# } #>
 }

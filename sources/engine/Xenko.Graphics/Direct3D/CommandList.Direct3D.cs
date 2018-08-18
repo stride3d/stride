@@ -70,7 +70,6 @@ namespace Xenko.Graphics
 
         public void Flush()
         {
-
         }
 
         public CompiledCommandList Close()
@@ -615,9 +614,9 @@ namespace Xenko.Graphics
         public unsafe void ClearReadWrite(Texture texture, Int4 value)
         {
              if (texture == null) throw new ArgumentNullException(nameof(texture));
-            if (texture.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
+             if (texture.NativeUnorderedAccessView == null) throw new ArgumentException("Expecting texture supporting UAV", nameof(texture));
 
-            NativeDeviceContext.ClearUnorderedAccessView(texture.NativeUnorderedAccessView, *(RawInt4*)&value);
+             NativeDeviceContext.ClearUnorderedAccessView(texture.NativeUnorderedAccessView, *(RawInt4*)&value);
         }
 
         /// <summary>

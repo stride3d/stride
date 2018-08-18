@@ -21,7 +21,6 @@ namespace Xenko.Graphics
         /// <summary>
         /// Generates multi texture coordinates for an existing vertex buffer. See remarks.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="vertexDeclaration">The vertex declaration.</param>
         /// <param name="vertexBufferData">The vertex buffer data.</param>
         /// <param name="maxTexcoord">The maximum texcoord.</param>
@@ -33,7 +32,7 @@ namespace Xenko.Graphics
         /// </exception>
         /// <remarks>The original vertex buffer must contain at least a TEXCOORD[0-9] attribute in order for this method to work.
         /// This method will copy the value of the first existing TEXCOORD found in the vertex buffer to the newly created TEXCOORDS.</remarks>
-        public unsafe static VertexTransformResult GenerateMultiTextureCoordinates<T>(VertexDeclaration vertexDeclaration, T[] vertexBufferData, int maxTexcoord = 9) where T : struct
+        public static unsafe VertexTransformResult GenerateMultiTextureCoordinates<T>(VertexDeclaration vertexDeclaration, T[] vertexBufferData, int maxTexcoord = 9) where T : struct
         {
             if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
             if (vertexBufferData == null) throw new ArgumentNullException("vertexBufferData");
@@ -57,7 +56,7 @@ namespace Xenko.Graphics
         /// </exception>
         /// <remarks>The original vertex buffer must contain at least a TEXCOORD[0-9] attribute in order for this method to work.
         /// This method will copy the value of the first existing TEXCOORD found in the vertex buffer to the newly created TEXCOORDS.</remarks>
-        public unsafe static VertexTransformResult GenerateMultiTextureCoordinates(VertexDeclaration vertexDeclaration, byte[] vertexBufferData, int vertexStride = 0, int maxTexcoord = 9)
+        public static unsafe VertexTransformResult GenerateMultiTextureCoordinates(VertexDeclaration vertexDeclaration, byte[] vertexBufferData, int vertexStride = 0, int maxTexcoord = 9)
         {
             if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
             if (vertexBufferData == null) throw new ArgumentNullException("vertexBufferData");
@@ -86,7 +85,7 @@ namespace Xenko.Graphics
         /// This method will copy the value of the first existing TEXCOORD found in the vertex buffer to the newly created TEXCOORDS.</remarks>
         public static VertexTransformResult GenerateMultiTextureCoordinates(VertexTransformResult transform, int vertexStride = 0, int maxTexcoord = 9)
         {
-            return GenerateMultiTextureCoordinates(transform.Layout, transform.VertexBuffer,vertexStride, maxTexcoord);
+            return GenerateMultiTextureCoordinates(transform.Layout, transform.VertexBuffer, vertexStride, maxTexcoord);
         }
 
         /// <summary>
@@ -116,7 +115,7 @@ namespace Xenko.Graphics
         /// The original vertex buffer must contain at least a TEXCOORD[0-9] attribute in order for this method to work. 
         /// This method will copy the value of the first existing TEXCOORD found in the vertex buffer to the newly created TEXCOORDS.
         /// </remarks>
-        public unsafe static VertexTransformResult GenerateMultiTextureCoordinates(VertexDeclaration vertexDeclaration, IntPtr vertexBufferData, int vertexCount, int vertexOffset, int vertexStride, int maxTexcoord = 9)
+        public static unsafe VertexTransformResult GenerateMultiTextureCoordinates(VertexDeclaration vertexDeclaration, IntPtr vertexBufferData, int vertexCount, int vertexOffset, int vertexStride, int maxTexcoord = 9)
         {
             if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
             if (vertexBufferData == IntPtr.Zero) throw new ArgumentNullException("vertexBufferData");
@@ -172,7 +171,6 @@ namespace Xenko.Graphics
             byte* oldBuffer = (byte*)vertexBufferData + vertexOffset;
             fixed (byte* newBuffer = newVertexBuffer)
             {
-
                 var oldVertexOffset = 0;
                 var newVertexOffset = 0;
                 for (int i = 0; i < vertexCount; ++i)
@@ -191,7 +189,6 @@ namespace Xenko.Graphics
                 }
             }
 
-
             var allVertexElements = new List<VertexElement>(vertexDeclaration.VertexElements);
             allVertexElements.AddRange(newVertexElements);
 
@@ -201,12 +198,11 @@ namespace Xenko.Graphics
         /// <summary>
         /// Generates the tangent binormal for an existing vertex buffer.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="vertexDeclaration">The vertex declaration.</param>
         /// <param name="vertexBufferData">The vertex buffer data.</param>
         /// <param name="indexBuffer">The index buffer.</param>
         /// <returns>A new vertex buffer with its new layout.</returns>
-        public unsafe static VertexTransformResult GenerateTangentBinormal<T>(VertexDeclaration vertexDeclaration, T[] vertexBufferData, int[] indexBuffer) where T : struct
+        public static unsafe VertexTransformResult GenerateTangentBinormal<T>(VertexDeclaration vertexDeclaration, T[] vertexBufferData, int[] indexBuffer) where T : struct
         {
             if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
             if (vertexBufferData == null) throw new ArgumentNullException("vertexBufferData");
@@ -281,7 +277,7 @@ namespace Xenko.Graphics
 
             byte* indexBufferStart = (byte*)indexData;
             byte* oldBuffer = (byte*)bufferData + vertexOffset;
-            fixed(byte* newBuffer = newBufferData)
+            fixed (byte* newBuffer = newBufferData)
             {
                 var indexBuffer32 = indexBufferBinding != IntPtr.Zero && is32BitIndex ? (int*)indexBufferStart : null;
                 var indexBuffer16 = indexBufferBinding != IntPtr.Zero && !is32BitIndex ? (short*)indexBufferStart : null;

@@ -160,7 +160,7 @@ namespace Xenko.Rendering
             return result;
         }
 
-        private void children_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void Children_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
         {
             var child = (Model)e.Item;
             switch (e.Action)

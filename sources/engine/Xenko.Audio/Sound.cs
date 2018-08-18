@@ -47,7 +47,7 @@ namespace Xenko.Audio
 
             CheckNotDisposed();
 
-            var newInstance = new SoundInstance(this, listener, forceLoadInMemory, useHrtf, directionalFactor, environment) { Name = Name + " - Instance " + IntancesCreationCount };
+            var newInstance = new SoundInstance(this, listener, forceLoadInMemory, useHrtf, directionalFactor, environment) { Name = Name + " - Instance " + intancesCreationCount };
             RegisterInstance(newInstance);
 
             return newInstance;

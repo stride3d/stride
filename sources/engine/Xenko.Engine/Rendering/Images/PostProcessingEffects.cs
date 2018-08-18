@@ -190,7 +190,7 @@ namespace Xenko.Rendering.Images
             LightStreak = ToLoadAndUnload(LightStreak);
             LensFlare = ToLoadAndUnload(LensFlare);
             //this can be null if no SSAA is selected in the editor
-            if(Antialiasing != null) Antialiasing = ToLoadAndUnload(Antialiasing);
+            if (Antialiasing != null) Antialiasing = ToLoadAndUnload(Antialiasing);
 
             rangeCompress = ToLoadAndUnload(rangeCompress);
             rangeDecompress = ToLoadAndUnload(rangeDecompress);
@@ -246,7 +246,6 @@ namespace Xenko.Rendering.Images
         public bool RequiresNormalBuffer => LocalReflections.Enabled;
 
         public bool RequiresSpecularRoughnessBuffer => LocalReflections.Enabled;
-
 
         protected override void DrawCore(RenderDrawContext context)
         {

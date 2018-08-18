@@ -65,4 +65,3 @@ namespace Xenko.Graphics
         public readonly SamplerState AnisotropicClamp;
     }
 }
-

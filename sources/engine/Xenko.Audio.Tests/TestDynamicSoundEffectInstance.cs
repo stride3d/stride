@@ -139,7 +139,7 @@
 //            //Console.WriteLine("bufferNeededHasBeenCalled has been set to true.");
 //        }
 //
-//        private readonly static object MultiUseLock = new object();
+//        private static readonly object MultiUseLock = new object();
 //
 //        private void GenerateNextDataAndBlockThead(object sender, EventArgs e)
 //        {
@@ -221,7 +221,7 @@
 //
 //                ++loopCount;
 //
-//                if(loopCount>100)
+//                if (loopCount>100)
 //                    Assert.Fail("The test process is block in the loop.");
 //            }
 //            mono8Bits.Stop();
@@ -466,7 +466,7 @@
 //
 //        static void SubmitBuffer(DynSoundData sound)
 //        {
-//            if(sound.Instance.IsDisposed)
+//            if (sound.Instance.IsDisposed)
 //                return;
 //
 //            var offset = sound.BufferCount * sound.BufferLength;

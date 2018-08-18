@@ -102,7 +102,5 @@ namespace Xenko.Rendering
 
             return depthStencil;
         }
-        
-        
     }
 }

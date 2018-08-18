@@ -22,7 +22,7 @@ namespace Xenko.Shaders
             {
                 int hashCode = 0;
                 foreach (var current in this)
-                    hashCode = (hashCode*397) ^ (current?.GetHashCode() ?? 0);
+                    hashCode = (hashCode * 397) ^ (current?.GetHashCode() ?? 0);
                 return hashCode;
             }
         }

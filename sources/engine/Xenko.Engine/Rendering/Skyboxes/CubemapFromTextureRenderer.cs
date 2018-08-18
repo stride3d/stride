@@ -6,9 +6,9 @@ namespace Xenko.Rendering.Skyboxes
 {
     public class CubemapFromTextureRenderer : CubemapRendererBase
     {
-        DynamicEffectInstance skyboxEffect;
+        private DynamicEffectInstance skyboxEffect;
 
-        SpriteBatch spriteBatch;
+        private SpriteBatch spriteBatch;
 
         private Texture inputTexture;
 
@@ -28,7 +28,7 @@ namespace Xenko.Rendering.Skyboxes
         protected override void DrawImpl()
         {
             skyboxEffect.UpdateEffect(DrawContext.GraphicsDevice);
-            spriteBatch.Begin(DrawContext.GraphicsContext, depthStencilState: DepthStencilStates.None, effect:skyboxEffect);
+            spriteBatch.Begin(DrawContext.GraphicsContext, depthStencilState: DepthStencilStates.None, effect: skyboxEffect);
             spriteBatch.Parameters.Set(SkyboxShaderTextureKeys.Texture, inputTexture);
             spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.Intensity, 1);
             spriteBatch.Parameters.Set(SkyboxShaderBaseKeys.ViewInverse, Matrix.Invert(Camera.ViewMatrix));

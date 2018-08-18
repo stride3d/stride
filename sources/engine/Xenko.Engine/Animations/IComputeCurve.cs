@@ -18,7 +18,7 @@ namespace Xenko.Animations
     /// Base interface for curve based compute value nodes.
     /// </summary>
     [InlineProperty]
-    public interface IComputeCurve<out T>: IComputeCurve where T : struct
+    public interface IComputeCurve<out T> : IComputeCurve where T : struct
     {
         /// <summary>
         /// Evaluates the compute curve's value at the specified location, usually in the [0 .. 1] range

@@ -101,7 +101,7 @@ namespace Xenko.Engine.Tests
         {
             base.Update(time);
 
-            if(!ScreenShotAutomationEnabled)
+            if (!ScreenShotAutomationEnabled)
                 UpdateBall((float)time.Elapsed.TotalSeconds);
 
             if (Input.IsKeyPressed(Keys.D1))

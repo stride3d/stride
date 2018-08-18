@@ -38,6 +38,5 @@ namespace Xenko.Rendering.Lights
         /// Tags attached.
         /// </summary>
         public PropertyContainer Tags;
-
     }
 }

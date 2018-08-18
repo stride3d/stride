@@ -1,12 +1,12 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using Xenko.Core.Mathematics;
 using Xenko.Extensions;
 using Xenko.Graphics;
 using Xenko.Graphics.GeometricPrimitives;
 using Xenko.Rendering;
-using System;
 
 namespace Xenko.Physics
 {
@@ -25,17 +25,17 @@ namespace Xenko.Physics
             Type = ColliderShapeTypes.StaticPlane;
             Is2D = false;
 
-            CachedScaling = Vector3.One;
+            cachedScaling = Vector3.One;
 
             InternalShape = new BulletSharp.StaticPlaneShape(normal, offset)
             {
-                LocalScaling = CachedScaling
+                LocalScaling = cachedScaling,
             };
 
             Matrix rotationMatrix;
             var oY = Vector3.Normalize(normal);
             var oZ = Vector3.Cross(Vector3.UnitX, oY);
-            if(oZ.Length() > MathUtil.ZeroTolerance)
+            if (oZ.Length() > MathUtil.ZeroTolerance)
             {
                 oZ.Normalize();
                 var oX = Vector3.Cross(oY, oZ);

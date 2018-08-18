@@ -130,7 +130,7 @@ namespace Xenko.Graphics
             currentBufferPoolIndex++;
             if (currentBufferPoolIndex >= bufferPools.Count)
             {
-                bufferPools.Add(currentBufferPool = BufferPool.New(allocator, graphicsDevice, 1024*1024));
+                bufferPools.Add(currentBufferPool = BufferPool.New(allocator, graphicsDevice, 1024 * 1024));
             }
             else
             {
@@ -145,13 +145,15 @@ namespace Xenko.Graphics
             currentDescriptorPoolIndex++;
             if (currentDescriptorPoolIndex >= descriptorPools.Count)
             {
-                descriptorPools.Add(currentDescriptorPool = DescriptorPool.New(graphicsDevice, new[]
-                {
-                    new DescriptorTypeCount(EffectParameterClass.ConstantBuffer, 16384),
-                    new DescriptorTypeCount(EffectParameterClass.ShaderResourceView, 65536),
-                    new DescriptorTypeCount(EffectParameterClass.UnorderedAccessView, 4096),
-                    new DescriptorTypeCount(EffectParameterClass.Sampler, 16384),
-                }));
+                descriptorPools.Add(currentDescriptorPool = DescriptorPool.New(
+                    graphicsDevice,
+                    new[]
+                    {
+                        new DescriptorTypeCount(EffectParameterClass.ConstantBuffer, 16384),
+                        new DescriptorTypeCount(EffectParameterClass.ShaderResourceView, 65536),
+                        new DescriptorTypeCount(EffectParameterClass.UnorderedAccessView, 4096),
+                        new DescriptorTypeCount(EffectParameterClass.Sampler, 16384),
+                    }));
             }
             else
             {

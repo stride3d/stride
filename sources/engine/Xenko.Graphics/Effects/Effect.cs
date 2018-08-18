@@ -286,7 +286,6 @@ namespace Xenko.Graphics
             {
                 throw new InvalidOperationException(string.Format("Unable to find/generate key [{0}] with unsupported type [{1}/{2}]", binding.KeyInfo.KeyName, binding.Type.Class, binding.Type.Type));
             }
-
         }
 
         private static ParameterKey FindOrCreateResourceKey<T>(string name)

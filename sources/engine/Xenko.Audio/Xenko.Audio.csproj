@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
@@ -13,6 +13,7 @@
     <TargetFramework>$(TargetFramework)</TargetFramework>
     <XenkoPlatformDependent>true</XenkoPlatformDependent>
     <XenkoBuildTags>*</XenkoBuildTags>
+    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(XenkoPlatform)' == 'Android'">
     <!-- <DefineConstants>XENKO_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants> -->

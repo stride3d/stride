@@ -21,7 +21,7 @@ namespace Xenko.Video.FFmpeg
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CheckPlatformSupport()
         {
-#if XENKO_PLATFORM_WINDOWS && !XENKO_RUNTIME_CORECLR || XENKO_PLATFORM_ANDROID
+#if (XENKO_PLATFORM_WINDOWS && !XENKO_RUNTIME_CORECLR) || XENKO_PLATFORM_ANDROID
             return true;
 #else
             return false;
@@ -31,7 +31,7 @@ namespace Xenko.Video.FFmpeg
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void EnsurePlatformSupport()
         {
-            if(!CheckPlatformSupport())
+            if (!CheckPlatformSupport())
                 throw new PlatformNotSupportedException();
         }
 
@@ -109,7 +109,7 @@ namespace Xenko.Video.FFmpeg
                 return dictionary;
 
             AVDictionaryEntry* tag = null;
-            while ((tag = ffmpeg.av_dict_get(avDictionary, "", tag, ffmpeg.AV_DICT_IGNORE_SUFFIX)) != null)
+            while ((tag = ffmpeg.av_dict_get(avDictionary, string.Empty, tag, ffmpeg.AV_DICT_IGNORE_SUFFIX)) != null)
             {
                 var key = Marshal.PtrToStringAnsi((IntPtr)tag->key);
                 var value = Marshal.PtrToStringAnsi((IntPtr)tag->value);

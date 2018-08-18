@@ -156,7 +156,7 @@ namespace Irony.Parsing {
       if (Context.CurrentParserState.Actions.TryGetValue(Context.CurrentParserInput.Term, out action))
         return action;
       //If input is EOF and NewLineBeforeEof flag is set, try injecting NewLine into input
-      if(Context.CurrentParserInput.Term == _grammar.Eof && _grammar.FlagIsSet(LanguageFlags.NewLineBeforeEOF) &&
+      if (Context.CurrentParserInput.Term == _grammar.Eof && _grammar.FlagIsSet(LanguageFlags.NewLineBeforeEOF) &&
           Context.CurrentParserState.Actions.TryGetValue(_grammar.NewLine, out action)) {
         InjectNewLineToken(); 
         return action; 
@@ -184,9 +184,9 @@ namespace Irony.Parsing {
     private void ExecuteReduce(ParserAction action) {
       var reduceProduction = action.ReduceProduction; 
       ParseTreeNode newNode; 
-      if(reduceProduction.IsSet(ProductionFlags.IsListBuilder)) 
+      if (reduceProduction.IsSet(ProductionFlags.IsListBuilder)) 
         newNode = ReduceExistingList(action);
-      else if(reduceProduction.LValue.FlagIsSet(TermFlags.IsListContainer)) 
+      else if (reduceProduction.LValue.FlagIsSet(TermFlags.IsListContainer)) 
         newNode = ReduceListContainer(action);
       else if (reduceProduction.LValue.FlagIsSet(TermFlags.IsTransient))
         newNode = ReduceTransientNonTerminal(action);
@@ -233,7 +233,7 @@ namespace Irony.Parsing {
       int firstChildIndex = Context.ParserStack.Count - childCount;
       var span = ComputeNewNodeSpan(childCount);
       var newNode = new ParseTreeNode(action.ReduceProduction, span);
-      if(childCount > 0) { //if it is not empty production - might happen for MakeStarRule
+      if (childCount > 0) { //if it is not empty production - might happen for MakeStarRule
         var listNode = Context.ParserStack[firstChildIndex]; //get the transient list with all members - it is the first child node
         newNode.ChildNodes.AddRange(listNode.ChildNodes);    //copy all list members
       }
@@ -261,12 +261,12 @@ namespace Irony.Parsing {
       var newNode = new ParseTreeNode(action.ReduceProduction, span);
       for(int i = 0; i < childCount; i++) {
         var childNode = Context.ParserStack[firstChildIndex + i];
-        if(ShouldSkipChildNode(childNode))
+        if (ShouldSkipChildNode(childNode))
           continue; //skip punctuation or empty transient nodes
         CheckCreateAstNode(childNode); //AST nodes for lists and for terminals are created here 
         //For single-child reduces inherit precedence and associativity, to cover a standard case: BinOp->+|-|*|/; 
         // BinOp node should inherit precedence from underlying operator symbol
-        if(childCount == 1 && childNode.Precedence != BnfTerm.NoPrecedence) {
+        if (childCount == 1 && childNode.Precedence != BnfTerm.NoPrecedence) {
           newNode.Precedence = childNode.Precedence;
           newNode.Associativity = childNode.Associativity;
         }
@@ -276,7 +276,7 @@ namespace Irony.Parsing {
     }
 
     private SourceSpan ComputeNewNodeSpan(int childCount) {
-      if(childCount == 0)
+      if (childCount == 0)
         return new SourceSpan(Context.CurrentParserInput.Span.Location, 0);
       var first = Context.ParserStack[Context.ParserStack.Count - childCount];
       var last = Context.ParserStack.Top;

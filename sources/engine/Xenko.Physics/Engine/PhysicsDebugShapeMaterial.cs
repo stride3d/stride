@@ -23,7 +23,6 @@ namespace Xenko.Physics
 
         private static Material CreateInternal(GraphicsDevice device, Color color, float intensity, bool recenterMesh)
         {
-
             IComputeColor diffuseMap = new ComputeColor();
 
             // TODO: Implement the shader and enable this
@@ -40,7 +39,7 @@ namespace Xenko.Physics
                     Diffuse = new MaterialDiffuseMapFeature(diffuseMap),
                     DiffuseModel = new MaterialDiffuseLambertModelFeature(),
                     Emissive = new MaterialEmissiveMapFeature(new ComputeColor()),
-                }
+                },
             });
 
             // set the color to the material

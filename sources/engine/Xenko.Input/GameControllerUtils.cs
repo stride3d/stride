@@ -58,7 +58,7 @@ namespace Xenko.Input
         public static Direction ButtonsToDirection(GamePadButton padDirection)
         {
             int ticks = ButtonToTicks(padDirection);
-            if(ticks < 0)
+            if (ticks < 0)
                 return Direction.None;
 
             return Direction.FromTicks(ticks, 8);

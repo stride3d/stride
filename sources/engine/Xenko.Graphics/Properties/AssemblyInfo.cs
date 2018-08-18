@@ -3,7 +3,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-
 #pragma warning disable 436 // Xenko.PublicKeys is defined in multiple assemblies
 
 // Make internals Xenko visible to Xenko assemblies

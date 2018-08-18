@@ -20,9 +20,14 @@ namespace Xenko.Navigation
     [DefaultEntityComponentProcessor(typeof(NavigationProcessor), ExecutionMode = ExecutionMode.Runtime)]
     public class NavigationComponent : EntityComponent
     {
-        [DataMemberIgnore] internal RecastNavigationMesh RecastNavigationMesh;
-        [DataMemberIgnore] internal Vector3 SceneOffset;
-        [DataMemberIgnore] internal NavigationMeshGroup Group;
+        [DataMemberIgnore]
+        internal RecastNavigationMesh RecastNavigationMesh;
+
+        [DataMemberIgnore]
+        internal Vector3 SceneOffset;
+
+        [DataMemberIgnore]
+        internal NavigationMeshGroup Group;
 
         private NavigationMesh navigationMesh;
         private Guid groupId;

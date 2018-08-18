@@ -21,7 +21,7 @@ namespace Xenko.Core.Streaming
     {
         private ContentChunk[] chunks;
         private long locks;
-        private readonly Object storageLock = new object();
+        private readonly object storageLock = new object();
 
         /// <summary>
         /// The content streaming service which manages this storage container.
@@ -175,7 +175,7 @@ namespace Xenko.Core.Streaming
                 DataUrl = dataUrl,
                 PackageTime = packageTime,
                 HashCode = hashCode,
-                Chunks = new ContentStorageHeader.ChunkEntry[chunksCount]
+                Chunks = new ContentStorageHeader.ChunkEntry[chunksCount],
             };
 
             // Calculate chunks locations in the file

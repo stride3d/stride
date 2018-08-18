@@ -136,11 +136,11 @@ namespace Xenko.Core.VisualStudio
         private void WriteHeader([NotNull] Solution solution)
         {
             // If the header doesn't start with an empty line, add one
- 	        // (The first line of sln files saved as UTF-8 with BOM must be blank, otherwise Visual Studio Version Selector will not detect VS version correctly.)
+            // (The first line of sln files saved as UTF-8 with BOM must be blank, otherwise Visual Studio Version Selector will not detect VS version correctly.)
             if (solution.Headers.Count == 0 || solution.Headers[0].Trim().Length > 0)
- 	        {
- 	            writer.WriteLine();
- 	        }
+            {
+                writer.WriteLine();
+            }
 
             foreach (var line in solution.Headers)
             {

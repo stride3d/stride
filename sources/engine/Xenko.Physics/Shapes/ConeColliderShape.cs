@@ -1,10 +1,10 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
 using System;
+using Xenko.Core.Mathematics;
 using Xenko.Extensions;
+using Xenko.Graphics;
 using Xenko.Graphics.GeometricPrimitives;
 using Xenko.Rendering;
 
@@ -25,28 +25,28 @@ namespace Xenko.Physics
 
             Matrix rotation;
 
-            CachedScaling = Vector3.One;
+            cachedScaling = Vector3.One;
 
             switch (orientation)
             {
                 case ShapeOrientation.UpX:
                     InternalShape = new BulletSharp.ConeShapeX(radius, height)
                     {
-                        LocalScaling = CachedScaling
+                        LocalScaling = cachedScaling,
                     };
                     rotation = Matrix.RotationZ((float)Math.PI / 2.0f);
                     break;
                 case ShapeOrientation.UpY:
                     InternalShape = new BulletSharp.ConeShape(radius, height)
                     {
-                        LocalScaling = CachedScaling
+                        LocalScaling = cachedScaling,
                     };
                     rotation = Matrix.Identity;
                     break;
                 case ShapeOrientation.UpZ:
                     InternalShape = new BulletSharp.ConeShapeZ(radius, height)
                     {
-                        LocalScaling = CachedScaling
+                        LocalScaling = cachedScaling,
                     };
                     rotation = Matrix.RotationX((float)Math.PI / 2.0f);
                     break;

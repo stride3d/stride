@@ -31,6 +31,6 @@ namespace Xenko.Input
         /// <summary>
         /// Extended button 2.
         /// </summary>
-        Extended2 = 4
+        Extended2 = 4,
     }
 }

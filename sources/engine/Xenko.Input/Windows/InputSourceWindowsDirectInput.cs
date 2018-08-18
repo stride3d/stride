@@ -82,7 +82,6 @@ namespace Xenko.Input
             if (Devices.ContainsKey(deviceInstance.InstanceGuid))
                 throw new InvalidOperationException($"DirectInput GameController already opened {deviceInstance.InstanceGuid}/{deviceInstance.InstanceName}");
 
-
             GameControllerDirectInput controller;
             try
             {

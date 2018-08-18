@@ -26,9 +26,9 @@ namespace Xenko.Core.MicroThreading
                 if (microThread.IsOver)
                     return true;
 
-                lock (microThread.Scheduler.scheduledEntries)
+                lock (microThread.Scheduler.ScheduledEntries)
                 {
-                    return microThread.Scheduler.scheduledEntries.Count == 0;
+                    return microThread.Scheduler.ScheduledEntries.Count == 0;
                 }
             }
         }

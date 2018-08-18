@@ -64,7 +64,7 @@ namespace Xenko.UI.Renderers
             if (uiElementType == null) throw new ArgumentNullException(nameof(uiElementType));
             if (factory == null) throw new ArgumentNullException(nameof(factory));
 
-            if(!typeof(UIElement).GetTypeInfo().IsAssignableFrom(uiElementType.GetTypeInfo()))
+            if (!typeof(UIElement).GetTypeInfo().IsAssignableFrom(uiElementType.GetTypeInfo()))
                 throw new InvalidOperationException(uiElementType + " is not a descendant of UIElement.");
 
             typesToUserFactories[uiElementType] = factory;
@@ -82,7 +82,7 @@ namespace Xenko.UI.Renderers
         {
             foreach (var renderer in elementIdToRenderer.Values)
             {
-                if(!renderer.IsDisposed)
+                if (!renderer.IsDisposed)
                     renderer.Dispose();
             }
             elementIdToRenderer.Clear();

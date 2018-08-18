@@ -171,7 +171,7 @@ namespace Xenko.Rendering.Compositing
             }
             else if (input.IsDepthStencil)
             {
-                System.Diagnostics.Debug.Assert(output.IsDepthStencil);
+                System.Diagnostics.Debug.Assert(output.IsDepthStencil, "input and output IsDepthStencil don't match");
 
                 // Resolve using custom pixel shader (output depth only)
                 msaaDepthResolver.Parameters.Set(MSAAResolverParams.MSAASamples, samplesCount);

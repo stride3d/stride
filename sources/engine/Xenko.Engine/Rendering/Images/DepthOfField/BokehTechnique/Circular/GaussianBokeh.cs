@@ -1,11 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Mathematics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Xenko.Core.Mathematics;
 
 namespace Xenko.Rendering.Images
 {
@@ -96,6 +92,5 @@ namespace Xenko.Rendering.Images
             directionalBlurEffect.SetOutput(outputTexture);
             directionalBlurEffect.Draw(context, "GaussianBokehPass2_tap{0}_radius{1}", tapNumber, (int)Radius);
         }
-
     }
 }

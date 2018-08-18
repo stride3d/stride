@@ -78,8 +78,6 @@ using Xenko.Core.Mathematics;
 
 namespace Xenko.Graphics.GeometricPrimitives
 {
-
-
     public partial class GeometricPrimitive
     {
         /// <summary>
@@ -91,7 +89,7 @@ namespace Xenko.Graphics.GeometricPrimitives
 
             private const int CubeFaceCount = 6;
 
-            private static readonly Vector3[] faceNormals = new Vector3[CubeFaceCount]
+            private static readonly Vector3[] FaceNormals = new Vector3[CubeFaceCount]
                 {
                     new Vector3(0, 0, 1),
                     new Vector3(0, 0, -1),
@@ -101,7 +99,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                     new Vector3(0, -1, 0),
                 };
 
-            private static readonly Vector2[] textureCoordinates = new Vector2[4]
+            private static readonly Vector2[] TextureCoordinates = new Vector2[4]
                 {
                     new Vector2(1, 0),
                     new Vector2(1, 1),
@@ -114,9 +112,9 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// </summary>
             /// <param name="device">The device.</param>
             /// <param name="size">The size.</param>
-            /// <param name="vScale"></param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
-            /// <param name="uScale"></param>
             /// <returns>A cube.</returns>
             public static GeometricPrimitive New(GraphicsDevice device, float size = 1.0f, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
             {
@@ -129,9 +127,9 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// </summary>
             /// <param name="device">The device.</param>
             /// <param name="size">The size.</param>
-            /// <param name="vScale"></param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
-            /// <param name="uScale"></param>
             /// <returns>A cube.</returns>
             public static GeometricPrimitive New(GraphicsDevice device, Vector3 size, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
             {
@@ -143,9 +141,9 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// Creates a cube with six faces each one pointing in a different direction.
             /// </summary>
             /// <param name="size">The size.</param>
-            /// <param name="vScale"></param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
-            /// <param name="uScale"></param>
             /// <returns>A cube.</returns>
             public static GeometricMeshData<VertexPositionNormalTexture> New(float size = 1.0f, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
             {
@@ -156,9 +154,9 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// Creates a cube with six faces each one pointing in a different direction.
             /// </summary>
             /// <param name="size">The size.</param>
-            /// <param name="vScale"></param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
-            /// <param name="uScale"></param>
             /// <returns>A cube.</returns>
             public static GeometricMeshData<VertexPositionNormalTexture> New(Vector3 size, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
             {
@@ -168,7 +166,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                 var texCoords = new Vector2[4];
                 for (var i = 0; i < 4; i++)
                 {
-                    texCoords[i] = textureCoordinates[i]*new Vector2(uScale, vScale);
+                    texCoords[i] = TextureCoordinates[i] * new Vector2(uScale, vScale);
                 }
 
                 size /= 2.0f;
@@ -178,7 +176,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                 // Create each face in turn.
                 for (int i = 0; i < CubeFaceCount; i++)
                 {
-                    Vector3 normal = faceNormals[i];
+                    Vector3 normal = FaceNormals[i];
 
                     // Get two vectors perpendicular both to the face normal and to each other.
                     Vector3 basis = (i >= 4) ? Vector3.UnitZ : Vector3.UnitY;
@@ -207,7 +205,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                 }
 
                 // Create the primitive object.
-                return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, toLeftHanded) {Name = "Cube"};
+                return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, toLeftHanded) { Name = "Cube" };
             }
         }
     }

@@ -34,10 +34,10 @@ namespace Xenko.Graphics
         /// GLSL OpenGL ES Shader.
         /// </summary>
         OpenGLES,
-		
+
         /// <summary>
         /// GLSL/SPIR-V Shader.
         /// </summary>
-        Vulkan
+        Vulkan,
     }
 }

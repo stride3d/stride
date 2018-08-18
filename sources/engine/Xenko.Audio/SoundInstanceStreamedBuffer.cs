@@ -6,11 +6,11 @@ namespace Xenko.Audio
     /// <summary>
     /// A Sound Instance where the SoundSource comes from a StreamedBufferSoundSource, and implementing ISynchronizedMediaExtractor interface
     /// </summary>
-    public class SoundInstanceStreamedBuffer: SoundInstance, IMediaPlayer
+    public class SoundInstanceStreamedBuffer : SoundInstance, IMediaPlayer
     {
-        private StreamedBufferSoundSource StreamedSource;
+        private StreamedBufferSoundSource streamedSource;
         
-        private MediaSynchronizer Scheduler;
+        private MediaSynchronizer scheduler;
 
         public float SpeedFactor
         {
@@ -22,14 +22,14 @@ namespace Xenko.Audio
 
                 //Hum... It's working for SpeedRate up to 2, but not scaling well with higher values
                 Pitch = value;
-                StreamedSource.SpeedFactor = value;
+                streamedSource.SpeedFactor = value;
             }
         }
 
         internal SoundInstanceStreamedBuffer(MediaSynchronizer scheduler, StreamedBufferSound soundStreamedBuffer, string mediaDataUrl, long startPosition, long length, 
             AudioListener listener, bool useHrtf = false, float directionalFactor = 0.0f, HrtfEnvironment environment = HrtfEnvironment.Small)
         {
-            Scheduler = scheduler;
+            this.scheduler = scheduler;
             Listener = listener;
             engine = soundStreamedBuffer.AudioEngine;
             sound = soundStreamedBuffer;
@@ -39,10 +39,10 @@ namespace Xenko.Audio
                 return;
 
             //We first create the soundSource so that it gets initialized and can give us sampleRate and Channels info
-            soundSource = StreamedSource = new StreamedBufferSoundSource(this, Scheduler, mediaDataUrl, startPosition, length);
+            soundSource = streamedSource = new StreamedBufferSoundSource(this, this.scheduler, mediaDataUrl, startPosition, length);
 
             //Create the AudioLayer source
-            Source = AudioLayer.SourceCreate(listener.Listener, soundStreamedBuffer.SampleRate, StreamedSource.MaxNumberOfBuffers, 
+            Source = AudioLayer.SourceCreate(listener.Listener, soundStreamedBuffer.SampleRate, streamedSource.MaxNumberOfBuffers, 
                 soundStreamedBuffer.Channels == 1, spatialized, true, useHrtf, directionalFactor, environment);
 
             if (Source.Ptr == IntPtr.Zero)
@@ -53,17 +53,17 @@ namespace Xenko.Audio
 
         public void Seek(TimeSpan mediaTime)
         {
-            StreamedSource.Seek(mediaTime);
+            streamedSource.Seek(mediaTime);
         }
 
         public bool ReachedEndOfMedia()
         {
-            return StreamedSource.ReachedEndOfMedia();
+            return streamedSource.ReachedEndOfMedia();
         }
 
         public bool SeekRequestCompleted()
         {
-            return StreamedSource.SeekRequestCompleted();
+            return streamedSource.SeekRequestCompleted();
         }
     }
 }

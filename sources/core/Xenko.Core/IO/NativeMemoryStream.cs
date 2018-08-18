@@ -24,7 +24,6 @@ namespace Xenko.Core.IO
         {
         }
 
-
         /// <summary>
         /// Initializes a new instance of the <see cref="NativeMemoryStream"/> class.
         /// </summary>

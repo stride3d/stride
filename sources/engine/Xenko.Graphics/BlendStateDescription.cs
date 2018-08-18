@@ -135,15 +135,15 @@ namespace Xenko.Graphics
             unchecked
             {
                 int hashCode = AlphaToCoverageEnable.GetHashCode();
-                hashCode = (hashCode*397) ^ IndependentBlendEnable.GetHashCode();
-                hashCode = (hashCode*397) ^ RenderTarget0.GetHashCode();
-                hashCode = (hashCode*397) ^ RenderTarget1.GetHashCode();
-                hashCode = (hashCode*397) ^ RenderTarget2.GetHashCode();
-                hashCode = (hashCode*397) ^ RenderTarget3.GetHashCode();
-                hashCode = (hashCode*397) ^ RenderTarget4.GetHashCode();
-                hashCode = (hashCode*397) ^ RenderTarget5.GetHashCode();
-                hashCode = (hashCode*397) ^ RenderTarget6.GetHashCode();
-                hashCode = (hashCode*397) ^ RenderTarget7.GetHashCode();
+                hashCode = (hashCode * 397) ^ IndependentBlendEnable.GetHashCode();
+                hashCode = (hashCode * 397) ^ RenderTarget0.GetHashCode();
+                hashCode = (hashCode * 397) ^ RenderTarget1.GetHashCode();
+                hashCode = (hashCode * 397) ^ RenderTarget2.GetHashCode();
+                hashCode = (hashCode * 397) ^ RenderTarget3.GetHashCode();
+                hashCode = (hashCode * 397) ^ RenderTarget4.GetHashCode();
+                hashCode = (hashCode * 397) ^ RenderTarget5.GetHashCode();
+                hashCode = (hashCode * 397) ^ RenderTarget6.GetHashCode();
+                hashCode = (hashCode * 397) ^ RenderTarget7.GetHashCode();
                 return hashCode;
             }
         }

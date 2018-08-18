@@ -14,6 +14,6 @@ namespace Xenko.Rendering.Materials
 
         Float2,
 
-        Float
+        Float,
     }
 }

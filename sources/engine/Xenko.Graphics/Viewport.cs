@@ -38,7 +38,9 @@ namespace Xenko.Graphics
         /// <summary>Gets or sets the maximum depth of the clip volume.</summary>
         public float MaxDepth;
 
-        /// <summary>Creates an instance of this object.</summary>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Viewport"/> struct.
+        /// </summary>
         /// <param name="x">The x coordinate of the upper-left corner of the viewport in pixels.</param>
         /// <param name="y">The y coordinate of the upper-left corner of the viewport in pixels.</param>
         /// <param name="width">The width of the viewport in pixels.</param>
@@ -53,7 +55,9 @@ namespace Xenko.Graphics
             MaxDepth = 1;
         }
 
-        /// <summary>Creates an instance of this object.</summary>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Viewport"/> struct.
+        /// </summary>
         /// <param name="x">The x coordinate of the upper-left corner of the viewport in pixels.</param>
         /// <param name="y">The y coordinate of the upper-left corner of the viewport in pixels.</param>
         /// <param name="width">The width of the viewport in pixels.</param>
@@ -68,7 +72,9 @@ namespace Xenko.Graphics
             MaxDepth = 1;
         }
 
-        /// <summary>Creates an instance of this object.</summary>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Viewport"/> struct.
+        /// </summary>
         /// <param name="bounds">A bounding box that defines the location and size of the viewport in a render target.</param>
         public Viewport(Rectangle bounds)
         {
@@ -101,8 +107,8 @@ namespace Xenko.Graphics
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            if (obj.GetType() != typeof (Viewport)) return false;
-            return Equals((Viewport) obj);
+            if (obj.GetType() != typeof(Viewport)) return false;
+            return Equals((Viewport)obj);
         }
 
         public override int GetHashCode()
@@ -110,11 +116,11 @@ namespace Xenko.Graphics
             unchecked
             {
                 int result = X.GetHashCode();
-                result = (result*397) ^ Y.GetHashCode();
-                result = (result*397) ^ Width.GetHashCode();
-                result = (result*397) ^ Height.GetHashCode();
-                result = (result*397) ^ MinDepth.GetHashCode();
-                result = (result*397) ^ MaxDepth.GetHashCode();
+                result = (result * 397) ^ Y.GetHashCode();
+                result = (result * 397) ^ Width.GetHashCode();
+                result = (result * 397) ^ Height.GetHashCode();
+                result = (result * 397) ^ MinDepth.GetHashCode();
+                result = (result * 397) ^ MaxDepth.GetHashCode();
                 return result;
             }
         }
@@ -138,7 +144,7 @@ namespace Xenko.Graphics
         private static bool WithinEpsilon(float a, float b)
         {
             float num = a - b;
-            return ((-1.401298E-45f <= num) && (num <= float.Epsilon));
+            return ((num >= -1.401298E-45f) && (num <= float.Epsilon));
         }
 
         /// <summary>Projects a 3D vector from object space into screen space.</summary>
@@ -198,7 +204,7 @@ namespace Xenko.Graphics
             {
                 if (Width != 0 && Height != 0)
                 {
-                    return Width/Height;
+                    return Width / Height;
                 }
                 return 0f;
             }

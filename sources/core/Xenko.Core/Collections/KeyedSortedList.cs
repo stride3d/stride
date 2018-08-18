@@ -11,11 +11,11 @@ namespace Xenko.Core.Collections
     /// List of items, stored sequentially and sorted by an implicit invariant key that are extracted from items by implementing <see cref="GetKeyForItem"/>.
     /// </summary>
     /// <typeparam name="TKey">The type of the key.</typeparam>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of the item in the collection.</typeparam>
     public abstract class KeyedSortedList<TKey, T> : ICollection<T>, ICollection
     {
+        protected FastListStruct<T> items = new FastListStruct<T>(1);
         private readonly IComparer<TKey> comparer;
-        protected FastListStruct<T> Items = new FastListStruct<T>(1);
 
         protected KeyedSortedList() : this(null)
         {
@@ -33,7 +33,7 @@ namespace Xenko.Core.Collections
         /// Extracts the key for the specified element.
         /// </summary>
         /// <param name="item">The element from which to extract the key.</param>
-        /// <returns></returns>
+        /// <returns>The key for the specified item.</returns>
         protected abstract TKey GetKeyForItem(T item);
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Xenko.Core.Collections
         /// <param name="item">The item.</param>
         protected virtual void InsertItem(int index, T item)
         {
-            Items.Insert(index, item);
+            items.Insert(index, item);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Xenko.Core.Collections
         /// <param name="index">The index.</param>
         protected virtual void RemoveItem(int index)
         {
-            Items.RemoveAt(index);
+            items.RemoveAt(index);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Xenko.Core.Collections
         /// </summary>
         public void Sort()
         {
-            Array.Sort(Items.Items, 0, Items.Count, new Comparer(this));
+            Array.Sort(items.Items, 0, items.Count, new Comparer(this));
         }
 
         /// <inheritdoc/>
@@ -91,11 +91,10 @@ namespace Xenko.Core.Collections
             return true;
         }
 
-        /// <inheritdoc/>
         public T this[int index]
         {
-            get { return Items[index]; }
-            set { Items[index] = value; }
+            get { return items[index]; }
+            set { items[index] = value; }
         }
 
         public T this[TKey key]
@@ -105,15 +104,15 @@ namespace Xenko.Core.Collections
                 var index = BinarySearch(key);
                 if (index < 0)
                     throw new KeyNotFoundException();
-                return Items[index];
+                return items[index];
             }
             set
             {
                 var index = BinarySearch(key);
                 if (index >= 0)
-                    Items[index] = value;
+                    items[index] = value;
                 else
-                    Items.Insert(~index, value);
+                    items.Insert(~index, value);
             }
         }
 
@@ -126,26 +125,26 @@ namespace Xenko.Core.Collections
                 return false;
             }
 
-            value = Items[index];
+            value = items[index];
             return true;
         }
 
         /// <inheritdoc/>
         public void Clear()
         {
-            Items.Clear();
+            items.Clear();
         }
 
         /// <inheritdoc/>
         public bool Contains(T item)
         {
-            return Items.Contains(item);
+            return items.Contains(item);
         }
 
         /// <inheritdoc/>
         void ICollection<T>.CopyTo(T[] array, int arrayIndex)
         {
-            foreach (var item in Items)
+            foreach (var item in items)
             {
                 array[arrayIndex++] = item;
             }
@@ -154,20 +153,20 @@ namespace Xenko.Core.Collections
         /// <inheritdoc/>
         bool ICollection<T>.Remove(T item)
         {
-            return Items.Remove(item);
+            return items.Remove(item);
         }
 
         /// <inheritdoc/>
         void ICollection.CopyTo(Array array, int arrayIndex)
         {
-            foreach (var item in Items)
+            foreach (var item in items)
             {
                 ((IList)array)[arrayIndex++] = item;
             }
         }
         
         /// <inheritdoc/>
-        public int Count => Items.Count;
+        public int Count => items.Count;
 
         /// <inheritdoc/>
         object ICollection.SyncRoot => this;
@@ -178,10 +177,9 @@ namespace Xenko.Core.Collections
         /// <inheritdoc/>
         bool ICollection<T>.IsReadOnly => false;
 
-        /// <inheritdoc/>
         public int IndexOf(T item)
         {
-            return Items.IndexOf(item);
+            return items.IndexOf(item);
         }
 
 //        /// <inheritdoc/>
@@ -192,31 +190,31 @@ namespace Xenko.Core.Collections
 
         public void Remove(T item)
         {
-            Items.Remove(item);
+            items.Remove(item);
         }
 
         /// <inheritdoc/>
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
-            return new Enumerator(Items);
+            return new Enumerator(items);
         }
 
         /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new Enumerator(Items);
+            return new Enumerator(items);
         }
 
         public Enumerator GetEnumerator()
         {
-            return new Enumerator(Items);
+            return new Enumerator(items);
         }
 
         public int BinarySearch(TKey searchKey)
         {
-            var values = Items.Items;
+            var values = items.Items;
             var start = 0;
-            var end = Items.Count - 1;
+            var end = items.Count - 1;
 
             while (start <= end)
             {
@@ -241,7 +239,7 @@ namespace Xenko.Core.Collections
             return ~start;
         }
 
-        struct Comparer : IComparer<T>
+        private struct Comparer : IComparer<T>
         {
             private readonly KeyedSortedList<TKey, T> list;
 

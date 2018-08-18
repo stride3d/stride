@@ -5,7 +5,6 @@ using System.Linq;
 
 namespace Xenko.Rendering.Images
 {
-
     public static partial class AmbientOcclusionRawAOKeys
     {
         public static readonly PermutationParameterKey<int> Count = ParameterKeys.NewPermutation<int>();

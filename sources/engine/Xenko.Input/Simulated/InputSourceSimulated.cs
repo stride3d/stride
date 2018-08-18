@@ -104,7 +104,7 @@ namespace Xenko.Input
         private enum DeviceEventType
         {
             Add,
-            Remove
+            Remove,
         }
     }
 }

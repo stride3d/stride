@@ -70,16 +70,16 @@ namespace Xenko.Graphics
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
         /// <param name="format">Describes the format to use.</param>
-        /// <param name="usage">The usage.</param>
-        /// <param name="textureFlags">true if the texture needs to support unordered read write.</param>
         /// <param name="textureData">The texture data for a single mipmap and a single array slice. See remarks</param>
+        /// <param name="textureFlags">true if the texture needs to support unordered read write.</param>
+        /// <param name="usage">The usage.</param>
         /// <returns>A new instance of 2D <see cref="Texture" /> class.</returns>
         /// <remarks>
         /// Each value in textureData is a pixel in the destination texture.
         /// </remarks>
         public static unsafe Texture New2D<T>(GraphicsDevice device, int width, int height, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : struct
         {
-            return New2D(device, width, height, 1, format, new []{ GetDataBox(format, width, height, 1, textureData, (IntPtr)Interop.Fixed(textureData)) }, textureFlags, 1, usage);
+            return New2D(device, width, height, 1, format, new[] { GetDataBox(format, width, height, 1, textureData, (IntPtr)Interop.Fixed(textureData)) }, textureFlags, 1, usage);
         }
 
         /// <summary>

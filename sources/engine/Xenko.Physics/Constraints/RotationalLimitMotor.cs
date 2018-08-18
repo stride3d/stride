@@ -5,7 +5,7 @@ namespace Xenko.Physics
 {
     public class RotationalLimitMotor
     {
-        BulletSharp.RotationalLimitMotor mMotor;
+        private BulletSharp.RotationalLimitMotor mMotor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RotationalLimitMotor"/> class.

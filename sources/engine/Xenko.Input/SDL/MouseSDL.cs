@@ -50,7 +50,6 @@ namespace Xenko.Input
             uiControl.ResizeEndActions -= OnSizeChanged;
         }
 
-
         public override void LockPosition(bool forceCenter = false)
         {
             if (!IsPositionLocked)
@@ -61,7 +60,7 @@ namespace Xenko.Input
                 if (forceCenter)
                 {
                     // Take the center of the client area as the captured position and move the cursor to that position
-                    relativeCapturedPosition = new Point(uiControl.ClientSize.Width/2, uiControl.ClientSize.Height/2);
+                    relativeCapturedPosition = new Point(uiControl.ClientSize.Width / 2, uiControl.ClientSize.Height / 2);
                     uiControl.RelativeCursorPosition = relativeCapturedPosition;
                 }
                 else

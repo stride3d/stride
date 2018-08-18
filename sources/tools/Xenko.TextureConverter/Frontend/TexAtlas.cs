@@ -101,7 +101,7 @@ namespace Xenko.TextureConverter
             foreach (var entry in Layout.TexList)
             {
                 current = entry.Value;
-                if(orientation == Orientation.Horizontal) current.UOffset = Width - entry.Value.UOffset - entry.Value.Width;
+                if (orientation == Orientation.Horizontal) current.UOffset = Width - entry.Value.UOffset - entry.Value.Width;
                 else current.VOffset = Height - entry.Value.VOffset - entry.Value.Height;
 
                 texList.Add(entry.Key, current);

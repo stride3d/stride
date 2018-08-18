@@ -63,23 +63,23 @@ namespace Xenko.VirtualReality
                         case VRApi.Dummy:
                         {
                             Device = new DummyDevice(Services);
-                        }
                             break;
+                        }
                         case VRApi.Oculus:
                         {
 #if XENKO_GRAPHICS_API_DIRECT3D11
                             Device = new OculusOvrHmd();
                                 
 #endif
-                        }
                             break;
+                        }
                         case VRApi.OpenVR:
                         {
 #if XENKO_GRAPHICS_API_DIRECT3D11
                             Device = new OpenVRHmd();
 #endif
-                        }
                             break;
+                        }
                         case VRApi.WindowsMixedReality:
                         {
 #if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
@@ -88,22 +88,22 @@ namespace Xenko.VirtualReality
                                 Device = new WindowsMixedRealityHmd();
                             }
 #endif
-                        }
                             break;
-                        //                        case VRApi.Fove:
-                        //                        {
+                        }
+                        //case VRApi.Fove:
+                        //{
                         //#if XENKO_GRAPHICS_API_DIRECT3D11
-                        //                            Device = new FoveHmd();
+                        //    Device = new FoveHmd();
                         //#endif
-                        //                        }
-                        //                            break;
-                        //                        case VRApi.Google:
-                        //                        {
+                        //break;
+                        //}
+                        //case VRApi.Google:
+                        //{
                         //#if XENKO_PLATFORM_IOS || XENKO_PLATFORM_ANDROID
-                        //                                VRDevice = new GoogleVrHmd();
+                        //    VRDevice = new GoogleVrHmd();
                         //#endif
-                        //                        }
-                        //                            break;
+                        //    break;
+                        //}
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
@@ -139,7 +139,7 @@ postswitch:
                     Device = new DummyDevice(Services)
                     {
                         Game = Game,
-                        RenderFrameScaling = 1.0f
+                        RenderFrameScaling = 1.0f,
                     };
                     Device.Enable(GraphicsDevice, deviceManager, RequireMirror, MirrorWidth, MirrorHeight);
                 }

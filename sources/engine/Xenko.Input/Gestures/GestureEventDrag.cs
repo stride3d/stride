@@ -15,7 +15,7 @@ namespace Xenko.Input
         internal void Set(GestureState state, int numberOfFingers, TimeSpan deltaTime, TimeSpan totalTime,
                                     GestureShape shape, Vector2 startPos, Vector2 currPos, Vector2 deltaTrans)
         {
-            base.Set(GestureType.Drag, state, numberOfFingers, deltaTime, totalTime, shape, startPos, currPos, deltaTrans);
+            Set(GestureType.Drag, state, numberOfFingers, deltaTime, totalTime, shape, startPos, currPos, deltaTrans);
         }
     }
 }

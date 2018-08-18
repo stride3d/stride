@@ -172,16 +172,16 @@ namespace Xenko.Audio
                             var buffer = audioMediaDecoder.GetOutputBuffer(decoderStatus);
                             var presentationTime = TimeSpanExtensions.FromMicroSeconds(info.PresentationTimeUs);
 
-                            if (StorageBuffer.CountDataBytes + info.Size <= StorageBuffer.Data.Length)
+                            if (storageBuffer.CountDataBytes + info.Size <= storageBuffer.Data.Length)
                             {
-                                buffer.Get(StorageBuffer.Data, StorageBuffer.CountDataBytes, info.Size); // Read the buffer all at once
+                                buffer.Get(storageBuffer.Data, storageBuffer.CountDataBytes, info.Size); // Read the buffer all at once
                                 buffer.Clear(); // MUST DO!!! OTHERWISE THE NEXT TIME YOU GET THIS SAME BUFFER BAD THINGS WILL HAPPEN
                                 buffer.Position(0);
 
-                                if (StorageBuffer.CountDataBytes == 0)
-                                    StorageBuffer.PresentationTime = presentationTime;
+                                if (storageBuffer.CountDataBytes == 0)
+                                    storageBuffer.PresentationTime = presentationTime;
 
-                                StorageBuffer.CountDataBytes += info.Size;
+                                storageBuffer.CountDataBytes += info.Size;
                             }
                             else
                             {

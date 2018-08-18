@@ -64,15 +64,15 @@ namespace Xenko.Core.TypeConverters
         private readonly PropertyDescriptorCollection m_Properties;
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref = "T:Xenko.Core.TypeConverters.Half4Converter" /> class.
+        ///   Initializes a new instance of the <see cref="Half4Converter"/> class.
         /// </summary>
         public Half4Converter()
         {
-            Type type = typeof (Half4);
+            Type type = typeof(Half4);
             PropertyDescriptor[] propArray = new PropertyDescriptor[]
                                                  {
                                                      new FieldPropertyDescriptor(type.GetField("X")), new FieldPropertyDescriptor(type.GetField("Y")),
-                                                     new FieldPropertyDescriptor(type.GetField("Z")), new FieldPropertyDescriptor(type.GetField("W"))
+                                                     new FieldPropertyDescriptor(type.GetField("Z")), new FieldPropertyDescriptor(type.GetField("W")),
                                                  };
             m_Properties = new PropertyDescriptorCollection(propArray);
         }
@@ -86,7 +86,7 @@ namespace Xenko.Core.TypeConverters
         ///   <c>true</c> if this converter can perform the conversion; otherwise, <c>false</c>.</returns>
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
-            return ((sourceType == typeof (string)) || base.CanConvertFrom(context, sourceType));
+            return ((sourceType == typeof(string)) || base.CanConvertFrom(context, sourceType));
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Xenko.Core.TypeConverters
         ///   <c>true</c> if this converter can perform the conversion; otherwise, <c>false</c>.</returns>
         public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
         {
-            if ((destinationType != typeof (string)) && (destinationType != typeof (InstanceDescriptor)))
+            if ((destinationType != typeof(string)) && (destinationType != typeof(InstanceDescriptor)))
             {
                 return base.CanConvertTo(context, destinationType);
             }
@@ -124,18 +124,18 @@ namespace Xenko.Core.TypeConverters
                 return base.ConvertFrom(context, culture, value);
             }
             @string = @string.Trim();
-            TypeConverter converter = TypeDescriptor.GetConverter(typeof (Half));
-            char[] separator = new[] {culture.TextInfo.ListSeparator[0]};
+            TypeConverter converter = TypeDescriptor.GetConverter(typeof(Half));
+            char[] separator = new[] { culture.TextInfo.ListSeparator[0] };
             string[] stringArray = @string.Split(separator);
             if (stringArray.Length != 4)
             {
                 throw new ArgumentException("Invalid half format.");
             }
-            Half X = (Half) converter.ConvertFromString(context, culture, stringArray[0]);
-            Half Y = (Half) converter.ConvertFromString(context, culture, stringArray[1]);
-            Half Z = (Half) converter.ConvertFromString(context, culture, stringArray[2]);
-            Half W = (Half) converter.ConvertFromString(context, culture, stringArray[3]);
-            return new Half4(X, Y, Z, W);
+            Half x = (Half)converter.ConvertFromString(context, culture, stringArray[0]);
+            Half y = (Half)converter.ConvertFromString(context, culture, stringArray[1]);
+            Half z = (Half)converter.ConvertFromString(context, culture, stringArray[2]);
+            Half w = (Half)converter.ConvertFromString(context, culture, stringArray[3]);
+            return new Half4(x, y, z, w);
         }
 
         /// <summary>
@@ -156,24 +156,24 @@ namespace Xenko.Core.TypeConverters
             {
                 culture = CultureInfo.CurrentCulture;
             }
-            if ((destinationType == typeof (string)) && (value is Half4))
+            if ((destinationType == typeof(string)) && (value is Half4))
             {
-                TypeConverter converter = TypeDescriptor.GetConverter(typeof (Half));
+                TypeConverter converter = TypeDescriptor.GetConverter(typeof(Half));
                 return string.Join(culture.TextInfo.ListSeparator + " ",
                                    new[]
                                        {
-                                           converter.ConvertToString(context, culture, ((Half4) value).X),
-                                           converter.ConvertToString(context, culture, ((Half4) value).Y),
-                                           converter.ConvertToString(context, culture, ((Half4) value).Z),
-                                           converter.ConvertToString(context, culture, ((Half4) value).W)
+                                           converter.ConvertToString(context, culture, ((Half4)value).X),
+                                           converter.ConvertToString(context, culture, ((Half4)value).Y),
+                                           converter.ConvertToString(context, culture, ((Half4)value).Z),
+                                           converter.ConvertToString(context, culture, ((Half4)value).W),
                                        });
             }
-            if ((destinationType == typeof (InstanceDescriptor)) && (value is Half4))
+            if ((destinationType == typeof(InstanceDescriptor)) && (value is Half4))
             {
-                ConstructorInfo info = typeof (Half4).GetConstructor(new[] {typeof (Half), typeof (Half), typeof (Half), typeof (Half)});
+                ConstructorInfo info = typeof(Half4).GetConstructor(new[] { typeof(Half), typeof(Half), typeof(Half), typeof(Half) });
                 if (info != null)
                 {
-                    return new InstanceDescriptor(info, new object[] {((Half4) value).X, ((Half4) value).Y, ((Half4) value).Z, ((Half4) value).W});
+                    return new InstanceDescriptor(info, new object[] { ((Half4)value).X, ((Half4)value).Y, ((Half4)value).Z, ((Half4)value).W });
                 }
             }
             return base.ConvertTo(context, culture, value, destinationType);
@@ -192,7 +192,7 @@ namespace Xenko.Core.TypeConverters
             {
                 throw new ArgumentNullException(nameof(propertyValues));
             }
-            return new Half4((Half) propertyValues["X"], (Half) propertyValues["Y"], (Half) propertyValues["Z"], (Half) propertyValues["W"]);
+            return new Half4((Half)propertyValues["X"], (Half)propertyValues["Y"], (Half)propertyValues["Z"], (Half)propertyValues["W"]);
         }
 
         /// <summary>

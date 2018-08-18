@@ -51,7 +51,7 @@ namespace Xenko.Rendering
             }
         }
 
-        struct DataArray
+        private struct DataArray
         {
             public Array Array;
             public readonly DataArrayInfo Info;
@@ -62,7 +62,7 @@ namespace Xenko.Rendering
             }
         }
 
-        abstract class DataArrayInfo
+        private abstract class DataArrayInfo
         {
             public DataType Type { get; }
 
@@ -99,7 +99,7 @@ namespace Xenko.Rendering
             public abstract void ChangeMutiplier(ref Array array, int multiplier);
         }
 
-        class DataArrayInfo<T> : DataArrayInfo
+        private class DataArrayInfo<T> : DataArrayInfo
         {
             public DataArrayInfo(DataType type, int multiplier = 1) : base(type, multiplier)
             {

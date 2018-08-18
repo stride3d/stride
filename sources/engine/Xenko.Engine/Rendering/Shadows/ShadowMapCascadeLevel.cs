@@ -13,6 +13,6 @@ namespace Xenko.Rendering.Shadows
         public Matrix ViewProjReceiver;
         public Vector4 CascadeTextureCoordsBorder;
         public Vector3 Offset;
-        private float Padding;
+        private float padding;
     }
 }

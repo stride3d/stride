@@ -70,7 +70,5 @@ namespace Xenko.Core.Yaml
 
             return PropertyKeyNameResolver.ComputePropertyKeyName(objectContext.SerializerContext, propertyKey);
         }
-
-
     }
 }

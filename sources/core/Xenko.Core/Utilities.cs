@@ -20,6 +20,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+#pragma warning disable SA1405 // Debug.Assert must provide message text
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -40,7 +41,7 @@ namespace Xenko.Core
     public static class Utilities
     {
 #if XENKO_PLATFORM_UWP
-        public unsafe static void CopyMemory(IntPtr dest, IntPtr src, int sizeInBytesToCopy)
+        public static unsafe void CopyMemory(IntPtr dest, IntPtr src, int sizeInBytesToCopy)
         {
             Interop.memcpy((void*)dest, (void*)src, sizeInBytesToCopy);
         }
@@ -59,19 +60,18 @@ namespace Xenko.Core
 #else
 #   error Unsupported platform
 #endif
-        /// <summary>
-        /// Native memcpy.
-        /// </summary>
-        /// <param name="dest">The destination memory location</param>
-        /// <param name="src">The source memory location.</param>
-        /// <param name="sizeInBytesToCopy">The count.</param>
-        /// <returns></returns>
         [DllImport(MemcpyDll, EntryPoint = "memcpy", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
 #if !XENKO_RUNTIME_CORECLR
         [SuppressUnmanagedCodeSecurity]
 #endif
         private static extern IntPtr CopyMemory(IntPtr dest, IntPtr src, ulong sizeInBytesToCopy);
 
+        /// <summary>
+        /// Copy memory.
+        /// </summary>
+        /// <param name="dest">The destination memory location</param>
+        /// <param name="src">The source memory location.</param>
+        /// <param name="sizeInBytesToCopy">The count.</param>
         public static void CopyMemory(IntPtr dest, IntPtr src, int sizeInBytesToCopy)
         {
             CopyMemory(dest, src, (ulong)sizeInBytesToCopy);
@@ -181,9 +181,8 @@ namespace Xenko.Core
         /// <summary>
         /// Covnerts a structured array to an equivalent byte array.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="source">The source.</param>
-        /// <returns></returns>
+        /// <returns>The byte array.</returns>
         public static byte[] ToByteArray<T>(T[] source) where T : struct
         {
             if (source == null) return null;
@@ -221,7 +220,6 @@ namespace Xenko.Core
         /// <typeparam name="T">Type of a data to read</typeparam>
         /// <param name="source">Memory location to read from.</param>
         /// <param name="data">The data write to.</param>
-        /// <returns>source pointer + sizeof(T)</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Read<T>(IntPtr source, ref T data) where T : struct
         {
@@ -237,7 +235,6 @@ namespace Xenko.Core
         /// <typeparam name="T">Type of a data to read</typeparam>
         /// <param name="source">Memory location to read from.</param>
         /// <param name="data">The data write to.</param>
-        /// <returns>source pointer + sizeof(T)</returns>
         public static void ReadOut<T>(IntPtr source, out T data) where T : struct
         {
             unsafe
@@ -284,7 +281,6 @@ namespace Xenko.Core
         /// <typeparam name="T">Type of a data to write</typeparam>
         /// <param name="destination">Memory location to write to.</param>
         /// <param name="data">The data to write.</param>
-        /// <returns>destination pointer + sizeof(T)</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Write<T>(IntPtr destination, ref T data) where T : struct
         {
@@ -317,7 +313,6 @@ namespace Xenko.Core
         /// <param name="data">The array of T data to write.</param>
         /// <param name="offset">The offset in the array to read from.</param>
         /// <param name="count">The number of T element to write to the memory location</param>
-        /// <returns>destination pointer + sizeof(T) * count</returns>
         public static void Write<T>(byte[] destination, T[] data, int offset, int count) where T : struct
         {
             unsafe
@@ -362,8 +357,8 @@ namespace Xenko.Core
             {
                 throw new ArgumentException("Alignment is not power of 2", nameof(align));
             }
-            var memPtr = Marshal.AllocHGlobal(sizeInBytes + mask + sizeof(void *));
-            var ptr = (byte *)((ulong)(memPtr + sizeof(void*) + mask) & ~(ulong)mask);
+            var memPtr = Marshal.AllocHGlobal(sizeInBytes + mask + sizeof(void*));
+            var ptr = (byte*)((ulong)(memPtr + sizeof(void*) + mask) & ~(ulong)mask);
             ((IntPtr*)ptr)[-1] = memPtr;
             return new IntPtr(ptr);
         }
@@ -393,13 +388,12 @@ namespace Xenko.Core
         /// <returns><c>true</c> if the specified memory pointer is aligned in memory; otherwise, <c>false</c>.</returns>
         public static bool IsMemoryAligned(IntPtr memoryPtr, int align = 16)
         {
-            return ((memoryPtr.ToInt64() & (align - 1)) == 0);
+            return (memoryPtr.ToInt64() & (align - 1)) == 0;
         }
 
         /// <summary>
         /// Allocate an aligned memory buffer.
         /// </summary>
-        /// <returns>A pointer to a buffer aligned.</returns>
         /// <remarks>
         /// The buffer must have been allocated with <see cref="AllocateMemory"/>
         /// </remarks>
@@ -731,12 +725,12 @@ namespace Xenko.Core
         }
 
         /// <summary>
-        /// Suspends current thread for a <param name="sleepTime"/>.
+        /// Suspends current thread for a <see cref="sleepTime"/>.
         /// </summary>
         /// <param name="sleepTime">The duration of sleep.</param>
         public static void Sleep(TimeSpan sleepTime)
         {
-            var ms = (long) sleepTime.TotalMilliseconds;
+            var ms = (long)sleepTime.TotalMilliseconds;
             if (ms < 0 || ms > int.MaxValue)
             {
                 throw new ArgumentOutOfRangeException(nameof(sleepTime), "Sleep time must be a duration less than '2^31 - 1' milliseconds.");
@@ -759,7 +753,6 @@ namespace Xenko.Core
         /// <typeparam name="T">Type of a data to write</typeparam>
         /// <param name="destination">Memory location to write to.</param>
         /// <param name="data">The data to write.</param>
-        /// <returns>destination pointer + sizeof(T)</returns>
         internal static void UnsafeWrite<T>(IntPtr destination, ref T data)
         {
             unsafe
@@ -774,7 +767,6 @@ namespace Xenko.Core
         /// <typeparam name="T">Type of a data to read</typeparam>
         /// <param name="source">Memory location to read from.</param>
         /// <param name="data">The data write to.</param>
-        /// <returns>source pointer + sizeof(T)</returns>
         internal static void UnsafeReadOut<T>(IntPtr source, out T data)
         {
             unsafe
@@ -800,7 +792,6 @@ namespace Xenko.Core
         /// <typeparam name="T">The type to iterate.</typeparam>
         /// <param name="root">The root item</param>
         /// <param name="childrenF">The function to retrieve a child</param>
-        /// <returns></returns>
         public static IEnumerable<T> IterateTree<T>(T root, Func<T, IEnumerable<T>> childrenF)
         {
             var q = new List<T> { root };

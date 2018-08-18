@@ -29,7 +29,7 @@ namespace Xenko.UI.Events
             get { return routedEvent; }
             set
             {
-                if(IsBeingRouted)
+                if (IsBeingRouted)
                     throw new InvalidOperationException("The routed event cannot be changed while the event is being routed.");
 
                 routedEvent = value;

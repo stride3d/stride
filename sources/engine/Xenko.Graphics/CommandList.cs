@@ -202,11 +202,11 @@ namespace Xenko.Graphics
             CommonSetRenderTargetsAndViewport(depthStencilBuffer, renderTargetCount, renderTargets);
         }
 
-    /// <summary>
-    ///     <p>Bind one or more render targets atomically and the depth-stencil buffer to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.</p>
-    /// </summary>
-    /// <param name="renderTargetViews">A set of render target views to bind.</param>
-    public void SetRenderTargetsAndViewport(Texture[] renderTargetViews)
+        /// <summary>
+        ///     <p>Bind one or more render targets atomically and the depth-stencil buffer to the output-merger stage. See <see cref="Textures+and+render+targets"/> to learn how to use it.</p>
+        /// </summary>
+        /// <param name="renderTargetViews">A set of render target views to bind.</param>
+        public void SetRenderTargetsAndViewport(Texture[] renderTargetViews)
         {
             SetRenderTargetsAndViewport(null, renderTargetViews);
         }

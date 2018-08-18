@@ -60,7 +60,7 @@ One blank line below
         {
             base.Draw(gameTime);
 
-            if(!ScreenShotAutomationEnabled)
+            if (!ScreenShotAutomationEnabled)
                 DrawText();
         }
 

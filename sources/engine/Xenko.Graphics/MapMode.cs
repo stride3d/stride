@@ -45,6 +45,6 @@ namespace Xenko.Graphics
         /// <remarks>
         /// This flag is only valid on vertex and index buffers.
         /// </remarks>
-        WriteNoOverwrite = 5,			
+        WriteNoOverwrite = 5,
     }
 }

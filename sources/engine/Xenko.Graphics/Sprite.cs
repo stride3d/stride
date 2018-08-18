@@ -43,7 +43,7 @@ namespace Xenko.Graphics
         /// </summary>
         /// <param name="fragmentName">Name of the fragment</param>
         public Sprite(string fragmentName)
-            :this(fragmentName, null)
+            : this(fragmentName, null)
         {
         }
 
@@ -77,7 +77,7 @@ namespace Xenko.Graphics
                 var width = isFullTexture ? fullQualitySize.Width : texture.ViewWidth;
                 var height = isFullTexture ? fullQualitySize.Height : texture.ViewHeight;
                 Region = new Rectangle(0, 0, width, height);
-                Center = new Vector2(Region.Width/2, Region.Height/2);
+                Center = new Vector2(Region.Width / 2, Region.Height / 2);
             }
         }
 
@@ -119,7 +119,7 @@ namespace Xenko.Graphics
         /// </summary>
         public virtual ImageOrientation Orientation
         {
-            get {  return orientation; }
+            get { return orientation; }
             set
             {
                 orientation = value;
@@ -157,7 +157,7 @@ namespace Xenko.Graphics
         /// </summary>
         public Vector2 Size
         {
-            get {  return SizeInternal; }
+            get { return SizeInternal; }
         }
 
         /// <summary>

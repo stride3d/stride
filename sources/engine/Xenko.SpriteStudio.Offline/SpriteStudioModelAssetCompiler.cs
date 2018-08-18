@@ -122,7 +122,7 @@ namespace Xenko.SpriteStudio.Offline
                     foreach (var pair in data.Value.Data)
                     {
                         var tag = pair.Key;
-                        if(pair.Value.All(x => x["time"] != "0")) continue;
+                        if (pair.Value.All(x => x["time"] != "0")) continue;
                         var value = pair.Value.First()["value"]; //do we always have a frame 0? should be the case actually
                         switch (tag)
                         {

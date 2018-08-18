@@ -109,7 +109,7 @@ namespace Xenko.Core.Windows
                 {
                     foreach (var property in managementObject.Properties)
                     {
-                        if(property.Value == null) continue;
+                        if (property.Value == null) continue;
 
                         result.Add($"GPU{deviceId}.{property.Name}", property.Value.ToString());
                     }

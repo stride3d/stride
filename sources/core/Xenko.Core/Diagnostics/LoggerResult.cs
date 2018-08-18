@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.Diagnostics;
 using System.Text;
@@ -143,7 +144,6 @@ namespace Xenko.Core.Diagnostics
     /// <summary>
     /// A <see cref="LoggerResult"/> with an associated value;
     /// </summary>
-    /// <typeparam name="T"></typeparam>
     public class LoggerValueResult<T> : LoggerResult
     {
         public LoggerValueResult(string moduleName = null)

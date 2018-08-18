@@ -65,9 +65,9 @@ namespace Xenko.Rendering
             unchecked
             {
                 var hashCode = Key.GetHashCode();
-                hashCode = (hashCode*397) ^ Offset;
-                hashCode = (hashCode*397) ^ Count;
-                hashCode = (hashCode*397) ^ BindingSlot;
+                hashCode = (hashCode * 397) ^ Offset;
+                hashCode = (hashCode * 397) ^ Count;
+                hashCode = (hashCode * 397) ^ BindingSlot;
                 return hashCode;
             }
         }

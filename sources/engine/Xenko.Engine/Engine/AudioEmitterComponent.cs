@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using Xenko.Audio;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Collections;
-using Xenko.Audio;
 using Xenko.Engine.Design;
 
 namespace Xenko.Engine

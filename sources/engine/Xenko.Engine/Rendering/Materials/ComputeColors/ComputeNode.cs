@@ -31,7 +31,6 @@ namespace Xenko.Rendering.Materials.ComputeColors
             return Enumerable.Empty<ComputeNode>();
         }
 
-
         /// <summary>
         /// Generates the shader source equivalent for this node
         /// </summary>

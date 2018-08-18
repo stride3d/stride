@@ -155,7 +155,7 @@ namespace Xenko.Shaders.Compiler
             // Convert the AST to HLSL
             var writer = new Xenko.Core.Shaders.Writer.Hlsl.HlslWriter
             {
-                EnablePreprocessorLine = false // Allow to output links to original pdxsl via #line pragmas
+                EnablePreprocessorLine = false, // Allow to output links to original pdxsl via #line pragmas
             };
             writer.Visit(parsingResult.Shader);
             var shaderSourceText = writer.Text;
@@ -177,7 +177,7 @@ namespace Xenko.Shaders.Compiler
             {
                 Directory.CreateDirectory(logDir);
             }
-            var shaderSourceFilename = Path.Combine(logDir, "shader_" +  fullEffectName.Replace('.', '_') + "_" + shaderId + ".hlsl");
+            var shaderSourceFilename = Path.Combine(logDir, "shader_" + fullEffectName.Replace('.', '_') + "_" + shaderId + ".hlsl");
             lock (WriterLock) // protect write in case the same shader is created twice
             {
                 // Write shader before generating to make sure that we are having a trace before compiling it (compiler may crash...etc.)

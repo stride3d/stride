@@ -489,6 +489,6 @@ namespace Xenko.Rendering.Images
             public LightShadowType ShadowType;
             public ILightShadowMapRenderer ShadowMapRenderer;
             public int UsageCounter = 0;
-        };
+        }
     }
 }

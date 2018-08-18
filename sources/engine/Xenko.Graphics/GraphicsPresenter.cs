@@ -59,7 +59,8 @@ namespace Xenko.Graphics
                 {
                     description.BackBufferFormat = PixelFormat.B8G8R8A8_UNorm_SRgb;
                 }
-            } else if (!device.Features.HasSRgb)
+            }
+            else if (!device.Features.HasSRgb)
             {
                 // If the device does not support SRgb, but the backbuffer format asked is SRgb, convert it to non SRgb
                 if (description.BackBufferFormat == PixelFormat.R8G8B8A8_UNorm_SRgb)

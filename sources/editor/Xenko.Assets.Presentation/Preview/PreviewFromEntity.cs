@@ -171,7 +171,7 @@ namespace Xenko.Assets.Presentation.Preview
         protected class CameraUpdateScript : SyncScript
         {
             // ReSharper disable once StaticFieldInGenericType
-            private readonly static BoundingSphere InvalidBoundingSphere = new BoundingSphere(Vector3.Zero, MathUtil.ZeroTolerance);
+            private static readonly BoundingSphere InvalidBoundingSphere = new BoundingSphere(Vector3.Zero, MathUtil.ZeroTolerance);
 
             public float DefaultYaw;
             public float DefaultPitch;

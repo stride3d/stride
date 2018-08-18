@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
 using System;
@@ -79,7 +79,6 @@ namespace Xenko.Core.IO
             }
         }
 
-        
         private void RunCheckWatcher()
         {
             try
@@ -193,7 +192,7 @@ namespace Xenko.Core.IO
                 var childrenDirectoryList = parent.ListChildrenDirectories().ToList();
                 var countTracked = CountTracked(childrenDirectoryList);
 
-                var newCount = (countTracked + 1);
+                var newCount = countTracked + 1;
                 if (newCount == childrenDirectoryList.Count && newCount > 1)
                 {
                     UnTrack(parent, false);
@@ -260,7 +259,7 @@ namespace Xenko.Core.IO
                     Path = directory,
                     NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName,
                     Filter = FileFilter,
-                    IncludeSubdirectories = true
+                    IncludeSubdirectories = true,
                 };
 
             watcher.Changed += OnModified;
@@ -316,7 +315,9 @@ namespace Xenko.Core.IO
                     OnModified(this, new FileRenameEvent(e.Name, e.FullPath, renamedEventArgs.OldFullPath));
                 }
                 else
+                {
                     OnModified(this, new FileEvent((FileEventChangeType)e.ChangeType, e.Name, e.FullPath));
+                }
             }
         }
 
@@ -364,7 +365,6 @@ namespace Xenko.Core.IO
                 {
                     return Watcher != null;
                 }
-                
             }
         }
     }

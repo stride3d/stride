@@ -51,7 +51,6 @@ namespace Xenko.VirtualReality
 //
 //                Fove.Commit();
 //            }));
-
         }
 
         public override void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix view, out Matrix projection)

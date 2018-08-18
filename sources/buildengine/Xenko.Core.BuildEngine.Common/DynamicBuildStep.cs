@@ -82,7 +82,7 @@ namespace Xenko.Core.BuildEngine
                 }
 
                 // Safeguard if the provided build step is already processed
-                if(buildStep.Processed)
+                if (buildStep.Processed)
                     continue;
 
                 // Schedule build step

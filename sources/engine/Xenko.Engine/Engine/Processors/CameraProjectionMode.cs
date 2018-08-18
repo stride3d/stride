@@ -21,6 +21,6 @@ namespace Xenko.Engine.Processors
         /// An orthographic projection.
         /// </summary>
         /// <userdoc>An orthographic projection (usually used for 2D games).</userdoc>
-        Orthographic
+        Orthographic,
     }
 }

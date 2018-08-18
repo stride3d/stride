@@ -76,7 +76,7 @@ namespace Xenko.Engine.Network
             {
                 // Check for a corrupted stream.  Read a max of 5 bytes. 
                 // In a future version, add a DataFormatException. 
-                if (shift == 5 * 7)  // 5 bytes max per Int32, shift += 7
+                if (shift == 5 * 7) // 5 bytes max per Int32, shift += 7
                     throw new FormatException("Bad string length. 7bit Int32 format");
 
                 // ReadByte handles end of stream cases for us.

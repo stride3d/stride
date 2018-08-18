@@ -118,7 +118,7 @@ namespace Xenko.Core.TypeConverters
             if (string.IsNullOrEmpty(str))
                 return null;
 
-            str = str.Replace("[", "").Replace("]", "");
+            str = str.Replace("[", string.Empty).Replace("]", string.Empty);
             return ConvertFromString<Matrix, float>(context, culture, str);
         }
 
@@ -144,7 +144,7 @@ namespace Xenko.Core.TypeConverters
                 M41 = (float)propertyValues[nameof(Matrix.M41)],
                 M42 = (float)propertyValues[nameof(Matrix.M42)],
                 M43 = (float)propertyValues[nameof(Matrix.M43)],
-                M44 = (float)propertyValues[nameof(Matrix.M44)]
+                M44 = (float)propertyValues[nameof(Matrix.M44)],
             };
             return matrix;
         }

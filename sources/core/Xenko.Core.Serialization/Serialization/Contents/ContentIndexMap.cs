@@ -33,7 +33,7 @@ namespace Xenko.Core.Serialization.Contents
                     VirtualFileSystem.ApplicationDatabasePath + '/' + indexName,
                     VirtualFileMode.OpenOrCreate,
                     VirtualFileAccess.ReadWrite,
-                    VirtualFileShare.ReadWrite)
+                    VirtualFileShare.ReadWrite),
             };
 
             return result;
@@ -133,14 +133,13 @@ namespace Xenko.Core.Serialization.Contents
                     }
                 }
 
-
                 ObjectId objectId;
                 if (!ObjectId.TryParse(objectIdStr, out objectId))
                 {
                     throw new InvalidOperationException("Unable to decode objectid [{0}] when reading asset index".ToFormat(objectIdStr));
                 }
 
-                var entry =  new KeyValuePair<string, ObjectId>(url, objectId);
+                var entry = new KeyValuePair<string, ObjectId>(url, objectId);
                 entries.Add(entry);
             }
             return entries;

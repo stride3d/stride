@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 // AUTO-GENERATED, DO NOT EDIT!
+#pragma warning disable SA1649 // File name must match first type name
+#pragma warning disable SA1402 // File may only contain a single class
 
 namespace Xenko.Rendering
 {
@@ -27,7 +29,7 @@ namespace Xenko.Rendering
         public ref T this[ViewObjectNodeReference index] => ref Data[index.Index];
     }
 
-	public struct ViewObjectPropertyKey<T>
+    public struct ViewObjectPropertyKey<T>
     {
         internal readonly int Index;
 
@@ -37,18 +39,18 @@ namespace Xenko.Rendering
         }
     }
 
-	public class ViewObjectPropertyDefinition<T>
+    public class ViewObjectPropertyDefinition<T>
     {
     }
 
-	public partial struct ViewObjectNodeReference
+    public partial struct ViewObjectNodeReference
     {
         public readonly int Index;
 
         /// <summary>
         /// Invalid slot.
         /// </summary>
-		public static readonly ViewObjectNodeReference Invalid = new ViewObjectNodeReference(-1);
+        public static readonly ViewObjectNodeReference Invalid = new ViewObjectNodeReference(-1);
 
         public ViewObjectNodeReference(int index)
         {
@@ -70,32 +72,32 @@ namespace Xenko.Rendering
             return a.Index == b.Index;
         }
 
-		public override bool Equals(object other)
-		{
-			if (other is ViewObjectNodeReference)
-			{
-				ViewObjectNodeReference p = (ViewObjectNodeReference) other;
-				return Index == p.Index;
-			}
-			else
-			{
-				return false;
-			}
-		}
+        public override bool Equals(object other)
+        {
+            if (other is ViewObjectNodeReference)
+            {
+                ViewObjectNodeReference p = (ViewObjectNodeReference)other;
+                return Index == p.Index;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		public override int GetHashCode()
-		{
-			return Index;
-		}
+        public override int GetHashCode()
+        {
+            return Index;
+        }
 
-		public static bool operator !=(ViewObjectNodeReference a, ViewObjectNodeReference b)
+        public static bool operator !=(ViewObjectNodeReference a, ViewObjectNodeReference b)
         {
             return a.Index != b.Index;
         }
     }
 
-	partial struct RenderDataHolder
-	{
+    partial struct RenderDataHolder
+    {
         public ViewObjectPropertyKey<T> CreateViewObjectKey<T>(ViewObjectPropertyDefinition<T> definition = null, int multiplier = 1)
         {
             if (definition != null)
@@ -108,26 +110,26 @@ namespace Xenko.Rendering
             }
 
             var dataArraysIndex = dataArrays.Count;
-			dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.ViewObject, multiplier)));
+            dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.ViewObject, multiplier)));
             return new ViewObjectPropertyKey<T>(dataArraysIndex);
         }
 
-		/// <summary>
+        /// <summary>
         /// Get data from its key.
         /// </summary>
-		public ViewObjectPropertyData<T> GetData<T>(ViewObjectPropertyKey<T> key)
+        public ViewObjectPropertyData<T> GetData<T>(ViewObjectPropertyKey<T> key)
         {
             return new ViewObjectPropertyData<T>((T[])dataArrays[key.Index].Array);
         }
 
-		/// <summary>
+        /// <summary>
         /// Change data multiplier (i.e. how many data entries per item there will be).
         /// </summary>
         public void ChangeDataMultiplier<T>(ViewObjectPropertyKey<T> key, int multiplier)
         {
             dataArrays[key.Index].Info.ChangeMutiplier(ref dataArrays.Items[key.Index].Array, multiplier);
         }
-	}
+    }
     public struct ObjectPropertyData<T>
     {
         internal T[] Data;
@@ -140,7 +142,7 @@ namespace Xenko.Rendering
         public ref T this[ObjectNodeReference index] => ref Data[index.Index];
     }
 
-	public struct ObjectPropertyKey<T>
+    public struct ObjectPropertyKey<T>
     {
         internal readonly int Index;
 
@@ -150,18 +152,18 @@ namespace Xenko.Rendering
         }
     }
 
-	public class ObjectPropertyDefinition<T>
+    public class ObjectPropertyDefinition<T>
     {
     }
 
-	public partial struct ObjectNodeReference
+    public partial struct ObjectNodeReference
     {
         public readonly int Index;
 
         /// <summary>
         /// Invalid slot.
         /// </summary>
-		public static readonly ObjectNodeReference Invalid = new ObjectNodeReference(-1);
+        public static readonly ObjectNodeReference Invalid = new ObjectNodeReference(-1);
 
         public ObjectNodeReference(int index)
         {
@@ -183,32 +185,32 @@ namespace Xenko.Rendering
             return a.Index == b.Index;
         }
 
-		public override bool Equals(object other)
-		{
-			if (other is ObjectNodeReference)
-			{
-				ObjectNodeReference p = (ObjectNodeReference) other;
-				return Index == p.Index;
-			}
-			else
-			{
-				return false;
-			}
-		}
+        public override bool Equals(object other)
+        {
+            if (other is ObjectNodeReference)
+            {
+                ObjectNodeReference p = (ObjectNodeReference)other;
+                return Index == p.Index;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		public override int GetHashCode()
-		{
-			return Index;
-		}
+        public override int GetHashCode()
+        {
+            return Index;
+        }
 
-		public static bool operator !=(ObjectNodeReference a, ObjectNodeReference b)
+        public static bool operator !=(ObjectNodeReference a, ObjectNodeReference b)
         {
             return a.Index != b.Index;
         }
     }
 
-	partial struct RenderDataHolder
-	{
+    partial struct RenderDataHolder
+    {
         public ObjectPropertyKey<T> CreateObjectKey<T>(ObjectPropertyDefinition<T> definition = null, int multiplier = 1)
         {
             if (definition != null)
@@ -221,26 +223,26 @@ namespace Xenko.Rendering
             }
 
             var dataArraysIndex = dataArrays.Count;
-			dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.Object, multiplier)));
+            dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.Object, multiplier)));
             return new ObjectPropertyKey<T>(dataArraysIndex);
         }
 
-		/// <summary>
+        /// <summary>
         /// Get data from its key.
         /// </summary>
-		public ObjectPropertyData<T> GetData<T>(ObjectPropertyKey<T> key)
+        public ObjectPropertyData<T> GetData<T>(ObjectPropertyKey<T> key)
         {
             return new ObjectPropertyData<T>((T[])dataArrays[key.Index].Array);
         }
 
-		/// <summary>
+        /// <summary>
         /// Change data multiplier (i.e. how many data entries per item there will be).
         /// </summary>
         public void ChangeDataMultiplier<T>(ObjectPropertyKey<T> key, int multiplier)
         {
             dataArrays[key.Index].Info.ChangeMutiplier(ref dataArrays.Items[key.Index].Array, multiplier);
         }
-	}
+    }
     public struct RenderPropertyData<T>
     {
         internal T[] Data;
@@ -253,7 +255,7 @@ namespace Xenko.Rendering
         public ref T this[RenderNodeReference index] => ref Data[index.Index];
     }
 
-	public struct RenderPropertyKey<T>
+    public struct RenderPropertyKey<T>
     {
         internal readonly int Index;
 
@@ -263,18 +265,18 @@ namespace Xenko.Rendering
         }
     }
 
-	public class RenderPropertyDefinition<T>
+    public class RenderPropertyDefinition<T>
     {
     }
 
-	public partial struct RenderNodeReference
+    public partial struct RenderNodeReference
     {
         public readonly int Index;
 
         /// <summary>
         /// Invalid slot.
         /// </summary>
-		public static readonly RenderNodeReference Invalid = new RenderNodeReference(-1);
+        public static readonly RenderNodeReference Invalid = new RenderNodeReference(-1);
 
         public RenderNodeReference(int index)
         {
@@ -296,32 +298,32 @@ namespace Xenko.Rendering
             return a.Index == b.Index;
         }
 
-		public override bool Equals(object other)
-		{
-			if (other is RenderNodeReference)
-			{
-				RenderNodeReference p = (RenderNodeReference) other;
-				return Index == p.Index;
-			}
-			else
-			{
-				return false;
-			}
-		}
+        public override bool Equals(object other)
+        {
+            if (other is RenderNodeReference)
+            {
+                RenderNodeReference p = (RenderNodeReference)other;
+                return Index == p.Index;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		public override int GetHashCode()
-		{
-			return Index;
-		}
+        public override int GetHashCode()
+        {
+            return Index;
+        }
 
-		public static bool operator !=(RenderNodeReference a, RenderNodeReference b)
+        public static bool operator !=(RenderNodeReference a, RenderNodeReference b)
         {
             return a.Index != b.Index;
         }
     }
 
-	partial struct RenderDataHolder
-	{
+    partial struct RenderDataHolder
+    {
         public RenderPropertyKey<T> CreateRenderKey<T>(RenderPropertyDefinition<T> definition = null, int multiplier = 1)
         {
             if (definition != null)
@@ -334,26 +336,26 @@ namespace Xenko.Rendering
             }
 
             var dataArraysIndex = dataArrays.Count;
-			dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.Render, multiplier)));
+            dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.Render, multiplier)));
             return new RenderPropertyKey<T>(dataArraysIndex);
         }
 
-		/// <summary>
+        /// <summary>
         /// Get data from its key.
         /// </summary>
-		public RenderPropertyData<T> GetData<T>(RenderPropertyKey<T> key)
+        public RenderPropertyData<T> GetData<T>(RenderPropertyKey<T> key)
         {
             return new RenderPropertyData<T>((T[])dataArrays[key.Index].Array);
         }
 
-		/// <summary>
+        /// <summary>
         /// Change data multiplier (i.e. how many data entries per item there will be).
         /// </summary>
         public void ChangeDataMultiplier<T>(RenderPropertyKey<T> key, int multiplier)
         {
             dataArrays[key.Index].Info.ChangeMutiplier(ref dataArrays.Items[key.Index].Array, multiplier);
         }
-	}
+    }
     public struct EffectObjectPropertyData<T>
     {
         internal T[] Data;
@@ -366,7 +368,7 @@ namespace Xenko.Rendering
         public ref T this[EffectObjectNodeReference index] => ref Data[index.Index];
     }
 
-	public struct EffectObjectPropertyKey<T>
+    public struct EffectObjectPropertyKey<T>
     {
         internal readonly int Index;
 
@@ -376,18 +378,18 @@ namespace Xenko.Rendering
         }
     }
 
-	public class EffectObjectPropertyDefinition<T>
+    public class EffectObjectPropertyDefinition<T>
     {
     }
 
-	public partial struct EffectObjectNodeReference
+    public partial struct EffectObjectNodeReference
     {
         public readonly int Index;
 
         /// <summary>
         /// Invalid slot.
         /// </summary>
-		public static readonly EffectObjectNodeReference Invalid = new EffectObjectNodeReference(-1);
+        public static readonly EffectObjectNodeReference Invalid = new EffectObjectNodeReference(-1);
 
         public EffectObjectNodeReference(int index)
         {
@@ -409,32 +411,32 @@ namespace Xenko.Rendering
             return a.Index == b.Index;
         }
 
-		public override bool Equals(object other)
-		{
-			if (other is EffectObjectNodeReference)
-			{
-				EffectObjectNodeReference p = (EffectObjectNodeReference) other;
-				return Index == p.Index;
-			}
-			else
-			{
-				return false;
-			}
-		}
+        public override bool Equals(object other)
+        {
+            if (other is EffectObjectNodeReference)
+            {
+                EffectObjectNodeReference p = (EffectObjectNodeReference)other;
+                return Index == p.Index;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		public override int GetHashCode()
-		{
-			return Index;
-		}
+        public override int GetHashCode()
+        {
+            return Index;
+        }
 
-		public static bool operator !=(EffectObjectNodeReference a, EffectObjectNodeReference b)
+        public static bool operator !=(EffectObjectNodeReference a, EffectObjectNodeReference b)
         {
             return a.Index != b.Index;
         }
     }
 
-	partial struct RenderDataHolder
-	{
+    partial struct RenderDataHolder
+    {
         public EffectObjectPropertyKey<T> CreateEffectObjectKey<T>(EffectObjectPropertyDefinition<T> definition = null, int multiplier = 1)
         {
             if (definition != null)
@@ -447,26 +449,26 @@ namespace Xenko.Rendering
             }
 
             var dataArraysIndex = dataArrays.Count;
-			dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.EffectObject, multiplier)));
+            dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.EffectObject, multiplier)));
             return new EffectObjectPropertyKey<T>(dataArraysIndex);
         }
 
-		/// <summary>
+        /// <summary>
         /// Get data from its key.
         /// </summary>
-		public EffectObjectPropertyData<T> GetData<T>(EffectObjectPropertyKey<T> key)
+        public EffectObjectPropertyData<T> GetData<T>(EffectObjectPropertyKey<T> key)
         {
             return new EffectObjectPropertyData<T>((T[])dataArrays[key.Index].Array);
         }
 
-		/// <summary>
+        /// <summary>
         /// Change data multiplier (i.e. how many data entries per item there will be).
         /// </summary>
         public void ChangeDataMultiplier<T>(EffectObjectPropertyKey<T> key, int multiplier)
         {
             dataArrays[key.Index].Info.ChangeMutiplier(ref dataArrays.Items[key.Index].Array, multiplier);
         }
-	}
+    }
     public struct ViewPropertyData<T>
     {
         internal T[] Data;
@@ -479,7 +481,7 @@ namespace Xenko.Rendering
         public ref T this[ViewNodeReference index] => ref Data[index.Index];
     }
 
-	public struct ViewPropertyKey<T>
+    public struct ViewPropertyKey<T>
     {
         internal readonly int Index;
 
@@ -489,18 +491,18 @@ namespace Xenko.Rendering
         }
     }
 
-	public class ViewPropertyDefinition<T>
+    public class ViewPropertyDefinition<T>
     {
     }
 
-	public partial struct ViewNodeReference
+    public partial struct ViewNodeReference
     {
         public readonly int Index;
 
         /// <summary>
         /// Invalid slot.
         /// </summary>
-		public static readonly ViewNodeReference Invalid = new ViewNodeReference(-1);
+        public static readonly ViewNodeReference Invalid = new ViewNodeReference(-1);
 
         public ViewNodeReference(int index)
         {
@@ -522,32 +524,32 @@ namespace Xenko.Rendering
             return a.Index == b.Index;
         }
 
-		public override bool Equals(object other)
-		{
-			if (other is ViewNodeReference)
-			{
-				ViewNodeReference p = (ViewNodeReference) other;
-				return Index == p.Index;
-			}
-			else
-			{
-				return false;
-			}
-		}
+        public override bool Equals(object other)
+        {
+            if (other is ViewNodeReference)
+            {
+                ViewNodeReference p = (ViewNodeReference)other;
+                return Index == p.Index;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		public override int GetHashCode()
-		{
-			return Index;
-		}
+        public override int GetHashCode()
+        {
+            return Index;
+        }
 
-		public static bool operator !=(ViewNodeReference a, ViewNodeReference b)
+        public static bool operator !=(ViewNodeReference a, ViewNodeReference b)
         {
             return a.Index != b.Index;
         }
     }
 
-	partial struct RenderDataHolder
-	{
+    partial struct RenderDataHolder
+    {
         public ViewPropertyKey<T> CreateViewKey<T>(ViewPropertyDefinition<T> definition = null, int multiplier = 1)
         {
             if (definition != null)
@@ -560,26 +562,26 @@ namespace Xenko.Rendering
             }
 
             var dataArraysIndex = dataArrays.Count;
-			dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.View, multiplier)));
+            dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.View, multiplier)));
             return new ViewPropertyKey<T>(dataArraysIndex);
         }
 
-		/// <summary>
+        /// <summary>
         /// Get data from its key.
         /// </summary>
-		public ViewPropertyData<T> GetData<T>(ViewPropertyKey<T> key)
+        public ViewPropertyData<T> GetData<T>(ViewPropertyKey<T> key)
         {
             return new ViewPropertyData<T>((T[])dataArrays[key.Index].Array);
         }
 
-		/// <summary>
+        /// <summary>
         /// Change data multiplier (i.e. how many data entries per item there will be).
         /// </summary>
         public void ChangeDataMultiplier<T>(ViewPropertyKey<T> key, int multiplier)
         {
             dataArrays[key.Index].Info.ChangeMutiplier(ref dataArrays.Items[key.Index].Array, multiplier);
         }
-	}
+    }
     public struct StaticObjectPropertyData<T>
     {
         internal T[] Data;
@@ -592,7 +594,7 @@ namespace Xenko.Rendering
         public ref T this[StaticObjectNodeReference index] => ref Data[index.Index];
     }
 
-	public struct StaticObjectPropertyKey<T>
+    public struct StaticObjectPropertyKey<T>
     {
         internal readonly int Index;
 
@@ -602,18 +604,18 @@ namespace Xenko.Rendering
         }
     }
 
-	public class StaticObjectPropertyDefinition<T>
+    public class StaticObjectPropertyDefinition<T>
     {
     }
 
-	public partial struct StaticObjectNodeReference
+    public partial struct StaticObjectNodeReference
     {
         public readonly int Index;
 
         /// <summary>
         /// Invalid slot.
         /// </summary>
-		public static readonly StaticObjectNodeReference Invalid = new StaticObjectNodeReference(-1);
+        public static readonly StaticObjectNodeReference Invalid = new StaticObjectNodeReference(-1);
 
         public StaticObjectNodeReference(int index)
         {
@@ -635,32 +637,32 @@ namespace Xenko.Rendering
             return a.Index == b.Index;
         }
 
-		public override bool Equals(object other)
-		{
-			if (other is StaticObjectNodeReference)
-			{
-				StaticObjectNodeReference p = (StaticObjectNodeReference) other;
-				return Index == p.Index;
-			}
-			else
-			{
-				return false;
-			}
-		}
+        public override bool Equals(object other)
+        {
+            if (other is StaticObjectNodeReference)
+            {
+                StaticObjectNodeReference p = (StaticObjectNodeReference)other;
+                return Index == p.Index;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		public override int GetHashCode()
-		{
-			return Index;
-		}
+        public override int GetHashCode()
+        {
+            return Index;
+        }
 
-		public static bool operator !=(StaticObjectNodeReference a, StaticObjectNodeReference b)
+        public static bool operator !=(StaticObjectNodeReference a, StaticObjectNodeReference b)
         {
             return a.Index != b.Index;
         }
     }
 
-	partial struct RenderDataHolder
-	{
+    partial struct RenderDataHolder
+    {
         public StaticObjectPropertyKey<T> CreateStaticObjectKey<T>(StaticObjectPropertyDefinition<T> definition = null, int multiplier = 1)
         {
             if (definition != null)
@@ -673,24 +675,24 @@ namespace Xenko.Rendering
             }
 
             var dataArraysIndex = dataArrays.Count;
-			dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.StaticObject, multiplier)));
+            dataArrays.Add(new DataArray(new DataArrayInfo<T>(DataType.StaticObject, multiplier)));
             return new StaticObjectPropertyKey<T>(dataArraysIndex);
         }
 
-		/// <summary>
+        /// <summary>
         /// Get data from its key.
         /// </summary>
-		public StaticObjectPropertyData<T> GetData<T>(StaticObjectPropertyKey<T> key)
+        public StaticObjectPropertyData<T> GetData<T>(StaticObjectPropertyKey<T> key)
         {
             return new StaticObjectPropertyData<T>((T[])dataArrays[key.Index].Array);
         }
 
-		/// <summary>
+        /// <summary>
         /// Change data multiplier (i.e. how many data entries per item there will be).
         /// </summary>
         public void ChangeDataMultiplier<T>(StaticObjectPropertyKey<T> key, int multiplier)
         {
             dataArrays[key.Index].Info.ChangeMutiplier(ref dataArrays.Items[key.Index].Array, multiplier);
         }
-	}
+    }
 }

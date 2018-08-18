@@ -14,7 +14,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// An empty DataBox.
         /// </summary>
-        private static DataBox Empty;
+        private static DataBox empty;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataBox"/> struct.
@@ -52,7 +52,7 @@ namespace Xenko.Graphics
         {
             get
             {
-                return EqualsByRef(ref Empty);
+                return EqualsByRef(ref empty);
             }
         }
 

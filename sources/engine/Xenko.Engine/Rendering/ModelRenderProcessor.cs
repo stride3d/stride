@@ -35,8 +35,8 @@ namespace Xenko.Rendering
                 Attributes =
                 {
                     Diffuse = new MaterialDiffuseMapFeature(new ComputeTextureColor()),
-                    DiffuseModel = new MaterialDiffuseLambertModelFeature()
-                }
+                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
+                },
             });
         }
 

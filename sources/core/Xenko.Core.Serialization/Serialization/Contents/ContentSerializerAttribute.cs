@@ -34,15 +34,4 @@ namespace Xenko.Core.Serialization.Contents
         /// </value>
         public Type ContentSerializerType { get; private set; }
     }
-
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    public class ContentSerializerExtensionAttribute : Attribute
-    {
-        public ContentSerializerExtensionAttribute(string supportedExtension)
-        {
-            SupportedExtension = supportedExtension;
-        }
-
-        public string SupportedExtension { get; private set; }
-    }
 }

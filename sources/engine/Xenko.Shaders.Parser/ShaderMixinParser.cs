@@ -24,12 +24,12 @@ namespace Xenko.Shaders.Parser
         /// <summary>
         /// An Objbect to lock the preprocess step (virtual tables building etc.).
         /// </summary>
-        private readonly static Object PreprocessLock = new Object();
+        private static readonly Object PreprocessLock = new Object();
 
         /// <summary>
         /// An Objbect to lock the semantic analysis step.
         /// </summary>
-        private readonly static Object SemanticAnalyzerLock = new Object();
+        private static readonly Object SemanticAnalyzerLock = new Object();
 
         /// <summary>
         /// The CloneContext with the Hlsl classes and types

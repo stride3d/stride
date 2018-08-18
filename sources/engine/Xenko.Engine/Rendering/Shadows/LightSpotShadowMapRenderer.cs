@@ -73,7 +73,8 @@ namespace Xenko.Rendering.Shadows
 
             var shadowMapRectangle = lightShadowMap.GetRectangle(0);
 
-            var cascadeTextureCoords = new Vector4((float)shadowMapRectangle.Left / lightShadowMap.Atlas.Width,
+            var cascadeTextureCoords = new Vector4(
+                (float)shadowMapRectangle.Left / lightShadowMap.Atlas.Width,
                 (float)shadowMapRectangle.Top / lightShadowMap.Atlas.Height,
                 (float)shadowMapRectangle.Right / lightShadowMap.Atlas.Width,
                 (float)shadowMapRectangle.Bottom / lightShadowMap.Atlas.Height);

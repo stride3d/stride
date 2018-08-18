@@ -73,23 +73,4 @@ namespace Xenko.Graphics
         /// </summary>
         Tga,
     }
-
-    public static class ImageFileTypeExtensions
-    {
-        /// <summary>
-        /// Return the file extension corresponding to the image file type.
-        /// </summary>
-        /// <param name="fileType">The file type</param>
-        /// <returns>The file extension (for example ".png").</returns>
-        public static string ToFileExtension(this ImageFileType fileType)
-        {
-            switch (fileType)
-            {
-                case ImageFileType.Xenko:
-                    return ".xkimg";
-                default:
-                    return "." + fileType.ToString().ToLowerInvariant();
-            }
-        }
-    }
 }

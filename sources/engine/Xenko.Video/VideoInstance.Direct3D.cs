@@ -166,7 +166,7 @@ namespace Xenko.Video
                 var attr = new MediaEngineAttributes
                 {
                     VideoOutputFormat = (int)SharpDX.DXGI.Format.B8G8R8A8_UNorm,
-                    DxgiManager = videoSystem.DxgiDeviceManager
+                    DxgiManager = videoSystem.DxgiDeviceManager,
                 };
 
                 mediaEngine = new MediaEngine(mediaEngineFactory, attr);

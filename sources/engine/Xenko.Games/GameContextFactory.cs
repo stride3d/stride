@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -10,7 +10,6 @@ namespace Xenko.Games
     /// </summary>
     public static class GameContextFactory
     {
-
         [Obsolete("Use NewGameContext with the proper AppContextType.")]
         internal static GameContext NewDefaultGameContext()
         {
@@ -161,6 +160,5 @@ namespace Xenko.Games
             // Not supported for now.
             return null;
         }
-    
     }
 }

@@ -82,7 +82,7 @@ namespace Xenko.Animations
             return new KeyValuePair<CompressedTimeSpan, float>(biggestDifferenceTime, biggestDifference);
         }
 
-        class ErrorComparer : IComparer<LinkedListNode<ErrorNode>>
+        private class ErrorComparer : IComparer<LinkedListNode<ErrorNode>>
         {
             public int Compare(LinkedListNode<ErrorNode> x, LinkedListNode<ErrorNode> y)
             {
@@ -219,7 +219,6 @@ namespace Xenko.Animations
             animationChannel.ValueNext = animationValue.Value2;
         }
 
-
         internal static void UpdateAnimation(ref EvaluatorData animationChannel, ref KeyFrameData<float> animationValue)
         {
             animationChannel.ValuePrev = animationChannel.ValueStart;
@@ -255,7 +254,6 @@ namespace Xenko.Animations
 
                 if (currentTime < startTime || currentTime > endTime)
                 {
-                    
                 }
 
                 // Sampling before start (should not really happen because we add a keyframe at TimeSpan.Zero, but let's keep it in case it changes later.

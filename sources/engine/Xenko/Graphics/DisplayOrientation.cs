@@ -51,6 +51,6 @@ namespace Xenko.Graphics
         /// <summary>
         /// Displays in portrait mode.
         /// </summary>
-        Portrait = 4
+        Portrait = 4,
     }
 }

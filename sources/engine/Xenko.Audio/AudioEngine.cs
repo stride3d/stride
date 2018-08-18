@@ -143,7 +143,7 @@ namespace Xenko.Audio
         /// </summary>
         public void PauseAudio()
         {
-            if(State != AudioEngineState.Running)
+            if (State != AudioEngineState.Running)
                 return;
 
             State = AudioEngineState.Paused;
@@ -170,7 +170,7 @@ namespace Xenko.Audio
         /// </summary>
         public void ResumeAudio()
         {
-            if(State != AudioEngineState.Paused)
+            if (State != AudioEngineState.Paused)
                 return;
 
             State = AudioEngineState.Running;

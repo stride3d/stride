@@ -26,15 +26,12 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 * THE SOFTWARE.
 */
+#pragma warning disable SA1107 // Code must not contain multiple statements on one line
+#pragma warning disable SA1117 // Parameters must be on same line or separate lines
+#pragma warning disable SA1313 // Parameter names must begin with lower-case letter
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Security;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.ComponentModel;
 using System.Globalization;
-using Xenko.Core.Serialization;
+using System.Runtime.InteropServices;
 
 namespace Xenko.Core.Mathematics
 {
@@ -355,7 +352,7 @@ namespace Xenko.Core.Mathematics
         public Vector3 Left
         {
             get { return new Vector3(-M11, -M12, -M13); }
-            set { M11 = -value.X; M12 = -value.Y; M13 = -value.Z;}
+            set { M11 = -value.X; M12 = -value.Y; M13 = -value.Z; }
         }
 
         /// <summary>
@@ -797,10 +794,10 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// 
+        /// Exchange columns.
         /// </summary>
-        /// <param name="firstColumn"></param>
-        /// <param name="secondColumn"></param>
+        /// <param name="firstColumn">The first column to exchange.</param>
+        /// <param name="secondColumn">The second column to exchange.</param>
         public void ExchangeColumns(int firstColumn, int secondColumn)
         {
             if (firstColumn < 0)
@@ -1327,7 +1324,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the transpose of the specified matrix.</param>
         public static void Transpose(ref Matrix value, out Matrix result)
         {
-            result =  new Matrix(
+            result = new Matrix(
                 value.M11,
                 value.M21,
                 value.M31,
@@ -2730,9 +2727,9 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// Creates a matrix that contains both the X, Y and Z rotation, as well as scaling and translation. Note: This function is NOT thead safe.
         /// </summary>
-        /// <param name="translation">The translation.</param>
-        /// <param name="rotation">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
         /// <param name="scaling">The scaling.</param>
+        /// <param name="rotation">Angle of rotation in radians. Angles are measured clockwise when looking along the rotation axis toward the origin.</param>
+        /// <param name="translation">The translation.</param>
         /// <param name="result">When the method completes, contains the created rotation matrix.</param>
         public static void Transformation(ref Vector3 scaling, ref Quaternion rotation, ref Vector3 translation, out Matrix result)
         {
@@ -3099,9 +3096,9 @@ namespace Xenko.Core.Mathematics
         /// <param name="rows">The rows.</param>
         public unsafe void TransposeMatrixFrom(float* src, int columns, int rows)
         {
-            fixed(void* pDest = &this)
+            fixed (void* pDest = &this)
             {
-                var dest = (float*) pDest;
+                var dest = (float*)pDest;
                 for (int i = 0; i < rows; ++i)
                 {
                     int sourceIndex = i;
@@ -3251,10 +3248,10 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public override string ToString()
         {
@@ -3263,11 +3260,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(string format)
         {
@@ -3282,11 +3279,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="formatProvider">The format provider.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(IFormatProvider formatProvider)
         {
@@ -3298,12 +3295,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <param name="formatProvider">The format provider.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(string format, IFormatProvider formatProvider)
         {
@@ -3362,11 +3359,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
         /// </summary>
-        /// <param name="value">The <see cref="System.Object"/> to compare with this instance.</param>
+        /// <param name="value">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object value)
         {

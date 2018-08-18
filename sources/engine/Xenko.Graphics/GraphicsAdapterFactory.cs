@@ -69,7 +69,6 @@ namespace Xenko.Graphics
                     return adapters;
                 }
             }
-
         }
 
         /// <summary>

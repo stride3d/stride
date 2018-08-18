@@ -6,7 +6,6 @@ using Xenko.Graphics;
 
 namespace Xenko.Rendering.Shadows
 {
-
     /// <summary>
     /// Keys used for shadow mapping.
     /// </summary>

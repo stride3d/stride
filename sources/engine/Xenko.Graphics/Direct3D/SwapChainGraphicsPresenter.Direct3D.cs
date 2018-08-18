@@ -151,7 +151,7 @@ namespace Xenko.Graphics
         {
             try
             {
-                swapChain.Present((int) PresentInterval, PresentFlags.None);
+                swapChain.Present((int)PresentInterval, PresentFlags.None);
 #if XENKO_GRAPHICS_API_DIRECT3D12
                 // Manually swap back buffer
                 backBuffer.NativeResource.Dispose();

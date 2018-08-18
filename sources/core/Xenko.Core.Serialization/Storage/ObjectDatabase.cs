@@ -19,7 +19,9 @@ namespace Xenko.Core.Storage
 
         // When reading, first try backendRead2, then backendRead1.
         // When writing, try backendWrite.
-        private readonly IOdbBackend backendRead1, backendRead2, backendWrite;
+        private readonly IOdbBackend backendRead1;
+        private readonly IOdbBackend backendRead2;
+        private readonly IOdbBackend backendWrite;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectDatabase" /> class.
@@ -114,7 +116,7 @@ namespace Xenko.Core.Storage
         /// Loads the specified bundle.
         /// </summary>
         /// <param name="bundleName">Name of the bundle.</param>
-        /// <returns></returns>
+        /// <returns>Task that will complete when bundle is loaded.</returns>
         public Task LoadBundle(string bundleName)
         {
             return BundleBackend.LoadBundle(bundleName, ContentIndexMap);
@@ -124,7 +126,6 @@ namespace Xenko.Core.Storage
         /// Loads the specified bundle.
         /// </summary>
         /// <param name="bundleName">Name of the bundle.</param>
-        /// <returns></returns>
         public void UnloadBundle(string bundleName)
         {
             BundleBackend.UnloadBundle(bundleName, ContentIndexMap);

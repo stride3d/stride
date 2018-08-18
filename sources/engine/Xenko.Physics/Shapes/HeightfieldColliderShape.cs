@@ -6,44 +6,34 @@ using Xenko.Core.Mathematics;
 
 namespace Xenko.Physics.Shapes
 {
-    enum BulletPhyScalarType
-    {
-        PhyFloat,
-        PhyDouble,
-        PhyInteger,
-        PhyShort,
-        PhyFixedpoint88,
-        PhyUchar
-    }
-
     public class HeightfieldColliderShape : ColliderShape
     {
         public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
         {
-            CachedScaling = Vector3.One;
+            cachedScaling = Vector3.One;
             InternalShape = new BulletSharp.HeightfieldShape(heightStickWidth, heightStickLength, dynamicFieldData.Pointer, heightScale, minHeight, maxHeight, 1, (int)BulletPhyScalarType.PhyShort, flipQuadEdges)
             {
-                LocalScaling = CachedScaling
+                LocalScaling = cachedScaling,
             };
             ShortArray = dynamicFieldData;
         }
 
         public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<byte> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
         {
-            CachedScaling = Vector3.One;
+            cachedScaling = Vector3.One;
             InternalShape = new BulletSharp.HeightfieldShape(heightStickWidth, heightStickLength, dynamicFieldData.Pointer, heightScale, minHeight, maxHeight, 1, (int)BulletPhyScalarType.PhyUchar, flipQuadEdges)
             {
-                LocalScaling = CachedScaling
+                LocalScaling = cachedScaling,
             };
             ByteArray = dynamicFieldData;
         }
 
         public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<float> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
         {
-            CachedScaling = Vector3.One;
+            cachedScaling = Vector3.One;
             InternalShape = new BulletSharp.HeightfieldShape(heightStickWidth, heightStickLength, dynamicFieldData.Pointer, heightScale, minHeight, maxHeight, 1, (int)BulletPhyScalarType.PhyFloat, flipQuadEdges)
             {
-                LocalScaling = CachedScaling
+                LocalScaling = cachedScaling,
             };
             FloatArray = dynamicFieldData;
         }
@@ -74,6 +64,16 @@ namespace Xenko.Physics.Shapes
             ByteArray = null;
             FloatArray?.Dispose();
             FloatArray = null;
+        }
+
+        private enum BulletPhyScalarType
+        {
+            PhyFloat,
+            PhyDouble,
+            PhyInteger,
+            PhyShort,
+            PhyFixedpoint88,
+            PhyUchar,
         }
     }
 }

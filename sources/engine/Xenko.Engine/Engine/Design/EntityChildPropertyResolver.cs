@@ -10,10 +10,10 @@ using Xenko.Updater;
 
 namespace Xenko.Engine.Design
 {
-    class EntityChildPropertyResolver : UpdateMemberResolver
+    internal class EntityChildPropertyResolver : UpdateMemberResolver
     {
         [ModuleInitializer]
-        internal static void __Initialize__()
+        internal static void InitializeModule()
         {
             UpdateEngine.RegisterMemberResolver(new EntityChildPropertyResolver());
         }
@@ -43,7 +43,7 @@ namespace Xenko.Engine.Design
             return new EntityComponentPropertyAccessor(type);
         }
 
-        class EntityChildPropertyAccessor : UpdatableCustomAccessor
+        private class EntityChildPropertyAccessor : UpdatableCustomAccessor
         {
             private readonly string childName;
 

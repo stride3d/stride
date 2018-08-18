@@ -164,10 +164,10 @@ namespace Irony.Parsing.Construction {
           Transition lookback = null; // local var for lookback - transition over iniItemNt
           var currItem = iniItem; // iniItem is initial item for all currItem's in the shift chain.
           while (currItem != null) {
-            if(sourceItems.Contains(currItem)) {
+            if (sourceItems.Contains(currItem)) {
               // We create transitions lazily, only when we actually need them. Check if we have iniItem's transition
               // in local variable; if not, get it from state's transitions table; if not found, create it.
-              if(lookback == null && !state.BuilderData.Transitions.TryGetValue(iniItemNt, out lookback)) {
+              if (lookback == null && !state.BuilderData.Transitions.TryGetValue(iniItemNt, out lookback)) {
                 lookback = new Transition(state, iniItemNt);
                 newTransitions.Add(lookback);
               }
@@ -219,7 +219,7 @@ namespace Irony.Parsing.Construction {
     #region Analyzing and resolving conflicts 
     private void ComputeAndResolveConflicts() {
       foreach(var state in Data.States) {
-        if(!state.BuilderData.IsInadequate)
+        if (!state.BuilderData.IsInadequate)
           continue;
         //first detect conflicts
         var stateData = state.BuilderData;
@@ -228,7 +228,7 @@ namespace Irony.Parsing.Construction {
         //reduce/reduce --------------------------------------------------------------------------------------
         foreach(var item in stateData.ReduceItems) {
           foreach(var lkh in item.Lookaheads) {
-            if(allLkhds.Contains(lkh)) {
+            if (allLkhds.Contains(lkh)) {
               state.BuilderData.Conflicts.Add(lkh);
             }
             allLkhds.Add(lkh);
@@ -236,12 +236,12 @@ namespace Irony.Parsing.Construction {
         }//foreach item
         //shift/reduce ---------------------------------------------------------------------------------------
         foreach(var term in stateData.ShiftTerminals)
-          if(allLkhds.Contains(term)) {
+          if (allLkhds.Contains(term)) {
             stateData.Conflicts.Add(term);
           }
 
         //Now resolve conflicts by hints and precedence -------------------------------------------------------
-        if(stateData.Conflicts.Count > 0) {
+        if (stateData.Conflicts.Count > 0) {
           //Hints
           foreach (var conflict in stateData.Conflicts)
             ResolveConflictByHints(state, conflict);
@@ -263,7 +263,7 @@ namespace Irony.Parsing.Construction {
       //reduce hints
       var reduceItems = stateData.ReduceItems.SelectByLookahead(conflict);
       foreach(var reduceItem in reduceItems)
-        if(reduceItem.Core.Hints.Find(h => h.HintType == HintType.ResolveToReduce) != null) {
+        if (reduceItem.Core.Hints.Find(h => h.HintType == HintType.ResolveToReduce) != null) {
           state.Actions[conflict] = new ParserAction(ParserActionType.Reduce, null, reduceItem.Core.Production);
           state.BuilderData.ResolvedConflicts.Add(conflict);
           return; 
@@ -272,7 +272,7 @@ namespace Irony.Parsing.Construction {
       //shift hints
       var shiftItems = stateData.ShiftItems.SelectByCurrent(conflict);
       foreach (var shiftItem in shiftItems)
-        if(shiftItem.Core.Hints.Find(h => h.HintType == HintType.ResolveToShift) != null) {
+        if (shiftItem.Core.Hints.Find(h => h.HintType == HintType.ResolveToShift) != null) {
           //shift action is already there
           state.BuilderData.ResolvedConflicts.Add(conflict);
           return; 

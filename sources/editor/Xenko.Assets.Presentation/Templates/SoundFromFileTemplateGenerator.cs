@@ -43,7 +43,7 @@ namespace Xenko.Assets.Presentation.Templates
             {
                 foreach (var assetItem in base.CreateAssets(parameters))
                 {
-                    if(assetItem.Asset is SoundAsset soundAsset)
+                    if (assetItem.Asset is SoundAsset soundAsset)
                     {
                         media.Open(soundAsset.Source.ToWindowsPath());
                         foreach( var audioTrack in media.Streams.OfType<AudioStream>().ToList())

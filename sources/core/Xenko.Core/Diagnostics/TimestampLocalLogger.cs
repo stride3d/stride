@@ -13,7 +13,7 @@ namespace Xenko.Core.Diagnostics
         private readonly DateTime startTime;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LoggerResult" /> class.
+        /// Initializes a new instance of the <see cref="TimestampLocalLogger"/> class.
         /// </summary>
         public TimestampLocalLogger(DateTime startTime, string moduleName = null)
         {
@@ -57,11 +57,15 @@ namespace Xenko.Core.Diagnostics
             public ILogMessage LogMessage;
 
             /// <summary>
-            /// Structure constructor.
+            /// Initializes a new instance of the <see cref="Message"/> struct.
             /// </summary>
             /// <param name="timestamp">The timestamp associated to the log message.</param>
             /// <param name="logMessage">The log message.</param>
-            public Message(long timestamp, ILogMessage logMessage) { Timestamp = timestamp; LogMessage = logMessage; }
+            public Message(long timestamp, ILogMessage logMessage)
+            {
+                Timestamp = timestamp;
+                LogMessage = logMessage;
+            }
         }
     }
 }

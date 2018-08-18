@@ -188,7 +188,6 @@ namespace Xenko.Core.VisualStudio
                     }
                 }
 
-
                 if (TypeGuid == KnownProjectTypeGuid.VisualC)
                 {
                     if (!File.Exists(FullPath))
@@ -214,7 +213,6 @@ namespace Xenko.Core.VisualStudio
                             FullPath);
                     }
                 }
-
                 else if (TypeGuid == KnownProjectTypeGuid.Setup)
                 {
                     if (!File.Exists(FullPath))
@@ -239,10 +237,8 @@ namespace Xenko.Core.VisualStudio
                         }
                     }
                 }
-
                 else if (TypeGuid == KnownProjectTypeGuid.WebProject)
                 {
-
                     // Format is: "({GUID}|ProjectName;)*"
                     // Example: "{GUID}|Infra.dll;{GUID2}|Services.dll;"
                     var propertyItem = sections["WebsiteProperties"].Properties["ProjectReferences"];

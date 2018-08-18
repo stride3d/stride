@@ -17,7 +17,7 @@ namespace Xenko.Input
             fixed (int* axesPtr = &value.X)
             {
                 for (int i = 0; i < 8; i++)
-                    Axes[i] = axesPtr[i]/65535.0f;
+                    Axes[i] = axesPtr[i] / 65535.0f;
             }
             fixed (byte* buttonsPtr = value.Buttons)
             {

@@ -25,7 +25,6 @@ namespace Xenko.Rendering.Images
         /// </summary>
         public ToneMap() : this("ToneMapEffect")
         {
-            
         }
 
         /// <summary>

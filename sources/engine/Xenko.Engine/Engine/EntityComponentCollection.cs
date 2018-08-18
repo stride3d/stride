@@ -175,7 +175,7 @@ namespace Xenko.Engine
             var item = this[index];
             if (item is TransformComponent)
             {
-                entity.transform = null;
+                entity.TransformValue = null;
             }
             item.Entity = null;
 
@@ -245,12 +245,12 @@ namespace Xenko.Engine
                 var transform = item as TransformComponent;
                 if (transform != null)
                 {
-                    entity.transform = transform;
+                    entity.TransformValue = transform;
                 }
                 else if (previousItem is TransformComponent)
                 {
                     // If previous item was a transform component but we are actually replacing it, we should 
-                    entity.transform = null;
+                    entity.TransformValue = null;
                 }
 
                 item.Entity = entity;

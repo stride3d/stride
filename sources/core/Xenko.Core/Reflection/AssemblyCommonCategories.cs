@@ -11,6 +11,7 @@ namespace Xenko.Core.Reflection
         /// The assembly is containing engine data.
         /// </summary>
         public const string Engine = "engine";
+
         /// <summary>
         /// The assembly is containing assets data.
         /// </summary>

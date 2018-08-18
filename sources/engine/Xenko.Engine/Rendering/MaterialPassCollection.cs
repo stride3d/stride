@@ -9,7 +9,7 @@ namespace Xenko.Rendering
     /// <summary>
     /// A collection of <see cref="MaterialPass"/>.
     /// </summary>
-    [DataSerializer(typeof(ListAllSerializer<MaterialPassCollection,MaterialPass>))]
+    [DataSerializer(typeof(ListAllSerializer<MaterialPassCollection, MaterialPass>))]
     public sealed class MaterialPassCollection : FastCollection<MaterialPass>
     {
         private readonly Material material;
@@ -51,6 +51,5 @@ namespace Xenko.Rendering
 
             item.Material = material;
         }
-
     }
 }

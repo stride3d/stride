@@ -2192,7 +2192,7 @@ namespace Xenko.Core.Shaders.Convertor
                 return returnStatement;
 
             // This should only process return statements with ConvertReturn which are not detected at the block level.
-            // As an example, a return statement which is not enclosed in a block, such as "if (X) return Y;", should be converted to if(X) { out_x = x; out_y = y; ... }
+            // As an example, a return statement which is not enclosed in a block, such as "if (X) return Y;", should be converted to if (X) { out_x = x; out_y = y; ... }
             return ConvertReturn(returnStatement.Value, true, returnStatement.Span);
         }
 

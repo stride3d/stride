@@ -7,7 +7,7 @@ namespace Xenko.Physics
 {
     public class TranslationalLimitMotor
     {
-        BulletSharp.TranslationalLimitMotor mMotor;
+        private BulletSharp.TranslationalLimitMotor mMotor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TranslationalLimitMotor"/> class.

@@ -191,7 +191,6 @@ namespace Xenko.Rendering.Shadows
                     cascadeFrustumCornersWS[j] = frustumCornersWS[j] + frustumRangeWS * (splitMinRatio - overlap);
                     cascadeFrustumCornersWS[j + 4] = frustumCornersWS[j] + frustumRangeWS * splitMaxRatio;
 
-
                     cascadeFrustumCornersVS[j] = frustumCornersVS[j] + frustumRangeVS * (splitMinRatio - overlap);
                     cascadeFrustumCornersVS[j + 4] = frustumCornersVS[j] + frustumRangeVS * splitMaxRatio;
                 }

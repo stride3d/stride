@@ -76,7 +76,7 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// Transform this Bounding box
         /// </summary>
-        /// <param name="world"></param>
+        /// <param name="world">The transform to apply to the bounding box.</param>
         public void Transform(Matrix world)
         {
             // http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/

@@ -79,7 +79,7 @@ namespace Xenko
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="SharpDX.Multimedia.FourCC"/> to <see cref="System.Int32"/>.
+        /// Performs an implicit conversion from <see cref="SharpDX.Multimedia.FourCC"/> to <see cref="int"/>.
         /// </summary>
         /// <param name="d">The d.</param>
         /// <returns>
@@ -91,7 +91,7 @@ namespace Xenko
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="SharpDX.Multimedia.FourCC"/> to <see cref="System.Int32"/>.
+        /// Performs an implicit conversion from <see cref="SharpDX.Multimedia.FourCC"/> to <see cref="int"/>.
         /// </summary>
         /// <param name="d">The d.</param>
         /// <returns>
@@ -103,7 +103,7 @@ namespace Xenko
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="System.Int32"/> to <see cref="SharpDX.Multimedia.FourCC"/>.
+        /// Performs an implicit conversion from <see cref="int"/> to <see cref="SharpDX.Multimedia.FourCC"/>.
         /// </summary>
         /// <param name="d">The d.</param>
         /// <returns>
@@ -115,7 +115,7 @@ namespace Xenko
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="System.Int32"/> to <see cref="SharpDX.Multimedia.FourCC"/>.
+        /// Performs an implicit conversion from <see cref="int"/> to <see cref="SharpDX.Multimedia.FourCC"/>.
         /// </summary>
         /// <param name="d">The d.</param>
         /// <returns>
@@ -154,10 +154,10 @@ namespace Xenko
         {
             return string.Format("{0}", new string(new[]
                                   {
-                                      (char) (value & 0xFF),
-                                      (char) ((value >> 8) & 0xFF),
-                                      (char) ((value >> 16) & 0xFF),
-                                      (char) ((value >> 24) & 0xFF),
+                                      (char)(value & 0xFF),
+                                      (char)((value >> 8) & 0xFF),
+                                      (char)((value >> 16) & 0xFF),
+                                      (char)((value >> 24) & 0xFF),
                                   }));
         }
 
@@ -169,12 +169,12 @@ namespace Xenko
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            return obj is FourCC && Equals((FourCC) obj);
+            return obj is FourCC && Equals((FourCC)obj);
         }
 
         public override int GetHashCode()
         {
-            return (int) value;
+            return (int)value;
         }
 
         public static bool operator ==(FourCC left, FourCC right)

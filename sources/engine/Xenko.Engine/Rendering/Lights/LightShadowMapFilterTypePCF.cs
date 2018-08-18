@@ -7,7 +7,6 @@ using Xenko.Core;
 
 namespace Xenko.Rendering.Lights
 {
-
     public enum LightShadowMapFilterTypePcfSize
     {
         Filter3x3,
@@ -16,7 +15,6 @@ namespace Xenko.Rendering.Lights
 
         Filter7x7,
     }
-
 
     /// <summary>
     /// No shadowmap filter.

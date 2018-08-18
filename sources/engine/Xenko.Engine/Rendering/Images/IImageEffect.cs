@@ -1,6 +1,5 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Rendering;
 using Xenko.Graphics;
 
 namespace Xenko.Rendering.Images
@@ -26,7 +25,6 @@ namespace Xenko.Rendering.Images
         /// <param name="view">The render target output view.</param>
         /// <exception cref="System.ArgumentNullException">view</exception>
         void SetOutput(Texture view);
-
 
         /// <summary>
         /// Sets the render target outputs.

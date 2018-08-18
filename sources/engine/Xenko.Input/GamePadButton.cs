@@ -20,14 +20,14 @@ namespace Xenko.Input
         /// </summary>
         PadDown = 1 << 1,
 
-        /// <summary>	
+        /// <summary>
         /// PadLeft button. (DPad / Directional Pad)
-        /// </summary>	
+        /// </summary>
         PadLeft = 1 << 2,
 
-        /// <summary>	
+        /// <summary>
         /// PadRight button. (DPad / Directional Pad)
-        /// </summary>	
+        /// </summary>
         PadRight = 1 << 3,
 
         /// <summary>
@@ -35,14 +35,14 @@ namespace Xenko.Input
         /// </summary>
         Pad = 0xF,
 
-        /// <summary>	
+        /// <summary>
         /// Start button.
-        /// </summary>	
+        /// </summary>
         Start = 1 << 4,
 
-        /// <summary>	
+        /// <summary>
         /// Back button.
-        /// </summary>	
+        /// </summary>
         Back = 1 << 5,
 
         /// <summary>
@@ -85,9 +85,9 @@ namespace Xenko.Input
         /// </summary>
         Y = 1 << 15,
 
-        /// <summary>	
-        /// No buttons.	
-        /// </summary>	
-        None = 0,		
+        /// <summary>
+        /// No buttons.
+        /// </summary>
+        None = 0,
     }
 }

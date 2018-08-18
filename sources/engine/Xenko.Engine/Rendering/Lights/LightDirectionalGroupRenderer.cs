@@ -13,16 +13,8 @@ using Xenko.Shaders;
 
 namespace Xenko.Rendering.Lights
 {
-    public struct DirectionalLightData
-    {
 #pragma warning disable 169
-        public Vector3 DirectionWS;
-        private float padding0;
-        public Color3 Color;
-        private float padding1;
 #pragma warning restore 169
-    }
-
     /// <summary>
     /// Light renderer for <see cref="LightDirectional"/>.
     /// </summary>
@@ -40,7 +32,7 @@ namespace Xenko.Rendering.Lights
             return new DirectionalLightShaderGroup(context.RenderContext, shadowShaderGroupData);
         }
 
-        class DirectionalLightShaderGroup : LightShaderGroupDynamic
+        private class DirectionalLightShaderGroup : LightShaderGroupDynamic
         {
             private ValueParameterKey<int> countKey;
             private ValueParameterKey<DirectionalLightData> lightsKey;
@@ -74,14 +66,14 @@ namespace Xenko.Rendering.Lights
 
             public override void ApplyViewParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters)
             {
-                CurrentLights.Clear();
-                var lightRange = LightRanges[viewIndex];
+                currentLights.Clear();
+                var lightRange = lightRanges[viewIndex];
                 for (int i = lightRange.Start; i < lightRange.End; ++i)
-                    CurrentLights.Add(Lights[i]);
+                    currentLights.Add(lights[i]);
 
                 base.ApplyViewParameters(context, viewIndex, parameters);
 
-                foreach (var lightEntry in CurrentLights)
+                foreach (var lightEntry in currentLights)
                 {
                     var light = lightEntry.Light;
                     lightsData.Add(new DirectionalLightData

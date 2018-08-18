@@ -159,7 +159,7 @@ ABCDEFGHIJ - ABCDEFGHIJ - A1C3E5G7I9
         {
             base.Update(gameTime);
 
-            if(Input.IsKeyReleased(Keys.S))
+            if (Input.IsKeyReleased(Keys.S))
                 SaveTexture(GraphicsDevice.Presenter.BackBuffer, "sprite-font-" + saveImageSuffix + ".png");
         }
     }

@@ -21,9 +21,9 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// <param name="radius">The radius or the base</param>
             /// <param name="height">The height of the cone</param>
             /// <param name="tessellation">The number of segments composing the base</param>
-            /// <param name="vScale"></param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
-            /// <param name="uScale"></param>
             /// <returns>A cone.</returns>
             public static GeometricPrimitive New(GraphicsDevice device, float radius = 0.5f, float height = 1.0f, int tessellation = 16, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
             {
@@ -37,9 +37,9 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// <param name="radius">The radius or the base</param>
             /// <param name="height">The height of the cone</param>
             /// <param name="tessellation">The number of segments composing the base</param>
-            /// <param name="vScale"></param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
-            /// <param name="uScale"></param>
             /// <returns>A cone.</returns>
             public static GeometricMeshData<VertexPositionNormalTexture> New(float radius = 0.5f, float height = 1.0f, int tessellation = 16, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
             {
@@ -48,7 +48,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                 
                 var numberOfSections = tessellation + 1;
                 var vertexNumberBySection = tessellation + 1;
-                var indices = new int[2*tessellation*(2*(tessellation-1)+1)*3];
+                var indices = new int[2 * tessellation * (2 * (tessellation - 1) + 1) * 3];
                 var vertices = new VertexPositionNormalTexture[2 * vertexNumberBySection * numberOfSections];
 
                 var index = 0;
@@ -108,7 +108,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                     var offsetV4 = (e == 0) ? vertexNumberBySection + 1 : 1;
 
                     // the sections
-                    for (var j = 0; j < tessellation-1; ++j)
+                    for (var j = 0; j < tessellation - 1; ++j)
                     {
                         for (int i = 0; i < tessellation; ++i)
                         {
@@ -125,9 +125,9 @@ namespace Xenko.Graphics.GeometricPrimitives
                     // the extremity triangle
                     for (int i = 0; i < tessellation; ++i)
                     {
-                        indices[index++] = globalOffset + (tessellation-1) * vertexNumberBySection + i;
-                        indices[index++] = globalOffset + (tessellation-1) * vertexNumberBySection + i + offsetV1;
-                        indices[index++] = globalOffset + (tessellation-1) * vertexNumberBySection + i + offsetV2;
+                        indices[index++] = globalOffset + (tessellation - 1) * vertexNumberBySection + i;
+                        indices[index++] = globalOffset + (tessellation - 1) * vertexNumberBySection + i + offsetV1;
+                        indices[index++] = globalOffset + (tessellation - 1) * vertexNumberBySection + i + offsetV2;
                     }
                 }
 

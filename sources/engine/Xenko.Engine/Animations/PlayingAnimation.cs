@@ -11,7 +11,7 @@ namespace Xenko.Animations
         // Used internally by animation system
         // TODO: Stored in AnimationProcessor?
         internal AnimationClipEvaluator Evaluator;
-        internal TaskCompletionSource<bool> endedTCS;
+        internal TaskCompletionSource<bool> EndedTCS;
 
         internal PlayingAnimation(string name, AnimationClip clip) : this()
         {

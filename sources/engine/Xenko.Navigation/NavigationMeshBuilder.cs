@@ -379,7 +379,7 @@ namespace Xenko.Navigation
                         AgentHeight = agentSettings.Height,
                         AgentRadius = agentSettings.Radius,
                         AgentMaxClimb = agentSettings.MaxClimb,
-                        AgentMaxSlope = agentSettings.MaxSlope.Degrees
+                        AgentMaxSlope = agentSettings.MaxSlope.Degrees,
                     };
 
                     Navigation.SetSettings(builder, new IntPtr(&internalBuildSettings));

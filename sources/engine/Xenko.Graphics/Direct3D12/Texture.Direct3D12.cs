@@ -254,7 +254,7 @@ namespace Xenko.Graphics
             {
                 NativeDeviceChild = null;
             }
-            else if(GraphicsDevice != null)
+            else if (GraphicsDevice != null)
             {
                 GraphicsDevice.RegisterTextureMemoryUsage(-SizeInBytes);
             }
@@ -605,7 +605,7 @@ namespace Xenko.Graphics
             return result;
         }
 
-        internal unsafe static SharpDX.DataBox[] ConvertDataBoxes(DataBox[] dataBoxes)
+        internal static unsafe SharpDX.DataBox[] ConvertDataBoxes(DataBox[] dataBoxes)
         {
             if (dataBoxes == null || dataBoxes.Length == 0)
                 return null;

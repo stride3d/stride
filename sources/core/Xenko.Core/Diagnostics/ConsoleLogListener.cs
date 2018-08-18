@@ -40,7 +40,7 @@ namespace Xenko.Core.Diagnostics
             // filter logs with lower level
             if (!Debugger.IsAttached && // Always log when debugger is attached
                 (logMessage.Type < LogLevel || LogMode == ConsoleLogMode.None
-                || !(LogMode == ConsoleLogMode.Auto && Platform.IsRunningDebugAssembly) && LogMode != ConsoleLogMode.Always))
+                || (!(LogMode == ConsoleLogMode.Auto && Platform.IsRunningDebugAssembly) && LogMode != ConsoleLogMode.Always)))
             {
                 return;
             }
@@ -88,20 +88,20 @@ namespace Xenko.Core.Diagnostics
             switch (logMessage.Type)
             {
                 case LogMessageType.Debug:
-                    Console.ForegroundColor = (ConsoleColor.DarkGray);
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
                     break;
                 case LogMessageType.Verbose:
-                    Console.ForegroundColor = (ConsoleColor.Gray);
+                    Console.ForegroundColor = ConsoleColor.Gray;
                     break;
                 case LogMessageType.Info:
-                    Console.ForegroundColor = (ConsoleColor.Green);
+                    Console.ForegroundColor = ConsoleColor.Green;
                     break;
                 case LogMessageType.Warning:
-                    Console.ForegroundColor = (ConsoleColor.Yellow);
+                    Console.ForegroundColor = ConsoleColor.Yellow;
                     break;
                 case LogMessageType.Error:
                 case LogMessageType.Fatal:
-                    Console.ForegroundColor = (ConsoleColor.Red);
+                    Console.ForegroundColor = ConsoleColor.Red;
                     break;
             }
 #endif

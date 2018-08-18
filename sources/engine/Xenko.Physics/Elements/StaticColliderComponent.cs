@@ -15,7 +15,7 @@ namespace Xenko.Physics
             {
                 CollisionShape = ColliderShape.InternalShape,
                 ContactProcessingThreshold = !Simulation.CanCcd ? 1e18f : 1e30f,
-                UserObject = this
+                UserObject = this,
             };
 
             NativeCollisionObject.CollisionFlags |= BulletSharp.CollisionFlags.NoContactResponse;

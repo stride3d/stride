@@ -508,7 +508,7 @@ namespace Xenko.Graphics
             }
         }
 
-        public unsafe static ColorComponentFlags ConvertColorWriteChannels(ColorWriteChannels colorWriteChannels)
+        public static unsafe ColorComponentFlags ConvertColorWriteChannels(ColorWriteChannels colorWriteChannels)
         {
             return *(ColorComponentFlags*)&colorWriteChannels;
         }

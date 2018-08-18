@@ -22,6 +22,7 @@ namespace Xenko.Rendering.LightProbes
         // TODO: Make this customizable
         public const float ExtrapolationDistance = 100.0f;
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
         [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
         public static extern void exactinit();
 
@@ -30,6 +31,7 @@ namespace Xenko.Rendering.LightProbes
 
         [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
         public static extern float insphere(ref Vector3 pa, ref Vector3 pb, ref Vector3 pc, ref Vector3 pd, ref Vector3 pe);
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 
         private readonly List<int> badTetrahedra = new List<int>();
         private readonly FastList<HoleFace> holeFaces = new FastList<HoleFace>();
@@ -56,8 +58,10 @@ namespace Xenko.Rendering.LightProbes
         {
             public unsafe fixed int Vertices[3];
             public Vector3 Normal;
-            public int FrontTetrahedron, BackTetrahedron;
-            public sbyte FrontFace, BackFace;
+            public int FrontTetrahedron;
+            public int BackTetrahedron;
+            public sbyte FrontFace;
+            public sbyte BackFace;
 
             public class Serializer : DataSerializer<Face>
             {
@@ -684,7 +688,6 @@ namespace Xenko.Rendering.LightProbes
                 var cp = points[tetrahedronPointer->Vertices[2]] - p;
                 var dp = points[tetrahedronPointer->Vertices[3]] - p;
 
-
                 // TODO: Pretend super tetrahedron is at infinity
                 // This is quite complex to handle and is probably not necessary given we take a "big enough" tetrahedron
                 // http://stackoverflow.com/questions/30741459/bowyer-watson-algorithm-how-to-fill-holes-left-by-removing-triangles-with-sup#answer-36992359
@@ -813,7 +816,7 @@ namespace Xenko.Rendering.LightProbes
         /// <summary>
         /// Internal structure used when adding vertex.
         /// </summary>
-        struct HoleFace
+        private struct HoleFace
         {
             public readonly int Vertex0;
             public readonly int Vertex1;
@@ -841,7 +844,7 @@ namespace Xenko.Rendering.LightProbes
         /// <summary>
         /// Internal structure used when adding vertex.
         /// </summary>
-        struct HoleEdge : IComparable<HoleEdge>
+        private struct HoleEdge : IComparable<HoleEdge>
         {
             public readonly int Vertex0;
             public readonly int Vertex1;

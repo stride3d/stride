@@ -4,11 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using Xenko.Core;
-using Xenko.Core.Serialization;
 using Xenko.Animations;
 using Xenko.Audio;
+using Xenko.Core;
+using Xenko.Core.Serialization;
 using Xenko.Graphics;
 using Xenko.Graphics.Font;
 using Xenko.Rendering;
@@ -37,7 +36,9 @@ namespace Xenko.Engine.Design
         public static readonly PropertyKey<CloneContext> CloneContextProperty = new PropertyKey<CloneContext>("CloneContext", typeof(EntityCloner));
 
         // CloneObject TLS used to clone entities, so that we don't create one everytime we clone
-        [ThreadStatic] private static HashSet<object> clonedObjectsTLS;
+        [ThreadStatic]
+        private static HashSet<object> clonedObjectsTLS;
+
         private static HashSet<object> ClonedObjects()
         {
             return clonedObjectsTLS ?? (clonedObjectsTLS = new HashSet<object>());
@@ -120,12 +121,10 @@ namespace Xenko.Engine.Design
         /// User can optionally provides list of cloned objects (list of data reference objects that should be cloned)
         /// and mapped objects (list of data reference objects that should be ducplicated using the given instance).
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="clonedObjects">The cloned objects.</param>
         /// <param name="mappedObjects">The mapped objects.</param>
         /// <param name="entity">The entity.</param>
-        /// <param name="serviceRegistry">The context service registry</param>
-        /// <returns></returns>
+        /// <returns>The cloned object.</returns>
         private static T Clone<T>(HashSet<object> clonedObjects, TryGetValueFunction<object, object> mappedObjects, T entity) where T : class
         {
             if (cloneSerializerSelector == null)
@@ -208,6 +207,5 @@ namespace Xenko.Engine.Design
             /// </summary>
             public SerializerSelector EntitySerializerSelector;
         }
-
     }
 }

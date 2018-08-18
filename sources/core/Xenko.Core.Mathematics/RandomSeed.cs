@@ -21,17 +21,17 @@ namespace Xenko.Core.Mathematics
         private const double GelfondSchneiderConst = 2.6651441426902251;    // 2 to the power of sqrt(2)
         private const double Numerator = 123456789;
 
-        // When casting UInt32 to double it works fine, but when casting it to float it might cause underflow errors (loss of precision)
+        // When casting uint to double it works fine, but when casting it to float it might cause underflow errors (loss of precision)
         // We want to limit the maximum settable value to prevent such errors.
-        private const UInt32 UnderflowGuard = 0xFFFF;
+        private const uint UnderflowGuard = 0xFFFF;
 
-        private readonly UInt32 seed;
+        private readonly uint seed;
 
         /// <summary>
-        /// Create a random seed from a target uint32
+        /// Initializes a new instance of the <see cref="RandomSeed"/> struct from a target uint.
         /// </summary>
-        /// <param name="seed"></param>
-        public RandomSeed(UInt32 seed)
+        /// <param name="seed">The seed value to initialize the deterministic random generator.</param>
+        public RandomSeed(uint seed)
         {
             this.seed = (seed & UnderflowGuard);
         }
@@ -40,7 +40,7 @@ namespace Xenko.Core.Mathematics
         /// Get a deterministic double value between 0 and 1 based on the seed
         /// </summary>
         /// <returns>Deterministic pseudo-random value between 0 and 1</returns>
-        public double GetDouble(UInt32 offset)
+        public double GetDouble(uint offset)
         {           
             var dRand = (double)(unchecked(seed + offset)); // We want it to overflow
 
@@ -56,7 +56,6 @@ namespace Xenko.Core.Mathematics
         /// The calculations are still made as doubles to prevent underflow errors.
         /// </summary>
         /// <returns>Deterministic pseudo-random value between 0 and 1</returns>
-        public float GetFloat(UInt32 offset) => (float)GetDouble(offset);
-        
+        public float GetFloat(uint offset) => (float)GetDouble(offset);
     }
 }

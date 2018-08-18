@@ -20,7 +20,7 @@ namespace Xenko.Engine.Processors
             return new AssociatedData
             {
                 Component = component,
-                LightComponent = entity.Get<LightComponent>()
+                LightComponent = entity.Get<LightComponent>(),
             };
         }
 

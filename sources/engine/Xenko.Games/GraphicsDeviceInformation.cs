@@ -27,7 +27,7 @@ using Xenko.Graphics;
 
 namespace Xenko.Games
 {
-    public class  GraphicsDeviceInformation : IEquatable<GraphicsDeviceInformation>
+    public class GraphicsDeviceInformation : IEquatable<GraphicsDeviceInformation>
     {
         #region Fields
 
@@ -138,8 +138,8 @@ namespace Xenko.Games
             unchecked
             {
                 var hashCode = (adapter != null ? adapter.GetHashCode() : 0);
-                hashCode = (hashCode*397) ^ (int)graphicsProfile;
-                hashCode = (hashCode*397) ^ (presentationParameters != null ? presentationParameters.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (int)graphicsProfile;
+                hashCode = (hashCode * 397) ^ (presentationParameters != null ? presentationParameters.GetHashCode() : 0);
                 return hashCode;
             }
         }

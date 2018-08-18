@@ -48,22 +48,22 @@ namespace Xenko.Engine
         public SceneInstance SceneInstance { get; set; }
 
         /// <summary>
-        /// URL of the scene loaded at initialization
+        /// URL of the scene loaded at initialization.
         /// </summary>
         public string InitialSceneUrl { get; set; }
 
         /// <summary>
-        /// URL of the graphics compositor loaded at initialization
+        /// URL of the graphics compositor loaded at initialization.
         /// </summary>
         public string InitialGraphicsCompositorUrl { get; set; }
 
         /// <summary>
-        /// URL of the splash screen texture loaded at initialization
+        /// URL of the splash screen texture loaded at initialization.
         /// </summary>
         public string SplashScreenUrl { get; set; }
 
         /// <summary>
-        /// Splash screen background color
+        /// Splash screen background color.
         /// </summary>
         public Color4 SplashScreenColor { get; set; }
 
@@ -94,7 +94,7 @@ namespace Xenko.Engine
             Intro,
             FadingIn,
             Showing,
-            FadingOut
+            FadingOut,
         }
 
         private SplashScreenState splashScreenState = SplashScreenState.Invalid;
@@ -114,7 +114,7 @@ namespace Xenko.Engine
             // Preload the scene if it exists and show splash screen
             if (InitialSceneUrl != null && content.Exists(InitialSceneUrl))
             {
-                if(SplashScreenEnabled)
+                if (SplashScreenEnabled)
                     sceneTask = content.LoadAsync<Scene>(InitialSceneUrl);
                 else
                     SceneInstance = new SceneInstance(Services, content.Load<Scene>(InitialSceneUrl));
@@ -162,13 +162,13 @@ namespace Xenko.Engine
             var renderTarget = Game.GraphicsContext.CommandList.RenderTarget;
             Game.GraphicsContext.CommandList.Clear(renderTarget, SplashScreenColor);
             
-            var viewWidth = renderTarget.Width / (DoubleViewSplashScreen? 2: 1);
+            var viewWidth = renderTarget.Width / (DoubleViewSplashScreen ? 2 : 1);
             var viewHeight = renderTarget.Height;
             var viewportSize = Math.Min(viewWidth, viewHeight);
 
             var initialViewport = Game.GraphicsContext.CommandList.Viewport;
 
-            var x = (viewWidth  - viewportSize) / 2;
+            var x = (viewWidth - viewportSize) / 2;
             var y = (viewHeight - viewportSize) / 2;
             var newViewport = new Viewport(x, y, viewportSize, viewportSize);
             
@@ -240,8 +240,8 @@ namespace Xenko.Engine
                             sceneTask = null;
                             compositorTask = null;
                         }
-                    }
                         break;
+                    }
                     case SplashScreenState.Intro:
                     {
                         Game.GraphicsContext.CommandList.Clear(Game.GraphicsContext.CommandList.RenderTarget, SplashScreenColor);
@@ -251,8 +251,8 @@ namespace Xenko.Engine
                             splashScreenState = SplashScreenState.FadingIn;
                             fadeTime = 0.0f;
                         }
-                    }
                         break;
+                    }
                     case SplashScreenState.FadingIn:
                     {
                         var color = Color4.White;
@@ -266,8 +266,8 @@ namespace Xenko.Engine
                         fadeTime += gameTime.Elapsed.TotalSeconds;
 
                         RenderSplashScreen(color, BlendStates.AlphaBlend);
-                    }
                         break;
+                    }
                     case SplashScreenState.Showing:
                     {
                         RenderSplashScreen(Color4.White, BlendStates.Default);
@@ -277,8 +277,8 @@ namespace Xenko.Engine
                             splashScreenState = SplashScreenState.FadingOut;
                             fadeTime = 0.0f;
                         }
-                    }
                         break;
+                    }
                     case SplashScreenState.FadingOut:
                     {
                         var color = Color4.White;
@@ -292,8 +292,8 @@ namespace Xenko.Engine
                         fadeTime += gameTime.Elapsed.TotalSeconds;
 
                         RenderSplashScreen(color, BlendStates.AlphaBlend);
-                    }
                         break;
+                    }
                 }
             }
         }

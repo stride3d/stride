@@ -46,6 +46,6 @@ namespace Xenko.Graphics
         /// <summary>
         /// Multisample count of 8 pixels.
         /// </summary>
-        X8 = 8
+        X8 = 8,
     }
 }

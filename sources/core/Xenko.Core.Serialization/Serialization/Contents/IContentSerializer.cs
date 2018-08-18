@@ -41,7 +41,7 @@ namespace Xenko.Core.Serialization.Contents
         /// Constructs the specified object. This is useful if there is any cycle in the object graph reference.
         /// </summary>
         /// <param name="context">The context.</param>
-        /// <returns></returns>
+        /// <returns>The newly built object.</returns>
         object Construct(ContentSerializerContext context);
     }
 

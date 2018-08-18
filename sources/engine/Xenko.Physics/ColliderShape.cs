@@ -4,8 +4,8 @@
 using System;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
-using Xenko.Rendering;
 using Xenko.Graphics;
+using Xenko.Rendering;
 
 namespace Xenko.Physics
 {
@@ -47,7 +47,7 @@ namespace Xenko.Physics
         public virtual void UpdateLocalTransformations()
         {
             //cache matrices used to translate the position from and to physics engine / gfx engine
-            PositiveCenterMatrix = Matrix.RotationQuaternion(LocalRotation) * (Parent == null ? Matrix.Translation(LocalOffset * CachedScaling) : Matrix.Translation(LocalOffset));
+            PositiveCenterMatrix = Matrix.RotationQuaternion(LocalRotation) * (Parent == null ? Matrix.Translation(LocalOffset * cachedScaling) : Matrix.Translation(LocalOffset));
             NegativeCenterMatrix = PositiveCenterMatrix;
             NegativeCenterMatrix.Invert();
         }
@@ -68,7 +68,7 @@ namespace Xenko.Physics
         /// </value>
         public Matrix NegativeCenterMatrix;
 
-        protected Vector3 CachedScaling;
+        protected Vector3 cachedScaling;
 
         /// <summary>
         /// Gets or sets the scaling.
@@ -82,19 +82,19 @@ namespace Xenko.Physics
         {
             get
             {
-                return CachedScaling;
+                return cachedScaling;
             }
             set
             {
-                var oldScale = CachedScaling;
+                var oldScale = cachedScaling;
 
-                CachedScaling = value;
-                if (Is2D && Type == ColliderShapeTypes.Box) CachedScaling.Z = 0.001f; //Box is not working properly when in a convex2dshape, Z cannot be 0
-                else if(Is2D) CachedScaling.Z = 0.0f;
+                cachedScaling = value;
+                if (Is2D && Type == ColliderShapeTypes.Box) cachedScaling.Z = 0.001f; //Box is not working properly when in a convex2dshape, Z cannot be 0
+                else if (Is2D) cachedScaling.Z = 0.0f;
 
                 if (Parent == null)
                 {
-                    InternalShape.LocalScaling = CachedScaling;
+                    InternalShape.LocalScaling = cachedScaling;
                 }
 
                 UpdateLocalTransformations();
@@ -104,9 +104,9 @@ namespace Xenko.Physics
 
                 var invertedScale = Matrix.Scaling(oldScale);
                 invertedScale.Invert();
-                var unscaledMatrix = DebugEntity.Transform.LocalMatrix*invertedScale;
-                var newScale = Matrix.Scaling(CachedScaling);
-                DebugEntity.Transform.LocalMatrix = unscaledMatrix*newScale;
+                var unscaledMatrix = DebugEntity.Transform.LocalMatrix * invertedScale;
+                var newScale = Matrix.Scaling(cachedScaling);
+                DebugEntity.Transform.LocalMatrix = unscaledMatrix * newScale;
             }
         }
 

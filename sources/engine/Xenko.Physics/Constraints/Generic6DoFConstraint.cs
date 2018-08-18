@@ -7,7 +7,7 @@ namespace Xenko.Physics
 {
     public class Generic6DoFConstraint : Constraint
     {
-        BulletSharp.Generic6DofConstraint mInternalGeneric6DofConstraint;
+        private BulletSharp.Generic6DofConstraint mInternalGeneric6DofConstraint;
         internal BulletSharp.Generic6DofConstraint InternalGeneric6DofConstraint
         {
             get

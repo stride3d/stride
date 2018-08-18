@@ -1,6 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
+#pragma warning disable SA1307 // Accessible fields must begin with upper-case letter
+#pragma warning disable SA1310 // Field names must not contain underscore
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,7 +28,7 @@ namespace Xenko.Core
         /// Only available on Windows for now.
         /// </summary>
         /// <param name="libraryName">Name of the library.</param>
-        /// <exception cref="System.InvalidOperationException"></exception>
+        /// <exception cref="System.InvalidOperationException">Library could not be loaded.</exception>
         public static void PreloadLibrary(string libraryName)
         {
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
@@ -110,13 +111,13 @@ namespace Xenko.Core
         private const string SYSINFO_FILE = "kernel32.dll";
 
         [DllImport(SYSINFO_FILE)]
-        static extern void GetNativeSystemInfo(out SYSTEM_INFO lpSystemInfo);
+        private static extern void GetNativeSystemInfo(out SYSTEM_INFO lpSystemInfo);
 
         [StructLayout(LayoutKind.Sequential)]
-        struct SYSTEM_INFO
+        private struct SYSTEM_INFO
         {
             public PROCESSOR_ARCHITECTURE processorArchitecture;
-            ushort reserved;
+            private ushort reserved;
             public uint pageSize;
             public IntPtr minimumApplicationAddress;
             public IntPtr maximumApplicationAddress;
@@ -128,13 +129,13 @@ namespace Xenko.Core
             public ushort processorRevision;
         }
 
-        enum PROCESSOR_ARCHITECTURE : ushort
+        private enum PROCESSOR_ARCHITECTURE : ushort
         {
             PROCESSOR_ARCHITECTURE_AMD64 = 9,
             PROCESSOR_ARCHITECTURE_ARM = 5,
             PROCESSOR_ARCHITECTURE_IA64 = 6,
             PROCESSOR_ARCHITECTURE_INTEL = 0,
-            PROCESSOR_ARCHITECTURE_UNKNOWN = 0xffff
+            PROCESSOR_ARCHITECTURE_UNKNOWN = 0xffff,
         }
 #endif
     }

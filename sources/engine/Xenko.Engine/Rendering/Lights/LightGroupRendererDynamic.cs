@@ -11,6 +11,5 @@ namespace Xenko.Rendering.Lights
     {
         public abstract LightShaderGroupDynamic CreateLightShaderGroup(RenderDrawContext context,
                                                                        ILightShadowMapShaderGroupData shadowShaderGroupData);
-
     }
 }

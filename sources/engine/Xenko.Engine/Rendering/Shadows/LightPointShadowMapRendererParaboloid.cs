@@ -126,6 +126,9 @@ namespace Xenko.Rendering.Shadows
             pointShadowMapTexture.ForwardMatrix.Invert();
         }
 
+        /// <summary>
+        /// Computes shadow map depth parameters.
+        /// </summary>
         /// <returns>
         /// x = Near; y = 1/(Far-Near)
         /// </returns>

@@ -25,7 +25,7 @@ namespace Xenko.Starter
 		
         public override bool FinishedLaunching(UIApplication application, NSDictionary launchOptions)
         {
-			if(Game == null)
+			if (Game == null)
 				throw new InvalidOperationException("Please set 'Game' to a valid instance of Game before calling this method.");
 				
             var bounds = UIScreen.MainScreen.Bounds;

@@ -146,7 +146,7 @@ namespace Xenko.Editor.Engine
                 // Compute bounding sphere for each node
                 foreach (var node in spriteStudioComponent.Nodes.SelectDeep(x => x.ChildrenNodes))
                 {
-                    if(node.Sprite == null || node.Hide != 0) continue;
+                    if (node.Sprite == null || node.Hide != 0) continue;
 
                     var nodeMatrix = node.ModelTransform * worldMatrix;
 
@@ -187,7 +187,7 @@ namespace Xenko.Editor.Engine
             }
 
             // If the entity does not contain any components having an impact on the bounding sphere, create an empty bounding sphere centered on the entity position.
-            if(boundingSphere == BoundingSphere.Empty)
+            if (boundingSphere == BoundingSphere.Empty)
                 boundingSphere = new BoundingSphere(worldMatrix.TranslationVector, 0);
 
             return boundingSphere;

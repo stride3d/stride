@@ -14,7 +14,7 @@ namespace Xenko.Graphics.Font
         /// <returns>The absolute path of the font in the database</returns>
         public static string GetFontPath(string fontName, FontStyle style)
         {
-            var styleName = "";
+            var styleName = string.Empty;
             if ((style & FontStyle.Bold) == FontStyle.Bold)
                 styleName += " Bold";
             if ((style & FontStyle.Italic) == FontStyle.Italic)

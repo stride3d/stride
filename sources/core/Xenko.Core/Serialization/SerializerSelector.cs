@@ -9,41 +9,12 @@ namespace Xenko.Core.Serialization
 {
     public delegate void SerializeObjectDelegate(SerializationStream stream, ref object obj, ArchiveMode archiveMode);
 
-    public class SerializerContext
-    {
-        public PropertyContainer Tags;
-
-        public SerializerContext()
-        {
-            SerializerSelector = SerializerSelector.Default;
-            Tags = new PropertyContainer(this);
-        }
-
-        /// <summary>
-        /// Gets or sets the serializer.
-        /// </summary>
-        /// <value>
-        /// The serializer.
-        /// </value>
-        public SerializerSelector SerializerSelector { get; set; }
-
-        public T Get<T>([NotNull] PropertyKey<T> key)
-        {
-            return Tags.Get(key);
-        }
-
-        public void Set<T>([NotNull] PropertyKey<T> key, T value)
-        {
-            Tags.SetObject(key, value);
-        }
-    }
-
     /// <summary>
     /// Serializer context. It holds DataSerializer{T} objects and their factories.
     /// </summary>
     public class SerializerSelector
     {
-        private readonly object Lock = new object();
+        private readonly object @lock = new object();
         private readonly string[] profiles;
         private Dictionary<Type, DataSerializer> dataSerializersByType = new Dictionary<Type, DataSerializer>();
         private Dictionary<ObjectId, DataSerializer> dataSerializersByTypeId = new Dictionary<ObjectId, DataSerializer>();
@@ -57,6 +28,7 @@ namespace Xenko.Core.Serialization
         public static SerializerSelector Default { get; internal set; }
 
         public static SerializerSelector Asset { get; internal set; }
+
         public static SerializerSelector AssetWithReuse { get; internal set; }
 
         public IEnumerable<string> Profiles => profiles;
@@ -97,7 +69,6 @@ namespace Xenko.Core.Serialization
         public SerializerSelector(params string[] profiles) : this(false, false, profiles)
         {
         }
-
 
         /// <summary>
         /// Checks if this instance supports the specified serialization profile.
@@ -194,7 +165,7 @@ namespace Xenko.Core.Serialization
         /// <summary>
         /// Internal function, for use by <see cref="SerializerFactory"/>.
         /// </summary>
-        /// <param name="dataSerializer"></param>
+        /// <param name="dataSerializer">The data serializer to initialize if not done yet</param>
         public void EnsureInitialized([NotNull] DataSerializer dataSerializer)
         {
             // Allow reentrency (in case a serializer needs itself)
@@ -310,7 +281,7 @@ namespace Xenko.Core.Serialization
                 }
 
                 // Do the actual state switch inside a lock
-                lock (Lock)
+                lock (@lock)
                 {
                     // Due to multithreading, make sure we really still need to update
                     if (dataSerializerFactoryVersion < capturedVersion)

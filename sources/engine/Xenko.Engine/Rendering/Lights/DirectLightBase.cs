@@ -10,7 +10,7 @@ namespace Xenko.Rendering.Lights
     /// <summary>
     /// Base implementation of <see cref="IDirectLight"/>.
     /// </summary>
-    [DataContract()]
+    [DataContract]
     public abstract class DirectLightBase : ColorLightBase, IDirectLight
     {
         /// <summary>

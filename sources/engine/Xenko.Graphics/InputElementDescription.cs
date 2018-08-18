@@ -36,12 +36,12 @@ namespace Xenko.Graphics
             unchecked
             {
                 var hashCode = SemanticName.GetHashCode();
-                hashCode = (hashCode*397) ^ SemanticIndex;
-                hashCode = (hashCode*397) ^ (int)Format;
-                hashCode = (hashCode*397) ^ InputSlot;
-                hashCode = (hashCode*397) ^ AlignedByteOffset;
-                hashCode = (hashCode*397) ^ (int)InputSlotClass;
-                hashCode = (hashCode*397) ^ InstanceDataStepRate;
+                hashCode = (hashCode * 397) ^ SemanticIndex;
+                hashCode = (hashCode * 397) ^ (int)Format;
+                hashCode = (hashCode * 397) ^ InputSlot;
+                hashCode = (hashCode * 397) ^ AlignedByteOffset;
+                hashCode = (hashCode * 397) ^ (int)InputSlotClass;
+                hashCode = (hashCode * 397) ^ InstanceDataStepRate;
                 return hashCode;
             }
         }

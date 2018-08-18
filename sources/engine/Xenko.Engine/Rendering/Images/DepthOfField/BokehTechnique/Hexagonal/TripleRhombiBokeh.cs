@@ -63,7 +63,7 @@ namespace Xenko.Rendering.Images
         }
 
         // Updates the texture tap offsets for the final combination pass
-        private void calculateRhombiOffsets() 
+        private void CalculateRhombiOffsets() 
         {
             rhombiTapOffsetsDirty = false;
 
@@ -77,12 +77,15 @@ namespace Xenko.Rendering.Images
 
             // TODO Add support for the Phase.
 
+#pragma warning disable SA1008 // Opening parenthesis should be spaced correctly
+#pragma warning disable SA1025 // Code should not contain multiple whitespace in a row
+#pragma warning disable SA1021 // Negative signs should be spaced correctly
             // Shifts all rhombis so they share 3 common edges
             var rhombiPosition = new Vector2[3] 
             { 
                 new Vector2( -hexagonalHalfWidth,   halfRadius), // top left rhombi
                 new Vector2(  hexagonalHalfWidth,   halfRadius), // top right rhombi
-                new Vector2(                  0f,  -Radius    )  // bottom rhombi
+                new Vector2(                  0f,      -Radius), // bottom rhombi
             };
 
             // Apply some bias to avoid the "upside-down" Y artifacts caused by rhombi overlapping.
@@ -91,14 +94,16 @@ namespace Xenko.Rendering.Images
             { 
                 new Vector2( -biasStrength,   biasStrength), // top left rhombi
                 new Vector2(  biasStrength,   biasStrength), // top right rhombi
-                new Vector2(            0f,  -biasStrength)  // bottom rhombi
+                new Vector2(            0f,  -biasStrength), // bottom rhombi
             };
+#pragma warning restore SA1008 // Opening parenthesis should be spaced correctly
+#pragma warning restore SA1025 // Code should not contain multiple whitespace in a row
+#pragma warning restore SA1021 // Negative signs should be spaced correctly
 
             for (int i = 0; i < 3; i++)
             {
                 rhombiTapOffsets[i] = (rhombiPosition[i] + bias[i]);
             }
-             
         }
 
         protected override void InitializeCore()
@@ -115,7 +120,7 @@ namespace Xenko.Rendering.Images
             if (tapWeights == null || tapWeights.Length != tapCount)
             {
                 tapWeights = DoFUtil.GetUniformWeightBlurArray(tapCount);
-                calculateRhombiOffsets();
+                CalculateRhombiOffsets();
             }
 
             if (!useOptimizedPath)
@@ -134,7 +139,7 @@ namespace Xenko.Rendering.Images
             var originalTexture = GetSafeInput(0);
             var outputTexture = GetSafeOutput(0);
 
-            if (rhombiTapOffsetsDirty) calculateRhombiOffsets();
+            if (rhombiTapOffsetsDirty) CalculateRhombiOffsets();
 
             var tapNumber = 2 * tapCount - 1;
             directionalBlurEffect.Parameters.Set(DepthAwareDirectionalBlurKeys.Count, tapCount);

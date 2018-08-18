@@ -68,10 +68,8 @@ namespace Xenko.Core.Storage
             BundleResolve += DefaultBundleResolve;
         }
 
-
         public void Dispose()
         {
-
         }
 
         public Dictionary<ObjectId, ObjectInfo> GetObjectInfos()
@@ -150,7 +148,7 @@ namespace Xenko.Core.Storage
         /// </summary>
         /// <param name="bundleName">Name of the bundle.</param>
         /// <param name="objectDatabaseContentIndexMap">The object database asset index map, where newly loaded assets will be merged (ignored if null).</param>
-        /// <returns></returns>
+        /// <returns>Task that will complete when bundle is loaded.</returns>
         public async Task LoadBundle(string bundleName, ObjectDatabaseContentIndexMap objectDatabaseContentIndexMap)
         {
             if (bundleName == null) throw new ArgumentNullException("bundleName");
@@ -256,7 +254,6 @@ namespace Xenko.Core.Storage
         /// </summary>
         /// <param name="bundleName">Name of the bundle.</param>
         /// <param name="objectDatabaseContentIndexMap">The object database asset index map, where newly loaded assets will be merged (ignored if null).</param>
-        /// <returns></returns>
         public void UnloadBundle(string bundleName, ObjectDatabaseContentIndexMap objectDatabaseContentIndexMap)
         {
             lock (loadedBundles)
@@ -373,7 +370,7 @@ namespace Xenko.Core.Storage
         /// Reads the bundle description.
         /// </summary>
         /// <param name="stream">The stream.</param>
-        /// <returns></returns>
+        /// <returns>The bundle description.</returns>
         /// <exception cref="System.InvalidOperationException">
         /// Invalid bundle header
         /// or
@@ -511,7 +508,7 @@ namespace Xenko.Core.Storage
                             }
 
                             // Check if we would reuse at least 50% of the incremental bundle, otherwise let's just get rid of it
-                            var reuseRatio = (float)((double)sizeNeededItems/(double)sizeTotal);
+                            var reuseRatio = (float)((double)sizeNeededItems / (double)sizeTotal);
                             if (reuseRatio < 0.5f)
                             {
                                 VirtualFileSystem.FileDelete(incrementalBundleUrl);
@@ -670,7 +667,8 @@ namespace Xenko.Core.Storage
                                 inputStream.CopyTo(lz4OutputStream);
                                 lz4OutputStream.Flush();
                             }
-                            else // copy the stream "as is"
+                            // copy the stream "as is"
+                            else
                             {
                                 // Write stream
                                 inputStream.CopyTo(objectOutputStream);
@@ -846,7 +844,7 @@ namespace Xenko.Core.Storage
             public List<Stream> Streams;
         }
 
-        void ReleasePackageStream(ObjectLocation objectLocation, Stream stream)
+        private void ReleasePackageStream(ObjectLocation objectLocation, Stream stream)
         {
             var loadedBundle = objectLocation.LoadedBundle;
             lock (loadedBundle.Streams)
@@ -907,7 +905,7 @@ namespace Xenko.Core.Storage
                 }
             }
         }
-        class PackageFileStreamLZ4 : LZ4Stream
+        private class PackageFileStreamLZ4 : LZ4Stream
         {
             private readonly BundleOdbBackend bundleOdbBackend;
             private readonly ObjectLocation objectLocation;
@@ -929,7 +927,7 @@ namespace Xenko.Core.Storage
             }
         }
 
-        class PackageFileStream : VirtualFileStream
+        private class PackageFileStream : VirtualFileStream
         {
             private readonly BundleOdbBackend bundleOdbBackend;
             private readonly ObjectLocation objectLocation;

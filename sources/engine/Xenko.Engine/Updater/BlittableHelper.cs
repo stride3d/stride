@@ -13,18 +13,18 @@ namespace Xenko.Updater
     // TODO: We should switch to something determined at compile time with assembly processor?
     internal static class BlittableHelper
     {
-        private static Dictionary<Type, bool> BlittableTypesCache = new Dictionary<Type, bool>();
+        private static Dictionary<Type, bool> blittableTypesCache = new Dictionary<Type, bool>();
 
         // TODO: Performance: precompute this in AssemblyProcessor
         public static bool IsBlittable(Type type)
         {
-            lock (BlittableTypesCache)
+            lock (blittableTypesCache)
             {
                 bool blittable;
                 try
                 {
                     // Check cache
-                    if (BlittableTypesCache.TryGetValue(type, out blittable))
+                    if (blittableTypesCache.TryGetValue(type, out blittable))
                         return blittable;
 
                     // Class test
@@ -45,7 +45,7 @@ namespace Xenko.Updater
                 }
 
                 // Register it for next time
-                BlittableTypesCache[type] = blittable;
+                blittableTypesCache[type] = blittable;
                 return blittable;
             }
         }

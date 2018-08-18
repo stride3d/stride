@@ -74,7 +74,7 @@ namespace Xenko.Input
 
         internal void CheckNotFrozen()
         {
-            if(frozen)
+            if (frozen)
                 throw new InvalidOperationException("Tried to modify the configuration after is has been frozen.");
         }
 

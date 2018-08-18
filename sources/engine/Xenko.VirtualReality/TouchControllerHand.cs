@@ -5,6 +5,6 @@ namespace Xenko.VirtualReality
     public enum TouchControllerHand
     {
         Left,
-        Right
+        Right,
     }
 }

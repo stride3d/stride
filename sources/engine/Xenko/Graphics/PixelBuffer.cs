@@ -146,7 +146,7 @@ namespace Xenko.Graphics
                 var rowStride = Math.Min(RowStride, pixelBuffer.RowStride);
 
                 // Copy per scanline
-                for(int i = 0; i < Height; i++)
+                for (int i = 0; i < Height; i++)
                 {
                     Utilities.CopyMemory(new IntPtr(dstPointer), new IntPtr(srcPointer), rowStride);
                     srcPointer += this.RowStride;
@@ -173,7 +173,7 @@ namespace Xenko.Graphics
                     Format = this.format,
                     MipLevels = 1,
                 };
-            Image.Save(new [] {this}, 1, description, imageStream, fileType);
+            Image.Save(new[] { this }, 1, description, imageStream, fileType);
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace Xenko.Graphics
                 var sizeOfOutputPixel = Utilities.SizeOf<T>() * pixelCount;
                 var sizePerWidth = sizeOfOutputPixel / Width;
                 var remainingPixels = sizeOfOutputPixel % Width;
-                for(int i = 0; i < sizePerWidth; i++)
+                for (int i = 0; i < sizePerWidth; i++)
                 {
                     Utilities.Read(new IntPtr(pixelPointer), pixels, pixelIndex, Width);
                     pixelPointer += rowStride;

@@ -268,7 +268,7 @@ namespace Xenko.Core.IO
 
         private static int ComputeStringHashCodeCaseInsensitive([NotNull] string text)
         {
-            return text.Aggregate(0, (current, t) => (current*397) ^ char.ToLowerInvariant(t));
+            return text.Aggregate(0, (current, t) => (current * 397) ^ char.ToLowerInvariant(t));
         }
 
         public int CompareTo(object obj)
@@ -494,17 +494,16 @@ namespace Xenko.Core.IO
             return Normalize(pathToNormalize, out drive, out directoryOrFileName, out fileName, out error);
         }
 
-
         /// <summary>
         /// Possible state when normalizing a path.
         /// </summary>
-		private enum NormalizationState
+        private enum NormalizationState
         {
             StartComponent,
             InComponent,
             VolumeSeparator,
-            DirectorySeparator
-        };
+            DirectorySeparator,
+        }
 
         /// <summary>
         /// Normalize a path by replacing '\' by '/' and transforming relative '..' or current path '.' to an absolute path. See remarks.
@@ -587,7 +586,7 @@ namespace Xenko.Core.IO
                         return null;
                     }
 
-                   if (state == NormalizationState.StartComponent)
+                    if (state == NormalizationState.StartComponent)
                     {
                         error = "Path cannot start with a drive ':' separator";
                         return null;

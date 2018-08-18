@@ -6,7 +6,7 @@ namespace Xenko.Core
     /// The <see cref="Xenko.Core"/> namespace contains fundamental classes and interfaces that are commonly used in Xenko.
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-    class NamespaceDoc
+    internal class NamespaceDoc
     {
     }
 }

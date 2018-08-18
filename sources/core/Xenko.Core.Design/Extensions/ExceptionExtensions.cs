@@ -74,7 +74,7 @@ namespace Xenko.Core.Extensions
 
         private static void FormatForReportRecursively([NotNull] StringBuilder sb, [NotNull] Exception exception, int indentIncrement, int indent)
         {
-            var indentString = "".PadLeft(indent);
+            var indentString = string.Empty.PadLeft(indent);
             sb.Append(indentString);
             sb.Append(exception.GetType().Name);
             sb.Append(": ");

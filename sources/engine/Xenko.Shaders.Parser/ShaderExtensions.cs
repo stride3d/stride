@@ -19,7 +19,7 @@ namespace Xenko.Shaders.Parser
         // Used as key tag on ShaderRootClassType to define its composition types
         internal static string associatedCompositions = "AssociatedCompositions";
         // Used as key tag on TypeBase to link it to its actual ShaderClassType (if specified by user)
-        public readonly static string AssociatedMacrosTag = "AssociatedMacros";
+        public static readonly string AssociatedMacrosTag = "AssociatedMacros";
 
         public static void ReplaceAnnotation(this IAttributes node, string name, params object[] values)
         {

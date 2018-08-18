@@ -10,14 +10,6 @@ using Xenko.Core.Annotations;
 
 namespace Xenko.Video.FFmpeg
 {
-    public enum FFMpegStreamType
-    {
-        Undefined = -1,
-        Audio,
-        Video,
-        Subtitle,
-    }
-
     /// <summary>
     /// Represents a single stream from a FFmpeg media.
     /// </summary>
@@ -59,7 +51,7 @@ namespace Xenko.Video.FFmpeg
         /// <summary>
         /// The index of this stream in the associated format context.
         /// </summary>
-        /// <seealso cref="global::FFmpeg.AutoGen.AVFormatContext"/>
+        /// <seealso cref="AVFormatContext"/>
         public int Index { get; }
 
         [NotNull]
@@ -131,99 +123,6 @@ namespace Xenko.Video.FFmpeg
             var timeBase = AVStream->time_base;
             return (long)(time.TotalSeconds * timeBase.den / timeBase.num);
         }
-    }
-
-    /// <summary>
-    /// Represents an audio stream from a FFmpeg media.
-    /// </summary>
-    public sealed unsafe class AudioStream : FFmpegStream
-    {
-        public AudioStream([NotNull] AVStream* pStream, [NotNull] FFmpegMedia media)
-            : base(pStream, media)
-        {
-            var pCodec = pStream->codec;
-            ChannelCount = pCodec->channels;
-            SampleRate = pCodec->sample_rate;
-        }
-
-        /// <summary>
-        /// The number of audio channels in the stream.
-        /// </summary>
-        public int ChannelCount { get; }
-
-        /// <summary>
-        /// The number of audio samples per second.
-        /// </summary>
-        public int SampleRate { get; }
-
-        /// <inheritdoc />
-        public override FFMpegStreamType Type => FFMpegStreamType.Audio;
-    }
-
-
-    /// <summary>
-    /// Represents a subtitle stream from a FFmpeg media.
-    /// </summary>
-    public sealed unsafe class SubtitleStream : FFmpegStream
-    {
-        public SubtitleStream([NotNull] AVStream* pStream, [NotNull] FFmpegMedia media)
-            : base(pStream, media)
-        {
-
-        }
-
-        /// <inheritdoc />
-        public override FFMpegStreamType Type => FFMpegStreamType.Subtitle;
-    }
-
-
-    /// <summary>
-    /// Represents a video stream from a FFmpeg media.
-    /// </summary>
-    public sealed unsafe class VideoStream : FFmpegStream
-    {
-        public VideoStream([NotNull] AVStream* pStream, [NotNull] FFmpegMedia media)
-            : base(pStream, media)
-        {
-            var pCodec = pStream->codec;
-            var framerateRatio = pCodec->framerate;
-            FPS = Convert.ToDouble(framerateRatio.num) / Convert.ToDouble(framerateRatio.den);
-            FrameDuration = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / Convert.ToInt64(FPS));
-            PixelFormat = pCodec->pix_fmt;
-            Height = pCodec->height;
-            Width = pCodec->width;
-        }
-
-        /// <summary>
-        /// Video frames per second.
-        /// </summary>
-        public double FPS { get; }
-
-        /// <summary>
-        /// Time interval between two frames.
-        /// </summary>
-        /// <remarks>
-        /// Is it equal to the inverse of <see cref="FPS"/>.
-        /// </remarks>
-        public TimeSpan FrameDuration { get; }
-
-        /// <summary>
-        /// The pixel format of the encoded video.
-        /// </summary>
-        public AVPixelFormat PixelFormat { get; }
-
-        /// <inheritdoc />
-        public override FFMpegStreamType Type => FFMpegStreamType.Video;
-
-        /// <summary>
-        /// The height of a frame in the video, in pixels.
-        /// </summary>
-        public int Height { get; }
-
-        /// <summary>
-        /// The width of a frame in the video, in pixels.
-        /// </summary>
-        public int Width { get; }
     }
 }
 #endif

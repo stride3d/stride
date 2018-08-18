@@ -6,12 +6,8 @@ using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Diagnostics;
 using Xenko.Engine;
-using Xenko.Rendering;
 using Xenko.Games;
-
-#if XENKO_VIDEO_FFMPEG
-using Xenko.Video.FFmpeg;
-#endif
+using Xenko.Rendering;
 
 namespace Xenko.Video.Rendering
 {
@@ -126,7 +122,7 @@ namespace Xenko.Video.Rendering
         protected override void OnSystemAdd()
         {
             var videoSystem = Services.GetService<VideoSystem>();
-            if (videoSystem== null)
+            if (videoSystem == null)
             {
                 videoSystem = new VideoSystem(Services);
                 Services.AddService(videoSystem);

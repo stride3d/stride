@@ -34,7 +34,7 @@ namespace Xenko.Graphics
     public struct VertexPositionNormalTexture : IEquatable<VertexPositionNormalTexture>, IVertex
     {
         /// <summary>
-        /// Initializes a new <see cref="VertexPositionNormalTexture"/> instance.
+        /// Initializes a new instance of the <see cref="VertexPositionNormalTexture"/> struct.
         /// </summary>
         /// <param name="position">The position of this vertex.</param>
         /// <param name="normal">The vertex normal.</param>
@@ -66,16 +66,13 @@ namespace Xenko.Graphics
         /// </summary>
         public static readonly int Size = 32;
 
-
         /// <summary>
         /// The vertex layout of this struct.
         /// </summary>
         public static readonly VertexDeclaration Layout = new VertexDeclaration(
             VertexElement.Position<Vector3>(),
             VertexElement.Normal<Vector3>(),
-            VertexElement.TextureCoordinate<Vector2>()
-            );
-
+            VertexElement.TextureCoordinate<Vector2>());
 
         public bool Equals(VertexPositionNormalTexture other)
         {
@@ -85,7 +82,7 @@ namespace Xenko.Graphics
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            return obj is VertexPositionNormalTexture && Equals((VertexPositionNormalTexture) obj);
+            return obj is VertexPositionNormalTexture && Equals((VertexPositionNormalTexture)obj);
         }
 
         public override int GetHashCode()

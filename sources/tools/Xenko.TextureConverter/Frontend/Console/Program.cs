@@ -158,9 +158,9 @@ namespace Xenko.TextureConverter
 
                     if (MipMap) texTool.GenerateMipMaps(image, MipMapFilter);
                     
-                    if(PreMulAlpha) texTool.PreMultiplyAlpha(image);
+                    if (PreMulAlpha) texTool.PreMultiplyAlpha(image);
 
-                    if(TextureFormat.HasValue) texTool.Compress(image, TextureFormat.Value);
+                    if (TextureFormat.HasValue) texTool.Compress(image, TextureFormat.Value);
 
                     texTool.Save(image, outputFile, MipMapSize);
                 }
@@ -170,7 +170,7 @@ namespace Xenko.TextureConverter
                 }
                 finally
                 {
-                    if(image!=null) image.Dispose();
+                    if (image!=null) image.Dispose();
                 }
             }
 

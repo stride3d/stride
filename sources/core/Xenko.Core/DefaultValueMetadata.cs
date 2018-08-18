@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
+#pragma warning disable SA1402 // File may only contain a single class
 using Xenko.Core.Annotations;
 
 namespace Xenko.Core
@@ -15,8 +15,8 @@ namespace Xenko.Core
         /// It could be usefull with properties with default values depending of its container, especially if they are long to generate.
         /// An example would be collision data, which should be generated only once.
         /// </summary>
-        /// <param name="obj">Returns a default value as well as a boolean which specifies if the generated default value should be kept.</param>
-        /// <returns></returns>
+        /// <param name="obj">The property container.</param>
+        /// <returns>The default value.</returns>
         public abstract object GetDefaultValue(ref PropertyContainer obj);
 
         /// <summary>
@@ -54,8 +54,8 @@ namespace Xenko.Core
         /// It could be usefull with properties with default values depending of its container, especially if they are long to generate.
         /// An example would be collision data, which should be generated only once.
         /// </summary>
-        /// <param name="obj">Returns a default value as well as a boolean which specifies if the generated default value should be kept.</param>
-        /// <returns></returns>
+        /// <param name="obj">The property container.</param>
+        /// <returns>The default value.</returns>
         public abstract T GetDefaultValueT(ref PropertyContainer obj);
 
         public override object GetDefaultValue(ref PropertyContainer obj)
@@ -73,7 +73,7 @@ namespace Xenko.Core
         private readonly bool keepDefaultValue;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StaticDefaultValueMetadata"/> class.
+        /// Initializes a new instance of the <see cref="StaticDefaultValueMetadata{T}"/> class.
         /// </summary>
         /// <param name="defaultValue">The default value.</param>
         /// <param name="keepDefaultValue">if set to <c>true</c> [keep default value].</param>
@@ -114,7 +114,7 @@ namespace Xenko.Core
         public delegate T DefaultValueCallback(ref PropertyContainer container);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DelegateDefaultValueMetadata"/> class.
+        /// Initializes a new instance of the <see cref="DelegateDefaultValueMetadata{T}"/> class.
         /// </summary>
         /// <param name="callback">The callback.</param>
         public DelegateDefaultValueMetadata(DefaultValueCallback callback)

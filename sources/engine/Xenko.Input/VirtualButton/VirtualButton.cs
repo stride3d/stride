@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using Xenko.Core.Mathematics;
 
-
 namespace Xenko.Input
 {
     /// <summary>
@@ -175,7 +174,6 @@ namespace Xenko.Input
 
         private static void Register(VirtualButton virtualButton)
         {
-
             if (!mapIp.ContainsKey(virtualButton.Id))
             {
                 mapIp.Add(virtualButton.Id, virtualButton);

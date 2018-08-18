@@ -4,11 +4,11 @@
 using System;
 using System.Linq;
 using Xenko.Core;
+using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
 using Xenko.Graphics;
 using Xenko.Input;
-using Xenko.Core.Diagnostics;
 
 namespace Xenko.VirtualReality
 {
@@ -60,20 +60,20 @@ namespace Xenko.VirtualReality
         private bool orientationInitialized;
         private Quaternion orientationOffset = Quaternion.Identity;
         
-        private static readonly Quaternion lanscapeLeftSpaceChange = Quaternion.RotationMatrix(new Matrix(  0, 0, 1, 0,
-                                                                                                            1, 0, 0, 0,
-                                                                                                            0, 1, 0, 0,
-                                                                                                            0, 0, 0, 1 ));
+        private static readonly Quaternion LandscapeLeftSpaceChange = Quaternion.RotationMatrix(new Matrix(0, 0, 1, 0,
+                                                                                                           1, 0, 0, 0,
+                                                                                                           0, 1, 0, 0,
+                                                                                                           0, 0, 0, 1));
 
-        private static readonly Quaternion lanscapeRightSpaceChange = Quaternion.RotationMatrix(new Matrix ( 0, 0, -1, 0,
+        private static readonly Quaternion LandscapeRightSpaceChange = Quaternion.RotationMatrix(new Matrix(+0, 0, -1, 0,
                                                                                                             -1, 0,  0, 0,
-                                                                                                             0, 1,  0, 0,
-                                                                                                             0, 0,  0, 1));
+                                                                                                            +0, 1,  0, 0,
+                                                                                                            +0, 0,  0, 1));
 
-        private static readonly Quaternion portraitSpaceChange = Quaternion.RotationMatrix(new Matrix(  1, 0,  0, 0,
-                                                                                                        0, 0, -1, 0,
-                                                                                                        0, 1,  0, 0,
-                                                                                                        0, 0,  0, 1));
+        private static readonly Quaternion PortraitSpaceChange = Quaternion.RotationMatrix(new Matrix(1, 0,  0, 0,
+                                                                                                      0, 0, -1, 0,
+                                                                                                      0, 1,  0, 0,
+                                                                                                      0, 0,  0, 1));
 
         private Size2 optimalRenderFrameSize;
 
@@ -110,7 +110,7 @@ namespace Xenko.VirtualReality
             var eyeLocal = new Vector3((eye == Eyes.Left ? -HalfIpd : HalfIpd) * 0.5f, 0.0f, 0.0f) * ViewScaling;
             Vector3 eyeWorld;
             Matrix fullRotation;
-            var headRotationMatrix = ignoreHeadRotation? Matrix.Identity: Matrix.RotationQuaternion(headRotation);
+            var headRotationMatrix = ignoreHeadRotation ? Matrix.Identity : Matrix.RotationQuaternion(headRotation);
             Matrix.MultiplyTo(ref headRotationMatrix, ref cameraRotation, out fullRotation);
             Vector3.TransformCoordinate(ref eyeLocal, ref fullRotation, out eyeWorld);
             var pos = cameraPosition + eyeWorld;
@@ -127,7 +127,7 @@ namespace Xenko.VirtualReality
 
         public override void Commit(CommandList commandList, Texture renderFrame)
         {
-            if(BuildMirror)
+            if (BuildMirror)
                 commandList.Copy(renderFrame, MirrorTexture);
         }
 
@@ -171,7 +171,7 @@ namespace Xenko.VirtualReality
 
         public override void Recenter()
         {
-            if(orientationSensor == null || !UseGyroscope)
+            if (orientationSensor == null || !UseGyroscope)
             {
                 headRotation = Quaternion.Identity;
                 return;
@@ -194,12 +194,12 @@ namespace Xenko.VirtualReality
             switch (window.CurrentOrientation)
             {
                 case DisplayOrientation.LandscapeLeft:
-                    return lanscapeLeftSpaceChange;
+                    return LandscapeLeftSpaceChange;
                 case DisplayOrientation.LandscapeRight:
-                    return lanscapeRightSpaceChange;
+                    return LandscapeRightSpaceChange;
                 case DisplayOrientation.Default:
                 case DisplayOrientation.Portrait:
-                    return portraitSpaceChange;
+                    return PortraitSpaceChange;
                 default:
                     Logger.Error($"Unknown screen orientation type [{window.CurrentOrientation}].");
                     return Quaternion.Identity;

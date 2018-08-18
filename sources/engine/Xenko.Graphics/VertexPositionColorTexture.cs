@@ -52,9 +52,7 @@ namespace Xenko.Graphics
         public static readonly VertexDeclaration Layout = new VertexDeclaration(
             VertexElement.Position<Vector3>(),
             VertexElement.Color<Color>(),
-            VertexElement.TextureCoordinate<Vector2>()
-            );
-
+            VertexElement.TextureCoordinate<Vector2>());
 
         public bool Equals(VertexPositionColorTexture other)
         {

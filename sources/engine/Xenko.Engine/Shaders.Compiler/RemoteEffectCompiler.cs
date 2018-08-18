@@ -15,7 +15,7 @@ namespace Xenko.Shaders.Compiler
     /// <summary>
     /// Compiles effect remotely on the developer host PC.
     /// </summary>
-    class RemoteEffectCompiler : EffectCompilerBase
+    internal class RemoteEffectCompiler : EffectCompilerBase
     {
         private RemoteEffectCompilerClient remoteEffectCompilerClient;
 

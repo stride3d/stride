@@ -10,7 +10,6 @@ namespace Xenko.Rendering.Materials
     /// </summary>
     [InlineProperty]
     public interface IComputeScalar : IComputeNode
-    {
-        
+    {    
     }
 }

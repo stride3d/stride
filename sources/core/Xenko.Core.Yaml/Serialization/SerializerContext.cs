@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015 SharpYaml - Alexandre Mutel
+// Copyright (c) 2015 SharpYaml - Alexandre Mutel
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -174,7 +174,7 @@ namespace Xenko.Core.Yaml.Serialization
         /// Resolves a type from the specified tag.
         /// </summary>
         /// <param name="tagName">Name of the tag.</param>
-        /// <param name="isAlias"></param>
+        /// <param name="isAlias">True if tag is an alias.</param>
         /// <returns>Type.</returns>
         public Type TypeFromTag(string tagName, out bool isAlias)
         {

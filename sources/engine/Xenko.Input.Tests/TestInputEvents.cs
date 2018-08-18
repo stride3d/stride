@@ -81,7 +81,7 @@ namespace Xenko.Input.Tests
                 // Toggle mouse lock
                 if (Input.IsKeyPressed(Keys.E))
                 {
-                    if(Input.IsMousePositionLocked)
+                    if (Input.IsMousePositionLocked)
                         Input.UnlockMousePosition();
                     else
                         Input.LockMousePosition(Input.IsKeyDown(Keys.LeftShift) || Input.IsKeyDown(Keys.RightShift));   

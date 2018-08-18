@@ -44,7 +44,7 @@ namespace Xenko.Rendering.Lights
                 BiasParameters =
                 {
                     DepthBias = 0.001f,
-                }
+                },
             };
         }
 
@@ -192,7 +192,7 @@ namespace Xenko.Rendering.Lights
             Vector4.Transform(ref targetPosition, ref renderView.ViewProjection, out projectedTarget);
 
             var d = Math.Abs(projectedTarget.W) + 0.00001f;
-            var r = Range * Math.Sin(MathUtil.DegreesToRadians(AngleOuter/2.0f));
+            var r = Range * Math.Sin(MathUtil.DegreesToRadians(AngleOuter / 2.0f));
 
             // Handle correctly the case where the eye is inside the sphere
             if (d < r)

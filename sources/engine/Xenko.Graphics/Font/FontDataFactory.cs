@@ -70,6 +70,5 @@ namespace Xenko.Graphics.Font
 
             return new SignedDistanceFieldSpriteFont(size, glyphs, textures, baseOffset, defaultLineSpacing, kernings, extraSpacing, extraLineSpacing, defaultCharacter);
         }
-
     }
 }

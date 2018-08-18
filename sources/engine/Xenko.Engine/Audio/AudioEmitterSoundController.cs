@@ -29,7 +29,7 @@ namespace Xenko.Audio
     /// </para>
     /// </remarks>
     [DebuggerDisplay("Controller for {sound.Name}")]
-    public class AudioEmitterSoundController: IPlayableSound, IMediaPlayer
+    public class AudioEmitterSoundController : IPlayableSound, IMediaPlayer
     {
         private readonly SoundBase sound;
         private readonly AudioEmitterComponent emitter;
@@ -140,7 +140,7 @@ namespace Xenko.Audio
                 // setting the state of the sound to Stopped when reaching the end of the track.
                 // For coherency, we consider a controller as stopped only when all its instances are stopped.
                 // (if not the case, a play call to a stopped controller would restart only some of the underlying instances)
-                if(InstanceToListener.Any(x=>x.Key.PlayState == PlayState.Playing))
+                if (InstanceToListener.Any(x => x.Key.PlayState == PlayState.Playing))
                     return PlayState.Playing;
 
                 return playState = PlayState.Stopped;
@@ -252,7 +252,6 @@ namespace Xenko.Audio
                 }
             }
         }
-
 
         public float SpeedFactor
         {

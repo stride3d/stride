@@ -59,7 +59,7 @@ namespace Xenko.Input
         {
             // Try to map to a xenko key
             Keys key;
-            if (SDLKeys.mapKeys.TryGetValue(e.keysym.sym, out key) && key != Keys.None)
+            if (SDLKeys.MapKeys.TryGetValue(e.keysym.sym, out key) && key != Keys.None)
             {
                 if (e.type == SDL.SDL_EventType.SDL_KEYDOWN)
                     HandleKeyDown(key);
@@ -100,19 +100,19 @@ namespace Xenko.Input
                 length++;
             }
 
-            return Encoding.UTF8.GetString(sourceBytes,0,length);
+            return Encoding.UTF8.GetString(sourceBytes, 0, length);
         }
 
         /// <summary>
         /// Mapping between <see cref="SDL.SDL_Keycode"/> and <see cref="Xenko.Input.Keys"/> needed for
         /// translating SDL key events into Xenko ones.
         /// </summary>
-        static class SDLKeys
+        private static class SDLKeys
         {
             /// <summary>
             /// Map between SDL keys and Xenko keys.
             /// </summary>
-            internal static readonly Dictionary<SDL.SDL_Keycode, Keys> mapKeys = NewMapKeys();
+            internal static readonly Dictionary<SDL.SDL_Keycode, Keys> MapKeys = NewMapKeys();
 
             /// <summary>
             /// Create a mapping between <see cref="SDL.SDL_Keycode"/> and <see cref="Xenko.Input.Keys"/>

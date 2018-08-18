@@ -115,7 +115,7 @@ namespace Xenko.Assets.Presentation.Preview
         {
             get
             {
-                if(texture == null)
+                if (texture == null)
                     return base.SpriteSize;
 
                 var textureSize = new Vector2(texture.Width, texture.Height);

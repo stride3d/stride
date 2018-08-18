@@ -1,5 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -68,6 +70,7 @@ namespace Xenko.Core.Serialization.Serializers
     /// <summary>
     /// Data serializer for IList{T}.
     /// </summary>
+    /// <typeparam name="TList">Type of IList{T}.</typeparam>
     /// <typeparam name="T">Generics type of IList{T}.</typeparam>
     public class ListAllSerializer<TList, T> : DataSerializer<TList>, IDataSerializerGenericInstantiation where TList : class, IList<T>
     {
@@ -121,7 +124,6 @@ namespace Xenko.Core.Serialization.Serializers
             genericInstantiations.Add(typeof(T));
         }
     }
-
 
     /// <summary>
     /// Data serializer for SortedList{TKey, TValue}.
@@ -189,7 +191,6 @@ namespace Xenko.Core.Serialization.Serializers
             genericInstantiations.Add(typeof(TValue));
         }
     }
-
 
     /// <summary>
     /// Data serializer for IList{T}.

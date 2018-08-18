@@ -52,7 +52,7 @@ namespace Xenko.Core.Serialization.Contents
         {
             if (services != null)
             {
-				this.services = services;
+                this.services = services;
                 Serializer.SerializerContextTags.Set(ServiceRegistry.ServiceRegistryKey, services);
             }
         }
@@ -97,29 +97,29 @@ namespace Xenko.Core.Serialization.Contents
 
         public Stream OpenAsStream(string url, StreamFlags streamFlags)
         {
-            return FileProvider.OpenStream(url, VirtualFileMode.Open, VirtualFileAccess.Read, streamFlags:streamFlags);
+            return FileProvider.OpenStream(url, VirtualFileMode.Open, VirtualFileAccess.Read, streamFlags: streamFlags);
         }
 
         /// <summary>
-        /// Loads an asset from the specified URL.
+        /// Loads content from the specified URL.
         /// </summary>
         /// <typeparam name="T">The content type.</typeparam>
         /// <param name="url">The URL to load from.</param>
         /// <param name="settings">The settings. If null, fallback to <see cref="ContentManagerLoaderSettings.Default" />.</param>
         /// <remarks>If the asset is already loaded, it just increases the reference count of the asset and return the same instance.</remarks>
-        /// <returns></returns>
+        /// <returns>The loaded content.</returns>
         public T Load<T>(string url, ContentManagerLoaderSettings settings = null) where T : class
         {
             return (T)Load(typeof(T), url, settings);
         }
 
         /// <summary>
-        /// Loads an asset from the specified URL.
+        /// Loads content from the specified URL.
         /// </summary>
         /// <param name="type">The type.</param>
         /// <param name="url">The URL.</param>
         /// <param name="settings">The settings.</param>
-        /// <returns></returns>
+        /// <returns>The loaded content.</returns>
         /// <remarks>If the asset is already loaded, it just increases the reference count of the asset and return the same instance.</remarks>
         /// <exception cref="System.ArgumentNullException">url</exception>
         public object Load(Type type, string url, ContentManagerLoaderSettings settings = null)
@@ -192,7 +192,7 @@ namespace Xenko.Core.Serialization.Contents
         /// <param name="url">The URL to load from.</param>
         /// <param name="settings">The settings. If null, fallback to <see cref="ContentManagerLoaderSettings.Default" />.</param>
         /// <remarks>If the asset is already loaded, it just increases the reference count of the asset and return the same instance.</remarks>
-        /// <returns></returns>
+        /// <returns>The loaded content.</returns>
         public Task<T> LoadAsync<T>(string url, ContentManagerLoaderSettings settings = null) where T : class
         {
             return ScheduleAsync(() => Load<T>(url, settings));
@@ -205,7 +205,7 @@ namespace Xenko.Core.Serialization.Contents
         /// <param name="url">The URL.</param>
         /// <param name="settings">The settings.</param>
         /// <remarks>If the asset is already loaded, it just increases the reference count of the asset and return the same instance.</remarks>
-        /// <returns></returns>
+        /// <returns>The loaded content.</returns>
         public Task<object> LoadAsync(Type type, string url, ContentManagerLoaderSettings settings = null)
         {
             return ScheduleAsync(() => Load(type, url, settings));
@@ -318,7 +318,7 @@ namespace Xenko.Core.Serialization.Contents
         /// <summary>
         /// Computes statistics about the assets that are currently loaded. This method is intended to be used for debug purpose only.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The statistics.</returns>
         public ContentManagerStats GetStats()
         {
             return new ContentManagerStats(LoadedAssetUrls.Values);
@@ -335,12 +335,12 @@ namespace Xenko.Core.Serialization.Contents
             }
         }
 
-        struct DeserializeOperation
+        private struct DeserializeOperation
         {
             public readonly Reference ParentReference;
             public readonly string Url;
             public readonly Type ObjectType;
-            public readonly Object Object;
+            public readonly object Object;
 
             public DeserializeOperation(Reference parentReference, string url, Type objectType, object obj)
             {
@@ -511,7 +511,7 @@ namespace Xenko.Core.Serialization.Contents
                     contentSerializerContext = new ContentSerializerContext(url, ArchiveMode.Deserialize, this)
                     {
                         LoadContentReferences = settings.LoadContentReferences,
-                        AllowContentStreaming = settings.AllowContentStreaming
+                        AllowContentStreaming = settings.AllowContentStreaming,
                     };
 
                     // Read chunk references
@@ -572,7 +572,7 @@ namespace Xenko.Core.Serialization.Contents
             return result;
         }
 
-        struct SerializeOperation
+        private struct SerializeOperation
         {
             public readonly string Url;
             public readonly object Object;
@@ -716,7 +716,7 @@ namespace Xenko.Core.Serialization.Contents
         /// Notify debugger and logging when an asset could not be found.
         /// </summary>
         /// <param name="url">The URL.</param>
-        /// <exception cref="ContentManagerException"></exception>
+        /// <exception cref="ContentManagerException">Asset could not be found.</exception>
         // TODO: Replug this when an asset is not found?
         private static void HandleAssetNotFound(string url)
         {

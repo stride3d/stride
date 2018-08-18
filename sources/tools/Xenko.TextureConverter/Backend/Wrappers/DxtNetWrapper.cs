@@ -940,7 +940,7 @@ namespace Xenko.TextureConverter.DxtWrapper
                     return -1;
                 if ((header.dwPfFlags & (uint)DDSPfFlags.DDPF_FOURCC) == 0 && (header.dwPfFlags & (uint)(DDSPfFlags.DDPF_RGB|DDSPfFlags.DDPF_ALPHA)) != 0)
                 {
-                    if((header.dwPfFlags & (uint)DDSPfFlags.DDPF_ALPHAPIXELS) != 0)
+                    if ((header.dwPfFlags & (uint)DDSPfFlags.DDPF_ALPHAPIXELS) != 0)
                         return GetBitCount(header.dwRGBAlphaBitMask);
                     return 0;
                 }

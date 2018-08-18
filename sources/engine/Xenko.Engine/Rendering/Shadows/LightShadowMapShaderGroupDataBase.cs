@@ -11,7 +11,7 @@ namespace Xenko.Rendering.Shadows
     /// <summary>
     /// Provides basic functionality for shadow map shader groups with a single shader source and a filter based on the <see cref="LightShadowType"/>
     /// </summary>
-    public abstract class LightShadowMapShaderGroupDataBase : ILightShadowMapShaderGroupData    // TODO: Rename? Some classes have "...ShaderGroup" others have "...GroupShader" in their name. Wth?
+    public abstract class LightShadowMapShaderGroupDataBase : ILightShadowMapShaderGroupData // TODO: Rename? Some classes have "...ShaderGroup" others have "...GroupShader" in their name. Wth?
     {
         public LightShadowMapShaderGroupDataBase(LightShadowType shadowType)
         {

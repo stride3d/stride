@@ -2,11 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
-using Xenko.Core.Assets;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization;
 using Xenko.Graphics;
 using Xenko.Rendering.Materials.ComputeColors;
 using Xenko.Shaders;

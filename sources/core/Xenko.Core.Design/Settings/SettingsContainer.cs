@@ -132,7 +132,6 @@ namespace Xenko.Core.Settings
             if (filePath == null) throw new ArgumentNullException(nameof(filePath));
             if (setAsCurrent && !registerInContainer) throw new ArgumentException(@"Cannot set the profile as current if it's not registered to the container", nameof(setAsCurrent));
 
-
             if (!File.Exists(filePath))
             {
                 Logger.Error($"Settings file [{filePath}] was not found");

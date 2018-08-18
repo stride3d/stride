@@ -291,7 +291,7 @@ namespace Xenko.Core.Assets.Analysis
 
         private void AddLink(ref Dictionary<AssetId, AssetLink> dictionary, AssetLink contentLink)
         {
-            if(dictionary == null)
+            if (dictionary == null)
                 dictionary = new Dictionary<AssetId, AssetLink>();
 
             var id = contentLink.Element.Id;
@@ -303,7 +303,7 @@ namespace Xenko.Core.Assets.Analysis
 
         private AssetLink GetLink(ref Dictionary<AssetId, AssetLink> dictionary, AssetId id)
         {
-            if(dictionary == null || !dictionary.ContainsKey(id))
+            if (dictionary == null || !dictionary.ContainsKey(id))
                 throw new ArgumentException("There is currently no link between elements '{0}' and '{1}'".ToFormat(item.Id, id));
 
             return dictionary[id];
@@ -320,7 +320,7 @@ namespace Xenko.Core.Assets.Analysis
             newLink.Type &= ~type;
             oldLink.Type &= type;
 
-            if(newLink.Type == 0)
+            if (newLink.Type == 0)
                 dictionary.Remove(id);
 
             if (dictionary.Count == 0)

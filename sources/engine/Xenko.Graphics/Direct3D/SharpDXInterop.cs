@@ -12,7 +12,6 @@ using SharpDX.Direct3D12;
 
 namespace Xenko.Graphics
 {
-
     public static class SharpDXInterop
     {
         /// <summary>
@@ -211,7 +210,6 @@ namespace Xenko.Graphics
         }
 #endif
     }
-
 }
 
 #endif

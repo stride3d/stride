@@ -99,7 +99,7 @@ namespace Xenko.Graphics.Tests
         {
             base.Draw(gameTime);
 
-            if(!ScreenShotAutomationEnabled)
+            if (!ScreenShotAutomationEnabled)
                 DrawTextureSampling();
         }
 

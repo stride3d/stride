@@ -138,7 +138,6 @@ namespace Xenko.Rendering.Materials
             GetContextPerStage(stage).ShaderSources.Add(mixin);
         }
 
-
         public ShaderSource GenerateStreamInitializers(MaterialShaderStage stage)
         {
             // Early exit if nothing to do

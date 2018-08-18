@@ -5,8 +5,8 @@ namespace Xenko.Audio
     /// <summary>
     /// The <see cref="Xenko.Audio"/> namespace contains types to manage sound and music.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

@@ -55,7 +55,7 @@ namespace Xenko.Input
             {
                 CheckNotFrozen();
 
-                if(value<0)
+                if (value < 0)
                     throw new ArgumentOutOfRangeException("value");
 
                 mminimumTranslationDistance = value;
@@ -78,7 +78,7 @@ namespace Xenko.Input
             {
                 CheckNotFrozen();
 
-                if(value <= 0)
+                if (value <= 0)
                     throw new ArgumentOutOfRangeException("value");
 
                 minimumRotationAngle = value;

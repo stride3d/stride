@@ -7,7 +7,7 @@ using Xenko.Core.Annotations;
 namespace Xenko.Core.Settings
 {
     // Extracted from Xenko.Core.Presentation.Core.Utils. We could move it to somewhere public or shared later if needed.
-    static class Utils
+    internal static class Utils
     {
         /// <summary>
         /// Updates the given field to the given value. If the field changes, invoke the given action.

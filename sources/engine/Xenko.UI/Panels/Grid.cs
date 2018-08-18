@@ -666,7 +666,7 @@ namespace Xenko.UI.Panels
             {
                 dimToStarDefinitions[dim].Clear();
                 foreach (var definition in stripDefinitions[dim])
-                    if(definition.Type == StripType.Star)
+                    if (definition.Type == StripType.Star)
                         dimToStarDefinitions[dim].Add(definition);
             }
         }

@@ -24,7 +24,7 @@ namespace Xenko.Core.TypeConverters
             // implements IConvertible, or
             // can convert from source type to target type
             return destinationType.IsAssignableFrom(sourceType) ||
-                   typeof(IConvertible).IsAssignableFrom(sourceType) && Type.GetTypeCode(destinationType) != TypeCode.Object ||
+                   (typeof(IConvertible).IsAssignableFrom(sourceType) && Type.GetTypeCode(destinationType) != TypeCode.Object) ||
                    TypeDescriptor.GetConverter(sourceType).CanConvertTo(destinationType) || TypeDescriptor.GetConverter(destinationType).CanConvertFrom(sourceType);
         }
 

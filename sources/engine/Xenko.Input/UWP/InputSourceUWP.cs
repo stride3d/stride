@@ -48,7 +48,7 @@ namespace Xenko.Input
             CoreWindow coreWindow;
             if (nativeWindow.Context == AppContextType.UWPCoreWindow)
                 coreWindow = (CoreWindow)nativeWindow.NativeWindow;
-            else if(nativeWindow.Context == AppContextType.UWPXaml)
+            else if (nativeWindow.Context == AppContextType.UWPXaml)
                 coreWindow = Window.Current.CoreWindow;
             else
                 throw new ArgumentException(string.Format("WindowContext [{0}] not supported", nativeWindow.Context));

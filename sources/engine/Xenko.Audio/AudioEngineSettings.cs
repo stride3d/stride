@@ -10,7 +10,9 @@ namespace Xenko.Audio
     [Display("Audio")]
     public class AudioEngineSettings : Configuration
     {
-        
+        /// <summary>
+        /// Enables HRTF audio. Note that only audio emitters with HRTF enabled produce HRTF audio
+        /// </summary>
         /// <userdoc>
         /// Enables HRTF audio. Note that only audio emitters with HRTF enabled produce HRTF audio
         /// </userdoc>

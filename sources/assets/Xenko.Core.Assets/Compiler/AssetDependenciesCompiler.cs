@@ -23,7 +23,7 @@ namespace Xenko.Core.Assets.Compiler
 
         public AssetDependenciesCompiler(Type compilationContext)
         {
-            if(!typeof(ICompilationContext).IsAssignableFrom(compilationContext))
+            if (!typeof(ICompilationContext).IsAssignableFrom(compilationContext))
                 throw new InvalidOperationException($"{nameof(compilationContext)} should inherit from ICompilationContext");
 
             BuildDependencyManager = new BuildDependencyManager();

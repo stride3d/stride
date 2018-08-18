@@ -16,14 +16,14 @@ namespace Xenko.Core.Serialization
     public static class AttachedReferenceManager
     {
         private static readonly object[] EmptyObjectArray = new object[0];
-        private static readonly Dictionary<Type, ConstructorInfo> EmptyCtorCache = new Dictionary<Type,ConstructorInfo>();
+        private static readonly Dictionary<Type, ConstructorInfo> EmptyCtorCache = new Dictionary<Type, ConstructorInfo>();
         private static readonly ConditionalWeakTable<object, AttachedReference> AttachedReferences = new ConditionalWeakTable<object, AttachedReference>();
 
         /// <summary>
         /// Gets the URL of a given object.
         /// </summary>
         /// <param name="obj">The object.</param>
-        /// <returns></returns>
+        /// <returns>The URL.</returns>
         public static string GetUrl(object obj)
         {
             AttachedReference attachedReference;
@@ -60,7 +60,6 @@ namespace Xenko.Core.Serialization
         /// Gets or creates the object reference info of a given object.
         /// </summary>
         /// <param name="obj">The object.</param>
-        /// <returns></returns>
         public static AttachedReference GetOrCreateAttachedReference(object obj)
         {
             return AttachedReferences.GetValue(obj, x => new AttachedReference());
@@ -69,7 +68,6 @@ namespace Xenko.Core.Serialization
         /// <summary>
         /// Creates a proxy object with <see cref="AttachedReference" /> designing it as a proxy with a given id and location (that can be used with <see cref="ContentManager" />). This allows to construct and save object references without actually loading them.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="reference">The content reference.</param>
         /// <returns>T.</returns>
         /// <exception cref="System.ArgumentNullException">reference</exception>
@@ -82,10 +80,8 @@ namespace Xenko.Core.Serialization
         /// <summary>
         /// Creates a proxy object with <see cref="AttachedReference"/> designing it as a proxy with a given id and location (that can be used with <see cref="ContentManager"/>). This allows to construct and save object references without actually loading them.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
         /// <param name="id">The identifier.</param>
         /// <param name="location">The location.</param>
-        /// <returns></returns>
         public static T CreateProxyObject<T>(AssetId id, string location) where T : class, new()
         {
             var result = new T();
@@ -102,7 +98,6 @@ namespace Xenko.Core.Serialization
         /// <param name="type">The type.</param>
         /// <param name="id">The identifier.</param>
         /// <param name="location">The location.</param>
-        /// <returns></returns>
         public static object CreateProxyObject(Type type, AssetId id, string location)
         {
             ConstructorInfo emptyCtor;

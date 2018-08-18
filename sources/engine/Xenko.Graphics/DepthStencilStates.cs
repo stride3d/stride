@@ -30,4 +30,3 @@ namespace Xenko.Graphics
         public static readonly DepthStencilStateDescription None = new DepthStencilStateDescription(false, false);
     }
 }
-

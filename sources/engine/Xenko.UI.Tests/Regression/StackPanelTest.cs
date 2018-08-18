@@ -161,17 +161,17 @@ namespace Xenko.UI.Tests.Regression
             if (Input.IsKeyReleased(Keys.S))
                 scrollViewer.SnapToAnchors = !scrollViewer.SnapToAnchors;
 
-            if(Input.IsKeyReleased(Keys.PageDown))
+            if (Input.IsKeyReleased(Keys.PageDown))
                 currentStackPanel.ScrollToNextPage(Orientation.Vertical);
-            if(Input.IsKeyReleased(Keys.PageUp))
+            if (Input.IsKeyReleased(Keys.PageUp))
                 currentStackPanel.ScrollToPreviousPage(Orientation.Vertical);
-            if(Input.IsKeyReleased(Keys.Down))
+            if (Input.IsKeyReleased(Keys.Down))
                 currentStackPanel.ScrollToNextLine(Orientation.Vertical);
-            if(Input.IsKeyReleased(Keys.Up))
+            if (Input.IsKeyReleased(Keys.Up))
                 currentStackPanel.ScrollToPreviousLine(Orientation.Vertical);
-            if(Input.IsKeyReleased(Keys.End))
+            if (Input.IsKeyReleased(Keys.End))
                 currentStackPanel.ScrollToEnd(Orientation.Vertical);
-            if(Input.IsKeyReleased(Keys.Home))
+            if (Input.IsKeyReleased(Keys.Home))
                 currentStackPanel.ScrollToBeginning(Orientation.Vertical);
         }
 

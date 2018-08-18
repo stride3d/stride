@@ -16,7 +16,6 @@ namespace Xenko.Rendering.Images
     [DataContract("Afterimage")]
     public class Afterimage : ImageEffect
     {
-
         private readonly ImageEffectShader bloomAfterimageShader;
         private readonly ImageEffectShader bloomAfterimageCombineShader;
 

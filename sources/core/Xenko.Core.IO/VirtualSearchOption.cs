@@ -6,6 +6,6 @@ namespace Xenko.Core.IO
     {
         TopDirectoryOnly,
 
-        AllDirectories
+        AllDirectories,
     }
 }

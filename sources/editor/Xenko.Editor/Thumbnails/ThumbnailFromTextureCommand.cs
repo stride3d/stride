@@ -78,7 +78,7 @@ namespace Xenko.Editor.Thumbnails
             if (BackgroundTexture != null)
                 SpriteBatch.Draw(BackgroundTexture, new RectangleF(0, 0, thumbnailSize.X, thumbnailSize.Y), null, BackgroundColor, 0, Vector2.Zero, SpriteEffects.None, ImageOrientation.AsIs, 0, AdditiveColor, Swizzle);
 
-            if(Font != null)
+            if (Font != null)
             {
                 // Measure the type name to draw and calculate the scale factor needed for the name to enter the thumbnail
                 var typeNameSize = Font.MeasureString(TitleText);

@@ -128,7 +128,6 @@ namespace Xenko.Core.Serialization
         /// <inheritdoc />
         public override void Flush()
         {
-
         }
     }
 }

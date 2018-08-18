@@ -32,6 +32,6 @@ namespace Xenko.Graphics
         /// <summary>
         /// Negative z-face of the cube map.
         /// </summary>
-        NegativeZ
+        NegativeZ,
     }
 }

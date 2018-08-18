@@ -18,7 +18,8 @@ namespace Xenko.Navigation
         /// <summary>
         /// Binary data of the built navigation mesh tile
         /// </summary>
-        [DataMemberCustomSerializer] public byte[] Data;
+        [DataMemberCustomSerializer]
+        public byte[] Data;
         
         /// <summary>
         /// Extracts the navigation mesh geometry from the data for this tile

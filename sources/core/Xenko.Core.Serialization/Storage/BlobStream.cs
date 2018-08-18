@@ -8,7 +8,7 @@ namespace Xenko.Core.Storage
     /// <summary>
     /// A read-only <see cref="NativeMemoryStream"/> that will properly keep references on its underlying <see cref="Blob"/>.
     /// </summary>
-    class BlobStream : NativeMemoryStream
+    internal class BlobStream : NativeMemoryStream
     {
         private Blob blob;
 

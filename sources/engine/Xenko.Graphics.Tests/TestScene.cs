@@ -79,7 +79,7 @@ namespace Xenko.Graphics.Tests
             var time = (float)gameTime.Total.TotalSeconds;
             cubeEntity.Transform.Rotation = Quaternion.RotationY(time) * Quaternion.RotationX(time * 0.5f);
 
-            //if(!ScreenShotAutomationEnabled)
+            //if (!ScreenShotAutomationEnabled)
             //    DrawCustomEffect();
         }
 
