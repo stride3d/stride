@@ -1,8 +1,7 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
-using System.Threading;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Mathematics;
@@ -23,8 +22,6 @@ namespace Xenko.Engine
     [ComponentOrder(12000)]
     public sealed class LightComponent : ActivableEntityComponent
     {
-        private static int LightComponentIds;
-
         /// <summary>
         /// The default direction of a light vector is (x,y,z) = (0,0,-1)
         /// </summary>
@@ -37,13 +34,7 @@ namespace Xenko.Engine
         {
             Type = new LightDirectional();
             Intensity = 1.0f;
-            Id = Interlocked.Increment(ref LightComponentIds);
         }
-
-        /// <summary>
-        /// Internal id used to identify a light component
-        /// </summary>
-        internal readonly int Id;
 
         /// <summary>
         /// Gets or sets the type of the light.
