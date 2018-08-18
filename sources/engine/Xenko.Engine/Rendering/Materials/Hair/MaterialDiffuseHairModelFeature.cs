@@ -102,7 +102,7 @@ namespace Xenko.Rendering.Materials
         /// </userdoc>
         [DataMember(80)]
         [DefaultValue(0.99f)]
-        [DataMemberRange(0.0, 1.0, 2)]
+        [DataMemberRange(0.0, 1.0, 1, 2, 2)]
         [Display("Alpha threshold")]
         public float AlphaThreshold { get; set; } = 0.99f;
 
