@@ -23,9 +23,7 @@ namespace Xenko.Core
             ServiceType = serviceType;
         }
 
-
         public Type ServiceType { get; private set; }
-
 
         [NotNull]
         private static string FormatServiceNotFoundMessage([NotNull] Type serviceType)

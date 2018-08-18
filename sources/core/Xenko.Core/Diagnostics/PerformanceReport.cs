@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,27 +11,6 @@ using Xenko.Core.Annotations;
 
 namespace Xenko.Core.Diagnostics
 {
-    public class PerformanceCheckBlock : IDisposable
-    {
-        private readonly PerformanceReport report;
-
-        public PerformanceCheckBlock([NotNull] string text, [NotNull] PerformanceReport report)
-        {
-            if (string.IsNullOrWhiteSpace(text))
-                throw new ArgumentException("Invalid 'text' argument");
-            if (report == null)
-                throw new ArgumentNullException(nameof(report));
-
-            this.report = report;
-            this.report.BeginMeasure(text);
-        }
-
-        public void Dispose()
-        {
-            report.EndMeasure();
-        }
-    }
-
     public class PerformanceReport
     {
         public struct PerformanceReportInfo
@@ -88,11 +68,31 @@ namespace Xenko.Core.Diagnostics
 
             foreach (var info in measures)
             {
-                sb.AppendLine(string.Format("{0}: {1} ms, {2} ticks ({3:F2}%)",
-                    info.Text, info.Milliseconds, info.Ticks, ((double)info.Ticks * 100.0 / (double)totalTicks)));
+                sb.AppendLine($"{info.Text}: {info.Milliseconds} ms, {info.Ticks} ticks ({(double)info.Ticks * 100.0 / (double)totalTicks:F2}%)");
             }
 
             return sb.ToString();
+        }
+    }
+
+    public class PerformanceCheckBlock : IDisposable
+    {
+        private readonly PerformanceReport report;
+
+        public PerformanceCheckBlock([NotNull] string text, [NotNull] PerformanceReport report)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                throw new ArgumentException("Invalid 'text' argument");
+            if (report == null)
+                throw new ArgumentNullException(nameof(report));
+
+            this.report = report;
+            this.report.BeginMeasure(text);
+        }
+
+        public void Dispose()
+        {
+            report.EndMeasure();
         }
     }
 }

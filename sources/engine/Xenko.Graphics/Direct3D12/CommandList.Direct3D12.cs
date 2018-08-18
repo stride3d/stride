@@ -259,7 +259,7 @@ namespace Xenko.Graphics
                 scissorsDirty |= (boundPipelineState?.HasScissorEnabled ?? false) != pipelineState.HasScissorEnabled;
 
                 currentCommandList.NativeCommandList.PipelineState = pipelineState.CompiledState;
-                if(pipelineState.IsCompute)
+                if (pipelineState.IsCompute)
                     currentCommandList.NativeCommandList.SetComputeRootSignature(pipelineState.RootSignature);
                 else
                     currentCommandList.NativeCommandList.SetGraphicsRootSignature(pipelineState.RootSignature);

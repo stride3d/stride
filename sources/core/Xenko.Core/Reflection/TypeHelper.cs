@@ -28,7 +28,7 @@ namespace Xenko.Core.Reflection
                 return true;
             }
 
-            foreach(var iType in typeInfo.ImplementedInterfaces)
+            foreach (var iType in typeInfo.ImplementedInterfaces)
             {
                 var iTypeInfo = iType.GetTypeInfo();
                 if (iTypeInfo.IsGenericType && iTypeInfo.GetGenericTypeDefinition() == typeof(ICollection<>))

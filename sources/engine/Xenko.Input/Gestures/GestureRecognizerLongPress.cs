@@ -10,7 +10,7 @@ namespace Xenko.Input
     internal sealed class GestureRecognizerLongPress : GestureRecognizer
     {
         public GestureRecognizerLongPress(GestureConfigLongPress config, float screenRatio)
-            :base(config, screenRatio)
+            : base(config, screenRatio)
         {
         }
 

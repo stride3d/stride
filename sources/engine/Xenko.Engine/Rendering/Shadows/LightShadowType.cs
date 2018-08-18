@@ -28,6 +28,6 @@ namespace Xenko.Rendering.Shadows
 
         PCF5x5 = 0x200,
 
-        PCF7x7 = 0x300
+        PCF7x7 = 0x300,
     }
 }

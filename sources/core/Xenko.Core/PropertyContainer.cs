@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
+#pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -118,7 +118,7 @@ namespace Xenko.Core
         /// <summary>
         /// Adds the specified key-value pair.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="T">Type of the property key</typeparam>
         /// <param name="key">The key.</param>
         /// <param name="value">The value.</param>
         public void Add<T>([NotNull] PropertyKey<T> key, T value)
@@ -173,7 +173,6 @@ namespace Xenko.Core
             var previousValue = Get(propertyKey);
             if (PropertyUpdated != null || propertyKey.PropertyUpdateCallback != null)
             {
-
                 if (properties != null)
                     removed = properties.Remove(propertyKey);
                 var tagValue = Get(propertyKey);

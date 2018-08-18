@@ -24,9 +24,9 @@ namespace Xenko.Core.MicroThreading
         // An ever-increasing counter that will be used to have a "stable" microthread scheduling (first added is first scheduled)
         internal long SchedulerCounter;
 
-        internal PriorityNodeQueue<SchedulerEntry> scheduledEntries = new PriorityNodeQueue<SchedulerEntry>();
-        internal LinkedList<MicroThread> allMicroThreads = new LinkedList<MicroThread>();
-        internal List<MicroThreadCallbackNode> callbackNodePool = new List<MicroThreadCallbackNode>();
+        internal PriorityNodeQueue<SchedulerEntry> ScheduledEntries = new PriorityNodeQueue<SchedulerEntry>();
+        internal LinkedList<MicroThread> AllMicroThreads = new LinkedList<MicroThread>();
+        internal List<MicroThreadCallbackNode> CallbackNodePool = new List<MicroThreadCallbackNode>();
 
         private readonly ThreadLocal<MicroThread> runningMicroThread = new ThreadLocal<MicroThread>();
 
@@ -73,7 +73,7 @@ namespace Xenko.Core.MicroThreading
         /// Gets the list of every non-stopped micro threads.
         /// </summary>
         /// <value>The list of every non-stopped micro threads.</value>
-        public ICollection<MicroThread> MicroThreads => allMicroThreads;
+        public ICollection<MicroThread> MicroThreads => AllMicroThreads;
 
         protected Channel<int> FrameChannel { get; }
 
@@ -83,12 +83,11 @@ namespace Xenko.Core.MicroThreading
         /// <value>The current micro thread (self).</value>
         public static MicroThread CurrentMicroThread => (SynchronizationContext.Current as IMicroThreadSynchronizationContext)?.MicroThread;
 
-
         /// <summary>
         /// Yields execution.
         /// If any other micro thread is pending, it will be run now and current micro thread will be scheduled as last.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Task that will resume later during same frame.</returns>
         public static MicroThreadYieldAwaiter Yield()
         {
             return new MicroThreadYieldAwaiter(CurrentMicroThread);
@@ -97,10 +96,10 @@ namespace Xenko.Core.MicroThreading
         /// <summary>
         /// Yields execution until next frame.
         /// </summary>
-        /// <returns>Task.</returns>
+        /// <returns>Task that will resume next frame.</returns>
         public ChannelMicroThreadAwaiter<int> NextFrame()
         {
-            if(MicroThread.Current == null)
+            if (MicroThread.Current == null)
                 throw new Exception("NextFrame cannot be called out of the micro-thread context.");
 
             return FrameChannel.Receive();
@@ -124,19 +123,19 @@ namespace Xenko.Core.MicroThreading
             {
                 SchedulerEntry schedulerEntry;
                 MicroThread microThread;
-                lock (scheduledEntries)
+                lock (ScheduledEntries)
                 {
                     // Reclaim callbacks of previous microthread
                     MicroThreadCallbackNode callback;
                     while (callbacks.TakeFirst(out callback))
                     {
                         callback.Clear();
-                        callbackNodePool.Add(callback);
+                        CallbackNodePool.Add(callback);
                     }
 
-                    if (scheduledEntries.Count == 0)
+                    if (ScheduledEntries.Count == 0)
                         break;
-                    schedulerEntry = scheduledEntries.Dequeue();
+                    schedulerEntry = ScheduledEntries.Dequeue();
                     microThread = schedulerEntry.MicroThread;
                     if (microThread != null)
                     {
@@ -257,7 +256,7 @@ namespace Xenko.Core.MicroThreading
         /// <summary>
         /// Creates a new empty micro thread, that could later be started with <see cref="MicroThread.Start"/>.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A new empty micro thread.</returns>
         public MicroThread Create()
         {
             return new MicroThread(this);
@@ -267,7 +266,7 @@ namespace Xenko.Core.MicroThreading
         /// Task that will completes when all MicroThread executions are completed.
         /// </summary>
         /// <param name="microThreads">The micro threads.</param>
-        /// <returns></returns>
+        /// <returns>A task that will complete when all micro threads are complete.</returns>
         public async Task WhenAll(params MicroThread[] microThreads)
         {
             var currentMicroThread = CurrentMicroThread;
@@ -307,7 +306,7 @@ namespace Xenko.Core.MicroThreading
         // TODO: We will need a better API than exposing PriorityQueueNode<SchedulerEntry> before we can make this public.
         internal PriorityQueueNode<SchedulerEntry> Add(Action simpleAction, int priority = 0, object token = null, ProfilingKey profilingKey = null)
         {
-            var schedulerEntryNode = new PriorityQueueNode<SchedulerEntry>(new SchedulerEntry(simpleAction, priority) { Token = token, ProfilingKey = profilingKey});
+            var schedulerEntryNode = new PriorityQueueNode<SchedulerEntry>(new SchedulerEntry(simpleAction, priority) { Token = token, ProfilingKey = profilingKey });
             Schedule(schedulerEntryNode, ScheduleMode.Last);
             return schedulerEntryNode;
         }
@@ -319,7 +318,7 @@ namespace Xenko.Core.MicroThreading
 
         internal void Schedule(PriorityQueueNode<SchedulerEntry> schedulerEntry, ScheduleMode scheduleMode)
         {
-            lock (scheduledEntries)
+            lock (ScheduledEntries)
             {
                 var nextCounter = SchedulerCounter++;
                 if (scheduleMode == ScheduleMode.First)
@@ -327,16 +326,16 @@ namespace Xenko.Core.MicroThreading
 
                 schedulerEntry.Value.SchedulerCounter = nextCounter;
 
-                scheduledEntries.Enqueue(schedulerEntry);
+                ScheduledEntries.Enqueue(schedulerEntry);
             }
         }
 
         internal void Unschedule(PriorityQueueNode<SchedulerEntry> schedulerEntry)
         {
-            lock (scheduledEntries)
+            lock (ScheduledEntries)
             {
                 if (schedulerEntry.Index != -1)
-                    scheduledEntries.Remove(schedulerEntry);
+                    ScheduledEntries.Remove(schedulerEntry);
             }
         }
 

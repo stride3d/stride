@@ -24,13 +24,14 @@ namespace Xenko.Graphics.SDL
         /// <param name="h">Height of cursor</param>
         /// <param name="hot_x">Hotspot X coordinate of cursor</param>
         /// <param name="hot_y">Hotspot Y coordinate of cursor</param>
-        public Cursor(byte [] data, byte [] mask, int w, int h, int hot_x, int hot_y)
+        public Cursor(byte[] data, byte[] mask, int w, int h, int hot_x, int hot_y)
         {
             Handle = SDL.SDL_CreateCursor(data, mask, w, h, hot_x, hot_y);
         }
 #endregion
 
 #region Access
+
         /// <summary>
         /// Access to low level pointer to the SDL_Cursor struct.
         /// </summary>
@@ -39,7 +40,8 @@ namespace Xenko.Graphics.SDL
         /// <summary>
         /// Position of cursor on screen.
         /// </summary>
-        public static Point Position {
+        public static Point Position
+        {
             get { return Application.MousePosition; }
             set { Application.MousePosition = value; }
         }

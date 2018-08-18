@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.Runtime.CompilerServices;
 
@@ -8,7 +9,7 @@ namespace Xenko.Updater
     /// <summary>
     /// Base class for <see cref="UpdatableListAccessor{T}"/>.
     /// </summary>
-    abstract class UpdatableListAccessor : UpdatableCustomAccessor
+    internal abstract class UpdatableListAccessor : UpdatableCustomAccessor
     {
         public readonly int Index;
 
@@ -22,7 +23,7 @@ namespace Xenko.Updater
     /// Describes how to get or set a list value for the <see cref="UpdateEngine"/>.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    class UpdatableListAccessor<T> : UpdatableListAccessor
+    internal class UpdatableListAccessor<T> : UpdatableListAccessor
     {
         public UpdatableListAccessor(int index) : base(index)
         {

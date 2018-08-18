@@ -22,7 +22,7 @@ namespace Xenko.Engine.Processors
     {
         private const long UpdateBit = 1L << 32;
 
-        internal readonly static Logger Log = GlobalLogger.GetLogger("ScriptSystem");
+        internal static readonly Logger Log = GlobalLogger.GetLogger("ScriptSystem");
 
         /// <summary>
         /// Contains all currently executed scripts
@@ -87,7 +87,6 @@ namespace Xenko.Engine.Processors
                     {
                         asyncScript.MicroThread = AddTask(asyncScript.Execute, asyncScript.Priority & UpdateBit);
                         asyncScript.MicroThread.ProfilingKey = asyncScript.ProfilingKey;
-
                     }
                 }
             }
@@ -262,7 +261,7 @@ namespace Xenko.Engine.Processors
             registeredScripts.Remove(script);
         }
 
-        class PriorityScriptComparer : IComparer<ScriptComponent>
+        private class PriorityScriptComparer : IComparer<ScriptComponent>
         {
             public static readonly PriorityScriptComparer Default = new PriorityScriptComparer();
 

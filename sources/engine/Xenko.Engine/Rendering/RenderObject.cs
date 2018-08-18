@@ -7,11 +7,6 @@ using Xenko.Engine;
 
 namespace Xenko.Rendering
 {
-    public abstract class VisibilityObject
-    {
-        public RenderObject RenderObject;
-    }
-
     /// <summary>
     /// Describes something that can be rendered by a <see cref="RootRenderFeature"/>.
     /// </summary>

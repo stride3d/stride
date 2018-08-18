@@ -16,8 +16,8 @@ namespace Xenko.Core.Serialization.Contents
         /// <summary>
         /// Increments reference count of an <see cref="Reference"/>.
         /// </summary>
-        /// <param name="referencerence"></param>
-        /// <param name="publicReference"></param>
+        /// <param name="reference">The reference.</param>
+        /// <param name="publicReference">True if public reference.</param>
         internal void IncrementReference(Reference reference, bool publicReference)
         {
             if (publicReference)
@@ -33,8 +33,8 @@ namespace Xenko.Core.Serialization.Contents
         /// <summary>
         /// Decrements reference count of an <see cref="Reference"/>.
         /// </summary>
-        /// <param name="referencerence"></param>
-        /// <param name="publicReference"></param>
+        /// <param name="reference">The reference.</param>
+        /// <param name="publicReference">True if public erefere</param>
         internal void DecrementReference(Reference reference, bool publicReference)
         {
             int referenceCount;
@@ -74,7 +74,7 @@ namespace Xenko.Core.Serialization.Contents
         /// <summary>
         /// Releases an asset.
         /// </summary>
-        /// <param name="referencerence">The asset reference.</param>
+        /// <param name="reference">The reference.</param>
         private void ReleaseAsset(Reference reference)
         {
             var referencable = reference.Object as IReferencable;

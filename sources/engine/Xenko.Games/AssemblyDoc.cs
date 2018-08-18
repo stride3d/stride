@@ -25,8 +25,8 @@ namespace Xenko.Games
     /// <summary>
     /// The <see cref="A:Xenko.Games"/> assembly provides a high level Game API.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    class AssemblyDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class AssemblyDoc
     {
     }
 }

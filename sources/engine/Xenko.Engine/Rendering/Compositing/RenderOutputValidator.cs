@@ -40,7 +40,7 @@ namespace Xenko.Rendering.Compositing
             var description = new RenderTargetDescription
             {
                 Semantic = new T(),
-                Format = format
+                Format = format,
             };
 
             int index = validatedTargetCount++;

@@ -3,12 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using Xenko.Rendering.Data;
-using Xenko.Graphics;
 using Xenko.Core;
-using Xenko.Rendering;
+using Xenko.Graphics;
 using Xenko.Graphics.Data;
+using Xenko.Rendering;
 
 namespace Xenko.Extensions
 {
@@ -73,12 +71,14 @@ namespace Xenko.Extensions
             // Allocate vertex buffer
             var result = new MeshDraw { PrimitiveType = PrimitiveType.TriangleList };
             var destBufferData = new byte[firstVertexBuffer.Declaration.VertexStride * totalVertexCount];
-            result.VertexBuffers = new VertexBufferBinding[] {
+            result.VertexBuffers = new VertexBufferBinding[]
+            {
                 new VertexBufferBinding(
                     new BufferData(BufferFlags.VertexBuffer, destBufferData).ToSerializableVersion(),
                     firstVertexBuffer.Declaration,
                     totalVertexCount,
-                    firstVertexBuffer.Stride)};
+                    firstVertexBuffer.Stride),
+            };
 
             // Copy vertex buffers
             fixed (byte* destBufferDataStart = &destBufferData[0])
@@ -236,7 +236,6 @@ namespace Xenko.Extensions
                     kvp.Value.Add(drawData);
                     mergingLists[insertIndex] = new KeyValuePair<int, List<MeshDraw>>(vertexCount + kvp.Key, kvp.Value);
                 }
-
             }
 
             return mergingLists.Select(x => x.Value).ToList();
@@ -300,7 +299,7 @@ namespace Xenko.Extensions
                 for (var i = 0; i < count; ++i)
                 {
                     if (is32Bits)
-                        indices[i] = (uint)(BitConverter.ToInt32(baseIndices, 4*i) + offset);
+                        indices[i] = (uint)(BitConverter.ToInt32(baseIndices, 4 * i) + offset);
                     else
                         indices[i] = (uint)(BitConverter.ToInt16(baseIndices, 2 * i) + offset);
                 }

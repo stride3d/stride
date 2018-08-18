@@ -30,7 +30,8 @@ namespace Xenko.Rendering.Materials.ComputeColors
         [DataMember(10)]
         [DefaultValue(true)]
         [Display("Premultiply alpha")]
-        public bool PremultiplyAlpha {
+        public bool PremultiplyAlpha
+        {
             get { return premultiplyAlpha; }
             set
             {
@@ -87,7 +88,7 @@ namespace Xenko.Rendering.Materials.ComputeColors
             var key = context.GetParameterKey(Key ?? baseKeys.ValueBaseKey ?? MaterialKeys.GenericValueColor4);
 
             // Store the color in Linear space
-            var color =  baseKeys.IsColor ? Value.ToColorSpace(context.ColorSpace) : Value;
+            var color = baseKeys.IsColor ? Value.ToColorSpace(context.ColorSpace) : Value;
             if (PremultiplyAlpha)
                 color = Color4.PremultiplyAlpha(color);
             
@@ -101,12 +102,10 @@ namespace Xenko.Rendering.Materials.ComputeColors
             }
             else if (key is ValueParameterKey<Color3>)
             {
-                
                 context.Parameters.Set((ValueParameterKey<Color3>)key, (Color3)color);
             }
             else if (key is ValueParameterKey<Vector3>)
             {
-
                 context.Parameters.Set((ValueParameterKey<Vector3>)key, (Vector3)color);
             }
             else

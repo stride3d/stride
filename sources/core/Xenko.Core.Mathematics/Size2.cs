@@ -68,11 +68,11 @@ namespace Xenko.Core.Mathematics
         public int Height;
 
         /// <summary>
-        /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
         /// </summary>
-        /// <param name="other">The <see cref="System.Object"/> to compare with this instance.</param>
+        /// <param name="other">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        ///   <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+        ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(Size2 other)
         {
@@ -92,7 +92,7 @@ namespace Xenko.Core.Mathematics
         {
             unchecked
             {
-                return (Width*397) ^ Height;
+                return (Width * 397) ^ Height;
             }
         }
 

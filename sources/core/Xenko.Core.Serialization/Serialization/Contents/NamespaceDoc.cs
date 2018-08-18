@@ -6,8 +6,8 @@ namespace Xenko.Core.Serialization.Contents
     /// <summary>
     /// The <see cref="Xenko.Core.Serialization.Contents"/> namespace contains classes to handle content serialization and runtime references.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

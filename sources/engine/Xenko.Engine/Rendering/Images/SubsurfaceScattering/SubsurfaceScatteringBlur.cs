@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Mathematics;
 using Xenko.Graphics;
-using Xenko.Rendering.Images;
 using Xenko.Rendering.Compositing;
+using Xenko.Rendering.Images;
 using Xenko.Rendering.Materials;
 
 namespace Xenko.Rendering.SubsurfaceScattering
@@ -22,23 +22,27 @@ namespace Xenko.Rendering.SubsurfaceScattering
             /// <userdoc>
             /// Renders the scene as usual.
             /// </userdoc>
-            [Display("Default")] Default = 0,
+            [Display("Default")]
+            Default = 0,
 
             /// <userdoc>
             /// Shows all scattering objects in white and all other objects in black.
             /// </userdoc>
-            [Display("Show scattering objects")] ShowScatteringObjects = 1,
+            [Display("Show scattering objects")]
+            ShowScatteringObjects = 1,
 
             /// <userdoc>
             /// Shows the material index of scattering objects as a color.
             /// </userdoc>
-            [Display("Show material index")] ShowMaterialIndex = 2,
+            [Display("Show material index")]
+            ShowMaterialIndex = 2,
 
             /// <userdoc>
             /// Shows the width of the scattering kernel as a brightness value (High values will be wrapped around).
             /// Use this to debug if each material gets its own scattering width and doesn't fluctuate.
             /// </userdoc>
-            [Display("Show scattering width")] ShowScatteringWidth = 3
+            [Display("Show scattering width")]
+            ShowScatteringWidth = 3,
         }
 
         private const int ColorInputIndex = 0;
@@ -236,7 +240,7 @@ namespace Xenko.Rendering.SubsurfaceScattering
 
         public void SetScatteringWidth(uint materialIndex, float width)
         {
-            if(materialIndex > MaxMaterialCount)
+            if (materialIndex > MaxMaterialCount)
             {
                 throw new Exception("Too many scattering materials present in order to be able to fit them all into a single array! Maximum count is " + MaxMaterialCount + ".");
             }

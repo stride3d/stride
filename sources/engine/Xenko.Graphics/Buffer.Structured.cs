@@ -123,7 +123,7 @@ namespace Xenko.Graphics
             /// <param name="count">The number of element in this buffer.</param>
             /// <param name="elementSize">Size of the struct.</param>
             /// <returns>A StructuredAppend buffer</returns>
-            public static Buffer New(GraphicsDevice device,int count, int elementSize)
+            public static Buffer New(GraphicsDevice device, int count, int elementSize)
             {
                 const BufferFlags BufferFlags = BufferFlags.StructuredAppendBuffer | BufferFlags.ShaderResource | BufferFlags.UnorderedAccess;
                 return Buffer.New(device, count * elementSize, elementSize, BufferFlags);
@@ -162,7 +162,7 @@ namespace Xenko.Graphics
             /// <param name="value">The value to initialize the StructuredAppend buffer.</param>
             /// <param name="elementSize">Size of the element.</param>
             /// <returns>A StructuredAppend buffer</returns>
-            public static Buffer New(GraphicsDevice device,DataPointer value, int elementSize)
+            public static Buffer New(GraphicsDevice device, DataPointer value, int elementSize)
             {
                 const BufferFlags BufferFlags = BufferFlags.StructuredAppendBuffer | BufferFlags.ShaderResource | BufferFlags.UnorderedAccess;
                 return Buffer.New(device, value, elementSize, BufferFlags);
@@ -184,7 +184,7 @@ namespace Xenko.Graphics
             /// <param name="count">The number of element in this buffer.</param>
             /// <param name="elementSize">Size of the struct.</param>
             /// <returns>A StructuredCounter buffer</returns>
-            public static Buffer New(GraphicsDevice device,int count, int elementSize)
+            public static Buffer New(GraphicsDevice device, int count, int elementSize)
             {
                 const BufferFlags BufferFlags = BufferFlags.StructuredCounterBuffer | BufferFlags.ShaderResource | BufferFlags.UnorderedAccess;
                 return Buffer.New(device, count * elementSize, elementSize, BufferFlags);

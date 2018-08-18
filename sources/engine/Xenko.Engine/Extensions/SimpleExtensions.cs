@@ -1,14 +1,8 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Xenko.Rendering.Data;
 using Xenko.Graphics;
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Rendering;
 using Xenko.Graphics.Data;
+using Xenko.Rendering;
 
 namespace Xenko.Extensions
 {

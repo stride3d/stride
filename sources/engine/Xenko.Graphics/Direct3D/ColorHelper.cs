@@ -30,23 +30,23 @@ namespace Xenko.Graphics
 {
     internal class ColorHelper
     {
-        public unsafe static RawColor4 Convert(Color4 color)
+        public static unsafe RawColor4 Convert(Color4 color)
         {
             return *(RawColor4*)&color;
         }
 
-        public unsafe static Color4 Convert(RawColor4 color)
+        public static unsafe Color4 Convert(RawColor4 color)
         {
             return *(Color4*)&color;
         }
 
-        public unsafe static RawVector4 ConvertToVector4(Color4 color)
+        public static unsafe RawVector4 ConvertToVector4(Color4 color)
         {
             return *(RawVector4*)&color;
         }
 
 #if XENKO_GRAPHICS_API_DIRECT3D12
-        public unsafe static SharpDX.Direct3D12.StaticBorderColor ConvertStatic(Color4 color)
+        public static unsafe SharpDX.Direct3D12.StaticBorderColor ConvertStatic(Color4 color)
         {
             if (color == Color4.Black)
             {

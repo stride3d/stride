@@ -23,12 +23,11 @@
 using System;
 using System.Collections.Generic;
 using System.Resources;
+using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using SharpDX;
 using Xenko.Core;
-
 using ComponentBase = Xenko.Core.ComponentBase;
 using Utilities = Xenko.Core.Utilities;
 
@@ -37,9 +36,9 @@ namespace Xenko.Graphics
     /// <summary>
     /// Provides methods to retrieve and manipulate graphics adapters. This is the equivalent to <see cref="Adapter1"/>.
     /// </summary>
-    /// <msdn-id>ff471329</msdn-id>	
-    /// <unmanaged>IDXGIAdapter1</unmanaged>	
-    /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>	
+    /// <msdn-id>ff471329</msdn-id>
+    /// <unmanaged>IDXGIAdapter1</unmanaged>
+    /// <unmanaged-short>IDXGIAdapter1</unmanaged-short>
     public partial class GraphicsAdapter
     {
         private readonly Adapter1 adapter;

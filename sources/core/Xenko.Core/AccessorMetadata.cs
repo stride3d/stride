@@ -28,7 +28,7 @@ namespace Xenko.Core
         private GetterDelegate getter;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="AccessorMetadata"/>.
+        /// Initializes a new instance of the <see cref="AccessorMetadata"/> class.
         /// </summary>
         /// <param name="getter">Getter delegate.</param>
         /// <param name="setter">Setter delegate.</param>

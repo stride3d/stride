@@ -86,8 +86,8 @@ namespace Xenko.TextureConverter.TexLibraries
 
                 case RequestType.Loading: // Xenko can load dds file or his own format or a Xenko <see cref="Image"/> instance.
                     LoadingRequest load = (LoadingRequest)request;
-                    if(load.Mode == LoadingRequest.LoadingMode.XkImage) return true;
-                    else if(load.Mode == LoadingRequest.LoadingMode.FilePath)
+                    if (load.Mode == LoadingRequest.LoadingMode.XkImage) return true;
+                    else if (load.Mode == LoadingRequest.LoadingMode.FilePath)
                     {
                         string extension = Path.GetExtension(load.FilePath);
                         return extension.Equals(".dds") || extension.Equals(Extension);
@@ -308,7 +308,7 @@ namespace Xenko.TextureConverter.TexLibraries
             using (var fileStream = new FileStream(request.FilePath, FileMode.Create, FileAccess.Write))
             {
                 String extension = Path.GetExtension(request.FilePath);
-                if(extension.Equals(Extension))
+                if (extension.Equals(Extension))
                     xkImage.Save(fileStream, ImageFileType.Xenko);
                 else if (extension.Equals(".dds"))
                     xkImage.Save(fileStream, ImageFileType.Dds);

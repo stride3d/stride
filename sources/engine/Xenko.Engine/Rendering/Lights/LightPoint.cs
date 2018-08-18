@@ -37,7 +37,7 @@ namespace Xenko.Rendering.Lights
         /// <userdoc>The radius range of the point light in scene units.</userdoc>
         [DataMember(10)]
         [DefaultValue(1.0f)]
-        public float Radius{ get; set; }
+        public float Radius { get; set; }
 
         [DataMemberIgnore]
         internal float InvSquareRadius;

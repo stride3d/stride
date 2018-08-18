@@ -11,7 +11,9 @@ namespace Xenko.Profiling
         public static ProfilingKey GcMemoryKey = new ProfilingKey("GC Memory");
 
         private ProfilingState collectionCountState;
-        private int gen0Count, gen1Count, gen2Count;
+        private int gen0Count;
+        private int gen1Count;
+        private int gen2Count;
 
         private ProfilingState gcMemoryState;
         private long lastFrameMemory;

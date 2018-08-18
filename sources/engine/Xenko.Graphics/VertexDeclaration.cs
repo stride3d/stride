@@ -56,7 +56,7 @@ namespace Xenko.Graphics
             hashCode = (hashCode * 397) ^ vertexStride;
             foreach (var vertexElement in elements)
             {
-                hashCode = (hashCode*397) ^ vertexElement.GetHashCode();
+                hashCode = (hashCode * 397) ^ vertexElement.GetHashCode();
             }
         }
 

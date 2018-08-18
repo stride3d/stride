@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 #if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
@@ -35,7 +35,7 @@ namespace Xenko.Input
             richTextBox = new RichTextBox
             {
                 Location = new Point(-100, -100),
-                Size = new Size(80, 80)
+                Size = new Size(80, 80),
             };
             
             // Assign custom window procedure to this text box
@@ -59,7 +59,7 @@ namespace Xenko.Input
         {
             base.Update(inputEvents);
 
-            for(int i = 0; i < textEvents.Count; i++)
+            for (int i = 0; i < textEvents.Count; i++)
                 inputEvents.Add(textEvents[i]);
             textEvents.Clear();
         }
@@ -68,7 +68,7 @@ namespace Xenko.Input
         {
             // Translate from windows key enum to Xenko key enum
             Keys xenkoKey;
-            if (WinKeys.mapKeys.TryGetValue(winFormsKey, out xenkoKey) && xenkoKey != Keys.None)
+            if (WinKeys.MapKeys.TryGetValue(winFormsKey, out xenkoKey) && xenkoKey != Keys.None)
             {
                 HandleKeyDown(xenkoKey);
             }
@@ -78,7 +78,7 @@ namespace Xenko.Input
         {
             // Translate from windows key enum to Xenko key enum
             Keys xenkoKey;
-            if (WinKeys.mapKeys.TryGetValue(winFormsKey, out xenkoKey) && xenkoKey != Keys.None)
+            if (WinKeys.MapKeys.TryGetValue(winFormsKey, out xenkoKey) && xenkoKey != Keys.None)
             {
                 HandleKeyUp(xenkoKey);
             }
@@ -102,7 +102,7 @@ namespace Xenko.Input
             {
                 // Filter out characters that do not belong in text input
                 string inputString = richTextBox.Text;
-                inputString = inputString.Replace("\r", "").Replace("\n", "").Replace("\t", "");
+                inputString = inputString.Replace("\r", string.Empty).Replace("\n", string.Empty).Replace("\t", string.Empty);
 
                 if (inputString.Length > 0)
                 {
@@ -115,7 +115,7 @@ namespace Xenko.Input
                 }
             }
 
-            richTextBox.Text = "";
+            richTextBox.Text = string.Empty;
         }
 
         private IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam)
@@ -182,7 +182,7 @@ namespace Xenko.Input
             {
                 // Clear composition
                 compEvent = InputEventPool<TextInputEvent>.GetOrCreate(this);
-                compEvent.Text = "";
+                compEvent.Text = string.Empty;
                 compEvent.CompositionStart = 0;
                 compEvent.CompositionLength = 0;
                 compEvent.Type = TextInputEventType.Composition;

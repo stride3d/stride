@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Xenko.Internals
 {
-    class LambdaReadOnlyCollection<TSource, T> : IReadOnlyList<T>
+    internal class LambdaReadOnlyCollection<TSource, T> : IReadOnlyList<T>
     {
         private IReadOnlyList<TSource> source;
         private Func<TSource, T> selector;

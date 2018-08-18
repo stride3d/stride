@@ -51,6 +51,6 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// Specifies an angle measurement in gradians.
         /// </summary>
-        Gradian
+        Gradian,
     }
 }

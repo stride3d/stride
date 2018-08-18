@@ -147,7 +147,7 @@ namespace Xenko.Audio.Tests.Engine
                 mainController.Play();
             }
             // should hear low volume
-            else if(loopCount == 60)
+            else if (loopCount == 60)
             {
                mainController.Volume = 1f;
                mainController.Play();
@@ -176,7 +176,7 @@ namespace Xenko.Audio.Tests.Engine
                 mainController.IsLooping = true;
                 mainController.Play();
             }
-            else if(loopCount > 240)
+            else if (loopCount > 240)
             {
                 // check that sound goes smoothly from nothing to full intensity
                 mainController.Volume = Math.Abs((loopCount - 440) / 200f);

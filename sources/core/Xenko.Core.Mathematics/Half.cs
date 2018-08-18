@@ -104,7 +104,7 @@ namespace Xenko.Core.Mathematics
         public static readonly Half One;
 
         /// <summary>
-        ///   Initializes a new instance of the <see cref = "T:Xenko.Core.Mathematics.Half" /> structure.
+        ///   Initializes a new instance of the <see cref="Half"/> structure.
         /// </summary>
         /// <param name = "value">The floating point value that should be stored in 16 bit format.</param>
         public Half(float value)
@@ -129,7 +129,7 @@ namespace Xenko.Core.Mathematics
         public static float[] ConvertToFloat(Half[] values)
         {            
             float[] results = new float[values.Length];
-            for(int i = 0; i < results.Length; i++)
+            for (int i = 0; i < results.Length; i++)
                 results[i] = HalfUtils.Unpack(values[i].RawValue);
             return results;
         }
@@ -142,7 +142,7 @@ namespace Xenko.Core.Mathematics
         public static Half[] ConvertToHalf(float[] values)
         {
             Half[] results = new Half[values.Length];
-            for(int i = 0; i < results.Length; i++)
+            for (int i = 0; i < results.Length; i++)
                 results[i] = new Half(values[i]);
             return results;
         }
@@ -208,14 +208,14 @@ namespace Xenko.Core.Mathematics
         public override int GetHashCode()
         {
             ushort num = value;
-            return (((num*3)/2) ^ num);
+            return ((num * 3) / 2) ^ num;
         }
 
         /// <summary>
         ///   Determines whether the specified object instances are considered equal.
         /// </summary>
-        /// <param name = "value1" />
-        /// <param name = "value2" />
+        /// <param name = "value1">The first value.</param>
+        /// <param name = "value2">The second value.</param>
         /// <returns>
         ///   <c>true</c> if <paramref name = "value1" /> is the same instance as <paramref name = "value2" /> or 
         ///   if both are <c>null</c> references or if <c>value1.Equals(value2)</c> returns <c>true</c>; otherwise, <c>false</c>.</returns>
@@ -247,11 +247,11 @@ namespace Xenko.Core.Mathematics
             {
                 return false;
             }
-            if (obj.GetType() != base.GetType())
+            if (obj.GetType() != GetType())
             {
                 return false;
             }
-            Half half = (Half) obj;
+            Half half = (Half)obj;
             return half.value == value;
         }
 

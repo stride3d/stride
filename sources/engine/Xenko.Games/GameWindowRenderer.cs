@@ -22,10 +22,9 @@
 // THE SOFTWARE.
 
 using System;
-
 using Xenko.Core;
-using Xenko.Graphics;
 using Xenko.Core.Mathematics;
+using Xenko.Graphics;
 
 namespace Xenko.Games
 {

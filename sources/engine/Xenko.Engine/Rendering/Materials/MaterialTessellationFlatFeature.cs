@@ -17,7 +17,7 @@ namespace Xenko.Rendering.Materials
         {
             base.GenerateShader(context);
 
-            if (HasAlreadyTessellationFeature)
+            if (hasAlreadyTessellationFeature)
                 return;
 
             // set the tessellation method used enumeration

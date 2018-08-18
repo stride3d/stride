@@ -13,14 +13,14 @@ namespace Xenko.Rendering.Images
     /// </summary>
     public enum SamplingPattern
     {
-        /// <summary>	
+        /// <summary>
         /// tilted pyramid gather, 9 taps, weights inverse to distance to center. (inspired by "Next Generation Post Processing in Call of Duty Advanced Warfare")
-        /// </summary>	
+        /// </summary>
         Expanded,
 
         /// <summary>
         /// simple unique sampling at the center (the hardware sampler creates the 4 neighbor gathering).
         /// </summary>
-        Linear
-    };
+        Linear,
+    }
 }

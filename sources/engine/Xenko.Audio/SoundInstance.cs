@@ -11,7 +11,7 @@ namespace Xenko.Audio
     /// <summary>
     /// Base class for sound that creates voices
     /// </summary>
-    public class SoundInstance: ComponentBase, IPositionableSound
+    public class SoundInstance : ComponentBase, IPositionableSound
     {
         protected DynamicSoundSource soundSource;
         protected SoundBase sound;

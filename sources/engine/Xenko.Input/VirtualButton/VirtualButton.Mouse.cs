@@ -12,8 +12,8 @@ namespace Xenko.Input
         /// </summary>
         public class Mouse : VirtualButton
         {
-            protected Mouse(string name, int id, bool isPositiveAndNegative) : 
-                base(name, VirtualButtonType.Mouse, id, isPositiveAndNegative)
+            protected Mouse(string name, int id, bool isPositiveAndNegative)
+                : base(name, VirtualButtonType.Mouse, id, isPositiveAndNegative)
             {
             }
 
@@ -71,7 +71,7 @@ namespace Xenko.Input
                 }
                 else
                 {
-                    switch(Index)
+                    switch (Index)
                     {
                         case 5:
                             return manager.MousePosition.X;

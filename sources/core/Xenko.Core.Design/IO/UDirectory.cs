@@ -43,7 +43,7 @@ namespace Xenko.Core.IO
         public string GetDirectoryName()
         {
             var index = FullPath.IndexOfReverse(DirectorySeparatorChar);
-            return index >= 0 ? FullPath.Substring(index + 1) : "";
+            return index >= 0 ? FullPath.Substring(index + 1) : string.Empty;
         }
 
         /// <summary>

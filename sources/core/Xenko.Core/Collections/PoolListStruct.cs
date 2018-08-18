@@ -12,7 +12,6 @@ namespace Xenko.Core.Collections
     /// A pool of objects allocated and can be cleared without loosing previously allocated instance.
     /// </summary>
     /// <typeparam name="T">Type of the pooled object</typeparam>
-
     public struct PoolListStruct<T> : IEnumerable<T> where T : class
     {
         /// <summary>
@@ -96,7 +95,6 @@ namespace Xenko.Core.Collections
             return allocated.IndexOf(item);
         }
 
-
         public void RemoveAt(int index)
         {
             if (index < 0 || index >= Count)
@@ -104,10 +102,10 @@ namespace Xenko.Core.Collections
 
             Count--;
             var oldItem = allocated[index];
-			
-			// This will shift all items after this item 1 to the left but without changing the capacity of the container
+
+            // This will shift all items after this item 1 to the left but without changing the capacity of the container
             allocated.RemoveAt(index);
-			
+
             // Place item at the end
             allocated.Add(oldItem);
         }

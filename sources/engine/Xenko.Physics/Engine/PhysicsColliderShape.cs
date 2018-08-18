@@ -22,7 +22,6 @@ namespace Xenko.Physics
     {
         public PhysicsColliderShape()
         {
-
         }
 
         public PhysicsColliderShape([NotNull] IEnumerable<IAssetColliderShapeDesc> descriptions)
@@ -69,7 +68,7 @@ namespace Xenko.Physics
                 foreach (var desc in descs)
                 {
                     var subShape = CreateShape(desc);
-                    if(subShape == null) continue;
+                    if (subShape == null) continue;
                     compound.AddChildShape(subShape);
                 }
                 res = compound;
@@ -131,7 +130,7 @@ namespace Xenko.Physics
                     {
                         shape = new ConvexHullColliderShape(convexDesc.ConvexHulls[0][0], convexDesc.ConvexHullsIndices[0][0], convexDesc.Scaling)
                         {
-                            NeedsCustomCollisionCallback = true
+                            NeedsCustomCollisionCallback = true,
                         };
 
                         //shape.UpdateLocalTransformations();
@@ -144,7 +143,7 @@ namespace Xenko.Physics
 
                     var subCompound = new CompoundColliderShape
                     {
-                        NeedsCustomCollisionCallback = true
+                        NeedsCustomCollisionCallback = true,
                     };
 
                     for (var i = 0; i < convexDesc.ConvexHulls[0].Count; i++)
@@ -152,7 +151,7 @@ namespace Xenko.Physics
                         var verts = convexDesc.ConvexHulls[0][i];
                         var indices = convexDesc.ConvexHullsIndices[0][i];
 
-                        if(indices.Count == 0) continue;
+                        if (indices.Count == 0) continue;
 
                         var subHull = new ConvexHullColliderShape(verts, indices, convexDesc.Scaling);
                         //subHull.UpdateLocalTransformations();
@@ -169,7 +168,7 @@ namespace Xenko.Physics
 
                 var compound = new CompoundColliderShape
                 {
-                    NeedsCustomCollisionCallback = true
+                    NeedsCustomCollisionCallback = true,
                 };
 
                 for (var i = 0; i < convexDesc.ConvexHulls.Count; i++)
@@ -179,7 +178,7 @@ namespace Xenko.Physics
 
                     if (verts.Count == 1)
                     {
-                        if(indices[0].Count == 0) continue;
+                        if (indices[0].Count == 0) continue;
 
                         var subHull = new ConvexHullColliderShape(verts[0], indices[0], convexDesc.Scaling);
                         //subHull.UpdateLocalTransformations();

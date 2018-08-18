@@ -34,7 +34,7 @@ namespace Xenko.Input
         private void UpdateGestureStartEndStatus(bool isKeyDown, int id, Vector2 pos)
         {
             var gestureWasStarted = HasGestureStarted;
-            HasGestureStarted = (NbOfFingerOnScreen + (isKeyDown?1:-1)  == Config.RequiredNumberOfFingers);
+            HasGestureStarted = (NbOfFingerOnScreen + (isKeyDown ? 1 : -1) == Config.RequiredNumberOfFingers);
 
             UpdateFingerDictionaries(isKeyDown, id, pos);
 

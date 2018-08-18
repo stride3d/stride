@@ -62,7 +62,7 @@ namespace Xenko.Navigation.Processors
         {
             return new AssociatedData
             {
-                Component = component
+                Component = component,
             };
         }
 
@@ -129,7 +129,9 @@ namespace Xenko.Navigation.Processors
                         // Either add the tile if it is contained in the new navigation mesh or
                         //  try to remove it if it does not
                         if (newTile != null)
+                        {
                             loadedGroup.RecastNavigationMesh.AddOrReplaceTile(newTile.Data);
+                        }
                         else
                         {
                             loadedGroup.RecastNavigationMesh.RemoveTile(updatedTileCoord);
@@ -205,7 +207,7 @@ namespace Xenko.Navigation.Processors
             {
                 loadedNavigationMeshes.Add(mesh, data = new NavigationMeshData
                 {
-                    NavigationMesh = mesh
+                    NavigationMesh = mesh,
                 });
             }
 

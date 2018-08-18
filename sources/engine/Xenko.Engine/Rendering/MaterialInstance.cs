@@ -85,7 +85,7 @@ namespace Xenko.Rendering
             unchecked
             {
                 var hashCode = Material?.GetHashCode() ?? 0;
-                hashCode = (hashCode*397) ^ IsShadowCaster.GetHashCode();
+                hashCode = (hashCode * 397) ^ IsShadowCaster.GetHashCode();
                 return hashCode;
             }
         }

@@ -69,7 +69,7 @@ namespace Xenko.Rendering.LightProbes
                         var lightProbeCoefficients = new FastList<Color3>();
                         for (int i = 0; i < coefficients.Length; i++)
                         {
-                            lightProbeCoefficients.Add(coefficients[i]*SphericalHarmonics.BaseCoefficients[i]);
+                            lightProbeCoefficients.Add(coefficients[i] * SphericalHarmonics.BaseCoefficients[i]);
                         }
 
                         lightProbesCoefficients.Add(lightProbe, lightProbeCoefficients);
@@ -92,7 +92,6 @@ namespace Xenko.Rendering.LightProbes
 
         public static unsafe void UpdateCoefficients(LightProbeRuntimeData runtimeData)
         {
-
             fixed (Color3* destColors = runtimeData.Coefficients)
             {
                 for (var lightProbeIndex = 0; lightProbeIndex < runtimeData.LightProbes.Length; lightProbeIndex++)
@@ -195,22 +194,5 @@ namespace Xenko.Rendering.LightProbes
 
             return result;
         }
-    }
-
-    public class LightProbeRuntimeData
-    {
-        // Input data
-        public LightProbeComponent[] LightProbes;
-
-        // Computed data
-        public Vector3[] Vertices;
-        public int UserVertexCount;
-        public FastList<BowyerWatsonTetrahedralization.Tetrahedron> Tetrahedra;
-        public FastList<BowyerWatsonTetrahedralization.Face> Faces;
-
-        // Data to upload to GPU
-        public Color3[] Coefficients;
-        public Vector4[] Matrices;
-        public Int4[] LightProbeIndices;
     }
 }

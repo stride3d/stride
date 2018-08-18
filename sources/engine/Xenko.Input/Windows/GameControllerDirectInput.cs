@@ -11,7 +11,7 @@ namespace Xenko.Input
 {
     internal class GameControllerDirectInput : GameControllerDeviceBase, IDisposable
     {
-        private static readonly Dictionary<Guid, int> GuidToAxisOffsets =new Dictionary<Guid, int>
+        private static readonly Dictionary<Guid, int> GuidToAxisOffsets = new Dictionary<Guid, int>
         {
             [ObjectGuid.XAxis] = 0,
             [ObjectGuid.YAxis] = 1,

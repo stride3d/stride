@@ -30,7 +30,6 @@ namespace Xenko.Rendering.Materials
         private MaterialOverrides currentOverrides;
         private Stack<MaterialOverrides> overridesStack = new Stack<MaterialOverrides>();
 
-
         public delegate object FindAssetDelegate(object asset);
 
         public delegate string GetAssetFriendlyNameDelegate(object asset);
@@ -51,7 +50,6 @@ namespace Xenko.Rendering.Materials
         /// </value>
         public ContentManager Content { get; set; }
 
-        
         public ShaderGeneratorContext(GraphicsDevice graphicsDevice = null)
         {
             this.graphicsDevice = graphicsDevice;
@@ -90,7 +88,7 @@ namespace Xenko.Rendering.Materials
             int parameterKeyIndex;
             parameterKeyIndices.TryGetValue(baseKey, out parameterKeyIndex);
 
-            key = parameterKeyIndex == 0 ? baseKey : baseKey.ComposeWith("i"+parameterKeyIndex.ToString(CultureInfo.InvariantCulture));
+            key = parameterKeyIndex == 0 ? baseKey : baseKey.ComposeWith("i" + parameterKeyIndex.ToString(CultureInfo.InvariantCulture));
 
             parameterKeyIndex++;
             parameterKeyIndices[baseKey] = parameterKeyIndex;
@@ -167,7 +165,7 @@ namespace Xenko.Rendering.Materials
             var samplerStateDesc = new SamplerStateDescription(sampler.Filtering, sampler.AddressModeU)
             {
                 AddressV = sampler.AddressModeV,
-                AddressW = TextureAddressMode.Wrap
+                AddressW = TextureAddressMode.Wrap,
             };
             return GetSamplerKey(samplerStateDesc, graphicsDevice);
         }

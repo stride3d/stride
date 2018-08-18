@@ -8,7 +8,7 @@ namespace Xenko.Core.Serialization.Contents
     /// <summary>
     /// A subtype of <see cref="Exception"/> thrown by the <see cref="ContentManager"/>.
     /// </summary>
-    class ContentManagerException : Exception
+    internal class ContentManagerException : Exception
     {
         public ContentManagerException(string message) : base(message)
         {

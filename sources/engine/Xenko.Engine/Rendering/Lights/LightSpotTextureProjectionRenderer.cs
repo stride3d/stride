@@ -1,5 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
 
 using System;
 using Xenko.Core.Collections;
@@ -100,7 +102,7 @@ namespace Xenko.Rendering.Lights
         }
         */
 
-        public ITextureProjectionShaderGroupData CreateShaderGroupData()   // TODO: Override!
+        public ITextureProjectionShaderGroupData CreateShaderGroupData() // TODO: Override!
         {
             return new LightSpotTextureProjectionGroupShaderData(lightParameters);
         }
@@ -160,7 +162,7 @@ namespace Xenko.Rendering.Lights
         }
 
         // TODO: This function is not being called anywhere. Find a way to integrate it and do the light attribute extraction here instead of within "ApplyDrawParameters()".
-        public void Collect(RenderContext context, RenderView sourceView, LightShadowMapTexture lightShadowMap)    // TODO: Remove the shadow map parameter.
+        public void Collect(RenderContext context, RenderView sourceView, LightShadowMapTexture lightShadowMap) // TODO: Remove the shadow map parameter.
         {
             // Computes the cascade splits
             var lightComponent = lightShadowMap.LightComponent;
@@ -181,7 +183,7 @@ namespace Xenko.Rendering.Lights
             public Matrix WorldToTextureUV; 
         }
 
-        public class LightSpotTextureProjectionGroupShaderData : ITextureProjectionShaderGroupData  // TODO: Make private
+        public class LightSpotTextureProjectionGroupShaderData : ITextureProjectionShaderGroupData // TODO: Make private
         {
             private const string ShaderNameBase = "TextureProjectionReceiverSpot";
             private const string ShaderNameAttenuation = "LightSpotAttenuationRectangular";

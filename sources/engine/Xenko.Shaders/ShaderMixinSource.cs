@@ -112,7 +112,7 @@ namespace Xenko.Shaders
         public void CloneFrom(ShaderMixinSource parent)
         {
             if (parent == null)
-                throw new ArgumentNullException("parent", string.Format("Cannot clone mixin [{0}] from a null parent"));
+                throw new ArgumentNullException("parent", $"Cannot clone mixin [{Name}] from a null parent");
 
             Mixins.AddRange(parent.Mixins);
             Macros.AddRange(parent.Macros);
@@ -130,7 +130,7 @@ namespace Xenko.Shaders
         public void DeepCloneFrom(ShaderMixinSource parent)
         {
             if (parent == null)
-                throw new ArgumentNullException("parent", string.Format("Cannot deep clone mixin [{0}] from a null parent"));
+                throw new ArgumentNullException("parent", $"Cannot deep clone mixin [{Name}] from a null parent");
 
             foreach (var mixin in parent.Mixins)
                 Mixins.Add((ShaderClassSource)mixin.Clone());
@@ -184,7 +184,7 @@ namespace Xenko.Shaders
         private static Core.Collections.SortedList<TKey, TValue> ToSortedList<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> list)
         {
             var values = new Core.Collections.SortedList<TKey, TValue>();
-            foreach(var item in list)
+            foreach (var item in list)
                 values.Add(item.Key, item.Value);
             return values;
         }

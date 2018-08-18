@@ -72,7 +72,7 @@ namespace Xenko.UI.Controls
         {
             base.OnTouchUp(args);
 
-            if(!IsModal || args.Source != this)
+            if (!IsModal || args.Source != this)
                 return;
 
             var position = args.WorldPosition - new Vector3(WorldMatrixInternal.M41, WorldMatrixInternal.M42, WorldMatrixInternal.M43);

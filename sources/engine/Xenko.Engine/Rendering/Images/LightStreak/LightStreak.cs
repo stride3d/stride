@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -23,7 +23,7 @@ namespace Xenko.Rendering.Images
         private ColorCombiner combiner;
         private ImageEffectShader lightStreakEffect;
 
-        private const int STREAK_MAX_COUNT = 8;
+        private const int StreakMaxCount = 8;
 
         private int tapsPerIteration;
         private int streakCount;
@@ -32,7 +32,7 @@ namespace Xenko.Rendering.Images
 
         private Vector2[] tapOffsetsWeights;
 
-        readonly List<string> lightStreakDebugStrings = new List<string>();
+        private readonly List<string> lightStreakDebugStrings = new List<string>();
 
         private void GenerateDebugStrings()
         {
@@ -87,7 +87,7 @@ namespace Xenko.Rendering.Images
         [Display("Streaks")]
         [DataMember(20)]
         [DefaultValue(4)]
-        [DataMemberRange(1, STREAK_MAX_COUNT, 1, 1, 0)]
+        [DataMemberRange(1, StreakMaxCount, 1, 1, 0)]
         public int StreakCount
         {
             get
@@ -98,7 +98,7 @@ namespace Xenko.Rendering.Images
             set
             {
                 if (value <= 0) value = 0;
-                if (value > STREAK_MAX_COUNT) value = STREAK_MAX_COUNT;
+                if (value > StreakMaxCount) value = StreakMaxCount;
                 streakCount = value;
                 GenerateDebugStrings();
             }
@@ -197,7 +197,7 @@ namespace Xenko.Rendering.Images
                 {
                     AnamorphicOffsetsWeights = new Vector3[]
                         {
-                            new Vector3(0f, 0f, 1f)
+                            new Vector3(0f, 0f, 1f),
                         };
                 }
                 else
@@ -206,7 +206,7 @@ namespace Xenko.Rendering.Images
                         {
                             new Vector3(0f,  4f, 0.05f),
                             new Vector3(0f,  0f, 1f),
-                            new Vector3(0f, -4f, 0.05f)
+                            new Vector3(0f, -4f, 0.05f),
                         };
                 }
             }
@@ -276,11 +276,11 @@ namespace Xenko.Rendering.Images
                 {
                     // Calculates weights and attenuation factors for all the taps
                     float totalWeight = 0;
-                    float passLength = (float) Math.Pow(TapsPerIteration, level);
+                    float passLength = (float)Math.Pow(TapsPerIteration, level);
                     for (int i = 0; i < TapsPerIteration; i++)
                     {
                         tapOffsetsWeights[i].X = i * passLength;
-                        tapOffsetsWeights[i].Y = (float) Math.Pow(MathUtil.Lerp(0.7f, 1.0f, Attenuation), i * passLength);
+                        tapOffsetsWeights[i].Y = (float)Math.Pow(MathUtil.Lerp(0.7f, 1.0f, Attenuation), i * passLength);
                         totalWeight += tapOffsetsWeights[i].Y;
                     }
                     // Normalizes the weights

@@ -9,6 +9,16 @@ using Xenko.Engine;
 
 namespace Xenko.Physics
 {
+    public struct ContactPoint
+    {
+        public PhysicsComponent ColliderA;
+        public PhysicsComponent ColliderB;
+        public float Distance;
+        public Vector3 Normal;
+        public Vector3 PositionOnA;
+        public Vector3 PositionOnB;
+    }
+
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     internal struct NativeContactPoint
     {
@@ -20,22 +30,12 @@ namespace Xenko.Physics
         public readonly Vector3 PositionOnB;
     }
 
-    public struct ContactPoint
-    {
-        public PhysicsComponent ColliderA;
-        public PhysicsComponent ColliderB;
-        public float Distance;
-        public Vector3 Normal;
-        public Vector3 PositionOnA;
-        public Vector3 PositionOnB;
-    }
-
     public class ContactPointEqualityComparer : EqualityComparer<ContactPoint>
     {
         /// <summary>
         /// Gets the default.
         /// </summary>
-        public new static readonly ContactPointEqualityComparer Default = new ContactPointEqualityComparer();
+        public static new readonly ContactPointEqualityComparer Default = new ContactPointEqualityComparer();
 
         /// <inheritdoc/>
         public override bool Equals(ContactPoint x, ContactPoint y)

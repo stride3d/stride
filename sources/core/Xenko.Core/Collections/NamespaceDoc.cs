@@ -6,7 +6,7 @@ namespace Xenko.Core.Collections
     /// The <see cref="Xenko.Core.Collections"/> namespace contains classes that define various additional collection types.
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-    class NamespaceDoc
+    internal class NamespaceDoc
     {
     }
 }

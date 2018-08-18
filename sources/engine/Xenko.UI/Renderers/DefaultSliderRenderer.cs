@@ -24,7 +24,7 @@ namespace Xenko.UI.Renderers
             base.RenderColor(element, context);
 
             var slider = (Slider)element;
-            if(slider.Orientation == Orientation.InDepth)
+            if (slider.Orientation == Orientation.InDepth)
                 return; // No rendering for in-depth slider for the moment.
 
             var axis = (int)slider.Orientation;

@@ -8,6 +8,9 @@ using Xenko.Core.Annotations;
 
 namespace Xenko.Core.Threading
 {
+    /// <summary>
+    /// Thread pool for scheduling actions.
+    /// </summary>
     /// <remarks>
     /// Base on Stephen Toub's ManagedThreadPool
     /// </remarks>
@@ -15,7 +18,8 @@ namespace Xenko.Core.Threading
     {
         public static readonly ThreadPool Instance = new ThreadPool();
 
-        private readonly int MaxThreadCount = Environment.ProcessorCount + 2;// * 2;
+        private readonly int maxThreadCount = Environment.ProcessorCount + 2;
+        //private readonly int maxThreadCount = Environment.ProcessorCount * 2;
         private readonly List<Task> workers = new List<Task>();
         private readonly Queue<Action> workItems = new Queue<Action>();
         private readonly ManualResetEvent workAvailable = new ManualResetEvent(false);
@@ -33,7 +37,7 @@ namespace Xenko.Core.Threading
                 PooledDelegateHelper.AddReference(workItem);
                 workItems.Enqueue(workItem);
 
-                if (activeThreadCount + 1 >= workers.Count && workers.Count < MaxThreadCount)
+                if (activeThreadCount + 1 >= workers.Count && workers.Count < maxThreadCount)
                 {
                     var worker = Task.Factory.StartNew(ProcessWorkItems, workers.Count, TaskCreationOptions.LongRunning);
                     workers.Add(worker);
@@ -76,7 +80,6 @@ namespace Xenko.Core.Threading
                             }
                             catch
                             {
-
                             }
                         }
 

@@ -21,7 +21,6 @@ namespace Xenko.Rendering.Materials
         [NotNull]
         public IMaterialCelShadingLightFunction RampFunction { get; set; } = new MaterialCelShadingLightDefault();
 
-
         public override void GenerateShader(MaterialGeneratorContext context)
         {
             var shaderSource = new ShaderMixinSource();

@@ -76,7 +76,7 @@ namespace Xenko.Input
             return new Vector2
             {
                 X = (float)Math.Sin(value.value.Value * FullAngleInverse),
-                Y = (float)Math.Cos(value.value.Value * FullAngleInverse)
+                Y = (float)Math.Cos(value.value.Value * FullAngleInverse),
             };
         }
 

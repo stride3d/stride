@@ -33,7 +33,7 @@ namespace Xenko.Rendering.Lights
             LightRendererId = (byte)lightRendererId;
         }
 
-        public bool IsEnvironmentLight { get; protected set; }  // TODO: This shouldn't be here. This should be moved to the LightGroupRendererDynamic class at least.
+        public bool IsEnvironmentLight { get; protected set; } // TODO: This shouldn't be here. This should be moved to the LightGroupRendererDynamic class at least.
 
         public byte LightRendererId { get; private set; }
 
@@ -87,7 +87,6 @@ namespace Xenko.Rendering.Lights
 
         public virtual void PrepareResources(RenderDrawContext drawContext)
         {
-            
         }
     }
 }

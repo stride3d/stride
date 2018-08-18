@@ -319,7 +319,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
             if (image.FaceCount > 1 && image.FaceCount % 6 == 0)
                 image.Dimension = TexImage.TextureDimension.TextureCube;
-            else if(image.Depth > 1)
+            else if (image.Depth > 1)
                 image.Dimension = TexImage.TextureDimension.Texture3D;
             else if (image.Height > 0)
                 image.Dimension = TexImage.TextureDimension.Texture2D;
@@ -908,7 +908,7 @@ namespace Xenko.TextureConverter.TexLibraries
                         return Xenko.Graphics.PixelFormat.R32G32B32A32_SInt;
                 }
             }
-            else if(format == Xenko.Graphics.PixelFormat.R16G16B16A16_UNorm)
+            else if (format == Xenko.Graphics.PixelFormat.R16G16B16A16_UNorm)
             {
                 switch (header.GetChannelType())
                 {
@@ -922,7 +922,7 @@ namespace Xenko.TextureConverter.TexLibraries
                         return Xenko.Graphics.PixelFormat.R16G16B16A16_SInt;
                 }
             }
-            else if(format == Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm)
+            else if (format == Xenko.Graphics.PixelFormat.R8G8B8A8_UNorm)
             {
                 switch (header.GetChannelType())
                 {

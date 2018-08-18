@@ -61,7 +61,7 @@ namespace Xenko.Rendering.Lights
         private const string DirectLightGroupsCompositionName = "directLightGroups";
         private const string EnvironmentLightsCompositionName = "environmentLights";
 
-        private readonly LightShaderPermutationEntry ShaderPermutation = new LightShaderPermutationEntry();
+        private readonly LightShaderPermutationEntry shaderPermutation = new LightShaderPermutationEntry();
 
         private LightProcessor lightProcessor;
 
@@ -146,10 +146,10 @@ namespace Xenko.Rendering.Lights
             // Track changes
             lightRenderers.CollectionChanged += LightRenderers_CollectionChanged;
 
-            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
+            renderEffectKey = ((RootEffectRenderFeature)rootRenderFeature).RenderEffectKey;
 
-            viewLightingKey = ((RootEffectRenderFeature)RootRenderFeature).CreateViewLogicalGroup("Lighting");
-            drawLightingKey = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawLogicalGroup("Lighting");
+            viewLightingKey = ((RootEffectRenderFeature)rootRenderFeature).CreateViewLogicalGroup("Lighting");
+            drawLightingKey = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawLogicalGroup("Lighting");
         }
 
         protected override void Destroy()
@@ -188,19 +188,18 @@ namespace Xenko.Rendering.Lights
         {
         }
 
-        /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
-            var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
-            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
+            var renderEffects = rootRenderFeature.RenderData.GetData(renderEffectKey);
+            int effectSlotCount = ((RootEffectRenderFeature)rootRenderFeature).EffectPermutationSlotCount;
 
             ignoredEffectSlots.Clear();
             if (ShadowMapRenderer != null)
             {
                 foreach (var lightShadowMapRenderer in ShadowMapRenderer.Renderers)
                 {
-                    var shadowMapEffectSlot = lightShadowMapRenderer != null ? ((RootEffectRenderFeature)RootRenderFeature).GetEffectPermutationSlot(lightShadowMapRenderer.ShadowCasterRenderStage) : EffectPermutationSlot.Invalid;
+                    var shadowMapEffectSlot = lightShadowMapRenderer != null ? ((RootEffectRenderFeature)rootRenderFeature).GetEffectPermutationSlot(lightShadowMapRenderer.ShadowCasterRenderStage) : EffectPermutationSlot.Invalid;
                     ignoredEffectSlots.Add(shadowMapEffectSlot.Index);
                 }
             }
@@ -229,7 +228,7 @@ namespace Xenko.Rendering.Lights
 
             // Cleanup shader group data
             // TODO: Cleanup end of frame instead of beginning of next one
-            ShaderPermutation.Reset();
+            shaderPermutation.Reset();
 
             foreach (var view in RenderSystem.Views)
             {
@@ -249,37 +248,37 @@ namespace Xenko.Rendering.Lights
             foreach (var lightRenderer in lightRenderers)
             {
                 lightRenderer.PrepareResources(context);
-                lightRenderer.UpdateShaderPermutationEntry(ShaderPermutation);
+                lightRenderer.UpdateShaderPermutationEntry(shaderPermutation);
             }
 
             // TODO: Try to run that only if really required (i.e. actual layout change)
             // Notify light groups layout changed and generate shader permutation
-            for (int index = 0; index < ShaderPermutation.DirectLightGroups.Count; index++)
+            for (int index = 0; index < shaderPermutation.DirectLightGroups.Count; index++)
             {
-                var directLightGroup = ShaderPermutation.DirectLightGroups[index];
+                var directLightGroup = shaderPermutation.DirectLightGroups[index];
                 directLightGroup.UpdateLayout(DirectLightGroupsCompositionNames[index]);
 
                 // Generate shader permutation
-                ShaderPermutation.DirectLightShaders.Add(directLightGroup.ShaderSource);
+                shaderPermutation.DirectLightShaders.Add(directLightGroup.ShaderSource);
                 if (directLightGroup.HasEffectPermutations)
-                    ShaderPermutation.PermutationLightGroups.Add(directLightGroup);
+                    shaderPermutation.PermutationLightGroups.Add(directLightGroup);
             }
-            for (int index = 0; index < ShaderPermutation.EnvironmentLights.Count; index++)
+            for (int index = 0; index < shaderPermutation.EnvironmentLights.Count; index++)
             {
-                var environmentLight = ShaderPermutation.EnvironmentLights[index];
+                var environmentLight = shaderPermutation.EnvironmentLights[index];
                 environmentLight.UpdateLayout(EnvironmentLightGroupsCompositionNames[index]);
 
                 // Generate shader permutation
-                ShaderPermutation.EnvironmentLightShaders.Add(environmentLight.ShaderSource);
+                shaderPermutation.EnvironmentLightShaders.Add(environmentLight.ShaderSource);
                 if (environmentLight.HasEffectPermutations)
-                    ShaderPermutation.PermutationLightGroups.Add(environmentLight);
+                    shaderPermutation.PermutationLightGroups.Add(environmentLight);
             }
 
             // Make copy so that we can continue to mutate the ShaderPermutation ShaderSourceCollection during next frame
-            var directLightShaders = GetReadonlyShaderSources(ShaderPermutation.DirectLightShaders);
-            var environmentLightShaders = GetReadonlyShaderSources(ShaderPermutation.EnvironmentLightShaders);
+            var directLightShaders = GetReadonlyShaderSources(shaderPermutation.DirectLightShaders);
+            var environmentLightShaders = GetReadonlyShaderSources(shaderPermutation.EnvironmentLightShaders);
 
-            Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
+            Dispatcher.ForEach(rootRenderFeature.RenderObjects, renderObject =>
             {
                 var renderMesh = (RenderMesh)renderObject;
 
@@ -305,7 +304,7 @@ namespace Xenko.Rendering.Lights
                     renderEffect.EffectValidator.ValidateParameter(LightingKeys.EnvironmentLights, environmentLightShaders);
 
                     // Some light groups have additional effect permutation
-                    foreach (var lightGroup in ShaderPermutation.PermutationLightGroups)
+                    foreach (var lightGroup in shaderPermutation.PermutationLightGroups)
                         lightGroup.ApplyEffectPermutations(renderEffect);
                 }
             });
@@ -314,8 +313,6 @@ namespace Xenko.Rendering.Lights
         /// <summary>
         /// Create a read-only copy of the given shader sources.
         /// </summary>
-        /// <param name="shaderSources"></param>
-        /// <returns></returns>
         private ShaderSourceCollection GetReadonlyShaderSources(ShaderSourceCollection shaderSources)
         {
             ShaderSourceCollection directLightShaders;
@@ -331,7 +328,7 @@ namespace Xenko.Rendering.Lights
         {
             foreach (var view in RenderSystem.Views)
             {
-                var viewFeature = view.Features[RootRenderFeature.Index];
+                var viewFeature = view.Features[rootRenderFeature.Index];
 
                 RenderViewLightData renderViewData;
                 if (!renderViewDatas.TryGetValue(view.LightingView ?? view, out renderViewData) || viewFeature.Layouts.Count == 0)
@@ -376,11 +373,11 @@ namespace Xenko.Rendering.Lights
                 }
 
                 // Compute PerView lighting
-                foreach (var directLightGroup in ShaderPermutation.DirectLightGroups)
+                foreach (var directLightGroup in shaderPermutation.DirectLightGroups)
                 {
                     directLightGroup.ApplyViewParameters(context, viewIndex, viewParameters);
                 }
-                foreach (var environmentLight in ShaderPermutation.EnvironmentLights)
+                foreach (var environmentLight in shaderPermutation.EnvironmentLights)
                 {
                     environmentLight.ApplyViewParameters(context, viewIndex, viewParameters);
                 }
@@ -408,7 +405,7 @@ namespace Xenko.Rendering.Lights
                 // PerDraw
                 Dispatcher.ForEach(viewFeature.RenderNodes, () => prepareThreadLocals.Value, (renderNodeReference, locals) =>
                 {
-                    var renderNode = RootRenderFeature.GetRenderNode(renderNodeReference);
+                    var renderNode = rootRenderFeature.GetRenderNode(renderNodeReference);
 
                     // Ignore fallback effects
                     if (renderNode.RenderEffect.State != RenderEffectState.Normal)
@@ -438,11 +435,11 @@ namespace Xenko.Rendering.Lights
                     Debug.Assert(drawLighting.Hash == locals.DrawLayoutHash, "PerDraw Lighting layout differs between different RenderObject in the same RenderView");
 
                     // Compute PerDraw lighting
-                    foreach (var directLightGroup in ShaderPermutation.DirectLightGroups)
+                    foreach (var directLightGroup in shaderPermutation.DirectLightGroups)
                     {
                         directLightGroup.ApplyDrawParameters(context, viewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
                     }
-                    foreach (var environmentLight in ShaderPermutation.EnvironmentLights)
+                    foreach (var environmentLight in shaderPermutation.EnvironmentLights)
                     {
                         environmentLight.ApplyDrawParameters(context, viewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
                     }
@@ -459,7 +456,7 @@ namespace Xenko.Rendering.Lights
             if (currentRenderView == renderView)
                 return;
 
-            var viewFeature = renderView.Features[RootRenderFeature.Index];
+            var viewFeature = renderView.Features[rootRenderFeature.Index];
 
             RenderViewLightData renderViewData;
             if (!renderViewDatas.TryGetValue(renderView.LightingView ?? renderView, out renderViewData) || viewFeature.Layouts.Count == 0)
@@ -468,12 +465,12 @@ namespace Xenko.Rendering.Lights
             var viewIndex = renderViews.IndexOf(renderView);
 
             // Update PerView resources
-            foreach (var directLightGroup in ShaderPermutation.DirectLightGroups)
+            foreach (var directLightGroup in shaderPermutation.DirectLightGroups)
             {
                 directLightGroup.UpdateViewResources(context, viewIndex);
             }
 
-            foreach (var environmentLight in ShaderPermutation.EnvironmentLights)
+            foreach (var environmentLight in shaderPermutation.EnvironmentLights)
             {
                 environmentLight.UpdateViewResources(context, viewIndex);
             }

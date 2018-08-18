@@ -91,9 +91,9 @@ namespace Xenko.Graphics.GeometricPrimitives
             // Helper computes a point on a unit circle, aligned to the x/z plane and centered on the origin.
             private static Vector3 GetCircleVector(int i, int tessellation)
             {
-                var angle = (float) (i*2.0*Math.PI/tessellation);
-                var dx = (float) Math.Sin(angle);
-                var dz = (float) Math.Cos(angle);
+                var angle = (float)(i * 2.0 * Math.PI / tessellation);
+                var dx = (float)Math.Sin(angle);
+                var dz = (float)Math.Cos(angle);
 
                 return new Vector3(dx, 0, dz);
             }
@@ -104,8 +104,8 @@ namespace Xenko.Graphics.GeometricPrimitives
                 // Create cap indices.
                 for (int i = 0; i < tessellation - 2; i++)
                 {
-                    int i1 = (i + 1)%tessellation;
-                    int i2 = (i + 2)%tessellation;
+                    int i1 = (i + 1) % tessellation;
+                    int i2 = (i + 2) % tessellation;
 
                     if (isTop)
                     {
@@ -132,7 +132,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                 for (int i = 0; i < tessellation; i++)
                 {
                     var circleVector = GetCircleVector(i, tessellation);
-                    var position = (circleVector*radius) + (normal*height);
+                    var position = (circleVector * radius) + (normal * height);
                     var textureCoordinate = new Vector2(uScale * (circleVector.X * textureScale.X + 0.5f), vScale * (circleVector.Z * textureScale.Y + 0.5f));
 
                     vertices.Add(new VertexPositionNormalTexture(position, normal, textureCoordinate));
@@ -146,9 +146,9 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// <param name="height">The height.</param>
             /// <param name="radius">The radius.</param>
             /// <param name="tessellation">The tessellation.</param>
-            /// <param name="vScale"></param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
-            /// <param name="uScale"></param>
             /// <returns>A cylinder primitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation must be &gt;= 3</exception>
             public static GeometricPrimitive New(GraphicsDevice device, float height = 1.0f, float radius = 0.5f, int tessellation = 32, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
@@ -163,9 +163,9 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// <param name="height">The height.</param>
             /// <param name="radius">The radius.</param>
             /// <param name="tessellation">The tessellation.</param>
-            /// <param name="vScale"></param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
-            /// <param name="uScale"></param>
             /// <returns>A cylinder primitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation must be &gt;= 3</exception>
             public static GeometricMeshData<VertexPositionNormalTexture> New(float height = 1.0f, float radius = 0.5f, int tessellation = 32, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
@@ -178,7 +178,7 @@ namespace Xenko.Graphics.GeometricPrimitives
 
                 height /= 2;
 
-                var topOffset = Vector3.UnitY*height;
+                var topOffset = Vector3.UnitY * height;
 
                 int stride = tessellation + 1;
 
@@ -187,20 +187,20 @@ namespace Xenko.Graphics.GeometricPrimitives
                 {
                     var normal = GetCircleVector(i, tessellation);
 
-                    var sideOffset = normal*radius;
+                    var sideOffset = normal * radius;
 
-                    var textureCoordinate = new Vector2((float)i/tessellation, 0);
+                    var textureCoordinate = new Vector2((float)i / tessellation, 0);
                     
                     vertices.Add(new VertexPositionNormalTexture(sideOffset + topOffset, normal, textureCoordinate * new Vector2(uScale, vScale)));
                     vertices.Add(new VertexPositionNormalTexture(sideOffset - topOffset, normal, (textureCoordinate + Vector2.UnitY) * new Vector2(uScale, vScale)));
 
-                    indices.Add(i*2);
-                    indices.Add((i*2 + 2)%(stride*2));
-                    indices.Add(i*2 + 1);
+                    indices.Add(i * 2);
+                    indices.Add((i * 2 + 2) % (stride * 2));
+                    indices.Add(i * 2 + 1);
 
-                    indices.Add(i*2 + 1);
-                    indices.Add((i*2 + 2)%(stride*2));
-                    indices.Add((i*2 + 3)%(stride*2));
+                    indices.Add(i * 2 + 1);
+                    indices.Add((i * 2 + 2) % (stride * 2));
+                    indices.Add((i * 2 + 3) % (stride * 2));
                 }
 
                 // Create flat triangle fan caps to seal the top and bottom.
@@ -208,7 +208,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                 CreateCylinderCap(vertices, indices, tessellation, height, radius, uScale, vScale, false);
 
                 // Create the primitive object.
-                return new GeometricMeshData<VertexPositionNormalTexture>(vertices.ToArray(), indices.ToArray(), toLeftHanded) {Name = "Cylinder"};
+                return new GeometricMeshData<VertexPositionNormalTexture>(vertices.ToArray(), indices.ToArray(), toLeftHanded) { Name = "Cylinder" };
             }
         }
     }

@@ -8,13 +8,13 @@ namespace Xenko.Graphics
 {
     public class ResumeManager
     {
-        private GraphicsDevice GraphicsDevice;
+        private GraphicsDevice graphicsDevice;
         private bool deviceHasBeenDestroyed = false;
         private bool deviceHasBeenPaused = false;
 
         public ResumeManager(IServiceRegistry services)
         {
-            GraphicsDevice = services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
+            graphicsDevice = services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
         }
 
         public void OnRender()
@@ -39,7 +39,7 @@ namespace Xenko.Graphics
 
         public void Pause()
         {
-            foreach (var resource in GraphicsDevice.Resources)
+            foreach (var resource in graphicsDevice.Resources)
             {
                 if (resource.OnPause())
                     resource.LifetimeState = GraphicsResourceLifetimeState.Paused;
@@ -48,7 +48,7 @@ namespace Xenko.Graphics
 
         public void OnResume()
         {
-            foreach (var resource in GraphicsDevice.Resources)
+            foreach (var resource in graphicsDevice.Resources)
             {
                 if (resource.LifetimeState == GraphicsResourceLifetimeState.Paused)
                 {
@@ -61,7 +61,7 @@ namespace Xenko.Graphics
         public void OnRecreate()
         {
             // Recreate presenter
-            GraphicsDevice.Presenter?.OnRecreated();
+            graphicsDevice.Presenter?.OnRecreated();
 
             bool wasSomethingRecreated = true;
             bool hasDestroyedObjects = true;
@@ -75,7 +75,7 @@ namespace Xenko.Graphics
                 wasSomethingRecreated = false;
                 hasDestroyedObjects = false;
 
-                foreach (var resource in GraphicsDevice.Resources)
+                foreach (var resource in graphicsDevice.Resources)
                 {
                     if (resource.LifetimeState == GraphicsResourceLifetimeState.Destroyed)
                     {
@@ -96,7 +96,7 @@ namespace Xenko.Graphics
             if (hasDestroyedObjects)
             {
                 // Attach the list of objects that could not be recreated to the exception.
-                var destroyedObjects = GraphicsDevice.Resources.Where(x => x.LifetimeState == GraphicsResourceLifetimeState.Destroyed).ToList();
+                var destroyedObjects = graphicsDevice.Resources.Where(x => x.LifetimeState == GraphicsResourceLifetimeState.Destroyed).ToList();
                 throw new InvalidOperationException("Could not recreate all objects.") { Data = { { "DestroyedObjects", destroyedObjects } } };
             }
         }
@@ -104,21 +104,21 @@ namespace Xenko.Graphics
         public void OnDestroyed()
         {
             // Destroy presenter first (so that its backbuffer and render target are destroyed properly before other resources)
-            GraphicsDevice.Presenter?.OnDestroyed();
+            graphicsDevice.Presenter?.OnDestroyed();
 
-            foreach (var resource in GraphicsDevice.Resources)
+            foreach (var resource in graphicsDevice.Resources)
             {
                 resource.OnDestroyed();
                 resource.LifetimeState = GraphicsResourceLifetimeState.Destroyed;
             }
 
             // Clear various graphics device internal states (input layouts, FBOs, etc...)
-            GraphicsDevice.OnDestroyed();
+            graphicsDevice.OnDestroyed();
         }
 
         public void OnReload()
         {
-            foreach (var resource in GraphicsDevice.Resources)
+            foreach (var resource in graphicsDevice.Resources)
             {
                 if (resource.LifetimeState == GraphicsResourceLifetimeState.Destroyed)
                 {

@@ -79,7 +79,7 @@ namespace Xenko.UI.Controls
         
         private void AndroidEditTextOnAfterTextChanged(object sender, AfterTextChangedEventArgs afterTextChangedEventArgs)
         {
-            if(editText == null)
+            if (editText == null)
                 return;
 
             var newText = editText.Text;
@@ -142,7 +142,7 @@ namespace Xenko.UI.Controls
 
         private void ActivateEditTextImpl()
         {
-            if(activeEditText != null)
+            if (activeEditText != null)
                 throw new Exception("Internal error: Can not activate edit text, another edit text is already active");
 
             EnsureStaticEditText();
@@ -239,10 +239,10 @@ namespace Xenko.UI.Controls
 
         private void UpdateTextToEditImpl()
         {
-            if(editText == null)
+            if (editText == null)
                 return;
 
-            if(editText.Text != Text) // avoid infinite text changed triggering loop.
+            if (editText.Text != Text) // avoid infinite text changed triggering loop.
                 editText.Text = text;
         }
         

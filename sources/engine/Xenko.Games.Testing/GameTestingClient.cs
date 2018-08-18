@@ -37,7 +37,7 @@ namespace Xenko.Games.Testing
             if (gamePath == null) throw new ArgumentNullException(nameof(gamePath));
 
             xenkoDir = Environment.GetEnvironmentVariable("XenkoDir");
-            if(string.IsNullOrEmpty(xenkoDir)) throw new NullReferenceException("Could not find XenkoDir, make sure the environment variable is set.");
+            if (string.IsNullOrEmpty(xenkoDir)) throw new NullReferenceException("Could not find XenkoDir, make sure the environment variable is set.");
 
             gameName = Path.GetFileNameWithoutExtension(gamePath);
             switch (platform)

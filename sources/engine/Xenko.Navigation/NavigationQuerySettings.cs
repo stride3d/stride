@@ -16,7 +16,7 @@ namespace Xenko.Navigation
         public static readonly NavigationQuerySettings Default = new NavigationQuerySettings
         {
             FindNearestPolyExtent = new Vector3(2.0f, 4.0f, 2.0f),
-            MaxPathPoints = 1024
+            MaxPathPoints = 1024,
         };
 
         /// <summary>

@@ -1,6 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
+#pragma warning disable SA1402 // File may only contain a single type
+#pragma warning disable SA1649 // File name should match first type name
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -89,13 +90,13 @@ namespace Xenko.Engine.Events
     public sealed class EventReceiver : EventReceiverBase<bool>
     {
         /// <summary>
-        /// Creates an event receiver, ready to receive broadcasts from the key
+        /// Initializes a new instance of the <see cref="EventReceiver"/> class.
+        /// Creates an event receiver, ready to receive broadcasts from the key.
         /// </summary>
         /// <param name="key">The event key to listen from</param>
         /// <param name="options">Option flags</param>
         public EventReceiver(EventKey key, EventReceiverOptions options = EventReceiverOptions.None) : base(key, options)
         {
-            
         }
 
         /// <summary>
@@ -153,7 +154,7 @@ namespace Xenko.Engine.Events
                     var res = new EventData
                     {
                         Data = data,
-                        Receiver = events[i]
+                        Receiver = events[i],
                     };
                     return res;
                 }

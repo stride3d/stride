@@ -70,7 +70,7 @@ namespace Xenko.Core.TypeConverters
             Properties = new PropertyDescriptorCollection(new PropertyDescriptor[]
             {
                 new FieldPropertyDescriptor(type.GetField(nameof(Vector2.X))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Vector2.Y)))
+                new FieldPropertyDescriptor(type.GetField(nameof(Vector2.Y))),
             });
         }
 

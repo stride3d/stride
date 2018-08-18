@@ -51,7 +51,7 @@ namespace Xenko.Engine
         /// </summary>
         private class EntityProcessorComparer : Comparer<EntityProcessor>
         {
-            public new static readonly EntityProcessorComparer Default = new EntityProcessorComparer();
+            public static new readonly EntityProcessorComparer Default = new EntityProcessorComparer();
 
             public override int Compare(EntityProcessor x, EntityProcessor y)
             {

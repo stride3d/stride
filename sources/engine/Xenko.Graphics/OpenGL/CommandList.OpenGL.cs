@@ -821,7 +821,7 @@ namespace Xenko.Graphics
             PreDraw();
 
 #if XENKO_GRAPHICS_API_OPENGLES
-            if(baseVertexLocation != 0)
+            if (baseVertexLocation != 0)
                 throw new NotSupportedException("DrawIndexed with no null baseVertexLocation is not supported on OpenGL ES.");
             GL.DrawElements(newPipelineState.PrimitiveType, indexCount, indexBuffer.Type, indexBuffer.Buffer.StagingData + indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)); // conversion to IntPtr required on Android
 #else

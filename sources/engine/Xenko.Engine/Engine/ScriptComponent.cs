@@ -3,15 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.ComponentModel;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Collections;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.MicroThreading;
-using Xenko.Core.Serialization.Contents;
 using Xenko.Audio;
+using Xenko.Core;
+using Xenko.Core.Diagnostics;
+using Xenko.Core.Serialization.Contents;
 using Xenko.Engine.Design;
 using Xenko.Engine.Processors;
 using Xenko.Games;

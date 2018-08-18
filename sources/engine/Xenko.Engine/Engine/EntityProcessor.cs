@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single type
 
 using System;
 using System.Collections.Generic;
@@ -215,7 +216,7 @@ namespace Xenko.Engine
     /// <remarks>
     /// Additional precomputed data will be stored alongside the <see cref="Entity" /> to offer faster accesses and iterations.
     /// </remarks>
-    public abstract class EntityProcessor<TComponent, TData> : EntityProcessor  where TData : class where TComponent : EntityComponent
+    public abstract class EntityProcessor<TComponent, TData> : EntityProcessor where TData : class where TComponent : EntityComponent
     {
         protected readonly Dictionary<TComponent, TData> ComponentDatas = new Dictionary<TComponent, TData>();
         private readonly HashSet<Entity> reentrancyCheck = new HashSet<Entity>();

@@ -6,8 +6,8 @@ namespace Xenko.Input
     /// <summary>
     /// The <see cref="Xenko.Input"/> namespace contains types to manage the input.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

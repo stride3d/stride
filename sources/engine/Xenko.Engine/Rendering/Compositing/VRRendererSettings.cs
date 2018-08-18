@@ -9,16 +9,6 @@ using Xenko.VirtualReality;
 namespace Xenko.Rendering.Compositing
 {
     [DataContract]
-    public class VRDeviceDescription
-    {
-        [DataMember(10)]
-        public VRApi Api { get; set; }
-
-        [DataMember(20)]
-        public float ResolutionScale { get; set; } = 1.0f;
-    }
-
-    [DataContract]
     public class VRRendererSettings
     {
         [DataMember(10)]

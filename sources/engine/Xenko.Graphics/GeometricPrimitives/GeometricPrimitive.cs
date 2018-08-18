@@ -56,7 +56,7 @@ namespace Xenko.Graphics.GeometricPrimitives
         /// <summary>
         /// The input layout used by this geometric primitive (shared for all geometric primitive).
         /// </summary>
-        private readonly VertexBufferBinding VertexBufferBinding;
+        protected readonly VertexBufferBinding VertexBufferBinding;
 
         /// <summary>
         /// True if the index buffer is a 32 bit index buffer.

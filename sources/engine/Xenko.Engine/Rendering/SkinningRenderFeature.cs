@@ -22,7 +22,7 @@ namespace Xenko.Rendering
         // Good number for low profiles?
         public int MaxBones { get; set; } = 56;
 
-        struct SkinningInfo
+        private struct SkinningInfo
         {
             public ParameterCollection Parameters;
             public int PermutationCounter;
@@ -35,26 +35,26 @@ namespace Xenko.Rendering
         /// <inheritdoc/>
         protected override void InitializeCore()
         {
-            renderModelObjectInfoKey = RootRenderFeature.RenderData.CreateObjectKey<Matrix[]>();
-            skinningInfoKey = RootRenderFeature.RenderData.CreateStaticObjectKey<SkinningInfo>();
-            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
+            renderModelObjectInfoKey = rootRenderFeature.RenderData.CreateObjectKey<Matrix[]>();
+            skinningInfoKey = rootRenderFeature.RenderData.CreateStaticObjectKey<SkinningInfo>();
+            renderEffectKey = ((RootEffectRenderFeature)rootRenderFeature).RenderEffectKey;
 
-            blendMatrices = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationSkinningKeys.BlendMatrixArray.Name);
+            blendMatrices = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationSkinningKeys.BlendMatrixArray.Name);
         }
 
         /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
-            var skinningInfos = RootRenderFeature.RenderData.GetData(skinningInfoKey);
+            var skinningInfos = rootRenderFeature.RenderData.GetData(skinningInfoKey);
 
-            var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
-            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
+            var renderEffects = rootRenderFeature.RenderData.GetData(renderEffectKey);
+            int effectSlotCount = ((RootEffectRenderFeature)rootRenderFeature).EffectPermutationSlotCount;
 
             //foreach (var objectNodeReference in RootRenderFeature.ObjectNodeReferences)
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).ObjectNodeReferences, objectNodeReference =>
+            Dispatcher.ForEach(((RootEffectRenderFeature)rootRenderFeature).ObjectNodeReferences, objectNodeReference =>
             {
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
+                var objectNode = rootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = (RenderMesh)objectNode.RenderObject;
                 var staticObjectNode = renderMesh.StaticObjectNode;
 
@@ -95,11 +95,11 @@ namespace Xenko.Rendering
         /// <inheritdoc/>
         public override void Extract()
         {
-            var renderModelObjectInfo = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
+            var renderModelObjectInfo = rootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
 
-            Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, objectNodeReference =>
+            Dispatcher.ForEach(rootRenderFeature.ObjectNodeReferences, objectNodeReference =>
             {
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
+                var objectNode = rootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = (RenderMesh)objectNode.RenderObject;
 
                 // TODO GRAPHICS REFACTOR: Extract copy of matrices
@@ -110,9 +110,9 @@ namespace Xenko.Rendering
         /// <inheritdoc/>
         public override unsafe void Prepare(RenderDrawContext context)
         {
-            var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
+            var renderModelObjectInfoData = rootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
 
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
+            Dispatcher.ForEach(((RootEffectRenderFeature)rootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
                 if (perDrawLayout == null)

@@ -49,7 +49,7 @@ namespace Xenko.Core
         /// Initializes a new instance of the <see cref="PackageVersionRange"/> class with only one possible version.
         /// </summary>
         /// <param name="version">The exact version.</param>
-        public PackageVersionRange(PackageVersion version):this(version, true, version, true)
+        public PackageVersionRange(PackageVersion version) : this(version, true, version, true)
         {
         }
 
@@ -158,7 +158,7 @@ namespace Xenko.Core
                 {
                     IsMinInclusive = true,
                     MinVersion = version,
-                    MaxVersion = new PackageVersion(new Version(version.Version.Major, version.Version.Minor + 1))
+                    MaxVersion = new PackageVersion(new Version(version.Version.Major, version.Version.Minor + 1)),
                 };
         }
 
@@ -187,7 +187,7 @@ namespace Xenko.Core
                 result = new PackageVersionRange
                     {
                         MinVersion = version,
-                        IsMinInclusive = true
+                        IsMinInclusive = true,
                     };
 
                 return true;

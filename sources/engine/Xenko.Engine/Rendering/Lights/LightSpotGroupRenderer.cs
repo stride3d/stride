@@ -6,24 +6,11 @@ using System.Collections.Generic;
 using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
-using Xenko.Graphics;
 using Xenko.Rendering.Shadows;
 using Xenko.Shaders;
 
 namespace Xenko.Rendering.Lights
 {
-    public struct SpotLightData
-    {
-        public Vector3 PositionWS;
-        private float padding0;
-        public Vector3 DirectionWS;
-        private float padding1;
-        public Vector3 AngleOffsetAndInvSquareRadius;
-        private float padding2;
-        public Color3 Color;
-        private float padding3;
-    }
-
     /// <summary>
     /// Light renderer for <see cref="LightSpot"/>.
     /// Handles grouping by shadow type and projection texture.
@@ -46,7 +33,7 @@ namespace Xenko.Rendering.Lights
             {
                 ShadowType = 0,
                 ShadowRenderer = null,
-                SpotParameters = SpotLightTextureParameters.Default
+                SpotParameters = SpotLightTextureParameters.Default,
             };
 
             public bool Equals(ref SpotLightGroupParameters other)
@@ -175,7 +162,7 @@ namespace Xenko.Rendering.Lights
                     
                     if (nextLight.Type is LightSpot spotLight)
                     {
-                        if (spotLight.ProjectiveTexture != null)    // TODO: Remove this branch?!
+                        if (spotLight.ProjectiveTexture != null) // TODO: Remove this branch?!
                         {
                             nextGroupParameters.SpotParameters.ProjectionTexture = spotLight.ProjectiveTexture;
                             nextGroupParameters.SpotParameters.FlipMode = spotLight.FlipMode;
@@ -230,7 +217,6 @@ namespace Xenko.Rendering.Lights
                     currentGroupParameters = nextGroupParameters;
                 }
 
-
                 if (j < parameters.LightIndices.Count)
                 {
                     // Do we need to process non shadowing lights or defer it to something else?
@@ -244,7 +230,9 @@ namespace Xenko.Rendering.Lights
                     processedLights.Add(new LightDynamicEntry(nextLight, nextShadowTexture));
                 }
                 else
+                {
                     j++;
+                }
             }
 
             processedLights.Clear();
@@ -261,9 +249,9 @@ namespace Xenko.Rendering.Lights
             }
         }
 
-        class LightShaderGroupComparer : Comparer<LightShaderGroupEntry<LightGroupKey>>
+        private class LightShaderGroupComparer : Comparer<LightShaderGroupEntry<LightGroupKey>>
         {
-            public new static readonly LightShaderGroupComparer Default = new LightShaderGroupComparer();
+            public static new readonly LightShaderGroupComparer Default = new LightShaderGroupComparer();
 
             public override int Compare(LightShaderGroupEntry<LightGroupKey> x, LightShaderGroupEntry<LightGroupKey> y)
             {
@@ -328,16 +316,16 @@ namespace Xenko.Rendering.Lights
 
         private struct TextureProjectionRendererKey : IEquatable<TextureProjectionRendererKey>
         {
-            public readonly SpotLightTextureParameters spotLightParameters;
+            public readonly SpotLightTextureParameters SpotLightParameters;
 
             public TextureProjectionRendererKey(SpotLightTextureParameters spotParameters)
             {
-                spotLightParameters = spotParameters;
+                SpotLightParameters = spotParameters;
             }
 
             public bool Equals(TextureProjectionRendererKey other)
             {
-                return spotLightParameters.Equals(other.spotLightParameters);
+                return SpotLightParameters.Equals(other.SpotLightParameters);
             }
 
             public override bool Equals(object obj)
@@ -348,15 +336,15 @@ namespace Xenko.Rendering.Lights
 
             public override int GetHashCode()
             {
-                return spotLightParameters.GetHashCode();
+                return SpotLightParameters.GetHashCode();
             }
             public override string ToString()
             {
-                return $"Texture projection renderer: Texture=[{spotLightParameters.ProjectionTexture}], flip mode=[{spotLightParameters.FlipMode}], UVScale=[{spotLightParameters.UVScale}], UVOffset=[{spotLightParameters.UVOffset}]";
+                return $"Texture projection renderer: Texture=[{SpotLightParameters.ProjectionTexture}], flip mode=[{SpotLightParameters.FlipMode}], UVScale=[{SpotLightParameters.UVScale}], UVOffset=[{SpotLightParameters.UVOffset}]";
             }
         }
 
-        class SpotLightShaderGroup : LightShaderGroupDynamic
+        private class SpotLightShaderGroup : LightShaderGroupDynamic
         {
             private ValueParameterKey<int> countKey;
             private ValueParameterKey<SpotLightData> lightsKey;
@@ -406,24 +394,23 @@ namespace Xenko.Rendering.Lights
                 return lightCount;
             }
 
-
             public override void ApplyDrawParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters, ref BoundingBoxExt boundingBox)
             {
                 // TODO THREADING: Make CurrentLights and lightData (thread-) local
                 lock (applyLock)
                 {
-                    CurrentLights.Clear();
-                    var lightRange = LightRanges[viewIndex];
+                    currentLights.Clear();
+                    var lightRange = lightRanges[viewIndex];
                     for (int i = lightRange.Start; i < lightRange.End; ++i)
-                        CurrentLights.Add(Lights[i]);
+                        currentLights.Add(lights[i]);
 
                     base.ApplyDrawParameters(context, viewIndex, parameters, ref boundingBox);
 
                     // TODO: Octree structure to select best lights quicker
                     var boundingBox2 = (BoundingBox)boundingBox;
-                    for (int i = 0; i < CurrentLights.Count; i++)
+                    for (int i = 0; i < currentLights.Count; i++)
                     {
-                        var light = CurrentLights[i].Light;
+                        var light = currentLights[i].Light;
 
                         if (light.BoundingBox.Intersects(ref boundingBox2))
                         {
@@ -447,7 +434,7 @@ namespace Xenko.Rendering.Lights
                     parameters.Set(lightsKey, lightsData.Count, ref lightsData.Items[0]);
                     lightsData.Clear();
 
-                    TextureProjectionShaderGroupData?.ApplyDrawParameters(context, parameters, CurrentLights, ref boundingBox);
+                    TextureProjectionShaderGroupData?.ApplyDrawParameters(context, parameters, currentLights, ref boundingBox);
                 }
             }
         }

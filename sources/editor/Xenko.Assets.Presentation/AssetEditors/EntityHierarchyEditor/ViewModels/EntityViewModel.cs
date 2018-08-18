@@ -341,7 +341,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModel
                 var component = (TransformComponent)e.OldValue;
                 var partId = new AbsoluteId(Asset.Id, component.Entity.Id);
                 var element = (EntityViewModel)Editor.FindPartViewModel(partId);
-                if(element == null) throw new InvalidOperationException($"{nameof(element)} cannot be null");
+                if (element == null) throw new InvalidOperationException($"{nameof(element)} cannot be null");
                 RemoveEntityViewModel(element);
                 // FIXME: when we allow loading/unloading single entities, this should be implemented in OnLoadingRequested. Then just call RequestLoading(false).
                 if (element.IsLoaded)

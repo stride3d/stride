@@ -99,7 +99,7 @@ namespace Xenko.UI
             get { return type; }
             set
             {
-                if(type == value)
+                if (type == value)
                     return;
 
                 type = value;

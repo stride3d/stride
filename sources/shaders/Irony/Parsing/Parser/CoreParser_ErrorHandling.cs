@@ -135,7 +135,7 @@ namespace Irony.Parsing {
         }
         //No reduce action in current state. Try to shift current token or throw it away or reduce
         action = GetShiftActionInCurrentState();
-        if(action != null)
+        if (action != null)
           ExecuteShift(action); //shift input token
         else //simply read input
           ReadInput(); 
@@ -271,7 +271,7 @@ namespace Irony.Parsing {
             terms.ExceptWith(group.Terminals); 
       //Add normal and operator groups
       foreach(var group in grammar.TermReportGroups)
-        if(group.GroupType == TermReportGroupType.Normal || group.GroupType == TermReportGroupType.Operator && terms.Overlaps(group.Terminals)) {
+        if (group.GroupType == TermReportGroupType.Normal || group.GroupType == TermReportGroupType.Operator && terms.Overlaps(group.Terminals)) {
           result.Add(group.Alias); 
           terms.ExceptWith(group.Terminals);
         }

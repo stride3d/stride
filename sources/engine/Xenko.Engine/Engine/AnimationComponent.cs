@@ -6,10 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Threading;
 using System.Threading.Tasks;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.Collections;
 using Xenko.Animations;
+using Xenko.Core;
+using Xenko.Core.Collections;
 using Xenko.Engine.Design;
 
 namespace Xenko.Engine
@@ -36,10 +35,10 @@ namespace Xenko.Engine
         {
             animations = new Dictionary<string, AnimationClip>();
             playingAnimations = new TrackingCollection<PlayingAnimation>();
-            playingAnimations.CollectionChanged += playingAnimations_CollectionChanged;
+            playingAnimations.CollectionChanged += PlayingAnimations_CollectionChanged;
         }
 
-        void playingAnimations_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void PlayingAnimations_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
         {
             var item = (PlayingAnimation)e.Item;
             switch (e.Action)
@@ -53,8 +52,8 @@ namespace Xenko.Engine
                         item.Evaluator = null;
                     }
 
-                    item.endedTCS?.TrySetResult(true);
-                    item.endedTCS = null;
+                    item.EndedTCS?.TrySetResult(true);
+                    item.EndedTCS = null;
                     break;
                 }
 
@@ -111,9 +110,9 @@ namespace Xenko.Engine
         /// <param name="repeatMode">Repeat mode - play once or loop indefinitely</param>
         /// <returns>The added playing animation</returns>
         public PlayingAnimation Add(AnimationClip clip, double startTime = 0, AnimationBlendOperation blend = AnimationBlendOperation.LinearBlend, 
-            float timeScale = 1f, float weight = 1f, AnimationRepeatMode ? repeatMode = null)
+            float timeScale = 1f, float weight = 1f, AnimationRepeatMode? repeatMode = null)
         {
-            var playingAnimation = new PlayingAnimation("", clip)
+            var playingAnimation = new PlayingAnimation(string.Empty, clip)
             {
                 TimeFactor = timeScale,
                 Weight = weight,
@@ -204,12 +203,12 @@ namespace Xenko.Engine
             if (!playingAnimations.Contains(animation))
                 throw new InvalidOperationException("Trying to await end of an animation which is not playing");
 
-            if (animation.endedTCS == null)
+            if (animation.EndedTCS == null)
             {
-                Interlocked.CompareExchange(ref animation.endedTCS, new TaskCompletionSource<bool>(), null);
+                Interlocked.CompareExchange(ref animation.EndedTCS, new TaskCompletionSource<bool>(), null);
             }
 
-            return animation.endedTCS.Task;
+            return animation.EndedTCS.Task;
         }
     }
 

@@ -39,7 +39,7 @@ namespace Xenko.Physics
 
         CustomFilter10 = 0x8000,
 
-        AllFilter = 0xFFFF
+        AllFilter = 0xFFFF,
     }
 
     [Flags]
@@ -77,6 +77,6 @@ namespace Xenko.Physics
 
         CustomFilter10 = 0x8000,
 
-        AllFilter = 0xFFFF
+        AllFilter = 0xFFFF,
     }
 }

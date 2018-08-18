@@ -73,7 +73,7 @@ namespace Xenko.Audio
 
             var newInstance = new SoundInstanceStreamedBuffer(scheduler, this, mediaDataUrl, startPosition, length, listener, useHrtf, directionalFactor, environment)
             {
-                Name = Name + " - Instance " + IntancesCreationCount
+                Name = Name + " - Instance " + intancesCreationCount,
             };
             RegisterInstance(newInstance);
             
@@ -82,7 +82,7 @@ namespace Xenko.Audio
 
         public bool ReachedEndOfMedia()
         {
-            foreach(SoundInstanceStreamedBuffer instance in Instances)
+            foreach (SoundInstanceStreamedBuffer instance in Instances)
             {
                 if (!instance.ReachedEndOfMedia())
                     return false;

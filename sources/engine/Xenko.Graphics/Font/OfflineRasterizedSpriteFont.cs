@@ -52,7 +52,7 @@ namespace Xenko.Graphics.Font
             }
 
             // add the textures if any
-            if(textures != null)
+            if (textures != null)
                 StaticTextures.AddRange(textures);
         }
 

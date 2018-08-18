@@ -44,7 +44,7 @@ namespace Xenko.Audio
         public enum DeviceFlags
         {
             None,
-            Hrtf
+            Hrtf,
         }
 
         [SuppressUnmanagedCodeSecurity]
@@ -120,7 +120,7 @@ namespace Xenko.Audio
             None,
             BeginOfStream,
             EndOfStream,
-            EndOfLoop
+            EndOfLoop,
         }
 
         [SuppressUnmanagedCodeSecurity]

@@ -30,7 +30,7 @@ namespace Xenko.Engine
                 parentModelComponent.Entity.Transform.UpdateWorldMatrix();
             }
 
-            if (parentModelComponent.Skeleton != skeleton || parentModelComponent.Skeleton != null && parentModelComponent.Skeleton.Nodes.Length != nodesLength)
+            if (parentModelComponent.Skeleton != skeleton || (parentModelComponent.Skeleton != null && parentModelComponent.Skeleton.Nodes.Length != nodesLength))
             {
                 skeleton = parentModelComponent.Skeleton;               
                 if (skeleton != null)

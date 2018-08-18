@@ -25,9 +25,9 @@ namespace Xenko.Core.Shaders.Analysis.Hlsl
     {
         private static readonly Object lockInit = new Object();
         private static bool builtinsInitialized = false;
-        protected readonly static List<IDeclaration> defaultDeclarations = new List<IDeclaration>();
-        private readonly static Dictionary<string, TypeBase> BuiltinObjects = new Dictionary<string, TypeBase>();
-        private readonly static Dictionary<GenericInstanceKey, TypeBase> InstanciatedTypes = new Dictionary<GenericInstanceKey, TypeBase>();
+        protected static readonly List<IDeclaration> defaultDeclarations = new List<IDeclaration>();
+        private static readonly Dictionary<string, TypeBase> BuiltinObjects = new Dictionary<string, TypeBase>();
+        private static readonly Dictionary<GenericInstanceKey, TypeBase> InstanciatedTypes = new Dictionary<GenericInstanceKey, TypeBase>();
         
         #region Constructors and Destructors
 

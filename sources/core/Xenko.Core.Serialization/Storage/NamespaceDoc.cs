@@ -11,7 +11,7 @@ namespace Xenko.Core.Storage
     /// <summary>
     /// The <see cref="Xenko.Core.Storage"/> namespace provides classes and interfaces that manage storage of data in an object database at low-level.
     /// </summary>
-    class NamespaceDoc
+    internal class NamespaceDoc
     {
     }
 }

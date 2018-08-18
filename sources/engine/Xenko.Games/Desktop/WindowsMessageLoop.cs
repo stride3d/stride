@@ -31,7 +31,6 @@ using System.Runtime.InteropServices;
 
 namespace Xenko.Games
 {
-
     /// <summary>
     /// RenderLoop provides a rendering loop infrastructure. See remarks for usage. 
     /// </summary>
@@ -60,7 +59,9 @@ namespace Xenko.Games
         /// <summary>
         /// Initializes a new instance of the <see cref="WindowsMessageLoop"/> class.
         /// </summary>
-        public WindowsMessageLoop() {}
+        public WindowsMessageLoop()
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WindowsMessageLoop"/> class.
@@ -83,10 +84,10 @@ namespace Xenko.Games
             }
             set
             {
-                if(control == value) return;
+                if (control == value) return;
 
                 // Remove any previous control
-                if(control != null && !switchControl)
+                if (control != null && !switchControl)
                 {
                     isControlAlive = false;
                     control.Disposed -= ControlDisposed;
@@ -134,9 +135,9 @@ namespace Xenko.Games
                 switchControl = false;
             }
 
-            if(isControlAlive)
+            if (isControlAlive)
             {
-                if(UseApplicationDoEvents)
+                if (UseApplicationDoEvents)
                 {
                     // Revert back to Application.DoEvents in order to support Application.AddMessageFilter
                     // Seems that DoEvents is compatible with Mono unlike Application.Run that was not running
@@ -215,13 +216,13 @@ namespace Xenko.Games
         /// renderCallback</exception>
         public static void Run(Control form, RenderCallback renderCallback, bool useApplicationDoEvents = false)
         {
-            if(form == null) throw new ArgumentNullException("form");
-            if(renderCallback == null) throw new ArgumentNullException("renderCallback");
+            if (form == null) throw new ArgumentNullException("form");
+            if (renderCallback == null) throw new ArgumentNullException("renderCallback");
 
             form.Show();
             using (var renderLoop = new WindowsMessageLoop(form) { UseApplicationDoEvents = useApplicationDoEvents })
             {
-                while(renderLoop.NextFrame())
+                while (renderLoop.NextFrame())
                 {
                     renderCallback();
                 }

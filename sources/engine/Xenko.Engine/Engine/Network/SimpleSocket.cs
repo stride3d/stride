@@ -1,14 +1,9 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Sockets.Plugin;
 using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Net;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
-using System.Collections;
+using Sockets.Plugin;
 
 namespace Xenko.Engine.Network
 {

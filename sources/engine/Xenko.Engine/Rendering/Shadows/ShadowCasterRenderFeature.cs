@@ -13,7 +13,7 @@ namespace Xenko.Rendering.Shadows
         protected override void InitializeCore()
         {
             base.InitializeCore();
-            shadowCasterKey = ((RootEffectRenderFeature)RootRenderFeature).CreateViewLogicalGroup("ShadowCaster");
+            shadowCasterKey = ((RootEffectRenderFeature)rootRenderFeature).CreateViewLogicalGroup("ShadowCaster");
         }
 
         public override void Prepare(RenderDrawContext context)
@@ -23,7 +23,7 @@ namespace Xenko.Rendering.Shadows
             for (int index = 0; index < RenderSystem.Views.Count; index++)
             {
                 var view = RenderSystem.Views[index];
-                var viewFeature = view.Features[RootRenderFeature.Index];
+                var viewFeature = view.Features[rootRenderFeature.Index];
                 
                 // Process only shadow views
                 var shadowMapRenderView = view as ShadowMapRenderView;

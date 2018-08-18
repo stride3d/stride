@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using Xenko.Core.Mathematics;
-using Xenko.Rendering.Data;
 using Xenko.Graphics;
 using Xenko.Graphics.Data;
 
@@ -53,7 +52,6 @@ namespace Xenko.Extensions
                     Vector3 transformedPosition;
 
                     Vector3.TransformCoordinate(ref *position, ref matrix, out transformedPosition);
-
 
                     //We are doing a relative distance comparasin to find the maximum distance
                     //from the center of our sphere.

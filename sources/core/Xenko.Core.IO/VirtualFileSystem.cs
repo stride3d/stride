@@ -23,7 +23,7 @@ namespace Xenko.Core.IO
         public static readonly string LocalDatabasePath = "/local/db";
         public static readonly string ApplicationDatabaseIndexName = "index";
         public static readonly string ApplicationDatabaseIndexPath = ApplicationDatabasePath + DirectorySeparatorChar + ApplicationDatabaseIndexName;
-        private static readonly Regex pathSplitRegex = new Regex(@"(\\|/)");
+        private static readonly Regex PathSplitRegex = new Regex(@"(\\|/)");
 
         // As opposed to real Path.GetTempFileName, we don't have a 65536 limit.
         // This can be achieved by having a fixed random seed.
@@ -35,7 +35,7 @@ namespace Xenko.Core.IO
         /// <summary>
         /// The application data file provider.
         /// </summary>
-        public readonly static IVirtualFileProvider ApplicationData;
+        public static readonly IVirtualFileProvider ApplicationData;
 
         /// <summary>
         /// The application database file provider (ObjectId level).
@@ -45,22 +45,22 @@ namespace Xenko.Core.IO
         /// <summary>
         /// The application database file provider (Index level).
         /// </summary>
-        public readonly static IVirtualFileProvider ApplicationDatabase;
+        public static readonly IVirtualFileProvider ApplicationDatabase;
 
         /// <summary>
         /// The application cache folder.
         /// </summary>
-        public readonly static IVirtualFileProvider ApplicationCache;
+        public static readonly IVirtualFileProvider ApplicationCache;
 
         /// <summary>
         /// The application user roaming folder. Included in backup.
         /// </summary>
-        public readonly static IVirtualFileProvider ApplicationRoaming;
+        public static readonly IVirtualFileProvider ApplicationRoaming;
 
         /// <summary>
         /// The application user local folder. Included in backup.
         /// </summary>
-        public readonly static IVirtualFileProvider ApplicationLocal;
+        public static readonly IVirtualFileProvider ApplicationLocal;
 
         /// <summary>
         /// The application temporary data provider.
@@ -70,7 +70,7 @@ namespace Xenko.Core.IO
         /// <summary>
         /// The application binary folder.
         /// </summary>
-        public readonly static IVirtualFileProvider ApplicationBinary;
+        public static readonly IVirtualFileProvider ApplicationBinary;
 
         /// <summary>
         /// The whole host file system. This should be used only in tools.
@@ -78,7 +78,7 @@ namespace Xenko.Core.IO
         public static readonly DriveFileProvider Drive;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="VirtualFileSystem" /> class.
+        /// Initializes static members of the <see cref="VirtualFileSystem"/> class.
         /// </summary>
         static VirtualFileSystem()
         {
@@ -177,7 +177,7 @@ namespace Xenko.Core.IO
         /// Checks the existence of a file.
         /// </summary>
         /// <param name="path">The path of the file to check.</param>
-        /// <returns></returns>
+        /// <returns>True if the file exists, false otherwise.</returns>
         public static bool FileExists(string path)
         {
             if (path == null) throw new ArgumentNullException("path");
@@ -192,7 +192,7 @@ namespace Xenko.Core.IO
         /// Checks the existence of a directory.
         /// </summary>
         /// <param name="path">The path of the directory to check.</param>
-        /// <returns></returns>
+        /// <returns>True if the directory exists, false otherwise.</returns>
         public static bool DirectoryExists(string path)
         {
             if (path == null) throw new ArgumentNullException("path");
@@ -236,7 +236,6 @@ namespace Xenko.Core.IO
             return result.Provider.GetLastWriteTime(result.Path);
         }
 
-
         public static Task<bool> FileExistsAsync(string path)
         {
             return Task<bool>.Factory.StartNew(() => FileExists(path));
@@ -259,7 +258,7 @@ namespace Xenko.Core.IO
         /// <param name="mode">The stream opening mode (append, open, create, etc...).</param>
         /// <param name="access">The stream access.</param>
         /// <param name="share">The stream share mode.</param>
-        /// <returns></returns>
+        /// <returns>The stream.</returns>
         public static Stream OpenStream(string path, VirtualFileMode mode, VirtualFileAccess access, VirtualFileShare share = VirtualFileShare.Read)
         {
             var resolveProviderResult = ResolveProvider(path, false);
@@ -302,8 +301,8 @@ namespace Xenko.Core.IO
         /// Resolves the path.
         /// </summary>
         /// <param name="path">The path.</param>
-        /// <returns></returns>
-        public static string Resolvepath(string path)
+        /// <returns>The resolved path.</returns>
+        public static string ResolvePath(string path)
         {
             var resolveProviderResult = ResolveProvider(path, false);
 
@@ -324,7 +323,7 @@ namespace Xenko.Core.IO
         /// <param name="path">The path.</param>
         /// <param name="searchPattern">The search pattern.</param>
         /// <param name="searchOption">The search option.</param>
-        /// <returns></returns>
+        /// <returns>The list of files matching the pattern.</returns>
         public static Task<string[]> ListFiles(string path, string searchPattern, VirtualSearchOption searchOption)
         {
             var resolveProviderResult = ResolveProvider(path, true);
@@ -343,7 +342,7 @@ namespace Xenko.Core.IO
             string filename;
             do
             {
-                filename = "xk" + ((tempFileRandom.Next() + 1)).ToString("x") + ".tmp";
+                filename = "xk" + (tempFileRandom.Next() + 1).ToString("x") + ".tmp";
                 try
                 {
                     stream = ApplicationTemporary.OpenStream(filename, VirtualFileMode.CreateNew, VirtualFileAccess.ReadWrite);
@@ -354,7 +353,8 @@ namespace Xenko.Core.IO
                     if (tentatives++ > 0x10000)
                         throw;
                 }
-            } while (stream == null);
+            }
+            while (stream == null);
             stream.Dispose();
 
             return ApplicationTemporary.RootPath + "/" + filename;
@@ -369,13 +369,13 @@ namespace Xenko.Core.IO
         /// Returns the path with its .. or . parts simplified.
         /// </summary>
         /// <param name="path">The path.</param>
-        /// <returns></returns>
+        /// <returns>The resolved absolute path.</returns>
         public static string ResolveAbsolutePath(string path)
         {
             if (!path.Contains(DirectorySeparatorChar + ".."))
                 return path;
 
-            var pathElements = pathSplitRegex.Split(path).ToList();
+            var pathElements = PathSplitRegex.Split(path).ToList();
 
             // Remove duplicate directory separators
             for (int i = 0; i < pathElements.Count; ++i)
@@ -419,7 +419,7 @@ namespace Xenko.Core.IO
         /// </summary>
         /// <param name="path1">The path1.</param>
         /// <param name="path2">The path2.</param>
-        /// <returns></returns>
+        /// <returns>The combined path.</returns>
         public static string Combine(string path1, string path2)
         {
             if (path1.Length == 0)
@@ -438,7 +438,7 @@ namespace Xenko.Core.IO
         /// Gets the parent folder.
         /// </summary>
         /// <param name="path">The path.</param>
-        /// <returns></returns>
+        /// <returns>The parent folder.</returns>
         /// <exception cref="System.ArgumentNullException">path</exception>
         /// <exception cref="System.ArgumentException">path doesn't contain a /;path</exception>
         public static string GetParentFolder(string path)
@@ -473,7 +473,7 @@ namespace Xenko.Core.IO
         /// </summary>
         /// <param name="target">The target.</param>
         /// <param name="sourcePath">The source path.</param>
-        /// <returns></returns>
+        /// <returns>The relative path.</returns>
         public static string CreateRelativePath(string target, string sourcePath)
         {
             var targetDirectories = target.Split(AllDirectorySeparatorChars, StringSplitOptions.RemoveEmptyEntries);
@@ -512,7 +512,7 @@ namespace Xenko.Core.IO
         /// </summary>
         /// <param name="path">The path.</param>
         /// <param name="resolveTop">if set to <c>true</c> [resolve top].</param>
-        /// <returns></returns>
+        /// <returns>The virtual file system provider and local path in it.</returns>
         /// <exception cref="System.InvalidOperationException">path cannot be resolved to a provider.</exception>
         public static ResolveProviderResult ResolveProvider(string path, bool resolveTop)
         {
@@ -550,7 +550,7 @@ namespace Xenko.Core.IO
             for (int i = path.Length - 1; i >= 0; --i)
             {
                 var pathChar = path[i];
-                var isResolvingTop = (i == path.Length - 1 && resolveTop);
+                var isResolvingTop = i == path.Length - 1 && resolveTop;
                 if (!isResolvingTop && pathChar != DirectorySeparatorChar)
                 {
                     continue;

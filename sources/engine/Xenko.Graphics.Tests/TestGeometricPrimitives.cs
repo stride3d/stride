@@ -111,7 +111,7 @@ namespace Xenko.Graphics.Tests
             if (!isPaused)
                 timeSeconds += 1 / 60f; // frame dependent time (for unit tests)
 
-            if(!ScreenShotAutomationEnabled)
+            if (!ScreenShotAutomationEnabled)
                 DrawPrimitives();
         }
 

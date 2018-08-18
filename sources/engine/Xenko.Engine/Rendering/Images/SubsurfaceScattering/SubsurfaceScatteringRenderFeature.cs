@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Rendering.SubsurfaceScattering;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
+using Xenko.Rendering.SubsurfaceScattering;
 
 namespace Xenko.Rendering.Materials
 {
@@ -24,7 +24,7 @@ namespace Xenko.Rendering.Materials
             // TODO: STABILITY: This might cause issues if there's a hash collision. The material won't be saved.
             //                  An idea is to use two hashes generated with different methods and to compare those instead.
 
-            private static int GetVector4Hash(Vector4 vector)  // I'm not using "Vector4.GetHashCode()" because it's terrible.
+            private static int GetVector4Hash(Vector4 vector) // I'm not using "Vector4.GetHashCode()" because it's terrible.
             {
                 unchecked
                 {
@@ -56,7 +56,7 @@ namespace Xenko.Rendering.Materials
                 }
             }
 
-            public bool Equals(ScatteringParameters other)  // TODO: PERFORMANCE: This function is slow because it compares the whole kernel. 
+            public bool Equals(ScatteringParameters other) // TODO: PERFORMANCE: This function is slow because it compares the whole kernel. 
             {
                 if (ScatteringKernel.Length != other.ScatteringKernel.Length) // TODO: Is this check necessary or does "SequenceEqual()" already check for that?
                 {
@@ -68,7 +68,7 @@ namespace Xenko.Rendering.Materials
                        ScatteringKernel.SequenceEqual(other.ScatteringKernel); // &&
             }
 
-            public override int GetHashCode()   // We ignore "ScatteringKernel" because it's generated based on "ScatteringKernel" and "ScatteringFalloff".
+            public override int GetHashCode() // We ignore "ScatteringKernel" because it's generated based on "ScatteringKernel" and "ScatteringFalloff".
             {
                 unchecked
                 {
@@ -103,7 +103,7 @@ namespace Xenko.Rendering.Materials
         protected override void InitializeCore()
         {
             base.InitializeCore();
-            materialIndexConstantBufferOffsetReference = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(GBufferOutputSubsurfaceScatteringMaterialIndexKeys.MaterialIndex.Name);
+            materialIndexConstantBufferOffsetReference = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(GBufferOutputSubsurfaceScatteringMaterialIndexKeys.MaterialIndex.Name);
         }
 
         private bool HasScatteringKernel(MaterialPass material)
@@ -128,7 +128,7 @@ namespace Xenko.Rendering.Materials
         {
             // "SetScatteringWidth()" throws an exception if the range is exceeded. // TODO: How to handle this? Don't throw at all?
             SubsurfaceScatteringBlurEffect.SetScatteringWidth(materialArrayIndex, scatteringParameters.ScatteringWidth); // Add the scattering width to the scattering width array.
-            if(scatteringParameters.ScatteringKernel != null)
+            if (scatteringParameters.ScatteringKernel != null)
             { 
                 // TODO: STABILITY: What to do if the scattering width is present but no kernel? The post-process wouldn't be able to handle that correctly.
                 //                  Maybe just save a dummy kernel?
@@ -138,7 +138,7 @@ namespace Xenko.Rendering.Materials
             scatteringParametersToArrayIndexDictionary[scatteringParameters] = materialArrayIndex; // Add the material to the dictionary and save its associated index in the scattering width array.
         }
 
-        uint AddMaterialToDictionaryAndGetArrayIndex(RenderMesh renderMesh, ref uint materialArrayIndexCounter)
+        private uint AddMaterialToDictionaryAndGetArrayIndex(RenderMesh renderMesh, ref uint materialArrayIndexCounter)
         {
             // Fill the structure because the dictionary compares the contents for equality:
             ScatteringParameters scatteringParameters = new ScatteringParameters(renderMesh.MaterialPass);
@@ -183,7 +183,7 @@ namespace Xenko.Rendering.Materials
 
             // Generate the material dictionary that contains only scattering materials:
             //Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>   // TODO: PERFORMANCE: Use this instead?
-            foreach (RenderNode renderNode in ((RootEffectRenderFeature)RootRenderFeature).RenderNodes)
+            foreach (RenderNode renderNode in ((RootEffectRenderFeature)rootRenderFeature).RenderNodes)
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
                 if (perDrawLayout == null)

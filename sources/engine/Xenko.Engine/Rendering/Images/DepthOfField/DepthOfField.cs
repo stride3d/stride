@@ -2,12 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Mathematics;
 using Xenko.Graphics;
-using System.Collections.Generic;
 
 namespace Xenko.Rendering.Images
 {
@@ -75,14 +75,14 @@ namespace Xenko.Rendering.Images
                 {
                     case 0:
                         // Single level, at 1/4 resolution
-                        LevelCoCValues = new [] { 1f };
-                        LevelDownscaleFactors = new [] { 2 };
+                        LevelCoCValues = new[] { 1f };
+                        LevelDownscaleFactors = new[] { 2 };
                         break;
 
                     case 1:
                         // Single level, at half the resolution
-                        LevelCoCValues = new [] { 1f };
-                        LevelDownscaleFactors = new [] { 1 };
+                        LevelCoCValues = new[] { 1f };
+                        LevelDownscaleFactors = new[] { 1 };
                         break;
 
                     default:
@@ -213,16 +213,16 @@ namespace Xenko.Rendering.Images
         private class CoCLevelConfig
         {
             // CoC value in [0.0, 1.0] that the current level represents.
-            public float        CoCValue;
+            public float CoCValue;
 
             // Downscale factor indicating which resolution we'll use to render this level.
-            public int          downscaleFactor;
+            public int DownscaleFactor;
 
             // Each level has its own instance of blur effect.
             // Because if we rely on a single instance for all the levels, modifying the blur radius 
             // will allocate memory and we don't want to generate garbage at each frame.
-            public BokehBlur    blurEffect;
-        };
+            public BokehBlur BlurEffect;
+        }
 
         // List of each CoC level with its configuration
         private List<CoCLevelConfig> cocLevels = new List<CoCLevelConfig>();
@@ -314,7 +314,7 @@ namespace Xenko.Rendering.Images
             combineShaderCocLevelValues = new float[levelCount];
             
             // Special case: level 0 is always our original image
-            cocLevels.Add(new CoCLevelConfig { CoCValue = 0f, downscaleFactor = 0 });
+            cocLevels.Add(new CoCLevelConfig { CoCValue = 0f, DownscaleFactor = 0 });
             combineShaderCocLevelValues[0] = 0f;
 
             // Add a description for each of the blur levels
@@ -326,8 +326,8 @@ namespace Xenko.Rendering.Images
                 CoCLevelConfig lvlConfig = new CoCLevelConfig
                 {
                     CoCValue = (levelCoCValues != null) ? levelCoCValues[i - 1] : 1f,
-                    downscaleFactor = (levelDownscaleFactors != null) ? levelDownscaleFactors[i - 1] : 1,
-                    blurEffect = blurEffect
+                    DownscaleFactor = (levelDownscaleFactors != null) ? levelDownscaleFactors[i - 1] : 1,
+                    BlurEffect = blurEffect,
                 };
                 cocLevels.Add(lvlConfig);
 
@@ -403,7 +403,7 @@ namespace Xenko.Rendering.Images
             var maxDownscale = 0;
             foreach (var cocLevel in cocLevels)
             {
-                if (cocLevel.downscaleFactor > maxDownscale) maxDownscale = cocLevel.downscaleFactor;
+                if (cocLevel.DownscaleFactor > maxDownscale) maxDownscale = cocLevel.DownscaleFactor;
             }
 
             // Create a series of downscale, with anti-bleeding treatment
@@ -448,8 +448,8 @@ namespace Xenko.Rendering.Images
                 // Blur strength depends on the current level CoC value. 
 
                 var levelConfig = cocLevels[i];
-                var textureToBlur = downscaledSources[levelConfig.downscaleFactor];
-                float downscaleFactor = 1f / (float)(Math.Pow(2f, levelConfig.downscaleFactor));
+                var textureToBlur = downscaledSources[levelConfig.DownscaleFactor];
+                float downscaleFactor = 1f / (float)(Math.Pow(2f, levelConfig.DownscaleFactor));
                 var blurOutput = GetScopedRenderTarget(originalColorBuffer.Description, downscaleFactor, originalColorBuffer.Description.Format);
                 var blurOutputFront = NewScopedRenderTarget2D(blurOutput.Description);
                 float blurRadius = (MaxBokehSize * BokehSizeFactor) * levelConfig.CoCValue * downscaleFactor * originalColorBuffer.Width;
@@ -473,7 +473,7 @@ namespace Xenko.Rendering.Images
                 // TODO Quality up: make the opaque areas "bleed" into the areas we just made transparent
 
                 // Apply the bokeh blur effect
-                BokehBlur levelBlur = levelConfig.blurEffect;
+                BokehBlur levelBlur = levelConfig.BlurEffect;
                 levelBlur.CoCStrength = levelConfig.CoCValue;
                 levelBlur.Radius = blurRadius; // This doesn't generate garbage if the radius value doesn't change.
                 levelBlur.SetInput(0, textureToBlur);
@@ -488,7 +488,7 @@ namespace Xenko.Rendering.Images
                 // Negates CoC values and makes background objects transparent
                 thresholdAlphaCoCFront.Parameters.Set(ThresholdAlphaCoCFrontKeys.CoCReference, previousCoC);
                 thresholdAlphaCoCFront.Parameters.Set(ThresholdAlphaCoCFrontKeys.CoCCurrent, levelConfig.CoCValue);
-                thresholdAlphaCoCFront.SetInput(0, downscaledSources[levelConfig.downscaleFactor]);
+                thresholdAlphaCoCFront.SetInput(0, downscaledSources[levelConfig.DownscaleFactor]);
                 thresholdAlphaCoCFront.SetInput(1, cocLinearDepthTexture);
                 thresholdAlphaCoCFront.SetOutput(alphaTextureToBlur);
                 thresholdAlphaCoCFront.Draw(context, "Alphaize_Near_{0}", i);
@@ -531,7 +531,7 @@ namespace Xenko.Rendering.Images
         {
             foreach (var cocLevelConfig in cocLevels)
             {
-                var blurEffect = cocLevelConfig.blurEffect;
+                var blurEffect = cocLevelConfig.BlurEffect;
                 if (blurEffect != null) blurEffect.Dispose();
             }
         }
@@ -540,11 +540,10 @@ namespace Xenko.Rendering.Images
         private Texture GetScopedRenderTarget(TextureDescription desc, float scale, PixelFormat format) 
         {
             return NewScopedRenderTarget2D(
-                        (int)(desc.Width  * scale),
+                        (int)(desc.Width * scale),
                         (int)(desc.Height * scale),
                         format,
                         TextureFlags.ShaderResource | TextureFlags.RenderTarget);
         }
-
     }
 }

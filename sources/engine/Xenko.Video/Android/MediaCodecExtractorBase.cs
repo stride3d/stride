@@ -326,7 +326,7 @@ namespace Xenko.Video
 
                 //=================================================================================================
                 // Process the output buffers
-                if(ShouldProcessDequeueOutput(ref waitTime))
+                if (ShouldProcessDequeueOutput(ref waitTime))
                 {
                     int indexOutput = MediaDecoder.DequeueOutputBuffer(bufferInfo, 0);
                     switch (indexOutput)
@@ -363,7 +363,7 @@ namespace Xenko.Video
                     }
                 }
                 
-                if(waitTime > TimeSpan.Zero)
+                if (waitTime > TimeSpan.Zero)
                 {
                     // sleep required time to avoid active looping
                     // Note: do not sleep more than 'waitDefaultTime' to continue processing play commands

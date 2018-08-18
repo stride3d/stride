@@ -9,15 +9,11 @@ using Xenko.Core.Serialization.Serializers;
 
 namespace Xenko.Engine
 {
-    internal class IndexingDictionarySerializer<TValue> : DictionaryAllSerializer<IndexingDictionary<TValue>, int, TValue> where TValue : class
-    {
-    }
-
-    // TODO: unit test this collection!
     /// <summary>
     /// A dictionary that maps index values to items. It uses a sparse list internally for storage.
     /// </summary>
     /// <typeparam name="T">The type of item indexed in this collection.</typeparam>
+    // TODO: unit test this collection!
     [DataSerializer(typeof(IndexingDictionarySerializer<>), Mode = DataSerializerGenericMode.GenericArguments)]
     public class IndexingDictionary<T> : IDictionary<int, T> where T : class
     {

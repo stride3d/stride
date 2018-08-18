@@ -48,9 +48,9 @@ namespace Xenko.Graphics
             unchecked
             {
                 var hashCode = (int)StencilFail;
-                hashCode = (hashCode*397) ^ (int)StencilDepthBufferFail;
-                hashCode = (hashCode*397) ^ (int)StencilPass;
-                hashCode = (hashCode*397) ^ (int)StencilFunction;
+                hashCode = (hashCode * 397) ^ (int)StencilDepthBufferFail;
+                hashCode = (hashCode * 397) ^ (int)StencilPass;
+                hashCode = (hashCode * 397) ^ (int)StencilFunction;
                 return hashCode;
             }
         }

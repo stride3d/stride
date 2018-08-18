@@ -23,18 +23,18 @@ namespace Xenko.Physics
 
             //Box is not working properly when in a convex2dshape, Z cannot be 0
 
-            CachedScaling = Is2D ? new Vector3(1, 1, 0.001f) : Vector3.One;
+            cachedScaling = Is2D ? new Vector3(1, 1, 0.001f) : Vector3.One;
 
             if (is2D) size.Z = 0.001f;
 
-            var shape = new BulletSharp.BoxShape(size/2)
+            var shape = new BulletSharp.BoxShape(size / 2)
             {
-                LocalScaling = CachedScaling
+                LocalScaling = cachedScaling,
             };
 
             if (Is2D)
             {
-                InternalShape = new BulletSharp.Convex2DShape(shape) { LocalScaling = CachedScaling };
+                InternalShape = new BulletSharp.Convex2DShape(shape) { LocalScaling = cachedScaling };
             }
             else
             {

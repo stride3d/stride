@@ -5,6 +5,6 @@ namespace Xenko.VirtualReality
     public enum Eyes
     {
         Left,
-        Right
+        Right,
     }
 }

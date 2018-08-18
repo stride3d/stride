@@ -15,4 +15,3 @@ namespace Xenko.Core
         string Name { get; }
     }
 }
-

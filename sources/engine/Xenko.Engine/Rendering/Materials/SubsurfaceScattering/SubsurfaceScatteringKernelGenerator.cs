@@ -1,8 +1,8 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Mathematics;
 using System;
+using Xenko.Core.Mathematics;
 
 namespace Xenko.Rendering.Materials
 {
@@ -17,7 +17,7 @@ namespace Xenko.Rendering.Materials
             return (float)Math.Exp((-(rr * rr)) / (2.0f * variance)) / (2.0f * 3.14f * variance);
         }
 
-        private static Vector3 Gaussian(float variance, float r, Color3 falloff)    // Based on "SeparableSSS::gaussian()".
+        private static Vector3 Gaussian(float variance, float r, Color3 falloff) // Based on "SeparableSSS::gaussian()".
         {
             // We use a falloff to modulate the shape of the profile. Big falloffs
             // spreads the shape making it wider, while small falloffs make it
@@ -27,7 +27,7 @@ namespace Xenko.Rendering.Materials
                                GaussianComponent(variance, r, falloff.B));
         }
 
-        private static Vector3 Profile(float r, Color3 falloff)    // Based on "SeparableSSS::profile()".
+        private static Vector3 Profile(float r, Color3 falloff) // Based on "SeparableSSS::profile()".
         {
             // We used the red channel of the original skin profile defined in
             // [d'Eon07] for all three channels. We noticed it can be used for green
@@ -65,7 +65,7 @@ namespace Xenko.Rendering.Materials
                                reciprocalTwoPiVarianceWeight); // outer factor
         }
 
-        public static Vector4[] CalculateTransmittanceProfile(Vector3 falloff)   // Based on "SeparableSSS::profile()".
+        public static Vector4[] CalculateTransmittanceProfile(Vector3 falloff) // Based on "SeparableSSS::profile()".
         {
             // We used the red channel of the original skin profile defined in
             // [d'Eon07] for all three channels. We noticed it can be used for green
@@ -87,7 +87,7 @@ namespace Xenko.Rendering.Materials
             return (profile);
         }
 
-        public static Vector4[] CalculateScatteringKernel(int sampleCount, Color3 strength, Color3 falloff)    // Based on "SeparableSSS::calculateKernel()".
+        public static Vector4[] CalculateScatteringKernel(int sampleCount, Color3 strength, Color3 falloff) // Based on "SeparableSSS::calculateKernel()".
         {
             // sampleCount: number of samples of the kernel convolution.
 
@@ -98,18 +98,18 @@ namespace Xenko.Rendering.Materials
             //           It can be seen as a per-channel mix factor between the original
             //           image, and the SSS-filtered image.
 
-            float RANGE = sampleCount > 20 ? 3.0f : 2.0f;
-            const float EXPONENT = 2.0f;
+            float range = sampleCount > 20 ? 3.0f : 2.0f;
+            const float exponent = 2.0f;
 
             Vector4[] kernel = new Vector4[sampleCount];
 
             // Calculate the offsets:
-            float step = 2.0f * RANGE / (sampleCount - 1);
+            float step = 2.0f * range / (sampleCount - 1);
             for (int i = 0; i < sampleCount; i++)
             {
-                float o = -RANGE + i * step;
+                float o = -range + i * step;
                 float sign = o < 0.0f ? -1.0f : 1.0f;
-                kernel[i].W = RANGE * sign * (float)(Math.Abs(Math.Pow(o, EXPONENT)) / Math.Pow(RANGE, EXPONENT));
+                kernel[i].W = range * sign * (float)(Math.Abs(Math.Pow(o, exponent)) / Math.Pow(range, exponent));
             }
 
             // Calculate the weights:

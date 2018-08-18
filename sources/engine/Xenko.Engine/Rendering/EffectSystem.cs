@@ -25,7 +25,7 @@ namespace Xenko.Rendering
     /// </summary>
     public class EffectSystem : GameSystemBase
     {
-        private readonly static Logger Log = GlobalLogger.GetLogger("EffectSystem");
+        private static readonly Logger Log = GlobalLogger.GetLogger("EffectSystem");
 
         private EffectCompilerParameters effectCompilerParameters = EffectCompilerParameters.Default;
 

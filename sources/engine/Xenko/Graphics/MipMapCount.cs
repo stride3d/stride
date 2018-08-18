@@ -45,7 +45,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Automatic mipmap level based on texture size.
         /// </summary>
-        public readonly static MipMapCount Auto = new MipMapCount(true);
+        public static readonly MipMapCount Auto = new MipMapCount(true);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MipMapCount" /> struct.

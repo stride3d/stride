@@ -202,10 +202,10 @@ namespace Irony.Parsing {
         return node.Term.Name + " (Syntax error)";
       if (node.Token != null)
         return node.Token.ToString();
-      if(node.Term == null) //special case for initial node pushed into the stack at parser start
+      if (node.Term == null) //special case for initial node pushed into the stack at parser start
         return node.State != null ? "(State " + node.State.Name + ")" : string.Empty; //  Resources.LabelInitialState;
       var ntTerm = node.Term as NonTerminal;
-      if(ntTerm != null && !string.IsNullOrEmpty(ntTerm.NodeCaptionTemplate))
+      if (ntTerm != null && !string.IsNullOrEmpty(ntTerm.NodeCaptionTemplate))
         return ntTerm.GetNodeCaption(node); 
       return node.Term.Name; 
     }
@@ -338,10 +338,10 @@ namespace Irony.Parsing {
     protected GrammarHint ResolveInCode() {
       return new GrammarHint(HintType.ResolveInCode, null); 
     }
-    protected TokenPreviewHint ReduceIf(string symbol) {
+    protected TokenPreviewHint Reduceif (string symbol) {
       return new TokenPreviewHint(ParserActionType.Reduce, symbol);
     }
-    protected TokenPreviewHint ShiftIf(string symbol) {
+    protected TokenPreviewHint Shiftif (string symbol) {
       return new TokenPreviewHint(ParserActionType.Shift, symbol);
     }
     protected GrammarHint ImplyPrecedenceHere(int precedence) {
@@ -431,7 +431,7 @@ namespace Irony.Parsing {
 
     public NonTerminal NewLinePlus {
       get {
-        if(_newLinePlus == null) {
+        if (_newLinePlus == null) {
           _newLinePlus = new NonTerminal("LF+");
           MarkPunctuation(_newLinePlus);
           _newLinePlus.Rule = MakePlusRule(_newLinePlus, NewLine);
@@ -442,7 +442,7 @@ namespace Irony.Parsing {
 
     public NonTerminal NewLineStar {
       get {
-        if(_newLineStar == null) {
+        if (_newLineStar == null) {
           _newLineStar = new NonTerminal("LF*");
           MarkPunctuation(_newLineStar);
           _newLineStar.Rule = MakeStarRule(_newLineStar, NewLine);

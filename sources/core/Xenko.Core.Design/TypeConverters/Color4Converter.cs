@@ -72,7 +72,7 @@ namespace Xenko.Core.TypeConverters
                 new FieldPropertyDescriptor(type.GetField(nameof(Color4.R))),
                 new FieldPropertyDescriptor(type.GetField(nameof(Color4.G))),
                 new FieldPropertyDescriptor(type.GetField(nameof(Color4.B))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Color4.A)))
+                new FieldPropertyDescriptor(type.GetField(nameof(Color4.A))),
             });
         }
 
@@ -153,8 +153,8 @@ namespace Xenko.Core.TypeConverters
         /// <inheritdoc/>
         [NotNull]
         public override object CreateInstance(ITypeDescriptorContext context, IDictionary propertyValues)
-		{
-			if (propertyValues == null) throw new ArgumentNullException(nameof(propertyValues));
+        {
+            if (propertyValues == null) throw new ArgumentNullException(nameof(propertyValues));
             return new Color4((float)propertyValues[nameof(Color.R)], (float)propertyValues[nameof(Color.G)], (float)propertyValues[nameof(Color.B)], (float)propertyValues[nameof(Color.A)]);
         }
     }

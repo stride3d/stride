@@ -2,17 +2,16 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Linq;
-using Xenko.Games;
-using Xenko.Graphics;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
+using Xenko.Graphics;
 using Xenko.Graphics.Data;
 
 namespace Xenko.Extensions
 {
     public static class HalfBufferExtensions
     {
-        public unsafe static void CompactHalf(ref VertexBufferBinding vertexBufferBinding)
+        public static unsafe void CompactHalf(ref VertexBufferBinding vertexBufferBinding)
         {
             var vertexElementsWithOffsets = vertexBufferBinding.Declaration
                 .EnumerateWithOffsets()
@@ -65,7 +64,7 @@ namespace Xenko.Extensions
 
                 // Create new vertex element with adjusted offset, and maybe new vertex format (if modified)
                 vertexElementConvertInfo.VertexElementWithOffset.VertexElement
-                    = new VertexElement(vertexElement.semanticName, vertexElement.SemanticIndex, vertexElementFormat, currentOffset);
+                    = new VertexElement(vertexElement.SemanticName, vertexElement.SemanticIndex, vertexElementFormat, currentOffset);
 
                 // Increment next offset by the same difference as in original declaration
                 if (index + 1 < vertexElementsWithOffsets.Length)

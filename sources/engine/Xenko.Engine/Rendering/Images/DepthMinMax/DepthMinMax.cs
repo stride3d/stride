@@ -13,7 +13,8 @@ namespace Xenko.Rendering.Images
         internal static PermutationParameterKey<bool> IsFirstPassKey = ParameterKeys.NewPermutation<bool>();
 
         // TODO: Currently capturing two effects, because xkfx permutation triggers DynamicEffectCompiler
-        private ImageEffectShader effectFirstPass, effectNotFirstPass;
+        private ImageEffectShader effectFirstPass;
+        private ImageEffectShader effectNotFirstPass;
 
         private ImageReadback<Vector2> readback;
 

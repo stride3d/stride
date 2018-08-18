@@ -6,19 +6,19 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Xenko.Core.Assets.Analysis;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.IO;
-using Xenko.Core.Assets.Diagnostics;
-using Xenko.Core.Reflection;
-using ILogger = Xenko.Core.Diagnostics.ILogger;
 using Microsoft.Build.Evaluation;
-using Xenko.Core.Assets.Tracking;
-using Xenko.Core.Serialization;
-using Xenko.Core.Packages;
 using Xenko.Core;
 using Xenko.Core.Annotations;
+using Xenko.Core.Assets.Analysis;
+using Xenko.Core.Assets.Diagnostics;
+using Xenko.Core.Assets.Tracking;
+using Xenko.Core.Diagnostics;
 using Xenko.Core.Extensions;
+using Xenko.Core.IO;
+using Xenko.Core.Packages;
+using Xenko.Core.Reflection;
+using Xenko.Core.Serialization;
+using ILogger = Xenko.Core.Diagnostics.ILogger;
 
 namespace Xenko.Core.Assets
 {
@@ -66,7 +66,6 @@ namespace Xenko.Core.Assets
             }            
         }
 
-        /// <inheritdoc/>
         public bool IsDirty { get; set; }
 
         /// <summary>
@@ -337,7 +336,6 @@ namespace Xenko.Core.Assets
         /// <param name="filePath">The file path to a package file.</param>
         /// <param name="sessionResult">The session result.</param>
         /// <param name="loadParameters">The load parameters.</param>
-        /// <returns>A package.</returns>
         /// <exception cref="System.ArgumentNullException">filePath</exception>
         /// <exception cref="System.ArgumentException">File [{0}] must exist.ToFormat(filePath);filePath</exception>
         public static void Load(string filePath, PackageSessionResult sessionResult, PackageLoadParameters loadParameters = null)
@@ -810,7 +808,7 @@ namespace Xenko.Core.Assets
         /// <summary>
         /// Freeze a package once it is loaded with all its assets
         /// </summary>
-        /// <param name="package"></param>
+        /// <param name="package">The package to freeze.</param>
         private void FreezePackage(Package package)
         {
             if (package.IsSystem)
@@ -887,7 +885,7 @@ namespace Xenko.Core.Assets
                 //    analysis.Run(log);
                 //}
                 // If the package doesn't have a meta name, fix it here (This is supposed to be done in the above disabled analysis - but we still need to do it!)
-                if (String.IsNullOrWhiteSpace(package.Meta.Name) && package.FullPath != null)
+                if (string.IsNullOrWhiteSpace(package.Meta.Name) && package.FullPath != null)
                 {
                     package.Meta.Name = package.FullPath.GetFileNameWithoutExtension();
                     package.IsDirty = true;

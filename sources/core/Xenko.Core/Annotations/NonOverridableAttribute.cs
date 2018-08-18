@@ -10,6 +10,5 @@ namespace Xenko.Core.Annotations
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
     public sealed class NonOverridableAttribute : Attribute
     {
-        
     }
 }

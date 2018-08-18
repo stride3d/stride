@@ -1,11 +1,11 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1649 // File name should match first type name
 
 using System;
 
 namespace Xenko.Rendering.Images
 {
-
     /// <summary>
     /// Techniques available to perform a DoF effect on a level.
     /// The technique directly affects the visual result (bokeh shape) as well as the performance. 
@@ -32,9 +32,8 @@ namespace Xenko.Rendering.Images
         /// Hexagonal blur using a combination of 3 rhombi blurs. 
         /// </summary>
         /// <userdoc>Use a combination of 3 rhombi blurs to render the bokehs. This technique produce hexagonal bokehs</userdoc>
-        HexagonalTripleRhombi
+        HexagonalTripleRhombi,
     }
-
 
     // Extension methods to directly instantiate a blur image effect from a bokeh technique name.
     public static class BokehTechniqueExtensions
@@ -61,6 +60,5 @@ namespace Xenko.Rendering.Images
                     throw new ArgumentOutOfRangeException("Unknown bokeh technique: " + name);
             }
         }
-    }
-       
+    }       
 }

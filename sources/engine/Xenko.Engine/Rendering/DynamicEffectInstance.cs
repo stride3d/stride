@@ -45,7 +45,7 @@ namespace Xenko.Rendering
             // Looks like the effect changed, it needs a recompilation
             var compilerParameters = new CompilerParameters
             {
-                EffectParameters = EffectCompilerParameters
+                EffectParameters = EffectCompilerParameters,
             };
 
             foreach (var effectParameterKey in Parameters.ParameterKeyInfos)

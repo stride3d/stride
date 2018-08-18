@@ -24,7 +24,8 @@ namespace Xenko.Rendering.Images
 
         public ImageScaler()
             : this(SamplingPattern.Linear)
-        {}
+        {
+        }
 
         public SamplingPattern FilterPattern => EffectName == "ImageScalerEffect" ? SamplingPattern.Linear : SamplingPattern.Expanded;
 

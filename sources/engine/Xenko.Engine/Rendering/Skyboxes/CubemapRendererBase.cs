@@ -1,13 +1,12 @@
+using System;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Graphics;
-using System;
 
 namespace Xenko.Rendering.Skyboxes
 {
-
-    public abstract class CubemapRendererBase: IDisposable
+    public abstract class CubemapRendererBase : IDisposable
     {
         private Texture renderTarget;
         private Texture depthStencil;
@@ -32,7 +31,7 @@ namespace Xenko.Rendering.Skyboxes
             
             // We can't render directly to the texture cube before feature level 10.1, so let's render to a standard render target and copy instead
             renderTarget = Texture.New2D(device, OutputTextureSize, OutputTextureSize, outputFormat, TextureFlags.RenderTarget);
-            if(needDepthStencil)
+            if (needDepthStencil)
                 depthStencil = Texture.New2D(device, OutputTextureSize, OutputTextureSize, PixelFormat.D24_UNorm_S8_UInt, TextureFlags.DepthStencil);
         }
 

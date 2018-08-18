@@ -5,8 +5,8 @@ namespace Xenko.Core.Mathematics
     /// <summary>
     /// The <see cref="Xenko.Core.Mathematics"/> namespace contains types that allows to manipulate mathematical objects, such as vectors, points, quaternions, planes, etc.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

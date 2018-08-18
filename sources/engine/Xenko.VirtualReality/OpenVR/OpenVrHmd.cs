@@ -20,7 +20,9 @@ namespace Xenko.VirtualReality
         private OpenVRTouchController rightHandController;
         private bool needsMirror;
         private Matrix currentHead;
-        private Vector3 currentHeadPos, currentHeadLinearVelocity, currentHeadAngularVelocity;
+        private Vector3 currentHeadPos;
+        private Vector3 currentHeadLinearVelocity;
+        private Vector3 currentHeadAngularVelocity;
         private Quaternion currentHeadRot;
 
         public override bool CanInitialize => OpenVR.InitDone || OpenVR.Init();

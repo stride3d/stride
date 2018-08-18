@@ -1,6 +1,6 @@
-﻿namespace Xenko.Rendering.SubsurfaceScattering
+namespace Xenko.Rendering.SubsurfaceScattering
 {
-    class SubsurfaceScatteringKeys
+    internal class SubsurfaceScatteringKeys
     {
         public static readonly PermutationParameterKey<int> MaxMaterialCount = ParameterKeys.NewPermutation<int>();
         public static readonly PermutationParameterKey<bool> KernelSizeJittering = ParameterKeys.NewPermutation<bool>();

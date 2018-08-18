@@ -2,13 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
-
 using Xenko.Core;
-using Xenko.Rendering;
-using Xenko.Rendering.Data;
 using Xenko.Graphics;
 using Xenko.Graphics.Data;
-using Buffer = Xenko.Graphics.Buffer;
+using Xenko.Rendering;
 
 namespace Xenko.Extensions
 {
@@ -49,7 +46,7 @@ namespace Xenko.Extensions
         /// <param name="meshDrawData">The mesh to analyze.</param>
         /// <param name="can32bitIndex">A flag stating if 32 bit indices are allowed.</param>
         /// <returns>A list of meshes.</returns>
-        public unsafe static List<MeshDraw> SplitMesh(MeshDraw meshDrawData, bool can32bitIndex)
+        public static unsafe List<MeshDraw> SplitMesh(MeshDraw meshDrawData, bool can32bitIndex)
         {
             if (meshDrawData.IndexBuffer == null)
                 return new List<MeshDraw> { meshDrawData };
@@ -89,9 +86,9 @@ namespace Xenko.Extensions
                     var index0 = *currentIndexUintPtr++;
                     var index1 = *currentIndexUintPtr++;
                     var index2 = *currentIndexUintPtr++;
-                    if (!currentSplit.UsedIndices.Contains(index0)) ++verticesToAdd;
-                    if (!currentSplit.UsedIndices.Contains(index1)) ++verticesToAdd;
-                    if (!currentSplit.UsedIndices.Contains(index2)) ++verticesToAdd;
+                    if (!currentSplit.UsedIndices.Contains(index0)) { ++verticesToAdd; }
+                    if (!currentSplit.UsedIndices.Contains(index1)) { ++verticesToAdd; }
+                    if (!currentSplit.UsedIndices.Contains(index2)) { ++verticesToAdd; }
 
                     if (currentSplit.UsedIndices.Count + verticesToAdd > 65535) // append in the same group
                     {
@@ -112,11 +109,11 @@ namespace Xenko.Extensions
                     {
                         PrimitiveType = PrimitiveType.TriangleList,
                         DrawCount = 3 * triangleCount,
-                        VertexBuffers = new VertexBufferBinding[meshDrawData.VertexBuffers.Length]
+                        VertexBuffers = new VertexBufferBinding[meshDrawData.VertexBuffers.Length],
                     };
 
                     // vertex buffers
-                    for (int vbIndex = 0; vbIndex < meshDrawData.VertexBuffers.Length; ++ vbIndex)
+                    for (int vbIndex = 0; vbIndex < meshDrawData.VertexBuffers.Length; ++vbIndex)
                     {
                         var stride = meshDrawData.VertexBuffers[vbIndex].Stride;
                         if (stride == 0)
@@ -162,7 +159,7 @@ namespace Xenko.Extensions
                     newMeshDrawData.IndexBuffer = new IndexBufferBinding(
                         new BufferData(BufferFlags.IndexBuffer, newIndexBuffer).ToSerializableVersion(),
                         false,
-                        triangleCount*3);
+                        triangleCount * 3);
 
                     finalList.Add(newMeshDrawData);
                 }

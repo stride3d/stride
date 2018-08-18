@@ -78,7 +78,7 @@ namespace Xenko.Input
                 pressedButtons.Add(evt.Button);
                 downButtons.Add(evt.Button);
             }
-            else if(!evt.IsDown && downButtons.Contains(evt.Button))
+            else if (!evt.IsDown && downButtons.Contains(evt.Button))
             {
                 releasedButtons.Add(evt.Button);
                 downButtons.Remove(evt.Button);

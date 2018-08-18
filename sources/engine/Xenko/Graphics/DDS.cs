@@ -72,7 +72,7 @@
 // cannot change. To the extent permitted under your local laws, the 
 // contributors exclude the implied warranties of merchantability, fitness for a
 // particular purpose and non-infringement.
-
+#pragma warning disable SA1310 // Field names should not contain underscore
 using System;
 using System.Runtime.InteropServices;
 using Xenko.Core;
@@ -202,7 +202,7 @@ namespace Xenko.Graphics
             LinearSize = 0x00080000, // DDSD_LINEARSIZE
             Height = 0x00000002, // DDSD_HEIGHT
             Width = 0x00000004, // DDSD_WIDTH
-        };
+        }
 
         /// <summary>
         /// DDS Surface flags.
@@ -215,6 +215,7 @@ namespace Xenko.Graphics
             Cubemap = 0x00000008, // DDSCAPS_COMPLEX
         }
 
+#pragma warning disable SA1025 // Code should not contain multiple whitespace in a row
         /// <summary>
         /// DDS Cubemap flags.
         /// </summary>
@@ -232,6 +233,7 @@ namespace Xenko.Graphics
 
             AllFaces = PositiveX | NegativeX | PositiveY | NegativeY | PositiveZ | NegativeZ,
         }
+#pragma warning restore SA1025 // Code should not contain multiple whitespace in a row
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct Header
@@ -260,10 +262,10 @@ namespace Xenko.Graphics
             public SurfaceFlags SurfaceFlags;
             public CubemapFlags CubemapFlags;
 
-            private readonly uint Unused12;
-            private readonly uint Unused13;
+            private readonly uint unused12;
+            private readonly uint unused13;
 
-            private readonly uint Unused14;
+            private readonly uint unused14;
         }
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -274,107 +276,105 @@ namespace Xenko.Graphics
             public ResourceOptionFlags MiscFlags; // see DDS_RESOURCE_MISC_FLAG
             public int ArraySize;
 
-            private readonly uint Unused;
+            private readonly uint unused;
         }
 
-        /// <summary>	
-        /// <p>Identifies the type of resource being used.</p>	
-        /// </summary>	
-        /// <remarks>	
-        /// <p>This enumeration is used in <strong><see cref="SharpDX.Direct3D11.Resource.GetDimension"/></strong>. </p>	
-        /// </remarks>	
-        /// <include file='.\..\Documentation\CodeComments.xml' path="/comments/comment[@id='D3D11_RESOURCE_DIMENSION']/*"/>	
+        /// <summary>
+        /// <p>Identifies the type of resource being used.</p>
+        /// </summary>
+        /// <remarks>
+        /// <p>This enumeration is used in <strong><see cref="SharpDX.Direct3D11.Resource.GetDimension"/></strong>. </p>
+        /// </remarks>
+        /// <include file='.\..\Documentation\CodeComments.xml' path="/comments/comment[@id='D3D11_RESOURCE_DIMENSION']/*"/>
         public enum ResourceDimension : int
         {
-
-            /// <summary>	
-            /// <dd> <p>Resource is of unknown type.</p> </dd>	
-            /// </summary>	
-            /// <include file='.\..\Documentation\CodeComments.xml' path="/comments/comment[@id='D3D11_RESOURCE_DIMENSION_UNKNOWN']/*"/>	
+            /// <summary>
+            /// <dd> <p>Resource is of unknown type.</p> </dd>
+            /// </summary>
+            /// <include file='.\..\Documentation\CodeComments.xml' path="/comments/comment[@id='D3D11_RESOURCE_DIMENSION_UNKNOWN']/*"/>
             Unknown = unchecked((int)0),
 
-            /// <summary>	
-            /// <dd> <p>Resource is a buffer.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Resource is a buffer.</p> </dd>
+            /// </summary>
             Buffer = unchecked((int)1),
 
-            /// <summary>	
-            /// <dd> <p>Resource is a 1D texture.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Resource is a 1D texture.</p> </dd>
+            /// </summary>
             Texture1D = unchecked((int)2),
 
-            /// <summary>	
-            /// <dd> <p>Resource is a 2D texture.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Resource is a 2D texture.</p> </dd>
+            /// </summary>
             Texture2D = unchecked((int)3),
 
-            /// <summary>	
-            /// <dd> <p>Resource is a 3D texture.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Resource is a 3D texture.</p> </dd>
+            /// </summary>
             Texture3D = unchecked((int)4),
         }
 
-        /// <summary>	
-        /// <p>Identifies options for resources.</p>	
-        /// </summary>	
-        /// <remarks>	
-        /// <p>This enumeration is used in <strong><see cref="SharpDX.Direct3D11.BufferDescription"/></strong>, <strong><see cref="SharpDX.Direct3D11.Texture1DDescription"/></strong>, <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong>, <strong><see cref="SharpDX.Direct3D11.Texture3DDescription"/></strong>. </p><p>These flags can be combined by bitwise OR.</p>	
-        /// </remarks>	
+        /// <summary>
+        /// <p>Identifies options for resources.</p>
+        /// </summary>
+        /// <remarks>
+        /// <p>This enumeration is used in <strong><see cref="SharpDX.Direct3D11.BufferDescription"/></strong>, <strong><see cref="SharpDX.Direct3D11.Texture1DDescription"/></strong>, <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong>, <strong><see cref="SharpDX.Direct3D11.Texture3DDescription"/></strong>. </p><p>These flags can be combined by bitwise OR.</p>
+        /// </remarks>
         [Flags]
         public enum ResourceOptionFlags : int
         {
-
-            /// <summary>	
-            /// <dd> <p>Enables MIP map generation by using <strong><see cref="SharpDX.Direct3D11.DeviceContext.GenerateMips"/></strong> on a texture resource. The resource must be created with the <strong>bind flags</strong> that specify that the resource is a render target and a shader resource.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Enables MIP map generation by using <strong><see cref="SharpDX.Direct3D11.DeviceContext.GenerateMips"/></strong> on a texture resource. The resource must be created with the <strong>bind flags</strong> that specify that the resource is a render target and a shader resource.</p> </dd>
+            /// </summary>
             GenerateMipMaps = unchecked((int)1),
 
-            /// <summary>	
-            /// <dd> <p>Enables resource data sharing between two or more Direct3D devices. The only resources that can be shared are 2D non-mipmapped textures.</p> <p><strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.Shared"/></strong> and <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.SharedKeyedmutex"/></strong> are mutually exclusive.</p> <p><strong>WARP</strong> and <strong>REF</strong> devices do not support shared resources. If you try to create a resource with this flag on either a <strong>WARP</strong> or <strong>REF</strong> device,  the create method will return an <strong>E_OUTOFMEMORY</strong> error code.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Enables resource data sharing between two or more Direct3D devices. The only resources that can be shared are 2D non-mipmapped textures.</p> <p><strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.Shared"/></strong> and <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.SharedKeyedmutex"/></strong> are mutually exclusive.</p> <p><strong>WARP</strong> and <strong>REF</strong> devices do not support shared resources. If you try to create a resource with this flag on either a <strong>WARP</strong> or <strong>REF</strong> device,  the create method will return an <strong>E_OUTOFMEMORY</strong> error code.</p> </dd>
+            /// </summary>
             Shared = unchecked((int)2),
 
-            /// <summary>	
-            /// <dd> <p>Sets a resource to be a cube texture created from a Texture2DArray that contains 6 textures.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Sets a resource to be a cube texture created from a Texture2DArray that contains 6 textures.</p> </dd>
+            /// </summary>
             TextureCube = unchecked((int)4),
 
-            /// <summary>	
-            /// <dd> <p>Enables instancing of GPU-generated content.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Enables instancing of GPU-generated content.</p> </dd>
+            /// </summary>
             DrawindirectArgs = unchecked((int)16),
 
-            /// <summary>	
-            /// <dd> <p>Enables a resource as a byte address buffer.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Enables a resource as a byte address buffer.</p> </dd>
+            /// </summary>
             BufferAllowRawViews = unchecked((int)32),
 
-            /// <summary>	
-            /// <dd> <p>Enables a resource as a structured buffer.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Enables a resource as a structured buffer.</p> </dd>
+            /// </summary>
             BufferStructured = unchecked((int)64),
 
-            /// <summary>	
-            /// <dd> <p>Enables a resource with MIP map clamping for use with <strong><see cref="SharpDX.Direct3D11.DeviceContext.SetMinimumLod"/></strong>.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Enables a resource with MIP map clamping for use with <strong><see cref="SharpDX.Direct3D11.DeviceContext.SetMinimumLod"/></strong>.</p> </dd>
+            /// </summary>
             ResourceClamp = unchecked((int)128),
 
-            /// <summary>	
-            /// <dd> <p>Enables the resource  to be synchronized by using the <strong><see cref="SharpDX.DXGI.KeyedMutex.Acquire"/></strong> and  <strong><see cref="SharpDX.DXGI.KeyedMutex.Release"/></strong> APIs.  The following Direct3D?11 resource creation  APIs, that take <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags"/></strong> parameters, have been extended to support the new flag.</p> <ul> <li> <strong><see cref="SharpDX.Direct3D11.Device.CreateTexture1D"/></strong> </li> <li> <strong><see cref="SharpDX.Direct3D11.Device.CreateTexture2D"/></strong> </li> <li> <strong><see cref="SharpDX.Direct3D11.Device.CreateTexture3D"/></strong> </li> <li> <strong><see cref="SharpDX.Direct3D11.Device.CreateBuffer"/></strong> </li> </ul> <p>If you call any of these  methods with the <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.SharedKeyedmutex"/></strong> flag set, the interface returned will support the <strong><see cref="SharpDX.DXGI.KeyedMutex"/></strong> interface.  You can retrieve a reference to the <strong><see cref="SharpDX.DXGI.KeyedMutex"/></strong> interface from the resource by using <strong>IUnknown::QueryInterface</strong>.  The <strong><see cref="SharpDX.DXGI.KeyedMutex"/></strong> interface implements the <strong><see cref="SharpDX.DXGI.KeyedMutex.Acquire"/></strong> and <strong><see cref="SharpDX.DXGI.KeyedMutex.Release"/></strong> APIs to synchronize access to the surface. The device that creates the surface, and any other device that opens the surface  by using <strong>OpenSharedResource</strong>, must call <strong><see cref="SharpDX.DXGI.KeyedMutex.Acquire"/></strong> before they issue any rendering commands to the surface. When those devices finish rendering, they must call <strong><see cref="SharpDX.DXGI.KeyedMutex.Release"/></strong>.</p> <p><strong> <see cref="SharpDX.Direct3D11.ResourceOptionFlags.Shared"/></strong> and <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.SharedKeyedmutex"/></strong> are mutually exclusive.</p> <p><strong>WARP</strong> and <strong>REF</strong> devices do not support shared resources. If you try to create a resource with this flag on either a <strong>WARP</strong> or <strong>REF</strong> device,  the create method will return an <strong>E_OUTOFMEMORY</strong> error code.</p> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Enables the resource  to be synchronized by using the <strong><see cref="SharpDX.DXGI.KeyedMutex.Acquire"/></strong> and  <strong><see cref="SharpDX.DXGI.KeyedMutex.Release"/></strong> APIs.  The following Direct3D?11 resource creation  APIs, that take <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags"/></strong> parameters, have been extended to support the new flag.</p> <ul> <li> <strong><see cref="SharpDX.Direct3D11.Device.CreateTexture1D"/></strong> </li> <li> <strong><see cref="SharpDX.Direct3D11.Device.CreateTexture2D"/></strong> </li> <li> <strong><see cref="SharpDX.Direct3D11.Device.CreateTexture3D"/></strong> </li> <li> <strong><see cref="SharpDX.Direct3D11.Device.CreateBuffer"/></strong> </li> </ul> <p>If you call any of these  methods with the <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.SharedKeyedmutex"/></strong> flag set, the interface returned will support the <strong><see cref="SharpDX.DXGI.KeyedMutex"/></strong> interface.  You can retrieve a reference to the <strong><see cref="SharpDX.DXGI.KeyedMutex"/></strong> interface from the resource by using <strong>IUnknown::QueryInterface</strong>.  The <strong><see cref="SharpDX.DXGI.KeyedMutex"/></strong> interface implements the <strong><see cref="SharpDX.DXGI.KeyedMutex.Acquire"/></strong> and <strong><see cref="SharpDX.DXGI.KeyedMutex.Release"/></strong> APIs to synchronize access to the surface. The device that creates the surface, and any other device that opens the surface  by using <strong>OpenSharedResource</strong>, must call <strong><see cref="SharpDX.DXGI.KeyedMutex.Acquire"/></strong> before they issue any rendering commands to the surface. When those devices finish rendering, they must call <strong><see cref="SharpDX.DXGI.KeyedMutex.Release"/></strong>.</p> <p><strong> <see cref="SharpDX.Direct3D11.ResourceOptionFlags.Shared"/></strong> and <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.SharedKeyedmutex"/></strong> are mutually exclusive.</p> <p><strong>WARP</strong> and <strong>REF</strong> devices do not support shared resources. If you try to create a resource with this flag on either a <strong>WARP</strong> or <strong>REF</strong> device,  the create method will return an <strong>E_OUTOFMEMORY</strong> error code.</p> </dd>
+            /// </summary>
             SharedKeyedmutex = unchecked((int)256),
 
-            /// <summary>	
-            /// <dd> <p>Enables a resource compatible with GDI. You must set the <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/></strong> flag  on surfaces that you use with GDI. Setting the <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/></strong> flag allows GDI rendering on the surface via <strong><see cref="SharpDX.DXGI.Surface1.GetDC"/></strong>.	
-            /// </p> <p>Consider the following programming tips for using <see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/> when you create a texture or use that texture in a swap chain:</p> <ul> <li><see cref="SharpDX.Direct3D11.ResourceOptionFlags.SharedKeyedmutex"/> and <see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/> are mutually exclusive. Therefore, do not use them together.</li> <li><see cref="SharpDX.Direct3D11.ResourceOptionFlags.ResourceClamp"/> and <see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/> are mutually exclusive. Therefore, do not use them together.</li> <li>You must bind the texture as a render target for the output-merger stage. For example, set the <see cref="SharpDX.Direct3D11.BindFlags.RenderTarget"/> flag in the <strong>BindFlags</strong> member of the <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong> structure.</li> <li>You must set the maximum number of MIP map levels to 1. For example, set the <strong>MipLevels</strong> member of the <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong> structure to 1.</li> <li>You must specify that the texture requires read and write access by the GPU. For example, set the <strong>Usage</strong> member of the <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong> structure to <see cref="SharpDX.Direct3D11.ResourceUsage.Default"/>.</li> <li> <p>You must set the texture format to one of the following types. </p> <ul> <li><see cref="SharpDX.DXGI.Format.B8G8R8A8_UNorm"/>	
-            /// </li> <li><see cref="SharpDX.DXGI.Format.B8G8R8A8_Typeless"/></li> <li><see cref="SharpDX.DXGI.Format.B8G8R8A8_UNorm_SRgb"/>	
-            /// </li> </ul>For example, set the <strong>Format</strong> member of the <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong> structure to one of these  types.</li> <li>You cannot use <see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/> with multisampling. Therefore, set the <strong>Count</strong> member of the <strong><see cref="SharpDX.DXGI.SampleDescription"/></strong> structure to 1. Then, set the <strong>SampleDesc</strong> member of the <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong> structure to this <strong><see cref="SharpDX.DXGI.SampleDescription"/></strong> structure.</li> </ul> </dd>	
-            /// </summary>	
+            /// <summary>
+            /// <dd> <p>Enables a resource compatible with GDI. You must set the <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/></strong> flag  on surfaces that you use with GDI. Setting the <strong><see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/></strong> flag allows GDI rendering on the surface via <strong><see cref="SharpDX.DXGI.Surface1.GetDC"/></strong>.
+            /// </p> <p>Consider the following programming tips for using <see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/> when you create a texture or use that texture in a swap chain:</p> <ul> <li><see cref="SharpDX.Direct3D11.ResourceOptionFlags.SharedKeyedmutex"/> and <see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/> are mutually exclusive. Therefore, do not use them together.</li> <li><see cref="SharpDX.Direct3D11.ResourceOptionFlags.ResourceClamp"/> and <see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/> are mutually exclusive. Therefore, do not use them together.</li> <li>You must bind the texture as a render target for the output-merger stage. For example, set the <see cref="SharpDX.Direct3D11.BindFlags.RenderTarget"/> flag in the <strong>BindFlags</strong> member of the <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong> structure.</li> <li>You must set the maximum number of MIP map levels to 1. For example, set the <strong>MipLevels</strong> member of the <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong> structure to 1.</li> <li>You must specify that the texture requires read and write access by the GPU. For example, set the <strong>Usage</strong> member of the <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong> structure to <see cref="SharpDX.Direct3D11.ResourceUsage.Default"/>.</li> <li> <p>You must set the texture format to one of the following types. </p> <ul> <li><see cref="SharpDX.DXGI.Format.B8G8R8A8_UNorm"/>
+            /// </li> <li><see cref="SharpDX.DXGI.Format.B8G8R8A8_Typeless"/></li> <li><see cref="SharpDX.DXGI.Format.B8G8R8A8_UNorm_SRgb"/>
+            /// </li> </ul>For example, set the <strong>Format</strong> member of the <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong> structure to one of these  types.</li> <li>You cannot use <see cref="SharpDX.Direct3D11.ResourceOptionFlags.GdiCompatible"/> with multisampling. Therefore, set the <strong>Count</strong> member of the <strong><see cref="SharpDX.DXGI.SampleDescription"/></strong> structure to 1. Then, set the <strong>SampleDesc</strong> member of the <strong><see cref="SharpDX.Direct3D11.Texture2DDescription"/></strong> structure to this <strong><see cref="SharpDX.DXGI.SampleDescription"/></strong> structure.</li> </ul> </dd>
+            /// </summary>
             GdiCompatible = unchecked((int)512),
 
-            /// <summary>	
-            /// None.	
-            /// </summary>	
+            /// <summary>
+            /// None.
+            /// </summary>
             None = unchecked((int)0),
         }
     }

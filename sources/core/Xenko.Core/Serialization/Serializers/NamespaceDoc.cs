@@ -5,8 +5,8 @@ namespace Xenko.Core.Serialization.Serializers
     /// <summary>
     /// The <see cref="Xenko.Core.Serialization.Serializers"/> provides many <see cref="DataSerializer{T}"/> implementations for common .NET types.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

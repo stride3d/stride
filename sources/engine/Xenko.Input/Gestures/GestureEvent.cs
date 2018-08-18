@@ -10,7 +10,8 @@ namespace Xenko.Input
     public abstract class GestureEvent
     {
         internal GestureEvent()
-        {}
+        {
+        }
 
         /// <summary>
         /// The state of the gesture.

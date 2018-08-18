@@ -97,9 +97,9 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
                 }
             };
 
-            axisEntity.transform.Scale = new Vector3(GridSize, 1f / GridBase, 1f / GridBase);
-            if(axis != 0)
-                axisEntity.transform.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo) * Quaternion.RotationAxis(new Vector3 { [1 + (axis%2)] = 1f}, MathUtil.PiOverTwo);
+            axisEntity.TransformValue.Scale = new Vector3(GridSize, 1f / GridBase, 1f / GridBase);
+            if (axis != 0)
+                axisEntity.TransformValue.Rotation = Quaternion.RotationX(MathUtil.PiOverTwo) * Quaternion.RotationAxis(new Vector3 { [1 + (axis%2)] = 1f}, MathUtil.PiOverTwo);
 
             var axisEntityRoot = new Entity("Scene grid origin axis root");
             axisEntityRoot.AddChild(axisEntity);
@@ -228,14 +228,14 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
 
             // Apply positions
             grid.Transform.Position = snappedPosition;
-            originAxis.transform.Position = originPosition;
+            originAxis.TransformValue.Position = originPosition;
             for (int axis = 0; axis < 3; axis++)
-                originAxes[axis].transform.Position[axis] = snappedPosition[axis];
+                originAxes[axis].TransformValue.Position[axis] = snappedPosition[axis];
 
             // Apply the scale (Note: scale cannot be applied at root or sub-position is scaled too)
             grid.Transform.Scale = new Vector3(gridScale);
             for (int axis = 0; axis < 3; axis++)
-                originAxes[axis].transform.Scale = new Vector3(gridScale);
+                originAxes[axis].TransformValue.Scale = new Vector3(gridScale);
 
             // Determine and apply the rotation to the grid and origin axis entities
             SetPlaneEntityRotation(2, upVector, grid);

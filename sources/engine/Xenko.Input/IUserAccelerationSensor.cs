@@ -13,6 +13,6 @@ namespace Xenko.Input
         /// <summary>
         /// Gets the current acceleration applied by the user (in meters/seconds^2).
         /// </summary>
-        Vector3 Acceleration { get;}
+        Vector3 Acceleration { get; }
     }
 }

@@ -116,7 +116,6 @@ namespace Xenko.Core.Serialization.Contents
             return index;
         }
 
-
         private void BuildUrl(ContentReference reference)
         {
             var content = reference.ObjectValue;

@@ -3,11 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xenko.Graphics;
 using Xenko.Core;
-using Xenko.Rendering;
+using Xenko.Graphics;
 using Xenko.Graphics.Data;
-
+using Xenko.Rendering;
 using Buffer = Xenko.Graphics.Buffer;
 
 namespace Xenko.Extensions
@@ -157,7 +156,7 @@ namespace Xenko.Extensions
             var positionMapping = GenerateIndexMapping(vertexBuffer, commandList, "POSITION");
             var dominantEdges = new Dictionary<EdgeKeyAEN, EdgeAEN>();
             var dominantVertices = new Dictionary<int, int>();
-            var indexSize = indexBuffer.Is32Bit? 4: 2;
+            var indexSize = indexBuffer.Is32Bit ? 4 : 2;
 
             fixed (byte* indexBufferStart = &indexBuffer.Buffer.GetDataSafe(commandList)[indexBuffer.Offset])
             {
@@ -271,7 +270,7 @@ namespace Xenko.Extensions
         /// 3 to 8 being dominant edges and 9 to 11 being dominant vertices.
         /// </summary>
         /// <param name="meshData">The mesh data.</param>
-        public unsafe static void GenerateIndexBufferAEN(this MeshDraw meshData)
+        public static unsafe void GenerateIndexBufferAEN(this MeshDraw meshData)
         {
             // For now, require a MeshData with only one vertex buffer and one index buffer
             if (meshData.VertexBuffers.Length != 1 || meshData.IndexBuffer == null)
@@ -479,7 +478,7 @@ namespace Xenko.Extensions
         public static bool ReverseWindingOrder(this MeshDraw meshData)
         {
             byte[] newIndexBuffer;
-            if(!GetReversedWindingOrder(meshData, out newIndexBuffer))
+            if (!GetReversedWindingOrder(meshData, out newIndexBuffer))
                 return false;
 
             meshData.IndexBuffer = new IndexBufferBinding(new BufferData(BufferFlags.IndexBuffer, newIndexBuffer).ToSerializableVersion(), meshData.IndexBuffer.Is32Bit, meshData.IndexBuffer.Count);

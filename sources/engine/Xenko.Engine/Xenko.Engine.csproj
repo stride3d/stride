@@ -18,6 +18,7 @@
     <XenkoBuildTags>*</XenkoBuildTags>
     <RestorePackages>true</RestorePackages>
     <RootNamespace>Xenko</RootNamespace>
+    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
 
   <ItemGroup>

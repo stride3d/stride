@@ -32,14 +32,13 @@ namespace Xenko.Animations
 
         public unsafe override void Serialize(ref AnimationKeyValuePair<T>[] obj, ArchiveMode mode, SerializationStream stream)
         {
-
             if (mode == ArchiveMode.Deserialize)
             {
                 int count = obj.Length;
-                var rawData = stream.ReadBytes(Utilities.SizeOf<AnimationKeyValuePair<T>>()*count);
+                var rawData = stream.ReadBytes(Utilities.SizeOf<AnimationKeyValuePair<T>>() * count);
                 fixed (void* rawDataPtr = rawData)
                 {
-                    Utilities.Read((IntPtr) rawDataPtr, obj, 0, count);
+                    Utilities.Read((IntPtr)rawDataPtr, obj, 0, count);
                 }
             }
             else if (mode == ArchiveMode.Serialize)

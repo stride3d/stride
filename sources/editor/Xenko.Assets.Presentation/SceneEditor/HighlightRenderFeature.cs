@@ -28,18 +28,18 @@ namespace Xenko.Assets.Presentation.SceneEditor
         /// <inheritdoc/>
         protected override void InitializeCore()
         {
-            renderModelObjectInfoKey = RootRenderFeature.RenderData.CreateObjectKey<Color4>();
+            renderModelObjectInfoKey = rootRenderFeature.RenderData.CreateObjectKey<Color4>();
 
-            color = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(HighlightShaderKeys.HighlightColor.Name);
+            color = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(HighlightShaderKeys.HighlightColor.Name);
         }
 
         public override void Extract()
         {
-            var renderModelObjectInfo = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
+            var renderModelObjectInfo = rootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
 
-            foreach (var objectNodeReference in RootRenderFeature.ObjectNodeReferences)
+            foreach (var objectNodeReference in rootRenderFeature.ObjectNodeReferences)
             {
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
+                var objectNode = rootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = (RenderMesh)objectNode.RenderObject;
 
                 Color4 highlightColor;
@@ -56,9 +56,9 @@ namespace Xenko.Assets.Presentation.SceneEditor
         /// <inheritdoc/>
         public override unsafe void Prepare(RenderDrawContext context)
         {
-            var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
+            var renderModelObjectInfoData = rootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
 
-            foreach (var renderNode in ((RootEffectRenderFeature)RootRenderFeature).RenderNodes)
+            foreach (var renderNode in ((RootEffectRenderFeature)rootRenderFeature).RenderNodes)
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
                 if (perDrawLayout == null)

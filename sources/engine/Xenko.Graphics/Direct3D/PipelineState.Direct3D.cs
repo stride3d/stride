@@ -227,7 +227,7 @@ namespace Xenko.Graphics
         }
 
         // Small helper to cache SharpDX graphics objects
-        class GraphicsCache<TSource, TKey, TValue> : IDisposable where TValue : SharpDX.IUnknown
+        private class GraphicsCache<TSource, TKey, TValue> : IDisposable where TValue : SharpDX.IUnknown
         {
             private object lockObject = new object();
 

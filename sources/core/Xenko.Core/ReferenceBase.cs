@@ -32,15 +32,17 @@ namespace Xenko.Core
                 try
                 {
                     Destroy();
-                } 
-                finally 
+                }
+                finally
                 {
                     // Reverse back the counter if there are any exceptions in the destroy method
                     Interlocked.Exchange(ref counter, newCounter + 1);
                 }
-            } 
+            }
             else if (newCounter < 0)
+            {
                 throw new InvalidOperationException(FrameworkResources.ReleaseReferenceError);
+            }
             return newCounter;
         }
 

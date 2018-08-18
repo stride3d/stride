@@ -16,10 +16,10 @@ namespace Xenko.Physics
             Type = ColliderShapeTypes.Compound;
             Is2D = false;
 
-            CachedScaling = Vector3.One;
+            cachedScaling = Vector3.One;
             InternalShape = InternalCompoundShape = new BulletSharp.CompoundShape
             {
-                LocalScaling = CachedScaling
+                LocalScaling = cachedScaling,
             };
         }
 
@@ -112,7 +112,7 @@ namespace Xenko.Physics
         {
             get
             {
-                return CachedScaling;
+                return cachedScaling;
             }
             set
             {
@@ -120,7 +120,7 @@ namespace Xenko.Physics
 
                 foreach (var colliderShape in colliderShapes)
                 {
-                    colliderShape.Scaling = CachedScaling;
+                    colliderShape.Scaling = cachedScaling;
                 }
             }
         }

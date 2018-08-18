@@ -78,7 +78,7 @@ namespace Xenko.Input
             currentCenter = (FingerIdsToLastPos[secondFingerId] + FingerIdsToLastPos[firstFingerId]) / 2;
 
             // Update the gesture current scale
-            currentScale = Math.Abs(beginVectorLength) > MathUtil.ZeroTolerance? currentVector.Length() / beginVectorLength: 0;
+            currentScale = Math.Abs(beginVectorLength) > MathUtil.ZeroTolerance ? currentVector.Length() / beginVectorLength : 0;
         }
 
         protected override void AddGestureEventToCurrentList(GestureState state)

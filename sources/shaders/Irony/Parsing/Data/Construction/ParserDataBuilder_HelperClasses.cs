@@ -46,7 +46,7 @@ namespace Irony.Parsing.Construction {
 
     public void AddItem(LR0Item core) {
       //Check if a core had been already added. If yes, simply return
-      if(!AllCores.Add(core))return ; 
+      if (!AllCores.Add(core))return ; 
       //Create new item, add it to AllItems, InitialItems, ReduceItems or ShiftItems
       var item = new LRItem(State, core);
       AllItems.Add(item); 
@@ -70,7 +70,7 @@ namespace Irony.Parsing.Construction {
 
     public TransitionTable Transitions {
       get {
-        if(_transitions == null)
+        if (_transitions == null)
           _transitions = new TransitionTable();
         return _transitions;
       }
@@ -79,7 +79,7 @@ namespace Irony.Parsing.Construction {
     //A set of states reachable through shifts over nullable non-terminals. Computed on demand
     public ParserStateSet ReadStateSet {
       get {
-        if(_readStateSet == null) {
+        if (_readStateSet == null) {
           _readStateSet = new ParserStateSet(); 
           foreach(var shiftTerm in State.BuilderData.ShiftTerms)
             if (shiftTerm.FlagIsSet(TermFlags.IsNullable)) {

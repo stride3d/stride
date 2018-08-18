@@ -98,7 +98,6 @@ namespace Xenko.Animations
                             default:
                                 throw new ArgumentOutOfRangeException();
                         }
-
                     }
 
                     // Regenerate animation operations
@@ -115,7 +114,7 @@ namespace Xenko.Animations
 
                         // Default behavior for linea blending (it will properly accumulate multiple blending with their cumulative weight)
                         totalWeight += animationWeight;
-                        float currentBlend = animationWeight/totalWeight;
+                        float currentBlend = animationWeight / totalWeight;
 
                         if (playingAnimation.BlendOperation == AnimationBlendOperation.Add)
                         {
@@ -157,8 +156,8 @@ namespace Xenko.Animations
                         bool removeAnimation = false;
                         if (playingAnimation.CrossfadeRemainingTime > TimeSpan.Zero)
                         {
-                            playingAnimation.Weight += (playingAnimation.WeightTarget - playingAnimation.Weight)*
-                                                       ((float)time.Elapsed.Ticks/playingAnimation.CrossfadeRemainingTime.Ticks);
+                            playingAnimation.Weight += (playingAnimation.WeightTarget - playingAnimation.Weight)
+                                                       * ((float)time.Elapsed.Ticks / playingAnimation.CrossfadeRemainingTime.Ticks);
                             playingAnimation.CrossfadeRemainingTime -= time.Elapsed;
                             if (playingAnimation.CrossfadeRemainingTime <= TimeSpan.Zero)
                             {
@@ -185,7 +184,6 @@ namespace Xenko.Animations
                 }
 
                 animationOperations.Clear();
-
             }, animationOperations => animationOperationPool.Release(animationOperations));
         }
 
@@ -201,7 +199,6 @@ namespace Xenko.Animations
 
             return ComponentDatas[animationComponent].AnimationClipResult;
         }
-            
 
         public class AssociatedData
         {

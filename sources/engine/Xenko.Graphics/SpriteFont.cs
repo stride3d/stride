@@ -28,20 +28,22 @@ namespace Xenko.Graphics
         public static readonly Logger Logger = GlobalLogger.GetLogger("SpriteFont");
 
         // Lookup table indicates which way to move along each axis per SpriteEffects enum value.
-        private static readonly Vector2[] AxisDirectionTable = {
-                                                                    new Vector2(-1, -1),
-                                                                    new Vector2(1, -1),
-                                                                    new Vector2(-1, 1),
-                                                                    new Vector2(1, 1)
-                                                                };
+        private static readonly Vector2[] AxisDirectionTable =
+        {
+            new Vector2(-1, -1),
+            new Vector2(1, -1),
+            new Vector2(-1, 1),
+            new Vector2(1, 1),
+        };
 
         // Lookup table indicates which axes are mirrored for each SpriteEffects enum value.
-        private static readonly Vector2[] AxisIsMirroredTable = {
-                                                                    new Vector2(0, 0),
-                                                                    new Vector2(1, 0),
-                                                                    new Vector2(0, 1),
-                                                                    new Vector2(1, 1)
-                                                                };
+        private static readonly Vector2[] AxisIsMirroredTable =
+        {
+            new Vector2(0, 0),
+            new Vector2(1, 0),
+            new Vector2(0, 1),
+            new Vector2(1, 1),
+        };
 
         [DataMember(0)]
         internal float BaseOffsetY;
@@ -55,7 +57,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// The swizzle mode to use when drawing the sprite font.
         /// </summary>
-        protected SwizzleMode Swizzle;
+        protected SwizzleMode swizzle;
 
         private FontSystem fontSystem;
         private readonly GlyphAction<InternalDrawCommand> internalDrawGlyphAction;
@@ -184,7 +186,7 @@ namespace Xenko.Graphics
         /// <returns>The value of the base offset</returns>
         protected virtual float GetBaseOffsetY(float fontSize)
         {
-            return  fontSize / Size * BaseOffsetY;
+            return fontSize / Size * BaseOffsetY;
         }
 
         /// <summary>
@@ -221,7 +223,6 @@ namespace Xenko.Graphics
 
         internal virtual void PreGenerateGlyphs(ref StringProxy text, ref Vector2 size)
         {
-            
         }
 
         internal void InternalDrawGlyph(ref InternalDrawCommand parameters, ref Vector2 fontSize, ref Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
@@ -245,7 +246,7 @@ namespace Xenko.Graphics
             }
             var destination = new RectangleF(parameters.Position.X, parameters.Position.Y, parameters.Scale.X, parameters.Scale.Y);
             RectangleF? sourceRectangle = glyph.Subrect;
-            parameters.SpriteBatch.DrawSprite(Textures[glyph.BitmapIndex], ref destination, true, ref sourceRectangle, parameters.Color, new Color4(0, 0, 0, 0),  parameters.Rotation, ref offset, spriteEffects, ImageOrientation.AsIs, parameters.Depth, Swizzle, true);            
+            parameters.SpriteBatch.DrawSprite(Textures[glyph.BitmapIndex], ref destination, true, ref sourceRectangle, parameters.Color, new Color4(0, 0, 0, 0),  parameters.Rotation, ref offset, spriteEffects, ImageOrientation.AsIs, parameters.Depth, swizzle, true);            
         }
 
         internal void InternalUIDraw(CommandList commandList, ref StringProxy text, ref InternalUIDrawCommand drawCommand)
@@ -263,7 +264,8 @@ namespace Xenko.Graphics
                 return;
 
             // Skip items with null size
-            var elementSize = new Vector2(auxiliaryScaling.X * glyph.Subrect.Width / parameters.RealVirtualResolutionRatio.X,
+            var elementSize = new Vector2(
+                auxiliaryScaling.X * glyph.Subrect.Width / parameters.RealVirtualResolutionRatio.X,
                 auxiliaryScaling.Y * glyph.Subrect.Height / parameters.RealVirtualResolutionRatio.Y);
             if (elementSize.Length() < MathUtil.ZeroTolerance) 
                 return;
@@ -291,7 +293,7 @@ namespace Xenko.Graphics
             worldMatrix.M23 *= elementSize.Y;
 
             RectangleF sourceRectangle = glyph.Subrect;
-            parameters.Batch.DrawCharacter(Textures[glyph.BitmapIndex], ref worldMatrix, ref sourceRectangle, ref parameters.Color, parameters.DepthBias, Swizzle);
+            parameters.Batch.DrawCharacter(Textures[glyph.BitmapIndex], ref worldMatrix, ref sourceRectangle, ref parameters.Color, parameters.DepthBias, swizzle);
         }
 
         /// <summary>
@@ -503,8 +505,10 @@ namespace Xenko.Graphics
                 // scan the whole text only one time following the text letter order
                 ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, 0, text.Length, updateGpuResources);
             }
-            else // scan the text line by line incrementing y start position
+            else
             {
+                // scan the text line by line incrementing y start position
+
                 // measure the whole string in order to be able to determine xStart
                 var wholeSize = textBoxSize ?? MeasureString(ref text, ref requestedFontSize);
 
@@ -543,7 +547,7 @@ namespace Xenko.Graphics
             var y = startY;
             for (var i = forStart; i < forEnd; i++)
             {
-                var character = text[i];					
+                var character = text[i];
 
                 switch (character)
                 {
@@ -565,7 +569,7 @@ namespace Xenko.Graphics
                         var glyph = GetGlyph(commandList, character, ref fontSize, updateGpuResources, out auxiliaryScaling);
                         if (glyph == null && !IgnoreUnkownCharacters && DefaultCharacter.HasValue)
                             glyph = GetGlyph(commandList, DefaultCharacter.Value, ref fontSize, updateGpuResources, out auxiliaryScaling);
-                        if(glyph == null)
+                        if (glyph == null)
                             continue;
 
                         key |= character;
@@ -583,7 +587,7 @@ namespace Xenko.Graphics
                 }
 
                 // Shift the kerning key
-                key  =  (key << 16);
+                key = (key << 16);
             }
         }
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -34,14 +34,14 @@ namespace Xenko.Rendering.Images
             const float distortionFactor = 0.39f;
             ZoomOffsetsDistortions = new Vector2[]
             {
-                new Vector2( -3.2f  * distortionFactor,  1.4f),
-                new Vector2( -5.6f  * distortionFactor,  1.4f),
-                new Vector2( -3.2f  * distortionFactor,  0.5f),
-                new Vector2( -0.96f * distortionFactor, -0.2f),
-                new Vector2( -1.14f * distortionFactor, -0.2f),
-                new Vector2( -1.14f * distortionFactor, -0.23f),
-                new Vector2( -1.49f * distortionFactor, -0.2f),
-                new Vector2( -1.52f * distortionFactor, -0.2f)
+                new Vector2(-03.2f * distortionFactor,  1.4f),
+                new Vector2(-05.6f * distortionFactor,  1.4f),
+                new Vector2(-03.2f * distortionFactor,  0.5f),
+                new Vector2(-0.96f * distortionFactor, -0.2f),
+                new Vector2(-1.14f * distortionFactor, -0.2f),
+                new Vector2(-1.14f * distortionFactor, -0.23f),
+                new Vector2(-1.49f * distortionFactor, -0.2f),
+                new Vector2(-1.52f * distortionFactor, -0.2f),
             };
 
             HaloFactor = 1f;
@@ -57,9 +57,8 @@ namespace Xenko.Rendering.Images
                 new Vector3(1.5f, 0.5f, 0.8f),
                 new Vector3(1.5f, 0.5f, 0.8f),
                 new Vector3(0.2f, 1.5f, 0.3f),
-                new Vector3(0.2f, 1.5f, 0.3f)
+                new Vector3(0.2f, 1.5f, 0.3f),
             };
-
         }
 
         protected override void InitializeCore()
@@ -84,7 +83,7 @@ namespace Xenko.Rendering.Images
         /// Strength of the color aberration.
         /// </summary>
         /// <userdoc>The strength of the color aberrations along the streaks and halo</userdoc>
-        [Display ("Color abberation")]
+        [Display("Color abberation")]
         [DataMember(20)]
         [DefaultValue(0.2f)]
         [DataMemberRange(0.0, 1.0, 0.01, 0.1, 2)]
@@ -118,7 +117,7 @@ namespace Xenko.Rendering.Images
             var input = GetInput(0);
             var output = GetOutput(0) ?? input;
 
-            if (input == null )
+            if (input == null)
             {
                 return;
             }
@@ -153,7 +152,7 @@ namespace Xenko.Rendering.Images
             // Replicates the artifacts around
             flareReplicateEffect.Parameters.Set(FlareReplicateKeys.Amount, Amount * 0.0005f);
             flareReplicateEffect.Parameters.Set(FlareReplicateKeys.HaloFactor, Amount * 0.0005f * HaloFactor);
-            flareReplicateEffect.SetInput(0,flareRenderTargetInitial);
+            flareReplicateEffect.SetInput(0, flareRenderTargetInitial);
             flareReplicateEffect.SetInput(1, blurredBright);
             flareReplicateEffect.SetOutput(flareRenderTarget);
             ((RendererBase)flareReplicateEffect).Draw(contextParameters);

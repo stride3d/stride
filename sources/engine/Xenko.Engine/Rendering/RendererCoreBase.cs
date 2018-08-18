@@ -216,7 +216,6 @@ namespace Xenko.Rendering
             scopedResources.Clear();
         }
 
-
         protected void PreDrawCoreInternal(RenderDrawContext context)
         {
             if (context == null)

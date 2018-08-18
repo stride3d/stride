@@ -7,6 +7,6 @@ namespace Xenko.Core.MicroThreading
         MicroThreadStart,
         MicroThreadEnd,
         CallbackStart,
-        CallbackEnd
+        CallbackEnd,
     }
 }

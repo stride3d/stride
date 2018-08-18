@@ -55,7 +55,7 @@ namespace Xenko.Audio
                 if (audioEngineSingleton == null)
                 {
                     var settings = ((Game)Game)?.Settings?.Configurations?.Get<AudioEngineSettings>();
-                    audioEngineSingleton = AudioEngineFactory.NewAudioEngine(RequestedAudioDevice, settings !=null && settings.HrtfSupport ? AudioLayer.DeviceFlags.Hrtf : AudioLayer.DeviceFlags.None);
+                    audioEngineSingleton = AudioEngineFactory.NewAudioEngine(RequestedAudioDevice, settings != null && settings.HrtfSupport ? AudioLayer.DeviceFlags.Hrtf : AudioLayer.DeviceFlags.None);
                 }
                 else
                 {
@@ -77,7 +77,7 @@ namespace Xenko.Audio
         /// <remarks>Adding a listener already added as no effects.</remarks>
         internal void AddListener(AudioListenerComponent listener)
         {
-            if(!Listeners.ContainsKey(listener))
+            if (!Listeners.ContainsKey(listener))
                 Listeners[listener] = null;
         }
 
@@ -89,7 +89,7 @@ namespace Xenko.Audio
         /// <exception cref="System.ArgumentException">The provided listener was not present in the Audio System.</exception>
         internal void RemoveListener(AudioListenerComponent listener)
         {
-            if(!Listeners.ContainsKey(listener))
+            if (!Listeners.ContainsKey(listener))
                 throw new ArgumentException("The provided listener was not present in the Audio System.");
 
             Listeners.Remove(listener);
@@ -131,6 +131,5 @@ namespace Xenko.Audio
             AudioEngine.PauseAudio();
             AudioEngine.Update(); // force the update of the audio to pause the Musics
         }
-
     }
 }

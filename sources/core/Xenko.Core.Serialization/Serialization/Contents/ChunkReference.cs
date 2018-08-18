@@ -45,7 +45,7 @@ namespace Xenko.Core.Serialization.Contents
         {
             unchecked
             {
-                return (Location.GetHashCode()*397) ^ ObjectType.GetHashCode();
+                return (Location.GetHashCode() * 397) ^ ObjectType.GetHashCode();
             }
         }
 

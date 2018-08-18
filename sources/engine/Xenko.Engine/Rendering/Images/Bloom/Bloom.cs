@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -60,7 +60,7 @@ namespace Xenko.Rendering.Images
         /// </summary>
         /// <value>The ratio</value>
         /// <userdoc>The standard deviation used for the blur of the effect. This impact the fall-off of the bloom.</userdoc>
-        [Display ("Sigma ratio")]
+        [Display("Sigma ratio")]
         [DataMember(30)]
         [DefaultValue(3.5f)]
         public float SigmaRatio { get; set; }
@@ -157,7 +157,7 @@ namespace Xenko.Rendering.Images
             // A distortion can be applied to the bloom effect to simulate anamorphic lenses
             if (Distortion.X > 1f || Distortion.Y > 1f)
             {
-                int distortedWidth  = (int)Math.Max(1, input.Description.Width  / Distortion.X);
+                int distortedWidth = (int)Math.Max(1, input.Description.Width / Distortion.X);
                 int distortedHeight = (int)Math.Max(1, input.Description.Height / Distortion.Y);
                 var anamorphicInput = NewScopedRenderTarget2D(distortedWidth, distortedHeight, input.Format);
                 Scaler.SetInput(input);

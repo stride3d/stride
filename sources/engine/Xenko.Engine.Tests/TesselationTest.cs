@@ -156,7 +156,7 @@ namespace Xenko.Engine.Tests
 
         private void ChangeDesiredTriangleSize(float f)
         {
-            if(currentMaterial == null)
+            if (currentMaterial == null)
                 return;
 
             var oldValue = currentMaterial.Passes[0].Parameters.Get(TessellationKeys.DesiredTriangleSize);

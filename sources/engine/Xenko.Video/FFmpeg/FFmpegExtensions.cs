@@ -1,7 +1,7 @@
 #if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_VIDEO_FFMPEG
+using System;
 using FFmpeg.AutoGen;
 using SharpDX.Direct3D11;
-using System;
 
 namespace Xenko.Video.FFmpeg
 {
@@ -20,7 +20,7 @@ namespace Xenko.Video.FFmpeg
                 Data1 = (((ulong)bytes[0]) << 24) + (((ulong)bytes[1]) << 16) + (((ulong)bytes[2]) << 8) + bytes[3],
                 Data2 = (ushort)((bytes[4] << 8) + bytes[5]),
                 Data3 = (ushort)((bytes[6] << 8) + bytes[7]),
-                Data4 = data4
+                Data4 = data4,
             };
         }
 

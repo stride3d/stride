@@ -78,16 +78,16 @@ namespace Irony.Parsing {
         }
       }
     }
-    public TokenPreviewHint ReduceIf(string first) {
+    public TokenPreviewHint Reduceif (string first) {
       return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Reduce, first);
     }
-    public TokenPreviewHint ReduceIf(Terminal first) {
+    public TokenPreviewHint Reduceif (Terminal first) {
       return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Reduce, first);
     }
-    public TokenPreviewHint ShiftIf(string first) {
+    public TokenPreviewHint Shiftif (string first) {
       return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Shift, first);
     }
-    public TokenPreviewHint ShiftIf(Terminal first) {
+    public TokenPreviewHint Shiftif (Terminal first) {
       return TokenPreviewHint = new TokenPreviewHint(ParserActionType.Shift, first);
     }
     #endregion
@@ -111,7 +111,7 @@ namespace Irony.Parsing {
       var index = 0; 
       while(index < 100) {
         var strParam = "#{" + index + "}";
-        if(_convertedTemplate.Contains(strParam)) {
+        if (_convertedTemplate.Contains(strParam)) {
           _convertedTemplate = _convertedTemplate.Replace(strParam, "{" + _captionParameters.Count + "}"); 
           _captionParameters.Add(index);
         }
@@ -124,7 +124,7 @@ namespace Irony.Parsing {
       var paramValues = new string[_captionParameters.Count];
       for(int i = 0; i < _captionParameters.Count; i++) {
         var childIndex = _captionParameters[i];
-        if(childIndex < node.ChildNodes.Count) {
+        if (childIndex < node.ChildNodes.Count) {
           var child = node.ChildNodes[childIndex];
           //if child is a token, then child.ToString returns token.ToString which contains Value + Term; 
           // in this case we prefer to have Value only

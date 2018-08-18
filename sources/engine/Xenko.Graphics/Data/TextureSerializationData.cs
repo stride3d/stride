@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
+#pragma warning disable SA1405 // Debug.Assert must provide message text
 using System.Diagnostics;
 using Xenko.Core.Annotations;
 using Xenko.Core.Serialization;

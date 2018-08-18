@@ -60,7 +60,9 @@ namespace Xenko.Rendering
                     Effect.HashConstantBufferMember(ref hashBuilder, ref member, logicalGroup.ConstantBufferOffset);
                 }
                 else if (logicalGroup.ConstantBufferMemberStart != -1)
+                {
                     break; // group is finished, no need to scan the end
+                }
             }
 
             for (int index = 0, slot = 0; index < DescriptorSetLayoutBuilder.Entries.Count; index++)
@@ -85,7 +87,9 @@ namespace Xenko.Rendering
                     hashBuilder.Write(descriptorSetEntry.ArraySize);
                 }
                 else if (logicalGroup.DescriptorEntryStart != -1)
+                {
                     break; // group is finished, no need to scan the end
+                }
 
                 slot += descriptorSetEntry.ArraySize;
             }

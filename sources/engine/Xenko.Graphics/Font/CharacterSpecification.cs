@@ -75,7 +75,7 @@ namespace Xenko.Graphics.Font
 
         public override bool Equals(object obj)
         {
-            return Equals(this, (CharacterSpecification)obj) ;
+            return Equals(this, (CharacterSpecification)obj);
         }
 
         public static bool Equals(CharacterSpecification left, CharacterSpecification right)

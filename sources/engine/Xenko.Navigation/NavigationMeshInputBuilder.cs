@@ -90,11 +90,11 @@ namespace Xenko.Navigation
             if (meshData.IsLeftHanded)
             {
                 // Copy indices with offset applied
-                for (int i = 0; i < meshData.Indices.Length; i+=3)
+                for (int i = 0; i < meshData.Indices.Length; i += 3)
                 {
                     Indices.Add(meshData.Indices[i] + vbase);
-                    Indices.Add(meshData.Indices[i+2] + vbase);
-                    Indices.Add(meshData.Indices[i+1] + vbase);
+                    Indices.Add(meshData.Indices[i + 2] + vbase);
+                    Indices.Add(meshData.Indices[i + 1] + vbase);
                 }
             }
             else

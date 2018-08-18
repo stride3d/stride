@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
+#pragma warning disable SA1402 // File may only contain a single type
 using System.Collections.Generic;
 using System.Linq;
 using Xenko.Core;
@@ -9,44 +9,13 @@ using Xenko.Core.Collections;
 
 namespace Xenko.Animations
 {
-    public enum AnimationKeyTangentType
-    {
-        /// <summary>
-        /// Linear - the value is linearly calculated as V1 * (1 - t) + V2 * t
-        /// </summary>
-        Linear,        
-    }
-
-    [DataContract]
-    [Display("KeyFrame")]
-    public class AnimationKeyFrame<T> where T : struct
-    {
-        private T val;
-        [DataMember(20)]
-        [Display("Value")]
-        public T Value { get { return val; } set { val = value; HasChanged = true; } }
-
-        private float key;
-        [DataMember(10)]
-        [Display("Key")]
-        public float Key { get { return key; } set { key = value; HasChanged = true; } }
-
-        private AnimationKeyTangentType tangentType = AnimationKeyTangentType.Linear;
-        [DataMember(30)]
-        [Display("Tangent")]
-        public AnimationKeyTangentType TangentType { get { return tangentType; } set { tangentType = value; HasChanged = true; } }
-
-        [DataMemberIgnore]
-        public bool HasChanged = true;
-    }
-
     /// <summary>
     /// A node which describes a binary operation between two compute curves
     /// </summary>
     /// <typeparam name="T">Sampled data's type</typeparam>
     [DataContract(Inherited = true)]
     [Display("Animation", Expand = ExpandRule.Never)]
-    public abstract class ComputeAnimationCurve<T> : Comparer<AnimationKeyFrame<T>>, IComputeCurve<T>  where T : struct
+    public abstract class ComputeAnimationCurve<T> : Comparer<AnimationKeyFrame<T>>, IComputeCurve<T> where T : struct
     {
         // TODO This class will hold an AnimationCurve<T> later
         //[DataMemberIgnore]
@@ -65,8 +34,10 @@ namespace Xenko.Animations
                 return true;
 
             for (var i = 0; i < framesCount; i++)
+            {
                 if (KeyFrames[i].HasChanged)
                     return true;
+            }
 
             return false;
         }
@@ -92,7 +63,7 @@ namespace Xenko.Animations
         {
             if (x == null && y == null) return 0;
             if (x == null) return -1;
-            if (y == null) return  1;
+            if (y == null) return 1;
 
             return (x.Key < y.Key) ? -1 : (x.Key > y.Key) ? 1 : 0;
         }

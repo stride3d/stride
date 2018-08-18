@@ -1,15 +1,15 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Linq;
 using Xenko.Core;
 using Xenko.Core.Collections;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
-using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Linq;
 
 namespace Xenko.Input
 {
@@ -287,8 +287,8 @@ namespace Xenko.Input
         /// <returns></returns>
         public static Vector2 TransformPosition(Size2F fromSize, RectangleF destinationRectangle, Vector2 screenCoordinates)
         {
-            return new Vector2((screenCoordinates.X*fromSize.Width - destinationRectangle.X)/destinationRectangle.Width,
-                (screenCoordinates.Y*fromSize.Height - destinationRectangle.Y)/destinationRectangle.Height);
+            return new Vector2((screenCoordinates.X * fromSize.Width - destinationRectangle.X) / destinationRectangle.Width,
+                (screenCoordinates.Y * fromSize.Height - destinationRectangle.Y) / destinationRectangle.Height);
         }
 
         public override void Initialize()
@@ -567,7 +567,7 @@ namespace Xenko.Input
             for (int i = 0; i < gamePadRequestedIndex.Count; i++)
             {
                 var collection = gamePadRequestedIndex[i];
-                if (collection.Count == 0 || collection.Count == 1 && collection[0] == gamePad)
+                if (collection.Count == 0 || (collection.Count == 1 && collection[0] == gamePad))
                 {
                     targetIndex = i;
                     break;

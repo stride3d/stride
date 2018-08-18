@@ -1217,8 +1217,8 @@ namespace Xenko.Graphics
                 unchecked
                 {
                     var hashCode = (Texture != null ? Texture.GetHashCode() : 0);
-                    hashCode = (hashCode*397) ^ ArraySlice.GetHashCode();
-                    hashCode = (hashCode*397) ^ MipLevel.GetHashCode();
+                    hashCode = (hashCode * 397) ^ ArraySlice.GetHashCode();
+                    hashCode = (hashCode * 397) ^ MipLevel.GetHashCode();
                     return hashCode;
                 }
             }

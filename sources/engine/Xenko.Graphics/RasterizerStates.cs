@@ -40,4 +40,3 @@ namespace Xenko.Graphics
         public static readonly RasterizerStateDescription Wireframe = new RasterizerStateDescription(CullMode.None) { FillMode = FillMode.Wireframe };
     }
 }
-

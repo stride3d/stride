@@ -4,11 +4,10 @@
 #if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using WinFormsKeys = System.Windows.Forms.Keys;
 
 namespace Xenko.Input
 {
-    using WinFormsKeys = System.Windows.Forms.Keys;
-
     /// <summary>
     /// Mapping between <see cref="WinFormsKeys"/> and <see cref="Xenko.Input.Keys"/> needed for
     /// translating Winform key events into Xenko ones.
@@ -21,13 +20,15 @@ namespace Xenko.Input
         /// <summary>
         /// Map between Winform keys and Xenko keys.
         /// </summary>
-        internal static readonly Dictionary<WinFormsKeys, Keys> mapKeys = NewMapKeys();
+        internal static readonly Dictionary<WinFormsKeys, Keys> MapKeys = NewMapKeys();
 
+#pragma warning disable SA1310 // Field names should not contain underscore
         public const uint MAPVK_VK_TO_VSC = 0x00;
         public const uint MAPVK_VSC_TO_VK = 0x01;
         public const uint MAPVK_VK_TO_CHAR = 0x02;
         public const uint MAPVK_VSC_TO_VK_EX = 0x03;
         public const uint MAPVK_VK_TO_VSC_EX = 0x04;
+#pragma warning restore SA1310 // Field names should not contain underscore
 
         /// <summary>
         /// Create a mapping between <see cref="WinFormsKeys"/> and <see cref="Xenko.Input.Keys"/>

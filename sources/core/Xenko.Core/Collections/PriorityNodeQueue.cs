@@ -76,7 +76,8 @@ namespace Xenko.Core.Collections
             {
                 // c is the child we want to swap with. If there
                 // is no child at all, then the heap is balanced
-                var c = p * 2; if (c >= nMax) break;
+                var c = p * 2;
+                if (c >= nMax) break;
 
                 // If the second child is smaller than the first, that's the one
                 // we want to swap with this parent.
@@ -188,7 +189,8 @@ namespace Xenko.Core.Collections
             {
                 // c is the child we want to swap with. If there
                 // is no child at all, then the heap is balanced
-                var c = p * 2; if (c >= nMax) break;
+                var c = p * 2;
+                if (c >= nMax) break;
 
                 // If the second child is smaller than the first, that's the one
                 // we want to swap with this parent.

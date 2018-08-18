@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -12,5 +12,4 @@ namespace Xenko.Rendering.Materials
     {
         public static readonly ObjectParameterKey<Vector4[]> ScatteringKernel = ParameterKeys.NewObject<Vector4[]>();
     }
-
 }

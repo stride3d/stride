@@ -8,7 +8,7 @@ namespace Xenko.Games
     /// <summary>
     /// Helper functions to determine lower and upper bounds in a sorted list.
     /// </summary>
-    static class ListBoundExtensions
+    internal static class ListBoundExtensions
     {
         // http://www.cplusplus.com/reference/algorithm/lower_bound/
         public static int LowerBound<TItem>(this List<TItem> list, TItem value, IComparer<TItem> comparer, int index, int count)
@@ -23,7 +23,9 @@ namespace Xenko.Games
                     count = count - half - 1;
                 }
                 else
+                {
                     count = half;
+                }
             }
             return index;
         }
@@ -41,7 +43,9 @@ namespace Xenko.Games
                     count = count - half - 1;
                 }
                 else
+                {
                     count = half;
+                }
             }
             return index;
         }

@@ -21,16 +21,16 @@ namespace Xenko.Physics
             Type = ColliderShapeTypes.Sphere;
             Is2D = is2D;
 
-            CachedScaling = Is2D ? new Vector3(1, 1, 0) : Vector3.One;
+            cachedScaling = Is2D ? new Vector3(1, 1, 0) : Vector3.One;
 
             var shape = new BulletSharp.SphereShape(radius)
             {
-                LocalScaling = CachedScaling
+                LocalScaling = cachedScaling,
             };
 
             if (Is2D)
             {
-                InternalShape = new BulletSharp.Convex2DShape(shape) { LocalScaling = CachedScaling };
+                InternalShape = new BulletSharp.Convex2DShape(shape) { LocalScaling = cachedScaling };
             }
             else
             {

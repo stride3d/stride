@@ -32,7 +32,6 @@ namespace Xenko.Rendering.Lights
         private Buffer pointLightsBuffer;
         private Buffer spotLightsBuffer;
 
-
         public override Type[] LightTypes { get; } = { typeof(LightPoint), typeof(LightSpot) };
 
         public override void Initialize(RenderContext context)
@@ -80,16 +79,16 @@ namespace Xenko.Rendering.Lights
         private bool CanRenderLight(LightComponent lightComponent, ProcessLightsParameters parameters, bool hasNextRenderer)
         {
             Texture projectionTexture = null;
-            if (lightComponent.Type is LightSpot spotLight)    // TODO: PERFORMANCE: I would say that casting this for every light is slow, no?
+            if (lightComponent.Type is LightSpot spotLight) // TODO: PERFORMANCE: I would say that casting this for every light is slow, no?
             {
                 projectionTexture = spotLight.ProjectiveTexture;
             }
 
             // Check if there might be a renderer that supports shadows instead (in that case skip the light)
             LightShadowMapTexture shadowMapTexture;
-            if (hasNextRenderer && parameters.ShadowMapTexturesPerLight.TryGetValue(lightComponent, out shadowMapTexture) ||    // If the light has shadows:
+            if ((hasNextRenderer && parameters.ShadowMapTexturesPerLight.TryGetValue(lightComponent, out shadowMapTexture)) // If the light has shadows:
                 // TODO: Check for "hasNextRenderer && projectionTexture != null" instead?
-                projectionTexture != null)   // If the light projects a texture (we check for this because otherwise this renderer would "steal" the light from the spot light renderer which handles texture projection):
+                || projectionTexture != null) // If the light projects a texture (we check for this because otherwise this renderer would "steal" the light from the spot light renderer which handles texture projection):
             {
                 // Ignore lights with textures or shadows.
                 return false;
@@ -115,7 +114,7 @@ namespace Xenko.Rendering.Lights
                 var lightComponent = parameters.LightCollection[index];
 
                 // Check if there might be a renderer that supports shadows instead (in that case skip the light)
-                if (!CanRenderLight(lightComponent, parameters, hasNextRenderer))   // If the light projects a texture (we check for this because otherwise this renderer would "steal" the light from the spot light renderer which handle texture projection):    // TODO: Also check for texture projection renderer?
+                if (!CanRenderLight(lightComponent, parameters, hasNextRenderer)) // If the light projects a texture (we check for this because otherwise this renderer would "steal" the light from the spot light renderer which handle texture projection):    // TODO: Also check for texture projection renderer?
                 {
                     // Skip this light
                     i++;
@@ -356,10 +355,10 @@ namespace Xenko.Rendering.Lights
                 }
 
                 //---------------- POINT LIGHTS -------------------
-                lightRange = LightRanges[viewIndex];
+                lightRange = lightRanges[viewIndex];
                 for (int i = lightRange.Start; i < lightRange.End; ++i)
                 {
-                    var light = Lights[i].Light;
+                    var light = lights[i].Light;
                     var pointLight = (LightPoint)light.Type;
 
                     // Create point light data
@@ -640,7 +639,8 @@ namespace Xenko.Rendering.Lights
                 lightNodes.Items[clusterIndex] = new LightClusterLinkedNode(lightType, lightIndex, nextNode);
             }
 
-            private static void UpdateClipRegionRoot(float nc,          // Tangent plane x/y normal coordinate (view space)
+            private static void UpdateClipRegionRoot(
+                    float nc,          // Tangent plane x/y normal coordinate (view space)
                     float lc,          // Light x/y coordinate (view space)
                     float lz,          // Light z coordinate (view space)
                     float lightRadius,
@@ -658,17 +658,20 @@ namespace Xenko.Rendering.Lights
                     float c = -nz * cameraScale / nc - cameraOffset;
 
                     if (nc > 0.0f)
-                    {        // Left side boundary
+                    {
+                        // Left side boundary
                         clipMin = Math.Max(clipMin, c);
                     }
                     else
-                    {                          // Right side boundary
+                    {
+                        // Right side boundary
                         clipMax = Math.Min(clipMax, c);
                     }
                 }
             }
 
-            private static void UpdateClipRegion(float lc,          // Light x/y coordinate (view space)
+            private static void UpdateClipRegion(
+                        float lc,          // Light x/y coordinate (view space)
                         float lz,          // Light z coordinate (view space)
                         float lightRadius,
                         float cameraScale, // Project scale for coordinate (_11 or _22 for x/y respectively)
@@ -702,7 +705,7 @@ namespace Xenko.Rendering.Lights
             }
 
             // Single linked list of lights (stored in an array)
-            struct LightClusterLinkedNode : IEquatable<LightClusterLinkedNode>
+            private struct LightClusterLinkedNode : IEquatable<LightClusterLinkedNode>
             {
                 public readonly InternalLightType LightType;
                 public readonly int LightIndex;
@@ -731,8 +734,8 @@ namespace Xenko.Rendering.Lights
                     unchecked
                     {
                         var hashCode = (int)LightType;
-                        hashCode = (hashCode*397) ^ LightIndex;
-                        hashCode = (hashCode*397) ^ NextNode;
+                        hashCode = (hashCode * 397) ^ LightIndex;
+                        hashCode = (hashCode * 397) ^ NextNode;
                         return hashCode;
                     }
                 }
@@ -753,7 +756,7 @@ namespace Xenko.Rendering.Lights
             }
         }
         
-        class PointSpotShaderGroupData : LightShaderGroupDynamic
+        private class PointSpotShaderGroupData : LightShaderGroupDynamic
         {
             public PointSpotShaderGroupData(RenderContext renderContext)
                 : base(renderContext, null)
@@ -762,12 +765,12 @@ namespace Xenko.Rendering.Lights
             }
 
             // Makes LightRanges and Lights public
-            public new LightRange[] LightRanges => base.LightRanges;
+            public LightRange[] LightRanges => lightRanges;
 
-            public new FastListStruct<LightDynamicEntry> Lights => base.Lights;
+            public FastListStruct<LightDynamicEntry> Lights => lights;
         }
 
-        enum InternalLightType
+        private enum InternalLightType
         {
             Point,
             Spot,

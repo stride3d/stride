@@ -16,6 +16,6 @@ namespace Xenko.Input
         /// <summary>
         /// A button that is physically toggled when pressed
         /// </summary>
-        ToggleButton
+        ToggleButton,
     }
 }

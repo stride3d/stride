@@ -46,6 +46,6 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// The two bounding volumes overlap.
         /// </summary>
-        Intersects
-    };
+        Intersects,
+    }
 }

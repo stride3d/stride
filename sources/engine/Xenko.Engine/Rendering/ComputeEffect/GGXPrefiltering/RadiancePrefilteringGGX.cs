@@ -62,7 +62,7 @@ namespace Xenko.Rendering.ComputeEffect.GGXPrefiltering
                 if (value > 1024)
                     throw new ArgumentOutOfRangeException("value");
 
-                if(!MathUtil.IsPow2(value))
+                if (!MathUtil.IsPow2(value))
                     throw new ArgumentException("The provided value should be a power of 2");
 
                 samplingsCount = Math.Max(1, value);
@@ -72,14 +72,14 @@ namespace Xenko.Rendering.ComputeEffect.GGXPrefiltering
         protected override void DrawCore(RenderDrawContext context)
         {
             var output = PrefilteredRadiance;
-            if(output == null || (output.ViewDimension != TextureDimension.Texture2D && output.ViewDimension != TextureDimension.TextureCube) || output.ArraySize != 6)
+            if (output == null || (output.ViewDimension != TextureDimension.Texture2D && output.ViewDimension != TextureDimension.TextureCube) || output.ArraySize != 6)
                 throw new NotSupportedException("Only array of 2D textures are currently supported as output");
 
             if (!output.IsUnorderedAccess || output.IsRenderTarget)
                 throw new NotSupportedException("Only non-rendertarget unordered access textures are supported as output");
 
             var input = RadianceMap;
-            if(input == null || input.Dimension != TextureDimension.TextureCube)
+            if (input == null || input.Dimension != TextureDimension.TextureCube)
                 throw new NotSupportedException("Only cubemaps are currently supported as input");
 
             var roughness = 0f;

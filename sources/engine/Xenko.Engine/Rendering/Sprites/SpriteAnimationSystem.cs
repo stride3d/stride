@@ -2,8 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
-using Xenko.Core;
 using Xenko.Animations;
+using Xenko.Core;
 using Xenko.Engine;
 using Xenko.Games;
 
@@ -47,7 +47,7 @@ namespace Xenko.Rendering.Sprites
 
             foreach (var sprite in playingSprites)
             {
-                if(sprite.IsPaused)
+                if (sprite.IsPaused)
                     continue;
 
                 sprite.ElapsedTime += elapsedTime;
@@ -59,7 +59,7 @@ namespace Xenko.Rendering.Sprites
                     var oneFrameTime = 1 / animationInfo.FramePerSeconds;
 
                     // As long as needed and possible go to the next animation frame
-                    while (sprite.ElapsedTime >= oneFrameTime && (animationInfo.ShouldLoop || sprite.CurrentIndexIndex < animationInfo.SpriteIndices.Count-1))
+                    while (sprite.ElapsedTime >= oneFrameTime && (animationInfo.ShouldLoop || sprite.CurrentIndexIndex < animationInfo.SpriteIndices.Count - 1))
                     {
                         sprite.ElapsedTime -= oneFrameTime;
                         sprite.CurrentIndexIndex = (sprite.CurrentIndexIndex + 1) % animationInfo.SpriteIndices.Count;
@@ -108,7 +108,7 @@ namespace Xenko.Rendering.Sprites
         /// <param name="clearQueuedAnimations">Indicate if queued animation should be cleared</param>
         public void Play(SpriteComponent spriteComponent, int startIndex, int endIndex, AnimationRepeatMode repeatMode, float framesPerSeconds = 0, bool clearQueuedAnimations = true)
         {
-            if(spriteComponent == null)
+            if (spriteComponent == null)
                 return;
 
             var animationInfo = new SpriteComponent.AnimationInfo
@@ -127,7 +127,7 @@ namespace Xenko.Rendering.Sprites
             for (int i = 0; i < queuedAnimationsCount; i++)
             {
                 var queuedAnimation = spriteComponent.Animations.Dequeue();
-                if(!clearQueuedAnimations)
+                if (!clearQueuedAnimations)
                     spriteComponent.Animations.Enqueue(queuedAnimation);
             }
 
@@ -193,7 +193,7 @@ namespace Xenko.Rendering.Sprites
             {
                 ShouldLoop = repeatMode == AnimationRepeatMode.LoopInfinite,
                 FramePerSeconds = framesPerSeconds > 0 ? framesPerSeconds : DefaultFramesPerSecond,
-                SpriteIndices = SpriteComponent.GetNewSpriteIndicesList()
+                SpriteIndices = SpriteComponent.GetNewSpriteIndicesList(),
             };
 
             for (int i = startIndex; i <= endIndex; i++)
@@ -220,10 +220,10 @@ namespace Xenko.Rendering.Sprites
             {
                 ShouldLoop = repeatMode == AnimationRepeatMode.LoopInfinite,
                 FramePerSeconds = framesPerSeconds > 0 ? framesPerSeconds : DefaultFramesPerSecond,
-                SpriteIndices = SpriteComponent.GetNewSpriteIndicesList()
+                SpriteIndices = SpriteComponent.GetNewSpriteIndicesList(),
             };
 
-            foreach(var i in indices)
+            foreach (var i in indices)
                 animationInfo.SpriteIndices.Add(i);
 
             spriteComponent.Animations.Enqueue(animationInfo);

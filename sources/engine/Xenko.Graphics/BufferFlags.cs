@@ -70,6 +70,6 @@ namespace Xenko.Graphics
         /// <summary>
         /// Creates an indirect arguments buffer.
         /// </summary>
-        ArgumentBuffer = 1024
+        ArgumentBuffer = 1024,
     }
 }

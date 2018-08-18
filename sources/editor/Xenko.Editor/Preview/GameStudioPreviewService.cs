@@ -266,7 +266,7 @@ namespace Xenko.Editor.Preview
                 if (asset != null && nextPreview != null)
                 {
                     previewView = await nextPreview.Initialize(asset, this);
-                    if(previewView != null)
+                    if (previewView != null)
                         Logger.Info($"Initialized preview of {nextPreview.AssetViewModel.Url}.");
                 }
                 else

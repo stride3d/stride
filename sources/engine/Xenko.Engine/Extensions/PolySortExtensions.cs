@@ -5,15 +5,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
-using Xenko.Rendering;
 using Xenko.Graphics;
 using Xenko.Graphics.Data;
+using Xenko.Rendering;
 
 namespace Xenko.Extensions
 {
     public static class PolySortExtensions
     {
-        public unsafe static void SortMeshPolygons(this MeshDraw meshData, Vector3 viewDirectionForSorting)
+        public static unsafe void SortMeshPolygons(this MeshDraw meshData, Vector3 viewDirectionForSorting)
         {
             // need to have alreade an vertex buffer
             if (meshData.VertexBuffers == null)
@@ -21,7 +21,7 @@ namespace Xenko.Extensions
             // For now, require a MeshData with an index buffer
             if (meshData.IndexBuffer == null)
                 throw new NotImplementedException("The mesh Data needs to have index buffer");
-            if(meshData.VertexBuffers.Length != 1)
+            if (meshData.VertexBuffers.Length != 1)
                 throw new NotImplementedException("Sorting not implemented for multiple vertex buffers by submeshdata");
 
             if (viewDirectionForSorting == Vector3.Zero)
@@ -56,12 +56,12 @@ namespace Xenko.Extensions
                     var center = accu / PolySize;
 
                     // add to the list to sort
-                    sortList.Add(new KeyValuePair<int, Vector3>(i,center));
+                    sortList.Add(new KeyValuePair<int, Vector3>(i, center));
                 }
             }
 
             // sort the list
-            var sortedIndices = sortList.OrderBy(x => Vector3.Dot(x.Value, viewDirectionForSorting)).Select(x=>x.Key).ToList();   // TODO have a generic delegate for sorting
+            var sortedIndices = sortList.OrderBy(x => Vector3.Dot(x.Value, viewDirectionForSorting)).Select(x => x.Key).ToList();   // TODO have a generic delegate for sorting
             
             // re-write the index buffer
             var newIndexBufferData = new byte[oldIndexBuffer.Count * Utilities.SizeOf<int>()];

@@ -120,7 +120,7 @@ namespace Xenko.Input
                 var vibration = new Vibration
                 {
                     LeftMotorSpeed = (ushort)(leftMotor * 65535.0f),
-                    RightMotorSpeed = (ushort)(rightMotor * 65535.0f)
+                    RightMotorSpeed = (ushort)(rightMotor * 65535.0f),
                 };
                 controller.SetVibration(vibration);
             }

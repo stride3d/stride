@@ -18,6 +18,6 @@ namespace Xenko.Rendering
         /// Meshes outside of the camera's view frustum will be culled.
         /// </summary>
         /// <userdoc>Skip all entities out of the camera frustum.</userdoc>
-        Frustum
+        Frustum,
     }
 }

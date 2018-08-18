@@ -3,7 +3,6 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-
 [assembly: InternalsVisibleTo("Xenko.Core.Design.Serializers")]
 [assembly: InternalsVisibleTo("Xenko.Engine")]
 [assembly: InternalsVisibleTo("Xenko.Engine.Step1")]

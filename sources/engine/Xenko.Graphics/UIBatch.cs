@@ -42,11 +42,11 @@ namespace Xenko.Graphics
 
         private readonly Texture whiteTexture;
 
-        private readonly EffectInstance SignedDistanceFieldFontEffect;
+        private readonly EffectInstance signedDistanceFieldFontEffect;
 
         private readonly EffectInstance sdfSpriteFontEffect;
 
-        public EffectInstance SDFSpriteFontEffect { get { return sdfSpriteFontEffect; }  }
+        public EffectInstance SDFSpriteFontEffect { get { return sdfSpriteFontEffect; } }
 
         static UIBatch()
         {
@@ -124,21 +124,21 @@ namespace Xenko.Graphics
             indices[count++] = 6;
             indices[count++] = 3;
             indices[count++] = 7;
-            indices[count  ] = 6;
+            indices[count] = 6;
 
             // reverse cube
             var cubeIndices = PrimiteTypeToIndices[(int)PrimitiveType.Cube];
             indices = PrimiteTypeToIndices[(int)PrimitiveType.ReverseCube];
-            for( var i=0; i<cubeIndices.Length; i += 3)
+            for (var i = 0; i < cubeIndices.Length; i += 3)
             {
-                indices[i+0] = cubeIndices[i+0];
-                indices[i+1] = cubeIndices[i+2];
-                indices[i+2] = cubeIndices[i+1];
+                indices[i + 0] = cubeIndices[i + 0];
+                indices[i + 1] = cubeIndices[i + 2];
+                indices[i + 2] = cubeIndices[i + 1];
             }
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="UIBatch"/>.
+        /// Initializes a new instance of the <see cref="UIBatch"/> class.
         /// </summary>
         /// <param name="device">A valid instance of <see cref="GraphicsDevice"/>.</param>
         public UIBatch(GraphicsDevice device)
@@ -147,12 +147,12 @@ namespace Xenko.Graphics
             VertexPositionColorTextureSwizzle.Layout)
         {
             // Create a 1x1 pixel white texture
-            whiteTexture = GraphicsDevice.GetSharedWhiteTexture();
+            whiteTexture = graphicsDevice.GetSharedWhiteTexture();
 
             //  Load custom font rendering effects here
 
             // For signed distance field font rendering
-            SignedDistanceFieldFontEffect = new EffectInstance(new Effect(device, SignedDistanceFieldFontShader.Bytecode) { Name = "UIBatchSignedDistanceFieldFontEffect" });
+            signedDistanceFieldFontEffect = new EffectInstance(new Effect(device, SignedDistanceFieldFontShader.Bytecode) { Name = "UIBatchSignedDistanceFieldFontEffect" });
 
             // For signed distance field thumbnail rendering
             sdfSpriteFontEffect = new EffectInstance(new Effect(device, SpriteSignedDistanceFieldFontShader.Bytecode) { Name = "UIBatchSDFSpriteFontEffect" });
@@ -163,11 +163,10 @@ namespace Xenko.Graphics
         /// Passing null for any of the state objects selects the default default state objects (BlendState.AlphaBlend, DepthStencilState.None).
         /// </summary>
         /// <param name="graphicsContext">The graphics context to use.</param>
+        /// <param name="viewProjection">The view projection matrix used for this series of draw calls</param>
         /// <param name="blendState">Blending options.</param>
         /// <param name="depthStencilState">Depth and stencil options.</param>
-        /// <param name="viewProjection">The view projection matrix used for this series of draw calls</param>
         /// <param name="stencilValue">The value of the stencil buffer to take as reference</param>
-        /// <param name="overrideEffect">The number of the override effect to use, if any</param>
         public void Begin(GraphicsContext graphicsContext, ref Matrix viewProjection, BlendStateDescription? blendState, DepthStencilStateDescription? depthStencilState, int stencilValue)
         {
             Begin(graphicsContext, ref viewProjection, blendState, null, null, depthStencilState, stencilValue);
@@ -178,11 +177,11 @@ namespace Xenko.Graphics
         /// Passing null for any of the state objects selects the default default state objects (BlendState.AlphaBlend, DepthStencilState.None, RasterizerState.CullCounterClockwise, SamplerState.LinearClamp). 
         /// </summary>
         /// <param name="graphicsContext">The graphics context to use.</param>
+        /// <param name="viewProjection">The view projection matrix used for this series of draw calls</param>
         /// <param name="blendState">Blending options.</param>
         /// <param name="samplerState">Texture sampling options.</param>
-        /// <param name="depthStencilState">Depth and stencil options.</param>
         /// <param name="rasterizerState">Rasterization options.</param>
-        /// <param name="viewProjection">The view projection matrix used for this series of draw calls</param>
+        /// <param name="depthStencilState">Depth and stencil options.</param>
         /// <param name="stencilValue">The value of the stencil buffer to take as reference</param>
         public void Begin(GraphicsContext graphicsContext, ref Matrix viewProjection, BlendStateDescription? blendState, SamplerState samplerState, RasterizerStateDescription? rasterizerState, DepthStencilStateDescription? depthStencilState, int stencilValue)
         {
@@ -199,7 +198,7 @@ namespace Xenko.Graphics
 
         public void BeginCustom(GraphicsContext graphicsContext, int overrideEffect)
         {
-            EffectInstance effect = (overrideEffect == 0) ? null : SignedDistanceFieldFontEffect;
+            EffectInstance effect = (overrideEffect == 0) ? null : signedDistanceFieldFontEffect;
 
             Begin(graphicsContext, effect, SpriteSortMode.BackToFront, 
                 currentBlendState, currentSamplerState, currentDepthStencilState, currentRasterizerState, currentStencilValue);
@@ -224,7 +223,7 @@ namespace Xenko.Graphics
                 DepthBias = depthBias,
                 ColorScale = color,
                 ColorAdd = new Color(0, 0, 0, 0),
-                Primitive = PrimitiveType.Rectangle
+                Primitive = PrimitiveType.Rectangle,
             };
 
             var matrix = worldMatrix;
@@ -286,7 +285,7 @@ namespace Xenko.Graphics
                 DepthBias = depthBias,
                 ColorScale = color,
                 ColorAdd = new Color(0, 0, 0, 0),
-                Primitive = isReverse? PrimitiveType.ReverseCube: PrimitiveType.Cube
+                Primitive = isReverse ? PrimitiveType.ReverseCube : PrimitiveType.Cube,
             };
 
             var matrix = worldMatrix;
@@ -342,18 +341,18 @@ namespace Xenko.Graphics
                     X = sourceRectangle.X / texture.ViewWidth, 
                     Y = sourceRectangle.Y / texture.ViewHeight, 
                     Width = sourceRectangle.Width / texture.ViewWidth, 
-                    Height = sourceRectangle.Height / texture.ViewHeight
+                    Height = sourceRectangle.Height / texture.ViewHeight,
                 },
                 DepthBias = depthBias,
                 ColorScale = color,
                 ColorAdd = new Color(0, 0, 0, 0),
                 Swizzle = swizzle,
                 SnapImage = snapImage,
-                Primitive = borderSize == Vector4.Zero? PrimitiveType.Rectangle : PrimitiveType.BorderRectangle,
+                Primitive = borderSize == Vector4.Zero ? PrimitiveType.Rectangle : PrimitiveType.BorderRectangle,
                 BorderSize = new Vector4(borderSize.X / sourceRectangle.Width, borderSize.Y / sourceRectangle.Height, borderSize.Z / sourceRectangle.Width, borderSize.W / sourceRectangle.Height),
             };
 
-            var rotatedSize = imageOrientation == ImageOrientation.AsIs? elementSize: new Vector3(elementSize.Y, elementSize.X, 0);
+            var rotatedSize = imageOrientation == ImageOrientation.AsIs ? elementSize : new Vector3(elementSize.Y, elementSize.X, 0);
             drawInfo.VertexShift = new Vector4(borderSize.X / rotatedSize.X, borderSize.Y / rotatedSize.Y, 1f - borderSize.Z / rotatedSize.X, 1f - borderSize.W / rotatedSize.Y);
 
             var matrix = worldMatrix;
@@ -408,7 +407,7 @@ namespace Xenko.Graphics
                     X = sourceRectangle.X / texture.ViewWidth,
                     Y = sourceRectangle.Y / texture.ViewHeight,
                     Width = sourceRectangle.Width / texture.ViewWidth,
-                    Height = sourceRectangle.Height / texture.ViewHeight
+                    Height = sourceRectangle.Height / texture.ViewHeight,
                 },
                 DepthBias = depthBias,
                 ColorScale = color,
@@ -526,7 +525,7 @@ namespace Xenko.Graphics
 
                         vertex->Position.X = currentPosition.X;
                         vertex->Position.Y = currentPosition.Y;
-                        vertex->Position.Z = currentPosition.Z - currentPosition.W*drawInfo->DepthBias*DepthBiasShiftOneUnit;
+                        vertex->Position.Z = currentPosition.Z - currentPosition.W * drawInfo->DepthBias * DepthBiasShiftOneUnit;
                         vertex->Position.W = currentPosition.W;
 
                         vertex++;

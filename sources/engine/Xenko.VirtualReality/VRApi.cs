@@ -7,8 +7,8 @@ namespace Xenko.VirtualReality
         Oculus = 0,
         OpenVR = 1,
         WindowsMixedReality = 2,
-        Dummy = 100
+        Dummy = 100,
         //Fove,
-        //Google
+        //Google,
     }
 }

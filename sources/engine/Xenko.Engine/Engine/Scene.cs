@@ -164,15 +164,15 @@ namespace Xenko.Engine
             if (item.Scene != null)
                 throw new InvalidOperationException("This entity already has a scene. Detach it first.");
 
-            item.scene = this;
+            item.SceneValue = this;
         }
 
         private void RemoveItem(Entity item)
         {
-            if (item.scene != this)
+            if (item.SceneValue != this)
                 throw new InvalidOperationException("This entity's scene is not the expected value.");
 
-            item.scene = null;
+            item.SceneValue = null;
         }
     }
 }

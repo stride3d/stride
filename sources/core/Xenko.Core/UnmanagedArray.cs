@@ -49,7 +49,7 @@ namespace Xenko.Core
                 unsafe
                 {
                     var bptr = (byte*)Pointer;
-                    bptr += index*sizeOfT;                   
+                    bptr += index * sizeOfT;                   
                     Interop.Read<T>(bptr, ref res);
                 }
 
@@ -123,7 +123,7 @@ namespace Xenko.Core
             {
                 var ptr = (byte*)Pointer;
                 ptr += pointerByteOffset;
-                Interop.Write(ptr , source, arrayOffset, arrayLen);
+                Interop.Write(ptr, source, arrayOffset, arrayLen);
             }
         }
 

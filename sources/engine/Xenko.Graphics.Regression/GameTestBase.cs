@@ -161,7 +161,7 @@ namespace Xenko.Graphics.Regression
         protected internal void EnableSimulatedInputSource()
         {
             InputSourceSimulated = new InputSourceSimulated();
-            if(Input != null)
+            if (Input != null)
                 InitializeSimulatedInputSource();
         }
 
@@ -206,7 +206,7 @@ namespace Xenko.Graphics.Regression
         {
             await base.LoadContent();
 
-            if(!ForceInteractiveMode)
+            if (!ForceInteractiveMode)
                 InitializeSimulatedInputSource();
 
 #if !XENKO_UI_SDL
@@ -220,7 +220,7 @@ namespace Xenko.Graphics.Regression
 
         private Task RegisterTestsInternal()
         {
-            if(!FrameGameSystem.IsUnitTestFeeding)
+            if (!FrameGameSystem.IsUnitTestFeeding)
                 RegisterTests();
 
             return Task.FromResult(true);

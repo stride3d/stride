@@ -82,7 +82,7 @@ namespace Xenko.Animations
             return !left.Equals(right);
         }
 
-        public static bool operator<(CompressedTimeSpan t1, CompressedTimeSpan t2)
+        public static bool operator <(CompressedTimeSpan t1, CompressedTimeSpan t2)
         {
             return t1.Ticks < t2.Ticks;
         }

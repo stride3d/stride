@@ -14,7 +14,7 @@ namespace Xenko.Graphics
     public struct VertexPositionColorTextureSwizzle : IEquatable<VertexPositionColorTextureSwizzle>, IVertex
     {
         /// <summary>
-        /// Initializes a new <see cref="VertexPositionColorTexture"/> instance.
+        /// Initializes a new instance of the <see cref="VertexPositionColorTextureSwizzle"/> struct.
         /// </summary>
         /// <param name="position">The position of this vertex.</param>
         /// <param name="color">The color of this vertex.</param>
@@ -68,9 +68,7 @@ namespace Xenko.Graphics
             VertexElement.Color<Color4>(0),
             VertexElement.Color<Color4>(1),
             VertexElement.TextureCoordinate<Vector2>(),
-            new VertexElement("BATCH_SWIZZLE", PixelFormat.R32_Float)
-            );
-
+            new VertexElement("BATCH_SWIZZLE", PixelFormat.R32_Float));
 
         public bool Equals(VertexPositionColorTextureSwizzle other)
         {

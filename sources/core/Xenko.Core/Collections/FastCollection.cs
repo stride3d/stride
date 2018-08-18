@@ -21,10 +21,10 @@ namespace Xenko.Core.Collections
     [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
     public class FastCollection<T> : IList<T>, IReadOnlyList<T>
     {
+        private const int DefaultCapacity = 4;
+
         private T[] items;
         private int size;
-
-        private const int _defaultCapacity = 4;
 
         public FastCollection()
         {
@@ -44,7 +44,7 @@ namespace Xenko.Core.Collections
             else
             {
                 size = 0;
-                items = new T[_defaultCapacity];
+                items = new T[DefaultCapacity];
                 using (var enumerator = collection.GetEnumerator())
                 {
                     while (enumerator.MoveNext())
@@ -266,7 +266,7 @@ namespace Xenko.Core.Collections
         {
             if (items.Length < min)
             {
-                var num = (items.Length == 0) ? _defaultCapacity : (items.Length * 2);
+                var num = (items.Length == 0) ? DefaultCapacity : (items.Length * 2);
                 if (num < min)
                 {
                     num = min;

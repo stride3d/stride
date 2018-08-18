@@ -40,7 +40,7 @@ namespace Xenko.Input
                 // check that the shape of the flick is respected, stop the gesture if it is not the case
                 if (ConfigFlick.FlickShape != GestureShape.Free)
                 {
-                    var compIndex = ConfigFlick.FlickShape == GestureShape.Horizontal? 1:0;
+                    var compIndex = ConfigFlick.FlickShape == GestureShape.Horizontal ? 1 : 0;
                     if (Math.Abs(newPos[compIndex] - FingerIdToBeginPositions[id][compIndex]) > ConfigFlick.AllowedErrorMargins[compIndex])
                         HasGestureStarted = false;
                 }

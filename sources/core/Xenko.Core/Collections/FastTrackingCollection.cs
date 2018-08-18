@@ -19,7 +19,6 @@ namespace Xenko.Core.Collections
         private FastEventHandler<FastTrackingCollectionChangedEventArgs> itemAdded;
         private FastEventHandler<FastTrackingCollectionChangedEventArgs> itemRemoved;
 
-        /// <inheritdoc/>
         public event FastEventHandler<FastTrackingCollectionChangedEventArgs> CollectionChanged
         {
             add

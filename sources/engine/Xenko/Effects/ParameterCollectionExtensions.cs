@@ -38,7 +38,9 @@ namespace Xenko.Rendering
                     builder.Append(usedParam.Key);
                 builder.Append(": ");
                 if (value == null)
+                {
                     builder.AppendLine("null");
+                }
                 else
                 {
                     if (value is Array || value is IList)

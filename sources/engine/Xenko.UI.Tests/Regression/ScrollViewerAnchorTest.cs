@@ -25,7 +25,7 @@ namespace Xenko.UI.Tests.Regression
 
             protected override void Update(GameTime time)
             {
-                if(!SkipUpdates)
+                if (!SkipUpdates)
                     base.Update(time);
             }
 

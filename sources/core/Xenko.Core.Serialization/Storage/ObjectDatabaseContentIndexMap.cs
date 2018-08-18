@@ -12,7 +12,7 @@ namespace Xenko.Core.Storage
     /// </summary>
     public class ObjectDatabaseContentIndexMap : IContentIndexMap
     {
-        public Dictionary<string, ObjectId> values = new Dictionary<string, ObjectId>();
+        private Dictionary<string, ObjectId> values = new Dictionary<string, ObjectId>();
 
         public IContentIndexMap WriteableContentIndexMap { get; set; }
 

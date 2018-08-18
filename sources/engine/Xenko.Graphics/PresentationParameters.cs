@@ -177,4 +177,3 @@ namespace Xenko.Graphics
         #endregion
     }
 }
-

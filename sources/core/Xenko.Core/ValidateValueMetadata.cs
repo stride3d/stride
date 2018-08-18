@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
 using System;
 using Xenko.Core.Annotations;
 
@@ -8,8 +9,7 @@ namespace Xenko.Core
     /// <summary>
     /// Delegate ValidateValueCallback used by <see cref="ValidateValueMetadata"/>.
     /// </summary>
-    /// <param name="value">The value to validate.</param>
-    /// <returns>The same value or a coerced value.</returns>
+    /// <param name="value">The value to validate and coerce.</param>
     public delegate void ValidateValueCallback<T>(ref T value);
 
     public abstract class ValidateValueMetadata : PropertyKeyMetadata
@@ -31,7 +31,7 @@ namespace Xenko.Core
         private readonly ValidateValueCallback<T> validateValueCallback;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateValueMetadata"/> class.
+        /// Initializes a new instance of the <see cref="ValidateValueMetadata{T}"/> class.
         /// </summary>
         /// <param name="validateValueCallback">The validate value callback.</param>
         /// <exception cref="System.ArgumentNullException">validateValueCallback</exception>

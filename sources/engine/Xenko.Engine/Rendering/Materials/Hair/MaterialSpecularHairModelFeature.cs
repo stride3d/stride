@@ -2,13 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Core.Annotations;
-using Xenko.Shaders;
-using Xenko.Graphics;
 using Xenko.Core.Mathematics;
-using System.ComponentModel;
+using Xenko.Graphics;
 using Xenko.Rendering.Materials.ComputeColors;
+using Xenko.Shaders;
 
 namespace Xenko.Rendering.Materials
 {
@@ -113,7 +113,6 @@ namespace Xenko.Rendering.Materials
         [DataMember(110)]
         [Display("Secondary specular reflection color")]
         public Color3 SpecularColor2 { get; set; } = new Color3(1.0f, 1.0f, 1.0f); // TODO: Use IComputeColor instead?
-
 
         /// <summary>
         /// Strength of the secondary specular reflection.
@@ -312,7 +311,7 @@ namespace Xenko.Rendering.Materials
             parameters.Set(MaterialSurfaceShadingSpecularHairKeys.HairGlintsNoiseStrength, GlintsNoiseStrength);
             parameters.Set(MaterialKeys.UsePixelShaderWithDepthPass, true); // Indicates that the material requries the full pixel shader durin the depth-only passes (Z prepass or shadow map rendering).
 
-            if(DebugRenderPasses)
+            if (DebugRenderPasses)
             {
                 parameters.Set(MaterialHairSharedKeys.PassID, context.PassIndex);   // For debugging the different hair passes.
             }

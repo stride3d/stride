@@ -4,21 +4,11 @@
 using System;
 using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Graphics;
 using Xenko.Rendering.Shadows;
 using Xenko.Shaders;
 
 namespace Xenko.Rendering.Lights
 {
-    public struct PointLightData
-    {
-        public Vector3 PositionWS;
-        public float InvSquareRadius;
-        public Color3 Color;
-        private float padding0;
-    }
-
     /// <summary>
     /// Light renderer for <see cref="LightPoint"/>.
     /// </summary>
@@ -32,7 +22,7 @@ namespace Xenko.Rendering.Lights
             return new PointLightShaderGroup(context.RenderContext, shadowShaderGroupData);
         }
 
-        class PointLightShaderGroup : LightShaderGroupDynamic
+        private class PointLightShaderGroup : LightShaderGroupDynamic
         {
             private ValueParameterKey<int> countKey;
             private ValueParameterKey<PointLightData> lightsKey;
@@ -80,17 +70,17 @@ namespace Xenko.Rendering.Lights
                 // TODO THREADING: Make CurrentLights and lightData (thread-) local
                 lock (applyLock)
                 {
-                    CurrentLights.Clear();
-                    var lightRange = LightRanges[viewIndex];
+                    currentLights.Clear();
+                    var lightRange = lightRanges[viewIndex];
                     for (int i = lightRange.Start; i < lightRange.End; ++i)
-                        CurrentLights.Add(Lights[i]);
+                        currentLights.Add(lights[i]);
 
                     base.ApplyDrawParameters(context, viewIndex, parameters, ref boundingBox);
 
                     // TODO: Since we cull per object, we could maintain a higher number of allowed light than the shader support (i.e. 4 lights active per object even though the scene has many more of them)
                     // TODO: Octree structure to select best lights quicker
                     var boundingBox2 = (BoundingBox)boundingBox;
-                    foreach (var lightEntry in CurrentLights)
+                    foreach (var lightEntry in currentLights)
                     {
                         var light = lightEntry.Light;
 

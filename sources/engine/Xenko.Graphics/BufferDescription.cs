@@ -25,24 +25,24 @@ namespace Xenko.Graphics
             StructureByteStride = structureByteStride;
         }
 
-        /// <summary>	
+        /// <summary>
         /// Size of the buffer in bytes.
-        /// </summary>	
+        /// </summary>
         public int SizeInBytes;
 
-        /// <summary>	
+        /// <summary>
         /// Buffer flags describing the type of buffer.
-        /// </summary>	
+        /// </summary>
         public BufferFlags BufferFlags;
 
-        /// <summary>	
+        /// <summary>
         /// Usage of this buffer.
-        /// </summary>	
+        /// </summary>
         public GraphicsResourceUsage Usage;
 
-        /// <summary>	
+        /// <summary>
         /// The size of the structure (in bytes) when it represents a structured/typed buffer.
-        /// </summary>	
+        /// </summary>
         public int StructureByteStride;
 
         public bool Equals(BufferDescription other)

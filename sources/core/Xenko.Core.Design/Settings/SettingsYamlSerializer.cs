@@ -13,7 +13,7 @@ namespace Xenko.Core.Settings
     /// </summary>
     public class SettingsYamlSerializer : YamlSerializer
     {
-        public new static SettingsYamlSerializer Default { get; set; } = new SettingsYamlSerializer();
+        public static new SettingsYamlSerializer Default { get; set; } = new SettingsYamlSerializer();
 
         /// <summary>
         /// Deserializes an object from the specified stream (expecting a YAML string) into an existing object.

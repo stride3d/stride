@@ -10,7 +10,6 @@ namespace Xenko.Engine.Design
     {
         public EntityComponentProperty()
         {
-            
         }
 
         public EntityComponentProperty(EntityComponentPropertyType type, string name, object value)

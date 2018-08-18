@@ -68,7 +68,7 @@ namespace Xenko.Core.Threading
         private Segment tail;
 
         /// <summary>
-        /// Creates a new instance.
+        /// Initializes a new instance of the <see cref="ConcurrentPool{T}"/> class.
         /// </summary>
         /// <param name="factory">The factory method for creating new items, should the pool be empty.</param>
         public ConcurrentPool(Func<T> factory)

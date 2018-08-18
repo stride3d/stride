@@ -788,7 +788,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 path = project.ProjectPath;
                 fileSelection = true;
             }
-            else if(param is PackageViewModel)
+            else if (param is PackageViewModel)
             {
                 path = package.PackagePath;
                 fileSelection = true;
@@ -1675,7 +1675,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 }
 
                 // Delete asset mount points
-                if(locations.OfType<AssetMountPointViewModel>().Any())
+                if (locations.OfType<AssetMountPointViewModel>().Any())
                 {
                     // We can't delete a root directory
                     await Dialogs.MessageBox(Tr._p("Message", "Asset root folders can't be deleted."), MessageBoxButton.OK, MessageBoxImage.Information);

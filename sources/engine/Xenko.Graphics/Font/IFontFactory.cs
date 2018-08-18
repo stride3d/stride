@@ -96,6 +96,5 @@ namespace Xenko.Graphics.Font
         /// <returns>The newly created static font</returns>
         SpriteFont NewScalable(float size, IList<Glyph> glyphs, IList<Image> images, float baseOffset, float defaultLineSpacing,
                              IList<Kerning> kernings = null, float extraSpacing = 0f, float extraLineSpacing = 0f, char defaultCharacter = ' ');
-
     }
 }

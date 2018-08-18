@@ -15,7 +15,6 @@ using Xenko.Core;
 
 namespace Xenko.Graphics
 {
-
 #if (XENKO_UI_OPENTK || XENKO_UI_SDL) && (!XENKO_UI_WINFORMS && !XENKO_UI_WPF)
     public sealed class ImageFormat
     {
@@ -94,7 +93,7 @@ namespace Xenko.Graphics
     /// </summary>
     partial class StandardImageHelper
     {
-        public unsafe static Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
+        public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
         {
 #if XENKO_UI_WINFORMS || XENKO_UI_WPF
             using (var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size))
@@ -187,9 +186,13 @@ namespace Xenko.Graphics
                 {
                     // Copy memory
                     if (description.Format == PixelFormat.R8G8B8A8_UNorm || description.Format == PixelFormat.R8G8B8A8_UNorm_SRgb)
+                    {
                         CopyMemoryBGRA(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
+                    }
                     else if (description.Format == PixelFormat.B8G8R8A8_UNorm || description.Format == PixelFormat.B8G8R8A8_UNorm_SRgb)
+                    {
                         Utilities.CopyMemory(bitmapData.Scan0, pixelBuffers[0].DataPointer, pixelBuffers[0].BufferStride);
+                    }
                     else
                     {
                         // TODO Ideally we will want to support grayscale images, but the SpriteBatch can only render RGBA for now

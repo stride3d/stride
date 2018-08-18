@@ -22,11 +22,10 @@
 // THE SOFTWARE.
 
 using System;
-
-using Xenko.Graphics;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Serialization.Contents;
+using Xenko.Graphics;
 
 namespace Xenko.Games
 {
@@ -232,4 +231,3 @@ namespace Xenko.Games
         #endregion
     }
 }
-

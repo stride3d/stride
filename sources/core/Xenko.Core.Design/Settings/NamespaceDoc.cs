@@ -7,8 +7,8 @@ namespace Xenko.Core.Settings
     /// settings profiles, profile inheritance, profile saving and loading, and it is thread-safe. It uses YAML serialization to write settings
     /// files.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

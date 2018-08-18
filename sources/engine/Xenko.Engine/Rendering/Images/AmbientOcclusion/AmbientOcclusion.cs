@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
@@ -165,7 +165,7 @@ namespace Xenko.Rendering.Images
             // Ambient Occlusion
             //---------------------------------
 
-            var tempWidth  = (originalColorBuffer.Width  * (int)TempSize) / (int)TemporaryBufferSize.SizeFull;
+            var tempWidth = (originalColorBuffer.Width * (int)TempSize) / (int)TemporaryBufferSize.SizeFull;
             var tempHeight = (originalColorBuffer.Height * (int)TempSize) / (int)TemporaryBufferSize.SizeFull;
             var aoTexture1 = NewScopedRenderTarget2D(tempWidth, tempHeight, PixelFormat.R8_UNorm, 1);
             var aoTexture2 = NewScopedRenderTarget2D(tempWidth, tempHeight, PixelFormat.R8_UNorm, 1);
@@ -177,16 +177,16 @@ namespace Xenko.Rendering.Images
                 // Set Near/Far pre-calculated factors to speed up the linear depth reconstruction
                 aoRawImageEffect.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(camera.NearClipPlane, camera.FarClipPlane));
 
-                Vector4 ScreenSize = new Vector4(originalColorBuffer.Width, originalColorBuffer.Height, 0, 0);
-                ScreenSize.Z = ScreenSize.X / ScreenSize.Y;
-                aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ScreenInfo, ScreenSize);
+                Vector4 screenSize = new Vector4(originalColorBuffer.Width, originalColorBuffer.Height, 0, 0);
+                screenSize.Z = screenSize.X / screenSize.Y;
+                aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ScreenInfo, screenSize);
 
                 // Projection infor used to reconstruct the View space position from linear depth
                 var p00 = camera.ProjectionMatrix.M11;
                 var p11 = camera.ProjectionMatrix.M22;
                 var p02 = camera.ProjectionMatrix.M13;
                 var p12 = camera.ProjectionMatrix.M23;
-                Vector4 projInfo = new Vector4(-2.0f / (ScreenSize.X * p00), -2.0f / (ScreenSize.Y * p11), (1.0f - p02) / p00, (1.0f + p12) / p11);
+                Vector4 projInfo = new Vector4(-2.0f / (screenSize.X * p00), -2.0f / (screenSize.Y * p11), (1.0f - p02) / p00, (1.0f + p12) / p11);
                 aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ProjInfo, projInfo);
 
                 //**********************************
@@ -206,11 +206,13 @@ namespace Xenko.Rendering.Images
             {
                 if (offsetsWeights == null)
                 {                    
-                    offsetsWeights = new []
-                        //	{ 0.356642f, 0.239400f, 0.072410f, 0.009869f };
-                        //	{ 0.398943f, 0.241971f, 0.053991f, 0.004432f, 0.000134f };  // stddev = 1.0
-                            { 0.153170f, 0.144893f, 0.122649f, 0.092902f, 0.062970f };  // stddev = 2.0
-                        //	{ 0.111220f, 0.107798f, 0.098151f, 0.083953f, 0.067458f, 0.050920f, 0.036108f }; // stddev = 3.0
+                    offsetsWeights = new[]
+                    {
+                        //  0.356642f, 0.239400f, 0.072410f, 0.009869f,
+                        //  0.398943f, 0.241971f, 0.053991f, 0.004432f, 0.000134f, // stddev = 1.0
+                            0.153170f, 0.144893f, 0.122649f, 0.092902f, 0.062970f, // stddev = 2.0
+                        //  0.111220f, 0.107798f, 0.098151f, 0.083953f, 0.067458f, 0.050920f, 0.036108f, // stddev = 3.0
+                    };
 
                     nameGaussianBlurH = string.Format("AmbientOcclusionBlurH{0}x{0}", offsetsWeights.Length);
                     nameGaussianBlurV = string.Format("AmbientOcclusionBlurV{0}x{0}", offsetsWeights.Length);

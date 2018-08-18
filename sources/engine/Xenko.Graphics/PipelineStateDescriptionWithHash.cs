@@ -4,7 +4,7 @@ using System;
 
 namespace Xenko.Graphics
 {
-    struct PipelineStateDescriptionWithHash : IEquatable<PipelineStateDescriptionWithHash>
+    internal struct PipelineStateDescriptionWithHash : IEquatable<PipelineStateDescriptionWithHash>
     {
         public readonly int Hash;
         public readonly PipelineStateDescription State;

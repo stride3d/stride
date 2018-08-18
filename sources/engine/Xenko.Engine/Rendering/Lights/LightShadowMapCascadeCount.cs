@@ -27,6 +27,6 @@ namespace Xenko.Rendering.Lights
         /// A shadow map with four cascades.
         /// </summary>
         [Display("Four Cascades")]
-        FourCascades = 4
+        FourCascades = 4,
     }
 }

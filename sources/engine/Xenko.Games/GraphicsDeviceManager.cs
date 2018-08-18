@@ -23,9 +23,9 @@
 
 using System;
 using System.Collections.Generic;
+using Xenko.Core;
 using Xenko.Core.Diagnostics;
 using Xenko.Graphics;
-using Xenko.Core;
 
 namespace Xenko.Games
 {
@@ -112,7 +112,7 @@ namespace Xenko.Games
             // Defines all default values
             SynchronizeWithVerticalRetrace = true;
             PreferredColorSpace = ColorSpace.Linear;
-            PreferredBackBufferFormat = PixelFormat.R8G8B8A8_UNorm;;
+            PreferredBackBufferFormat = PixelFormat.R8G8B8A8_UNorm;
             PreferredDepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt;
             preferredBackBufferWidth = DefaultBackBufferWidth;
             preferredBackBufferHeight = DefaultBackBufferHeight;
@@ -579,7 +579,7 @@ namespace Xenko.Games
                 }
 
                 game.WindowCreated -= GameOnWindowCreated;
-                if(game.Window != null)
+                if (game.Window != null)
                 {
                     game.Window.ClientSizeChanged -= Window_ClientSizeChanged;
                     game.Window.OrientationChanged -= Window_OrientationChanged;
@@ -634,14 +634,14 @@ namespace Xenko.Games
                     PreferredBackBufferHeight = PreferredBackBufferHeight,
                     PreferredBackBufferFormat = PreferredBackBufferFormat,
                     PreferredDepthStencilFormat = PreferredDepthStencilFormat,
-                    PreferredRefreshRate =  PreferredRefreshRate,
+                    PreferredRefreshRate = PreferredRefreshRate,
                     PreferredFullScreenOutputIndex = PreferredFullScreenOutputIndex,
                     IsFullScreen = IsFullScreen,
                     PreferredMultisampleCount = PreferredMultisampleCount,
                     SynchronizeWithVerticalRetrace = SynchronizeWithVerticalRetrace,
                     PreferredGraphicsProfile = (GraphicsProfile[])PreferredGraphicsProfile.Clone(),
                     ColorSpace = PreferredColorSpace,
-                    RequiredAdapterUid = RequiredAdapterUid
+                    RequiredAdapterUid = RequiredAdapterUid,
             };
 
             // Remap to Srgb backbuffer if necessary
@@ -762,7 +762,7 @@ namespace Xenko.Games
                         int rightPixelCount;
                         if (IsFullScreen)
                         {
-                            if ( ((PreferredBackBufferWidth == 0) || (PreferredBackBufferHeight == 0)) &&
+                            if (((PreferredBackBufferWidth == 0) || (PreferredBackBufferHeight == 0)) &&
                                 PreferredFullScreenOutputIndex < leftAdapter.Outputs.Length && 
                                 PreferredFullScreenOutputIndex < rightAdapter.Outputs.Length)
                             {
@@ -910,7 +910,7 @@ namespace Xenko.Games
             }
         }
 
-        void Window_OrientationChanged(object sender, EventArgs e)
+        private void Window_OrientationChanged(object sender, EventArgs e)
         {
             if ((!isChangingDevice && ((game.Window.ClientBounds.Height != 0) || (game.Window.ClientBounds.Width != 0))) && (game.Window.CurrentOrientation != currentWindowOrientation))
             {
@@ -954,7 +954,6 @@ namespace Xenko.Games
             if (deviceRecreate)
                 OnDeviceReset(this, EventArgs.Empty);
 
-
             // Use the shader profile returned by the GraphicsDeviceInformation otherwise use the one coming from the GameSettings
             GraphicsDevice.ShaderProfile = ShaderProfile;
 
@@ -968,22 +967,22 @@ namespace Xenko.Games
             OnDeviceCreated(this, EventArgs.Empty);
         }
 
-        void GraphicsDevice_DeviceResetting(object sender, EventArgs e)
+        private void GraphicsDevice_DeviceResetting(object sender, EventArgs e)
         {
             // TODO what to do?
         }
 
-        void GraphicsDevice_DeviceReset(object sender, EventArgs e)
+        private void GraphicsDevice_DeviceReset(object sender, EventArgs e)
         {
             // TODO what to do?
         }
 
-        void GraphicsDevice_DeviceLost(object sender, EventArgs e)
+        private void GraphicsDevice_DeviceLost(object sender, EventArgs e)
         {
             // TODO what to do?
         }
 
-        void GraphicsDevice_Disposing(object sender, EventArgs e)
+        private void GraphicsDevice_Disposing(object sender, EventArgs e)
         {
             OnDeviceDisposing(sender, e);
         }

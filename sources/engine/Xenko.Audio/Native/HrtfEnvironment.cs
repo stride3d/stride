@@ -7,6 +7,6 @@ namespace Xenko.Audio
         Small,
         Medium,
         Large,
-        Outdoors
+        Outdoors,
     }
 }

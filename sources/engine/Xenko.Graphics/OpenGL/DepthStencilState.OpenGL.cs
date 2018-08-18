@@ -53,13 +53,13 @@ namespace Xenko.Graphics
             unchecked
             {
                 var hashCode = (int)FrontFaceStencilFunction;
-                hashCode = (hashCode*397) ^ (int)FrontFaceDepthFailOp;
-                hashCode = (hashCode*397) ^ (int)FrontFaceFailOp;
-                hashCode = (hashCode*397) ^ (int)FrontFacePassOp;
-                hashCode = (hashCode*397) ^ (int)BackFaceStencilFunction;
-                hashCode = (hashCode*397) ^ (int)BackFaceDepthFailOp;
-                hashCode = (hashCode*397) ^ (int)BackFaceFailOp;
-                hashCode = (hashCode*397) ^ (int)BackFacePassOp;
+                hashCode = (hashCode * 397) ^ (int)FrontFaceDepthFailOp;
+                hashCode = (hashCode * 397) ^ (int)FrontFaceFailOp;
+                hashCode = (hashCode * 397) ^ (int)FrontFacePassOp;
+                hashCode = (hashCode * 397) ^ (int)BackFaceStencilFunction;
+                hashCode = (hashCode * 397) ^ (int)BackFaceDepthFailOp;
+                hashCode = (hashCode * 397) ^ (int)BackFaceFailOp;
+                hashCode = (hashCode * 397) ^ (int)BackFacePassOp;
                 return hashCode;
             }
         }

@@ -6,7 +6,7 @@ namespace Xenko.Core.Extensions
     /// The <see cref="Xenko.Core.Extensions"/> namespace contains a set of static classes that extends common types, providing additional helper methods.
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-    class NamespaceDoc
+    internal class NamespaceDoc
     {
     }
 }

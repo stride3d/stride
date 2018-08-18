@@ -120,7 +120,6 @@ namespace Xenko.Core.Threading
             For(0, collection.Count, i => action(collection[i]));
         }
 
-
         public static void ForEach<T>([NotNull] List<T> collection, [Pooled] Action<T> action)
         {
             For(0, collection.Count, i => action(collection[i]));
@@ -211,8 +210,7 @@ namespace Xenko.Core.Threading
             For(0, collection.Count, i => action(ref collection.Items[i]));
         }
 
-        private static void Fork<TKey, TValue>([NotNull] Dictionary<TKey, TValue> collection, int batchSize, int maxDegreeOfParallelism, [Pooled] Action<KeyValuePair<TKey, TValue>> action,
-            [NotNull] BatchState state)
+        private static void Fork<TKey, TValue>([NotNull] Dictionary<TKey, TValue> collection, int batchSize, int maxDegreeOfParallelism, [Pooled] Action<KeyValuePair<TKey, TValue>> action, [NotNull] BatchState state)
         {
             // Other threads already processed all work before this one started. ActiveWorkerCount is already 0
             if (state.StartInclusive >= collection.Count)
@@ -254,8 +252,7 @@ namespace Xenko.Core.Threading
             }
         }
 
-        private static void Fork<TKey, TValue, TLocal>([NotNull] Dictionary<TKey, TValue> collection, int batchSize, int maxDegreeOfParallelism, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<KeyValuePair<TKey, TValue>, TLocal> action, [Pooled] Action<TLocal> finalizeLocal,
-            [NotNull] BatchState state)
+        private static void Fork<TKey, TValue, TLocal>([NotNull] Dictionary<TKey, TValue> collection, int batchSize, int maxDegreeOfParallelism, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<KeyValuePair<TKey, TValue>, TLocal> action, [Pooled] Action<TLocal> finalizeLocal, [NotNull] BatchState state)
         {
             // Other threads already processed all work before this one started. ActiveWorkerCount is already 0
             if (state.StartInclusive >= collection.Count)
@@ -366,8 +363,7 @@ namespace Xenko.Core.Threading
             }
         }
 
-        private static void Fork<TLocal>(int endExclusive, int batchSize, int maxDegreeOfParallelism, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<int, TLocal> action, [Pooled] Action<TLocal> finalizeLocal,
-            [NotNull] BatchState state)
+        private static void Fork<TLocal>(int endExclusive, int batchSize, int maxDegreeOfParallelism, [Pooled] Func<TLocal> initializeLocal, [Pooled] Action<int, TLocal> action, [Pooled] Action<TLocal> finalizeLocal, [NotNull] BatchState state)
         {
             // Other threads already processed all work before this one started. ActiveWorkerCount is already 0
             if (state.StartInclusive >= endExclusive)
@@ -742,7 +738,6 @@ namespace Xenko.Core.Threading
             result.Stopwatch.Start();
 #endif
             return result;
-
         }
     }
 }

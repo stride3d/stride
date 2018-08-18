@@ -5,7 +5,7 @@ using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Serializers;
 
 namespace Xenko.Graphics
-{    
+{
     /// <summary>
     /// Binding structure that specifies a vertex buffer and other per-vertex parameters (such as offset and instancing) for a graphics device.
     /// </summary>
@@ -14,6 +14,9 @@ namespace Xenko.Graphics
     {
         private readonly int hashCode;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="VertexBufferBinding"/> struct.
+        /// </summary>
         /// <param name="vertexStride">Jump size to the next element. if -1, it gets auto-discovered from the vertexDeclaration</param>
         /// <param name="vertexOffset">Offset (in Vertex ElementCount) from the beginning of the buffer to the first vertex to use.</param>
         public VertexBufferBinding(Buffer vertexBuffer, VertexDeclaration vertexDeclaration, int vertexCount, int vertexStride = -1, int vertexOffset = 0) : this()
@@ -30,10 +33,10 @@ namespace Xenko.Graphics
             unchecked
             {
                 hashCode = Buffer.GetHashCode();
-                hashCode = (hashCode*397) ^ Offset;
-                hashCode = (hashCode*397) ^ Stride;
-                hashCode = (hashCode*397) ^ Count;
-                hashCode = (hashCode*397) ^ Declaration.GetHashCode();
+                hashCode = (hashCode * 397) ^ Offset;
+                hashCode = (hashCode * 397) ^ Stride;
+                hashCode = (hashCode * 397) ^ Count;
+                hashCode = (hashCode * 397) ^ Declaration.GetHashCode();
             }
         }
 
@@ -103,57 +106,6 @@ namespace Xenko.Graphics
                     stream.Write(vertexBufferBinding.Offset);
                 }
             }
-        }
-    }
-
-    public static class VertexBufferBindingExtensions
-    {
-        public static InputElementDescription[] CreateInputElements(this VertexDeclaration vertexDeclaration)
-        {
-            var inputElements = new InputElementDescription[vertexDeclaration.VertexElements.Length];
-            var inputElementIndex = 0;
-            foreach (var element in vertexDeclaration.EnumerateWithOffsets())
-            {
-                inputElements[inputElementIndex++] = new InputElementDescription
-                {
-                    SemanticName = element.VertexElement.SemanticName,
-                    SemanticIndex = element.VertexElement.SemanticIndex,
-                    Format = element.VertexElement.Format,
-                    InputSlot = 0,
-                    AlignedByteOffset = element.Offset,
-                };
-            }
-
-            return inputElements;
-        }
-
-        public static InputElementDescription[] CreateInputElements(this VertexBufferBinding[] vertexBuffers)
-        {
-            var inputElementCount = 0;
-            foreach (var vertexBuffer in vertexBuffers)
-            {
-                inputElementCount += vertexBuffer.Declaration.VertexElements.Length;
-            }
-
-            var inputElements = new InputElementDescription[inputElementCount];
-            var inputElementIndex = 0;
-            for (int inputSlot = 0; inputSlot < vertexBuffers.Length; inputSlot++)
-            {
-                var vertexBuffer = vertexBuffers[inputSlot];
-                foreach (var element in vertexBuffer.Declaration.EnumerateWithOffsets())
-                {
-                    inputElements[inputElementIndex++] = new InputElementDescription
-                    {
-                        SemanticName = element.VertexElement.SemanticName,
-                        SemanticIndex = element.VertexElement.SemanticIndex,
-                        Format = element.VertexElement.Format,
-                        InputSlot = inputSlot,
-                        AlignedByteOffset = element.Offset,
-                    };
-                }
-            }
-
-            return inputElements;
         }
     }
 }

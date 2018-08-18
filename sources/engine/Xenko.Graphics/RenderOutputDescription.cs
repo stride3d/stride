@@ -98,16 +98,16 @@ namespace Xenko.Graphics
             unchecked
             {
                 var hashCode = RenderTargetCount;
-                hashCode = (hashCode*397) ^ (int)RenderTargetFormat0;
-                hashCode = (hashCode*397) ^ (int)RenderTargetFormat1;
-                hashCode = (hashCode*397) ^ (int)RenderTargetFormat2;
-                hashCode = (hashCode*397) ^ (int)RenderTargetFormat3;
-                hashCode = (hashCode*397) ^ (int)RenderTargetFormat4;
-                hashCode = (hashCode*397) ^ (int)RenderTargetFormat5;
-                hashCode = (hashCode*397) ^ (int)RenderTargetFormat6;
-                hashCode = (hashCode*397) ^ (int)RenderTargetFormat7;
-                hashCode = (hashCode*397) ^ (int)DepthStencilFormat;
-                hashCode = (hashCode*397) ^ (ScissorTestEnable ? 1 : 0);
+                hashCode = (hashCode * 397) ^ (int)RenderTargetFormat0;
+                hashCode = (hashCode * 397) ^ (int)RenderTargetFormat1;
+                hashCode = (hashCode * 397) ^ (int)RenderTargetFormat2;
+                hashCode = (hashCode * 397) ^ (int)RenderTargetFormat3;
+                hashCode = (hashCode * 397) ^ (int)RenderTargetFormat4;
+                hashCode = (hashCode * 397) ^ (int)RenderTargetFormat5;
+                hashCode = (hashCode * 397) ^ (int)RenderTargetFormat6;
+                hashCode = (hashCode * 397) ^ (int)RenderTargetFormat7;
+                hashCode = (hashCode * 397) ^ (int)DepthStencilFormat;
+                hashCode = (hashCode * 397) ^ (ScissorTestEnable ? 1 : 0);
                 return hashCode;
             }
         }

@@ -6,18 +6,20 @@ using Xenko.Core.Mathematics;
 
 namespace Xenko.Graphics.SDL
 {
+#pragma warning disable SA1200 // Using directives must be placed correctly
     // Using is here otherwise it would conflict with the current namespace that also defines SDL.
     using SDL2;
-    using System.Runtime.InteropServices;
-    public class Window: IDisposable
+#pragma warning restore SA1200 // Using directives must be placed correctly
+    public class Window : IDisposable
     {
 #if XENKO_GRAPHICS_API_OPENGL
         private IntPtr glContext;
 #endif
 
-#region Initialization
+        #region Initialization
+
         /// <summary>
-        /// Type initializer for `Window' which automatically initializes the SDL infrastructure.
+        /// Initializes static members of the <see cref="Window"/> class.
         /// </summary>
         static Window()
         {
@@ -38,7 +40,7 @@ namespace Xenko.Graphics.SDL
         }
 
         /// <summary>
-        /// Initialize current instance with <paramref name="title"/> as the title of the Window.
+        /// Initializes a new instance of the <see cref="Window"/> class with <paramref name="title"/> as the title of the Window.
         /// </summary>
         /// <param name="title">Title of the window, see Text property.</param>
         public Window(string title)
@@ -93,8 +95,7 @@ namespace Xenko.Graphics.SDL
 #endif
             }
         }
-#endregion
-
+        #endregion
 
         /// <summary>
         /// Move window to back.
@@ -172,24 +173,26 @@ namespace Xenko.Graphics.SDL
         /// <summary>
         /// Are we showing the window in full screen mode?
         /// </summary>
-        public bool IsFullScreen {
+        public bool IsFullScreen
+        {
             get
             {
-                return (SDL.SDL_GetWindowFlags(SdlHandle) & (uint) SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0;
+                return (SDL.SDL_GetWindowFlags(SdlHandle) & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0;
             }
             set
             {
-                SDL.SDL_SetWindowFullscreen(SdlHandle, (uint) (value ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN : 0));
+                SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)(value ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN : 0));
             }
         }
 
         /// <summary>
         /// Is current window visible?
         /// </summary>
-        public bool Visible {
+        public bool Visible
+        {
             get
             {
-                return (SDL.SDL_GetWindowFlags(SdlHandle) & (uint) SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN) != 0;
+                return (SDL.SDL_GetWindowFlags(SdlHandle) & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN) != 0;
             }
             set
             {
@@ -212,15 +215,15 @@ namespace Xenko.Graphics.SDL
             get
             {
                 uint flags = SDL.SDL_GetWindowFlags(SdlHandle);
-                if ((flags & (uint) SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0)
+                if ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN) != 0)
                 {
                     return FormWindowState.Fullscreen;
                 }
-                if ((flags & (uint) SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED) != 0)
+                if ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED) != 0)
                 {
                     return FormWindowState.Maximized;
                 }
-                else if ((flags & (uint) SDL.SDL_WindowFlags.SDL_WINDOW_MINIMIZED) != 0)
+                else if ((flags & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_MINIMIZED) != 0)
                 {
                     return FormWindowState.Minimized;
                 }
@@ -234,7 +237,7 @@ namespace Xenko.Graphics.SDL
                 switch (value)
                 {
                     case FormWindowState.Fullscreen:
-                        SDL.SDL_SetWindowFullscreen(SdlHandle, (uint) SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
+                        SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN);
                         break;
                     case FormWindowState.Maximized:
                         SDL.SDL_MaximizeWindow(SdlHandle);
@@ -253,7 +256,8 @@ namespace Xenko.Graphics.SDL
         /// Does current window offer a maximize button?
         /// </summary>
         /// <remarks>Setter is not implemented on SDL, since we do have callers, for the time being, the code does nothing instead of throwing an exception.</remarks>
-        public bool MaximizeBox {
+        public bool MaximizeBox
+        {
             get { return FormBorderStyle == FormBorderStyle.Sizable; }
             set
             {
@@ -287,7 +291,7 @@ namespace Xenko.Graphics.SDL
                 SDL.SDL_GL_GetDrawableSize(SdlHandle, out w, out h);
                 return new Size2(w, h);
 #else
-                SDL.SDL_Surface *surfPtr = (SDL.SDL_Surface *) SDL.SDL_GetWindowSurface(SdlHandle);
+                SDL.SDL_Surface *surfPtr = (SDL.SDL_Surface*)SDL.SDL_GetWindowSurface(SdlHandle);
                 return new Size2(surfPtr->w, surfPtr->h);
 #endif
             }
@@ -311,7 +315,7 @@ namespace Xenko.Graphics.SDL
                 SDL.SDL_GL_GetDrawableSize(SdlHandle, out w, out h);
                 return new Rectangle(0, 0, w, h);
 #else
-                SDL.SDL_Surface *surfPtr = (SDL.SDL_Surface *) SDL.SDL_GetWindowSurface(SdlHandle);
+                SDL.SDL_Surface *surfPtr = (SDL.SDL_Surface*)SDL.SDL_GetWindowSurface(SdlHandle);
                 return new Rectangle(0, 0, surfPtr->w, surfPtr->h);
 #endif
             }
@@ -344,7 +348,8 @@ namespace Xenko.Graphics.SDL
         /// <summary>
         /// Text of the title of the Window.
         /// </summary>
-        public string Text {
+        public string Text
+        {
             get { return SDL.SDL_GetWindowTitle(SdlHandle); }
             set { SDL.SDL_SetWindowTitle(SdlHandle, value); }
         }
@@ -373,10 +378,7 @@ namespace Xenko.Graphics.SDL
             }
         }
 
-        /// <summary>
-        /// List of all events one can hook up.
-        /// </summary>
-        /// <param name="e"></param>
+        // Events that one can hook up.
         public delegate void MouseButtonDelegate(SDL.SDL_MouseButtonEvent e);
         public delegate void MouseMoveDelegate(SDL.SDL_MouseMotionEvent e);
         public delegate void MouseWheelDelegate(SDL.SDL_MouseWheelEvent e);
@@ -513,7 +515,6 @@ namespace Xenko.Graphics.SDL
                         case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
                             FocusLostActions?.Invoke(e.window);
                             break;
-
                     }
                     break;
                 }
@@ -538,7 +539,7 @@ namespace Xenko.Graphics.SDL
         /// </summary>
         /// <param name="display">The Xlib display pointer.</param>
         /// <returns>A Xcb connection pointer.</returns>
-        [DllImport("libX11-xcb")]
+        [System.Runtime.InteropServices.DllImport("libX11-xcb")]
         private static extern IntPtr XGetXCBConnection(IntPtr display);
 
         /// <summary>
@@ -560,10 +561,10 @@ namespace Xenko.Graphics.SDL
         }
 #endif
 
-    /// <summary>
-    /// The SDL window handle.
-    /// </summary>
-    public IntPtr SdlHandle { get; private set; }
+        /// <summary>
+        /// The SDL window handle.
+        /// </summary>
+        public IntPtr SdlHandle { get; private set; }
 
         /// <summary>
         /// Is the Window still alive?
@@ -592,7 +593,6 @@ namespace Xenko.Graphics.SDL
 #endif
 
         #region Disposal
-        /// <inheritDoc/>
         ~Window()
         {
             Dispose(false);

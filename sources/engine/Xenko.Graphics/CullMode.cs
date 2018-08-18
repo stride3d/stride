@@ -4,28 +4,28 @@ using Xenko.Core;
 
 namespace Xenko.Graphics
 {
-    /// <summary>	
-    /// Indicates triangles facing a particular direction are not drawn.	
-    /// </summary>	
-    /// <remarks>	
-    /// This enumeration is part of a rasterizer-state object description (see <see cref="RasterizerState"/>). 	
+    /// <summary>
+    /// Indicates triangles facing a particular direction are not drawn.
+    /// </summary>
+    /// <remarks>
+    /// This enumeration is part of a rasterizer-state object description (see <see cref="RasterizerState"/>). 
     /// </remarks>
     [DataContract]
     public enum CullMode 
     {
-        /// <summary>	
-        /// Always draw all triangles. 	
-        /// </summary>	
+        /// <summary>
+        /// Always draw all triangles. 
+        /// </summary>
         None = 1,
 
-        /// <summary>	
-        /// Do not draw triangles that are front-facing. 	
-        /// </summary>	
+        /// <summary>
+        /// Do not draw triangles that are front-facing. 
+        /// </summary>
         Front = 2,
 
-        /// <summary>	
-        /// Do not draw triangles that are back-facing. 	
-        /// </summary>	
+        /// <summary>
+        /// Do not draw triangles that are back-facing. 
+        /// </summary>
         Back = 3,
     }
 }

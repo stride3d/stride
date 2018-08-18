@@ -83,7 +83,7 @@ namespace Xenko.Rendering.Background
 
             var texture = renderBackground.Texture;
             var textureIsLoading = texture.ViewType == ViewType.Full && texture.FullQualitySize.Width != texture.ViewWidth;
-            var textureSize = textureIsLoading ? texture.FullQualitySize: new Size3(texture.ViewWidth, texture.ViewHeight, texture.ViewDepth);
+            var textureSize = textureIsLoading ? texture.FullQualitySize : new Size3(texture.ViewWidth, texture.ViewHeight, texture.ViewDepth);
             var imageBufferMinRatio = Math.Min(textureSize.Width / (float)target.ViewWidth, textureSize.Height / (float)target.ViewHeight);
             var sourceSize = new Vector2(target.ViewWidth * imageBufferMinRatio, target.ViewHeight * imageBufferMinRatio);
             var source = new RectangleF((textureSize.Width - sourceSize.X) / 2, (textureSize.Height - sourceSize.Y) / 2, sourceSize.X, sourceSize.Y);
@@ -98,12 +98,12 @@ namespace Xenko.Rendering.Background
             }
 
             // Setup the effect depending on the type of texture
-            if(renderBackground.Texture.ViewDimension == TextureDimension.Texture2D)
+            if (renderBackground.Texture.ViewDimension == TextureDimension.Texture2D)
             {
                 background2DEffect.UpdateEffect(graphicsDevice);
                 spriteBatch.Begin(context.GraphicsContext, SpriteSortMode.FrontToBack, BlendStates.Opaque, graphicsDevice.SamplerStates.LinearClamp, DepthStencilStates.DepthRead, null, background2DEffect);
             }
-            else if(renderBackground.Texture.ViewDimension == TextureDimension.TextureCube)
+            else if (renderBackground.Texture.ViewDimension == TextureDimension.TextureCube)
             {
                 backgroundCubemapEffect.UpdateEffect(graphicsDevice);
                 spriteBatch.Begin(context.GraphicsContext, SpriteSortMode.FrontToBack, BlendStates.Opaque, graphicsDevice.SamplerStates.LinearClamp, DepthStencilStates.DepthRead, null, backgroundCubemapEffect);

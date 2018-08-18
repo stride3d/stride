@@ -52,4 +52,3 @@ namespace Xenko.Graphics
         public static readonly BlendStateDescription ColorDisabled;
     }
 }
-

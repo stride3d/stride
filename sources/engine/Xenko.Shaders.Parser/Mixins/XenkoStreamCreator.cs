@@ -19,7 +19,7 @@ namespace Xenko.Shaders.Parser.Mixins
     {
         #region private static members
 
-        private readonly static string[] GeometryShaderUnOptimizedSemantics = { "SV_RenderTargetArrayIndex" };
+        private static readonly string[] GeometryShaderUnOptimizedSemantics = { "SV_RenderTargetArrayIndex" };
 
         #endregion
 
@@ -1199,7 +1199,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 if (!fieldNames.Contains(variable.Name) && (sem == null || !semanticNames.Contains(sem.Name)))
                 {
                     declarations.Add(decl);
-                    if(sem != null) semanticNames.Add(sem.Name);
+                    if (sem != null) semanticNames.Add(sem.Name);
                     fieldNames.Add(variable.Name);
                 }
             }

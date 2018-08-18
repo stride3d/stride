@@ -289,7 +289,7 @@ namespace Xenko.Streaming
         private void SetResourceStreamingOptions(StreamingTexture resource, StreamingOptions options, bool combineOptions)
         {
             var alreadyHasOptions = resource.StreamingOptions.HasValue;
-            var newOptions = combineOptions && alreadyHasOptions? options.CombineWith(resource.StreamingOptions.Value) : options;
+            var newOptions = combineOptions && alreadyHasOptions ? options.CombineWith(resource.StreamingOptions.Value) : options;
 
             lock (resources)
             {
@@ -312,7 +312,7 @@ namespace Xenko.Streaming
 
         internal void RegisterResource(StreamableResource resource)
         {
-            Debug.Assert(resource != null && isDisposing == false, $"resource[{resource}] != null && isDisposing[{isDisposing }] == false");
+            Debug.Assert(resource != null && isDisposing == false, $"resource[{resource}] != null && isDisposing[{isDisposing}] == false");
 
             lock (resources)
             {
@@ -424,7 +424,7 @@ namespace Xenko.Streaming
 
             // Stream resource to the maximum level
             // Note: this does not care about MaxTasksRunningSimultaneously limit
-            if(resource.CurrentResidency != resource.MaxResidency)
+            if (resource.CurrentResidency != resource.MaxResidency)
             {
                 var task = StreamAsync(resource, resource.MaxResidency);
                 task.Wait();
@@ -517,7 +517,7 @@ namespace Xenko.Streaming
             var currentResidency = resource.CurrentResidency;
             var allocatedResidency = resource.AllocatedResidency;
             var targetResidency = resource.CalculateTargetResidency(targetQuality);
-            Debug.Assert(allocatedResidency >= currentResidency && allocatedResidency >= 0, $"allocatedResidency[{allocatedResidency}] >= currentResidency[{currentResidency }] && allocatedResidency[{allocatedResidency }] >= 0");
+            Debug.Assert(allocatedResidency >= currentResidency && allocatedResidency >= 0, $"allocatedResidency[{allocatedResidency}] >= currentResidency[{currentResidency}] && allocatedResidency[{allocatedResidency}] >= 0");
 
             // Update target residency smoothing
             // TODO: use move quality samples and use max or avg value - make that input it smooth - or use PID

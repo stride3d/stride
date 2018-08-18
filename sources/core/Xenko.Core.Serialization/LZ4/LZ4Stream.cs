@@ -21,6 +21,8 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, 
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN 
 // IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#pragma warning disable SA1027 // Tabs must not be used
+#pragma warning disable SA1137 // Elements should have the same indentation
 using System;
 using System.IO;
 using System.IO.Compression;
@@ -29,7 +31,7 @@ using Xenko.Core.IO;
 namespace Xenko.Core.LZ4
 {
 	/// <summary>Block compression stream. Allows to use LZ4 for stream compression.</summary>
-    public class LZ4Stream: NativeStream
+    public class LZ4Stream : NativeStream
 	{
 		#region ChunkFlags
 
@@ -125,7 +127,7 @@ namespace Xenko.Core.LZ4
             long uncompressedSize = -1,
             long compressedSize = -1,
             bool disposeInnerStream = false,
-			int blockSize = 1024*1024)
+			int blockSize = 1024 * 1024)
 		{
 			this.innerStream = innerStream;
 			this.compressionMode = compressionMode;
@@ -188,7 +190,7 @@ namespace Xenko.Core.LZ4
 		/// <summary>Reads the variable length int. Work with assumption that value is in the stream
 		/// and throws exception if it isn't. If you want to check if value is in the stream
 		/// use <see cref="TryReadVarInt"/> instead.</summary>
-		/// <returns></returns>
+		/// <returns>The value.</returns>
 		private ulong ReadVarInt()
 		{
 			ulong result;
@@ -584,6 +586,7 @@ namespace Xenko.Core.LZ4
                 }
             }
         }
+
 	    /// <summary>
         /// Reset the stream to its initial position and state
         /// </summary>

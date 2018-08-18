@@ -8,7 +8,7 @@ namespace Xenko.Rendering.Materials.ComputeColors
     /// Base implementation for <see cref="IVertexStreamDefinition"/>
     /// </summary>
     [DataContract(Inherited = true)]
-    public abstract class VertexStreamDefinitionBase :  IVertexStreamDefinition
+    public abstract class VertexStreamDefinitionBase : IVertexStreamDefinition
     {
         public abstract int GetSemanticNameHash();
 

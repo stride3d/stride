@@ -6,7 +6,7 @@ namespace Xenko.Core.Reflection
     /// The <see cref="Xenko.Core.Reflection"/> namespace contains objects and extensions class that provides support of reflection
     /// for platforms that does not fully implement <see cref="System.Reflection"/> classes.
     /// </summary>
-    class NamespaceDoc
+    internal class NamespaceDoc
     {
     }
 }

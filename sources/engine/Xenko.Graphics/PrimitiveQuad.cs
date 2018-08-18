@@ -140,9 +140,9 @@ namespace Xenko.Graphics
             
             private static readonly VertexPositionNormalTexture[] QuadsVertices =
             {
-                new VertexPositionNormalTexture(new Vector3(-1, 1, 0), new Vector3(0, 0, 1), new Vector2(0, 0)),
-                new VertexPositionNormalTexture(new Vector3( 3, 1, 0), new Vector3(0, 0, 1), new Vector2(2, 0)),
-                new VertexPositionNormalTexture(new Vector3(-1,-3, 0), new Vector3(0, 0, 1), new Vector2(0, 2)),
+                new VertexPositionNormalTexture(new Vector3(-1,  1, 0), new Vector3(0, 0, 1), new Vector2(0, 0)),
+                new VertexPositionNormalTexture(new Vector3(+3,  1, 0), new Vector3(0, 0, 1), new Vector2(2, 0)),
+                new VertexPositionNormalTexture(new Vector3(-1, -3, 0), new Vector3(0, 0, 1), new Vector2(0, 2)),
             };
 
             public SharedData(GraphicsDevice device)

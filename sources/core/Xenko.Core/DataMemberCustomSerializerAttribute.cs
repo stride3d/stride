@@ -9,7 +9,6 @@ namespace Xenko.Core
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
     public class DataMemberCustomSerializerAttribute : Attribute
-    {
-        
+    {        
     }
 }

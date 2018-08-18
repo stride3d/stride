@@ -14,7 +14,9 @@ namespace Xenko.VirtualReality
         private int controllerIndex = -1;
         private OpenVR.Controller controller;
         private DeviceState internalState;
-        private Vector3 currentPos, currentLinearVelocity, currentAngularVelocity;
+        private Vector3 currentPos;
+        private Vector3 currentLinearVelocity;
+        private Vector3 currentAngularVelocity;
         private Quaternion currentRot;
 
         internal OpenVRTouchController(TouchControllerHand hand)

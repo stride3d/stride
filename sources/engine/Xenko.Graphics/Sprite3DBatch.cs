@@ -82,7 +82,7 @@ namespace Xenko.Graphics
                     X = sourceRectangle.X / texture.ViewWidth,
                     Y = sourceRectangle.Y / texture.ViewHeight,
                     Width = sourceRectangle.Width / texture.ViewWidth,
-                    Height = sourceRectangle.Height / texture.ViewHeight
+                    Height = sourceRectangle.Height / texture.ViewHeight,
                 },
                 ColorScale = color,
                 ColorAdd = new Color4(0, 0, 0, 0),

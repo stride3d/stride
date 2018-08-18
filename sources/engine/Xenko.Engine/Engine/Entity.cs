@@ -3,17 +3,16 @@
 
 using System;
 using System.Collections;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Xenko.Core;
+using Xenko.Core.Annotations;
+using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
-using System.Collections.Generic;
-using Xenko.Core.Annotations;
-using Xenko.Core.Collections;
 
 namespace Xenko.Engine
 {
@@ -29,8 +28,8 @@ namespace Xenko.Engine
     [DataContract("Entity")]
     public sealed class Entity : ComponentBase, IEnumerable<EntityComponent>, IIdentifiable
     {
-        internal TransformComponent transform;
-        internal Scene scene;
+        internal TransformComponent TransformValue;
+        internal Scene SceneValue;
 
         /// <summary>
         /// Create a new <see cref="Entity"/> instance.
@@ -58,8 +57,8 @@ namespace Xenko.Engine
             : this(name, false)
         {
             Id = Guid.NewGuid();
-            transform = new TransformComponent { Position = position };
-            Components.Add(transform);
+            TransformValue = new TransformComponent { Position = position };
+            Components.Add(TransformValue);
         }
 
         /// <summary>
@@ -97,7 +96,7 @@ namespace Xenko.Engine
         {
             get
             {
-                return this.FindRoot().scene;
+                return this.FindRoot().SceneValue;
             }
 
             set
@@ -105,7 +104,7 @@ namespace Xenko.Engine
                 if (this.GetParent() != null)
                     throw new InvalidOperationException("This entity is another entity's child. Detach it before changing its scene.");
 
-                var oldScene = scene;
+                var oldScene = SceneValue;
                 if (oldScene == value)
                     return;
 
@@ -125,7 +124,7 @@ namespace Xenko.Engine
         /// Added for convenience over usual Get/Set method.
         /// </summary>
         [DataMemberIgnore]
-        public TransformComponent Transform => transform;
+        public TransformComponent Transform => TransformValue;
 
         /// <summary>
         /// The components stored in this entity.

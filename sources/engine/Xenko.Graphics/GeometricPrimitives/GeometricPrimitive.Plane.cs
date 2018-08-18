@@ -42,7 +42,6 @@ namespace Xenko.Graphics.GeometricPrimitives
         /// </summary>
         public static class Plane
         {
-
             /// <summary>
             /// Creates a Plane primitive on the X/Y plane with a normal equal to -<see cref="Vector3.UnitZ"/>.
             /// </summary>
@@ -51,10 +50,10 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// <param name="sizeY">The size Y.</param>
             /// <param name="tessellationX">The tessellation, as the number of quads per X axis.</param>
             /// <param name="tessellationY">The tessellation, as the number of quads per Y axis.</param>
-            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <param name="uFactor">Scale U coordinates between 0 and the values of this parameter.</param>
             /// <param name="vFactor">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="generateBackFace">Add a back face to the plane</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <param name="normalDirection">The direction of the plane normal</param>
             /// <returns>A Plane primitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation must be > 0</exception>
@@ -70,10 +69,10 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// <param name="sizeY">The size Y.</param>
             /// <param name="tessellationX">The tessellation, as the number of quads per X axis.</param>
             /// <param name="tessellationY">The tessellation, as the number of quads per Y axis.</param>
-            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <param name="uFactor">Scale U coordinates between 0 and the values of this parameter.</param>
             /// <param name="vFactor">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="generateBackFace">Add a back face to the plane</param>
+            /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
             /// <param name="normalDirection">The direction of the plane normal</param>
             /// <returns>A Plane primitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation must be > 0</exception>
@@ -86,8 +85,8 @@ namespace Xenko.Graphics.GeometricPrimitives
 
                 var lineWidth = tessellationX + 1;
                 var lineHeight = tessellationY + 1;
-                var vertices = new VertexPositionNormalTexture[lineWidth * lineHeight * (generateBackFace? 2: 1)];
-                var indices = new int[tessellationX * tessellationY * 6 * (generateBackFace? 2: 1)];
+                var vertices = new VertexPositionNormalTexture[lineWidth * lineHeight * (generateBackFace ? 2 : 1)];
+                var indices = new int[tessellationX * tessellationY * 6 * (generateBackFace ? 2 : 1)];
 
                 var deltaX = sizeX / tessellationX;
                 var deltaY = sizeY / tessellationY;
@@ -143,7 +142,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                         indices[indexCount++] = (vbase);
                     }
                 }
-                if(generateBackFace)
+                if (generateBackFace)
                 {
                     var numVertices = lineWidth * lineHeight;
                     normal = -normal;

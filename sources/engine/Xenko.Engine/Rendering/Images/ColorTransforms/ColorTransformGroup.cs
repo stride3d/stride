@@ -211,7 +211,6 @@ namespace Xenko.Rendering.Images
                 }
             }
 
-
             for (int i = 0; i < enabledTransforms.Count; i++)
             {
                 var transform = enabledTransforms[i];

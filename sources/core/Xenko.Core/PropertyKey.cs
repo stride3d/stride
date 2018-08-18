@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -49,7 +50,7 @@ namespace Xenko.Core
         [DataMemberIgnore]
         internal DefaultValueMetadata DefaultValueMetadata
         {
-            get { return defaultValueMetadata;}
+            get { return defaultValueMetadata; }
             set
             {
                 defaultValueMetadata = value;
@@ -78,7 +79,7 @@ namespace Xenko.Core
         [DataMemberIgnore]
         internal AccessorMetadata AccessorMetadata { get; private set; }
 
-        /// <summary>Gets or sets the property update callback.</summary>
+        /// <summary>Gets the property update callback.</summary>
         /// <value>The property update callback.</value>
         [DataMemberIgnore]
         internal PropertyContainer.PropertyUpdatedDelegate PropertyUpdateCallback { get; private set; }
@@ -162,7 +163,7 @@ namespace Xenko.Core
     /// <typeparam name="T">Type of the property</typeparam>
     public sealed class PropertyKey<T> : PropertyKey
     {
-        private static readonly bool isValueType = typeof(T).GetTypeInfo().IsValueType;
+        private static readonly bool IsValueTypeGeneric = typeof(T).GetTypeInfo().IsValueType;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyKey{T}"/> class.
@@ -176,7 +177,7 @@ namespace Xenko.Core
         }
 
         /// <inheritdoc/>
-        public override bool IsValueType => isValueType;
+        public override bool IsValueType => IsValueTypeGeneric;
 
         /// <summary>
         /// Gets the default value metadata.
@@ -222,4 +223,3 @@ namespace Xenko.Core
         }
     }
 }
-

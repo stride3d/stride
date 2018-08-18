@@ -148,10 +148,6 @@ namespace Xenko.Rendering
         /// <summary>
         /// Saves a viewport state and restores after using it.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>PropertyTagRestore&lt;T&gt;.</returns>
         public ViewportRestore SaveViewportAndRestore()
         {
             return new ViewportRestore(this);
@@ -160,10 +156,6 @@ namespace Xenko.Rendering
         /// <summary>
         /// Saves a viewport and restores it after using it.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>PropertyTagRestore&lt;T&gt;.</returns>
         public RenderOutputRestore SaveRenderOutputAndRestore()
         {
             return new RenderOutputRestore(this);
@@ -172,10 +164,7 @@ namespace Xenko.Rendering
         /// <summary>
         /// Pushes a render view and restores it after using it.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="key">The key.</param>
-        /// <param name="value">The value.</param>
-        /// <returns>PropertyTagRestore&lt;T&gt;.</returns>
+        /// <param name="renderView">The render view.</param>
         public RenderViewRestore PushRenderViewAndRestore(RenderView renderView)
         {
             var result = new RenderViewRestore(this);
@@ -255,34 +244,6 @@ namespace Xenko.Rendering
             public void Dispose()
             {
                 context.RenderView = previousValue;
-            }
-        }
-    }
-    public class ViewportState
-    {
-        public Viewport Viewport0;
-        //public Viewport Viewport1;
-        //public Viewport Viewport2;
-        //public Viewport Viewport3;
-        //public Viewport Viewport4;
-        //public Viewport Viewport5;
-        //public Viewport Viewport6;
-        //public Viewport Viewport7;
-
-        /// <summary>
-        /// Capture state from <see cref="CommandList.Viewports"/>.
-        /// </summary>
-        /// <param name="commandList">The command list to capture state from.</param>
-        public unsafe void CaptureState(CommandList commandList)
-        {
-            // TODO: Support multiple viewports
-            var viewports = commandList.Viewports;
-            fixed (Viewport* viewport0 = &Viewport0)
-            {
-                for (int i = 0; i < 1; ++i)
-                {
-                    viewport0[i] = viewports[i];
-                }
             }
         }
     }

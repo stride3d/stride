@@ -211,7 +211,7 @@ namespace Xenko.SpriteStudio.Runtime
                 }
             }
 
-            if(hasBegin) sprite3DBatch.End();
+            if (hasBegin) sprite3DBatch.End();
         }
 
         private EffectInstance GetOrCreateSelectedSpriteEffect()

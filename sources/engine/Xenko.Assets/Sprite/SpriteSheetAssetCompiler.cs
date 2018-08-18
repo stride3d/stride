@@ -56,7 +56,7 @@ namespace Xenko.Assets.Sprite
                 {
                     // skip the texture if the file is not valid.
                     var textureFile = spriteByTextures[i].Key;
-                    if(!TextureFileIsValid(textureFile))
+                    if (!TextureFileIsValid(textureFile))
                         continue;
 
                     var textureUrl = SpriteSheetAsset.BuildTextureUrl(assetItem.Location, i);
@@ -226,7 +226,7 @@ namespace Xenko.Assets.Sprite
                 }
 
                 // set the transparency information to all the sprites
-                if(Parameters.SheetAsset.Alpha != AlphaFormat.None) // Skip the calculation when format is forced without alpha.
+                if (Parameters.SheetAsset.Alpha != AlphaFormat.None) // Skip the calculation when format is forced without alpha.
                 {
                     var urlToTexImage = new Dictionary<string, Tuple<TexImage, Image>>();
                     using (var texTool = new TextureTool())

@@ -318,7 +318,7 @@ namespace Xenko.Graphics.Font
                         var glyphIndex = fontFace.GetCharIndex(character.Character);
 
                         // if the character does not exist in the face => continue
-                        if(glyphIndex == 0)
+                        if (glyphIndex == 0)
                             goto DequeueRequest;
 
                         // load the character glyph

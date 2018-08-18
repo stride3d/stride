@@ -47,13 +47,13 @@ namespace Xenko.Graphics.Font
         [DataMemberIgnore]
         internal FontManager FontManager
         {
-            get { return FontSystem != null? FontSystem.FontManager: null; }
+            get { return FontSystem != null ? FontSystem.FontManager : null; }
         }
 
         [DataMemberIgnore]
         internal FontCacheManager FontCacheManager
         {
-            get { return FontSystem != null? FontSystem.FontCacheManager: null; }
+            get { return FontSystem != null ? FontSystem.FontCacheManager : null; }
         }
 
         [DataMemberIgnore]
@@ -83,7 +83,7 @@ namespace Xenko.Graphics.Font
                 DefaultLineSpacing = relativeLineSpacing * Size;
                 BaseOffsetY = relativeBaseOffsetY * Size;
                 Textures = FontCacheManager.Textures;
-                Swizzle = SwizzleMode.RRRR;
+                swizzle = SwizzleMode.RRRR;
             }
         }
 
@@ -107,7 +107,7 @@ namespace Xenko.Graphics.Font
             var characterData = GetOrCreateCharacterData(fontSize, character);
             
             // generate the bitmap if it does not exist
-            if(characterData.Bitmap == null)
+            if (characterData.Bitmap == null)
                 FontManager.GenerateBitmap(characterData, false);
 
             // upload the character to the GPU font texture and create the glyph if does not exists
