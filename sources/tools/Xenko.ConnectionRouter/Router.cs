@@ -134,8 +134,8 @@ namespace Xenko.ConnectionRouter
                     {
                         // From the URL, start service (if not started yet) and ask it to provide a server
                         serverSocket = await SpawnServerFromService(url, true);
-                    }
                         break;
+                    }
                     case "redirect":
                     {
                         // Redirect to a IP/port
@@ -148,7 +148,7 @@ namespace Xenko.ConnectionRouter
                         //    await serverSocket.StartClient(host, port, false);
                         //else
                             throw new InvalidOperationException("Trying to redirect to a non-whitelisted host/port");
-                            break;
+                        //break;
                     }
                     default:
                         throw new InvalidOperationException("This type of URL is not supported");
