@@ -142,7 +142,7 @@ namespace Xenko.Core.Assets
 
         public class FileSizeComparer : Comparer<PackageLoadingAssetFile>
         {
-            public static readonly FileSizeComparer Default = new FileSizeComparer();
+            public new static readonly FileSizeComparer Default = new FileSizeComparer();
 
             public override int Compare(PackageLoadingAssetFile x, PackageLoadingAssetFile y)
             {
