@@ -18,13 +18,6 @@ namespace Xenko.Assets.Presentation.Preview
         {
             // create the preview entity from the entity build on the database
             var entity = LoadAsset<Entity>(AssetItem.Location);
-            
-            // Don't preview scene, as they cannot be added as child of a scene
-            if (entity is Scene)
-            {
-                UnloadAsset(entity);
-                return null;
-            }
             var previewEntity = new PreviewEntity(entity);
 
             // ensure that the model is correctly unloaded after used
