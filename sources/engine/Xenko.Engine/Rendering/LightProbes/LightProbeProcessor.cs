@@ -11,7 +11,6 @@ namespace Xenko.Rendering.LightProbes
 {
     public class LightProbeProcessor : EntityProcessor<LightProbeComponent>
     {
-        private ObjectId previousLightProbeHash;
         private bool needPositionUpdate = false;
 
         public LightProbeProcessor() : base(typeof(TransformComponent))

@@ -31,7 +31,6 @@ namespace Xenko.Physics
         private Bullet2PhysicsSystem physicsSystem;
         private SceneSystem sceneSystem;
         private Scene debugScene;
-        private Entity debugEntityScene;
 
         private bool colliderShapesRendering;
 

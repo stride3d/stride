@@ -13,7 +13,7 @@ namespace Xenko.VirtualReality
 {
     internal class FoveHmd : VRDevice
     {
-        private Texture nonSrgbFrame;
+        //private Texture nonSrgbFrame;
         private readonly Matrix referenceMatrix = Matrix.RotationZ(MathUtil.Pi);
         private Matrix referenceMatrixInv;
 

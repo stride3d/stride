@@ -47,7 +47,6 @@ namespace Xenko.Particles.Tests
         private readonly string xenkoDir;
         private readonly string assemblyName;
         private readonly string testName;
-        private readonly string platformName;
         private int screenShots;
 
         private GraphicsProfile overrideGraphicsProfile;
@@ -61,7 +60,6 @@ namespace Xenko.Particles.Tests
 
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
             //  SaveScreenshot is only defined for windows
-            platformName = "Windows";
             Directory.CreateDirectory(xenkoDir + "\\screenshots\\");
 #endif
 

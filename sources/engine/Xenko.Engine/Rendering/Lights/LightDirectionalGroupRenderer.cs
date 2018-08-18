@@ -15,10 +15,12 @@ namespace Xenko.Rendering.Lights
 {
     public struct DirectionalLightData
     {
+#pragma warning disable 169
         public Vector3 DirectionWS;
         private float padding0;
         public Color3 Color;
         private float padding1;
+#pragma warning restore 169
     }
 
     /// <summary>

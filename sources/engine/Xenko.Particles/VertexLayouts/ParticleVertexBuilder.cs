@@ -197,7 +197,6 @@ namespace Xenko.Particles.VertexLayouts
 
         public delegate void TransformAttributeDelegate<T>(ref T value);
 
-        private int vertexStructSize;
         private readonly int indexStructSize;
 
         private readonly Dictionary<AttributeDescription, AttributeAccessor> availableAttributes;
@@ -205,8 +204,6 @@ namespace Xenko.Particles.VertexLayouts
         private readonly List<VertexElement> vertexElementList;
 
         private int requiredQuads;
-
-        private MappedResource mappedVertices;
 
         public int MaxParticles { get; private set; }
 
