@@ -55,18 +55,18 @@ namespace Xenko.Core.BuildEngine.Tests.Commands
 
         public override string OutputLocation => Location;
 
-        private bool WaitDelay()
+        private async Task<bool> WaitDelay()
         {
             // Simulating actual work on input to generate output
             int nbSleep = Delay / 100;
             for (int i = 0; i < nbSleep; ++i)
             {
-                Thread.Sleep(100);
+                await Task.Delay(100);
                 if (CancellationToken.IsCancellationRequested)
                     return false;
             }
 
-            Thread.Sleep(Delay - (nbSleep * 100));
+            await Task.Delay(Delay - (nbSleep * 100));
             return true;
         }
 
@@ -85,7 +85,7 @@ namespace Xenko.Core.BuildEngine.Tests.Commands
                 case UrlType.File:
                     using (var fileStream = new FileStream(Source.Path, FileMode.Open, FileAccess.Read))
                     {
-                        if (!WaitDelay())
+                        if (!await WaitDelay())
                             return ResultStatus.Cancelled;
 
                         result = DataContainer.Load(fileStream);
@@ -94,7 +94,7 @@ namespace Xenko.Core.BuildEngine.Tests.Commands
                 case UrlType.Content:
                     var container = assetManager.Load<DataContainer>(Source.Path);
 
-                        if (!WaitDelay())
+                        if (!await WaitDelay())
                             return ResultStatus.Cancelled;
 
                      result = container.Alterate();

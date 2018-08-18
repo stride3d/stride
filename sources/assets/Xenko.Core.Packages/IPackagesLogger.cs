@@ -1,6 +1,8 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Threading.Tasks;
+
 namespace Xenko.Core.Packages
 {
     /// <summary>
@@ -14,5 +16,12 @@ namespace Xenko.Core.Packages
         /// <param name="level">The level of the logged message.</param>
         /// <param name="message">The message to log.</param>
         void Log(MessageLevel level, string message);
+
+        /// <summary>
+        /// Logs the <paramref name="message"/> using the log <paramref name="level"/>.
+        /// </summary>
+        /// <param name="level">The level of the logged message.</param>
+        /// <param name="message">The message to log.</param>
+        Task LogAsync(MessageLevel level, string message);
     }
 }
