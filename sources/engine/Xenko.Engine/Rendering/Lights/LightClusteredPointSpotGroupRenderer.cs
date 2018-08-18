@@ -162,7 +162,7 @@ namespace Xenko.Rendering.Lights
             private FastListStruct<Int2> clusterInfos = new FastListStruct<Int2>(8);
             private RenderViewInfo[] renderViewInfos;
             private Int2 maxClusterCount;
-            private Plane[] zPlanes;
+            //private Plane[] zPlanes;
 
             public PointLightShaderGroupData(RenderContext renderContext, LightClusteredPointSpotGroupRenderer clusteredGroupRenderer)
                 : base(renderContext, null)

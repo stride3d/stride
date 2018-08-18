@@ -23,8 +23,6 @@ namespace Xenko.Rendering.LightProbes
     {
         private LightProbeShaderGroupData lightprobeGroup;
 
-        private Buffer lightprobeCoefficients;
-
         public override Type[] LightTypes { get; } = Type.EmptyTypes;
 
         public LightProbeRenderer()

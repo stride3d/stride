@@ -10,7 +10,7 @@ namespace Xenko.Core.Packages
     public class ProgressReport : IDisposable
     {
         private readonly NugetStore store;
-        private readonly string version;
+        //private readonly string version;
         private ProgressAction action;
         private int progress;
 
