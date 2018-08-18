@@ -52,21 +52,20 @@ namespace Xenko.Assets
                 .Distinct()
                 .Select(projectFullPath => Task.Run(async () =>
                 {
-                    if (codeUpgrader.UpgradeProject(workspace, projectFullPath))
-                    {
-                        // Upgrade source code
-                        var f = new FileInfo(projectFullPath.ToWindowsPath());
-                        if (f.Exists)
-                        {
-                            var project = await workspace.OpenProjectAsync(f.FullName);
-                            var subTasks = project.Documents.Concat(project.AdditionalDocuments).Select(x => codeUpgrader.UpgradeSourceFile(x.FilePath)).ToList();
+                    codeUpgrader.UpgradeProject(workspace, projectFullPath);
 
-                            await Task.WhenAll(subTasks);
-                        }
-                        else
-                        {
-                            log.Error($"Cannot locate project {f.FullName}.");
-                        }
+                    // Upgrade source code
+                    var f = new FileInfo(projectFullPath.ToWindowsPath());
+                    if (f.Exists)
+                    {
+                        var project = await workspace.OpenProjectAsync(f.FullName);
+                        var subTasks = project.Documents.Concat(project.AdditionalDocuments).Select(x => codeUpgrader.UpgradeSourceFile(x.FilePath)).ToList();
+
+                        await Task.WhenAll(subTasks);
+                    }
+                    else
+                    {
+                        log.Error($"Cannot locate project {f.FullName}.");
                     }
                 }))
                 .ToArray();
@@ -84,14 +83,12 @@ namespace Xenko.Assets
             /// </summary>
             /// <param name="workspace">The msbuild workspace</param>
             /// <param name="projectPath">A path to a csproj file</param>
-            /// <returns><c>true</c> if <see cref="UpgradeSourceFile"/> should be called for each files in the project; otherwise <c>false</c></returns>
-            bool UpgradeProject(MSBuildWorkspace workspace, UFile projectPath);
+            void UpgradeProject(MSBuildWorkspace workspace, UFile projectPath);
 
             /// <summary>
             /// Upgrades the specified file 
             /// </summary>
-            /// <param name="syntaxTree">The syntaxtree of the file</param>
-            /// <returns>An upgrade task</returns>
+            /// <param name="filePath">A path to a source file</param>
             Task UpgradeSourceFile(UFile filePath);
         }
 
@@ -100,7 +97,7 @@ namespace Xenko.Assets
         /// </summary>
         private class RenameToXenkoCodeUpgrader : ICodeUpgrader
         {
-            public bool UpgradeProject(MSBuildWorkspace workspace, UFile projectPath)
+            public void UpgradeProject(MSBuildWorkspace workspace, UFile projectPath)
             {
                 // Upgrade .csproj file
                 // TODO: Use parsed file?
@@ -115,11 +112,12 @@ namespace Xenko.Assets
                 {
                     File.WriteAllText(projectPath, newFileContents);
                 }
-                return true;
             }
 
             // TODO: Reverted to simple regex, to upgrade text in .pdxfx's generated code files. Should use syntax analysis again.
-            public async Task UpgradeSourceFile(UFile filePath)
+#pragma warning disable 1998
+            public async Task UpgradeSourceFile(UFile filePath) // TODO: Should really use async I/O
+#pragma warning restore 1998
             {
                 var fileContents = File.ReadAllText(filePath);
                 var newFileContents = fileContents;

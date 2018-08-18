@@ -98,6 +98,12 @@ namespace Xenko.Core.Packages
             logger.Log(MessageLevel.ErrorSummary, data);
         }
 
+        /// <summary>
+        /// Logs a message <paramref name="data"/> using the log <paramref name="level"/>.
+        /// </summary>
+        /// <param name="level">The level of the logged message.</param>
+        /// <param name="data">The message to log.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="level"/> is not a valid log level.</exception>
         public void Log(LogLevel level, string data)
         {
             switch (level)
@@ -125,19 +131,49 @@ namespace Xenko.Core.Packages
             }
         }
 
-        public async Task LogAsync(LogLevel level, string data)
+        /// <summary>
+        /// Logs a message <paramref name="data"/> using the log <paramref name="level"/>.
+        /// </summary>
+        /// <param name="level">The level of the logged message.</param>
+        /// <param name="data">The message to log.</param>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="level"/> is not a valid log level.</exception>
+        public Task LogAsync(LogLevel level, string data)
         {
-            Log(level, data);
+            switch (level)
+            {
+            case LogLevel.Debug:
+                return logger.LogAsync(MessageLevel.Debug, data);
+            case LogLevel.Verbose:
+                return logger.LogAsync(MessageLevel.Verbose, data);
+            case LogLevel.Information:
+                return logger.LogAsync(MessageLevel.Info, data);
+            case LogLevel.Minimal:
+                return logger.LogAsync(MessageLevel.Minimal, data);
+            case LogLevel.Warning:
+                return logger.LogAsync(MessageLevel.Warning, data);
+            case LogLevel.Error:
+                return logger.LogAsync(MessageLevel.Error, data);
+            default:
+                throw new ArgumentOutOfRangeException(nameof(level), level, null);
+            }
         }
 
+        /// <summary>
+        /// Logs a message <paramref name="message"/>.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
         public void Log(ILogMessage message)
         {
             Log(message.Level, message.Message);
         }
 
-        public async Task LogAsync(ILogMessage message)
+        /// <summary>
+        /// Logs a message <paramref name="message"/>.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
+        public Task LogAsync(ILogMessage message)
         {
-            Log(message.Level, message.Message);
+            return LogAsync(message.Level, message.Message);
         }
 
         #endregion
