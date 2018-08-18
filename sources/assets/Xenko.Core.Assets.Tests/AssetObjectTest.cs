@@ -74,6 +74,7 @@ namespace Xenko.Core.Assets.Tests
 
         public List<AssetPartTestItem> Parts { get; set; }
 
+        [Obsolete("The AssetPart struct might be removed soon")]
         public override IEnumerable<AssetPart> CollectParts()
         {
             return Parts.Select(it => new AssetPart(it.Id, it.Base, x => it.Base = x));
