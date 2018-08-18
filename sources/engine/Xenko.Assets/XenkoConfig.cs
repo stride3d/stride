@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -148,42 +148,37 @@ namespace Xenko.Assets
 
             solutionPlatforms.Add(uwpPlatform);
 
-            // Disabling Linux until we figure out what to do with Windows & Linux cross targeting the same framework
-            if (false)
+#if FALSE   // Disabling Linux until we figure out what to do with Windows & Linux cross targeting the same framework
+            // Linux
+            var linuxPlatform = new SolutionPlatform()
             {
-                // Linux
-                var linuxPlatform = new SolutionPlatform()
-                {
-                    Name = PlatformType.Linux.ToString(),
-                    IsAvailable = true,
-                    TargetFramework = "net461",
-                    Type = PlatformType.Linux,
-                };
-                linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
-                linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_LINUX");
-                linuxPlatform.Configurations.Add(coreClrRelease);
-                linuxPlatform.Configurations.Add(coreClrDebug);
-                solutionPlatforms.Add(linuxPlatform);
-            }
+                Name = PlatformType.Linux.ToString(),
+                IsAvailable = true,
+                TargetFramework = "net461",
+                Type = PlatformType.Linux,
+            };
+            linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
+            linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_LINUX");
+            linuxPlatform.Configurations.Add(coreClrRelease);
+            linuxPlatform.Configurations.Add(coreClrDebug);
+            solutionPlatforms.Add(linuxPlatform);
+#endif
 
-            // Disabling macOS for time being
-            if (false)
+#if FALSE   // Disabling macOS for time being
+            // macOS
+            var macOSPlatform = new SolutionPlatform()
             {
-                // macOS
-                var macOSPlatform = new SolutionPlatform()
-                {
-                    Name = PlatformType.macOS.ToString(),
-                    IsAvailable = true,
-                    TargetFramework = "net461",
-                    Type = PlatformType.macOS,
-                };
-                macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
-                macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_MACOS");
-                macOSPlatform.Configurations.Add(coreClrRelease);
-                macOSPlatform.Configurations.Add(coreClrDebug);
-                solutionPlatforms.Add(macOSPlatform);
-            }
-
+                Name = PlatformType.macOS.ToString(),
+                IsAvailable = true,
+                TargetFramework = "net461",
+                Type = PlatformType.macOS,
+            };
+            macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
+            macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_MACOS");
+            macOSPlatform.Configurations.Add(coreClrRelease);
+            macOSPlatform.Configurations.Add(coreClrDebug);
+            solutionPlatforms.Add(macOSPlatform);
+#endif
             // Android
             var androidPlatform = new SolutionPlatform()
             {

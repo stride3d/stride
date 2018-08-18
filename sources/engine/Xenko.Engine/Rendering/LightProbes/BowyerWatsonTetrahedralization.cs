@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -771,7 +771,7 @@ namespace Xenko.Rendering.LightProbes
 
                 // Use Adaptive Precision Floating-Point Arithmetic
                 return insphere(ref points[tetrahedronPointer->Vertices[0]], ref points[tetrahedronPointer->Vertices[1]], ref points[tetrahedronPointer->Vertices[2]], ref points[tetrahedronPointer->Vertices[3]], ref p) > 0.0f;
-
+#if FALSE
                 // Equivalent without Adaptive Precision Floating-Point Arithmetic
                 var matrix = new Matrix(
                     ap.X, ap.Y, ap.Z, ap.LengthSquared(),
@@ -780,6 +780,7 @@ namespace Xenko.Rendering.LightProbes
                     dp.X, dp.Y, dp.Z, dp.LengthSquared());
 
                 return matrix.Determinant() > 0.0f;
+#endif
             }
         }
 
@@ -798,7 +799,7 @@ namespace Xenko.Rendering.LightProbes
         private bool IsTetrahedronPositiveOrder(ref Vector3 a, ref Vector3 b, ref Vector3 c, ref Vector3 d)
         {
             return orient3d(ref a, ref b, ref c, ref d) > 0.0f;
-
+#if FALSE
             var matrix = new Matrix(
                 a.X, a.Y, a.Z, 1.0f,
                 b.X, b.Y, b.Z, 1.0f,
@@ -806,8 +807,8 @@ namespace Xenko.Rendering.LightProbes
                 d.X, d.Y, d.Z, 1.0f);
 
             return matrix.Determinant() > 0.0f;
+#endif
         }
-
 
         /// <summary>
         /// Internal structure used when adding vertex.

@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -31,7 +31,7 @@ namespace Xenko.Debugger
             var reloadedComponents = new List<ReloadedComponentEntryLive>();
 
             throw new NotImplementedException("Need to reimplement this to use IUnloadable");
-
+#if FALSE
             foreach (var assembly in assembliesToUnregister)
             {
                 // Unregisters assemblies that have been registered in Package.Load => Package.LoadAssemblyReferencesForPackage
@@ -91,6 +91,7 @@ namespace Xenko.Debugger
             reloadedComponents.ForEach(x => ReplaceComponent(game, x));
 
             CloneReferenceSerializer.References = null;
+#endif
         }
 
         private static EntityComponent DeserializeComponent(ReloadedComponentEntryLive reloadedComponent)
