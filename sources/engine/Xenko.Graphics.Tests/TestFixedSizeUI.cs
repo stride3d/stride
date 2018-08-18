@@ -1,25 +1,12 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Threading.Tasks;
-
 using Xunit;
 
 using Xenko.Core.Mathematics;
-using Xenko.Rendering.Materials.ComputeColors;
-using Xenko.Rendering.Images;
-using Xenko.Rendering.Lights;
 using Xenko.Engine;
-using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
-using Xenko.Rendering.Materials;
-using Xenko.Rendering.ProceduralModels;
 using Xenko.Games;
-using Xenko.Rendering.Sprites;
-
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Graphics;
-using Xenko.Rendering.Sprites;
+using Xenko.Rendering.Compositing;
 using Xenko.UI;
 using Xenko.UI.Controls;
 using Xenko.UI.Panels;
