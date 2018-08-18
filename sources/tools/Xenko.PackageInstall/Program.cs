@@ -28,10 +28,10 @@ namespace Xenko.PackageInstall
                     throw new Exception("Expecting a parameter such as /install, /repair or /uninstall");
                 }
 
-                bool isRepair = false;
                 switch (args[0])
                 {
                     case "/install":
+                    case "/repair":
                     {
                         // Run prerequisites installer (if it exists)
                         var prerequisitesInstallerPath = @"..\Bin\Prerequisites\install-prerequisites.exe";
@@ -66,11 +66,6 @@ namespace Xenko.PackageInstall
                         CheckVisualStudioAndBuildTools();
 
                         break;
-                    }
-                    case "/repair":
-                    {
-                        isRepair = true;
-                        goto case "/install";
                     }
                 }
 

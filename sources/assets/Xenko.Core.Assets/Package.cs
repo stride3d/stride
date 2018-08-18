@@ -557,7 +557,6 @@ namespace Xenko.Core.Assets
 
                 foreach (var asset in Assets)
                 {
-                    var assetSaved = false;
                     if (asset.IsDirty)
                     {
                         if (saveParameters.AssetFilter?.Invoke(asset) ?? true)
