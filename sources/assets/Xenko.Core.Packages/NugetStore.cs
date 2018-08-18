@@ -194,8 +194,6 @@ namespace Xenko.Core.Packages
 
         private PackagePathResolver PathResolverV2 { get; }
 
-        public event Action<int> DownloadProgressChanged;
-
         /// <summary>
         /// Event executed when a package's installation has completed.
         /// </summary>
