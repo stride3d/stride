@@ -33,6 +33,7 @@ namespace Xenko.Rendering.ComputeEffect
 
             ThreadNumbers = new Int3(1);
             ThreadGroupCounts = new Int3(1);
+            InitialCounterOffsetValue = -1;
 
             SetDefaultParameters();
         }
@@ -51,6 +52,14 @@ namespace Xenko.Rendering.ComputeEffect
         /// Gets or sets the number of threads desired by thread group.
         /// </summary>
         public Int3 ThreadNumbers { get; set; }
+
+        /// <summary>
+        /// The Append/Consume buffer offset. A value of -1 indicates the current offset
+        /// should be kept. Any other values set the hidden counter for that Appendable/Consumable
+        /// UAV. uavInitialCount is only relevant for UAVs which have the 'Append' or 'Counter' buffer
+        /// flag, otherwise the argument is ignored.
+        /// </summary>
+        public int InitialCounterOffsetValue { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the input compute shader file (.xksl)
@@ -104,7 +113,7 @@ namespace Xenko.Rendering.ComputeEffect
             context.CommandList.SetPipelineState(pipelineState.CurrentState);
 
             // Apply the effect
-            EffectInstance.Apply(context.GraphicsContext);
+            EffectInstance.Apply(context.GraphicsContext, InitialCounterOffsetValue);
 
             // Draw a full screen quad
             context.CommandList.Dispatch(ThreadGroupCounts.X, ThreadGroupCounts.Y, ThreadGroupCounts.Z);

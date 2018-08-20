@@ -29,7 +29,7 @@ namespace Xenko.Rendering
             parameters.UpdateLayout(updaterLayout.ParameterCollectionLayout);
         }
 
-        public unsafe void Update(GraphicsDevice graphicsDevice, ResourceGroupAllocator resourceGroupAllocator, ParameterCollection parameters)
+        public unsafe void Update(GraphicsDevice graphicsDevice, ResourceGroupAllocator resourceGroupAllocator, ParameterCollection parameters, int uavInitialOffset = -1)
         {
             // Instantiate descriptor sets
             for (int i = 0; i < resourceGroups.Length; ++i)
@@ -59,7 +59,7 @@ namespace Xenko.Rendering
                         switch (layout.Entries[resourceSlot].Class)
                         {
                             case EffectParameterClass.UnorderedAccessView:
-                                descriptorSet.SetUnorderedAccessView(resourceSlot, value as GraphicsResource);
+                                descriptorSet.SetUnorderedAccessView(resourceSlot, value as GraphicsResource, uavInitialOffset);
                                 break;
                             default:
                                 descriptorSet.SetValue(resourceSlot, value);

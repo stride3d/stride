@@ -92,11 +92,11 @@ namespace Xenko.Rendering
         {
         }
 
-        public void Apply(GraphicsContext graphicsContext)
+        public void Apply(GraphicsContext graphicsContext, int uavInitialOffset = -1)
         {
             var commandList = graphicsContext.CommandList;
 
-            parameterUpdater.Update(commandList.GraphicsDevice, graphicsContext.ResourceGroupAllocator, Parameters);
+            parameterUpdater.Update(commandList.GraphicsDevice, graphicsContext.ResourceGroupAllocator, Parameters, uavInitialOffset);
 
             // Flush resource groups and cbuffer
             graphicsContext.ResourceGroupAllocator.Flush();

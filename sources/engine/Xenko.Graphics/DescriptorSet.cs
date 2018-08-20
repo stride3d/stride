@@ -66,7 +66,7 @@ namespace Xenko.Graphics
         /// <param name="size">The constant buffer view size.</param>
         public void SetConstantBuffer(int slot, Buffer buffer, int offset, int size)
         {
-            HeapObjects[DescriptorStartOffset + slot] = new DescriptorSetEntry(buffer, offset, size);
+            HeapObjects[DescriptorStartOffset + slot] = new DescriptorSetEntry(buffer);
         }
 
         /// <summary>
@@ -74,9 +74,10 @@ namespace Xenko.Graphics
         /// </summary>
         /// <param name="slot">The slot.</param>
         /// <param name="unorderedAccessView">The unordered access view.</param>
-        public void SetUnorderedAccessView(int slot, GraphicsResource unorderedAccessView)
+        public void SetUnorderedAccessView(int slot, GraphicsResource unorderedAccessView, int uavInitialOffset)
         {
             HeapObjects[DescriptorStartOffset + slot].Value = unorderedAccessView;
+            HeapObjects[DescriptorStartOffset + slot].UAVInitialOffset = uavInitialOffset;
         }
 #endif
     }

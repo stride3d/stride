@@ -277,6 +277,30 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
+        /// Sets an unordered access view to the shader pipeline.
+        /// </summary>
+        /// <param name="stage">The stage.</param>
+        /// <param name="slot">The slot.</param>
+        /// <param name="unorderedAccessView">The unordered access view.</param>
+        /// <param name="uavInitialOffset">The Append/Consume buffer offset. A value of -1 indicates the current offset
+        ///     should be kept. Any other values set the hidden counter for that Appendable/Consumable
+        ///     UAV. uavInitialCount is only relevant for UAVs which have the 'Append' or 'Counter' buffer
+        ///     flag, otherwise the argument is ignored.</param>
+        /// <exception cref="System.ArgumentException">Invalid stage.;stage</exception>
+        internal void SetUnorderedAccessView(ShaderStage stage, int slot, GraphicsResource unorderedAccessView, int uavInitialOffset)
+        {
+            if (stage != ShaderStage.Compute)
+                throw new ArgumentException("Invalid stage.", "stage");
+
+            var view = unorderedAccessView?.NativeUnorderedAccessView;
+            if (unorderedAccessViews[slot] != view)
+            {
+                unorderedAccessViews[slot] = view;
+                NativeDeviceContext.ComputeShader.SetUnorderedAccessView(slot, view, uavInitialOffset);
+            }
+        }
+
+        /// <summary>
         /// Unsets an unordered access view from the shader pipeline.
         /// </summary>
         /// <param name="unorderedAccessView">The unordered access view.</param>
