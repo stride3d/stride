@@ -257,26 +257,6 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
-        ///     Sets an unordered access view to the shader pipeline.
-        /// </summary>
-        /// <param name="stage">The stage.</param>
-        /// <param name="slot">The slot.</param>
-        /// <param name="unorderedAccessView">The unordered access view.</param>
-        /// <exception cref="System.ArgumentException">Invalid stage.;stage</exception>
-        internal void SetUnorderedAccessView(ShaderStage stage, int slot, GraphicsResource unorderedAccessView)
-        {
-            if (stage != ShaderStage.Compute)
-                throw new ArgumentException("Invalid stage.", "stage");
-
-            var view = unorderedAccessView?.NativeUnorderedAccessView;
-            if (unorderedAccessViews[slot] != view)
-            {
-                unorderedAccessViews[slot] = view;
-                NativeDeviceContext.ComputeShader.SetUnorderedAccessView(slot, view);
-            }
-        }
-
-        /// <summary>
         /// Sets an unordered access view to the shader pipeline.
         /// </summary>
         /// <param name="stage">The stage.</param>
