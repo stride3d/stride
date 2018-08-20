@@ -41,6 +41,9 @@
     </When>
   </Choose>
   <ItemGroup>
+    <None Remove="Xenko.Core.Shaders.dll.config" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
@@ -57,6 +60,9 @@
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Convertor\Keywords.glsl" />
+    <Content Include="Xenko.Core.Shaders.dll.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Grammar\Tokenizer.cgt" />
     <None Include="Grammar\Tokenizer.grm" />
   </ItemGroup>
