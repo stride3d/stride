@@ -66,7 +66,7 @@ namespace Xenko.Graphics
         /// <param name="size">The constant buffer view size.</param>
         public void SetConstantBuffer(int slot, Buffer buffer, int offset, int size)
         {
-            HeapObjects[DescriptorStartOffset + slot] = new DescriptorSetEntry(buffer);
+            HeapObjects[DescriptorStartOffset + slot] = new DescriptorSetEntry(buffer, offset, size);
         }
 
         /// <summary>
