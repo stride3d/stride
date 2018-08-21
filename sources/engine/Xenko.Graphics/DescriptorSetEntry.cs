@@ -9,13 +9,15 @@ namespace Xenko.Graphics
     {
         public object Value;
 
-        //used only for compute shader
-        public int UAVInitialOffset;
+        // Used only for cbuffer
+        public int Offset;
+        public int Size;
 
-        public DescriptorSetEntry(object value, int uavInitialOffset = -1)
+        public DescriptorSetEntry(object value, int offset, int size)
         {
             Value = value;
-            UAVInitialOffset = uavInitialOffset;
+            Offset = offset;
+            Size = size;
         }
     }
 }
