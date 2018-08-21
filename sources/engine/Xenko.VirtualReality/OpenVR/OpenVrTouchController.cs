@@ -72,6 +72,8 @@ namespace Xenko.VirtualReality
 
         public override Vector2 ThumbAxis => controller?.GetAxis() ?? Vector2.Zero;
 
+        public override Vector2 ThumbstickAxis => controller?.GetAxis() ?? Vector2.Zero;
+
         private OpenVR.Controller.ButtonId ToOpenVrButton(TouchControllerButton button)
         {
             switch (button)

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -21,7 +21,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 #if XENKO_PLATFORM_UWP
-using System;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -44,11 +43,14 @@ namespace Xenko.Games
     public class GameContextUWPCoreWindow : GameContextWindows<CoreWindow>
     {
         /// <inheritDoc/>
-        public GameContextUWPCoreWindow(CoreWindow control, int requestedWidth = 0, int requestedHeight = 0)
+        public GameContextUWPCoreWindow(CoreWindow control, int requestedWidth = 0, int requestedHeight = 0, bool isWindowsMixedReality = false)
             : base(control ?? CoreWindow.GetForCurrentThread(), requestedWidth, requestedHeight)
         {
             ContextType = AppContextType.UWPCoreWindow;
+            IsWindowsMixedReality = isWindowsMixedReality;
         }
+
+        internal bool IsWindowsMixedReality { get; }
     }
 }
 #endif

@@ -187,8 +187,6 @@
   </ItemGroup>
   <!-- Files for Null device -->
   <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
       <Private>False</Private>
     </ProjectReference>

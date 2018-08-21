@@ -1688,7 +1688,6 @@ namespace Xenko.Core.Mathematics
             return Equals((Vector3)value);
         }
 
-
 #if WPFInterop
         /// <summary>
         /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Vector3"/> to <see cref="System.Windows.Media.Media3D.Vector3D"/>.
