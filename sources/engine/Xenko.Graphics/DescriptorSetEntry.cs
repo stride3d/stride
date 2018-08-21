@@ -9,7 +9,10 @@ namespace Xenko.Graphics
     {
         public object Value;
 
-        // Used only for cbuffer
+        /// <summary>
+        /// The offset, shared parameter for either cbuffer or unordered access view.
+        /// Describes the cbuffer offset or the initial counter offset value for UAVs of compute shaders.
+        /// </summary>
         public int Offset;
         public int Size;
 
