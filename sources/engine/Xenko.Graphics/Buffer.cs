@@ -128,6 +128,14 @@ namespace Xenko.Graphics
         public PixelFormat ViewFormat { get; private set; }
 
         /// <summary>
+        /// The initial Append/Consume buffer counter offset. A value of -1 indicates the current offset
+        /// should be kept. Any other values set the hidden counter for that Appendable/Consumable
+        /// Buffer. This value is only relevant for Buffers which have the 'Append' or 'Counter'
+        /// flag, otherwise it is ignored. The value get's initialized to -1.
+        /// </summary>
+        public int InitialCounterOffsetValue { get; set; } = -1;
+
+        /// <summary>
         /// Return an equivalent staging texture CPU read-writable from this instance.
         /// </summary>
         /// <returns>A new instance of this buffer as a staging resource</returns>

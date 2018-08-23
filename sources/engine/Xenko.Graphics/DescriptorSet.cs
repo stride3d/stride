@@ -74,14 +74,18 @@ namespace Xenko.Graphics
         /// </summary>
         /// <param name="slot">The slot.</param>
         /// <param name="unorderedAccessView">The unordered access view.</param>
-        /// <param name="uavInitialOffset">The Append/Consume buffer offset. A value of -1 indicates the current offset
-        /// should be kept. Any other values set the hidden counter for that Appendable/Consumable
-        /// UAV. uavInitialCount is only relevant for UAVs which have the 'Append' or 'Counter' buffer
-        /// flag, otherwise the argument is ignored.</param>
-        public void SetUnorderedAccessView(int slot, GraphicsResource unorderedAccessView, int uavInitialOffset)
+        public void SetUnorderedAccessView(int slot, GraphicsResource unorderedAccessView)
         {
-            HeapObjects[DescriptorStartOffset + slot].Value = unorderedAccessView;
-            HeapObjects[DescriptorStartOffset + slot].Offset = uavInitialOffset;
+            if(unorderedAccessView is Buffer buffer)
+            {
+                HeapObjects[DescriptorStartOffset + slot].Value = buffer;
+                HeapObjects[DescriptorStartOffset + slot].Offset = buffer.InitialCounterOffsetValue;
+            }
+            else
+            {
+                HeapObjects[DescriptorStartOffset + slot].Value = unorderedAccessView;
+                HeapObjects[DescriptorStartOffset + slot].Offset = -1;
+            }
         }
 #endif
     }
