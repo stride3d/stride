@@ -133,7 +133,7 @@ namespace Xenko.Graphics
         /// Buffer. This value is only relevant for Buffers which have the 'Append' or 'Counter'
         /// flag, otherwise it is ignored. The value get's initialized to -1.
         /// </summary>
-        public int InitialCounterOffsetValue { get; set; } = -1;
+        public int InitialCounterOffset { get; set; } = -1;
 
         /// <summary>
         /// Return an equivalent staging texture CPU read-writable from this instance.

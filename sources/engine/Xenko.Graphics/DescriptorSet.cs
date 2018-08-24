@@ -79,7 +79,7 @@ namespace Xenko.Graphics
             if(unorderedAccessView is Buffer buffer)
             {
                 HeapObjects[DescriptorStartOffset + slot].Value = buffer;
-                HeapObjects[DescriptorStartOffset + slot].Offset = buffer.InitialCounterOffsetValue;
+                HeapObjects[DescriptorStartOffset + slot].Offset = buffer.InitialCounterOffset;
             }
             else
             {
