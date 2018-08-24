@@ -185,8 +185,12 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
             var caretOffset = CaretOffset;
             if (caretOffset <= text.Length)
             {
-                var result = await braceMatchingService.GetAllMatchingBracesAsync(document, caretOffset, token).ConfigureAwait(true);
-                braceMatcherHighlighter.SetHighlight(result.leftOfPosition, result.rightOfPosition);
+                try
+                {
+                    var result = await braceMatchingService.GetAllMatchingBracesAsync(document, caretOffset, token).ConfigureAwait(true);
+                    braceMatcherHighlighter.SetHighlight(result.leftOfPosition, result.rightOfPosition);
+                }
+                catch (TaskCanceledException){}
             }
         }
 
