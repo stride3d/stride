@@ -50,7 +50,7 @@
   
   <!-- Define default CPU architectures -->
   <ItemGroup>
-    <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP' Or '$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'macOS' " Include="x86;x64"/>
+    <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP' Or '$(XenkoPlatform)' == 'macOS' " Include="x86;x64"/>
     <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'UWP' " Include="ARM"/>
     <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Android' " Include="arm64-v8a;armeabi;armeabi-v7a;x86;x86_64"/>
   </ItemGroup>
@@ -238,11 +238,7 @@
     
     <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
     <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
-    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\lld.exe&quot; -flavor gnu --eh-frame-hdr -m elf_x86_64 -shared -o &quot;$(XenkoNativeOutputPath)\x64\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x64.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Linux\x86_64\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Linux\x86_64\libNativePath.a&quot;" />
-
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target i386-linux-gnu" />
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target i386-linux-gnu" />
-    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\lld.exe&quot; -flavor gnu --eh-frame-hdr -m elf_i386 -shared -o &quot;$(XenkoNativeOutputPath)\x86\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Linux\x86\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Linux\x86\libNativePath.a&quot;" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\lld.exe&quot; -flavor gnu --eh-frame-hdr -m elf_x86_64 -shared -o &quot;$(XenkoNativeOutputPath)\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x64.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Linux\x86_64\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Linux\x86_64\libNativePath.a&quot;" />
   </Target>
 
   <Target Name="CompileNativeClang_macOS" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)" Condition="'$(XenkoPlatform)' == 'macOS' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile">

@@ -47,6 +47,13 @@ namespace Xenko.Core.Assets
         public string TargetFramework { get; set; }
 
         /// <summary>
+        /// Gets or sets the runtime identifier.
+        /// </summary>
+        /// <value>The runtime identifier.</value>
+        [DataMember(35)]
+        public string RuntimeIdentifier { get; set; }
+
+        /// <summary>
         /// Gets the define constants that will be used by the csproj of the platform.
         /// </summary>
         /// <value>The define constants.</value>
