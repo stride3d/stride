@@ -18,8 +18,18 @@ namespace Xenko.Video.FFmpeg
         {
             var pCodec = pStream->codec;
             var framerateRatio = pCodec->framerate;
-            FPS = Convert.ToDouble(framerateRatio.num) / Convert.ToDouble(framerateRatio.den);
-            FrameDuration = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / Convert.ToInt64(FPS));
+
+            // HOTFIX (#95)
+            if (framerateRatio.den == 0)
+            {
+                FPS = 0;
+                FrameDuration = TimeSpan.Zero;
+            }
+            else
+            {
+                FPS = Convert.ToDouble(framerateRatio.num) / Convert.ToDouble(framerateRatio.den);
+                FrameDuration = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / Convert.ToInt64(FPS));
+            }
             PixelFormat = pCodec->pix_fmt;
             Height = pCodec->height;
             Width = pCodec->width;
