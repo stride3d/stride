@@ -673,6 +673,24 @@
                   </StackPanel>
                 </Grid>
               </Popup>
+              <ComboBox ItemsSource="{Binding Rendering.AvailableRenderModes}" SelectedItem="{Binding Rendering.RenderMode}" DisplayMemberPath="Name" Width="80">
+                <ComboBox.ItemContainerStyle>
+                  <Style TargetType="{x:Type ComboBoxItem}" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding Name}" Value="-">
+                        <Setter Property="IsEnabled" Value="False"/>
+                        <Setter Property="Template">
+                          <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ComboBoxItem}">
+                              <Separator Style="{StaticResource ComboBoxSeparator}"/>
+                            </ControlTemplate>
+                          </Setter.Value>
+                        </Setter>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </ComboBox.ItemContainerStyle>
+              </ComboBox>
             </WrapPanel>
             <WrapPanel>
               <ListBox Style="{StaticResource EnumListBox}" SelectedItem="{Binding Transform.ActiveTransformation, Mode=TwoWay}"
@@ -719,24 +737,6 @@
                   </Style>
                 </ListBox.ItemContainerStyle>
               </ListBox>
-              <ComboBox ItemsSource="{Binding Rendering.AvailableRenderModes}" SelectedItem="{Binding Rendering.RenderMode}" DisplayMemberPath="Name" Width="80">
-                <ComboBox.ItemContainerStyle>
-                  <Style TargetType="{x:Type ComboBoxItem}" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
-                    <Style.Triggers>
-                      <DataTrigger Binding="{Binding Name}" Value="-">
-                        <Setter Property="IsEnabled" Value="False"/>
-                        <Setter Property="Template">
-                          <Setter.Value>
-                            <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                              <Separator Style="{StaticResource ComboBoxSeparator}"/>
-                            </ControlTemplate>
-                          </Setter.Value>
-                        </Setter>
-                      </DataTrigger>
-                    </Style.Triggers>
-                  </Style>
-                </ComboBox.ItemContainerStyle>
-              </ComboBox>
               <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
               <ToggleButton IsChecked="{Binding MaterialSelectionMode}" Background="Transparent"
                             Content="{xk:Image {StaticResource ImageToggleMaterialMode}, 16, 16, NearestNeighbor}" Width="28" Height="28"
