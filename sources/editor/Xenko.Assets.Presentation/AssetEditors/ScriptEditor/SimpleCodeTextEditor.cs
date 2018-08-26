@@ -191,7 +191,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
                     braceMatcherHighlighter.SetHighlight(result.leftOfPosition, result.rightOfPosition);
                 }
             }
-            catch (TaskCanceledException) { }
+            catch (OperationCanceledException) { }
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
