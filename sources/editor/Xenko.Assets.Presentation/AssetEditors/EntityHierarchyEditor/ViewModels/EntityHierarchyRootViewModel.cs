@@ -35,6 +35,9 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModel
         /// <inheritdoc/>
         public override IEnumerable<EntityViewModel> InnerSubEntities => Children.SelectMany(x => x.InnerSubEntities);
 
+        /// <inheritdoc />
+        public override bool IsEditable => false;
+
         /// <inheritdoc/>
         [NotNull]
         public override string Name { get => name; set => throw new NotSupportedException($"Cannot change the name of a {nameof(EntityHierarchyRootViewModel)} object."); }
