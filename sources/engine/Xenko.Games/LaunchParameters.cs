@@ -74,5 +74,4 @@ namespace Xenko.Games
 #endif
         }
     }
-
 }

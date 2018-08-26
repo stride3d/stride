@@ -80,7 +80,7 @@ namespace Xenko.Video
 
             // Extract the frames
             var extractedFrameCount = media.ExtractFrames(stream, frameCount);
-            if(extractedFrameCount > 0)
+            if (extractedFrameCount > 0)
                 adjustedTicksSinceLastFrame = adjustedTicksSinceLastFrame % stream.FrameDuration.Ticks;
 
             // Get the last one
@@ -90,7 +90,7 @@ namespace Xenko.Video
 
             // Check end of media
             bool endOfMedia = streamInfo.ReachedEnd;
-            if(!endOfMedia)
+            if (!endOfMedia)
             {
                 if (extractedFrameCount > 0)
                 {
@@ -130,7 +130,7 @@ namespace Xenko.Video
             if (extractedFrameCount == 0)
                 return;
 
-            if(videoComponent.Target != null)
+            if (videoComponent.Target != null)
             {
                 videoTexture.SetTargetContentToVideoStream(videoComponent.Target);
 

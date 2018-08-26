@@ -15,7 +15,7 @@ namespace Xenko.TextureConverter.TexLibraries
     /// </summary>
     internal class ColorKeyTexLibrary : ITexLibrary
     {
-        private readonly static Logger Log = GlobalLogger.GetLogger("ColorKeyTexLibrary");
+        private static readonly Logger Log = GlobalLogger.GetLogger("ColorKeyTexLibrary");
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ColorKeyTexLibrary"/> class.

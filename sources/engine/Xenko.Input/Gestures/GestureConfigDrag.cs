@@ -26,7 +26,7 @@ namespace Xenko.Input
             {
                 CheckNotFrozen();
 
-                if(value<0)
+                if (value < 0)
                     throw new ArgumentOutOfRangeException("value");
 
                 minimumDragDistance = value;
@@ -50,7 +50,7 @@ namespace Xenko.Input
             {
                 CheckNotFrozen();
 
-                if(value.X < 0 || value.Y< 0)
+                if (value.X < 0 || value.Y < 0)
                     throw new ArgumentOutOfRangeException("value");
 
                 allowedErrorMargins = value;

@@ -21,7 +21,7 @@ namespace Xenko.Graphics
             var levels = new FeatureLevel[profiles.Length];
             for (int i = 0; i < levels.Length; i++)
             {
-                levels[i] = (FeatureLevel) profiles[i];
+                levels[i] = (FeatureLevel)profiles[i];
             }
             return levels;
         }
@@ -42,7 +42,7 @@ namespace Xenko.Graphics
         /// <returns>associated GraphicsProfile</returns>
         public static GraphicsProfile FromFeatureLevel(FeatureLevel level)
         {
-            return (GraphicsProfile) level;
+            return (GraphicsProfile)level;
         }
     }
 } 

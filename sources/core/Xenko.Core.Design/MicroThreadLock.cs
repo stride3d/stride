@@ -46,7 +46,7 @@ namespace Xenko.Core
             }
 
             // Select the proper type of lock depending on whether we're in a micro-thread or not.
-            var newLock =  new MicroThreadSyncLock(this);
+            var newLock = new MicroThreadSyncLock(this);
             AcquireOrEnqueue(newLock);
             await newLock.Acquired;
 

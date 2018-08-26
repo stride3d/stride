@@ -1,13 +1,13 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using BulletSharp;
 using Xenko.Core.Mathematics;
 using Xenko.Extensions;
 using Xenko.Graphics;
 using Xenko.Graphics.GeometricPrimitives;
 using Xenko.Rendering;
-using System;
 
 namespace Xenko.Physics
 {
@@ -36,14 +36,14 @@ namespace Xenko.Physics
             Matrix rotation;
             CapsuleShape shape;
 
-            CachedScaling = Is2D ? new Vector3(1, 1, 0) : Vector3.One; 
+            cachedScaling = Is2D ? new Vector3(1, 1, 0) : Vector3.One; 
 
             switch (orientation)
             {
                 case ShapeOrientation.UpZ:
                     shape = new CapsuleShapeZ(radius, length)
                     {
-                        LocalScaling = CachedScaling
+                        LocalScaling = cachedScaling,
                     };
                     rotation = Matrix.RotationX((float)Math.PI / 2.0f);
                     break;
@@ -51,7 +51,7 @@ namespace Xenko.Physics
                 case ShapeOrientation.UpY:
                     shape = new CapsuleShape(radius, length)
                     {
-                        LocalScaling = CachedScaling
+                        LocalScaling = cachedScaling,
                     };
                     rotation = Matrix.Identity;
                     break;
@@ -59,7 +59,7 @@ namespace Xenko.Physics
                 case ShapeOrientation.UpX:
                     shape = new CapsuleShapeX(radius, length)
                     {
-                        LocalScaling = CachedScaling
+                        LocalScaling = cachedScaling,
                     };
                     rotation = Matrix.RotationZ((float)Math.PI / 2.0f);
                     break;
@@ -68,7 +68,7 @@ namespace Xenko.Physics
                     throw new ArgumentOutOfRangeException("orientation");
             }
 
-            InternalShape = Is2D ? (CollisionShape)new Convex2DShape(shape) { LocalScaling = CachedScaling } : shape;
+            InternalShape = Is2D ? (CollisionShape)new Convex2DShape(shape) { LocalScaling = cachedScaling } : shape;
 
             DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(DebugScaling)) * rotation;
         }

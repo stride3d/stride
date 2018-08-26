@@ -25,8 +25,8 @@ namespace Xenko.Core.TypeConverters
     /// <summary>
     /// The <see cref="Xenko.Core.TypeConverters"/> namespace contains design-time converters for all vectors structures.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

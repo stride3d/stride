@@ -7,7 +7,7 @@ namespace Xenko.Updater
     /// <summary>
     /// Implementation of <see cref="EnterChecker"/> for <see cref="IList{T}"/>.
     /// </summary>
-    class ListEnterChecker<T> : EnterChecker
+    internal class ListEnterChecker<T> : EnterChecker
     {
         private readonly int minimumCount;
 

@@ -71,7 +71,6 @@ namespace Xenko.VirtualReality
             textures = new Texture[texturesCount];
             for (var i = 0; i < texturesCount; i++)
             {
-
                 var ptr = OculusOvr.GetTextureDx(ovrSession, Dx11Texture2DGuid, i);
                 if (ptr == IntPtr.Zero)
                 {
@@ -120,8 +119,8 @@ namespace Xenko.VirtualReality
             get
             {
                 var deviceStatus = OculusOvr.GetStatus(ovrSession);
-                if(deviceStatus.DisplayLost || !deviceStatus.HmdPresent) return DeviceState.Invalid;
-                if(deviceStatus.HmdMounted && deviceStatus.IsVisible) return DeviceState.Valid;
+                if (deviceStatus.DisplayLost || !deviceStatus.HmdPresent) return DeviceState.Invalid;
+                if (deviceStatus.HmdMounted && deviceStatus.IsVisible) return DeviceState.Valid;
                 return DeviceState.OutOfRange;
             }
         }
@@ -172,7 +171,7 @@ namespace Xenko.VirtualReality
             var frameProperties = new OculusOvr.FrameProperties
             {
                 Near = near,
-                Far = far
+                Far = far,
             };
             OculusOvr.GetFrameProperties(ovrSession, ref frameProperties);
 
@@ -185,7 +184,7 @@ namespace Xenko.VirtualReality
                 eyePosition -= (frameProperties.PosLeft + frameProperties.PosRight) / 2f;
 
             var eyeRotation = isLeftEye ? frameProperties.RotLeft : frameProperties.RotRight;
-            if(ignoreHeadRotation)
+            if (ignoreHeadRotation)
                 eyeRotation = Quaternion.Identity;
 
             var position = cameraPosition + Vector3.Transform(eyePosition * ViewScaling, camRot);

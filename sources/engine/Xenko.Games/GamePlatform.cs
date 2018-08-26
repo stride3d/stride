@@ -20,13 +20,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+#pragma warning disable SA1402 // File may only contain a single type
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Xenko.Graphics;
 using Xenko.Core;
-using Xenko.Core.Extensions;
+using Xenko.Graphics;
 
 namespace Xenko.Games
 {
@@ -282,8 +281,8 @@ namespace Xenko.Games
                                 PreferredFullScreenOutputIndex = preferredParameters.PreferredFullScreenOutputIndex,
                                 PresentationInterval = preferredParameters.SynchronizeWithVerticalRetrace ? PresentInterval.One : PresentInterval.Immediate,
                                 DeviceWindowHandle = MainWindow.NativeWindow,
-                                ColorSpace = preferredParameters.ColorSpace
-                            }
+                                ColorSpace = preferredParameters.ColorSpace,
+                            },
                         };
 
                         var preferredMode = new DisplayMode(preferredParameters.PreferredBackBufferFormat,
@@ -319,7 +318,18 @@ namespace Xenko.Games
         {
             var graphicsDevice = GraphicsDevice.New(deviceInformation.Adapter, deviceInformation.DeviceCreationFlags, gameWindow.NativeWindow, deviceInformation.GraphicsProfile);
             graphicsDevice.ColorSpace = deviceInformation.PresentationParameters.ColorSpace;
-            graphicsDevice.Presenter = new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
+
+#if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
+            if (game.Context is GameContextUWPCoreWindow context && context.IsWindowsMixedReality)
+            {
+                graphicsDevice.Recreate(deviceInformation.Adapter, new[] { deviceInformation.GraphicsProfile }, deviceInformation.DeviceCreationFlags |= DeviceCreationFlags.BgraSupport, gameWindow.NativeWindow);
+                graphicsDevice.Presenter = new WindowsMixedRealityGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
+            }
+            else
+#endif
+            {
+                graphicsDevice.Presenter = new SwapChainGraphicsPresenter(graphicsDevice, deviceInformation.PresentationParameters);
+            }
 
             return graphicsDevice;
         }
@@ -371,10 +381,8 @@ namespace Xenko.Games
 
     internal abstract class GamePlatform<TK> : GamePlatform
     {
-
         protected GamePlatform(GameBase game) : base(game)
         {
         }
-
     }
 }

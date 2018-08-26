@@ -3,9 +3,9 @@
 using System;
 using System.IO;
 using Xenko.Core.Annotations;
-using Xenko.Core.Yaml.Serialization;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Reflection;
+using Xenko.Core.Yaml.Serialization;
 using Xenko.Core.Yaml.Serialization.Serializers;
 
 namespace Xenko.Core.Yaml

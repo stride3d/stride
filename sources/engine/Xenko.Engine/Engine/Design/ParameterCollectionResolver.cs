@@ -11,7 +11,7 @@ namespace Xenko.Engine.Design
     public class ParameterCollectionResolver : UpdateMemberResolver
     {
         [ModuleInitializer]
-        internal static void __Initialize__()
+        internal static void InitializeModule()
         {
             UpdateEngine.RegisterMemberResolver(new ParameterCollectionResolver());
         }
@@ -42,7 +42,7 @@ namespace Xenko.Engine.Design
             new ValueParameterCollectionAccessor<T>(null);
         }
 
-        class ValueParameterCollectionAccessor<T> : UpdatableCustomAccessor where T : struct
+        private class ValueParameterCollectionAccessor<T> : UpdatableCustomAccessor where T : struct
         {
             private readonly ValueParameterKey<T> parameterKey;
 
@@ -103,7 +103,7 @@ namespace Xenko.Engine.Design
             }
         }
 
-        class ObjectParameterCollectionAccessor : UpdatableCustomAccessor
+        private class ObjectParameterCollectionAccessor : UpdatableCustomAccessor
         {
             private readonly ParameterKey parameterKey;
 

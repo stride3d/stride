@@ -423,9 +423,9 @@ namespace Xenko.UI.Controls
         {
             base.OnKeyDown(args);
 
-            if(args.Key == Keys.Right)
+            if (args.Key == Keys.Right)
                 Increase();
-            if(args.Key == Keys.Left)
+            if (args.Key == Keys.Left)
                 Decrease();
         }
 

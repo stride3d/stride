@@ -32,7 +32,8 @@ namespace Xenko.Rendering.Images
         /// </summary>
         public ImageMultiScaler()
             : this(false)
-        {}
+        {
+        }
 
         public ImageMultiScaler(bool useOverSampling)
             : base(null, useOverSampling)

@@ -91,7 +91,7 @@ namespace Xenko.Audio.Tests.Engine
             Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
             //var listenerProcessor = game.Entities.Processors.OfType<AudioListenerProcessor>().First();
 
-            //if(loopCount == 1)
+            //if (loopCount == 1)
             //{
             //    // add the listeners entities to the entity system.
             //    game.Entities.Add(rootEntity);
@@ -109,7 +109,7 @@ namespace Xenko.Audio.Tests.Engine
             //    // check that the listener components are marked for update immediately after addition to the Entity system.
             //    Assert.True(list1Data.ShouldBeComputed, "The value of should be computed for listener 1 is not valid at loop turn " + loopCount);
             //}
-            //else if(loopCount > 2 && loopCount < 5)
+            //else if (loopCount > 2 && loopCount < 5)
             //{
             //    var list1Data = listenerProcessor.MatchingEntitiesForDebug[listComp1Entity];
             //    var list2Data = listenerProcessor.MatchingEntitiesForDebug[listComp2Entity];

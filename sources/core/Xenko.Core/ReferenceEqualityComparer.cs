@@ -16,7 +16,7 @@ namespace Xenko.Core
         /// <summary>
         /// Gets the default.
         /// </summary>
-        public new static IEqualityComparer<T> Default
+        public static new IEqualityComparer<T> Default
         {
             get { return defaultComparer ?? (defaultComparer = new ReferenceEqualityComparer<T>()); }
         }
@@ -37,5 +37,4 @@ namespace Xenko.Core
 
         #endregion
     }
-
 }

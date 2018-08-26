@@ -70,7 +70,7 @@ namespace Xenko.Core
         {
             unchecked
             {
-                return (Start*397) ^ Length;
+                return (Start * 397) ^ Length;
             }
         }
 

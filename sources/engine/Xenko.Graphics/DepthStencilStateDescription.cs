@@ -124,13 +124,13 @@ namespace Xenko.Graphics
             unchecked
             {
                 var hashCode = DepthBufferEnable.GetHashCode();
-                hashCode = (hashCode*397) ^ (int)DepthBufferFunction;
-                hashCode = (hashCode*397) ^ DepthBufferWriteEnable.GetHashCode();
-                hashCode = (hashCode*397) ^ StencilEnable.GetHashCode();
-                hashCode = (hashCode*397) ^ StencilMask.GetHashCode();
-                hashCode = (hashCode*397) ^ StencilWriteMask.GetHashCode();
-                hashCode = (hashCode*397) ^ FrontFace.GetHashCode();
-                hashCode = (hashCode*397) ^ BackFace.GetHashCode();
+                hashCode = (hashCode * 397) ^ (int)DepthBufferFunction;
+                hashCode = (hashCode * 397) ^ DepthBufferWriteEnable.GetHashCode();
+                hashCode = (hashCode * 397) ^ StencilEnable.GetHashCode();
+                hashCode = (hashCode * 397) ^ StencilMask.GetHashCode();
+                hashCode = (hashCode * 397) ^ StencilWriteMask.GetHashCode();
+                hashCode = (hashCode * 397) ^ FrontFace.GetHashCode();
+                hashCode = (hashCode * 397) ^ BackFace.GetHashCode();
                 return hashCode;
             }
         }

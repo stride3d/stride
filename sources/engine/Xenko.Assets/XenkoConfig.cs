@@ -56,24 +56,6 @@ namespace Xenko.Assets
         {
             var solutionPlatforms = new List<SolutionPlatform>();
 
-            // Define CoreCLR configurations
-            var coreClrRelease = new SolutionConfiguration("CoreCLR_Release");
-            var coreClrDebug = new SolutionConfiguration("CoreCLR_Debug");
-            coreClrDebug.IsDebug = true;
-            // Add CoreCLR specific properties
-            coreClrDebug.Properties.AddRange(new[]
-            {
-                "<XenkoRuntime Condition=\"'$(XenkoProjectType)' == 'Executable'\">CoreCLR</XenkoRuntime>",
-                "<XenkoBuildDirExtension Condition=\"'$(XenkoBuildDirExtension)' == ''\">CoreCLR</XenkoBuildDirExtension>",
-                "<DefineConstants>XENKO_RUNTIME_CORECLR;$(DefineConstants)</DefineConstants>"
-            });
-            coreClrRelease.Properties.AddRange(new[]
-            {
-                "<XenkoRuntime Condition=\"'$(XenkoProjectType)' == 'Executable'\">CoreCLR</XenkoRuntime>",
-                "<XenkoBuildDirExtension Condition=\"'$(XenkoBuildDirExtension)' == ''\">CoreCLR</XenkoBuildDirExtension>",
-                "<DefineConstants>XENKO_RUNTIME_CORECLR;$(DefineConstants)</DefineConstants>"
-            });
-
             // Windows
             var windowsPlatform = new SolutionPlatform()
                 {
@@ -148,42 +130,35 @@ namespace Xenko.Assets
 
             solutionPlatforms.Add(uwpPlatform);
 
-            // Disabling Linux until we figure out what to do with Windows & Linux cross targeting the same framework
-            if (false)
+            // Linux
+            // Note: Linux is using a target framework that will be used for other platforms. We will need to use multiple runtime identifiers later
+            var linuxPlatform = new SolutionPlatform()
             {
-                // Linux
-                var linuxPlatform = new SolutionPlatform()
-                {
-                    Name = PlatformType.Linux.ToString(),
-                    IsAvailable = true,
-                    TargetFramework = "net461",
-                    Type = PlatformType.Linux,
-                };
-                linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
-                linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_LINUX");
-                linuxPlatform.Configurations.Add(coreClrRelease);
-                linuxPlatform.Configurations.Add(coreClrDebug);
-                solutionPlatforms.Add(linuxPlatform);
-            }
+                Name = PlatformType.Linux.ToString(),
+                IsAvailable = true,
+                TargetFramework = "netcoreapp2.1",
+                RuntimeIdentifier = "linux",
+                Type = PlatformType.Linux,
+            };
+            linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
+            linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_LINUX");
+            solutionPlatforms.Add(linuxPlatform);
 
-            // Disabling macOS for time being
-            if (false)
+#if FALSE   // Disabling macOS for time being
+            // macOS
+            var macOSPlatform = new SolutionPlatform()
             {
-                // macOS
-                var macOSPlatform = new SolutionPlatform()
-                {
-                    Name = PlatformType.macOS.ToString(),
-                    IsAvailable = true,
-                    TargetFramework = "net461",
-                    Type = PlatformType.macOS,
-                };
-                macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
-                macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_MACOS");
-                macOSPlatform.Configurations.Add(coreClrRelease);
-                macOSPlatform.Configurations.Add(coreClrDebug);
-                solutionPlatforms.Add(macOSPlatform);
-            }
-
+                Name = PlatformType.macOS.ToString(),
+                IsAvailable = true,
+                TargetFramework = "net461",
+                Type = PlatformType.macOS,
+            };
+            macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
+            macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_MACOS");
+            macOSPlatform.Configurations.Add(coreClrRelease);
+            macOSPlatform.Configurations.Add(coreClrDebug);
+            solutionPlatforms.Add(macOSPlatform);
+#endif
             // Android
             var androidPlatform = new SolutionPlatform()
             {

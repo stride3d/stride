@@ -1,5 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1025 // Code must not contain multiple whitespace in a row
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -19,6 +21,7 @@ namespace Xenko.Core.Serialization
                                              + 0 * 10000   // Minor version: supported range: 0-99
                                              + 0 * 100     // Patch version: supported range: 0-99
                                              + 1;          // Bump ID: supported range: 0-99
+
         /// <summary>
         /// The type id of <see cref="SerializationType"/>. Used internally to avoid dealing with strings.
         /// </summary>
@@ -35,7 +38,6 @@ namespace Xenko.Core.Serialization
         /// </summary>
         public abstract Type SerializationType { get; }
 
-        /// <inheritdoc/>
         public abstract bool IsBlittable { get; }
 
         /// <summary>
@@ -83,7 +85,7 @@ namespace Xenko.Core.Serialization
         /// <inheritdoc/>
         public override void Serialize(ref object obj, ArchiveMode mode, SerializationStream stream)
         {
-            var objT = (obj == null ? default(T) : (T)obj);
+            var objT = obj == null ? default(T) : (T)obj;
             Serialize(ref objT, mode, stream);
             obj = objT;
         }
@@ -102,7 +104,7 @@ namespace Xenko.Core.Serialization
         /// <inheritdoc/>
         public override void PreSerialize(ref object obj, ArchiveMode mode, SerializationStream stream)
         {
-            var objT = (obj == null ? default(T) : (T)obj);
+            var objT = obj == null ? default(T) : (T)obj;
             PreSerialize(ref objT, mode, stream);
             obj = objT;
         }

@@ -45,7 +45,7 @@ namespace Xenko.Input.Tests
         private void InputOnDeviceChanged(object sender, DeviceChangedEventArgs deviceChangedEventArgs)
         {
             var device = deviceChangedEventArgs.Device;
-            Log($"{device} ({device.Name}, {device.Id}) {deviceChangedEventArgs.Type} from {deviceChangedEventArgs.Source}", Color.Magenta);
+            LogEvent($"{device} ({device.Name}, {device.Id}) {deviceChangedEventArgs.Type} from {deviceChangedEventArgs.Source}", Color.Magenta);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -61,7 +61,7 @@ namespace Xenko.Input.Tests
 
             foreach (var evt in Input.Events)
             {
-                Log(evt.ToString(), GetLogColor(evt));
+                LogEvent(evt.ToString(), GetLogColor(evt));
             }
 
 #if XENKO_PLATFORM_WINDOWS
@@ -81,7 +81,7 @@ namespace Xenko.Input.Tests
                 // Toggle mouse lock
                 if (Input.IsKeyPressed(Keys.E))
                 {
-                    if(Input.IsMousePositionLocked)
+                    if (Input.IsMousePositionLocked)
                         Input.UnlockMousePosition();
                     else
                         Input.LockMousePosition(Input.IsKeyDown(Keys.LeftShift) || Input.IsKeyDown(Keys.RightShift));   
@@ -98,7 +98,7 @@ namespace Xenko.Input.Tests
             EndSpriteBatch();
         }
 
-        private void Log(string message, Color color)
+        private void LogEvent(string message, Color color)
         {
             eventLog.Add(new EventLog
             {

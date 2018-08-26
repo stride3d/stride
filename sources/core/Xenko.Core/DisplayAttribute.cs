@@ -13,27 +13,28 @@ namespace Xenko.Core
         /// The control representing the associated object will use the default rule.
         /// </summary>
         Auto,
+
         /// <summary>
         /// The control representing the associated object will be expanded only the first time it is displayed.
         /// </summary>
         Once,
+
         /// <summary>
         /// The control representing the associated object will be collapsed.
         /// </summary>
         Never,
+
         /// <summary>
         /// The control representing the associated object will be expanded.
         /// </summary>
-        Always
+        Always,
     }
     
-    // ReSharper disable once CSharpWarnings::CS1584
     /// <summary>
     /// Portable DisplayAttribute equivalent to <see cref="System.ComponentModel.DataAnnotations.DisplayAttribute"/>.
     /// </summary>
     public class DisplayAttribute : Attribute
     {
-
         private static readonly Dictionary<MemberInfo, DisplayAttribute> RegisteredDisplayAttributes = new Dictionary<MemberInfo, DisplayAttribute>();
 
         /// <summary>
@@ -129,7 +130,6 @@ namespace Xenko.Core
 
             return GetDisplay(type.GetTypeInfo())?.Name ?? type.Name;
         }
-
 
         [Obsolete("Display attribute should be retrieved via an AttributeRegistry.")]
         public static int? GetOrder([NotNull] MemberInfo memberInfo)

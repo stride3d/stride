@@ -6,7 +6,7 @@ namespace Xenko.Core.MicroThreading
     /// The <see cref="Xenko.Core.MicroThreading"/> namespace provides classes that supports multi-threaded tasks scheduling and execution.
     /// It provides a <see cref="Scheduler"/> class and the <see cref="MicroThread"/> object that can encapsulate a task.
     /// </summary>
-    class NamespaceDoc
+    internal class NamespaceDoc
     {
     }
 }

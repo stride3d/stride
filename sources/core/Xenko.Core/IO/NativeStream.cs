@@ -10,10 +10,11 @@ namespace Xenko.Core.IO
     /// </summary>
     public abstract class NativeStream : Stream
     {
+        protected const int NativeStreamBufferSize = 1024;
+
         // Helper buffer for classes needing it.
         // If null, it should be initialized with NativeStreamBufferSize constant.
         protected byte[] nativeStreamBuffer;
-        protected const int NativeStreamBufferSize = 1024;
 
         public virtual unsafe ushort ReadUInt16()
         {
@@ -120,7 +121,6 @@ namespace Xenko.Core.IO
                 var blockSize = count - offset;
                 if (blockSize > NativeStreamBufferSize)
                     blockSize = NativeStreamBufferSize;
-
 
                 var currentReadSize = Read(temporaryBuffer, 0, blockSize);
                 readSize += currentReadSize;

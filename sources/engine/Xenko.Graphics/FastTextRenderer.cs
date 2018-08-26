@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -125,7 +125,6 @@ namespace Xenko.Graphics
             for (int j = 0; j < VertexBufferCount; j++)
                 vertexBuffersBinding[j] = new VertexBufferBinding(vertexBuffers[j], VertexPositionNormalTexture.Layout, 0);
 
-
             inputElementDescriptions = new InputElementDescription[VertexBufferCount][];
             for (int j = 0; j < VertexBufferCount; j++)
                 inputElementDescriptions[j] = vertexBuffersBinding[j].Declaration.CreateInputElements();
@@ -168,7 +167,7 @@ namespace Xenko.Graphics
             stringsToDraw.Add(new TextInfo
             {
                 RenderingInfo = new RectangleF(x, y, target.ViewWidth, target.ViewHeight),
-                Text = text
+                Text = text,
             });
 
             charsToRenderCount += text.Length;

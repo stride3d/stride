@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
 using System;
 using Xenko.Core.Annotations;
 
@@ -41,7 +42,7 @@ namespace Xenko.Core
         private readonly ObjectInvalidationRefCallback<T> objectInvalidationRefCallback;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateValueMetadata"/> class.
+        /// Initializes a new instance of the <see cref="ObjectInvalidationMetadata{T}"/> class.
         /// </summary>
         /// <param name="invalidationCallback">The object invalidation callback.</param>
         /// <exception cref="System.ArgumentNullException">Parameter <paramref name="invalidationCallback"/> is null.</exception>
@@ -52,7 +53,7 @@ namespace Xenko.Core
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ValidateValueMetadata"/> class.
+        /// Initializes a new instance of the <see cref="ObjectInvalidationMetadata{T}"/> class.
         /// </summary>
         /// <param name="invalidationRefCallback">The object invalidation callback.</param>
         /// <exception cref="System.ArgumentNullException">Parameter <paramref name="invalidationRefCallback"/> is null.</exception>

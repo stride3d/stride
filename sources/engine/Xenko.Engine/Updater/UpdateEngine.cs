@@ -18,9 +18,9 @@ namespace Xenko.Updater
     /// </summary>
     public static unsafe class UpdateEngine
     {
-        static readonly ConcurrentPool<Stack<UpdateStackEntry>> StackPool = new ConcurrentPool<Stack<UpdateStackEntry>>(() => new Stack<UpdateStackEntry>());
-        static readonly Dictionary<UpdateKey, UpdatableMember> UpdateKeys = new Dictionary<UpdateKey, UpdatableMember>();
-        static readonly Dictionary<Type, UpdateMemberResolver> MemberResolvers = new Dictionary<Type, UpdateMemberResolver>();
+        private static readonly ConcurrentPool<Stack<UpdateStackEntry>> StackPool = new ConcurrentPool<Stack<UpdateStackEntry>>(() => new Stack<UpdateStackEntry>());
+        private static readonly Dictionary<UpdateKey, UpdatableMember> UpdateKeys = new Dictionary<UpdateKey, UpdatableMember>();
+        private static readonly Dictionary<Type, UpdateMemberResolver> MemberResolvers = new Dictionary<Type, UpdateMemberResolver>();
 
         /// <summary>
         /// Registers a new member for a given type and name.
@@ -41,7 +41,7 @@ namespace Xenko.Updater
         /// <summary>
         /// An entry on the stack of <see cref="Compile"/>.
         /// </summary>
-        struct AnimationBuilderStackEntry
+        private struct AnimationBuilderStackEntry
         {
             public Type Type;
 
@@ -90,7 +90,7 @@ namespace Xenko.Updater
         /// Encode state of <see cref="Compile"/> so that it can be easily passed
         /// to another function (easier to split it in multiple methods).
         /// </summary>
-        struct ComputeUpdateOperationState
+        private struct ComputeUpdateOperationState
         {
             /// <summary>
             /// Current list of update operations being built.
@@ -463,7 +463,7 @@ namespace Xenko.Updater
                     Member = updatableMember,
                     LeaveOperation = leaveOperation,
                     LeaveOffset = leaveOffset,
-                    ObjectStartOffset = state.NewOffset
+                    ObjectStartOffset = state.NewOffset,
                 });
             }
         }
@@ -518,8 +518,7 @@ namespace Xenko.Updater
                         // Compute offset and push to stack
                         stack.Push(new UpdateStackEntry(
                             currentObj,
-                            (int) ((byte*) currentPtr - (byte*) UpdateEngineHelper.ObjectToPtr(currentObj))
-                        ));
+                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPtr(currentObj))));
 
                         // Get object
                         currentObj = nextObject;
@@ -532,8 +531,7 @@ namespace Xenko.Updater
                         // Compute offset and push to stack
                         stack.Push(new UpdateStackEntry(
                             currentObj,
-                            (int) ((byte*) currentPtr - (byte*) UpdateEngineHelper.ObjectToPtr(currentObj))
-                        ));
+                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPtr(currentObj))));
 
                         currentObj = temporaryObjects[operation.DataOffset];
                         currentPtr = ((UpdatablePropertyBase)operation.Member).GetStructAndUnbox(currentPtr, currentObj);
@@ -553,8 +551,7 @@ namespace Xenko.Updater
                         // Compute offset and push to stack
                         stack.Push(new UpdateStackEntry(
                             currentObj,
-                            (int) ((byte*) currentPtr - (byte*) UpdateEngineHelper.ObjectToPtr(currentObj))
-                        ));
+                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPtr(currentObj))));
 
                         // Get object
                         currentObj = nextObject;
@@ -574,8 +571,7 @@ namespace Xenko.Updater
                         // Compute offset and push to stack
                         stack.Push(new UpdateStackEntry(
                             currentObj,
-                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPtr(currentObj))
-                        ));
+                            (int)((byte*)currentPtr - (byte*)UpdateEngineHelper.ObjectToPtr(currentObj))));
 
                         // Get object
                         currentObj = nextObject;
@@ -708,26 +704,26 @@ namespace Xenko.Updater
 
         // Helper struct to blit small struct
         [StructLayout(LayoutKind.Sequential, Size = 8)]
-        struct Blittable8
+        private struct Blittable8
         {
         }
 
         // Helper struct to blit small struct
         [StructLayout(LayoutKind.Sequential, Size = 12)]
-        struct Blittable12
+        private struct Blittable12
         {
         }
 
         // Helper struct to blit small struct
         [StructLayout(LayoutKind.Sequential, Size = 16)]
-        struct Blittable16
+        private struct Blittable16
         {
         }
 
         /// <summary>
         /// Internally used as key to register members.
         /// </summary>
-        struct UpdateKey
+        private struct UpdateKey
         {
             public readonly Type Owner;
             public readonly string Name;
@@ -747,7 +743,7 @@ namespace Xenko.Updater
         /// <summary>
         /// Stack entry used in <see cref="Run"/>.
         /// </summary>
-        struct UpdateStackEntry
+        private struct UpdateStackEntry
         {
             public object Object;
             public int Offset;

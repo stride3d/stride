@@ -1,27 +1,22 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single type
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xenko.Core;
+using Xenko.Core.Mathematics;
+using Xenko.Core.Reflection;
 using Xenko.Engine;
 using Xenko.Engine.Design;
 using Xenko.Games;
-using Xenko.Physics;
-using Xenko.Core.Mathematics;
-using Xenko.Core.Reflection;
 using Xenko.Navigation.Processors;
+using Xenko.Physics;
 
 namespace Xenko.Navigation
 {
-    public class NavigationMeshUpdatedEventArgs : EventArgs
-    {
-        public NavigationMesh OldNavigationMesh;
-        public NavigationMeshBuildResult BuildResult;
-    }
-
     /// <summary>
     /// System that handles building of navigation meshes at runtime
     /// </summary>
@@ -93,7 +88,7 @@ namespace Xenko.Navigation
                 IncludedCollisionGroups = CollisionFilterGroupFlags.AllFilter;
                 Groups = new List<NavigationMeshGroup>
                 {
-                    ObjectFactoryRegistry.NewInstance<NavigationMeshGroup>()
+                    ObjectFactoryRegistry.NewInstance<NavigationMeshGroup>(),
                 };
             }
         }
@@ -274,5 +269,11 @@ namespace Xenko.Navigation
                 pendingRebuild = true;
             }
         }
+    }
+
+    public class NavigationMeshUpdatedEventArgs : EventArgs
+    {
+        public NavigationMesh OldNavigationMesh;
+        public NavigationMeshBuildResult BuildResult;
     }
 }

@@ -1,5 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1405 // Debug.Assert must provide message text
+#pragma warning disable SA1402 // File may only contain a single class
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -115,9 +117,9 @@ namespace Xenko.Core.MicroThreading
         /// </summary>
         internal TaskCompletionSource<int> CompletionTask { get; set; }
 
-        /// <value>
+        /// <summary>
         /// A token for listening to the cancellation of the MicroThread.
-        /// </value>
+        /// </summary>
         public CancellationToken CancellationToken => cancellationTokenSource.Token;
 
         /// <summary>
@@ -157,7 +159,6 @@ namespace Xenko.Core.MicroThreading
         /// Starts this <see cref="MicroThread"/> with the specified function.
         /// </summary>
         /// <param name="microThreadFunction">The micro thread function.</param>
-        /// <param name="flags">The flags.</param>
         /// <param name="scheduleMode">The schedule mode.</param>
         /// <exception cref="System.InvalidOperationException">MicroThread was already started before.</exception>
         public void Start(Func<Task> microThreadFunction, ScheduleMode scheduleMode = ScheduleMode.Last)
@@ -190,9 +191,9 @@ namespace Xenko.Core.MicroThreading
                 }
                 finally
                 {
-                    lock (Scheduler.allMicroThreads)
+                    lock (Scheduler.AllMicroThreads)
                     {
-                        Scheduler.allMicroThreads.Remove(AllLinkedListNode);
+                        Scheduler.AllMicroThreads.Remove(AllLinkedListNode);
                     }
                 }
             };
@@ -205,9 +206,9 @@ namespace Xenko.Core.MicroThreading
                 wrappedMicroThreadFunction();
             };
 
-            lock (Scheduler.allMicroThreads)
+            lock (Scheduler.AllMicroThreads)
             {
-                Scheduler.allMicroThreads.AddLast(AllLinkedListNode);
+                Scheduler.AllMicroThreads.AddLast(AllLinkedListNode);
             }
 
             ScheduleContinuation(scheduleMode, callback);
@@ -257,11 +258,11 @@ namespace Xenko.Core.MicroThreading
 
         internal void Reschedule(ScheduleMode scheduleMode, long newPriority)
         {
-            lock (Scheduler.scheduledEntries)
+            lock (Scheduler.ScheduledEntries)
             {
                 if (ScheduledLinkedListNode.Index != -1)
                 {
-                    Scheduler.scheduledEntries.Remove(ScheduledLinkedListNode);
+                    Scheduler.ScheduledEntries.Remove(ScheduledLinkedListNode);
                     ScheduledLinkedListNode.Value.Priority = newPriority;
                     Scheduler.Schedule(ScheduledLinkedListNode, scheduleMode);
                 }
@@ -275,7 +276,7 @@ namespace Xenko.Core.MicroThreading
         internal void ScheduleContinuation(ScheduleMode scheduleMode, SendOrPostCallback callback, object callbackState)
         {
             Debug.Assert(callback != null);
-            lock (Scheduler.scheduledEntries)
+            lock (Scheduler.ScheduledEntries)
             {
                 var node = NewCallback();
                 node.SendOrPostCallback = callback;
@@ -290,7 +291,7 @@ namespace Xenko.Core.MicroThreading
         internal void ScheduleContinuation(ScheduleMode scheduleMode, Action callback)
         {
             Debug.Assert(callback != null);
-            lock (Scheduler.scheduledEntries)
+            lock (Scheduler.ScheduledEntries)
             {
                 var node = NewCallback();
                 node.MicroThreadAction = callback;
@@ -304,9 +305,9 @@ namespace Xenko.Core.MicroThreading
         private MicroThreadCallbackNode NewCallback()
         {
             MicroThreadCallbackNode node;
-            var pool = Scheduler.callbackNodePool;
+            var pool = Scheduler.CallbackNodePool;
 
-            if (Scheduler.callbackNodePool.Count > 0)
+            if (Scheduler.CallbackNodePool.Count > 0)
             {
                 var index = pool.Count - 1;
                 node = pool[index];

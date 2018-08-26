@@ -30,6 +30,6 @@ namespace Xenko.Rendering
         /// <summary>
         /// The default flags.
         /// </summary>
-        Default = EnableTransform | EnableRender       
+        Default = EnableTransform | EnableRender,       
     }
 }

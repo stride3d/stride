@@ -43,7 +43,7 @@ namespace Xenko.Graphics
         {
             get
             {
-                return this.image.pixelBuffers[bufferIndex];
+                return this.image.PixelBuffers[bufferIndex];
             }
         }
 
@@ -51,7 +51,7 @@ namespace Xenko.Graphics
         /// Gets the total number of pixel buffers.
         /// </summary>
         /// <returns>The total number of pixel buffers.</returns>
-        public int Count { get { return this.image.pixelBuffers.Length; } }
+        public int Count { get { return this.image.PixelBuffers.Length; } }
 
         /// <summary>
         /// Gets the pixel buffer for the specified array/z slice and mipmap level.

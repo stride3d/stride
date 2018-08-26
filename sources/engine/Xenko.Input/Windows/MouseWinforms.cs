@@ -67,7 +67,7 @@ namespace Xenko.Input
 
         public override void SetPosition(Vector2 normalizedPosition)
         {
-            Vector2 position = normalizedPosition*SurfaceSize;
+            Vector2 position = normalizedPosition * SurfaceSize;
 
             // Store setting of mouse position since it will keep the message loop goining infinitely otherwise
             var targetPoint = new Point((int)position.X, (int)position.Y);
@@ -82,7 +82,7 @@ namespace Xenko.Input
                 capturedPosition = Cursor.Position;
                 if (forceCenter)
                 {
-                    capturedPosition = uiControl.PointToScreen(new Point(uiControl.ClientSize.Width/2, uiControl.ClientSize.Height/2));
+                    capturedPosition = uiControl.PointToScreen(new Point(uiControl.ClientSize.Width / 2, uiControl.ClientSize.Height / 2));
                     Cursor.Position = capturedPosition;
                 }
                 isPositionLocked = true;

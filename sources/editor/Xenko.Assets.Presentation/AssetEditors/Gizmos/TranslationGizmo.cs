@@ -152,8 +152,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
             var axisRotations = new [] { Vector3.Zero, new Vector3(MathUtil.PiOverTwo, 0, MathUtil.PiOverTwo), new Vector3(-MathUtil.PiOverTwo, -MathUtil.PiOverTwo, 0) };
             for (int axis = 0; axis < 3; axis++)
             {
-                axisRootEntities[axis].transform.RotationEulerXYZ = axisRotations[axis];
-                entity.transform.Children.Add(axisRootEntities[axis].transform);
+                axisRootEntities[axis].TransformValue.RotationEulerXYZ = axisRotations[axis];
+                entity.TransformValue.Children.Add(axisRootEntities[axis].TransformValue);
             }
 
             // Add middle sphere
@@ -186,7 +186,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
 
             // reset the plane rotations
             for (int axis = 0; axis < 3; axis++)
-                translationPlaneRoots[axis].transform.Rotation = Quaternion.Identity;
+                translationPlaneRoots[axis].TransformValue.Rotation = Quaternion.Identity;
 
             for (int axis = 0; axis < 3; axis++)
             {
@@ -195,8 +195,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
 
                 if (isCameraBackfacing)
                 {
-                    translationPlaneRoots[(axis + 1) % 3].transform.Rotation *= Quaternion.RotationY(MathUtil.Pi);
-                    translationPlaneRoots[(axis + 2) % 3].transform.Rotation *= Quaternion.RotationZ(MathUtil.Pi);
+                    translationPlaneRoots[(axis + 1) % 3].TransformValue.Rotation *= Quaternion.RotationY(MathUtil.Pi);
+                    translationPlaneRoots[(axis + 2) % 3].TransformValue.Rotation *= Quaternion.RotationZ(MathUtil.Pi);
                 }
             }
         }

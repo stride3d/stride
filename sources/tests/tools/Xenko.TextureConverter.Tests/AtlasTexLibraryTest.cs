@@ -73,7 +73,7 @@ namespace Xenko.TextureConverter.Tests
             //Console.WriteLine("AtlasTexLibrary_CreateAtlas_" + generateMipMaps + "_" + forceSquaredAtlas + "." + TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
             Assert.Equal(TestTools.GetInstance().Checksum["AtlasTexLibrary_CreateAtlas_" + generateMipMaps + "_" + forceSquaredAtlas], TestTools.ComputeSHA1(atlas.Data, atlas.DataSize));
 
-            if(forceSquaredAtlas) Assert.True(atlas.Width == atlas.Height);
+            if (forceSquaredAtlas) Assert.True(atlas.Width == atlas.Height);
 
             atlas.Dispose();
 

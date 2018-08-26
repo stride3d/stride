@@ -14,12 +14,12 @@ namespace Xenko.Input
         /// <summary>
         /// Gets the value of the yaw (in radian). The yaw is the rotation around the vertical axis of the device, that is the Oz axis.
         /// </summary>
-        float Yaw { get;}
+        float Yaw { get; }
 
         /// <summary>
         /// Gets the value of the pitch (in radian). The pitch is the rotation around the lateral axis of the device, that is the Ox axis.
         /// </summary>
-        float Pitch { get;}
+        float Pitch { get; }
 
         /// <summary>
         /// Gets the value of the roll (in radian). The roll is the rotation around the longitudinal axis of the device, that is the Oy axis.

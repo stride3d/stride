@@ -162,7 +162,7 @@ namespace Xenko.UI.Controls
             // select until home
             if (key == Keys.Home && (input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift)))
             {
-                if(caretAtStart)
+                if (caretAtStart)
                     Select(0, selectionStart + SelectionLength, true);
                 else
                     Select(0, selectionStart, true);
@@ -172,7 +172,7 @@ namespace Xenko.UI.Controls
             // select until end
             if (key == Keys.End && (input.IsKeyDown(Keys.LeftShift) || input.IsKeyDown(Keys.RightShift)))
             {
-                if(caretAtStart)
+                if (caretAtStart)
                     Select(selectionStop, Text.Length- selectionStop, false);
                 else
                     Select(selectionStart, Text.Length - selectionStart, false);

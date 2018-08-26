@@ -1,11 +1,10 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single type
 using System;
-using System.Collections.Generic;
-using Xenko.Core;
 using System.Reflection;
+using Xenko.Core;
 using Xenko.Core.Serialization;
-using Xenko.Core.Serialization.Serializers;
 using Xenko.Core.Storage;
 
 namespace Xenko.Rendering
@@ -63,11 +62,11 @@ namespace Xenko.Rendering
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
         /// </summary>
-        /// <param name="obj">The <see cref="System.Object"/> to compare with this instance.</param>
+        /// <param name="obj">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        ///   <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+        ///   <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object obj)
         {
@@ -213,7 +212,7 @@ namespace Xenko.Rendering
         /// <param name="length">The length.</param>
         /// <param name="metadata">The metadata.</param>
         protected ParameterKey(ParameterKeyType type, string name, int length, PropertyKeyMetadata metadata)
-            : this(type, name, length, new []{ metadata })
+            : this(type, name, length, new[] { metadata })
         {
         }
 
@@ -225,7 +224,7 @@ namespace Xenko.Rendering
         /// <param name="length">The length.</param>
         /// <param name="metadatas">The metadatas.</param>
         protected ParameterKey(ParameterKeyType type, string name, int length = 1, params PropertyKeyMetadata[] metadatas)
-            : base(typeof(T), name, length, metadatas.Length > 0 ? metadatas : new PropertyKeyMetadata[]{ new ParameterKeyValueMetadata<T>() })
+            : base(typeof(T), name, length, metadatas.Length > 0 ? metadatas : new PropertyKeyMetadata[] { new ParameterKeyValueMetadata<T>() })
         {
             Type = type;
         }

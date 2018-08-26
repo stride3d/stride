@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
@@ -11,6 +11,7 @@
     <XenkoPlatformDependent>true</XenkoPlatformDependent>
     <XenkoProjectPlatformDependentWindows>true</XenkoProjectPlatformDependentWindows>
     <XenkoBuildTags>*</XenkoBuildTags>
+    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(XenkoPlatform)' == 'Android'">
     <DefineConstants>XENKO_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>

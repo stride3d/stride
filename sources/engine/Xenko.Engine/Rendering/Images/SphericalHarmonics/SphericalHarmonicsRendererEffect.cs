@@ -5,7 +5,7 @@ using Xenko.Core.Mathematics;
 
 namespace Xenko.Rendering.Images.SphericalHarmonics
 {
-    public class SphericalHarmonicsRendererEffect :ImageEffectShader
+    public class SphericalHarmonicsRendererEffect : ImageEffectShader
     {
         /// <summary>
         /// Gets or sets the harmonic order to use during the filtering.
@@ -29,7 +29,7 @@ namespace Xenko.Rendering.Images.SphericalHarmonics
             else
             {
                 Parameters.Set(SphericalHarmonicsParameters.HarmonicsOrder, 1);
-                Parameters.Set(SphericalHarmonicsRendererKeys.SHCoefficients, new []{ new Color3() });
+                Parameters.Set(SphericalHarmonicsRendererKeys.SHCoefficients, new[] { new Color3() });
             }
         }
     }

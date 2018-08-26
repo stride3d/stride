@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -151,7 +151,7 @@ namespace Xenko.Graphics
         {
             try
             {
-                swapChain.Present((int) PresentInterval, PresentFlags.None);
+                swapChain.Present((int)PresentInterval, PresentFlags.None);
 #if XENKO_GRAPHICS_API_DIRECT3D12
                 // Manually swap back buffer
                 backBuffer.NativeResource.Dispose();
@@ -244,9 +244,9 @@ namespace Xenko.Graphics
 
         protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
         {
-            var newTextureDescrition = DepthStencilBuffer.Description;
-            newTextureDescrition.Width = width;
-            newTextureDescrition.Height = height;
+            var newTextureDescription = DepthStencilBuffer.Description;
+            newTextureDescription.Width = width;
+            newTextureDescription.Height = height;
 
             // Manually update the texture
             DepthStencilBuffer.OnDestroyed();
@@ -255,7 +255,7 @@ namespace Xenko.Graphics
             var fastList = DestroyChildrenTextures(DepthStencilBuffer);
 
             // Put it in our back buffer texture
-            DepthStencilBuffer.InitializeFrom(newTextureDescrition);
+            DepthStencilBuffer.InitializeFrom(newTextureDescription);
 
             foreach (var texture in fastList)
             {

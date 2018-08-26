@@ -94,7 +94,6 @@ namespace Xenko.Assets.Navigation
             private bool sceneCloned = false; // Used so that the scene is only cloned once when ComputeParameterHash or DoCommand is called
 
             // Automatically calculated bounding box
-            private NavigationMeshBuildSettings buildSettings;
             private List<StaticColliderData> staticColliderDatas = new List<StaticColliderData>();
             private List<BoundingBox> boundingBoxes = new List<BoundingBox>();
 

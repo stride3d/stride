@@ -136,7 +136,9 @@ namespace Xenko.Rendering
                         node.IsScalingNegative = !node.IsScalingNegative;
                 }
                 else
+                {
                     node.WorldMatrix = node.LocalMatrix;
+                }
             }
         }
 

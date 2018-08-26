@@ -14,7 +14,7 @@ namespace Xenko.Shaders.Compiler
     /// Used internally by <see cref="RemoteEffectCompiler"/> to compile shaders remotely,
     /// and <see cref="Rendering.EffectSystem.CreateEffectCompiler"/> to record effect requested.
     /// </summary>
-    class RemoteEffectCompilerClient : IDisposable
+    internal class RemoteEffectCompilerClient : IDisposable
     {
         private readonly object lockObject = new object();
         private readonly Guid? packageId;

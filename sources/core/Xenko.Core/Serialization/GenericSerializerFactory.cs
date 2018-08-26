@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Concurrent;
-using Xenko.Core.Storage;
 using System.Reflection;
 using Xenko.Core.Annotations;
+using Xenko.Core.Storage;
 
 namespace Xenko.Core.Serialization
 {
@@ -19,7 +19,7 @@ namespace Xenko.Core.Serialization
         private readonly ConcurrentDictionary<ObjectId, DataSerializer> serializersByTypeId = new ConcurrentDictionary<ObjectId, DataSerializer>();
 
         /// <summary>
-        /// Initializes a new instance of the type <see cref="GenericSerializerFactory"/>.
+        /// Initializes a new instance of the <see cref="GenericSerializerFactory"/> class.
         /// </summary>
         /// <param name="baseType">The type to match.</param>
         /// <param name="serializerGenericType">The generic type that will be used to instantiate serializers.</param>
@@ -49,6 +49,7 @@ namespace Xenko.Core.Serialization
                     selector.EnsureInitialized(dataSerializer);
                     serializersByTypeId.TryAdd(dataSerializer.SerializationTypeId, dataSerializer);
                 }
+
                 // Add it even if null (so that failures are cached too)
                 serializersByType.TryAdd(type, dataSerializer);
             }

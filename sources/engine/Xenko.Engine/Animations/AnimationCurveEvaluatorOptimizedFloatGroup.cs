@@ -35,12 +35,4 @@ namespace Xenko.Animations
             }
         }
     }
-
-    public class AnimationCurveEvaluatorOptimizedIntGroup : AnimationCurveEvaluatorOptimizedBlittableGroupBase<int>
-    {
-        protected unsafe override void ProcessChannel(ref Channel channel, CompressedTimeSpan currentTime, IntPtr location, float factor)
-        {
-            *(int*)(location + channel.Offset) = channel.ValueStart.Value;
-        }
-    }
 }

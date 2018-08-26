@@ -40,7 +40,7 @@ namespace Xenko.Core.Streaming
         /// <summary>
         /// Gets the last access time.
         /// </summary>
-        public DateTime LastAccessTime { get; protected set; }
+        public DateTime LastAccessTime { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether this chunk is loaded.

@@ -4,13 +4,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xenko.Media;
-using Xenko.Core.Diagnostics;
 using Xenko.Core;
+using Xenko.Core.Diagnostics;
+using Xenko.Media;
 
 namespace Xenko.Audio
 {
-
     public abstract class DynamicSoundSource : IDisposable
     {
         public static Logger Logger = GlobalLogger.GetLogger(nameof(DynamicSoundSource));
@@ -30,7 +29,7 @@ namespace Xenko.Audio
             Stop,
             Seek,
             SetRange,
-            Dispose
+            Dispose,
         }
 
         /// <summary>
@@ -59,20 +58,22 @@ namespace Xenko.Audio
         /// <summary>
         /// The sound instance associated.
         /// </summary>
-        protected SoundInstance SoundInstance;
+        protected SoundInstance soundInstance;
 
-        protected bool IsInitialized;
+        protected bool isInitialized;
 
-        protected bool IsDisposed;
+        protected bool isDisposed;
 
         /// <summary>
         /// If we are in the paused state.
         /// </summary>
-        protected PlayState State = PlayState.Stopped;
+        protected PlayState state = PlayState.Stopped;
+
         /// <summary>
         /// If we are waiting to play.
         /// </summary>
-        protected volatile bool PlayingQueued;
+        protected volatile bool playingQueued;
+
         /// <summary>
         /// If the source is actually playing sound
         /// this takes into account multiple factors: Playing, Ended task, and Audio layer playing state
@@ -80,6 +81,7 @@ namespace Xenko.Audio
         private volatile bool isSourcePausedOrPlaying = false;
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="DynamicSoundSource"/> class.
         /// Sub classes can implement their own streaming sources.
         /// </summary>
         /// <param name="soundInstance">the sound instance associated.</param>
@@ -88,9 +90,9 @@ namespace Xenko.Audio
         protected DynamicSoundSource(SoundInstance soundInstance, int numberOfBuffers, int maxBufferSizeBytes)
         {
             nativeBufferSizeBytes = maxBufferSizeBytes;
-            prebufferedTarget = (int)Math.Ceiling(numberOfBuffers / (double)3);
+            prebufferedTarget = (int)Math.Ceiling(numberOfBuffers / 3.0);
 
-            SoundInstance = soundInstance;
+            this.soundInstance = soundInstance;
             for (var i = 0; i < numberOfBuffers; i++)
             {
                 var buffer = AudioLayer.BufferCreate(nativeBufferSizeBytes);
@@ -120,7 +122,7 @@ namespace Xenko.Audio
                 if (freeBuffers.Count > 0)
                     return true;
 
-                var freeBuffer = AudioLayer.SourceGetFreeBuffer(SoundInstance.Source);
+                var freeBuffer = AudioLayer.SourceGetFreeBuffer(soundInstance.Source);
                 if (freeBuffer.Ptr == IntPtr.Zero)
                     return false;
 
@@ -139,7 +141,7 @@ namespace Xenko.Audio
         /// </summary>
         public void Play()
         {
-            PlayingQueued = true;
+            playingQueued = true;
             Commands.Enqueue(AsyncCommand.Play);
         }
 
@@ -162,7 +164,7 @@ namespace Xenko.Audio
         /// <summary>
         /// Gets if this instance is in the playing state.
         /// </summary>
-        public bool IsPausedOrPlaying => PlayingQueued || State != PlayState.Stopped || isSourcePausedOrPlaying;
+        public bool IsPausedOrPlaying => playingQueued || state != PlayState.Stopped || isSourcePausedOrPlaying;
 
         /// <summary>
         /// Sets the region of time to play from the audio clip.
@@ -181,7 +183,7 @@ namespace Xenko.Audio
 
         protected virtual void InitializeInternal()
         {
-            IsInitialized = true;
+            isInitialized = true;
             RestartInternal();
         }
 
@@ -191,7 +193,7 @@ namespace Xenko.Audio
             {
                 var playMe = await ReadyToPlay.Task;
                 if (playMe)
-                    AudioLayer.SourcePlay(SoundInstance.Source);
+                    AudioLayer.SourcePlay(soundInstance.Source);
             });
         }
 
@@ -199,6 +201,7 @@ namespace Xenko.Audio
         /// Update the sound source
         /// </summary>
         protected virtual void UpdateInternal() { }
+
         /// <summary>
         /// Restarts streaming from the beginning.
         /// </summary>
@@ -219,12 +222,12 @@ namespace Xenko.Audio
 
         protected virtual void PlayInternal()
         {
-            switch (State)
+            switch (state)
             {
                 case PlayState.Playing:
                     break;
                 case PlayState.Paused:
-                    AudioLayer.SourcePlay(SoundInstance.Source);
+                    AudioLayer.SourcePlay(soundInstance.Source);
                     break;
                 case PlayState.Stopped:
                     Ended.TrySetResult(false);
@@ -232,21 +235,21 @@ namespace Xenko.Audio
                     PlayAsyncInternal();
                     break;
             }
-            PlayingQueued = false;
-            State = PlayState.Playing;
+            playingQueued = false;
+            state = PlayState.Playing;
         }
 
         protected virtual void PauseInternal()
         {
-            State = PlayState.Paused;
-            AudioLayer.SourcePause(SoundInstance.Source);
+            state = PlayState.Paused;
+            AudioLayer.SourcePause(soundInstance.Source);
         }
 
         protected virtual void StopInternal()
         {
             Ended.TrySetResult(true);
-            State = PlayState.Stopped;
-            AudioLayer.SourceStop(SoundInstance.Source);
+            state = PlayState.Stopped;
+            AudioLayer.SourceStop(soundInstance.Source);
             RestartInternal();
         }
 
@@ -257,15 +260,15 @@ namespace Xenko.Audio
         /// </summary>
         protected virtual void DisposeInternal()
         {
-            AudioLayer.SourceDestroy(SoundInstance.Source);
+            AudioLayer.SourceDestroy(soundInstance.Source);
 
             foreach (var deviceBuffer in deviceBuffers)
                 AudioLayer.BufferDestroy(deviceBuffer);
 
             deviceBuffers.Clear();
             freeBuffers.Clear();
-            IsDisposed = true;
-            IsInitialized = false;
+            isDisposed = true;
+            isInitialized = false;
         }
 
         /// <summary>
@@ -283,7 +286,7 @@ namespace Xenko.Audio
             }
 
             var buffer = freeBuffers.Dequeue();
-            AudioLayer.SourceQueueBuffer(SoundInstance.Source, buffer, pcm, bufferSize, type);
+            AudioLayer.SourceQueueBuffer(soundInstance.Source, buffer, pcm, bufferSize, type);
             if (readyToPlay) return;
 
             prebufferedCount++;
@@ -333,16 +336,16 @@ namespace Xenko.Audio
                     if (!NewSources.TryTake(out var source))
                         continue;
 
-                    if (!source.IsInitialized)
+                    if (!source.isInitialized)
                         source.InitializeInternal();
 
-                    if(source.IsInitialized)
+                    if (source.isInitialized)
                         Sources.Add(source);
                 }
 
                 foreach (var source in Sources)
                 {
-                    if (source.IsDisposed)
+                    if (source.isDisposed)
                     {
                         toRemove.Add(source);
                         continue;
@@ -382,10 +385,10 @@ namespace Xenko.Audio
                         }
                     }
 
-                    if (source.IsDisposed)
+                    if (source.isDisposed)
                         continue;
 
-                    source.isSourcePausedOrPlaying = (source.IsPausedOrPlaying && !source.Ended.Task.IsCompleted) || AudioLayer.SourceIsPlaying(source.SoundInstance.Source);
+                    source.isSourcePausedOrPlaying = (source.IsPausedOrPlaying && !source.Ended.Task.IsCompleted) || AudioLayer.SourceIsPlaying(source.soundInstance.Source);
 
                     //Did we get a Seek request?
                     if (seekRequested)
@@ -411,7 +414,7 @@ namespace Xenko.Audio
                     }
                 }
 
-                if(!buffersShouldBeFill) // avoid active looping when no work is needed
+                if (!buffersShouldBeFill) // avoid active looping when no work is needed
                     Utilities.Sleep(10);
             }
         }

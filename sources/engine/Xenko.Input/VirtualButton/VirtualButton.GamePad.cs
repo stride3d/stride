@@ -14,18 +14,18 @@ namespace Xenko.Input
         /// </summary>
         public class GamePad : VirtualButton
         {
-            private GamePad(string name, int id, bool isPositiveAndNegative = false) :
-                this(name, id, -1, isPositiveAndNegative)
+            private GamePad(string name, int id, bool isPositiveAndNegative = false)
+                : this(name, id, -1, isPositiveAndNegative)
             {
             }
 
-            private GamePad(GamePad parentPad, int index) : 
-                this(parentPad.ShortName, parentPad.Id, index, parentPad.IsPositiveAndNegative)
+            private GamePad(GamePad parentPad, int index) 
+                : this(parentPad.ShortName, parentPad.Id, index, parentPad.IsPositiveAndNegative)
             {
             }
 
-            protected GamePad(string name, int id, int padIndex, bool isPositiveAndNegative) :
-                base(name, VirtualButtonType.GamePad, id, isPositiveAndNegative)
+            protected GamePad(string name, int id, int padIndex, bool isPositiveAndNegative)
+                : base(name, VirtualButtonType.GamePad, id, isPositiveAndNegative)
             {
                 PadIndex = padIndex;
             }
@@ -118,32 +118,32 @@ namespace Xenko.Input
             /// <summary>
             /// Equivalent to the X Axis of <see cref="GamePadState.LeftThumb"/>.
             /// </summary>
-            public readonly static GamePad LeftThumbAxisX = new GamePad("LeftThumbAxisX", 16, true);
+            public static readonly GamePad LeftThumbAxisX = new GamePad("LeftThumbAxisX", 16, true);
 
             /// <summary>
             /// Equivalent to the Y Axis of <see cref="GamePadState.LeftThumb"/>.
             /// </summary>
-            public readonly static GamePad LeftThumbAxisY = new GamePad("LeftThumbAxisY", 17, true);
+            public static readonly GamePad LeftThumbAxisY = new GamePad("LeftThumbAxisY", 17, true);
 
             /// <summary>
             /// Equivalent to the X Axis of <see cref="GamePadState.RightThumb"/>.
             /// </summary>
-            public readonly static GamePad RightThumbAxisX = new GamePad("RightThumbAxisX", 18, true);
+            public static readonly GamePad RightThumbAxisX = new GamePad("RightThumbAxisX", 18, true);
 
             /// <summary>
             /// Equivalent to the Y Axis of <see cref="GamePadState.RightThumb"/>.
             /// </summary>
-            public readonly static GamePad RightThumbAxisY = new GamePad("RightThumbAxisY", 19, true);
+            public static readonly GamePad RightThumbAxisY = new GamePad("RightThumbAxisY", 19, true);
 
             /// <summary>
             /// Equivalent to <see cref="GamePadState.LeftTrigger"/>.
             /// </summary>
-            public readonly static GamePad LeftTrigger = new GamePad("LeftTrigger", 20);
+            public static readonly GamePad LeftTrigger = new GamePad("LeftTrigger", 20);
 
             /// <summary>
             /// Equivalent to <see cref="GamePadState.RightTrigger"/>.
             /// </summary>
-            public readonly static GamePad RightTrigger = new GamePad("RightTrigger", 21);
+            public static readonly GamePad RightTrigger = new GamePad("RightTrigger", 21);
 
             protected override string BuildButtonName()
             {
@@ -152,7 +152,7 @@ namespace Xenko.Input
 
             private IGamePadDevice GetGamePad(InputManager manager)
             {
-                return PadIndex >= 0? manager.GetGamePadByIndex(PadIndex): manager.DefaultGamePad;
+                return PadIndex >= 0 ? manager.GetGamePadByIndex(PadIndex) : manager.DefaultGamePad;
             }
 
             public override float GetValue(InputManager manager)
@@ -168,7 +168,6 @@ namespace Xenko.Input
                 }
                 else
                 {
-
                     var state = gamePad.State;
                     switch (Index)
                     {
@@ -200,11 +199,11 @@ namespace Xenko.Input
                 {
                     return gamePad.IsButtonDown((GamePadButton)(1 << Index));
                 }
-                else if(Index == 20)
+                else if (Index == 20)
                 {
                     return gamePad.State.LeftTrigger > 1f - MathUtil.ZeroTolerance;
                 }
-                else if(Index == 21)
+                else if (Index == 21)
                 {
                     return gamePad.State.RightTrigger > 1f - MathUtil.ZeroTolerance;
                 }

@@ -25,8 +25,8 @@ namespace Xenko.Games
     /// <summary>
     /// The <see cref="Xenko.Games"/> namespace provides a high level Game API.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

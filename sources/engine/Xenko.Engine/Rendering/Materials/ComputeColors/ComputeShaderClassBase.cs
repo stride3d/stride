@@ -24,13 +24,13 @@ namespace Xenko.Rendering.Materials.ComputeColors
             CompositionNodes = new Dictionary<string, T>();
         }
 
-        //TODO: use typed AssetReferences
         /// <summary>
         /// The shader.
         /// </summary>
         /// <userdoc>
         /// The shader used in this node. It should be a ComputeColor.
         /// </userdoc>
+        //TODO: use typed AssetReferences
         [DataMember(10)]
         [InlineProperty]
         public string MixinReference { get; set; }
@@ -117,19 +117,33 @@ namespace Xenko.Rendering.Materials.ComputeColors
                         mixinGenerics.Add(pk.ToString());
                     }
                     else if (generic is ComputeColorParameterFloat)
+                    {
                         mixinGenerics.Add(((ComputeColorParameterFloat)generic).Value.ToString(CultureInfo.InvariantCulture));
+                    }
                     else if (generic is ComputeColorParameterInt)
+                    {
                         mixinGenerics.Add(((ComputeColorParameterInt)generic).Value.ToString(CultureInfo.InvariantCulture));
+                    }
                     else if (generic is ComputeColorParameterFloat2)
+                    {
                         mixinGenerics.Add(MaterialUtility.GetAsShaderString(((ComputeColorParameterFloat2)generic).Value));
+                    }
                     else if (generic is ComputeColorParameterFloat3)
+                    {
                         mixinGenerics.Add(MaterialUtility.GetAsShaderString(((ComputeColorParameterFloat3)generic).Value));
+                    }
                     else if (generic is ComputeColorParameterFloat4)
+                    {
                         mixinGenerics.Add(MaterialUtility.GetAsShaderString(((ComputeColorParameterFloat4)generic).Value));
+                    }
                     else if (generic is ComputeColorStringParameter)
+                    {
                         mixinGenerics.Add(((ComputeColorStringParameter)generic).Value);
+                    }
                     else
+                    {
                         throw new Exception("[Material] Unknown node type: " + generic.GetType());
+                    }
                 }
                 generics = mixinGenerics.ToArray();
             }

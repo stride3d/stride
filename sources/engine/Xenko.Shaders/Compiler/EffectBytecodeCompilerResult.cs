@@ -9,7 +9,7 @@ namespace Xenko.Shaders.Compiler
     /// </summary>
     public struct EffectBytecodeCompilerResult
     {
-        private static readonly LoggerResult emptyLoggerResult = new LoggerResult();
+        private static readonly LoggerResult EmptyLoggerResult = new LoggerResult();
 
         /// <summary>
         /// The effect bytecode. Might be null.
@@ -29,7 +29,7 @@ namespace Xenko.Shaders.Compiler
         public EffectBytecodeCompilerResult(EffectBytecode bytecode, EffectBytecodeCacheLoadSource loadSource) : this()
         {
             Bytecode = bytecode;
-            CompilationLog = emptyLoggerResult;
+            CompilationLog = EmptyLoggerResult;
             LoadSource = loadSource;
         }
 

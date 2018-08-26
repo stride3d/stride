@@ -90,5 +90,5 @@ namespace Xenko.Graphics
         No16Bpp = 0x10, // Conversions avoid use of 565, 5551, and 4444 formats and instead expand to 8888 to avoid use of optional WDDM 1.2 formats
         CopyMemory = 0x20, // The content of the memory passed to the DDS Loader is copied to another internal buffer.
         ForceDX10Ext = 0x10000, // Always use the 'DX10' header extension for DDS writer (i.e. don't try to write DX9 compatible DDS files)
-    };
+    }
 }

@@ -8,11 +8,11 @@ namespace Xenko.Graphics
     public class BufferPool : IDisposable
     {
 #if XENKO_GRAPHICS_API_DIRECT3D12
-        private const bool useBufferOffsets = true;
+        private const bool UseBufferOffsets = true;
 #elif XENKO_GRAPHICS_API_VULKAN
-        private const bool useBufferOffsets = true;
+        private const bool UseBufferOffsets = true;
 #else
-        private const bool useBufferOffsets = false;
+        private const bool UseBufferOffsets = false;
 #endif
 
         private int constantBufferAlignment;
@@ -35,7 +35,7 @@ namespace Xenko.Graphics
             this.allocator = allocator;
 
             Size = size;
-            if (!useBufferOffsets)
+            if (!UseBufferOffsets)
                 Data = Marshal.AllocHGlobal(size);
 
             Reset();
@@ -48,7 +48,7 @@ namespace Xenko.Graphics
 
         public void Dispose()
         {
-            if (useBufferOffsets)
+            if (UseBufferOffsets)
                 allocator.ReleaseReference(constantBuffer);
             else
                 Marshal.FreeHGlobal(Data);
@@ -57,7 +57,7 @@ namespace Xenko.Graphics
 
         public void Map(CommandList commandList)
         {
-            if (useBufferOffsets)
+            if (UseBufferOffsets)
             {
                 using (new DefaultCommandListLock(commandList))
                 {
@@ -70,7 +70,7 @@ namespace Xenko.Graphics
 
         public void Unmap()
         {
-            if (useBufferOffsets && mappedConstantBuffer.Resource != null)
+            if (UseBufferOffsets && mappedConstantBuffer.Resource != null)
             {
                 using (new DefaultCommandListLock(commandList))
                 {
@@ -82,7 +82,7 @@ namespace Xenko.Graphics
 
         public void Reset()
         {
-            if (useBufferOffsets)
+            if (UseBufferOffsets)
             {
                 // Release previous buffer
                 if (constantBuffer != null)
@@ -112,13 +112,13 @@ namespace Xenko.Graphics
                 throw new InvalidOperationException();
 
             // Map (if needed)
-            if (useBufferOffsets && mappedConstantBuffer.Resource == null)
+            if (UseBufferOffsets && mappedConstantBuffer.Resource == null)
                 Map(commandList);
 
             bufferPoolAllocationResult.Data = Data + result;
             bufferPoolAllocationResult.Size = size;
 
-            if (useBufferOffsets)
+            if (UseBufferOffsets)
             {
                 bufferPoolAllocationResult.Uploaded = true;
                 bufferPoolAllocationResult.Offset = result;

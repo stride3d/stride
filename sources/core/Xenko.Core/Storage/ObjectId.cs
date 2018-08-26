@@ -21,14 +21,18 @@ namespace Xenko.Core.Storage
         // recompiled separately. See build\Xenko-AssemblyProcessor.sln
         // ***************************************************************
 
-        public static readonly ObjectId Empty = new ObjectId();
-
         // Murmurshash3 ahsh size is 128 bits.
         public const int HashSize = 16;
         public const int HashStringLength = HashSize * 2;
         private const int HashSizeInUInt = HashSize / sizeof(uint);
         private const string HexDigits = "0123456789abcdef";
-        private uint hash1, hash2, hash3, hash4;
+
+        public static readonly ObjectId Empty = new ObjectId();
+
+        private uint hash1;
+        private uint hash2;
+        private uint hash3;
+        private uint hash4;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectId"/> struct.
@@ -228,10 +232,10 @@ namespace Xenko.Core.Storage
                 for (var i = 0; i < HashStringLength; ++i)
                 {
                     var index0 = i >> 1;
-                    var b = ((byte)(hashBytes[index0] >> 4));
+                    var b = (byte)(hashBytes[index0] >> 4);
                     c[i++] = HexDigits[b];
 
-                    b = ((byte)(hashBytes[index0] & 0x0F));
+                    b = (byte)(hashBytes[index0] & 0x0F);
                     c[i] = HexDigits[b];
                 }
             }

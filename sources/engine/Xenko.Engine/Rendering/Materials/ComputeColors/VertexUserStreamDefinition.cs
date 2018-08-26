@@ -33,7 +33,8 @@ namespace Xenko.Rendering.Materials.ComputeColors
         /// Semantic name of the stream to read data from.
         /// </userdoc>
         [DataMember(10)]
-        public string Name {
+        public string Name
+        {
             get { return name; }
             set { name = value; hashCode = name.GetHashCode(); }
         }

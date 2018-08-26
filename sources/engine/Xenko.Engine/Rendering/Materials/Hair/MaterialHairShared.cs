@@ -1,5 +1,7 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
 
 using System;
 using System.ComponentModel;
@@ -18,16 +20,21 @@ namespace Xenko.Rendering.Materials
     {
         public enum HairShadingModel // These values must correspond to the ones defined in "MaterialHairShared.xksl".
         {
-            [Display("Scheuermann approximation")] ScheuermannApproximation = 0,
-            [Display("Scheuermann improved")] ScheuermannImproved = 1,
-            [Display("Kajiya-Kay shifted")] KajiyaKayShifted = 2
+            [Display("Scheuermann approximation")]
+            ScheuermannApproximation = 0,
+
+            [Display("Scheuermann improved")]
+            ScheuermannImproved = 1,
+
+            [Display("Kajiya-Kay shifted")]
+            KajiyaKayShifted = 2,
         }
 
-        enum PassID
+        private enum PassID
         {
             OpaqueBackAndFront = 0,
             TransparentBack = 1,
-            TransparentFront = 2
+            TransparentFront = 2,
         }
 
         private static readonly ValueParameterKey<float> HairAlphaThresholdKey = ParameterKeys.NewValue<float>();

@@ -2,9 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-
 using Xenko.Core.Mathematics;
-using Xenko.Rendering;
 using Xenko.Graphics;
 
 namespace Xenko.Rendering.Shadows

@@ -127,7 +127,7 @@ namespace Xenko.Graphics.OpenGL
         }
 #endif
 
-        private readonly static Regex MatchOpenGLVersion = new Regex(@"OpenGL\s+ES\s+([0-9\.]+)");
+        private static readonly Regex MatchOpenGLVersion = new Regex(@"OpenGL\s+ES\s+([0-9\.]+)");
 
         /// <summary>
         /// Gets current GL version.

@@ -1,8 +1,19 @@
 <#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <#
-var targetFrameworks = ((IEnumerable<dynamic>)Properties.Platforms).Select(x => x.TargetFramework).Distinct().ToList();
-if (targetFrameworks.Count > 1) { #>
+   var targetFrameworks = ((IEnumerable<dynamic>)Properties.Platforms).Select(x => x.TargetFramework).Distinct().ToList();
+   if (targetFrameworks.Count > 1) { #>
     <TargetFrameworks><#= string.Join(";", targetFrameworks) #></TargetFrameworks>
 <# } else { #>
     <TargetFramework><#= targetFrameworks[0] #></TargetFramework>
-<# } #>
+<# }
+   var runtimeIdentifiersByTargetFramework = ((IEnumerable<dynamic>)Properties.Platforms).Where(x => x.RuntimeIdentifier != null).GroupBy(x => (string)x.TargetFramework, x => (string)x.RuntimeIdentifier).ToList();
+   foreach (var runtimeIdentifiers in runtimeIdentifiersByTargetFramework)
+   {
+     if (runtimeIdentifiers.Count() > 1) {
+       // We will need MSBuild.Sdk.Extras for that: https://github.com/onovotny/MSBuildSdkExtras
+	   throw new System.NotSupportedException(string.Format("Target framework {0} has multiple runtime identifiers ({1})", runtimeIdentifiers.Key, string.Join(";", runtimeIdentifiers)));
+     }
+	 else if (runtimeIdentifiers.Count() == 1) { #>
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == '<#=runtimeIdentifiers.Key#>'"><#= runtimeIdentifiers.First() #></RuntimeIdentifier>
+<#   }
+   } #>

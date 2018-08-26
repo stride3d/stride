@@ -24,7 +24,7 @@ namespace Xenko.Core.BuildEngine.Tests
         public static Logger CleanContext()
         {
             // delete previous build data
-            if(Directory.Exists(BuildPath))
+            if (Directory.Exists(BuildPath))
                 Directory.Delete(BuildPath, true);
 
             // Create database directory

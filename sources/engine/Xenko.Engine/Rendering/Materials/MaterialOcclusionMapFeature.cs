@@ -88,7 +88,6 @@ namespace Xenko.Rendering.Materials
         [DataMemberRange(0.0, 1.0, 0.01, 0.1, 3)]
         public IComputeScalar SpecularCavity { get; set; }
 
-
         public override void GenerateShader(MaterialGeneratorContext context)
         {
             // Exclude ambient occlusion from uv-scale overrides

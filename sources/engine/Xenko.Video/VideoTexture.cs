@@ -139,10 +139,10 @@ namespace Xenko.Video
                 return;
 
             //using (drawContext.PushRenderTargetsAndRestore()) // TODO: STABILITY: Use this instead of manually storing and restoring the render targets.
-            //{
-            // Fill the video Texture Target (by drawing the extracted video frame into the Texture)
-            var previousDepthStencilBuffer = graphicsContext.CommandList.DepthStencilBuffer;
-            var previousRenderTarget = graphicsContext.CommandList.RenderTarget;
+            {
+                // Fill the video Texture Target (by drawing the extracted video frame into the Texture)
+                var previousDepthStencilBuffer = graphicsContext.CommandList.DepthStencilBuffer;
+                var previousRenderTarget = graphicsContext.CommandList.RenderTarget;
 
                 // Generate mip maps (start from level 1 because we just generated  level 0 above):
                 for (int i = 1; i < renderTargetMipMaps.Count; ++i)
@@ -157,7 +157,7 @@ namespace Xenko.Video
 
                 // Restore the original framebuffer configuration:
                 graphicsContext.CommandList.SetRenderTargetAndViewport(previousDepthStencilBuffer, previousRenderTarget); // TODO: STABILITY: This wont work if we're using MRT!
-            //}
+            }
         }
 
         public void Dispose()
@@ -207,7 +207,7 @@ namespace Xenko.Video
                     MipLevel = i,
                     Format = parentTexture.Format,
                     ArraySlice = 0,
-                    Flags = parentTexture.Flags
+                    Flags = parentTexture.Flags,
                 };
 
                 Texture renderTargetMipMapTextureView = parentTexture.ToTextureView(renderTargetMipMapTextureViewDescription);

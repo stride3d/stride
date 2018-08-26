@@ -113,11 +113,11 @@ namespace Xenko.Rendering.Sprites
                 {
                     var spriteBlend = spriteComp.BlendMode;
                     if (spriteBlend == SpriteComponent.SpriteBlend.Auto)
-                        spriteBlend = sprite.IsTransparent ? SpriteComponent.SpriteBlend.AlphaBlend: SpriteComponent.SpriteBlend.None;
+                        spriteBlend = sprite.IsTransparent ? SpriteComponent.SpriteBlend.AlphaBlend : SpriteComponent.SpriteBlend.None;
 
                     if (spriteBlend == SpriteComponent.SpriteBlend.AlphaBlend)
                     {
-                        blendMode = spriteComp.PremultipliedAlpha ? BlendModes.Alpha: BlendModes.NonPremultiplied;
+                        blendMode = spriteComp.PremultipliedAlpha ? BlendModes.Alpha : BlendModes.NonPremultiplied;
                     }
                     else
                     {
@@ -204,7 +204,7 @@ namespace Xenko.Rendering.Sprites
 
                     // set the rotation
                     var localRotationZ = transfoComp.RotationEulerXYZ.Z;
-                    if ( localRotationZ != 0)
+                    if (localRotationZ != 0)
                         worldMatrix = Matrix.RotationZ(localRotationZ) * worldMatrix;
                 }
 
@@ -226,8 +226,8 @@ namespace Xenko.Rendering.Sprites
                 if (texture.ViewType == ViewType.Full && texture.ViewWidth != texture.FullQualitySize.Width)
                 {
                     var fullQualitySize = texture.FullQualitySize;
-                    var horizontalRatio = texture.ViewWidth / (float) fullQualitySize.Width;
-                    var verticalRatio = texture.ViewHeight / (float) fullQualitySize.Height;
+                    var horizontalRatio = texture.ViewWidth / (float)fullQualitySize.Width;
+                    var verticalRatio = texture.ViewHeight / (float)fullQualitySize.Height;
                     sourceRegion.X *= horizontalRatio;
                     sourceRegion.Width *= horizontalRatio;
                     sourceRegion.Y *= verticalRatio;

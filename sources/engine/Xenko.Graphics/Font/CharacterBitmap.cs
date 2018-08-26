@@ -250,7 +250,7 @@ namespace Xenko.Graphics.Font
 
         public void Dispose()
         {
-            if(IsDisposed)
+            if (IsDisposed)
                 return;
 
             Utilities.FreeMemory(buffer);

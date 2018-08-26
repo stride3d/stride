@@ -49,7 +49,7 @@ namespace Xenko.Core.Shaders.Grammar
             {
                 Errors.Add(GrammarErrorLevel.Error, null, "Terminal {0} is doesn't have associated TokenInfo", term.Name);
             }
-            else if(tokenInfo.TokenCategory == TokenCategory.Typename || tokenInfo.TokenCategory == TokenCategory.Keyword)
+            else if (tokenInfo.TokenCategory == TokenCategory.Typename || tokenInfo.TokenCategory == TokenCategory.Keyword)
             {
                 var keyMap = (tokenInfo.IsCaseInsensitive) ? caseInsensitiveKeywordToTerminal : keywordToTerminal;
                 if (!keyMap.ContainsKey(term.Name))

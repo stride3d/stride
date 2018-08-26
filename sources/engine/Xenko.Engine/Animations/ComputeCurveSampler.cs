@@ -34,7 +34,7 @@ namespace Xenko.Animations
 
         protected ComputeCurveSampler()
         {
-            bakedArray = new T[bakedArraySize];
+            bakedArray = new T[BakedArraySize];
             BakeData();
         }
 
@@ -45,13 +45,13 @@ namespace Xenko.Animations
         /// <returns>Sampled value</returns>
         public T Evaluate(float t)
         {
-            var indexLocation = t * (bakedArraySize - 1);
+            var indexLocation = t * (BakedArraySize - 1);
             var index = (int)indexLocation;
             var lerpValue = indexLocation - index;
 
             T result;
-            var thisIndex = (int) Math.Max(index, 0);
-            var nextIndex = (int)Math.Min(index + 1, bakedArraySize - 1);
+            var thisIndex = (int)Math.Max(index, 0);
+            var nextIndex = (int)Math.Min(index + 1, BakedArraySize - 1);
             Linear(ref bakedArray[thisIndex], ref bakedArray[nextIndex], lerpValue, out result);
             return result;
         }
@@ -66,7 +66,8 @@ namespace Xenko.Animations
         public abstract void Linear(ref T value1, ref T value2, float t, out T result);
 
         // TODO Maybe make it variable length/density
-        private const uint bakedArraySize = 32;
+        private const uint BakedArraySize = 32;
+
         /// <summary>
         /// Data in this sampler can be baked to allow faster sampling
         /// </summary>
@@ -81,7 +82,7 @@ namespace Xenko.Animations
             if (curve == null)
             {
                 var emptyValue = new T();
-                for (var i = 0; i < bakedArraySize; i++)
+                for (var i = 0; i < BakedArraySize; i++)
                 {
                     bakedArray[i] = emptyValue;
                 }
@@ -91,9 +92,9 @@ namespace Xenko.Animations
 
             curve.UpdateChanges();
 
-            for (var i = 0; i < bakedArraySize; i++)
+            for (var i = 0; i < BakedArraySize; i++)
             {
-                var t = i/(float)(bakedArraySize - 1);
+                var t = i / (float)(BakedArraySize - 1);
                 bakedArray[i] = curve.Evaluate(t);
             }
         }

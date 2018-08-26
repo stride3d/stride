@@ -32,5 +32,5 @@ namespace Xenko.Graphics
         /// Rotate 180 degrees around both the X and Y axis before rendering.
         /// </summary>
         FlipBoth = 2,
-    };
+    }
 }

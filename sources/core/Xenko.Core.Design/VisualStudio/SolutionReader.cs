@@ -93,7 +93,8 @@ namespace Xenko.Core.VisualStudio
                     {
                         // Read VS properties (introduced in VS2012/VS2013?)
                         solution.Properties.Add(ReadPropertyLine(line));
-                    } else
+                    }
+                    else
                     {
                         throw new SolutionFileException($"Invalid line read on line #{currentLineNumber}.\nFound: {line}\nExpected: A line beginning with 'Project(' or 'Global'.");
                     }
@@ -137,7 +138,7 @@ namespace Xenko.Core.VisualStudio
             {
                 localLineNumber++;
                 var match = RegexParseProjectConfigurationPlatformsName.Match(propertyLine.Name);
-                if (! match.Success)
+                if (!match.Success)
                 {
                     throw new SolutionFileException($"Invalid format for a project configuration name on line #{currentLineNumber}.\nFound: {propertyLine.Name}");
                 }
@@ -199,7 +200,7 @@ namespace Xenko.Core.VisualStudio
                 // can ignore it because we added the special case above.
                 if (uniqueNameProperty != null)
                 {
-                    var uniqueName = RegexConvertEscapedValues.Replace(uniqueNameProperty.Value, delegate(Match match)
+                    var uniqueName = RegexConvertEscapedValues.Replace(uniqueNameProperty.Value, match =>
                     {
                         var hexaValue = int.Parse(match.Groups["HEXACODE"].Value, NumberStyles.AllowHexSpecifier);
                         return char.ConvertFromUtf32(hexaValue);
@@ -243,7 +244,7 @@ namespace Xenko.Core.VisualStudio
         private void ReadGlobalSection([NotNull] string firstLine)
         {
             var match = RegexParseGlobalSection.Match(firstLine);
-            if (! match.Success)
+            if (!match.Success)
             {
                 throw new SolutionFileException($"Invalid format for a global section on line #{currentLineNumber}.\nFound: {firstLine}");
             }

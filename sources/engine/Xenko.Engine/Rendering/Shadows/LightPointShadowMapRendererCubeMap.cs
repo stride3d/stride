@@ -58,7 +58,7 @@ namespace Xenko.Rendering.Shadows
         private Vector2 GetLightClippingPlanes(LightPoint pointLight)
         {
             // Note: we don't take exactly the required depth range since this will result in a very poor resolution in most of the light's range
-            return new Vector2(0.1f, pointLight.Radius*2);
+            return new Vector2(0.1f, pointLight.Radius * 2);
         }
 
         private void GetViewParameters(LightShadowMapTexture shadowMapTexture, int index, out Matrix view)
@@ -129,7 +129,7 @@ namespace Xenko.Rendering.Shadows
             for (int i = 0; i < 6; i++)
             {
                 Rectangle faceRectangle = lightShadowMap.GetRectangle(i);
-                shaderData.FaceOffsets[i] = new Vector2(faceRectangle.Left + BorderPixels, faceRectangle.Top + BorderPixels)/atlasSize;
+                shaderData.FaceOffsets[i] = new Vector2(faceRectangle.Left + BorderPixels, faceRectangle.Top + BorderPixels) / atlasSize;
 
                 // Compute view parameters
                 GetViewParameters(lightShadowMap, i, out shaderData.View[i]);
@@ -149,7 +149,8 @@ namespace Xenko.Rendering.Shadows
                 shadowRenderView.ViewProjection = shadowRenderView.View * shadowRenderView.Projection;
 
                 // Create projection matrix with adjustment
-                var textureCoords = new Vector4((float)shadowRenderView.Rectangle.Left / lightShadowMap.Atlas.Width,
+                var textureCoords = new Vector4(
+                    (float)shadowRenderView.Rectangle.Left / lightShadowMap.Atlas.Width,
                     (float)shadowRenderView.Rectangle.Top / lightShadowMap.Atlas.Height,
                     (float)shadowRenderView.Rectangle.Right / lightShadowMap.Atlas.Width,
                     (float)shadowRenderView.Rectangle.Bottom / lightShadowMap.Atlas.Height);
@@ -274,7 +275,7 @@ namespace Xenko.Rendering.Shadows
                         // Copy per-face data
                         for (int j = 0; j < 6; j++)
                         {
-                            worldToShadow[lightIndex*6 + j] = shaderData.WorldToShadow[j];
+                            worldToShadow[lightIndex * 6 + j] = shaderData.WorldToShadow[j];
                             inverseWorldToShadow[lightIndex * 6 + j] = Matrix.Invert(shaderData.WorldToShadow[j]);
                         }
 
@@ -290,7 +291,7 @@ namespace Xenko.Rendering.Shadows
                             if (shadowMapTexture != null)
                             {
                                 shadowMapTextureSize = new Vector2(shadowMapTexture.Width, shadowMapTexture.Height);
-                                shadowMapTextureTexelSize = 1.0f/shadowMapTextureSize;
+                                shadowMapTextureTexelSize = 1.0f / shadowMapTextureSize;
                             }
                             shadowMapCreated = true;
                         }

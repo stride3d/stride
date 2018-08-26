@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using Xenko.Core.Mathematics;
@@ -13,6 +13,9 @@ using Xenko.Rendering.Sprites;
 
 namespace Xenko.Rendering.Compositing
 {
+    /// <summary>
+    /// Helper functions for creating <see cref="GraphicsCompositor"/>.
+    /// </summary>
     public static class GraphicsCompositorHelper
     {
         /// <summary>
@@ -33,7 +36,7 @@ namespace Xenko.Rendering.Compositing
                     {
                         Transforms =
                         {
-                            new ToneMap()
+                            new ToneMap(),
                         },
                     },
                 }
@@ -72,19 +75,19 @@ namespace Xenko.Rendering.Compositing
                         {
                             new LightDirectionalShadowMapRenderer
                             {
-                                ShadowCasterRenderStage = shadowCasterRenderStage
+                                ShadowCasterRenderStage = shadowCasterRenderStage,
                             },
                             new LightSpotShadowMapRenderer
                             {
-                                ShadowCasterRenderStage = shadowCasterRenderStage
+                                ShadowCasterRenderStage = shadowCasterRenderStage,
                             },
                             new LightPointShadowMapRendererParaboloid
                             {
-                                ShadowCasterRenderStage = shadowCasterParaboloidRenderStage
+                                ShadowCasterRenderStage = shadowCasterParaboloidRenderStage,
                             },
                             new LightPointShadowMapRendererCubeMap
                             {
-                                ShadowCasterRenderStage = shadowCasterCubeMapRenderStage
+                                ShadowCasterRenderStage = shadowCasterCubeMapRenderStage,
                             },
                         },
                     },
@@ -109,7 +112,7 @@ namespace Xenko.Rendering.Compositing
             {
                 Cameras =
                 {
-                    cameraSlot
+                    cameraSlot,
                 },
                 RenderStages =
                 {
@@ -138,25 +141,25 @@ namespace Xenko.Rendering.Compositing
                                 EffectName = modelEffectName,
                                 OpaqueRenderStage = opaqueRenderStage,
                                 TransparentRenderStage = transparentRenderStage,
-                                RenderGroup = groupMask
+                                RenderGroup = groupMask,
                             },
                             new ShadowMapRenderStageSelector
                             {
                                 EffectName = modelEffectName + ".ShadowMapCaster",
                                 ShadowMapRenderStage = shadowCasterRenderStage,
-                                RenderGroup = groupMask
+                                RenderGroup = groupMask,
                             },
                             new ShadowMapRenderStageSelector
                             {
                                 EffectName = modelEffectName + ".ShadowMapCasterParaboloid",
                                 ShadowMapRenderStage = shadowCasterParaboloidRenderStage,
-                                RenderGroup = groupMask
+                                RenderGroup = groupMask,
                             },
                             new ShadowMapRenderStageSelector
                             {
                                 EffectName = modelEffectName + ".ShadowMapCasterCubeMap",
                                 ShadowMapRenderStage = shadowCasterCubeMapRenderStage,
-                                RenderGroup = groupMask
+                                RenderGroup = groupMask,
                             },
                         },
                         PipelineProcessors =
@@ -165,7 +168,7 @@ namespace Xenko.Rendering.Compositing
                             new ShadowMeshPipelineProcessor { ShadowMapRenderStage = shadowCasterRenderStage },
                             new ShadowMeshPipelineProcessor { ShadowMapRenderStage = shadowCasterParaboloidRenderStage, DepthClipping = true },
                             new ShadowMeshPipelineProcessor { ShadowMapRenderStage = shadowCasterCubeMapRenderStage, DepthClipping = true },
-                        }
+                        },
                     },
                     new SpriteRenderFeature
                     {
@@ -176,8 +179,8 @@ namespace Xenko.Rendering.Compositing
                                 EffectName = "Test",
                                 OpaqueRenderStage = opaqueRenderStage,
                                 TransparentRenderStage = transparentRenderStage,
-                                RenderGroup = groupMask
-                            }
+                                RenderGroup = groupMask,
+                            },
                         },
                     },
                     new BackgroundRenderFeature
@@ -188,15 +191,15 @@ namespace Xenko.Rendering.Compositing
                             {
                                 RenderStage = opaqueRenderStage,
                                 EffectName = "Test",
-                                RenderGroup = groupMask
-                            }
+                                RenderGroup = groupMask,
+                            },
                         },
                     },
                 },
                 Game = new SceneCameraRenderer()
                 {
                     Child = singleView,
-                    Camera = cameraSlot
+                    Camera = cameraSlot,
                 },
                 Editor = singleView,
                 SingleView = singleView,

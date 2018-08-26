@@ -45,7 +45,7 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// The value for which all absolute numbers smaller than are considered equal to zero.
         /// </summary>
-        public const double ZeroToleranceDouble = double.Epsilon*8;
+        public const double ZeroToleranceDouble = double.Epsilon * 8;
 
         /// <summary>
         /// A value specifying the approximation of π which is 180 degrees.
@@ -78,7 +78,7 @@ namespace Xenko.Core.Mathematics
         /// The code is using the technique described by Bruce Dawson in 
         /// <a href="http://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/">Comparing Floating point numbers 2012 edition</a>. 
         /// </remarks>
-        public unsafe static bool NearEqual(float a, float b)
+        public static unsafe bool NearEqual(float a, float b)
         {
             // Check if the numbers are really close -- needed
             // when comparing numbers near zero.
@@ -310,9 +310,9 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// Inverse-interpolates a value linearly.
         /// </summary>
-        /// <param name="value">Value to get inverse interpolation.</param>
         /// <param name="min">Minimum value that takes place in inverse-interpolation.</param>
         /// <param name="max">Maximum value that takes place in inverse-interpolation.</param>
+        /// <param name="value">Value to get inverse interpolation.</param>
         /// <returns>Returns an inverse-linearly interpolated coeficient.</returns>
         public static float InverseLerp(float min, float max, float value)
         {
@@ -324,15 +324,15 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// Inverse-interpolates a value linearly.
         /// </summary>
-        /// <param name="value">Value to get inverse interpolation.</param>
         /// <param name="min">Minimum value that takes place in inverse-interpolation.</param>
         /// <param name="max">Maximum value that takes place in inverse-interpolation.</param>
+        /// <param name="value">Value to get inverse interpolation.</param>
         /// <returns>Returns an inverse-linearly interpolated coeficient.</returns>
         public static double InverseLerp(double min, double max, double value)
         {
             if (IsZero(Math.Abs(max - min)))
                 return double.NaN;
-            return (value - min)/(max - min);
+            return (value - min) / (max - min);
         }
 
         /// <summary>
@@ -474,7 +474,7 @@ namespace Xenko.Core.Mathematics
         /// <returns><value>Log2(x)</value></returns>
         public static float Log2(float x)
         {
-            return (float) Math.Log(x) / 0.6931471805599453f;
+            return (float)Math.Log(x) / 0.6931471805599453f;
         }
 
         /// <summary>
@@ -575,7 +575,7 @@ namespace Xenko.Core.Mathematics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsAligned(int value, int alignment)
         {
-            return 0 == (value & (alignment - 1));
+            return (value & (alignment - 1)) == 0;
         }
 
         /// <summary>

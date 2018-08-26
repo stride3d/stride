@@ -60,13 +60,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </XenkoNativeLib>
   </ItemGroup>
-  <ItemGroup Condition=" '$(XenkoPlatform)' == 'iOS'">
+  <ItemGroup Condition=" '$(XenkoPlatform)' == 'iOS' Or '$(XenkoPlatform)' == 'Linux'">
     <Reference Include="SharpFont">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(XenkoDependenciesDir)SharpFont\iOS\SharpFont.dll</HintPath>
+      <HintPath>$(XenkoDependenciesDir)SharpFont\$(XenkoPlatform)\SharpFont.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup Condition="'$(XenkoPlatform)' != 'iOS'">
+  <ItemGroup Condition="'$(XenkoPlatform)' != 'iOS' And '$(XenkoPlatform)' != 'Linux'">
     <Reference Include="SharpFont">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(XenkoDependenciesDir)SharpFont\Portable\SharpFont.dll</HintPath>
@@ -186,8 +186,6 @@
     </Compile>
   </ItemGroup>
   <!-- Files for Null device -->
-  <ItemGroup>
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
       <Private>False</Private>

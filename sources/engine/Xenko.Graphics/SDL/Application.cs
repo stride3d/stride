@@ -219,7 +219,7 @@ namespace Xenko.Graphics.SDL
         /// <summary>
         /// Backup storage for windows of current application.
         /// </summary>
-        private readonly static Dictionary<IntPtr, WeakReference<Window>> InternalWindows;
+        private static readonly Dictionary<IntPtr, WeakReference<Window>> InternalWindows;
     }
 }
 #endif

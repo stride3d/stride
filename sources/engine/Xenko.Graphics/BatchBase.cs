@@ -34,7 +34,7 @@ namespace Xenko.Graphics
     /// Base class to batch a group of draw calls into one.
     /// </summary>
     /// <typeparam name="TDrawInfo">A structure containing all the required information to draw one element of the batch.</typeparam>
-    public abstract class BatchBase<TDrawInfo> : ComponentBase  where TDrawInfo : struct
+    public abstract class BatchBase<TDrawInfo> : ComponentBase where TDrawInfo : struct
     {
         /// <summary>
         /// The structure containing all the information required to batch one element.
@@ -74,14 +74,14 @@ namespace Xenko.Graphics
         // TODO: dispose vertex array when Effect is disposed
         protected readonly DeviceResourceContext ResourceContext;
 
-        protected MutablePipelineState MutablePipeline;
-        protected GraphicsDevice GraphicsDevice;
-        protected BlendStateDescription? BlendState;
-        protected RasterizerStateDescription? RasterizerState;
-        protected SamplerState SamplerState;
-        protected DepthStencilStateDescription? DepthStencilState;
-        protected int StencilReferenceValue;
-        protected SpriteSortMode SortMode;
+        protected MutablePipelineState mutablePipeline;
+        protected GraphicsDevice graphicsDevice;
+        protected BlendStateDescription? blendState;
+        protected RasterizerStateDescription? rasterizerState;
+        protected SamplerState samplerState;
+        protected DepthStencilStateDescription? depthStencilState;
+        protected int stencilReferenceValue;
+        protected SpriteSortMode sortMode;
         private ObjectParameterAccessor<Texture>? textureUpdater;
         private ObjectParameterAccessor<SamplerState>? samplerUpdater;
 
@@ -120,11 +120,11 @@ namespace Xenko.Graphics
             if (resourceBufferInfo == null) throw new ArgumentNullException("resourceBufferInfo");
             if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
 
-            GraphicsDevice = device;
-            MutablePipeline = new MutablePipelineState(device);
+            graphicsDevice = device;
+            mutablePipeline = new MutablePipelineState(device);
             // TODO GRAPHICS REFACTOR Should we initialize FX lazily?
-            DefaultEffect = new EffectInstance(new Effect(device, defaultEffectByteCode) { Name = "BatchDefaultEffect"});
-            DefaultEffectSRgb = new EffectInstance(new Effect(device, defaultEffectByteCodeSRgb) { Name = "BatchDefaultEffectSRgb"});
+            DefaultEffect = new EffectInstance(new Effect(device, defaultEffectByteCode) { Name = "BatchDefaultEffect" });
+            DefaultEffectSRgb = new EffectInstance(new Effect(device, defaultEffectByteCodeSRgb) { Name = "BatchDefaultEffectSRgb" });
 
             drawsQueue = new ElementInfo[resourceBufferInfo.BatchCapacity];
             drawTextures = new Texture[resourceBufferInfo.BatchCapacity];
@@ -138,7 +138,7 @@ namespace Xenko.Graphics
             vertexStructSize = vertexDeclaration.CalculateSize();
 
             // Creates the vertex buffer (shared by within a device context).
-            ResourceContext = GraphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerContext, resourceBufferInfo.ResourceKey, d => new DeviceResourceContext(GraphicsDevice, vertexDeclaration, resourceBufferInfo));
+            ResourceContext = graphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerContext, resourceBufferInfo.ResourceKey, d => new DeviceResourceContext(graphicsDevice, vertexDeclaration, resourceBufferInfo));
         }
 
         /// <summary>
@@ -167,17 +167,17 @@ namespace Xenko.Graphics
 
             GraphicsContext = graphicsContext;
 
-            SortMode = sessionSortMode;
-            BlendState = sessionBlendState;
-            SamplerState = sessionSamplerState;
-            DepthStencilState = sessionDepthStencilState;
-            RasterizerState = sessionRasterizerState;
-            StencilReferenceValue = stencilValue;
+            sortMode = sessionSortMode;
+            blendState = sessionBlendState;
+            samplerState = sessionSamplerState;
+            depthStencilState = sessionDepthStencilState;
+            rasterizerState = sessionRasterizerState;
+            stencilReferenceValue = stencilValue;
 
-            Effect = effect ?? (GraphicsDevice.ColorSpace == ColorSpace.Linear ? DefaultEffectSRgb : DefaultEffect);
+            Effect = effect ?? (graphicsDevice.ColorSpace == ColorSpace.Linear ? DefaultEffectSRgb : DefaultEffect);
 
             // Force the effect to update
-            Effect.UpdateEffect(GraphicsDevice);
+            Effect.UpdateEffect(graphicsDevice);
 
             textureUpdater = null;
             if (Effect.Effect.HasParameter(TexturingKeys.Texture0))
@@ -211,30 +211,30 @@ namespace Xenko.Graphics
         protected unsafe virtual void PrepareForRendering()
         {
             // Use LinearClamp for sampler state
-            var localSamplerState = SamplerState ?? GraphicsDevice.SamplerStates.LinearClamp;
+            var localSamplerState = samplerState ?? graphicsDevice.SamplerStates.LinearClamp;
 
             // Sets the sampler state of the effect
             if (samplerUpdater.HasValue)
                 Parameters.Set(samplerUpdater.Value, localSamplerState);
 
-            Effect.UpdateEffect(GraphicsDevice);
+            Effect.UpdateEffect(graphicsDevice);
 
             // Setup states (Blend, DepthStencil, Rasterizer)
-            MutablePipeline.State.SetDefaults();
-            MutablePipeline.State.RootSignature = Effect.RootSignature;
-            MutablePipeline.State.EffectBytecode = Effect.Effect.Bytecode;
-            MutablePipeline.State.BlendState = BlendState ?? BlendStates.AlphaBlend;
-            MutablePipeline.State.DepthStencilState = DepthStencilState ?? DepthStencilStates.Default;
-            MutablePipeline.State.RasterizerState = RasterizerState ?? RasterizerStates.CullBack;
-            MutablePipeline.State.InputElements = ResourceContext.InputElements;
-            MutablePipeline.State.PrimitiveType = PrimitiveType.TriangleList;
-            MutablePipeline.State.Output.CaptureState(GraphicsContext.CommandList);
-            MutablePipeline.Update();
+            mutablePipeline.State.SetDefaults();
+            mutablePipeline.State.RootSignature = Effect.RootSignature;
+            mutablePipeline.State.EffectBytecode = Effect.Effect.Bytecode;
+            mutablePipeline.State.BlendState = blendState ?? BlendStates.AlphaBlend;
+            mutablePipeline.State.DepthStencilState = depthStencilState ?? DepthStencilStates.Default;
+            mutablePipeline.State.RasterizerState = rasterizerState ?? RasterizerStates.CullBack;
+            mutablePipeline.State.InputElements = ResourceContext.InputElements;
+            mutablePipeline.State.PrimitiveType = PrimitiveType.TriangleList;
+            mutablePipeline.State.Output.CaptureState(GraphicsContext.CommandList);
+            mutablePipeline.Update();
 
             // Bind pipeline
-            if (MutablePipeline.State.DepthStencilState.StencilEnable)
-                GraphicsContext.CommandList.SetStencilReference(StencilReferenceValue);
-            GraphicsContext.CommandList.SetPipelineState(MutablePipeline.CurrentState);
+            if (mutablePipeline.State.DepthStencilState.StencilEnable)
+                GraphicsContext.CommandList.SetStencilReference(stencilReferenceValue);
+            GraphicsContext.CommandList.SetPipelineState(mutablePipeline.CurrentState);
 
             // Bind VB/IB
             if (ResourceContext.VertexBuffer != null)
@@ -266,7 +266,7 @@ namespace Xenko.Graphics
         {
             CheckBeginHasBeenCalled("End");
 
-            if (SortMode == SpriteSortMode.Immediate)
+            if (sortMode == SpriteSortMode.Immediate)
             {
                 ResourceContext.IsInImmediateMode = false;
             }
@@ -291,7 +291,7 @@ namespace Xenko.Graphics
         {
             IComparer<int> comparer;
 
-            switch (SortMode)
+            switch (sortMode)
             {
                 case SpriteSortMode.Texture:
                     TextureComparer.SpriteTextures = drawTextures;
@@ -331,7 +331,7 @@ namespace Xenko.Graphics
             ElementInfo[] spriteQueueForBatch;
 
             // If Deferred, then sprites are displayed in the same order they arrived
-            if (SortMode == SpriteSortMode.Deferred)
+            if (sortMode == SpriteSortMode.Deferred)
             {
                 spriteQueueForBatch = drawsQueue;
             }
@@ -349,7 +349,7 @@ namespace Xenko.Graphics
             {
                 Texture texture;
 
-                if (SortMode == SpriteSortMode.Deferred)
+                if (sortMode == SpriteSortMode.Deferred)
                 {
                     texture = drawTextures[i];
                 }
@@ -385,7 +385,7 @@ namespace Xenko.Graphics
             // When sorting is disabled, we persist mSortedSprites data from one batch to the next, to avoid
             // unnecessary work in GrowSortedSprites. But we never reuse these when sorting, because re-sorting
             // previously sorted items gives unstable ordering if some sprites have identical sort keys.
-            if (SortMode != SpriteSortMode.Deferred)
+            if (sortMode != SpriteSortMode.Deferred)
             {
                 Array.Clear(sortedDraws, 0, sortedDraws.Length);
             }
@@ -537,7 +537,7 @@ namespace Xenko.Graphics
             drawsQueue[drawsQueueCount] = elementInfo;
 
             // If we are in immediate mode, render the sprite directly
-            if (SortMode == SpriteSortMode.Immediate)
+            if (sortMode == SpriteSortMode.Immediate)
             {
                 DrawBatchPerTexture(texture, drawsQueue, 0, 1);
             }
@@ -643,6 +643,7 @@ namespace Xenko.Graphics
                 VertexCount = vertexCount;
             }
         }
+
         /// <summary>
         /// A class containing the information required to build a vertex and index buffer for simple quad based batching.
         /// </summary>
@@ -655,7 +656,7 @@ namespace Xenko.Graphics
         ///                  | t2   \  |                  | /    t2 |
         ///                  v3 - - - v2                  v2 - - - v3
         /// </remarks>
-        protected class StaticQuadBufferInfo: ResourceBufferInfo
+        protected class StaticQuadBufferInfo : ResourceBufferInfo
         {
             public const int IndicesByElement = 6;
 

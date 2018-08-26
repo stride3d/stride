@@ -11,11 +11,6 @@ using Xenko.Shaders;
 
 namespace Xenko.Rendering.Materials
 {
-    public class MaterialShaderResult : LoggerResult
-    {
-        public Material Material { get; set; }
-    }
-
     public class MaterialGenerator
     {
         public static MaterialShaderResult Generate(MaterialDescriptor materialDescriptor, MaterialGeneratorContext context, string rootMaterialFriendlyName)

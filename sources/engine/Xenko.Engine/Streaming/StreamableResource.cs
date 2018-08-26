@@ -30,8 +30,8 @@ namespace Xenko.Streaming
         internal DateTime TargetResidencyChange;
 
         internal int LastTimeUsed;
-        protected DatabaseFileProvider FileProvider;
-        protected CancellationTokenSource CancellationToken;
+        protected DatabaseFileProvider fileProvider;
+        protected CancellationTokenSource cancellationToken;
         private Task streamingTask;
 
         protected StreamableResource(StreamingManager manager)
@@ -104,7 +104,7 @@ namespace Xenko.Streaming
             Storage?.RemoveDisposeBy(this);
 
             Storage = storage;
-            FileProvider = databaseFileProviderService.FileProvider;
+            fileProvider = databaseFileProviderService.FileProvider;
 
             Storage.DisposeBy(this);
         }
@@ -134,7 +134,7 @@ namespace Xenko.Streaming
         {
             Debug.Assert(CanBeUpdated && residency <= MaxResidency, $"CanBeUpdated[{CanBeUpdated}] && residency[{residency}] <= MaxResidency[{MaxResidency}] -- Resouce={Resource}");
 
-            CancellationToken = new CancellationTokenSource();
+            cancellationToken = new CancellationTokenSource();
             return streamingTask = StreamAsync(residency);
         }
 
@@ -176,7 +176,7 @@ namespace Xenko.Streaming
         {
             if (streamingTask != null && !streamingTask.IsCompleted)
             {
-                CancellationToken.Cancel();
+                cancellationToken.Cancel();
                 if (!streamingTask.IsCompleted)
                 {
                     try

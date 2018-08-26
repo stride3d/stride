@@ -243,7 +243,7 @@ namespace Xenko.Physics
             NativeCollisionObject = new BulletSharp.PairCachingGhostObject
             {
                 CollisionShape = ColliderShape.InternalShape,
-                UserObject = this
+                UserObject = this,
             };
 
             NativeCollisionObject.CollisionFlags |= BulletSharp.CollisionFlags.CharacterObject;

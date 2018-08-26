@@ -37,29 +37,29 @@ namespace Xenko.Rendering
         {
             if (TransformRenderFeature == null)
             {
-                TransformRenderFeature = ((MeshRenderFeature)RootRenderFeature).RenderFeatures.OfType<TransformRenderFeature>().FirstOrDefault();
-                if(TransformRenderFeature == null)
+                TransformRenderFeature = ((MeshRenderFeature)rootRenderFeature).RenderFeatures.OfType<TransformRenderFeature>().FirstOrDefault();
+                if (TransformRenderFeature == null)
                     throw new ArgumentNullException(nameof(TransformRenderFeature));
             }
 
-            previousTransformationInfoKey = RootRenderFeature.RenderData.CreateStaticObjectKey<StaticObjectInfo>();
-            previousTransformationViewInfoKey = RootRenderFeature.RenderData.CreateViewObjectKey<PreviousObjectViewInfo>();
+            previousTransformationInfoKey = rootRenderFeature.RenderData.CreateStaticObjectKey<StaticObjectInfo>();
+            previousTransformationViewInfoKey = rootRenderFeature.RenderData.CreateViewObjectKey<PreviousObjectViewInfo>();
             renderModelObjectInfoKey = TransformRenderFeature.RenderModelObjectInfoKey;
 
-            previousWorldViewProjection = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(MeshVelocityKeys.PreviousWorldViewProjection.Name);
+            previousWorldViewProjection = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(MeshVelocityKeys.PreviousWorldViewProjection.Name);
         }
 
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
             base.PrepareEffectPermutations(context);
 
-            var rootEffectRenderFeature = ((RootEffectRenderFeature)RootRenderFeature);
-            var renderEffects = RootRenderFeature.RenderData.GetData(((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey);
-            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
+            var rootEffectRenderFeature = ((RootEffectRenderFeature)rootRenderFeature);
+            var renderEffects = rootRenderFeature.RenderData.GetData(((RootEffectRenderFeature)rootRenderFeature).RenderEffectKey);
+            int effectSlotCount = ((RootEffectRenderFeature)rootRenderFeature).EffectPermutationSlotCount;
             
-            Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, objectNodeReference =>
+            Dispatcher.ForEach(rootRenderFeature.ObjectNodeReferences, objectNodeReference =>
             {
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
+                var objectNode = rootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = (RenderMesh)objectNode.RenderObject;
                 var staticObjectNode = renderMesh.StaticObjectNode;
 
@@ -70,7 +70,7 @@ namespace Xenko.Rendering
                     if (stage == null)
                         continue;
                     var effectSlot = rootEffectRenderFeature.GetEffectPermutationSlot(stage);
-                    var staticEffectObjectNode = staticObjectNode*effectSlotCount + effectSlot.Index;
+                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlot.Index;
                     var renderEffect = renderEffects[staticEffectObjectNode];
 
                     if (renderEffect != null)
@@ -83,16 +83,16 @@ namespace Xenko.Rendering
 
         public override unsafe void Prepare(RenderDrawContext context)
         {
-            var previousTransformationInfoData = RootRenderFeature.RenderData.GetData(previousTransformationInfoKey);
-            var previousTransformationViewInfoData = RootRenderFeature.RenderData.GetData(previousTransformationViewInfoKey);
-            var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
+            var previousTransformationInfoData = rootRenderFeature.RenderData.GetData(previousTransformationInfoKey);
+            var previousTransformationViewInfoData = rootRenderFeature.RenderData.GetData(previousTransformationViewInfoKey);
+            var renderModelObjectInfoData = rootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
             
             // Calculate previous WVP matrix per view and object
             usageCounter++;
             for (int index = 0; index < RenderSystem.Views.Count; index++)
             {
                 var view = RenderSystem.Views[index];
-                var viewFeature = view.Features[RootRenderFeature.Index];
+                var viewFeature = view.Features[rootRenderFeature.Index];
 
                 bool useView = false;
                 foreach (var stage in RenderSystem.RenderStages)
@@ -119,7 +119,7 @@ namespace Xenko.Rendering
 
                 Dispatcher.ForEach(viewFeature.ViewObjectNodes, renderPerViewNodeReference =>
                 {
-                    var renderPerViewNode = RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
+                    var renderPerViewNode = rootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
                     var renderModelFrameInfo = renderModelObjectInfoData[renderPerViewNode.ObjectNode];
                     
                     Matrix previousViewProjection = viewData.PreviousViewProjection;
@@ -129,7 +129,7 @@ namespace Xenko.Rendering
 
                     previousTransformationViewInfoData[renderPerViewNodeReference] = new PreviousObjectViewInfo
                     {
-                        WorldViewProjection = previousWorldViewProjection
+                        WorldViewProjection = previousWorldViewProjection,
                     };
                 });
 
@@ -147,7 +147,7 @@ namespace Xenko.Rendering
             updatedViews.Clear();
 
             // Update cbuffer for previous WVP matrix
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
+            Dispatcher.ForEach(((RootEffectRenderFeature)rootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
                 if (perDrawLayout == null)
@@ -166,7 +166,7 @@ namespace Xenko.Rendering
                 // Shift current world transform into previous transform
                 previousTransformationInfoData[renderNode.RenderObject.StaticObjectNode] = new StaticObjectInfo
                 {
-                    World = renderModelFrameInfo.World
+                    World = renderModelFrameInfo.World,
                 };
                 
                 previousPerDraw->PreviousWorldViewProjection = renderModelPreviousFrameInfo.WorldViewProjection;

@@ -43,8 +43,10 @@ namespace Xenko.Graphics
         internal PrimitiveQuad PrimitiveQuad;
         private ColorSpace colorSpace;
 
-        public uint FrameTriangleCount, FrameDrawCalls;
-        private long bufferMemory, textureMemory;
+        public uint FrameTriangleCount;
+        public uint FrameDrawCalls;
+        private long bufferMemory;
+        private long textureMemory;
 
         /// <summary>
         /// Gets the GPU memory currently allocated to buffers in bytes.
@@ -225,7 +227,7 @@ namespace Xenko.Graphics
         public SamplerStateFactory SamplerStates { get; private set; }
 
         /// <summary>
-        ///     Gets or sets the index of the thread.
+        /// Gets the index of the thread.
         /// </summary>
         /// <value>The index of the thread.</value>
         public int ThreadIndex { get; internal set; }

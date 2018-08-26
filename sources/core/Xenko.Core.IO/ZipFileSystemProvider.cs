@@ -84,7 +84,7 @@ namespace Xenko.Core.IO
 
         public override bool DirectoryExists(string url)
         {
-            if(url == null)
+            if (url == null)
                 throw new ArgumentNullException("url");
 
             // ensure that the provided path ends by a slash

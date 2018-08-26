@@ -14,13 +14,13 @@ namespace Xenko.Rendering.Shadows
     [DataContract(Inherited = true, DefaultMemberMode = DataMemberMode.Never)]
     public abstract class LightShadowMapRendererBase : ILightShadowMapRenderer
     {
-        protected PoolListStruct<ShadowMapRenderView> ShadowRenderViews;
-        protected PoolListStruct<LightShadowMapTexture> ShadowMaps;
+        protected PoolListStruct<ShadowMapRenderView> shadowRenderViews;
+        protected PoolListStruct<LightShadowMapTexture> shadowMaps;
 
         protected LightShadowMapRendererBase()
         {
-            ShadowRenderViews = new PoolListStruct<ShadowMapRenderView>(16, () => new ShadowMapRenderView());
-            ShadowMaps = new PoolListStruct<LightShadowMapTexture>(16, () => new LightShadowMapTexture());
+            shadowRenderViews = new PoolListStruct<ShadowMapRenderView>(16, () => new ShadowMapRenderView());
+            shadowMaps = new PoolListStruct<LightShadowMapTexture>(16, () => new LightShadowMapTexture());
         }
 
         /// <summary>
@@ -31,11 +31,11 @@ namespace Xenko.Rendering.Shadows
 
         public virtual void Reset(RenderContext context)
         {
-            foreach (var view in ShadowRenderViews)
+            foreach (var view in shadowRenderViews)
                 context.RenderSystem.Views.Remove(view);
 
-            ShadowRenderViews.Clear();
-            ShadowMaps.Clear();
+            shadowRenderViews.Clear();
+            shadowMaps.Clear();
         }
 
         public virtual LightShadowType GetShadowType(LightShadowMap shadowMap)
@@ -90,7 +90,7 @@ namespace Xenko.Rendering.Shadows
 
         public virtual LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, LightComponent lightComponent, IDirectLight light, int shadowMapSize)
         {
-            var shadowMap = ShadowMaps.Add();
+            var shadowMap = shadowMaps.Add();
             shadowMap.Initialize(renderView, lightComponent, light, light.Shadow, shadowMapSize, this);
             return shadowMap;
         }
@@ -100,7 +100,7 @@ namespace Xenko.Rendering.Shadows
         /// </summary>
         public virtual ShadowMapRenderView CreateRenderView()
         {
-            var shadowRenderView = ShadowRenderViews.Add();
+            var shadowRenderView = shadowRenderViews.Add();
             shadowRenderView.RenderStages.Add(ShadowCasterRenderStage);
             return shadowRenderView;
         }

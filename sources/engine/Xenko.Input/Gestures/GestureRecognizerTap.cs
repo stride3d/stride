@@ -20,7 +20,7 @@ namespace Xenko.Input
         private int maxNbOfFingerTouched;
 
         public GestureRecognizerTap(GestureConfigTap configuration, float screenRatio)
-            :base(configuration, screenRatio)
+            : base(configuration, screenRatio)
         {
         }
 
@@ -66,7 +66,7 @@ namespace Xenko.Input
                 HasGestureStarted = true;
             }
             
-            if(HasGestureStarted && maxNbOfFingerTouched > ConfigTap.RequiredNumberOfFingers)
+            if (HasGestureStarted && maxNbOfFingerTouched > ConfigTap.RequiredNumberOfFingers)
                 EndCurrentTap();
 
             if (HasGestureStarted && !HadFingerAtThatPosition(pos))

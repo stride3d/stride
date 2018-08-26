@@ -67,7 +67,7 @@ namespace Xenko.Physics
             set { InternalConstraint.BreakingImpulseThreshold = value; }
         }
 
-        bool feedbackEnabled;
+        private bool feedbackEnabled;
 
         /// <summary>
         /// Gets the applied impulse.

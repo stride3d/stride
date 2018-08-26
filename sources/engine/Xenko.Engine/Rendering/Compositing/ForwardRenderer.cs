@@ -12,11 +12,11 @@ using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Storage;
 using Xenko.Graphics;
+using Xenko.Rendering.Images;
 using Xenko.Rendering.Lights;
 using Xenko.Rendering.Shadows;
-using Xenko.VirtualReality;
-using Xenko.Rendering.Images;
 using Xenko.Rendering.SubsurfaceScattering;
+using Xenko.VirtualReality;
 
 namespace Xenko.Rendering.Compositing
 {
@@ -34,13 +34,15 @@ namespace Xenko.Rendering.Compositing
         private MultisampleCount actualMultisampleCount = MultisampleCount.None;
         private VRDeviceSystem vrSystem;
 
+        private readonly Logger logger = GlobalLogger.GetLogger(nameof(ForwardRenderer));
+
         private readonly FastList<Texture> currentRenderTargets = new FastList<Texture>();
         private readonly FastList<Texture> currentRenderTargetsNonMSAA = new FastList<Texture>();
         private Texture currentDepthStencil;
         private Texture currentDepthStencilNonMSAA;
 
-        protected Texture ViewOutputTarget;
-        protected Texture ViewDepthStencil;
+        protected Texture viewOutputTarget;
+        protected Texture viewDepthStencil;
 
         protected int ViewCount { get; private set; }
 
@@ -116,8 +118,6 @@ namespace Xenko.Rendering.Compositing
         [DefaultValue(true)]
         public bool BindDepthAsResourceDuringTransparentRendering { get; set; } = true;
 
-        private Logger logger { get; } = GlobalLogger.GetLogger(nameof(ForwardRenderer));
-
         protected override void InitializeCore()
         {
             base.InitializeCore();
@@ -130,7 +130,7 @@ namespace Xenko.Rendering.Compositing
                 actualMultisampleCount = (MultisampleCount)Math.Min((int)actualMultisampleCount, (int)GraphicsDevice.Features[DepthBufferFormat].MultisampleCountMax);
 
                 // Note: we cannot support MSAA on DX10 now
-                if (GraphicsDevice.Features.HasMultisampleDepthAsSRV == false &&     // TODO: Try enabling MSAA on DX9!
+                if (GraphicsDevice.Features.HasMultisampleDepthAsSRV == false && // TODO: Try enabling MSAA on DX9!
                     GraphicsDevice.Platform != GraphicsPlatform.OpenGL &&
                     GraphicsDevice.Platform != GraphicsPlatform.OpenGLES)
                 {
@@ -164,7 +164,7 @@ namespace Xenko.Rendering.Compositing
                     vrSystem.PreferredApis = requiredDescs.Select(x => x.Api).Distinct().ToArray();
 
                     // remove VR API duplicates and keep first desired config only
-                    var preferredScalings  = new Dictionary<VRApi, float>();
+                    var preferredScalings = new Dictionary<VRApi, float>();
                     foreach (var desc in requiredDescs)
                     {
                         if (!preferredScalings.ContainsKey(desc.Api))
@@ -274,7 +274,7 @@ namespace Xenko.Rendering.Compositing
             {
                 context.RenderView.RenderStages.Add(OpaqueRenderStage);
             }
-            
+
             if (TransparentRenderStage != null)
             {
                 context.RenderView.RenderStages.Add(TransparentRenderStage);
@@ -411,7 +411,7 @@ namespace Xenko.Rendering.Compositing
                 // TODO: This format should be acquired from the ShadowMapRenderer instead of being fixed here
                 foreach (var shadowMapRenderStage in ShadowMapRenderStages)
                 {
-                    if(shadowMapRenderStage != null)
+                    if (shadowMapRenderStage != null)
                         shadowMapRenderStage.Output = new RenderOutputDescription(PixelFormat.None, PixelFormat.D32_Float);
                 }
             }
@@ -454,7 +454,7 @@ namespace Xenko.Rendering.Compositing
 
             return result;
         }
-        
+
         /// <summary>
         /// Resolves the MSAA textures. Converts MSAA currentRenderTargets and currentDepthStencil into currentRenderTargetsNonMSAA and currentDepthStencilNonMSAA.
         /// </summary>
@@ -475,7 +475,7 @@ namespace Xenko.Rendering.Compositing
             }
 
             // Resolve depth buffer
-            currentDepthStencilNonMSAA = ViewDepthStencil;
+            currentDepthStencilNonMSAA = viewDepthStencil;
             MSAAResolver.Resolve(drawContext, currentDepthStencil, currentDepthStencilNonMSAA);
         }
 
@@ -517,7 +517,7 @@ namespace Xenko.Rendering.Compositing
                         renderSystem.Draw(drawContext, context.RenderView, OpaqueRenderStage);
                     }
                 }
-                
+
                 Texture depthStencilSRV = null;
 
                 // Draw [main view | subsurface scattering post process]
@@ -537,7 +537,7 @@ namespace Xenko.Rendering.Compositing
                         }
                     }
                 }
-                
+
                 // Draw [main view | transparent stage]
                 if (TransparentRenderStage != null)
                 {
@@ -545,7 +545,7 @@ namespace Xenko.Rendering.Compositing
                     using (drawContext.QueryManager.BeginProfile(Color.Green, CompositingProfilingKeys.Transparent))
                     using (drawContext.PushRenderTargetsAndRestore())
                     {
-                        if(depthStencilSRV == null)
+                        if (depthStencilSRV == null)
                             depthStencilSRV = ResolveDepthAsSRV(drawContext);
 
                         renderSystem.Draw(drawContext, context.RenderView, TransparentRenderStage);
@@ -583,7 +583,7 @@ namespace Xenko.Rendering.Compositing
                 {
                     // Run post effects
                     // Note: OpaqueRenderStage can't be null otherwise colorTargetIndex would be -1
-                    PostEffects.Draw(drawContext, OpaqueRenderStage.OutputValidator, renderTargets.Items, depthStencil, ViewOutputTarget);
+                    PostEffects.Draw(drawContext, OpaqueRenderStage.OutputValidator, renderTargets.Items, depthStencil, viewOutputTarget);
                 }
                 else
                 {
@@ -591,7 +591,7 @@ namespace Xenko.Rendering.Compositing
                     {
                         using (drawContext.QueryManager.BeginProfile(Color.Green, CompositingProfilingKeys.MsaaResolve))
                         {
-                            drawContext.CommandList.Copy(renderTargets[colorTargetIndex], ViewOutputTarget);
+                            drawContext.CommandList.Copy(renderTargets[colorTargetIndex], viewOutputTarget);
                         }
                     }
                 }
@@ -620,7 +620,7 @@ namespace Xenko.Rendering.Compositing
                                          && (int)viewport.Height == drawContext.CommandList.RenderTarget.ViewHeight;
                     if (!isFullViewport)
                         return;
-                    
+
                     var hasPostEffects = PostEffects != null; // When we have post effect we need to bind a different framebuffer for each view to be sure effects impinge on the other view.
 
                     Texture vrFullSurface;
@@ -628,14 +628,14 @@ namespace Xenko.Rendering.Compositing
                     {
                         var currentRenderTarget = drawContext.CommandList.RenderTarget;
                         var vrFullFrameSize = VRSettings.VRDevice.ActualRenderFrameSize;
-                        var desiredRenderTargetSize = !hasPostEffects? vrFullFrameSize: new Size2(vrFullFrameSize.Width/2, vrFullFrameSize.Height);
-                        if(hasPostEffects || desiredRenderTargetSize.Width != currentRenderTarget.Width || desiredRenderTargetSize.Height != currentRenderTarget.Height)
+                        var desiredRenderTargetSize = !hasPostEffects ? vrFullFrameSize : new Size2(vrFullFrameSize.Width / 2, vrFullFrameSize.Height);
+                        if (hasPostEffects || desiredRenderTargetSize.Width != currentRenderTarget.Width || desiredRenderTargetSize.Height != currentRenderTarget.Height)
                             drawContext.CommandList.SetRenderTargets(null, null); // force to create and bind a new render target
 
                         PrepareRenderTargets(drawContext, desiredRenderTargetSize);
 
                         //prepare the final VR target
-                        vrFullSurface = ViewOutputTarget;
+                        vrFullSurface = viewOutputTarget;
                         if (hasPostEffects)
                         {
                             var frameSize = VRSettings.VRDevice.ActualRenderFrameSize;
@@ -647,16 +647,36 @@ namespace Xenko.Rendering.Compositing
                         using (context.SaveViewportAndRestore())
                         using (drawContext.PushRenderTargetsAndRestore())
                         {
-                            drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, currentRenderTargets.Items);
-
                             ViewCount = 2;
+                            bool isWindowsMixedReality = false;
 
                             for (var i = 0; i < 2; i++)
                             {
-                                if (!hasPostEffects) // need to change the viewport between each eye
+#if XENKO_GRAPHICS_API_DIRECT3D11 && XENKO_PLATFORM_UWP
+                                if (drawContext.GraphicsDevice.Presenter is WindowsMixedRealityGraphicsPresenter graphicsPresenter)
+                                {
+                                    isWindowsMixedReality = true;
+
+                                    MSAALevel = MultisampleCount.None;
+                                    currentRenderTargets.Clear();
+
+                                    if (i == 0)
+                                    {
+                                        currentRenderTargets.Add(graphicsPresenter.LeftEyeBuffer);
+                                    }
+                                    else
+                                    {
+                                        currentRenderTargets.Add(graphicsPresenter.RightEyeBuffer);
+                                    }
+                                }
+#endif
+
+                                drawContext.CommandList.SetRenderTargets(currentDepthStencil, currentRenderTargets.Count, currentRenderTargets.Items);
+
+                                if (!hasPostEffects && !isWindowsMixedReality) // need to change the viewport between each eye
                                 {
                                     var frameSize = VRSettings.VRDevice.ActualRenderFrameSize;
-                                    drawContext.CommandList.SetViewport(new Viewport(i* frameSize.Width/2, 0, frameSize.Width/2, frameSize.Height));
+                                    drawContext.CommandList.SetViewport(new Viewport(i * frameSize.Width / 2, 0, frameSize.Width / 2, frameSize.Height));
                                 }
                                 else if (i == 0) // the viewport is the same for both eyes so we set it only once
                                 {
@@ -666,7 +686,7 @@ namespace Xenko.Rendering.Compositing
                                 using (context.PushRenderViewAndRestore(VRSettings.RenderViews[i]))
                                 {
                                     // Clear render target and depth stencil
-                                    if(hasPostEffects || i == 0) // need to clear for each eye in the case we have two different render targets
+                                    if (hasPostEffects || i == 0) // need to clear for each eye in the case we have two different render targets
                                         Clear?.Draw(drawContext);
 
                                     ViewIndex = i;
@@ -674,7 +694,7 @@ namespace Xenko.Rendering.Compositing
                                     DrawView(context, drawContext, i, 2);
 
                                     if (hasPostEffects) // copy the rendered view into the vr full view framebuffer
-                                        drawContext.CommandList.CopyRegion(ViewOutputTarget, 0, null, vrFullSurface, 0, VRSettings.VRDevice.ActualRenderFrameSize.Width / 2 * i);
+                                        drawContext.CommandList.CopyRegion(viewOutputTarget, 0, null, vrFullSurface, 0, VRSettings.VRDevice.ActualRenderFrameSize.Width / 2 * i);
                                 }
                             }
 
@@ -828,31 +848,31 @@ namespace Xenko.Rendering.Compositing
         /// Prepares targets per frame, caching and handling MSAA etc.
         /// </summary>
         /// <param name="drawContext">The current draw context</param>
-        /// <param name="renderTargetsSize"></param>
+        /// <param name="renderTargetsSize">The render target size</param>
         protected virtual void PrepareRenderTargets(RenderDrawContext drawContext, Size2 renderTargetsSize)
         {
-            ViewOutputTarget = drawContext.CommandList.RenderTarget;
+            viewOutputTarget = drawContext.CommandList.RenderTarget;
             if (drawContext.CommandList.RenderTargetCount == 0)
-                ViewOutputTarget = null;
-            ViewDepthStencil = drawContext.CommandList.DepthStencilBuffer;
+                viewOutputTarget = null;
+            viewDepthStencil = drawContext.CommandList.DepthStencilBuffer;
 
             // Create output if needed
-            if (ViewOutputTarget == null || ViewOutputTarget.MultisampleCount != MultisampleCount.None)
+            if (viewOutputTarget == null || viewOutputTarget.MultisampleCount != MultisampleCount.None)
             {
-                ViewOutputTarget = PushScopedResource(drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(
+                viewOutputTarget = PushScopedResource(drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(
                     TextureDescription.New2D(renderTargetsSize.Width, renderTargetsSize.Height, 1, PixelFormat.R8G8B8A8_UNorm_SRgb,
                         TextureFlags.ShaderResource | TextureFlags.RenderTarget)));
             }
 
             // Create depth if needed
-            if (ViewDepthStencil == null || ViewDepthStencil.MultisampleCount != MultisampleCount.None)
+            if (viewDepthStencil == null || viewDepthStencil.MultisampleCount != MultisampleCount.None)
             {
-                ViewDepthStencil = PushScopedResource(drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(
+                viewDepthStencil = PushScopedResource(drawContext.GraphicsContext.Allocator.GetTemporaryTexture2D(
                     TextureDescription.New2D(renderTargetsSize.Width, renderTargetsSize.Height, 1, DepthBufferFormat,
                         TextureFlags.ShaderResource | TextureFlags.DepthStencil)));
             }
 
-            PrepareRenderTargets(drawContext, ViewOutputTarget, ViewDepthStencil);
+            PrepareRenderTargets(drawContext, viewOutputTarget, viewDepthStencil);
         }
 
         protected override void Destroy()
@@ -860,9 +880,8 @@ namespace Xenko.Rendering.Compositing
             PostEffects?.Dispose();
         }
 
-
         [StructLayout(LayoutKind.Sequential)]
-        struct PerViewVR
+        private struct PerViewVR
         {
             public int EyeIndex;
             public int EyeCount;

@@ -5,8 +5,8 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using Xenko.Core.Mathematics;
-using Xenko.Rendering;
 using Xenko.Native;
+using Xenko.Rendering;
 
 namespace Xenko.Graphics
 {
@@ -84,7 +84,7 @@ namespace Xenko.Graphics
 
         private Vector3 GetCurrentResolution(CommandList commandList)
         {
-            return VirtualResolution.HasValue ? VirtualResolution.Value: new Vector3(commandList.Viewport.Width, commandList.Viewport.Height, DefaultDepth);
+            return VirtualResolution.HasValue ? VirtualResolution.Value : new Vector3(commandList.Viewport.Width, commandList.Viewport.Height, DefaultDepth);
         }
 
         private void UpdateDefaultProjectionMatrix(CommandList commandList)
@@ -160,7 +160,7 @@ namespace Xenko.Graphics
             userViewMatrix = viewMatrix;
             userProjectionMatrix = projectionMatrix;
 
-            base.Begin(graphicsContext, effect, sortMode, blendState, samplerState, depthStencilState, rasterizerState, stencilValue);
+            Begin(graphicsContext, effect, sortMode, blendState, samplerState, depthStencilState, rasterizerState, stencilValue);
         }
 
         /// <summary>
@@ -203,20 +203,19 @@ namespace Xenko.Graphics
         /// Adds a sprite to a batch of sprites for rendering using the specified texture, destination rectangle, source rectangle, color, rotation, origin, effects and layer. 
         /// </summary>
         /// <param name="texture">A texture.</param>
-        /// <param name="orientation">The source image orientation</param>
         /// <param name="destinationRectangle">A rectangle that specifies (in screen coordinates) the destination for drawing the sprite. If this rectangle is not the same size as the source rectangle, the sprite will be scaled to fit.</param>
         /// <param name="sourceRectangle">A rectangle that specifies (in texels) the source texels from a texture. Use null to draw the entire texture. </param>
         /// <param name="color">The color to tint a sprite. Use Color.White for full color with no tinting.</param>
         /// <param name="rotation">Specifies the angle (in radians) to rotate the sprite about its center.</param>
         /// <param name="origin">The sprite origin in the texture in pixels (dependent of image orientation). Default value is (0,0) which represents the upper-left corner.</param>
         /// <param name="effects">Effects to apply.</param>
+        /// <param name="orientation">The source image orientation</param>
         /// <param name="layerDepth">The depth of a layer. By default, 0 represents the front layer and 1 represents a back layer. Use SpriteSortMode if you want sprites to be sorted during drawing.</param>
         public void Draw(Texture texture, RectangleF destinationRectangle, RectangleF? sourceRectangle, Color4 color, float rotation, Vector2 origin, 
             SpriteEffects effects = SpriteEffects.None, ImageOrientation orientation = ImageOrientation.AsIs, float layerDepth = 0f, Color4 colorAdd = default(Color4), SwizzleMode swizzle = SwizzleMode.None) 
         {
             DrawSprite(texture, ref destinationRectangle, false, ref sourceRectangle, color, colorAdd, rotation, ref origin, effects, orientation, layerDepth, swizzle);
         }
-
 
         /// <summary>
         /// Adds a sprite to a batch of sprites for rendering using the specified texture, position, source rectangle, color, rotation, origin, scale, effects, and layer. 
@@ -327,8 +326,8 @@ namespace Xenko.Graphics
         /// </summary>
         /// <param name="spriteFont">The font used to draw the text.</param>
         /// <param name="text">The text to measure.</param>
-        /// <param name="targetSize">The size of the target to render in. If null, the size of the window back buffer is used.</param>
         /// <param name="fontSize">The font size (in pixels) used to draw the text.</param>
+        /// <param name="targetSize">The size of the target to render in. If null, the size of the window back buffer is used.</param>
         /// <returns>The size of the text in virtual pixels.</returns>
         /// <exception cref="ArgumentNullException">The provided sprite font is null.</exception>
         public Vector2 MeasureString(SpriteFont spriteFont, string text, float fontSize, Vector2? targetSize = null)
@@ -338,7 +337,7 @@ namespace Xenko.Graphics
             if (string.IsNullOrEmpty(text))
                 return Vector2.Zero;
 
-            var targetSizeValue = targetSize ?? new Vector2(GraphicsDevice.Presenter.BackBuffer.Width, GraphicsDevice.Presenter.BackBuffer.Height);
+            var targetSizeValue = targetSize ?? new Vector2(graphicsDevice.Presenter.BackBuffer.Width, graphicsDevice.Presenter.BackBuffer.Height);
 
             // calculate the size of the text that will be used to draw
             var virtualResolution = VirtualResolution ?? new Vector3(targetSizeValue, DefaultDepth);

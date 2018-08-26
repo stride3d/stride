@@ -15,7 +15,6 @@ namespace Xenko.Core.IO
             path = VirtualFileSystem.GetTempFileName();
         }
 
-
         public string Path
         {
             get { return path; }

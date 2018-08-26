@@ -273,7 +273,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
         private static void ChangeDxtImageType(DxtTextureLibraryData libraryData, DXGI_FORMAT dxgiFormat)
         {
-            if(((PixelFormat)libraryData.Metadata.format).SizeInBits() != ((PixelFormat)dxgiFormat).SizeInBits())
+            if (((PixelFormat)libraryData.Metadata.format).SizeInBits() != ((PixelFormat)dxgiFormat).SizeInBits())
                 throw new ArgumentException("Impossible to change image data format. The two formats '{0}' and '{1}' are not compatibles.".ToFormat(libraryData.Metadata.format, dxgiFormat));
 
             libraryData.Metadata.format = dxgiFormat;
@@ -292,7 +292,7 @@ namespace Xenko.TextureConverter.TexLibraries
         {
             Log.Verbose("Converting/Compressing with " + request.Format + " ...");
 
-            if(libraryData.DxtImages == null || libraryData.DxtImages.Length == 0)
+            if (libraryData.DxtImages == null || libraryData.DxtImages.Length == 0)
                 return;
 
             ScratchImage scratchImage = new ScratchImage();

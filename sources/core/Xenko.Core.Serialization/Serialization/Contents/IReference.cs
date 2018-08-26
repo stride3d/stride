@@ -24,7 +24,6 @@ namespace Xenko.Core.Serialization.Contents
         string Location { get; }
     }
 
-
     /// <summary>
     /// A typed <see cref="IReference"/>
     /// </summary>

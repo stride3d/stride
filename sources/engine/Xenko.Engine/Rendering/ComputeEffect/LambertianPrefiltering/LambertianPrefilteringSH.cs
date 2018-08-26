@@ -61,7 +61,6 @@ namespace Xenko.Rendering.ComputeEffect.LambertianPrefiltering
             var inputTexture = RadianceMap;
             if (inputTexture == null)
                 return;
-            
 
             const int FirstPassBlockSize = 4;
             const int FirstPassSumsCount = FirstPassBlockSize * FirstPassBlockSize;
@@ -77,10 +76,9 @@ namespace Xenko.Rendering.ComputeEffect.LambertianPrefiltering
             var sumsToPerfomRemaining = inputSize.X * inputSize.Y * faceCount / FirstPassSumsCount;
             var partialSumBuffer = NewScopedTypedBuffer(coefficientsCount * sumsToPerfomRemaining, PixelFormat.R32G32B32A32_Float, true);
 
-
             // Project the radiance on the SH basis and sum up the results along the 4x4 blocks
             firstPassEffect.ThreadNumbers = new Int3(FirstPassBlockSize, FirstPassBlockSize, 1);
-            firstPassEffect.ThreadGroupCounts = new Int3(inputSize.X/FirstPassBlockSize, inputSize.Y/FirstPassBlockSize, faceCount);
+            firstPassEffect.ThreadGroupCounts = new Int3(inputSize.X / FirstPassBlockSize, inputSize.Y / FirstPassBlockSize, faceCount);
             firstPassEffect.Parameters.Set(LambertianPrefilteringSHParameters.BlockSize, FirstPassBlockSize);
             firstPassEffect.Parameters.Set(SphericalHarmonicsParameters.HarmonicsOrder, harmonicalOrder);
             firstPassEffect.Parameters.Set(LambertianPrefilteringSHPass1Keys.RadianceMap, inputTexture);
@@ -95,7 +93,7 @@ namespace Xenko.Rendering.ComputeEffect.LambertianPrefiltering
                 // we are limited in the number of summing threads by the group-shared memory size.
                 // determine the number of threads to use and update the number of sums remaining afterward.
                 var sumsCount = 1;
-                while (sumsCount < (1<<10) && sumsToPerfomRemaining % 2 == 0) // shader can perform only an 2^x number of sums.
+                while (sumsCount < (1 << 10) && sumsToPerfomRemaining % 2 == 0) // shader can perform only an 2^x number of sums.
                 {
                     sumsCount <<= 1;
                     sumsToPerfomRemaining >>= 1;
@@ -136,7 +134,7 @@ namespace Xenko.Rendering.ComputeEffect.LambertianPrefiltering
             var sizeResult = coefficientsCount * sumsToPerfomRemaining * PixelFormat.R32G32B32A32_Float.SizeInBytes();
             var stagedBuffer = NewScopedBuffer(new BufferDescription(sizeResult, BufferFlags.None, GraphicsResourceUsage.Staging));
             context.CommandList.CopyRegion(secondPassInputBuffer, 0, new ResourceRegion(0, 0, 0, sizeResult, 1, 1), stagedBuffer, 0);
-            var finalsValues =  stagedBuffer.GetData<Vector4>(context.CommandList);    
+            var finalsValues = stagedBuffer.GetData<Vector4>(context.CommandList);    
             
             // performs last possible additions, normalize the result and store it in the SH
             for (var c = 0; c < coefficientsCount; c++)

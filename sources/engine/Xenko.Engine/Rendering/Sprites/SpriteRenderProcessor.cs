@@ -58,7 +58,6 @@ namespace Xenko.Rendering.Sprites
                             Math.Abs(worldMatrix.M11 * halfSpriteSize.X + worldMatrix.M21 * halfSpriteSize.Y),
                             Math.Abs(worldMatrix.M12 * halfSpriteSize.X + worldMatrix.M22 * halfSpriteSize.Y),
                             Math.Abs(worldMatrix.M13 * halfSpriteSize.X + worldMatrix.M23 * halfSpriteSize.Y));
-
                     }
                     renderSprite.BoundingBox = new BoundingBoxExt(boxOffset - halfBoxSize, boxOffset + halfBoxSize);
                 }
@@ -88,7 +87,7 @@ namespace Xenko.Rendering.Sprites
                 {
                     SpriteComponent = spriteComponent,
                     TransformComponent = entity.Transform,
-                }
+                },
             };
         }
 

@@ -105,7 +105,7 @@ namespace Irony.Parsing.Construction {
 
     private void FillOperatorReportGroup() {
       foreach(var group in _grammar.TermReportGroups)
-        if(group.GroupType == TermReportGroupType.Operator) {
+        if (group.GroupType == TermReportGroupType.Operator) {
           foreach(var term in _grammarData.Terminals)
             if (term.FlagIsSet(TermFlags.IsOperator))
               group.Terminals.Add(term); 
@@ -123,7 +123,7 @@ namespace Irony.Parsing.Construction {
     private void AssignWhitespaceAndDelimiters() {
       var delims = _grammar.Delimiters;
         //if it was not assigned by language creator, let's guess them
-      if(delims == null) {
+      if (delims == null) {
         delims = string.Empty;
         var commonDelims = ",;[](){}";  //chars usually used as delimiters in programming languages
         foreach(var delim in commonDelims) 
@@ -213,7 +213,7 @@ namespace Irony.Parsing.Construction {
           production.Flags |= ProductionFlags.HasTerminals;
           if (t.Category == TokenCategory.Error) production.Flags |= ProductionFlags.IsError;
         }
-        if(rv.FlagIsSet(TermFlags.IsPunctuation)) continue;
+        if (rv.FlagIsSet(TermFlags.IsPunctuation)) continue;
       }//foreach
       var lvalue = production.LValue;
       //Set IsListBuilder flag
@@ -277,9 +277,9 @@ namespace Irony.Parsing.Construction {
       var invalidTransSet = new NonTerminalSet();
       foreach(var nt in _grammarData.NonTerminals) {
         //Check that if CreateAst flag is set then AstNodeType or AstNodeCreator is assigned on all non-transient nodes.
-        if(createAst && nt.AstNodeCreator == null && nt.AstNodeType == null && !nt.FlagIsSet(TermFlags.NoAstNode))
+        if (createAst && nt.AstNodeCreator == null && nt.AstNodeType == null && !nt.FlagIsSet(TermFlags.NoAstNode))
           missingAstTypeSet.Add(nt);
-        if(nt.FlagIsSet(TermFlags.IsTransient)) {
+        if (nt.FlagIsSet(TermFlags.IsTransient)) {
           //List non-terminals cannot be marked transient - otherwise there may be some ambiguities and inconsistencies
           if (nt.FlagIsSet(TermFlags.IsList))
             _language.Errors.Add(GrammarErrorLevel.Error, null, Resources.ErrListCannotBeTransient, nt.Name);
@@ -289,7 +289,7 @@ namespace Irony.Parsing.Construction {
         }//if transient
         //Validate error productions
         foreach(var prod in nt.Productions)
-          if(prod.IsSet(ProductionFlags.IsError)) {
+          if (prod.IsSet(ProductionFlags.IsError)) {
             var lastTerm = prod.RValues[prod.RValues.Count -1];
             if (!(lastTerm is Terminal) || lastTerm == _grammar.SyntaxError)
               _language.Errors.Add(GrammarErrorLevel.Warning, null, Resources.ErrLastTermOfErrorProd, nt.Name);

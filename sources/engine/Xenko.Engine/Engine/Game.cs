@@ -6,12 +6,11 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Xenko.Audio;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
 using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization.Contents;
 using Xenko.Core.Storage;
-using Xenko.Audio;
 using Xenko.Engine.Design;
 using Xenko.Engine.Processors;
 using Xenko.Games;
@@ -104,17 +103,17 @@ namespace Xenko.Engine
         public SpriteAnimationSystem SpriteAnimation { get; }
 
         /// <summary>
-        /// Gets the game profiler system
+        /// Gets the game profiler system.
         /// </summary>
         public DebugTextSystem DebugTextSystem { get; }
 
         /// <summary>
-        /// Gets the game profiler system
+        /// Gets the game profiler system.
         /// </summary>
         public GameProfilingSystem ProfilingSystem { get; }
 
         /// <summary>
-        /// Gets the VR Device System
+        /// Gets the VR Device System.
         /// </summary>
         public VRDeviceSystem VRDeviceSystem { get; }
 

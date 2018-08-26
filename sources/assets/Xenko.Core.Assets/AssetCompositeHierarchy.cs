@@ -85,6 +85,7 @@ namespace Xenko.Core.Assets
 
         /// <inheritdoc />
         [NotNull]
+        [Obsolete("The AssetPart struct might be removed soon")]
         public override IEnumerable<AssetPart> CollectParts()
         {
             return Hierarchy.Parts.Values.Select(x => new AssetPart(x.Part.Id, x.Base, newBase => x.Base = newBase));

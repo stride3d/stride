@@ -30,7 +30,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Displays in portrait mode.
         /// </summary>
-        Portrait = DisplayOrientation.Portrait
+        Portrait = DisplayOrientation.Portrait,
     }
 
     public enum PreferredGraphicsPlatform
@@ -61,7 +61,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Vulkan
         /// </summary>
-        Vulkan
+        Vulkan,
     }
 
     [DataContract]

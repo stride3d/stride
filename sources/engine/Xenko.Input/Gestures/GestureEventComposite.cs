@@ -64,8 +64,8 @@ namespace Xenko.Input
             TotalRotation = totalAngle;
             DeltaScale = deltaScale;
             TotalScale = totalScale;
-            DeltaTranslation = currentCenter-lastCenter;
-            TotalTranslation = currentCenter-firstCenter;
+            DeltaTranslation = currentCenter - lastCenter;
+            TotalTranslation = currentCenter - firstCenter;
             CenterBeginningPosition = firstCenter;
             CenterCurrentPosition = currentCenter;
         }

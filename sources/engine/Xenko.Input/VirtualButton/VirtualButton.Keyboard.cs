@@ -897,7 +897,6 @@ namespace Xenko.Input
             /// </summary>
             public static readonly VirtualButton OemClear = new Keyboard("oemclear", (int)Keys.OemClear);
 
-
             protected Keyboard(string name, int id, bool isPositiveAndNegative = false)
                 : base(name, VirtualButtonType.Keyboard, id, isPositiveAndNegative)
             {

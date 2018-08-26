@@ -43,9 +43,9 @@ namespace Xenko.Assets.Presentation.SceneEditor
         /// <inheritdoc/>
         protected override void InitializeCore()
         {
-            perDrawData = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(MaterialFrontBackBlendShaderKeys.ColorFront.Name);
+            perDrawData = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(MaterialFrontBackBlendShaderKeys.ColorFront.Name);
 
-            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
+            renderEffectKey = ((RootEffectRenderFeature)rootRenderFeature).RenderEffectKey;
         }
 
         /// <inheritdoc/>
@@ -60,7 +60,7 @@ namespace Xenko.Assets.Presentation.SceneEditor
                 AlphaBlend = 0.1f * blendValue
             };
 
-            foreach (var renderNode in ((RootEffectRenderFeature)RootRenderFeature).RenderNodes)
+            foreach (var renderNode in ((RootEffectRenderFeature)rootRenderFeature).RenderNodes)
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
                 if (perDrawLayout == null)

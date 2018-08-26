@@ -21,7 +21,7 @@ namespace Xenko.Core.Collections
     public class FastList<T> : IList<T>, IReadOnlyList<T>, ICollection<T>, IEnumerable<T>, IEnumerable
     {
         // Fields
-        private const int _defaultCapacity = 4;
+        private const int DefaultCapacity = 4;
 
         /// <summary>
         /// Gets the items.
@@ -29,7 +29,7 @@ namespace Xenko.Core.Collections
         [DataMemberIgnore]
         public T[] Items { get; private set; }
 
-        private int _size;
+        private int size;
 
         public FastList()
         {
@@ -44,12 +44,12 @@ namespace Xenko.Core.Collections
                 var count = is2.Count;
                 Items = new T[count];
                 is2.CopyTo(Items, 0);
-                _size = count;
+                size = count;
             }
             else
             {
-                _size = 0;
-                Items = new T[_defaultCapacity];
+                size = 0;
+                Items = new T[DefaultCapacity];
                 using (var enumerator = collection.GetEnumerator())
                 {
                     while (enumerator.MoveNext())
@@ -75,9 +75,9 @@ namespace Xenko.Core.Collections
                     if (value > 0)
                     {
                         var destinationArray = new T[value];
-                        if (_size > 0)
+                        if (size > 0)
                         {
-                            Array.Copy(Items, 0, destinationArray, 0, _size);
+                            Array.Copy(Items, 0, destinationArray, 0, size);
                         }
                         Items = destinationArray;
                     }
@@ -93,17 +93,17 @@ namespace Xenko.Core.Collections
 
         public void Add(T item)
         {
-            if (_size == Items.Length)
+            if (size == Items.Length)
             {
-                EnsureCapacity(_size + 1);
+                EnsureCapacity(size + 1);
             }
-            Items[_size++] = item;
+            Items[size++] = item;
         }
 
         public void IncreaseCapacity(int index)
         {
-            EnsureCapacity(_size + index);
-            _size += index;
+            EnsureCapacity(size + index);
+            size += index;
         }
 
         public void Clear()
@@ -115,7 +115,7 @@ namespace Xenko.Core.Collections
         {
             if (item == null)
             {
-                for (var j = 0; j < _size; j++)
+                for (var j = 0; j < size; j++)
                 {
                     if (Items[j] == null)
                     {
@@ -125,7 +125,7 @@ namespace Xenko.Core.Collections
                 return false;
             }
             var comparer = EqualityComparer<T>.Default;
-            for (var i = 0; i < _size; i++)
+            for (var i = 0; i < size; i++)
             {
                 if (comparer.Equals(Items[i], item))
                 {
@@ -137,26 +137,26 @@ namespace Xenko.Core.Collections
 
         public void CopyTo(T[] array, int arrayIndex)
         {
-            Array.Copy(Items, 0, array, arrayIndex, _size);
+            Array.Copy(Items, 0, array, arrayIndex, size);
         }
 
         public int IndexOf(T item)
         {
-            return Array.IndexOf(Items, item, 0, _size);
+            return Array.IndexOf(Items, item, 0, size);
         }
 
         public void Insert(int index, T item)
         {
-            if (_size == Items.Length)
+            if (size == Items.Length)
             {
-                EnsureCapacity(_size + 1);
+                EnsureCapacity(size + 1);
             }
-            if (index < _size)
+            if (index < size)
             {
-                Array.Copy(Items, index, Items, index + 1, _size - index);
+                Array.Copy(Items, index, Items, index + 1, size - index);
             }
             Items[index] = item;
-            _size++;
+            size++;
         }
 
         public bool Remove(T item)
@@ -172,13 +172,13 @@ namespace Xenko.Core.Collections
 
         public void RemoveAt(int index)
         {
-            if (index < 0 || index >= _size) throw new ArgumentOutOfRangeException(nameof(index));
-            _size--;
-            if (index < _size)
+            if (index < 0 || index >= size) throw new ArgumentOutOfRangeException(nameof(index));
+            size--;
+            if (index < size)
             {
-                Array.Copy(Items, index + 1, Items, index, _size - index);
+                Array.Copy(Items, index + 1, Items, index, size - index);
             }
-            Items[_size] = default(T);
+            Items[size] = default(T);
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
@@ -191,18 +191,18 @@ namespace Xenko.Core.Collections
             return new Enumerator(this);
         }
 
-        public int Count => _size;
+        public int Count => size;
 
         public T this[int index]
         {
             get
             {
-                if (index < 0 || index >= _size) throw new ArgumentOutOfRangeException(nameof(index));
+                if (index < 0 || index >= size) throw new ArgumentOutOfRangeException(nameof(index));
                 return Items[index];
             }
             set
             {
-                if (index < 0 || index >= _size) throw new ArgumentOutOfRangeException(nameof(index));
+                if (index < 0 || index >= size) throw new ArgumentOutOfRangeException(nameof(index));
                 Items[index] = value;
             }
         }
@@ -222,21 +222,21 @@ namespace Xenko.Core.Collections
 
         public void Resize(int newSize, bool fastClear)
         {
-            if (_size < newSize)
+            if (size < newSize)
             {
                 EnsureCapacity(newSize);
             }
-            else if (!fastClear && _size - newSize > 0)
+            else if (!fastClear && size - newSize > 0)
             {
-                Array.Clear(Items, newSize, _size - newSize);
+                Array.Clear(Items, newSize, size - newSize);
             }
 
-            _size = newSize;
+            size = newSize;
         }
 
         public void AddRange([NotNull] IEnumerable<T> collection)
         {
-            InsertRange(_size, collection);
+            InsertRange(size, collection);
         }
 
         [NotNull]
@@ -274,7 +274,7 @@ namespace Xenko.Core.Collections
         {
             if (Items.Length < min)
             {
-                var num = (Items.Length == 0) ? _defaultCapacity : (Items.Length*2);
+                var num = (Items.Length == 0) ? DefaultCapacity : (Items.Length * 2);
                 if (num < min)
                 {
                     num = min;
@@ -285,12 +285,12 @@ namespace Xenko.Core.Collections
 
         public bool Exists(Predicate<T> match)
         {
-            return (FindIndex(match) != -1);
+            return FindIndex(match) != -1;
         }
 
         public T Find(Predicate<T> match)
         {
-            for (var i = 0; i < _size; i++)
+            for (var i = 0; i < size; i++)
             {
                 if (match(Items[i]))
                 {
@@ -304,7 +304,7 @@ namespace Xenko.Core.Collections
         public FastList<T> FindAll(Predicate<T> match)
         {
             var list = new FastList<T>();
-            for (var i = 0; i < _size; i++)
+            for (var i = 0; i < size; i++)
             {
                 if (match(Items[i]))
                 {
@@ -316,12 +316,12 @@ namespace Xenko.Core.Collections
 
         public int FindIndex(Predicate<T> match)
         {
-            return FindIndex(0, _size, match);
+            return FindIndex(0, size, match);
         }
 
         public int FindIndex(int startIndex, Predicate<T> match)
         {
-            return FindIndex(startIndex, _size - startIndex, match);
+            return FindIndex(startIndex, size - startIndex, match);
         }
 
         public int FindIndex(int startIndex, int count, Predicate<T> match)
@@ -339,7 +339,7 @@ namespace Xenko.Core.Collections
 
         public T FindLast(Predicate<T> match)
         {
-            for (var i = _size - 1; i >= 0; i--)
+            for (var i = size - 1; i >= 0; i--)
             {
                 if (match(Items[i]))
                 {
@@ -351,7 +351,7 @@ namespace Xenko.Core.Collections
 
         public int FindLastIndex(Predicate<T> match)
         {
-            return FindLastIndex(_size - 1, _size, match);
+            return FindLastIndex(size - 1, size, match);
         }
 
         public int FindLastIndex(int startIndex, Predicate<T> match)
@@ -374,7 +374,7 @@ namespace Xenko.Core.Collections
 
         public void ForEach(Action<T> action)
         {
-            for (var i = 0; i < _size; i++)
+            for (var i = 0; i < size; i++)
             {
                 action(Items[i]);
             }
@@ -390,13 +390,13 @@ namespace Xenko.Core.Collections
         {
             var list = new FastList<T>(count);
             Array.Copy(Items, index, list.Items, 0, count);
-            list._size = count;
+            list.size = count;
             return list;
         }
 
         public int IndexOf(T item, int index)
         {
-            return Array.IndexOf(Items, item, index, _size - index);
+            return Array.IndexOf(Items, item, index, size - index);
         }
 
         public int IndexOf(T item, int index, int count)
@@ -412,21 +412,21 @@ namespace Xenko.Core.Collections
                 var count = is2.Count;
                 if (count > 0)
                 {
-                    EnsureCapacity(_size + count);
-                    if (index < _size)
+                    EnsureCapacity(size + count);
+                    if (index < size)
                     {
-                        Array.Copy(Items, index, Items, index + count, _size - index);
+                        Array.Copy(Items, index, Items, index + count, size - index);
                     }
                     if (this == is2)
                     {
                         Array.Copy(Items, 0, Items, index, index);
-                        Array.Copy(Items, (index + count), Items, (index*2), (_size - index));
+                        Array.Copy(Items, index + count, Items, index * 2, size - index);
                     }
                     else
                     {
                         is2.CopyTo(Items, index);
                     }
-                    _size += count;
+                    size += count;
                 }
             }
             else
@@ -443,16 +443,16 @@ namespace Xenko.Core.Collections
 
         private static bool IsCompatibleObject(object value)
         {
-            return value is T || value == null && default(T) == null;
+            return value is T || (value == null && default(T) == null);
         }
 
         public int LastIndexOf(T item)
         {
-            if (_size == 0)
+            if (size == 0)
             {
                 return -1;
             }
-            return LastIndexOf(item, _size - 1, _size);
+            return LastIndexOf(item, size - 1, size);
         }
 
         public int LastIndexOf(T item, int index)
@@ -462,7 +462,7 @@ namespace Xenko.Core.Collections
 
         public int LastIndexOf(T item, int index, int count)
         {
-            if (_size == 0)
+            if (size == 0)
             {
                 return -1;
             }
@@ -472,29 +472,29 @@ namespace Xenko.Core.Collections
         public int RemoveAll(Predicate<T> match)
         {
             var index = 0;
-            while ((index < _size) && !match(Items[index]))
+            while ((index < size) && !match(Items[index]))
             {
                 index++;
             }
-            if (index >= _size)
+            if (index >= size)
             {
                 return 0;
             }
             var num2 = index + 1;
-            while (num2 < _size)
+            while (num2 < size)
             {
-                while ((num2 < _size) && match(Items[num2]))
+                while ((num2 < size) && match(Items[num2]))
                 {
                     num2++;
                 }
-                if (num2 < _size)
+                if (num2 < size)
                 {
                     Items[index++] = Items[num2++];
                 }
             }
-            Array.Clear(Items, index, _size - index);
-            var num3 = _size - index;
-            _size = index;
+            Array.Clear(Items, index, size - index);
+            var num3 = size - index;
+            size = index;
             return num3;
         }
 
@@ -502,12 +502,12 @@ namespace Xenko.Core.Collections
         {
             if (count > 0)
             {
-                _size -= count;
-                if (index < _size)
+                size -= count;
+                if (index < size)
                 {
-                    Array.Copy(Items, index + count, Items, index, _size - index);
+                    Array.Copy(Items, index + count, Items, index, size - index);
                 }
-                Array.Clear(Items, _size, count);
+                Array.Clear(Items, size, count);
             }
         }
 
@@ -548,23 +548,23 @@ namespace Xenko.Core.Collections
         [NotNull]
         public T[] ToArray()
         {
-            var destinationArray = new T[_size];
-            Array.Copy(Items, 0, destinationArray, 0, _size);
+            var destinationArray = new T[size];
+            Array.Copy(Items, 0, destinationArray, 0, size);
             return destinationArray;
         }
 
         public void TrimExcess()
         {
-            var num = (int) (Items.Length*0.9);
-            if (_size < num)
+            var num = (int)(Items.Length * 0.9);
+            if (size < num)
             {
-                Capacity = _size;
+                Capacity = size;
             }
         }
 
         public bool TrueForAll(Predicate<T> match)
         {
-            for (var i = 0; i < _size; i++)
+            for (var i = 0; i < size; i++)
             {
                 if (!match(Items[i]))
                 {
@@ -573,10 +573,6 @@ namespace Xenko.Core.Collections
             }
             return true;
         }
-
-        // Properties
-
-        // Nested Types
 
         #region Nested type: Enumerator
 
@@ -601,7 +597,7 @@ namespace Xenko.Core.Collections
             public bool MoveNext()
             {
                 var list = this.list;
-                if (index < list._size)
+                if (index < list.size)
                 {
                     current = list.Items[index];
                     index++;
@@ -612,7 +608,7 @@ namespace Xenko.Core.Collections
 
             private bool MoveNextRare()
             {
-                index = list._size + 1;
+                index = list.size + 1;
                 current = default(T);
                 return false;
             }

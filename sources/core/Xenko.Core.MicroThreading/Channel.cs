@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 
 namespace Xenko.Core.MicroThreading
 {
-    // TODO: Thread-safety
     /// <summary>
     /// Provides a communication mechanism between <see cref="MicroThread"/>.
     /// </summary>
@@ -14,11 +13,12 @@ namespace Xenko.Core.MicroThreading
     /// <see cref="MicroThread"/> can send and receive to a <see cref="Channel"/>. Depending on the <see cref="Channel.Preference"/>,
     /// sending or receiving <see cref="MicroThread"/> might be suspended and yield execution to another <see cref="MicroThread"/>.
     /// </remarks>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of element handled by this channel.</typeparam>
+    // TODO: Thread-safety
     public class Channel<T>
     {
-        Queue<ChannelMicroThreadAwaiter<T>> receivers = new Queue<ChannelMicroThreadAwaiter<T>>();
-        Queue<ChannelMicroThreadAwaiter<T>> senders = new Queue<ChannelMicroThreadAwaiter<T>>();
+        private readonly Queue<ChannelMicroThreadAwaiter<T>> receivers = new Queue<ChannelMicroThreadAwaiter<T>>();
+        private readonly Queue<ChannelMicroThreadAwaiter<T>> senders = new Queue<ChannelMicroThreadAwaiter<T>>();
         
         public Channel()
         {

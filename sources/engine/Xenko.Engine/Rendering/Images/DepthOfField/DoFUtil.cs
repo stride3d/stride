@@ -11,7 +11,7 @@ namespace Xenko.Rendering.Images
     /// <summary>
     /// Some util function relevant to the depth-of-field effect.
     /// </summary>
-    class DoFUtil
+    internal class DoFUtil
     {
         /// <summary>
         /// Creates an array with uniform weight along one direction of the blur. 

@@ -29,15 +29,15 @@ namespace Xenko.Audio
         private TimeSpan mediaCurrentTime;
         private TimeSpan commandSeekTime;
 
-        private int SentBuffersCount = 0;
-        private int AccumulatedSentBytesCount = 0;
+        private int sentBuffersCount = 0;
+        private int accumulatedSentBytesCount = 0;
 
         private float byteRatePerSecond; //bytes per second
 
         /// <summary>
         /// Temporary buffers for accumulating the data we're extracting before sending them to the AudioLayer
         /// </summary>
-        private AudioDataStorageBuffer StorageBuffer = new AudioDataStorageBuffer();
+        private AudioDataStorageBuffer storageBuffer = new AudioDataStorageBuffer();
 
         private volatile bool isEof;
         private bool beginningOfStream;
@@ -71,7 +71,7 @@ namespace Xenko.Audio
 
         public override int MaxNumberOfBuffers => NumberOfBuffers;
 
-        public new bool IsDisposed => base.IsDisposed;
+        public bool IsDisposed => isDisposed;
 
         public float SpeedFactor { get; set; } = 1f;
 
@@ -198,18 +198,18 @@ namespace Xenko.Audio
         /// </summary>
         protected override void SeekInternal()
         {
-            StorageBuffer.CountDataBytes = 0;
+            storageBuffer.CountDataBytes = 0;
 
             //To set the begin flag to true
             PrepareInternal();
             MediaCurrentTime = mediaCurrentTimeMax = TimeSpan.Zero;
 
             //Seek
-            AudioLayer.SourceFlushBuffers(SoundInstance.Source);
+            AudioLayer.SourceFlushBuffers(soundInstance.Source);
             SeekInternalImpl(commandSeekTime);
         }
-        partial void SeekInternalImpl(TimeSpan seekTimeUs);
 
+        partial void SeekInternalImpl(TimeSpan seekTimeUs);
 
         protected override void ExtractAndFillData()
         {
@@ -217,7 +217,7 @@ namespace Xenko.Audio
             if (ExtractSomeAudioData(out var endOfFile))
             {
                 //Can we flush the storage buffer?
-                if (StorageBuffer.CountDataBytes >= MinBufferSizeBytesBeforeFlushingStorageBuffer)
+                if (storageBuffer.CountDataBytes >= MinBufferSizeBytesBeforeFlushingStorageBuffer)
                 {
                     var bufferType = AudioLayer.BufferType.None;
 
@@ -229,7 +229,7 @@ namespace Xenko.Audio
                     //We don't use an enfOfLoop or endOfStream type: we don't know what the mediaScheduler will ask us to do when we arrive at the end
 
                     SendExtractedAudioDataToAudioBuffer(bufferType);
-                    StorageBuffer.CountDataBytes = 0;
+                    storageBuffer.CountDataBytes = 0;
 
                     if (mediaSynchronizer.IsWaitingForSynchronization())
                         seekRequestCompleted = true;
@@ -252,18 +252,18 @@ namespace Xenko.Audio
         {
             {
                 //Update the average number of bytes per buffer
-                SentBuffersCount++;
-                AccumulatedSentBytesCount += StorageBuffer.CountDataBytes;
-                var countAverageBytesPerBuffer = (AccumulatedSentBytesCount / SentBuffersCount);
-                if (SentBuffersCount >= 10000)
+                sentBuffersCount++;
+                accumulatedSentBytesCount += storageBuffer.CountDataBytes;
+                var countAverageBytesPerBuffer = (accumulatedSentBytesCount / sentBuffersCount);
+                if (sentBuffersCount >= 10000)
                 {
                     //To prevent overflow
-                    SentBuffersCount = 10;
-                    AccumulatedSentBytesCount = countAverageBytesPerBuffer * SentBuffersCount;
+                    sentBuffersCount = 10;
+                    accumulatedSentBytesCount = countAverageBytesPerBuffer * sentBuffersCount;
                 }
 
                 //new buffer's estimated time
-                var bufferDuration = TimeSpan.FromSeconds(StorageBuffer.CountDataBytes / byteRatePerSecond);
+                var bufferDuration = TimeSpan.FromSeconds(storageBuffer.CountDataBytes / byteRatePerSecond);
 
                 //compute an estimate of the time left before this new buffer can be played
                 var playTimeLeft = TimeSpan.FromSeconds((NumberOfBuffers - freeBuffers.Count) * countAverageBytesPerBuffer / byteRatePerSecond);
@@ -272,17 +272,17 @@ namespace Xenko.Audio
                 //This could help us debug in the case of the audio timeFrame is incorrect
 
                 var currentTime = MediaCurrentTime;
-                var mediaCurrentTimeMin = StorageBuffer.PresentationTime - playTimeLeft;
-                mediaCurrentTimeMax = StorageBuffer.PresentationTime + bufferDuration;
+                var mediaCurrentTimeMin = storageBuffer.PresentationTime - playTimeLeft;
+                mediaCurrentTimeMax = storageBuffer.PresentationTime + bufferDuration;
 
                 //A buffer was being played, so we expect the currentTime to be between [min, bufferStartingTime]
-                if (currentTime > mediaCurrentTimeMin && mediaCurrentTimeMin < StorageBuffer.PresentationTime)
+                if (currentTime > mediaCurrentTimeMin && mediaCurrentTimeMin < storageBuffer.PresentationTime)
                     mediaCurrentTimeMin = MediaCurrentTime;
 
                 MediaCurrentTime = mediaCurrentTimeMin;
             }
 
-            FillBuffer(StorageBuffer.Data, StorageBuffer.CountDataBytes, bufferType);
+            FillBuffer(storageBuffer.Data, storageBuffer.CountDataBytes, bufferType);
         }
     }
 }

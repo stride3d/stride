@@ -14,7 +14,9 @@ namespace Xenko.VirtualReality
         private int controllerIndex = -1;
         private OpenVR.Controller controller;
         private DeviceState internalState;
-        private Vector3 currentPos, currentLinearVelocity, currentAngularVelocity;
+        private Vector3 currentPos;
+        private Vector3 currentLinearVelocity;
+        private Vector3 currentAngularVelocity;
         private Quaternion currentRot;
 
         internal OpenVRTouchController(TouchControllerHand hand)
@@ -71,6 +73,8 @@ namespace Xenko.VirtualReality
         public override bool ThumbResting => controller?.GetTouch(OpenVR.Controller.ButtonId.ButtonSteamVrTouchpad) ?? false;
 
         public override Vector2 ThumbAxis => controller?.GetAxis() ?? Vector2.Zero;
+
+        public override Vector2 ThumbstickAxis => controller?.GetAxis() ?? Vector2.Zero;
 
         private OpenVR.Controller.ButtonId ToOpenVrButton(TouchControllerButton button)
         {

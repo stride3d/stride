@@ -7,9 +7,8 @@ using Xenko.Core;
 using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
-using Xenko.Games;
-using Xenko.Rendering;
 using Xenko.Media;
+using Xenko.Rendering;
 
 namespace Xenko.Audio
 {
@@ -22,7 +21,7 @@ namespace Xenko.Audio
     /// When a new emitter or a new listener is added to the system, its creates the required SoundInstances and associate them with the new emitter/listener tuples.
     /// </para> 
     /// </remarks>
-    public class AudioEmitterProcessor: EntityProcessor<AudioEmitterComponent, AudioEmitterProcessor.AssociatedData>
+    public class AudioEmitterProcessor : EntityProcessor<AudioEmitterComponent, AudioEmitterProcessor.AssociatedData>
     {
         /// <summary>
         /// Reference to the audioSystem.
@@ -75,7 +74,7 @@ namespace Xenko.Audio
             return new AssociatedData
             {
                 AudioEmitterComponent = component,
-                TransformComponent = entity.Transform
+                TransformComponent = entity.Transform,
             };
         }
 
@@ -119,7 +118,7 @@ namespace Xenko.Audio
         {
             foreach (var associatedData in ComponentDatas.Values)
             {
-                if(!associatedData.AudioEmitterComponent.Enabled)
+                if (!associatedData.AudioEmitterComponent.Enabled)
                 {
                     if (associatedData.IsPlaying)
                     {
@@ -236,7 +235,7 @@ namespace Xenko.Audio
 
         private void OnListenerCollectionChanged(object o, TrackingCollectionChangedEventArgs args)
         {
-            if (!args.CollectionChanged)// no keys have been added or removed, only one of the values changed
+            if (!args.CollectionChanged) // no keys have been added or removed, only one of the values changed
                 return;
             
             // A listener have been Added or Removed. 
@@ -248,7 +247,7 @@ namespace Xenko.Audio
 
                 foreach (var soundController in soundControllers)
                 {
-                    if (args.Action == NotifyCollectionChangedAction.Add)   // A new listener have been added
+                    if (args.Action == NotifyCollectionChangedAction.Add) // A new listener have been added
                     {
                         soundController.CreateSoundInstance((AudioListenerComponent)args.Key, false);
                     }
@@ -271,7 +270,7 @@ namespace Xenko.Audio
                 {
                     args.Controller.CreateSoundInstance(listener, false);
                 }
-                else if(args.Action == NotifyCollectionChangedAction.Remove )
+                else if (args.Action == NotifyCollectionChangedAction.Remove)
                 {
                     args.Controller.DestroySoundInstances(listener);
                 }

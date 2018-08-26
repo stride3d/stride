@@ -53,7 +53,7 @@ namespace Xenko.Graphics
             CurrentState = pipelineState;
         }
 
-        class MutablePipelineStateCache : IDisposable
+        private class MutablePipelineStateCache : IDisposable
         {
             public readonly Dictionary<PipelineStateDescriptionWithHash, PipelineState> Cache = new Dictionary<PipelineStateDescriptionWithHash, PipelineState>();
 

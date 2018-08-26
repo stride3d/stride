@@ -33,8 +33,8 @@ Example of use:
   -->
   <Target Name="Package">
     <ItemGroup>
-        <FilesToDeletePackage Include="$(MSBuildThisFileDirectory)Xenko.??.*.nupkg"/>
-    </ItemGroup>    
+        <FilesToDeletePackage Include="$(MSBuildThisFileDirectory)Xenko.?.*.nupkg"/>
+    </ItemGroup>
     
     <Delete Files="@(FilesToDeletePackage)"/>
     <PackageArchiveTask File="$(XenkoPackage)"/>
@@ -47,7 +47,7 @@ Example of use:
   -->
   <Target Name="VSIXPlugin" DependsOnTargets="RestoreWindows">
     <ItemGroup>
-      <FilesToDeleteVSIX Include="$(MSBuildThisFileDirectory)Xenko.VisualStudio.Package.??.*.nupkg"/>
+      <FilesToDeleteVSIX Include="$(MSBuildThisFileDirectory)Xenko.VisualStudio.Package.*.nupkg"/>
     </ItemGroup>
 
     <Delete Files="@(FilesToDeleteVSIX)"/>
@@ -81,7 +81,7 @@ Example of use:
   <Target Name="Publish">
     <Error Condition="'$(XenkoStoreApiKey)' == ''" Text="Missing env variable XenkoStoreApiKey"/>
     <!-- Waiting 30min in case NuGet.Gallery/Server takes time to process -->
-    <Exec Command='"$(NuGetPath)" push Xenko.??.*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -Timeout 1800 '/>
+    <Exec Command='"$(NuGetPath)" push Xenko.?.*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -Timeout 1800 '/>
   </Target>
 
   <!--
@@ -89,7 +89,7 @@ Example of use:
   -->
   <Target Name="PublishVSIX">
     <Error Condition="'$(XenkoStoreApiKey)' == ''" Text="Missing env variable XenkoStoreApiKey"/>
-    <Exec Command='"$(NuGetPath)" push Xenko.VisualStudio.Package.??.*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) "'/>
+    <Exec Command='"$(NuGetPath)" push Xenko.VisualStudio.Package.*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) "'/>
   </Target>
   
   <!--

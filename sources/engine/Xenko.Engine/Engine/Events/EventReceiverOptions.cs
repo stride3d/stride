@@ -15,10 +15,11 @@ namespace Xenko.Engine.Events
         /// If no flags are present only the most recent event will be buffered
         /// </summary>
         None,
+
         /// <summary>
         /// If this flag is present the events will be buffered into a queue,
         /// receivers might decide to consume at any pace they wish as long as they consume them at some point
         /// </summary>
-        Buffered = 1 << 0
+        Buffered = 1 << 0,
     }
 }

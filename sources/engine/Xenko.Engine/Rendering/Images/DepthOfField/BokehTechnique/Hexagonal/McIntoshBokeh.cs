@@ -90,7 +90,6 @@ namespace Xenko.Rendering.Images
         // Naive approach: 4 passes. (Reference version)
         private void DrawCoreNaive(RenderDrawContext context)
         {
-
             var originalTexture = GetSafeInput(0);
             var outputTexture = GetSafeOutput(0);
 
@@ -159,7 +158,7 @@ namespace Xenko.Rendering.Images
             directionalBlurEffect.Draw((RenderDrawContext)context, "McIntoshBokehPass1_tap{0}_radius{1}", tapNumber, (int)Radius);
 
             // Calculates the 2 diagonal blurs and keep the min of them
-            var diagonalBlurAngleA =  MathUtil.Pi / 3f + Phase;
+            var diagonalBlurAngleA = +MathUtil.Pi / 3f + Phase;
             var diagonalBlurAngleB = -MathUtil.Pi / 3f + Phase;
             optimizedEffect.SetInput(0, firstBlurTexture);
             optimizedEffect.SetOutput(outputTexture);
@@ -174,6 +173,5 @@ namespace Xenko.Rendering.Images
             optimizedEffect.Parameters.Set(DepthAwareDirectionalBlurUtilKeys.TapWeights.ComposeWith("directionalBlurB"), tapWeights);
             optimizedEffect.Draw((RenderDrawContext)context, "McIntoshBokehPass2_BlurABCombine_tap{0}_radius{1}", tapNumber, (int)Radius);
         }
-
     }
 }

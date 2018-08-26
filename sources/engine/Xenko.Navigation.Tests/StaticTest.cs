@@ -46,7 +46,7 @@ namespace Xenko.Navigation.Tests
             entityB.Add(controllerB = new PlayerController());
 
             var dynamicNavigation = (DynamicNavigationMeshSystem)GameSystems.FirstOrDefault(x => x is DynamicNavigationMeshSystem);
-            if(dynamicNavigation != null)
+            if (dynamicNavigation != null)
                 dynamicNavigation.Enabled = false;
 
             Script.AddTask(RunAsyncTests);

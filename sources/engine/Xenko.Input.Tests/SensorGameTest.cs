@@ -197,7 +197,7 @@ namespace Xenko.Input.Tests
                 case DebugScenes.Orientation:
                     break;
                 case DebugScenes.UserAccel:
-                    if(Input.UserAcceleration != null)
+                    if (Input.UserAcceleration != null)
                         vector = Input.UserAcceleration.Acceleration;
                     break;
                 case DebugScenes.Gravity:

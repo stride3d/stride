@@ -31,8 +31,8 @@ namespace Xenko.Navigation
             public float WalkableHeight;
             public float WalkableRadius;
             public float WalkableClimb;
-            public fixed float Bmin [3];
-            public fixed float Bmax [3];
+            public fixed float Bmin[3];
+            public fixed float Bmax[3];
             public float BvQuantFactor;
         }
 
@@ -84,7 +84,7 @@ namespace Xenko.Navigation
             public Vector3 Target;
             public Vector3 FindNearestPolyExtent;
             public int MaxPathPoints;
-        };
+        }
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public struct PathFindResult
@@ -97,7 +97,7 @@ namespace Xenko.Navigation
             public IntPtr PathPoints;
 
             public int NumPathPoints;
-        };
+        }
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public struct RaycastQuery
@@ -106,7 +106,7 @@ namespace Xenko.Navigation
             public Vector3 Target;
             public Vector3 FindNearestPolyExtent;
             public int MaxPathPoints;
-        };
+        }
 
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public struct RaycastResult
@@ -114,7 +114,7 @@ namespace Xenko.Navigation
             public bool Hit;
             public Vector3 Position;
             public Vector3 Normal;
-        };
+        }
 
         static Navigation()
         {

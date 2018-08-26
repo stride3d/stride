@@ -10,7 +10,6 @@ namespace Xenko.Graphics
     /// </remarks>
     public enum SpriteSortMode
     {
-
         /// <summary>
         /// Sprites are not drawn until End is called. 
         /// End will apply graphics device settings and draw all the sprites in one batch, in the same order calls to Draw were received. 
@@ -37,5 +36,5 @@ namespace Xenko.Graphics
         /// Same as Deferred mode, except sprites are sorted by depth in front-to-back order prior to drawing. This procedure is recommended when drawing opaque sprites of varying depths.
         /// </summary>
         FrontToBack,
-    };
+    }
 }

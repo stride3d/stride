@@ -72,9 +72,9 @@ namespace Xenko.Rendering.Materials.ComputeColors
         public override IEnumerable<IComputeNode> GetChildren(object context = null)
         {
             if (LeftChild != null)
-            	yield return LeftChild;
+                yield return LeftChild;
             if (RightChild != null)
-           	    yield return RightChild;
+                yield return RightChild;
         }
 
         private const string BackgroundCompositionName = "color1";

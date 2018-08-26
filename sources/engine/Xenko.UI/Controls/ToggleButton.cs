@@ -111,7 +111,7 @@ namespace Xenko.UI.Controls
             get { return isThreeState; }
             set
             {
-                if(value == false && State == ToggleState.Indeterminate)
+                if (value == false && State == ToggleState.Indeterminate)
                     GoToNextState();
 
                 isThreeState = value;
@@ -131,7 +131,7 @@ namespace Xenko.UI.Controls
             get { return state; } 
             set
             {
-                if(state == value)
+                if (state == value)
                     return;
 
                 state = value;

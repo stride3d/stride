@@ -1,21 +1,11 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 
 namespace Xenko.Rendering.Compositing
 {
-    public interface ISceneRenderer : IRenderCollector, IGraphicsRenderer
-    {
-    }
-
-    public interface ISharedRenderer : IIdentifiable, IGraphicsRendererBase
-    {
-        string Name { get; }
-    }
-
     /// <summary>
     /// Describes the code part of a <see cref="GraphicsCompositor"/>.
     /// </summary>

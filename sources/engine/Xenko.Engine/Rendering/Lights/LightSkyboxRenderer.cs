@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
-using Xenko.Rendering.Skyboxes;
 using Xenko.Graphics;
-using Xenko.Rendering.Shadows;
+using Xenko.Rendering.Skyboxes;
 using Xenko.Shaders;
 
 namespace Xenko.Rendering.Lights
@@ -163,7 +162,6 @@ namespace Xenko.Rendering.Lights
                 parameters.Set(sphericalColorsKey, sphericalColors);
                 parameters.Set(specularCubeMapkey, specularCubemap);
                 parameters.Set(specularMipCountKey, specularCubemapLevels);
-
             }
         }
     }

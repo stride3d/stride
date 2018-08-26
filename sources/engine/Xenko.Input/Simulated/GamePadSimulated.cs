@@ -22,18 +22,18 @@ namespace Xenko.Input
         public override Guid ProductId { get; }
         public override GamePadState State { get; }
 
-        private List<InputEvent> PendingEvents = new List<InputEvent>();
+        private List<InputEvent> pendingEvents = new List<InputEvent>();
 
         public void SetButton(GamePadButton button, bool state)
         {
             // Check for only 1 bit
-            if((button & (button-1)) != 0)
+            if ((button & (button - 1)) != 0)
                 throw new InvalidOperationException("Can not set more than one button at a time");
 
             var buttonEvent = InputEventPool<GamePadButtonEvent>.GetOrCreate(this);
             buttonEvent.Button = button;
             buttonEvent.IsDown = state;
-            PendingEvents.Add(buttonEvent);
+            pendingEvents.Add(buttonEvent);
         }
 
         public void SetAxis(GamePadAxis axis, float value)
@@ -41,24 +41,24 @@ namespace Xenko.Input
             var axisEvent = InputEventPool<GamePadAxisEvent>.GetOrCreate(this);
             axisEvent.Axis = axis;
             axisEvent.Value = value;
-            PendingEvents.Add(axisEvent);
+            pendingEvents.Add(axisEvent);
         }
 
         public override void Update(List<InputEvent> inputEvents)
         {
             ClearButtonStates();
 
-            foreach (var evt in PendingEvents)
+            foreach (var evt in pendingEvents)
             {
                 State.Update(evt);
 
                 var buttonEvent = evt as GamePadButtonEvent;
-                if(buttonEvent != null)
+                if (buttonEvent != null)
                     UpdateButtonState(buttonEvent);
             }
 
-            inputEvents.AddRange(PendingEvents);
-            PendingEvents.Clear();
+            inputEvents.AddRange(pendingEvents);
+            pendingEvents.Clear();
         }
 
         public override void SetVibration(float smallLeft, float smallRight, float largeLeft, float largeRight)

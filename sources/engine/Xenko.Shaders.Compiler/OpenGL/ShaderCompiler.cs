@@ -79,7 +79,7 @@ namespace Xenko.Shaders.Compiler.OpenGL
             if (shader == null)
                 return shaderBytecodeResult;
 
-            if(effectParameters.Platform == GraphicsPlatform.OpenGLES)      // TODO: Add check to run on android only. The current version breaks OpenGL ES on windows.
+            if (effectParameters.Platform == GraphicsPlatform.OpenGLES)      // TODO: Add check to run on android only. The current version breaks OpenGL ES on windows.
             { 
                 //TODO: Remove this ugly hack!
                 if (shaderSource.Contains($"Texture2D XenkoInternal_TextureExt0") && shader.Contains("uniform sampler2D"))

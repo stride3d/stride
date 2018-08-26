@@ -135,7 +135,6 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Xenko.Shared\Refactor\Refactor.cs" />
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="AudioTestGame.cs" />
     <Compile Include="BasicTest.cs" />

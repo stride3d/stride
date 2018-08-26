@@ -20,7 +20,7 @@ namespace Xenko.Rendering.Lights
         {
             Shadow = new LightDirectionalShadowMap
             {
-                Size = LightShadowMapSize.Large
+                Size = LightShadowMapSize.Large,
             };
         }
 

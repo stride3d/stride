@@ -184,7 +184,7 @@ namespace Xenko.Core.Shaders.Ast.Hlsl
             return !Equals(left, right);
         }
 
-        private readonly static Regex MatchSemanticName = new Regex(@"([A-Za-z_]+)(\d*)");
+        private static readonly Regex MatchSemanticName = new Regex(@"([A-Za-z_]+)(\d*)");
 
         #endregion
     }

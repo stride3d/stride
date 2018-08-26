@@ -21,6 +21,6 @@ namespace Xenko.Core
         /// <summary>
         /// The compact style (style embraced by [] or {})
         /// </summary>
-        Compact
+        Compact,
     }
 }

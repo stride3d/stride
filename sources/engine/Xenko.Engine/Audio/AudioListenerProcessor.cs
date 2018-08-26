@@ -63,7 +63,7 @@ namespace Xenko.Audio
         {
             foreach (var listenerData in ComponentDatas.Values)
             {
-                if(!listenerData.Enabled)  // skip all updates if the listener is not used.
+                if (!listenerData.Enabled) // skip all updates if the listener is not used.
                     continue;
 
                 var listener = listenerData.Listener;

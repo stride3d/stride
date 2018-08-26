@@ -17,7 +17,7 @@ namespace Xenko.Graphics.Regression
 {
     public class GameTester
     {
-        public readonly static Logger Logger = GlobalLogger.GetLogger("GameTester");
+        public static readonly Logger Logger = GlobalLogger.GetLogger("GameTester");
 
         private static object uniThreadLock = new object();
 

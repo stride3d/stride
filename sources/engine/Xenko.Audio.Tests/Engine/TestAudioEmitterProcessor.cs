@@ -415,7 +415,7 @@ namespace Xenko.Audio.Tests.Engine
 
             //    soundControllers[2].Play();
             //}
-            //else if(soundControllers[0].PlayState == SoundPlayState.Playing)
+            //else if (soundControllers[0].PlayState == SoundPlayState.Playing)
             //{
             //    // check that both emitters are updated.
             //    CheckEmittersValues(true, true, matchingEntities, loopCount);

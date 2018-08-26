@@ -28,7 +28,8 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #endregion
-
+#pragma warning disable SA1309 // Field names must not begin with underscore
+#pragma warning disable SA1311 // Static readonly fields must begin with upper-case letter
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -64,7 +65,9 @@ namespace Xenko.Core.LZ4
 
         #region initialization
 
-        /// <summary>Initializes the <see cref="LZ4Codec"/> class.</summary>
+        /// <summary>
+        /// Initializes static members of the <see cref="LZ4Codec"/> class.
+        /// </summary>
         static LZ4Codec()
         {
             // NOTE: this method exploits the fact that assemblies are loaded first time they
@@ -108,7 +111,7 @@ namespace Xenko.Core.LZ4
         /// <typeparam name="T">Concrete <seealso cref="ILZ4Service"/> type.</typeparam>
         /// <returns>A service if succeeded or <c>null</c> if it failed.</returns>
         private static ILZ4Service Try<T>()
-            where T: ILZ4Service, new()
+            where T : ILZ4Service, new()
         {
             try
             {
@@ -215,7 +218,7 @@ namespace Xenko.Core.LZ4
         /// <returns>Output length.</returns>
         public static int MaximumOutputLength(int inputLength)
         {
-            return inputLength + (inputLength/255) + 16;
+            return inputLength + (inputLength / 255) + 16;
         }
 
         #region Encode

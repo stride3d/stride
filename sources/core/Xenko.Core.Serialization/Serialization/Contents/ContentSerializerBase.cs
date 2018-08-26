@@ -10,10 +10,10 @@ namespace Xenko.Core.Serialization.Contents
     /// <summary>
     /// Base class for Content Serializer with empty virtual implementation.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">Runtime type being serialized.</typeparam>
     public class ContentSerializerBase<T> : IContentSerializer<T>
     {
-        static readonly bool hasParameterlessConstructor = typeof(T).GetTypeInfo().DeclaredConstructors.Any(x => !x.IsStatic && x.IsPublic && !x.GetParameters().Any());
+        private static readonly bool HasParameterlessConstructor = typeof(T).GetTypeInfo().DeclaredConstructors.Any(x => !x.IsStatic && x.IsPublic && !x.GetParameters().Any());
 
         /// <inheritdoc/>
         public virtual Type SerializationType
@@ -30,7 +30,7 @@ namespace Xenko.Core.Serialization.Contents
         /// <inheritdoc/>
         public virtual object Construct(ContentSerializerContext context)
         {
-            return hasParameterlessConstructor ? Activator.CreateInstance<T>() : default(T);
+            return HasParameterlessConstructor ? Activator.CreateInstance<T>() : default(T);
         }
 
         /// <inheritdoc/>

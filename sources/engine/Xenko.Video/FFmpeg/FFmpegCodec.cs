@@ -4,11 +4,11 @@
 #if XENKO_VIDEO_FFMPEG
 
 using System;
-using FFmpeg.AutoGen;
-using System.Runtime.InteropServices;
 using System.Collections.Generic;
-using Xenko.Graphics;
+using System.Runtime.InteropServices;
+using FFmpeg.AutoGen;
 using Xenko.Core.Diagnostics;
+using Xenko.Graphics;
 
 #if XENKO_GRAPHICS_API_DIRECT3D11
 using SharpDX.Direct3D11;
@@ -138,7 +138,7 @@ namespace Xenko.Video.FFmpeg
             }
 
             // Setup hardware acceleration context
-            //if(IsHardwareAccelerated)
+            //if (IsHardwareAccelerated)
             //    CreateHarwareAccelerationContext(graphcsDevice, pCodecContext, pCodec);
 
             if ((pCodec->capabilities & ffmpeg.AV_CODEC_CAP_TRUNCATED) == ffmpeg.AV_CODEC_CAP_TRUNCATED)
@@ -172,7 +172,7 @@ namespace Xenko.Video.FFmpeg
                     Guid = profile,
                     SampleWidth = pAVCodecContext->width,
                     SampleHeight = pAVCodecContext->height,
-                    OutputFormat = DecoderOuputFormat
+                    OutputFormat = DecoderOuputFormat,
                 };
 
                 videoDevice.GetVideoDecoderConfigCount(ref videoDecoderDescription, out var configCount);
@@ -191,7 +191,7 @@ namespace Xenko.Video.FFmpeg
                     {
                         DecodeProfile = profile,
                         Dimension = VdovDimension.Texture2D,
-                        Texture2D = new Texture2DVdov { ArraySlice = 0 }
+                        Texture2D = new Texture2DVdov { ArraySlice = 0, },
                     };
                     DecoderOutputTexture = Texture.New2D(graphicsDevice, pAVCodecContext->width, pAVCodecContext->height, (PixelFormat)DecoderOuputFormat, TextureFlags.RenderTarget | TextureFlags.ShaderResource);
                     videoDevice.CreateVideoDecoderOutputView(DecoderOutputTexture.NativeResource, ref videoDecoderOutputViewDescription, out videoHardwareDecoderView);
@@ -222,7 +222,7 @@ namespace Xenko.Video.FFmpeg
 
         private static IEnumerable<Guid> FindVideoFormatCompatibleProfiles(VideoDevice videoDevice, AVCodec codec)
         {
-            for(var i=0; i<videoDevice.VideoDecoderProfileCount; ++i)
+            for (var i = 0; i < videoDevice.VideoDecoderProfileCount; ++i)
             {
                 videoDevice.GetVideoDecoderProfile(i, out var profile);
 
@@ -254,7 +254,9 @@ namespace Xenko.Video.FFmpeg
             }
             else
             {
-                while (ffmpeg.avcodec_receive_frame(pAVCodecContext, pFrame) >= 0) ;
+                while (ffmpeg.avcodec_receive_frame(pAVCodecContext, pFrame) >= 0)
+                {
+                }
             }
 
             if (pAVCodecContext != null)

@@ -73,7 +73,7 @@ namespace Xenko.Animations
         /// <inheritdoc/>
         public T Evaluate(float location)
         {
-            var value = amplitude * (float)Math.Sin(2 * Math.PI * (phaseShift + location/period));
+            var value = amplitude * (float)Math.Sin(2 * Math.PI * (phaseShift + location / period));
             return GetElementFrom(value);
         }
     }

@@ -11,7 +11,7 @@ namespace Xenko.Core.IO
     /// </ul>
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-    class NamespaceDoc
+    internal class NamespaceDoc
     {
     }
 }

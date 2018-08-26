@@ -29,8 +29,6 @@
 using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using System.ComponentModel;
-using Xenko.Core.Serialization;
 
 namespace Xenko.Core.Mathematics
 {
@@ -57,7 +55,7 @@ namespace Xenko.Core.Mathematics
         public float Radius;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Xenko.Core.Mathematics.BoundingBox"/> struct.
+        /// Initializes a new instance of the <see cref="BoundingSphere"/> struct.
         /// </summary>
         /// <param name="center">The center of the sphere in three dimensional space.</param>
         /// <param name="radius">The radius of the sphere.</param>
@@ -191,7 +189,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="points">The points that will be contained by the sphere.</param>
         /// <param name="result">When the method completes, contains the newly constructed bounding sphere.</param>
-        public unsafe static void FromPoints(Vector3[] points, out BoundingSphere result)
+        public static unsafe void FromPoints(Vector3[] points, out BoundingSphere result)
         {
             if (points == null) throw new ArgumentNullException("points");
             fixed (void* pointsPtr = points)
@@ -397,10 +395,10 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public override string ToString()
         {
@@ -408,11 +406,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(string format)
         {
@@ -424,11 +422,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="formatProvider">The format provider.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(IFormatProvider formatProvider)
         {
@@ -436,12 +434,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <param name="formatProvider">The format provider.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(string format, IFormatProvider formatProvider)
         {
@@ -476,11 +474,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
         /// </summary>
-        /// <param name="value">The <see cref="System.Object"/> to compare with this instance.</param>
+        /// <param name="value">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object value)
         {

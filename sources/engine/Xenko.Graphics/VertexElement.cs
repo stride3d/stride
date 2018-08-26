@@ -31,28 +31,28 @@ using Xenko.Core.Serialization.Serializers;
 
 namespace Xenko.Graphics
 {
-    /// <summary>	
+    /// <summary>
     /// A description of a single element for the input-assembler stage. This structure is related to <see cref="Direct3D11.InputElement"/>.
-    /// </summary>	
-    /// <remarks>	
+    /// </summary>
+    /// <remarks>
     /// Because <see cref="Direct3D11.InputElement"/> requires to have the same <see cref="VertexBufferLayout.SlotIndex"/>, <see cref="VertexBufferLayout.VertexClassification"/> and <see cref="VertexBufferLayout.instanceDataStepRate"/>,
     /// the <see cref="VertexBufferLayout"/> structure encapsulates a set of <see cref="VertexElement"/> for a particular slot, classification and instance data step rate.
     /// Unlike the default <see cref="Direct3D11.InputElement"/>, this structure accepts a semantic name with a postfix number that will be automatically extracted to the semantic index.
-    /// </remarks>	
+    /// </remarks>
     /// <seealso cref="VertexBufferLayout"/>
     [DataContract]
     [DataSerializer(typeof(Serializer))]
     public struct VertexElement : IEquatable<VertexElement>
     {
-        internal string semanticName;
+        private string semanticName;
 
-        internal int semanticIndex;
+        private int semanticIndex;
 
-        internal PixelFormat format;
+        private PixelFormat format;
 
-        internal int alignedByteOffset;
+        private int alignedByteOffset;
 
-        internal int hashCode;
+        private int hashCode;
 
         // Match the last digit of a semantic name.
         internal static readonly Regex MatchSemanticIndex = new Regex(@"(.*)(\d+)$");
@@ -130,9 +130,9 @@ namespace Xenko.Graphics
             hashCode = ComputeHashCode();
         }
 
-        /// <summary>	
-        /// <dd> <p>The HLSL semantic associated with this element in a shader input-signature.</p> </dd>	
-        /// </summary>	
+        /// <summary>
+        /// <dd> <p>The HLSL semantic associated with this element in a shader input-signature.</p> </dd>
+        /// </summary>
         public string SemanticName
         {
             get
@@ -141,9 +141,9 @@ namespace Xenko.Graphics
             }
         }
 
-        /// <summary>	
-        /// <dd> <p>The HLSL semantic associated with this element in a shader input-signature.</p> </dd>	
-        /// </summary>	
+        /// <summary>
+        /// <dd> <p>The HLSL semantic associated with this element in a shader input-signature.</p> </dd>
+        /// </summary>
         public string SemanticAsText
         {
             get
@@ -154,9 +154,9 @@ namespace Xenko.Graphics
             }
         }
 
-        /// <summary>	
-        /// <dd> <p>The semantic index for the element. A semantic index modifies a semantic, with an integer index number. A semantic index is only needed in a  case where there is more than one element with the same semantic. For example, a 4x4 matrix would have four components each with the semantic  name </p>  <pre><code>matrix</code></pre>  <p>, however each of the four component would have different semantic indices (0, 1, 2, and 3).</p> </dd>	
-        /// </summary>	
+        /// <summary>
+        /// <dd> <p>The semantic index for the element. A semantic index modifies a semantic, with an integer index number. A semantic index is only needed in a  case where there is more than one element with the same semantic. For example, a 4x4 matrix would have four components each with the semantic  name </p>  <pre><code>matrix</code></pre>  <p>, however each of the four component would have different semantic indices (0, 1, 2, and 3).</p> </dd>
+        /// </summary>
         public int SemanticIndex
         {
             get
@@ -165,9 +165,9 @@ namespace Xenko.Graphics
             }
         }
 
-        /// <summary>	
-        /// <dd> <p>The data type of the element data. See <strong><see cref="SharpDX.DXGI.Format"/></strong>.</p> </dd>	
-        /// </summary>	
+        /// <summary>
+        /// <dd> <p>The data type of the element data. See <strong><see cref="SharpDX.DXGI.Format"/></strong>.</p> </dd>
+        /// </summary>
         public PixelFormat Format
         {
             get
@@ -176,9 +176,9 @@ namespace Xenko.Graphics
             }
         }
 
-        /// <summary>	
-        /// <dd> <p>Optional. Offset (in bytes) between each element. Use D3D11_APPEND_ALIGNED_ELEMENT for convenience to define the current element directly  after the previous one, including any packing if necessary.</p> </dd>	
-        /// </summary>	
+        /// <summary>
+        /// <dd> <p>Optional. Offset (in bytes) between each element. Use D3D11_APPEND_ALIGNED_ELEMENT for convenience to define the current element directly  after the previous one, including any packing if necessary.</p> </dd>
+        /// </summary>
         public int AlignedByteOffset
         {
             get

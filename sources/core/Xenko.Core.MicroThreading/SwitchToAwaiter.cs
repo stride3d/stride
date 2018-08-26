@@ -29,7 +29,11 @@ namespace Xenko.Core.MicroThreading
 
         public void OnCompleted(Action continuation)
         {
-            microThread = scheduler.Add(() => { continuation(); return Task.FromResult(true); });
+            microThread = scheduler.Add(() =>
+            {
+                continuation();
+                return Task.FromResult(true);
+            });
         }
 
         public IDisposable GetResult()

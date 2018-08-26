@@ -95,12 +95,12 @@ namespace Xenko.Graphics.GeometricPrimitives
             private static readonly Vector3[] OctahedronVertices =
             {
                                       // when looking down the negative z-axis (into the screen)
-                new Vector3( 0,  1,  0), // 0 top
-                new Vector3( 0,  0, -1), // 1 front
-                new Vector3( 1,  0,  0), // 2 right
-                new Vector3( 0,  0,  1), // 3 back
+                new Vector3(+0,  1,  0), // 0 top
+                new Vector3(+0,  0, -1), // 1 front
+                new Vector3(+1,  0,  0), // 2 right
+                new Vector3(+0,  0,  1), // 3 back
                 new Vector3(-1,  0,  0), // 4 left
-                new Vector3( 0, -1,  0), // 5 bottom
+                new Vector3(+0, -1,  0), // 5 bottom
             };
 
             private static readonly int[] OctahedronIndices =

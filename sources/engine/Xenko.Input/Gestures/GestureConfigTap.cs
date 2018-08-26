@@ -23,7 +23,7 @@ namespace Xenko.Input
             {
                 CheckNotFrozen();
 
-                if(value < 1)
+                if (value < 1)
                     throw new ArgumentOutOfRangeException("value");
 
                 requiredNumberOfTaps = value;
@@ -77,7 +77,7 @@ namespace Xenko.Input
             {
                 CheckNotFrozen();
 
-                if(value<0)
+                if (value < 0)
                     throw new ArgumentOutOfRangeException("value");
 
                 maximumDistanceTaps = value;
@@ -89,8 +89,9 @@ namespace Xenko.Input
         /// Create a default Tap gesture configuration for single touch and single finger detection.
         /// </summary>
         public GestureConfigTap()
-            : this(1,1)
-        {}
+            : this(1, 1)
+        {
+        }
 
         /// <summary>
         /// Create a default Tap gesture configuration for the given numbers of touches and fingers.

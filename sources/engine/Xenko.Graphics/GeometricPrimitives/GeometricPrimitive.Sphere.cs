@@ -199,7 +199,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                 }
 
                 // Create the primitive object.
-                return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, toLeftHanded) {Name = "Sphere"};
+                return new GeometricMeshData<VertexPositionNormalTexture>(vertices, indices, toLeftHanded) { Name = "Sphere" };
             }
         }
     }

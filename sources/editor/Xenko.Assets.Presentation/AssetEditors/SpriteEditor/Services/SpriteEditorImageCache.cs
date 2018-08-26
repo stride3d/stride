@@ -93,7 +93,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.SpriteEditor.Services
                     {
                         texImage = texTool.Load(filePath, false);
                         texTool.Decompress(texImage, texImage.Format.IsSRgb());
-                        if(texImage.Format == PixelFormat.R16G16B16A16_UNorm)
+                        if (texImage.Format == PixelFormat.R16G16B16A16_UNorm)
                             texTool.Convert(texImage, PixelFormat.R8G8B8A8_UNorm);
                         var image = texTool.ConvertToXenkoImage(texImage);
                         image.Save(stream, ImageFileType.Png);

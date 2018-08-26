@@ -181,13 +181,17 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
             braceMatchingCts = cts;
 
             var document = workspace.Host.GetDocument(documentId);
-            var text = await document.GetTextAsync().ConfigureAwait(false);
-            var caretOffset = CaretOffset;
-            if (caretOffset <= text.Length)
+            try
             {
-                var result = await braceMatchingService.GetAllMatchingBracesAsync(document, caretOffset, token).ConfigureAwait(true);
-                braceMatcherHighlighter.SetHighlight(result.leftOfPosition, result.rightOfPosition);
+                var text = await document.GetTextAsync(token).ConfigureAwait(false);
+                var caretOffset = CaretOffset;
+                if (caretOffset <= text.Length)
+                {
+                    var result = await braceMatchingService.GetAllMatchingBracesAsync(document, caretOffset, token).ConfigureAwait(true);
+                    braceMatcherHighlighter.SetHighlight(result.leftOfPosition, result.rightOfPosition);
+                }
             }
+            catch (OperationCanceledException) { }
         }
 
         protected override void OnKeyDown(KeyEventArgs e)

@@ -334,7 +334,7 @@ namespace Xenko.Video.FFmpeg
                 currentStreams[stream] = streamInfo = new StreamInfo
                 {
                     Codec = new FFmpegCodec(graphicsDevice, &codecContext),
-                    Image = new VideoImage(width, height, convertedFrameBufferSize)
+                    Image = new VideoImage(width, height, convertedFrameBufferSize),
                 };
             }
 
@@ -364,7 +364,6 @@ namespace Xenko.Video.FFmpeg
                     }
 
                     var packetSideData = ffmpeg.av_packet_get_side_data(pPacket, AVPacketSideDataType.AV_PKT_DATA_STEREO3D, null);
-
 
                     // Note: the other stream might be sound (which we will want to process at some point)
                     if (pPacket->stream_index != pStream->index)

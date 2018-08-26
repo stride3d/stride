@@ -155,7 +155,7 @@ namespace Xenko.Streaming
             if (targetResidency > CurrentResidency)
             {
                 // Stream target quality in steps but lower mips at once
-                requestedResidency = Math.Min(targetResidency, Math.Max(CurrentResidency+2, 5));
+                requestedResidency = Math.Min(targetResidency, Math.Max(CurrentResidency + 2, 5));
 
                 // Stream target quality in steps
                 //requestedResidency = currentResidency + 1;
@@ -180,7 +180,7 @@ namespace Xenko.Streaming
 
         internal void Init(IDatabaseFileProviderService databaseFileProviderService, [NotNull] ContentStorage storage, ref ImageDescription imageDescription)
         {
-            if(imageDescription.Depth != 1)
+            if (imageDescription.Depth != 1)
                 throw new ContentStreamingException("Texture streaming supports only 2D textures and 2D texture arrays.", storage);
 
             Init(databaseFileProviderService, storage);
@@ -241,7 +241,7 @@ namespace Xenko.Streaming
         /// <inheritdoc />
         protected override Task StreamAsync(int residency)
         {
-            return new Task(() => StreamingTask(residency), CancellationToken.Token);
+            return new Task(() => StreamingTask(residency), cancellationToken.Token);
         }
 
         private void CacheMipMaps()
@@ -269,14 +269,14 @@ namespace Xenko.Streaming
 
             if (isBlockCompressed && ((width % 4) != 0 || (height % 4) != 0))
             {
-                width = unchecked((int)(((uint)(width + 3)) & ~(uint)3));
-                height = unchecked((int)(((uint)(height + 3)) & ~(uint)3));
+                width = unchecked((int)(((uint)(width + 3)) & ~3U));
+                height = unchecked((int)(((uint)(height + 3)) & ~3U));
             }
         }
 
         private void StreamingTask(int residency)
         {
-            if (CancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
                 return;
 
             // Cache data
@@ -317,11 +317,11 @@ namespace Xenko.Streaming
                     if (chunk.Size != mipInfos[totalMipIndex].TotalSize)
                         throw new ContentStreamingException("Data chunk has invalid size.", Storage);
 
-                    var data = chunk.GetData(FileProvider);
+                    var data = chunk.GetData(fileProvider);
                     if (!chunk.IsLoaded)
                         throw new ContentStreamingException("Data chunk is not loaded.", Storage);
 
-                    if (CancellationToken.IsCancellationRequested)
+                    if (cancellationToken.IsCancellationRequested)
                         return;
 
                     mipsData[mipIndex] = data;
@@ -344,7 +344,7 @@ namespace Xenko.Streaming
                     }
                 }
 
-                if (CancellationToken.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested)
                     return;
 
                 // Create texture (use staging object and swap it on sync)

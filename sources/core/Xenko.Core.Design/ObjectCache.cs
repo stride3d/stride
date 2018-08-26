@@ -12,7 +12,7 @@ namespace Xenko.Core
     /// </summary>
     /// <typeparam name="TKey">The type of keys used to index objects.</typeparam>
     /// <typeparam name="TValue">The type of objects contained in the cache.</typeparam>
-    public class ObjectCache<TKey, TValue> where TKey: IEquatable<TKey> where TValue : class
+    public class ObjectCache<TKey, TValue> where TKey : IEquatable<TKey> where TValue : class
     {
         /// <summary>
         /// The default size of the cache when an instance of <see cref="ObjectCache{TKey, TValue}"/> is created with the parameterless constructor.

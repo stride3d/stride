@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
@@ -15,6 +15,7 @@
     <XenkoAssemblyProcessorOptions>--serialization</XenkoAssemblyProcessorOptions>
     <XenkoBuildTags>*</XenkoBuildTags>
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
+    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
 
   <ItemGroup>

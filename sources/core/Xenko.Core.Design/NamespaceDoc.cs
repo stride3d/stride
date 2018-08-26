@@ -5,8 +5,8 @@ namespace Xenko.Core.Design
     /// <summary>
     /// The <see cref="Xenko.Core.Design"/> namepace contains types used at design-time.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

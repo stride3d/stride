@@ -21,6 +21,6 @@ namespace Xenko.Rendering.Materials
         Texcoord8 = 8,
         Texcoord9 = 9,
 
-        TexcoordNone
+        TexcoordNone,
     }
 }

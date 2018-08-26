@@ -47,12 +47,12 @@ namespace Xenko.Graphics
             unchecked
             {
                 int hashCode = VertexBufferSlot;
-                hashCode = (hashCode*397) ^ AttributeIndex;
-                hashCode = (hashCode*397) ^ Size;
-                hashCode = (hashCode*397) ^ IsInteger.GetHashCode();
-                hashCode = (hashCode*397) ^ (int) Type;
-                hashCode = (hashCode*397) ^ Normalized.GetHashCode();
-                hashCode = (hashCode*397) ^ Offset;
+                hashCode = (hashCode * 397) ^ AttributeIndex;
+                hashCode = (hashCode * 397) ^ Size;
+                hashCode = (hashCode * 397) ^ IsInteger.GetHashCode();
+                hashCode = (hashCode * 397) ^ (int) Type;
+                hashCode = (hashCode * 397) ^ Normalized.GetHashCode();
+                hashCode = (hashCode * 397) ^ Offset;
                 return hashCode;
             }
         }

@@ -95,7 +95,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Pixel buffers.
         /// </summary>
-        internal PixelBuffer[] pixelBuffers;
+        internal PixelBuffer[] PixelBuffers;
         private DataBox[] dataBoxArray;
         private List<int> mipMapToZIndex;
         private int zBufferCountPerArraySlice;
@@ -239,7 +239,6 @@ namespace Xenko.Graphics
             return this.GetPixelBufferUnsafe(arrayIndex, zIndex, mipmap);
         }
 
-
         /// <summary>
         /// Registers a loader/saver for a specified image file type.
         /// </summary>
@@ -265,7 +264,6 @@ namespace Xenko.Graphics
             }
             loadSaveDelegates.Add(newDelegate);
         }
-
 
         /// <summary>
         /// Gets a pointer to the image buffer in memory.
@@ -509,7 +507,7 @@ namespace Xenko.Graphics
         /// <param name="loadAsSRGB">Indicate if the image should be loaded as an sRGB texture</param>
         /// <returns>An new image.</returns>
         /// <remarks>This method support the following format: <c>dds, bmp, jpg, png, gif, tiff, wmp, tga</c>.</remarks>
-        public unsafe static Image Load(byte[] buffer, bool loadAsSRGB = false)
+        public static unsafe Image Load(byte[] buffer, bool loadAsSRGB = false)
         {
             if (buffer == null)
                 throw new ArgumentNullException("buffer");
@@ -525,7 +523,7 @@ namespace Xenko.Graphics
 
             fixed (void* pbuffer = buffer)
             {
-                return Load((IntPtr) pbuffer, size, true, loadAsSRGB);
+                return Load((IntPtr)pbuffer, size, true, loadAsSRGB);
             }
         }
 
@@ -552,7 +550,7 @@ namespace Xenko.Graphics
         public void Save(Stream imageStream, ImageFileType fileType)
         {
             if (imageStream == null) throw new ArgumentNullException("imageStream");
-            Save(pixelBuffers, this.pixelBuffers.Length, Description, imageStream, fileType);
+            Save(PixelBuffers, this.PixelBuffers.Length, Description, imageStream, fileType);
         }
 
         /// <summary>
@@ -567,7 +565,7 @@ namespace Xenko.Graphics
             {
                 int maxMips = CountMips(width);
                 if (mipLevels > maxMips)
-                    throw new InvalidOperationException(String.Format("MipLevels must be <= {0}", maxMips));
+                    throw new InvalidOperationException($"MipLevels must be <= {maxMips}");
             }
             else if (mipLevels == 0)
             {
@@ -593,7 +591,7 @@ namespace Xenko.Graphics
             {
                 int maxMips = CountMips(width, height);
                 if (mipLevels > maxMips)
-                    throw new InvalidOperationException(String.Format("MipLevels must be <= {0}", maxMips));
+                    throw new InvalidOperationException($"MipLevels must be <= {maxMips}");
             }
             else if (mipLevels == 0)
             {
@@ -623,7 +621,7 @@ namespace Xenko.Graphics
 
                 int maxMips = CountMips(width, height, depth);
                 if (mipLevels > maxMips)
-                    throw new InvalidOperationException(String.Format("MipLevels must be <= {0}", maxMips));
+                    throw new InvalidOperationException($"MipLevels must be <= {maxMips}");
             }
             else if (mipLevels == 0)
             {
@@ -665,7 +663,7 @@ namespace Xenko.Graphics
                     var image = loadSaveDelegate.Load(dataPointer, dataSize, makeACopy, handle);
                     if (image != null)
                     {
-                        if(loadAsSRGB)
+                        if (loadAsSRGB)
                             image.Description.Format = image.Description.Format.ToSRgb();
 
                         return image;
@@ -693,7 +691,6 @@ namespace Xenko.Graphics
                     loadSaveDelegate.Save(pixelBuffers, count, description, imageStream);
                     return;
                 }
-
             }
             throw new NotSupportedException("This file format is not yet implemented.");
         }
@@ -703,13 +700,12 @@ namespace Xenko.Graphics
             Register(ImageFileType.Xenko, ImageHelper.LoadFromMemory, ImageHelper.SaveFromMemory);
             Register(ImageFileType.Dds, DDSHelper.LoadFromDDSMemory, DDSHelper.SaveToDDSStream);
             Register(ImageFileType.Gif, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveGifFromMemory);
-            Register(ImageFileType.Tiff,StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveTiffFromMemory);
+            Register(ImageFileType.Tiff, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveTiffFromMemory);
             Register(ImageFileType.Bmp, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveBmpFromMemory);
             Register(ImageFileType.Jpg, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveJpgFromMemory);
             Register(ImageFileType.Png, StandardImageHelper.LoadFromMemory, StandardImageHelper.SavePngFromMemory);
             Register(ImageFileType.Wmp, StandardImageHelper.LoadFromMemory, StandardImageHelper.SaveWmpFromMemory);
         }
-
 
         internal unsafe void Initialize(ImageDescription description, IntPtr dataPointer, int offset, GCHandle? handle, bool bufferIsDisposable, PitchFlags pitchFlags = PitchFlags.None, int rowStride = 0)
         {
@@ -718,7 +714,6 @@ namespace Xenko.Graphics
 
             if (rowStride > 0 && description.MipLevels != 1)
                 throw new InvalidOperationException("Cannot specify custom stride with mipmaps");
-
 
             this.handle = handle;
 
@@ -763,7 +758,7 @@ namespace Xenko.Graphics
             zBufferCountPerArraySlice = this.mipMapToZIndex[this.mipMapToZIndex.Count - 1];
 
             // Allocate all pixel buffers
-            pixelBuffers = new PixelBuffer[pixelBufferCount];
+            PixelBuffers = new PixelBuffer[pixelBufferCount];
             pixelBufferArray = new PixelBufferArray(this);
 
             // Setup all pointers
@@ -778,7 +773,7 @@ namespace Xenko.Graphics
                 this.bufferIsDisposable = true;
             }
 
-            SetupImageArray((IntPtr)((byte*)buffer + offset), totalSizeInBytes, rowStride, description, pitchFlags, pixelBuffers);
+            SetupImageArray((IntPtr)((byte*)buffer + offset), totalSizeInBytes, rowStride, description, pitchFlags, PixelBuffers);
 
             Description = description;
 
@@ -789,7 +784,7 @@ namespace Xenko.Graphics
         internal void InitializeFrom(Image image)
         {
             // TODO: Invalidate original image?
-            pixelBuffers = image.pixelBuffers;
+            PixelBuffers = image.PixelBuffers;
             dataBoxArray = image.dataBoxArray;
             mipMapToZIndex = image.mipMapToZIndex;
             zBufferCountPerArraySlice = image.zBufferCountPerArraySlice;
@@ -806,7 +801,7 @@ namespace Xenko.Graphics
         {
             var depthIndex = this.mipMapToZIndex[mipmap];
             var pixelBufferIndex = arrayIndex * this.zBufferCountPerArraySlice + depthIndex + zIndex;
-            return pixelBuffers[pixelBufferIndex];
+            return PixelBuffers[pixelBufferIndex];
         }
 
         private static ImageDescription CreateDescription(TextureDimension dimension, int width, int height, int depth, MipMapCount mipMapCount, PixelFormat format, int arraySize)
@@ -831,7 +826,7 @@ namespace Xenko.Graphics
             Bpp24 = 0x10000,  // Override with a legacy 24 bits-per-pixel format size
             Bpp16 = 0x20000,  // Override with a legacy 16 bits-per-pixel format size
             Bpp8 = 0x40000,  // Override with a legacy 8 bits-per-pixel format size
-        };
+        }
 
         internal static void ComputePitch(PixelFormat fmt, int width, int height, out int rowPitch, out int slicePitch, out int widthCount, out int heightCount, PitchFlags flags = PitchFlags.None)
         {
@@ -879,9 +874,9 @@ namespace Xenko.Graphics
 
                 widthCount = Math.Max(1, (Math.Max(minWidth, width) + 3)) / 4;
                 heightCount = Math.Max(1, (Math.Max(minHeight, height) + 3)) / 4;
-                rowPitch = widthCount*bpb;
+                rowPitch = widthCount * bpb;
 
-                slicePitch = rowPitch*heightCount;
+                slicePitch = rowPitch * heightCount;
             }
             else if (fmt.IsPacked())
             {
@@ -949,8 +944,7 @@ namespace Xenko.Graphics
                     rowPitch,
                     slicePitch,
                     widthPacked,
-                    heightPacked
-                    );
+                    heightPacked);
 
                 pixelSize += d * slicePitch;
                 nImages += d;
@@ -974,7 +968,7 @@ namespace Xenko.Graphics
         /// <param name="pitchFlags">Pitch flags.</param>
         /// <param name="bufferCount">Output number of mipmap.</param>
         /// <param name="pixelSizeInBytes">Output total size to allocate pixel buffers for all images.</param>
-        private static List<int> CalculateImageArray( ImageDescription imageDesc, PitchFlags pitchFlags, int rowStride, out int bufferCount, out int pixelSizeInBytes)
+        private static List<int> CalculateImageArray(ImageDescription imageDesc, PitchFlags pitchFlags, int rowStride, out int bufferCount, out int pixelSizeInBytes)
         {
             pixelSizeInBytes = 0;
             bufferCount = 0;
@@ -1011,7 +1005,7 @@ namespace Xenko.Graphics
                     }
 
                     // Store the number of z-slicec per miplevels
-                    if ( j == 0)
+                    if (j == 0)
                         mipmapToZIndex.Add(bufferCount);
 
                     // Keep a trace of indices for the 1st array size, for each mip levels

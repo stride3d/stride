@@ -34,40 +34,40 @@ namespace Xenko.Core.Mathematics
         private struct FloatToUint
         {
             [FieldOffset(0)]
-            public uint uintValue;
+            public uint UIntValue;
             [FieldOffset(0)]
-            public float floatValue;
+            public float FloatValue;
         }
 
         /// <summary>
         /// Unpacks the specified h.
         /// </summary>
-        /// <param name="h">The h.</param>
-        /// <returns></returns>
+        /// <param name="h">The packed value.</param>
+        /// <returns>The float representation of the packed value.</returns>
         public static float Unpack(ushort h)
         {
             var conv = new FloatToUint();
-            conv.uintValue = HalfToFloatMantissaTable[HalfToFloatOffsetTable[h >> 10] + (((uint)h) & 0x3ff)] + HalfToFloatExponentTable[h >> 10];
-            return conv.floatValue;
+            conv.UIntValue = HalfToFloatMantissaTable[HalfToFloatOffsetTable[h >> 10] + (((uint)h) & 0x3ff)] + HalfToFloatExponentTable[h >> 10];
+            return conv.FloatValue;
         }
 
         /// <summary>
         /// Packs the specified f.
         /// </summary>
-        /// <param name="f">The f.</param>
-        /// <returns></returns>
+        /// <param name="f">The float value.</param>
+        /// <returns>The packed representation of the float value.</returns>
         public static ushort Pack(float f)
         {
             FloatToUint conv = new FloatToUint();
-            conv.floatValue = f;
-            return (ushort)(FloatToHalfBaseTable[(conv.uintValue >> 23) & 0x1ff] + ((conv.uintValue & 0x007fffff) >> FloatToHalfShiftTable[(conv.uintValue >> 23) & 0x1ff]));
+            conv.FloatValue = f;
+            return (ushort)(FloatToHalfBaseTable[(conv.UIntValue >> 23) & 0x1ff] + ((conv.UIntValue & 0x007fffff) >> FloatToHalfShiftTable[(conv.UIntValue >> 23) & 0x1ff]));
         }
 
-        static readonly uint[] HalfToFloatMantissaTable = new uint[2048];
-        static readonly uint[] HalfToFloatExponentTable = new uint[64];
-        static readonly uint[] HalfToFloatOffsetTable = new uint[64];
-        static readonly ushort[] FloatToHalfBaseTable = new ushort[512];
-        static readonly byte[] FloatToHalfShiftTable = new byte[512];
+        private static readonly uint[] HalfToFloatMantissaTable = new uint[2048];
+        private static readonly uint[] HalfToFloatExponentTable = new uint[64];
+        private static readonly uint[] HalfToFloatOffsetTable = new uint[64];
+        private static readonly ushort[] FloatToHalfBaseTable = new ushort[512];
+        private static readonly byte[] FloatToHalfShiftTable = new byte[512];
 
         static HalfUtils()
         {
@@ -93,7 +93,7 @@ namespace Xenko.Core.Mathematics
                     e -= 0x00800000;
                     m <<= 1;
                 }
-                m &= ~ 0x00800000U;
+                m &= ~0x00800000U;
                 e += 0x38800000;
                 HalfToFloatMantissaTable[i] = m | e;
             }

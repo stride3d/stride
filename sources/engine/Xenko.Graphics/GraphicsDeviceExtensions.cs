@@ -93,7 +93,7 @@ namespace Xenko.Graphics
         {
             const int Size = 2;
             var whiteData = new Color[Size * Size];
-            for (int i = 0; i < Size*Size; i++)
+            for (int i = 0; i < Size * Size; i++)
                 whiteData[i] = Color.White;
 
             return Texture.New2D(device, Size, Size, PixelFormat.R8G8B8A8_UNorm, whiteData);

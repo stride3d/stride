@@ -14,7 +14,7 @@ namespace Xenko.Editor.Engine
     {
         public EmbeddedGameForm()
         {
-            EnableFullscreenToggle = false;
+            enableFullscreenToggle = false;
         }
 
         /// <summary>

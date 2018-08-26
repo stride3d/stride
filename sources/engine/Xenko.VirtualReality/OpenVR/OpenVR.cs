@@ -4,10 +4,10 @@
 
 using System;
 using SharpDX.Direct3D11;
+using Valve.VR;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Graphics;
-using Valve.VR;
 
 namespace Xenko.VirtualReality
 {
@@ -21,7 +21,7 @@ namespace Xenko.VirtualReality
             public enum Hand
             {
                 Left,
-                Right
+                Right,
             }
 
             public static int GetDeviceIndex(Hand hand)
@@ -190,14 +190,14 @@ namespace Xenko.VirtualReality
             {
                 eType = EGraphicsAPIConvention.API_DirectX,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer
+                handle = texture.NativeResource.NativePointer,
             };
             var bounds = new VRTextureBounds_t
             {
                 uMin = viewport.X,
                 uMax = viewport.Width,
                 vMin = viewport.Y,
-                vMax = viewport.Height
+                vMax = viewport.Height,
             };
 
             return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
@@ -355,7 +355,7 @@ namespace Xenko.VirtualReality
             {
                 eType = EGraphicsAPIConvention.API_DirectX,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer
+                handle = texture.NativeResource.NativePointer,
             };
            
             return Valve.VR.OpenVR.Overlay.SetOverlayTexture(overlayId, ref tex) == EVROverlayError.None;
@@ -383,7 +383,7 @@ namespace Xenko.VirtualReality
 
         public static void SetOverlayEnabled(ulong overlayId, bool enabled)
         {
-            if(enabled)
+            if (enabled)
                 Valve.VR.OpenVR.Overlay.ShowOverlay(overlayId);
             else
                 Valve.VR.OpenVR.Overlay.HideOverlay(overlayId);

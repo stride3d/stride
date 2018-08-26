@@ -20,6 +20,6 @@ namespace Xenko.Core.Diagnostics
         /// <summary>
         /// A mark message.
         /// </summary>
-        Mark
+        Mark,
     }
 }

@@ -143,7 +143,6 @@ namespace Xenko.Engine
         [Display("Blend mode")]
         public SpriteBlend BlendMode { get; set; } = SpriteBlend.Auto;
 
-
         /// <summary>
         /// Specifies the texture sampling method to be used for this sprite
         /// </summary>
@@ -154,7 +153,6 @@ namespace Xenko.Engine
         [DefaultValue(SpriteSampler.LinearClamp)]
         [Display("Sampler")]
         public SpriteSampler Sampler { get; set; } = SpriteSampler.LinearClamp;
-
 
         /// <summary>
         /// Specifies the swizzle method for sampling (how to access and mix the color channels)
@@ -242,7 +240,7 @@ namespace Xenko.Engine
         {
             lock (SpriteIndicesPool)
             {
-                while (Animations.Count>0)
+                while (Animations.Count > 0)
                     RecycleSpriteIndicesList(Animations.Dequeue().SpriteIndices);
             }
         }

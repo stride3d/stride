@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using Xenko.Core.Collections;
 using Xenko.Core.Threading;
 using Xenko.Rendering;
@@ -102,7 +102,7 @@ namespace Xenko.Engine.Processors
             Dispatcher.ForEach(transformationComponents, UpdateTransformationAndChildren);
 
             // Re-update model node links to avoid one frame delay compared reference model (ideally entity should be sorted to avoid this in future).
-            if(ModelNodeLinkProcessor != null)
+            if (ModelNodeLinkProcessor != null)
             {
                 modelNodeLinkComponents.Clear();
                 foreach (var modelNodeLink in ModelNodeLinkProcessor.ModelNodeLinkComponents)
@@ -144,7 +144,7 @@ namespace Xenko.Engine.Processors
         /// <summary>
         /// Updates all the <see cref="TransformComponent.WorldMatrix"/>.
         /// </summary>
-        /// <param name="context"></param>
+        /// <param name="context">The render context.</param>
         public override void Draw(RenderContext context)
         {
             notSpecialRootComponents.Clear();

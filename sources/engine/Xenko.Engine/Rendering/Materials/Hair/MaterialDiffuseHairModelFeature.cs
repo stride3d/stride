@@ -1,11 +1,10 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Shaders;
-using System.ComponentModel;
-using Xenko.Graphics;
 
 namespace Xenko.Rendering.Materials
 {
@@ -102,7 +101,7 @@ namespace Xenko.Rendering.Materials
         /// </userdoc>
         [DataMember(80)]
         [DefaultValue(0.99f)]
-        [DataMemberRange(0.0, 1.0, 2)]
+        [DataMemberRange(0.0, 1.0, 1, 2, 2)]
         [Display("Alpha threshold")]
         public float AlphaThreshold { get; set; } = 0.99f;
 
@@ -128,7 +127,7 @@ namespace Xenko.Rendering.Materials
             
             context.Parameters.Set(MaterialKeys.UsePixelShaderWithDepthPass, true); // Indicates that material requries using the pixel shader stage during the depth-only pass (Z prepass or shadow map rendering).
 
-            if(DebugRenderPasses)
+            if (DebugRenderPasses)
             {
                 context.Parameters.Set(MaterialHairSharedKeys.PassID, context.PassIndex);   // For debugging the different hair passes.
             }

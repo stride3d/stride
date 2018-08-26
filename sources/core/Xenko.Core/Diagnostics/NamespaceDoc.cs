@@ -6,7 +6,7 @@ namespace Xenko.Core.Diagnostics
     /// The <see cref="Xenko.Core.Diagnostics"/> namespace provides classes that are used for logs, debugging/profiling, monitoring events.
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute]
-    class NamespaceDoc
+    internal class NamespaceDoc
     {
     }
 }

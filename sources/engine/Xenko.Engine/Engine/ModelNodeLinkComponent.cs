@@ -65,8 +65,7 @@ namespace Xenko.Engine
                         targetToValidate.Entity == null ||
                         (targetToValidate.Entity.Id != Entity.Id
                         && RecurseCheckChildren(Entity.Transform.Children, targetToValidate.Entity.Transform)
-                        && CheckParent(targetToValidate.Entity.Transform)
-                        );
+                        && CheckParent(targetToValidate.Entity.Transform));
         }
 
         internal void OnHierarchyChanged(object sender, Entity entity)

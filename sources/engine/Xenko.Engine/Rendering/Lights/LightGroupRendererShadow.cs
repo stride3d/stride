@@ -1,5 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single class
+#pragma warning disable SA1649 // File name must match first type name
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +11,7 @@ using Xenko.Rendering.Shadows;
 
 namespace Xenko.Rendering.Lights
 {
-    class ShadowComparer : IComparer<int>
+    internal class ShadowComparer : IComparer<int>
     {
         public Dictionary<LightComponent, LightShadowMapTexture> ShadowMapTexturesPerLight;
         public LightComponentCollection Lights;
@@ -172,7 +174,7 @@ namespace Xenko.Rendering.Lights
                 // If we detect that the previous light's attributes don't match the next one's, create a new group (or add to an existing one that has the same attributes):
                 if (j == parameters.LightIndices.Count ||
                     currentShadowType != nextShadowType ||
-                    currentShadowRenderer != nextShadowRenderer)  // TODO: Refactor this into a little structure instead.
+                    currentShadowRenderer != nextShadowRenderer) // TODO: Refactor this into a little structure instead.
                 {
                     if (processedLights.Count > 0)
                     {
@@ -206,7 +208,6 @@ namespace Xenko.Rendering.Lights
                     currentShadowRenderer = nextShadowRenderer;
                 }
 
-
                 if (j < parameters.LightIndices.Count)
                 {
                     // Do we need to process non shadowing lights or defer it to something else?
@@ -220,7 +221,9 @@ namespace Xenko.Rendering.Lights
                     processedLights.Add(new LightDynamicEntry(nextLight, nextShadowTexture));
                 }
                 else
+                {
                     j++;
+                }
             }
 
             processedLights.Clear();
@@ -240,9 +243,9 @@ namespace Xenko.Rendering.Lights
             }
         }
 
-        class LightShaderGroupComparer : Comparer<LightShaderGroupEntry<LightGroupKey>>
+        private class LightShaderGroupComparer : Comparer<LightShaderGroupEntry<LightGroupKey>>
         {
-            public new static readonly LightShaderGroupComparer Default = new LightShaderGroupComparer();
+            public static new readonly LightShaderGroupComparer Default = new LightShaderGroupComparer();
 
             public override int Compare(LightShaderGroupEntry<LightGroupKey> x, LightShaderGroupEntry<LightGroupKey> y)
             {

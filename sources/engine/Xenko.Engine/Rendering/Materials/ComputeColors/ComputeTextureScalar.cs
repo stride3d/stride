@@ -67,8 +67,5 @@ namespace Xenko.Rendering.Materials.ComputeColors
         {
             return FallbackValue?.GenerateShaderSource(context, baseKeys);
         }
-
-
-
     }
 }

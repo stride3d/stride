@@ -52,6 +52,6 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// The object is intersecting the plane.
         /// </summary>
-        Intersecting
-    };
+        Intersecting,
+    }
 }

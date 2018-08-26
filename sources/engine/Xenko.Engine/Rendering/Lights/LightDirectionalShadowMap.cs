@@ -67,7 +67,6 @@ namespace Xenko.Rendering.Lights
         [DataMember(100)]
         public bool ComputeTransmittance { get; set; }
 
-
         public override int GetCascadeCount()
         {
             return (int)CascadeCount;

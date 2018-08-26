@@ -24,6 +24,6 @@ namespace Xenko.Physics
         ///     with dynamic bodies
         ///     Notice that there is no dynamic interaction with static and other kinematic bodies
         /// </summary>
-        Kinematic
+        Kinematic,
     }
 }

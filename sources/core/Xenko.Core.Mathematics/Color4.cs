@@ -274,7 +274,6 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// Converts the color into a packed integer.
         /// </summary>
-        /// <returns>A packed integer containing all four color components.</returns>
         public void ToBgra(out byte r, out byte g, out byte b, out byte a)
         {
             a = (byte)(A * 255.0f);
@@ -868,7 +867,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Color4"/> to <see cref="System.Int32"/>.
+        /// Performs an explicit conversion from <see cref="Color4"/> to <see cref="int"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>
@@ -880,7 +879,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="System.Int32"/> to <see cref="Color4"/>.
+        /// Performs an explicit conversion from <see cref="int"/> to <see cref="Color4"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>
@@ -979,11 +978,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
         /// </summary>
-        /// <param name="value">The <see cref="System.Object"/> to compare with this instance.</param>
+        /// <param name="value">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object value)
         {

@@ -14,18 +14,22 @@ namespace Xenko.Core.Serialization
         /// Default value.
         /// </summary>
         None = 0,
+
         /// <summary>
         /// Specifies that the object is null.
         /// </summary>
         IsNull = 1,
+
         /// <summary>
         /// Specifies that additional type info is necessary and is stored in the stream.
         /// </summary>
         IsTypeInfo = 2,
+
         /// <summary>
         /// Specifies that the object has already been serialized previously in the stream, and is only stored as an index.
         /// </summary>
         IsReference = 4,
+
         /// <summary>
         /// Specifies that the object is an <see cref="IIdentifiable"/> instance has not been serialized, and only its <see cref="IIdentifiable.Id"/> has been stored.
         /// </summary>

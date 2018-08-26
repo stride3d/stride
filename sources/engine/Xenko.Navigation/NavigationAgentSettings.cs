@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+#pragma warning disable SA1402 // File may only contain a single type
 
 using System;
 using Xenko.Core;
@@ -67,7 +68,7 @@ namespace Xenko.Navigation
                 Height = 1.0f,
                 MaxClimb = 0.25f,
                 MaxSlope = new AngleSingle(45.0f, AngleType.Degree),
-                Radius = 0.5f
+                Radius = 0.5f,
             };
         }
     }

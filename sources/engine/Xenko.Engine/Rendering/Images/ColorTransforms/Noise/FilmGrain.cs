@@ -9,7 +9,6 @@ namespace Xenko.Rendering.Images
     [DataContract("FilmGrain")]
     public sealed class FilmGrain : ColorTransform
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="FilmGrain"/> class.
         /// </summary>
@@ -36,7 +35,6 @@ namespace Xenko.Rendering.Images
         [DefaultValue(0.25f)]
         [DataMemberRange(0f, 1f, 0.01f, 0.1f, 3)]
         public float Amount { get; set; }
-
 
         /// <summary>
         /// Grain size.
@@ -81,6 +79,5 @@ namespace Xenko.Rendering.Images
             // Copy parameters to parent
             base.UpdateParameters(context);
         }
-
     }
 }

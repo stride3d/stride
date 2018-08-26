@@ -206,7 +206,7 @@ namespace Xenko.Audio.Tests.Engine
                 soundControllers[0].Play();
             }
             // nothing should come out from the speakers during this gap
-            else if(loopCount == 60)
+            else if (loopCount == 60)
             {
                 // check that the sound is correctly outputted when there is one listener
                 game.Audio.AddListener(listComps[0]);
@@ -232,7 +232,7 @@ namespace Xenko.Audio.Tests.Engine
                 soundControllers[2].Play();
             }
             // here we should hear the soundEffect 0 on left ear only
-            else if(loopCount == 180)
+            else if (loopCount == 180)
             {
                 // add the new listener to the entity system
                 Internal.Refactor.ThrowNotImplementedException("TODO: UPDATE TO USE Scene and Graphics Composer"); 
@@ -243,7 +243,7 @@ namespace Xenko.Audio.Tests.Engine
                 soundControllers[2].Play();
             }
             // here we should hear the soundEffect 0 on left ear and the soundEffect 2 on right ear
-            else if(loopCount > 240)
+            else if (loopCount > 240)
             {
                 game.Exit();
             }

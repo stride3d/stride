@@ -54,7 +54,7 @@ namespace Xenko.Rendering.Sprites
             return new SpriteFromSheet
             {
                 Sheet = sheet,
-                CurrentFrame = sheet.FindImageIndex(spriteName)
+                CurrentFrame = sheet.FindImageIndex(spriteName),
             };
         }
 

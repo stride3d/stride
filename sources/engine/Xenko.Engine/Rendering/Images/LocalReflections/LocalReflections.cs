@@ -16,10 +16,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Core.Annotations;
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
 using Xenko.Core.Extensions;
+using Xenko.Core.Mathematics;
 using Xenko.Engine;
+using Xenko.Graphics;
 
 namespace Xenko.Rendering.Images
 {
@@ -67,13 +67,15 @@ namespace Xenko.Rendering.Images
             /// Use full resolution.
             /// </summary>
             /// <userodc>Full resolution.</userodc>
-            [Display("Full")] Full = 1,
+            [Display("Full")]
+            Full = 1,
 
             /// <summary>
             /// Use half resolution.
             /// </summary>
             /// <userodc>Half resolution.</userodc>
-            [Display("Half")] Half = 2
+            [Display("Half")]
+            Half = 2,
         }
 
         /// <summary>
@@ -616,7 +618,7 @@ namespace Xenko.Rendering.Images
                         Scaler.SetInput(0, resolveBuffer);
                         break;
                     case DebugModes.Temporal:
-                        if(temporalCache != null)
+                        if (temporalCache != null)
                             Scaler.SetInput(0, temporalCache.TemporalBuffer);
                         break;
                 }

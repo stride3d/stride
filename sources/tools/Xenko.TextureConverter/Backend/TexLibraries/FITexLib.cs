@@ -55,7 +55,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
         public void StartLibrary(TexImage image)
         {
-            if(image.Format.IsCompressed())
+            if (image.Format.IsCompressed())
             {
                 Log.Error("FreeImage can't process compressed texture.");
                 throw new TextureToolsException("FreeImage can't process compressed texture.");
@@ -506,7 +506,7 @@ namespace Xenko.TextureConverter.TexLibraries
                 throw new TextureToolsException("Not implemented.");
             }
 
-            if(!image.Format.IsBGRAOrder())
+            if (!image.Format.IsBGRAOrder())
             {
                 SwitchChannels(image, libraryData, new SwitchingBRChannelsRequest());
             }
@@ -595,7 +595,7 @@ namespace Xenko.TextureConverter.TexLibraries
                     switch (bpp)
                     {
                         case 32:
-                            if(rbit == 8 && gbit == 8 && bbit == 8)
+                            if (rbit == 8 && gbit == 8 && bbit == 8)
                                 return 8;
                             break;
 

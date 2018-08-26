@@ -72,7 +72,7 @@ namespace Xenko.Core.TypeConverters
                 new FieldPropertyDescriptor(type.GetField(nameof(Quaternion.X))),
                 new FieldPropertyDescriptor(type.GetField(nameof(Quaternion.Y))),
                 new FieldPropertyDescriptor(type.GetField(nameof(Quaternion.Z))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Quaternion.W)))
+                new FieldPropertyDescriptor(type.GetField(nameof(Quaternion.W))),
             });
         }
 

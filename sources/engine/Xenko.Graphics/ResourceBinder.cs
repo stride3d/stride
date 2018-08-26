@@ -8,7 +8,7 @@ using Xenko.Shaders;
 
 namespace Xenko.Graphics
 {
-    struct ResourceBinder
+    internal struct ResourceBinder
     {
         private BindingOperation[][] descriptorSetBindings;
 

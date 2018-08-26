@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
+#pragma warning disable SA1402 // File may only contain a single class
 using System;
 
 namespace Xenko.Core.Serialization.Contents
@@ -71,7 +71,7 @@ namespace Xenko.Core.Serialization.Contents
         private string url;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ContentReference"/> class with the given value.
+        /// Initializes a new instance of the <see cref="ContentReference{T}"/> class with the given value.
         /// </summary>
         /// <param name="value">The value of the referenced content.</param>
         /// <remarks>This constructor should be used during serialization.</remarks>
@@ -81,7 +81,7 @@ namespace Xenko.Core.Serialization.Contents
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ContentReference"/> class with the given id and location.
+        /// Initializes a new instance of the <see cref="ContentReference{T}"/> class with the given id and location.
         /// </summary>
         /// <param name="location">The location of the referenced content.</param>
         /// <remarks>This constructor should be used during deserialization.</remarks>

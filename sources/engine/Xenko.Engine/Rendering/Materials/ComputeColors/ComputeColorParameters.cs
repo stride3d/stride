@@ -151,7 +151,6 @@ namespace Xenko.Rendering.Materials.ComputeColors
 
         internal class Serializer : DataSerializer<ComputeColorParameters>, IDataSerializerGenericInstantiation
         {
-
             private DataSerializer<KeyValuePair<string, IComputeColorParameter>> itemDataSerializer;
 
             /// <inheritdoc/>

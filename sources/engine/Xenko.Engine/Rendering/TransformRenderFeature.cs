@@ -20,7 +20,8 @@ namespace Xenko.Rendering
 
         private ConstantBufferOffsetReference time; // TODO: Move this at a more global level so that it applies on everything? (i.e. RootEffectRenderFeature)
         private ConstantBufferOffsetReference view;
-        private ConstantBufferOffsetReference world, worldInverse;
+        private ConstantBufferOffsetReference world;
+        private ConstantBufferOffsetReference worldInverse;
         private ConstantBufferOffsetReference camera;
 
         internal struct RenderModelFrameInfo
@@ -32,32 +33,33 @@ namespace Xenko.Rendering
         internal struct RenderModelViewInfo
         {
             // Copied during Extract
-            public Matrix WorldViewProjection, WorldView;
+            public Matrix WorldViewProjection;
+            public Matrix WorldView;
         }
 
         /// <inheritdoc/>
         protected override void InitializeCore()
         {
-            RenderModelObjectInfoKey = RootRenderFeature.RenderData.CreateObjectKey<RenderModelFrameInfo>();
-            RenderModelViewInfoKey = RootRenderFeature.RenderData.CreateViewObjectKey<RenderModelViewInfo>();
+            RenderModelObjectInfoKey = rootRenderFeature.RenderData.CreateObjectKey<RenderModelFrameInfo>();
+            RenderModelViewInfoKey = rootRenderFeature.RenderData.CreateViewObjectKey<RenderModelViewInfo>();
 
-            time = ((RootEffectRenderFeature)RootRenderFeature).CreateFrameCBufferOffsetSlot(GlobalKeys.Time.Name);
-            view = ((RootEffectRenderFeature)RootRenderFeature).CreateViewCBufferOffsetSlot(TransformationKeys.View.Name);
-            camera = ((RootEffectRenderFeature)RootRenderFeature).CreateViewCBufferOffsetSlot(CameraKeys.NearClipPlane.Name);
-            world = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationKeys.World.Name);
-            worldInverse = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationKeys.WorldInverse.Name);
+            time = ((RootEffectRenderFeature)rootRenderFeature).CreateFrameCBufferOffsetSlot(GlobalKeys.Time.Name);
+            view = ((RootEffectRenderFeature)rootRenderFeature).CreateViewCBufferOffsetSlot(TransformationKeys.View.Name);
+            camera = ((RootEffectRenderFeature)rootRenderFeature).CreateViewCBufferOffsetSlot(CameraKeys.NearClipPlane.Name);
+            world = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationKeys.World.Name);
+            worldInverse = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationKeys.WorldInverse.Name);
         }
 
         /// <inheritdoc/>
         public override void Extract()
         {
-            var renderModelObjectInfo = RootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
+            var renderModelObjectInfo = rootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
 
             //for (int index = 0; index < RootRenderFeature.ObjectNodeReferences.Count; index++)
-            Dispatcher.For(0, RootRenderFeature.ObjectNodeReferences.Count, index =>
+            Dispatcher.For(0, rootRenderFeature.ObjectNodeReferences.Count, index =>
             {
-                var objectNodeReference = RootRenderFeature.ObjectNodeReferences[index];
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
+                var objectNodeReference = rootRenderFeature.ObjectNodeReferences[index];
+                var objectNode = rootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = objectNode.RenderObject as RenderMesh;
 
                 // TODO: Extract world
@@ -70,12 +72,12 @@ namespace Xenko.Rendering
         public override unsafe void Prepare(RenderDrawContext context)
         {
             // Compute WorldView, WorldViewProj
-            var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
-            var renderModelViewInfoData = RootRenderFeature.RenderData.GetData(RenderModelViewInfoKey);
+            var renderModelObjectInfoData = rootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
+            var renderModelViewInfoData = rootRenderFeature.RenderData.GetData(RenderModelViewInfoKey);
 
             // Update PerFrame (time)
             // TODO Move that to RootEffectRenderFeature?
-            foreach (var frameLayout in ((RootEffectRenderFeature)RootRenderFeature).FrameLayouts)
+            foreach (var frameLayout in ((RootEffectRenderFeature)rootRenderFeature).FrameLayouts)
             {
                 var timeOffset = frameLayout.GetConstantBufferOffset(time);
                 if (timeOffset == -1)
@@ -93,12 +95,12 @@ namespace Xenko.Rendering
             for (int index = 0; index < RenderSystem.Views.Count; index++)
             {
                 var view = RenderSystem.Views[index];
-                var viewFeature = view.Features[RootRenderFeature.Index];
+                var viewFeature = view.Features[rootRenderFeature.Index];
 
                 // Compute WorldView and WorldViewProjection
                 Dispatcher.ForEach(viewFeature.ViewObjectNodes, renderPerViewNodeReference =>
                 {
-                    var renderPerViewNode = RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
+                    var renderPerViewNode = rootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
                     ref var renderModelFrameInfo = ref renderModelObjectInfoData[renderPerViewNode.ObjectNode];
                     ref var renderModelViewInfo = ref renderModelViewInfoData[renderPerViewNodeReference];
 
@@ -153,7 +155,7 @@ namespace Xenko.Rendering
             // Update PerDraw (World, WorldViewProj, etc...)
             // Copy Entity.World to PerDraw cbuffer
             // TODO: Have a PerObject cbuffer?
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
+            Dispatcher.ForEach(((RootEffectRenderFeature)rootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
                 if (perDrawLayout == null)
@@ -183,7 +185,7 @@ namespace Xenko.Rendering
                     var perDrawData = new PerDrawExtra
                     {
                         WorldView = renderModelViewInfo.WorldView,
-                        WorldViewProjection = renderModelViewInfo.WorldViewProjection
+                        WorldViewProjection = renderModelViewInfo.WorldViewProjection,
                     };
 
                     Matrix.Invert(ref renderModelObjectInfo.World, out perDrawData.WorldInverse);
@@ -203,14 +205,14 @@ namespace Xenko.Rendering
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct PerFrameTime
+        private struct PerFrameTime
         {
             public float Time;
             public float TimeStep;
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct PerView
+        private struct PerView
         {
             public Matrix View;
             public Matrix ViewInverse;
@@ -223,7 +225,7 @@ namespace Xenko.Rendering
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct PerDrawExtra
+        private struct PerDrawExtra
         {
             public Matrix WorldInverse;
             public Matrix WorldInverseTranspose;
@@ -236,7 +238,7 @@ namespace Xenko.Rendering
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct PerViewCamera
+        private struct PerViewCamera
         {
             public float NearClipPlane;
             public float FarClipPlane;

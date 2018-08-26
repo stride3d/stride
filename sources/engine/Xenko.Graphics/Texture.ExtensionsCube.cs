@@ -71,7 +71,7 @@ namespace Xenko.Graphics
         /// <returns>A new instance of Cube <see cref="Texture" /> class.</returns>
         /// <exception cref="System.ArgumentException">Invalid texture datas. First dimension must be equal to 6;textureData</exception>
         /// <remarks>The first dimension of mipMapTextures describes the number of array (TextureCube Array), the second is the texture data for a particular cube face.</remarks>
-        public unsafe static Texture NewCube<T>(GraphicsDevice device, int size, PixelFormat format, T[][] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : struct
+        public static unsafe Texture NewCube<T>(GraphicsDevice device, int size, PixelFormat format, T[][] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : struct
         {
             if (textureData.Length != 6)
                 throw new ArgumentException("Invalid texture datas. First dimension must be equal to 6", "textureData");

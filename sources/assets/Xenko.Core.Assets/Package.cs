@@ -395,7 +395,6 @@ namespace Xenko.Core.Assets
             return folder?.Path ?? ("Assets/" + PackageProfile.SharedName);
         }
 
-
         /// <summary>
         /// Deep clone this package.
         /// </summary>
@@ -557,7 +556,6 @@ namespace Xenko.Core.Assets
 
                 foreach (var asset in Assets)
                 {
-                    var assetSaved = false;
                     if (asset.IsDirty)
                     {
                         if (saveParameters.AssetFilter?.Invoke(asset) ?? true)
@@ -1348,7 +1346,8 @@ namespace Xenko.Core.Assets
                             continue;
                         }
 
-                        if (!AssetRegistry.IsAssetFileExtension(ext) || AssetRegistry.IsProjectAssetFileExtension(ext)) //project source code assets follow the csproj pipeline
+                        //project source code assets follow the csproj pipeline
+                        if (!AssetRegistry.IsAssetFileExtension(ext) || AssetRegistry.IsProjectAssetFileExtension(ext))
                         {
                             continue;
                         }

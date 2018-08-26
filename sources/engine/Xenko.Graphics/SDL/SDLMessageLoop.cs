@@ -53,10 +53,10 @@ namespace Xenko.Graphics.SDL
             }
             set
             {
-                if(control == value) return;
+                if (control == value) return;
 
                 // Remove any previous control
-                if(control != null && !switchControl)
+                if (control != null && !switchControl)
                 {
                     isControlAlive = false;
                     control.Disposed -= ControlDisposed;
@@ -94,7 +94,7 @@ namespace Xenko.Graphics.SDL
                 switchControl = false;
             }
 
-            if(isControlAlive)
+            if (isControlAlive)
             {
                 SDL.SDL_Event e;
                 while (SDL.SDL_PollEvent(out e) != 0)
@@ -138,19 +138,18 @@ namespace Xenko.Graphics.SDL
         /// renderCallback</exception>
         public static void Run(Window form, RenderCallback renderCallback)
         {
-            if(form == null) throw new ArgumentNullException(nameof(form));
-            if(renderCallback == null) throw new ArgumentNullException(nameof(renderCallback));
+            if (form == null) throw new ArgumentNullException(nameof(form));
+            if (renderCallback == null) throw new ArgumentNullException(nameof(renderCallback));
 
             form.Show();
             using (var renderLoop = new SDLMessageLoop(form))
             {
-                while(renderLoop.NextFrame())
+                while (renderLoop.NextFrame())
                 {
                     renderCallback();
                 }
             }
         }
-
    }
 }
 #endif

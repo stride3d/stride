@@ -27,7 +27,7 @@ namespace Xenko.Rendering.Materials
         /// A higher value results in a "faster" falloff.
         /// </userdoc>
         [DataMember(200)]
-        [DataMemberRange(0.01, 1000.0, 2)] // A minimum value of 0.01 avoids NAN from "pow(x, y)" in the shader when "x == 0.0" and "y == 0.0".
+        [DataMemberRange(0.01, 1000.0, 1, 2, 2)] // A minimum value of 0.01 avoids NAN from "pow(x, y)" in the shader when "x == 0.0" and "y == 0.0".
         [Display("Extinction strength")]
         public float ExtinctionStrength { get; set; } = 15.0f;
 

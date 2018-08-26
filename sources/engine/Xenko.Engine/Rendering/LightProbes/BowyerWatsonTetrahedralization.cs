@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -22,6 +22,7 @@ namespace Xenko.Rendering.LightProbes
         // TODO: Make this customizable
         public const float ExtrapolationDistance = 100.0f;
 
+#pragma warning disable SA1300 // Element should begin with upper-case letter
         [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
         public static extern void exactinit();
 
@@ -30,6 +31,7 @@ namespace Xenko.Rendering.LightProbes
 
         [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
         public static extern float insphere(ref Vector3 pa, ref Vector3 pb, ref Vector3 pc, ref Vector3 pd, ref Vector3 pe);
+#pragma warning restore SA1300 // Element should begin with upper-case letter
 
         private readonly List<int> badTetrahedra = new List<int>();
         private readonly FastList<HoleFace> holeFaces = new FastList<HoleFace>();
@@ -56,8 +58,10 @@ namespace Xenko.Rendering.LightProbes
         {
             public unsafe fixed int Vertices[3];
             public Vector3 Normal;
-            public int FrontTetrahedron, BackTetrahedron;
-            public sbyte FrontFace, BackFace;
+            public int FrontTetrahedron;
+            public int BackTetrahedron;
+            public sbyte FrontFace;
+            public sbyte BackFace;
 
             public class Serializer : DataSerializer<Face>
             {
@@ -684,7 +688,6 @@ namespace Xenko.Rendering.LightProbes
                 var cp = points[tetrahedronPointer->Vertices[2]] - p;
                 var dp = points[tetrahedronPointer->Vertices[3]] - p;
 
-
                 // TODO: Pretend super tetrahedron is at infinity
                 // This is quite complex to handle and is probably not necessary given we take a "big enough" tetrahedron
                 // http://stackoverflow.com/questions/30741459/bowyer-watson-algorithm-how-to-fill-holes-left-by-removing-triangles-with-sup#answer-36992359
@@ -771,7 +774,7 @@ namespace Xenko.Rendering.LightProbes
 
                 // Use Adaptive Precision Floating-Point Arithmetic
                 return insphere(ref points[tetrahedronPointer->Vertices[0]], ref points[tetrahedronPointer->Vertices[1]], ref points[tetrahedronPointer->Vertices[2]], ref points[tetrahedronPointer->Vertices[3]], ref p) > 0.0f;
-
+#if FALSE
                 // Equivalent without Adaptive Precision Floating-Point Arithmetic
                 var matrix = new Matrix(
                     ap.X, ap.Y, ap.Z, ap.LengthSquared(),
@@ -780,6 +783,7 @@ namespace Xenko.Rendering.LightProbes
                     dp.X, dp.Y, dp.Z, dp.LengthSquared());
 
                 return matrix.Determinant() > 0.0f;
+#endif
             }
         }
 
@@ -798,7 +802,7 @@ namespace Xenko.Rendering.LightProbes
         private bool IsTetrahedronPositiveOrder(ref Vector3 a, ref Vector3 b, ref Vector3 c, ref Vector3 d)
         {
             return orient3d(ref a, ref b, ref c, ref d) > 0.0f;
-
+#if FALSE
             var matrix = new Matrix(
                 a.X, a.Y, a.Z, 1.0f,
                 b.X, b.Y, b.Z, 1.0f,
@@ -806,13 +810,13 @@ namespace Xenko.Rendering.LightProbes
                 d.X, d.Y, d.Z, 1.0f);
 
             return matrix.Determinant() > 0.0f;
+#endif
         }
-
 
         /// <summary>
         /// Internal structure used when adding vertex.
         /// </summary>
-        struct HoleFace
+        private struct HoleFace
         {
             public readonly int Vertex0;
             public readonly int Vertex1;
@@ -840,7 +844,7 @@ namespace Xenko.Rendering.LightProbes
         /// <summary>
         /// Internal structure used when adding vertex.
         /// </summary>
-        struct HoleEdge : IComparable<HoleEdge>
+        private struct HoleEdge : IComparable<HoleEdge>
         {
             public readonly int Vertex0;
             public readonly int Vertex1;

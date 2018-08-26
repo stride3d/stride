@@ -20,7 +20,6 @@ namespace Xenko.Engine
         /// </summary>
         /// <param name="parentEntity">The parent Entity.</param>
         /// <param name="childEntity">The child parent Entity.</param>
-        /// <returns>The this instance.</returns>
         /// <exception cref="NullReferenceException"><paramref name="childEntity"/> is <c>null</c></exception>
         /// <exception cref="NullReferenceException"><paramref name="parentEntity"/> is <c>null</c></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -48,7 +47,6 @@ namespace Xenko.Engine
         /// </summary>
         /// <param name="parentEntity">The parent entity.</param>
         /// <param name="childId">The child id of the child entity.</param>
-        /// <returns>The this instance.</returns>
         /// <exception cref="NullReferenceException"><paramref name="parentEntity"/> is <c>null</c></exception>
         /// <exception cref="ArgumentException"><paramref name="childId"/> is <see cref="Guid.Empty"/></exception>
         public static void RemoveChild([NotNull] this Entity parentEntity, Guid childId)
@@ -70,7 +68,6 @@ namespace Xenko.Engine
         /// </summary>
         /// <param name="parentEntity">The parent Entity.</param>
         /// <param name="index">The child index.</param>
-        /// <returns></returns>
         /// <exception cref="NullReferenceException"><paramref name="parentEntity"/> is <c>null</c></exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Entity GetChild([NotNull] this Entity parentEntity, int index)
@@ -149,7 +146,9 @@ namespace Xenko.Engine
         /// <param name="scale">Input world space scale tranformed to local space.</param>
         public static void WorldToLocal(this TransformComponent transformComponent, ref Vector3 position, ref Quaternion rotation, ref Vector3 scale)
         {
-            Vector3 worldScale; Quaternion worldRotation; Vector3 worldTranslation;
+            Vector3 worldScale;
+            Quaternion worldRotation;
+            Vector3 worldTranslation;
             transformComponent.WorldMatrix.Decompose(out worldScale, out worldRotation, out worldTranslation);
 
             Matrix worldMatrixInv;
@@ -198,7 +197,9 @@ namespace Xenko.Engine
         /// <param name="scale">Input local space scale tranformed to world space.</param>
         public static void LocalToWorld(this TransformComponent transformComponent, ref Vector3 position, ref Quaternion rotation, ref Vector3 scale)
         {
-            Vector3 worldScale; Quaternion worldRotation; Vector3 worldTranslation;
+            Vector3 worldScale;
+            Quaternion worldRotation;
+            Vector3 worldTranslation;
             transformComponent.WorldMatrix.Decompose(out worldScale, out worldRotation, out worldTranslation);
 
             Vector3.Transform(ref position, ref transformComponent.WorldMatrix, out position);

@@ -1,10 +1,12 @@
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 namespace Xenko.Media
 {
     /// <summary>
     /// Interface for playable media
     /// </summary>
-    public interface IMediaPlayer: IMediaReader
+    public interface IMediaPlayer : IMediaReader
     {
         /// <summary>
         /// Start or resume playing the media.

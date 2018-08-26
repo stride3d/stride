@@ -39,7 +39,7 @@ namespace Xenko.Core.Native
         public static extern void Sleep(int ms);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void ManagedLogDelegate(string log);
+        private delegate void ManagedLogDelegate(string log);
 
         private static ManagedLogDelegate managedLogDelegateSingleton;
 

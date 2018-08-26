@@ -29,7 +29,6 @@ namespace Xenko.Animations
 
         internal AnimationClipEvaluator()
         {
-            
         }
 
         internal void Initialize(AnimationClip clip, List<AnimationBlender.Channel> channels)

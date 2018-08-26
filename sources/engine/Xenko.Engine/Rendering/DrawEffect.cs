@@ -17,20 +17,20 @@ namespace Xenko.Rendering
         private ImageScaler scaler;
 
         /// <summary>
-        /// Initializes a <see cref="DrawEffect"/>.
+        /// Initializes a new instance of the <see cref="DrawEffect"/> class.
         /// </summary>
-        protected DrawEffect(string name) :
-            base(name)
+        protected DrawEffect(string name)
+            : base(name)
         {
             Enabled = true;
             Parameters = new ParameterCollection();
         }
 
         /// <summary>
-        /// Initializes the <see cref="DrawEffect"/> with the given <see cref="RenderContext"/>.
+        /// Initializes a new instance of the <see cref="DrawEffect"/> class with the given <see cref="RenderContext"/>.
         /// </summary>
-        protected DrawEffect() :
-            this(null)
+        protected DrawEffect()
+            : this(null)
         {
         }
 
@@ -103,7 +103,7 @@ namespace Xenko.Rendering
             {
                 Name = name;
             }
-            base.Draw(context);
+            Draw(context);
 
             Name = previousDebugName;
         }

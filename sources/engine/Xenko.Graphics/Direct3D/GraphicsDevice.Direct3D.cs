@@ -4,8 +4,8 @@
 #if XENKO_GRAPHICS_API_DIRECT3D11
 using System;
 using System.Collections.Generic;
-using SharpDX.Direct3D11;
 using SharpDX;
+using SharpDX.Direct3D11;
 
 namespace Xenko.Graphics
 {

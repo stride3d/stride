@@ -5,7 +5,6 @@ using Xenko.Graphics;
 
 namespace Xenko.Rendering.Images
 {
-
     /// <summary>
     /// Struct LuminanceResult
     /// </summary>

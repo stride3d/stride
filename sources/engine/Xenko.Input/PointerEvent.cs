@@ -84,7 +84,7 @@ namespace Xenko.Input
                 DeltaPosition = DeltaPosition,
                 DeltaTime = DeltaTime,
                 EventType = EventType,
-                IsDown = IsDown
+                IsDown = IsDown,
             };
         }
     }

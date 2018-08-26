@@ -1,7 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core.Collections;
 using System;
+using Xenko.Core.Collections;
 
 namespace Xenko.Input
 {
@@ -15,18 +15,18 @@ namespace Xenko.Input
         /// </summary>
         public class Pointer : VirtualButton
         {
-            private Pointer(string name, int id, bool isPositiveAndNegative) : 
-                this(name, id, -1, isPositiveAndNegative)
+            private Pointer(string name, int id, bool isPositiveAndNegative)
+                : this(name, id, -1, isPositiveAndNegative)
             {
             }
 
-            private Pointer(Pointer parent, int pointerId) : 
-                this(parent.ShortName, parent.Id, pointerId, parent.IsPositiveAndNegative)
+            private Pointer(Pointer parent, int pointerId)
+                : this(parent.ShortName, parent.Id, pointerId, parent.IsPositiveAndNegative)
             {
             }
 
-            protected Pointer(string name, int id, int pointerId, bool isPositiveAndNegative) :
-                base(name, VirtualButtonType.Pointer, id, isPositiveAndNegative)
+            protected Pointer(string name, int id, int pointerId, bool isPositiveAndNegative)
+                : base(name, VirtualButtonType.Pointer, id, isPositiveAndNegative)
             {
                 PointerId = pointerId;
             }
@@ -76,11 +76,10 @@ namespace Xenko.Input
                 return PointerId < 0 ? base.BuildButtonName() : Type.ToString() + PointerId + "." + ShortName;
             }
 
-
             public override float GetValue(InputManager manager)
             {
                 int index = (Id & TypeIdMask);
-                switch(index)
+                switch (index)
                 {
                     case 0:
                         return IsDown(manager) ? 1f : 0f;
@@ -99,7 +98,7 @@ namespace Xenko.Input
 
             public override bool IsDown(InputManager manager)
             {
-                return Index == 0? AnyPointerInState(manager, GetDownPointers): false;
+                return Index == 0 ? AnyPointerInState(manager, GetDownPointers) : false;
             }
 
             public override bool IsPressed(InputManager manager)

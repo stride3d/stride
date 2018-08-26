@@ -14,19 +14,19 @@ namespace Xenko.Rendering.Lights
     /// </summary>
     public abstract class LightShaderGroupDynamic : LightShaderGroup
     {
-        protected GraphicsProfile GraphicsProfile;
+        protected GraphicsProfile graphicsProfile;
 
         /// <summary>
         /// List of all available lights.
         /// </summary>
-        protected FastListStruct<LightDynamicEntry> Lights = new FastListStruct<LightDynamicEntry>(8);
+        protected FastListStruct<LightDynamicEntry> lights = new FastListStruct<LightDynamicEntry>(8);
 
-        protected LightRange[] LightRanges;
+        protected LightRange[] lightRanges;
 
         /// <summary>
         /// List of lights selected for this rendering.
         /// </summary>
-        protected FastListStruct<LightDynamicEntry> CurrentLights = new FastListStruct<LightDynamicEntry>(8);
+        protected FastListStruct<LightDynamicEntry> currentLights = new FastListStruct<LightDynamicEntry>(8);
 
         public ILightShadowMapShaderGroupData ShadowGroup { get; }
 
@@ -36,7 +36,7 @@ namespace Xenko.Rendering.Lights
 
         protected LightShaderGroupDynamic(RenderContext renderContext, ILightShadowMapShaderGroupData shadowGroup)
         {
-            GraphicsProfile = renderContext.GraphicsDevice.Features.RequestedProfile;
+            graphicsProfile = renderContext.GraphicsDevice.Features.RequestedProfile;
             ShadowGroup = shadowGroup;
         }
 
@@ -44,18 +44,18 @@ namespace Xenko.Rendering.Lights
         public override void Reset()
         {
             base.Reset();
-            Lights.Clear();
+            lights.Clear();
             LightLastCount = LightCurrentCount;
             LightCurrentCount = 0;
         }
 
         public virtual void SetViews(FastList<RenderView> views)
         {
-            Array.Resize(ref LightRanges, views.Count);
+            Array.Resize(ref lightRanges, views.Count);
 
             // Reset ranges
             for (var i = 0; i < views.Count; ++i)
-                LightRanges[i] = new LightRange(0, 0);
+                lightRanges[i] = new LightRange(0, 0);
         }
 
         /// <summary>
@@ -64,10 +64,10 @@ namespace Xenko.Rendering.Lights
         /// <param name="viewIndex"></param>
         /// <param name="renderView"></param>
         /// <param name="lightCount"></param>
-        /// <returns>The number of lights accepted in <see cref="CurrentLights"/>.</returns>
+        /// <returns>The number of lights accepted in <see cref="currentLights"/>.</returns>
         public virtual int AddView(int viewIndex, RenderView renderView, int lightCount)
         {
-            LightRanges[viewIndex] = new LightRange(Lights.Count, Lights.Count + lightCount);
+            lightRanges[viewIndex] = new LightRange(lights.Count, lights.Count + lightCount);
             LightCurrentCount = Math.Max(LightCurrentCount, ComputeLightCount(lightCount));
 
             return Math.Min(LightCurrentCount, lightCount);
@@ -91,7 +91,7 @@ namespace Xenko.Rendering.Lights
             lightCount = MathUtil.NextPowerOfTwo(lightCount);
 
             // Make sure it is at least 8 to avoid unecessary permutations
-            lightCount = Math.Max(lightCount, GraphicsProfile >= GraphicsProfile.Level_10_0 ? 8 : 0);
+            lightCount = Math.Max(lightCount, graphicsProfile >= GraphicsProfile.Level_10_0 ? 8 : 0);
 
             return lightCount;
         }
@@ -104,7 +104,7 @@ namespace Xenko.Rendering.Lights
         /// <returns></returns>
         public bool AddLight(LightComponent light, LightShadowMapTexture shadowMapTexture)
         {
-            Lights.Add(new LightDynamicEntry(light, shadowMapTexture));
+            lights.Add(new LightDynamicEntry(light, shadowMapTexture));
             return true;
         }
 
@@ -114,7 +114,7 @@ namespace Xenko.Rendering.Lights
             base.UpdateLayout(compositionName);
             ShadowGroup?.UpdateLayout(compositionName);
 
-            if (LightLastCount != LightCurrentCount)    // TODO: PERFORMANCE: Why do these two values differ all the time even if no lights have been added/removed?
+            if (LightLastCount != LightCurrentCount) // TODO: PERFORMANCE: Why do these two values differ all the time even if no lights have been added/removed?
             {
                 ShadowGroup?.UpdateLightCount(LightLastCount, LightCurrentCount);
                 UpdateLightCount();
@@ -129,14 +129,14 @@ namespace Xenko.Rendering.Lights
         public override void ApplyViewParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters)
         {
             base.ApplyViewParameters(context, viewIndex, parameters);
-            ShadowGroup?.ApplyViewParameters(context, parameters, CurrentLights);
+            ShadowGroup?.ApplyViewParameters(context, parameters, currentLights);
         }
 
         /// <inheritdoc/>
         public override void ApplyDrawParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters, ref BoundingBoxExt boundingBox)
         {
             base.ApplyDrawParameters(context, viewIndex, parameters, ref boundingBox);
-            ShadowGroup?.ApplyDrawParameters(context, parameters, CurrentLights, ref boundingBox);
+            ShadowGroup?.ApplyDrawParameters(context, parameters, currentLights, ref boundingBox);
         }
 
         public struct LightRange

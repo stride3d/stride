@@ -72,7 +72,6 @@ namespace Xenko.Games
         /// </value>
         public bool IsFirstUpdateDone { get { return isFirstUpdateDone; } }
 
-
         /// <summary>
         /// Reference page contains links to related conceptual articles.
         /// </summary>
@@ -239,7 +238,7 @@ namespace Xenko.Games
             }
         }
 
-        void GameSystems_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void GameSystems_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
         {
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
@@ -288,14 +287,14 @@ namespace Xenko.Games
             var updateableGameSystem = gameSystem as IUpdateable;
             if (updateableGameSystem != null && AddGameSystem(updateableGameSystem, updateableGameSystems, UpdateableComparer.Default, GameProfilingKeys.GameUpdate))
             {
-                updateableGameSystem.UpdateOrderChanged += updateableGameSystem_UpdateOrderChanged;
+                updateableGameSystem.UpdateOrderChanged += UpdateableGameSystem_UpdateOrderChanged;
             }
 
             // Add a drawable system to the separate list
             var drawableGameSystem = gameSystem as IDrawable;
             if (drawableGameSystem != null && AddGameSystem(drawableGameSystem, drawableGameSystems, DrawableComparer.Default, GameProfilingKeys.GameDraw))
             {
-                drawableGameSystem.DrawOrderChanged += drawableGameSystem_DrawOrderChanged;
+                drawableGameSystem.DrawOrderChanged += DrawableGameSystem_DrawOrderChanged;
             }
         }
 
@@ -332,7 +331,7 @@ namespace Xenko.Games
                     updateableGameSystems.Remove(key);
                 }
 
-                updateableSystem.UpdateOrderChanged -= updateableGameSystem_UpdateOrderChanged;
+                updateableSystem.UpdateOrderChanged -= UpdateableGameSystem_UpdateOrderChanged;
             }
 
             var drawableSystem = gameSystem as IDrawable;
@@ -344,16 +343,16 @@ namespace Xenko.Games
                     drawableGameSystems.Remove(key);
                 }
 
-                drawableSystem.DrawOrderChanged -= drawableGameSystem_DrawOrderChanged;
+                drawableSystem.DrawOrderChanged -= DrawableGameSystem_DrawOrderChanged;
             }
         }
 
-        private void updateableGameSystem_UpdateOrderChanged(object sender, EventArgs e)
+        private void UpdateableGameSystem_UpdateOrderChanged(object sender, EventArgs e)
         {
             AddGameSystem((IUpdateable)sender, updateableGameSystems, UpdateableComparer.Default, GameProfilingKeys.GameUpdate, true);
         }
 
-        private void drawableGameSystem_DrawOrderChanged(object sender, EventArgs e)
+        private void DrawableGameSystem_DrawOrderChanged(object sender, EventArgs e)
         {
             AddGameSystem((IDrawable)sender, drawableGameSystems, DrawableComparer.Default, GameProfilingKeys.GameDraw, true);
         }

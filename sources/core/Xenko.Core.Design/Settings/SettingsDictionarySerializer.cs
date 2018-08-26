@@ -49,7 +49,6 @@ namespace Xenko.Core.Settings
                 parsingEvents.Add(reader.Expect<ParsingEvent>());
             } while (reader.CurrentDepth > startDepth);
 
-
             var valueResult = parsingEvents;
 
             return new KeyValuePair<object, object>(keyResult, valueResult);

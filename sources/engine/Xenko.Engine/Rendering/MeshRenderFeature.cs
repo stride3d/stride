@@ -276,7 +276,7 @@ namespace Xenko.Rendering
                     InputSlotClass = InputClassification.Vertex,
                     InstanceDataStepRate = 0,
                     SemanticIndex = inputAttribute.SemanticIndex,
-                    SemanticName = inputAttribute.SemanticName
+                    SemanticName = inputAttribute.SemanticName,
                 });
             }
 

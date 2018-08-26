@@ -19,11 +19,11 @@ namespace Xenko.Core.Collections
     [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
     public class OrderedCollection<T> : ICollection<T>
     {
+        private const int DefaultCapacity = 4;
+
         private readonly IComparer<T> comparer;
         private T[] items;
         private int size;
-
-        private const int DefaultCapacity = 4;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrderedCollection{T}"/> class.

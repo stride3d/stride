@@ -17,8 +17,7 @@ namespace Xenko.Rendering.Background
         /// Gets the active background.
         /// </summary>
         /// <value>The active background.</value>
-        public RenderBackground ActiveBackground { get; private set; }
-        
+        public RenderBackground ActiveBackground { get; private set; }        
 
         /// <inheritdoc />
         protected internal override void OnSystemRemove()

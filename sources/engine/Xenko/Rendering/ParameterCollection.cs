@@ -438,7 +438,7 @@ namespace Xenko.Rendering
             if (key.Type == ParameterKeyType.Permutation)
             {
                 var oldValue = ObjectValues[accessor.Offset];
-                if (oldValue != null && (value == null || !oldValue.Equals(value)) // oldValue non null => check equality
+                if ((oldValue != null && (value == null || !oldValue.Equals(value))) // oldValue non null => check equality
                     || (oldValue == null && value != null)) // oldValue null => check if value too
                         PermutationCounter++;
             }
@@ -799,8 +799,8 @@ namespace Xenko.Rendering
 
         public struct CompositionCopier
         {
-            List<CopyRange> ranges;
-            ParameterCollection destination;
+            private List<CopyRange> ranges;
+            private ParameterCollection destination;
 
             public bool IsValid => ranges != null;
 
@@ -926,7 +926,7 @@ namespace Xenko.Rendering
             }
         }
 
-        struct CopyRange
+        private struct CopyRange
         {
             public bool IsResource;
             public bool IsData;
@@ -947,7 +947,7 @@ namespace Xenko.Rendering
             }
         }
 
-        class DebugView
+        private class DebugView
         {
             private readonly ParameterCollection collection;
 
@@ -973,7 +973,7 @@ namespace Xenko.Rendering
                             if (x.Key.Type == ParameterKeyType.Value)
                             {
                                 // Values
-                                var stride = (x.Key.Size + 15)/16*16;
+                                var stride = (x.Key.Size + 15) / 16 * 16;
                                 var values = new object[x.Count];
                                 fixed (byte* dataValuesStart = collection.DataValues)
                                 {
@@ -1019,7 +1019,7 @@ namespace Xenko.Rendering
             }
 
             // Represents a value
-            class ValueParameter
+            private class ValueParameter
             {
                 public ParameterKey Key;
                 public object Value;
@@ -1033,7 +1033,7 @@ namespace Xenko.Rendering
             }
 
             // Represents an object or permutation
-            class ObjectParameter
+            private class ObjectParameter
             {
                 public ParameterKey Key;
                 public object Value;

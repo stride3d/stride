@@ -6,6 +6,6 @@ namespace Xenko.VirtualReality
     {
         Invalid,
         OutOfRange,
-        Valid
+        Valid,
     }
 }

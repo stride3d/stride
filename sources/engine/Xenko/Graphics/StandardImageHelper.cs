@@ -9,7 +9,7 @@ namespace Xenko.Graphics
     /// </summary>
     partial class StandardImageHelper
     {
-        static unsafe void CopyMemoryBGRA(IntPtr dest, IntPtr src, int sizeInBytesToCopy)
+        private static unsafe void CopyMemoryBGRA(IntPtr dest, IntPtr src, int sizeInBytesToCopy)
         {
             if (sizeInBytesToCopy % 4 != 0)
                 throw new ArgumentException("Should be a multiple of 4.", "sizeInBytesToCopy");
@@ -26,7 +26,7 @@ namespace Xenko.Graphics
             }
         }
 
-        static unsafe void CopyMemoryRRR1(IntPtr dest, IntPtr src, int sizeInBytesToCopy)
+        private static unsafe void CopyMemoryRRR1(IntPtr dest, IntPtr src, int sizeInBytesToCopy)
         {
             var bufferSize = sizeInBytesToCopy;
             var srcPtr = (byte*)src;

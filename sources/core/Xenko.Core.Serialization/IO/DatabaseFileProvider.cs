@@ -5,9 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-using Xenko.Core.Storage;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
+using Xenko.Core.Storage;
 
 namespace Xenko.Core.IO
 {
@@ -124,7 +124,6 @@ namespace Xenko.Core.IO
             return objectDatabase.GetFilePath(objectId);
         }
 
-
         /// <summary>
         /// Resolves the given VFS URL into a ObjectId and its DatabaseFileProvider.
         /// </summary>
@@ -143,7 +142,7 @@ namespace Xenko.Core.IO
             return provider.ContentIndexMap.TryGetValue(resolveProviderResult.Path, out objectId) ? provider : null;
         }
 
-        abstract class DatabaseFileStream : VirtualFileStream, IDatabaseStream
+        private abstract class DatabaseFileStream : VirtualFileStream, IDatabaseStream
         {
             protected DatabaseFileStream(Stream internalStream, long startPosition, bool seekToBeginning = true)
                 : base(internalStream, startPosition, seekToBeginning: seekToBeginning)
@@ -153,7 +152,7 @@ namespace Xenko.Core.IO
             public abstract ObjectId ObjectId { get; }
         }
 
-        class DatabaseReadFileStream : DatabaseFileStream
+        private class DatabaseReadFileStream : DatabaseFileStream
         {
             private ObjectId id;
             public DatabaseReadFileStream(ObjectId id, Stream internalStream, long startPosition)
@@ -171,7 +170,7 @@ namespace Xenko.Core.IO
             }
         }
 
-        class DatabaseWriteFileStream : DatabaseFileStream
+        private class DatabaseWriteFileStream : DatabaseFileStream
         {
             public DatabaseWriteFileStream(Stream internalStream, long startPosition)
                 : base(internalStream, startPosition, false)

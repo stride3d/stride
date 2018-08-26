@@ -15,7 +15,7 @@ namespace Xenko.Rendering.Images
     [DataContract(Inherited = true)]
     public abstract class ColorTransformBase
     {
-        ParameterCollection.CompositionCopier parameterCompositionCopier;
+        private ParameterCollection.CompositionCopier parameterCompositionCopier;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ColorTransformBase" /> class.
@@ -79,7 +79,6 @@ namespace Xenko.Rendering.Images
                 Group?.NotifyPermutationChange();
             }
         }
-
 
         /// <summary>
         /// Gets the parameters.

@@ -14,7 +14,7 @@ namespace Xenko.Graphics
     /// </summary>
     partial class StandardImageHelper
     {
-        public unsafe static Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
+        public static unsafe Image LoadFromMemory(IntPtr pSource, int size, bool makeACopy, GCHandle? handle)
         {
             using (var memoryStream = new UnmanagedMemoryStream((byte*)pSource, size))
             {

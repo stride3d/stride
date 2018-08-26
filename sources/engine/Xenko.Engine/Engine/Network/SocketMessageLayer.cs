@@ -130,7 +130,7 @@ namespace Xenko.Engine.Network
                                 var exceptionMessage = new ExceptionMessage
                                 {
                                     ExceptionInfo = new ExceptionInfo(ex),
-                                    StreamId = message.StreamId
+                                    StreamId = message.StreamId,
                                 };
 
                                 await Send(exceptionMessage);
@@ -157,7 +157,7 @@ namespace Xenko.Engine.Network
             }
         }
 
-        void ProcessMessage(SocketMessage socketMessage)
+        private void ProcessMessage(SocketMessage socketMessage)
         {
             TaskCompletionSource<SocketMessage> tcs;
 

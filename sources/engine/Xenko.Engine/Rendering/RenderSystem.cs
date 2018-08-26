@@ -4,12 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Threading;
 using Xenko.Core;
 using Xenko.Core.Collections;
-using Xenko.Graphics;
-using System.Reflection;
-using System.Threading;
 using Xenko.Core.Threading;
+using Xenko.Graphics;
 
 namespace Xenko.Rendering
 {
@@ -29,7 +28,6 @@ namespace Xenko.Rendering
 
         private readonly Dictionary<Type, List<RootRenderFeature>> renderFeaturesByType = new Dictionary<Type, List<RootRenderFeature>>();
         private IServiceRegistry registry;
-
 
         // TODO GRAPHICS REFACTOR should probably be controlled by graphics compositor?
         /// <summary>

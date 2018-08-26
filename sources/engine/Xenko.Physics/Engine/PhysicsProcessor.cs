@@ -1,16 +1,14 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
+using System.Collections.Generic;
 using Xenko.Core;
+using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Games;
-using System.Collections.Generic;
-using Xenko.Core.Diagnostics;
 using Xenko.Physics.Engine;
 using Xenko.Rendering;
-using Xenko.Rendering.Compositing;
 
 namespace Xenko.Physics
 {
@@ -31,7 +29,6 @@ namespace Xenko.Physics
         private Bullet2PhysicsSystem physicsSystem;
         private SceneSystem sceneSystem;
         private Scene debugScene;
-        private Entity debugEntityScene;
 
         private bool colliderShapesRendering;
 
@@ -85,7 +82,7 @@ namespace Xenko.Physics
             {
                 PhysicsComponent = component,
                 TransformComponent = entity.Transform,
-                ModelComponent = entity.Get<ModelComponent>()
+                ModelComponent = entity.Get<ModelComponent>(),
             };
 
             data.PhysicsComponent.Simulation = Simulation;
@@ -196,7 +193,7 @@ namespace Xenko.Physics
             //characters need manual updating
             foreach (var element in characters)
             {
-                if(!element.Enabled || element.ColliderShape == null) continue;
+                if (!element.Enabled || element.ColliderShape == null) continue;
 
                 var worldTransform = Matrix.RotationQuaternion(element.Orientation) * element.PhysicsWorldTransform;
                 element.UpdateTransformationComponent(ref worldTransform);

@@ -13,7 +13,7 @@ namespace Xenko.VirtualReality
 {
     internal class FoveHmd : VRDevice
     {
-        private Texture nonSrgbFrame;
+        //private Texture nonSrgbFrame;
         private readonly Matrix referenceMatrix = Matrix.RotationZ(MathUtil.Pi);
         private Matrix referenceMatrixInv;
 
@@ -51,7 +51,6 @@ namespace Xenko.VirtualReality
 //
 //                Fove.Commit();
 //            }));
-
         }
 
         public override void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix view, out Matrix projection)

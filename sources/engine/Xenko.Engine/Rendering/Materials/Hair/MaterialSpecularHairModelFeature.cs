@@ -2,13 +2,13 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Core.Annotations;
-using Xenko.Shaders;
-using Xenko.Graphics;
 using Xenko.Core.Mathematics;
-using System.ComponentModel;
+using Xenko.Graphics;
 using Xenko.Rendering.Materials.ComputeColors;
+using Xenko.Shaders;
 
 namespace Xenko.Rendering.Materials
 {
@@ -66,7 +66,7 @@ namespace Xenko.Rendering.Materials
         /// </userdoc>
         [DataMember(70)]
         [DefaultValue(100.0f)]
-        [DataMemberRange(1.0, 1000.0, 2)]
+        [DataMemberRange(1.0, 1000.0, 1, 2, 2)]
         [Display("Primary specular reflection exponent")]
         public float SpecularExponent1 { get; set; } = 100.0f;
 
@@ -88,7 +88,7 @@ namespace Xenko.Rendering.Materials
         /// </userdoc>
         [DataMember(90)]
         [DefaultValue(0.05f)]
-        [DataMemberRange(0.0, 1.0, 3)]
+        [DataMemberRange(0.0, 1.0, 1, 2, 3)]
         [Display("Primary specular reflection strength")]
         public float SpecularScale1 { get; set; } = 0.05f;
 
@@ -100,7 +100,7 @@ namespace Xenko.Rendering.Materials
         /// </userdoc>
         [DataMember(100)]
         [DefaultValue(10.0f)]
-        [DataMemberRange(1.0, 1000.0, 2)]
+        [DataMemberRange(1.0, 1000.0, 1, 2, 2)]
         [Display("Secondary specular reflection exponent")]
         public float SpecularExponent2 { get; set; } = 10.0f;
 
@@ -114,7 +114,6 @@ namespace Xenko.Rendering.Materials
         [Display("Secondary specular reflection color")]
         public Color3 SpecularColor2 { get; set; } = new Color3(1.0f, 1.0f, 1.0f); // TODO: Use IComputeColor instead?
 
-
         /// <summary>
         /// Strength of the secondary specular reflection.
         /// </summary>
@@ -123,7 +122,7 @@ namespace Xenko.Rendering.Materials
         /// </userdoc>
         [DataMember(120)]
         [DefaultValue(1.0f)]
-        [DataMemberRange(0.0, 1.0, 3)]
+        [DataMemberRange(0.0, 1.0, 1, 2, 3)]
         [Display("Secondary specular reflection strength")]
         public float SpecularScale2 { get; set; } = 1.0f;
 
@@ -136,7 +135,7 @@ namespace Xenko.Rendering.Materials
         /// </userdoc>
         [DataMember(125)]
         [DefaultValue(1.5f)]
-        [DataMemberRange(0.0, 3.0, 2)]
+        [DataMemberRange(0.0, 3.0, 1, 2, 2)]
         [Display("Secondary reflection shift ratio")]
         public float SpecularShiftRatio { get; set; } = 1.5f;
 
@@ -149,7 +148,7 @@ namespace Xenko.Rendering.Materials
         [DataMember(127)]
         [DefaultValue(7.0f)]
         [Display("Hair scales angle")]
-        [DataMemberRange(0.0, 25.0, 2)]
+        [DataMemberRange(0.0, 25.0, 1, 2, 2)]
         public float ScalesAngle { get; set; } = 7.0f;
 
         /// <summary>
@@ -160,7 +159,7 @@ namespace Xenko.Rendering.Materials
         /// </userdoc>
         [DataMember(131)]
         [DefaultValue(1.0f)]
-        [DataMemberRange(0.0, 10.0, 2)]
+        [DataMemberRange(0.0, 10.0, 1, 2, 2)]
         [Display("Shift noise strength")]
         public float ShiftNoiseScale { get; set; } = 1.0f;
 
@@ -170,7 +169,7 @@ namespace Xenko.Rendering.Materials
         /// </userdoc>
         [DataMember(132)]
         [DefaultValue(1.0f)]
-        [DataMemberRange(0.0, 1.0, 2)]
+        [DataMemberRange(0.0, 1.0, 1, 2, 2)]
         [Display("Glints noise strength")]
         public float GlintsNoiseStrength { get; set; } = 1.0f;
 
@@ -183,7 +182,7 @@ namespace Xenko.Rendering.Materials
         /// </userdoc>
         [DataMember(135)]
         [DefaultValue(0.99f)]
-        [DataMemberRange(0.0, 1.0, 2)]
+        [DataMemberRange(0.0, 1.0, 1, 2, 2)]
         [Display("Alpha threshold")]
         public float AlphaThreshold { get; set; } = 0.99f;
 
@@ -312,7 +311,7 @@ namespace Xenko.Rendering.Materials
             parameters.Set(MaterialSurfaceShadingSpecularHairKeys.HairGlintsNoiseStrength, GlintsNoiseStrength);
             parameters.Set(MaterialKeys.UsePixelShaderWithDepthPass, true); // Indicates that the material requries the full pixel shader durin the depth-only passes (Z prepass or shadow map rendering).
 
-            if(DebugRenderPasses)
+            if (DebugRenderPasses)
             {
                 parameters.Set(MaterialHairSharedKeys.PassID, context.PassIndex);   // For debugging the different hair passes.
             }

@@ -21,6 +21,6 @@ namespace Xenko.Core.Serialization.Contents
         /// <summary>
         /// The location is a content url.
         /// </summary>
-        Content
+        Content,
     }
 }

@@ -56,27 +56,27 @@ namespace Xenko.Rendering.Materials
 
         public static string GetAsShaderString(Vector2 v)
         {
-            return String.Format(CultureInfo.InvariantCulture, "float2({0}, {1})", v.X, v.Y);
+            return string.Format(CultureInfo.InvariantCulture, "float2({0}, {1})", v.X, v.Y);
         }
 
         public static string GetAsShaderString(Vector3 v)
         {
-            return String.Format(CultureInfo.InvariantCulture, "float3({0}, {1}, {2})", v.X, v.Y, v.Z);
+            return string.Format(CultureInfo.InvariantCulture, "float3({0}, {1}, {2})", v.X, v.Y, v.Z);
         }
 
         public static string GetAsShaderString(Vector4 v)
         {
-            return String.Format(CultureInfo.InvariantCulture, "float4({0}, {1}, {2}, {3})", v.X, v.Y, v.Z, v.W);
+            return string.Format(CultureInfo.InvariantCulture, "float4({0}, {1}, {2}, {3})", v.X, v.Y, v.Z, v.W);
         }
 
         public static string GetAsShaderString(Color4 c)
         {
-            return String.Format(CultureInfo.InvariantCulture, "float4({0}, {1}, {2}, {3})", c.R, c.G, c.B, c.A);
+            return string.Format(CultureInfo.InvariantCulture, "float4({0}, {1}, {2}, {3})", c.R, c.G, c.B, c.A);
         }
 
         public static string GetAsShaderString(float f)
         {
-            return String.Format(CultureInfo.InvariantCulture, "float4({0}, {0}, {0}, {0})", f);
+            return string.Format(CultureInfo.InvariantCulture, "float4({0}, {0}, {0}, {0})", f);
         }
 
         public static string GetAsShaderString(object obj)

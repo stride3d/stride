@@ -20,7 +20,7 @@ namespace Xenko.Input
         public VirtualButtonConfig()
         {
             mapBindings = new Dictionary<object, List<VirtualButtonBinding>>();
-            CollectionChanged += bindings_CollectionChanged;
+            CollectionChanged += Bindings_CollectionChanged;
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Xenko.Input
             return value;
         }
 
-        void bindings_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        private void Bindings_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
         {
             var virtualButtonBinding = (VirtualButtonBinding)e.Item;
             switch (e.Action)

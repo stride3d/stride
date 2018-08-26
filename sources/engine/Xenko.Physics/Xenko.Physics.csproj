@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
@@ -16,6 +16,7 @@
     <XenkoBulletPlatform>Windows</XenkoBulletPlatform>
     <XenkoBulletPlatform Condition="'$(XenkoPlatform)' == 'iOS'">iOS</XenkoBulletPlatform>
     <XenkoBulletSignedDir Condition="'$(XenkoSign)' == 'true'">Signed\</XenkoBulletSignedDir>
+    <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
   <Choose>
     <When Condition="'$(XenkoPlatform)' == 'Windows'">

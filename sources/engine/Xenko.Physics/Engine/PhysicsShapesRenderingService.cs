@@ -1,13 +1,13 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Graphics;
 using Xenko.Rendering;
-using System;
-using System.Collections.Generic;
 
 namespace Xenko.Physics.Engine
 {
@@ -22,9 +22,9 @@ namespace Xenko.Physics.Engine
             Dynamic,
             Kinematic,
             Character,
-        };
+        }
 
-        private Dictionary<ComponentType, Color> ComponentTypeColor = new Dictionary<ComponentType, Color>
+        private readonly Dictionary<ComponentType, Color> componentTypeColor = new Dictionary<ComponentType, Color>
         {
             { ComponentType.Trigger, Color.Purple },
             { ComponentType.Static, Color.Red },
@@ -33,8 +33,8 @@ namespace Xenko.Physics.Engine
             { ComponentType.Character, Color.LightPink },
         };
 
-        private Dictionary<ComponentType, Material> ComponentTypeDefaultMaterial = new Dictionary<ComponentType, Material>();
-        private Dictionary<ComponentType, Material> ComponentTypeStaticPlaneMaterial = new Dictionary<ComponentType, Material>();
+        private readonly Dictionary<ComponentType, Material> componentTypeDefaultMaterial = new Dictionary<ComponentType, Material>();
+        private readonly Dictionary<ComponentType, Material> componentTypeStaticPlaneMaterial = new Dictionary<ComponentType, Material>();
 
         private readonly Dictionary<Type, MeshDraw> debugMeshCache = new Dictionary<Type, MeshDraw>();
         private readonly Dictionary<ColliderShape, MeshDraw> debugMeshCache2 = new Dictionary<ColliderShape, MeshDraw>();
@@ -43,11 +43,11 @@ namespace Xenko.Physics.Engine
         {
             graphicsDevice = Services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
 
-            foreach(var typeObject in Enum.GetValues(typeof(ComponentType)))
+            foreach (var typeObject in Enum.GetValues(typeof(ComponentType)))
             {
                 var type = (ComponentType)typeObject;
-                ComponentTypeDefaultMaterial[type] = PhysicsDebugShapeMaterial.CreateDefault(graphicsDevice, Color.AdjustSaturation(ComponentTypeColor[type], 0.77f), 1);
-                ComponentTypeStaticPlaneMaterial[type] = ComponentTypeDefaultMaterial[type];
+                componentTypeDefaultMaterial[type] = PhysicsDebugShapeMaterial.CreateDefault(graphicsDevice, Color.AdjustSaturation(componentTypeColor[type], 0.77f), 1);
+                componentTypeStaticPlaneMaterial[type] = componentTypeDefaultMaterial[type];
                 // TODO enable this once material is implemented.
                 // ComponentTypeStaticPlaneMaterial[type] = PhysicsDebugShapeMaterial.CreateStaticPlane(graphicsDevice, Color.AdjustSaturation(ComponentTypeColor[type], 0.77f), 1); 
             }
@@ -158,11 +158,11 @@ namespace Xenko.Physics.Engine
                                     GetMaterial(component, shape),
                                     new Mesh
                                     {
-                                        Draw = draw
-                                    }
+                                        Draw = draw,
+                                    },
                                 },
                                 RenderGroup = renderGroup,
-                            }
+                            },
                         };
 
                         var offset = addOffset ? Matrix.RotationQuaternion(shape.LocalRotation) * Matrix.Translation(shape.LocalOffset) : Matrix.Identity;
@@ -200,9 +200,9 @@ namespace Xenko.Physics.Engine
                 componentType = staticCollider.IsTrigger ? ComponentType.Trigger : ComponentType.Static;
             }
 
-            return shape is StaticPlaneColliderShape? 
-                ComponentTypeStaticPlaneMaterial[componentType]:
-                ComponentTypeDefaultMaterial[componentType];
+            return shape is StaticPlaneColliderShape
+                ? componentTypeStaticPlaneMaterial[componentType]
+                : componentTypeDefaultMaterial[componentType];
         }
     }
 }

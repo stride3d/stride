@@ -49,7 +49,7 @@ namespace Xenko.UI.Controls
             get { return base.IsPressed; }
             protected set
             {
-                if(value == IsPressed)
+                if (value == IsPressed)
                     return;
 
                 base.IsPressed = value;

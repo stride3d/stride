@@ -23,7 +23,6 @@ namespace Xenko.Animations
         /// Multiplies the left sampled value by the right sampled value
         /// </summary>
         Multiply,
-
     }
 
     /// <summary>

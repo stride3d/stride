@@ -29,7 +29,6 @@ namespace Xenko.VirtualReality
             textures = new Texture[textureCount];
             for (var i = 0; i < textureCount; i++)
             {
-
                 var ptr = OculusOvr.GetQuadLayerTextureDx(ovrSession, OverlayPtr, OculusOvrHmd.Dx11Texture2DGuid, i);
                 if (ptr == IntPtr.Zero)
                 {

@@ -56,7 +56,7 @@ namespace Xenko.Input
                 else
                 {
                     var buttonEvent = inputEvents[index] as GamePadButtonEvent;
-                    if(buttonEvent != null)
+                    if (buttonEvent != null)
                         UpdateButtonState(buttonEvent);
 
                     index++;

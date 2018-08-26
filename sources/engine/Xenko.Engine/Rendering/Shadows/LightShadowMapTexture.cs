@@ -105,7 +105,7 @@ namespace Xenko.Rendering.Shadows
             }
             unsafe
             {
-                fixed (void* ptr = &Rectangle0)
+                fixed (void* ptr = &rectangle0)
                 {
                     return ((Rectangle*)ptr)[i];
                 }
@@ -120,7 +120,7 @@ namespace Xenko.Rendering.Shadows
             }
             unsafe
             {
-                fixed (void* ptr = &Rectangle0)
+                fixed (void* ptr = &rectangle0)
                 {
                     ((Rectangle*)ptr)[i] = value;
                 }
@@ -132,13 +132,13 @@ namespace Xenko.Rendering.Shadows
         // arithmetics.
         // MaxRectangles should be updated to match the actual number of rectangles to detected out of range errors
         public const int MaxRectangles = 6;
-        private Rectangle Rectangle0;
+        private Rectangle rectangle0;
 #pragma warning disable 169
-        private Rectangle Rectangle1;
-        private Rectangle Rectangle2;
-        private Rectangle Rectangle3;
-        private Rectangle Rectangle4;
-        private Rectangle Rectangle5;
+        private Rectangle rectangle1;
+        private Rectangle rectangle2;
+        private Rectangle rectangle3;
+        private Rectangle rectangle4;
+        private Rectangle rectangle5;
 #pragma warning restore 169
 
     }

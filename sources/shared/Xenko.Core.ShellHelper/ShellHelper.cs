@@ -114,7 +114,7 @@ namespace Xenko
                     RedirectStandardOutput = true,
                     WorkingDirectory = workingDirectory,
                     Arguments = parameters,
-                }
+                },
             };
 
             process.Start();

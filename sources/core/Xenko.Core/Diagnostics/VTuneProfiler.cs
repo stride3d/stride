@@ -136,9 +136,12 @@ namespace Xenko.Core.Diagnostics
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         private struct IttId
         {
-            private readonly long d1, d2, d3;
-        };
+            private readonly long d1;
+            private readonly long d2;
+            private readonly long d3;
+        }
 
+#pragma warning disable SA1300 // Element must begin with upper-case letter
         [DllImport(VTune2015DllName, CallingConvention = CallingConvention.Cdecl)]
         private static extern void __itt_resume();
 
@@ -171,6 +174,7 @@ namespace Xenko.Core.Diagnostics
 
         [DllImport(VTune2015DllName, CallingConvention = CallingConvention.Cdecl)]
         private static extern void __itt_task_end(Domain domain);
+#pragma warning restore SA1300 // Element must begin with upper-case letter
     }
 }
 

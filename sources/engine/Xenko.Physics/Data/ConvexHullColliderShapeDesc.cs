@@ -2,11 +2,11 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization.Contents;
 using Xenko.Rendering;
-using System.Collections.Generic;
 
 namespace Xenko.Physics
 {

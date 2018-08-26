@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using Xenko.Core;
@@ -77,7 +77,7 @@ namespace Xenko.Rendering.Compositing
         /// </summary>
         protected virtual CameraComponent ResolveCamera(RenderContext renderContext)
         {
-            if(Camera == null && !cameraSlotResolutionFailed)
+            if (Camera == null && !cameraSlotResolutionFailed)
                 Logger.Warning($"{nameof(SceneCameraRenderer)} [{Id}] has no camera set. Make sure to set camera to the renderer via the Graphic Compositor Editor.");
 
             cameraSlotResolutionFailed = Camera == null;

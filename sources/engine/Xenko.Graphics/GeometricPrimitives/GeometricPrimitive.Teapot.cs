@@ -96,40 +96,39 @@ namespace Xenko.Graphics.GeometricPrimitives
             {
                 public TeapotPatch(bool mirrorZ, params int[] indices)
                 {
-                    this.mirrorZ = mirrorZ;
-                    this.indices = indices;
+                    this.MirrorZ = mirrorZ;
+                    this.Indices = indices;
                 }
 
-                public bool mirrorZ;
-                public int[] indices;
+                public bool MirrorZ;
+                public int[] Indices;
             }
 
             // Static data array defines the bezier patches that make up the teapot.
             private static readonly TeapotPatch[] TeapotPatches = new TeapotPatch[]
                 {
                     // Rim.
-                    new TeapotPatch(true, new[] {102, 103, 104, 105, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}),
+                    new TeapotPatch(true, new[] { 102, 103, 104, 105, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }),
 
                     // Body.
-                    new TeapotPatch(true, new[] {12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27}),
-                    new TeapotPatch(true, new[] {24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40}),
+                    new TeapotPatch(true, new[] { 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27 }),
+                    new TeapotPatch(true, new[] { 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40 }),
 
                     // Lid.
-                    new TeapotPatch(true, new[] {96, 96, 96, 96, 97, 98, 99, 100, 101, 101, 101, 101, 0, 1, 2, 3}),
-                    new TeapotPatch(true, new[] {0, 1, 2, 3, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117}),
+                    new TeapotPatch(true, new[] { 96, 96, 96, 96, 97, 98, 99, 100, 101, 101, 101, 101, 0, 1, 2, 3 }),
+                    new TeapotPatch(true, new[] { 0, 1, 2, 3, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117 }),
 
                     // Handle.
-                    new TeapotPatch(false, new[] {41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56}),
-                    new TeapotPatch(false, new[] {53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 28, 65, 66, 67}),
+                    new TeapotPatch(false, new[] { 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56 }),
+                    new TeapotPatch(false, new[] { 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 28, 65, 66, 67 }),
 
                     // Spout.
-                    new TeapotPatch(false, new[] {68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83}),
-                    new TeapotPatch(false, new[] {80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95}),
+                    new TeapotPatch(false, new[] { 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83 }),
+                    new TeapotPatch(false, new[] { 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95 }),
 
                     // Bottom.
-                    new TeapotPatch(true, new[] {118, 118, 118, 118, 124, 122, 119, 121, 123, 126, 125, 120, 40, 39, 38, 37}),
+                    new TeapotPatch(true, new[] { 118, 118, 118, 118, 124, 122, 119, 121, 123, 126, 125, 120, 40, 39, 38, 37 }),
                 };
-
 
             // Static array defines the control point positions that make up the teapot.
             private static readonly Vector3[] TeapotControlPoints = new Vector3[]
@@ -263,16 +262,15 @@ namespace Xenko.Graphics.GeometricPrimitives
                     new Vector3(-0.375f, -0.31125f, -0.21f),
                 };
 
-
             /// <summary>
             /// Creates a teapot primitive.
             /// </summary>
             /// <param name="device">The device.</param>
             /// <param name="size">The size.</param>
             /// <param name="tessellation">The tessellation.</param>
-            /// <param name="vScale"></param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
-            /// <param name="uScale"></param>
             /// <returns>GeometricPrimitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation must be > 0</exception>
             public static GeometricPrimitive New(GraphicsDevice device, float size = 1.0f, int tessellation = 8, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
@@ -286,9 +284,9 @@ namespace Xenko.Graphics.GeometricPrimitives
             /// </summary>
             /// <param name="size">The size.</param>
             /// <param name="tessellation">The tessellation.</param>
-            /// <param name="vScale"></param>
+            /// <param name="uScale">Scale U coordinates between 0 and the values of this parameter.</param>
+            /// <param name="vScale">Scale V coordinates 0 and the values of this parameter.</param>
             /// <param name="toLeftHanded">if set to <c>true</c> vertices and indices will be transformed to left handed. Default is false.</param>
-            /// <param name="uScale"></param>
             /// <returns>GeometricPrimitive.</returns>
             /// <exception cref="System.ArgumentOutOfRangeException">tessellation;tessellation must be > 0</exception>
             public static GeometricMeshData<VertexPositionNormalTexture> New(float size = 1.0f, int tessellation = 8, float uScale = 1.0f, float vScale = 1.0f, bool toLeftHanded = false)
@@ -315,7 +313,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                     TessellatePatch(vertices, indices, ref patch, tessellation, scaleVector, false);
                     TessellatePatch(vertices, indices, ref patch, tessellation, scaleNegateX, true);
 
-                    if (patch.mirrorZ)
+                    if (patch.MirrorZ)
                     {
                         // Some parts of the teapot (the body, lid, and rim, but not the
                         // handle or spout) are also symmetrical from front to back, so
@@ -328,7 +326,7 @@ namespace Xenko.Graphics.GeometricPrimitives
                 var texCoord = new Vector2(uScale, vScale);
                 for (var i = 0; i < vertices.Count; i++)
                 {
-                    vertices[i] = new VertexPositionNormalTexture(vertices[i].Position, vertices[i].Normal, vertices[i].TextureCoordinate*texCoord);
+                    vertices[i] = new VertexPositionNormalTexture(vertices[i].Position, vertices[i].Normal, vertices[i].TextureCoordinate * texCoord);
                 }
 
                 return new GeometricMeshData<VertexPositionNormalTexture>(vertices.ToArray(), indices.ToArray(), toLeftHanded) { Name = "Teapot" };
@@ -340,24 +338,23 @@ namespace Xenko.Graphics.GeometricPrimitives
             // float, or any other types that define suitable * and + operators.
             public static Vector3 CubicInterpolate(ref Vector3 p1, ref Vector3 p2, ref Vector3 p3, ref Vector3 p4, float t)
             {
-                var t2 = t*t;
+                var t2 = t * t;
                 var onet2 = (1 - t) * (1 - t);
-                return p1*(1 - t)*onet2 +
-                       p2*3*t*onet2 +
-                       p3*3*t2*(1 - t) +
-                       p4*t*t2;
+                return p1 * (1 - t) * onet2 +
+                       p2 * 3 * t * onet2 +
+                       p3 * 3 * t2 * (1 - t) +
+                       p4 * t * t2;
             }
-
 
             // Computes the tangent of a cubic bezier curve at the specified time.
             // Template supports Vector3, float, or any other types with * and + operators.
             private static Vector3 CubicTangent(ref Vector3 p1, ref Vector3 p2, ref Vector3 p3, ref Vector3 p4, float t)
             {
-                var t2 = t*t;
-                return p1*(-1 + 2*t - t2) +
-                       p2*(1 - 4*t + 3*t2) +
-                       p3*(2*t - 3*t2) +
-                       p4*(t2);
+                var t2 = t * t;
+                return p1 * (-1 + 2 * t - t2) +
+                       p2 * (1 - 4 * t + 3 * t2) +
+                       p3 * (2 * t - 3 * t2) +
+                       p4 * (t2);
             }
 
             // Creates vertices for a patch that is tessellated at the specified level.
@@ -367,11 +364,11 @@ namespace Xenko.Graphics.GeometricPrimitives
             {
                 for (int i = 0; i <= tessellation; i++)
                 {
-                    float u = (float) i/tessellation;
+                    float u = (float)i / tessellation;
 
                     for (int j = 0; j <= tessellation; j++)
                     {
-                        float v = (float) j/tessellation;
+                        float v = (float)j / tessellation;
 
                         // Perform four horizontal bezier interpolations
                         // between the control points of this patch.
@@ -449,12 +446,12 @@ namespace Xenko.Graphics.GeometricPrimitives
                 {
                     for (int j = 0; j < tessellation; j++)
                     {
-                        indices[0] = baseIndex + i*stride + j;
-                        indices[1] = baseIndex + (i + 1)*stride + j;
-                        indices[2] = baseIndex + (i + 1)*stride + j + 1;
-                        indices[3] = baseIndex + i*stride + j;
-                        indices[4] = baseIndex + (i + 1)*stride + j + 1;
-                        indices[5] = baseIndex + i*stride + j + 1;
+                        indices[0] = baseIndex + i * stride + j;
+                        indices[1] = baseIndex + (i + 1) * stride + j;
+                        indices[2] = baseIndex + (i + 1) * stride + j + 1;
+                        indices[3] = baseIndex + i * stride + j;
+                        indices[4] = baseIndex + (i + 1) * stride + j + 1;
+                        indices[5] = baseIndex + i * stride + j + 1;
 
                         // If this patch is mirrored, reverse indices to fix the winding order.
                         if (isMirrored)
@@ -479,7 +476,7 @@ namespace Xenko.Graphics.GeometricPrimitives
 
                 for (int i = 0; i < 16; i++)
                 {
-                    controlPoints[i] = TeapotControlPoints[patch.indices[i]] * scale;
+                    controlPoints[i] = TeapotControlPoints[patch.Indices[i]] * scale;
                 }
 
                 // Create the index data.

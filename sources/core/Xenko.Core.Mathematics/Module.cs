@@ -5,8 +5,14 @@ using Xenko.Core.Reflection;
 
 namespace Xenko.Core.Mathematics
 {
+    /// <summary>
+    /// Module initializer.
+    /// </summary>
     internal class Module
     {
+        /// <summary>
+        /// Module initializer.
+        /// </summary>
         [ModuleInitializer]
         public static void Initialize()
         {

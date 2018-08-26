@@ -96,7 +96,7 @@ namespace Xenko.Graphics
                     GL.Flush();
 
 #if XENKO_PLATFORM_IOS
-                    if(previousContext != null)
+                    if (previousContext != null)
                         OpenGLES.EAGLContext.SetCurrentContext(previousContext);
 #else
                     // Restore graphics context

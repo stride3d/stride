@@ -11,7 +11,6 @@ namespace Xenko.Rendering.Images
     [DataContract("Vignetting")]
     public sealed class Vignetting : ColorTransform
     {
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Vignetting"/> class.
         /// </summary>

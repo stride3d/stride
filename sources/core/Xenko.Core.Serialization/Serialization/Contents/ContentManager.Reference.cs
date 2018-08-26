@@ -15,7 +15,9 @@ namespace Xenko.Core.Serialization.Contents
             /// <summary>
             /// The next item in the linked list.
             /// </summary>
-            public Reference Next, Prev;
+            public Reference Next;
+
+            public Reference Prev;
 
             public bool Deserialized;
 

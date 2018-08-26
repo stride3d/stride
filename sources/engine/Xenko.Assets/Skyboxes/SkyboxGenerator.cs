@@ -22,7 +22,7 @@ using Xenko.Shaders.Compiler;
 
 namespace Xenko.Assets.Skyboxes
 {
-    public class SkyboxGeneratorContext : ShaderGeneratorContext, IDisposable
+    public class SkyboxGeneratorContext : ShaderGeneratorContext
     {
         public SkyboxGeneratorContext(SkyboxAsset skybox, IDatabaseFileProviderService fileProviderService)
         {
@@ -66,10 +66,12 @@ namespace Xenko.Assets.Skyboxes
 
         public SkyboxAsset Skybox { get; }
 
-        public void Dispose()
+        protected override void Destroy()
         {
             EffectSystem.Dispose();
             GraphicsDevice.Dispose();
+
+            base.Destroy();
         }
     }
 

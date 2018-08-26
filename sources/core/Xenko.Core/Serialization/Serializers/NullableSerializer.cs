@@ -43,7 +43,9 @@ namespace Xenko.Core.Serialization.Serializers
                     obj = value;
                 }
                 else
+                {
                     obj = null;
+                }
             }
         }
     }

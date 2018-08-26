@@ -142,7 +142,7 @@ namespace Xenko.Video
                     }
 
                     //This will notify the video extractor that he can release this frame output and keep decoding the media
-                    if(MediaSynchronizer.State == PlayState.Playing)
+                    if (MediaSynchronizer.State == PlayState.Playing)
                         ReceivedNotificationToUpdateVideoTextureSurface = false;
                 }
             }
@@ -248,7 +248,7 @@ namespace Xenko.Video
             audioSoundInstance?.Dispose();
             audioSoundInstance = null;
 
-            if(audioSound != null)
+            if (audioSound != null)
             {
                 foreach (var emitter in videoComponent.AudioEmitters)
                     emitter?.DetachSound(audioSound);

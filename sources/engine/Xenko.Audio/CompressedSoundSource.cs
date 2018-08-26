@@ -17,7 +17,7 @@ namespace Xenko.Audio
         internal const int NumberOfBuffers = 4;
         internal const int SamplesPerFrame = 512;
 
-        private static UnmanagedArray<short> UtilityBuffer = new UnmanagedArray<short>(SamplesPerBuffer * MaxChannels);
+        private static UnmanagedArray<short> utilityBuffer = new UnmanagedArray<short>(SamplesPerBuffer * MaxChannels);
 
         private Stream compressedSoundStream;
         private BinarySerializationReader reader;
@@ -47,21 +47,20 @@ namespace Xenko.Audio
         //==========================================================================================
         //PROTOTYPE
 
-        private byte[] ByteBuffer = null;
-        private int ByteBufferCurrentPosition = 0;
+        private byte[] byteBuffer = null;
+        private int byteBufferCurrentPosition = 0;
 
-        public CompressedSoundSource(SoundInstance instance, byte[] byteBuffer, int numberOfPackets, int sampleRate, int channels, int maxCompressedSize) : 
-            base(instance, NumberOfBuffers, SamplesPerBuffer * MaxChannels * sizeof(short))
+        public CompressedSoundSource(SoundInstance instance, byte[] byteBuffer, int numberOfPackets, int sampleRate, int channels, int maxCompressedSize) 
+            : base(instance, NumberOfBuffers, SamplesPerBuffer * MaxChannels * sizeof(short))
         {
             looped = instance.IsLooping;
             this.channels = channels;
             this.maxCompressedSize = maxCompressedSize;
             this.soundStreamUrl = null;
-            this.ByteBuffer = byteBuffer;
+            this.byteBuffer = byteBuffer;
             this.sampleRate = sampleRate;
             this.numberOfPackets = numberOfPackets;
             playRange = new PlayRange(TimeSpan.Zero, TimeSpan.Zero);
-
 
             NewSources.Add(this);
         }
@@ -69,17 +68,18 @@ namespace Xenko.Audio
         //==========================================================================================
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="CompressedSoundSource"/> class.
         /// This type of DynamicSoundSource is streamed from Disk and reads compressed Celt encoded data, used internally.
         /// </summary>
         /// <param name="instance">The associated SoundInstance</param>
         /// <param name="fileProvider">The file provider to read the stream from</param>
         /// <param name="soundStreamUrl">The compressed stream internal URL</param>
-        /// <param name="numberOfPackets"></param>
+        /// <param name="numberOfPackets">The number of packets</param>
         /// <param name="sampleRate">The sample rate of the compressed data</param>
         /// <param name="channels">The number of channels of the compressed data</param>
         /// <param name="maxCompressedSize">The maximum size of a compressed packet</param>
-        public CompressedSoundSource(SoundInstance instance, IVirtualFileProvider fileProvider, string soundStreamUrl, int numberOfPackets, int sampleRate, int channels, int maxCompressedSize) : 
-            base(instance, NumberOfBuffers, SamplesPerBuffer * MaxChannels * sizeof(short))
+        public CompressedSoundSource(SoundInstance instance, IVirtualFileProvider fileProvider, string soundStreamUrl, int numberOfPackets, int sampleRate, int channels, int maxCompressedSize) 
+            : base(instance, NumberOfBuffers, SamplesPerBuffer * MaxChannels * sizeof(short))
         {
             looped = instance.IsLooping;
             this.channels = channels;
@@ -139,7 +139,7 @@ namespace Xenko.Audio
             base.PrepareInternal();
 
             begin = true;
-            if (ByteBuffer != null) return;
+            if (byteBuffer != null) return;
 
             compressedSoundStream.Position = 0;
             currentPacketIndex = 0;
@@ -193,18 +193,18 @@ namespace Xenko.Audio
 
         protected override unsafe void ExtractAndFillData()
         {
-            if (ByteBuffer != null)
+            if (byteBuffer != null)
             {
-                int maxSize = 100*1000;
-                int bufferLen = ByteBuffer.Length;
-                int remainingLen = bufferLen - ByteBufferCurrentPosition;
+                int maxSize = 100 * 1000;
+                int bufferLen = byteBuffer.Length;
+                int remainingLen = bufferLen - byteBufferCurrentPosition;
 
                 int countByteTransfered = remainingLen > maxSize ? maxSize : remainingLen;
                 short[] sdata = new short[(int)Math.Ceiling((decimal)(countByteTransfered / 2))];
-                Buffer.BlockCopy(ByteBuffer, ByteBufferCurrentPosition, sdata, 0, countByteTransfered);
-                ByteBufferCurrentPosition += countByteTransfered;
+                Buffer.BlockCopy(byteBuffer, byteBufferCurrentPosition, sdata, 0, countByteTransfered);
+                byteBufferCurrentPosition += countByteTransfered;
 
-                bool endingPacket = ByteBufferCurrentPosition == bufferLen;
+                bool endingPacket = byteBufferCurrentPosition == bufferLen;
 
                 var bufferType = AudioLayer.BufferType.None;
                 if (endingPacket)
@@ -223,7 +223,7 @@ namespace Xenko.Audio
             {
                 const int passes = SamplesPerBuffer / SamplesPerFrame;
                 var offset = 0;
-                var bufferPtr = (short*)UtilityBuffer.Pointer;
+                var bufferPtr = (short*)utilityBuffer.Pointer;
                 var startingPacket = startingPacketIndex == currentPacketIndex;
                 var endingPacket = false;
                 for (var i = 0; i < passes; i++)

@@ -9,7 +9,7 @@ namespace Xenko.Core.MicroThreading
     /// <summary>
     /// Provides microthread-local storage of data.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">Type of data stored.</typeparam>
     public class MicroThreadLocal<T> where T : class
     {
         private readonly Func<T> valueFactory;
@@ -64,7 +64,9 @@ namespace Xenko.Core.MicroThreading
                         value = valueOutOfMicrothread;
                     }
                     else if (!values.TryGetValue(microThread, out value))
+                    {
                         values.Add(microThread, value = valueFactory != null ? valueFactory() : default(T));
+                    }
                 }
 
                 return value;

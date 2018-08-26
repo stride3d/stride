@@ -206,7 +206,7 @@ namespace Xenko.Core.Presentation.Controls
                 IDisposable generatorRun = null;
                 currentYinItemSystem = 0;
                 var childHierarchyLevel = 0;
-                if(treeViewItem != null) childHierarchyLevel = treeViewItem.HierachyLevel + 1;
+                if (treeViewItem != null) childHierarchyLevel = treeViewItem.HierachyLevel + 1;
                 try
                 {
                     // iterate child items

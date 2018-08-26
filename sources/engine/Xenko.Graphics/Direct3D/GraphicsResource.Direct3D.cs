@@ -31,12 +31,12 @@ namespace Xenko.Graphics
             {
                 if (this.shaderResourceView != null)
                 {
-                    shaderResourceView.DebugName = Name == null ? null : String.Format("{0} SRV", Name);
+                    shaderResourceView.DebugName = Name == null ? null : $"{Name} SRV";
                 }
 
                 if (this.unorderedAccessView != null)
                 {
-                    unorderedAccessView.DebugName = Name == null ? null : String.Format("{0} UAV", Name);
+                    unorderedAccessView.DebugName = Name == null ? null : $"{Name} UAV";
                 }
             }
         }
@@ -58,7 +58,7 @@ namespace Xenko.Graphics
 
                 if (IsDebugMode && shaderResourceView != null)
                 {
-                    shaderResourceView.DebugName = Name == null ? null : String.Format("{0} SRV", Name);
+                    shaderResourceView.DebugName = Name == null ? null : $"{Name} SRV";
                 }
             }
         }
@@ -79,7 +79,7 @@ namespace Xenko.Graphics
 
                 if (IsDebugMode && unorderedAccessView != null)
                 {
-                    unorderedAccessView.DebugName = Name == null ? null : String.Format("{0} UAV", Name);
+                    unorderedAccessView.DebugName = Name == null ? null : $"{Name} UAV";
                 }
             }
         }

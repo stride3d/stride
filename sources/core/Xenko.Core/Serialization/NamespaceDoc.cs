@@ -5,8 +5,8 @@ namespace Xenko.Core.Serialization
     /// <summary>
     /// The <see cref="Xenko.Core.Serialization"/> namespace contains types that provides a low-level serialization customizable engine.
     /// </summary>
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    class NamespaceDoc
+    [System.Runtime.CompilerServices.CompilerGenerated]
+    internal class NamespaceDoc
     {
     }
 }

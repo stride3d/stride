@@ -75,7 +75,6 @@ namespace Xenko.Core.Storage
 
                 // Otherwise, file creation is allowed, so make sure directory exists
                 virtualFileProvider.CreateDirectory(ExtractPath(url));
-
             }
 
             return virtualFileProvider.OpenStream(url, mode, access, share);
@@ -151,7 +150,6 @@ namespace Xenko.Core.Storage
             return new DigestStream(stream, tmpFileName) { Disposed = x => MoveToDatabase(x.TemporaryName, x.CurrentHash) };
         }
 
-        /// <inheritdoc/>
         private void MoveToDatabase(string temporaryFilePath, ObjectId objId, bool forceWrite = false)
         {
             string fileUrl = BuildUrl(vfsRootUrl, objId);
@@ -256,6 +254,5 @@ namespace Xenko.Core.Storage
 
             return result.ToString();
         }
-
     }
 }

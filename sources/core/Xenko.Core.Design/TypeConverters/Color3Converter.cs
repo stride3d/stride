@@ -25,7 +25,7 @@ namespace Xenko.Core.TypeConverters
             {
                 new FieldPropertyDescriptor(type.GetField(nameof(Color3.R))),
                 new FieldPropertyDescriptor(type.GetField(nameof(Color3.G))),
-                new FieldPropertyDescriptor(type.GetField(nameof(Color3.B)))
+                new FieldPropertyDescriptor(type.GetField(nameof(Color3.B))),
             });
         }
 

@@ -18,12 +18,12 @@ namespace Xenko.Core
         /// <summary>
         /// The system temporary directory.
         /// </summary>
-        public static string TemporaryDirectory = GetTemporaryDirectory();
+        public static readonly string TemporaryDirectory = GetTemporaryDirectory();
 
         /// <summary>
         /// The Application temporary directory.
         /// </summary>
-        public static string ApplicationTemporaryDirectory = GetApplicationTemporaryDirectory();
+        public static readonly string ApplicationTemporaryDirectory = GetApplicationTemporaryDirectory();
 
         /// <summary>
         /// The application local directory, where user can write local data (included in backup).
@@ -52,7 +52,8 @@ namespace Xenko.Core
         /// <remarks>This property should not be written after the VirtualFileSystem static initialization. If so, an InvalidOperationExeception will be thrown.</remarks>
         public static string ApplicationDataSubDirectory
         {
-            get { return applicationDataSubDirectory; } 
+            get { return applicationDataSubDirectory; }
+
             set
             {
                 if (virtualFileSystemInitialized) 
@@ -74,7 +75,7 @@ namespace Xenko.Core
         /// <remarks>Might be null if start executable is unknown.</remarks>
         public static readonly string ApplicationExecutablePath = GetApplicationExecutablePath();
 
-        private static string applicationDataSubDirectory = "";
+        private static string applicationDataSubDirectory = string.Empty;
 
         private static bool virtualFileSystemInitialized;
 

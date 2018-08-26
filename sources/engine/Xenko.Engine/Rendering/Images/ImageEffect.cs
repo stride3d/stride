@@ -174,7 +174,7 @@ namespace Xenko.Rendering.Images
                     context.CommandList.ResourceBarrierTransition(inputTextures[i], GraphicsResourceState.PixelShaderResource);
             }
 
-            if(outputDepthStencilView != null)
+            if (outputDepthStencilView != null)
                 context.CommandList.ResourceBarrierTransition(outputDepthStencilView, GraphicsResourceState.DepthWrite);
 
             if (outputRenderTargetView != null)
@@ -184,7 +184,7 @@ namespace Xenko.Rendering.Images
 
                 if (outputRenderTargetView.ViewDimension == TextureDimension.TextureCube)
                 {
-                    if(createdOutputRenderTargetViews == null)
+                    if (createdOutputRenderTargetViews == null)
                         createdOutputRenderTargetViews = new Texture[6];
 
                     for (int i = 0; i < createdOutputRenderTargetViews.Length; i++)
@@ -205,7 +205,7 @@ namespace Xenko.Rendering.Images
 
                 context.CommandList.SetRenderTargetsAndViewport(outputDepthStencilView, outputRenderTargetViews);
             }
-            else if(outputDepthStencilView != null)
+            else if (outputDepthStencilView != null)
             {
                 context.CommandList.SetRenderTargetsAndViewport(outputDepthStencilView, null);
             }
@@ -231,7 +231,7 @@ namespace Xenko.Rendering.Images
         /// </summary>
         protected virtual void DisposeCreatedRenderTargetViews(RenderDrawContext context)
         {
-            if(createdOutputRenderTargetViews == null)
+            if (createdOutputRenderTargetViews == null)
                 return;
 
             for (int i = 0; i < createdOutputRenderTargetViews.Length; i++)

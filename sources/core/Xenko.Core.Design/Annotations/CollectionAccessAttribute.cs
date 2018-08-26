@@ -52,6 +52,6 @@ namespace Xenko.Core.Annotations
         /// <summary>Method can change content of the collection but does not add new elements.</summary>
         ModifyExistingContent = 2,
         /// <summary>Method can add new elements to the collection.</summary>
-        UpdatedContent = ModifyExistingContent | 4
+        UpdatedContent = ModifyExistingContent | 4,
     }
 }

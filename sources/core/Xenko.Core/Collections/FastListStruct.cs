@@ -10,7 +10,7 @@ namespace Xenko.Core.Collections
 {
     public struct FastListStruct<T> : IEnumerable<T>
     {
-        private static readonly T[] emptyArray = new T[0];
+        private static readonly T[] EmptyArray = new T[0];
 
         public int Count;
 
@@ -43,7 +43,7 @@ namespace Xenko.Core.Collections
         public FastListStruct(int capacity)
         {
             Count = 0;
-            Items = capacity == 0 ? emptyArray : new T[capacity];
+            Items = capacity == 0 ? EmptyArray : new T[capacity];
         }
 
         public void Add(T item)
@@ -165,7 +165,6 @@ namespace Xenko.Core.Collections
         /// <summary>
         /// Remove an item by swapping it with the last item and removing it from the last position. This function prevents to shift values from the list on removal but does not maintain order.
         /// </summary>
-        /// <param name="list">The list.</param>
         /// <param name="index">Index of the item to remove.</param>
         public void SwapRemoveAt(int index)
         {

@@ -122,7 +122,7 @@ namespace Xenko.VirtualReality
             public float HandTriggerRight;
             public Vector2 ThumbstickLeft;
             public Vector2 ThumbstickRight;
-		    public bool Valid;
+            public bool Valid;
         }
 
         [SuppressUnmanagedCodeSecurity]
@@ -208,7 +208,7 @@ namespace Xenko.VirtualReality
                 HmdPresent = statusInternal.HmdPresent == 1,
                 IsVisible = statusInternal.IsVisible == 1,
                 ShouldQuit = statusInternal.ShouldQuit == 1,
-                ShouldRecenter = statusInternal.ShouldRecenter == 1
+                ShouldRecenter = statusInternal.ShouldRecenter == 1,
             };
         }
 

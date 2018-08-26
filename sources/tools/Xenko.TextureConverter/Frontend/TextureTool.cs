@@ -90,7 +90,7 @@ namespace Xenko.TextureConverter
             AtlasCreationRequest request = new AtlasCreationRequest(textureList, forceSquaredAtlas);
 
             ITexLibrary library = FindLibrary(atlas, request);
-            if(library == null)
+            if (library == null)
             {
                 Log.Error("No available library could create the atlas.");
                 throw new TextureToolsException("No available library could create the atlas.");
@@ -751,7 +751,7 @@ namespace Xenko.TextureConverter
         {
             // quick escape when it is possible to know the absence of alpha from the file itself
             var alphaDepth = texture.GetAlphaDepth();
-            if(!tranparencyColor.HasValue && alphaDepth == 0)
+            if (!tranparencyColor.HasValue && alphaDepth == 0)
                 return AlphaLevels.NoAlpha;
 
             // check that we support the format
@@ -868,7 +868,7 @@ namespace Xenko.TextureConverter
 
             // adjust the separator color the mask depending on the color format.
             var separator = (uint)(separatorColor ?? Color.Transparent).ToRgba();
-            if(texture.Format.IsBGRAOrder())
+            if (texture.Format.IsBGRAOrder())
             {
                 separator = RgbaToBgra(separator);
                 separatorMask = RgbaToBgra(separatorMask);
@@ -1442,7 +1442,7 @@ namespace Xenko.TextureConverter
                         SwitchChannel(image);
                     }
 
-                    if(image.CurrentLibrary != null) image.CurrentLibrary.EndLibrary(image); // Ending the use of the previous library (mainly to free memory)
+                    if (image.CurrentLibrary != null) image.CurrentLibrary.EndLibrary(image); // Ending the use of the previous library (mainly to free memory)
 
                     library.StartLibrary(image); // Preparing the new library : converting TexImage format to the library native format
 

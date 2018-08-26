@@ -100,10 +100,10 @@ namespace Xenko.UI.Tests.Regression
             if (Input.IsKeyReleased(Keys.O))
                 slider.Orientation = (Orientation)(((int)slider.Orientation + 1) % 3);
 
-            if(Input.IsKeyReleased(Keys.Left))
+            if (Input.IsKeyReleased(Keys.Left))
                 slider.Decrease();
 
-            if(Input.IsKeyReleased(Keys.Right))
+            if (Input.IsKeyReleased(Keys.Right))
                 slider.Increase();
 
             if (Input.IsKeyReleased(Keys.N))

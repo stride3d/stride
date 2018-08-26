@@ -686,7 +686,7 @@ namespace Xenko.UI
 
         private void ForceArrange()
         {
-            if(ForceNextArrange) // no need to propagate arrange force if it's already done
+            if (ForceNextArrange) // no need to propagate arrange force if it's already done
                 return;
 
             IsArrangeValid = false;

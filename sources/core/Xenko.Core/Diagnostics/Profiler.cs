@@ -58,13 +58,13 @@ namespace Xenko.Core.Diagnostics
     {
         private class RollingBuffer
         {
-            private const int rollingBufferCount = 2;
+            private const int RollingBufferCount = 2;
+            private readonly List<FastList<ProfilingEvent>> rollingBuffers = new List<FastList<ProfilingEvent>>(RollingBufferCount);
             private int currentBufferIndex;
-            private readonly List<FastList<ProfilingEvent>> rollingBuffers = new List<FastList<ProfilingEvent>>(rollingBufferCount);
 
             public RollingBuffer()
             {
-                for (int i = 0; i < rollingBufferCount; i++)
+                for (int i = 0; i < RollingBufferCount; i++)
                     rollingBuffers.Add(new FastList<ProfilingEvent>());
             }
 
@@ -75,15 +75,15 @@ namespace Xenko.Core.Diagnostics
 
             public void MoveToNextBuffer()
             {
-                currentBufferIndex = (currentBufferIndex + 1) % rollingBufferCount;
+                currentBufferIndex = (currentBufferIndex + 1) % RollingBufferCount;
                 rollingBuffers[currentBufferIndex].Clear();
             }
         }
 
         internal static Logger Logger = GlobalLogger.GetLogger("Profiler"); // Global logger for all profiling
         
-        private static readonly RollingBuffer cpuEvents = new RollingBuffer();
-        private static readonly RollingBuffer gpuEvents= new RollingBuffer();
+        private static readonly RollingBuffer CpuEvents = new RollingBuffer();
+        private static readonly RollingBuffer GpuEvents = new RollingBuffer();
         private static readonly object Locker = new object();
         private static bool enableAll;
         private static int profileId;
@@ -216,10 +216,10 @@ namespace Xenko.Core.Diagnostics
         /// </summary>
         /// <param name="profilingKey">The profile key.</param>
         /// <param name="textFormat">The text to format.</param>
-        /// <param name="value0"></param>
-        /// <param name="value1"></param>
-        /// <param name="value2"></param>
-        /// <param name="value3"></param>
+        /// <param name="value0">First value (can be int, float, long or double).</param>
+        /// <param name="value1">Second value (can be int, float, long or double).</param>
+        /// <param name="value2">Third value (can be int, float, long or double).</param>
+        /// <param name="value3">Fourth value (can be int, float, long or double).</param>
         /// <returns>A profiler state.</returns>
         /// <remarks>It is recommended to call this method with <c>using (var profile = Profiler.Profile(...))</c> in order to make sure that the Dispose() method will be called on the
         /// <see cref="ProfilingState" /> returned object.</remarks>
@@ -265,7 +265,7 @@ namespace Xenko.Core.Diagnostics
             // Add event
             lock (Locker)
             {
-                var list = eventType == ProfilingEventType.CpuProfilingEvent ? cpuEvents.GetBuffer() : gpuEvents.GetBuffer();
+                var list = eventType == ProfilingEventType.CpuProfilingEvent ? CpuEvents.GetBuffer() : GpuEvents.GetBuffer();
                 list.Add(profilingEvent);
             }
 
@@ -279,20 +279,20 @@ namespace Xenko.Core.Diagnostics
         /// </summary>
         /// <param name="eventType">The type of events to retrieve</param>
         /// <param name="clearOtherEventTypes">if true, also clears the event types to avoid event over-accumulation.</param>
-        /// <returns></returns>
+        /// <returns>The profiling events.</returns>
         public static FastList<ProfilingEvent> GetEvents(ProfilingEventType eventType, bool clearOtherEventTypes = true)
         {
             lock (Locker)
             {
-                var returnValue = eventType == ProfilingEventType.CpuProfilingEvent ? cpuEvents.GetBuffer() : gpuEvents.GetBuffer();
+                var returnValue = eventType == ProfilingEventType.CpuProfilingEvent ? CpuEvents.GetBuffer() : GpuEvents.GetBuffer();
 
                 if (eventType == ProfilingEventType.CpuProfilingEvent || clearOtherEventTypes)
                 {
-                    cpuEvents.MoveToNextBuffer();
+                    CpuEvents.MoveToNextBuffer();
                 }
                 if (eventType == ProfilingEventType.GpuProfilingEvent || clearOtherEventTypes)
                 {
-                    gpuEvents.MoveToNextBuffer();
+                    GpuEvents.MoveToNextBuffer();
                 }
 
                 return returnValue;
@@ -304,12 +304,9 @@ namespace Xenko.Core.Diagnostics
         /// <paramref name="tickFrequency"/> is used to convert the ticks into time.
         /// If <paramref name="tickFrequency"/> is 0 then <see cref="Stopwatch.Frequency"/> is used to perform the calculation.
         /// </summary>
-        /// <param name="builder"></param>
-        /// <param name="accumulatedTicks"></param>
-        /// <param name="tickFrequency"></param>
         public static void AppendTime([NotNull] StringBuilder builder, long accumulatedTicks, long tickFrequency = 0)
         {
-            var accumulatedTimeSpan = new TimeSpan((accumulatedTicks * 10000000) / (tickFrequency != 0? tickFrequency: Stopwatch.Frequency));
+            var accumulatedTimeSpan = new TimeSpan((accumulatedTicks * 10000000) / (tickFrequency != 0 ? tickFrequency : Stopwatch.Frequency));
             if (accumulatedTimeSpan > new TimeSpan(0, 0, 1, 0))
             {
                 builder.AppendFormat("{0:000.000}m ", accumulatedTimeSpan.TotalMinutes);

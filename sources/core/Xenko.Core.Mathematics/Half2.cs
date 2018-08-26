@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2011 SharpDX - Alexandre Mutel
@@ -29,7 +29,7 @@ using Xenko.Core.Serialization;
 namespace Xenko.Core.Mathematics
 {
     /// <summary>
-    /// Defines a two component vector, using half precision floating point coordinates.
+    /// Represents a two dimensional mathematical vector with half-precision floats.
     /// </summary>
     [DataContract]
     [StructLayout(LayoutKind.Sequential, Pack = 2)]
@@ -40,13 +40,15 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <value>The X component of the vector.</value>
         public Half X;
+
         /// <summary>
         /// Gets or sets the Y component of the vector.
         /// </summary>
         /// <value>The Y component of the vector.</value>
         public Half Y;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:Xenko.Core.Mathematics.Half2" /> structure.
+        /// Initializes a new instance of the <see cref="Half2"/> structure.
         /// </summary>
         /// <param name="x">The X component.</param>
         /// <param name="y">The Y component.</param>
@@ -57,7 +59,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:Xenko.Core.Mathematics.Half2" /> structure.
+        /// Initializes a new instance of the <see cref="Half2"/> structure.
         /// </summary>
         /// <param name="value">The value to set for both the X and Y components.</param>
         public Half2(Half value)
@@ -67,7 +69,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:Xenko.Core.Mathematics.Half2" /> structure.
+        /// Initializes a new instance of the <see cref="Half2"/> structure.
         /// </summary>
         /// <param name="x">The X component.</param>
         /// <param name="y">The Y component.</param>
@@ -78,7 +80,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:Xenko.Core.Mathematics.Half2" /> structure.
+        /// Initializes a new instance of the <see cref="Half2"/> structure.
         /// </summary>
         /// <param name="value">The value to set for both the X and Y components.</param>
         public Half2(float value)
@@ -124,8 +126,8 @@ namespace Xenko.Core.Mathematics
         /// <summary>
         /// Determines whether the specified object instances are considered equal. 
         /// </summary>
-        /// <param name="value1" />
-        /// <param name="value2" />
+        /// <param name="value1">The first value.</param>
+        /// <param name="value2">The second value.</param>
         /// <returns>
         /// <c>true</c> if <paramref name="value1" /> is the same instance as <paramref name="value2" /> or 
         /// if both are <c>null</c> references or if <c>value1.Equals(value2)</c> returns <c>true</c>; otherwise, <c>false</c>.</returns>
@@ -157,7 +159,7 @@ namespace Xenko.Core.Mathematics
             {
                 return false;
             }
-            if (obj.GetType() != base.GetType())
+            if (obj.GetType() != GetType())
             {
                 return false;
             }
@@ -165,7 +167,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Vector3"/> to <see cref="Half3"/>.
+        /// Performs an explicit conversion from <see cref="Vector2"/> to <see cref="Half2"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>
@@ -175,7 +177,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="Vector3"/> to <see cref="Half3"/>.
+        /// Performs an explicit conversion from <see cref="Half2"/> to <see cref="Vector2"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>The result of the conversion.</returns>

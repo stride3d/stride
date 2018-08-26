@@ -137,11 +137,11 @@ namespace Xenko.Core.Diagnostics
         /// <summary>
         /// Emits a Begin event with the specified formatted text.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="value0">Can be int, float, long or double</param>
-        /// <param name="value1">Can be int, float, long or double</param>
-        /// <param name="value2">Can be int, float, long or double</param>
-        /// <param name="value3">Can be int, float, long or double</param>
+        /// <param name="text">The event text.</param>
+        /// <param name="value0">First value (can be int, float, long or double).</param>
+        /// <param name="value1">Second value (can be int, float, long or double).</param>
+        /// <param name="value2">Third value (can be int, float, long or double).</param>
+        /// <param name="value3">Fourth value (can be int, float, long or double).</param>
         public void Begin(string text, ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
             EmitEvent(ProfilingMessageType.Begin, text, value0, value1, value2, value3);
@@ -150,10 +150,10 @@ namespace Xenko.Core.Diagnostics
         /// <summary>
         /// Emits a Begin event with the specified formatted text.
         /// </summary>
-        /// <param name="value0">Can be int, float, long or double</param>
-        /// <param name="value1">Can be int, float, long or double</param>
-        /// <param name="value2">Can be int, float, long or double</param>
-        /// <param name="value3">Can be int, float, long or double</param>
+        /// <param name="value0">First value (can be int, float, long or double).</param>
+        /// <param name="value1">Second value (can be int, float, long or double).</param>
+        /// <param name="value2">Third value (can be int, float, long or double).</param>
+        /// <param name="value3">Fourth value (can be int, float, long or double).</param>
         public void Begin(ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
             EmitEvent(ProfilingMessageType.Begin, null, value0, value1, value2, value3);
@@ -195,11 +195,11 @@ namespace Xenko.Core.Diagnostics
         /// <summary>
         /// Emits a Mark profiling event with the specified text.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="value0">Can be int, float, long or double</param>
-        /// <param name="value1">Can be int, float, long or double</param>
-        /// <param name="value2">Can be int, float, long or double</param>
-        /// <param name="value3">Can be int, float, long or double</param>
+        /// <param name="text">The event text.</param>
+        /// <param name="value0">First value (can be int, float, long or double).</param>
+        /// <param name="value1">Second value (can be int, float, long or double).</param>
+        /// <param name="value2">Third value (can be int, float, long or double).</param>
+        /// <param name="value3">Fourth value (can be int, float, long or double).</param>
         public void Mark(string text, ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
             EmitEvent(ProfilingMessageType.Mark, text, value0, value1, value2, value3);
@@ -208,11 +208,10 @@ namespace Xenko.Core.Diagnostics
         /// <summary>
         /// Emits a Mark profiling event with the specified text.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="value0">Can be int, float, long or double</param>
-        /// <param name="value1">Can be int, float, long or double</param>
-        /// <param name="value2">Can be int, float, long or double</param>
-        /// <param name="value3">Can be int, float, long or double</param>
+        /// <param name="value0">First value (can be int, float, long or double).</param>
+        /// <param name="value1">Second value (can be int, float, long or double).</param>
+        /// <param name="value2">Third value (can be int, float, long or double).</param>
+        /// <param name="value3">Fourth value (can be int, float, long or double).</param>
         public void Mark(ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
             EmitEvent(ProfilingMessageType.Mark, null, value0, value1, value2, value3);
@@ -248,11 +247,11 @@ namespace Xenko.Core.Diagnostics
         /// <summary>
         /// Emits a End profiling event with the specified custom value.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="value0">Can be int, float, long or double</param>
-        /// <param name="value1">Can be int, float, long or double</param>
-        /// <param name="value2">Can be int, float, long or double</param>
-        /// <param name="value3">Can be int, float, long or double</param>
+        /// <param name="text">The event text.</param>
+        /// <param name="value0">First value (can be int, float, long or double).</param>
+        /// <param name="value1">Second value (can be int, float, long or double).</param>
+        /// <param name="value2">Third value (can be int, float, long or double).</param>
+        /// <param name="value3">Fourth value (can be int, float, long or double).</param>
         public void End(string text, ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
             EmitEvent(ProfilingMessageType.End, text, value0, value1, value2, value3);
@@ -261,11 +260,10 @@ namespace Xenko.Core.Diagnostics
         /// <summary>
         /// Emits a End profiling event with the specified custom value.
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="value0">Can be int, float, long or double</param>
-        /// <param name="value1">Can be int, float, long or double</param>
-        /// <param name="value2">Can be int, float, long or double</param>
-        /// <param name="value3">Can be int, float, long or double</param>
+        /// <param name="value0">First value (can be int, float, long or double).</param>
+        /// <param name="value1">Second value (can be int, float, long or double).</param>
+        /// <param name="value2">Third value (can be int, float, long or double).</param>
+        /// <param name="value3">Fourth value (can be int, float, long or double).</param>
         public void End(ProfilingCustomValue? value0, ProfilingCustomValue? value1 = null, ProfilingCustomValue? value2 = null, ProfilingCustomValue? value3 = null)
         {
             EmitEvent(ProfilingMessageType.End, null, value0, value1, value2, value3);
@@ -377,7 +375,7 @@ namespace Xenko.Core.Diagnostics
             }
 
             //this actually stores the LAST text into beginText so to be able to add it at the end
-            if(profilingType != ProfilingMessageType.End && text != null)
+            if (profilingType != ProfilingMessageType.End && text != null)
             {
                 beginText = text;
             }

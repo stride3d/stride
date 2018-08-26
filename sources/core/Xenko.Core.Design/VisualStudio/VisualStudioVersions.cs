@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.Win32;
 using Microsoft.VisualStudio.Setup.Configuration;
+using Microsoft.Win32;
 
 namespace Xenko.Core.VisualStudio
 {
@@ -177,7 +177,7 @@ namespace Xenko.Core.VisualStudio
                             BuildToolsPath = buildToolsPath,
                             DevenvPath = devenvPath,
                             VsixInstallerVersion = VSIXInstallerVersion.VS2017AndFutureVersions,
-                            VsixInstallerPath = vsixInstallerPath
+                            VsixInstallerPath = vsixInstallerPath,
                         };
 
                         // Fill packages

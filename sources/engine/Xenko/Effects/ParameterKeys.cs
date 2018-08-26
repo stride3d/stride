@@ -12,9 +12,10 @@ namespace Xenko.Rendering
 {
     public static class ParameterKeys
     {
-        private static long keysVersion = 0, keyByNamesVersion = 0;
+        private static long keysVersion = 0;
+        private static long keyByNamesVersion = 0;
         private static readonly List<ParameterKey> keys = new List<ParameterKey>();
-        private readonly static Dictionary<string, ParameterKey> keyByNames = new Dictionary<string, ParameterKey>();
+        private static readonly Dictionary<string, ParameterKey> keyByNames = new Dictionary<string, ParameterKey>();
         private static readonly Dictionary<ParameterComposedKey, ParameterKey> composedKeys = new Dictionary<ParameterComposedKey, ParameterKey>();
 
         /// <summary>
@@ -272,7 +273,7 @@ namespace Xenko.Rendering
             }
         }
 
-        struct ParameterComposedKey : IEquatable<ParameterComposedKey>
+        private struct ParameterComposedKey : IEquatable<ParameterComposedKey>
         {
             public readonly ParameterKey Key;
 

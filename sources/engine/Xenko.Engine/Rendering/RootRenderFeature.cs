@@ -171,16 +171,14 @@ namespace Xenko.Rendering
         /// <param name="renderObject"></param>
         protected virtual void OnAddRenderObject(RenderObject renderObject)
         {
-            
         }
 
         /// <summary>
         /// Called when a render object is removed.
         /// </summary>
-        /// <param name="renderObject"></param>
+        /// <param name="renderObject">The render object.</param>
         protected virtual void OnRemoveRenderObject(RenderObject renderObject)
         {
-
         }
 
         internal bool TryAddRenderObject(RenderObject renderObject)

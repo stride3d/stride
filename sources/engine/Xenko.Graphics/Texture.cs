@@ -368,7 +368,7 @@ namespace Xenko.Graphics
         /// Gets the size of this texture.
         /// </summary>
         /// <value>The size.</value>
-        public Size3 Size =>new Size3(ViewWidth, ViewHeight, ViewDepth);
+        public Size3 Size => new Size3(ViewWidth, ViewHeight, ViewDepth);
         
         /// <summary>
         /// When texture streaming is activated, the size of the texture when loaded at full quality.
@@ -490,7 +490,6 @@ namespace Xenko.Graphics
 
             InitializeFromImpl(textureDatas);
 
-
             return this;
         }
 
@@ -554,7 +553,7 @@ namespace Xenko.Graphics
             {
                 int maxMips = CountMips(width);
                 if (mipLevels > maxMips)
-                    throw new InvalidOperationException(String.Format("MipLevels must be <= {0}", maxMips));
+                    throw new InvalidOperationException($"MipLevels must be <= {maxMips}");
             }
             else if (mipLevels == 0)
             {
@@ -580,7 +579,7 @@ namespace Xenko.Graphics
             {
                 int maxMips = CountMips(width, height);
                 if (mipLevels > maxMips)
-                    throw new InvalidOperationException(String.Format("MipLevels must be <= {0}", maxMips));
+                    throw new InvalidOperationException($"MipLevels must be <= {maxMips}");
             }
             else if (mipLevels == 0)
             {
@@ -610,7 +609,7 @@ namespace Xenko.Graphics
 
                 int maxMips = CountMips(width, height, depth);
                 if (mipLevels > maxMips)
-                    throw new InvalidOperationException(String.Format("MipLevels must be <= {0}", maxMips));
+                    throw new InvalidOperationException($"MipLevels must be <= {maxMips}");
             }
             else if (mipLevels == 0)
             {
@@ -650,7 +649,7 @@ namespace Xenko.Graphics
 
             var dataStrideInBytes = Utilities.SizeOf<TData>() * widthOnMip;
             var width = ((double)rowStride / dataStrideInBytes) * widthOnMip;
-            if (Math.Abs(width - (int)width) > Double.Epsilon)
+            if (Math.Abs(width - (int)width) > double.Epsilon)
                 throw new ArgumentException("sizeof(TData) / sizeof(Format) * Width is not an integer");
 
             return (int)width;
@@ -672,6 +671,7 @@ namespace Xenko.Graphics
         /// Gets the content of this texture to an array of data.
         /// </summary>
         /// <typeparam name="TData">The type of the T data.</typeparam>
+        /// <param name="commandList">The command list.</param>
         /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
         /// <param name="mipSlice">The mip slice index.</param>
         /// <returns>The texture data.</returns>
@@ -690,6 +690,7 @@ namespace Xenko.Graphics
         /// Copies the content of this texture to an array of data.
         /// </summary>
         /// <typeparam name="TData">The type of the T data.</typeparam>
+        /// <param name="commandList">The command list.</param>
         /// <param name="toData">The destination buffer to receive a copy of the texture datas.</param>
         /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
         /// <param name="mipSlice">The mip slice index.</param>
@@ -719,6 +720,7 @@ namespace Xenko.Graphics
         /// Copies the content of this texture from GPU memory to an array of data on CPU memory using a specific staging resource.
         /// </summary>
         /// <typeparam name="TData">The type of the T data.</typeparam>
+        /// <param name="commandList">The command list.</param>
         /// <param name="stagingTexture">The staging texture used to transfer the texture to.</param>
         /// <param name="toData">To data.</param>
         /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
@@ -738,7 +740,7 @@ namespace Xenko.Graphics
         /// Copies the content an array of data on CPU memory to this texture into GPU memory using the specified <see cref="GraphicsDevice"/> (The graphics device could be deffered).
         /// </summary>
         /// <typeparam name="TData">The type of the T data.</typeparam>
-        /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+        /// <param name="commandList">The command list.</param>
         /// <param name="fromData">The data to copy from.</param>
         /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
         /// <param name="mipSlice">The mip slice index.</param>
@@ -755,6 +757,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Copies the content of this texture from GPU memory to a pointer on CPU memory using a specific staging resource.
         /// </summary>
+        /// <param name="commandList">The command list.</param>
         /// <param name="stagingTexture">The staging texture used to transfer the texture to.</param>
         /// <param name="toData">The pointer to data in CPU memory.</param>
         /// <param name="arraySlice">The array slice index. This value must be set to 0 for Texture 3D.</param>
@@ -789,7 +792,7 @@ namespace Xenko.Graphics
 
             // Check size validity of data to copy to
             if (toData.Size > mipMapSize)
-                throw new ArgumentException(String.Format("Size of toData ({0} bytes) is not compatible expected size ({1} bytes) : Width * Height * Depth * sizeof(PixelFormat) size in bytes", toData.Size, mipMapSize));
+                throw new ArgumentException($"Size of toData ({toData.Size} bytes) is not compatible expected size ({mipMapSize} bytes) : Width * Height * Depth * sizeof(PixelFormat) size in bytes");
 
             // Copy the actual content of the texture to the staging resource
             if (!ReferenceEquals(this, stagingTexture))
@@ -893,11 +896,11 @@ namespace Xenko.Graphics
                 int newHeight = region.Value.Bottom - region.Value.Top;
                 int newDepth = region.Value.Back - region.Value.Front;
                 if (newWidth > width)
-                    throw new ArgumentException(String.Format("Region width [{0}] cannot be greater than mipmap width [{1}]", newWidth, width), "region");
+                    throw new ArgumentException($"Region width [{newWidth}] cannot be greater than mipmap width [{width}]", "region");
                 if (newHeight > height)
-                    throw new ArgumentException(String.Format("Region height [{0}] cannot be greater than mipmap height [{1}]", newHeight, height), "region");
+                    throw new ArgumentException($"Region height [{newHeight}] cannot be greater than mipmap height [{height}]", "region");
                 if (newDepth > depth)
-                    throw new ArgumentException(String.Format("Region depth [{0}] cannot be greater than mipmap depth [{1}]", newDepth, depth), "region");
+                    throw new ArgumentException($"Region depth [{newDepth}] cannot be greater than mipmap depth [{depth}]", "region");
 
                 width = newWidth;
                 height = newHeight;
@@ -921,7 +924,7 @@ namespace Xenko.Graphics
 
             // Check size validity of data to copy to
             if (fromData.Size != sizeOfTextureData)
-                throw new ArgumentException(String.Format("Size of toData ({0} bytes) is not compatible expected size ({1} bytes) : Width * Height * Depth * sizeof(PixelFormat) size in bytes", fromData.Size, sizeOfTextureData));
+                throw new ArgumentException($"Size of toData ({fromData.Size} bytes) is not compatible expected size ({sizeOfTextureData} bytes) : Width * Height * Depth * sizeof(PixelFormat) size in bytes");
 
             // Calculate the subResourceIndex for a Texture
             int subResourceIndex = this.GetSubResourceIndex(arraySlice, mipSlice);
@@ -991,7 +994,6 @@ namespace Xenko.Graphics
                         }
                         destPerDepthPtr += box.SlicePitch;
                     }
-
                 }
                 commandList.UnmapSubresource(mappedResource);
             }
@@ -1014,7 +1016,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Return an equivalent staging texture CPU read-writable from this instance.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The equivalent staging texture.</returns>
         public Texture ToStaging()
         {
             return new Texture(this.GraphicsDevice).InitializeFrom(textureDescription.ToStagingDescription(), ViewDescription.ToStagingDescription());
@@ -1101,6 +1103,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Saves this texture to a stream with a specified format.
         /// </summary>
+        /// <param name="commandList">The command list.</param>
         /// <param name="stream">The stream.</param>
         /// <param name="fileType">Type of the image file.</param>
         public void Save(CommandList commandList, Stream stream, ImageFileType fileType)
@@ -1125,6 +1128,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Gets the GPU content of this texture to an <see cref="Image"/> on the CPU.
         /// </summary>
+        /// <param name="commandList">The command list.</param>
         /// <param name="stagingTexture">The staging texture used to temporary transfer the image from the GPU to CPU.</param>
         /// <exception cref="ArgumentException">If stagingTexture is not a staging texture.</exception>
         public Image GetDataAsImage(CommandList commandList, Texture stagingTexture)
@@ -1134,7 +1138,8 @@ namespace Xenko.Graphics
                 throw new ArgumentException("Invalid texture used as staging. Must have Usage = GraphicsResourceUsage.Staging", "stagingTexture");
 
             var image = Image.New(stagingTexture.Description);
-            try {
+            try
+            {
                 for (int arrayIndex = 0; arrayIndex < image.Description.ArraySize; arrayIndex++)
                 {
                     for (int mipLevel = 0; mipLevel < image.Description.MipLevels; mipLevel++)
@@ -1143,8 +1148,8 @@ namespace Xenko.Graphics
                         GetData(commandList, stagingTexture, new DataPointer(pixelBuffer.DataPointer, pixelBuffer.BufferStride), arrayIndex, mipLevel);
                     }
                 }
-
-            } catch (Exception)
+            }
+            catch (Exception)
             {
                 // If there was an exception, free the allocated image to avoid any memory leak.
                 image.Dispose();
@@ -1156,6 +1161,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Saves this texture to a stream with a specified format.
         /// </summary>
+        /// <param name="commandList">The command list.</param>
         /// <param name="stream">The stream.</param>
         /// <param name="stagingTexture">The staging texture used to temporary transfer the image from the GPU to CPU.</param>
         /// <param name="fileType">Type of the image file.</param>
@@ -1180,7 +1186,7 @@ namespace Xenko.Graphics
             //int maxMipMap = 1 + (int)Math.Ceiling(Math.Log(size) / Math.Log(2.0));
             int maxMipMap = CountMips(size);
 
-            return requestedLevel  == 0 ? maxMipMap : Math.Min(requestedLevel, maxMipMap);
+            return requestedLevel == 0 ? maxMipMap : Math.Min(requestedLevel, maxMipMap);
         }
 
         private static DataBox GetDataBox<T>(PixelFormat format, int width, int height, int depth, T[] textureData, IntPtr fixedPointer) where T : struct
@@ -1203,23 +1209,23 @@ namespace Xenko.Graphics
             Utilities.Swap(ref textureViewDescription, ref other.textureViewDescription);
             Utilities.Swap(ref mipmapDescriptions, ref other.mipmapDescriptions);
             Utilities.Swap(ref fullQualitySize, ref other.fullQualitySize);
-            //
+
             var temp = ViewWidth;
             ViewWidth = other.ViewWidth;
             other.ViewWidth = temp;
-            //
+
             temp = ViewHeight;
             ViewHeight = other.ViewHeight;
             other.ViewHeight = temp;
-            //
+
             temp = ViewDepth;
             ViewDepth = other.ViewDepth;
             other.ViewDepth = temp;
-            //
+
             temp = SizeInBytes;
-            SizeInBytes= other.SizeInBytes;
+            SizeInBytes = other.SizeInBytes;
             other.SizeInBytes = temp;
-            //
+
             SwapInternal(other);
         }
 

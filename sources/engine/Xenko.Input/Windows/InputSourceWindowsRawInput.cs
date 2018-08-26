@@ -40,7 +40,7 @@ namespace Xenko.Input
             if (keyboard != null)
             {
                 // Unregister raw input using DeviceFlags.Remove
-                if(uiControl != null && !uiControl.IsDisposed)
+                if (uiControl != null && !uiControl.IsDisposed)
                     Device.RegisterDevice(UsagePage.Generic, UsageId.GenericKeyboard, DeviceFlags.Remove, uiControl.Handle);
                 Device.KeyboardInput -= DeviceOnKeyboardInput;
             }
@@ -104,7 +104,7 @@ namespace Xenko.Input
             
             if (key == Keys.None)
             {
-                WinKeys.mapKeys.TryGetValue(virtualKey, out key);
+                WinKeys.MapKeys.TryGetValue(virtualKey, out key);
             }
             
             if (key != Keys.None)
