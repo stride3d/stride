@@ -433,7 +433,7 @@
     <Resource Include="Resources\Icons\status-offline.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Images\folder_64.png" />
+    <EmbeddedResource Include="Resources\Images\folder_128.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Icons\eye-24.png" />
