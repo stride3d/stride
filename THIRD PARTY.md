@@ -199,3 +199,7 @@ Contact
 - Facebook
 - Twitter
 - etc...
+
+### Folders 2 Bold
+The folder icon in the asset view is licensed under creative commons and derived from:
+- Alfredo Hernandez: https://www.alfredocreates.com
