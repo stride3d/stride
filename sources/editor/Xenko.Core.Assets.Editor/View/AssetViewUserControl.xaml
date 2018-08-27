@@ -80,7 +80,7 @@
                                VerticalAlignment="Bottom" TextAlignment="Center" TextTrimming="CharacterEllipsis"/>
                     <TextBlock Text="{Binding Name, Converter={cvt:NameBreakingLine}}" TextAlignment="Center" TextTrimming="CharacterEllipsis" TextWrapping="Wrap" MaxHeight="32"/>
                   </DockPanel>
-                  <TextBlock Text="{Binding TypeDisplayName}" HorizontalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" FontWeight="ExtraBold" />
+                  <TextBlock Text="{Binding TypeDisplayName}" HorizontalAlignment="Center" TextAlignment="Center" TextTrimming="CharacterEllipsis" FontSize="10" Opacity="0.5" />
                 </StackPanel>
                 <ToolTipService.ToolTip>
                   <ContentControl Content="{Binding}">
@@ -413,6 +413,7 @@
             </MenuItem>
           </MenuItem>
         </Menu>
+        <Separator/>
         <!--  FILTER  -->
         <xk:SearchComboBox Width="120" WatermarkContent="{xk:Localize Add a filter...}"
                              ItemsSource="{Binding AvailableAssetFilters}" SearchText="{Binding AssetFilterPattern}" ClearTextAfterSelection="True"

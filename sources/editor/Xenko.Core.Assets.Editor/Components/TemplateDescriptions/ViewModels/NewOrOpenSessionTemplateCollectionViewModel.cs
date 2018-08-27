@@ -52,7 +52,7 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
                 Location = UPath.Combine<UDirectory>(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Xenko Projects");
 
             BrowseForExistingProjectCommand = new AnonymousTaskCommand(serviceProvider, BrowseForExistingProject);
-            SelectedGroup = rootGroup;
+            SelectedGroup = recentGroup.Templates.Count == 0 ? rootGroup : recentGroup;
         }
 
         public override IEnumerable<TemplateDescriptionGroupViewModel> RootGroups { get { yield return recentGroup; yield return rootGroup; } }
