@@ -54,7 +54,7 @@ namespace Xenko.Core.Assets.Editor.Services
         protected abstract ImageSource BuildImageSource();
 
         /// <summary>
-        /// Clear the resources required to build the image source.
+        /// Clears the resources required to build the image source.
         /// </summary>
         protected abstract void FreeBuildingResources();
     }
@@ -72,6 +72,7 @@ namespace Xenko.Core.Assets.Editor.Services
             this.resourceKey = resourceKey;
         }
 
+        /// <inheritdoc />
         protected override ImageSource BuildImageSource()
         {
             if (resourceKey == null)
@@ -86,6 +87,7 @@ namespace Xenko.Core.Assets.Editor.Services
             }
         }
 
+        /// <inheritdoc />
         protected override void FreeBuildingResources()
         {
             resourceKey = null;
@@ -105,11 +107,13 @@ namespace Xenko.Core.Assets.Editor.Services
             this.thumbnailBitmapStream = thumbnailBitmapStream;
         }
 
+        /// <inheritdoc />
         protected override ImageSource BuildImageSource()
         {
             return BuildAsBitmapImage(thumbnailId, thumbnailBitmapStream);
         }
 
+        /// <inheritdoc />
         protected override void FreeBuildingResources()
         {
             thumbnailBitmapStream = null;
