@@ -92,15 +92,22 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         private static ThumbnailData GetFolderThumbnail(IDispatcherService dispatcher)
         {
-            using (var ds = new DigestStream(new MemoryStream()))
+            string assetKey = "FolderIconAlfredo";
+            var objectId = ObjectId.FromObject(assetKey);
+            var data = new ResourceThumbnailData(objectId, assetKey);
+            data.PrepareForPresentation(dispatcher).Forget();
+            return data;
+
+            // Bitmap thumbnail
+            /*using (var ds = new DigestStream(new MemoryStream()))
             {
                 var bytes = Resources.Images.folder;
                 ds.Write(bytes, 0, bytes.Length);
                 var objectId = ds.CurrentHash;
-                var data = new ThumbnailData(objectId, new MemoryStream(bytes));
+                var data = new BitmapThumbnailData(objectId, new MemoryStream(bytes));
                 data.PrepareForPresentation(dispatcher).Forget();
                 return data;
-            }
+            }*/
         }
 
         public override bool CanDelete(out string error)

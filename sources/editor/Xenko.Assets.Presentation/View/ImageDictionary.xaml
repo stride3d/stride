@@ -1112,6 +1112,20 @@
             </DrawingGroup>
         </DrawingImage.Drawing>
     </DrawingImage>
+  
+    <!-- This folder icon is licensed under creative commons and derived from: Alfredo Hernandez: https://www.alfredocreates.com -->
+    <!-- This one is fairly similar to the one above, the largest difference is that the other one has rounded edges -->
+    <DrawingImage x:Key="FolderIconAlfredo">
+		  <DrawingImage.Drawing>
+				<DrawingGroup>
+					<DrawingGroup.Children>
+						<GeometryDrawing Brush="#FFD7AA67" Geometry="F1 M 492.603,328.819L 443.867,256.591L 194.035,256.591L 194.035,767.407L 829.879,767.407L 829.879,328.819M 233.784,328.819L 233.784,296.33L 422.743,296.33L 444.661,328.819"/>
+						<!-- Padding trick -->
+						<GeometryDrawing Brush="#FFD7AA67" Geometry="F1 M 0,6.10352e-005L 0,1024L 1024,1024L 0,1024L 0,6.10352e-005 Z "/>
+					</DrawingGroup.Children>
+				</DrawingGroup>
+			</DrawingImage.Drawing>
+		</DrawingImage>
 
     <DrawingImage x:Key="SceneIcon" >
         <DrawingImage.Drawing>
