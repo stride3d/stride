@@ -1372,8 +1372,9 @@ namespace Xenko.Core.Assets
             var project = VSProjectHelper.LoadProject(realFullPath);
             var dir = new UDirectory(realFullPath.GetFullDirectory());
 
-            var nameSpaceProp = project.AllEvaluatedProperties.FirstOrDefault(x => x.Name == "RootNamespace");
-            nameSpace = nameSpaceProp?.EvaluatedValue ?? string.Empty;
+            nameSpace = project.GetPropertyValue("RootNamespace");
+            if (nameSpace == string.Empty)
+                nameSpace = null;
 
             var result = project.Items.Where(x => (x.ItemType == "Compile" || x.ItemType == "None") && string.IsNullOrEmpty(x.GetMetadataValue("AutoGen")))
                 .Select(x => new UFile(x.EvaluatedInclude)).Where(x => AssetRegistry.IsProjectAssetFileExtension(x.GetFileExtension()))

@@ -524,18 +524,30 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             }
         }
 
+        private string ComputeNamespace(DirectoryBaseViewModel directory)
+        {
+            switch (directory)
+            {
+                case ProjectViewModel project:
+                    return project.RootNamespace;
+                case var directoryWithParent when directoryWithParent.Parent != null:
+                    return $"{ComputeNamespace(directoryWithParent.Parent)}.{directoryWithParent.Name}";
+                default:
+                    return directory.Name;
+            }
+        }
+
         private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, IEnumerable<UFile> files)
         {
             List<AssetViewModel> newAssets = new List<AssetViewModel>();
 
-            var project = directory as ProjectViewModel;
             var parameters = new AssetTemplateGeneratorParameters(directory.Path, files)
             {
                 Name = name,
                 Description = templateDescription,
                 Package = directory.Package.Package,
                 Logger = logger,
-                Namespace = project?.RootNamespace ?? directory.Name,
+                Namespace = ComputeNamespace(directory),
             };
 
             var generator = TemplateManager.FindTemplateGenerator(parameters);
