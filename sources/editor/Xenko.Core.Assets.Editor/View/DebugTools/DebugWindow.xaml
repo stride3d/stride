@@ -1,4 +1,4 @@
-﻿<Window x:Class="Xenko.Core.Assets.Editor.View.DebugTools.DebugWindow"
+<Window x:Class="Xenko.Core.Assets.Editor.View.DebugTools.DebugWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,21 +6,21 @@
         xmlns:debug="clr-namespace:Xenko.Core.Assets.Editor.View.DebugTools"
         mc:Ignorable="d" Style="{DynamicResource WindowChromeStyle}"
         Title="DebugWindow" Height="768" Width="1024">
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
-                <ResourceDictionary Source="../ImageDictionary.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
-    <Grid>
-        <TabControl ItemsSource="{Binding Pages, RelativeSource={RelativeSource AncestorType=debug:DebugWindow}}">
-            <TabControl.ItemContainerStyle>
-                <Style BasedOn="{StaticResource {x:Type TabItem}}" TargetType="TabItem">
-                    <Setter Property="Header" Value="{Binding Title}"/>
-                </Style>
-            </TabControl.ItemContainerStyle>
-        </TabControl>
-    </Grid>
+  <Window.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
+        <ResourceDictionary Source="../ImageDictionary.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Window.Resources>
+  <Grid>
+    <TabControl ItemsSource="{Binding Pages, RelativeSource={RelativeSource AncestorType=debug:DebugWindow}}">
+      <TabControl.ItemContainerStyle>
+        <Style BasedOn="{StaticResource {x:Type TabItem}}" TargetType="TabItem">
+          <Setter Property="Header" Value="{Binding Title}"/>
+        </Style>
+      </TabControl.ItemContainerStyle>
+    </TabControl>
+  </Grid>
 </Window>

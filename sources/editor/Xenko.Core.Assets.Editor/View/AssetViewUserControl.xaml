@@ -117,7 +117,7 @@
                         <StackPanel>
                           <TextBlock Text="{Binding Path, StringFormat={xk:Localize URL: {0}}}" FontWeight="Bold"/>
                           <TextBlock Text="{Binding TypeDisplayName, StringFormat={xk:Localize Type: {0}}}"/>
-                          </StackPanel>
+                        </StackPanel>
                       </DataTemplate>
                     </FrameworkElement.Resources>
                   </ContentControl>

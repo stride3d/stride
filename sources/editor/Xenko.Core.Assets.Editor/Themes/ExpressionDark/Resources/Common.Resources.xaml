@@ -1,4 +1,4 @@
-﻿<!--***********************************************************************************
+<!--***********************************************************************************
 
    Extended WPF Toolkit
 
@@ -18,490 +18,490 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:xcdg="http://schemas.xceed.com/wpf/xaml/datagrid">
 
-   <!-- Style applied to the Thumbs that are used to resize the columns and rows.
+  <!-- Style applied to the Thumbs that are used to resize the columns and rows.
         The Thumb's template is an empty Grid with a Transparent background to
         make it hit-testable. -->
-   <Style x:Key="invisibleThumbStyle"
+  <Style x:Key="invisibleThumbStyle"
           TargetType="Thumb">
 
-      <Setter Property="MinWidth"
+    <Setter Property="MinWidth"
               Value="{DynamicResource {x:Static SystemParameters.ResizeFrameVerticalBorderWidthKey}}" />
 
-      <Setter Property="MinHeight"
+    <Setter Property="MinHeight"
               Value="{DynamicResource {x:Static SystemParameters.ResizeFrameHorizontalBorderHeightKey}}" />
 
-      <Setter Property="Template">
-         <Setter.Value>
+    <Setter Property="Template">
+      <Setter.Value>
 
-            <ControlTemplate TargetType="Thumb">
-               <Grid Background="Transparent" />
-            </ControlTemplate>
+        <ControlTemplate TargetType="Thumb">
+          <Grid Background="Transparent" />
+        </ControlTemplate>
 
-         </Setter.Value>
-      </Setter>
-   </Style>
+      </Setter.Value>
+    </Setter>
+  </Style>
 
-   <!-- ControlTemplated applied to the Button that is used in the DataRows
+  <!-- ControlTemplated applied to the Button that is used in the DataRows
         to expand/collapse Details. -->
-   <ControlTemplate x:Key="detailsExpanderButtonTemplate"
+  <ControlTemplate x:Key="detailsExpanderButtonTemplate"
                     TargetType="Button">
-      <ContentPresenter x:Name="expanderGlyphPresenter"
+    <ContentPresenter x:Name="expanderGlyphPresenter"
                         Content="{x:Null}"
                         ContentTemplate="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).CollapseGroupGlyph}" />
 
-      <ControlTemplate.Triggers>
-         <Trigger Property="xcdg:DataGridControl.HasExpandedDetails"
+    <ControlTemplate.Triggers>
+      <Trigger Property="xcdg:DataGridControl.HasExpandedDetails"
                   Value="False">
-            <Setter TargetName="expanderGlyphPresenter"
+        <Setter TargetName="expanderGlyphPresenter"
                     Property="ContentTemplate"
                     Value="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).ExpandGroupGlyph}" />
-         </Trigger>
-      </ControlTemplate.Triggers>
-   </ControlTemplate>
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
 
-   <!-- ControlTemplated applied to the ToggleButton that is used in the GroupHeaders
+  <!-- ControlTemplated applied to the ToggleButton that is used in the GroupHeaders
         to expand/collapse groups. -->
-   <ControlTemplate x:Key="groupExpanderToggleButtonTemplate"
+  <ControlTemplate x:Key="groupExpanderToggleButtonTemplate"
                     TargetType="ToggleButton">
 
-      <ContentPresenter x:Name="expanderGlyphPresenter"
+    <ContentPresenter x:Name="expanderGlyphPresenter"
                         Content="{x:Null}"
                         ContentTemplate="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).CollapseGroupGlyph}" />
 
-      <ControlTemplate.Triggers>
-         <Trigger Property="IsChecked"
+    <ControlTemplate.Triggers>
+      <Trigger Property="IsChecked"
                   Value="False">
-            <Setter TargetName="expanderGlyphPresenter"
+        <Setter TargetName="expanderGlyphPresenter"
                     Property="ContentTemplate"
                     Value="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).ExpandGroupGlyph}" />
-         </Trigger>
-      </ControlTemplate.Triggers>
-   </ControlTemplate>
+      </Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate>
 
-   <DataTemplate x:Key="defaultGroupTemplate">
-      <StackPanel Orientation="Horizontal"
+  <DataTemplate x:Key="defaultGroupTemplate">
+    <StackPanel Orientation="Horizontal"
                   VerticalAlignment="Center">
 
-         <ContentPresenter Content="{Binding Title}"
+      <ContentPresenter Content="{Binding Title}"
                            ContentTemplate="{Binding RelativeSource={RelativeSource TemplatedParent},Path=DataContext.TitleTemplate}"
                            ContentTemplateSelector="{Binding RelativeSource={RelativeSource TemplatedParent},Path=DataContext.TitleTemplateSelector}"
                            VerticalAlignment="Center" />
 
-         <TextBlock Text=": "
+      <TextBlock Text=": "
                     VerticalAlignment="Center" />
-         <ContentPresenter Content="{Binding Value}"
+      <ContentPresenter Content="{Binding Value}"
                            ContentTemplate="{Binding RelativeSource={RelativeSource TemplatedParent},Path=DataContext.ValueTemplate}"
                            ContentTemplateSelector="{Binding RelativeSource={RelativeSource TemplatedParent},Path=DataContext.ValueTemplateSelector}"
                            VerticalAlignment="Center" />
 
-         <TextBlock Text=" ("
+      <TextBlock Text=" ("
                     VerticalAlignment="Center" />
-         <TextBlock Text="{Binding ItemCount}"
+      <TextBlock Text="{Binding ItemCount}"
                     VerticalAlignment="Center" />
-         <TextBlock Text=" "
+      <TextBlock Text=" "
                     VerticalAlignment="Center" />
-         <TextBlock x:Name="suffixRun"
+      <TextBlock x:Name="suffixRun"
                     Text="items"
                     VerticalAlignment="Center" />
-         <TextBlock Text=")"
+      <TextBlock Text=")"
                     VerticalAlignment="Center" />
 
-      </StackPanel>
+    </StackPanel>
 
-      <DataTemplate.Triggers>
-         <DataTrigger Binding="{Binding ItemCount}"
+    <DataTemplate.Triggers>
+      <DataTrigger Binding="{Binding ItemCount}"
                       Value="1">
-            <Setter TargetName="suffixRun"
+        <Setter TargetName="suffixRun"
                     Property="Text"
                     Value="item" />
-         </DataTrigger>
-      </DataTemplate.Triggers>
-   </DataTemplate>
+      </DataTrigger>
+    </DataTemplate.Triggers>
+  </DataTemplate>
 
-   <DataTemplate x:Key="stickyGroupTemplate">
-      <DataTemplate.Resources>
-         <DataTemplate x:Key="detailedGroupItemContentTemplate">
-            <StackPanel Orientation="Horizontal"
+  <DataTemplate x:Key="stickyGroupTemplate">
+    <DataTemplate.Resources>
+      <DataTemplate x:Key="detailedGroupItemContentTemplate">
+        <StackPanel Orientation="Horizontal"
                         VerticalAlignment="Center">
 
-               <ContentControl Content="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).Value}"
+          <ContentControl Content="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).Value}"
                                ContentTemplate="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).ValueTemplate}"
                                ContentTemplateSelector="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).ValueTemplateSelector}"
                                TextBlock.FontWeight="Bold"
                                VerticalAlignment="Center" />
 
-               <TextBlock Text=" ("
+          <TextBlock Text=" ("
                           VerticalAlignment="Center" />
-               <TextBlock Text="{Binding ItemCount}"
+          <TextBlock Text="{Binding ItemCount}"
                           VerticalAlignment="Center" />
-               <TextBlock Text=" "
+          <TextBlock Text=" "
                           VerticalAlignment="Center" />
-               <TextBlock x:Name="suffixRun"
+          <TextBlock x:Name="suffixRun"
                           Text="items"
                           VerticalAlignment="Center" />
-               <TextBlock Text=")"
+          <TextBlock Text=")"
                           VerticalAlignment="Center" />
 
-            </StackPanel>
+        </StackPanel>
 
-            <DataTemplate.Triggers>
-               <DataTrigger Binding="{Binding ItemCount}"
+        <DataTemplate.Triggers>
+          <DataTrigger Binding="{Binding ItemCount}"
                             Value="1">
-                  <Setter TargetName="suffixRun"
+            <Setter TargetName="suffixRun"
                           Property="Text"
                           Value="item" />
-               </DataTrigger>
-            </DataTemplate.Triggers>
-         </DataTemplate>
+          </DataTrigger>
+        </DataTemplate.Triggers>
+      </DataTemplate>
 
-         <DataTemplate x:Key="groupItemContentTemplate">
-            <ContentControl Content="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).Value}"
+      <DataTemplate x:Key="groupItemContentTemplate">
+        <ContentControl Content="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).Value}"
                             ContentTemplate="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).ValueTemplate}"
                             ContentTemplateSelector="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:GroupNavigationControl.Group).ValueTemplateSelector}" />
-         </DataTemplate>
+      </DataTemplate>
 
-         <DataTemplate x:Key="parentGroupTemplate">
-            <xcdg:GroupNavigationControl Group="{Binding}"
+      <DataTemplate x:Key="parentGroupTemplate">
+        <xcdg:GroupNavigationControl Group="{Binding}"
                                           MainItemTemplate="{StaticResource groupItemContentTemplate}"
                                           ItemTemplate="{StaticResource groupItemContentTemplate}" />
-         </DataTemplate>
-      </DataTemplate.Resources>
+      </DataTemplate>
+    </DataTemplate.Resources>
 
-      <StackPanel Orientation="Horizontal">
-         <ItemsControl ItemsSource="{Binding Path=ParentGroups}"
+    <StackPanel Orientation="Horizontal">
+      <ItemsControl ItemsSource="{Binding Path=ParentGroups}"
                        ItemTemplate="{StaticResource parentGroupTemplate}"
                        Focusable="False">
-            <ItemsControl.ItemsPanel>
-               <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal"
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Horizontal"
                               IsItemsHost="True" />
-               </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-         </ItemsControl>
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+      </ItemsControl>
 
-         <xcdg:GroupNavigationControl Group="{Binding}"
+      <xcdg:GroupNavigationControl Group="{Binding}"
                                        MainItemTemplate="{StaticResource detailedGroupItemContentTemplate}"
                                        ItemTemplate="{StaticResource groupItemContentTemplate}" />
-      </StackPanel>
-   </DataTemplate>
+    </StackPanel>
+  </DataTemplate>
 
-   <DataTemplate DataType="{x:Type xcdg:Group}">
-      <!-- This ContentControl must be focusable false to avoid getting the focus 
+  <DataTemplate DataType="{x:Type xcdg:Group}">
+    <!-- This ContentControl must be focusable false to avoid getting the focus 
            when performing KeyboardNavigation -->
-      <ContentControl x:Name="groupContentPresenter"
+    <ContentControl x:Name="groupContentPresenter"
                       Focusable="False"
                       Content="{Binding}"
                       ContentTemplate="{StaticResource defaultGroupTemplate}" />
 
-      <DataTemplate.Triggers>
-         <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).DataGridControl.View, Converter={x:Static xcdg:TypeToBooleanConverter.Singleton}, ConverterParameter={x:Type xcdg:TableflowView}}"
+    <DataTemplate.Triggers>
+      <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).DataGridControl.View, Converter={x:Static xcdg:TypeToBooleanConverter.Singleton}, ConverterParameter={x:Type xcdg:TableflowView}}"
                       Value="True">
-            <Setter Property="ContentTemplate"
+        <Setter Property="ContentTemplate"
                     Value="{StaticResource stickyGroupTemplate}"
                     TargetName="groupContentPresenter" />
-         </DataTrigger>
-      </DataTemplate.Triggers>
-   </DataTemplate>
+      </DataTrigger>
+    </DataTemplate.Triggers>
+  </DataTemplate>
 
-   <!-- Default DataTemplate for displaying a GroupLevelDescription (e.g. in a GroupByItem) -->
-   <DataTemplate DataType="{x:Type xcdg:GroupLevelDescription}">
+  <!-- Default DataTemplate for displaying a GroupLevelDescription (e.g. in a GroupByItem) -->
+  <DataTemplate DataType="{x:Type xcdg:GroupLevelDescription}">
 
-      <ContentPresenter Content="{Binding Title}"
+    <ContentPresenter Content="{Binding Title}"
                         ContentTemplate="{Binding RelativeSource={RelativeSource TemplatedParent},Path=DataContext.TitleTemplate}" />
 
-   </DataTemplate>
+  </DataTemplate>
 
-   <!-- ValueConverter that is used to do DataTriggers on Content properties to check if they are null. -->
-   <xcdg:NullToBooleanConverter x:Key="nullToBooleanConverter" />
+  <!-- ValueConverter that is used to do DataTriggers on Content properties to check if they are null. -->
+  <xcdg:NullToBooleanConverter x:Key="nullToBooleanConverter" />
 
-   <xcdg:IntAdditionConverter x:Key="intAdditionConverter" />
+  <xcdg:IntAdditionConverter x:Key="intAdditionConverter" />
 
-   <!-- ValueConverter that is used to map GridLineThickness properties (of type double)
+  <!-- ValueConverter that is used to map GridLineThickness properties (of type double)
         to Thickness structures that we can set to BorderThickness properties in the templates. -->
-   <xcdg:ThicknessConverter x:Key="thicknessConverter" />
+  <xcdg:ThicknessConverter x:Key="thicknessConverter" />
 
-   <xcdg:EmptyStringToBooleanConverter x:Key="emptyStringToBooleanConverter" />
+  <xcdg:EmptyStringToBooleanConverter x:Key="emptyStringToBooleanConverter" />
 
-   <Thickness x:Key="cellPadding"
+  <Thickness x:Key="cellPadding"
               Left="2"
               Top="2"
               Right="2"
               Bottom="2" />
 
-   <!--**************************
+  <!--**************************
    * Style: ListBoxItem Style (AutoFilter Options)
    **************************-->
 
-   <DataTemplate x:Key="connectionStateLoadingGlyph">
-      <DataTemplate.Resources>
-         <SolidColorBrush Color="Black"
+  <DataTemplate x:Key="connectionStateLoadingGlyph">
+    <DataTemplate.Resources>
+      <SolidColorBrush Color="Black"
                           x:Key="backgroundBrushAdoners" />
 
-         <Storyboard x:Key="loadingStoryboard"
+      <Storyboard x:Key="loadingStoryboard"
                      RepeatBehavior="Forever">
-            <DoubleAnimationUsingKeyFrames BeginTime="00:00:00"
+        <DoubleAnimationUsingKeyFrames BeginTime="00:00:00"
                                            Storyboard.TargetName="path"
                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)">
-               <SplineDoubleKeyFrame KeyTime="00:00:00"
+          <SplineDoubleKeyFrame KeyTime="00:00:00"
                                      Value="0" />
-               <SplineDoubleKeyFrame KeyTime="00:00:00.5000000"
+          <SplineDoubleKeyFrame KeyTime="00:00:00.5000000"
                                      Value="-10.5" />
-            </DoubleAnimationUsingKeyFrames>
-            <DoubleAnimationUsingKeyFrames BeginTime="00:00:00"
+        </DoubleAnimationUsingKeyFrames>
+        <DoubleAnimationUsingKeyFrames BeginTime="00:00:00"
                                            Storyboard.TargetName="path"
                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.Y)">
-               <SplineDoubleKeyFrame KeyTime="00:00:00"
+          <SplineDoubleKeyFrame KeyTime="00:00:00"
                                      Value="0" />
-               <SplineDoubleKeyFrame KeyTime="00:00:00.5000000"
+          <SplineDoubleKeyFrame KeyTime="00:00:00.5000000"
                                      Value="17.5" />
-            </DoubleAnimationUsingKeyFrames>
-            <DoubleAnimationUsingKeyFrames BeginTime="00:00:00"
+        </DoubleAnimationUsingKeyFrames>
+        <DoubleAnimationUsingKeyFrames BeginTime="00:00:00"
                                            Storyboard.TargetName="path2"
                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)">
-               <SplineDoubleKeyFrame KeyTime="00:00:00"
+          <SplineDoubleKeyFrame KeyTime="00:00:00"
                                      Value="0" />
-               <SplineDoubleKeyFrame KeyTime="00:00:00.5000000"
+          <SplineDoubleKeyFrame KeyTime="00:00:00.5000000"
                                      Value="20.875" />
-            </DoubleAnimationUsingKeyFrames>
-            <DoubleAnimationUsingKeyFrames BeginTime="00:00:00"
+        </DoubleAnimationUsingKeyFrames>
+        <DoubleAnimationUsingKeyFrames BeginTime="00:00:00"
                                            Storyboard.TargetName="path3"
                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.Y)">
-               <SplineDoubleKeyFrame KeyTime="00:00:00"
+          <SplineDoubleKeyFrame KeyTime="00:00:00"
                                      Value="0" />
-               <SplineDoubleKeyFrame KeyTime="00:00:00.5000000"
+          <SplineDoubleKeyFrame KeyTime="00:00:00.5000000"
                                      Value="-17.5" />
-            </DoubleAnimationUsingKeyFrames>
-            <DoubleAnimationUsingKeyFrames BeginTime="00:00:00"
+        </DoubleAnimationUsingKeyFrames>
+        <DoubleAnimationUsingKeyFrames BeginTime="00:00:00"
                                            Storyboard.TargetName="path3"
                                            Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.X)">
-               <SplineDoubleKeyFrame KeyTime="00:00:00"
+          <SplineDoubleKeyFrame KeyTime="00:00:00"
                                      Value="0" />
-               <SplineDoubleKeyFrame KeyTime="00:00:00.5000000"
+          <SplineDoubleKeyFrame KeyTime="00:00:00.5000000"
                                      Value="-10.375" />
-            </DoubleAnimationUsingKeyFrames>
-            <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
+        </DoubleAnimationUsingKeyFrames>
+        <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
                                           Storyboard.TargetName="path"
                                           Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
-               <SplineColorKeyFrame KeyTime="00:00:00"
+          <SplineColorKeyFrame KeyTime="00:00:00"
                                     Value="Black" />
-            </ColorAnimationUsingKeyFrames>
-            <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
+        </ColorAnimationUsingKeyFrames>
+        <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
                                           Storyboard.TargetName="path2"
                                           Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
-               <SplineColorKeyFrame KeyTime="00:00:00"
+          <SplineColorKeyFrame KeyTime="00:00:00"
                                     Value="Black" />
-            </ColorAnimationUsingKeyFrames>
-            <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
+        </ColorAnimationUsingKeyFrames>
+        <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
                                           Storyboard.TargetName="path3"
                                           Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
-               <SplineColorKeyFrame KeyTime="00:00:00"
+          <SplineColorKeyFrame KeyTime="00:00:00"
                                     Value="Black" />
-            </ColorAnimationUsingKeyFrames>
-         </Storyboard>
+        </ColorAnimationUsingKeyFrames>
+      </Storyboard>
 
-      </DataTemplate.Resources>
-      <Grid x:Name="rootLayout"
+    </DataTemplate.Resources>
+    <Grid x:Name="rootLayout"
             Background="Transparent">
-         <Canvas Width="27.466"
+      <Canvas Width="27.466"
                  Height="24.066">
 
-            <Canvas>
-               <Path x:Name="path"
+        <Canvas>
+          <Path x:Name="path"
                      Fill="Black"
                      Data="F1 M 17.067,3.300 C 17.067,5.123 15.589,6.600 13.767,6.600 C 11.944,6.600 10.467,5.123 10.467,3.300 C 10.467,1.478 11.944,0.000 13.767,0.000 C 15.589,0.000 17.067,1.478 17.067,3.300 Z"
                      RenderTransformOrigin="0.5,0.5"
                      Opacity="0.8">
-                  <Path.RenderTransform>
-                     <TransformGroup>
-                        <ScaleTransform />
-                        <SkewTransform />
-                        <RotateTransform />
-                        <TranslateTransform />
-                     </TransformGroup>
-                  </Path.RenderTransform>
-               </Path>
-               <Path x:Name="path2"
+            <Path.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform />
+                <SkewTransform />
+                <RotateTransform />
+                <TranslateTransform />
+              </TransformGroup>
+            </Path.RenderTransform>
+          </Path>
+          <Path x:Name="path2"
                      Fill="Black"
                      Data="F1 M 6.600,20.767 C 6.600,22.590 5.123,24.066 3.300,24.066 C 1.478,24.066 0.000,22.590 0.000,20.767 C 0.000,18.944 1.478,17.467 3.300,17.467 C 5.123,17.467 6.600,18.944 6.600,20.767 Z"
                      RenderTransformOrigin="0.5,0.5"
                      Opacity="0.8">
-                  <Path.RenderTransform>
-                     <TransformGroup>
-                        <ScaleTransform />
-                        <SkewTransform />
-                        <RotateTransform />
-                        <TranslateTransform />
-                     </TransformGroup>
-                  </Path.RenderTransform>
-               </Path>
-               <Path x:Name="path3"
+            <Path.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform />
+                <SkewTransform />
+                <RotateTransform />
+                <TranslateTransform />
+              </TransformGroup>
+            </Path.RenderTransform>
+          </Path>
+          <Path x:Name="path3"
                      Fill="Black"
                      Data="F1 M 27.466,20.767 C 27.466,22.590 25.989,24.066 24.167,24.066 C 22.344,24.066 20.867,22.590 20.867,20.767 C 20.867,18.944 22.344,17.467 24.167,17.467 C 25.989,17.467 27.466,18.944 27.466,20.767 Z"
                      RenderTransformOrigin="0.5,0.5"
                      Opacity="0.8">
-                  <Path.RenderTransform>
-                     <TransformGroup>
-                        <ScaleTransform />
-                        <SkewTransform />
-                        <RotateTransform />
-                        <TranslateTransform />
-                     </TransformGroup>
-                  </Path.RenderTransform>
-               </Path>
-            </Canvas>
-         </Canvas>
-         <Grid.ToolTip>
-            <ToolTip x:Name="errorToolTip"
+            <Path.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform />
+                <SkewTransform />
+                <RotateTransform />
+                <TranslateTransform />
+              </TransformGroup>
+            </Path.RenderTransform>
+          </Path>
+        </Canvas>
+      </Canvas>
+      <Grid.ToolTip>
+        <ToolTip x:Name="errorToolTip"
                      Visibility="Collapsed">
-               <ContentPresenter />
-            </ToolTip>
-         </Grid.ToolTip>
-      </Grid>
-      <DataTemplate.Triggers>
-         <DataTrigger Binding="{Binding Path=Visibility, RelativeSource={RelativeSource Self}}"
+          <ContentPresenter />
+        </ToolTip>
+      </Grid.ToolTip>
+    </Grid>
+    <DataTemplate.Triggers>
+      <DataTrigger Binding="{Binding Path=Visibility, RelativeSource={RelativeSource Self}}"
                       Value="Visible">
-            <DataTrigger.EnterActions>
-               <BeginStoryboard Storyboard="{StaticResource loadingStoryboard}"
+        <DataTrigger.EnterActions>
+          <BeginStoryboard Storyboard="{StaticResource loadingStoryboard}"
                                 Name="storyboard" />
-            </DataTrigger.EnterActions>
-            <DataTrigger.ExitActions>
-               <StopStoryboard BeginStoryboardName="storyboard" />
-               <RemoveStoryboard BeginStoryboardName="storyboard" />
-            </DataTrigger.ExitActions>
-         </DataTrigger>
-      </DataTemplate.Triggers>
-   </DataTemplate>
+        </DataTrigger.EnterActions>
+        <DataTrigger.ExitActions>
+          <StopStoryboard BeginStoryboardName="storyboard" />
+          <RemoveStoryboard BeginStoryboardName="storyboard" />
+        </DataTrigger.ExitActions>
+      </DataTrigger>
+    </DataTemplate.Triggers>
+  </DataTemplate>
 
-   <DataTemplate x:Key="connectionStateErrorGlyph">
-      <DataTemplate.Resources>
-         <SolidColorBrush Color="Black"
+  <DataTemplate x:Key="connectionStateErrorGlyph">
+    <DataTemplate.Resources>
+      <SolidColorBrush Color="Black"
                           x:Key="backgroundBrushAdoners" />
-         <Storyboard x:Key="errorStoryboard"
+      <Storyboard x:Key="errorStoryboard"
                      RepeatBehavior="Forever">
-            <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
+        <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
                                           Storyboard.TargetName="path"
                                           Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
-               <SplineColorKeyFrame KeyTime="00:00:00"
+          <SplineColorKeyFrame KeyTime="00:00:00"
                                     Value="#FF970000" />
-               <SplineColorKeyFrame KeyTime="00:00:00.5000000"
+          <SplineColorKeyFrame KeyTime="00:00:00.5000000"
                                     Value="Red" />
-               <SplineColorKeyFrame KeyTime="00:00:01"
+          <SplineColorKeyFrame KeyTime="00:00:01"
                                     Value="#FF970000" />
-               <SplineColorKeyFrame KeyTime="00:00:01.5000000"
+          <SplineColorKeyFrame KeyTime="00:00:01.5000000"
                                     Value="Red" />
-               <SplineColorKeyFrame KeyTime="00:00:02"
+          <SplineColorKeyFrame KeyTime="00:00:02"
                                     Value="#FF970000" />
-            </ColorAnimationUsingKeyFrames>
-            <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
+        </ColorAnimationUsingKeyFrames>
+        <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
                                           Storyboard.TargetName="path2"
                                           Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
-               <SplineColorKeyFrame KeyTime="00:00:00"
+          <SplineColorKeyFrame KeyTime="00:00:00"
                                     Value="#FF970000" />
-               <SplineColorKeyFrame KeyTime="00:00:00.5000000"
+          <SplineColorKeyFrame KeyTime="00:00:00.5000000"
                                     Value="Red" />
-               <SplineColorKeyFrame KeyTime="00:00:01"
+          <SplineColorKeyFrame KeyTime="00:00:01"
                                     Value="#FF970000" />
-               <SplineColorKeyFrame KeyTime="00:00:01.5000000"
+          <SplineColorKeyFrame KeyTime="00:00:01.5000000"
                                     Value="Red" />
-               <SplineColorKeyFrame KeyTime="00:00:02"
+          <SplineColorKeyFrame KeyTime="00:00:02"
                                     Value="#FF970000" />
-            </ColorAnimationUsingKeyFrames>
-            <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
+        </ColorAnimationUsingKeyFrames>
+        <ColorAnimationUsingKeyFrames BeginTime="00:00:00"
                                           Storyboard.TargetName="path3"
                                           Storyboard.TargetProperty="(Shape.Fill).(SolidColorBrush.Color)">
-               <SplineColorKeyFrame KeyTime="00:00:00"
+          <SplineColorKeyFrame KeyTime="00:00:00"
                                     Value="#FF970000" />
-               <SplineColorKeyFrame KeyTime="00:00:00.5000000"
+          <SplineColorKeyFrame KeyTime="00:00:00.5000000"
                                     Value="Red" />
-               <SplineColorKeyFrame KeyTime="00:00:01"
+          <SplineColorKeyFrame KeyTime="00:00:01"
                                     Value="#FF970000" />
-               <SplineColorKeyFrame KeyTime="00:00:01.5000000"
+          <SplineColorKeyFrame KeyTime="00:00:01.5000000"
                                     Value="Red" />
-               <SplineColorKeyFrame KeyTime="00:00:02"
+          <SplineColorKeyFrame KeyTime="00:00:02"
                                     Value="#FF970000" />
-            </ColorAnimationUsingKeyFrames>
-         </Storyboard>
+        </ColorAnimationUsingKeyFrames>
+      </Storyboard>
 
-      </DataTemplate.Resources>
-      <Grid x:Name="rootLayout"
+    </DataTemplate.Resources>
+    <Grid x:Name="rootLayout"
             Background="Transparent">
-         <Canvas Width="27.466"
+      <Canvas Width="27.466"
                  Height="24.066">
 
-            <Canvas>
-               <Path x:Name="path"
+        <Canvas>
+          <Path x:Name="path"
                      Fill="Black"
                      Data="F1 M 17.067,3.300 C 17.067,5.123 15.589,6.600 13.767,6.600 C 11.944,6.600 10.467,5.123 10.467,3.300 C 10.467,1.478 11.944,0.000 13.767,0.000 C 15.589,0.000 17.067,1.478 17.067,3.300 Z"
                      RenderTransformOrigin="0.5,0.5"
                      Opacity="0.8">
-                  <Path.RenderTransform>
-                     <TransformGroup>
-                        <ScaleTransform />
-                        <SkewTransform />
-                        <RotateTransform />
-                        <TranslateTransform />
-                     </TransformGroup>
-                  </Path.RenderTransform>
-               </Path>
-               <Path x:Name="path2"
+            <Path.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform />
+                <SkewTransform />
+                <RotateTransform />
+                <TranslateTransform />
+              </TransformGroup>
+            </Path.RenderTransform>
+          </Path>
+          <Path x:Name="path2"
                      Fill="Black"
                      Data="F1 M 6.600,20.767 C 6.600,22.590 5.123,24.066 3.300,24.066 C 1.478,24.066 0.000,22.590 0.000,20.767 C 0.000,18.944 1.478,17.467 3.300,17.467 C 5.123,17.467 6.600,18.944 6.600,20.767 Z"
                      RenderTransformOrigin="0.5,0.5"
                      Opacity="0.8">
-                  <Path.RenderTransform>
-                     <TransformGroup>
-                        <ScaleTransform />
-                        <SkewTransform />
-                        <RotateTransform />
-                        <TranslateTransform />
-                     </TransformGroup>
-                  </Path.RenderTransform>
-               </Path>
-               <Path x:Name="path3"
+            <Path.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform />
+                <SkewTransform />
+                <RotateTransform />
+                <TranslateTransform />
+              </TransformGroup>
+            </Path.RenderTransform>
+          </Path>
+          <Path x:Name="path3"
                      Fill="Black"
                      Data="F1 M 27.466,20.767 C 27.466,22.590 25.989,24.066 24.167,24.066 C 22.344,24.066 20.867,22.590 20.867,20.767 C 20.867,18.944 22.344,17.467 24.167,17.467 C 25.989,17.467 27.466,18.944 27.466,20.767 Z"
                      RenderTransformOrigin="0.5,0.5"
                      Opacity="0.8">
-                  <Path.RenderTransform>
-                     <TransformGroup>
-                        <ScaleTransform />
-                        <SkewTransform />
-                        <RotateTransform />
-                        <TranslateTransform />
-                     </TransformGroup>
-                  </Path.RenderTransform>
-               </Path>
-            </Canvas>
-         </Canvas>
-         <Grid.ToolTip>
-            <ToolTip x:Name="errorToolTip"
+            <Path.RenderTransform>
+              <TransformGroup>
+                <ScaleTransform />
+                <SkewTransform />
+                <RotateTransform />
+                <TranslateTransform />
+              </TransformGroup>
+            </Path.RenderTransform>
+          </Path>
+        </Canvas>
+      </Canvas>
+      <Grid.ToolTip>
+        <ToolTip x:Name="errorToolTip"
                      Visibility="Collapsed">
-               <ContentPresenter />
-            </ToolTip>
-         </Grid.ToolTip>
-      </Grid>
-      <DataTemplate.Triggers>
-         <DataTrigger Binding="{Binding}"
+          <ContentPresenter />
+        </ToolTip>
+      </Grid.ToolTip>
+    </Grid>
+    <DataTemplate.Triggers>
+      <DataTrigger Binding="{Binding}"
                       Value="Error">
-            <Setter TargetName="rootLayout"
+        <Setter TargetName="rootLayout"
                     Property="Visibility"
                     Value="Visible" />
-            <Setter Property="Visibility"
+        <Setter Property="Visibility"
                     TargetName="errorToolTip"
                     Value="Visible" />
-            <Setter TargetName="errorToolTip"
+        <Setter TargetName="errorToolTip"
                     Property="Content"
                     Value="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).DataGridControl.ConnectionError}" />
-            <DataTrigger.EnterActions>
-               <BeginStoryboard Storyboard="{StaticResource errorStoryboard}"
+        <DataTrigger.EnterActions>
+          <BeginStoryboard Storyboard="{StaticResource errorStoryboard}"
                                 Name="storyboard" />
-            </DataTrigger.EnterActions>
-            <DataTrigger.ExitActions>
-               <StopStoryboard BeginStoryboardName="storyboard" />
-               <RemoveStoryboard BeginStoryboardName="storyboard" />
-            </DataTrigger.ExitActions>
-         </DataTrigger>
-      </DataTemplate.Triggers>
-   </DataTemplate>
+        </DataTrigger.EnterActions>
+        <DataTrigger.ExitActions>
+          <StopStoryboard BeginStoryboardName="storyboard" />
+          <RemoveStoryboard BeginStoryboardName="storyboard" />
+        </DataTrigger.ExitActions>
+      </DataTrigger>
+    </DataTemplate.Triggers>
+  </DataTemplate>
 
 </ResourceDictionary>

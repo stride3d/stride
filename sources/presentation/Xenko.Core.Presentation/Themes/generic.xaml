@@ -12,18 +12,18 @@
                     mc:Ignorable="d">
 
   <!--<Style TargetType="{x:Type ctrl:PropertyGrid}">
-        <Setter Property="Control.Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{x:Type ctrl:PropertyGrid}">
-                    <ScrollViewer
-                        HorizontalScrollBarVisibility="Disabled"
-                        VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}">
-                        <ItemsPresenter/>
-                    </ScrollViewer>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>-->
+    <Setter Property="Control.Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type ctrl:PropertyGrid}">
+          <ScrollViewer
+          HorizontalScrollBarVisibility="Disabled"
+          VerticalScrollBarVisibility="{TemplateBinding VerticalScrollBarVisibility}">
+            <ItemsPresenter/>
+          </ScrollViewer>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>-->
 
   <SolidColorBrush x:Key="RedBrush" Color="#FFDC4E4E" />
   <SolidColorBrush x:Key="GreenBrush" Color="#FF65C36A" />
