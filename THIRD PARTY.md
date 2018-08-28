@@ -34,8 +34,13 @@ Xenko uses the following open-source products.
 ### Android
 * [Android.Play.ExpansionLibrary](https://github.com/mattleibow/Android.Play.ExpansionLibrary) (Apache License 2.0)
 
-
 ## Editor & Build
+
+### License gift to Xenko
+
+* [Advanced Installer](https://www.advancedinstaller.com/) graciously offered us an Enterprise license. Thanks!
+
+### Opensource
 
 * [Assimp](http://assimp.sourceforge.net/) (BSD 3-clause License)
 * [AsyncEx](https://github.com/StephenCleary/AsyncEx) (MIT License)
