@@ -1,62 +1,63 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <DrawingImage x:Key="VectorCloseWindow">
-        <DrawingImage.Drawing>
-            <DrawingGroup>
-                <GeometryDrawing Brush="#161617" Geometry="F1M8,14L6.5,14 5,12.5 3.5,14 2,14 4.25,11.75 2,9.5 3.5,9.5 5,11 6.5,9.5 8,9.5 5.75,11.75z" />
-            </DrawingGroup>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+  <DrawingImage x:Key="VectorCloseWindow">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#161617" Geometry="F1M8,14L6.5,14 5,12.5 3.5,14 2,14 4.25,11.75 2,9.5 3.5,9.5 5,11 6.5,9.5 8,9.5 5.75,11.75z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
 
-    <DrawingImage x:Key="VectorMaximizeWindow">
-        <DrawingImage.Drawing>
-            <DrawingGroup>
-                <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                <GeometryDrawing Brush="#2D2D30" Geometry="F1M14,13L2,13 2,5 14,5z M1,14L15,14 15,2 1,2z" />
-                <GeometryDrawing Brush="#F0EFF1" Geometry="F1M14,13L2,13 2,5 14,5z" />
-            </DrawingGroup>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+  <DrawingImage x:Key="VectorMaximizeWindow">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#2D2D30" Geometry="F1M14,13L2,13 2,5 14,5z M1,14L15,14 15,2 1,2z" />
+        <GeometryDrawing Brush="#F0EFF1" Geometry="F1M14,13L2,13 2,5 14,5z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
 
-    <DrawingImage x:Key="VectorMinimizeWindow">
-        <DrawingImage.Drawing>
-            <DrawingGroup>
-                <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                <GeometryDrawing Brush="#101010" Geometry="F1M14,11L2,11 2,14 14,14z" />
-            </DrawingGroup>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+  <DrawingImage x:Key="VectorMinimizeWindow">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+        <GeometryDrawing Brush="#101010" Geometry="F1M14,11L2,11 2,14 14,14z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
 
-    <DrawingImage x:Key="VectorRestoreWindow">
-        <DrawingImage.Drawing>
-            <DrawingGroup>
-                <GeometryDrawing Brush="#1A1A1D" Geometry="F1 M14,11L13,11 13,4 4,4 4,3 14,3z M12,11L4,11 4,6 12,6z M12,14L2,14 2,6 3,6 3,12 12,12z M15,1L3,1 3,4 1,4 1,15 13,15 13,12 15,12z" />
-                <GeometryDrawing Brush="#D5D5D5" Geometry="F1M12,6L4,6 4,11 12,11z M4,3L4,4 13,4 13,11 14,11 14,3z M2,6L3,6 3,12 12,12 12,14 2,14z" />
-            </DrawingGroup>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+  <DrawingImage x:Key="VectorRestoreWindow">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#1A1A1D" Geometry="F1 M14,11L13,11 13,4 4,4 4,3 14,3z M12,11L4,11 4,6 12,6z M12,14L2,14 2,6 3,6 3,12 12,12z M15,1L3,1 3,4 1,4 1,15 13,15 13,12 15,12z" />
+        <GeometryDrawing Brush="#D5D5D5" Geometry="F1M12,6L4,6 4,11 12,11z M4,3L4,4 13,4 13,11 14,11 14,3z M2,6L3,6 3,12 12,12 12,14 2,14z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
 
-    <DrawingImage x:Key="VectorPin">
-        <DrawingImage.Drawing>
-            <DrawingGroup>
-                <GeometryDrawing Brush="#00ffffff" Geometry="M16 16H0V0h16v16z" />
-                <GeometryDrawing Brush="#f6f6f6" Geometry="M12 8h1v3h-3v4H7v-4H4V8h1V1h7v7z" />
-                <GeometryDrawing Brush="#424242" Geometry="M11 9V2H6v7H5v1h3v4h1v-4h3V9h-1zM9 8H7V3h2v5z" />
-                <GeometryDrawing Brush="#f0eff1" Geometry="M9 8H7V3h2v5z" />
-            </DrawingGroup>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+  <DrawingImage x:Key="VectorPin">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <GeometryDrawing Brush="#00ffffff" Geometry="M16 16H0V0h16v16z" />
+        <GeometryDrawing Brush="#f6f6f6" Geometry="M12 8h1v3h-3v4H7v-4H4V8h1V1h7v7z" />
+        <GeometryDrawing Brush="#424242" Geometry="M11 9V2H6v7H5v1h3v4h1v-4h3V9h-1zM9 8H7V3h2v5z" />
+        <GeometryDrawing Brush="#f0eff1" Geometry="M9 8H7V3h2v5z" />
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
 
-    <DrawingImage x:Key="VectorGlyphDown">
-        <DrawingImage.Drawing>
-            <DrawingGroup>
-                <DrawingGroup.Children>
-                    <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-                    <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M1.5859,5L14.4139,5 7.9999,11.414z" />
-                    <GeometryDrawing Brush="#FF424242" Geometry="F1M8,10L4,6 12,6z" />
-                </DrawingGroup.Children>
-            </DrawingGroup>
-        </DrawingImage.Drawing>
-    </DrawingImage>
+  <DrawingImage x:Key="VectorGlyphDown">
+    <DrawingImage.Drawing>
+      <DrawingGroup>
+        <DrawingGroup.Children>
+          <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
+          <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M1.5859,5L14.4139,5 7.9999,11.414z" />
+          <GeometryDrawing Brush="#FF424242" Geometry="F1M8,10L4,6 12,6z" />
+        </DrawingGroup.Children>
+      </DrawingGroup>
+    </DrawingImage.Drawing>
+  </DrawingImage>
 
 </ResourceDictionary>
