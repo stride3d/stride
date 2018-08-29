@@ -13,6 +13,7 @@ using Xenko.Core.IO;
 using Xenko.Core.ProjectTemplating;
 using Xenko.Graphics;
 using Xenko.Shaders.Parser.Mixins;
+using Xenko.Core.VisualStudio;
 
 namespace Xenko.Assets.Templates
 {
@@ -66,6 +67,8 @@ namespace Xenko.Assets.Templates
 
             // Setup the ProjectGameGuid to be accessible from exec (in order to be able to link to the game project.
             AddOption(parameters, "ProjectGameGuid", sharedProjectGuid);
+            AddOption(parameters, "ProjectGameRelativePath", package.ProjectFullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
+            AddOption(parameters, "PackageGameRelativePath", package.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
 
             // Add projects
             var stepIndex = 0;
@@ -109,10 +112,11 @@ namespace Xenko.Assets.Templates
                 Progress(logger, $"Generating {projectName}...", stepIndex - 1, stepCount);
 
                 var graphicsPlatform = platform.Platform.Type.GetDefaultGraphicsPlatform();
-                var newExeProject = GenerateTemplate(parameters, platforms, package, templatePath, projectName, platform.Platform.Type, platformProfile.Name, graphicsPlatform, ProjectType.Executable, orientation, projectGuid);
-                newExeProject.Type = ProjectType.Executable;
+                var newExeProject = GenerateTemplate(parameters, platforms, templatePath, projectName, platform.Platform.Type, platformProfile.Name, graphicsPlatform, ProjectType.Executable, orientation, projectGuid);
 
-                platformProfile.ProjectReferences.Add(newExeProject);
+                package.Session.Packages.Add(newExeProject);
+
+                //platformProfile.ProjectReferences.Add(newExeProject);
 
                 if (!package.Profiles.Contains(platformProfile))
                 {
@@ -140,7 +144,7 @@ namespace Xenko.Assets.Templates
             }
         }
 
-        public static ProjectReference GenerateTemplate(TemplateGeneratorParameters parameters, ICollection<SelectedSolutionPlatform> platforms, Package package, UFile templateRelativePath, string projectName, PlatformType platformType, string currentProfile, GraphicsPlatform? graphicsPlatform, ProjectType projectType, DisplayOrientation orientation, Guid? projectGuid = null)
+        public static Package GenerateTemplate(TemplateGeneratorParameters parameters, ICollection<SelectedSolutionPlatform> platforms, UFile templateRelativePath, string projectName, PlatformType platformType, string currentProfile, GraphicsPlatform? graphicsPlatform, ProjectType projectType, DisplayOrientation orientation, Guid? projectGuid = null)
         {
             AddOption(parameters, "Platforms", platforms.Select(x => x.Platform).ToList());
             AddOption(parameters, "CurrentPlatform", platformType);
@@ -148,7 +152,7 @@ namespace Xenko.Assets.Templates
             AddOption(parameters, "Orientation", orientation);
 
             List<string> generatedFiles;
-            var projectReference = GenerateTemplate(parameters, package, templateRelativePath, projectName, platformType, graphicsPlatform, projectType, out generatedFiles, projectGuid);
+            var package = GenerateTemplate(parameters, templateRelativePath, projectName, platformType, graphicsPlatform, projectType, out generatedFiles, projectGuid);
 
             // Special case for xkfx files
             foreach (var file in generatedFiles)
@@ -159,13 +163,12 @@ namespace Xenko.Assets.Templates
                 }
             }
 
-            return projectReference;
+            return package;
         }
 
-        public static ProjectReference GenerateTemplate(TemplateGeneratorParameters parameters, Package package, UFile templateRelativePath, string projectName, PlatformType platformType, GraphicsPlatform? graphicsPlatform, ProjectType projectType, out List<string> generatedFiles, Guid? projectGuidArg = null)
+        public static Package GenerateTemplate(TemplateGeneratorParameters parameters, UFile templateRelativePath, string projectName, PlatformType platformType, GraphicsPlatform? graphicsPlatform, ProjectType projectType, out List<string> generatedFiles, Guid? projectGuidArg = null)
         {
             var options = GetOptions(parameters);
-            var projectTemplate = PrepareTemplate(parameters, package, templateRelativePath, platformType, graphicsPlatform, projectType);
             var outputDirectoryPath = UPath.Combine(parameters.OutputDirectory, (UDirectory)projectName);
             Directory.CreateDirectory(outputDirectoryPath);
 
@@ -173,13 +176,30 @@ namespace Xenko.Assets.Templates
             parameters.Logger.Verbose($"Generating {projectName}...");
 
             var projectGuid = projectGuidArg ?? Guid.NewGuid();
+            var packagePath = UPath.Combine(outputDirectoryPath, (UFile)(projectName + Package.PackageFileExtension));
+            var projectFullPath = UPath.Combine(outputDirectoryPath, (UFile)(projectName + ".csproj"));
 
+            var package = new Package
+            {
+                Id = projectGuid,
+                Meta =
+                {
+                    Name = projectName,
+                    Version = new PackageVersion("1.0.0.0")
+                },
+                Type = platformType == PlatformType.Shared ? PackageType.ProjectAndPackage : PackageType.ProjectOnly,
+                FullPath = packagePath,
+                ProjectFullPath = projectFullPath,
+                VSProject = new Project(projectGuid, KnownProjectTypeGuid.CSharp, projectName, projectFullPath, Guid.Empty, null, null, null),
+                IsDirty = true,
+            };
+
+            package.Profiles.Add(PackageProfile.NewShared());
+
+            var projectTemplate = PrepareTemplate(parameters, package, templateRelativePath, platformType, graphicsPlatform, projectType);
             projectTemplate.Generate(outputDirectoryPath, projectName, projectGuid, parameters.Logger, options, generatedFiles);
 
-            // Mark the package as dirty
-            package.IsDirty = true;
-
-            return new ProjectReference(projectGuid, UPath.Combine(outputDirectoryPath, (UFile)(projectName + ".csproj")), ProjectType.Library);
+            return package;
         }
 
         public static ProjectTemplate PrepareTemplate(TemplateGeneratorParameters parameters, Package package, UFile templateRelativePath, PlatformType platformType, GraphicsPlatform? graphicsPlatform, ProjectType projectType)

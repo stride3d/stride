@@ -115,23 +115,12 @@ namespace Xenko.Assets.Presentation.Templates
             var orientation = parameters.GetTag(OrientationKey);
 
             // Generate the package
-            var package = NewPackageTemplateGenerator.GeneratePackage(parameters);
+            //var package = NewPackageTemplateGenerator.GeneratePackage(parameters);
 
             // Generate projects for this package
             var session = parameters.Session;
 
-            var sharedProfile = package.Profiles.FindSharedProfile();
-
-            // Setup the assets folder
-            Directory.CreateDirectory(UPath.Combine(outputDirectory, (UDirectory)"Assets/Shared"));
-
-            //write gitignore
-            WriteGitIgnore(parameters);
-
-            var previousCurrent = session.CurrentPackage;
-            session.CurrentPackage = package;
-
-            var projectGameName = Utilities.BuildValidNamespaceName(name) + ".Game";
+            var projectGameName = Utilities.BuildValidNamespaceName(name);
 
             var stepIndex = 0;
             var stepCount = platforms.Count + 1;
@@ -140,18 +129,64 @@ namespace Xenko.Assets.Presentation.Templates
             ProjectTemplateGeneratorHelper.Progress(logger, $"Generating {projectGameName}...", stepIndex++, stepCount);
 
             // Generate the Game library
-            var projectGameReference = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms, package, "ProjectLibrary.Game/ProjectLibrary.Game.ttproj", projectGameName, PlatformType.Shared, null, null, ProjectType.Library, orientation);
-            projectGameReference.Type = ProjectType.Library;
-            sharedProfile.ProjectReferences.Add(projectGameReference);
+            var package = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms, "ProjectLibrary.Game/ProjectLibrary.Game.ttproj", projectGameName, PlatformType.Shared, null, null, ProjectType.Library, orientation);
+            //projectGameReference.Type = ProjectType.Library;
+            //sharedProfile.ProjectReferences.Add(projectGameReference);
+
+            //package.ProjectFullPath = projectGameReference.Location.ToWindowsPath();
+
+            //write gitignore
+            WriteGitIgnore(parameters);
+
+            // Setup the assets folder
+            Directory.CreateDirectory(UPath.Combine(package.RootDirectory, (UDirectory)"Assets/Shared"));
+
+            var sharedProfile = package.Profiles.FindSharedProfile();
+
+            var previousCurrent = session.CurrentPackage;
+            session.Packages.Add(package);
+            session.CurrentPackage = package;
+
+            // Load missing references
+            session.LoadMissingDependencies(parameters.Logger);
+            // Load dependency assets (needed for camera script template)
+            session.LoadMissingAssets(parameters.Logger, package.LoadedDependencies);
+
+            // Create camera script
+            var cameraScriptTemplate = TemplateManager.FindTemplates(package.Session).OfType<TemplateAssetDescription>().FirstOrDefault(x => x.DefaultOutputName == CameraScriptDefaultOutputName);
+            if (cameraScriptTemplate == null)
+                throw new InvalidOperationException($"Could not find template for script '{CameraScriptDefaultOutputName}'");
+
+            var cameraScriptParameters = new AssetTemplateGeneratorParameters(projectGameName)
+            {
+                Name = cameraScriptTemplate.DefaultOutputName,
+                Description = cameraScriptTemplate,
+                Namespace = parameters.Namespace,
+                Package = package,
+                Logger = logger,
+                Unattended = true,
+            };
+            ScriptTemplateGenerator.SetClassName(cameraScriptParameters, cameraScriptTemplate.DefaultOutputName);
+            if (!ScriptTemplateGenerator.Default.PrepareForRun(cameraScriptParameters).Result || !ScriptTemplateGenerator.Default.Run(cameraScriptParameters))
+            {
+                throw new InvalidOperationException($"Could not create script '{CameraScriptDefaultOutputName}'");
+            }
+
+            // Force save after having created the script
+            // Note: We do that AFTER GameSettings is dirty, otherwise it would ask for an assembly reload (game settings saved might mean new graphics API)
+            SaveSession(parameters);
 
             // Add Effects as an asset folder in order to load xksl
             sharedProfile.AssetFolders.Add(new AssetFolder(projectGameName + "/Effects"));
 
             // Generate executable projects for each platform
-            ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, platforms, orientation, projectGameReference.Id, name, package, false);
+            //ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, platforms, orientation, package.Id, name, package, false);
 
             // Add asset packages
-            CopyAssetPacks(parameters);
+            CopyAssetPacks(parameters, package);
+
+            // Load missing references
+            session.LoadMissingReferences(parameters.Logger);
 
             // Load assets from HDD
             package.LoadTemporaryAssets(logger);
@@ -183,19 +218,18 @@ namespace Xenko.Assets.Presentation.Templates
             gameSettingsAssetItem.IsDirty = true;
 
             // Add assets to the package
-            AddAssets(parameters, package, projectGameReference, projectGameName);
+            AddAssets(parameters, package, projectGameName);
 
             // Log done
             ProjectTemplateGeneratorHelper.Progress(logger, "Done", stepCount, stepCount);
 
-            session.CurrentPackage = previousCurrent;
             return true;
         }
 
-        private void AddAssets(SessionTemplateGeneratorParameters parameters, Package package, ProjectReference projectGameReference, string projectGameName)
+        private void AddAssets(SessionTemplateGeneratorParameters parameters, Package package, string projectGameName)
         {
             // Sets a default scene
-            CreateAndSetNewScene(parameters, package, projectGameReference, projectGameName);
+            CreateAndSetNewScene(parameters, package, projectGameName);
         }
 
         /// <summary>
@@ -205,7 +239,7 @@ namespace Xenko.Assets.Presentation.Templates
         /// </summary>
         /// <param name="parameters">The parameters.</param>
         /// <param name="package">The package in which to create these assets.</param>
-        private void CreateAndSetNewScene(SessionTemplateGeneratorParameters parameters, Package package, ProjectReference projectGameReference, string projectGameName)
+        private void CreateAndSetNewScene(SessionTemplateGeneratorParameters parameters, Package package, string projectGameName)
         {
             var logger = parameters.Logger;
 
@@ -296,7 +330,7 @@ namespace Xenko.Assets.Presentation.Templates
             var skyboxFilename = (UFile)(isHDR ? "skybox_texture_hdr.dds" : "skybox_texture_ldr.dds");
             try
             {
-                var resources = UPath.Combine(parameters.OutputDirectory, (UDirectory)"Resources");
+                var resources = UPath.Combine(package.RootDirectory, (UDirectory)"Resources");
                 Directory.CreateDirectory(resources.ToWindowsPath());
 
                 // TODO: Hardcoded due to the fact that part of the template is in another folder in dev build
@@ -361,13 +395,13 @@ namespace Xenko.Assets.Presentation.Templates
             cameraEntity.Components.Get<CameraComponent>().Slot = graphicsCompositor.Cameras.Single().ToSlotId();
 
             // Let's add camera script
-            CreateCameraScript(parameters, package, projectGameReference, projectGameName, cameraEntity, sceneAssetItem);
+            CreateCameraScript(parameters, package, projectGameName, cameraEntity, sceneAssetItem);
         }
 
         /// <summary>
         /// Copy any referenced asset packages to the project's folder
         /// </summary>
-        private static void CopyAssetPacks(SessionTemplateGeneratorParameters parameters)
+        private static void CopyAssetPacks(SessionTemplateGeneratorParameters parameters, Package package)
         {
             var logger = parameters.Logger;
 
@@ -381,8 +415,8 @@ namespace Xenko.Assets.Presentation.Templates
 
             try
             {
-                var outAssetDir = UPath.Combine(parameters.OutputDirectory, (UDirectory)"Assets");
-                var outResourceDir = UPath.Combine(parameters.OutputDirectory, (UDirectory)"Resources");
+                var outAssetDir = UPath.Combine(package.RootDirectory, (UDirectory)"Assets");
+                var outResourceDir = UPath.Combine(package.RootDirectory, (UDirectory)"Resources");
 
                 foreach (var uDirectory in assetPacks)
                 {
@@ -434,60 +468,23 @@ namespace Xenko.Assets.Presentation.Templates
 
         }
 
-        private void CreateCameraScript(SessionTemplateGeneratorParameters parameters, Package package, ProjectReference projectGameReference, string projectGameName, Entity cameraEntity, AssetItem sceneAssetItem)
+        private void CreateCameraScript(SessionTemplateGeneratorParameters parameters, Package package, string projectGameName, Entity cameraEntity, AssetItem sceneAssetItem)
         {
             var logger = parameters.Logger;
-
-            // Create camera script
-            var cameraScriptTemplate = TemplateManager.FindTemplates(package.Session).OfType<TemplateAssetDescription>().FirstOrDefault(x => x.DefaultOutputName == CameraScriptDefaultOutputName);
-            if (cameraScriptTemplate == null)
-                throw new InvalidOperationException($"Could not find template for script '{CameraScriptDefaultOutputName}'");
-
-            var cameraScriptParameters = new AssetTemplateGeneratorParameters(projectGameName)
-            {
-                Name = cameraScriptTemplate.DefaultOutputName,
-                Description = cameraScriptTemplate,
-                Namespace = parameters.Namespace,
-                Package = package,
-                Logger = logger,
-                Unattended = true,
-            };
-            ScriptTemplateGenerator.SetClassName(cameraScriptParameters, cameraScriptTemplate.DefaultOutputName);
-            if (!ScriptTemplateGenerator.Default.PrepareForRun(cameraScriptParameters).Result || !ScriptTemplateGenerator.Default.Run(cameraScriptParameters))
-            {
-                throw new InvalidOperationException($"Could not create script '{CameraScriptDefaultOutputName}'");
-            }
-
-            // Force save after having created the script
-            // Note: We do that AFTER GameSettings is dirty, otherwise it would ask for an assembly reload (game settings saved might mean new graphics API)
-            SaveSession(parameters);
-
-            parameters.Logger.Verbose("Restore NuGet packages...");
-            VSProjectHelper.RestoreNugetPackages(parameters.Logger, parameters.Session.SolutionPath).Wait();
-
-            logger.Verbose("Compiling game assemblies...");
-            parameters.Session.UpdateAssemblyReferences(logger);
-
-            if (package.State < PackageState.DependenciesReady)
-            {
-                logger.Warning("Assembly references were not compiled properly");
-                return;
-            }
-            logger.Verbose("Game assemblies compiled...");
 
             // Create the Camera script in Camera entity
             // Since we rely on lot of string check, added some null checking and try/catch to not crash the apps in case something went wrong
             // We only emit warnings rather than errors, so that the user could continue
             try
             {
-                var gameAssembly = package.LoadedAssemblies.FirstOrDefault(x => x.ProjectReference == projectGameReference)?.Assembly;
+                var gameAssembly = package.LoadedAssemblies.FirstOrDefault()?.Assembly;
                 if (gameAssembly == null)
                 {
                     logger.Warning("Can't load Game assembly");
                     return;
                 }
 
-                var cameraScriptType = package.LoadedAssemblies.First(x => x.ProjectReference == projectGameReference).Assembly.GetType($"{parameters.Namespace}.{CameraScriptDefaultOutputName}");
+                var cameraScriptType = gameAssembly.GetType($"{parameters.Namespace}.{CameraScriptDefaultOutputName}");
                 if (cameraScriptType == null)
                 {
                     logger.Warning($"Could not find script '{CameraScriptDefaultOutputName}' in Game assembly");

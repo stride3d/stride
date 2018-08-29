@@ -266,7 +266,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             var solutionDir = hasSolutionlocation ? newSessionParameters.SolutionLocation : baseOutputDir;
             // Output dir is Output/Name/Name
-            var outputDir = hasSolutionlocation ? baseOutputDir : UPath.Combine<UDirectory>(baseOutputDir, Xenko.Utilities.BuildValidNamespaceName(newSessionParameters.OutputName));
+            var outputDir = baseOutputDir;
 
             var parameters = new SessionTemplateGeneratorParameters
             {

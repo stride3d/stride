@@ -160,7 +160,7 @@ namespace Xenko.Core.VisualStudio
                 writer.WriteLine("Project(\"{0}\") = \"{1}\", \"{2}\", \"{3}\"",
                     project.TypeGuid.ToString("B").ToUpperInvariant(),
                     project.Name,
-                    project.RelativePath,
+                    project.GetRelativePath(solution),
                     project.Guid.ToString("B").ToUpperInvariant());
                 foreach (var projectSection in project.Sections)
                 {

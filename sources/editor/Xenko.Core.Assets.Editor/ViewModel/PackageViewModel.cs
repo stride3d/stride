@@ -300,12 +300,13 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 var url = asset.Location;
                 DirectoryBaseViewModel directory;
                 var projectSourceCodeAsset = asset.Asset as IProjectAsset;
-                if (projectSourceCodeAsset != null && asset.SourceProject != null)
-                {
-                    var project = Content.OfType<ProjectViewModel>().First(x => string.Compare(asset.SourceProject.GetFileNameWithoutExtension(), x.Name, StringComparison.InvariantCultureIgnoreCase) == 0);
-                    directory = GetOrCreateProjectDirectory(project, url.GetDirectory() ?? "", false);
-                }
-                else
+                // TODO CSPROJ=XKPKG
+                //if (projectSourceCodeAsset != null && asset.SourceProject != null)
+                //{
+                //    var project = Content.OfType<ProjectViewModel>().First(x => string.Compare(asset.SourceProject.GetFileNameWithoutExtension(), x.Name, StringComparison.InvariantCultureIgnoreCase) == 0);
+                //    directory = GetOrCreateProjectDirectory(project, url.GetDirectory() ?? "", false);
+                //}
+                //else
                 {
                     directory = GetOrCreateAssetDirectory(url.GetDirectory() ?? "", false);
                 }

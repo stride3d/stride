@@ -25,9 +25,9 @@
     <Reference Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\<#= Properties.PackageName #>.Game\<#= Properties.PackageName #>.Game.csproj">
+    <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>">
       <Project>{<#= Properties.ProjectGameGuid #>}</Project>
-      <Name><#= Properties.PackageName #>.Game</Name>
+      <Name><#= Properties.PackageName #></Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

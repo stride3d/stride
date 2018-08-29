@@ -97,9 +97,9 @@ namespace Xenko.Assets.Presentation.Templates
             // Generate the library
             List<string> generatedFiles;
             ProjectTemplateGeneratorHelper.AddOption(parameters, "Platforms", AssetRegistry.SupportedPlatforms);
-            var projectGameRef = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, package, "ProjectLibrary/ProjectLibrary.ttproj", projectName, PlatformType.Shared, null, ProjectType.Library, out generatedFiles);
-            projectGameRef.Type = ProjectType.Library;
-            sharedProfile.ProjectReferences.Add(projectGameRef);
+            var projectGameRef = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, "ProjectLibrary/ProjectLibrary.ttproj", projectName, PlatformType.Shared, null, ProjectType.Library, out generatedFiles);
+            //projectGameRef.Type = ProjectType.Library;
+            //sharedProfile.ProjectReferences.Add(projectGameRef);
 
             // Log done
             ProjectTemplateGeneratorHelper.Progress(logger, "Done", 1, 1);

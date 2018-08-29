@@ -379,7 +379,7 @@ namespace Xenko.Assets.Presentation.AssetEditors
 
                             // Check the visual studio version inside the solution first, which is what visual studio uses to decide which version to open
                             //  this should not be confused with the toolsVersion below, since this is the MSBuild version (they might be different)
-                            Version visualStudioVersion = session.CurrentPackage.Package.Session.VisualStudioVersion;
+                            Version visualStudioVersion = session.CurrentPackage?.Package.Session.VisualStudioVersion;
                             if (visualStudioVersion != null)
                             {
                                 if (visualStudioVersion.Major <= 14)

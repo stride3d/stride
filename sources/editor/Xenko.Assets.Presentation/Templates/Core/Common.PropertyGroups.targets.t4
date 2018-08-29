@@ -3,7 +3,7 @@
     var currentPlatform = (Xenko.Core.PlatformType)Properties.CurrentPlatform;
 #>
   <PropertyGroup>
-    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)..\<#= Properties.PackageName #>.xkpkg</XenkoCurrentPackagePath>
+    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)..\<#= Properties.PackageGameRelativePath #></XenkoCurrentPackagePath>
     <XenkoProjectType><#= Properties.ProjectType #></XenkoProjectType>
 <#
     if (currentPlatform != Xenko.Core.PlatformType.Shared)

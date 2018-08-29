@@ -125,7 +125,7 @@ Cache/
 
         protected void WriteGitIgnore(SessionTemplateGeneratorParameters parameters)
         {
-            var fileName = UFile.Combine(parameters.OutputDirectory.GetParent(), ".gitignore");
+            var fileName = UFile.Combine(parameters.OutputDirectory, ".gitignore");
             File.WriteAllText(fileName.ToWindowsPath(), GitIgnore);
         }
 

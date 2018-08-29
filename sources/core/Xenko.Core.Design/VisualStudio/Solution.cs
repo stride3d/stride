@@ -76,7 +76,7 @@ namespace Xenko.Core.VisualStudio
         }
 
         /// <summary>
-        /// Gets or sets the full path.
+        /// Gets or sets the full path. If it's a solution folder, it should just be the name of the folder.
         /// </summary>
         /// <value>The full path.</value>
         public string FullPath { get; set; }
@@ -226,7 +226,7 @@ namespace Xenko.Core.VisualStudio
         [NotNull]
         public static Solution FromStream(string solutionFullPath, [NotNull] Stream stream)
         {
-            using (var reader = new SolutionReader(stream))
+            using (var reader = new SolutionReader(solutionFullPath, stream))
             {
                 var solution = reader.ReadSolutionFile();
                 solution.FullPath = solutionFullPath;

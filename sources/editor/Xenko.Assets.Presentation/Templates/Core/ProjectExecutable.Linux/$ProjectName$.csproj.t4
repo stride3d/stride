@@ -13,7 +13,7 @@
 <#@ include file="..\Common.PropertyGroups.targets.t4" #>
 
   <ItemGroup>
-    <ProjectReference Include="..\<#= Properties.PackageName #>.Game\<#= Properties.PackageName #>.Game.csproj" />
+    <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>" />
   </ItemGroup>
 
 </Project>

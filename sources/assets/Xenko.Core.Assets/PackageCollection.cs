@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using NuGet.ProjectModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -58,6 +59,17 @@ namespace Xenko.Core.Assets
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        /// <summary>
+        /// Finds the a package already in this collection from the specified dependency.
+        /// </summary>
+        /// <param name="packageDependency">The package dependency.</param>
+        /// <returns>Package.</returns>
+        public Package Find(LockFileLibrary lockFileLibrary)
+        {
+            if (lockFileLibrary == null) throw new ArgumentNullException(nameof(lockFileLibrary));
+            return Find(lockFileLibrary.Name, new PackageVersionRange(new PackageVersion(lockFileLibrary.Version.Version, lockFileLibrary.Version.Release)));
         }
 
         /// <summary>

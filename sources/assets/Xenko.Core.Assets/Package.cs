@@ -21,6 +21,7 @@ using Xenko.Core.IO;
 using Xenko.Core.Reflection;
 using Xenko.Core.Serialization;
 using Xenko.Core.Yaml;
+using NuGet.ProjectModel;
 
 namespace Xenko.Core.Assets
 {
@@ -49,6 +50,17 @@ namespace Xenko.Core.Assets
         AssetsReady,
     }
 
+    public enum PackageType
+    {
+        /// <summary>
+        /// Typically from a NuGet folder.
+        /// </summary>
+        Standalone,
+
+        ProjectOnly,
+        ProjectAndPackage,
+    }
+
     /// <summary>
     /// A package managing assets.
     /// </summary>
@@ -68,6 +80,9 @@ namespace Xenko.Core.Assets
         /// Locks the unique identifier for further changes.
         /// </summary>
         internal bool IsIdLocked;
+
+        [DataMemberIgnore]
+        public VisualStudio.Project VSProject;
 
         private readonly List<UFile> filesToDelete = new List<UFile>();
 
@@ -199,6 +214,18 @@ namespace Xenko.Core.Assets
         public RootAssetCollection RootAssets { get; private set; } = new RootAssetCollection();
 
         /// <summary>
+        /// Type of package.
+        /// </summary>
+        [DataMemberIgnore]
+        public PackageType Type { get; set; } = PackageType.Standalone;
+
+        [DataMemberIgnore]
+        public List<LockFileLibrary> Dependencies { get; } = new List<LockFileLibrary>();
+
+        [DataMemberIgnore]
+        public List<Package> LoadedDependencies { get; } = new List<Package>();
+
+        /// <summary>
         /// Gets the loaded templates from the <see cref="TemplateFolders"/>
         /// </summary>
         /// <value>The templates.</value>
@@ -220,6 +247,9 @@ namespace Xenko.Core.Assets
         // TODO: turn that internal!
         public List<AssetItem> TemporaryAssets { get; } = new List<AssetItem>();
 
+        [DataMemberIgnore]
+        public List<LockFileLibrary> TopLevelDependencies { get; } = new List<LockFileLibrary>();
+
         /// <summary>
         /// Gets the path to the package file. May be null if the package was not loaded or saved.
         /// </summary>
@@ -236,6 +266,9 @@ namespace Xenko.Core.Assets
                 SetPackagePath(value, true);
             }
         }
+
+        [DataMemberIgnore]
+        public UFile ProjectFullPath { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance has been modified since last saving.
@@ -488,6 +521,9 @@ namespace Xenko.Core.Assets
                 log.Error(this, null, AssetMessageCode.PackageCannotSave, "null");
                 return;
             }
+
+            if (Type == PackageType.ProjectOnly)
+                return;
 
             saveParameters = saveParameters ?? PackageSaveParameters.Default();
 
@@ -1137,55 +1173,54 @@ namespace Xenko.Core.Assets
             if (log == null) throw new ArgumentNullException(nameof(log));
             if (loadParameters == null) throw new ArgumentNullException(nameof(loadParameters));
             var assemblyContainer = loadParameters.AssemblyContainer ?? AssemblyContainer.Default;
-            foreach (var profile in Profiles)
+
+            if (ProjectFullPath != null)
             {
-                foreach (var projectReference in profile.ProjectReferences.Where(projectRef => projectRef.Type == ProjectType.Plugin || projectRef.Type == ProjectType.Library))
+                // Check if already loaded
+                // TODO: More advanced cases: unload removed references, etc...
+                var projectReference = new ProjectReference(Id, ProjectFullPath, ProjectType.Library);
+                if (LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
+                    return;
+
+                string assemblyPath = null;
+                var fullProjectLocation = ProjectFullPath.ToWindowsPath();
+
+                try
                 {
-                    // Check if already loaded
-                    // TODO: More advanced cases: unload removed references, etc...
-                    if (LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
-                        continue;
-
-                    string assemblyPath = null;
-                    var fullProjectLocation = UPath.Combine(RootDirectory, projectReference.Location).ToWindowsPath();
-
-                    try
+                    var forwardingLogger = new ForwardingLoggerResult(log);
+                    assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
+                    if (String.IsNullOrWhiteSpace(assemblyPath))
                     {
-                        var forwardingLogger = new ForwardingLoggerResult(log);
-                        assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
-                        if (String.IsNullOrWhiteSpace(assemblyPath))
-                        {
-                            log.Error($"Unable to locate assembly reference for project [{fullProjectLocation}]");
-                            continue;
-                        }
-
-                        var loadedAssembly = new PackageLoadedAssembly(projectReference, assemblyPath);
-                        LoadedAssemblies.Add(loadedAssembly);
-
-                        if (!File.Exists(assemblyPath) || forwardingLogger.HasErrors)
-                        {
-                            log.Error($"Unable to build assembly reference [{assemblyPath}]");
-                            continue;
-                        }
-
-                        var assembly = assemblyContainer.LoadAssemblyFromPath(assemblyPath, log);
-                        if (assembly == null)
-                        {
-                            log.Error($"Unable to load assembly reference [{assemblyPath}]");
-                        }
-
-                        loadedAssembly.Assembly = assembly;
-
-                        if (assembly != null)
-                        {
-                            // Register assembly in the registry
-                            AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
-                        }
+                        log.Error($"Unable to locate assembly reference for project [{fullProjectLocation}]");
+                        return;
                     }
-                    catch (Exception ex)
+
+                    var loadedAssembly = new PackageLoadedAssembly(projectReference, assemblyPath);
+                    LoadedAssemblies.Add(loadedAssembly);
+
+                    if (!File.Exists(assemblyPath) || forwardingLogger.HasErrors)
                     {
-                        log.Error($"Unexpected error while loading project [{fullProjectLocation}] or assembly reference [{assemblyPath}]", ex);
+                        log.Error($"Unable to build assembly reference [{assemblyPath}]");
+                        return;
                     }
+
+                    var assembly = assemblyContainer.LoadAssemblyFromPath(assemblyPath, log);
+                    if (assembly == null)
+                    {
+                        log.Error($"Unable to load assembly reference [{assemblyPath}]");
+                    }
+
+                    loadedAssembly.Assembly = assembly;
+
+                    if (assembly != null)
+                    {
+                        // Register assembly in the registry
+                        AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Unexpected error while loading project [{fullProjectLocation}] or assembly reference [{assemblyPath}]", ex);
                 }
             }
         }
@@ -1218,11 +1253,9 @@ namespace Xenko.Core.Assets
                 {
                     if (asset.SourceFolder == null)
                     {
-                        //var assetProjectFolder = asset.Location.FullPath;
-                        var lib = sharedProfile.ProjectReferences.FirstOrDefault(x => x.Type == ProjectType.Library && asset.Location.FullPath.StartsWith(x.Location.GetFileNameWithoutExtension()));
-                        if (lib != null)
+                        if (ProjectFullPath != null)
                         {
-                            asset.SourceProject = UPath.Combine(asset.Package.RootDirectory, lib.Location);
+                            asset.SourceProject = ProjectFullPath;
                             asset.SourceFolder = asset.SourceProject.GetFullDirectory().GetParent().MakeRelative(RootDirectory);
                             asset.IsDirty = true;
                         }

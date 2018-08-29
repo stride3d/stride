@@ -140,7 +140,7 @@ namespace Xenko.Core.Assets
                         return projs;
                     });
 
-                    await RestoreNugetPackagesNonRecursive(logger, allProjs.Select(x => x.DirectoryPath));
+                    await RestoreNugetPackagesNonRecursive(logger, allProjs.Select(x => x.FullPath));
                 }
                 finally
                 {

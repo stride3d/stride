@@ -440,7 +440,7 @@ namespace Xenko.Assets
                     for (var i = 0; i < sharedProjects.Count; i++)
                     {
                         var project = sharedProjects[i];
-                        var projectGameReference = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms, dependentPackage,
+                        var projectGameReference = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms,
                             i == 0 ? "ProjectLibrary.Game/ProjectLibrary.Game.ttproj" : "ProjectLibrary/ProjectLibrary.ttproj",
                             project.Location.GetFileNameWithoutExtension(), PlatformType.Shared, null, null, ProjectType.Library, DisplayOrientation.Default, project.Id);
                     }

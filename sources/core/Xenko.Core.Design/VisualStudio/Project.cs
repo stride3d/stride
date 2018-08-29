@@ -46,7 +46,7 @@ namespace Xenko.Core.VisualStudio
         /// <param name="guid">The unique identifier.</param>
         /// <param name="typeGuid">The type unique identifier.</param>
         /// <param name="name">The name.</param>
-        /// <param name="relativePath">The relative path.</param>
+        /// <param name="fullPath">The relative path.</param>
         /// <param name="parentGuid">The parent unique identifier.</param>
         /// <param name="projectSections">The project sections.</param>
         /// <param name="versionControlLines">The version control lines.</param>
@@ -64,7 +64,7 @@ namespace Xenko.Core.VisualStudio
             Guid guid,
             Guid typeGuid,
             [NotNull] string name,
-            string relativePath,
+            string fullPath,
             Guid parentGuid,
             IEnumerable<Section> projectSections,
             IEnumerable<PropertyItem> versionControlLines,
@@ -77,7 +77,7 @@ namespace Xenko.Core.VisualStudio
             this.guid = guid;
             TypeGuid = typeGuid;
             Name = name;
-            RelativePath = relativePath;
+            FullPath = fullPath;
             ParentGuid = parentGuid;
             sections = new SectionCollection(projectSections);
             versionControlProperties = new PropertyItemCollection(versionControlLines);
@@ -157,17 +157,15 @@ namespace Xenko.Core.VisualStudio
                 }
             }
 
-            var fullPath = GetFullPath(solution);
-
             if (TypeGuid == KnownProjectTypeGuid.VisualC)
             {
-                if (!File.Exists(fullPath))
+                if (!File.Exists(FullPath))
                 {
-                    throw new SolutionFileException($"Cannot detect dependencies of projet '{Name}' because the project file cannot be found.\nProject full path: '{fullPath}'");
+                    throw new SolutionFileException($"Cannot detect dependencies of projet '{Name}' because the project file cannot be found.\nProject full path: '{FullPath}'");
                 }
 
                 var docVisualC = new XmlDocument();
-                docVisualC.Load(fullPath);
+                docVisualC.Load(FullPath);
 
                 foreach (XmlNode xmlNode in docVisualC.SelectNodes(@"//ProjectReference"))
                 {
@@ -182,17 +180,17 @@ namespace Xenko.Core.VisualStudio
                         guid,
                         dependencyGuid,
                         dependencyRelativePathToProject,
-                        fullPath);
+                        FullPath);
                 }
             }
             else if (TypeGuid == KnownProjectTypeGuid.Setup)
             {
-                if (!File.Exists(fullPath))
+                if (!File.Exists(FullPath))
                 {
-                    throw new SolutionFileException($"Cannot detect dependencies of projet '{Name}' because the project file cannot be found.\nProject full path: '{fullPath}'");
+                    throw new SolutionFileException($"Cannot detect dependencies of projet '{Name}' because the project file cannot be found.\nProject full path: '{FullPath}'");
                 }
 
-                foreach (var line in File.ReadAllLines(fullPath))
+                foreach (var line in File.ReadAllLines(FullPath))
                 {
                     var regex = new Regex("^\\s*\"OutputProjectGuid\" = \"\\d*\\:(?<PROJECTGUID>.*)\"$");
                     var match = regex.Match(line);
@@ -206,7 +204,7 @@ namespace Xenko.Core.VisualStudio
                             Name,
                             guid,
                             dependencyGuid,
-                            fullPath);
+                            FullPath);
                     }
                 }
             }
@@ -241,13 +239,13 @@ namespace Xenko.Core.VisualStudio
             }
             else if (!IsSolutionFolder)
             {
-                if (!File.Exists(fullPath))
+                if (!File.Exists(FullPath))
                 {
-                    throw new SolutionFileException($"Cannot detect dependencies of projet '{Name}' because the project file cannot be found.\nProject full path: '{fullPath}'");
+                    throw new SolutionFileException($"Cannot detect dependencies of projet '{Name}' because the project file cannot be found.\nProject full path: '{FullPath}'");
                 }
 
                 var docManaged = new XmlDocument();
-                docManaged.Load(fullPath);
+                docManaged.Load(FullPath);
 
                 var xmlManager = new XmlNamespaceManager(docManaged.NameTable);
                 xmlManager.AddNamespace("prefix", "http://schemas.microsoft.com/developer/msbuild/2003");
@@ -264,7 +262,7 @@ namespace Xenko.Core.VisualStudio
                         guid,
                         dependencyGuid,
                         dependencyName,
-                        fullPath);
+                        FullPath);
                 }
             }
         }
@@ -274,10 +272,7 @@ namespace Xenko.Core.VisualStudio
         /// </summary>
         /// <value>The full path.</value>
         [NotNull]
-        public string GetFullPath(Solution solution)
-        {
-            return Path.Combine(Path.GetDirectoryName(solution.FullPath), RelativePath);
-        }
+        public string FullPath { get; set; }
 
         /// <summary>
         /// Gets the parent project.
@@ -369,7 +364,12 @@ namespace Xenko.Core.VisualStudio
         /// Gets or sets the relative path.
         /// </summary>
         /// <value>The relative path.</value>
-        public string RelativePath { get; set; }
+        public string GetRelativePath(Solution solution)
+        {
+            if (TypeGuid == KnownProjectTypeGuid.SolutionFolder)
+                return FullPath;
+            return Uri.UnescapeDataString(new Uri(solution.FullPath, UriKind.Absolute).MakeRelativeUri(new Uri(FullPath, UriKind.Absolute)).ToString());
+        }
 
         /// <summary>
         /// Gets the version control properties.

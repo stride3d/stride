@@ -4,7 +4,9 @@
 
   <PropertyGroup>
 <#@ include file="..\Common.TargetFrameworks.targets.t4" #>
+<# if (Properties.Namespace != Properties.ProjectName) { #>
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
+<# } #>
   </PropertyGroup>
 
   <ItemGroup>
