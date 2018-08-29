@@ -90,7 +90,7 @@ namespace Xenko.Core.VisualStudio
         {
             get
             {
-                return projects.Where(project => project.ParentProject == null);
+                return projects.Where(project => project.GetParentProject(this) == null);
             }
         }
 

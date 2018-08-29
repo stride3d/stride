@@ -336,7 +336,6 @@ namespace Xenko.Core.VisualStudio
             }
 
             return new Project(
-                solution,
                 new Guid(projectGuid),
                 new Guid(projectTypeGuid),
                 projectName,

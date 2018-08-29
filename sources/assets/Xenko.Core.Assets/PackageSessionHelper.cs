@@ -151,7 +151,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(PackageSession.DefaultVisualStudioVer
                 }
 
                 // Remove projects that are no longer available on the disk
-                var projectToRemove = solution.Projects.Where(project => !project.IsSolutionFolder && !File.Exists(project.FullPath)).ToList();
+                var projectToRemove = solution.Projects.Where(project => !project.IsSolutionFolder && !File.Exists(project.GetFullPath(solution))).ToList();
                 foreach (var project in projectToRemove)
                 {
                     solution.Projects.Remove(project);
@@ -174,8 +174,8 @@ MinimumVisualStudioVersion = {0}".ToFormat(PackageSession.DefaultVisualStudioVer
                     if (packageFolder == null)
                     {
                         // Create this package as a Solution Folder 
-                        packageFolder = new Project(solution,
-                            (Guid)package.Id,
+                        packageFolder = new Project(
+                            package.Id,
                             KnownProjectTypeGuid.SolutionFolder,
                             package.Meta.Name,
                             package.Meta.Name,
@@ -208,7 +208,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(PackageSession.DefaultVisualStudioVer
                                 var projectRelativePath = project.Location.MakeRelative(solutionDir);
 
                                 // Create this package as a Solution Folder 
-                                projectInSolution = new Project(solution,
+                                projectInSolution = new Project(
                                     project.Id,
                                     KnownProjectTypeGuid.CSharp,
                                     project.Location.GetFileNameWithoutExtension(),

@@ -84,7 +84,7 @@ namespace Xenko.Core.VisualStudio
         [CanBeNull]
         public Project FindByFullName(string projectFullName)
         {
-            return this.FirstOrDefault(item => string.Compare(item.FullName, projectFullName, StringComparison.InvariantCultureIgnoreCase) == 0);
+            return this.FirstOrDefault(item => string.Compare(item.GetFullName(solution), projectFullName, StringComparison.InvariantCultureIgnoreCase) == 0);
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace Xenko.Core.VisualStudio
         /// </summary>
         public void Sort()
         {
-            Sort((p1, p2) => StringComparer.InvariantCultureIgnoreCase.Compare(p1.FullName, p2.FullName));
+            Sort((p1, p2) => StringComparer.InvariantCultureIgnoreCase.Compare(p1.GetFullName(solution), p2.GetFullName(solution)));
         }
 
         public void Sort([NotNull] Comparison<Project> comparer)
@@ -118,18 +118,6 @@ namespace Xenko.Core.VisualStudio
         protected override Guid GetKeyForItem([NotNull] Project item)
         {
             return item.Guid;
-        }
-
-        protected override void InsertItem(int index, [NotNull] Project item)
-        {
-            // Add a clone of the item instead of the item itself
-            base.InsertItem(index, new Project(solution, item));
-        }
-
-        protected override void SetItem(int index, [NotNull] Project item)
-        {
-            // Add a clone of the item instead of the item itself
-            base.SetItem(index, new Project(solution, item));
         }
     }
 }
