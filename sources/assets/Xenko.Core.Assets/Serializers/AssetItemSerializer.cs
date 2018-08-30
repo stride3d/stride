@@ -44,7 +44,6 @@ namespace Xenko.Core.Assets.Serializers
                 Location = item.Location;
                 SourceFolder = item.SourceFolder;
                 Asset = item.Asset;
-                ProjectFile = item.SourceProject;
             }
 
             [DataMember(0)]
@@ -57,12 +56,9 @@ namespace Xenko.Core.Assets.Serializers
             [DataMember(2)]
             public Asset Asset;
 
-            [DataMember(3)]
-            public UFile ProjectFile;
-
             public AssetItem ToAssetItem()
             {
-                return new AssetItem(Location, Asset) { SourceFolder = SourceFolder, SourceProject = ProjectFile };
+                return new AssetItem(Location, Asset) { SourceFolder = SourceFolder };
             }
         }
 

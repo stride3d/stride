@@ -254,7 +254,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                     // New asset, let's create it in the workspace
                     // TODO: Differentiate document (newly created should be added in the project by the asset creation code) and additional documents (not in project)?
                     AssetItem.UpdateSourceFolders();
-                    var sourceProject = AssetItem.SourceProject?.ToWindowsPath();
+                    var sourceProject = AssetItem.Package.ProjectFullPath?.ToWindowsPath();
                     if (sourceProject == null)
                         throw new InvalidOperationException($"Could not find project associated to asset [{AssetItem}]");
 

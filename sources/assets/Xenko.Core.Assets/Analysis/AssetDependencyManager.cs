@@ -358,7 +358,6 @@ namespace Xenko.Core.Assets.Analysis
                     : new AssetItem(assetItem.Location, AssetCloner.Clone(assetItem.Asset), assetItem.Package)
                         {
                             SourceFolder = assetItem.SourceFolder,
-                            SourceProject = assetItem.SourceProject
                         };
                 
                 dependencies = new AssetDependencies(assetItemCloned);

@@ -595,7 +595,8 @@ namespace Xenko.Core.Assets
                         try
                         {
                             //If we are within a csproj we need to remove the file from there as well
-                            if (assetItem?.SourceProject != null)
+                            var projectFullPath = assetItem.Package.ProjectFullPath;
+                            if (projectFullPath != null)
                             {
                                 var projectAsset = assetItem.Asset as IProjectAsset;
                                 if (projectAsset != null)
@@ -603,10 +604,10 @@ namespace Xenko.Core.Assets
                                     var projectInclude = assetItem.GetProjectInclude();
 
                                     Microsoft.Build.Evaluation.Project project;
-                                    if (!vsProjs.TryGetValue(assetItem.SourceProject, out project))
+                                    if (!vsProjs.TryGetValue(projectFullPath, out project))
                                     {
-                                        project = VSProjectHelper.LoadProject(assetItem.SourceProject);
-                                        vsProjs.Add(assetItem.SourceProject, project);
+                                        project = VSProjectHelper.LoadProject(projectFullPath);
+                                        vsProjs.Add(projectFullPath, project);
                                     }
                                     var projectItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None") && x.EvaluatedInclude == projectInclude);
                                     if (projectItem != null && !projectItem.IsImported)

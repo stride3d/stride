@@ -976,11 +976,11 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 var location = UPath.Combine(directory.Path, assetItem.Location);
 
                 // Check if we are pasting to package or a project (with a source code)
+                // TODO CSPROJ=XKPKG review
                 if (project != null)
                 {
                     // Link source project
                     assetItem.SourceFolder = project.Package.RootDirectory;
-                    assetItem.SourceProject = project.ProjectPath.ToWindowsPath();
                 }
 
                 // Resolve folders to paste collisions with those existing in a directory

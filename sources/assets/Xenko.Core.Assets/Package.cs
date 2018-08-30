@@ -444,7 +444,6 @@ namespace Xenko.Core.Assets
                 var assetItem = new AssetItem(asset.Location, newAsset)
                 {
                     SourceFolder = asset.SourceFolder,
-                    SourceProject = asset.SourceProject
                 };
                 package.Assets.Add(assetItem);
             }
@@ -608,7 +607,7 @@ namespace Xenko.Core.Assets
                     var projectAsset = asset.Asset as IProjectAsset;
                     if (projectAsset != null)
                     {
-                        var projectFullPath = asset.SourceProject;
+                        var projectFullPath = asset.Package.ProjectFullPath;
                         var projectInclude = asset.GetProjectInclude();
 
                         Project project;
@@ -1086,7 +1085,6 @@ namespace Xenko.Core.Assets
                 {
                     IsDirty = assetContent != null || aliasOccurred,
                     SourceFolder = sourceFolder.MakeRelative(RootDirectory),
-                    SourceProject = asset is IProjectAsset && assetFile.ProjectFile != null ? assetFile.ProjectFile : null,
                 };
                 yamlMetadata.CopyInto(assetItem.YamlMetadata);
 
@@ -1226,7 +1224,7 @@ namespace Xenko.Core.Assets
         }
 
         /// <summary>
-        /// In case <see cref="AssetItem.SourceFolder"/> or <see cref="AssetItem.SourceProject"/> were null, generates them.
+        /// In case <see cref="AssetItem.SourceFolder"/> was null, generates it.
         /// </summary>
         internal void UpdateSourceFolders(IReadOnlyCollection<AssetItem> assets)
         {
@@ -1253,12 +1251,8 @@ namespace Xenko.Core.Assets
                 {
                     if (asset.SourceFolder == null)
                     {
-                        if (ProjectFullPath != null)
-                        {
-                            asset.SourceProject = ProjectFullPath;
-                            asset.SourceFolder = asset.SourceProject.GetFullDirectory().GetParent().MakeRelative(RootDirectory);
-                            asset.IsDirty = true;
-                        }
+                        asset.SourceFolder = string.Empty;
+                        asset.IsDirty = true;
                     }
                 }
                 else
@@ -1441,7 +1435,7 @@ namespace Xenko.Core.Assets
 
                 foreach (var codePath in codePaths)
                 {
-                    list.Add(new PackageLoadingAssetFile(codePath, parentDir, realFullPath));
+                    list.Add(new PackageLoadingAssetFile(codePath, parentDir));
                 }
             }
         }

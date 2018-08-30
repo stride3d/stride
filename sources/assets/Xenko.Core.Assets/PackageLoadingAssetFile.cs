@@ -17,7 +17,6 @@ namespace Xenko.Core.Assets
     {
         public readonly UFile FilePath;
         public readonly UDirectory SourceFolder;
-        public readonly UFile ProjectFile;
 
         public long CachedFileSize;
 
@@ -37,14 +36,6 @@ namespace Xenko.Core.Assets
         {
             FilePath = filePath;
             SourceFolder = sourceFolder;
-            ProjectFile = null;
-        }
-
-        public PackageLoadingAssetFile(UFile filePath, UDirectory sourceFolder, UFile projectFile)
-        {
-            FilePath = filePath;
-            SourceFolder = sourceFolder;
-            ProjectFile = projectFile;
         }
 
         /// <summary>
@@ -61,7 +52,6 @@ namespace Xenko.Core.Assets
 
             SourceFolder = UPath.Combine(package.RootDirectory, sourceFolder ?? package.GetDefaultAssetFolder());
             FilePath = UPath.Combine(SourceFolder, filePath);
-            ProjectFile = null;
         }
 
         public IReference ToReference()

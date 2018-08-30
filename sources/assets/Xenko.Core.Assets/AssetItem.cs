@@ -68,8 +68,6 @@ namespace Xenko.Core.Assets
         /// <value>The directory.</value>
         public UDirectory SourceFolder { get; set; }
 
-        public UFile SourceProject { get; set; }
-
         /// <summary>
         /// Gets the unique identifier of this asset.
         /// </summary>
@@ -134,8 +132,7 @@ namespace Xenko.Core.Assets
             {
                 isDirty = isDirty,
                 SourceFolder = SourceFolder,
-                SourceProject = SourceProject,
-                version = Version
+                version = Version,
             };
             YamlMetadata.CopyInto(item.YamlMetadata);
             return item;
@@ -263,7 +260,7 @@ namespace Xenko.Core.Assets
         }
 
         /// <summary>
-        /// In case <see cref="SourceFolder"/> or <see cref="SourceProject"/> were null, generates them.
+        /// In case <see cref="SourceFolder"/> was null, generates it.
         /// </summary>
         public void UpdateSourceFolders()
         {

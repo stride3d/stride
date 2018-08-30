@@ -289,7 +289,6 @@ namespace Xenko.Assets.Presentation.ViewModel
                     {
                         IsDirty = true, //todo review / this is actually very important in the case of renaming, to propagate the change from VS to Game Studio, if we set it false here, during renaming the renamed asset won't be removed
                         SourceFolder = projectViewModel.Package.RootDirectory,
-                        SourceProject = projFile.ToWindowsPath(),
                     };
 
                     var directory = projectViewModel.Package.GetOrCreateProjectDirectory(projectViewModel, assetItem.Location.GetFullDirectory().FullPath, false);

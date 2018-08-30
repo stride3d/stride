@@ -79,7 +79,7 @@ namespace Xenko.Editor.Build
                 foreach (var asset in package.Assets)
                 {
                     if (typeof(EffectShaderAsset).IsAssignableFrom(asset.AssetType))
-                        mapPackage.Assets.Add(new AssetItem(asset.Url, asset.Asset) { SourceFolder = asset.AssetItem.SourceFolder, SourceProject = asset.AssetItem.SourceProject });
+                        mapPackage.Assets.Add(new AssetItem(asset.Url, asset.Asset) { SourceFolder = asset.AssetItem.SourceFolder });
                 }
 
                 importShadersProjectSession.Packages.Add(mapPackage);
@@ -114,7 +114,7 @@ namespace Xenko.Editor.Build
                 {
                     if (typeof(EffectShaderAsset).IsAssignableFrom(asset.AssetType))
                     {
-                        mapPackage.Assets.Add(new AssetItem(asset.Url, asset.Asset) { SourceFolder = asset.AssetItem.SourceFolder, SourceProject = asset.AssetItem.SourceProject });
+                        mapPackage.Assets.Add(new AssetItem(asset.Url, asset.Asset) { SourceFolder = asset.AssetItem.SourceFolder });
                     }
                 }
 

@@ -513,7 +513,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 package.Assets.Remove(AssetItem);
                 package = newPackage;
 
-                var newAssetItem = new AssetItem(newUrl, AssetItem.Asset) { SourceFolder = AssetItem.SourceFolder, SourceProject = AssetItem.SourceProject };
+                var newAssetItem = new AssetItem(newUrl, AssetItem.Asset) { SourceFolder = AssetItem.SourceFolder };
                 AssetItem = newAssetItem;
                 package.Assets.Add(AssetItem);
             }
