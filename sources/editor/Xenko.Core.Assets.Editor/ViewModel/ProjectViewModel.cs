@@ -64,7 +64,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the root namespace for this project.
         /// </summary>
-        public string RootNamespace => project.RootNamespace;
+        public string RootNamespace => project.RootNamespace ?? Package.Package.Meta.RootNamespace ?? Name;
 
         /// <inheritdoc/>
         public int CompareTo(ProjectViewModel other)

@@ -17,7 +17,7 @@ Xenko is covered by [MIT](LICENSE.md), unless stated otherwise (i.e. for some fi
 
 You can find the list of third party projects [here](THIRD%20PARTY.md).
 
-Contributors need to sign the following [Contribution License Agreement](doc/ContributorLicenseAgreement.md).
+Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
 
 ## Documentation
 

@@ -236,7 +236,7 @@ namespace Xenko.Editor.Thumbnails
             {
                 var stream = new MemoryStream();
                 e.ThumbnailStream.CopyTo(stream);
-                thumbnailData = new ThumbnailData(e.ThumbnailId, stream);
+                thumbnailData = new BitmapThumbnailData(e.ThumbnailId, stream);
             }
 
             if (e.Result != ThumbnailBuildResult.Cancelled)
