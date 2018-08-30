@@ -131,7 +131,6 @@ namespace Xenko.Assets.Presentation.Templates
             // Generate the Game library
             var package = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms, "ProjectLibrary.Game/ProjectLibrary.Game.ttproj", projectGameName, PlatformType.Shared, null, null, ProjectType.Library, orientation);
             //projectGameReference.Type = ProjectType.Library;
-            //sharedProfile.ProjectReferences.Add(projectGameReference);
 
             //package.ProjectFullPath = projectGameReference.Location.ToWindowsPath();
 
@@ -139,9 +138,7 @@ namespace Xenko.Assets.Presentation.Templates
             WriteGitIgnore(parameters);
 
             // Setup the assets folder
-            Directory.CreateDirectory(UPath.Combine(package.RootDirectory, (UDirectory)"Assets/Shared"));
-
-            var sharedProfile = package.Profiles.FindSharedProfile();
+            //Directory.CreateDirectory(UPath.Combine(package.RootDirectory, (UDirectory)"Assets/Shared"));
 
             var previousCurrent = session.CurrentPackage;
             session.Packages.Add(package);
@@ -157,7 +154,7 @@ namespace Xenko.Assets.Presentation.Templates
             if (cameraScriptTemplate == null)
                 throw new InvalidOperationException($"Could not find template for script '{CameraScriptDefaultOutputName}'");
 
-            var cameraScriptParameters = new AssetTemplateGeneratorParameters(projectGameName)
+            var cameraScriptParameters = new AssetTemplateGeneratorParameters(string.Empty)
             {
                 Name = cameraScriptTemplate.DefaultOutputName,
                 Description = cameraScriptTemplate,
@@ -177,7 +174,7 @@ namespace Xenko.Assets.Presentation.Templates
             SaveSession(parameters);
 
             // Add Effects as an asset folder in order to load xksl
-            sharedProfile.AssetFolders.Add(new AssetFolder(projectGameName + "/Effects"));
+            //sharedProfile.AssetFolders.Add(new AssetFolder(projectGameName + "/Effects"));
 
             // Generate executable projects for each platform
             //ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, platforms, orientation, package.Id, name, package, false);
@@ -345,7 +342,7 @@ namespace Xenko.Assets.Presentation.Templates
             }
 
             // Create the texture asset
-            var skyboxTextureAsset = new TextureAsset { Source = Path.Combine(@"..\..\Resources", skyboxFilename), IsCompressed = isHDR, Type = new ColorTextureType { UseSRgbSampling = false } };
+            var skyboxTextureAsset = new TextureAsset { Source = Path.Combine(@"../Resources", skyboxFilename), IsCompressed = isHDR, Type = new ColorTextureType { UseSRgbSampling = false } };
             var skyboxTextureAssetItem = new AssetItem("Skybox texture", skyboxTextureAsset);
             package.Assets.Add(skyboxTextureAssetItem);
             skyboxTextureAssetItem.IsDirty = true;

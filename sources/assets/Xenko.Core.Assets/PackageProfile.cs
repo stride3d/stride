@@ -148,7 +148,7 @@ namespace Xenko.Core.Assets
         public static PackageProfile NewShared()
         {
             var sharedProfile = new PackageProfile(SharedName) { Platform = PlatformType.Shared };
-            sharedProfile.AssetFolders.Add(new AssetFolder("Assets/" + SharedName));
+            sharedProfile.AssetFolders.Add(new AssetFolder("Assets"));
             sharedProfile.ResourceFolders.Add("Resources");
             return sharedProfile;
         }

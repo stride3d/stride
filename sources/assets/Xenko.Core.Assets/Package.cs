@@ -425,7 +425,7 @@ namespace Xenko.Core.Assets
         {
             var sharedProfile = Profiles.FindSharedProfile();
             var folder = sharedProfile?.AssetFolders.FirstOrDefault();
-            return folder?.Path ?? ("Assets/" + PackageProfile.SharedName);
+            return folder?.Path ?? ("Assets");
         }
 
         /// <summary>
