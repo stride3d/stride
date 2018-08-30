@@ -1,12 +1,6 @@
----
-name: Bug report
-about: Create a report to help us improve Xenko
+**Release Type**: Official Release/GitHub (please choose appropriate option)
 
----
-
-**Version**
-- Release type: Official Release/GitHub (please choose appropriate option)
-- Version or Branch: (Official Release: Version number/GitHub: branch)
+**Version**: Version number and/or git branch
 
 **Describe the bug**
 A clear and concise description of what the bug is.
