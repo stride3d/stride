@@ -383,16 +383,20 @@ namespace Xenko.Core.Assets
                         {
                             if (project.TypeGuid == KnownProjectTypeGuid.CSharp)
                             {
-                                var package = session.PreLoadPackage(sessionResult, project.FullPath, false, packagesLoaded, loadParameters);
-                                package.VSProject = project;
-
-                                if (firstPackage == null)
-                                    firstPackage = package;
-
-                                // Output the session only if there is no cancellation
-                                if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+                                // TODO CSPROJ=XKPKG move that code inside Package load code, and add support for projects without xkpkg too
+                                var packageFile = Path.ChangeExtension(project.FullPath, Package.PackageFileExtension);
+                                if (File.Exists(packageFile))
                                 {
-                                    return;
+                                    var package = session.PreLoadPackage(sessionResult, packageFile, false, packagesLoaded, loadParameters, project);
+
+                                    if (firstPackage == null)
+                                        firstPackage = package;
+
+                                    // Output the session only if there is no cancellation
+                                    if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
+                                    {
+                                        return;
+                                    }
                                 }
                             }
                         }
@@ -803,7 +807,10 @@ namespace Xenko.Core.Assets
 
             if (package.Type == PackageType.ProjectAndPackage || package.Type == PackageType.ProjectOnly)
             {
-                VSSolution.Projects.Add(package.VSProject);
+                // Note: when loading, package might already be there
+                // TODO CSPROJ=XKPKG: skip it in a proper way? (context info)
+                if (!VSSolution.Projects.Contains(package.VSProject))
+                    VSSolution.Projects.Add(package.VSProject);
             }
 
             IsDirty = true;
@@ -847,7 +854,7 @@ namespace Xenko.Core.Assets
             AssetDirtyChanged?.Invoke(asset, oldValue, newValue);
         }
 
-        private Package PreLoadPackage(ILogger log, string filePath, bool isSystemPackage, PackageCollection loadedPackages, PackageLoadParameters loadParameters)
+        private Package PreLoadPackage(ILogger log, string filePath, bool isSystemPackage, PackageCollection loadedPackages, PackageLoadParameters loadParameters, VisualStudio.Project project = null)
         {
             if (log == null) throw new ArgumentNullException(nameof(log));
             if (filePath == null) throw new ArgumentNullException(nameof(filePath));
@@ -873,6 +880,14 @@ namespace Xenko.Core.Assets
                 // Load the package without loading any assets
                 var package = Package.LoadRaw(log, filePath);
                 package.IsSystem = isSystemPackage;
+
+                // TODO CSPROJ=XKPKG temp code until Package loading supports csproj format natively
+                if (project != null)
+                {
+                    package.ProjectFullPath = project.FullPath;
+                    package.Type = PackageType.ProjectAndPackage;
+                    package.VSProject = project;
+                }
 
                 // Remove all missing dependencies if they are not required
                 if (!loadParameters.LoadMissingDependencies)
@@ -1191,9 +1206,10 @@ namespace Xenko.Core.Assets
 
                     // Recursive load of the system package
                     loadedPackage = PreLoadPackage(log, file, true, loadedPackages, loadParameters);
-                    package.LoadedDependencies.Add(loadedPackage);
                 }
 
+                if (loadedPackage != null)
+                    package.LoadedDependencies.Add(loadedPackage);
                 if (loadedPackage == null || loadedPackage.State < PackageState.DependenciesReady)
                     packageDependencyErrors = true;
             }

@@ -29,7 +29,7 @@ namespace Xenko.Core.Assets.Compiler
                 yield break;
             }
 
-            var packages = package.GetPackagesWithRecursiveDependencies();
+            var packages = package.GetPackagesWithDependencies();
             foreach (var pack in packages)
             {
                 foreach (var asset in pack.Assets)

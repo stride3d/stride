@@ -83,7 +83,7 @@ namespace Xenko.Editor.Build
                 }
 
                 importShadersProjectSession.Packages.Add(mapPackage);
-                importShadersRootProject.LocalDependencies.Add(mapPackage);
+                importShadersRootProject.LoadedDependencies.Add(mapPackage);
             }
 
             // compile the fake project (create the build steps)
@@ -119,7 +119,7 @@ namespace Xenko.Editor.Build
                 }
 
                 importShadersProjectSession.Packages.Add(mapPackage);
-                importShadersRootProject.LocalDependencies.Add(mapPackage);
+                importShadersRootProject.LoadedDependencies.Add(mapPackage);
             }
 
             // compile the fake project (create the build steps)

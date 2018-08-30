@@ -40,64 +40,9 @@ namespace Xenko.Core.Assets
 
             var session = currentPackage.Session;
 
-            foreach (var storeDep in currentPackage.Meta.Dependencies)
+            foreach (var package in currentPackage.LoadedDependencies)
             {
-                var package = session.Packages.Find(storeDep);
-                // In case the package is not found (when working with session not fully loaded/resolved with all deps)
-                if (package != null)
-                {
-                    yield return package;
-                }
-            }
-
-            foreach (var localDep in currentPackage.LocalDependencies)
-            {
-                var package = session.Packages.Find(localDep.Id);
-                // In case the package is not found (when working with session not fully loaded/resolved with all deps)
-                if (package != null)
-                {
-                    yield return package;
-                }
-            }
-        }
-
-        public static IEnumerable<Package> GetPackagesWithRecursiveDependencies(this Package startPackage)
-        {
-            // Non-recursive Depth First Search
-            var packagesToVisit = new Stack<Package>();
-            var visitedPackages = new HashSet<Package>();
-            packagesToVisit.Push(startPackage);
-
-            var session = startPackage.Session;
-
-            while (packagesToVisit.Count > 0)
-            {
-                var packageToVisit = packagesToVisit.Pop();
-                if (visitedPackages.Add(packageToVisit))
-                {
-                    yield return packageToVisit;
-
-                    // Push references
-                    foreach (var storeDep in packageToVisit.Meta.Dependencies)
-                    {
-                        var package = session.Packages.Find(storeDep);
-                        // In case the package is not found (when working with session not fully loaded/resolved with all deps)
-                        if (package != null)
-                        {
-                            packagesToVisit.Push(package);
-                        }
-                    }
-
-                    foreach (var localDep in packageToVisit.LocalDependencies)
-                    {
-                        var package = session.Packages.Find(localDep.Id);
-                        // In case the package is not found (when working with session not fully loaded/resolved with all deps)
-                        if (package != null)
-                        {
-                            packagesToVisit.Push(package);
-                        }
-                    }
-                }
+                yield return package;
             }
         }
 
