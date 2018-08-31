@@ -282,11 +282,11 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 //if (projectSourceCodeAsset != null && asset.SourceProject != null)
                 //{
                 //    var project = Content.OfType<ProjectViewModel>().First(x => string.Compare(asset.SourceProject.GetFileNameWithoutExtension(), x.Name, StringComparison.InvariantCultureIgnoreCase) == 0);
-                //    directory = GetOrCreateProjectDirectory(project, url.GetDirectory() ?? "", false);
+                //    directory = GetOrCreateProjectDirectory(project, url.GetFullDirectory() ?? "", false);
                 //}
                 //else
                 {
-                    directory = GetOrCreateAssetDirectory(url.GetDirectory() ?? "", false);
+                    directory = GetOrCreateAssetDirectory(url.GetFullDirectory() ?? "", false);
                 }
                 CreateAsset(directory, asset, false, loggerResult, true);
                 ++progress;

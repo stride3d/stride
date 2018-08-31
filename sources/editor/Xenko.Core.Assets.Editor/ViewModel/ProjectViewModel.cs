@@ -14,30 +14,29 @@ namespace Xenko.Core.Assets.Editor.ViewModel
     // TODO: For the moment we consider that a project has only a single parent profile. Sharing project in several profile is not supported.
     public class ProjectViewModel : MountPointViewModel, IComparable<ProjectViewModel>
     {
-        private readonly ProjectReference project;
+        private readonly Package package;
         private bool isCurrentProject;
 
-        public ProjectViewModel(ProjectReference project, ProfileViewModel container)
+        public ProjectViewModel(ProfileViewModel container)
             : base(container.SafeArgument(nameof(container)).Package)
         {
-            if (project == null) throw new ArgumentNullException(nameof(project));
             if (container == null) throw new ArgumentNullException(nameof(container));
             Profile = container;
-            this.project = project;
+            this.package = container.Package.Package;
 
             // Use the property in order to create an action item
             InitialUndelete(false);
         }
 
-        public override string Name { get { return project.Location.GetFileNameWithoutExtension(); } set { if (value != Name) throw new InvalidOperationException("The name of a project cannot be set"); } }
+        public override string Name { get { return package.ProjectFullPath.GetFileNameWithoutExtension(); } set { if (value != Name) throw new InvalidOperationException("The name of a project cannot be set"); } }
 
         public override string Path => Name + Separator;
 
-        public Guid Id => project.Id;
+        public Guid Id => package.Id;
 
-        public UFile ProjectPath => project.Location;
+        public UFile ProjectPath => package.ProjectFullPath;
 
-        public ProjectType Type => project.Type;
+        public ProjectType Type => package.ProjectType.Value;
 
         /// <summary>
         /// Gets the generic type (either PlatformType or ProjectType)
@@ -84,7 +83,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         public override void Delete()
         {
-            IsDeleted = true;
         }
 
         public override bool AcceptAssetType(Type assetType)
@@ -94,14 +92,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         protected override void UpdateIsDeletedStatus()
         {
-            if (IsDeleted)
-            {
-                Profile.DeleteProject(project);
-            }
-            else
-            {
-                Profile.AddProject(this, project);
-            }
         }
     }
 }

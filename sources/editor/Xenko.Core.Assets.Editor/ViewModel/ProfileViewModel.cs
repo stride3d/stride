@@ -28,10 +28,9 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             Package = container;
 
-            foreach (var projectReference in profile.ProjectReferences)
+            if (Package.Package.ProjectFullPath != null)
             {
-                var viewModel = new ProjectViewModel(projectReference, this);
-                Projects.Add(viewModel);
+                Projects.Add(new ProjectViewModel(this));
             }
         }
 
@@ -62,55 +61,25 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
-        /// Delete the given project from this profile.
-        /// </summary>
-        /// <param name="projectReference">The project to delete.</param>
-        /// <remarks>This method is intended to be invoked only by the <see cref="ProjectViewModel"/> class.</remarks>
-        internal void DeleteProject(ProjectReference projectReference)
-        {
-            profile.ProjectReferences.RemoveWhere(x => x.Id == projectReference.Id);
-            Projects.RemoveWhere(x => x.Id == projectReference.Id);
-            var projectViewModel = Package.Content.OfType<ProjectViewModel>().FirstOrDefault(x => x.Id == projectReference.Id);
-            Package.RemoveProject(projectViewModel);
-        }
-
-        /// <summary>
-        /// Add the given project to this profile.
-        /// </summary>
-        /// <param name="projectToAdd">The view model of the project to add.</param>
-        /// <param name="projectReference">The project to add.</param>
-        /// <remarks>This method is intended to be invoked only by the <see cref="ProjectViewModel"/> class.</remarks>
-        internal void AddProject(ProjectViewModel projectToAdd, ProjectReference projectReference)
-        {
-            if (!profile.ProjectReferences.Contains(projectReference))
-            {
-                profile.ProjectReferences.Add(projectReference);
-                Projects.Add(projectToAdd);
-                Package.AddProject(projectToAdd);
-            }
-        }
-
-        /// <summary>
         /// Updates the list of projects contained in this profile from the related <see cref="PackageProfile"/>.
         /// </summary>
         /// <remarks>The actions undertaken by this method are not cancellable via the action stack.</remarks>
         internal bool UpdateProjectList()
         {
             bool changed = false;
-            foreach (var projectReference in profile.ProjectReferences.Where(x => Projects.All(y => y.Id != x.Id)))
+
+            if (Package.Package.ProjectFullPath != null && Projects.Count == 0)
             {
-                var viewModel = new ProjectViewModel(projectReference, this);
-                Projects.Add(viewModel);
+                Projects.Add(new ProjectViewModel(this));
                 changed = true;
             }
 
-            // Remove projects deleted
-            var projectsToRemove = Projects.Where(projectViewModel => profile.ProjectReferences.All(projectReference => projectReference.Id != projectViewModel.Id)).ToList();
-            foreach (var projectToRemove  in projectsToRemove)
+            if (Package.Package.ProjectFullPath == null && Projects.Count != 0)
             {
-                projectToRemove.Delete();
+                Projects[0].Delete();
                 changed = true;
             }
+
             return changed;
         }
     }

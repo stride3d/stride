@@ -183,6 +183,7 @@ namespace Xenko.Assets.Templates
                     Version = new PackageVersion("1.0.0.0")
                 },
                 Type = platformType == PlatformType.Shared ? PackageType.ProjectAndPackage : PackageType.ProjectOnly,
+                ProjectType = projectType,
                 FullPath = packagePath,
                 ProjectFullPath = projectFullPath,
                 VSProject = new Project(projectGuid, KnownProjectTypeGuid.CSharp, projectName, projectFullPath, Guid.Empty, null, null, null),

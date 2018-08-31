@@ -29,8 +29,9 @@ namespace Xenko.Core.Assets.Tests
             var project = new Package { Id = Guid.Empty, FullPath = testGenerated1 };
             project.Profile.AssetFolders.Clear();
             project.Profile.AssetFolders.Add(new AssetFolder("."));
-            var projectReference = new ProjectReference(Guid.Empty, Path.Combine(dirPath, "test.csproj"), ProjectType.Executable);
-            sharedProfile.ProjectReferences.Add(projectReference);
+            project.ProjectFullPath = Path.Combine(dirPath, "test.csproj");
+            project.Type = PackageType.ProjectAndPackage;
+            project.ProjectType = ProjectType.Executable;
 
             var session = new PackageSession(project);
             // Write the solution when saving
@@ -52,7 +53,7 @@ namespace Xenko.Core.Assets.Tests
             var rawSourceFolder = rawPackage.Profile.AssetFolders.FirstOrDefault();
             Assert.NotNull(rawSourceFolder);
             Assert.Equal(".", (string)rawSourceFolder.Path);
-            Assert.Equal("test.csproj", (string)rawPackage.Profile.ProjectReferences[0].Location);
+            Assert.Equal("test.csproj", (string)rawPackage.ProjectFullPath);
 
             // Reload the package directly from the xkpkg
             var project2Result = PackageSession.Load(testGenerated1);
@@ -71,11 +72,14 @@ namespace Xenko.Core.Assets.Tests
 
             var sessionReload = sessionResult.Session;
             Assert.Single(sessionReload.LocalPackages);
-            Assert.Equal(project.Id, sessionReload.LocalPackages.First().Id);
+            var reloadPackage = sessionReload.LocalPackages.First();
+            Assert.Equal(project.Id, reloadPackage.Id);
 
-            var sharedProfileReload = sessionReload.LocalPackages.First().Profile;
-            Assert.Single(sharedProfileReload.ProjectReferences);
-            Assert.Equal(projectReference, sharedProfileReload.ProjectReferences[0]);
+            Assert.NotNull(reloadPackage.ProjectFullPath);
+
+            Assert.Equal(project.ProjectFullPath, reloadPackage.ProjectFullPath);
+            Assert.Equal(project.Type, reloadPackage.Type);
+            Assert.Equal(project.ProjectType, reloadPackage.ProjectType);
         }
 
         [Fact]

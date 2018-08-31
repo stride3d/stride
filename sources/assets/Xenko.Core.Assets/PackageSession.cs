@@ -886,6 +886,7 @@ namespace Xenko.Core.Assets
                 {
                     package.ProjectFullPath = project.FullPath;
                     package.Type = PackageType.ProjectAndPackage;
+                    package.ProjectType = ProjectType.Library;
                     package.VSProject = project;
                 }
 

@@ -34,7 +34,7 @@ namespace Xenko.Assets.Analysis
                 if (package.State < PackageState.AssetsReady)
                     continue;
 
-                var hasGameExecutable = package.Profile.ProjectReferences.Any(projectRef => projectRef.Type == ProjectType.Executable);
+                var hasGameExecutable = package.ProjectFullPath != null && package.ProjectType == ProjectType.Executable;
                 if (!hasGameExecutable)
                 {
                     continue;

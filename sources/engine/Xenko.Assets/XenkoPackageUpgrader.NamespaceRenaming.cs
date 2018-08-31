@@ -46,15 +46,14 @@ namespace Xenko.Assets
             var csharpWorkspaceAssemblies = new[] { Assembly.Load("Microsoft.CodeAnalysis.Workspaces"), Assembly.Load("Microsoft.CodeAnalysis.CSharp.Workspaces"), Assembly.Load("Microsoft.CodeAnalysis.Workspaces.Desktop") };
             var workspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, MefHostServices.Create(csharpWorkspaceAssemblies));
 
-            var tasks = dependentPackage.Profile.ProjectReferences
-                .Select(projectReference => UPath.Combine(dependentPackage.RootDirectory, projectReference.Location))
-                .Distinct()
-                .Select(projectFullPath => Task.Run(async () =>
+            if (dependentPackage.ProjectFullPath != null)
+            {
+                Task.Run(async () =>
                 {
-                    codeUpgrader.UpgradeProject(workspace, projectFullPath);
+                    codeUpgrader.UpgradeProject(workspace, dependentPackage.ProjectFullPath);
 
                     // Upgrade source code
-                    var f = new FileInfo(projectFullPath.ToWindowsPath());
+                    var f = new FileInfo(dependentPackage.ProjectFullPath.ToWindowsPath());
                     if (f.Exists)
                     {
                         var project = await workspace.OpenProjectAsync(f.FullName);
@@ -66,10 +65,8 @@ namespace Xenko.Assets
                     {
                         log.Error($"Cannot locate project {f.FullName}.");
                     }
-                }))
-                .ToArray();
-
-            Task.WaitAll(tasks);
+                }).Wait();
+            }
         }
 
         /// <summary>

@@ -30,8 +30,7 @@ namespace Xenko.Assets.Presentation.Templates
         {
             // libraries and executables
             var referencedBinaryNames = new List<string>();
-            var references = parameters.Package.Profile.ProjectReferences.Where(projectRef => projectRef.Type == ProjectType.Library || projectRef.Type == ProjectType.Executable);
-            referencedBinaryNames.AddRange(references.Select(pr => pr.Location.GetFileNameWithoutExtension()));
+            referencedBinaryNames.AddRange(parameters.Package.Session.Packages.Where(x => x.ProjectFullPath != null).Select(x => x.ProjectFullPath.GetFileNameWithoutExtension()));
             return referencedBinaryNames;
         }
 

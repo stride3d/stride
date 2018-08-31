@@ -220,6 +220,9 @@ namespace Xenko.Core.Assets
         public PackageType Type { get; set; } = PackageType.Standalone;
 
         [DataMemberIgnore]
+        public ProjectType? ProjectType { get; set; }
+
+        [DataMemberIgnore]
         public List<LockFileLibrary> Dependencies { get; } = new List<LockFileLibrary>();
 
         [DataMemberIgnore]
@@ -1177,7 +1180,7 @@ namespace Xenko.Core.Assets
             {
                 // Check if already loaded
                 // TODO: More advanced cases: unload removed references, etc...
-                var projectReference = new ProjectReference(Id, ProjectFullPath, ProjectType.Library);
+                var projectReference = new ProjectReference(Id, ProjectFullPath, Core.Assets.ProjectType.Library);
                 if (LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
                     return;
 
@@ -1327,9 +1330,6 @@ namespace Xenko.Core.Assets
                 return listFiles;
             }
 
-            var sharedProfile = package.Profile;
-            var hasProject = sharedProfile != null && sharedProfile.ProjectReferences.Count > 0;
-
             // Iterate on each source folders
             foreach (var sourceFolder in package.GetDistinctAssetFolderPaths())
             {
@@ -1357,7 +1357,7 @@ namespace Xenko.Core.Assets
                         var ext = fileUPath.GetFileExtension();
 
                         //make sure to add default shaders in this case, since we don't have a csproj for them
-                        if (AssetRegistry.IsProjectCodeGeneratorAssetFileExtension(ext) && !hasProject)
+                        if (AssetRegistry.IsProjectCodeGeneratorAssetFileExtension(ext) && package.ProjectFullPath == null)
                         {
                             listFiles.Add(new PackageLoadingAssetFile(fileUPath, sourceFolder) { CachedFileSize = filePath.Length });
                             continue;

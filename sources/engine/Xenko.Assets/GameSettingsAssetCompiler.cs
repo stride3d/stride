@@ -157,11 +157,10 @@ namespace Xenko.Assets
                     break;
                 case PlatformType.iOS:
                     {
-                        var exeProjectLocation = profile.ProjectReferences.FirstOrDefault(x => x.Type == ProjectType.Executable);
+                        var exeProjectLocation = package.ProjectFullPath;
                         if (exeProjectLocation == null) return;
 
-                        var path = exeProjectLocation.Location;
-                        var plistFile = UPath.Combine(path.GetFullDirectory(), new UFile("Info.plist"));
+                        var plistFile = UPath.Combine(exeProjectLocation.GetFullDirectory(), new UFile("Info.plist"));
                         if (!File.Exists(plistFile)) return;
 
                         var xmlDoc = XDocument.Load(plistFile);

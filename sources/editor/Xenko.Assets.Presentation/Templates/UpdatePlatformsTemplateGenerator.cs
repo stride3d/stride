@@ -111,7 +111,7 @@ namespace Xenko.Assets.Presentation.Templates
             var sharedProfile = package.Profile;
 
             // TODO: this is not a safe way to get a game project see PDX-1128
-            var gameProjectRef = FindSharedGameProject(package, sharedProfile, logger);
+            var gameProjectRef = package.ProjectFullPath;
 
             if (gameProjectRef == null)
             {
@@ -122,11 +122,12 @@ namespace Xenko.Assets.Presentation.Templates
             var templateGameLibrary = PrepareTemplate(parameters, "ProjectLibrary.Game/ProjectLibrary.Game.ttproj", PlatformType.Shared, null, null, ProjectType.Library);
             var options = ProjectTemplateGeneratorHelper.GetOptions(parameters);
             var newGameTargetFrameworks = templateGameLibrary.GeneratePart(@"..\Common.TargetFrameworks.targets.t4", logger, options);
-            PatchGameProject(newGameTargetFrameworks, gameProjectRef.Location.FullPath);
+            PatchGameProject(newGameTargetFrameworks, gameProjectRef.FullPath);
 
             // Generate missing platforms
             bool forceGenerating = parameters.GetTag(ForcePlatformRegenerationKey);
-            ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, parameters.GetTag(PlatformsKey), parameters.GetTag(OrientationKey), gameProjectRef.Id, name, package, forceGenerating);
+            // TODO CSPROJ=XKPKG
+            ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, parameters.GetTag(PlatformsKey), parameters.GetTag(OrientationKey), package.Id, name, package, forceGenerating);
 
             // Save the session after the update
             // FIXME: Saving like this is not supported anymore - let's not save for now be we should provide a proper way to save!
@@ -151,13 +152,13 @@ namespace Xenko.Assets.Presentation.Templates
                 var sharedProfile = package.Profile;
 
                 // Get the game project
-                var gameProjectRef = FindSharedGameProject(package, sharedProfile, logger);
+                var gameProjectRef = package.ProjectFullPath;
                 if (gameProjectRef != null)
                 {
 
                     try
                     {
-                        var project = VSProjectHelper.LoadProject(gameProjectRef.Location);
+                        var project = VSProjectHelper.LoadProject(gameProjectRef);
                         defaultNamespace = project.GetPropertyValue("RootNamespace");
                     }
                     catch (Exception e)
@@ -183,20 +184,6 @@ namespace Xenko.Assets.Presentation.Templates
             ProjectTemplateGeneratorHelper.AddOption(parameters, "Orientation", parameters.GetTag(OrientationKey));
             var package = parameters.Package;
             return ProjectTemplateGeneratorHelper.PrepareTemplate(parameters, package, templateRelativePath, platformType, graphicsPlatform, projectType);
-        }
-
-        private static ProjectReference FindSharedGameProject(Package package, PackageProfile sharedProfile, ILogger logger)
-        {
-            if (sharedProfile == null) throw new ArgumentNullException(nameof(sharedProfile));
-
-            // TODO: this is not a reliable way to get a game project see PDX-1128
-            var gameProjectRef = sharedProfile.ProjectReferences.FirstOrDefault(projectRef => projectRef.Type == ProjectType.Library && projectRef.Location.FullPath.EndsWith("Game.csproj", StringComparison.InvariantCultureIgnoreCase));
-            if (gameProjectRef == null)
-            {
-                logger.Error($"Unable to find the game project reference from the package [{package.Meta.Name}]");
-                return null;
-            }
-            return gameProjectRef;
         }
 
         private static bool MatchPropertyGroup(XElement element)
