@@ -88,26 +88,21 @@ namespace Xenko.Assets.Tasks
             var newPackage = new Package { Meta = AssetCloner.Clone(package.Meta) };
             newPackage.Meta.Version = new PackageVersion(meta.Version);
 
-            foreach (var profile in package.Profiles)
+            var assetTarget = "Assets";
+            foreach (var assetFolder in package.Profile.AssetFolders)
             {
-                var target = "Assets/" + profile.Name;
-                foreach (var assetFolder in profile.AssetFolders)
-                {
-                    files.Add(NewFile(assetFolder.Path.MakeRelative(rootDir) + "/**/*.xk*", target));
-                }
-                foreach (var resourceFolder in profile.ResourceFolders)
-                {
-                    files.Add(NewFile(resourceFolder.MakeRelative(rootDir) + "/**/*.*", "Resources"));
-                }
-
-                var targetProfile = new PackageProfile(profile.Name);
-                if (profile.AssetFolders.Count > 0)
-                    targetProfile.AssetFolders.Add(new AssetFolder(target));
-                if (profile.ResourceFolders.Count > 0)
-                    targetProfile.ResourceFolders.Add("Resources");
-
-                newPackage.Profiles.Add(targetProfile);
+                files.Add(NewFile(assetFolder.Path.MakeRelative(rootDir) + "/**/*.xk*", assetTarget));
             }
+            foreach (var resourceFolder in package.Profile.ResourceFolders)
+            {
+                files.Add(NewFile(resourceFolder.MakeRelative(rootDir) + "/**/*.*", "Resources"));
+            }
+
+            newPackage.Profile.Name = package.Profile.Name;
+            if (package.Profile.AssetFolders.Count > 0)
+                newPackage.Profile.AssetFolders.Add(new AssetFolder(assetTarget));
+            if (package.Profile.ResourceFolders.Count > 0)
+                newPackage.Profile.ResourceFolders.Add("Resources");
 
             //Handle RootAssets
             foreach (var rootAsset in package.RootAssets)

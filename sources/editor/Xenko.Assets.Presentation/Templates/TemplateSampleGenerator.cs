@@ -97,7 +97,7 @@ namespace Xenko.Assets.Presentation.Templates
             }
 
             // We are going to replace all projects id by new ids
-            var idsToReplace = package.Profiles.SelectMany(profile => profile.ProjectReferences).Select(project => project.Id).Distinct().ToDictionary(guid => guid.ToString("D"), guid => Guid.NewGuid(), StringComparer.OrdinalIgnoreCase);
+            var idsToReplace = package.Profile.ProjectReferences.Select(project => project.Id).Distinct().ToDictionary(guid => guid.ToString("D"), guid => Guid.NewGuid(), StringComparer.OrdinalIgnoreCase);
             idsToReplace.Add(package.Id.ToString("D"), Guid.NewGuid());
 
             // Add dependencies
@@ -126,7 +126,7 @@ namespace Xenko.Assets.Presentation.Templates
                     return false;
                 }
 
-                var extraIdsToReplace = reference.Profiles.SelectMany(profile => profile.ProjectReferences).Select(project => project.Id).Distinct().ToDictionary(guid => guid.ToString("D"), guid => Guid.NewGuid(), StringComparer.OrdinalIgnoreCase);
+                var extraIdsToReplace = reference.Profile.ProjectReferences.Select(project => project.Id).Distinct().ToDictionary(guid => guid.ToString("D"), guid => Guid.NewGuid(), StringComparer.OrdinalIgnoreCase);
 
                 idsToReplace.AddRange(extraIdsToReplace);
             }

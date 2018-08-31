@@ -27,8 +27,8 @@ namespace Xenko.Core.Assets.Tests
             // Force the PackageId to be the same each time we run the test
             // Usually the PackageId is unique and generated each time we create a new project
             var project = new Package { Id = Guid.Empty, FullPath = testGenerated1 };
-            var sharedProfile = new PackageProfile("Shared", new AssetFolder("."));
-            project.Profiles.Add(sharedProfile);
+            project.Profile.AssetFolders.Clear();
+            project.Profile.AssetFolders.Add(new AssetFolder("."));
             var projectReference = new ProjectReference(Guid.Empty, Path.Combine(dirPath, "test.csproj"), ProjectType.Executable);
             sharedProfile.ProjectReferences.Add(projectReference);
 
@@ -48,12 +48,11 @@ namespace Xenko.Core.Assets.Tests
 
             // Reload the raw package and if UFile and UDirectory were saved relative
             var rawPackage = AssetFileSerializer.Load<Package>(testGenerated1).Asset;
-            var rawPackageSharedProfile = rawPackage.Profiles.FirstOrDefault();
-            Assert.NotNull(rawPackageSharedProfile);
-            var rawSourceFolder = rawPackage.Profiles.First().AssetFolders.FirstOrDefault();
+            Assert.NotNull(rawPackage.Profile);
+            var rawSourceFolder = rawPackage.Profile.AssetFolders.FirstOrDefault();
             Assert.NotNull(rawSourceFolder);
             Assert.Equal(".", (string)rawSourceFolder.Path);
-            Assert.Equal("test.csproj", (string)rawPackageSharedProfile.ProjectReferences[0].Location);
+            Assert.Equal("test.csproj", (string)rawPackage.Profile.ProjectReferences[0].Location);
 
             // Reload the package directly from the xkpkg
             var project2Result = PackageSession.Load(testGenerated1);
@@ -61,11 +60,10 @@ namespace Xenko.Core.Assets.Tests
             var project2 = project2Result.Session.LocalPackages.FirstOrDefault();
             Assert.NotNull(project2);
             Assert.Equal(project.Id, project2.Id);
-            Assert.True(project2.Profiles.Count > 0);
-            Assert.True(project2.Profiles.First().AssetFolders.Count > 0);
+            Assert.True(project2.Profile.AssetFolders.Count > 0);
             Assert.Equal(project2, project2Result.Session.CurrentPackage); // Check that the current package is setup when loading a single package
-            var sourceFolder = project.Profiles.First().AssetFolders.First().Path;
-            Assert.Equal(sourceFolder, project2.Profiles.First().AssetFolders.First().Path);
+            var sourceFolder = project.Profile.AssetFolders.First().Path;
+            Assert.Equal(sourceFolder, project2.Profile.AssetFolders.First().Path);
 
             // Reload the package from the sln
             var sessionResult = PackageSession.Load(session.SolutionPath);
@@ -74,9 +72,8 @@ namespace Xenko.Core.Assets.Tests
             var sessionReload = sessionResult.Session;
             Assert.Single(sessionReload.LocalPackages);
             Assert.Equal(project.Id, sessionReload.LocalPackages.First().Id);
-            Assert.Single(sessionReload.LocalPackages.First().Profiles);
 
-            var sharedProfileReload = sessionReload.LocalPackages.First().Profiles.First();
+            var sharedProfileReload = sessionReload.LocalPackages.First().Profile;
             Assert.Single(sharedProfileReload.ProjectReferences);
             Assert.Equal(projectReference, sharedProfileReload.ProjectReferences[0]);
         }
@@ -119,7 +116,7 @@ namespace Xenko.Core.Assets.Tests
             Assert.NotEqual(AssetId.Empty, project.Assets.First().Id);
 
             // Check for UPathRelativeTo
-            var profile = project.Profiles.FirstOrDefault();
+            var profile = project.Profile;
             Assert.NotNull(profile);
             var folder = profile.AssetFolders.FirstOrDefault();
             Assert.NotNull(folder);

@@ -59,8 +59,10 @@ namespace Xenko.Assets.Presentation.Templates
                 return false;
             }
 
+            // TODO CSPROJ=XKPKG
+            throw new NotImplementedException();
             // If there are no executable/shared projects in this package, we can't work on it
-            var sharedProfile = package.Profiles.FindSharedProfile();
+            /*var sharedProfile = package.Profile;
             var existingPlatformTypesWithExe = new HashSet<PlatformType>(package.Profiles.Where(profile => profile.Platform != PlatformType.Shared && profile.ProjectReferences.Any(projectRef => projectRef.Type == ProjectType.Executable)).Select(item => item.Platform));
             if (sharedProfile == null || existingPlatformTypesWithExe.Count == 0)
             {
@@ -92,7 +94,7 @@ namespace Xenko.Assets.Presentation.Templates
                 parameters.SetTag(ForcePlatformRegenerationKey, window.ForcePlatformRegeneration);
             }
             parameters.SetTag(OrientationKey, (DisplayOrientation)gameSettingsAsset.GetOrCreate<RenderingSettings>().DisplayOrientation);
-            parameters.Namespace = defaultNamespace;
+            parameters.Namespace = defaultNamespace;*/
 
             return true;
         }
@@ -106,7 +108,7 @@ namespace Xenko.Assets.Presentation.Templates
             var package = parameters.Package;
             
             // Generate executable projects for each platform
-            var sharedProfile = package.Profiles.FindSharedProfile();
+            var sharedProfile = package.Profile;
 
             // TODO: this is not a safe way to get a game project see PDX-1128
             var gameProjectRef = FindSharedGameProject(package, sharedProfile, logger);
@@ -146,23 +148,21 @@ namespace Xenko.Assets.Presentation.Templates
             if (string.IsNullOrWhiteSpace(defaultNamespace))
             {
                 // Get the shared profile
-                var sharedProfile = package.Profiles.FindSharedProfile();
-                if (sharedProfile != null)
-                {
-                    // Get the game project
-                    var gameProjectRef = FindSharedGameProject(package, sharedProfile, logger);
-                    if (gameProjectRef != null)
-                    {
+                var sharedProfile = package.Profile;
 
-                        try
-                        {
-                            var project = VSProjectHelper.LoadProject(gameProjectRef.Location);
-                            defaultNamespace = project.GetPropertyValue("RootNamespace");
-                        }
-                        catch (Exception e)
-                        {
-                            e.Ignore();
-                        }
+                // Get the game project
+                var gameProjectRef = FindSharedGameProject(package, sharedProfile, logger);
+                if (gameProjectRef != null)
+                {
+
+                    try
+                    {
+                        var project = VSProjectHelper.LoadProject(gameProjectRef.Location);
+                        defaultNamespace = project.GetPropertyValue("RootNamespace");
+                    }
+                    catch (Exception e)
+                    {
+                        e.Ignore();
                     }
                 }
             }

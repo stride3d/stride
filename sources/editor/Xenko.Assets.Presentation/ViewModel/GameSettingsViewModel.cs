@@ -130,10 +130,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             var currentOrientation = gameSettingsAsset.GetOrCreate<RenderingSettings>().DisplayOrientation;
             if (displayOrientation != currentOrientation)
             {
-                foreach (var profile in Session.CurrentPackage.Package.Profiles)
-                {
-                    GameSettingsAssetCompiler.SetPlatformOrientation(Session.CurrentPackage.Package, profile.Platform, currentOrientation);
-                }
+                GameSettingsAssetCompiler.SetPlatformOrientation(Session.CurrentPackage.Package, Session.CurrentPackage.Package.Profile.Platform, currentOrientation);
 
                 displayOrientation = currentOrientation;
             }

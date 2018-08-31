@@ -125,15 +125,12 @@ namespace Xenko.VisualStudio.Commands
             var assetsPaths = new List<string>();
             foreach (var package in session.Packages)
             {
-                foreach (var profile in package.Profiles)
+                foreach (var folder in package.Profile.AssetFolders)
                 {
-                    foreach (var folder in profile.AssetFolders)
-                    {
-                        var fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(packagePath), folder.Path));
+                    var fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(packagePath), folder.Path));
 
-                        assetsPaths.Add(fullPath);
-                        assetsPaths.AddRange(Directory.EnumerateDirectories(fullPath, "*.*", SearchOption.AllDirectories));
-                    }
+                    assetsPaths.Add(fullPath);
+                    assetsPaths.AddRange(Directory.EnumerateDirectories(fullPath, "*.*", SearchOption.AllDirectories));
                 }
             }
             return assetsPaths;

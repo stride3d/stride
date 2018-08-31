@@ -127,7 +127,7 @@ namespace Xenko.Assets.Presentation.AssetEditors
         {
             get
             {
-                var gameLibrary = session.CurrentPackage?.Profiles.SelectMany(x => x.Projects).FirstOrDefault(p => p.Type == ProjectType.Library);
+                var gameLibrary = session.CurrentPackage?.Profile.Projects.FirstOrDefault(p => p.Type == ProjectType.Library);
                 if (gameLibrary == null)
                     return null;
 

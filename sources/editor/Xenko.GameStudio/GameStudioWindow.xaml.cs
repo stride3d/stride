@@ -100,7 +100,7 @@ namespace Xenko.GameStudio
         {
             var projectUid = editor.Session.CurrentPackage?.Id ?? Guid.Empty;
 
-            var execProfiles = editor.Session.AllPackages.SelectMany(x => x.ExecutableProfiles);
+            var execProfiles = editor.Session.AllPackages.Select(x => x.Profile).Where(x => x.HasExecutables);
             var sessionPlatforms = new HashSet<PlatformType>();
             foreach (var execProfile in execProfiles)
             {

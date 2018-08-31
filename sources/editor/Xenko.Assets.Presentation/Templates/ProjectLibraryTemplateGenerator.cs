@@ -30,11 +30,8 @@ namespace Xenko.Assets.Presentation.Templates
         {
             // libraries and executables
             var referencedBinaryNames = new List<string>();
-            foreach (var profile in parameters.Package.Profiles)
-            {
-                var references = profile.ProjectReferences.Where(projectRef => projectRef.Type == ProjectType.Library || projectRef.Type == ProjectType.Executable);
-                referencedBinaryNames.AddRange(references.Select(pr => pr.Location.GetFileNameWithoutExtension()));
-            }
+            var references = parameters.Package.Profile.ProjectReferences.Where(projectRef => projectRef.Type == ProjectType.Library || projectRef.Type == ProjectType.Executable);
+            referencedBinaryNames.AddRange(references.Select(pr => pr.Location.GetFileNameWithoutExtension()));
             return referencedBinaryNames;
         }
 
@@ -83,12 +80,7 @@ namespace Xenko.Assets.Presentation.Templates
             var package = parameters.Package;
 
             // Make sure we have a shared profile
-            var sharedProfile = package.Profiles.FindSharedProfile();
-            if (sharedProfile == null)
-            {
-                sharedProfile = PackageProfile.NewShared();
-                package.Profiles.Add(sharedProfile);
-            }
+            var sharedProfile = package.Profile;
 
             // Log progress
             var projectName = name;
@@ -98,8 +90,8 @@ namespace Xenko.Assets.Presentation.Templates
             List<string> generatedFiles;
             ProjectTemplateGeneratorHelper.AddOption(parameters, "Platforms", AssetRegistry.SupportedPlatforms);
             var projectGameRef = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, "ProjectLibrary/ProjectLibrary.ttproj", projectName, PlatformType.Shared, null, ProjectType.Library, out generatedFiles);
-            //projectGameRef.Type = ProjectType.Library;
-            //sharedProfile.ProjectReferences.Add(projectGameRef);
+
+            package.Session.Packages.Add(projectGameRef);
 
             // Log done
             ProjectTemplateGeneratorHelper.Progress(logger, "Done", 1, 1);

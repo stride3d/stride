@@ -170,7 +170,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             var projectFiles = Package.FindAssetsInProject(project.FilePath, out projectNamespace);
 
             // Find associated ProjectViewModel
-            var projectViewModel = session.AllPackages.SelectMany(x => x.Profiles).SelectMany(x => x.Projects).FirstOrDefault(y => y.Name == project.Name);
+            var projectViewModel = session.AllPackages.Select(x => x.Profile).SelectMany(x => x.Projects).FirstOrDefault(y => y.Name == project.Name);
             if (projectViewModel == null)
                 return;
 

@@ -1,4 +1,4 @@
-﻿<Project InitialTargets="XenkoCheckRequirements" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project InitialTargets="XenkoCheckRequirements" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--Check requirements when running this build file -->
   <Target Name="XenkoCheckRequirements">
     <Error Condition="'$(XenkoPlatform)' == ''" Text="The property %24(XenkoPlatform) must be defined by the project"/>
@@ -320,7 +320,7 @@
     
     <!-- Get the real graphics platform from .xkpkg -->
     <Exec WorkingDirectory="$(TargetDir)" ConsoleToMSBuild="true"
-          Command="&quot;$(XenkoCompileAssetCommand)&quot; --platform=$(XenkoPlatform) --profile=$(XenkoBuildProfile) --package-file=&quot;$(XenkoCurrentPackagePath)&quot; --get-graphics-platform">
+          Command="&quot;$(XenkoCompileAssetCommand)&quot; --platform=$(XenkoPlatform) --package-file=&quot;$(XenkoCurrentPackagePath)&quot; --get-graphics-platform">
       <Output TaskParameter="ConsoleOutput" PropertyName="XenkoGraphicsApiComputed" />
     </Exec>
     
@@ -362,7 +362,7 @@
     <Error Condition="'$(XenkoBuildProfile)' == ''" Text="The asset compiler is requiring the property (XenkoBuildProfile) to be defined"/>
     <Error Condition="!Exists('$(XenkoCurrentPackagePath)')" Text="Unable to find package decription from path [$(XenkoCurrentPackagePath)]"/>
     <PropertyGroup>
-      <XenkoCompileAssetCommandProxy>$(XenkoCompileAssetCommandProxy) $(XenkoCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(XenkoPlatform) --profile=$(XenkoBuildProfile) --project-configuration=$(Configuration) --output-path=&quot;$(XenkoCompileAssetOutputPath)&quot; --build-path=&quot;$(XenkoCompileAssetBuildPath)&quot; --package-file=&quot;$(XenkoCurrentPackagePath)&quot; --log-pipe=&quot;$(XenkoBuildEngineLogPipeUrl)&quot;</XenkoCompileAssetCommandProxy>
+      <XenkoCompileAssetCommandProxy>$(XenkoCompileAssetCommandProxy) $(XenkoCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(XenkoPlatform) --project-configuration=$(Configuration) --output-path=&quot;$(XenkoCompileAssetOutputPath)&quot; --build-path=&quot;$(XenkoCompileAssetBuildPath)&quot; --package-file=&quot;$(XenkoCurrentPackagePath)&quot; --log-pipe=&quot;$(XenkoBuildEngineLogPipeUrl)&quot;</XenkoCompileAssetCommandProxy>
       <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogVerbose)' != ''">$(XenkoCompileAssetCommandProxy) --verbose</XenkoCompileAssetCommandProxy>
       <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogDebug)' != ''">$(XenkoCompileAssetCommandProxy) --debug</XenkoCompileAssetCommandProxy>
     </PropertyGroup>

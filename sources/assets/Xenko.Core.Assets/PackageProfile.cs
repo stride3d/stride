@@ -11,36 +11,6 @@ using Xenko.Core.Settings;
 namespace Xenko.Core.Assets
 {
     /// <summary>
-    /// A collection of <see cref="PackageProfile"/>.
-    /// </summary>
-    [DataContract("PackageProfileCollection")]
-    public sealed class PackageProfileCollection : KeyedCollection<string, PackageProfile>
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PackageProfileCollection"/> class.
-        /// </summary>
-        public PackageProfileCollection() : base(null, -1)
-        {
-            // Set -1 to dictionary threshold in order to make sure we don't use a dictionary internaly (so that
-            // renaming PackageProfile will work)
-        }
-
-        protected override string GetKeyForItem(PackageProfile item)
-        {
-            return item.Name;
-        }
-
-        /// <summary>
-        /// Finds a shared profile (a profile that is not platform specific)
-        /// </summary>
-        /// <returns>PackageProfile.</returns>
-        public PackageProfile FindSharedProfile()
-        {
-            return this.FirstOrDefault(profile => profile.Platform == PlatformType.Shared);
-        }
-    }
-
-    /// <summary>
     /// Describes buld parameters used when building assets.
     /// </summary>
     [DataContract("PackageProfile")]
@@ -58,7 +28,6 @@ namespace Xenko.Core.Assets
         public PackageProfile()
         {
             assetFolders = new AssetFolderCollection();
-            InheritProfiles = new List<string>();
             OutputGroupDirectories = new Dictionary<string, UDirectory>();
             ProjectReferences = new List<ProjectReference>();
         }
@@ -105,13 +74,6 @@ namespace Xenko.Core.Assets
         /// <value>The platform.</value>
         [DataMember(20)]
         public PlatformType Platform { get; set; }
-
-        /// <summary>
-        /// Gets the inherit profiles.
-        /// </summary>
-        /// <value>The inherit profiles.</value>
-        [DataMember(30)]
-        public List<string> InheritProfiles { get; private set; }
 
         /// <summary>
         /// Gets the asset directories to lookup.

@@ -83,9 +83,6 @@ namespace Xenko.Assets.Presentation.Templates
             // Add dependency to latest Xenko package
             package.Meta.Dependencies.Add(XenkoConfig.GetLatestPackageDependency());
 
-            // Setup the assets folder by default
-            package.Profiles.Add(PackageProfile.NewShared());
-
             return package;
         }
     }

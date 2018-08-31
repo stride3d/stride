@@ -55,7 +55,8 @@ namespace Xenko.Core.Assets.Tests
 
             // Create a project with an asset reference a raw file
             var project = new Package { FullPath = projectDir };
-            project.Profiles.Add(new PackageProfile("Shared", new AssetFolder(".")));
+            project.Profile.AssetFolders.Clear();
+            project.Profile.AssetFolders.Add(new AssetFolder("."));
             var asset = new AssetObjectTest() { RawAsset = new UFile(rawAssetPath) };
             var assetItem = new AssetItem(assetPath, asset);
             project.Assets.Add(assetItem);

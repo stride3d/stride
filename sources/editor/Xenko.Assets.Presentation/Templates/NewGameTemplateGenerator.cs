@@ -149,6 +149,21 @@ namespace Xenko.Assets.Presentation.Templates
             // Load dependency assets (needed for camera script template)
             session.LoadMissingAssets(parameters.Logger, package.LoadedDependencies);
 
+            // Add Effects as an asset folder in order to load xksl
+            //sharedProfile.AssetFolders.Add(new AssetFolder(projectGameName + "/Effects"));
+
+            // Generate executable projects for each platform
+            //ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, platforms, orientation, package.Id, name, package, false);
+
+            // Add asset packages
+            CopyAssetPacks(parameters, package);
+
+            // Load assets from HDD
+            package.LoadTemporaryAssets(logger);
+
+            // Validate assets
+            package.ValidateAssets(true, false, logger);
+
             // Create camera script
             var cameraScriptTemplate = TemplateManager.FindTemplates(package.Session).OfType<TemplateAssetDescription>().FirstOrDefault(x => x.DefaultOutputName == CameraScriptDefaultOutputName);
             if (cameraScriptTemplate == null)
@@ -173,23 +188,8 @@ namespace Xenko.Assets.Presentation.Templates
             // Note: We do that AFTER GameSettings is dirty, otherwise it would ask for an assembly reload (game settings saved might mean new graphics API)
             SaveSession(parameters);
 
-            // Add Effects as an asset folder in order to load xksl
-            //sharedProfile.AssetFolders.Add(new AssetFolder(projectGameName + "/Effects"));
-
-            // Generate executable projects for each platform
-            //ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, platforms, orientation, package.Id, name, package, false);
-
-            // Add asset packages
-            CopyAssetPacks(parameters, package);
-
             // Load missing references
             session.LoadMissingReferences(parameters.Logger);
-
-            // Load assets from HDD
-            package.LoadTemporaryAssets(logger);
-
-            // Validate assets
-            package.ValidateAssets(true, false, logger);
 
             // Setup GraphicsCompositor using DefaultGraphicsCompositor
             var graphicsProfile = parameters.GetTag(GraphicsProfileKey);

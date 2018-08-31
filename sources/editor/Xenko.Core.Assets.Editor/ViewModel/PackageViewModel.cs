@@ -110,30 +110,12 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the profiles contained in this packages.
         /// </summary>
-        public ObservableList<ProfileViewModel> Profiles { get; } = new ObservableList<ProfileViewModel>();
+        public ProfileViewModel Profile { get; private set; }
 
         /// <summary>
         /// Gets the properties of the package.
         /// </summary>
         public SessionObjectPropertiesViewModel Properties => Session.AssetViewProperties;
-
-        /// <summary>
-        /// Gets a value indicating whether this instance has executables projects.
-        /// </summary>
-        /// <value><c>true</c> if this instance has executables projects; otherwise, <c>false</c>.</value>
-        public bool HasExecutables => ExecutableProfiles.Any();
-
-        /// <summary>
-        /// Gets the default profile.
-        /// </summary>
-        /// <value>The default profile.</value>
-        public ProfileViewModel DefaultProfile { get { return ExecutableProfiles.FirstOrDefault(profile => profile.Platform == PlatformType.Windows) ?? ExecutableProfiles.FirstOrDefault(); } }
-
-        /// <summary>
-        /// Gets the executable profiles.
-        /// </summary>
-        /// <value>The executable profiles.</value>
-        public IEnumerable<ProfileViewModel> ExecutableProfiles { get { return Profiles.Where(p => p.HasExecutables); } }
 
         /// <summary>
         /// Gets or sets the selected profile.
@@ -254,18 +236,14 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             var progress = workProgress.ProgressValue;
             workProgress.UpdateProgressAsync($"Processing asset {progress + 1}/{workProgress.Maximum}...", progress);
 
-            foreach (var profile in Package.Profiles)
+            if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
+                return;
+
+            Profile = new ProfileViewModel(Session, Package, Package.Profile, this); ;
+
+            foreach (var project in Profile.Projects)
             {
-                if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
-                    return;
-
-                var viewModel = new ProfileViewModel(Session, Package, profile, this);
-                Profiles.Add(viewModel);
-
-                foreach (var project in viewModel.Projects)
-                {
-                    AddProject(project);
-                }
+                AddProject(project);
             }
 
             foreach (var localPackage in Package.LocalDependencies)
@@ -784,37 +762,10 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         private bool RefreshProjects()
         {
-            bool changes = false;
-
-            // For the moment we allow only creation of library in package templates, so we can manually refresh the profiles, as we're sure they're the only ones affected.
-            // However, refreshing assets would be more difficult since we have to maintain existing asset alive (we can't simply clear them), so let's keep this for later.
-            foreach (var profile in Package.Profiles)
+            bool changes = Profile.UpdateProjectList();
+            foreach (var project in Profile.Projects.Where(x => !Content.Contains(x)))
             {
-                var viewModel = Profiles.SingleOrDefault(x => x.Name == profile.Name);
-                if (viewModel == null)
-                {
-                    viewModel = new ProfileViewModel(Session, Package, profile, this);
-                    Profiles.Add(viewModel);
-                    changes = true;
-                }
-                else
-                {
-                    changes = viewModel.UpdateProjectList();
-                }
-
-                foreach (var project in viewModel.Projects.Where(x => !Content.Contains(x)))
-                {
-                    AddProject(project);
-                }
-            }
-
-            // Remove profiles (TODO/alex: Check with Ben this)
-            var profilesViewModelToRemove = Profiles.Where(profileViewModel => Package.Profiles.All(profile => profile.Name != profileViewModel.Name)).ToList();
-            foreach (var profileViewModelToRemove in profilesViewModelToRemove)
-            {
-                profileViewModelToRemove.UpdateProjectList();
-                Profiles.Remove(profileViewModelToRemove);
-                changes = true;
+                AddProject(project);
             }
 
             return changes;
@@ -880,7 +831,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         IObjectNode IPropertyProviderViewModel.GetRootNode()
         {
-            packageSettingsWrapper.HasExecutables = HasExecutables;
+            packageSettingsWrapper.HasExecutables = Profile.HasExecutables;
             return Session.AssetNodeContainer.GetOrCreateNode(packageSettingsWrapper);
         }
 

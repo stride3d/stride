@@ -32,8 +32,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
             var projectWatcher = await code.ProjectWatcher;
 
             // Find roslyn project
-            var gameLibrary = package.Profiles.SelectMany(x => x.Projects).FirstOrDefault(p => p.Type == ProjectType.Library);
-            var roslynProject = gameLibrary != null ? projectWatcher.TrackedAssemblies.FirstOrDefault(x => new UFile(x.Project.FilePath) == gameLibrary.ProjectPath)?.Project : null;
+            var projectFullPath = package.Package.ProjectFullPath;
+            var roslynProject = projectFullPath != null ? projectWatcher.TrackedAssemblies.FirstOrDefault(x => new UFile(x.Project.FilePath) == projectFullPath)?.Project : null;
             if (roslynProject == null)
                 return;
 

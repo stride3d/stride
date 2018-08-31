@@ -46,8 +46,7 @@ namespace Xenko.Assets
             var csharpWorkspaceAssemblies = new[] { Assembly.Load("Microsoft.CodeAnalysis.Workspaces"), Assembly.Load("Microsoft.CodeAnalysis.CSharp.Workspaces"), Assembly.Load("Microsoft.CodeAnalysis.Workspaces.Desktop") };
             var workspace = MSBuildWorkspace.Create(ImmutableDictionary<string, string>.Empty, MefHostServices.Create(csharpWorkspaceAssemblies));
 
-            var tasks = dependentPackage.Profiles
-                .SelectMany(profile => profile.ProjectReferences)
+            var tasks = dependentPackage.Profile.ProjectReferences
                 .Select(projectReference => UPath.Combine(dependentPackage.RootDirectory, projectReference.Location))
                 .Distinct()
                 .Select(projectFullPath => Task.Run(async () =>

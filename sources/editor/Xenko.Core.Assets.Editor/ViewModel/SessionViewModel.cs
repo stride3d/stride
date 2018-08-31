@@ -795,7 +795,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             }
             else if (package != null)
             {
-                var defaultProfile = package.DefaultProfile;
+                var defaultProfile = package.Profile;
                 if (defaultProfile != null)
                 {
                     path = defaultProfile.Package.Package.GetDefaultAssetFolder();
@@ -1059,7 +1059,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         private void SetCurrentPackage(object selectedItem)
         {
             var package = selectedItem as PackageViewModel;
-            if (package == null || !package.HasExecutables)
+            if (package == null || !package.Profile.HasExecutables)
             {
                 // Editor.MessageBox(Resources.Strings.SessionViewModel.SelectExecutableAsCurrentProject, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -1068,7 +1068,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             // Set the selected profile for the package (don't reset it if it is already set. This behavior could change)
             if (package.SelectedProfile == null)
             {
-                package.SelectedProfile = package.DefaultProfile;
+                package.SelectedProfile = package.Profile;
             }
 
             CurrentPackage = package;
@@ -1445,7 +1445,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 if (package != null && package.IsEditable)
                 {
                     packageSelected = true;
-                    packageHasExecutables = package.HasExecutables;
+                    packageHasExecutables = package.Profile.HasExecutables;
                 }
                 if (location is DirectoryBaseViewModel)
                 {

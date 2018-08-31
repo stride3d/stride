@@ -70,7 +70,9 @@ namespace Xenko.Assets.Templates
             AddOption(parameters, "ProjectGameRelativePath", package.ProjectFullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
             AddOption(parameters, "PackageGameRelativePath", package.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
 
-            // Add projects
+            // TODO CSPROJ=XKPKG
+            throw new NotImplementedException();
+            /*// Add projects
             var stepIndex = 0;
             var stepCount = platforms.Count + 1;
             var profilesToRemove = package.Profiles.Where(profile => platforms.All(platform => profile.Platform != PlatformType.Shared && platform.Platform.Type != profile.Platform)).ToList();
@@ -116,13 +118,6 @@ namespace Xenko.Assets.Templates
 
                 package.Session.Packages.Add(newExeProject);
 
-                //platformProfile.ProjectReferences.Add(newExeProject);
-
-                if (!package.Profiles.Contains(platformProfile))
-                {
-                    package.Profiles.Add(platformProfile);
-                }
-
                 package.IsDirty = true;
             }
 
@@ -141,7 +136,7 @@ namespace Xenko.Assets.Templates
 
                 // We are completely removing references from profile
                 profileToRemove.ProjectReferences.Clear();
-            }
+            }*/
         }
 
         public static Package GenerateTemplate(TemplateGeneratorParameters parameters, ICollection<SelectedSolutionPlatform> platforms, UFile templateRelativePath, string projectName, PlatformType platformType, string currentProfile, GraphicsPlatform? graphicsPlatform, ProjectType projectType, DisplayOrientation orientation, Guid? projectGuid = null)
@@ -193,8 +188,6 @@ namespace Xenko.Assets.Templates
                 VSProject = new Project(projectGuid, KnownProjectTypeGuid.CSharp, projectName, projectFullPath, Guid.Empty, null, null, null),
                 IsDirty = true,
             };
-
-            package.Profiles.Add(PackageProfile.NewShared());
 
             var projectTemplate = PrepareTemplate(parameters, package, templateRelativePath, platformType, graphicsPlatform, projectType);
             projectTemplate.Generate(outputDirectoryPath, projectName, projectGuid, parameters.Logger, options, generatedFiles);

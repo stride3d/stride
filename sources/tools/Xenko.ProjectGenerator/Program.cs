@@ -191,31 +191,8 @@ namespace Xenko.ProjectGenerator
                 return;
             }
 
-            var sharedProfile = package.Profiles.FindSharedProfile();
-
             // Setup the assets folder
             Directory.CreateDirectory(UPath.Combine(outputDirectory, (UDirectory)"Assets/Shared"));
-
-            // Add Windows test as Shared library
-            var projectWindowsRef = new ProjectReference(projectGuid, UPath.Combine(outputDirectory, (UFile)(name + ".Windows.csproj")), Xenko.Core.Assets.ProjectType.Library);
-            sharedProfile.ProjectReferences.Add(projectWindowsRef);
-
-            // Generate executable projects for each platform
-            foreach (var platform in AssetRegistry.SupportedPlatforms)
-            {
-                var platformProfile = new PackageProfile(platform.Name) { Platform = platform.Type };
-                platformProfile.AssetFolders.Add(new AssetFolder("Assets/"+ platform.Name));
-
-                // Log progress
-                var projectName = name + "." + platform.Type;
-
-                // Create project reference
-                var projectPlatformRef = new ProjectReference(projectGuid, UPath.Combine(outputDirectory, (UFile)(projectName + ".csproj")), Xenko.Core.Assets.ProjectType.Executable);
-
-                platformProfile.ProjectReferences.Add(projectPlatformRef);
-
-                package.Profiles.Add(platformProfile);
-            }
 
             session.CurrentPackage = previousCurrent;
 

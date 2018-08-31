@@ -417,89 +417,17 @@ namespace Xenko.Assets
 
         public override bool UpgradeBeforeAssembliesLoaded(PackageLoadParameters loadParameters, PackageSession session, ILogger log, Package dependentPackage, PackageDependency dependency, Package dependencyPackage)
         {
-            if (dependency.Version.MinVersion < new PackageVersion("2.3.0.1-dev"))
-            {
-                var sharedProjects = dependentPackage.Profiles.FindSharedProfile().ProjectReferences;
-                var sharedProject = sharedProjects.FirstOrDefault(x => x.Type == ProjectType.Library);
-                if (sharedProject != null)
-                {
-                    var parameters = new PackageTemplateGeneratorParameters
-                    {
-                        Name = dependentPackage.Meta.Name,
-                        Namespace = dependentPackage.Meta.RootNamespace,
-                        Description = TemplateManager.FindTemplates().Single(x => x.Id == UpdatePlatformsTemplateId),
-                        OutputDirectory = dependentPackage.FullPath.GetFullDirectory(),
-                        Logger = new ForwardingLoggerResult(log),
-                        Unattended = true,
-                    };
-
-                    var existingPlatforms = new HashSet<PlatformType>(dependentPackage.Profiles.Select(x => x.Platform).Distinct());
-                    var platforms = AssetRegistry.SupportedPlatforms.Where(x => existingPlatforms.Contains(x.Type)).Select(x => new SelectedSolutionPlatform(x, x.Templates.FirstOrDefault())).ToList();
-
-                    // Regenerate shared project
-                    for (var i = 0; i < sharedProjects.Count; i++)
-                    {
-                        var project = sharedProjects[i];
-                        var projectGameReference = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms,
-                            i == 0 ? "ProjectLibrary.Game/ProjectLibrary.Game.ttproj" : "ProjectLibrary/ProjectLibrary.ttproj",
-                            project.Location.GetFileNameWithoutExtension(), PlatformType.Shared, null, null, ProjectType.Library, DisplayOrientation.Default, project.Id);
-                    }
-
-                    // Regenerate executable projects
-                    ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, platforms, DisplayOrientation.Default, sharedProject.Id, parameters.Name, dependentPackage, true);
-
-                    // Make sure paths are rooted
-                    foreach (var project in dependentPackage.Profiles.SelectMany(x => x.ProjectReferences))
-                    {
-                        if (!project.Location.IsAbsolute)
-                            project.Location = UPath.Combine(dependentPackage.FullPath.GetFullDirectory(), project.Location);
-                    }
-
-                    // Delete files that are not needed anymore
-                    var filesToDelete = new List<string>();
-                    filesToDelete.Add(UPath.Combine(dependentPackage.FullPath.GetParent(), (UFile)(dependentPackage.FullPath.GetFileNameWithoutExtension() + ".props")));
-                    foreach (var profile in dependentPackage.Profiles)
-                    {
-                        foreach (var project in profile.ProjectReferences)
-                        {
-                            // Do we use the new csproj format?
-                            var filesToDeleteCurrentProject = profile.Platform == PlatformType.Shared || profile.Platform == PlatformType.Windows
-                                ? new[] { "project.json", "project.lock.json", @"Properties\AssemblyInfo.cs" }
-                                : new[] { "project.json", "project.lock.json" };
-
-                            foreach (var file in filesToDeleteCurrentProject)
-                            {
-                                filesToDelete.Add(Path.Combine(project.Location.GetFullDirectory().ToWindowsPath(), file));
-                            }
-                        }
-                    }
-
-                    foreach (var file in filesToDelete)
-                    {
-                        try
-                        {
-                            if (File.Exists(file))
-                                File.Delete(file);
-                        }
-                        catch (Exception)
-                        {
-                            log.Warning($"Unable to delete file [{file}]");
-                        }
-                    }
-                }
-            }
-
             if (dependency.Version.MinVersion < new PackageVersion("3.0.0.0"))
             {
                 UpgradeCode(dependentPackage, log, new RenameToXenkoCodeUpgrader());
             }
 
             // Update NuGet references
-            foreach (var projectReference in dependentPackage.Profiles.SelectMany(x => x.ProjectReferences))
+            if (dependentPackage.ProjectFullPath != null)
             {
                 try
                 {
-                    var projectFile = UPath.Combine(dependentPackage.FullPath.GetFullDirectory(), projectReference.Location);
+                    var projectFile = UPath.Combine(dependentPackage.FullPath.GetFullDirectory(), dependentPackage.ProjectFullPath);
                     var project = VSProjectHelper.LoadProject(projectFile.ToWindowsPath());
                     var isProjectDirty = false;
 
@@ -521,7 +449,7 @@ namespace Xenko.Assets
                 }
                 catch (Exception e)
                 {
-                    log.Warning($"Unable to load project [{projectReference.Location.GetFileName()}]", e);
+                    log.Warning($"Unable to load project [{dependentPackage.ProjectFullPath.GetFileName()}]", e);
                 }
             }
 

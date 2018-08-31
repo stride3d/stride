@@ -181,11 +181,11 @@ namespace Xenko.Core.Assets
         public List<PackageReference> LocalDependencies { get; } = new List<PackageReference>();
 
         /// <summary>
-        /// Gets the profiles.
+        /// Gets the profile.
         /// </summary>
         /// <value>The profiles.</value>
         [DataMember(50)]
-        public PackageProfileCollection Profiles { get; } = new PackageProfileCollection();
+        public PackageProfile Profile { get; } = PackageProfile.NewShared();
 
         /// <summary>
         /// Gets or sets the list of folders that are explicitly created but contains no assets.
@@ -340,6 +340,9 @@ namespace Xenko.Core.Assets
         [DataMemberIgnore]
         public List<PackageLoadedAssembly> LoadedAssemblies { get; } = new List<PackageLoadedAssembly>();
 
+        [DataMemberIgnore]
+        public string RootNamespace { get; private set; }
+
         /// <summary>
         /// Adds an existing project to this package.
         /// </summary>
@@ -380,11 +383,13 @@ namespace Xenko.Core.Assets
                         var platformType = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
                         var projectReference = new ProjectReference(VSProjectHelper.GetProjectGuid(msProject), pathToMsproj.MakeRelative(RootDirectory), projectType.Value);
 
+                        // TODO CSPROJ=XKPKG
+                        throw new NotImplementedException();
                         // Add the ProjectReference only for the compatible profiles (same platform or no platform)
-                        foreach (var profile in Profiles.Where(profile => platformType == profile.Platform))
-                        {
-                            profile.ProjectReferences.Add(projectReference);
-                        }
+                        //foreach (var profile in Profiles.Where(profile => platformType == profile.Platform))
+                        //{
+                        //    profile.ProjectReferences.Add(projectReference);
+                        //}
                     }
                 }
                 finally
@@ -423,8 +428,7 @@ namespace Xenko.Core.Assets
 
         public UDirectory GetDefaultAssetFolder()
         {
-            var sharedProfile = Profiles.FindSharedProfile();
-            var folder = sharedProfile?.AssetFolders.FirstOrDefault();
+            var folder = Profile?.AssetFolders.FirstOrDefault();
             return folder?.Path ?? ("Assets");
         }
 
@@ -471,15 +475,12 @@ namespace Xenko.Core.Assets
                 var currentRootDirectory = RootDirectory;
                 if (previousRootDirectory != null && currentRootDirectory != null)
                 {
-                    foreach (var profile in Profiles)
+                    foreach (var sourceFolder in Profile.AssetFolders)
                     {
-                        foreach (var sourceFolder in profile.AssetFolders)
+                        if (sourceFolder.Path.IsAbsolute)
                         {
-                            if (sourceFolder.Path.IsAbsolute)
-                            {
-                                var relativePath = sourceFolder.Path.MakeRelative(previousRootDirectory);
-                                sourceFolder.Path = UPath.Combine(currentRootDirectory, relativePath);
-                            }
+                            var relativePath = sourceFolder.Path.MakeRelative(previousRootDirectory);
+                            sourceFolder.Path = UPath.Combine(currentRootDirectory, relativePath);
                         }
                     }
                 }
@@ -1140,9 +1141,9 @@ namespace Xenko.Core.Assets
         /// <param name="log">The log.</param>
         public void RestoreNugetPackages(ILogger log)
         {
-            foreach (var profile in Profiles)
+            if (ProjectFullPath != null)
             {
-                VSProjectHelper.RestoreNugetPackagesNonRecursive(log, profile.ProjectReferences.Select(projectReference => UPath.Combine(RootDirectory, projectReference.Location).ToWindowsPath())).Wait();
+                VSProjectHelper.RestoreNugetPackagesNonRecursive(log, ProjectFullPath.ToWindowsPath()).Wait();
             }
         }
 
@@ -1234,16 +1235,8 @@ namespace Xenko.Core.Assets
                 return;
             }
 
-            // Make sure there is a shared profile at least
-            var sharedProfile = Profiles.FindSharedProfile();
-            if (sharedProfile == null)
-            {
-                sharedProfile = PackageProfile.NewShared();
-                Profiles.Add(sharedProfile);
-            }
-
             // Use by default the first asset folders if not defined on the asset item
-            var defaultFolder = sharedProfile.AssetFolders.Count > 0 ? sharedProfile.AssetFolders.First().Path : UDirectory.This;
+            var defaultFolder = Profile.AssetFolders.Count > 0 ? Profile.AssetFolders.First().Path : UDirectory.This;
             var assetFolders = new HashSet<UDirectory>(GetDistinctAssetFolderPaths());
             foreach (var asset in assets)
             {
@@ -1267,7 +1260,7 @@ namespace Xenko.Core.Assets
                     if (!assetFolders.Contains(assetFolderAbsolute))
                     {
                         assetFolders.Add(assetFolderAbsolute);
-                        sharedProfile.AssetFolders.Add(new AssetFolder(assetFolderAbsolute));
+                        Profile.AssetFolders.Add(new AssetFolder(assetFolderAbsolute));
                         IsDirty = true;
                     }
                 }
@@ -1308,15 +1301,12 @@ namespace Xenko.Core.Assets
         private List<UDirectory> GetDistinctAssetFolderPaths()
         {
             var existingAssetFolders = new List<UDirectory>();
-            foreach (var profile in Profiles)
+            foreach (var folder in Profile.AssetFolders)
             {
-                foreach (var folder in profile.AssetFolders)
+                var folderPath = RootDirectory != null ? UPath.Combine(RootDirectory, folder.Path) : folder.Path;
+                if (!existingAssetFolders.Contains(folderPath))
                 {
-                    var folderPath = RootDirectory != null ? UPath.Combine(RootDirectory, folder.Path) : folder.Path;
-                    if (!existingAssetFolders.Contains(folderPath))
-                    {
-                        existingAssetFolders.Add(folderPath);
-                    }
+                    existingAssetFolders.Add(folderPath);
                 }
             }
             return existingAssetFolders;
@@ -1337,7 +1327,7 @@ namespace Xenko.Core.Assets
                 return listFiles;
             }
 
-            var sharedProfile = package.Profiles.FindSharedProfile();
+            var sharedProfile = package.Profile;
             var hasProject = sharedProfile != null && sharedProfile.ProjectReferences.Count > 0;
 
             // Iterate on each source folders
@@ -1421,21 +1411,16 @@ namespace Xenko.Core.Assets
         {
             if (package.IsSystem) return;
 
-            var profile = package.Profiles.FindSharedProfile();
-            if (profile == null) return;
-
-            foreach (var libs in profile.ProjectReferences.Where(x => x.Type == ProjectType.Library))
+            if (package.ProjectFullPath != null)
             {
-                var realFullPath = UPath.Combine(package.RootDirectory, libs.Location);
                 string defaultNamespace;
-                var codePaths = FindAssetsInProject(realFullPath, out defaultNamespace);
-                libs.RootNamespace = defaultNamespace;
-                var dir = new UDirectory(realFullPath.GetFullDirectory());
-                var parentDir = dir.GetParent();
+                var codePaths = FindAssetsInProject(package.ProjectFullPath, out defaultNamespace);
+                package.RootNamespace = defaultNamespace;
+                var dir = new UDirectory(package.ProjectFullPath.GetFullDirectory());
 
                 foreach (var codePath in codePaths)
                 {
-                    list.Add(new PackageLoadingAssetFile(codePath, parentDir));
+                    list.Add(new PackageLoadingAssetFile(codePath, dir));
                 }
             }
         }

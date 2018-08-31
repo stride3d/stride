@@ -17,7 +17,6 @@ namespace Xenko.Core.Assets.CompilerApp
         public bool Debug = false;
         // This should not be a list
         public bool DisableAutoCompileProjects { get; set; }
-        public string BuildProfile;
         public string ProjectConfiguration { get; set; }
         public string OutputDirectory { get; set; }
         public string BuildDirectory { get; set; }
@@ -89,9 +88,6 @@ namespace Xenko.Core.Assets.CompilerApp
 
             if (SlavePipe == null)
             {
-                if (string.IsNullOrWhiteSpace(BuildProfile))
-                    throw new ArgumentException("This tool requires a selected profile.", "profile");
-
                 if (string.IsNullOrWhiteSpace(PackageFile))
                 {
                     if (string.IsNullOrWhiteSpace(SolutionFile) || PackageId == Guid.Empty)
