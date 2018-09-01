@@ -35,11 +35,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         }
 
         /// <summary>
-        /// Gets the name of this profile.
-        /// </summary>
-        public string Name => profile.Name;
-
-        /// <summary>
         /// Gets the platform of this profile, if defined.
         /// </summary>
         public PlatformType Platform => profile.Platform;

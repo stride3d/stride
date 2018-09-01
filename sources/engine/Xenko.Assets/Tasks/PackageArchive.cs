@@ -98,7 +98,6 @@ namespace Xenko.Assets.Tasks
                 files.Add(NewFile(resourceFolder.MakeRelative(rootDir) + "/**/*.*", "Resources"));
             }
 
-            newPackage.Profile.Name = package.Profile.Name;
             if (package.Profile.AssetFolders.Count > 0)
                 newPackage.Profile.AssetFolders.Add(new AssetFolder(assetTarget));
             if (package.Profile.ResourceFolders.Count > 0)

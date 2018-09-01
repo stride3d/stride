@@ -116,7 +116,6 @@ namespace Xenko.Core.Assets.CompilerApp
                 // Create context
                 context = new AssetCompilerContext
                 {
-                    Profile = package.Profile.Name,
                     Platform = builderOptions.Platform,
                     CompilationContext = typeof(AssetCompilationContext),
                     BuildConfiguration = builderOptions.ProjectConfiguration
@@ -143,8 +142,8 @@ namespace Xenko.Core.Assets.CompilerApp
                 var remoteBuilderHelper = new PackageBuilderRemoteHelper(projectSession.AssemblyContainer, builderOptions);
 
                 // Create the builder
-                var indexName = "index." + package.Profile.Name;
-                builder = new Builder(builderOptions.Logger, buildDirectory, package.Profile.Name, indexName) { ThreadCount = builderOptions.ThreadCount, TryExecuteRemote = remoteBuilderHelper.TryExecuteRemote };
+                var indexName = "index." + package.Meta.Name;
+                builder = new Builder(builderOptions.Logger, buildDirectory, indexName) { ThreadCount = builderOptions.ThreadCount, TryExecuteRemote = remoteBuilderHelper.TryExecuteRemote };
 
                 builder.MonitorPipeNames.AddRange(builderOptions.MonitorPipeNames);
 

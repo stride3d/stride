@@ -38,7 +38,7 @@ namespace Xenko.Assets
 
             // Ohterwise, use game settings, or default as fallback
             var settings = package.GetGameSettingsAsset();
-            return settings == null ? context.Platform.GetDefaultGraphicsPlatform() : RenderingSettings.GetGraphicsPlatform(context.Platform, settings.GetOrCreate<RenderingSettings>(context.Profile).PreferredGraphicsPlatform);
+            return settings == null ? context.Platform.GetDefaultGraphicsPlatform() : RenderingSettings.GetGraphicsPlatform(context.Platform, settings.GetOrCreate<RenderingSettings>().PreferredGraphicsPlatform);
         }
 
         public static GraphicsPlatform GetDefaultGraphicsPlatform(this PlatformType platformType)

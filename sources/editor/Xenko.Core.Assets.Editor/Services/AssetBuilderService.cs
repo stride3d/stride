@@ -33,7 +33,7 @@ namespace Xenko.Core.Assets.Editor.Services
             // Mount database (otherwise it will be mounted by DynamicBuilder thread, and it might happen too late)
             Builder.OpenObjectDatabase(buildDirectory, IndexName);
             
-            var builderInstance = new Builder(GlobalLogger.GetLogger("AssetBuilderService"), buildDirectory, "Windows", IndexName)
+            var builderInstance = new Builder(GlobalLogger.GetLogger("AssetBuilderService"), buildDirectory, IndexName)
             {
                 BuilderName = "AssetBuilderService Builder",
                 ThreadCount = threadCount,

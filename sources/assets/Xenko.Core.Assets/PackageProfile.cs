@@ -20,8 +20,6 @@ namespace Xenko.Core.Assets
 
         private readonly AssetFolderCollection assetFolders;
 
-        public const string SharedName = "Shared";
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageProfile"/> class.
         /// </summary>
@@ -32,40 +30,19 @@ namespace Xenko.Core.Assets
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PackageProfile"/> class.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <exception cref="System.ArgumentNullException">name</exception>
-        public PackageProfile(string name) : this()
-        {
-            if (name == null) throw new ArgumentNullException("name");
-            Name = name;
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="PackageProfile" /> class.
         /// </summary>
         /// <param name="name">The name.</param>
         /// <param name="folders">The folders.</param>
         /// <exception cref="System.ArgumentNullException">name</exception>
-        public PackageProfile(string name, params AssetFolder[] folders)
+        public PackageProfile(params AssetFolder[] folders)
             : this()
         {
-            if (name == null) throw new ArgumentNullException("name");
-            Name = name;
             foreach (var folder in folders)
             {
                 AssetFolders.Add(folder);
             }
         }
-
-
-        /// <summary>
-        /// Gets or sets the name of this profile.
-        /// </summary>
-        /// <value>The name.</value>
-        [DataMember(10)]
-        public string Name { get; set; }
 
         /// <summary>
         /// Gets or sets the platform.
@@ -101,7 +78,7 @@ namespace Xenko.Core.Assets
         /// <returns>PackageProfile.</returns>
         public static PackageProfile NewShared()
         {
-            var sharedProfile = new PackageProfile(SharedName) { Platform = PlatformType.Shared };
+            var sharedProfile = new PackageProfile() { Platform = PlatformType.Shared };
             sharedProfile.AssetFolders.Add(new AssetFolder("Assets"));
             sharedProfile.ResourceFolders.Add("Resources");
             return sharedProfile;

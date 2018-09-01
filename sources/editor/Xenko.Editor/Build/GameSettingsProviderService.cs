@@ -54,9 +54,9 @@ namespace Xenko.Editor.Build
         }
 
         /// <inheritdoc/>
-        public T GetConfiguration<T>(string profile = null) where T : Configuration
+        public T GetConfiguration<T>() where T : Configuration
         {
-            var configuration = CurrentGameSettings?.TryGet<T>(profile);
+            var configuration = CurrentGameSettings?.TryGet<T>();
             return configuration;
         }
 

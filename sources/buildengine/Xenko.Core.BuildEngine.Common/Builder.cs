@@ -110,11 +110,6 @@ namespace Xenko.Core.BuildEngine
         private readonly string buildPath;
 
         /// <summary>
-        /// The build profile
-        /// </summary>
-        private readonly string buildProfile;
-
-        /// <summary>
         /// Cancellation token source used for cancellation.
         /// </summary>
         private CancellationTokenSource cancellationTokenSource;
@@ -145,11 +140,10 @@ namespace Xenko.Core.BuildEngine
         /// </summary>
         private string IndexFileFullPath => indexName != null ? VirtualFileSystem.ApplicationDatabasePath + VirtualFileSystem.DirectorySeparatorChar + indexName : null;
 
-        public Builder(ILogger logger, string buildPath, string buildProfile, string indexName)
+        public Builder(ILogger logger, string buildPath, string indexName)
         {
             MonitorPipeNames = new List<string>();
             startTime = DateTime.Now;
-            this.buildProfile = buildProfile;
             this.indexName = indexName;
             Logger = logger;
             this.buildPath = buildPath ?? throw new ArgumentNullException(nameof(buildPath));

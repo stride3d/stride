@@ -790,7 +790,7 @@
 //        //    string testGenerated1 = Path.Combine(dirPath, "TestTracking.xkpkg");
 
 //        //    var project = new Package { FullPath = testGenerated1 };
-//        //    project.Profiles.Add(new PackageProfile("Shared", new AssetFolder(".")));
+//        //    project.Profiles.Add(new PackageProfile(new AssetFolder(".")));
 //        //    var asset1 = new AssetObjectTest();
 //        //    var assetItem1 = new AssetItem("asset-1", asset1);
 //        //    project.Assets.Add(assetItem1);

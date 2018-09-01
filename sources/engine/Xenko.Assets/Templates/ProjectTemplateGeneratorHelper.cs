@@ -92,7 +92,7 @@ namespace Xenko.Assets.Templates
 
                 if (platformProfile == null)
                 {
-                    platformProfile = new PackageProfile(platform.Platform.Name) { Platform = platform.Platform.Type };
+                    platformProfile = new PackageProfile() { Platform = platform.Platform.Type };
                     platformProfile.AssetFolders.Add(new AssetFolder("Assets/" + platform.Platform.Name));
                 }
                 else

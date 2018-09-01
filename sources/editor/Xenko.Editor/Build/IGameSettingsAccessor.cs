@@ -15,6 +15,6 @@ namespace Xenko.Editor.Build
         /// <typeparam name="T">The requestted <see cref="Configuration"/></typeparam>
         /// <param name="profile">If not null, it will filter the results giving priority to the specified profile</param>
         /// <returns>The requested <see cref="Configuration"/> or null if not found</returns>
-        T GetConfiguration<T>(string profile = null) where T : Configuration;
+        T GetConfiguration<T>() where T : Configuration;
     }
 }

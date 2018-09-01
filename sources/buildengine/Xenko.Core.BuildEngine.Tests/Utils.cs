@@ -52,7 +52,7 @@ namespace Xenko.Core.BuildEngine.Tests
             var logger = new LoggerResult();
             logger.ActivateLog(LogMessageType.Debug);
             var indexName = createIndexFile ? VirtualFileSystem.ApplicationDatabaseIndexName : null;
-            var builder = new Builder(logger, BuildPath, "Windows", indexName) { BuilderName = "TestBuilder" };
+            var builder = new Builder(logger, BuildPath, indexName) { BuilderName = "TestBuilder" };
             return builder;
         }
 

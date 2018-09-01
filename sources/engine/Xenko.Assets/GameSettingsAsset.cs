@@ -102,23 +102,8 @@ namespace Xenko.Assets
         /// <typeparam name="T">The <see cref="Configuration"/> to get</typeparam>
         /// <param name="profile">If not null, will filter the results by profile first</param>
         /// <returns></returns>
-        public T TryGet<T>(string profile = null) where T : Configuration
+        public T TryGet<T>() where T : Configuration
         {
-            if (profile != null)
-            {
-                foreach (var configurationOverride in Overrides)
-                {
-                    if (configurationOverride.SpecificFilter == -1) continue;
-                    var filter = PlatformFilters[configurationOverride.SpecificFilter];
-                    if (filter == profile)
-                    {
-                        var x = configurationOverride.Configuration;
-                        if (x?.GetType() == typeof(T))
-                            return (T)x;
-                    }
-                }
-            }
-
             foreach (var x in Defaults)
             {
                 if (x?.GetType() == typeof(T))
@@ -128,35 +113,15 @@ namespace Xenko.Assets
             return null;
         }
 
-        public T GetOrCreate<T>(string profile = null) where T : Configuration, new()
+        public T GetOrCreate<T>() where T : Configuration, new()
         {
             Configuration first = null;
-            if (profile != null)
+            foreach (var x in Defaults)
             {
-                foreach (var configurationOverride in Overrides)
+                if (x != null && x.GetType() == typeof(T))
                 {
-                    if (configurationOverride.SpecificFilter == -1) continue;
-                    var filter = PlatformFilters[configurationOverride.SpecificFilter];
-                    if (filter == profile)
-                    {
-                        var x = configurationOverride.Configuration;
-                        if (x != null && x.GetType() == typeof(T))
-                        {
-                            first = x;
-                            break;
-                        }
-                    }
-                }
-            }
-            if (first == null)
-            {
-                foreach (var x in Defaults)
-                {
-                    if (x != null && x.GetType() == typeof(T))
-                    {
-                        first = x;
-                        break;
-                    }
+                    first = x;
+                    break;
                 }
             }
             var settings = (T)first;
