@@ -104,6 +104,10 @@ namespace Xenko.Input
 
         internal void HandleKeyDown(IntPtr wParam, IntPtr lParam)
         {
+            if (MessageIsDownAutoRepeat(lParam))
+                return;
+            Console.WriteLine("DOWN");
+
             var virtualKey = (WinFormsKeys)wParam.ToInt64();
             virtualKey = GetCorrectExtendedKey(virtualKey, lParam.ToInt64());
             keyboard?.HandleKeyDown(virtualKey);
@@ -112,6 +116,8 @@ namespace Xenko.Input
 
         internal void HandleKeyUp(IntPtr wParam, IntPtr lParam)
         {
+            Console.WriteLine("UP");
+
             var virtualKey = (WinFormsKeys)wParam.ToInt64();
             virtualKey = GetCorrectExtendedKey(virtualKey, lParam.ToInt64());
             heldKeys.Remove(virtualKey);
@@ -164,6 +170,20 @@ namespace Xenko.Input
             }
 
             return virtualKey;
+        }
+
+        /// <summary>
+        /// Windows keeps sending KEYDOWN messages while the user holds down the key.
+        /// <br/>This function is used to find out if the received message is a repeated KEYDOWN.
+        /// </summary>
+        /// <param name="lParam">lParam of the KEYDOWN message</param>
+        /// <returns><c>True</c> if this message is a repeated KeyDown, <c>false</c> if it's an actual keydown</returns>
+        private static bool MessageIsDownAutoRepeat(IntPtr lParam)
+        {
+            // According to the microsoft docs on WM_KEYDOWN
+            // (https://docs.microsoft.com/en-us/windows/desktop/inputdev/wm-keydown)
+            // The second to last bit is 0 when the last keyboard message was up and 1 if it was already down
+            return ((int)lParam & (1 << 30)) != 0;
         }
     }
 }
