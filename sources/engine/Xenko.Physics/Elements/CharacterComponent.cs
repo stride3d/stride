@@ -141,10 +141,10 @@ namespace Xenko.Physics
             }
         }
 
-        private float gravity = -10.0f;
+        private Vector3 gravity = new Vector3(0.0f, -10.0f, 0.0f);
 
         /// <summary>
-        /// Gets or sets if this character gravity
+        /// Gets or sets if this character is affected by any gravity
         /// </summary>
         /// <value>
         /// true, false
@@ -152,8 +152,9 @@ namespace Xenko.Physics
         /// <userdoc>
         /// The gravity force applied to this character
         /// </userdoc>
+        [Display("Gravity")]
         [DataMember(95)]
-        public float Gravity
+        public Vector3 Gravity
         {
             get
             {
@@ -165,7 +166,7 @@ namespace Xenko.Physics
 
                 if (KinematicCharacter != null)
                 {
-                    KinematicCharacter.Gravity = new Vector3(0.0f, value, 0.0f);
+                    KinematicCharacter.Gravity = value;
                 }
             }
         }
