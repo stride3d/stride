@@ -121,7 +121,7 @@ namespace Xenko.Physics
         /// Gets or sets if this character jump speed
         /// </summary>
         /// <value>
-        /// true, false
+        /// A float representing character jump speed in Xenko world units
         /// </value>
         /// <userdoc>
         /// The speed of the jump
@@ -147,7 +147,7 @@ namespace Xenko.Physics
         /// Gets or sets if this character is affected by any gravity
         /// </summary>
         /// <value>
-        /// true, false
+        /// A Vector3 representing directional gravity in Xenko world units
         /// </value>
         /// <userdoc>
         /// The gravity force applied to this character
