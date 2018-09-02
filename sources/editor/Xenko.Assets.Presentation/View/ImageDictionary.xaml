@@ -1119,9 +1119,9 @@
     <DrawingImage.Drawing>
       <DrawingGroup>
         <DrawingGroup.Children>
-          <GeometryDrawing Brush="#FFD7AA67" Geometry="F1 M 492.603,328.819L 443.867,256.591L 194.035,256.591L 194.035,767.407L 829.879,767.407L 829.879,328.819M 233.784,328.819L 233.784,296.33L 422.743,296.33L 444.661,328.819"/>
+          <GeometryDrawing Brush="#FFD7AA67" Geometry="F1 M 422.731,224.21L 390.437,176.889L 132.889,176.889L 132.889,511.555L 554.222,511.555L 554.222,224.21M 159.228,224.21L 159.228,202.924L 376.44,202.924L 390.963,224.21"/>
           <!-- Padding trick -->
-          <GeometryDrawing Brush="#FFD7AA67" Geometry="F1 M 0,6.10352e-005L 0,1024L 1024,1024L 0,1024L 0,6.10352e-005 Z "/>
+          <GeometryDrawing Brush="#FFD7AA67" Geometry="F1 M 0,0L 0,682.667L 682.667,682.667L 0,682.667L 0,0 Z "/>
         </DrawingGroup.Children>
       </DrawingGroup>
     </DrawingImage.Drawing>

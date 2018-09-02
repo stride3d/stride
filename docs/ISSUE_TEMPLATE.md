@@ -2,6 +2,8 @@
 
 **Version**: Version number and/or git branch
 
+**Platform(s)**: Does the problem occur on Windows, Android...?
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
