@@ -1,4 +1,4 @@
-﻿<!--***********************************************************************************
+<!--***********************************************************************************
 
    Extended WPF Toolkit
 
@@ -18,117 +18,117 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:xcdg="http://schemas.xceed.com/wpf/xaml/datagrid">
 
-    <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
-        <ResourceDictionary Source="Resources/TableView.ExpressionDark.normalcolor.Graphics.xaml"/>        
-    </ResourceDictionary.MergedDictionaries>
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
+    <ResourceDictionary Source="Resources/TableView.ExpressionDark.normalcolor.Graphics.xaml"/>
+  </ResourceDictionary.MergedDictionaries>
 
-    <Style TargetType="{x:Type xcdg:TableViewScrollViewer}">
+  <Style TargetType="{x:Type xcdg:TableViewScrollViewer}">
 
-      <Setter Property="VerticalScrollBarVisibility"
+    <Setter Property="VerticalScrollBarVisibility"
               Value="Visible" />
 
-      <Setter Property="HorizontalScrollBarVisibility"
+    <Setter Property="HorizontalScrollBarVisibility"
               Value="Auto" />
 
-      <Setter Property="CanContentScroll"
+    <Setter Property="CanContentScroll"
               Value="True" />
 
-      <Setter Property="Template">
-         <Setter.Value>
-            <ControlTemplate TargetType="{x:Type xcdg:TableViewScrollViewer}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="{x:Type xcdg:TableViewScrollViewer}">
 
-               <!-- Root Grid that layout the "content" and the Scrollbars -->
-               <Grid>
-                  <Grid.ColumnDefinitions>
-                     <!-- Content -->
-                     <ColumnDefinition />
+          <!-- Root Grid that layout the "content" and the Scrollbars -->
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <!-- Content -->
+              <ColumnDefinition />
 
-                     <!-- Vertical ScrollBar -->
-                     <ColumnDefinition Width="Auto" />
-                  </Grid.ColumnDefinitions>
+              <!-- Vertical ScrollBar -->
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-                  <Grid.RowDefinitions>
-                     <!-- Content -->
-                     <RowDefinition />
+            <Grid.RowDefinitions>
+              <!-- Content -->
+              <RowDefinition />
 
-                     <!-- Horizontal ScrollBar -->
-                     <RowDefinition Height="Auto" />
-                  </Grid.RowDefinitions>
+              <!-- Horizontal ScrollBar -->
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-                  <!-- Content -->
+            <!-- Content -->
 
-                  <Grid Margin="{TemplateBinding Padding}">
-                     <Grid.ColumnDefinitions>
-                        <!-- RowSelectorPane-->
-                        <ColumnDefinition Width="Auto" />
+            <Grid Margin="{TemplateBinding Padding}">
+              <Grid.ColumnDefinitions>
+                <!-- RowSelectorPane-->
+                <ColumnDefinition Width="Auto" />
 
-                        <!-- ScrollContentPresenter -->
-                        <ColumnDefinition />
-                     </Grid.ColumnDefinitions>
+                <!-- ScrollContentPresenter -->
+                <ColumnDefinition />
+              </Grid.ColumnDefinitions>
 
-                     <Grid.RowDefinitions>
-                        <!-- Fixed Headers -->
-                        <RowDefinition Height="Auto" />
+              <Grid.RowDefinitions>
+                <!-- Fixed Headers -->
+                <RowDefinition Height="Auto" />
 
-                        <!-- ScrollContentPresenter -->
-                        <RowDefinition />
+                <!-- ScrollContentPresenter -->
+                <RowDefinition />
 
-                        <!-- Fixed Footers -->
-                        <RowDefinition Height="Auto" />
-                     </Grid.RowDefinitions>
+                <!-- Fixed Footers -->
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
 
-                     <!-- RowSelectorPane -->
+              <!-- RowSelectorPane -->
 
-                     <xcdg:RowSelectorPane x:Name="PART_RowSelectorPane"
+              <xcdg:RowSelectorPane x:Name="PART_RowSelectorPane"
                                             Grid.Column="0"
                                             Grid.Row="0"
                                             Grid.RowSpan="3"
                                             Background="{StaticResource NormalBrush}"
                                             Width="{TemplateBinding RowSelectorPaneWidth}" />
 
-                     <!-- Fixed Headers -->
+              <!-- Fixed Headers -->
 
-                     <xcdg:SynchronizedScrollViewer x:Name="fixedHeaderScrollViewer"
+              <xcdg:SynchronizedScrollViewer x:Name="fixedHeaderScrollViewer"
                                                      Grid.Column="1"
                                                      Grid.Row="0"
                                                      xcdg:TableViewScrollViewer.SynchronizedScrollViewerPosition="Top"
                                                      Focusable="False">
-                        <!-- Using a TableViewHeaderFooterPanel will enable the columns 
+                <!-- Using a TableViewHeaderFooterPanel will enable the columns 
                              auto width feature. -->
-                        <xcdg:TableViewHeaderFooterPanel xcdg:DataGridControl.IsFixedHeadersHost="True"
+                <xcdg:TableViewHeaderFooterPanel xcdg:DataGridControl.IsFixedHeadersHost="True"
                                                           Orientation="Vertical"
                                                           HorizontalAlignment="Left" />
 
-                     </xcdg:SynchronizedScrollViewer>
+              </xcdg:SynchronizedScrollViewer>
 
-                     <!-- Fixed Footers -->
+              <!-- Fixed Footers -->
 
-                     <xcdg:SynchronizedScrollViewer  x:Name="fixedFooterScrollViewer"
+              <xcdg:SynchronizedScrollViewer  x:Name="fixedFooterScrollViewer"
                                                       Grid.Column="1"
                                                       Grid.Row="2"
                                                       xcdg:TableViewScrollViewer.SynchronizedScrollViewerPosition="Bottom"
                                                       Focusable="False">
-                        <!-- Using a TableViewHeaderFooterPanel will enable the columns 
+                <!-- Using a TableViewHeaderFooterPanel will enable the columns 
                              auto width feature. -->
-                        <xcdg:TableViewHeaderFooterPanel xcdg:DataGridControl.IsFixedFootersHost="True"
+                <xcdg:TableViewHeaderFooterPanel xcdg:DataGridControl.IsFixedFootersHost="True"
                                                           Orientation="Vertical"
                                                           HorizontalAlignment="Left" />
 
-                     </xcdg:SynchronizedScrollViewer>
+              </xcdg:SynchronizedScrollViewer>
 
-                     <!-- ScrollContentPresenter (data rows) -->
+              <!-- ScrollContentPresenter (data rows) -->
 
-                     <ScrollContentPresenter x:Name="PART_ScrollContentPresenter"
+              <ScrollContentPresenter x:Name="PART_ScrollContentPresenter"
                                              Grid.Column="1"
                                              Grid.Row="1"
                                              CanContentScroll="{TemplateBinding CanContentScroll}" />
 
-                  </Grid>
+            </Grid>
 
-                  <!-- ScrollBars -->
+            <!-- ScrollBars -->
 
-                  <ScrollBar x:Name="PART_HorizontalScrollBar"
+            <ScrollBar x:Name="PART_HorizontalScrollBar"
                              Grid.Column="0"
                              Grid.Row="1"
                              Orientation="Horizontal"
@@ -137,7 +137,7 @@
                              ViewportSize="{TemplateBinding ScrollViewer.ViewportWidth}"
                              Visibility="{TemplateBinding ScrollViewer.ComputedHorizontalScrollBarVisibility}" />
 
-                  <ScrollBar x:Name="PART_VerticalScrollBar"
+            <ScrollBar x:Name="PART_VerticalScrollBar"
                              Grid.Column="1"
                              Grid.Row="0"
                              Orientation="Vertical"
@@ -146,26 +146,26 @@
                              ViewportSize="{TemplateBinding ScrollViewer.ViewportHeight}"
                              Visibility="{TemplateBinding ScrollViewer.ComputedVerticalScrollBarVisibility}" />
 
-                  <!-- ScrollTip only displayed when scrolling -->
-                  <xcdg:ScrollTip Visibility="Collapsed"
+            <!-- ScrollTip only displayed when scrolling -->
+            <xcdg:ScrollTip Visibility="Collapsed"
                                    Content="{x:Null}"
                                    ContentTemplate="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).ScrollTipContentTemplate}"
                                    ContentTemplateSelector="{Binding RelativeSource={RelativeSource Self}, Path=(xcdg:DataGridControl.DataGridContext).ScrollTipContentTemplateSelector}" />
 
-               </Grid>
+          </Grid>
 
-               <ControlTemplate.Triggers>
-                  <Trigger Property="ShowRowSelectorPane"
+          <ControlTemplate.Triggers>
+            <Trigger Property="ShowRowSelectorPane"
                            Value="False">
 
-                     <Setter TargetName="PART_RowSelectorPane"
+              <Setter TargetName="PART_RowSelectorPane"
                              Property="Visibility"
                              Value="Collapsed" />
-                  </Trigger>
-               </ControlTemplate.Triggers>
-            </ControlTemplate>
-         </Setter.Value>
-      </Setter>
-   </Style>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
 
 </ResourceDictionary>

@@ -1,4 +1,4 @@
-﻿<!--***********************************************************************************
+<!--***********************************************************************************
 
    Extended WPF Toolkit
 
@@ -18,50 +18,50 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:xcdg="http://schemas.xceed.com/wpf/xaml/datagrid">
 
-   <SolidColorBrush x:Key="gridLineBrush"
+  <SolidColorBrush x:Key="gridLineBrush"
                     Color="Gray" />
 
-    <LinearGradientBrush x:Key="errorBackgroundBrush"
+  <LinearGradientBrush x:Key="errorBackgroundBrush"
                         EndPoint="0.5,1"
                         StartPoint="0.5,0">
-        <GradientStop Color="#FFF69898"
+    <GradientStop Color="#FFF69898"
                     Offset="1" />
-        <GradientStop Color="Red" />
-    </LinearGradientBrush>
+    <GradientStop Color="Red" />
+  </LinearGradientBrush>
 
-    <SolidColorBrush x:Key="errorForegroundBrush"
+  <SolidColorBrush x:Key="errorForegroundBrush"
                     Color="White" />
 
-    <SolidColorBrush x:Key="dropMarkBrush"
+  <SolidColorBrush x:Key="dropMarkBrush"
                     Color="#FFC4E5F6" />
 
-    <!-- Pen that is used to draw the drop mark when a ColumnHeader is dragged over another one. -->
-    <Pen x:Key="dropMarkPen"
+  <!-- Pen that is used to draw the drop mark when a ColumnHeader is dragged over another one. -->
+  <Pen x:Key="dropMarkPen"
         Brush="{StaticResource dropMarkBrush}"
         Thickness="7" />
 
-    <!--**************************
+  <!--**************************
     * TEMPLATE: ScrollTip
     ************************** -->
-    <ControlTemplate x:Key="scrollTipTemplate"
+  <ControlTemplate x:Key="scrollTipTemplate"
                     TargetType="{x:Type xcdg:ScrollTip}">
 
-        <Grid VerticalAlignment="{TemplateBinding VerticalAlignment}"
+    <Grid VerticalAlignment="{TemplateBinding VerticalAlignment}"
             HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
 
-            <Border BorderThickness="1,1,1,1"
+      <Border BorderThickness="1,1,1,1"
                  BorderBrush="{TemplateBinding BorderBrush}"
                  Background="{TemplateBinding Background}">
 
-                <ContentPresenter VerticalAlignment="Center"
+        <ContentPresenter VerticalAlignment="Center"
                               HorizontalAlignment="Right"
                               Margin="5"
                               TextElement.Foreground="{TemplateBinding TextElement.Foreground}"
                               Content="{TemplateBinding Content}"
                               ContentTemplate="{TemplateBinding ContentTemplate}"
                               ContentTemplateSelector="{TemplateBinding ContentTemplateSelector}" />
-            </Border>
-        </Grid>
-    </ControlTemplate>
+      </Border>
+    </Grid>
+  </ControlTemplate>
 
 </ResourceDictionary>

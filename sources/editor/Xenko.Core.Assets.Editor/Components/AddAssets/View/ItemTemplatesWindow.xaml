@@ -9,7 +9,7 @@
                        Icon="{DynamicResource EditorIcon}" ShowInTaskbar="False"
                        Style="{DynamicResource WindowChromeStyle}"
                        Title="{xk:Localize Add asset...}">
-    <Grid>
+  <Grid>
     <ListBox SnapsToDevicePixels="True"
              Width="{x:Static view:AddItemUserControl.TemplateListWidth}"
              ScrollViewer.HorizontalScrollBarVisibility="Disabled" ItemsSource="{Binding Templates}"
