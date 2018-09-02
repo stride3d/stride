@@ -9,25 +9,26 @@
   <Window.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
+        <ResourceDictionary Source="/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Window.Resources>
   <StackPanel>
-    <TextBlock Text="You must agree to the privacy policy to use Xenko." Margin="20,20,20,0"/>
+    <TextBlock Text="You must agree to the privacy policy to use Xenko." Margin="20,20,20,0" />
     <TextBlock Margin="20,10">
-      <Hyperlink TextDecorations="Underline" CommandParameter="{x:Static crashReport:CrashReportForm.PrivacyPolicyUrl}" Command="{x:Static xk:UtilityCommands.OpenHyperlinkCommand}">
-        <Run Text="{x:Static crashReport:CrashReportForm.PrivacyPolicyUrl}"/>
+      <Hyperlink TextDecorations="Underline" CommandParameter="{x:Static crashReport:CrashReportForm.PrivacyPolicyUrl}"
+                 Command="{x:Static xk:UtilityCommands.OpenHyperlinkCommand}">
+        <Run Text="{x:Static crashReport:CrashReportForm.PrivacyPolicyUrl}" />
       </Hyperlink>
     </TextBlock>
     <CheckBox IsChecked="{Binding PrivacyPolicyAccepted, RelativeSource={RelativeSource AncestorType=Window}}"
               IsEnabled="{Binding CanAccept, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay}"
-              Content="I agree to the Privacy Policy" DockPanel.Dock="Bottom" Margin="20,0"/>
+              Content="I agree to the Privacy Policy" DockPanel.Dock="Bottom" Margin="20,0" />
     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" Margin="20" HorizontalAlignment="Right">
       <UniformGrid Rows="1">
         <Button Content="I Accept" Padding="30, 8" Margin="20,0,0,0" Click="ButtonPrivacyPolicyAccepted"
-                IsEnabled="{Binding PrivacyPolicyAccepted, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay}"/>
-        <Button Content="I Decline" Padding="30, 8" Margin="20,0,0,0" Click="ButtonPrivacyPolicyDeclined"/>
+                IsEnabled="{Binding PrivacyPolicyAccepted, RelativeSource={RelativeSource AncestorType=Window}, Mode=OneWay}" />
+        <Button Content="I Decline" Padding="30, 8" Margin="20,0,0,0" Click="ButtonPrivacyPolicyDeclined" />
       </UniformGrid>
     </StackPanel>
   </StackPanel>

@@ -1,4 +1,4 @@
-﻿<!--***********************************************************************************
+<!--***********************************************************************************
 
    Extended WPF Toolkit
 
@@ -18,45 +18,45 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:markup="clr-namespace:Xceed.Utils.Wpf.Markup;assembly=Xceed.Wpf.DataGrid">
 
-    <ResourceDictionary.MergedDictionaries>
+  <ResourceDictionary.MergedDictionaries>
 
-        <!-- Include the standard graphics -->
-        <markup:XceedResourceDictionary XceedSource="/Xceed.Wpf.DataGrid;component\themes/Common/Graphics.xaml" />
+    <!-- Include the standard graphics -->
+    <markup:XceedResourceDictionary XceedSource="/Xceed.Wpf.DataGrid;component\themes/Common/Graphics.xaml" />
 
-        <!-- Needs Windows8 Resources -->
-        <ResourceDictionary Source="ExpressionDark.normalcolor.Resources.xaml" />
+    <!-- Needs Windows8 Resources -->
+    <ResourceDictionary Source="ExpressionDark.normalcolor.Resources.xaml" />
 
-    </ResourceDictionary.MergedDictionaries>
+  </ResourceDictionary.MergedDictionaries>
 
-    <DataTemplate x:Key="AscendingSortGlyph">
-        <Canvas Height="4"
+  <DataTemplate x:Key="AscendingSortGlyph">
+    <Canvas Height="4"
               Width="7">
-            <Path Opacity="1" Fill="{StaticResource GlyphBrush}" Data="M 3.59375,0.15625 C3.59375,0.15625 7,4 7,4 7,4 0,4 0,4 0,4 3.59375,0.15625 3.59375,0.15625 z"/>
-            <!--<Path Opacity="1"
+      <Path Opacity="1" Fill="{StaticResource GlyphBrush}" Data="M 3.59375,0.15625 C3.59375,0.15625 7,4 7,4 7,4 0,4 0,4 0,4 3.59375,0.15625 3.59375,0.15625 z"/>
+      <!--<Path Opacity="1"
                Data="M 0.5,3.5 C0.5,3.5 3.5,0.5 3.5,0.5 "
                Stroke="#406274"
                StrokeThickness="1" />-->
-        </Canvas>
-    </DataTemplate>
+    </Canvas>
+  </DataTemplate>
 
-    <DataTemplate x:Key="DescendingSortGlyph">
-        <Canvas Height="4"
+  <DataTemplate x:Key="DescendingSortGlyph">
+    <Canvas Height="4"
               Width="7">
-            <Path Opacity="1" Fill="{StaticResource GlyphBrush}" Data="M 3.59375,4 C3.59375,4 7,0.15625 7,0.15625 7,0.15625 0,0.15625 0,0.15625 0,0.15625 3.59375,4 3.59375,4 z"/>
-            <!--<Path Opacity="1"
+      <Path Opacity="1" Fill="{StaticResource GlyphBrush}" Data="M 3.59375,4 C3.59375,4 7,0.15625 7,0.15625 7,0.15625 0,0.15625 0,0.15625 0,0.15625 3.59375,4 3.59375,4 z"/>
+      <!--<Path Opacity="1"
                Data="M 0.5,0.5 C0.5,0.5 3.5,3.5 3.5,3.5 "
                Stroke="#406274"
                StrokeThickness="1" />-->
-        </Canvas>
-    </DataTemplate>
+    </Canvas>
+  </DataTemplate>
 
 
-    <DataTemplate x:Key="editingRowGlyph">
-        <Grid Height="14"
+  <DataTemplate x:Key="editingRowGlyph">
+    <Grid Height="14"
             Width="14"
             HorizontalAlignment="Left"
             VerticalAlignment="Top">
-            <Path Margin="1.096,0.056,0,0"
+      <Path Margin="1.096,0.056,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="13.743"
@@ -67,7 +67,7 @@
                Stroke="#FF002647"
                StrokeThickness="1"
                Fill="#FF002647" />
-            <Path Margin="1.293,8.281,0,0"
+      <Path Margin="1.293,8.281,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="5.358"
@@ -75,21 +75,21 @@
                Stretch="Fill"
                Opacity="1"
                Data="M1.5429214,15.130966 C1.5429214,15.130966 6.4629087,12.423883 6.4629087,12.423883 6.4629087,12.423883 5.3522882,10.021933 5.3522882,10.021933 5.3522882,10.021933 3.3217649,9.7752304 3.3217649,9.7752304 3.3217649,9.7752304 1.5429214,15.130966 1.5429214,15.130966 z">
-                <Path.Fill>
-                    <RadialGradientBrush Center="0.1846440410613174,0.5041270477469605"
+        <Path.Fill>
+          <RadialGradientBrush Center="0.1846440410613174,0.5041270477469605"
                                     GradientOrigin="0.1846440410613174,0.5041270477469605"
                                     RadiusX="0.8296137405478166"
                                     RadiusY="1.6531750098768538">
-                        <GradientStop Color="#FFffcc99"
+            <GradientStop Color="#FFffcc99"
                                 Offset="0" />
-                        <GradientStop Color="#FF9B6803"
+            <GradientStop Color="#FF9B6803"
                                 Offset="0.9611110091209412" />
-                        <GradientStop Color="#FF996600"
+            <GradientStop Color="#FF996600"
                                 Offset="0.9833329916000366" />
-                    </RadialGradientBrush>
-                </Path.Fill>
-            </Path>
-            <Path Margin="3.11,0.456,0,0"
+          </RadialGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Margin="3.11,0.456,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="10.534"
@@ -97,21 +97,21 @@
                Stretch="Fill"
                Opacity="1"
                Data="M3.358902,9.9091635 C3.358902,9.9091635 3.6575527,10.98584 3.6575527,10.98584 3.6575527,10.98584 5.017499,10.948517 5.017499,10.948517 5.017499,10.948517 5.2315655,12.080843 5.2315655,12.080843 5.2315655,12.080843 6.338026,12.48374 6.338026,12.48374 6.338026,12.48374 13.62499,4.3498156 13.62499,4.3498156 13.62499,4.3498156 10.224961,1.9498379 10.224961,1.9498379 10.224961,1.9498379 3.358902,9.9091635 3.358902,9.9091635 z">
-                <Path.Fill>
-                    <RadialGradientBrush Center="0.042813071747018726,0.8175057001256929"
+        <Path.Fill>
+          <RadialGradientBrush Center="0.042813071747018726,0.8175057001256929"
                                     GradientOrigin="0.042813071747018726,0.8175057001256929"
                                     RadiusX="0.9929616115052466"
                                     RadiusY="0.8117382454245395">
-                        <GradientStop Color="#FF0099cc"
+            <GradientStop Color="#FF0099cc"
                                 Offset="0" />
-                        <GradientStop Color="#FF003568"
+            <GradientStop Color="#FF003568"
                                 Offset="0.9277780055999756" />
-                        <GradientStop Color="#FF003366"
+            <GradientStop Color="#FF003366"
                                 Offset="0.949999988079071" />
-                    </RadialGradientBrush>
-                </Path.Fill>
-            </Path>
-            <Path Margin="8.369,0.621,0,0"
+          </RadialGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Margin="8.369,0.621,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="4.404"
@@ -119,21 +119,21 @@
                Stretch="Fill"
                Opacity="1"
                Data="M 8.618328094482422,4.025081634521484 C8.618328094482422,4.025081634521484 11.708536148071289,6.519054412841797 11.708536148071289,6.519054412841797 11.708536148071289,6.519054412841797 13.288734436035156,4.586820602416992 13.288734436035156,4.586820602416992 13.288734436035156,4.586820602416992 12.757492065429688,4.055429458618164 11.856122016906738,3.315974235534668 10.961745262145996,2.5823020935058594 10.229959487915039,2.1148900985717773 10.229959487915039,2.1148900985717773 10.229959487915039,2.1148900985717773 8.618328094482422,4.025081634521484 8.618328094482422,4.025081634521484 z">
-                <Path.Fill>
-                    <RadialGradientBrush Center="0.5311699810261868,0.2591244756232053"
+        <Path.Fill>
+          <RadialGradientBrush Center="0.5311699810261868,0.2591244756232053"
                                     GradientOrigin="0.5311699810261868,0.2591244756232053"
                                     RadiusX="0.49560300869019297"
                                     RadiusY="0.5788496774454529">
-                        <GradientStop Color="#FFc27a72"
+            <GradientStop Color="#FFc27a72"
                                 Offset="0" />
-                        <GradientStop Color="#FF80340D"
+            <GradientStop Color="#FF80340D"
                                 Offset="0.9333329796791077" />
-                        <GradientStop Color="#FF7f330b"
+            <GradientStop Color="#FF7f330b"
                                 Offset="0.9555559754371643" />
-                    </RadialGradientBrush>
-                </Path.Fill>
-            </Path>
-            <Path Margin="5.935,4.5,0,0"
+          </RadialGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Margin="5.935,4.5,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="3.482"
@@ -141,21 +141,21 @@
                Stretch="Fill"
                Opacity="1"
                Data="M 6.812163352966309,5.993573188781738 C6.812163352966309,5.993573188781738 6.1839494705200195,6.777921676635742 6.1839494705200195,6.777921676635742 6.1839494705200195,6.777921676635742 6.947524070739746,7.232476234436035 7.835901260375977,7.975306510925293 8.719582557678223,8.714177131652832 9.381957054138184,9.475302696228027 9.381957054138184,9.475302696228027 9.381957054138184,9.475302696228027 10.11921501159668,8.657419204711914 10.11921501159668,8.657419204711914 10.11921501159668,8.657419204711914 9.420568466186523,7.980251312255859 8.501447677612305,7.22212028503418 7.565184593200684,6.44985294342041 6.812163352966309,5.993573188781738 6.812163352966309,5.993573188781738 z">
-                <Path.Fill>
-                    <RadialGradientBrush Center="0.9697059803583005,0.2890594484912862"
+        <Path.Fill>
+          <RadialGradientBrush Center="0.9697059803583005,0.2890594484912862"
                                     GradientOrigin="0.9697059803583005,0.2890594484912862"
                                     RadiusX="0.5364282834670617"
                                     RadiusY="0.7586126771411669">
-                        <GradientStop Color="#FFcccccc"
+            <GradientStop Color="#FFcccccc"
                                 Offset="0" />
-                        <GradientStop Color="#FF686868"
+            <GradientStop Color="#FF686868"
                                 Offset="0.9333329796791077" />
-                        <GradientStop Color="#FF666666"
+            <GradientStop Color="#FF666666"
                                 Offset="0.9555559754371643" />
-                    </RadialGradientBrush>
-                </Path.Fill>
-            </Path>
-            <Path Margin="7.812,2.405,0,0"
+          </RadialGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Margin="7.812,2.405,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="3.228"
@@ -163,21 +163,21 @@
                Stretch="Fill"
                Opacity="1"
                Data="M 8.530866622924805,3.898571014404297 C8.530866622924805,3.898571014404297 8.061341285705566,4.433980941772461 8.061341285705566,4.433980941772461 8.061341285705566,4.433980941772461 8.838849067687988,4.981285095214844 9.74392318725586,5.693037033081055 10.656047821044922,6.410333633422852 11.378190040588379,7.126607894897461 11.378190040588379,7.126607894897461 11.378190040588379,7.126607894897461 11.849910736083984,6.556713104248047 11.849910736083984,6.556713104248047 11.849910736083984,6.556713104248047 11.032713890075684,5.833953857421875 10.199588775634766,5.140911102294922 9.271937370300293,4.369194984436035 8.530866622924805,3.898571014404297 8.530866622924805,3.898571014404297 z">
-                <Path.Fill>
-                    <RadialGradientBrush Center="0.43447986118925047,0.28248733618880884"
+        <Path.Fill>
+          <RadialGradientBrush Center="0.43447986118925047,0.28248733618880884"
                                     GradientOrigin="0.43447986118925047,0.28248733618880884"
                                     RadiusX="0.5308935530282759"
                                     RadiusY="0.40372149053823364">
-                        <GradientStop Color="#FFcccccc"
+            <GradientStop Color="#FFcccccc"
                                 Offset="0" />
-                        <GradientStop Color="#FF686868"
+            <GradientStop Color="#FF686868"
                                 Offset="0.9333329796791077" />
-                        <GradientStop Color="#FF666666"
+            <GradientStop Color="#FF666666"
                                 Offset="0.9555559754371643" />
-                    </RadialGradientBrush>
-                </Path.Fill>
-            </Path>
-            <Path Margin="6.71,3.179,0,0"
+          </RadialGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Margin="6.71,3.179,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="3.808"
@@ -185,21 +185,21 @@
                Stretch="Fill"
                Opacity="1"
                Data="M 6.95892333984375,5.76214599609375 C6.95892333984375,5.76214599609375 7.862613677978516,4.672874450683594 7.862613677978516,4.672874450683594 7.862613677978516,4.672874450683594 9.588410377502441,5.925745964050293 9.588410377502441,5.925745964050293 9.588410377502441,5.925745964050293 11.188949584960938,7.379446983337402 11.188949584960938,7.379446983337402 11.188949584960938,7.379446983337402 10.28754997253418,8.480874061584473 10.28754997253418,8.480874061584473 10.28754997253418,8.480874061584473 9.755718231201172,8.000542640686035 8.876455307006836,7.2333221435546875 8.004179000854492,6.472166061401367 6.95892333984375,5.76214599609375 6.95892333984375,5.76214599609375 z">
-                <Path.Fill>
-                    <RadialGradientBrush Center="0.5568233057618706,0.276759169912574"
+        <Path.Fill>
+          <RadialGradientBrush Center="0.5568233057618706,0.276759169912574"
                                     GradientOrigin="0.5568233057618706,0.276759169912574"
                                     RadiusX="0.5647990057810927"
                                     RadiusY="0.7719788210009958">
-                        <GradientStop Color="#FFcccccc"
+            <GradientStop Color="#FFcccccc"
                                 Offset="0" />
-                        <GradientStop Color="#FF686868"
+            <GradientStop Color="#FF686868"
                                 Offset="0.9333329796791077" />
-                        <GradientStop Color="#FF666666"
+            <GradientStop Color="#FF666666"
                                 Offset="0.9555559754371643" />
-                    </RadialGradientBrush>
-                </Path.Fill>
-            </Path>
-            <Path Margin="0.875,0.756,0,0"
+          </RadialGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Margin="0.875,0.756,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="13.438"
@@ -207,23 +207,23 @@
                Stretch="Fill"
                Opacity="1"
                Data="M11.12455,2.9497099 C10.796974,2.7020817 10.224615,2.2496935 10.224615,2.2496935 10.224615,2.2496935 3.2972279,9.9386616 3.2972279,9.9386616 3.2972279,9.9386616 1.1238382,15.688009 1.1238382,15.688009 1.1238382,15.688009 3.925,10.15 3.925,10.15 3.925,10.15 11.144807,2.9650784 11.12455,2.9497099 z">
-                <Path.Fill>
-                    <RadialGradientBrush Center="0.2340284913609595,0.40941221543697837"
+        <Path.Fill>
+          <RadialGradientBrush Center="0.2340284913609595,0.40941221543697837"
                                     GradientOrigin="0.2340284913609595,0.40941221543697837"
                                     RadiusX="1.1828655482909158"
                                     RadiusY="2.5474404245883986">
-                        <GradientStop Color="#FF000000"
+            <GradientStop Color="#FF000000"
                                 Offset="0" />
-                        <GradientStop Color="#00000000"
+            <GradientStop Color="#00000000"
                                 Offset="0.005555999930948019" />
-                        <GradientStop Color="#14000000"
+            <GradientStop Color="#14000000"
                                 Offset="0.9055560231208801" />
-                        <GradientStop Color="#16000000"
+            <GradientStop Color="#16000000"
                                 Offset="0.949999988079071" />
-                    </RadialGradientBrush>
-                </Path.Fill>
-            </Path>
-            <Path Margin="3.199,0.656,0,0"
+          </RadialGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Margin="3.199,0.656,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="8.627"
@@ -231,21 +231,21 @@
                Stretch="Fill"
                Opacity="1"
                Data="M10.225209,2.1494628 C10.225209,2.1494628 13.525206,4.6493671 13.525206,4.6493671 13.525206,4.6493671 12.226868,4.0539665 9.625,5.75 7.0231352,7.4460325 6.0014434,11.71711 3.5866861,10.589012 2.3121116,9.9935741 10.225209,2.1494628 10.225209,2.1494628 z">
-                <Path.Fill>
-                    <RadialGradientBrush Center="0.6033051568848984,0.41797103154667026"
+        <Path.Fill>
+          <RadialGradientBrush Center="0.6033051568848984,0.41797103154667026"
                                     GradientOrigin="0.6033051568848984,0.41797103154667026"
                                     RadiusX="1.710308509229654"
                                     RadiusY="1.4486240697822559">
-                        <GradientStop Color="#19ffffff"
+            <GradientStop Color="#19ffffff"
                                 Offset="0" />
-                        <GradientStop Color="#7Cffffff"
+            <GradientStop Color="#7Cffffff"
                                 Offset="0.9611110091209412" />
-                        <GradientStop Color="#7fffffff"
+            <GradientStop Color="#7fffffff"
                                 Offset="0.9833329916000366" />
-                    </RadialGradientBrush>
-                </Path.Fill>
-            </Path>
-            <Path Margin="0.751,0.756,0,0"
+          </RadialGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Margin="0.751,0.756,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="13.75"
@@ -253,17 +253,17 @@
                Stretch="Fill"
                Opacity="1"
                Data="M1.9540095,14.851641 C1.9540095,14.851641 3.7059202,10.445454 3.7059202,10.445454 3.7059202,10.445454 10.325357,2.9334286 10.325357,2.9334286 10.325357,2.9334286 12.725009,4.7499978 12.725009,4.7499978 12.725009,4.7499978 5.9621078,12.390781 5.9621078,12.390781 5.9621078,12.390781 1.9540095,14.851641 1.9540095,14.851641 z M13.575486,4.6500827 C13.575486,4.6500827 10.225351,2.2501002 10.225351,2.2501002 10.225351,2.2501002 3.2102799,10.065701 3.2102799,10.065701 3.2102799,10.065701 1,16 1,16 1,16 6.3704149,12.607931 6.3704149,12.607931 6.3704149,12.607931 13.575486,4.6500827 13.575486,4.6500827 z">
-                <Path.Fill>
-                    <LinearGradientBrush StartPoint="0.9663513767662231,-0.10391423000415648"
+        <Path.Fill>
+          <LinearGradientBrush StartPoint="0.9663513767662231,-0.10391423000415648"
                                     EndPoint="0.08183985805967778,0.8771993466412239">
-                        <GradientStop Color="#7fffffff"
+            <GradientStop Color="#7fffffff"
                                 Offset="0" />
-                        <GradientStop Color="#00ffffff"
+            <GradientStop Color="#00ffffff"
                                 Offset="0.9888889789581299" />
-                    </LinearGradientBrush>
-                </Path.Fill>
-            </Path>
-            <Path Margin="1.362,11.619,0,0"
+          </LinearGradientBrush>
+        </Path.Fill>
+      </Path>
+      <Path Margin="1.362,11.619,0,0"
                HorizontalAlignment="Left"
                VerticalAlignment="Top"
                Height="2.025"
@@ -272,7 +272,7 @@
                Opacity="1"
                Data="M1.8887157,13.610427 C1.8887157,13.610427 1.1334019,15.475085 1.3031181,15.624239 1.4731229,15.773591 3.2897057,14.507758 3.2897057,14.507758 3.2897057,14.507758 1.8887157,13.610427 1.8887157,13.610427 z"
                Fill="#000000" />
-        </Grid>
-    </DataTemplate>
+    </Grid>
+  </DataTemplate>
 
 </ResourceDictionary>
