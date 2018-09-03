@@ -26,7 +26,7 @@ namespace Xenko.Assets.Entities
     [AssetUpgrader(XenkoConfig.PackageName, "2.1.0.1", "3.0.0.5", typeof(CharacterComponentGravityVector3Upgrader))]
     public partial class PrefabAsset : EntityHierarchyAssetBase
     {
-        private const string CurrentVersion = "2.1.0.1";
+        private const string CurrentVersion = "3.0.0.5";
 
         /// <summary>
         /// The default file extension used by the <see cref="PrefabAsset"/>.
