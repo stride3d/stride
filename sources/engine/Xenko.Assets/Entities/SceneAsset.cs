@@ -27,7 +27,7 @@ namespace Xenko.Assets.Entities
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
 #endif
     [AssetUpgrader(XenkoConfig.PackageName, "2.0.0.0", "2.1.0.1", typeof(RootPartIdsToRootPartsUpgrader))]
-    [AssetUpgrader(XenkoConfig.PackageName, "3.0.0.1-dev", "3.0.0.5-dev", typeof(CharacterComponentGravityVector3Upgrader))]
+    [AssetUpgrader(XenkoConfig.PackageName, "2.1.0.1", "3.0.0.5", typeof(CharacterComponentGravityVector3Upgrader))]
     public partial class SceneAsset : EntityHierarchyAssetBase
     {
         private const string CurrentVersion = "2.1.0.1";
