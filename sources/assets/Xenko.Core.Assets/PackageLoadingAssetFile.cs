@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using Xenko.Core.Annotations;
 using Xenko.Core.IO;
 using Xenko.Core.Serialization.Contents;
 using Xenko.Core.Yaml;
@@ -15,8 +15,10 @@ namespace Xenko.Core.Assets
     /// </summary>
     public class PackageLoadingAssetFile
     {
-        public readonly UFile FilePath;
         public readonly UDirectory SourceFolder;
+
+        [NotNull] public UFile OriginalFilePath { get; }
+        [NotNull] public UFile FilePath { get; set; }
 
         public long CachedFileSize;
 
@@ -32,9 +34,10 @@ namespace Xenko.Core.Assets
         /// </summary>
         /// <param name="filePath">The file path.</param>
         /// <param name="sourceFolder">The source folder.</param>
-        public PackageLoadingAssetFile(UFile filePath, UDirectory sourceFolder)
+        public PackageLoadingAssetFile([NotNull] UFile filePath, UDirectory sourceFolder)
         {
             FilePath = filePath;
+            OriginalFilePath = FilePath;
             SourceFolder = sourceFolder;
         }
 
@@ -45,13 +48,14 @@ namespace Xenko.Core.Assets
         /// <param name="filePath">The relative file path (from default asset folder).</param>
         /// <param name="sourceFolder">The source folder (optional, can be null).</param>
         /// <exception cref="System.ArgumentException">filePath must be relative</exception>
-        public PackageLoadingAssetFile(Package package, UFile filePath, UDirectory sourceFolder)
+        public PackageLoadingAssetFile(Package package, [NotNull] UFile filePath, UDirectory sourceFolder)
         {
             if (filePath.IsAbsolute)
                 throw new ArgumentException("filePath must be relative", filePath);
 
             SourceFolder = UPath.Combine(package.RootDirectory, sourceFolder ?? package.GetDefaultAssetFolder());
             FilePath = UPath.Combine(SourceFolder, filePath);
+            OriginalFilePath = FilePath;
         }
 
         public IReference ToReference()

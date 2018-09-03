@@ -881,6 +881,16 @@ namespace Xenko.Core.Assets
                 var package = Package.LoadRaw(log, filePath);
                 package.IsSystem = isSystemPackage;
 
+                if (project == null)
+                {
+                    // TODO CSPROJ=XKPKG temp code until Package loading supports csproj format natively
+                    var projectFullPath = Path.ChangeExtension(package.FullPath, ".csproj");
+                    if (File.Exists(projectFullPath))
+                    {
+                        project = new VisualStudio.Project(package.Id, KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(projectFullPath), projectFullPath, Guid.Empty, null, null, null);
+                    }
+                }
+
                 // TODO CSPROJ=XKPKG temp code until Package loading supports csproj format natively
                 if (project != null)
                 {

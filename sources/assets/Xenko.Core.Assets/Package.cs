@@ -68,10 +68,11 @@ namespace Xenko.Core.Assets
     [NonIdentifiableCollectionItems]
     [AssetDescription(PackageFileExtension)]
     [DebuggerDisplay("Id: {Id}, Name: {Meta.Name}, Version: {Meta.Version}, Assets [{Assets.Count}]")]
-    [AssetFormatVersion("Assets", PackageFileVersion)]
+    [AssetFormatVersion("Assets", PackageFileVersion, "0.0.0.4")]
+    [AssetUpgrader("Assets", "0.0.0.4", "3.1.0.0", typeof(MovePackageInsideProject))]
     public sealed partial class Package : IIdentifiable, IFileSynchronizable, IAssetFinder
     {
-        private const int PackageFileVersion = 4;
+        private const string PackageFileVersion = "3.1.0.0";
 
         private Guid id;
 
@@ -185,7 +186,7 @@ namespace Xenko.Core.Assets
         /// </summary>
         /// <value>The profiles.</value>
         [DataMember(50)]
-        public PackageProfile Profile { get; } = PackageProfile.NewShared();
+        public PackageProfile Profile { get; set; } = PackageProfile.NewShared();
 
         /// <summary>
         /// Gets or sets the list of folders that are explicitly created but contains no assets.
@@ -762,6 +763,18 @@ namespace Xenko.Core.Assets
         public static Package Load(ILogger log, string filePath, PackageLoadParameters loadParametersArg = null)
         {
             var package = LoadRaw(log, filePath);
+
+            // TODO CSPROJ=XKPKG temp code until Package loading supports csproj format natively
+            var projectFullPath = Path.ChangeExtension(package.FullPath, ".csproj");
+            if (File.Exists(projectFullPath))
+            {
+                var project = new VisualStudio.Project(package.Id, VisualStudio.KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(projectFullPath), projectFullPath, Guid.Empty, null, null, null);
+                package.ProjectFullPath = project.FullPath;
+                package.Type = PackageType.ProjectAndPackage;
+                package.ProjectType = Core.Assets.ProjectType.Library;
+                package.VSProject = project;
+            }
+
             if (package != null)
             {
                 if (!package.LoadAssembliesAndAssets(log, loadParametersArg))
@@ -805,8 +818,8 @@ namespace Xenko.Core.Assets
                     ? AssetFileSerializer.Load<Package>(new MemoryStream(packageFile.AssetContent), filePath, log)
                     : AssetFileSerializer.Load<Package>(filePath, log);
                 var package = loadResult.Asset;
-                package.FullPath = filePath;
-                package.previousPackagePath = package.FullPath;
+                package.FullPath = packageFile.FilePath;
+                package.previousPackagePath = packageFile.OriginalFilePath;
                 package.IsDirty = packageFile.AssetContent != null || loadResult.AliasOccurred;
 
                 return package;
@@ -1421,6 +1434,37 @@ namespace Xenko.Core.Assets
                 foreach (var codePath in codePaths)
                 {
                     list.Add(new PackageLoadingAssetFile(codePath, dir));
+                }
+            }
+        }
+
+        private class MovePackageInsideProject : AssetUpgraderBase
+        {
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
+            {
+                if (asset.Profiles != null)
+                {
+                    var profiles = asset.Profiles;
+
+                    foreach (var profile in profiles)
+                    {
+                        if (profile.Platform == "Shared" && profile.ProjectReferences.Count == 1)
+                        {
+                            var projectLocation = (UFile)(string)profile.ProjectReferences[0].Location;
+                            assetFile.FilePath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UFile)(projectLocation.GetFullPathWithoutExtension() + PackageFileExtension));
+
+                            for (int i = 0; i < profile.AssetFolders.Count; ++i)
+                            {
+                                var assetPath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UDirectory)(string)profile.AssetFolders[i].Path);
+                                assetPath = assetPath.MakeRelative(assetFile.FilePath.GetFullDirectory());
+                                profile.AssetFolders[i].Path = (string)assetPath;
+                            }
+
+                            asset.Profile = profile;
+                        }
+                    }
+
+                    asset.Profiles = DynamicYamlEmpty.Default;
                 }
             }
         }

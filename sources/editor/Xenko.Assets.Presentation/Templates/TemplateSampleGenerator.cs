@@ -124,7 +124,7 @@ namespace Xenko.Assets.Presentation.Templates
             }
 
             // We are going to replace all projects/packages id by new ids
-            var idsToReplace = package.Session.Packages.Select(x => x.Id).Distinct().ToDictionary(guid => guid.ToString("D"), guid => Guid.NewGuid(), StringComparer.OrdinalIgnoreCase);
+            var idsToReplace = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
             idsToReplace.Add(package.Id.ToString("D"), Guid.NewGuid());
 
             var guidRegexPattern = new StringBuilder();
@@ -351,26 +351,27 @@ namespace Xenko.Assets.Presentation.Templates
             // We want to force regeneration of Windows platform in case the sample .csproj is outdated
             UpdatePlatformsTemplateGenerator.SetForcePlatformRegeneration(updateParameters, true);
 
-            var updateTemplate = UpdatePlatformsTemplateGenerator.Default;
-            if (!await updateTemplate.PrepareForRun(updateParameters) || !updateTemplate.Run(updateParameters))
-            {
-                // Remove the created project
-                var path = Path.GetDirectoryName(parameters.Session.SolutionPath.ToWindowsPath());
-                try
-                {
-                    Directory.Delete(path ?? "", true);
-                }
-                catch (IOException ex)
-                {
-                    parameters.Logger.Error("Error when removing generated project.", ex);
-                }
-                catch (UnauthorizedAccessException ex)
-                {
-                    parameters.Logger.Error("Error when removing generated project.", ex);
-                }
-                // Notify cancellation
-                return false;
-            }
+            // TODO CSPROJ=XKPKG
+            //var updateTemplate = UpdatePlatformsTemplateGenerator.Default;
+            //if (!await updateTemplate.PrepareForRun(updateParameters) || !updateTemplate.Run(updateParameters))
+            //{
+            //    // Remove the created project
+            //    var path = Path.GetDirectoryName(parameters.Session.SolutionPath.ToWindowsPath());
+            //    try
+            //    {
+            //        Directory.Delete(path ?? "", true);
+            //    }
+            //    catch (IOException ex)
+            //    {
+            //        parameters.Logger.Error("Error when removing generated project.", ex);
+            //    }
+            //    catch (UnauthorizedAccessException ex)
+            //    {
+            //        parameters.Logger.Error("Error when removing generated project.", ex);
+            //    }
+            //    // Notify cancellation
+            //    return false;
+            //}
 
             // Save again post update
             SaveSession(parameters);

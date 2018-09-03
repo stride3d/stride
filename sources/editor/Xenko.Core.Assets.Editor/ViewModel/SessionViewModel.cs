@@ -495,10 +495,10 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         private void AutoSelectCurrentPackage()
         {
-            var currentProject = LocalPackages.SelectMany(x => x.Content).OfType<ProjectViewModel>().FirstOrDefault(x => x.Type == ProjectType.Executable && x.Profile.Platform == PlatformType.Windows);
+            var currentProject = LocalPackages.FirstOrDefault();
             if (currentProject != null)
             {
-                SetCurrentPackage(currentProject.Package);
+                SetCurrentPackage(currentProject);
             }
         }
 
@@ -1059,7 +1059,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         private void SetCurrentPackage(object selectedItem)
         {
             var package = selectedItem as PackageViewModel;
-            if (package == null || !package.Profile.HasExecutables)
+            if (package == null)
             {
                 // Editor.MessageBox(Resources.Strings.SessionViewModel.SelectExecutableAsCurrentProject, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
