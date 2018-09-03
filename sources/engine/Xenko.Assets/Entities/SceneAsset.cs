@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
@@ -27,6 +27,7 @@ namespace Xenko.Assets.Entities
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
 #endif
     [AssetUpgrader(XenkoConfig.PackageName, "2.0.0.0", "2.1.0.1", typeof(RootPartIdsToRootPartsUpgrader))]
+    [AssetUpgrader(XenkoConfig.PackageName, "3.0.0.1-dev", "3.0.0.5-dev", typeof(CharacterComponentGravityVector3Upgrader))]
     public partial class SceneAsset : EntityHierarchyAssetBase
     {
         private const string CurrentVersion = "2.1.0.1";

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -52,6 +52,50 @@ namespace Xenko.Assets.Entities
                         {
                             e.Ignore();
                         }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates the Gravity field on all CharacterComponents in a SceneAsset from float to Vector3 to support three-dimensional gravity.
+        /// </summary>
+        protected class CharacterComponentGravityVector3Upgrader : AssetUpgraderBase
+        {
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
+            {
+                // Set up asset and entity hierarchy for reading.
+                var hierarchy = asset.Hierarchy;
+                var entities = (DynamicYamlArray)hierarchy.Parts;
+
+                // Loop through the YAML file.
+                foreach (dynamic entityDesign in entities)
+                {
+                    // Get the entity.
+                    var entity = entityDesign.Entity;
+
+                    // Save override and remove old Gravity element.
+                    var gravityOverride = entity.GetOverride("Gravity");
+                    entity.RemoveChild("Gravity");
+
+                    // Further loop to find CharacterComponents to upgrade.
+                    foreach (var component in entity.Components)
+                    {
+                        try
+                        {
+                            var componentTag = component.Value.Node.Tag;
+
+                            // Is this a character component?
+                            if (componentTag == "!CharacterComponent")
+                            {
+                                component.Value.SetOverride("Gravity", gravityOverride);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            e.Ignore();
+                        }
+
                     }
                 }
             }
