@@ -6,6 +6,7 @@ using Xenko.Core.Assets;
 using Xenko.Core;
 using Xenko.Core.Extensions;
 using Xenko.Core.Yaml;
+using Xenko.Core.Yaml.Serialization;
 
 namespace Xenko.Assets.Entities
 {
@@ -74,10 +75,6 @@ namespace Xenko.Assets.Entities
                     // Get the entity.
                     var entity = entityDesign.Entity;
 
-                    // Save override and remove old Gravity element.
-                    var gravityOverride = entity.GetOverride("Gravity");
-                    entity.RemoveChild("Gravity");
-
                     // Further loop to find CharacterComponents to upgrade.
                     foreach (var component in entity.Components)
                     {
@@ -88,7 +85,19 @@ namespace Xenko.Assets.Entities
                             // Is this a character component?
                             if (componentTag == "!CharacterComponent")
                             {
-                                component.Value.SetOverride("Gravity", gravityOverride);
+                                // Retrieve old gravity value.
+                                var oldGravity = component.Value.Gravity as DynamicYamlScalar;
+
+                                //Actually upgrade Gravity to a Vector3.
+                                if (component.Value.ContainsChild("Gravity"))
+                                {
+                                    component.Value.Gravity = new YamlMappingNode
+                                    {
+                                        { new YamlScalarNode("X"), new YamlScalarNode("0.0") },
+                                        { new YamlScalarNode("Y"), new YamlScalarNode(oldGravity.Node.Value) },
+                                        { new YamlScalarNode("Z"), new YamlScalarNode("0.0") }
+                                    };
+                                }
                             }
                         }
                         catch (Exception e)
