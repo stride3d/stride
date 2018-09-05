@@ -1048,7 +1048,14 @@
         </Trigger.EnterActions>
 
       </Trigger>
-      <Trigger Property="IsChecked" Value="True" />
+      <Trigger Property="IsChecked" Value="True" >
+        <Trigger.ExitActions>
+          <BeginStoryboard x:Name="CheckedTrueOff_BeginStoryboard" Storyboard="{StaticResource CheckedOff}" />
+        </Trigger.ExitActions>
+        <Trigger.EnterActions>
+          <BeginStoryboard x:Name="CheckedTrueOn_BeginStoryboard" Storyboard="{StaticResource CheckedOn}" />
+        </Trigger.EnterActions>
+      </Trigger>
       <Trigger Property="IsMouseOver" Value="true">
 
         <Trigger.ExitActions>

@@ -44,7 +44,6 @@ namespace Xenko.Assets.Presentation.Templates
         private bool importSkeleton = true;
         private bool dontImportSkeleton;
         private bool reuseSkeleton;
-        private bool updating;
 
         public ImportModelFromFileViewModel(IViewModelServiceProvider serviceProvider)
             : base(serviceProvider)
@@ -56,43 +55,15 @@ namespace Xenko.Assets.Presentation.Templates
 
         public bool ImportTextures { get { return importTextures; } set { SetValue(ref importTextures, value); } }
 
-        public bool ImportSkeleton { get { return importSkeleton; } set { SetValue(ref importSkeleton, value, () => UpdateStatus()); } }
+        public bool ImportSkeleton { get { return importSkeleton; } set { SetValue(ref importSkeleton, value); } }
 
-        public bool DontImportSkeleton { get { return dontImportSkeleton; } set { SetValue(ref dontImportSkeleton, value, () => UpdateStatus()); } }
+        public bool DontImportSkeleton { get { return dontImportSkeleton; } set { SetValue(ref dontImportSkeleton, value); } }
 
-        public bool ReuseSkeleton { get { return reuseSkeleton; } set { SetValue(ref reuseSkeleton, value, () => UpdateStatus()); } }
+        public bool ReuseSkeleton { get { return reuseSkeleton; } set { SetValue(ref reuseSkeleton, value); } }
 
         public Skeleton SkeletonToReuse { get { return referenceContainer.Skeleton; } set { referenceContainer.Skeleton = value; } }
 
         public GraphViewModel ReferenceViewModel { get; }
-
-        private void UpdateStatus([CallerMemberName]string propertyName = null)
-        {
-            if (updating)
-                return;
-
-            updating = true;
-
-            switch (propertyName)
-            {
-                case nameof(ImportSkeleton):
-                    DontImportSkeleton = !ImportSkeleton;
-                    ReuseSkeleton = false;
-                    break;
-                case nameof(DontImportSkeleton):
-                    ImportSkeleton = !DontImportSkeleton;
-                    ReuseSkeleton = false;
-                    break;
-                case nameof(ReuseSkeleton):
-                    ImportSkeleton = !ReuseSkeleton;
-                    DontImportSkeleton = false;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            updating = false;
-        }
     }
     /// <summary>
     /// Interaction logic for ModelAssetTemplateWindow.xaml

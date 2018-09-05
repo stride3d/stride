@@ -1,4 +1,4 @@
-﻿<xk:ModalWindow x:Class="Xenko.Assets.Presentation.Templates.ModelAssetTemplateWindow"
+<xk:ModalWindow x:Class="Xenko.Assets.Presentation.Templates.ModelAssetTemplateWindow"
                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -32,16 +32,16 @@
     </Border>
     <Border Margin="20,10,20,20">
       <StackPanel>
-        <CheckBox Content="{xk:Localize Import skeleton, Context=Button}" Margin="5" IsChecked="{Binding ImportSkeleton}"/>
-        <CheckBox Content="{xk:Localize No skeleton, Context=Button}" Margin="5" IsChecked="{Binding DontImportSkeleton}"/>
-        <CheckBox Content="{xk:Localize Use another skeleton for this model:, Context=Button}" Margin="5" IsChecked="{Binding ReuseSkeleton}" x:Name="ReuseCheckBox"/>
+        <RadioButton Content="{xk:Localize Import skeleton, Context=Button}" Margin="5" IsChecked="{Binding ImportSkeleton}" GroupName="Skeleton"/>
+        <RadioButton Content="{xk:Localize No skeleton, Context=Button}" Margin="5" IsChecked="{Binding DontImportSkeleton}" GroupName="Skeleton"/>
+        <RadioButton Content="{xk:Localize Use another skeleton for this model:, Context=Button}" Margin="5" IsChecked="{Binding ReuseSkeleton}" x:Name="ReuseRadioButton" GroupName="Skeleton"/>
         <StackPanel>
           <ContentPresenter Margin="25,5,5,5" Content="{Binding ReferenceViewModel.RootNode.Skeleton}"
                           ContentTemplate="{StaticResource SimpleContentReferencePropertyTemplate}">
             <i:Interaction.Behaviors>
               <xk:OnEventSetPropertyBehavior EventName="Click" EventOwnerType="{x:Type Button}"
-                                               Target="{Binding ElementName=ReuseCheckBox}"
-                                               Property="{x:Static CheckBox.IsCheckedProperty}" Value="{xk:True}"/>
+                                               Target="{Binding ElementName=ReuseRadioButton}"
+                                               Property="{x:Static RadioButton.IsCheckedProperty}" Value="{xk:True}"/>
             </i:Interaction.Behaviors>
           </ContentPresenter>
         </StackPanel>
