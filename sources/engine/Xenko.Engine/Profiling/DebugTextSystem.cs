@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
+using Xenko.Core.Serialization.Contents;
 using Xenko.Games;
 using Xenko.Graphics;
 
@@ -85,7 +86,8 @@ namespace Xenko.Profiling
             {
                 fastTextRenderer = new FastTextRenderer(Game.GraphicsContext)
                 {
-                    DebugSpriteFont = Content.Load<Texture>("XenkoDebugSpriteFont"),
+                    //TODO: This is a workaround for Content being null since DebugTextSystem is instantiated before IContentManager is registered
+                    DebugSpriteFont = (Content ?? Services.GetService<IContentManager>()).Load<Texture>("XenkoDebugSpriteFont"),
                     TextColor = TextColor,
                 };
             }
