@@ -5,7 +5,7 @@ using System.IO;
 
 namespace Xenko.Core.IO
 {
-    internal partial class TemporaryFile : IDisposable
+    public partial class TemporaryFile : IDisposable
     {
         private bool isDisposed;
         private string path;

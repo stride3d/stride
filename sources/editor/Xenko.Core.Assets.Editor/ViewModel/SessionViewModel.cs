@@ -451,7 +451,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
                     foreach (var pendingUpgrade in pendingUpgrades)
                     {
-                        message.AppendLine(string.Format(Tr._p("Message", "- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"), pendingUpgrade.Dependency.Name, pendingUpgrade.Dependency.Version, pendingUpgrade.DependencyPackage.Meta.Version));
+                        message.AppendLine(string.Format(Tr._p("Message", "- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"), pendingUpgrade.Dependency.Name, pendingUpgrade.Dependency.Version, pendingUpgrade.PackageUpgrader.Attribute.UpdatedVersionRange.MinVersion));
                     }
 
                     message.AppendLine();

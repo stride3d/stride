@@ -78,7 +78,7 @@ namespace Xenko.Core.Assets
         public Package Find(Dependency dependency)
         {
             if (dependency == null) throw new ArgumentNullException(nameof(dependency));
-            return Find(dependency.Name, dependency.VersionRange);
+            return Find(dependency.Name, new PackageVersionRange(dependency.Version));
         }
 
         /// <summary>

@@ -68,6 +68,14 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         }
     }
 
+    public class DependencyViewModel : PackageReferenceViewModel
+    {
+        public DependencyViewModel(PackageViewModel target, PackageViewModel referencer, DependencyCategoryViewModel dependencies)
+        {
+
+        }
+    }
+
     /// <summary>
     /// Implementation of the <see cref="PackageReferenceViewModel"/> for local package references.
     /// </summary>

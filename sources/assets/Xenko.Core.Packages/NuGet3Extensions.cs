@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
@@ -13,7 +13,7 @@ using NuGetManifestMetadata = NuGet.Packaging.ManifestMetadata;
 
 namespace Xenko.Core.Packages
 {
-    internal static class NuGet3Extensions
+    public static class NuGet3Extensions
     {
         /// <summary>
         /// Converts a <see cref="VersionRange"/> into a <see cref="PackageVersionRange"/>.

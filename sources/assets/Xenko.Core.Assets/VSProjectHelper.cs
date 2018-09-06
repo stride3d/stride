@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
+using NuGet.ProjectModel;
 using Xenko.Core;
 using Xenko.Core.Diagnostics;
+using Xenko.Core.IO;
 using ILogger = Xenko.Core.Diagnostics.ILogger;
 
 namespace Xenko.Core.Assets
@@ -112,6 +114,48 @@ namespace Xenko.Core.Assets
             }
 
             return null;
+        }
+
+        public static async Task<DependencyGraphSpec> GenerateRestoreGraphFile(ILogger logger, string projectPath)
+        {
+            DependencyGraphSpec spec = null;
+            using (var restoreGraphResult = new TemporaryFile())
+            {
+                await Task.Run(() =>
+                {
+                    var pc = new Microsoft.Build.Evaluation.ProjectCollection();
+
+                    try
+                    {
+                        var parameters = new BuildParameters(pc)
+                        {
+                            Loggers = new[] { new LoggerRedirect(logger, true) } //Instance of ILogger instantiated earlier
+                        };
+
+                        // Run a MSBuild /t:Restore <projectfile>
+                        var request = new BuildRequestData(projectPath, new Dictionary<string, string> { { "RestoreGraphOutputPath", restoreGraphResult.Path }, { "RestoreRecursive", "false" } }, null, new[] { "GenerateRestoreGraphFile" }, null, BuildRequestDataFlags.None);
+
+                        mainBuildManager.Build(parameters, request);
+                    }
+                    finally
+                    {
+                        pc.UnloadAllProjects();
+                        pc.Dispose();
+                    }
+                });
+
+                if (File.Exists(restoreGraphResult.Path) && new FileInfo(restoreGraphResult.Path).Length != 0)
+                {
+                    spec = DependencyGraphSpec.Load(restoreGraphResult.Path);
+                    File.Delete(restoreGraphResult.Path);
+                }
+                else
+                {
+                    spec = new DependencyGraphSpec();
+                }
+            }
+
+            return spec;
         }
 
         public static async Task RestoreNugetPackages(ILogger logger, string projectPath)

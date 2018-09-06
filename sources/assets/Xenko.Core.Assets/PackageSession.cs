@@ -7,8 +7,6 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Build.Evaluation;
-using NuGet.ProjectModel;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Assets.Analysis;
@@ -43,7 +41,7 @@ namespace Xenko.Core.Assets
         [NotNull]
         public Package Package { get; }
 
-        public List<Package> LoadedDependencies { get; } = new List<Package>();
+        public ObservableCollection<Package> LoadedDependencies { get; } = new ObservableCollection<Package>();
 
         internal void SetSessionInternal(PackageSession session)
         {
@@ -69,7 +67,25 @@ namespace Xenko.Core.Assets
 
     public class Dependency
     {
-        public Dependency(string name, PackageVersionRange versionRange, DependencyType type)
+        public Dependency(string name, PackageVersion version, DependencyType type)
+        {
+            Name = name;
+            Version = version;
+            Type = type;
+        }
+
+        public string Name { get; set; }
+
+        public string MSBuildProject { get; set; }
+
+        public PackageVersion Version { get; set; }
+
+        public DependencyType Type { get; set; }
+    }
+
+    public class DependencyRange
+    {
+        public DependencyRange(string name, PackageVersionRange versionRange, DependencyType type)
         {
             Name = name;
             VersionRange = versionRange;
@@ -77,6 +93,8 @@ namespace Xenko.Core.Assets
         }
 
         public string Name { get; set; }
+
+        public string MSBuildProject { get; set; }
 
         public PackageVersionRange VersionRange { get; set; }
 
@@ -130,7 +148,9 @@ namespace Xenko.Core.Assets
 
         public ProjectState State { get; set; }
 
-        public List<Dependency> Dependencies { get; } = new List<Dependency>();
+        public ObservableCollection<DependencyRange> DirectDependencies { get; } = new ObservableCollection<DependencyRange>();
+
+        public ObservableCollection<Dependency> FlattenedDependencies { get; } = new ObservableCollection<Dependency>();
     }
 
     public sealed class ProjectCollection : ObservableCollection<PackageContainer>
@@ -140,7 +160,7 @@ namespace Xenko.Core.Assets
     /// <summary>
     /// A session for editing a package.
     /// </summary>
-    public sealed class PackageSession : IDisposable, IAssetFinder
+    public sealed partial class PackageSession : IDisposable, IAssetFinder
     {
         /// <summary>
         /// The visual studio version property used for newly created project solution files
@@ -305,7 +325,7 @@ namespace Xenko.Core.Assets
                 yield return CurrentProject.Package;
             }
 
-            foreach (var dependency in CurrentProject.Dependencies)
+            foreach (var dependency in CurrentProject.FlattenedDependencies)
             {
                 var loadedPackage = packages.Find(dependency);
                 // In case the package is not found (when working with session not fully loaded/resolved with all deps)
@@ -631,7 +651,7 @@ namespace Xenko.Core.Assets
                 }
 
                 if (project is SolutionProject solutionProject)
-                    PreLoadPackageDependencies(log, solutionProject, loadParameters);
+                    PreLoadPackageDependencies(log, solutionProject, loadParameters).Wait();
             }
         }
 
@@ -1280,100 +1300,6 @@ namespace Xenko.Core.Assets
             }
 
             return null;
-        }
-        
-        private void PreLoadPackageDependencies(ILogger log, SolutionProject project, PackageLoadParameters loadParameters)
-        {
-            if (log == null) throw new ArgumentNullException(nameof(log));
-            if (project == null) throw new ArgumentNullException(nameof(project));
-            if (loadParameters == null) throw new ArgumentNullException(nameof(loadParameters));
-
-            bool packageDependencyErrors = false;
-
-            // TODO: Remove and recheck Dependencies Ready if some secondary packages are removed?
-            if (project.State >= ProjectState.DependenciesReady)
-                return;
-
-            project.Dependencies.Clear();
-            project.LoadedDependencies.Clear();
-
-            log.Verbose("Restore NuGet packages...");
-            VSProjectHelper.RestoreNugetPackages(log, project.FullPath).Wait();
-
-            var projectAssetsJsonPath = Path.Combine(project.FullPath.GetFullDirectory(), @"obj", LockFileFormat.AssetsFileName);
-            if (File.Exists(projectAssetsJsonPath))
-            {
-                var format = new LockFileFormat();
-                var projectAssets = format.Read(projectAssetsJsonPath);
-
-                // Update dependencies
-                foreach (var library in projectAssets.Libraries)
-                {
-                    // TODO CSPROJ=XKPKG rewrite this with new nuget code
-                    project.Dependencies.Add(new Dependency(library.Name, new PackageVersionRange(new PackageVersion(library.Version.Version, library.Version.Release)), library.Type == "project" ? DependencyType.Project : DependencyType.Package));
-                }
-
-                // Load dependency (if external)
-
-                // Compute output path
-            }
-
-
-            // 1. Load store package
-            foreach (var projectDependency in project.Dependencies)
-            {
-                var loadedPackage = packages.Find(projectDependency);
-                if (loadedPackage == null)
-                {
-                    var file = PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(new PackageVersion(projectDependency.VersionRange.MinVersion.Version, projectDependency.VersionRange.MinVersion.SpecialVersion)), constraintProvider);
-
-                    if (file == null)
-                    {
-                        // TODO: We need to support automatic download of packages. This is not supported yet when only Xenko
-                        // package is supposed to be installed, but It will be required for full store
-                        log.Error($"The project {project.Name ?? "[Untitled]"} depends on project or package {projectDependency} which is not installed");
-                        packageDependencyErrors = true;
-                        continue;
-                    }
-
-                    // Load package
-                    loadedPackage = PreLoadPackage(log, file, true, loadParameters);
-                    Projects.Add(new StandalonePackage(loadedPackage));
-                }
-
-                if (loadedPackage != null)
-                    project.LoadedDependencies.Add(loadedPackage);
-                // TODO CSPROJ=XKPKG
-                //if (loadedPackage == null || loadedPackage.State < ProjectState.DependenciesReady)
-                //    packageDependencyErrors = true;
-            }
-
-            // 2. Load local packages
-            /*foreach (var packageReference in package.LocalDependencies)
-            {
-                // Check that the package was not already loaded, otherwise return the same instance
-                if (Packages.ContainsById(packageReference.Id))
-                {
-                    continue;
-                }
-
-                // Expand the string of the location
-                var newLocation = packageReference.Location;
-
-                var subPackageFilePath = package.RootDirectory != null ? UPath.Combine(package.RootDirectory, newLocation) : newLocation;
-
-                // Recursive load
-                var loadedPackage = PreLoadPackage(log, subPackageFilePath.FullPath, false, loadedPackages, loadParameters);
-
-                if (loadedPackage == null || loadedPackage.State < PackageState.DependenciesReady)
-                    packageDependencyErrors = true;
-            }*/
-
-            // 3. Update package state
-            if (!packageDependencyErrors)
-            {
-                project.State = ProjectState.DependenciesReady;
-            }
         }
 
         public class PendingPackageUpgrade
