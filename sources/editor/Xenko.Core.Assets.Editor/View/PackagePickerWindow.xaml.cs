@@ -8,6 +8,7 @@ using System.Windows;
 
 using Xenko.Core.Assets.Editor.Services;
 using Xenko.Core.Assets.Editor.ViewModel;
+using Xenko.Core.Extensions;
 using Xenko.Core.Presentation.Services;
 
 namespace Xenko.Core.Assets.Editor.View

@@ -32,7 +32,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
             var projectWatcher = await code.ProjectWatcher;
 
             // Find roslyn project
-            var projectFullPath = package.Package.ProjectFullPath;
+            var projectFullPath = (package.Package.Container as SolutionProject)?.FullPath;
             var roslynProject = projectFullPath != null ? projectWatcher.TrackedAssemblies.FirstOrDefault(x => new UFile(x.Project.FilePath) == projectFullPath)?.Project : null;
             if (roslynProject == null)
                 return;

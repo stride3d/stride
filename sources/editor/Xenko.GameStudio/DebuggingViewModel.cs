@@ -208,12 +208,12 @@ namespace Xenko.GameStudio
         private void UpdateCommands()
         {
             assemblyChangesPending = modifiedAssemblies.Count > 0;
-            var hasCurrentPackage = editor.Session.CurrentPackage != null;
+            var hasCurrentProject = editor.Session.CurrentProject != null;
 
             BuildProjectCommand.IsEnabled = !BuildInProgress;
-            StartProjectCommand.IsEnabled = hasCurrentPackage &&!BuildInProgress;
+            StartProjectCommand.IsEnabled = hasCurrentProject && !BuildInProgress;
             CancelBuildCommand.IsEnabled = BuildInProgress;
-            LivePlayProjectCommand.IsEnabled = hasCurrentPackage && !BuildInProgress;
+            LivePlayProjectCommand.IsEnabled = hasCurrentProject && !BuildInProgress;
             ReloadAssembliesCommand.IsEnabled = assemblyChangesPending && !BuildInProgress;
         }
 
@@ -310,11 +310,11 @@ namespace Xenko.GameStudio
                 return false;
 
             // Make sure it is Windows platform (only supported for now)
-            if (Session.CurrentPackage.SelectedProfile.Platform != PlatformType.Windows)
+            if (Session.CurrentProject.Platform != PlatformType.Windows)
             {
                 await ServiceProvider.Get<IDialogService>()
                     .MessageBox(
-                        string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentPackage.SelectedProfile.Platform),
+                        string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform),
                         MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
@@ -332,7 +332,7 @@ namespace Xenko.GameStudio
                 }
 
                 // Start live debugging
-                return result = await debugService.StartDebug(editor, Session.CurrentPackage, assemblyReloadLogger);
+                return result = await debugService.StartDebug(editor, Session.CurrentProject, assemblyReloadLogger);
             }
             finally
             {
@@ -395,9 +395,9 @@ namespace Xenko.GameStudio
                     ["XenkoBuildEngineLogVerbose"] = "true",
                 };
 
-                var projectViewModel = Session.CurrentPackage.SelectedProfile.Projects.FirstOrDefault(p => p.Type == ProjectType.Executable);
+                var projectViewModel = Session.CurrentProject.Type == ProjectType.Executable ? Session.CurrentProject : null;
 
-                if (Session.CurrentPackage.SelectedProfile.Platform != PlatformType.Shared)
+                if (Session.CurrentProject.Platform != PlatformType.Shared)
                 {
                     if (!string.IsNullOrEmpty(Session.SolutionPath))
                     {
@@ -410,7 +410,7 @@ namespace Xenko.GameStudio
                         logger.Verbose("Building from a .csproj file. The 'SolutionDir' and 'SolutionPath' variables will not be set for the build session.");
                     }
 
-                    switch (Session.CurrentPackage.SelectedProfile.Platform)
+                    switch (Session.CurrentProject.Platform)
                     {
                         case PlatformType.Windows:
                             extraProperties.Add("SolutionPlatform", "Any CPU");
@@ -457,14 +457,14 @@ namespace Xenko.GameStudio
                             break;
 
                         default:
-                            logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentPackage.SelectedProfile.Platform));
+                            logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform));
                             return false;
                     }
                 }
 
                 if (projectViewModel == null)
                 {
-                    logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentPackage.SelectedProfile.Platform != PlatformType.Shared ? Session.CurrentPackage.SelectedProfile.Platform : PlatformType.Windows));
+                    logger.Error(string.Format(Tr._p("Message", "Platform {0} isn't supported for execution."), Session.CurrentProject.Platform != PlatformType.Shared ? Session.CurrentProject.Platform : PlatformType.Windows));
                     return false;
                 }
 
@@ -480,9 +480,9 @@ namespace Xenko.GameStudio
                 var buildTask = await currentBuild.BuildTask;
 
                 // Execute
-                if (startProject && !currentBuild.IsCanceled && !logger.HasErrors && projectViewModel.Profile.Platform != PlatformType.Shared)
+                if (startProject && !currentBuild.IsCanceled && !logger.HasErrors && projectViewModel.Platform != PlatformType.Shared)
                 {
-                    switch (projectViewModel.Profile.Platform)
+                    switch (projectViewModel.Platform)
                     {
                         case PlatformType.Windows:
                             if (string.Equals(Path.GetExtension(assemblyPath), ".exe", StringComparison.InvariantCultureIgnoreCase))
@@ -506,7 +506,7 @@ namespace Xenko.GameStudio
                             // Extract GetAndroidPackage result
                             if (!buildTask.ResultsByTarget.TryGetValue("GetAndroidPackage", out TargetResult targetResult))
                             {
-                                logger.Error(string.Format(Tr._p("Message", "Couldn't find Android package name for {0}."), Session.CurrentPackage.Name));
+                                logger.Error(string.Format(Tr._p("Message", "Couldn't find Android package name for {0}."), Session.CurrentProject.Name));
                                 return false;
                             }
 
@@ -579,7 +579,7 @@ namespace Xenko.GameStudio
 
         private async Task<bool> PrepareBuild()
         {
-            if (Session.CurrentPackage == null)
+            if (Session.CurrentProject == null)
             {
                 await ServiceProvider.Get<IDialogService>().MessageBox(Tr._p("Message", "To process the build, set an executable project as the current project in the session explorer."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
@@ -660,7 +660,7 @@ namespace Xenko.GameStudio
 
         private void SessionPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(SessionViewModel.CurrentPackage))
+            if (e.PropertyName == nameof(SessionViewModel.CurrentProject))
             {
                 UpdateCommands();
             }

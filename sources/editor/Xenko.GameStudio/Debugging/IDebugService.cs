@@ -14,6 +14,6 @@ namespace Xenko.GameStudio.Debugging
     /// </summary>
     public interface IDebugService : IDisposable
     {
-        Task<bool> StartDebug(EditorViewModel editor, PackageViewModel currentPackage, LoggerResult logger);
+        Task<bool> StartDebug(EditorViewModel editor, ProjectViewModel currentProject, LoggerResult logger);
     }
 }

@@ -69,15 +69,15 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// </summary>
         public bool IsRoot
         {
-            get { return !Asset.IsDeleted && (Session.CurrentPackage?.IsInScope(Asset) ?? false) && (ForcedRoot || Session.CurrentPackage.RootAssets.Contains(Asset)); }
+            get { return !Asset.IsDeleted && (Session.CurrentProject?.IsInScope(Asset) ?? false) && (ForcedRoot || (Session.CurrentProject?.RootAssets.Contains(Asset) ?? false)); }
             set
             {
-                if (Session.CurrentPackage != null && Session.CurrentPackage.IsInScope(Asset) && !ForcedRoot)
+                if ((Session.CurrentProject?.IsInScope(Asset) ?? false) && !ForcedRoot)
                 {
                     if (value)
-                        Session.CurrentPackage.RootAssets.Add(Asset);
+                        Session.CurrentProject.RootAssets.Add(Asset);
                     else
-                        Session.CurrentPackage.RootAssets.Remove(Asset);
+                        Session.CurrentProject.RootAssets.Remove(Asset);
                 }
             }
         }

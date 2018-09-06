@@ -52,13 +52,13 @@ namespace Xenko.Assets.Presentation.ViewModel
 
             // Ask location for generated texture
             var folderDialog = dialogService.CreateFolderOpenModalDialog();
-            folderDialog.InitialDirectory = (Session.CurrentPackage?.RootDirectory ?? Session.SolutionPath.GetFullDirectory()).ToWindowsPath() + "\\Resources";
+            folderDialog.InitialDirectory = (Session.CurrentProject?.Package?.RootDirectory ?? Session.SolutionPath.GetFullDirectory()).ToWindowsPath() + "\\Resources";
             var dialogResult = await folderDialog.ShowModal();
             if (dialogResult != DialogResult.Ok)
                 return;
 
             bool srgb;
-            var gameSettings = Session.CurrentPackage?.Package.GetGameSettingsAsset();
+            var gameSettings = Session.CurrentProject?.Package.GetGameSettingsAsset();
             if (gameSettings == null)
             {
                 var buttons = DialogHelper.CreateButtons(new[] { ColorSpace.Linear.ToString(), ColorSpace.Gamma.ToString(), Tr._p("Button", "Cancel") }, 1, 3);

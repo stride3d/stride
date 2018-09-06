@@ -40,7 +40,7 @@ namespace Xenko.Core.Assets
 
             var session = currentPackage.Session;
 
-            foreach (var package in currentPackage.LoadedDependencies)
+            foreach (var package in currentPackage.Container.LoadedDependencies)
             {
                 yield return package;
             }

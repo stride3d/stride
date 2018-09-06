@@ -38,8 +38,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         internal readonly ObservableList<AssetViewModel> DeletedAssetsList = new ObservableList<AssetViewModel>();
         private readonly PackageSettingsWrapper packageSettingsWrapper = new PackageSettingsWrapper();
         // TODO: When anything become renamable in the content of the package, this must be turn into an auto-updating sorted collection
-        private readonly SortedObservableCollection<DirtiableEditableViewModel> content = new SortedObservableCollection<DirtiableEditableViewModel>(ComparePackageContent);
-        private bool isCurrentPackage;
+        protected readonly SortedObservableCollection<DirtiableEditableViewModel> content = new SortedObservableCollection<DirtiableEditableViewModel>(ComparePackageContent);
         private ProfileViewModel selectedProfile;
         private readonly List<AssetViewModel> deletedAssetsSinceLastSave = new List<AssetViewModel>();
 
@@ -55,8 +54,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             content.Add(Dependencies);
             RenameCommand = new AnonymousCommand(ServiceProvider, () => IsEditing = true);
             IsLoaded = package.State >= PackageState.AssetsReady;
-
-            isCurrentPackage = package.Session.CurrentPackage == package;
 
             // IsDeleted will make the package added to Session.LocalPackages, so let's do it last
             InitialUndelete(!packageAlreadyInSession);
@@ -174,24 +171,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         public bool HasBeenUpgraded { get; private set; }
 
         /// <summary>
-        /// Gets or sets whether this package is the current package to build.
-        /// </summary>
-        public bool IsCurrentPackage
-        {
-            get
-            {
-                return isCurrentPackage;
-            }
-            internal set
-            {
-                SetValueUncancellable(ref isCurrentPackage, value);
-
-                // TODO: Check with Ben if this is the property place to put this?
-                Package.Session.CurrentPackage = isCurrentPackage ? Package : null;
-            }
-        }
-
-        /// <summary>
         /// Gets the list of assets that have been deleted by the user since the beginning of the session.
         /// </summary>
         public IReadOnlyObservableList<AssetViewModel> DeletedAssets => DeletedAssetsList;
@@ -239,12 +218,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                 return;
 
-            Profile = new ProfileViewModel(Session, Package, Package.Profile, this); ;
-
-            foreach (var project in Profile.Projects)
-            {
-                AddProject(project);
-            }
+            Profile = new ProfileViewModel(Session, Package, Package.Profile, this);
 
             foreach (var localPackage in Package.LocalDependencies)
             {
@@ -278,13 +252,12 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 var url = asset.Location;
                 DirectoryBaseViewModel directory;
                 var projectSourceCodeAsset = asset.Asset as IProjectAsset;
-                // TODO CSPROJ=XKPKG
-                //if (projectSourceCodeAsset != null && asset.SourceProject != null)
-                //{
-                //    var project = Content.OfType<ProjectViewModel>().First(x => string.Compare(asset.SourceProject.GetFileNameWithoutExtension(), x.Name, StringComparison.InvariantCultureIgnoreCase) == 0);
-                //    directory = GetOrCreateProjectDirectory(project, url.GetFullDirectory() ?? "", false);
-                //}
-                //else
+                // TODO CSPROJ=XKPKG override rather than cast to subclass
+                if (projectSourceCodeAsset != null && this is ProjectViewModel project)
+                {
+                    directory = project.GetOrCreateProjectDirectory(url.GetFullDirectory() ?? "", false);
+                }
+                else
                 {
                     directory = GetOrCreateAssetDirectory(url.GetFullDirectory() ?? "", false);
                 }
@@ -519,7 +492,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             // Errors might occur when generating the template. For the moment we consider them non-fatal and allow to open the project anyway.
             await TemplateGeneratorHelper.RunTemplateGeneratorSafe(generator, parameters, workProgress);
 
-            RefreshProjects();
+            RefreshPackageReferences();
 
             await workProgress.NotifyWorkFinished(false, loggerResult.HasErrors);
 
@@ -565,7 +538,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
                     }, cancellationSource.Token);
 
-                    RefreshProjects();
+                    RefreshPackageReferences();
 
                     UndoRedoService.SetName(transaction, $"Import project '{new UFile(projectPath).GetFileNameWithoutExtension()}'");
                 }
@@ -624,7 +597,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                     var location = asset.Location.GetFullDirectory() ?? "";
                     var assetDirectory = project == null ?
                         GetOrCreateAssetDirectory(location, true) :
-                        GetOrCreateProjectDirectory(project, location, true);
+                        project.GetOrCreateProjectDirectory(location, true);
                     var assetViewModel = CreateAsset(assetDirectory, asset, true, null);
                     viewModels.Add(assetViewModel);
                 }
@@ -698,16 +671,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             }
         }
 
-        internal void AddProject(ProjectViewModel project)
-        {
-            content.Add(project);
-        }
-
-        internal bool RemoveProject(ProjectViewModel project)
-        {
-            return content.Remove(project);
-        }
-
         private void Rename(string newName)
         {
             string error;
@@ -760,15 +723,10 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             e.OldItems?.Cast<AssetViewModel>().ForEach(x => deletedAssetsSinceLastSave.Remove(x));
         }
 
-        private bool RefreshProjects()
+        private bool RefreshPackageReferences()
         {
-            bool changes = Profile.UpdateProjectList();
-            foreach (var project in Profile.Projects.Where(x => !Content.Contains(x)))
-            {
-                AddProject(project);
-            }
-
-            return changes;
+            // TODO CSPROJ=XKPKG
+            return false;
         }
 
         /// <summary>
@@ -781,26 +739,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         public DirectoryBaseViewModel GetOrCreateAssetDirectory(string assetDirectory, bool canUndoRedoCreation)
         {
             return AssetMountPoint.GetOrCreateDirectory(assetDirectory, canUndoRedoCreation);
-        }
-
-        /// <summary>
-        /// Gets asset directory view model for a given path and creates all missing parts.
-        /// </summary>
-        /// <param name="project">The project.</param>
-        /// <param name="projectDirectory">Project directory path.</param>
-        /// <param name="canUndoRedoCreation">True if register UndoRedo operation for missing path parts.</param>
-        /// <returns>Given directory view model.</returns>
-        [NotNull]
-        public DirectoryBaseViewModel GetOrCreateProjectDirectory(ProjectViewModel project, string projectDirectory, bool canUndoRedoCreation)
-        {
-            DirectoryBaseViewModel result = project;
-            if (!string.IsNullOrEmpty(projectDirectory))
-            {
-                var directories = projectDirectory.Split(new[] { DirectoryBaseViewModel.Separator }, StringSplitOptions.RemoveEmptyEntries).Skip(1);
-                result = directories.Aggregate(result, (current, next) => current.SubDirectories.FirstOrDefault(x => x.Name == next) ?? new DirectoryViewModel(next, current, canUndoRedoCreation));
-            }
-
-            return result;
         }
 
         /// <inheritdoc/>
@@ -831,7 +769,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         IObjectNode IPropertyProviderViewModel.GetRootNode()
         {
-            packageSettingsWrapper.HasExecutables = Profile.HasExecutables;
+            packageSettingsWrapper.HasExecutables = (this as ProjectViewModel)?.Type == ProjectType.Executable;
             return Session.AssetNodeContainer.GetOrCreateNode(packageSettingsWrapper);
         }
 

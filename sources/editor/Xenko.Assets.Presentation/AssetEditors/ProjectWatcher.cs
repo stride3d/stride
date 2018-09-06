@@ -127,11 +127,11 @@ namespace Xenko.Assets.Presentation.AssetEditors
         {
             get
             {
-                var gameLibrary = session.CurrentPackage?.Profile.Projects.FirstOrDefault(p => p.Type == ProjectType.Library);
-                if (gameLibrary == null)
+                var project = session.CurrentProject as ProjectViewModel;
+                if (project == null || project.Type != ProjectType.Library)
                     return null;
 
-                return TrackedAssemblies.FirstOrDefault(x => new UFile(x.Project.FilePath) == gameLibrary.ProjectPath)?.Project;
+                return TrackedAssemblies.FirstOrDefault(x => new UFile(x.Project.FilePath) == project.ProjectPath)?.Project;
             }
         }
 
@@ -163,8 +163,8 @@ namespace Xenko.Assets.Presentation.AssetEditors
 
                 // Locate current package's game executable
                 // TODO: Handle current package changes. Detect this as part of the package solution.
-                var gameExecutableViewModel = session.CurrentPackage?.SelectedProfile.Projects.FirstOrDefault(p => p.Type == ProjectType.Executable);
-                if (gameExecutableViewModel != null && gameExecutableViewModel.Package.IsLoaded)
+                var gameExecutableViewModel = (session.CurrentProject as ProjectViewModel)?.Type == ProjectType.Executable ? session.CurrentProject : null;
+                if (gameExecutableViewModel != null && gameExecutableViewModel.IsLoaded)
                     gameExecutable = await OpenProject(gameExecutableViewModel.ProjectPath);
 
                 initializedTaskSource.SetResult(true);
@@ -379,7 +379,7 @@ namespace Xenko.Assets.Presentation.AssetEditors
 
                             // Check the visual studio version inside the solution first, which is what visual studio uses to decide which version to open
                             //  this should not be confused with the toolsVersion below, since this is the MSBuild version (they might be different)
-                            Version visualStudioVersion = session.CurrentPackage?.Package.Session.VisualStudioVersion;
+                            Version visualStudioVersion = session.CurrentProject?.Package.Session.VisualStudioVersion;
                             if (visualStudioVersion != null)
                             {
                                 if (visualStudioVersion.Major <= 14)

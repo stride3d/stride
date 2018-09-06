@@ -22,6 +22,7 @@ using Xenko.Core.Assets.TextAccessors;
 using Xenko.Core.Annotations;
 using Xenko.Core.Translation;
 using TextDocument = ICSharpCode.AvalonEdit.Document.TextDocument;
+using Xenko.Core.Assets;
 
 namespace Xenko.Assets.Presentation.ViewModel
 {
@@ -254,7 +255,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                     // New asset, let's create it in the workspace
                     // TODO: Differentiate document (newly created should be added in the project by the asset creation code) and additional documents (not in project)?
                     AssetItem.UpdateSourceFolders();
-                    var sourceProject = AssetItem.Package.ProjectFullPath?.ToWindowsPath();
+                    var sourceProject = (AssetItem.Package.Container as SolutionProject)?.FullPath.ToWindowsPath();
                     if (sourceProject == null)
                         throw new InvalidOperationException($"Could not find project associated to asset [{AssetItem}]");
 

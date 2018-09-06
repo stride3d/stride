@@ -33,11 +33,6 @@ namespace Xenko.Core.Assets
         Raw,
 
         /// <summary>
-        /// Dependencies have all been resolved and are also in <see cref="DependenciesReady"/> state.
-        /// </summary>
-        DependenciesReady,
-
-        /// <summary>
         /// Package upgrade has been failed (either error or denied by user).
         /// Dependencies are ready, but not assets.
         /// Should be manually switched back to DependenciesReady to try upgrade again.
@@ -48,17 +43,6 @@ namespace Xenko.Core.Assets
         /// Assembly references and assets have all been loaded.
         /// </summary>
         AssetsReady,
-    }
-
-    public enum PackageType
-    {
-        /// <summary>
-        /// Typically from a NuGet folder.
-        /// </summary>
-        Standalone,
-
-        ProjectOnly,
-        ProjectAndPackage,
     }
 
     /// <summary>
@@ -81,9 +65,6 @@ namespace Xenko.Core.Assets
         /// Locks the unique identifier for further changes.
         /// </summary>
         internal bool IsIdLocked;
-
-        [DataMemberIgnore]
-        public VisualStudio.Project VSProject;
 
         private readonly List<UFile> filesToDelete = new List<UFile>();
 
@@ -215,21 +196,6 @@ namespace Xenko.Core.Assets
         public RootAssetCollection RootAssets { get; private set; } = new RootAssetCollection();
 
         /// <summary>
-        /// Type of package.
-        /// </summary>
-        [DataMemberIgnore]
-        public PackageType Type { get; set; } = PackageType.Standalone;
-
-        [DataMemberIgnore]
-        public ProjectType? ProjectType { get; set; }
-
-        [DataMemberIgnore]
-        public List<LockFileLibrary> Dependencies { get; } = new List<LockFileLibrary>();
-
-        [DataMemberIgnore]
-        public List<Package> LoadedDependencies { get; } = new List<Package>();
-
-        /// <summary>
         /// Gets the loaded templates from the <see cref="TemplateFolders"/>
         /// </summary>
         /// <value>The templates.</value>
@@ -271,9 +237,6 @@ namespace Xenko.Core.Assets
             }
         }
 
-        [DataMemberIgnore]
-        public UFile ProjectFullPath { get; set; }
-
         /// <summary>
         /// Gets or sets a value indicating whether this instance has been modified since last saving.
         /// </summary>
@@ -303,28 +266,16 @@ namespace Xenko.Core.Assets
         [DataMemberIgnore]
         public UDirectory RootDirectory => FullPath?.GetParent();
 
+        [DataMemberIgnore]
+        public PackageContainer Container { get; internal set; }
+
         /// <summary>
         /// Gets the session.
         /// </summary>
         /// <value>The session.</value>
         /// <exception cref="System.InvalidOperationException">Cannot attach a package to more than one session</exception>
         [DataMemberIgnore]
-        public PackageSession Session
-        {
-            get
-            {
-                return session;
-            }
-            internal set
-            {
-                if (value != null && session != null && !ReferenceEquals(session, value))
-                {
-                    throw new InvalidOperationException("Cannot attach a package to more than one session");
-                }
-                session = value;
-                IsIdLocked = (session != null);
-            }
-        }
+        public PackageSession Session => Container?.Session;
 
         /// <summary>
         /// Gets the package user settings. Usually stored in a .user file alongside the package. Lazily loaded on first time.
@@ -526,9 +477,6 @@ namespace Xenko.Core.Assets
                 return;
             }
 
-            if (Type == PackageType.ProjectOnly)
-                return;
-
             saveParameters = saveParameters ?? PackageSaveParameters.Default();
 
             // Use relative paths when saving
@@ -612,7 +560,7 @@ namespace Xenko.Core.Assets
                     var projectAsset = asset.Asset as IProjectAsset;
                     if (projectAsset != null)
                     {
-                        var projectFullPath = asset.Package.ProjectFullPath;
+                        var projectFullPath = (asset.Package.Container as SolutionProject)?.FullPath;
                         var projectInclude = asset.GetProjectInclude();
 
                         Project project;
@@ -763,17 +711,6 @@ namespace Xenko.Core.Assets
         public static Package Load(ILogger log, string filePath, PackageLoadParameters loadParametersArg = null)
         {
             var package = LoadRaw(log, filePath);
-
-            // TODO CSPROJ=XKPKG temp code until Package loading supports csproj format natively
-            var projectFullPath = Path.ChangeExtension(package.FullPath, ".csproj");
-            if (File.Exists(projectFullPath))
-            {
-                var project = new VisualStudio.Project(package.Id, VisualStudio.KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(projectFullPath), projectFullPath, Guid.Empty, null, null, null);
-                package.ProjectFullPath = project.FullPath;
-                package.Type = PackageType.ProjectAndPackage;
-                package.ProjectType = Core.Assets.ProjectType.Library;
-                package.VSProject = project;
-            }
 
             if (package != null)
             {
@@ -1144,9 +1081,6 @@ namespace Xenko.Core.Assets
         /// <param name="loadParametersArg">The load parameters argument.</param>
         public void UpdateAssemblyReferences(ILogger log, PackageLoadParameters loadParametersArg = null)
         {
-            if (State < PackageState.DependenciesReady)
-                return;
-
             var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
             LoadAssemblyReferencesForPackage(log, loadParameters);
         }
@@ -1157,9 +1091,10 @@ namespace Xenko.Core.Assets
         /// <param name="log">The log.</param>
         public void RestoreNugetPackages(ILogger log)
         {
-            if (ProjectFullPath != null)
+            var projectFullPath = (Container as SolutionProject)?.FullPath;
+            if (projectFullPath != null)
             {
-                VSProjectHelper.RestoreNugetPackagesNonRecursive(log, ProjectFullPath.ToWindowsPath()).Wait();
+                VSProjectHelper.RestoreNugetPackagesNonRecursive(log, projectFullPath.ToWindowsPath()).Wait();
             }
         }
 
@@ -1189,16 +1124,17 @@ namespace Xenko.Core.Assets
             if (loadParameters == null) throw new ArgumentNullException(nameof(loadParameters));
             var assemblyContainer = loadParameters.AssemblyContainer ?? AssemblyContainer.Default;
 
-            if (ProjectFullPath != null)
+            var projectFullPath = (Container as SolutionProject)?.FullPath;
+            if (projectFullPath != null)
             {
                 // Check if already loaded
                 // TODO: More advanced cases: unload removed references, etc...
-                var projectReference = new ProjectReference(Id, ProjectFullPath, Core.Assets.ProjectType.Library);
+                var projectReference = new ProjectReference(Id, projectFullPath, Core.Assets.ProjectType.Library);
                 if (LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
                     return;
 
                 string assemblyPath = null;
-                var fullProjectLocation = ProjectFullPath.ToWindowsPath();
+                var fullProjectLocation = projectFullPath.ToWindowsPath();
 
                 try
                 {
@@ -1370,7 +1306,7 @@ namespace Xenko.Core.Assets
                         var ext = fileUPath.GetFileExtension();
 
                         //make sure to add default shaders in this case, since we don't have a csproj for them
-                        if (AssetRegistry.IsProjectCodeGeneratorAssetFileExtension(ext) && package.ProjectFullPath == null)
+                        if (AssetRegistry.IsProjectCodeGeneratorAssetFileExtension(ext) && !(package.Container is SolutionProject))
                         {
                             listFiles.Add(new PackageLoadingAssetFile(fileUPath, sourceFolder) { CachedFileSize = filePath.Length });
                             continue;
@@ -1424,12 +1360,13 @@ namespace Xenko.Core.Assets
         {
             if (package.IsSystem) return;
 
-            if (package.ProjectFullPath != null)
+            var projectFullPath = (package.Container as SolutionProject)?.FullPath;
+            if (projectFullPath != null)
             {
                 string defaultNamespace;
-                var codePaths = FindAssetsInProject(package.ProjectFullPath, out defaultNamespace);
+                var codePaths = FindAssetsInProject(projectFullPath, out defaultNamespace);
                 package.RootNamespace = defaultNamespace;
-                var dir = new UDirectory(package.ProjectFullPath.GetFullDirectory());
+                var dir = new UDirectory(projectFullPath.GetFullDirectory());
 
                 foreach (var codePath in codePaths)
                 {

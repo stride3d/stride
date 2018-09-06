@@ -34,9 +34,9 @@ namespace Xenko.GameStudio.Debugging
             RecompilationDelay = TimeSpan.FromSeconds(0.5);
         }
 
-        public async Task<bool> StartDebug(EditorViewModel editor, PackageViewModel currentPackage, LoggerResult logger)
+        public async Task<bool> StartDebug(EditorViewModel editor, ProjectViewModel currentProject, LoggerResult logger)
         {
-            if (currentPackage == null)
+            if (currentProject == null)
             {
                 await editor.Session.Dialogs.MessageBox(Tr._p("Message", "An executable project must be set as current project in the session explorer in order to process build."),
                     MessageBoxButton.OK, MessageBoxImage.Information);
@@ -45,7 +45,7 @@ namespace Xenko.GameStudio.Debugging
 
             try
             {
-                var projectWatcher = new ProjectWatcher(currentPackage.Session, false);
+                var projectWatcher = new ProjectWatcher(currentProject.Session, false);
                 await projectWatcher.Initialize();
 
                 var executableOutputPath = Path.GetDirectoryName(projectWatcher.CurrentGameExecutable.OutputFilePath);

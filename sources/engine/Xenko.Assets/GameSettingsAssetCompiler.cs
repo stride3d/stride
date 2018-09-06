@@ -104,7 +104,8 @@ namespace Xenko.Assets
                 result.Configurations.PlatformFilters = Parameters.PlatformFilters;
 
                 //make sure we modify platform specific files to set the wanted orientation
-                SetPlatformOrientation(package, platform, Parameters.GetOrCreate<RenderingSettings>().DisplayOrientation);
+                if (package.Container is SolutionProject solutionProject)
+                    SetPlatformOrientation(solutionProject, Parameters.GetOrCreate<RenderingSettings>().DisplayOrientation);
 
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                 assetManager.Save(Url, result);
@@ -113,20 +114,16 @@ namespace Xenko.Assets
             }
         }
 
-        public static void SetPlatformOrientation(Package package, PlatformType platform, RequiredDisplayOrientation orientation)
+        public static void SetPlatformOrientation(SolutionProject project, RequiredDisplayOrientation orientation)
         {
-            var profile = package.Profile;
-            if (profile.Platform != platform)
-                return;
-
-            switch (profile.Platform)
+            switch (project.Platform)
             {
                 case PlatformType.Android:
                     {
-                        if (package.ProjectFullPath == null) return;
+                        if (project.FullPath == null) return;
 
-                        var activityFileName = package.Meta.Name + "Activity.cs";
-                        var activityFile = UPath.Combine(package.ProjectFullPath.GetFullDirectory(), new UFile(activityFileName));
+                        var activityFileName = project.Name + "Activity.cs";
+                        var activityFile = UPath.Combine(project.FullPath.GetFullDirectory(), new UFile(activityFileName));
                         if (!File.Exists(activityFile)) return;
 
                         var activitySource = File.ReadAllText(activityFile);
@@ -157,7 +154,7 @@ namespace Xenko.Assets
                     break;
                 case PlatformType.iOS:
                     {
-                        var exeProjectLocation = package.ProjectFullPath;
+                        var exeProjectLocation = project.FullPath;
                         if (exeProjectLocation == null) return;
 
                         var plistFile = UPath.Combine(exeProjectLocation.GetFullDirectory(), new UFile("Info.plist"));

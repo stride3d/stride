@@ -70,8 +70,9 @@ namespace Xenko.Editor.Build
             if (systemPackages.Count == 0)
                 return null;
 
-            var importShadersRootProject = new Package();
-            var importShadersProjectSession = new PackageSession(importShadersRootProject);
+            var importShadersRootProject = new StandalonePackage(new Package());
+            var importShadersProjectSession = new PackageSession();
+            importShadersProjectSession.Projects.Add(importShadersRootProject);
 
             foreach (var package in systemPackages)
             {
@@ -82,12 +83,12 @@ namespace Xenko.Editor.Build
                         mapPackage.Assets.Add(new AssetItem(asset.Url, asset.Asset) { SourceFolder = asset.AssetItem.SourceFolder });
                 }
 
-                importShadersProjectSession.Packages.Add(mapPackage);
+                importShadersProjectSession.Projects.Add(new StandalonePackage(mapPackage));
                 importShadersRootProject.LoadedDependencies.Add(mapPackage);
             }
 
             // compile the fake project (create the build steps)
-            var assetProjectCompiler = new PackageCompiler(new PackageAssetEnumerator(importShadersRootProject));
+            var assetProjectCompiler = new PackageCompiler(new PackageAssetEnumerator(importShadersRootProject.Package));
             var context = new AssetCompilerContext { CompilationContext = typeof(AssetCompilationContext) };
             var dependenciesCompileResult = assetProjectCompiler.Prepare(context);
             context.Dispose();
@@ -104,8 +105,9 @@ namespace Xenko.Editor.Build
             if (packages.Count == 0)
                 return null;
 
-            var importShadersRootProject = new Package();
-            var importShadersProjectSession = new PackageSession(importShadersRootProject);
+            var importShadersRootProject = new StandalonePackage(new Package());
+            var importShadersProjectSession = new PackageSession();
+            importShadersProjectSession.Projects.Add(importShadersRootProject);
 
             foreach (var package in packages)
             {
@@ -118,12 +120,12 @@ namespace Xenko.Editor.Build
                     }
                 }
 
-                importShadersProjectSession.Packages.Add(mapPackage);
+                importShadersProjectSession.Projects.Add(new StandalonePackage(mapPackage));
                 importShadersRootProject.LoadedDependencies.Add(mapPackage);
             }
 
             // compile the fake project (create the build steps)
-            var assetProjectCompiler = new PackageCompiler(new PackageAssetEnumerator(importShadersRootProject));
+            var assetProjectCompiler = new PackageCompiler(new PackageAssetEnumerator(importShadersRootProject.Package));
             var dependenciesCompileResult = assetProjectCompiler.Prepare(new AssetCompilerContext { CompilationContext = typeof(AssetCompilationContext) });
 
             var buildSteps = dependenciesCompileResult.BuildSteps;

@@ -28,13 +28,14 @@ namespace Xenko.Assets.Analysis
         {
             if (log == null) throw new ArgumentNullException(nameof(log));
 
-            foreach (var package in Session.Packages)
+            foreach (var project in Session.Projects.OfType<SolutionProject>())
             {
                 // Make sure package has its assets loaded
-                if (package.State < PackageState.AssetsReady)
+                var package = project.Package;
+                if (package == null || package.State < PackageState.AssetsReady)
                     continue;
 
-                var hasGameExecutable = package.ProjectFullPath != null && package.ProjectType == ProjectType.Executable;
+                var hasGameExecutable = project.FullPath != null && project.Type == ProjectType.Executable;
                 if (!hasGameExecutable)
                 {
                     continue;

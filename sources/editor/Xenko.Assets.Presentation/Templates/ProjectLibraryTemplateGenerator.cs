@@ -30,7 +30,7 @@ namespace Xenko.Assets.Presentation.Templates
         {
             // libraries and executables
             var referencedBinaryNames = new List<string>();
-            referencedBinaryNames.AddRange(parameters.Package.Session.Packages.Where(x => x.ProjectFullPath != null).Select(x => x.ProjectFullPath.GetFileNameWithoutExtension()));
+            referencedBinaryNames.AddRange(parameters.Package.Session.Projects.OfType<SolutionProject>().Where(x => x.FullPath != null).Select(x => x.FullPath.GetFileNameWithoutExtension()));
             return referencedBinaryNames;
         }
 
@@ -90,7 +90,7 @@ namespace Xenko.Assets.Presentation.Templates
             ProjectTemplateGeneratorHelper.AddOption(parameters, "Platforms", AssetRegistry.SupportedPlatforms);
             var projectGameRef = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, "ProjectLibrary/ProjectLibrary.ttproj", projectName, PlatformType.Shared, null, ProjectType.Library, out generatedFiles);
 
-            package.Session.Packages.Add(projectGameRef);
+            package.Session.Projects.Add(projectGameRef);
 
             // Log done
             ProjectTemplateGeneratorHelper.Progress(logger, "Done", 1, 1);

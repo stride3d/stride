@@ -98,9 +98,9 @@ namespace Xenko.GameStudio
 
         private static void OpenMetricsProjectSession(EditorViewModel editor)
         {
-            var projectUid = editor.Session.CurrentPackage?.Id ?? Guid.Empty;
+            var projectUid = editor.Session.CurrentProject?.Id ?? Guid.Empty;
 
-            var execProfiles = editor.Session.AllPackages.Select(x => x.Profile).Where(x => x.HasExecutables);
+            var execProfiles = editor.Session.LocalPackages.OfType<ProjectViewModel>().Where(x => x.Type == ProjectType.Executable);
             var sessionPlatforms = new HashSet<PlatformType>();
             foreach (var execProfile in execProfiles)
             {
@@ -319,7 +319,7 @@ namespace Xenko.GameStudio
 
         private async void OpenDefaultScene(SessionViewModel session)
         {
-            var startupPackage = session.LocalPackages.SingleOrDefault(x => x.IsCurrentPackage);
+            var startupPackage = session.LocalPackages.OfType<ProjectViewModel>().SingleOrDefault(x => x.IsCurrentProject);
             if (startupPackage == null)
                 return;
 
@@ -352,7 +352,7 @@ namespace Xenko.GameStudio
         private void CreateTestAsset()
         {
 #if DEBUG
-            var package = Editor.Session.CurrentPackage;
+            var package = Editor.Session.CurrentProject;
             if (package != null)
             {
                 using (var transaction = Editor.Session.UndoRedoService.CreateTransaction())
@@ -373,7 +373,7 @@ namespace Xenko.GameStudio
         private void CreateUnitTestAsset()
         {
 #if DEBUG
-            var package = Editor.Session.CurrentPackage;
+            var package = Editor.Session.CurrentProject;
             if (package != null)
             {
                 using (var transaction = Editor.Session.UndoRedoService.CreateTransaction())

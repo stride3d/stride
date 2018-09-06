@@ -10,6 +10,7 @@ using Xenko.Core.Assets.Editor.Services;
 using Xenko.Core.Assets.Editor.Settings;
 using Xenko.Core.Assets.Editor.ViewModel;
 using Xenko.Core.Diagnostics;
+using Xenko.Core.Extensions;
 using Xenko.Core.IO;
 using Xenko.Core.Packages;
 using Xenko.Editor;

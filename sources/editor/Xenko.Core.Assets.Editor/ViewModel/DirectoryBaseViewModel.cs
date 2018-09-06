@@ -20,8 +20,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         private readonly AutoUpdatingSortedObservableCollection<DirectoryViewModel> subDirectories = new AutoUpdatingSortedObservableCollection<DirectoryViewModel>(CompareDirectories);
         private readonly ObservableList<AssetViewModel> assets = new ObservableList<AssetViewModel>();
 
-        protected DirectoryBaseViewModel(PackageViewModel package)
-            : base(package.SafeArgument(nameof(package)).Session)
+        protected DirectoryBaseViewModel(SessionViewModel session)
+            : base(session)
         {
             SubDirectories = new ReadOnlyObservableCollection<DirectoryViewModel>(subDirectories);
             // ReSharper disable DoNotCallOverridableMethodsInConstructor - looks like an issue in resharper

@@ -64,7 +64,7 @@ namespace Xenko.GameStudio
             try
             {
                 // Add session-specific information in this try/catch block
-                var gameSettingsAsset = SessionViewModel.Instance?.CurrentPackage?.Package.GetGameSettingsAsset();
+                var gameSettingsAsset = SessionViewModel.Instance?.CurrentProject?.Package.GetGameSettingsAsset();
                 if (gameSettingsAsset != null)
                 {
                     crashReport["DefaultGraphicProfile"] = gameSettingsAsset.GetOrCreate<RenderingSettings>().DefaultGraphicsProfile.ToString();

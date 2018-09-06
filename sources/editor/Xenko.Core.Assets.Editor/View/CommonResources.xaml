@@ -235,7 +235,7 @@
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.DependencyCategoryTemplate>
     <view:TreeViewTemplateSelector.ProjectTemplate>
-      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:ProjectViewModel">
+      <HierarchicalDataTemplate ItemsSource="{Binding Content}" DataType="viewModel:ProjectViewModel">
         <StackPanel Orientation="Horizontal">
           <Image Width="16" Height="16" Source="{Binding GenericType, Converter={xk:StaticResourceConverter}}" Margin="0,0,5,0"/>
           <TextBlock x:Name="ProjectText">
@@ -249,6 +249,16 @@
         </DataTemplate.Triggers>
       </HierarchicalDataTemplate>
     </view:TreeViewTemplateSelector.ProjectTemplate>
+    <view:TreeViewTemplateSelector.ProjectCodeTemplate>
+      <HierarchicalDataTemplate ItemsSource="{Binding SubDirectories}" DataType="viewModel:ProjectCodeViewModel">
+        <StackPanel Orientation="Horizontal">
+          <Image x:Name="DirectoryImage" Source="{StaticResource ImageRootFolder}" Margin="0,0,5,0"/>
+          <TextBlock>
+                        <Run Text="{Binding Name, Mode=OneWay}"/><Run Text="{Binding IsDirty, Mode=OneWay, Converter={xk:BoolToParam}, ConverterParameter=*}"/>
+          </TextBlock>
+        </StackPanel>
+      </HierarchicalDataTemplate>
+    </view:TreeViewTemplateSelector.ProjectCodeTemplate>
     <view:TreeViewTemplateSelector.PackageReferenceTemplate>
       <DataTemplate DataType="viewModel:PackageReferenceViewModel">
         <StackPanel Orientation="Horizontal">

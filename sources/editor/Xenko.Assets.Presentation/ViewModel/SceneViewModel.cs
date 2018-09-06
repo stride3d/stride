@@ -389,7 +389,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                 return;
 
             // TODO: find a better (faster?) way to access the game settings view model
-            var gameSettings = Session.CurrentPackage.AllAssets.OfType<GameSettingsViewModel>().FirstOrDefault();
+            var gameSettings = Session.CurrentProject?.AllAssets.OfType<GameSettingsViewModel>().FirstOrDefault();
             if (gameSettings == null)
                 return;
             gameSettings.DefaultScene = this;
@@ -400,7 +400,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             // Cannot set scene as default if
             // 1. session does not have a current package (not executable game)
             // 2. scene is not reachable from the main package (not a dependency), i.e. not in Package.AllAssets
-            SetAsDefaultCommand.IsEnabled = Session.CurrentPackage != null && Session.CurrentPackage.AllAssets.OfType<SceneViewModel>().Contains(this);
+            SetAsDefaultCommand.IsEnabled = Session.CurrentProject?.AllAssets.OfType<SceneViewModel>().Contains(this) ?? false;
         }
     }
 }

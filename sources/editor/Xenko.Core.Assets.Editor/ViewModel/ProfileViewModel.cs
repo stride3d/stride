@@ -27,11 +27,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             this.profile = profile;
 
             Package = container;
-
-            if (Package.Package.ProjectFullPath != null)
-            {
-                Projects.Add(new ProjectViewModel(this));
-            }
         }
 
         /// <summary>
@@ -39,43 +34,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// </summary>
         public PlatformType Platform => profile.Platform;
 
-        public ObservableList<ProjectViewModel> Projects { get; } = new ObservableList<ProjectViewModel>();
-
         public PackageViewModel Package { get; }
-
-        /// <summary>
-        /// Gets a value indicating whether this instance has executables projects.
-        /// </summary>
-        /// <value><c>true</c> if this instance has executables projects; otherwise, <c>false</c>.</value>
-        public bool HasExecutables
-        {
-            get
-            {
-                return Projects.Any(model => model.Type == ProjectType.Executable);
-            }
-        }
-
-        /// <summary>
-        /// Updates the list of projects contained in this profile from the related <see cref="PackageProfile"/>.
-        /// </summary>
-        /// <remarks>The actions undertaken by this method are not cancellable via the action stack.</remarks>
-        internal bool UpdateProjectList()
-        {
-            bool changed = false;
-
-            if (Package.Package.ProjectFullPath != null && Projects.Count == 0)
-            {
-                Projects.Add(new ProjectViewModel(this));
-                changed = true;
-            }
-
-            if (Package.Package.ProjectFullPath == null && Projects.Count != 0)
-            {
-                Projects[0].Delete();
-                changed = true;
-            }
-
-            return changed;
-        }
     }
 }

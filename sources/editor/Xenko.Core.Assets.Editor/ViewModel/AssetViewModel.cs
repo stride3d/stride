@@ -628,7 +628,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         {
             if (CanDerive)
             {
-                var targetDirectory = FindValidCreationLocation(assetItem.Asset.GetType(), directory, Session.CurrentPackage);
+                var targetDirectory = FindValidCreationLocation(assetItem.Asset.GetType(), directory, Session.CurrentProject);
 
                 if (targetDirectory == null)
                     return;

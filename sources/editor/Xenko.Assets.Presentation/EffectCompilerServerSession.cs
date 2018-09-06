@@ -20,6 +20,7 @@ using Xenko.Shaders.Compiler;
 using Xenko.Core.Presentation.Commands;
 using Xenko.Core.Presentation.Dirtiables;
 using Xenko.Core.Presentation.Services;
+using Xenko.Core.Extensions;
 
 namespace Xenko.Assets.Presentation
 {
@@ -80,9 +81,9 @@ namespace Xenko.Assets.Presentation
 
             session.ImportEffectLogCommand = new AnonymousCommand(session.ServiceProvider, () =>
             {
-                if (session.CurrentPackage != null)
-                    ImportEffectLog(session.CurrentPackage);
-            }, () => session.CurrentPackage != null);
+                if (session.CurrentProject != null)
+                    ImportEffectLog(session.CurrentProject);
+            }, () => session.CurrentProject?.Package != null);
         }
 
         private async void Start(PackageViewModel package, CancellationToken cancellationToken)

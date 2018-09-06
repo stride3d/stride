@@ -5,84 +5,34 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xenko.Core;
+using Xenko.Core.Annotations;
 using Xenko.Core.Extensions;
 using Xenko.Core.IO;
+using Xenko.Core.Presentation.Collections;
 using Xenko.Core.Presentation.Dirtiables;
+using Xenko.Core.Presentation.ViewModel;
 
 namespace Xenko.Core.Assets.Editor.ViewModel
 {
-    // TODO: For the moment we consider that a project has only a single parent profile. Sharing project in several profile is not supported.
-    public class ProjectViewModel : MountPointViewModel, IComparable<ProjectViewModel>
+    public class ProjectCodeViewModel : MountPointViewModel
     {
-        private readonly Package package;
-        private bool isCurrentProject;
-
-        public ProjectViewModel(ProfileViewModel container)
-            : base(container.SafeArgument(nameof(container)).Package)
+        public ProjectCodeViewModel(ProjectViewModel project)
+            : base(project)
         {
-            if (container == null) throw new ArgumentNullException(nameof(container));
-            Profile = container;
-            this.package = container.Package.Package;
-
-            // Use the property in order to create an action item
-            InitialUndelete(false);
         }
 
-        public override string Name { get { return package.ProjectFullPath.GetFileNameWithoutExtension(); } set { if (value != Name) throw new InvalidOperationException("The name of a project cannot be set"); } }
+        public override string Name { get => "Code"; set => throw new NotImplementedException(); }
 
-        public override string Path => Name + Separator;
+        public override bool IsEditable => false;
 
-        public Guid Id => package.Id;
+        public override string TypeDisplayName => "Project Code";
 
-        public UFile ProjectPath => package.ProjectFullPath;
-
-        public ProjectType Type => package.ProjectType.Value;
-
-        /// <summary>
-        /// Gets the generic type (either PlatformType or ProjectType)
-        /// </summary>
-        /// TODO: Remove this code as this is an ugly workaround
-        public object GenericType => Profile.Platform != PlatformType.Shared ? (object)Profile.Platform : Type;
-
-        public ProfileViewModel Profile { get; }
-
-        public bool IsCurrentProject { get { return isCurrentProject; } set { SetValueUncancellable(ref isCurrentProject, value); } }
-
-        /// <inheritdoc/>
-        public override bool IsEditable => Package.IsEditable && Type != ProjectType.Executable;
-
-        /// <inheritdoc/>
-        public override bool IsEditing { get { return false; } set { } }
-
-        /// <inheritdoc/>
-        public override string TypeDisplayName => "Project";
-
-        /// <inheritdoc/>
-        public override IEnumerable<IDirtiable> Dirtiables => base.Dirtiables.Concat(Profile.Package.Dirtiables);
-
-        /// <summary>
-        /// Gets the root namespace for this project.
-        /// </summary>
-        public string RootNamespace => Package.Package.RootNamespace ?? Package.Package.Meta.RootNamespace ?? Name;
-
-        /// <inheritdoc/>
-        public int CompareTo(ProjectViewModel other)
-        {
-            if (other == null)
-                return -1;
-
-            var result = Type.CompareTo(other.Type);
-            return result != 0 ? result : string.Compare(Name, other.Name, StringComparison.InvariantCultureIgnoreCase);
-        }
+        public ProjectViewModel Project => (ProjectViewModel)Package;
 
         public override bool CanDelete(out string error)
         {
             error = "Projects can't be deleted from Game Studio.";
             return false;
-        }
-
-        public override void Delete()
-        {
         }
 
         public override bool AcceptAssetType(Type assetType)
@@ -92,6 +42,81 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         protected override void UpdateIsDeletedStatus()
         {
+            throw new NotImplementedException();
+        }
+    }
+
+    // TODO: For the moment we consider that a project has only a single parent profile. Sharing project in several profile is not supported.
+    public class ProjectViewModel : PackageViewModel
+    {
+        private readonly SolutionProject project;
+        private bool isCurrentProject;
+        private PackageViewModel package;
+
+        public ProjectViewModel(SessionViewModel session, SolutionProject project, bool packageAlreadyInSession)
+            : base(session, project.Package, packageAlreadyInSession)
+        {
+            this.project = project;
+            content.Add(Code = new ProjectCodeViewModel(this));
+        }
+
+        public SolutionProject Project => project;
+
+        public ProjectCodeViewModel Code { get; }
+
+        public override string Name { get { return project.Name; } set { if (value != Name) throw new InvalidOperationException("The name of a project cannot be set"); } }
+
+        public UFile ProjectPath => project.FullPath;
+
+        // TODO CSPROJ=XKPKG
+        public ProjectType Type => project.Type;
+
+        public PlatformType Platform => project.Platform;
+
+        /// <summary>
+        /// Gets the generic type (either PlatformType or ProjectType)
+        /// </summary>
+        /// TODO: Remove this code as this is an ugly workaround
+        public object GenericType => Platform != PlatformType.Shared ? (object)Platform : Type;
+
+        public bool IsCurrentProject
+        {
+            get { return isCurrentProject; }
+            internal set
+            {
+                SetValueUncancellable(ref isCurrentProject, value);
+
+                // TODO: Check with Ben if this is the property place to put this?
+                Package.Session.CurrentProject = isCurrentProject ? project : null;
+            }
+        }
+
+        /// <inheritdoc/>
+        public override string TypeDisplayName => "Project";
+
+        /// <summary>
+        /// Gets the root namespace for this project.
+        /// </summary>
+        public string RootNamespace => Name; // TODO CSPROJ=XKPKG
+
+        /// <summary>
+        /// Gets asset directory view model for a given path and creates all missing parts.
+        /// </summary>
+        /// <param name="project">The project.</param>
+        /// <param name="projectDirectory">Project directory path.</param>
+        /// <param name="canUndoRedoCreation">True if register UndoRedo operation for missing path parts.</param>
+        /// <returns>Given directory view model.</returns>
+        [NotNull]
+        public DirectoryBaseViewModel GetOrCreateProjectDirectory(string projectDirectory, bool canUndoRedoCreation)
+        {
+            DirectoryBaseViewModel result = Code;
+            if (!string.IsNullOrEmpty(projectDirectory))
+            {
+                var directories = projectDirectory.Split(new[] { DirectoryBaseViewModel.Separator }, StringSplitOptions.RemoveEmptyEntries).Skip(1);
+                result = directories.Aggregate(result, (current, next) => current.SubDirectories.FirstOrDefault(x => x.Name == next) ?? new DirectoryViewModel(next, current, canUndoRedoCreation));
+            }
+
+            return result;
         }
     }
 }

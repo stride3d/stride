@@ -17,7 +17,7 @@ namespace Xenko.Core.Assets
         public static string GetProjectInclude([NotNull] this AssetItem assetItem)
         {
             var assetFullPath = assetItem.FullPath;
-            var projectFullPath = assetItem.Package.ProjectFullPath;
+            var projectFullPath = (assetItem.Package.Container as SolutionProject)?.FullPath;
             return assetFullPath.MakeRelative(projectFullPath.GetFullDirectory()).ToWindowsPath();
         }
 

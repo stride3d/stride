@@ -129,10 +129,8 @@ namespace Xenko.Assets.Presentation.Templates
             ProjectTemplateGeneratorHelper.Progress(logger, $"Generating {projectGameName}...", stepIndex++, stepCount);
 
             // Generate the Game library
-            var package = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms, "ProjectLibrary.Game/ProjectLibrary.Game.ttproj", projectGameName, PlatformType.Shared, null, null, ProjectType.Library, orientation);
-            //projectGameReference.Type = ProjectType.Library;
-
-            //package.ProjectFullPath = projectGameReference.Location.ToWindowsPath();
+            var project = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms, "ProjectLibrary.Game/ProjectLibrary.Game.ttproj", projectGameName, PlatformType.Shared, null, null, ProjectType.Library, orientation);
+            var package = project.Package;
 
             //write gitignore
             WriteGitIgnore(parameters);
@@ -140,14 +138,16 @@ namespace Xenko.Assets.Presentation.Templates
             // Setup the assets folder
             //Directory.CreateDirectory(UPath.Combine(package.RootDirectory, (UDirectory)"Assets/Shared"));
 
-            var previousCurrent = session.CurrentPackage;
-            session.Packages.Add(package);
-            session.CurrentPackage = package;
+            var previousCurrent = session.CurrentProject;
+
+            session.Projects.Add(project);
+
+            session.CurrentProject = project;
 
             // Load missing references
             session.LoadMissingDependencies(parameters.Logger);
             // Load dependency assets (needed for camera script template)
-            session.LoadMissingAssets(parameters.Logger, package.LoadedDependencies);
+            session.LoadMissingAssets(parameters.Logger, project.LoadedDependencies);
 
             // Add Effects as an asset folder in order to load xksl
             //sharedProfile.AssetFolders.Add(new AssetFolder(projectGameName + "/Effects"));

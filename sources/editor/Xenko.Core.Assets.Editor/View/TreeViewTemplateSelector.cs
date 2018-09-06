@@ -20,6 +20,8 @@ namespace Xenko.Core.Assets.Editor.View
 
         public DataTemplate ProjectTemplate { get; set; }
 
+        public DataTemplate ProjectCodeTemplate { get; set; }
+
         public DataTemplate PackageReferenceTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
@@ -27,6 +29,10 @@ namespace Xenko.Core.Assets.Editor.View
             if (item == null)
             {
                 return null;
+            }
+            if (item is ProjectViewModel)
+            {
+                return ProjectTemplate;
             }
             if (item is PackageViewModel)
             {
@@ -44,9 +50,9 @@ namespace Xenko.Core.Assets.Editor.View
             {
                 return DependencyCategoryTemplate;
             }
-            if (item is ProjectViewModel)
+            if (item is ProjectCodeViewModel)
             {
-                return ProjectTemplate;
+                return ProjectCodeTemplate;
             }
             if (item is PackageReferenceViewModel)
             {

@@ -111,9 +111,9 @@ namespace Xenko.Assets.Presentation.Templates
             var sharedProfile = package.Profile;
 
             // TODO: this is not a safe way to get a game project see PDX-1128
-            var gameProjectRef = package.ProjectFullPath;
+            var gameProject = package.Container as SolutionProject;
 
-            if (gameProjectRef == null)
+            if (gameProject == null)
             {
                 return false;
             }
@@ -122,7 +122,7 @@ namespace Xenko.Assets.Presentation.Templates
             var templateGameLibrary = PrepareTemplate(parameters, "ProjectLibrary.Game/ProjectLibrary.Game.ttproj", PlatformType.Shared, null, null, ProjectType.Library);
             var options = ProjectTemplateGeneratorHelper.GetOptions(parameters);
             var newGameTargetFrameworks = templateGameLibrary.GeneratePart(@"..\Common.TargetFrameworks.targets.t4", logger, options);
-            PatchGameProject(newGameTargetFrameworks, gameProjectRef.FullPath);
+            PatchGameProject(newGameTargetFrameworks, gameProject.FullPath.ToWindowsPath());
 
             // Generate missing platforms
             bool forceGenerating = parameters.GetTag(ForcePlatformRegenerationKey);
@@ -152,7 +152,7 @@ namespace Xenko.Assets.Presentation.Templates
                 var sharedProfile = package.Profile;
 
                 // Get the game project
-                var gameProjectRef = package.ProjectFullPath;
+                var gameProjectRef = (package.Container as SolutionProject)?.FullPath;
                 if (gameProjectRef != null)
                 {
 

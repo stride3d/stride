@@ -53,7 +53,7 @@ namespace Xenko.ProjectGenerator
 
             // Add it to the current session
             var session = parameters.Session;
-            session.Packages.Add(package);
+            session.Projects.Add(new StandalonePackage(package));
 
             // Load missing references
             session.LoadMissingReferences(parameters.Logger);

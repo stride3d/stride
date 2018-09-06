@@ -92,9 +92,9 @@ namespace Xenko.Core.Assets.Editor.Services
                 if (string.IsNullOrEmpty(location))
                 {
                     //Try to find the assembly in the loaded assemblies, since Location won't be populated in the case of User assemblies
-                    if (ViewModel.SessionViewModel.Instance != null)
+                    if (ViewModel.SessionViewModel.Instance.CurrentProject?.Package != null)
                     {
-                        var package = ViewModel.SessionViewModel.Instance.CurrentPackage;
+                        var package = ViewModel.SessionViewModel.Instance.CurrentProject.Package;
                         foreach (var asm in package.LoadedAssemblies)
                         {
                             var name = asm.Assembly.GetName();

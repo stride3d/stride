@@ -10,7 +10,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
     public abstract class MountPointViewModel : DirectoryBaseViewModel
     {
         protected MountPointViewModel(PackageViewModel package)
-            : base(package)
+            : base(package.Session)
         {
             Package = package;
         }

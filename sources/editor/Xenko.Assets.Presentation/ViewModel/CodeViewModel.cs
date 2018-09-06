@@ -170,13 +170,15 @@ namespace Xenko.Assets.Presentation.ViewModel
             var projectFiles = Package.FindAssetsInProject(project.FilePath, out projectNamespace);
 
             // Find associated ProjectViewModel
-            var projectViewModel = session.AllPackages.Select(x => x.Profile).SelectMany(x => x.Projects).FirstOrDefault(y => y.Name == project.Name);
+            var projectViewModel = session.LocalPackages.FirstOrDefault(y => y.Name == project.Name) as ProjectViewModel;
             if (projectViewModel == null)
                 return;
 
             // List current assets
             var projectAssets = new List<AssetViewModel>();
-            var isProjectDirty = GetAssets(projectViewModel, projectAssets);
+            // TODO CSPROJ=XKPKG
+            //var isProjectDirty = GetAssets(projectViewModel, projectAssets);
+            var isProjectDirty = false;
 
             // Project is dirty, ask user if he really wants to auto-reload
             if (isProjectDirty)
@@ -202,7 +204,8 @@ namespace Xenko.Assets.Presentation.ViewModel
 
             // Mark project as non dirty
             // TODO: Does that work properly with Undo/Redo?
-            UpdateDirtiness(projectViewModel, false);
+            // TODO CSPROJ=XKPKG
+            //UpdateDirtiness(projectViewModel, false);
         }
 
         /// <summary>
@@ -291,8 +294,8 @@ namespace Xenko.Assets.Presentation.ViewModel
                         SourceFolder = projectViewModel.Package.RootDirectory,
                     };
 
-                    var directory = projectViewModel.Package.GetOrCreateProjectDirectory(projectViewModel, assetItem.Location.GetFullDirectory().FullPath, false);
-                    var newScriptAsset = projectViewModel.Package.CreateAsset(directory, assetItem, false, null);
+                    var directory = projectViewModel.GetOrCreateProjectDirectory(assetItem.Location.GetFullDirectory().FullPath, false);
+                    var newScriptAsset = projectViewModel.CreateAsset(directory, assetItem, false, null);
                     newScriptAssets.Add(newScriptAsset);
                 }
 

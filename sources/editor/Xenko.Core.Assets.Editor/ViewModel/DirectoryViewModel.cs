@@ -28,7 +28,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// <param name="parent">The parent of this directory. Cannot be <c>null</c>.</param>
         /// <param name="canUndoRedoCreation">Indicates if the creation of this view model should create a transaction in the undo/redo service.</param>
         public DirectoryViewModel(string name, DirectoryBaseViewModel parent, bool canUndoRedoCreation)
-            : base(parent.SafeArgument(nameof(parent)).Package)
+            : base(parent.SafeArgument(nameof(parent)).Package.Session)
         {
             this.name = name ?? throw new ArgumentNullException(nameof(name));
             // Update property to make the directory dirty. The name must be already set here!

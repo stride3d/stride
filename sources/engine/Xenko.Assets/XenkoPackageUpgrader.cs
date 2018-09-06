@@ -423,11 +423,12 @@ namespace Xenko.Assets
             }
 
             // Update NuGet references
-            if (dependentPackage.ProjectFullPath != null)
+            var projectFullPath = (dependentPackage.Container as SolutionProject)?.FullPath;
+            if (projectFullPath != null)
             {
                 try
                 {
-                    var projectFile = UPath.Combine(dependentPackage.FullPath.GetFullDirectory(), dependentPackage.ProjectFullPath);
+                    var projectFile = UPath.Combine(dependentPackage.FullPath.GetFullDirectory(), projectFullPath);
                     var project = VSProjectHelper.LoadProject(projectFile.ToWindowsPath());
                     var isProjectDirty = false;
 
@@ -449,7 +450,7 @@ namespace Xenko.Assets
                 }
                 catch (Exception e)
                 {
-                    log.Warning($"Unable to load project [{dependentPackage.ProjectFullPath.GetFileName()}]", e);
+                    log.Warning($"Unable to load project [{projectFullPath.GetFileName()}]", e);
                 }
             }
 

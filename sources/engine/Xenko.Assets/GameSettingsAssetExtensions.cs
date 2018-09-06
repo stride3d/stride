@@ -36,12 +36,7 @@ namespace Xenko.Assets
             var gameSettings = package.GetGameSettingsAsset();
             if (gameSettings == null)
             {
-                var session = package.Session;
-                var currentPackage = session.CurrentPackage;
-                if (currentPackage != null)
-                {
-                    gameSettings = currentPackage.GetGameSettingsAsset();
-                }
+                gameSettings = package.Session.CurrentProject?.Package.GetGameSettingsAsset();
             }
             return gameSettings ?? GameSettingsFactory.Create();
         }
@@ -54,7 +49,7 @@ namespace Xenko.Assets
         /// <returns>The <see cref="GameSettingsAsset"/> from the given session if available. A new default instance otherwise.</returns>
         private static GameSettingsAsset GetGameSettingsAssetOrDefault(this PackageSession session)
         {
-            return session.CurrentPackage?.GetGameSettingsAsset() ?? GameSettingsFactory.Create();
+            return session.CurrentProject?.Package.GetGameSettingsAsset() ?? GameSettingsFactory.Create();
         }
 
         /// <summary>
