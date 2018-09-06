@@ -54,6 +54,10 @@ Ask for help or report issues:
 4. Open `<XenkoDir>\samples\XenkoSamples.sln` and play with the samples.
 5. Optionally, open and build `Xenko.Android.sln`, `Xenko.iOS.sln`, etc...
 
+### Contribution Guidelines
+
+Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
+
 ### Build Status
 
 |Branch| **master** |
