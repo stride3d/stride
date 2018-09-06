@@ -148,6 +148,7 @@ namespace Xenko.Core.Assets
         public static readonly Version DefaultVisualStudioVersion = new Version("14.0.23107.0");
 
         private readonly ConstraintProvider constraintProvider = new ConstraintProvider();
+        private readonly PackageCollection packages;
         private readonly PackageCollection packagesCopy;
         private readonly object dependenciesLock = new object();
         private SolutionProject currentProject;
@@ -172,10 +173,10 @@ namespace Xenko.Core.Assets
             Projects = new ProjectCollection();
             Projects.CollectionChanged += ProjectsCollectionChanged;
 
-            Packages = new PackageCollection();
+            packages = new PackageCollection();
             packagesCopy = new PackageCollection();
             AssemblyContainer = new AssemblyContainer();
-            Packages.CollectionChanged += PackagesCollectionChanged;
+            packages.CollectionChanged += PackagesCollectionChanged;
         }
 
         /// <summary>
@@ -192,7 +193,7 @@ namespace Xenko.Core.Assets
         /// Gets the packages referenced by the solution.
         /// </summary>
         /// <value>The packages.</value>
-        public PackageCollection Packages { get; }
+        public IReadOnlyPackageCollection Packages => packages;
 
         /// <summary>
         /// The projects referenced by the solution.
@@ -306,7 +307,7 @@ namespace Xenko.Core.Assets
 
             foreach (var dependency in CurrentProject.Dependencies)
             {
-                var loadedPackage = Packages.Find(dependency);
+                var loadedPackage = packages.Find(dependency);
                 // In case the package is not found (when working with session not fully loaded/resolved with all deps)
                 if (loadedPackage == null)
                 {
@@ -417,7 +418,7 @@ namespace Xenko.Core.Assets
             }
 
             // Preset the session on the package to allow the session to look for existing asset
-            Packages.Add(package);
+            packages.Add(package);
 
             // Run analysis after
             var analysis = new PackageAnalysis(package, GetPackageAnalysisParametersForLoad());
@@ -928,7 +929,7 @@ namespace Xenko.Core.Assets
                     VSSolution.Projects.Add(solutionProject.VSProject);
             }
 
-            Packages.Add(project.Package);
+            packages.Add(project.Package);
         }
 
         private void UnRegisterProject(PackageContainer project)
@@ -939,7 +940,7 @@ namespace Xenko.Core.Assets
             }
 
             if (project.Package != null)
-                Packages.Remove(project.Package);
+                packages.Remove(project.Package);
             if (project is SolutionProject solutionProject)
             {
                 VSSolution.Projects.Remove(solutionProject.VSProject);
@@ -1110,7 +1111,7 @@ namespace Xenko.Core.Assets
                 // Process store dependencies for upgraders
                 foreach (var packageDependency in package.Meta.Dependencies)
                 {
-                    var dependencyPackage = session.Packages.Find(packageDependency);
+                    var dependencyPackage = session.packages.Find(packageDependency);
                     if (dependencyPackage == null)
                     {
                         continue;
@@ -1321,7 +1322,7 @@ namespace Xenko.Core.Assets
             // 1. Load store package
             foreach (var projectDependency in project.Dependencies)
             {
-                var loadedPackage = Packages.Find(projectDependency);
+                var loadedPackage = packages.Find(projectDependency);
                 if (loadedPackage == null)
                 {
                     var file = PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(new PackageVersion(projectDependency.VersionRange.MinVersion.Version, projectDependency.VersionRange.MinVersion.SpecialVersion)), constraintProvider);

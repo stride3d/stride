@@ -6,19 +6,28 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
-using NuGet.ProjectModel;
-using Xenko.Core;
 using Xenko.Core.Diagnostics;
 
 namespace Xenko.Core.Assets
 {
+    public interface IReadOnlyPackageCollection : IReadOnlyCollection<Package>, INotifyCollectionChanged
+    {
+        Package Find(Dependency dependency);
+
+        Package Find(Guid packageGuid);
+
+        Package Find(PackageDependency packageDependency);
+
+        Package Find(string name, PackageVersionRange versionRange);
+    }
+
     /// <summary>
     /// A collection of <see cref="Package"/>.
     /// </summary>
     [DebuggerTypeProxy(typeof(CollectionDebugView))]
     [DebuggerDisplay("Count = {Count}")]
     [DataContract("PackageCollection")]
-    public sealed class PackageCollection : ICollection<Package>, INotifyCollectionChanged
+    public sealed class PackageCollection : ICollection<Package>, INotifyCollectionChanged, IReadOnlyPackageCollection
     {
         private readonly List<Package> packages;
 
