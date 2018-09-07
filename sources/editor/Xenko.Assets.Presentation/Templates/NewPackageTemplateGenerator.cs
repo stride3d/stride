@@ -80,9 +80,6 @@ namespace Xenko.Assets.Presentation.Templates
                         },
                 };
 
-            // Add dependency to latest Xenko package
-            package.Meta.Dependencies.Add(XenkoConfig.GetLatestPackageDependency());
-
             return package;
         }
     }

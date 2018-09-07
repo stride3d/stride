@@ -116,10 +116,9 @@ namespace Xenko.Core.Assets.Analysis
         {
             if (package == null) throw new ArgumentNullException(nameof(package));
 
-            var packagesForLocation = package.FindDependencies(true);
-            var packagesForIds = package.Session != null ? package.Session.Packages : packagesForLocation;
+            var packages = package.FindDependencies(true);
 
-            return new AssetResolver(packagesForLocation.ContainsAsset, packagesForIds.ContainsAsset);
+            return new AssetResolver(packages.ContainsAsset, packages.ContainsAsset);
         }
 
         /// <summary>

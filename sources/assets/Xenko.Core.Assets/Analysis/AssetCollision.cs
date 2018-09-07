@@ -137,19 +137,6 @@ namespace Xenko.Core.Assets.Analysis
             if (package != null)
             {
                 UpdateRootAssets(package.RootAssets, idRemap);
-
-                // We check dependencies to be consistent with other places, but nothing should be changed in there
-                // (except if we were to instantiate multiple packages referencing each other at once?)
-                foreach (var dependency in package.LocalDependencies)
-                {
-                    if (dependency.RootAssets != null)
-                        UpdateRootAssets(dependency.RootAssets, idRemap);
-                }
-                foreach (var dependency in package.Meta.Dependencies)
-                {
-                    if (dependency.RootAssets != null)
-                        UpdateRootAssets(dependency.RootAssets, idRemap);
-                }
             }
         }
 

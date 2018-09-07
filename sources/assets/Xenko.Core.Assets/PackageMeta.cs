@@ -20,7 +20,6 @@ namespace Xenko.Core.Assets
         {
             Authors = new List<string>();
             Owners = new List<string>();
-            Dependencies = new PackageDependencyCollection();
         }
 
         /// <summary>
@@ -183,23 +182,6 @@ namespace Xenko.Core.Assets
         /// <value>The published.</value>
         [DataMemberIgnore]
         public DateTimeOffset? Published { get; internal set; }
-
-        /// <summary>
-        /// Copies local and store depdencies of this instance to the specified package
-        /// </summary>
-        /// <param name="packageMeta">The package meta.</param>
-        /// <exception cref="System.ArgumentNullException">packageMeta</exception>
-        public void CopyDependenciesTo(PackageMeta packageMeta)
-        {
-            if (packageMeta == null) throw new ArgumentNullException("packageMeta");
-            foreach (var packageDependency in Dependencies)
-            {
-                if (!packageMeta.Dependencies.Contains(packageDependency))
-                {
-                    packageMeta.Dependencies.Add(packageDependency.Clone());
-                }
-            }
-        }
 
         /// <summary>
         /// Creates a new <see cref="PackageMeta" /> with default values.

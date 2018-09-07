@@ -371,7 +371,7 @@ namespace Xenko.Core.Assets
         /// <exception cref="System.ArgumentNullException">packagePath</exception>
         /// <exception cref="System.ArgumentException">Invalid relative path. Expecting an absolute package path;packagePath</exception>
         /// <exception cref="System.IO.FileNotFoundException">Unable to find package</exception>
-        public Package AddExistingPackage(UFile packagePath, ILogger logger, PackageLoadParameters loadParametersArg = null)
+        public PackageContainer AddExistingPackage(UFile packagePath, ILogger logger, PackageLoadParameters loadParametersArg = null)
         {
             if (packagePath == null) throw new ArgumentNullException(nameof(packagePath));
             if (logger == null) throw new ArgumentNullException(nameof(logger));
@@ -381,13 +381,32 @@ namespace Xenko.Core.Assets
             var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
 
             Package package;
+            PackageContainer project;
             try
             {
                 // Enable reference analysis caching during loading
                 AssetReferenceAnalysis.EnableCaching = true;
 
-                package = PreLoadPackage(logger, packagePath, false, loadParameters);
-                Projects.Add(new StandalonePackage(package));
+                if (Path.GetExtension(packagePath).ToLowerInvariant() == ".csproj")
+                {
+                    var projectPath = packagePath;
+                    packagePath = Path.ChangeExtension(packagePath, Package.PackageFileExtension);
+                    package = PreLoadPackage(logger, packagePath, false, loadParameters);
+                    Projects.Add(project = new SolutionProject(package, package.Id, projectPath));
+                }
+                else
+                {
+                    package = PreLoadPackage(logger, packagePath, false, loadParameters);
+                    var projectPath = Path.ChangeExtension(package.FullPath, ".csproj");
+                    if (File.Exists(projectPath))
+                    {
+                        Projects.Add(project = new SolutionProject(package, package.Id, projectPath));
+                    }
+                    else
+                    {
+                        Projects.Add(project = new StandalonePackage(package));
+                    }
+                }
 
                 if (loadParameters.AutoCompileProjects && loadParameters.ForceNugetRestore)
                 {
@@ -419,7 +438,7 @@ namespace Xenko.Core.Assets
                 // Disable reference analysis caching after loading
                 AssetReferenceAnalysis.EnableCaching = false;
             }
-            return package;
+            return project;
         }
 
         /// <summary>
@@ -1057,12 +1076,6 @@ namespace Xenko.Core.Assets
                 var package = Package.LoadRaw(log, filePath);
                 package.IsSystem = isSystemPackage;
 
-                // Remove all missing dependencies if they are not required
-                if (!loadParameters.LoadMissingDependencies)
-                {
-                    package.LocalDependencies.Clear();
-                }
-
                 // Convert UPath to absolute (Package only)
                 // Removed for now because it is called again in PackageSession.LoadAssembliesAndAssets (and running it twice result in dirty package)
                 // If we remove it from here (and call it only in the other method), templates are not loaded (Because they are loaded via the package store that do not use PreLoadPackage)
@@ -1113,7 +1126,7 @@ namespace Xenko.Core.Assets
             {
                 // First, check that dependencies have their assets loaded
                 bool dependencyError = false;
-                foreach (var dependency in package.FindDependencies(false, false))
+                foreach (var dependency in package.FindDependencies(false))
                 {
                     if (!TryLoadAssets(session, log, dependency, loadParameters))
                         dependencyError = true;
@@ -1122,28 +1135,12 @@ namespace Xenko.Core.Assets
                 if (dependencyError)
                     return false;
 
+                // TODO CSPROJ=XKPKG: get package upgraders from PreLoadPackageDependencies
                 var pendingPackageUpgrades = new List<PendingPackageUpgrade>();
 
                 // Note: Default state is upgrade failed (for early exit on error/exceptions)
                 // We will update to success as soon as loading is finished.
                 package.State = PackageState.UpgradeFailed;
-
-                // Process store dependencies for upgraders
-                foreach (var packageDependency in package.Meta.Dependencies)
-                {
-                    var dependencyPackage = session.packages.Find(packageDependency);
-                    if (dependencyPackage == null)
-                    {
-                        continue;
-                    }
-
-                    // Check for upgraders
-                    var packageUpgrader = CheckPackageUpgrade(log, package, packageDependency, dependencyPackage);
-                    if (packageUpgrader != null)
-                    {
-                        pendingPackageUpgrades.Add(new PendingPackageUpgrade(packageUpgrader, packageDependency, dependencyPackage));
-                    }
-                }
 
                 // Prepare asset loading
                 var newLoadParameters = loadParameters.Clone();

@@ -56,7 +56,7 @@ namespace Xenko.Core.Assets
         /// <returns>List&lt;Package&gt;.</returns>
         /// <exception cref="System.ArgumentNullException">rootPackage</exception>
         /// <exception cref="System.ArgumentException">Root package must be part of a session;rootPackage</exception>
-        public static PackageCollection FindDependencies(this Package rootPackage, bool includeRootPackage = false, bool isRecursive = true, bool storeOnly = false)
+        public static PackageCollection FindDependencies(this Package rootPackage, bool includeRootPackage = false)
         {
             if (rootPackage == null) throw new ArgumentNullException("rootPackage");
             var packages = new PackageCollection();
@@ -66,7 +66,7 @@ namespace Xenko.Core.Assets
                 packages.Add(rootPackage);
             }
 
-            FillPackageDependencies(rootPackage, isRecursive, packages, storeOnly);
+            FillPackageDependencies(rootPackage, packages);
 
             return packages;
         }
@@ -93,60 +93,20 @@ namespace Xenko.Core.Assets
             return packages.Any(package => package.Assets.Find(location) != null);
         }
 
-        private static void FillPackageDependencies(Package rootPackage, bool isRecursive, ICollection<Package> packagesFound, bool storeOnly = false)
+        private static void FillPackageDependencies(Package rootPackage, ICollection<Package> packagesFound)
         {
             var session = rootPackage.Session;
 
-            if (session == null && (rootPackage.Meta.Dependencies.Count > 0 || rootPackage.LocalDependencies.Count > 0))
+            if (session == null)
             {
                 throw new InvalidOperationException("Cannot query package with dependencies when it is not attached to a session");
             }
 
-            // 1. Load store package
-            foreach (var packageDependency in rootPackage.Meta.Dependencies)
+            foreach (var dependency in rootPackage.Container.LoadedDependencies)
             {
-                var package = session.Packages.Find(packageDependency);
-                if (package == null)
-                {
-                    continue;
-                }
-
-                if (!packagesFound.Contains(package))
-                {
-                    packagesFound.Add(package);
-
-                    if (isRecursive)
-                    {
-                        FillPackageDependencies(package, isRecursive, packagesFound, storeOnly);
-                    }
-                }
+                if (!packagesFound.Contains(dependency))
+                    packagesFound.Add(dependency);
             }
-
-            if (storeOnly)
-            {
-                return;
-            }
-
-            // 2. Load local packages
-            foreach (var packageReference in rootPackage.LocalDependencies)
-            {
-                var package = session.Packages.Find(packageReference.Id);
-                if (package == null)
-                {
-                    continue;
-                }
-
-                if (!packagesFound.Contains(package))
-                {
-                    packagesFound.Add(package);
-
-                    if (isRecursive)
-                    {
-                        FillPackageDependencies(package, isRecursive, packagesFound, storeOnly);
-                    }
-                }
-            }
-
         }
     }
 }

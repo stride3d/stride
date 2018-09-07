@@ -105,7 +105,7 @@ namespace Xenko.Core.Assets.Tests
             Assert.NotNull(project);
             Assert.True(3 == project.Assets.Count, "Invalid number of assets loaded");
 
-            Assert.True(1 == project.LocalDependencies.Count, "Expecting subproject");
+            Assert.True(1 == project.Container.LoadedDependencies.Count, "Expecting subproject");
 
             Assert.NotEqual(AssetId.Empty, project.Assets.First().Id);
 

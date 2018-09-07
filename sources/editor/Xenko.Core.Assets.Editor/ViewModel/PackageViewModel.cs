@@ -220,7 +220,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             Profile = new ProfileViewModel(Session, Package, Package.Profile, this);
 
-            foreach (var localPackage in Package.LocalDependencies)
+            // TODO CSPROJ=XKPKG
+            /*foreach (var localPackage in Package.LocalDependencies)
             {
                 var viewModel = Session.AllPackages.SingleOrDefault(x => x.Match(localPackage.Id));
                 if (viewModel != null)
@@ -239,7 +240,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                     // ReSharper disable once ObjectCreationAsStatement - The PackageReferenceViewModel will register itself in the proper collection to keep being referenced
                     new StorePackageReferenceViewModel(storeDependency, viewModel, this, Dependencies, false);
                 }
-            }
+            }*/
 
             foreach (var asset in Package.Assets.ToList())
             {
@@ -300,14 +301,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         {
             RootAssets.Clear();
             RootAssets.AddRange(Package.RootAssets.Select(x => Session.GetAssetById(x.Id)));
-            foreach (var dependency in Package.LocalDependencies)
-            {
-                RootAssets.AddRange(dependency.RootAssets.Select(x => Session.GetAssetById(x.Id)));
-            }
-            foreach (var dependency in Package.Meta.Dependencies)
-            {
-                RootAssets.AddRange(dependency.RootAssets.Select(x => Session.GetAssetById(x.Id)));
-            }
             RegisterMemberCollectionForActionStack(nameof(RootAssets), RootAssets);
             RootAssets.CollectionChanged += RootAssetsCollectionChanged;
         }
@@ -550,7 +543,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         public void AddDependency(PackageViewModel packageViewModel)
         {
-            using (var transaction = UndoRedoService.CreateTransaction())
+            // TODO CSPROJ=XKPKG
+            /*using (var transaction = UndoRedoService.CreateTransaction())
             {
                 PackageReferenceViewModel reference;
                 if (packageViewModel.Package.IsSystem)
@@ -564,7 +558,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                     reference = new LocalPackageReferenceViewModel(dependency, packageViewModel, this, Dependencies, true);
                 }
                 UndoRedoService.SetName(transaction, $"Add dependency to package '{reference.Name}'");
-            }
+            }*/
         }
 
         public List<AssetViewModel> PasteAssets(List<AssetItem> assets, [CanBeNull] ProjectViewModel project)

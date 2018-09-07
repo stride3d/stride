@@ -155,14 +155,6 @@ namespace Xenko.Core.Assets
         public PackageMeta Meta { get; set; } = new PackageMeta();
 
         /// <summary>
-        /// Gets the local package dependencies used by this package (only valid for local references). Global dependencies
-        /// are defined through the <see cref="Meta"/> property in <see cref="PackageMeta.Dependencies"/> 
-        /// </summary>
-        /// <value>The package local dependencies.</value>
-        [DataMember(30)]
-        public List<PackageReference> LocalDependencies { get; } = new List<PackageReference>();
-
-        /// <summary>
         /// Gets the profile.
         /// </summary>
         /// <value>The profiles.</value>

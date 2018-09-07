@@ -96,33 +96,6 @@ namespace Xenko.Assets.Presentation.Templates
                 return false;
             }
 
-            // Add dependencies
-            foreach (var packageReference in package.LocalDependencies)
-            {
-                description.FullPath.GetFullDirectory();
-
-                var referencePath = UPath.Combine(description.FullPath.GetFullDirectory(), packageReference.Location);
-
-                if (!File.Exists(referencePath))
-                {
-                    log.Error($"Unable to find dependency package [{referencePath}]");
-                    return false;
-                }
-
-                var referenceLoadResult = new LoggerResult();
-                var reference = Package.Load(referenceLoadResult, referencePath, new PackageLoadParameters
-                {
-                    AutoLoadTemporaryAssets = false,
-                    AutoCompileProjects = false,
-                    LoadAssemblyReferences = false,
-                });
-                referenceLoadResult.CopyTo(log);
-                if (referenceLoadResult.HasErrors)
-                {
-                    return false;
-                }
-            }
-
             // We are going to replace all projects/packages id by new ids
             var idsToReplace = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
             idsToReplace.Add(package.Id.ToString("D"), Guid.NewGuid());
@@ -215,6 +188,8 @@ namespace Xenko.Assets.Presentation.Templates
                 }
             }
 
+            // TODO CSPROJ=XKPKG
+            /*
             // Copy dependency files locally
             //  We only want to copy the asset files. The raw files are in Resources and the game assets are in Assets.
             //  If we copy each file locally they will be included in the package and we can then delete the dependency packages.
@@ -267,6 +242,7 @@ namespace Xenko.Assets.Presentation.Templates
                     }
                 }
             }
+            */
 
             if (packageOutputFile != null)
             {
@@ -276,11 +252,11 @@ namespace Xenko.Assets.Presentation.Templates
                 loadParams.GenerateNewAssetIds = true;
                 loadParams.LoadMissingDependencies = false;
                 var session = parameters.Session;
-                var loadedPackage = session.AddExistingPackage(packageOutputFile, log, loadParams);
+                var loadedProject = session.AddExistingPackage(packageOutputFile, log, loadParams);
 
-                RemoveUnusedAssets(loadedPackage, session);
+                RemoveUnusedAssets(loadedProject.Package, session);
 
-                parameters.Tags.Add(GeneratedPackageKey, loadedPackage);
+                parameters.Tags.Add(GeneratedPackageKey, loadedProject.Package);
             }
             else
             {

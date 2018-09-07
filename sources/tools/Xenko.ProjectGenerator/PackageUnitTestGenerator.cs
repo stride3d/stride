@@ -76,9 +76,6 @@ namespace Xenko.ProjectGenerator
                 },
             };
 
-            // Add dependency to latest Xenko package
-            package.Meta.Dependencies.Add(XenkoConfig.GetLatestPackageDependency());
-
             return package;
         }
     }

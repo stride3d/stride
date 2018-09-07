@@ -80,18 +80,6 @@ namespace Xenko.Core.Assets.Analysis
             if (Parameters.IsProcessingAssetReferences)
             {
                 ProcessRootAssetReferences(package.RootAssets, package, log);
-                foreach (var dependency in package.LocalDependencies)
-                {
-                    var referencedPackage = package.Session.Packages.Find(dependency.Id);
-                    if (referencedPackage != null)
-                        ProcessRootAssetReferences(dependency.RootAssets, referencedPackage, log);
-                }
-                foreach (var dependency in package.Meta.Dependencies)
-                {
-                    var referencedPackage = package.Session.Packages.Find(dependency);
-                    if (referencedPackage != null)
-                        ProcessRootAssetReferences(dependency.RootAssets, referencedPackage, log);
-                }
             }
 
             ProcessAssets().CopyTo(log);
@@ -118,6 +106,8 @@ namespace Xenko.Core.Assets.Analysis
                 return log;
             }
 
+            // TODO CSPROJ=XKPKG check deps
+            /*
             // 1. Check all store package references
             foreach (var packageDependency in package.Meta.Dependencies)
             {
@@ -159,6 +149,7 @@ namespace Xenko.Core.Assets.Analysis
                     }
                 }
             }
+            */
 
             // TODO: Check profiles
 
@@ -192,12 +183,12 @@ namespace Xenko.Core.Assets.Analysis
             {
                 // Update Asset references (AssetReference, AssetBase, reference)
                 var id = rootAsset.Id;
-                var newItemReference = referencedPackage.Assets.Find(id);
+                var newItemReference = referencedPackage.FindAsset(id);
 
                 // If asset was not found by id try to find by its location
                 if (newItemReference == null)
                 {
-                    newItemReference = referencedPackage.Assets.Find(rootAsset.Location);
+                    newItemReference = referencedPackage.FindAsset(rootAsset.Location);
                     if (newItemReference != null)
                     {
                         // If asset was found by its location, just emit a warning
