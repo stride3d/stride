@@ -24,6 +24,7 @@
 #if XENKO_GRAPHICS_API_DIRECT3D
 using System;
 using System.Reflection;
+using System.Threading;
 using SharpDX;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
@@ -46,6 +47,8 @@ namespace Xenko.Graphics
         private readonly Texture backBuffer;
 
         private int bufferCount;
+
+        private bool isOccluded;
 
 #if XENKO_GRAPHICS_API_DIRECT3D12
         private int bufferSwapIndex;
@@ -151,7 +154,26 @@ namespace Xenko.Graphics
         {
             try
             {
-                swapChain.Present((int)PresentInterval, PresentFlags.None);
+                if (isOccluded)
+                {
+                    var result = swapChain.Present((int)PresentInterval, PresentFlags.Test);
+                    if (result == Result.Ok)
+                    {
+                        isOccluded = false;
+                    }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
+                else
+                {
+                    var result = swapChain.Present((int)PresentInterval, PresentFlags.None);
+                    if (result.Code == (int)DXGIStatus.Occluded)
+                    {
+                        isOccluded = true;
+                    }
+                }
 #if XENKO_GRAPHICS_API_DIRECT3D12
                 // Manually swap back buffer
                 backBuffer.NativeResource.Dispose();
