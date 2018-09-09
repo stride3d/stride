@@ -24,10 +24,10 @@
 #if XENKO_GRAPHICS_API_DIRECT3D
 using System;
 using System.Reflection;
-using System.Threading;
 using SharpDX;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
+using Xenko.Core;
 using Xenko.Core.Collections;
 #if XENKO_GRAPHICS_API_DIRECT3D11
 using BackBufferResourceType = SharpDX.Direct3D11.Texture2D;
@@ -163,7 +163,8 @@ namespace Xenko.Graphics
                     }
                     else
                     {
-                        Thread.Sleep(1);
+                        // waiting for the next present test
+                        Utilities.Sleep(1);
                     }
                 }
                 else
