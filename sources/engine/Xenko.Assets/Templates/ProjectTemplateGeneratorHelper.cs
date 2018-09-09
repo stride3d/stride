@@ -70,80 +70,62 @@ namespace Xenko.Assets.Templates
             AddOption(parameters, "ProjectGameRelativePath", (package.Container as SolutionProject)?.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
             AddOption(parameters, "PackageGameRelativePath", package.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
 
-            // TODO CSPROJ=XKPKG
-            throw new NotImplementedException();
-            /*// Add projects
+            // Add projects
             var stepIndex = 0;
             var stepCount = platforms.Count + 1;
-            var profilesToRemove = package.Profiles.Where(profile => platforms.All(platform => profile.Platform != PlatformType.Shared && platform.Platform.Type != profile.Platform)).ToList();
-            stepCount += profilesToRemove.Count;
 
             foreach (var platform in platforms)
             {
                 stepIndex++;
 
                 // Don't add a platform that is already in the package
-
-                var platformProfile = package.Profiles.FirstOrDefault(profile => profile.Platform == platform.Platform.Type);
-                if (platformProfile != null && !forcePlatformRegeneration)
-                    continue;
+                var projectName = Utilities.BuildValidNamespaceName(name) + "." + platform.Platform.Name;
+                var projectFullPath = UPath.Combine(package.RootDirectory.GetParent(), (UFile)(projectName + ".csproj"));
+                var existingProject = package.Session.Projects.OfType<SolutionProject>().FirstOrDefault(x => x.FullPath == projectFullPath);
 
                 var projectGuid = Guid.NewGuid();
 
-                if (platformProfile == null)
+                if (existingProject != null)
                 {
-                    platformProfile = new PackageProfile() { Platform = platform.Platform.Type };
-                    platformProfile.AssetFolders.Add(new AssetFolder("Assets/" + platform.Platform.Name));
-                }
-                else
-                {
+                    if (!forcePlatformRegeneration)
+                        continue;
+
+                    projectGuid = existingProject.Id;
+
                     // We are going to regenerate this platform, so we are removing it before
-                    var previousExeProject = platformProfile.ProjectReferences.FirstOrDefault(project => project.Type == ProjectType.Executable);
-                    if (previousExeProject != null)
+                    package.Session.Projects.Remove(existingProject);
+                    var projectDirectory = Path.GetDirectoryName(projectFullPath);
+                    if (projectDirectory != null && Directory.Exists(projectDirectory))
                     {
-                        projectGuid = previousExeProject.Id;
-                        RemoveProject(previousExeProject, logger);
-                        platformProfile.ProjectReferences.Remove(previousExeProject);
+                        try
+                        {
+                            Directory.Delete(projectDirectory, true);
+                        }
+                        catch (Exception)
+                        {
+                            logger.Warning($"Unable to delete directory [{projectDirectory}]");
+                        }
                     }
                 }
 
                 var templatePath = platform.Template?.TemplatePath ?? $"ProjectExecutable.{platform.Platform.Name}/ProjectExecutable.{platform.Platform.Name}.ttproj";
 
                 // Log progress
-                var projectName = Utilities.BuildValidNamespaceName(name) + "." + platform.Platform.Name;
                 Progress(logger, $"Generating {projectName}...", stepIndex - 1, stepCount);
 
                 var graphicsPlatform = platform.Platform.Type.GetDefaultGraphicsPlatform();
-                var newExeProject = GenerateTemplate(parameters, platforms, templatePath, projectName, platform.Platform.Type, platformProfile.Name, graphicsPlatform, ProjectType.Executable, orientation, projectGuid);
+                var newExeProject = GenerateTemplate(parameters, platforms, templatePath, projectName, platform.Platform.Type, graphicsPlatform, ProjectType.Executable, orientation, projectGuid);
 
                 package.Session.Projects.Add(newExeProject);
 
                 package.IsDirty = true;
             }
-
-            // Remove existing platform profiles
-            foreach (var profileToRemove in profilesToRemove)
-            {
-                package.Profiles.Remove(profileToRemove);
-                package.IsDirty = true;
-
-                foreach (var projectReference in profileToRemove.ProjectReferences)
-                {
-                    // Try to remove the directory
-                    Progress(logger, $"Deleting {projectReference.Location}...", stepIndex++, stepCount);
-                    RemoveProject(projectReference, logger);
-                }
-
-                // We are completely removing references from profile
-                profileToRemove.ProjectReferences.Clear();
-            }*/
         }
 
-        public static SolutionProject GenerateTemplate(TemplateGeneratorParameters parameters, ICollection<SelectedSolutionPlatform> platforms, UFile templateRelativePath, string projectName, PlatformType platformType, string currentProfile, GraphicsPlatform? graphicsPlatform, ProjectType projectType, DisplayOrientation orientation, Guid? projectGuid = null)
+        public static SolutionProject GenerateTemplate(TemplateGeneratorParameters parameters, ICollection<SelectedSolutionPlatform> platforms, UFile templateRelativePath, string projectName, PlatformType platformType, GraphicsPlatform? graphicsPlatform, ProjectType projectType, DisplayOrientation orientation, Guid? projectGuid = null)
         {
             AddOption(parameters, "Platforms", platforms.Select(x => x.Platform).ToList());
             AddOption(parameters, "CurrentPlatform", platformType);
-            AddOption(parameters, "CurrentProfile", currentProfile);
             AddOption(parameters, "Orientation", orientation);
 
             List<string> generatedFiles;

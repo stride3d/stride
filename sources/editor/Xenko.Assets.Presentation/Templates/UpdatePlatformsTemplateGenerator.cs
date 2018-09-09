@@ -60,7 +60,6 @@ namespace Xenko.Assets.Presentation.Templates
             }
 
             // TODO CSPROJ=XKPKG
-            throw new NotImplementedException();
             // If there are no executable/shared projects in this package, we can't work on it
             /*var sharedProfile = package.Profile;
             var existingPlatformTypesWithExe = new HashSet<PlatformType>(package.Profiles.Where(profile => profile.Platform != PlatformType.Shared && profile.ProjectReferences.Any(projectRef => projectRef.Type == ProjectType.Executable)).Select(item => item.Platform));
@@ -126,7 +125,6 @@ namespace Xenko.Assets.Presentation.Templates
 
             // Generate missing platforms
             bool forceGenerating = parameters.GetTag(ForcePlatformRegenerationKey);
-            // TODO CSPROJ=XKPKG
             ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, parameters.GetTag(PlatformsKey), parameters.GetTag(OrientationKey), package.Id, name, package, forceGenerating);
 
             // Save the session after the update

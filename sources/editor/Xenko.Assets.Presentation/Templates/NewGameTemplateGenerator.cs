@@ -129,7 +129,7 @@ namespace Xenko.Assets.Presentation.Templates
             ProjectTemplateGeneratorHelper.Progress(logger, $"Generating {projectGameName}...", stepIndex++, stepCount);
 
             // Generate the Game library
-            var project = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms, "ProjectLibrary.Game/ProjectLibrary.Game.ttproj", projectGameName, PlatformType.Shared, null, null, ProjectType.Library, orientation);
+            var project = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms, "ProjectLibrary.Game/ProjectLibrary.Game.ttproj", projectGameName, PlatformType.Shared, null, ProjectType.Library, orientation);
             var package = project.Package;
 
             //write gitignore
@@ -150,10 +150,10 @@ namespace Xenko.Assets.Presentation.Templates
             session.LoadMissingAssets(parameters.Logger, project.LoadedDependencies);
 
             // Add Effects as an asset folder in order to load xksl
-            //sharedProfile.AssetFolders.Add(new AssetFolder(projectGameName + "/Effects"));
+            package.Profile.AssetFolders.Add(new AssetFolder("Effects"));
 
             // Generate executable projects for each platform
-            //ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, platforms, orientation, package.Id, name, package, false);
+            ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, platforms, orientation, package.Id, name, package, false);
 
             // Add asset packages
             CopyAssetPacks(parameters, package);

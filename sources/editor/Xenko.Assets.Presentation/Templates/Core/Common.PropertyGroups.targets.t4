@@ -10,7 +10,6 @@
     {
 #>
     <XenkoPlatform><#= currentPlatform #></XenkoPlatform>
-    <XenkoBuildProfile><#= Properties.CurrentProfile #></XenkoBuildProfile>
 <#
     }
 #>

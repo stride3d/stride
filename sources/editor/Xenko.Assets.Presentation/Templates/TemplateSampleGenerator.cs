@@ -327,27 +327,26 @@ namespace Xenko.Assets.Presentation.Templates
             // We want to force regeneration of Windows platform in case the sample .csproj is outdated
             UpdatePlatformsTemplateGenerator.SetForcePlatformRegeneration(updateParameters, true);
 
-            // TODO CSPROJ=XKPKG
-            //var updateTemplate = UpdatePlatformsTemplateGenerator.Default;
-            //if (!await updateTemplate.PrepareForRun(updateParameters) || !updateTemplate.Run(updateParameters))
-            //{
-            //    // Remove the created project
-            //    var path = Path.GetDirectoryName(parameters.Session.SolutionPath.ToWindowsPath());
-            //    try
-            //    {
-            //        Directory.Delete(path ?? "", true);
-            //    }
-            //    catch (IOException ex)
-            //    {
-            //        parameters.Logger.Error("Error when removing generated project.", ex);
-            //    }
-            //    catch (UnauthorizedAccessException ex)
-            //    {
-            //        parameters.Logger.Error("Error when removing generated project.", ex);
-            //    }
-            //    // Notify cancellation
-            //    return false;
-            //}
+            var updateTemplate = UpdatePlatformsTemplateGenerator.Default;
+            if (!await updateTemplate.PrepareForRun(updateParameters) || !updateTemplate.Run(updateParameters))
+            {
+                // Remove the created project
+                var path = Path.GetDirectoryName(parameters.Session.SolutionPath.ToWindowsPath());
+                try
+                {
+                    Directory.Delete(path ?? "", true);
+                }
+                catch (IOException ex)
+                {
+                    parameters.Logger.Error("Error when removing generated project.", ex);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    parameters.Logger.Error("Error when removing generated project.", ex);
+                }
+                // Notify cancellation
+                return false;
+            }
 
             // Save again post update
             SaveSession(parameters);
