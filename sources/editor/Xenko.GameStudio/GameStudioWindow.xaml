@@ -436,48 +436,48 @@
                 <xcad:LayoutAnchorablePane DockWidth="300">
                   <!-- SOLUTION EXPLORER -->
                   <xcad:LayoutAnchorable AutoHideMinWidth="300" ContentId="SolutionExplorer" Title="{Binding Source={xk:Localize Solution explorer, Context=View}}"
-                                           gs:AvalonDockHelper.IsVisible="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay,
-                                           Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
+                                          gs:AvalonDockHelper.IsVisible="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay,
+                                          Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                     <DockPanel>
                       <ToolBarTray DockPanel.Dock="Top">
                         <ToolBar>
                           <Button Command="{Binding Session.NewPackageCommand}"
-                              ToolTip="{xk:Localize Create a package..., Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                             ToolTip="{xk:Localize Create a package..., Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageAddNewPackage}" />
                           </Button>
                           <Button Command="{Binding Session.NewDirectoryCommand}" CommandParameter="{Binding SelectedItems, ElementName=DirectoryTreeView}"
-                              ToolTip="{xk:Localize Create a folder, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                             ToolTip="{xk:Localize Create a folder, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageNewFolder}" />
                           </Button>
                           <Separator/>
                           <Button Command="{Binding Session.ActivatePackagePropertiesCommand}"
-                              ToolTip="{xk:Localize Display the properties of the selected package in the property grid, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                             ToolTip="{xk:Localize Display the properties of the selected package in the property grid, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImagePackageProperties}" />
                           </Button>
                           <Button Command="{Binding Session.RenameDirectoryOrPackageCommand, FallbackValue={x:Static xk:DisabledCommand.Instance}}" CommandParameter="{Binding SelectedItems, ElementName=DirectoryTreeView}"
-                              ToolTip="{xk:Localize Rename the selected folder or package, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                             ToolTip="{xk:Localize Rename the selected folder or package, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageRename}" />
                           </Button>
                           <Button Command="{Binding Session.DeleteSelectedSolutionItemsCommand}"
-                              ToolTip="{xk:Localize Delete the selected items, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                             ToolTip="{xk:Localize Delete the selected items, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageDelete}" />
                           </Button>
                           <Separator/>
                           <Button Command="{x:Static xk:SessionExplorerHelper.ExpandAssetFolders}" CommandTarget="{Binding ElementName=DirectoryTreeView}"
-                              ToolTip="{xk:Localize Expand all asset folders, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                             ToolTip="{xk:Localize Expand all asset folders, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageExpandAssetFolders}" />
                           </Button>
                           <Button Command="{x:Static xk:SessionExplorerHelper.ExpandAllFolders}" CommandTarget="{Binding ElementName=DirectoryTreeView}"
-                              ToolTip="{xk:Localize Expand all, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                             ToolTip="{xk:Localize Expand all, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageExpandAllFolders}" />
                           </Button>
                           <Button Command="{x:Static xk:SessionExplorerHelper.CollapseAllFolders}" CommandTarget="{Binding ElementName=DirectoryTreeView}"
-                              ToolTip="{xk:Localize Collapse all, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                             ToolTip="{xk:Localize Collapse all, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageCollapseAllFolders}" />
                           </Button>
                           <Separator/>
                           <Button Command="{Binding Session.ExploreCommand}" CommandParameter="{Binding SelectedItems, ElementName=DirectoryTreeView}"
-                              ToolTip="{xk:Localize Show in Explorer, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
+                             ToolTip="{xk:Localize Show in Explorer, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
                             <Image Source="{StaticResource ImageExplore}" />
                           </Button>
                         </ToolBar>
@@ -669,7 +669,6 @@
                 </xcad:LayoutAnchorable>
               </xcad:LayoutAnchorablePane>
             </xcad:LayoutPanel>
-
             <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="400">
               <xcad:LayoutAnchorablePane DockHeight="2*">
                 <!-- PROPERTY GRID -->
