@@ -34,7 +34,7 @@
     <!--By default, turn on assembly processor-->
     <XenkoAssemblyProcessor Condition="'$(XenkoAssemblyProcessor)' == ''">true</XenkoAssemblyProcessor>
 
-    <XenkoUserLibrariesPath Condition="'$(XenkoCurrentPackagePath)' != ''">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\NativeLibs</XenkoUserLibrariesPath>
+    <XenkoUserLibrariesPath>$(MSBuildProjectDirectory)\NativeLibs</XenkoUserLibrariesPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(XenkoPlatformFullName)' == ''">
     <!-- Define the location where to build assemblies. -->
@@ -257,7 +257,7 @@
   Compile Asset 
   *****************************************************************************************************************************
   -->
-  <PropertyGroup Condition="'$(XenkoCurrentPackagePath)' != ''">
+  <PropertyGroup>
     <ResolveReferencesDependsOn>
       XenkoUpdateXenkoPreviousDir;
       XenkoUpdateGraphicsPlatform;
@@ -269,7 +269,7 @@
     </PrepareForRunDependsOn>
 
     <!--asset BuildPath for all platforms (same as package)-->
-    <XenkoCompileAssetBuildPath Condition="'$(XenkoCompileAssetBuildPath)' == ''">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Cache\data</XenkoCompileAssetBuildPath>
+    <XenkoCompileAssetBuildPath Condition="'$(XenkoCompileAssetBuildPath)' == ''">$(MSBuildProjectDirectory)\Cache\data</XenkoCompileAssetBuildPath>
 
     <!--asset OutputPath for Android.-->
     <XenkoCompileAssetOutputPath Condition="'$(XenkoCompileAssetOutputPath)' == '' and '$(XenkoPlatform)' == 'Android'">$(ProjectDir)$(IntermediateOutputPath)assets\data</XenkoCompileAssetOutputPath>
@@ -283,12 +283,12 @@
     <XenkoCompileAssetCommandProxy Condition="'$(XenkoCompileAssetCommandProxy)' == ''">&quot;$(XenkoPackageXenkoSdkBin)\Xenko.Core.Assets.CompilerClient.exe&quot;</XenkoCompileAssetCommandProxy>
     
     <!-- Quite hard-coded for our current way to find default game settings -->
-    <XenkoGameSettings Condition=" '$([System.IO.File]::Exists($([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Assets\Shared\GameSettings.xkgamesettings))' == 'true' ">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Assets\Shared\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$([System.IO.File]::Exists($(MSBuildProjectDirectory)\Assets\GameSettings.xkgamesettings))'== 'true' ">$(MSBuildProjectDirectory)\Assets\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\..\Assets\Shared\GameSettings.xkgamesettings))' == 'true'">$(MSBuildProjectDirectory)\..\Assets\Shared\GameSettings.xkgamesettings</XenkoGameSettings>
     <!-- Quite hard-coded for our current unit tests -->
-    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Assets\GameSettings.xkgamesettings))' == 'true'">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Assets\GameSettings.xkgamesettings</XenkoGameSettings>
-    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\GameAssets\GameSettings.xkgamesettings))' == 'true' ">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\GameAssets\GameSettings.xkgamesettings</XenkoGameSettings>
-    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\AudioAssets\GameSettings.xkgamesettings))' == 'true' ">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\AudioAssets\GameSettings.xkgamesettings</XenkoGameSettings>
-    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Shaders.Bytecodes\GameSettings.xkgamesettings))' == 'true' ">$([System.IO.Path]::GetDirectoryName($(XenkoCurrentPackagePath)))\Shaders.Bytecodes\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\GameAssets\GameSettings.xkgamesettings))' == 'true' ">$(MSBuildProjectDirectory)\GameAssets\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\AudioAssets\GameSettings.xkgamesettings))' == 'true' ">$(MSBuildProjectDirectory)\AudioAssets\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\Shaders.Bytecodes\GameSettings.xkgamesettings))' == 'true' ">$(MSBuildProjectDirectory)\Shaders.Bytecodes\GameSettings.xkgamesettings</XenkoGameSettings>
   </PropertyGroup>
 
   <!-- Detect if Xenko path changed -->
@@ -310,16 +310,14 @@
 
 
   <!-- Compute graphics platform from game settings asset -->
-  <Target Name="XenkoComputeGraphicsPlatformFromGameSettings" Inputs="$(XenkoGameSettings)" Outputs="$(IntermediateOutputPath)XenkoGraphicsPlatform.cache" Condition="'$(XenkoCurrentPackagePath)' != '' and '$(XenkoIsExecutable)' == 'true'">
-    <Error Condition="!Exists('$(XenkoCurrentPackagePath)')" Text="Unable to find package decription from path [$(XenkoCurrentPackagePath)]"/>
-
+  <Target Name="XenkoComputeGraphicsPlatformFromGameSettings" Inputs="$(XenkoGameSettings)" Outputs="$(IntermediateOutputPath)XenkoGraphicsPlatform.cache" Condition="'$(XenkoIsExecutable)' == 'true'">
     <!-- Ensure the output directory exists -->
     <MakeDir Directories="$(TargetDir)"/>
     <MakeDir Directories="$(IntermediateOutputPath)"/>
     
     <!-- Get the real graphics platform from .xkpkg -->
     <Exec WorkingDirectory="$(TargetDir)" ConsoleToMSBuild="true"
-          Command="&quot;$(XenkoCompileAssetCommand)&quot; --platform=$(XenkoPlatform) --package-file=&quot;$(XenkoCurrentPackagePath)&quot; --get-graphics-platform">
+          Command="&quot;$(XenkoCompileAssetCommand)&quot; --platform=$(XenkoPlatform) --package-file=&quot;$(MSBuildProjectFullPath)&quot; --get-graphics-platform">
       <Output TaskParameter="ConsoleOutput" PropertyName="XenkoGraphicsApiComputed" />
     </Exec>
     
@@ -334,7 +332,7 @@
     </ReadLinesFromFile>
   </Target>
   
-  <Target Name="XenkoUpdateGraphicsPlatform" DependsOnTargets="XenkoGetGraphicsPlatform" Condition="'$(XenkoCurrentPackagePath)' != ''">
+  <Target Name="XenkoUpdateGraphicsPlatform" DependsOnTargets="XenkoGetGraphicsPlatform">
     <Message Importance="Normal" Text="Detected Graphics Platform $(XenkoGraphicsApi)"/>
     <PropertyGroup>
       <XenkoGraphicsSpecific>$(XenkoPlatformFullName)\$(XenkoGraphicsApi)</XenkoGraphicsSpecific>
@@ -356,11 +354,9 @@
   </Target>
 
   <!--Compile assets for all XenkoPackage items and only for an executable-->
-  <Target Name="XenkoCompileAsset" DependsOnTargets="XenkoUpdateGraphicsPlatform" Condition="'$(XenkoCurrentPackagePath)' != '' and '$(XenkoIsExecutable)' == 'true'">
-    <!--Check that the package file actually exist-->
-    <Error Condition="!Exists('$(XenkoCurrentPackagePath)')" Text="Unable to find package decription from path [$(XenkoCurrentPackagePath)]"/>
+  <Target Name="XenkoCompileAsset" DependsOnTargets="XenkoUpdateGraphicsPlatform" Condition="'$(XenkoIsExecutable)' == 'true'">
     <PropertyGroup>
-      <XenkoCompileAssetCommandProxy>$(XenkoCompileAssetCommandProxy) $(XenkoCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(XenkoPlatform) --project-configuration=$(Configuration) --output-path=&quot;$(XenkoCompileAssetOutputPath)&quot; --build-path=&quot;$(XenkoCompileAssetBuildPath)&quot; --package-file=&quot;$(XenkoCurrentPackagePath)&quot; --log-pipe=&quot;$(XenkoBuildEngineLogPipeUrl)&quot;</XenkoCompileAssetCommandProxy>
+      <XenkoCompileAssetCommandProxy>$(XenkoCompileAssetCommandProxy) $(XenkoCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(XenkoPlatform) --project-configuration=$(Configuration) --output-path=&quot;$(XenkoCompileAssetOutputPath)&quot; --build-path=&quot;$(XenkoCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --log-pipe=&quot;$(XenkoBuildEngineLogPipeUrl)&quot;</XenkoCompileAssetCommandProxy>
       <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogVerbose)' != ''">$(XenkoCompileAssetCommandProxy) --verbose</XenkoCompileAssetCommandProxy>
       <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogDebug)' != ''">$(XenkoCompileAssetCommandProxy) --debug</XenkoCompileAssetCommandProxy>
     </PropertyGroup>
@@ -378,7 +374,7 @@
   </Target>
 
   <!-- Clean assets -->
-  <Target Name="XenkoCleanAsset" Condition="'$(XenkoCurrentPackagePath)' != '' and '$(XenkoIsExecutable)' == 'true'">
+  <Target Name="XenkoCleanAsset" Condition="'$(XenkoIsExecutable)' == 'true'">
     <RemoveDir Condition="Exists('$(XenkoCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetBuildPath)"/>
     <RemoveDir Condition="Exists('$(XenkoCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetOutputPath)"/>
   </Target>

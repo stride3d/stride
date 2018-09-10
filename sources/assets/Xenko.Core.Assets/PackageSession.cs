@@ -81,6 +81,11 @@ namespace Xenko.Core.Assets
         public PackageVersion Version { get; set; }
 
         public DependencyType Type { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Name} {Version} ({Type})";
+        }
     }
 
     public class DependencyRange
@@ -365,18 +370,18 @@ namespace Xenko.Core.Assets
         /// <summary>
         /// Adds an existing package to the current session.
         /// </summary>
-        /// <param name="packagePath">The package path.</param>
+        /// <param name="projectPath">The project or package path.</param>
         /// <param name="logger">The session result.</param>
         /// <param name="loadParametersArg">The load parameters argument.</param>
         /// <exception cref="System.ArgumentNullException">packagePath</exception>
         /// <exception cref="System.ArgumentException">Invalid relative path. Expecting an absolute package path;packagePath</exception>
         /// <exception cref="System.IO.FileNotFoundException">Unable to find package</exception>
-        public PackageContainer AddExistingPackage(UFile packagePath, ILogger logger, PackageLoadParameters loadParametersArg = null)
+        public PackageContainer AddExistingPackage(UFile projectPath, ILogger logger, PackageLoadParameters loadParametersArg = null)
         {
-            if (packagePath == null) throw new ArgumentNullException(nameof(packagePath));
+            if (projectPath == null) throw new ArgumentNullException(nameof(projectPath));
             if (logger == null) throw new ArgumentNullException(nameof(logger));
-            if (!packagePath.IsAbsolute) throw new ArgumentException(@"Invalid relative path. Expecting an absolute package path", nameof(packagePath));
-            if (!File.Exists(packagePath)) throw new FileNotFoundException("Unable to find package", packagePath);
+            if (!projectPath.IsAbsolute) throw new ArgumentException(@"Invalid relative path. Expecting an absolute project path", nameof(projectPath));
+            if (!File.Exists(projectPath)) throw new FileNotFoundException("Unable to find project", projectPath);
 
             var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
 
@@ -387,26 +392,10 @@ namespace Xenko.Core.Assets
                 // Enable reference analysis caching during loading
                 AssetReferenceAnalysis.EnableCaching = true;
 
-                if (Path.GetExtension(packagePath).ToLowerInvariant() == ".csproj")
-                {
-                    var projectPath = packagePath;
-                    packagePath = Path.ChangeExtension(packagePath, Package.PackageFileExtension);
-                    package = PreLoadPackage(logger, packagePath, false, loadParameters);
-                    Projects.Add(project = new SolutionProject(package, package.Id, projectPath));
-                }
-                else
-                {
-                    package = PreLoadPackage(logger, packagePath, false, loadParameters);
-                    var projectPath = Path.ChangeExtension(package.FullPath, ".csproj");
-                    if (File.Exists(projectPath))
-                    {
-                        Projects.Add(project = new SolutionProject(package, package.Id, projectPath));
-                    }
-                    else
-                    {
-                        Projects.Add(project = new StandalonePackage(package));
-                    }
-                }
+                project = LoadProject(logger, projectPath.ToWindowsPath(), false, loadParametersArg);
+                Projects.Add(project);
+
+                package = project.Package;
 
                 if (loadParameters.AutoCompileProjects && loadParameters.ForceNugetRestore)
                 {
@@ -487,6 +476,33 @@ namespace Xenko.Core.Assets
             return reference != null ? (FindAsset(reference.Id) ?? FindAsset(reference.Url)) : null;
         }
 
+        private PackageContainer LoadProject(ILogger log, string filePath, bool isSystem, PackageLoadParameters loadParameters = null)
+        {
+            if (Path.GetExtension(filePath).ToLowerInvariant() == ".csproj")
+            {
+                var projectPath = filePath;
+                var packagePath = Path.ChangeExtension(filePath, Package.PackageFileExtension);
+                var package = PreLoadPackage(log, packagePath, isSystem, loadParameters);
+                return new SolutionProject(package, package.Id, projectPath);
+            }
+            else
+            {
+                var package = PreLoadPackage(log, filePath, isSystem, loadParameters);
+
+                // Find the .csproj next to .xkpkg (if any)
+                // Note that we use package.FullPath since we must first perform package upgrade from 3.0 to 3.1+ (might move package in .csproj folder)
+                var projectPath = Path.ChangeExtension(package.FullPath, ".csproj");
+                if (File.Exists(projectPath))
+                {
+                    return new SolutionProject(package, package.Id, projectPath);
+                }
+                else
+                {
+                    return new StandalonePackage(package);
+                }
+            }
+        }
+
         /// <summary>
         /// Loads a package from specified file path.
         /// </summary>
@@ -541,26 +557,28 @@ namespace Xenko.Core.Assets
                         {
                             if (vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp)
                             {
-                                // TODO CSPROJ=XKPKG move that code inside Package load code, and add support for projects without xkpkg too
-                                var packageFile = Path.ChangeExtension(vsProject.FullPath, Package.PackageFileExtension);
-                                if (File.Exists(packageFile))
+                                var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, false, loadParameters);
+                                project.VSProject = vsProject;
+                                session.Projects.Add(project);
+
+                                if (firstProject == null)
+                                    firstProject = project;
+
+                                // Output the session only if there is no cancellation
+                                if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
                                 {
-                                    var project = new SolutionProject(session.PreLoadPackage(sessionResult, packageFile, false, loadParameters), vsProject);
-                                    session.Projects.Add(project);
-
-                                    if (firstProject == null)
-                                        firstProject = project;
-
-                                    // Output the session only if there is no cancellation
-                                    if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
-                                    {
-                                        return;
-                                    }
+                                    return;
                                 }
                             }
                         }
 
                         session.LoadMissingDependencies(sessionResult, loadParameters);
+                    }
+                    else if (Path.GetExtension(filePath).ToLowerInvariant() == ".csproj")
+                    {
+                        var project = (SolutionProject)session.LoadProject(sessionResult, filePath, false, loadParameters);
+                        session.Projects.Add(project);
+                        firstProject = project;
                     }
                     else
                     {
@@ -769,7 +787,7 @@ namespace Xenko.Core.Assets
                                     Microsoft.Build.Evaluation.Project project;
                                     if (!vsProjs.TryGetValue(projectFullPath, out project))
                                     {
-                                        project = VSProjectHelper.LoadProject(projectFullPath);
+                                        project = VSProjectHelper.LoadProject(projectFullPath.ToWindowsPath());
                                         vsProjs.Add(projectFullPath, project);
                                     }
                                     var projectItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None") && x.EvaluatedInclude == projectInclude);

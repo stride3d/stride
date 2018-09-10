@@ -252,6 +252,7 @@ namespace Xenko.Assets.Presentation.Templates
                 loadParams.GenerateNewAssetIds = true;
                 loadParams.LoadMissingDependencies = false;
                 var session = parameters.Session;
+                // We should switch to loading .csproj once all samples are upgraded
                 var loadedProject = session.AddExistingPackage(packageOutputFile, log, loadParams);
 
                 RemoveUnusedAssets(loadedProject.Package, session);

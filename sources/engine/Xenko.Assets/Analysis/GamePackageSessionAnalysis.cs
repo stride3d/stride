@@ -42,7 +42,7 @@ namespace Xenko.Assets.Analysis
                 }
 
                 // Find game settings
-                var gameSettingsAssetItem = package.Assets.Find(GameSettingsAsset.GameSettingsLocation);
+                var gameSettingsAssetItem = package.FindAsset(GameSettingsAsset.GameSettingsLocation);
                 AssetItem defaultScene = null;
 
                 // If game settings is found, try to find default scene inside

@@ -226,27 +226,29 @@ namespace Xenko.Core.Assets
                 var loadedPackage = packages.Find(projectDependency);
                 if (loadedPackage == null)
                 {
-                    var file = PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(projectDependency.Version), constraintProvider);
-
-                    if (file == null)
+                    string file = null;
+                    switch (projectDependency.Type)
                     {
-                        // TODO: We need to support automatic download of packages. This is not supported yet when only Xenko
-                        // package is supposed to be installed, but It will be required for full store
-                        log.Error($"The project {project.Name ?? "[Untitled]"} depends on project or package {projectDependency} which is not installed");
-                        packageDependencyErrors = true;
-                        continue;
+                        case DependencyType.Project:
+                            file = UPath.Combine(project.FullPath.GetFullDirectory(), (UFile)projectDependency.MSBuildProject);
+                            break;
+                        case DependencyType.Package:
+                            file = PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(projectDependency.Version), constraintProvider);
+                            break;
                     }
 
-                    // Load package
-                    loadedPackage = PreLoadPackage(log, file, true, loadParameters);
-                    Projects.Add(new StandalonePackage(loadedPackage));
+                    if (file != null && File.Exists(file))
+                    {
+                        // Load package
+                        var loadedProject = LoadProject(log, file, true, loadParameters);
+                        Projects.Add(loadedProject);
+
+                        loadedPackage = loadedProject.Package;
+                    }
                 }
 
                 if (loadedPackage != null)
                     project.LoadedDependencies.Add(loadedPackage);
-                // TODO CSPROJ=XKPKG
-                //if (loadedPackage == null || loadedPackage.State < ProjectState.DependenciesReady)
-                //    packageDependencyErrors = true;
             }
 
             // 2. Load local packages
