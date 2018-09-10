@@ -118,6 +118,8 @@ namespace Xenko.Assets.Templates
 
                 package.Session.Projects.Add(newExeProject);
 
+                package.Session.LoadMissingReferences(logger);
+
                 package.IsDirty = true;
             }
         }

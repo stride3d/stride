@@ -49,29 +49,27 @@ namespace Xenko.Core.Assets.Editor.ViewModel
     // TODO: For the moment we consider that a project has only a single parent profile. Sharing project in several profile is not supported.
     public class ProjectViewModel : PackageViewModel
     {
-        private readonly SolutionProject project;
         private bool isCurrentProject;
         private PackageViewModel package;
 
         public ProjectViewModel(SessionViewModel session, SolutionProject project, bool packageAlreadyInSession)
-            : base(session, project.Package, packageAlreadyInSession)
+            : base(session, project, packageAlreadyInSession)
         {
-            this.project = project;
             content.Add(Code = new ProjectCodeViewModel(this));
         }
 
-        public SolutionProject Project => project;
+        public SolutionProject Project => (SolutionProject)PackageContainer;
 
         public ProjectCodeViewModel Code { get; }
 
-        public override string Name { get { return project.Name; } set { if (value != Name) throw new InvalidOperationException("The name of a project cannot be set"); } }
+        public override string Name { get { return Project.Name; } set { if (value != Name) throw new InvalidOperationException("The name of a project cannot be set"); } }
 
-        public UFile ProjectPath => project.FullPath;
+        public UFile ProjectPath => Project.FullPath;
 
         // TODO CSPROJ=XKPKG
-        public ProjectType Type => project.Type;
+        public ProjectType Type => Project.Type;
 
-        public PlatformType Platform => project.Platform;
+        public PlatformType Platform => Project.Platform;
 
         /// <summary>
         /// Gets the generic type (either PlatformType or ProjectType)
@@ -87,7 +85,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 SetValueUncancellable(ref isCurrentProject, value);
 
                 // TODO: Check with Ben if this is the property place to put this?
-                Package.Session.CurrentProject = isCurrentProject ? project : null;
+                Package.Session.CurrentProject = isCurrentProject ? Project : null;
             }
         }
 

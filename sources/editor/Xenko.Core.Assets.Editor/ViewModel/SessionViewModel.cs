@@ -1062,7 +1062,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 }
                 case StandalonePackage standalonePackage:
                 {
-                    var packageContainerViewModel = new PackageViewModel(this, standalonePackage.Package, packageAlreadyInSession);
+                    var packageContainerViewModel = new PackageViewModel(this, standalonePackage, packageAlreadyInSession);
                     packageMap.Add(packageContainerViewModel, standalonePackage);
                     if (!packageAlreadyInSession)
                         session.Projects.Add(standalonePackage);
@@ -1445,7 +1445,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 return;
 
             var packageSelected = false;
-            var packageHasExecutables = false;
+            var projectSelected = false;
             var dependenciesSelected = false;
             var directorySelected = false;
             var canDelete = ActiveAssetView.SelectedLocations.Count > 0;
@@ -1455,12 +1455,11 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 if (location is PackageViewModel package && package.IsEditable)
                 {
                     packageSelected = true;
-                    packageHasExecutables = (package as ProjectViewModel)?.Type == ProjectType.Executable;
+                    projectSelected = package is ProjectViewModel;
                 }
                 if (location is DirectoryBaseViewModel)
                 {
-                    var project = location as ProjectViewModel;
-                    directorySelected = project == null || project.Type != ProjectType.Executable;
+                    directorySelected = true;
                 }
                 if (location is DependencyCategoryViewModel)
                 {
@@ -1482,9 +1481,9 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             NewPackageCommand.IsEnabled = !string.IsNullOrWhiteSpace(SolutionPath);
             AddExistingProjectCommand.IsEnabled = packageSelected;
-            IsUpdatePackageEnabled = packageSelected && packageHasExecutables;
+            IsUpdatePackageEnabled = projectSelected;
             AddDependencyCommand.IsEnabled = packageSelected || dependenciesSelected;
-            SetCurrentProjectCommand.IsEnabled = packageHasExecutables;
+            SetCurrentProjectCommand.IsEnabled = projectSelected;
             DeleteSelectedSolutionItemsCommand.IsEnabled = canDelete;
             ExploreCommand.IsEnabled = ActiveAssetView.SelectedContent.Count > 0 || ActiveAssetView.SelectedLocations.Count == 1;
             RenameDirectoryOrPackageCommand.IsEnabled = canRename;

@@ -230,7 +230,7 @@
         </MenuItem>
         <MenuItem Header="{xk:Localize Add existing project..., Context=Menu}" Command="{Binding Session.AddExistingProjectCommand}" Icon="{xk:Image {StaticResource ImageAddExistingProject}}"/>
         <MenuItem Header="{xk:Localize Add dependency..., Context=Menu}" Command="{Binding Session.AddDependencyCommand}" Icon="{xk:Image {StaticResource ImageAddDependency}}"/>
-        <MenuItem Header="{xk:Localize Set as current package, Context=Menu}" Command="{Binding Session.SetCurrentPackageCommand}" CommandParameter="{Binding}" Icon="{xk:Image {StaticResource ImageStartupProject}}"/>
+        <MenuItem Header="{xk:Localize Set as current project, Context=Menu}" Command="{Binding Session.SetCurrentProjectCommand}" CommandParameter="{Binding}" Icon="{xk:Image {StaticResource ImageStartupProject}}"/>
         <MenuItem Header="{xk:Localize Package properties, Context=Menu}" Command="{Binding Session.ActivatePackagePropertiesCommand}" Icon="{xk:Image {StaticResource ImagePackageProperties}}"/>
 
         <MenuItem Header="{xk:Localize Solution, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}"/>
@@ -489,7 +489,7 @@
                             <MenuItem Header="{xk:Localize Folder, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
                             <MenuItem Header="{xk:Localize Create folder, Context=Menu}" Command="{Binding Session.NewDirectoryCommand}" CommandParameter="{Binding Session.ActiveAssetView.SelectedLocations}" Icon="{xk:Image {StaticResource ImageNewFolder}}" Visibility="{Binding Session.NewDirectoryCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
 
-                            <MenuItem Header="{xk:Localize Package, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{xk:MultiBinding {Binding Session.IsUpdatePackageEnabled}, {Binding Session.AddExistingProjectCommand.IsEnabled}, {Binding Session.AddDependencyCommand.IsEnabled}, {Binding Session.SetCurrentPackageCommand.IsEnabled}, Converter={xk:MultiChained {xk:OrMultiConverter}, {xk:VisibleOrCollapsed}}}"/>
+                            <MenuItem Header="{xk:Localize Package, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{xk:MultiBinding {Binding Session.IsUpdatePackageEnabled}, {Binding Session.AddExistingProjectCommand.IsEnabled}, {Binding Session.AddDependencyCommand.IsEnabled}, {Binding Session.SetCurrentProjectCommand.IsEnabled}, Converter={xk:MultiChained {xk:OrMultiConverter}, {xk:VisibleOrCollapsed}}}"/>
                             <MenuItem Header="{xk:Localize Update package, Context=Menu}" ItemsSource="{Binding Session.UpdatePackageViewModel.Templates}" Icon="{xk:Image {StaticResource ImageAddNewProject}}" Visibility="{Binding Session.IsUpdatePackageEnabled, Converter={xk:VisibleOrCollapsed}}">
                               <MenuItem.ItemContainerStyle>
                                 <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}" d:DataContext="{d:DesignInstance viewModels1:TemplateDescriptionViewModel}">
@@ -510,7 +510,7 @@
                             </MenuItem>
                             <MenuItem Header="{xk:Localize Add existing project..., Context=Menu}" Command="{Binding Session.AddExistingProjectCommand}" Icon="{xk:Image {StaticResource ImageAddExistingProject}}" Visibility="{Binding Session.AddExistingProjectCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
                             <MenuItem Header="{xk:Localize Add dependency..., Context=Menu}" Command="{Binding Session.AddDependencyCommand}" Icon="{xk:Image {StaticResource ImageAddDependency}}" Visibility="{Binding Session.AddDependencyCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
-                            <MenuItem Header="{xk:Localize Set as current package, Context=Menu}" Command="{Binding Session.SetCurrentPackageCommand}" CommandParameter="{Binding}" Icon="{xk:Image {StaticResource ImageStartupProject}}" Visibility="{Binding Session.SetCurrentPackageCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
+                            <MenuItem Header="{xk:Localize Set as current project, Context=Menu}" Command="{Binding Session.SetCurrentProjectCommand}" CommandParameter="{Binding}" Icon="{xk:Image {StaticResource ImageStartupProject}}" Visibility="{Binding Session.SetCurrentProjectCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
                             <MenuItem Header="{xk:Localize Package properties, Context=Menu}" Command="{Binding Session.ActivatePackagePropertiesCommand}" Icon="{xk:Image {StaticResource ImagePackageProperties}}" Visibility="{Binding Session.ActivatePackagePropertiesCommand.IsEnabled, Converter={xk:VisibleOrCollapsed}}"/>
 
                             <MenuItem Header="{xk:Localize Solution, Context=Menu}" Style="{StaticResource MenuGroupSeparatorStyle}" Visibility="{xk:MultiBinding {Binding Session.NewPackageCommand.IsEnabled}, {Binding Session.AddExistingPackageCommand.IsEnabled}, {Binding Session.OpenInIDECommand.IsEnabled}, Converter={xk:MultiChained {xk:OrMultiConverter}, {xk:VisibleOrCollapsed}}}"/>

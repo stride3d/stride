@@ -42,18 +42,19 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         private ProfileViewModel selectedProfile;
         private readonly List<AssetViewModel> deletedAssetsSinceLastSave = new List<AssetViewModel>();
 
-        public PackageViewModel(SessionViewModel session, Package package, bool packageAlreadyInSession)
+        public PackageViewModel(SessionViewModel session, PackageContainer packageContainer, bool packageAlreadyInSession)
             : base(session)
         {
-            Package = package;
-            HasBeenUpgraded = package.IsDirty;
+            PackageContainer = packageContainer;
+            Package = PackageContainer.Package;
+            HasBeenUpgraded = Package.IsDirty;
             DependentProperties.Add(nameof(PackagePath), new[] { nameof(Name), nameof(RootDirectory) });
-            Dependencies = new DependencyCategoryViewModel(nameof(Dependencies), this, session, package.RootAssets);
+            Dependencies = new DependencyCategoryViewModel(nameof(Dependencies), this, session, Package.RootAssets);
             AssetMountPoint = new AssetMountPointViewModel(this);
             content.Add(AssetMountPoint);
             content.Add(Dependencies);
             RenameCommand = new AnonymousCommand(ServiceProvider, () => IsEditing = true);
-            IsLoaded = package.State >= PackageState.AssetsReady;
+            IsLoaded = Package.State >= PackageState.AssetsReady;
 
             // IsDeleted will make the package added to Session.LocalPackages, so let's do it last
             InitialUndelete(!packageAlreadyInSession);
@@ -73,6 +74,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// Gets the <see cref="Guid"/> identifying this package.
         /// </summary>
         public Guid Id => Package.Id;
+
+        public PackageContainer PackageContainer { get; }
 
         /// <summary>
         /// Gets the underlying <see cref="Package"/> used as a model for this view.

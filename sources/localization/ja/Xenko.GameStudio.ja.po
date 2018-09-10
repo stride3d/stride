@@ -420,8 +420,8 @@ msgstr "依存関係の追加..."
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:490
 msgctxt "Menu"
-msgid "Set as current package"
-msgstr "現在のパッケージに設定"
+msgid "Set as current project"
+msgstr "現在のプロジェクトに設定"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:211
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:491
