@@ -51,7 +51,6 @@ Cache/
 /build/Xenko.*VC.db
 /tools
 /externals/
-/sources/launcher/
 /sources/tools/Xenko.ShaderKeyGenerator/build/
 /sources/tools/Xenko.ProjectGenerator/build/
 /sources/tools/SLConverter/BuildRelease/Package/SLConverter-*.pdf

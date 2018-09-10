@@ -10,6 +10,7 @@ Example of use:
     <XenkoRootBin>$(XenkoRoot)Bin\Windows\</XenkoRootBin>
     <XenkoPackage>$(XenkoRoot)Xenko.xkpkg</XenkoPackage>
     <XenkoSolution>$(XenkoRoot)build\Xenko</XenkoSolution>
+    <XenkoSolutionLauncher>$(XenkoRoot)build\Xenko.Launcher</XenkoSolutionLauncher>
     <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false</BuildProperties>
     <BuildProperties Condition="'$(XenkoSign)' != ''">$(BuildProperties);XenkoSign=$(XenkoSign)</BuildProperties>
     <BuildProperties Condition="'$(XenkoOfficialBuild)' != ''">$(BuildProperties);XenkoOfficialBuild=$(XenkoOfficialBuild)</BuildProperties>
@@ -390,4 +391,95 @@ Example of use:
       <Output TaskParameter="ExitCode" ItemName="exitCode" />
     </Exec>
   </Target>
+  
+  <!--
+  Package Launcher
+  -->
+  <Target Name="PackageLauncher" DependsOnTargets="LauncherPrerequisitesInstaller">
+    <ItemGroup>
+      <FilesToDeleteLauncher Include="$(MSBuildThisFileDirectory)Xenko.Launcher*.nupkg"/>
+    </ItemGroup>
+
+    <!-- Note: we avoid building again if BuildWindows was already ran just before -->
+    <Delete Files="@(FilesToDeleteLauncher)"/>
+    
+    <!-- Generate the nuget package for the launcher application -->
+    <Exec Command='"$(NuGetPath)" pack "$(XenkoRoot)sources\launcher\Xenko.LauncherApp\Xenko.LauncherApp.nuspec" -BasePath "$(XenkoRoot)sources\launcher\Xenko.LauncherApp\bin\Release"' />
+  </Target>
+  
+  <!--
+  Package Installer: XenkoSetup.exe
+  -->
+  <Target Name="PackageInstallerSimple" DependsOnTargets="PackageLauncher">
+    <Delete Files="XenkoSetup.exe"/>
+    <!-- Run advanced installer -->
+    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(XenkoRoot)sources\launcher\Setup\setup.aip"'/>
+    <Copy SourceFiles="$(XenkoRoot)sources\launcher\Setup\setup-SetupFiles\XenkoSetup.exe" DestinationFolder="$(MSBuildThisFileDirectory)"/>
+  </Target>
+  <Target Name="PackageInstallerCustom" DependsOnTargets="PackageLauncher">
+    <Error Condition="'$(CustomInstaller)' == '' Or '$(CustomInstallerStoreUrl)' == ''" Text="When CustomInstaller is set, CustomInstallerStoreUrl also needs to be defined"/>
+    <PropertyGroup>
+      <CustomInstallerNoSpace>$(CustomInstaller.Replace(' ', ''))</CustomInstallerNoSpace>
+    </PropertyGroup>
+  
+    <Delete Files="XenkoSetup$(CustomInstallerNoSpace).exe"/>
+    <!-- Make sure it is deleted otherwise Advanced Installer complains (in case previous run didn't complete -->
+    <Delete Files="$(XenkoRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"/>
+    <!-- Duplicate setup.aip with different IDs -->
+    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(XenkoRoot)sources\launcher\Setup\setup.aip" /DuplicateProject "$(XenkoRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"'/>
+    <!-- Edit a few parameters -->
+    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(XenkoRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip" /SetProperty BuildExeName="XenkoSetup$(CustomInstallerNoSpace)"'/>
+    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(XenkoRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip" /SetProperty ProductName="Xenko $(CustomInstaller)"'/>
+    <Exec Command='"$(AdvancedInstallerPath)" /edit "$(XenkoRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip" /SetProperty AI_PRODUCTNAME_ARP="Xenko $(CustomInstaller)"'/>
+
+    <!-- Backup store.config -->
+    <Copy SourceFiles="$(XenkoRoot)sources\launcher\Xenko.LauncherApp\bin\Release\store.config" DestinationFiles="$(XenkoRoot)sources\launcher\Xenko.LauncherApp\bin\Release\store.config.backup"/>
+    
+    <!-- Update store.config with additional parameters -->
+    <Exec Command='"$(NuGetPath)" sources Add -Name "Xenko $(CustomInstaller)" -Source "$(CustomInstallerStoreUrl)" -ConfigFile "$(XenkoRoot)sources\launcher\Xenko.LauncherApp\bin\Release\store.config"'/>
+	
+    <!-- Run advanced installer -->
+    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(XenkoRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"'/>
+    <Copy SourceFiles="$(XenkoRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace)-SetupFiles\XenkoSetup$(CustomInstallerNoSpace).exe" DestinationFolder="$(MSBuildThisFileDirectory)"/>
+    <Delete Files="$(XenkoRoot)sources\launcher\Setup\setup-$(CustomInstallerNoSpace).aip"/>
+	
+    <!-- Restore store.config -->
+    <Copy SourceFiles="$(XenkoRoot)sources\launcher\Xenko.LauncherApp\bin\Release\store.config.backup" DestinationFiles="$(XenkoRoot)Xenko.LauncherApp\bin\Release\store.config"/>
+    <Delete Files="$(XenkoRoot)sources\launcher\Xenko.LauncherApp\bin\Release\store.config.backup"/>	
+  </Target>
+  <PropertyGroup>
+    <!-- Choose proper target to execute -->
+    <PackageInstallerTarget Condition="'$(CustomInstaller)' == ''">PackageInstallerSimple</PackageInstallerTarget>
+    <PackageInstallerTarget Condition="'$(CustomInstaller)' != ''">PackageInstallerCustom</PackageInstallerTarget>
+  </PropertyGroup>
+  <Target Name="PackageInstaller" DependsOnTargets="$(PackageInstallerTarget)"/>
+  
+  <!--
+  Package Installer: launcher-prerequisites.exe
+  -->
+  <Target Name="LauncherPrerequisitesInstaller">
+    <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(XenkoRoot)sources\launcher\Prerequisites\launcher-prerequisites.aip"'/>
+  </Target>
+
+  <!--
+  Perform a full build: Build, Package and PackageInstaller
+  -->
+  <Target Name="FullBuildLauncher">
+    <CallTarget Targets="BuildLauncher"/>
+    <CallTarget Targets="PackageInstaller"/>
+  </Target>
+  
+  <!--
+  Publish Launcher nupkg from this folder to the store
+  -->
+  <Target Name="PublishLauncher">
+    <Error Condition="'$(XenkoStoreApiKey)' == ''" Text="Missing env variable XenkoStoreApiKey"/>
+    <Exec Command='"$(NuGetPath)" push Xenko.Launcher*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) "'/>
+  </Target>
+  
+  <Target Name="BuildLauncher" DependsOnTargets="CopyXenkoKey">
+    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolutionLauncher).sln"' />
+	<MSBuild Targets="Build" Projects="$(XenkoSolutionLauncher).sln" Properties="$(BuildProperties);Platform=Any CPU"/>
+  </Target>
+
 </Project>
