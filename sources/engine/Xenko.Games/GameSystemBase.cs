@@ -54,7 +54,6 @@ namespace Xenko.Games
         {
             Services = registry ?? throw new ArgumentNullException(nameof(registry));
             Game = (GameBase)Services.GetService<IGame>();
-            Content = Services.GetService<IContentManager>();
         }
 
         /// <summary>
@@ -77,7 +76,7 @@ namespace Xenko.Games
         /// </summary>
         /// <value>The content.</value>
         [CanBeNull]
-        protected IContentManager Content { get; }
+        protected IContentManager Content { get; private set; }
 
         /// <summary>
         /// Gets the graphics device.
@@ -210,6 +209,8 @@ namespace Xenko.Games
 
         void IContentable.LoadContent()
         {
+            Content = Services.GetService<IContentManager>();
+
             InitGraphicsDeviceService();
 
             LoadContent();
