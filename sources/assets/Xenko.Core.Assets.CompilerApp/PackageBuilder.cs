@@ -58,6 +58,19 @@ namespace Xenko.Core.Assets.CompilerApp
 
         private BuildResultCode BuildMaster()
         {
+            try
+            {
+                PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+            }
+            catch (Exception e)
+            {
+                var message = "Could not find a compatible version of MSBuild.\r\n\r\n" +
+                              "Check that you have a valid installation with the required workloads, or go to [www.visualstudio.com/downloads](https://www.visualstudio.com/downloads) to install a new one.\r\n\r\n" +
+                              e;
+                builderOptions.Logger.Error(message);
+                return BuildResultCode.BuildError;
+            }
+
             // Only querying graphics platform, let's load package, print it and exit
             if (builderOptions.GetGraphicsPlatform)
             {
@@ -68,19 +81,6 @@ namespace Xenko.Core.Assets.CompilerApp
             PackageSession projectSession = null;
             try
             {
-                try
-                {
-                    PackageSessionPublicHelper.FindAndSetMSBuildVersion();
-                }
-                catch (Exception e)
-                {
-                    var message = "Could not find a compatible version of MSBuild.\r\n\r\n" +
-                                  "Check that you have a valid installation with the required workloads, or go to [www.visualstudio.com/downloads](https://www.visualstudio.com/downloads) to install a new one.\r\n\r\n" +
-                                  e;
-                    builderOptions.Logger.Error(message);
-                    return BuildResultCode.BuildError;
-                }
-
                 var sessionLoadParameters = new PackageLoadParameters
                 {
                     AutoCompileProjects = !builderOptions.DisableAutoCompileProjects,
@@ -174,20 +174,21 @@ namespace Xenko.Core.Assets.CompilerApp
 
         private BuildResultCode BuildGetGraphicsPlatform()
         {
-            var localLogger = new LoggerResult();
-            var simplePackage = Package.Load(localLogger, builderOptions.PackageFile, new PackageLoadParameters
+            var loadParameters = new PackageLoadParameters
             {
                 AutoLoadTemporaryAssets = true,
                 LoadAssemblyReferences = false,
                 AutoCompileProjects = false,
                 TemporaryAssetFilter = (asset) => asset.AssetLocation == GameSettingsAsset.GameSettingsLocation,
                 TemporaryAssetsInMsbuild = false,
-            });
+            };
+            var sessionResult = PackageSession.Load(builderOptions.PackageFile, loadParameters);
+            var simplePackage = sessionResult.Session.Packages.First();
+            sessionResult.Session.LoadMissingReferences(sessionResult, loadParameters);
 
-            if (simplePackage == null
-                || localLogger.HasErrors)
+            if (simplePackage == null || sessionResult.HasErrors)
             {
-                localLogger.CopyTo(builderOptions.Logger);
+                sessionResult.CopyTo(builderOptions.Logger);
                 return BuildResultCode.BuildError;
             }
 

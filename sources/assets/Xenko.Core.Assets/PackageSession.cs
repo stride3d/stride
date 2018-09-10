@@ -478,29 +478,25 @@ namespace Xenko.Core.Assets
 
         private PackageContainer LoadProject(ILogger log, string filePath, bool isSystem, PackageLoadParameters loadParameters = null)
         {
-            if (Path.GetExtension(filePath).ToLowerInvariant() == ".csproj")
-            {
-                var projectPath = filePath;
-                var packagePath = Path.ChangeExtension(filePath, Package.PackageFileExtension);
-                var package = PreLoadPackage(log, packagePath, isSystem, loadParameters);
-                return new SolutionProject(package, package.Id, projectPath);
-            }
-            else
-            {
-                var package = PreLoadPackage(log, filePath, isSystem, loadParameters);
+            var project = Package.LoadProject(log, filePath);
 
-                // Find the .csproj next to .xkpkg (if any)
-                // Note that we use package.FullPath since we must first perform package upgrade from 3.0 to 3.1+ (might move package in .csproj folder)
-                var projectPath = Path.ChangeExtension(package.FullPath, ".csproj");
-                if (File.Exists(projectPath))
-                {
-                    return new SolutionProject(package, package.Id, projectPath);
-                }
-                else
-                {
-                    return new StandalonePackage(package);
-                }
+            var package = project.Package;
+            package.IsSystem = isSystem;
+
+            // If the package doesn't have a meta name, fix it here (This is supposed to be done in the above disabled analysis - but we still need to do it!)
+            if (string.IsNullOrWhiteSpace(package.Meta.Name) && package.FullPath != null)
+            {
+                package.Meta.Name = package.FullPath.GetFileNameWithoutExtension();
+                package.IsDirty = true;
             }
+
+            // Package has been loaded, register it in constraints so that we force each subsequent loads to use this one (or fails if version doesn't match)
+            if (package.Meta.Version != null)
+            {
+                constraintProvider.AddConstraint(package.Meta.Name, new PackageVersionRange(package.Meta.Version));
+            }
+
+            return project;
         }
 
         /// <summary>

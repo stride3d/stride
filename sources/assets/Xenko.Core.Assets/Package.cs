@@ -702,7 +702,7 @@ namespace Xenko.Core.Assets
         /// filePath</exception>
         public static Package Load(ILogger log, string filePath, PackageLoadParameters loadParametersArg = null)
         {
-            var package = LoadRaw(log, filePath);
+            var package = LoadProject(log, filePath)?.Package;
 
             if (package != null)
             {
@@ -759,6 +759,33 @@ namespace Xenko.Core.Assets
             }
 
             return null;
+        }
+
+        public static PackageContainer LoadProject(ILogger log, string filePath)
+        {
+            if (Path.GetExtension(filePath).ToLowerInvariant() == ".csproj")
+            {
+                var projectPath = filePath;
+                var packagePath = Path.ChangeExtension(filePath, Package.PackageFileExtension);
+                var package = LoadRaw(log, packagePath);
+                return new SolutionProject(package, package.Id, projectPath);
+            }
+            else
+            {
+                var package = LoadRaw(log, filePath);
+
+                // Find the .csproj next to .xkpkg (if any)
+                // Note that we use package.FullPath since we must first perform package upgrade from 3.0 to 3.1+ (might move package in .csproj folder)
+                var projectPath = Path.ChangeExtension(package.FullPath, ".csproj");
+                if (File.Exists(projectPath))
+                {
+                    return new SolutionProject(package, package.Id, projectPath);
+                }
+                else
+                {
+                    return new StandalonePackage(package);
+                }
+            }
         }
 
         /// <summary>
@@ -1381,6 +1408,7 @@ namespace Xenko.Core.Assets
                         {
                             var projectLocation = (UFile)(string)profile.ProjectReferences[0].Location;
                             assetFile.FilePath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UFile)(projectLocation.GetFullPathWithoutExtension() + PackageFileExtension));
+                            asset.Meta.Name = projectLocation.GetFileNameWithoutExtension();
 
                             for (int i = 0; i < profile.AssetFolders.Count; ++i)
                             {
