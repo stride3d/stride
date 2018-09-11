@@ -10,7 +10,6 @@
     <OutputPath>..\Bin\Windows\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
-<#@ include file="..\Common.PropertyGroups.targets.t4" #>
 
   <ItemGroup>
     <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>" />

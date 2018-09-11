@@ -1,20 +1,6 @@
 <#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <#
-    var currentPlatform = (Xenko.Core.PlatformType)Properties.CurrentPlatform;
-#>
-  <PropertyGroup>
-    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)..\<#= Properties.PackageGameRelativePath #></XenkoCurrentPackagePath>
-    <XenkoProjectType><#= Properties.ProjectType #></XenkoProjectType>
-<#
-    if (currentPlatform != Xenko.Core.PlatformType.Shared)
-    {
-#>
-    <XenkoPlatform><#= currentPlatform #></XenkoPlatform>
-<#
-    }
-#>
-  </PropertyGroup>
-<#
+var currentPlatform = (Xenko.Core.PlatformType)Properties.CurrentPlatform;
 foreach(var platform in Properties.Platforms) 
 { 
     // Skip the platform if it is not current
@@ -49,14 +35,12 @@ foreach(var platform in Properties.Platforms)
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;<#= string.Join(";", platform.DefineConstants) #></DefineConstants>
 <#  if (platformName == "iPhone") { #>
 	<MtouchFastDev>True</MtouchFastDev>
 <#  } #>
 <#  } else { #>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;<#= string.Join(";", platform.DefineConstants) #></DefineConstants>
 <#  } #>
     <OutputPath>..\Bin\<#= platform.Name #><#= platformPart.Cpu != null ? "-" + platformPart.Cpu : string.Empty #>\<#= config.Name #>\</OutputPath>
     <IntermediateOutputPath>obj\<#= platform.Name #><#= platformPart.Cpu != null ? "-" + platformPart.Cpu : string.Empty #>\<#= config.Name #>\</IntermediateOutputPath>
