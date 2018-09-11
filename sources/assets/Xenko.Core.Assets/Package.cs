@@ -1143,55 +1143,55 @@ namespace Xenko.Core.Assets
             if (loadParameters == null) throw new ArgumentNullException(nameof(loadParameters));
             var assemblyContainer = loadParameters.AssemblyContainer ?? AssemblyContainer.Default;
 
-            var projectFullPath = (Container as SolutionProject)?.FullPath;
-            if (projectFullPath != null)
+            var project = Container as SolutionProject;
+            if (project == null || project.FullPath == null || project.Type != ProjectType.Library)
+                return;
+
+            // Check if already loaded
+            // TODO: More advanced cases: unload removed references, etc...
+            var projectReference = new ProjectReference(Id, project.FullPath, Core.Assets.ProjectType.Library);
+            if (LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
+                return;
+
+            string assemblyPath = null;
+            var fullProjectLocation = project.FullPath.ToWindowsPath();
+
+            try
             {
-                // Check if already loaded
-                // TODO: More advanced cases: unload removed references, etc...
-                var projectReference = new ProjectReference(Id, projectFullPath, Core.Assets.ProjectType.Library);
-                if (LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
+                var forwardingLogger = new ForwardingLoggerResult(log);
+                assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
+                if (String.IsNullOrWhiteSpace(assemblyPath))
+                {
+                    log.Error($"Unable to locate assembly reference for project [{fullProjectLocation}]");
                     return;
-
-                string assemblyPath = null;
-                var fullProjectLocation = projectFullPath.ToWindowsPath();
-
-                try
-                {
-                    var forwardingLogger = new ForwardingLoggerResult(log);
-                    assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
-                    if (String.IsNullOrWhiteSpace(assemblyPath))
-                    {
-                        log.Error($"Unable to locate assembly reference for project [{fullProjectLocation}]");
-                        return;
-                    }
-
-                    var loadedAssembly = new PackageLoadedAssembly(projectReference, assemblyPath);
-                    LoadedAssemblies.Add(loadedAssembly);
-
-                    if (!File.Exists(assemblyPath) || forwardingLogger.HasErrors)
-                    {
-                        log.Error($"Unable to build assembly reference [{assemblyPath}]");
-                        return;
-                    }
-
-                    var assembly = assemblyContainer.LoadAssemblyFromPath(assemblyPath, log);
-                    if (assembly == null)
-                    {
-                        log.Error($"Unable to load assembly reference [{assemblyPath}]");
-                    }
-
-                    loadedAssembly.Assembly = assembly;
-
-                    if (assembly != null)
-                    {
-                        // Register assembly in the registry
-                        AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
-                    }
                 }
-                catch (Exception ex)
+
+                var loadedAssembly = new PackageLoadedAssembly(projectReference, assemblyPath);
+                LoadedAssemblies.Add(loadedAssembly);
+
+                if (!File.Exists(assemblyPath) || forwardingLogger.HasErrors)
                 {
-                    log.Error($"Unexpected error while loading project [{fullProjectLocation}] or assembly reference [{assemblyPath}]", ex);
+                    log.Error($"Unable to build assembly reference [{assemblyPath}]");
+                    return;
                 }
+
+                var assembly = assemblyContainer.LoadAssemblyFromPath(assemblyPath, log);
+                if (assembly == null)
+                {
+                    log.Error($"Unable to load assembly reference [{assemblyPath}]");
+                }
+
+                loadedAssembly.Assembly = assembly;
+
+                if (assembly != null)
+                {
+                    // Register assembly in the registry
+                    AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Unexpected error while loading project [{fullProjectLocation}] or assembly reference [{assemblyPath}]", ex);
             }
         }
 
@@ -1379,18 +1379,18 @@ namespace Xenko.Core.Assets
         {
             if (package.IsSystem) return;
 
-            var projectFullPath = (package.Container as SolutionProject)?.FullPath;
-            if (projectFullPath != null)
-            {
-                string defaultNamespace;
-                var codePaths = FindAssetsInProject(projectFullPath, out defaultNamespace);
-                package.RootNamespace = defaultNamespace;
-                var dir = new UDirectory(projectFullPath.GetFullDirectory());
+            var project = package.Container as SolutionProject;
+            if (project == null || project.FullPath == null || project.Type != ProjectType.Library)
+                return;
 
-                foreach (var codePath in codePaths)
-                {
-                    list.Add(new PackageLoadingAssetFile(codePath, dir));
-                }
+            string defaultNamespace;
+            var codePaths = FindAssetsInProject(project.FullPath, out defaultNamespace);
+            package.RootNamespace = defaultNamespace;
+            var dir = new UDirectory(project.FullPath.GetFullDirectory());
+
+            foreach (var codePath in codePaths)
+            {
+                list.Add(new PackageLoadingAssetFile(codePath, dir));
             }
         }
 
