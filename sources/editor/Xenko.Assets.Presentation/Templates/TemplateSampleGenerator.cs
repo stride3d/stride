@@ -352,9 +352,8 @@ namespace Xenko.Assets.Presentation.Templates
             // Save again post update
             SaveSession(parameters);
 
-            // Restore NuGet packages again
-            parameters.Logger.Verbose("Restore NuGet packages...");
-            await VSProjectHelper.RestoreNugetPackages(parameters.Logger, parameters.Session.SolutionPath);
+            // Make sure platform projects also gets in fully loaded state
+            package.Session.LoadMissingReferences(parameters.Logger);
 
             return true;
         }

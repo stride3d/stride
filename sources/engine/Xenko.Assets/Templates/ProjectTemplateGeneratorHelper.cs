@@ -80,7 +80,7 @@ namespace Xenko.Assets.Templates
 
                 // Don't add a platform that is already in the package
                 var projectName = Utilities.BuildValidNamespaceName(name) + "." + platform.Platform.Name;
-                var projectFullPath = UPath.Combine(package.RootDirectory.GetParent(), (UFile)(projectName + ".csproj"));
+                var projectFullPath = UPath.Combine(UPath.Combine(package.RootDirectory.GetParent(), (UDirectory)projectName), (UFile)(projectName + ".csproj"));
                 var existingProject = package.Session.Projects.OfType<SolutionProject>().FirstOrDefault(x => x.FullPath == projectFullPath);
 
                 var projectGuid = Guid.NewGuid();
@@ -94,17 +94,18 @@ namespace Xenko.Assets.Templates
 
                     // We are going to regenerate this platform, so we are removing it before
                     package.Session.Projects.Remove(existingProject);
-                    var projectDirectory = Path.GetDirectoryName(projectFullPath);
-                    if (projectDirectory != null && Directory.Exists(projectDirectory))
+                }
+
+                var projectDirectory = Path.GetDirectoryName(projectFullPath.ToWindowsPath());
+                if (projectDirectory != null && Directory.Exists(projectDirectory))
+                {
+                    try
                     {
-                        try
-                        {
-                            Directory.Delete(projectDirectory, true);
-                        }
-                        catch (Exception)
-                        {
-                            logger.Warning($"Unable to delete directory [{projectDirectory}]");
-                        }
+                        Directory.Delete(projectDirectory, true);
+                    }
+                    catch (Exception)
+                    {
+                        logger.Warning($"Unable to delete directory [{projectDirectory}]");
                     }
                 }
 
@@ -117,8 +118,6 @@ namespace Xenko.Assets.Templates
                 var newExeProject = GenerateTemplate(parameters, platforms, templatePath, projectName, platform.Platform.Type, graphicsPlatform, ProjectType.Executable, orientation, projectGuid);
 
                 package.Session.Projects.Add(newExeProject);
-
-                package.Session.LoadMissingReferences(logger);
 
                 package.IsDirty = true;
             }
