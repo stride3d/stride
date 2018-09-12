@@ -1417,6 +1417,13 @@ namespace Xenko.Core.Assets
                                 profile.AssetFolders[i].Path = (string)assetPath;
                             }
 
+                            for (int i = 0; i < profile.ResourceFolders.Count; ++i)
+                            {
+                                var resourcePath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UDirectory)(string)profile.ResourceFolders[i].Path);
+                                resourcePath = resourcePath.MakeRelative(assetFile.FilePath.GetFullDirectory());
+                                profile.ResourceFolders[i].Path = (string)resourcePath;
+                            }
+
                             asset.Profile = profile;
                         }
                     }
