@@ -176,9 +176,7 @@ namespace Xenko.Assets.Presentation.ViewModel
 
             // List current assets
             var projectAssets = new List<AssetViewModel>();
-            // TODO CSPROJ=XKPKG
-            //var isProjectDirty = GetAssets(projectViewModel, projectAssets);
-            var isProjectDirty = false;
+            var isProjectDirty = GetAssets(projectViewModel.Code, projectAssets);
 
             // Project is dirty, ask user if he really wants to auto-reload
             if (isProjectDirty)
@@ -204,8 +202,7 @@ namespace Xenko.Assets.Presentation.ViewModel
 
             // Mark project as non dirty
             // TODO: Does that work properly with Undo/Redo?
-            // TODO CSPROJ=XKPKG
-            //UpdateDirtiness(projectViewModel, false);
+            UpdateDirtiness(projectViewModel.Code, false);
         }
 
         /// <summary>
