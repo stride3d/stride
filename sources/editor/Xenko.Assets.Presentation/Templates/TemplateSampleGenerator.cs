@@ -139,6 +139,7 @@ namespace Xenko.Assets.Presentation.Templates
             WriteGitIgnore(parameters);
 
             UFile packageOutputFile = null;
+            UFile packageInputFile = null;
 
             // Process files
             foreach (var directory in FileUtility.EnumerateDirectories(description.TemplateDirectory, SearchDirection.Down))
@@ -169,6 +170,7 @@ namespace Xenko.Assets.Presentation.Templates
 
                     if (isPackageFile)
                     {
+                        packageInputFile = file.FullName;
                         packageOutputFile = outputFile;
                     }
 
@@ -188,64 +190,72 @@ namespace Xenko.Assets.Presentation.Templates
                 }
             }
 
-            // TODO CSPROJ=XKPKG
-            /*
-            // Copy dependency files locally
-            //  We only want to copy the asset files. The raw files are in Resources and the game assets are in Assets.
-            //  If we copy each file locally they will be included in the package and we can then delete the dependency packages.
-            foreach (var packageReference in package.LocalDependencies)
-            {
-                var packageDirectory = packageReference.Location.GetFullDirectory();
-                foreach (var directory in FileUtility.EnumerateDirectories(packageDirectory, SearchDirection.Down))
-                {
-                    foreach (var file in directory.GetFiles())
-                    {
-                        // If the file is ending with the Template extension or a directory with the sample extension, don`t copy it
-                        if (file.FullName.EndsWith(TemplateDescription.FileExtension) ||
-                            string.Compare(directory.Name, TemplateDescription.FileExtension, StringComparison.OrdinalIgnoreCase) == 0)
-                        {
-                            continue;
-                        }
-
-                        var relativeFile = new UFile(file.FullName).MakeRelative(packageDirectory);
-                        var relativeFilename = relativeFile.ToString();
-
-                        bool isAsset    = relativeFilename.Contains("Assets");
-                        bool isResource = relativeFilename.Contains("Resources");
-
-                        if (!isAsset && !isResource)
-                            continue;
-
-                        // Replace the name in the files if necessary
-                        foreach (var nameRegex in regexes)
-                        {
-                            relativeFile = nameRegex.Item1.Replace(relativeFile, nameRegex.Item2);
-                        }
-
-                        var outputFile = UPath.Combine(outputDirectory, relativeFile);
-                        {   // Create the output directory if needed
-                            var outputFileDirectory = outputFile.GetParent();
-                            if (!Directory.Exists(outputFileDirectory))
-                            {
-                                Directory.CreateDirectory(outputFileDirectory);
-                            }
-                        }
-
-                        if (IsBinaryFile(file.FullName))
-                        {
-                            File.Copy(file.FullName, outputFile, true);
-                        }
-                        else
-                        {
-                            ProcessTextFile(file.FullName, outputFile, regexes);
-                        }
-                    }
-                }
-            }
-            */
-
             if (packageOutputFile != null)
             {
+                var inputProject = (SolutionProject)Package.LoadProject(log, packageInputFile);
+                var outputProject = (SolutionProject)Package.LoadProject(log, packageOutputFile);
+                var msbuildProject = VSProjectHelper.LoadProject(outputProject.FullPath, platform: "NoPlatform");
+
+                // Copy dependency files locally
+                //  We only want to copy the asset files. The raw files are in Resources and the game assets are in Assets.
+                //  If we copy each file locally they will be included in the package and we can then delete the dependency packages.
+                foreach (var projectReference in msbuildProject.GetItems("ProjectReference").ToList())
+                {
+                    var packageDirectory = UPath.Combine(inputProject.FullPath.GetFullDirectory(), (UFile)projectReference.EvaluatedInclude).GetFullDirectory();
+                    foreach (var directory in FileUtility.EnumerateDirectories(packageDirectory, SearchDirection.Down))
+                    {
+                        foreach (var file in directory.GetFiles())
+                        {
+                            // If the file is ending with the Template extension or a directory with the sample extension, don`t copy it
+                            if (file.FullName.EndsWith(TemplateDescription.FileExtension) ||
+                                string.Compare(directory.Name, TemplateDescription.FileExtension, StringComparison.OrdinalIgnoreCase) == 0)
+                            {
+                                continue;
+                            }
+
+                            var relativeFile = new UFile(file.FullName).MakeRelative(packageDirectory);
+                            var relativeFilename = relativeFile.ToString();
+
+                            bool isAsset = relativeFilename.Contains("Assets");
+                            bool isResource = relativeFilename.Contains("Resources");
+
+                            if (!isAsset && !isResource)
+                                continue;
+
+                            // Replace the name in the files if necessary
+                            foreach (var nameRegex in regexes)
+                            {
+                                relativeFile = nameRegex.Item1.Replace(relativeFile, nameRegex.Item2);
+                            }
+
+                            var outputFile = UPath.Combine(outputDirectory, relativeFile);
+                            {   // Create the output directory if needed
+                                var outputFileDirectory = outputFile.GetParent();
+                                if (!Directory.Exists(outputFileDirectory))
+                                {
+                                    Directory.CreateDirectory(outputFileDirectory);
+                                }
+                            }
+
+                            if (IsBinaryFile(file.FullName))
+                            {
+                                File.Copy(file.FullName, outputFile, true);
+                            }
+                            else
+                            {
+                                ProcessTextFile(file.FullName, outputFile, regexes);
+                            }
+                        }
+                    }
+
+                    msbuildProject.RemoveItem(projectReference);
+                }
+
+                // Save csproj without ProjectReferences
+                msbuildProject.Save();
+                msbuildProject.ProjectCollection.UnloadAllProjects();
+                msbuildProject.ProjectCollection.Dispose();
+
                 // Add package to session
                 var loadParams = PackageLoadParameters.Default();
                 loadParams.ForceNugetRestore = true;
