@@ -1,7 +1,8 @@
 !Texture
-Id: cf628a7c-f4ca-4fc7-aa7d-27882f030380
+Id: 1c43b885-fb7f-4a23-a8a9-9ce3b3370103
 SerializedVersion: {Xenko: 2.0.0.0}
 Tags: []
-Source: ../../Resources/skybox_texture_hdr.dds
+Source: ../Resources/Crosshair256.png
 Type: !ColorTextureType
     ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsStreamable: false

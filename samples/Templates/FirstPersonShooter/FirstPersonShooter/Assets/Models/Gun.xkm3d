@@ -2,7 +2,7 @@
 Id: 079463bb-d4f9-433d-a5f3-39ba388feaec
 SerializedVersion: {Xenko: 2.0.0.0}
 Tags: []
-Source: ../../../Resources/Models/Gun.fbx
+Source: ../../Resources/Models/Gun.fbx
 PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
 Materials:
     7344a234a5cc1fdb1e39e7371e39e737:
@@ -27,4 +27,4 @@ Materials:
             Material: 0dc0f6d0-607c-42b7-ba89-7704dfedb6d1:Models/LambertMT
 Skeleton: null
 ~SourceHashes:
-    db0477852e7747342370c2de27455d34~../../../Resources/Models/Gun.fbx: 12d1681ba554a9b1c1ad16bc405de6c7
+    db0477852e7747342370c2de27455d34~../../Resources/Models/Gun.fbx: 12d1681ba554a9b1c1ad16bc405de6c7

@@ -12,8 +12,8 @@ Meta:
             Version: 3.0.0.1-dev
             RootAssets: []
 LocalDependencies:
-    - ec64fd24-824f-4da4-b077-3661cf988027:../../Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg
-    - c9b4f26a-e7ba-4201-a6e0-0c0eedfe9de2:../../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.xkpkg
+    - ec64fd24-824f-4da4-b077-3661cf988027:../../Packs/mannequinModel/mannequinModel.xkpkg
+    - c9b4f26a-e7ba-4201-a6e0-0c0eedfe9de2:../../Packs/PrototypingBlocks/PrototypingBlocks.xkpkg
     - bdd7a38f-3ff5-4279-b7b7-27a4c677f4d7:../../Packs/SamplesAssetPackage/SamplesAssetPackage.xkpkg
     - 575b8dc7-3fad-497d-acf7-fbdfabcece80:../../Packs/VFXPackage/VFXPackage.xkpkg
 Profiles:
@@ -21,7 +21,7 @@ Profiles:
         Platform: Shared
         InheritProfiles: []
         AssetFolders:
-            -   Path: Assets/Shared
+            -   Path: Assets
             -   Path: TopDownRPG.Game/Effects
         ResourceFolders: []
         OutputGroupDirectories: {}

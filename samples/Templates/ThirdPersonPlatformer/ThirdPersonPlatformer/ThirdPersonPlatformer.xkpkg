@@ -12,14 +12,14 @@ Meta:
             Version: 3.0.0.1-dev
             RootAssets: []
 LocalDependencies:
-    - ec64fd24-824f-4da4-b077-3661cf988027:../../Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg
-    - c9b4f26a-e7ba-4201-a6e0-0c0eedfe9de2:../../Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.xkpkg
+    - ec64fd24-824f-4da4-b077-3661cf988027:../../Packs/mannequinModel/mannequinModel.xkpkg
+    - c9b4f26a-e7ba-4201-a6e0-0c0eedfe9de2:../../Packs/PrototypingBlocks/PrototypingBlocks.xkpkg
 Profiles:
     -   Name: Shared
         Platform: Shared
         InheritProfiles: []
         AssetFolders:
-            -   Path: Assets/Shared
+            -   Path: Assets
             -   Path: ThirdPersonPlatformer.Game/Effects
         ResourceFolders: []
         OutputGroupDirectories: {}
