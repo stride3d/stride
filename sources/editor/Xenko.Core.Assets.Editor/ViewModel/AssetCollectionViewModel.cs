@@ -528,9 +528,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         {
             switch (directory)
             {
-                // TODO CSPROJ=XKPKG
-                //case ProjectViewModel project:
-                //    return project.RootNamespace;
+                case ProjectCodeViewModel projectCode:
+                    return projectCode.Project.RootNamespace;
                 case var directoryWithParent when directoryWithParent.Parent != null:
                     return $"{ComputeNamespace(directoryWithParent.Parent)}.{directoryWithParent.Name}";
                 default:

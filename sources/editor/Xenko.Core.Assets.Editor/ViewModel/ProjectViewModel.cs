@@ -50,7 +50,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
     public class ProjectViewModel : PackageViewModel
     {
         private bool isCurrentProject;
-        private PackageViewModel package;
 
         public ProjectViewModel(SessionViewModel session, SolutionProject project, bool packageAlreadyInSession)
             : base(session, project, packageAlreadyInSession)
@@ -95,7 +94,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the root namespace for this project.
         /// </summary>
-        public string RootNamespace => Name; // TODO CSPROJ=XKPKG
+        public string RootNamespace => Package.RootNamespace ?? Name;
 
         /// <summary>
         /// Gets asset directory view model for a given path and creates all missing parts.
