@@ -59,13 +59,11 @@ namespace Xenko.Assets.Presentation.Templates
                 return false;
             }
 
-            // TODO CSPROJ=XKPKG
             // If there are no executable/shared projects in this package, we can't work on it
-            /*var sharedProfile = package.Profile;
-            var existingPlatformTypesWithExe = new HashSet<PlatformType>(package.Profiles.Where(profile => profile.Platform != PlatformType.Shared && profile.ProjectReferences.Any(projectRef => projectRef.Type == ProjectType.Executable)).Select(item => item.Platform));
-            if (sharedProfile == null || existingPlatformTypesWithExe.Count == 0)
+            var existingPlatformTypesWithExe = new HashSet<PlatformType>(AssetRegistry.SupportedPlatforms.Where(x => File.Exists(ProjectTemplateGeneratorHelper.GeneratePlatformProjectLocation(parameters.Name, parameters.Package, x))).Select(x => x.Type));
+            if (package.Profile.Platform != PlatformType.Shared)
             {
-                parameters.Logger.Error("The selected package does not contain a shared profile with executable projects");
+                parameters.Logger.Error("The selected package does not contain a shared profile");
                 return false;
             }
 
@@ -93,7 +91,7 @@ namespace Xenko.Assets.Presentation.Templates
                 parameters.SetTag(ForcePlatformRegenerationKey, window.ForcePlatformRegeneration);
             }
             parameters.SetTag(OrientationKey, (DisplayOrientation)gameSettingsAsset.GetOrCreate<RenderingSettings>().DisplayOrientation);
-            parameters.Namespace = defaultNamespace;*/
+            parameters.Namespace = defaultNamespace;
 
             return true;
         }
@@ -125,7 +123,7 @@ namespace Xenko.Assets.Presentation.Templates
 
             // Generate missing platforms
             bool forceGenerating = parameters.GetTag(ForcePlatformRegenerationKey);
-            ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, parameters.GetTag(PlatformsKey), parameters.GetTag(OrientationKey), package.Id, name, package, forceGenerating);
+            ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, parameters.GetTag(PlatformsKey), parameters.GetTag(OrientationKey), forceGenerating);
 
             // Save the session after the update
             // FIXME: Saving like this is not supported anymore - let's not save for now be we should provide a proper way to save!

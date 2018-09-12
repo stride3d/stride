@@ -152,8 +152,17 @@ namespace Xenko.Assets.Presentation.Templates
             // Add Effects as an asset folder in order to load xksl
             package.Profile.AssetFolders.Add(new AssetFolder("Effects"));
 
+            var packageParameters = new PackageTemplateGeneratorParameters
+            {
+                Name = package.Meta.Name,
+                OutputDirectory = package.FullPath.GetFullDirectory(),
+                Description = parameters.Description,
+                Package = package,
+                Logger = parameters.Logger,
+            };
+
             // Generate executable projects for each platform
-            ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(parameters, platforms, orientation, package.Id, name, package, false);
+            ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(packageParameters, platforms, orientation, false);
 
             // Add asset packages
             CopyAssetPacks(parameters, package);

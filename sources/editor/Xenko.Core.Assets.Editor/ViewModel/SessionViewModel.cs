@@ -1167,20 +1167,12 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             workProgress.ProgressValue = 0;
             workProgress.Maximum = session.Projects.OfType<SolutionProject>().Where(x => !packageMap.ContainsValue(x)).Sum(x => x.Package.Assets.Count);
 
-            var newPackages = new List<PackageViewModel>();
             // This action is uncancellable - In case of errors, we still try to create view models to match what is currently in the PackageSession, but the template has responsibility to clean itself up in case of failure.
             // TODO: check what is created here and try to avoid it
-            foreach (var package in session.Projects.OfType<SolutionProject>().Where(x => !packageMap.ContainsValue(x)))
-            {
-                var viewModel = CreateProjectViewModel(package, true);
-                viewModel.LoadPackageInformation(loggerResult, workProgress);
-                newPackages.Add(viewModel);
-            }
+            ProcessAddedPackages(loggerResult, workProgress, true);
 
             if (CurrentProject == null)
                 AutoSelectCurrentProject();
-
-            ProcessAddedPackages(newPackages);
 
             await workProgress.NotifyWorkFinished(false, loggerResult.HasErrors);
         }
@@ -1231,20 +1223,32 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
                 using (var transaction = UndoRedoService.CreateTransaction())
                 {
-                    var newPackages = new List<PackageViewModel>();
-                    foreach (var package in session.Projects.OfType<SolutionProject>().Where(x => !packageMap.ContainsValue(x)))
-                    {
-                        var viewModel = CreateProjectViewModel(package, false);
-                        viewModel.LoadPackageInformation(loggerResult, workProgress);
-                        newPackages.Add(viewModel);
-                    }
-                    ProcessAddedPackages(newPackages);
-
+                    ProcessAddedPackages(loggerResult, workProgress, false);
                     UndoRedoService.SetName(transaction, $"Import package '{new UFile(packagePath).GetFileNameWithoutExtension()}'");
                 }
 
                 // Notify that the task is finished
                 await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, loggerResult.HasErrors);
+            }
+        }
+
+        internal void ProcessAddedPackages(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession)
+        {
+            var newPackages = new List<PackageViewModel>();
+            foreach (var package in session.Projects.OfType<SolutionProject>().Where(x => !packageMap.ContainsValue(x)))
+            {
+                var viewModel = CreateProjectViewModel(package, packageAlreadyInSession);
+                viewModel.LoadPackageInformation(loggerResult, workProgress);
+                newPackages.Add(viewModel);
+            }
+            ProcessAddedPackages(newPackages);
+        }
+
+        internal void ProcessRemovedPackages()
+        {
+            foreach (var package in packageMap.Where(x => !session.Projects.Contains(x.Value)))
+            {
+                LocalPackages.Remove(package.Key);
             }
         }
 

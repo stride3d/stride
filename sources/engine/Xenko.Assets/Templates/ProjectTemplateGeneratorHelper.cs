@@ -14,6 +14,7 @@ using Xenko.Core.ProjectTemplating;
 using Xenko.Graphics;
 using Xenko.Shaders.Parser.Mixins;
 using Xenko.Core.VisualStudio;
+using Xenko.Core.Extensions;
 
 namespace Xenko.Assets.Templates
 {
@@ -60,27 +61,49 @@ namespace Xenko.Assets.Templates
             return parameters.Tags.TryGetValue(OptionsKey, out options) ? options : new Dictionary<string, object>();
         }
 
-        public static void UpdatePackagePlatforms(TemplateGeneratorParameters parameters, ICollection<SelectedSolutionPlatform> platforms, DisplayOrientation orientation, Guid sharedProjectGuid, string name, Package package, bool forcePlatformRegeneration)
+        public static void UpdatePackagePlatforms(PackageTemplateGeneratorParameters packageParameters, ICollection<SelectedSolutionPlatform> platforms, DisplayOrientation orientation, bool forcePlatformRegeneration)
         {
             if (platforms == null) throw new ArgumentNullException(nameof(platforms));
-            var logger = parameters.Logger;
+            var logger = packageParameters.Logger;
+            var package = packageParameters.Package;
+            var name = packageParameters.Name;
+
+            // Adjust output directory
+            var parameters = new SessionTemplateGeneratorParameters
+            {
+                Logger = logger,
+                Name = name,
+                OutputDirectory = package.FullPath.GetFullDirectory().GetParent(),
+                Session = package.Session,
+                Description = packageParameters.Description,
+            };
 
             // Setup the ProjectGameGuid to be accessible from exec (in order to be able to link to the game project.
-            AddOption(parameters, "ProjectGameGuid", sharedProjectGuid);
+            AddOption(parameters, "ProjectGameGuid", package.Id);
             AddOption(parameters, "ProjectGameRelativePath", (package.Container as SolutionProject)?.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
             AddOption(parameters, "PackageGameRelativePath", package.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
 
             // Add projects
             var stepIndex = 0;
             var stepCount = platforms.Count + 1;
+            var projectsToRemove = AssetRegistry.SupportedPlatforms
+                .Where(platform => !platforms.Select(x => x.Platform).Contains(platform))
+                .Select(platform =>
+                {
+                    var projectFullPath = GeneratePlatformProjectLocation(name, package, platform);
+                    return package.Session.Projects.OfType<SolutionProject>().FirstOrDefault(project => project.FullPath == projectFullPath);
+                })
+                .NotNull()
+                .ToList();
 
             foreach (var platform in platforms)
             {
                 stepIndex++;
 
+                var projectFullPath = GeneratePlatformProjectLocation(name, package, platform.Platform);
+                var projectName = projectFullPath.GetFileNameWithoutExtension();
+
                 // Don't add a platform that is already in the package
-                var projectName = Utilities.BuildValidNamespaceName(name) + "." + platform.Platform.Name;
-                var projectFullPath = UPath.Combine(UPath.Combine(package.RootDirectory.GetParent(), (UDirectory)projectName), (UFile)(projectName + ".csproj"));
                 var existingProject = package.Session.Projects.OfType<SolutionProject>().FirstOrDefault(x => x.FullPath == projectFullPath);
 
                 var projectGuid = Guid.NewGuid();
@@ -119,8 +142,34 @@ namespace Xenko.Assets.Templates
 
                 package.Session.Projects.Add(newExeProject);
 
-                package.IsDirty = true;
+                package.Session.IsDirty = true;
             }
+
+            foreach (var project in projectsToRemove)
+            {
+                var projectFullPath = project.FullPath;
+                var projectDirectory = Path.GetDirectoryName(projectFullPath.ToWindowsPath());
+                if (projectDirectory != null && Directory.Exists(projectDirectory))
+                {
+                    try
+                    {
+                        Directory.Delete(projectDirectory, true);
+                    }
+                    catch (Exception)
+                    {
+                        logger.Warning($"Unable to delete directory [{projectDirectory}]");
+                    }
+                }
+
+                package.Session.Projects.Remove(project);
+                package.Session.IsDirty = true;
+            }
+        }
+
+        public static UFile GeneratePlatformProjectLocation(string name, Package package, SolutionPlatform platform)
+        {
+            var projectName = Utilities.BuildValidNamespaceName(name) + "." + platform.Name;
+            return UPath.Combine(UPath.Combine(package.RootDirectory.GetParent(), (UDirectory)projectName), (UFile)(projectName + ".csproj"));
         }
 
         public static SolutionProject GenerateTemplate(TemplateGeneratorParameters parameters, ICollection<SelectedSolutionPlatform> platforms, UFile templateRelativePath, string projectName, PlatformType platformType, GraphicsPlatform? graphicsPlatform, ProjectType projectType, DisplayOrientation orientation, Guid? projectGuid = null)
