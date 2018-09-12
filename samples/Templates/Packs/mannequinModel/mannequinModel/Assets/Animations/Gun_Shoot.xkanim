@@ -1,0 +1,19 @@
+!Animation
+Id: a49fd478-024a-4aba-a973-5d2ec3d264cc
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Animation/Shoot.fbx
+ClipDuration:
+    Enabled: false
+    StartAnimationTime: 0:00:00:00.0000000
+    EndAnimationTime: 0:00:30:00.0000000
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+RepeatMode: LoopInfinite
+Type: !StandardAnimationAssetType {}
+Skeleton: 64401578-294c-4eb2-b92f-4c0a805d7314:Models/mannequinHandModel Skeleton
+RootMotion: false
+PreviewModel: a2ee43dd-1239-4930-bd7c-6017bb263391:Models/mannequinHandModel
+AnimationTimeMinimum: 0:00:00:00.0000000
+~SourceHashes:
+    caf5f8923483320fbc43a80fcbb5db0e~../../Resources/Animation/Shoot.fbx: 3b2f08678734ad938000bdbb87f41236
+AnimationTimeMaximum: 0:00:00:00.3670000

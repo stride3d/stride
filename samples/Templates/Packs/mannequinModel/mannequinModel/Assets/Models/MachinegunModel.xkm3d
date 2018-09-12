@@ -1,0 +1,26 @@
+!Model
+Id: 32c1ef96-e4a0-49a2-b286-b932c6d43f49
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Models/MachinegunModel.fbx
+PivotPosition: {X: 0.0, Y: 0.0, Z: 0.0}
+Materials:
+    77f0be4f0cd36cd479800d2579800d25:
+        Name: matteMT
+        MaterialInstance:
+            Material: c66e1fb2-baec-4900-84c2-208b307ad837:Materials/MattBlackMachinegun
+    98c4d20c91aa1618068f92bf068f92bf:
+        Name: glossMT
+        MaterialInstance:
+            Material: 1b322c92-9a75-4b10-bd65-8104175c5f00:Materials/BodyWhite
+    7b8394fb681bf353e28097d3e28097d3:
+        Name: glowMT
+        MaterialInstance:
+            Material: 0f499298-b91f-4273-9bf6-002dede230de:Materials/Emissive
+    b158ca41e15b46f8b2746c0a97fdd6ee:
+        Name: semiGlossMT
+        MaterialInstance:
+            Material: 9d50f321-04f3-48ab-b49c-c414ef358343:Materials/BodyGray
+Skeleton: null
+~SourceHashes:
+    10b47b21e557752fe8ffbec31774bca1~../../Resources/Models/MachinegunModel.fbx: f681403f434781ff4a4b3139aa4f6471

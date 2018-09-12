@@ -1,0 +1,8 @@
+!Texture
+Id: 8223c28b-5cb8-402a-b51f-aa6c239dbb9f
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: ../../Resources/Textures/Misc/circle02.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
+IsStreamable: false

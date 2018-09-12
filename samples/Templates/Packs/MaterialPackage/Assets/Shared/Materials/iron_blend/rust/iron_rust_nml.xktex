@@ -1,7 +1,0 @@
-!Texture
-Id: d6017ed2-fc6e-4407-8d0c-dde2dac65117
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../../../Resources/Textures/iron_blend/rust/iron_rust_nml.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

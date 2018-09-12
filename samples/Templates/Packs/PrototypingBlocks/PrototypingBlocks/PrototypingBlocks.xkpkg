@@ -16,7 +16,7 @@ Profiles:
         Platform: Shared
         InheritProfiles: []
         AssetFolders:
-            -   Path: Assets/Shared
+            -   Path: Assets
         ResourceFolders: []
         OutputGroupDirectories: {}
         ProjectReferences: []

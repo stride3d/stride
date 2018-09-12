@@ -1,0 +1,7 @@
+!Texture
+Id: f70776e8-f2d4-4f4d-ae67-b7fef01f2a4f
+SerializedVersion: {Xenko: 2.0.0.0}
+Tags: []
+Source: ../../../../Resources/Textures/iron_blend/rust/rust_msk.png
+Type: !ColorTextureType
+    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}

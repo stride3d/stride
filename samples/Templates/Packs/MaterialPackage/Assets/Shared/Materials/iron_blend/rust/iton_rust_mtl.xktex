@@ -1,7 +1,0 @@
-!Texture
-Id: 01f55a42-cf1c-4c94-abfe-284c102a5286
-SerializedVersion: {Xenko: 2.0.0.0}
-Tags: []
-Source: ../../../../../Resources/Textures/iron_blend/rust/iton_rust_mtl.png
-Type: !ColorTextureType
-    ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
