@@ -158,12 +158,6 @@ namespace Xenko.Assets.Presentation.Templates
             // Add asset packages
             CopyAssetPacks(parameters, package);
 
-            // Load assets from HDD
-            package.LoadTemporaryAssets(logger);
-
-            // Validate assets
-            package.ValidateAssets(true, false, logger);
-
             // Create camera script
             var cameraScriptTemplate = TemplateManager.FindTemplates(package.Session).OfType<TemplateAssetDescription>().FirstOrDefault(x => x.DefaultOutputName == CameraScriptDefaultOutputName);
             if (cameraScriptTemplate == null)
