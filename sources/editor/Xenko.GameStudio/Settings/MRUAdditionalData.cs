@@ -53,6 +53,9 @@ namespace Xenko.GameStudio
         [DataMember]
         public IList<AssetId> OpenedAssets { get; set; } = new List<AssetId>();
 
+        [DataMember]
+        public int DockingLayoutVersion { get; set; }
+
         /// <summary>
         /// Game Studio layout when no editors are opened.
         /// </summary>

@@ -36,5 +36,11 @@ namespace Xenko.GameStudio
         /// Default Game Studio layout with editors opened.
         /// </summary>
         internal const string DefaultEditorLayout = "<?xml version=\"1.0\"?><LayoutRoot xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"><RootPanel Orientation=\"Horizontal\"><LayoutPanel Orientation=\"Vertical\"><LayoutDocumentPane /><LayoutAnchorablePaneGroup Orientation=\"Horizontal\" DockHeight=\"300\"><LayoutAnchorablePane DockWidth=\"1*\"><LayoutAnchorable AutoHideMinHeight=\"300\" Title=\"Solution explorer\" ContentId=\"SolutionExplorer\" /></LayoutAnchorablePane><LayoutAnchorablePane DockWidth=\"3*\"><LayoutAnchorable AutoHideMinHeight=\"300\" Title=\"Asset view\" IsSelected=\"True\" ContentId=\"AssetView\"/><LayoutAnchorable AutoHideMinHeight=\"300\" ContentId=\"AssetLog\" /><LayoutAnchorable AutoHideMinHeight=\"300\" ContentId=\"BuildLog\" /></LayoutAnchorablePane></LayoutAnchorablePaneGroup></LayoutPanel><LayoutAnchorablePaneGroup Orientation=\"Vertical\" DockWidth=\"400\"><LayoutAnchorablePane DockHeight=\"4*\"><LayoutAnchorable AutoHideMinWidth=\"400\" Title=\"Property grid\" IsSelected=\"True\" ContentId=\"PropertyGrid\" /></LayoutAnchorablePane><LayoutAnchorablePaneGroup Orientation=\"Horizontal\" DockHeight=\"2*\"><LayoutAnchorablePane><LayoutAnchorable AutoHideMinWidth=\"400\" Title=\"Asset preview\" ContentId=\"AssetPreview\" /><LayoutAnchorable AutoHideMinWidth=\"400\" Title=\"Action history\" ContentId=\"ActionHistory\" /><LayoutAnchorable AutoHideMinWidth=\"400\" Title=\"References\" ContentId=\"References\" IsSelected=\"True\" /></LayoutAnchorablePane></LayoutAnchorablePaneGroup></LayoutAnchorablePaneGroup></RootPanel><TopSide /><RightSide /><LeftSide /><BottomSide /><FloatingWindows /><Hidden /></LayoutRoot>";
+
+        /// <summary>
+        /// Current version of the layout. If saved version is lower, layouts will be reset to default values.
+        /// </summary>
+        /// <remarks>Bump when making changes to layout and want to force user to reset to default version.</remarks>
+        internal const int CurrentLayoutVersion = 1;
     }
 }
