@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using Xenko.Core;
 
 namespace Xenko
@@ -19,6 +20,18 @@ namespace Xenko
         {
             { @"Direct3D11", @"." },
         };
+
+        private static Version TryGetAssemblyVersion(string fullPath)
+        {
+            try
+            {
+                return AssemblyName.GetAssemblyName(fullPath).Version;
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         // Should execute before almost everything else
         [ModuleInitializer(-100000)]
@@ -38,8 +51,12 @@ namespace Xenko
                     var sourceFile = new FileInfo(filename);
                     var destFile = new FileInfo(filename.Replace(sourcePath, destPath));
 
-                    // Only copy if doesn't exist or newer
-                    if (!destFile.Exists || sourceFile.LastWriteTime > destFile.LastWriteTime)
+                    var sourceVersion = TryGetAssemblyVersion(sourceFile.FullName);
+                    var destVersion = TryGetAssemblyVersion(destFile.FullName);
+                    var versionDifference = sourceVersion != null && destVersion != null ? sourceVersion.CompareTo(destVersion) : 0;
+
+                    // Only copy if doesn't exist, better version or newer (if equal version)
+                    if (!destFile.Exists || (versionDifference > 0 || (versionDifference == 0 && sourceFile.LastWriteTime > destFile.LastWriteTime)))
                     {
                         try
                         {
