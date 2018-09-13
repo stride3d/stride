@@ -79,6 +79,7 @@ namespace Xenko.GameStudio
             LoadFromSettings();
 
             var data = GetOrCreateDataPrivate(filePath);
+            data.DockingLayoutVersion = GameStudioInternalSettings.CurrentLayoutVersion;
             data.DockingLayout = GameStudioInternalSettings.DefaultLayout;
             data.DockingLayoutEditors = GameStudioInternalSettings.DefaultEditorLayout;
 
