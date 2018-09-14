@@ -438,14 +438,8 @@ msgstr "ソリューション"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:214
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:494
 msgctxt "Menu"
-msgid "New package..."
+msgid "New project..."
 msgstr ""
-
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:215
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:495
-msgctxt "Menu"
-msgid "Add existing package..."
-msgstr "既存のプロジェクトの追加..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:216
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:496

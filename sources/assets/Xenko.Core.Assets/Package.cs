@@ -1051,7 +1051,7 @@ namespace Xenko.Core.Assets
 
                 bool aliasOccurred;
                 AttachedYamlAssetMetadata yamlMetadata;
-                var asset = LoadAsset(context.Log, assetFullPath, assetPath.ToWindowsPath(), assetContent, out aliasOccurred, out yamlMetadata);
+                var asset = LoadAsset(context.Log, ref id, assetFullPath, assetPath.ToWindowsPath(), assetContent, out aliasOccurred, out yamlMetadata);
 
                 // Create asset item
                 var assetItem = new AssetItem(assetPath, asset, this)
@@ -1117,7 +1117,7 @@ namespace Xenko.Core.Assets
             }
         }
 
-        private static Asset LoadAsset(ILogger log, string assetFullPath, string assetPath, byte[] assetContent, out bool assetDirty, out AttachedYamlAssetMetadata yamlMetadata)
+        private static Asset LoadAsset(ILogger log, ref Guid packageId, string assetFullPath, string assetPath, byte[] assetContent, out bool assetDirty, out AttachedYamlAssetMetadata yamlMetadata)
         {
             var loadResult = assetContent != null
                 ? AssetFileSerializer.Load<Asset>(new MemoryStream(assetContent), assetFullPath, log)
@@ -1131,7 +1131,7 @@ namespace Xenko.Core.Assets
             if (sourceCodeAsset != null)
             {
                 // Use an id generated from the location instead of the default id
-                sourceCodeAsset.Id = SourceCodeAsset.GenerateIdFromLocation(assetPath);
+                sourceCodeAsset.Id = SourceCodeAsset.GenerateIdFromLocation(packageId, assetPath);
             }
 
             return loadResult.Asset;

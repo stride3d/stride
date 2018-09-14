@@ -19,9 +19,9 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views
     /// <summary>
     /// Interaction logic for NewPackageWindow.xaml
     /// </summary>
-    public partial class NewPackageWindow : INewPackageDialog
+    public partial class NewProjectWindow : INewProjectDialog
     {
-        public NewPackageWindow()
+        public NewProjectWindow()
         {
             InitializeComponent();
             Width = Math.Min(Width, SystemParameters.WorkArea.Width);
@@ -32,7 +32,7 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views
         
         public NewPackageParameters Parameters { get; private set; }
 
-        private NewPackageTemplateCollectionViewModel Templates => (NewPackageTemplateCollectionViewModel)DataContext;
+        private NewProjectTemplateCollectionViewModel Templates => (NewProjectTemplateCollectionViewModel)DataContext;
 
         public override Task<DialogResult> ShowModal()
         {

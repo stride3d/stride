@@ -488,8 +488,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             // Errors might occur when generating the template. For the moment we consider them non-fatal and allow to open the project anyway.
             await TemplateGeneratorHelper.RunTemplateGeneratorSafe(generator, parameters, workProgress);
 
-            Session.ProcessAddedPackages(loggerResult, workProgress, true);
-            Session.ProcessRemovedPackages();
+            Session.ProcessAddedProjects(loggerResult, workProgress, true);
+            Session.ProcessRemovedProjects();
 
             await workProgress.NotifyWorkFinished(false, loggerResult.HasErrors);
         }

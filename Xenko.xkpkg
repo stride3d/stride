@@ -28,7 +28,6 @@ TemplateFolders:
       Group: Core
       Exclude: "**/*.cs;**/*.xaml"
       Files:
-        - sources/editor/Xenko.Assets.Presentation/Templates/Core/NewPackage.xktpl
         - sources/editor/Xenko.Assets.Presentation/Templates/Core/ProjectExecutable.xktpl
         - sources/editor/Xenko.Assets.Presentation/Templates/Core/ProjectLibrary.xktpl
         - sources/editor/Xenko.Assets.Presentation/Templates/Core/UpdatePlatforms.xktpl

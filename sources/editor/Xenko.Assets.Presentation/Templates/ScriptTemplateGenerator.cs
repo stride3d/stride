@@ -97,7 +97,7 @@ namespace Xenko.Assets.Presentation.Templates
             scriptContent = scriptContent.Replace("##Scriptname##", location.GetFileNameWithoutExtension());
 
             var asset = (ScriptSourceFileAsset)ObjectFactoryRegistry.NewInstance(typeof(ScriptSourceFileAsset));
-            asset.Id = SourceCodeAsset.GenerateIdFromLocation(location);
+            asset.Id = SourceCodeAsset.GenerateIdFromLocation(parameters.Package.Id, location);
             asset.Text = scriptContent;
             yield return new AssetItem(location, asset);
         }

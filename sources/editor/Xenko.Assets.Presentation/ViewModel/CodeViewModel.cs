@@ -24,6 +24,7 @@ using Xenko.Core.IO;
 using Xenko.Core.Presentation.Dirtiables;
 using Xenko.Core.Translation;
 using Xenko.Assets.Scripts;
+using System.Collections.Specialized;
 
 namespace Xenko.Assets.Presentation.ViewModel
 {
@@ -72,6 +73,28 @@ namespace Xenko.Assets.Presentation.ViewModel
                     if (project != null)
                         workspace.AddOrUpdateProject(project);
                 }
+
+                void TrackedAssemblies_CollectionChanged(object sender, Core.Collections.TrackingCollectionChangedEventArgs e)
+                {
+                    var project = ((ProjectWatcher.TrackedAssembly)e.Item).Project;
+                    if (project != null)
+                    {
+                        switch (e.Action)
+                        {
+                            case NotifyCollectionChangedAction.Add:
+                            {
+                                workspace.AddOrUpdateProject(project);
+                                break;
+                            }
+                            case NotifyCollectionChangedAction.Remove:
+                            {
+                                workspace.RemoveProject(project.Id);
+                                break;
+                            }
+                        }
+                    }
+                }
+                projectWatcher.TrackedAssemblies.CollectionChanged += TrackedAssemblies_CollectionChanged;
 
                 // TODO: Right now, we simply replace the solution with newly loaded one
                 // Ideally, we should keep our existing solution and update it to follow external changes after initial loading (similar to VisualStudioWorkspace)

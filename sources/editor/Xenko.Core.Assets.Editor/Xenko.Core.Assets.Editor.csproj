@@ -139,8 +139,8 @@
     <Compile Update="Components\TemplateDescriptions\Views\TemplateBrowserUserControl.xaml.cs">
       <DependentUpon>TemplateBrowserUserControl.xaml</DependentUpon>
     </Compile>
-    <Compile Update="Components\TemplateDescriptions\Views\NewPackageWindow.xaml.cs">
-      <DependentUpon>NewPackageWindow.xaml</DependentUpon>
+    <Compile Update="Components\TemplateDescriptions\Views\NewProjectWindow.xaml.cs">
+      <DependentUpon>NewProjectWindow.xaml</DependentUpon>
     </Compile>
     <Compile Update="View\NotificationWindow.xaml.cs">
       <DependentUpon>NotificationWindow.xaml</DependentUpon>
@@ -240,7 +240,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Components\TemplateDescriptions\Views\NewPackageWindow.xaml">
+    <Page Include="Components\TemplateDescriptions\Views\NewProjectWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

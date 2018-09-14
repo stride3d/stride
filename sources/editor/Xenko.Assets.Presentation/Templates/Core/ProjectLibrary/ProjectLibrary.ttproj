@@ -2,4 +2,3 @@
 Files:
   - {Source: $ProjectName$.csproj.t4, Target: $ProjectName$.csproj, IsTemplate: true}
   - {Source: Class1.cs.t4, Target: Class1.cs, IsTemplate: true}
-  - {Source: Properties\AssemblyInfo.cs.t4, Target: Properties\AssemblyInfo.cs, IsTemplate: true}

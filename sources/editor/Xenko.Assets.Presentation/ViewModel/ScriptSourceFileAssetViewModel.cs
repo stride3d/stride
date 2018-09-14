@@ -34,6 +34,7 @@ namespace Xenko.Assets.Presentation.ViewModel
         private bool textReloading;
         private bool existsOnDisk;
         private bool hasExternalChanges;
+        private CancellationTokenSource cancellationToken = new CancellationTokenSource();
 
         public ScriptSourceFileAssetViewModel(AssetViewModelConstructionParameters parameters) : base(parameters)
         {
@@ -248,21 +249,30 @@ namespace Xenko.Assets.Presentation.ViewModel
                 var xenkoAssets = await XenkoAssetsViewModel.InstanceTask;
                 workspace = await xenkoAssets.Code.Workspace;
 
+                AssetItem.UpdateSourceFolders();
+                var sourceProject = ((SolutionProject)AssetItem.Package.Container).FullPath.ToWindowsPath();
+                if (sourceProject == null)
+                    throw new InvalidOperationException($"Could not find project associated to asset [{AssetItem}]");
+
+                // Wait for project to be loaded
+                Project project = null;
+                while (true)
+                {
+                    cancellationToken.Token.ThrowIfCancellationRequested();
+
+                    // Wait for project to be available
+                    project = workspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath == sourceProject);
+                    if (project != null)
+                        break;
+                    await Task.Delay(10);
+                }
+
                 // If possible, we use AbsoluteSourceLocation which is the path from where it was loaded (in case it moved afterwise)
                 var foundDocumentId = workspace.CurrentSolution.GetDocumentIdsWithFilePath(fullPath).FirstOrDefault();
                 if (foundDocumentId == null)
                 {
                     // New asset, let's create it in the workspace
                     // TODO: Differentiate document (newly created should be added in the project by the asset creation code) and additional documents (not in project)?
-                    AssetItem.UpdateSourceFolders();
-                    var sourceProject = (AssetItem.Package.Container as SolutionProject)?.FullPath.ToWindowsPath();
-                    if (sourceProject == null)
-                        throw new InvalidOperationException($"Could not find project associated to asset [{AssetItem}]");
-
-                    var project = workspace.CurrentSolution.Projects.FirstOrDefault(x => x.FilePath == sourceProject);
-                    if (project == null)
-                        throw new InvalidOperationException($"Could not find project [{sourceProject}] in workspace");
-
                     // When opening document, loads it from the asset
                     foundDocumentId = workspace.AddDocument(project.Id, fullPath, loader: new ScriptTextLoader(this));
                 }
@@ -303,10 +313,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             if (DocumentId == null)
                 return;
 
-            var documentId = DocumentId.Result;
-
-            workspace.UntrackDocument(documentId);
-
+            DocumentId.ContinueWith(documentId => workspace.UntrackDocument(documentId.Result), TaskContinuationOptions.OnlyOnRanToCompletion);
             DocumentId = null;
         }
 

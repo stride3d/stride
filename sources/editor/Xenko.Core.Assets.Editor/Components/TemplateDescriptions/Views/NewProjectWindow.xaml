@@ -1,4 +1,4 @@
-<xk:ModalWindow x:Class="Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views.NewPackageWindow"
+<xk:ModalWindow x:Class="Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views.NewProjectWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
@@ -9,7 +9,7 @@
         xmlns:viewModels="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
         mc:Ignorable="d"
         Title="{xk:Localize New package}" Height="768" Width="1024" Icon="{DynamicResource EditorIcon}" ShowInTaskbar="False"
-        Style="{DynamicResource WindowChromeStyle}" d:DataContext="{d:DesignInstance viewModels:NewPackageTemplateCollectionViewModel}">
+        Style="{DynamicResource WindowChromeStyle}" d:DataContext="{d:DesignInstance viewModels:NewProjectTemplateCollectionViewModel}">
   <xk:ModalWindow.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>

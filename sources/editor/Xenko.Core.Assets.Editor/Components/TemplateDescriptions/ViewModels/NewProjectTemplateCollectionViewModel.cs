@@ -12,12 +12,12 @@ using Xenko.Core.Presentation.ViewModel;
 
 namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 {
-    public class NewPackageTemplateCollectionViewModel : ProjectTemplateCollectionViewModel
+    public class NewProjectTemplateCollectionViewModel : ProjectTemplateCollectionViewModel
     {
         private readonly TemplateDescriptionGroupViewModel rootGroup;
         private bool arePropertiesValid;
 
-        public NewPackageTemplateCollectionViewModel(IViewModelServiceProvider serviceProvider, SessionViewModel session)
+        public NewProjectTemplateCollectionViewModel(IViewModelServiceProvider serviceProvider, SessionViewModel session)
             : base(serviceProvider)
         {
             if (session == null) throw new ArgumentNullException(nameof(session));
@@ -47,8 +47,9 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
         private bool IsAssetsOnlyTemplate(TemplateDescription template)
         {
-            // TODO We only have one such template for now, so check directly, maybe improve later
-            return (template.FullPath.FullPath.EndsWith("NewPackage.xktpl"));
+            // TODO We only have two such template for now, so check directly, maybe improve later
+            return template.FullPath.FullPath.EndsWith("ProjectLibrary.xktpl")
+                || template.FullPath.FullPath.EndsWith("ProjectExecutable.xktpl");
         }
 
         public SessionViewModel Session { get; }

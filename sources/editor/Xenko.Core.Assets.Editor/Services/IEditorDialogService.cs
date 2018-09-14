@@ -74,8 +74,8 @@ namespace Xenko.Core.Assets.Editor.Services
         /// Creates a package instantiation window, allowing to create or open a package.
         /// </summary>
         /// <param name="session">The session in which to load the project.</param>
-        /// <returns>An instance of the <see cref="INewPackageDialog"/> interface.</returns>
-        INewPackageDialog CreateNewPackageDialog(SessionViewModel session);
+        /// <returns>An instance of the <see cref="INewProjectDialog"/> interface.</returns>
+        INewProjectDialog CreateNewProjectDialog(SessionViewModel session);
 
         /// <summary>
         /// Creates a asset creation window, allowing to create or import an asset.

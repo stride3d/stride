@@ -98,10 +98,10 @@ namespace Xenko.Core.Assets.Editor.View
             settingsWindow.ShowModal().Forget();
         }
 
-        public INewPackageDialog CreateNewPackageDialog(SessionViewModel session)
+        public INewProjectDialog CreateNewProjectDialog(SessionViewModel session)
         {
-            var newPackageWindow = new NewPackageWindow();
-            var templates = new NewPackageTemplateCollectionViewModel(session.ServiceProvider, session);
+            var newPackageWindow = new NewProjectWindow();
+            var templates = new NewProjectTemplateCollectionViewModel(session.ServiceProvider, session);
             newPackageWindow.DataContext = templates;
             return newPackageWindow;
         }

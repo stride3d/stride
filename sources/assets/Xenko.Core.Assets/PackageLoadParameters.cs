@@ -128,7 +128,7 @@ namespace Xenko.Core.Assets
         /// Gets or sets the generate new asset ids.
         /// </summary>
         /// <value>The generate new asset ids.</value>
-        /// <remarks>Only makes sense for <see cref="PackageSession.AddExistingPackage(UFile, ILogger, PackageLoadParameters)"/>.</remarks>
+        /// <remarks>Only makes sense for <see cref="PackageSession.AddExistingProject(UFile, ILogger, PackageLoadParameters)"/>.</remarks>
         public bool GenerateNewAssetIds { get; set; }
 
         /// <summary>

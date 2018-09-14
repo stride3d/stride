@@ -376,7 +376,7 @@ namespace Xenko.Core.Assets
         /// <exception cref="System.ArgumentNullException">packagePath</exception>
         /// <exception cref="System.ArgumentException">Invalid relative path. Expecting an absolute package path;packagePath</exception>
         /// <exception cref="System.IO.FileNotFoundException">Unable to find package</exception>
-        public PackageContainer AddExistingPackage(UFile projectPath, ILogger logger, PackageLoadParameters loadParametersArg = null)
+        public PackageContainer AddExistingProject(UFile projectPath, ILogger logger, PackageLoadParameters loadParametersArg = null)
         {
             if (projectPath == null) throw new ArgumentNullException(nameof(projectPath));
             if (logger == null) throw new ArgumentNullException(nameof(logger));

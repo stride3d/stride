@@ -6,7 +6,7 @@ using Xenko.Core.Presentation.Services;
 
 namespace Xenko.Core.Assets.Editor.Services
 {
-    public interface INewPackageDialog : IModalDialog
+    public interface INewProjectDialog : IModalDialog
     {
         UDirectory DefaultOutputDirectory { get; set; }
 

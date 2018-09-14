@@ -14,23 +14,24 @@ using Xenko.Core;
 using Xenko.Core.Presentation.Services;
 using Xenko.Core.Presentation.Windows;
 using Xenko.Assets.Templates;
+using Xenko.Core.Assets.Editor.Components.TemplateDescriptions;
 
 namespace Xenko.Assets.Presentation.Templates
 {
     /// <summary>
     /// Generator to create a library and add it to the selected package.
     /// </summary>
-    public class ProjectLibraryTemplateGenerator : TemplateGeneratorBase<PackageTemplateGeneratorParameters>
+    public class ProjectLibraryTemplateGenerator : SessionTemplateGenerator
     {
         public static readonly ProjectLibraryTemplateGenerator Default = new ProjectLibraryTemplateGenerator();
 
         public static readonly Guid TemplateId = new Guid("e12246ff-41a1-49d4-90e4-e72a4eb4a3e9");
 
-        private static List<string> ExtractReferencesList(PackageTemplateGeneratorParameters parameters)
+        private static List<string> ExtractReferencesList(SessionTemplateGeneratorParameters parameters)
         {
             // libraries and executables
             var referencedBinaryNames = new List<string>();
-            referencedBinaryNames.AddRange(parameters.Package.Session.Projects.OfType<SolutionProject>().Where(x => x.FullPath != null).Select(x => x.FullPath.GetFileNameWithoutExtension()));
+            referencedBinaryNames.AddRange(parameters.Session.Projects.OfType<SolutionProject>().Where(x => x.FullPath != null).Select(x => x.FullPath.GetFileNameWithoutExtension()));
             return referencedBinaryNames;
         }
 
@@ -45,12 +46,12 @@ namespace Xenko.Assets.Presentation.Templates
             return templateDescription.Id == TemplateId;
         }
 
-        public override async Task<bool> PrepareForRun(PackageTemplateGeneratorParameters parameters)
+        public override async Task<bool> PrepareForRun(SessionTemplateGeneratorParameters parameters)
         {
             if (parameters == null) throw new ArgumentNullException(nameof(parameters));
             parameters.Validate();
 
-            var initialName = parameters.Name + ".MyLibrary";
+            var initialName = parameters.Name;
             var existingNames = ExtractReferencesList(parameters);
 
             initialName = NamingHelper.ComputeNewName(initialName, (Core.IO.UFile uf) => IsNameColliding(existingNames, uf), "{0}{1}");
@@ -69,17 +70,14 @@ namespace Xenko.Assets.Presentation.Templates
             return !collision;  // we cannot allow to flow the creation request in case of name collision, because the underlying viewmodel system does not have protection against it.
         }
 
-        public sealed override bool Run(PackageTemplateGeneratorParameters parameters)
+        protected sealed override bool Generate(SessionTemplateGeneratorParameters parameters)
         {
             if (parameters == null) throw new ArgumentNullException(nameof(parameters));
             parameters.Validate();
 
             var logger = parameters.Logger;
             var name = parameters.Name;
-            var package = parameters.Package;
-
-            // Make sure we have a shared profile
-            var sharedProfile = package.Profile;
+            var session = parameters.Session;
 
             // Log progress
             var projectName = name;
@@ -88,9 +86,14 @@ namespace Xenko.Assets.Presentation.Templates
             // Generate the library
             List<string> generatedFiles;
             ProjectTemplateGeneratorHelper.AddOption(parameters, "Platforms", AssetRegistry.SupportedPlatforms);
-            var projectGameRef = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, "ProjectLibrary/ProjectLibrary.ttproj", projectName, PlatformType.Shared, null, ProjectType.Library, out generatedFiles);
+            var project = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, "ProjectLibrary/ProjectLibrary.ttproj", projectName, PlatformType.Shared, null, ProjectType.Library, out generatedFiles);
 
-            package.Session.Projects.Add(projectGameRef);
+            session.Projects.Add(project);
+
+            // Load missing references
+            session.LoadMissingDependencies(parameters.Logger);
+            // Load dependency assets (needed for camera script template)
+            session.LoadMissingAssets(parameters.Logger, project.LoadedDependencies);
 
             // Log done
             ProjectTemplateGeneratorHelper.Progress(logger, "Done", 1, 1);

@@ -66,10 +66,10 @@ namespace Xenko.Core.Assets
         /// </summary>
         /// <param name="location">The location.</param>
         /// <returns>Guid.</returns>
-        public static AssetId GenerateIdFromLocation(string location)
+        public static AssetId GenerateIdFromLocation(Guid packageId, string location)
         {
             if (location == null) throw new ArgumentNullException(nameof(location));
-            return (AssetId)ObjectId.FromBytes(Encoding.UTF8.GetBytes(location)).ToGuid();
+            return (AssetId)ObjectId.Combine((ObjectId)packageId, ObjectId.FromBytes(Encoding.UTF8.GetBytes(location))).ToGuid();
         }
     }
 }

@@ -153,9 +153,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         public ICommandBase SaveSessionCommand { get; }
 
-        public ICommandBase NewPackageCommand { get; }
-
-        public ICommandBase AddExistingPackageCommand { get; }
+        public ICommandBase NewProjectCommand { get; }
 
         public ICommandBase AddExistingProjectCommand { get; }
 
@@ -573,8 +571,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             // Initialize commands
             SaveSessionCommand = new AnonymousTaskCommand(ServiceProvider, SaveSession);
-            NewPackageCommand = new AnonymousTaskCommand(ServiceProvider, NewPackage);
-            AddExistingPackageCommand = new AnonymousTaskCommand(ServiceProvider, AddExistingPackage);
+            NewProjectCommand = new AnonymousTaskCommand(ServiceProvider, NewProject);
             AddExistingProjectCommand = new AnonymousTaskCommand(ServiceProvider, AddExistingProject);
             ActivatePackagePropertiesCommand = new AnonymousTaskCommand(ServiceProvider, async () => { var directory = ActiveAssetView.GetSelectedDirectories(false).FirstOrDefault(); if (directory != null) await directory.Package.Properties.GenerateSelectionPropertiesAsync(directory.Package.Yield()); });
             OpenInIDECommand = new AnonymousTaskCommand<IDEInfo>(ServiceProvider, OpenInIDE);
@@ -1121,12 +1118,12 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             e.OldItems?.Cast<PackageViewModel>().Select(x => packageMap[x]).ForEach(x => session.Projects.Remove(x));
         }
 
-        private async Task NewPackage()
+        private async Task NewProject()
         {
             var loggerResult = new LoggerResult();
 
             // Display the template dialog to let the user select which template he want to use.
-            var templateDialog = ServiceProvider.Get<IEditorDialogService>().CreateNewPackageDialog(this);
+            var templateDialog = ServiceProvider.Get<IEditorDialogService>().CreateNewProjectDialog(this);
             templateDialog.DefaultOutputDirectory = SolutionPath.GetFullDirectory();
             var dialogResult = await templateDialog.ShowModal();
 
@@ -1135,20 +1132,17 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
             {
-                Title = Tr._p("Title", "Creating package..."),
+                Title = Tr._p("Title", "Creating project..."),
                 KeepOpen = KeepOpen.OnWarningsOrErrors,
                 IsIndeterminate = true,
                 IsCancellable = false
             };
             workProgress.RegisterProgressStatus(loggerResult, true);
 
-            // Output dir is Output/Name
-            var outputDir = UPath.Combine<UDirectory>(templateDialog.Parameters.OutputDirectory, Xenko.Utilities.BuildValidNamespaceName(templateDialog.Parameters.OutputName));
-
             var parameters = new SessionTemplateGeneratorParameters
             {
                 Name = templateDialog.Parameters.OutputName,
-                OutputDirectory = outputDir,
+                OutputDirectory = templateDialog.Parameters.OutputDirectory,
                 Description = templateDialog.Parameters.TemplateDescription,
                 Session = session,
                 Logger = loggerResult,
@@ -1169,7 +1163,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             // This action is uncancellable - In case of errors, we still try to create view models to match what is currently in the PackageSession, but the template has responsibility to clean itself up in case of failure.
             // TODO: check what is created here and try to avoid it
-            ProcessAddedPackages(loggerResult, workProgress, true);
+            ProcessAddedProjects(loggerResult, workProgress, true);
 
             if (CurrentProject == null)
                 AutoSelectCurrentProject();
@@ -1177,21 +1171,21 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             await workProgress.NotifyWorkFinished(false, loggerResult.HasErrors);
         }
 
-        private async Task AddExistingPackage()
+        private async Task AddExistingProject()
         {
             var fileDialog = ServiceProvider.Get<IEditorDialogService>().CreateFileOpenModalDialog();
-            fileDialog.Filters.Add(new FileDialogFilter("Package", EditorViewModel.PackageFileExtension));
+            fileDialog.Filters.Add(new FileDialogFilter("Visual Studio C# project", "csproj"));
             fileDialog.InitialDirectory = session.SolutionPath;
             var result = await fileDialog.ShowModal();
 
-            var packagePath = fileDialog.FilePaths.FirstOrDefault();
-            if (result == DialogResult.Ok && packagePath != null)
+            var projectPath = fileDialog.FilePaths.FirstOrDefault();
+            if (result == DialogResult.Ok && projectPath != null)
             {
                 var loggerResult = new LoggerResult();
 
                 var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
                 {
-                    Title = Tr._p("Title", "Importing package..."),
+                    Title = Tr._p("Title", "Importing project..."),
                     KeepOpen = KeepOpen.OnWarningsOrErrors,
                     IsIndeterminate = true,
                     IsCancellable = false
@@ -1207,7 +1201,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 {
                     try
                     {
-                        session.AddExistingPackage(packagePath, loggerResult, CreatePackageLoadParameters(workProgress, cancellationSource));
+                        session.AddExistingProject(projectPath, loggerResult, CreatePackageLoadParameters(workProgress, cancellationSource));
                     }
                     catch (Exception e)
                     {
@@ -1223,8 +1217,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
                 using (var transaction = UndoRedoService.CreateTransaction())
                 {
-                    ProcessAddedPackages(loggerResult, workProgress, false);
-                    UndoRedoService.SetName(transaction, $"Import package '{new UFile(packagePath).GetFileNameWithoutExtension()}'");
+                    ProcessAddedProjects(loggerResult, workProgress, false);
+                    UndoRedoService.SetName(transaction, $"Import project '{new UFile(projectPath).GetFileNameWithoutExtension()}'");
                 }
 
                 // Notify that the task is finished
@@ -1232,7 +1226,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             }
         }
 
-        internal void ProcessAddedPackages(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession)
+        internal void ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession)
         {
             var newPackages = new List<PackageViewModel>();
             foreach (var package in session.Projects.OfType<SolutionProject>().Where(x => !packageMap.ContainsValue(x)))
@@ -1244,7 +1238,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             ProcessAddedPackages(newPackages);
         }
 
-        internal void ProcessRemovedPackages()
+        internal void ProcessRemovedProjects()
         {
             foreach (var package in packageMap.Where(x => !session.Projects.Contains(x.Value)))
             {
@@ -1286,15 +1280,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 return;
 
             await selectedPackage.UpdatePackageTemplate(templateDescription);
-        }
-
-        private async Task AddExistingProject()
-        {
-            PackageViewModel selectedPackage = await RequestSingleSelectedPackage();
-            if (selectedPackage == null)
-                return;
-
-            await selectedPackage.AddExistingProject();
         }
 
         private async Task AddDependency()
@@ -1483,8 +1468,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             var asset = ActiveAssetView.SingleSelectedAsset;
 
-            NewPackageCommand.IsEnabled = !string.IsNullOrWhiteSpace(SolutionPath);
-            AddExistingProjectCommand.IsEnabled = packageSelected;
+            NewProjectCommand.IsEnabled = !string.IsNullOrWhiteSpace(SolutionPath);
             IsUpdatePackageEnabled = projectSelected;
             AddDependencyCommand.IsEnabled = packageSelected || dependenciesSelected;
             SetCurrentProjectCommand.IsEnabled = projectSelected;

@@ -65,6 +65,11 @@ namespace Xenko.Core.Storage
             this.hash4 = hash4;
         }
 
+        public static unsafe explicit operator ObjectId(Guid guid)
+        {
+            return *(ObjectId*)&guid;
+        }
+
         public static ObjectId Combine(ObjectId left, ObjectId right)
         {
             // Note: we don't carry (probably not worth the performance hit)

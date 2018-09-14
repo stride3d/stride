@@ -10,7 +10,6 @@ namespace Xenko.Assets.Presentation.Templates
         {
             // TODO: Attribute-based auto registration would be better I guess
             TemplateManager.Register(TemplateSampleGenerator.Default);
-            TemplateManager.Register(NewPackageTemplateGenerator.Default);
             TemplateManager.Register(NewGameTemplateGenerator.Default);
             TemplateManager.Register(ProjectLibraryTemplateGenerator.Default);
             TemplateManager.Register(UpdatePlatformsTemplateGenerator.Default);
