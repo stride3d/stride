@@ -12,6 +12,7 @@ using Xenko.Core.Assets.Editor.Settings;
 using Xenko.Core.Extensions;
 using Xenko.Core.IO;
 using Xenko.Core.MostRecentlyUsedFiles;
+using Xenko.Core.Presentation.Collections;
 using Xenko.Core.Presentation.Commands;
 using Xenko.Core.Presentation.Services;
 using Xenko.Core.Presentation.ViewModel;
@@ -40,6 +41,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 #endif
 
             MRU = mru;
+            MRU.MostRecentlyUsedFiles.CollectionChanged += MostRecentlyUsedFiles_CollectionChanged;
+            UpdateRecentFiles();
 
             serviceProvider.Get<IEditorDialogService>().RegisterDefaultTemplateProviders();
 
@@ -51,6 +54,11 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             Status.PushStatus("Ready");
 
             Instance = this;
+        }
+
+        private void MostRecentlyUsedFiles_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            UpdateRecentFiles();
         }
 
         /// <summary>
@@ -71,6 +79,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         public StatusViewModel Status { get; }
 
         public MostRecentlyUsedFileCollection MRU { get; }
+
+        public ObservableList<MostRecentlyUsedFile> RecentFiles { get; } = new ObservableList<MostRecentlyUsedFile>();
 
         public ICommandBase ClearMRUCommand { get; }
 
@@ -214,6 +224,16 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             {
                 var message = $"{Tr._p("Message", "An error occurred while opening the file.")}{ex.FormatSummary(true)}";
                 await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void UpdateRecentFiles()
+        {
+            RecentFiles.Clear();
+
+            foreach (var item in MRU.MostRecentlyUsedFiles.Take(10))
+            {
+                RecentFiles.Add(new MostRecentlyUsedFile() { FilePath = item.FilePath, Timestamp = item.Timestamp, Version = item.Version });
             }
         }
 
