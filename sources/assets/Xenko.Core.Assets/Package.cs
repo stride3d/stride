@@ -158,7 +158,7 @@ namespace Xenko.Core.Assets
         /// Gets the profile.
         /// </summary>
         /// <value>The profiles.</value>
-        [DataMember(50)]
+        [DataMember(50, DataMemberMode.Assign)]
         public PackageProfile Profile { get; set; } = PackageProfile.NewShared();
 
         /// <summary>

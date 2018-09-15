@@ -18,15 +18,11 @@ namespace Xenko.Core.Assets
     {
         public static SettingsContainer SettingsContainer = new SettingsContainer();
 
-        private readonly AssetFolderCollection assetFolders;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageProfile"/> class.
         /// </summary>
         public PackageProfile()
         {
-            assetFolders = new AssetFolderCollection();
-            OutputGroupDirectories = new Dictionary<string, UDirectory>();
         }
 
         /// <summary>
@@ -49,14 +45,14 @@ namespace Xenko.Core.Assets
         /// </summary>
         /// <value>The platform.</value>
         [DataMember(20)]
-        public PlatformType Platform { get; set; }
+        public PlatformType Platform { get; set; } = PlatformType.Shared;
 
         /// <summary>
         /// Gets the asset directories to lookup.
         /// </summary>
         /// <value>The asset directories.</value>
         [DataMember(40)]
-        public AssetFolderCollection AssetFolders => assetFolders;
+        public AssetFolderCollection AssetFolders { get; } = new AssetFolderCollection();
 
         /// <summary>
         /// Gets the resource directories to lookup.
@@ -70,7 +66,7 @@ namespace Xenko.Core.Assets
         /// </summary>
         /// <value>The output group directories.</value>
         [DataMember(50)]
-        public Dictionary<string, UDirectory> OutputGroupDirectories { get; private set; }
+        public Dictionary<string, UDirectory> OutputGroupDirectories { get; } = new Dictionary<string, UDirectory>();
 
         /// <summary>
         /// Creates a a default shared package profile.
