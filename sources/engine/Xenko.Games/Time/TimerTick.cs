@@ -22,6 +22,7 @@
 // THE SOFTWARE.
 using System;
 using System.Diagnostics;
+using Xenko.Core;
 
 namespace Xenko.Games.Time
 {
@@ -175,11 +176,11 @@ namespace Xenko.Games.Time
             }
 
             var rawTime = Stopwatch.GetTimestamp();
-            TotalTime = StartTime + new TimeSpan((long)Math.Round(ConvertRawToTimestamp(rawTime - timePaused - startRawTime).Ticks * speedFactor));
-            TotalTimeWithPause = StartTime + new TimeSpan((long)Math.Round(ConvertRawToTimestamp(rawTime - startRawTime).Ticks * speedFactor));
+            TotalTime = StartTime + new TimeSpan((long)Math.Round(Utilities.ConvertRawToTimestamp(rawTime - timePaused - startRawTime).Ticks * speedFactor));
+            TotalTimeWithPause = StartTime + new TimeSpan((long)Math.Round(Utilities.ConvertRawToTimestamp(rawTime - startRawTime).Ticks * speedFactor));
 
-            ElapsedTime = ConvertRawToTimestamp(rawTime - timePaused - lastRawTime);
-            ElapsedTimeWithPause = ConvertRawToTimestamp(rawTime - lastRawTime);
+            ElapsedTime = Utilities.ConvertRawToTimestamp(rawTime - timePaused - lastRawTime);
+            ElapsedTimeWithPause = Utilities.ConvertRawToTimestamp(rawTime - lastRawTime);
 
             if (ElapsedTime < TimeSpan.Zero)
             {
@@ -199,20 +200,6 @@ namespace Xenko.Games.Time
             {
                 pauseStartTime = Stopwatch.GetTimestamp();
             }
-        }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Converts a <see cref="Stopwatch" /> raw time to a <see cref="TimeSpan" />.
-        /// </summary>
-        /// <param name="delta">The delta.</param>
-        /// <returns>The <see cref="TimeSpan" />.</returns>
-        private static TimeSpan ConvertRawToTimestamp(long delta)
-        {
-            return new TimeSpan((delta * 10000000) / Stopwatch.Frequency);
         }
 
         #endregion

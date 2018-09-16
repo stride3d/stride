@@ -30,6 +30,7 @@ using Xenko.Core.IO;
 using Xenko.Core.Serialization.Contents;
 using Xenko.Games.Time;
 using Xenko.Graphics;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Xenko.Games
 {
@@ -64,6 +65,10 @@ namespace Xenko.Games
         private int nextLastUpdateCountIndex;
         private bool drawRunningSlowly;
         private bool forceElapsedTimeToZero;
+        
+        
+        private TimeSpan  throttlerFractionalSleep;
+        private Stopwatch throttlerStopwatch;
 
         private readonly TimerTick timer;
 
@@ -97,6 +102,12 @@ namespace Xenko.Games
             TargetElapsedTime = TimeSpan.FromTicks(10000000 / 60); // target elapsed time is by default 60Hz
             lastUpdateCount = new int[4];
             nextLastUpdateCountIndex = 0;
+            
+            TreatNotFocusedLikeMinimized = true;
+            WindowMinimumUpdateRate      = TimeSpan.FromSeconds(0d);
+            MinimizedMinimumUpdateRate   = TimeSpan.FromSeconds(1d / 15d); // by default 15 updates per second while minimized
+            throttlerStopwatch           = Stopwatch.StartNew();
+            throttlerFractionalSleep     = TimeSpan.Zero;
 
             // Calculate the updateCountAverageSlowLimit (assuming moving average is >=3 )
             // Example for a moving average of 4:
@@ -302,10 +313,26 @@ namespace Xenko.Games
         public ServiceRegistry Services { get; }
 
         /// <summary>
-        /// Gets or sets the target elapsed time.
+        /// Gets or sets the target elapsed time, this is the duration of each tick/update when <see cref="IsFixedTimeStep"/> is enabled.
         /// </summary>
         /// <value>The target elapsed time.</value>
         public TimeSpan TargetElapsedTime { get; set; }
+
+        /// <summary>
+        /// Gets or sets the minimum time allowed between each updates, set it to TimeSpan.FromSeconds(1d / yourFramePerSeconds) to control the maximum frames per second.
+        /// </summary>
+        public TimeSpan WindowMinimumUpdateRate { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the minimum time allowed between each updates while the window is minimized and, depending on <see cref="TreatNotFocusedLikeMinimized"/>, while unfocused.
+        /// </summary>
+        public TimeSpan MinimizedMinimumUpdateRate { get; set; }
+
+        /// <summary>
+        /// Considers windows without user focus like a minimized window for <see cref="MinimizedMinimumUpdateRate"/> 
+        /// </summary>
+        public bool TreatNotFocusedLikeMinimized { get; set; }
+
 
         /// <summary>
         /// Gets the abstract window.
@@ -663,6 +690,13 @@ namespace Xenko.Games
                         using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
                         {
                             EndDraw(true);
+                            TimeSpan minimumElapsedTime;
+                            if(gamePlatform.MainWindow.IsMinimized || (gamePlatform.MainWindow.Focused == false && TreatNotFocusedLikeMinimized))
+                                minimumElapsedTime = MinimizedMinimumUpdateRate;
+                            else
+                                minimumElapsedTime = WindowMinimumUpdateRate;
+                            
+                            Utilities.ThrottleThread(minimumElapsedTime, ref throttlerStopwatch, ref throttlerFractionalSleep);
                         }
                     }
 
@@ -675,6 +709,11 @@ namespace Xenko.Games
                 throw;
             }
         }
+
+
+
+        
+
 
         private void CheckEndRun()
         {
