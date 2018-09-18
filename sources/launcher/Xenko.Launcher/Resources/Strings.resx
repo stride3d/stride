@@ -410,4 +410,8 @@
     <value>An error occurred while trying to process a developer version: {0}</value>
     <comment>MessageBox text indicating that a dev version could not be processed</comment>
   </data>
+  <data name="ShowInExplorer" xml:space="preserve">
+    <value>Show in Explorer</value>
+    <comment>Menu item of recent files list</comment>
+  </data>
 </root>
