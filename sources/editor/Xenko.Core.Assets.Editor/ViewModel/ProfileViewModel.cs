@@ -29,11 +29,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             Package = container;
         }
 
-        /// <summary>
-        /// Gets the platform of this profile, if defined.
-        /// </summary>
-        public PlatformType Platform => profile.Platform;
-
         public PackageViewModel Package { get; }
     }
 }

@@ -61,7 +61,7 @@ namespace Xenko.Assets.Presentation.Templates
 
             // If there are no executable/shared projects in this package, we can't work on it
             var existingPlatformTypesWithExe = new HashSet<PlatformType>(AssetRegistry.SupportedPlatforms.Where(x => File.Exists(ProjectTemplateGeneratorHelper.GeneratePlatformProjectLocation(parameters.Name, parameters.Package, x))).Select(x => x.Type));
-            if (package.Profile.Platform != PlatformType.Shared)
+            if (!(package.Container is SolutionProject project) || project.Platform != PlatformType.Shared)
             {
                 parameters.Logger.Error("The selected package does not contain a shared profile");
                 return false;

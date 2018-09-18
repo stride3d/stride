@@ -41,13 +41,6 @@ namespace Xenko.Core.Assets
         }
 
         /// <summary>
-        /// Gets or sets the platform.
-        /// </summary>
-        /// <value>The platform.</value>
-        [DataMember(20)]
-        public PlatformType Platform { get; set; } = PlatformType.Shared;
-
-        /// <summary>
         /// Gets the asset directories to lookup.
         /// </summary>
         /// <value>The asset directories.</value>
@@ -74,7 +67,7 @@ namespace Xenko.Core.Assets
         /// <returns>PackageProfile.</returns>
         public static PackageProfile NewShared()
         {
-            var sharedProfile = new PackageProfile() { Platform = PlatformType.Shared };
+            var sharedProfile = new PackageProfile();
             sharedProfile.AssetFolders.Add(new AssetFolder("Assets"));
             sharedProfile.ResourceFolders.Add("Resources");
             return sharedProfile;
