@@ -27,13 +27,13 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         public const string SolutionFileExtension = ".sln";
         private SessionViewModel session;
 
-        protected EditorViewModel(IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru, string editorName)
+        protected EditorViewModel(IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru, string editorName, string editorVersionMajor)
             : base(serviceProvider)
         {
             AssetsPlugin.RegisterPlugin(typeof(AssetsEditorPlugin));
             serviceProvider.Get<IEditorDialogService>();
 
-            ClearMRUCommand = new AnonymousCommand(serviceProvider, () => MRU.Clear());
+            ClearMRUCommand = new AnonymousCommand(serviceProvider, () => ClearRecentFiles());
             OpenSettingsWindowCommand = new AnonymousCommand(serviceProvider, OpenSettingsWindow);
             OpenWebPageCommand = new AnonymousTaskCommand<string>(serviceProvider, OpenWebPage);
 #if DEBUG
@@ -42,11 +42,12 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             MRU = mru;
             MRU.MostRecentlyUsedFiles.CollectionChanged += MostRecentlyUsedFiles_CollectionChanged;
-            UpdateRecentFiles();
 
             serviceProvider.Get<IEditorDialogService>().RegisterDefaultTemplateProviders();
 
             EditorName = editorName;
+            EditorVersionMajor = editorVersionMajor;
+            UpdateRecentFiles();
             if (Instance != null)
                 throw new InvalidOperationException("The EditorViewModel class can be instanced only once.");
 
@@ -70,6 +71,11 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// Gets the name of this editor.
         /// </summary>
         public string EditorName { get; set; }
+
+        /// <summary>
+        /// Gets the version major of this editor.
+        /// </summary>
+        public string EditorVersionMajor { get; set; }
 
         /// <summary>
         /// Gets the current active session.
@@ -111,7 +117,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             if (newSession != null)
             {
                 Session = newSession;
-                MRU.AddFile(Session.SolutionPath);
+                MRU.AddFile(Session.SolutionPath, EditorVersionMajor);
             }
 
             return Session != null;
@@ -161,7 +167,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             if (filePath != null && !File.Exists(filePath))
             {
-                MRU.RemoveFile(filePath);
+                RemoveRecentFile(filePath);
+
                 await ServiceProvider.Get<IDialogService>().MessageBox(string.Format(Tr._p("Message", @"The file '{0}' does not exist."), filePath), MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
@@ -176,7 +183,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 return sessionResult.OperationCancelled ? (bool?)null : false;
             }
 
-            MRU.AddFile(filePath);
+            RemoveRecentFile(filePath);
+            MRU.AddFile(filePath, EditorVersionMajor);
             Session = loadedSession;
 
             InternalSettings.FileDialogLastOpenSessionDirectory.SetValue(new UFile(filePath).GetFullDirectory());
@@ -227,11 +235,47 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             }
         }
 
+        public void RemoveRecentFile(UFile filePath)
+        {
+            var packageVersion = PackageSessionHelper.GetPackageVersion(filePath);
+            //Remove considering old projects that have been deleted or upgraded from older versions
+            if (packageVersion == null || string.Compare(packageVersion.ToString(), "3.0", StringComparison.Ordinal) <= 0)
+            {
+                //Get all versions of showing on recent files
+                var xenkoVersions = RecentFiles?.Select(x => x.Version).ToList();
+                if (xenkoVersions != null)
+                {
+                    foreach (var item in xenkoVersions)
+                    {
+                        MRU.RemoveFile(filePath, item);
+                    }
+                }
+            }
+            else
+            {
+                MRU.RemoveFile(filePath, packageVersion.ToString());
+            }
+        }
+
+        private void ClearRecentFiles()
+        {
+            //Clear considering old projects that have been deleted or upgraded from older versions
+            var xenkoVersions = RecentFiles?.Select(x => x.Version).ToList();
+            if (xenkoVersions != null)
+            {
+                foreach (var item in xenkoVersions)
+                {
+                    MRU.Clear(item);
+                }
+            }
+        }
+
         private void UpdateRecentFiles()
         {
             RecentFiles.Clear();
 
-            foreach (var item in MRU.MostRecentlyUsedFiles.Take(10))
+            //Get only files that is current version or older
+            foreach (var item in MRU.MostRecentlyUsedFiles.Where(x => string.Compare(x.Version, EditorVersionMajor, StringComparison.Ordinal) <= 0).Take(10))
             {
                 RecentFiles.Add(new MostRecentlyUsedFile() { FilePath = item.FilePath, Timestamp = item.Timestamp, Version = item.Version });
             }

@@ -80,7 +80,7 @@ namespace Xenko.GameStudio
             Environment.SetEnvironmentVariable("XenkoDir", installDir);
 
             // We use MRU of the current version only when we're trying to reload last session.
-            var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile, XenkoGameStudio.EditorVersionMajor, false);
+            var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
             mru.LoadFromSettings();
 
             EditorSettings.Initialize();
@@ -259,7 +259,7 @@ namespace Xenko.GameStudio
                 }
 
                 // We use a MRU that contains the older version projects to display in the editor
-                var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile, XenkoGameStudio.EditorVersionMajor, true);
+                var mru = new MostRecentlyUsedFileCollection(InternalSettings.LoadProfileCopy, InternalSettings.MostRecentlyUsedSessions, InternalSettings.WriteFile);
                 mru.LoadFromSettings();
                 var editor = new GameStudioViewModel(serviceProvider, mru);
                 AssetsPlugin.RegisterPlugin(typeof(XenkoDefaultAssetsPlugin));

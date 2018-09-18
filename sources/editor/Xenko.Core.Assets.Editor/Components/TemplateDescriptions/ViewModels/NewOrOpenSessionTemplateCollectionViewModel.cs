@@ -40,8 +40,7 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
             }
 
             recentGroup = new TemplateDescriptionGroupViewModel(serviceProvider, "Recent projects");
-            var mru = EditorViewModel.Instance.MRU;
-            foreach (var file in mru.MostRecentlyUsedFiles)
+            foreach (var file in EditorViewModel.Instance.RecentFiles)
             {
                 var viewModel = new ExistingProjectViewModel(ServiceProvider, file.FilePath);
                 recentGroup.Templates.Add(viewModel);
