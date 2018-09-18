@@ -111,7 +111,7 @@ namespace Xenko.Physics
 
             if (colliderShapesRendering)
             {
-                component.AddDebugEntity(debugScene);
+                component.AddDebugEntity(debugScene, Simulation.ColliderShapesRenderGroup);
             }
 
             elements.Add(component);
