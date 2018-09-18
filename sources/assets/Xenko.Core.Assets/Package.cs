@@ -768,7 +768,7 @@ namespace Xenko.Core.Assets
                 var projectPath = filePath;
                 var packagePath = Path.ChangeExtension(filePath, Package.PackageFileExtension);
                 var package = LoadRaw(log, packagePath);
-                return new SolutionProject(package, package.Id, projectPath);
+                return new SolutionProject(package, projectPath);
             }
             else
             {
@@ -779,7 +779,7 @@ namespace Xenko.Core.Assets
                 var projectPath = Path.ChangeExtension(package.FullPath, ".csproj");
                 if (File.Exists(projectPath))
                 {
-                    return new SolutionProject(package, package.Id, projectPath);
+                    return new SolutionProject(package, projectPath);
                 }
                 else
                 {

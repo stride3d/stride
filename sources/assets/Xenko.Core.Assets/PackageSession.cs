@@ -124,16 +124,16 @@ namespace Xenko.Core.Assets
         private PackageSession session;
         private readonly Package package;
 
-        public SolutionProject([NotNull] Package package, Guid guid, string fullPath)
+        public SolutionProject([NotNull] Package package, string fullPath)
             : base(package)
         {
-            VSProject = new VisualStudio.Project(guid, VisualStudio.KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(fullPath), fullPath, Guid.Empty,
+            VSProject = new VisualStudio.Project(package.Id, VisualStudio.KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(fullPath), fullPath, Guid.Empty,
                 Enumerable.Empty<VisualStudio.Section>(),
                 Enumerable.Empty<VisualStudio.PropertyItem>(),
                 Enumerable.Empty<VisualStudio.PropertyItem>());
         }
 
-        public SolutionProject(Package package, VisualStudio.Project vsProject)
+        public SolutionProject([NotNull] Package package, VisualStudio.Project vsProject)
             : base(package)
         {
             VSProject = vsProject;
@@ -555,6 +555,7 @@ namespace Xenko.Core.Assets
                             {
                                 var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, false, loadParameters);
                                 project.VSProject = vsProject;
+                                project.Package.Id = vsProject.Guid;
                                 session.Projects.Add(project);
 
                                 if (firstProject == null)

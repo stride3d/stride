@@ -221,7 +221,7 @@ namespace Xenko.Assets.Templates
             var projectTemplate = PrepareTemplate(parameters, package, templateRelativePath, platformType, graphicsPlatform, projectType);
             projectTemplate.Generate(outputDirectoryPath, projectName, projectGuid, parameters.Logger, options, generatedFiles);
 
-            var project = new SolutionProject(package, projectGuid, projectFullPath);
+            var project = new SolutionProject(package, projectFullPath);
 
             return project;
         }
