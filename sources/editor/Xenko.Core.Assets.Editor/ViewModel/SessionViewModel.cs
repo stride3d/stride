@@ -927,7 +927,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 }
                 if (mruPath != null)
                 {
-                    Editor.MRU.AddFile(mruPath);
+                    Editor.MRU.AddFile(mruPath, Editor.EditorVersionMajor);
                 }
 
                 AllPackages.ForEach(x => x.OnSessionSaved());
