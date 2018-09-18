@@ -76,7 +76,9 @@ namespace Xenko.Graphics
         /// <param name="unorderedAccessView">The unordered access view.</param>
         public void SetUnorderedAccessView(int slot, GraphicsResource unorderedAccessView)
         {
-            HeapObjects[DescriptorStartOffset + slot].Value = unorderedAccessView;
+            ref var heapObject = ref HeapObjects[DescriptorStartOffset + slot];
+            heapObject.Value = unorderedAccessView;
+            heapObject.Offset = (unorderedAccessView as Buffer)?.InitialCounterOffset ?? -1;
         }
 #endif
     }

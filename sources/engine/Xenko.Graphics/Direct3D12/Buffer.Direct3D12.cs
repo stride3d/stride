@@ -215,6 +215,9 @@ namespace Xenko.Graphics
                 }
 
                 uav = GraphicsDevice.UnorderedAccessViewAllocator.Allocate(1);
+
+                // TODO: manage counter value here if buffer has 'Counter' or 'Append' flag
+                // if (Flags == BufferFlags.StructuredAppendBuffer || Flags == BufferFlags.StructuredCounterBuffer))
                 NativeDevice.CreateUnorderedAccessView(NativeResource, null, description, uav);
             }
             return uav;

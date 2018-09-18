@@ -84,7 +84,7 @@ namespace Xenko.Graphics
                             }
                         case EffectParameterClass.UnorderedAccessView:
                             {
-                                commandList.SetUnorderedAccessView(bindingOperation.Stage, bindingOperation.SlotStart, (GraphicsResource)value.Value);
+                                commandList.SetUnorderedAccessView(bindingOperation.Stage, bindingOperation.SlotStart, (GraphicsResource)value.Value, value.Offset);
                                 break;
                             }
                         default:
