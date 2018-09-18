@@ -414,4 +414,8 @@
     <value>Show in Explorer</value>
     <comment>Menu item of recent files list</comment>
   </data>
+  <data name="RemoveFromList" xml:space="preserve">
+    <value>Remove From List</value>
+    <comment>Menu item of recent files list</comment>
+  </data>
 </root>

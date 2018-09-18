@@ -527,6 +527,7 @@
                             <Border.ContextMenu>
                               <ContextMenu>
                                 <MenuItem Header="{x:Static r:Strings.ShowInExplorer}" Command="{Binding ExploreCommand}" />
+                                <MenuItem Header="{x:Static r:Strings.RemoveFromList}" Command="{Binding RemoveCommand}" />
                               </ContextMenu>
                             </Border.ContextMenu>
                           </Border>

@@ -39,7 +39,7 @@ namespace Xenko.LauncherApp.Services
             MostRecentlyUsedSessionsKey.FallbackDeserializers.Add(LegacyMRUDeserializer);
             InternalSettingsContainer.LoadSettingsProfile(GetLatestInternalConfigPath(), true);
             InternalSettingsContainer.CurrentProfile.MonitorFileModification = true;
-            InternalSettingsContainer.CurrentProfile.FileModified += (sender, e) => { e.ReloadFile = true; GameStudioSettingsFileChanged(sender, e); };
+            InternalSettingsContainer.CurrentProfile.FileModified += (sender, e) => { GameStudioSettingsFileChanged(sender, e); };
             GameStudioProfile = GameStudioSettingsContainer.LoadSettingsProfile(GetLatestGameStudioConfigPath(), true);
             UpdateMostRecentlyUsed();
         }
@@ -93,7 +93,17 @@ namespace Xenko.LauncherApp.Services
 
         private static void GameStudioSettingsFileChanged(object sender, FileModifiedEventArgs e)
         {
+            e.ReloadFile = true;
             UpdateMostRecentlyUsed();
+        }
+
+        public static void RemoveMostRecentlyUsed(UFile filePath, string xenkoVersion)
+        {
+            lock (LockObject)
+            {
+                MRU.RemoveFile(filePath, xenkoVersion);
+                UpdateMostRecentlyUsed();
+            }
         }
 
         private static void UpdateMostRecentlyUsed()
