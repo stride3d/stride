@@ -98,7 +98,7 @@ namespace Xenko.GameStudio
 
         private static void OpenMetricsProjectSession(EditorViewModel editor)
         {
-            var projectUid = editor.Session.CurrentProject?.Id ?? Guid.Empty;
+            var projectUid = editor.Session.CurrentProject?.Project.Id ?? Guid.Empty;
 
             var execProfiles = editor.Session.LocalPackages.OfType<ProjectViewModel>().Where(x => x.Type == ProjectType.Executable);
             var sessionPlatforms = new HashSet<PlatformType>();

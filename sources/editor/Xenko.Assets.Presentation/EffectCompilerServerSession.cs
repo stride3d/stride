@@ -93,7 +93,7 @@ namespace Xenko.Assets.Presentation
             {
                 // Connect to effect compiler server
                 await routerLaunchedTask;
-                var effectCompilerServerSocket = await RouterClient.RequestServer($"/service/{XenkoVersion.NuGetVersion}/Xenko.EffectCompilerServer.exe?mode=gamestudio&packageid={package.Id}");
+                var effectCompilerServerSocket = await RouterClient.RequestServer($"/service/{XenkoVersion.NuGetVersion}/Xenko.EffectCompilerServer.exe?mode=gamestudio&packagename={package.Package.Meta.Name}");
 
                 // Cancellation by closing the socket handle
                 cancellationToken.Register(effectCompilerServerSocket.Dispose);

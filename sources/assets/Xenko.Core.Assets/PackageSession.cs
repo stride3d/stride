@@ -124,10 +124,10 @@ namespace Xenko.Core.Assets
         private PackageSession session;
         private readonly Package package;
 
-        public SolutionProject([NotNull] Package package, string fullPath)
+        public SolutionProject([NotNull] Package package, Guid projectGuid, string fullPath)
             : base(package)
         {
-            VSProject = new VisualStudio.Project(package.Id, VisualStudio.KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(fullPath), fullPath, Guid.Empty,
+            VSProject = new VisualStudio.Project(projectGuid, VisualStudio.KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(fullPath), fullPath, Guid.Empty,
                 Enumerable.Empty<VisualStudio.Section>(),
                 Enumerable.Empty<VisualStudio.PropertyItem>(),
                 Enumerable.Empty<VisualStudio.PropertyItem>());
@@ -174,7 +174,7 @@ namespace Xenko.Core.Assets
 
         private readonly ConstraintProvider constraintProvider = new ConstraintProvider();
         private readonly PackageCollection packages;
-        private readonly PackageCollection packagesCopy;
+        private readonly Dictionary<Package, Package> packagesCopy;
         private readonly object dependenciesLock = new object();
         private SolutionProject currentProject;
         private AssetDependencyManager dependencies;
@@ -199,7 +199,7 @@ namespace Xenko.Core.Assets
             Projects.CollectionChanged += ProjectsCollectionChanged;
 
             packages = new PackageCollection();
-            packagesCopy = new PackageCollection();
+            packagesCopy = new Dictionary<Package, Package>();
             AssemblyContainer = new AssemblyContainer();
             packages.CollectionChanged += PackagesCollectionChanged;
         }
@@ -555,7 +555,6 @@ namespace Xenko.Core.Assets
                             {
                                 var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, false, loadParameters);
                                 project.VSProject = vsProject;
-                                project.Package.Id = vsProject.Guid;
                                 session.Projects.Add(project);
 
                                 if (firstProject == null)
@@ -850,7 +849,7 @@ namespace Xenko.Core.Assets
 
                         // Clone the package (but not all assets inside, just the structure)
                         var packageClone = package.Clone();
-                        packagesCopy.Add(packageClone);
+                        packagesCopy.Add(package, packageClone);
                     }
 
                     packagesSaved = true;
@@ -879,7 +878,7 @@ namespace Xenko.Core.Assets
         {
             // Grab all previous assets
             var previousAssets = new Dictionary<AssetId, AssetItem>();
-            foreach (var assetItem in packagesCopy.SelectMany(package => package.Assets))
+            foreach (var assetItem in packagesCopy.SelectMany(package => package.Value.Assets))
             {
                 previousAssets[assetItem.Id] = assetItem;
             }
@@ -1032,7 +1031,6 @@ namespace Xenko.Core.Assets
 
         private void RegisterPackage(Package package)
         {
-            package.IsIdLocked = true;
             if (package.IsSystem)
                 return;
             package.AssetDirtyChanged += OnAssetDirtyChanged;
@@ -1059,17 +1057,18 @@ namespace Xenko.Core.Assets
             if (package.State < PackageState.AssetsReady)
                 return;
 
-            packagesCopy.Add(package.Clone());
+            // Make sure it's not already been loaded by a previous Save()
+            if (!packagesCopy.ContainsKey(package))
+                packagesCopy.Add(package, package.Clone());
         }
 
         private void UnRegisterPackage(Package package)
         {
-            package.IsIdLocked = false;
             if (package.IsSystem)
                 return;
             package.AssetDirtyChanged -= OnAssetDirtyChanged;
 
-            packagesCopy.RemoveById(package.Id);
+            packagesCopy.Remove(package);
 
             IsDirty = true;
         }

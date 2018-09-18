@@ -363,7 +363,7 @@ namespace Xenko.Core.Assets
                     {
                         if (otherPackage.Assets.ContainsById(item.Id))
                         {
-                            throw new ArgumentException("Cannot add the asset [{0}] that is already in different package [{1}] in the current session".ToFormat(item.Id, otherPackage.Id));
+                            throw new ArgumentException("Cannot add the asset [{0}] that is already in different package [{1}] in the current session".ToFormat(item.Id, otherPackage.Meta.Name));
                         }
                     }
                 }

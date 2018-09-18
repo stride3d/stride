@@ -58,7 +58,7 @@ namespace Xenko.Assets
                 base.ComputeParameterHash(writer);
 
                 // Hash used parameters from package
-                writer.Write(package.Id);
+                writer.Write(package.Meta.Name);
                 writer.Write(package.UserSettings.GetValue(GameUserSettings.Effect.EffectCompilation));
                 writer.Write(package.UserSettings.GetValue(GameUserSettings.Effect.RecordUsedEffects));
                 writer.Write(compilationMode);
@@ -71,7 +71,6 @@ namespace Xenko.Assets
             {
                 var result = new GameSettings
                 {
-                    PackageId = package.Id,
                     PackageName = package.Meta.Name,
                     DefaultSceneUrl = Parameters.DefaultScene != null ? AttachedReferenceManager.GetUrl(Parameters.DefaultScene) : null,
                     DefaultGraphicsCompositorUrl = Parameters.GraphicsCompositor != null ? AttachedReferenceManager.GetUrl(Parameters.GraphicsCompositor) : null,

@@ -135,7 +135,7 @@ namespace Xenko.Assets.Presentation.Templates
             return await session.Dispatcher.InvokeTask(async () =>
             {
                 var dialog = dialogService.CreateAssetPickerDialog(session);
-                var packageViewModel = session.LocalPackages.FirstOrDefault(x => x.Match(package.Id));
+                var packageViewModel = session.LocalPackages.FirstOrDefault(x => x.Match(package));
                 var directory = packageViewModel?.AssetMountPoint.GetDirectory(initialDirectory ?? "");
                 if (directory != null)
                     dialog.InitialLocation = directory;

@@ -51,20 +51,12 @@ namespace Xenko.Core.Assets
     [DataContract("Package")]
     [NonIdentifiableCollectionItems]
     [AssetDescription(PackageFileExtension)]
-    [DebuggerDisplay("Id: {Id}, Name: {Meta.Name}, Version: {Meta.Version}, Assets [{Assets.Count}]")]
+    [DebuggerDisplay("Name: {Meta.Name}, Version: {Meta.Version}, Assets [{Assets.Count}]")]
     [AssetFormatVersion("Assets", PackageFileVersion, "0.0.0.4")]
     [AssetUpgrader("Assets", "0.0.0.4", "3.1.0.0", typeof(MovePackageInsideProject))]
-    public sealed partial class Package : IIdentifiable, IFileSynchronizable, IAssetFinder
+    public sealed partial class Package : IFileSynchronizable, IAssetFinder
     {
         private const string PackageFileVersion = "3.1.0.0";
-
-        private Guid id;
-
-        // Note: Please keep this code in sync with Asset class
-        /// <summary>
-        /// Locks the unique identifier for further changes.
-        /// </summary>
-        internal bool IsIdLocked;
 
         private readonly List<UFile> filesToDelete = new List<UFile>();
 
@@ -90,7 +82,6 @@ namespace Xenko.Core.Assets
         /// </summary>
         public Package()
         {
-            Id = Guid.NewGuid();
             // Initializse package with default versions (same code as in Asset..ctor())
             var defaultPackageVersion = AssetRegistry.GetCurrentFormatVersions(GetType());
             if (defaultPackageVersion != null)
@@ -102,29 +93,6 @@ namespace Xenko.Core.Assets
             Bundles = new BundleCollection(this);
             IsDirty = true;
             settings = new Lazy<PackageUserSettings>(() => new PackageUserSettings(this));
-        }
-
-        // Note: Please keep this code in sync with Asset class
-        /// <summary>
-        /// Gets or sets the unique identifier of this package.
-        /// </summary>
-        /// <value>The identifier.</value>
-        [DataMember(-10000)]
-        [NonOverridable]
-        [Display(Browsable = false)]
-        public Guid Id
-        {
-            get
-            {
-                return id;
-            }
-            set
-            {
-                if (value != id && IsIdLocked)
-                    throw new InvalidOperationException("Cannot change an Asset Object Id once it is locked by a package");
-
-                id = value;
-            }
         }
 
         // Note: Please keep this code in sync with Asset class
@@ -768,7 +736,7 @@ namespace Xenko.Core.Assets
                 var projectPath = filePath;
                 var packagePath = Path.ChangeExtension(filePath, Package.PackageFileExtension);
                 var package = LoadRaw(log, packagePath);
-                return new SolutionProject(package, projectPath);
+                return new SolutionProject(package, Guid.NewGuid(), projectPath);
             }
             else
             {
@@ -779,7 +747,7 @@ namespace Xenko.Core.Assets
                 var projectPath = Path.ChangeExtension(package.FullPath, ".csproj");
                 if (File.Exists(projectPath))
                 {
-                    return new SolutionProject(package, projectPath);
+                    return new SolutionProject(package, Guid.NewGuid(), projectPath);
                 }
                 else
                 {
@@ -1051,7 +1019,7 @@ namespace Xenko.Core.Assets
 
                 bool aliasOccurred;
                 AttachedYamlAssetMetadata yamlMetadata;
-                var asset = LoadAsset(context.Log, ref id, assetFullPath, assetPath.ToWindowsPath(), assetContent, out aliasOccurred, out yamlMetadata);
+                var asset = LoadAsset(context.Log, Meta.Name, assetFullPath, assetPath.ToWindowsPath(), assetContent, out aliasOccurred, out yamlMetadata);
 
                 // Create asset item
                 var assetItem = new AssetItem(assetPath, asset, this)
@@ -1117,7 +1085,7 @@ namespace Xenko.Core.Assets
             }
         }
 
-        private static Asset LoadAsset(ILogger log, ref Guid packageId, string assetFullPath, string assetPath, byte[] assetContent, out bool assetDirty, out AttachedYamlAssetMetadata yamlMetadata)
+        private static Asset LoadAsset(ILogger log, string packageName, string assetFullPath, string assetPath, byte[] assetContent, out bool assetDirty, out AttachedYamlAssetMetadata yamlMetadata)
         {
             var loadResult = assetContent != null
                 ? AssetFileSerializer.Load<Asset>(new MemoryStream(assetContent), assetFullPath, log)
@@ -1131,7 +1099,7 @@ namespace Xenko.Core.Assets
             if (sourceCodeAsset != null)
             {
                 // Use an id generated from the location instead of the default id
-                sourceCodeAsset.Id = SourceCodeAsset.GenerateIdFromLocation(packageId, assetPath);
+                sourceCodeAsset.Id = SourceCodeAsset.GenerateIdFromLocation(packageName, assetPath);
             }
 
             return loadResult.Asset;
@@ -1149,7 +1117,7 @@ namespace Xenko.Core.Assets
 
             // Check if already loaded
             // TODO: More advanced cases: unload removed references, etc...
-            var projectReference = new ProjectReference(Id, project.FullPath, Core.Assets.ProjectType.Library);
+            var projectReference = new ProjectReference(project.Id, project.FullPath, Core.Assets.ProjectType.Library);
             if (LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
                 return;
 

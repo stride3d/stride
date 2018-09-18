@@ -24,8 +24,6 @@ namespace Xenko.Engine.Design
             EffectCompilation = EffectCompilationMode.Local;
         }
 
-        public Guid PackageId { get; set; }
-
         public string PackageName { get; set; }
 
         public string DefaultSceneUrl { get; set; }

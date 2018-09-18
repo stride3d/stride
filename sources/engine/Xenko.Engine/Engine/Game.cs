@@ -370,7 +370,7 @@ namespace Xenko.Engine
             Services.AddService(EffectSystem);
 
             // If requested in game settings, compile effects remotely and/or notify new shader requests
-            EffectSystem.Compiler = EffectSystem.CreateEffectCompiler(Content.FileProvider, EffectSystem, Settings?.PackageId, Settings?.EffectCompilation ?? EffectCompilationMode.Local, Settings?.RecordUsedEffects ?? false);
+            EffectSystem.Compiler = EffectSystem.CreateEffectCompiler(Content.FileProvider, EffectSystem, Settings?.PackageName, Settings?.EffectCompilation ?? EffectCompilationMode.Local, Settings?.RecordUsedEffects ?? false);
 
             GameSystems.Add(EffectSystem);
 

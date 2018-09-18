@@ -14,8 +14,6 @@ namespace Xenko.Core.Assets
     {
         Package Find(Dependency dependency);
 
-        Package Find(Guid packageGuid);
-
         Package Find(PackageDependency packageDependency);
 
         Package Find(string name, PackageVersionRange versionRange);
@@ -82,16 +80,6 @@ namespace Xenko.Core.Assets
         }
 
         /// <summary>
-        /// Finds the specified package by its unique identifier.
-        /// </summary>
-        /// <param name="packageGuid">The package unique identifier.</param>
-        /// <returns>Package.</returns>
-        public Package Find(Guid packageGuid)
-        {
-            return packages.FirstOrDefault(package => package.Id == packageGuid);
-        }
-
-        /// <summary>
         /// Finds the a package already in this collection from the specified dependency.
         /// </summary>
         /// <param name="packageDependency">The package dependency.</param>
@@ -119,11 +107,8 @@ namespace Xenko.Core.Assets
         public void Add(Package item)
         {
             if (item == null) throw new ArgumentNullException("item");
-            if (Find(item.Id) == null)
-            {
-                packages.Add(item);
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
-            }
+            packages.Add(item);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
 
         public void Clear()
@@ -133,20 +118,10 @@ namespace Xenko.Core.Assets
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, packages, oldPackages));
         }
 
-        /// <summary>
-        /// Determines whether this collection contains a package with the specified package unique identifier.
-        /// </summary>
-        /// <param name="packageGuid">The package unique identifier.</param>
-        /// <returns><c>true</c> if this collection contains a package with the specified package unique identifier; otherwise, <c>false</c>.</returns>
-        public bool ContainsById(Guid packageGuid)
-        {
-            return packages.Any(package => package.Id == packageGuid);
-        }
-
         public bool Contains(Package item)
         {
             if (item == null) throw new ArgumentNullException("item");
-            return ContainsById(item.Id);
+            return packages.Contains(item);
         }
 
         public void CopyTo(Package[] array, int arrayIndex)
@@ -154,23 +129,10 @@ namespace Xenko.Core.Assets
             packages.CopyTo(array, arrayIndex);
         }
 
-        public bool RemoveById(Guid packageGuid)
-        {
-            var item = Find(packageGuid);
-            if (item != null)
-            {
-
-                packages.Remove(item);
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
-                return true;
-            }
-            return false;
-        }
-
         public bool Remove(Package item)
         {
             if (item == null) throw new ArgumentNullException("item");
-            return RemoveById(item.Id);
+            return packages.Remove(item);
         }
 
         private void OnCollectionChanged(NotifyCollectionChangedEventArgs e)

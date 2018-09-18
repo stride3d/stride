@@ -412,7 +412,7 @@ namespace Xenko.Rendering
             return null;
         }
 
-        public static IEffectCompiler CreateEffectCompiler(IVirtualFileProvider fileProvider, EffectSystem effectSystem = null, Guid? packageId = null, EffectCompilationMode effectCompilationMode = EffectCompilationMode.Local, bool recordEffectRequested = false, TaskSchedulerSelector taskSchedulerSelector = null)
+        public static IEffectCompiler CreateEffectCompiler(IVirtualFileProvider fileProvider, EffectSystem effectSystem = null, string packageName = null, EffectCompilationMode effectCompilationMode = EffectCompilationMode.Local, bool recordEffectRequested = false, TaskSchedulerSelector taskSchedulerSelector = null)
         {
             EffectCompilerBase compiler = null;
 
@@ -432,7 +432,7 @@ namespace Xenko.Rendering
             if (needRemoteCompiler || recordEffectRequested)
             {
                 // Create the object that handles the connection
-                var shaderCompilerTarget = new RemoteEffectCompilerClient(packageId);
+                var shaderCompilerTarget = new RemoteEffectCompilerClient(packageName);
 
                 if (recordEffectRequested)
                 {

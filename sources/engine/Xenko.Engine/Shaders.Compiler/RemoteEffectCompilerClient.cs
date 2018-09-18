@@ -17,13 +17,13 @@ namespace Xenko.Shaders.Compiler
     internal class RemoteEffectCompilerClient : IDisposable
     {
         private readonly object lockObject = new object();
-        private readonly Guid? packageId;
+        private readonly string packageName;
         private Task<SocketMessageLayer> socketMessageLayerTask;
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
-        public RemoteEffectCompilerClient(Guid? packageId)
+        public RemoteEffectCompilerClient(string packageName)
         {
-            this.packageId = packageId;
+            this.packageName = packageName;
         }
 
         public void Dispose()
@@ -69,11 +69,11 @@ namespace Xenko.Shaders.Compiler
             });
         }
 
-        public async Task<SocketMessageLayer> Connect(Guid? packageId, CancellationToken cancellationToken)
+        public async Task<SocketMessageLayer> Connect(string packageName, CancellationToken cancellationToken)
         {
             var url = string.Format("/service/{0}/Xenko.EffectCompilerServer.exe", XenkoVersion.NuGetVersion);
-            if (packageId.HasValue)
-                url += string.Format("?packageid={0}", packageId.Value);
+            if (packageName != null)
+                url += string.Format("?packagename={0}", packageName);
 
             var socketContext = await RouterClient.RequestServer(url, cancellationToken);
 
@@ -115,7 +115,7 @@ namespace Xenko.Shaders.Compiler
             lock (lockObject)
             {
                 if (socketMessageLayerTask == null)
-                    socketMessageLayerTask = Task.Run(() => Connect(packageId, cancellationToken));
+                    socketMessageLayerTask = Task.Run(() => Connect(packageName, cancellationToken));
             }
 
             return await socketMessageLayerTask;

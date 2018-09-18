@@ -96,21 +96,7 @@ namespace Xenko.Assets.Presentation.Templates
                 return false;
             }
 
-            // We are going to replace all projects/packages id by new ids
-            var idsToReplace = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-            idsToReplace.Add(package.Id.ToString("D"), Guid.NewGuid());
-
-            var guidRegexPattern = new StringBuilder();
-            guidRegexPattern.Append("(");
-            guidRegexPattern.Append(string.Join("|", idsToReplace.Keys));
-            guidRegexPattern.Append(")");
-
             var regexes = new List<Tuple<Regex, MatchEvaluator>>();
-
-            var guidRegex = new Tuple<Regex, MatchEvaluator>(new Regex(guidRegexPattern.ToString(), RegexOptions.IgnoreCase),
-                match => idsToReplace[match.Groups[1].Value].ToString("D"));
-
-            regexes.Add(guidRegex);
             var patternName = description.PatternName ?? description.DefaultOutputName;
 
             // Samples don't support spaces and dot in name (we would need to separate package name, package short name and namespace renaming for that).

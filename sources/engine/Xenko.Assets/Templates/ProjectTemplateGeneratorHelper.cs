@@ -79,7 +79,7 @@ namespace Xenko.Assets.Templates
             };
 
             // Setup the ProjectGameGuid to be accessible from exec (in order to be able to link to the game project.
-            AddOption(parameters, "ProjectGameGuid", package.Id);
+            AddOption(parameters, "ProjectGameGuid", (package.Container as SolutionProject)?.Id ?? Guid.Empty);
             AddOption(parameters, "ProjectGameRelativePath", (package.Container as SolutionProject)?.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
             AddOption(parameters, "PackageGameRelativePath", package.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
 
@@ -208,7 +208,6 @@ namespace Xenko.Assets.Templates
 
             var package = new Package
             {
-                Id = projectGuid,
                 Meta =
                 {
                     Name = projectName,
@@ -221,7 +220,7 @@ namespace Xenko.Assets.Templates
             var projectTemplate = PrepareTemplate(parameters, package, templateRelativePath, platformType, graphicsPlatform, projectType);
             projectTemplate.Generate(outputDirectoryPath, projectName, projectGuid, parameters.Logger, options, generatedFiles);
 
-            var project = new SolutionProject(package, projectFullPath);
+            var project = new SolutionProject(package, projectGuid, projectFullPath);
 
             return project;
         }

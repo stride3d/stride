@@ -21,7 +21,7 @@ namespace Xenko.EffectCompilerServer
     /// </summary>
     public class EffectCompilerServer : RouterServiceServer
     {
-        private readonly Dictionary<Guid, SocketMessageLayer> gameStudioPerPackageId = new Dictionary<Guid, SocketMessageLayer>();
+        private readonly Dictionary<string, SocketMessageLayer> gameStudioPerPackageName = new Dictionary<string, SocketMessageLayer>();
 
         public EffectCompilerServer() : base($"/service/{XenkoVersion.NuGetVersion}/Xenko.EffectCompilerServer.exe")
         {
@@ -42,23 +42,18 @@ namespace Xenko.EffectCompilerServer
 
             var socketMessageLayer = new SocketMessageLayer(clientSocket, true);
 
-            Guid? packageId = null;
-            {
-                Guid packageIdParsed;
-                if (Guid.TryParse(parameters["packageid"], out packageIdParsed))
-                    packageId = packageIdParsed;
-            }
+            string packageName = parameters["packagename"];
 
             if (mode == "gamestudio")
             {
                 Console.WriteLine(@"GameStudio mode started!");
 
-                if (!packageId.HasValue)
+                if (packageName == null)
                     return;
 
-                lock (gameStudioPerPackageId)
+                lock (gameStudioPerPackageName)
                 {
-                    gameStudioPerPackageId[packageId.Value] = socketMessageLayer;
+                    gameStudioPerPackageName[packageName] = socketMessageLayer;
                 }
             }
             else
@@ -81,13 +76,13 @@ namespace Xenko.EffectCompilerServer
 
                 socketMessageLayer.AddPacketHandler<RemoteEffectCompilerEffectRequested>(packet =>
                 {
-                    if (!packageId.HasValue)
+                    if (packageName == null)
                         return;
 
                     SocketMessageLayer gameStudio;
-                    lock (gameStudioPerPackageId)
+                    lock (gameStudioPerPackageName)
                     {
-                        if (!gameStudioPerPackageId.TryGetValue(packageId.Value, out gameStudio))
+                        if (!gameStudioPerPackageName.TryGetValue(packageName, out gameStudio))
                             return;
                     }
 

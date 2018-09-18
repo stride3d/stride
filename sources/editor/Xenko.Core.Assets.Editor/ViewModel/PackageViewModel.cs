@@ -70,11 +70,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         public bool IsLoaded { get; }
 
-        /// <summary>
-        /// Gets the <see cref="Guid"/> identifying this package.
-        /// </summary>
-        public Guid Id => Package.Id;
-
         public PackageContainer PackageContainer { get; }
 
         /// <summary>
@@ -385,14 +380,9 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             return asset;
         }
 
-        public bool Match(Package proj)
+        public bool Match(Package package)
         {
-            return Package == proj;
-        }
-
-        public bool Match(Guid id)
-        {
-            return Package.Id == id;
+            return Package == package;
         }
 
         /// <summary>
