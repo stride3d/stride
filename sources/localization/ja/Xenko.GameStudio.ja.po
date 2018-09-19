@@ -873,3 +873,13 @@ msgstr ""
 msgctxt "Button"
 msgid "Cancel"
 msgstr ""
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:31
+msgctxt "Menu"
+msgid "Show in Explorer"
+msgstr ""
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:32
+msgctxt "Menu"
+msgid "Remove From List"
+msgstr ""
