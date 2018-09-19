@@ -217,6 +217,9 @@ namespace Xenko.Assets.Templates
                 IsDirty = true,
             };
 
+            package.AssetFolders.Add(new AssetFolder("Assets"));
+            package.ResourceFolders.Add("Resources");
+
             var projectTemplate = PrepareTemplate(parameters, package, templateRelativePath, platformType, graphicsPlatform, projectType);
             projectTemplate.Generate(outputDirectoryPath, projectName, projectGuid, parameters.Logger, options, generatedFiles);
 

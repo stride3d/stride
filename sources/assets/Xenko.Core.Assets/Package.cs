@@ -93,9 +93,6 @@ namespace Xenko.Core.Assets
             Bundles = new BundleCollection(this);
             IsDirty = true;
             settings = new Lazy<PackageUserSettings>(() => new PackageUserSettings(this));
-
-            AssetFolders.Add(new AssetFolder("Assets"));
-            ResourceFolders.Add("Resources");
         }
 
         // Note: Please keep this code in sync with Asset class
