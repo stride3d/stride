@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -42,6 +43,169 @@ namespace Xenko.Core.Assets
         public Package Package { get; }
 
         public ObservableCollection<Package> LoadedDependencies { get; } = new ObservableCollection<Package>();
+
+        /// <summary>
+        /// Saves this package and all dirty assets. See remarks.
+        /// </summary>
+        /// <param name="log">The log.</param>
+        /// <exception cref="System.ArgumentNullException">log</exception>
+        /// <remarks>When calling this method directly, it does not handle moving assets between packages.
+        /// Call <see cref="PackageSession.Save" /> instead.</remarks>
+        public void Save(ILogger log, PackageSaveParameters saveParameters = null)
+        {
+            if (log == null) throw new ArgumentNullException(nameof(log));
+
+            if (Package.FullPath == null)
+            {
+                log.Error(Package, null, AssetMessageCode.PackageCannotSave, "null");
+                return;
+            }
+
+            saveParameters = saveParameters ?? PackageSaveParameters.Default();
+
+            // Use relative paths when saving
+            var analysis = new PackageAnalysis(Package, new PackageAnalysisParameters()
+            {
+                SetDirtyFlagOnAssetWhenFixingUFile = false,
+                ConvertUPathTo = UPathType.Relative,
+                IsProcessingUPaths = true,
+            });
+            analysis.Run(log);
+
+            var assetsFiltered = false;
+            try
+            {
+                // Update source folders
+                Package.UpdateSourceFolders(Package.Assets);
+
+                if (Package.IsDirty)
+                {
+                    List<UFile> filesToDeleteLocal;
+                    var filesToDelete = Package.FilesToDelete;
+                    lock (filesToDelete)
+                    {
+                        filesToDeleteLocal = filesToDelete.ToList();
+                        filesToDelete.Clear();
+                    }
+
+                    try
+                    {
+                        AssetFileSerializer.Save(Package.FullPath, Package, null);
+
+                        // Move the package if the path has changed
+                        if (Package.PreviousPackagePath != null && Package.PreviousPackagePath != Package.FullPath)
+                        {
+                            filesToDeleteLocal.Add(Package.PreviousPackagePath);
+                        }
+                        Package.PreviousPackagePath = Package.FullPath;
+
+                        Package.IsDirty = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error(Package, null, AssetMessageCode.PackageCannotSave, ex, Package.FullPath);
+                        return;
+                    }
+
+                    // Delete obsolete files
+                    foreach (var file in filesToDeleteLocal)
+                    {
+                        if (File.Exists(file.FullPath))
+                        {
+                            try
+                            {
+                                File.Delete(file.FullPath);
+                            }
+                            catch (Exception ex)
+                            {
+                                log.Error(Package, null, AssetMessageCode.AssetCannotDelete, ex, file.FullPath);
+                            }
+                        }
+                    }
+                }
+
+                //batch projects
+                var vsProjs = new Dictionary<string, Microsoft.Build.Evaluation.Project>();
+
+                foreach (var asset in Package.Assets)
+                {
+                    if (asset.IsDirty)
+                    {
+                        if (saveParameters.AssetFilter?.Invoke(asset) ?? true)
+                        {
+                            Package.SaveSingleAsset_NoUpdateSourceFolder(asset, log);
+                        }
+                        else
+                        {
+                            assetsFiltered = true;
+                        }
+                    }
+
+                    // Add new files to .csproj
+                    var projectAsset = asset.Asset as IProjectAsset;
+                    if (projectAsset != null)
+                    {
+                        var projectFullPath = (asset.Package.Container as SolutionProject)?.FullPath;
+                        var projectInclude = asset.GetProjectInclude();
+
+                        Microsoft.Build.Evaluation.Project project;
+                        if (!vsProjs.TryGetValue(projectFullPath, out project))
+                        {
+                            project = VSProjectHelper.LoadProject(projectFullPath);
+                            vsProjs.Add(projectFullPath, project);
+                        }
+
+                        //check if the item is already there, this is possible when saving the first time when creating from a template
+                        if (project.Items.All(x => x.EvaluatedInclude != projectInclude))
+                        {
+                            var generatorAsset = projectAsset as IProjectFileGeneratorAsset;
+                            if (generatorAsset != null)
+                            {
+                                var generatedInclude = asset.GetGeneratedInclude();
+
+                                project.AddItem("None", projectInclude,
+                                    new List<KeyValuePair<string, string>>
+                                    {
+                                    new KeyValuePair<string, string>("Generator", generatorAsset.Generator),
+                                    new KeyValuePair<string, string>("LastGenOutput", new UFile(generatedInclude).GetFileName())
+                                    });
+
+                                project.AddItem("Compile", generatedInclude,
+                                    new List<KeyValuePair<string, string>>
+                                    {
+                                    new KeyValuePair<string, string>("AutoGen", "True"),
+                                    new KeyValuePair<string, string>("DesignTime", "True"),
+                                    new KeyValuePair<string, string>("DesignTimeSharedInput", "True"),
+                                    new KeyValuePair<string, string>("DependentUpon", new UFile(projectInclude).GetFileName())
+                                    });
+                            }
+                            else
+                            {
+                                // Note: if project has auto items, no need to add it
+                                if (string.Compare(project.GetPropertyValue("EnableDefaultCompileItems"), "true", true, CultureInfo.InvariantCulture) != 0)
+                                    project.AddItem("Compile", projectInclude);
+                            }
+                        }
+                    }
+                }
+
+                foreach (var project in vsProjs.Values)
+                {
+                    project.Save();
+                    project.ProjectCollection.UnloadAllProjects();
+                    project.ProjectCollection.Dispose();
+                }
+
+                // If some assets were filtered out, Assets is still dirty
+                Package.Assets.IsDirty = assetsFiltered;
+            }
+            finally
+            {
+                // Rollback all relative UFile to absolute paths
+                analysis.Parameters.ConvertUPathTo = UPathType.Absolute;
+                analysis.Run();
+            }
+        }
 
         internal void SetSessionInternal(PackageSession session)
         {
@@ -830,7 +994,7 @@ namespace Xenko.Core.Assets
                     foreach (var package in LocalPackages)
                     {
                         // Save the package to disk and all its assets
-                        package.Save(loggerResult, saveParameters);
+                        package.Container.Save(loggerResult, saveParameters);
 
                         // Check if everything was saved (might not be the case if things are filtered out)
                         if (package.IsDirty || package.Assets.IsDirty)

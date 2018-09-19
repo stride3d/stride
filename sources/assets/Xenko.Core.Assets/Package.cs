@@ -63,12 +63,12 @@ namespace Xenko.Core.Assets
     {
         private const string PackageFileVersion = "3.1.0.0";
 
-        private readonly List<UFile> filesToDelete = new List<UFile>();
+        internal readonly List<UFile> FilesToDelete = new List<UFile>();
 
         private PackageSession session;
 
         private UFile packagePath;
-        private UFile previousPackagePath;
+        internal UFile PreviousPackagePath;
         private bool isDirty;
         private readonly Lazy<PackageUserSettings> settings;
 
@@ -439,176 +439,14 @@ namespace Xenko.Core.Assets
             AssetDirtyChanged?.Invoke(asset, oldValue, newValue);
         }
         
-        /// <summary>
-        /// Saves this package and all dirty assets. See remarks.
-        /// </summary>
-        /// <param name="log">The log.</param>
-        /// <exception cref="System.ArgumentNullException">log</exception>
-        /// <remarks>When calling this method directly, it does not handle moving assets between packages.
-        /// Call <see cref="PackageSession.Save" /> instead.</remarks>
-        public void Save(ILogger log, PackageSaveParameters saveParameters = null)
-        {
-            if (log == null) throw new ArgumentNullException(nameof(log));
-
-            if (FullPath == null)
-            {
-                log.Error(this, null, AssetMessageCode.PackageCannotSave, "null");
-                return;
-            }
-
-            saveParameters = saveParameters ?? PackageSaveParameters.Default();
-
-            // Use relative paths when saving
-            var analysis = new PackageAnalysis(this, new PackageAnalysisParameters()
-            {
-                SetDirtyFlagOnAssetWhenFixingUFile = false,
-                ConvertUPathTo = UPathType.Relative,
-                IsProcessingUPaths = true,
-            });
-            analysis.Run(log);
-
-            var assetsFiltered = false;
-            try
-            {
-                // Update source folders
-                UpdateSourceFolders(Assets);
-
-                if (IsDirty)
-                {
-                    List<UFile> filesToDeleteLocal;
-                    lock (filesToDelete)
-                    {
-                        filesToDeleteLocal = filesToDelete.ToList();
-                        filesToDelete.Clear();
-                    }
-
-                    try
-                    {
-                        AssetFileSerializer.Save(FullPath, this, null);
-
-                        // Move the package if the path has changed
-                        if (previousPackagePath != null && previousPackagePath != packagePath)
-                        {
-                            filesToDeleteLocal.Add(previousPackagePath);
-                        }
-                        previousPackagePath = packagePath;
-
-                        IsDirty = false;
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error(this, null, AssetMessageCode.PackageCannotSave, ex, FullPath);
-                        return;
-                    }
-                    
-                    // Delete obsolete files
-                    foreach (var file in filesToDeleteLocal)
-                    {
-                        if (File.Exists(file.FullPath))
-                        {
-                            try
-                            {
-                                File.Delete(file.FullPath);
-                            }
-                            catch (Exception ex)
-                            {
-                                log.Error(this, null, AssetMessageCode.AssetCannotDelete, ex, file.FullPath);
-                            }
-                        }
-                    }
-                }
-
-                //batch projects
-                var vsProjs = new Dictionary<string, Project>();
-
-                foreach (var asset in Assets)
-                {
-                    if (asset.IsDirty)
-                    {
-                        if (saveParameters.AssetFilter?.Invoke(asset) ?? true)
-                        {
-                            SaveSingleAsset_NoUpdateSourceFolder(asset, log);
-                        }
-                        else
-                        {
-                            assetsFiltered = true;
-                        }
-                    }
-
-                    // Add new files to .csproj
-                    var projectAsset = asset.Asset as IProjectAsset;
-                    if (projectAsset != null)
-                    {
-                        var projectFullPath = (asset.Package.Container as SolutionProject)?.FullPath;
-                        var projectInclude = asset.GetProjectInclude();
-
-                        Project project;
-                        if (!vsProjs.TryGetValue(projectFullPath, out project))
-                        {
-                            project = VSProjectHelper.LoadProject(projectFullPath);
-                            vsProjs.Add(projectFullPath, project);
-                        }
-
-                        //check if the item is already there, this is possible when saving the first time when creating from a template
-                        if (project.Items.All(x => x.EvaluatedInclude != projectInclude))
-                        {
-                            var generatorAsset = projectAsset as IProjectFileGeneratorAsset;
-                            if (generatorAsset != null)
-                            {
-                                var generatedInclude = asset.GetGeneratedInclude();
-
-                                project.AddItem("None", projectInclude,
-                                    new List<KeyValuePair<string, string>>
-                                    {
-                                    new KeyValuePair<string, string>("Generator", generatorAsset.Generator),
-                                    new KeyValuePair<string, string>("LastGenOutput", new UFile(generatedInclude).GetFileName())
-                                    });
-
-                                project.AddItem("Compile", generatedInclude,
-                                    new List<KeyValuePair<string, string>>
-                                    {
-                                    new KeyValuePair<string, string>("AutoGen", "True"),
-                                    new KeyValuePair<string, string>("DesignTime", "True"),
-                                    new KeyValuePair<string, string>("DesignTimeSharedInput", "True"),
-                                    new KeyValuePair<string, string>("DependentUpon", new UFile(projectInclude).GetFileName())
-                                    });
-                            }
-                            else
-                            {
-                                // Note: if project has auto items, no need to add it
-                                if (string.Compare(project.GetPropertyValue("EnableDefaultCompileItems"), "true", true, CultureInfo.InvariantCulture) != 0)
-                                    project.AddItem("Compile", projectInclude);
-                            }
-                        }
-                    }
-                }
-
-                foreach (var project in vsProjs.Values)
-                {
-                    project.Save();
-                    project.ProjectCollection.UnloadAllProjects();
-                    project.ProjectCollection.Dispose();
-                }
-
-                // If some assets were filtered out, Assets is still dirty
-                Assets.IsDirty = assetsFiltered;
-            }
-            finally
-            {
-                // Rollback all relative UFile to absolute paths
-                analysis.Parameters.ConvertUPathTo = UPathType.Absolute;
-                analysis.Run();
-            }
-        }
-
-        public bool SaveSingleAsset(AssetItem asset, ILogger log)
+        public static bool SaveSingleAsset(AssetItem asset, ILogger log)
         {
             // Make sure AssetItem.SourceFolder/Project are generated if they were null
             asset.UpdateSourceFolders();
             return SaveSingleAsset_NoUpdateSourceFolder(asset, log);
         }
 
-        private bool SaveSingleAsset_NoUpdateSourceFolder(AssetItem asset, ILogger log)
+        internal static bool SaveSingleAsset_NoUpdateSourceFolder(AssetItem asset, ILogger log)
         {
             var assetPath = asset.FullPath;
 
@@ -635,7 +473,7 @@ namespace Xenko.Core.Assets
             }
             catch (Exception ex)
             {
-                log.Error(this, asset.ToReference(), AssetMessageCode.AssetCannotSave, ex, assetPath);
+                log.Error(asset.Package, asset.ToReference(), AssetMessageCode.AssetCannotSave, ex, assetPath);
                 return false;
             }
             return true;
@@ -735,7 +573,7 @@ namespace Xenko.Core.Assets
                     : AssetFileSerializer.Load<Package>(filePath, log);
                 var package = loadResult.Asset;
                 package.FullPath = packageFile.FilePath;
-                package.previousPackagePath = packageFile.OriginalFilePath;
+                package.PreviousPackagePath = packageFile.OriginalFilePath;
                 package.IsDirty = packageFile.AssetContent != null || loadResult.AliasOccurred;
 
                 return package;
@@ -907,9 +745,9 @@ namespace Xenko.Core.Assets
                 {
                     IsDirty = true;
 
-                    lock (filesToDelete)
+                    lock (FilesToDelete)
                     {
-                        filesToDelete.AddRange(dirtyAssets.Select(a => a.FullPath));
+                        FilesToDelete.AddRange(dirtyAssets.Select(a => a.FullPath));
                     }
                 }
 
@@ -1015,9 +853,9 @@ namespace Xenko.Core.Assets
             {
                 IsDirty = true;
 
-                lock (filesToDelete)
+                lock (FilesToDelete)
                 {
-                    filesToDelete.Add(assetFile.FilePath);
+                    FilesToDelete.Add(assetFile.FilePath);
                 }
 
                 // Don't create temporary assets for files deleted during package upgrading
