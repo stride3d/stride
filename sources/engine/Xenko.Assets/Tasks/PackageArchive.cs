@@ -143,7 +143,8 @@ namespace Xenko.Assets.Tasks
             var newPackageFileName = "temp" + Guid.NewGuid() + ".xkpkg";
             newPackage.FullPath = package.RootDirectory + "/" + newPackageFileName;
             var result = new LoggerResult();
-            newPackage.Save(result);
+            var standalonePackage = new StandalonePackage(newPackage);
+            standalonePackage.Save(result);
             if (result.HasErrors)
             {
                 throw new InvalidOperationException(result.ToText());

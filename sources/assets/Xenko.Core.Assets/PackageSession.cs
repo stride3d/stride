@@ -90,7 +90,7 @@ namespace Xenko.Core.Assets
 
                     try
                     {
-                        AssetFileSerializer.Save(Package.FullPath, Package, null);
+                        SavePackage();
 
                         // Move the package if the path has changed
                         if (Package.PreviousPackagePath != null && Package.PreviousPackagePath != Package.FullPath)
@@ -207,6 +207,11 @@ namespace Xenko.Core.Assets
             }
         }
 
+        protected virtual void SavePackage()
+        {
+            AssetFileSerializer.Save(Package.FullPath, Package, null);
+        }
+
         internal void SetSessionInternal(PackageSession session)
         {
             Session = session;
@@ -298,6 +303,8 @@ namespace Xenko.Core.Assets
 
         public PlatformType Platform { get; set; }
 
+        public bool IsImplicitProject { get; set; }
+
         public string Name => VSProject.Name;
 
         public UFile FullPath => VSProject.FullPath;
@@ -305,6 +312,12 @@ namespace Xenko.Core.Assets
         public ObservableCollection<DependencyRange> DirectDependencies { get; } = new ObservableCollection<DependencyRange>();
 
         public ObservableCollection<Dependency> FlattenedDependencies { get; } = new ObservableCollection<Dependency>();
+
+        protected override void SavePackage()
+        {
+            if (!IsImplicitProject)
+                base.SavePackage();
+        }
     }
 
     public sealed class ProjectCollection : ObservableCollection<PackageContainer>

@@ -592,8 +592,16 @@ namespace Xenko.Core.Assets
             {
                 var projectPath = filePath;
                 var packagePath = Path.ChangeExtension(filePath, Package.PackageFileExtension);
-                var package = LoadRaw(log, packagePath);
-                return new SolutionProject(package, Guid.NewGuid(), projectPath);
+                var packageExists = File.Exists(packagePath);
+                var package = packageExists
+                    ? LoadRaw(log, packagePath)
+                    : new Package
+                    {
+                        Meta = { Name = Path.GetFileNameWithoutExtension(packagePath) },
+                        AssetFolders = { new AssetFolder("Assets") },
+                        ResourceFolders = { "Resources" },
+                    };
+                return new SolutionProject(package, Guid.NewGuid(), projectPath) { IsImplicitProject = !packageExists };
             }
             else
             {
