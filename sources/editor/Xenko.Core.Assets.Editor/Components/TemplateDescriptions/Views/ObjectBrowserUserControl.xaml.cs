@@ -26,6 +26,8 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views
 
         public static readonly DependencyProperty ObjectItemTemplateProperty = DependencyProperty.Register("ObjectItemTemplate", typeof(DataTemplate), typeof(ObjectBrowserUserControl));
 
+        public static readonly DependencyProperty ObjectItemTemplateSelectorProperty = DependencyProperty.Register("ObjectItemTemplateSelector", typeof(DataTemplateSelector), typeof(ObjectBrowserUserControl));
+
         public static readonly DependencyProperty ObjectItemContainerStyleProperty = DependencyProperty.Register("ObjectItemContainerStyle", typeof(Style), typeof(ObjectBrowserUserControl));
 
         public static readonly DependencyProperty ObjectDescriptionTemplateProperty = DependencyProperty.Register("ObjectDescriptionTemplate", typeof(DataTemplate), typeof(ObjectBrowserUserControl));
@@ -50,6 +52,8 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views
         public object SelectedObjectItem { get { return GetValue(SelectedObjectItemProperty); } set { SetValue(SelectedObjectItemProperty, value); } }
 
         public DataTemplate ObjectItemTemplate { get { return (DataTemplate)GetValue(ObjectItemTemplateProperty); } set { SetValue(ObjectItemTemplateProperty, value); } }
+
+        public DataTemplate ObjectItemTemplateSelector { get { return (DataTemplate)GetValue(ObjectItemTemplateSelectorProperty); } set { SetValue(ObjectItemTemplateSelectorProperty, value); } }
 
         public Style ObjectItemContainerStyle { get { return (Style)GetValue(ObjectItemContainerStyleProperty); } set { SetValue(ObjectItemContainerStyleProperty, value); } }
 

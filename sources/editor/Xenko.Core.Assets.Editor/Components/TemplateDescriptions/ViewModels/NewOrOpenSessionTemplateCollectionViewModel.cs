@@ -42,7 +42,7 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
             recentGroup = new TemplateDescriptionGroupViewModel(serviceProvider, "Recent projects");
             foreach (var file in EditorViewModel.Instance.RecentFiles)
             {
-                var viewModel = new ExistingProjectViewModel(ServiceProvider, file.FilePath);
+                var viewModel = new ExistingProjectViewModel(ServiceProvider, file.FilePath, RemoveExistingProjects);
                 recentGroup.Templates.Add(viewModel);
             }
 
@@ -90,12 +90,22 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
             return GenerateUniqueNameAtLocation();
         }
 
+        private void RemoveExistingProjects(ExistingProjectViewModel item)
+        {
+            if (item == null)
+                return;
+
+            EditorViewModel.Instance.RemoveRecentFile(item.Path);
+            SelectedGroup.Templates.Remove(item);
+            UpdateTemplateList();
+        }
+
         private async Task BrowseForExistingProject()
         {
             var filePath = await EditorDialogHelper.BrowseForExistingProject(ServiceProvider);
             if (filePath != null)
             {
-                SelectedTemplate = new ExistingProjectViewModel(ServiceProvider, filePath);
+                SelectedTemplate = new ExistingProjectViewModel(ServiceProvider, filePath, RemoveExistingProjects);
                 dialog?.RequestClose(DialogResult.Ok);
             }
         }

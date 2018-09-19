@@ -33,7 +33,7 @@
     <ListBox Grid.Column="2"
              ItemsSource="{Binding ObjectItemsSource, ElementName=ObjectBrowser, Mode=TwoWay}"
              SelectedItem="{Binding SelectedObjectItem, ElementName=ObjectBrowser, Mode=TwoWay}"
-             ItemTemplate="{Binding ObjectItemTemplate, ElementName=ObjectBrowser, Mode=TwoWay}"
+             ItemTemplateSelector="{Binding ObjectItemTemplateSelector, ElementName=ObjectBrowser, Mode=TwoWay }"
              ItemContainerStyle="{Binding ObjectItemContainerStyle, ElementName=ObjectBrowser, Mode=TwoWay}"
              ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
 
