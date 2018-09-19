@@ -18,7 +18,6 @@ namespace Xenko.Core.Assets.Compiler
         public CompilerContext()
         {
             Properties = new PropertyCollection();
-            PackageProperties = PackageProfile.SettingsContainer.CreateSettingsProfile(false, null, false);
         }
 
         /// <summary>
@@ -32,8 +31,6 @@ namespace Xenko.Core.Assets.Compiler
         /// <value>The attributes.</value>
         public PropertyCollection Properties { get; private set; }
 
-        public SettingsProfile PackageProperties { get; private set; }
-
         public CompilerContext Clone()
         {
             var context = (CompilerContext)MemberwiseClone();
@@ -42,7 +39,6 @@ namespace Xenko.Core.Assets.Compiler
 
         public void Dispose()
         {
-            PackageProperties.Dispose();
         }
     }
 }

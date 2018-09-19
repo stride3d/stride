@@ -104,9 +104,6 @@ namespace Xenko.Assets.Presentation.Templates
             var name = parameters.Name;
             var package = parameters.Package;
             
-            // Generate executable projects for each platform
-            var sharedProfile = package.Profile;
-
             // TODO: this is not a safe way to get a game project see PDX-1128
             var gameProject = package.Container as SolutionProject;
 
@@ -144,9 +141,6 @@ namespace Xenko.Assets.Presentation.Templates
 
             if (string.IsNullOrWhiteSpace(defaultNamespace))
             {
-                // Get the shared profile
-                var sharedProfile = package.Profile;
-
                 // Get the game project
                 var gameProjectRef = (package.Container as SolutionProject)?.FullPath;
                 if (gameProjectRef != null)

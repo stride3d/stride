@@ -63,7 +63,7 @@ namespace Xenko.Core.Assets
 
         /// <summary>
         /// Gets the directory where the assets will be stored on the disk relative to the <see cref="Package"/>. The directory
-        /// will update the list found in <see cref="PackageProfile.AssetFolders"/>
+        /// will update the list found in <see cref="Package.AssetFolders"/>
         /// </summary>
         /// <value>The directory.</value>
         public UDirectory SourceFolder { get; set; }

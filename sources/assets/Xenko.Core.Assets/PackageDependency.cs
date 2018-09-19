@@ -9,7 +9,7 @@ using Xenko.Core.Annotations;
 namespace Xenko.Core.Assets
 {
     /// <summary>
-    /// A collection of <see cref="PackageProfile"/>.
+    /// A collection of <see cref="PackageDependency"/>.
     /// </summary>
     [DataContract("PackageDependencyCollection")]
     public sealed class PackageDependencyCollection : KeyedCollection<string, PackageDependency>

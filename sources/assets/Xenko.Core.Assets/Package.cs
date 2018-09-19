@@ -93,6 +93,9 @@ namespace Xenko.Core.Assets
             Bundles = new BundleCollection(this);
             IsDirty = true;
             settings = new Lazy<PackageUserSettings>(() => new PackageUserSettings(this));
+
+            AssetFolders.Add(new AssetFolder("Assets"));
+            ResourceFolders.Add("Resources");
         }
 
         // Note: Please keep this code in sync with Asset class
@@ -123,11 +126,25 @@ namespace Xenko.Core.Assets
         public PackageMeta Meta { get; set; } = new PackageMeta();
 
         /// <summary>
-        /// Gets the profile.
+        /// Gets the asset directories to lookup.
         /// </summary>
-        /// <value>The profiles.</value>
+        /// <value>The asset directories.</value>
+        [DataMember(40, DataMemberMode.Assign)]
+        public AssetFolderCollection AssetFolders { get; set; } = new AssetFolderCollection();
+
+        /// <summary>
+        /// Gets the resource directories to lookup.
+        /// </summary>
+        /// <value>The resource directories.</value>
+        [DataMember(45, DataMemberMode.Assign)]
+        public List<UDirectory> ResourceFolders { get; set; } = new List<UDirectory>();
+
+        /// <summary>
+        /// Gets the output group directories.
+        /// </summary>
+        /// <value>The output group directories.</value>
         [DataMember(50, DataMemberMode.Assign)]
-        public PackageProfile Profile { get; set; } = PackageProfile.NewShared();
+        public Dictionary<string, UDirectory> OutputGroupDirectories { get; set; } = new Dictionary<string, UDirectory>();
 
         /// <summary>
         /// Gets or sets the list of folders that are explicitly created but contains no assets.
@@ -343,7 +360,7 @@ namespace Xenko.Core.Assets
 
         public UDirectory GetDefaultAssetFolder()
         {
-            var folder = Profile?.AssetFolders.FirstOrDefault();
+            var folder = AssetFolders.FirstOrDefault();
             return folder?.Path ?? ("Assets");
         }
 
@@ -390,7 +407,7 @@ namespace Xenko.Core.Assets
                 var currentRootDirectory = RootDirectory;
                 if (previousRootDirectory != null && currentRootDirectory != null)
                 {
-                    foreach (var sourceFolder in Profile.AssetFolders)
+                    foreach (var sourceFolder in AssetFolders)
                     {
                         if (sourceFolder.Path.IsAbsolute)
                         {
@@ -1175,7 +1192,7 @@ namespace Xenko.Core.Assets
             }
 
             // Use by default the first asset folders if not defined on the asset item
-            var defaultFolder = Profile.AssetFolders.Count > 0 ? Profile.AssetFolders.First().Path : UDirectory.This;
+            var defaultFolder = AssetFolders.Count > 0 ? AssetFolders.First().Path : UDirectory.This;
             var assetFolders = new HashSet<UDirectory>(GetDistinctAssetFolderPaths());
             foreach (var asset in assets)
             {
@@ -1199,7 +1216,7 @@ namespace Xenko.Core.Assets
                     if (!assetFolders.Contains(assetFolderAbsolute))
                     {
                         assetFolders.Add(assetFolderAbsolute);
-                        Profile.AssetFolders.Add(new AssetFolder(assetFolderAbsolute));
+                        AssetFolders.Add(new AssetFolder(assetFolderAbsolute));
                         IsDirty = true;
                     }
                 }
@@ -1240,7 +1257,7 @@ namespace Xenko.Core.Assets
         private List<UDirectory> GetDistinctAssetFolderPaths()
         {
             var existingAssetFolders = new List<UDirectory>();
-            foreach (var folder in Profile.AssetFolders)
+            foreach (var folder in AssetFolders)
             {
                 var folderPath = RootDirectory != null ? UPath.Combine(RootDirectory, folder.Path) : folder.Path;
                 if (!existingAssetFolders.Contains(folderPath))
@@ -1392,7 +1409,9 @@ namespace Xenko.Core.Assets
                                 profile.ResourceFolders[i].Path = (string)resourcePath;
                             }
 
-                            asset.Profile = profile;
+                            asset.AssetFolders = profile.AssetFolders;
+                            asset.ResourceFolders = profile.ResourceFolders;
+                            asset.OutputGroupDirectories = profile.OutputGroupDirectories;
                         }
                     }
 

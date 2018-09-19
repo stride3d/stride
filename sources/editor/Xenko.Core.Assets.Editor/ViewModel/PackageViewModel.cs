@@ -39,7 +39,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         private readonly PackageSettingsWrapper packageSettingsWrapper = new PackageSettingsWrapper();
         // TODO: When anything become renamable in the content of the package, this must be turn into an auto-updating sorted collection
         protected readonly SortedObservableCollection<DirtiableEditableViewModel> content = new SortedObservableCollection<DirtiableEditableViewModel>(ComparePackageContent);
-        private ProfileViewModel selectedProfile;
         private readonly List<AssetViewModel> deletedAssetsSinceLastSave = new List<AssetViewModel>();
 
         public PackageViewModel(SessionViewModel session, PackageContainer packageContainer, bool packageAlreadyInSession)
@@ -103,20 +102,9 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         public IEnumerable<AssetViewModel> AllAssets { get { return Assets.Concat(Dependencies.Content.Select(x => x.Target).SelectMany(x => x.Assets)); } }
 
         /// <summary>
-        /// Gets the profiles contained in this packages.
-        /// </summary>
-        public ProfileViewModel Profile { get; private set; }
-
-        /// <summary>
         /// Gets the properties of the package.
         /// </summary>
         public SessionObjectPropertiesViewModel Properties => Session.AssetViewProperties;
-
-        /// <summary>
-        /// Gets or sets the selected profile.
-        /// </summary>
-        /// <value>The selected profile.</value>
-        public ProfileViewModel SelectedProfile { get { return selectedProfile; } set { SetValueUncancellable(ref selectedProfile, value); } }
 
         /// <summary>
         /// Gets whether this package is editable.
@@ -215,8 +203,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                 return;
-
-            Profile = new ProfileViewModel(Session, Package, Package.Profile, this);
 
             // TODO CSPROJ=XKPKG
             /*foreach (var localPackage in Package.LocalDependencies)

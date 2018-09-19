@@ -125,7 +125,7 @@ namespace Xenko.VisualStudio.Commands
             var assetsPaths = new List<string>();
             foreach (var package in session.Packages)
             {
-                foreach (var folder in package.Profile.AssetFolders)
+                foreach (var folder in package.AssetFolders)
                 {
                     var fullPath = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(packagePath), folder.Path));
 

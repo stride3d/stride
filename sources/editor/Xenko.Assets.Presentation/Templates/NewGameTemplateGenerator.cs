@@ -150,7 +150,7 @@ namespace Xenko.Assets.Presentation.Templates
             session.LoadMissingAssets(parameters.Logger, project.LoadedDependencies);
 
             // Add Effects as an asset folder in order to load xksl
-            package.Profile.AssetFolders.Add(new AssetFolder("Effects"));
+            package.AssetFolders.Add(new AssetFolder("Effects"));
 
             var packageParameters = new PackageTemplateGeneratorParameters
             {

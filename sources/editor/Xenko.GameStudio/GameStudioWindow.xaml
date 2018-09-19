@@ -410,17 +410,6 @@
                   ToolTip="{xk:ToolTip {xk:Localize Cancel the current build, Context=ToolTip}, {x:Static strings:KeyGestures.CancelBuild}}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True">
             <Image Source="{StaticResource ImageStopBuild}"/>
           </Button>
-
-          <ComboBox ItemsSource="{Binding Session.CurrentPackage.ExecutableProfiles}" SelectedItem="{Binding Session.CurrentPackage.SelectedProfile}" Width="150">
-            <ComboBox.ItemTemplate>
-              <DataTemplate>
-                <StackPanel Orientation="Horizontal">
-                  <Image Width="16" Height="16" Source="{Binding Platform, Converter={xk:StaticResourceConverter}}" Margin="0,0,4,0"/>
-                  <TextBlock Text="{Binding Name}"/>
-                </StackPanel>
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-          </ComboBox>
         </ToolBar>
       </ToolBarTray>
 

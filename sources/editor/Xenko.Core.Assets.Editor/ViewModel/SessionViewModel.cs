@@ -792,30 +792,21 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             }
             else if (package != null)
             {
-                var defaultProfile = package.Profile;
-                if (defaultProfile != null)
-                {
-                    path = defaultProfile.Package.Package.GetDefaultAssetFolder();
+                path = package.Package.GetDefaultAssetFolder();
 
-                    if (folder != null)
-                    {
-                        var dir = folder.Root is AssetMountPointViewModel ? new UDirectory(path.FullPath) : defaultProfile.Package.Package.RootDirectory;
-                        path = UPath.Combine(dir, new UDirectory(folder.Path));
-                    }
-                    else
-                    {
-                        var attrib = (AssetDescriptionAttribute)asset?.AssetType.GetCustomAttributes(typeof(AssetDescriptionAttribute), true).FirstOrDefault();
-                        if (attrib != null)
-                        {
-                            path = asset.AssetItem.FullPath;
-                            fileSelection = true;
-                        }
-                    }
+                if (folder != null)
+                {
+                    var dir = folder.Root is AssetMountPointViewModel ? new UDirectory(path.FullPath) : package.Package.RootDirectory;
+                    path = UPath.Combine(dir, new UDirectory(folder.Path));
                 }
                 else
                 {
-                    path = package.PackagePath;
-                    fileSelection = true;
+                    var attrib = (AssetDescriptionAttribute)asset?.AssetType.GetCustomAttributes(typeof(AssetDescriptionAttribute), true).FirstOrDefault();
+                    if (attrib != null)
+                    {
+                        path = asset.AssetItem.FullPath;
+                        fileSelection = true;
+                    }
                 }
             }
             else if (solution != null && solution.Content == LocalPackages && !string.IsNullOrEmpty(SolutionPath))

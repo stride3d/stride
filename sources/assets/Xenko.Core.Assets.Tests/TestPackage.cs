@@ -27,8 +27,8 @@ namespace Xenko.Core.Assets.Tests
             // Force the PackageId to be the same each time we run the test
             // Usually the PackageId is unique and generated each time we create a new project
             var project = new Package { FullPath = testGenerated1 };
-            project.Profile.AssetFolders.Clear();
-            project.Profile.AssetFolders.Add(new AssetFolder("."));
+            project.AssetFolders.Clear();
+            project.AssetFolders.Add(new AssetFolder("."));
 
             var session = new PackageSession(project);
             // Write the solution when saving
@@ -46,8 +46,7 @@ namespace Xenko.Core.Assets.Tests
 
             // Reload the raw package and if UFile and UDirectory were saved relative
             var rawPackage = AssetFileSerializer.Load<Package>(testGenerated1).Asset;
-            Assert.NotNull(rawPackage.Profile);
-            var rawSourceFolder = rawPackage.Profile.AssetFolders.FirstOrDefault();
+            var rawSourceFolder = rawPackage.AssetFolders.FirstOrDefault();
             Assert.NotNull(rawSourceFolder);
             Assert.Equal(".", (string)rawSourceFolder.Path);
 
@@ -56,10 +55,10 @@ namespace Xenko.Core.Assets.Tests
             AssertResult(project2Result);
             var project2 = project2Result.Session.LocalPackages.FirstOrDefault();
             Assert.NotNull(project2);
-            Assert.True(project2.Profile.AssetFolders.Count > 0);
+            Assert.True(project2.AssetFolders.Count > 0);
             Assert.Equal(project2.Container, project2Result.Session.CurrentProject); // Check that the current package is setup when loading a single package
-            var sourceFolder = project.Profile.AssetFolders.First().Path;
-            Assert.Equal(sourceFolder, project2.Profile.AssetFolders.First().Path);
+            var sourceFolder = project.AssetFolders.First().Path;
+            Assert.Equal(sourceFolder, project2.AssetFolders.First().Path);
 
             // Reload the package from the sln
             var sessionResult = PackageSession.Load(session.SolutionPath);
@@ -106,9 +105,7 @@ namespace Xenko.Core.Assets.Tests
             Assert.NotEqual(AssetId.Empty, project.Assets.First().Id);
 
             // Check for UPathRelativeTo
-            var profile = project.Profile;
-            Assert.NotNull(profile);
-            var folder = profile.AssetFolders.FirstOrDefault();
+            var folder = project.AssetFolders.FirstOrDefault();
             Assert.NotNull(folder);
             Assert.NotNull(folder.Path);
             Assert.NotNull(folder.Path.IsAbsolute);

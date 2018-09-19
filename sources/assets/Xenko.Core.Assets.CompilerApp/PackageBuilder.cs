@@ -156,7 +156,7 @@ namespace Xenko.Core.Assets.CompilerApp
 
                 // Fill list of bundles
                 var bundlePacker = new BundlePacker();
-                bundlePacker.Build(builderOptions.Logger, projectSession, package.Profile, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore);
+                bundlePacker.Build(builderOptions.Logger, projectSession, indexName, outputDirectory, builder.DisableCompressionIds, context.GetCompilationMode() != CompilationMode.AppStore);
 
                 return result;
             }

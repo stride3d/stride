@@ -89,19 +89,19 @@ namespace Xenko.Assets.Tasks
             newPackage.Meta.Version = new PackageVersion(meta.Version);
 
             var assetTarget = "Assets";
-            foreach (var assetFolder in package.Profile.AssetFolders)
+            foreach (var assetFolder in package.AssetFolders)
             {
                 files.Add(NewFile(assetFolder.Path.MakeRelative(rootDir) + "/**/*.xk*", assetTarget));
             }
-            foreach (var resourceFolder in package.Profile.ResourceFolders)
+            foreach (var resourceFolder in package.ResourceFolders)
             {
                 files.Add(NewFile(resourceFolder.MakeRelative(rootDir) + "/**/*.*", "Resources"));
             }
 
-            if (package.Profile.AssetFolders.Count > 0)
-                newPackage.Profile.AssetFolders.Add(new AssetFolder(assetTarget));
-            if (package.Profile.ResourceFolders.Count > 0)
-                newPackage.Profile.ResourceFolders.Add("Resources");
+            if (package.AssetFolders.Count > 0)
+                newPackage.AssetFolders.Add(new AssetFolder(assetTarget));
+            if (package.ResourceFolders.Count > 0)
+                newPackage.ResourceFolders.Add("Resources");
 
             //Handle RootAssets
             foreach (var rootAsset in package.RootAssets)

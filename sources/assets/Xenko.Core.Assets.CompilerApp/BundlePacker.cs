@@ -30,7 +30,7 @@ namespace Xenko.Core.Assets.CompilerApp
         /// <param name="useIncrementalBundles">Specifies if incremental bundles should be used, or writing a complete new one.</param>
         /// <exception cref="System.InvalidOperationException">
         /// </exception>
-        public void Build(Logger logger, PackageSession packageSession, PackageProfile profile, string indexName, string outputDirectory, ISet<ObjectId> disableCompressionIds, bool useIncrementalBundles)
+        public void Build(Logger logger, PackageSession packageSession, string indexName, string outputDirectory, ISet<ObjectId> disableCompressionIds, bool useIncrementalBundles)
         {
             if (logger == null) throw new ArgumentNullException("logger");
             if (packageSession == null) throw new ArgumentNullException("packageSession");
@@ -177,11 +177,10 @@ namespace Xenko.Core.Assets.CompilerApp
 
                         var outputGroupBundleBackends = new Dictionary<string, BundleOdbBackend>();
 
-                        if (profile != null && profile.OutputGroupDirectories != null)
+                        var rootPackage = packageSession.LocalPackages.First();
+                        if (rootPackage.OutputGroupDirectories != null)
                         {
-                            var rootPackage = packageSession.LocalPackages.First();
-
-                            foreach (var item in profile.OutputGroupDirectories)
+                            foreach (var item in rootPackage.OutputGroupDirectories)
                             {
                                 var path = Path.Combine(rootPackage.RootDirectory, item.Value);
                                 var vfsPath = "/data_group_" + item.Key;
