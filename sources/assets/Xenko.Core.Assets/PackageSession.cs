@@ -106,19 +106,6 @@ namespace Xenko.Core.Assets
         public DependencyType Type { get; set; }
     }
 
-    public enum ProjectState
-    {
-        /// <summary>
-        /// Project has been deserialized. References and assets are not ready.
-        /// </summary>
-        Raw,
-
-        /// <summary>
-        /// Dependencies have all been resolved and are also in <see cref="DependenciesReady"/> state.
-        /// </summary>
-        DependenciesReady,
-    }
-
     public class SolutionProject : PackageContainer
     {
         private PackageSession session;
@@ -150,8 +137,6 @@ namespace Xenko.Core.Assets
         public string Name => VSProject.Name;
 
         public UFile FullPath => VSProject.FullPath;
-
-        public ProjectState State { get; set; }
 
         public ObservableCollection<DependencyRange> DirectDependencies { get; } = new ObservableCollection<DependencyRange>();
 
@@ -674,9 +659,11 @@ namespace Xenko.Core.Assets
 
             var cancelToken = loadParameters.CancelToken;
 
-            var previousProjects = Projects.ToList();
-            foreach (var project in previousProjects)
+            // Note: list can grow as dependencies get loaded
+            for (int i = 0; i < Projects.Count; ++i)
             {
+                var project = Projects[i];
+
                 // Output the session only if there is no cancellation
                 if (cancelToken.HasValue && cancelToken.Value.IsCancellationRequested)
                 {
@@ -685,6 +672,8 @@ namespace Xenko.Core.Assets
 
                 if (project is SolutionProject solutionProject)
                     PreLoadPackageDependencies(log, solutionProject, loadParameters).Wait();
+                else if (project.Package.State < PackageState.DependenciesReady) // not handling standalone packages yet
+                    project.Package.State = PackageState.DependenciesReady;
             }
         }
 
@@ -1131,6 +1120,10 @@ namespace Xenko.Core.Assets
             // Already loaded
             if (package.State >= PackageState.AssetsReady)
                 return true;
+
+            // Dependencies could not properly be loaded
+            if (package.State < PackageState.DependenciesReady)
+                return false;
 
             // A package upgrade has previously been tried and denied, so let's keep the package in this state
             if (package.State == PackageState.UpgradeFailed)

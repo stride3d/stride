@@ -81,8 +81,10 @@ namespace Xenko.Core.Assets
 
             bool packageDependencyErrors = false;
 
+            var package = project.Package;
+
             // TODO: Remove and recheck Dependencies Ready if some secondary packages are removed?
-            if (project.State >= ProjectState.DependenciesReady)
+            if (package.State >= PackageState.DependenciesReady)
                 return;
 
             log.Verbose("Restore NuGet packages...");
@@ -121,7 +123,6 @@ namespace Xenko.Core.Assets
                 }
             }
 
-            var package = project.Package;
             if (pendingPackageUpgrades.Count > 0)
             {
                 var upgradeAllowed = packageUpgradeAllowed != false ? PackageUpgradeRequestedAnswer.Upgrade : PackageUpgradeRequestedAnswer.DoNotUpgrade;
@@ -299,7 +300,7 @@ namespace Xenko.Core.Assets
             // 3. Update package state
             if (!packageDependencyErrors)
             {
-                project.State = ProjectState.DependenciesReady;
+                package.State = PackageState.DependenciesReady;
             }
         }
 

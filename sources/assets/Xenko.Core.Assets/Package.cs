@@ -33,6 +33,11 @@ namespace Xenko.Core.Assets
         Raw,
 
         /// <summary>
+        /// Dependencies have all been resolved and are also in <see cref="DependenciesReady"/> state.
+        /// </summary>
+        DependenciesReady,
+
+        /// <summary>
         /// Package upgrade has been failed (either error or denied by user).
         /// Dependencies are ready, but not assets.
         /// Should be manually switched back to DependenciesReady to try upgrade again.
@@ -1082,6 +1087,9 @@ namespace Xenko.Core.Assets
         /// <param name="loadParametersArg">The load parameters argument.</param>
         public void UpdateAssemblyReferences(ILogger log, PackageLoadParameters loadParametersArg = null)
         {
+            if (State < PackageState.DependenciesReady)
+                return;
+
             var loadParameters = loadParametersArg ?? PackageLoadParameters.Default();
             LoadAssemblyReferencesForPackage(log, loadParameters);
         }
