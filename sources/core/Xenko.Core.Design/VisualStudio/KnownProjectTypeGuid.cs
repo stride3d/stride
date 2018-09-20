@@ -37,5 +37,6 @@ namespace Xenko.Core.VisualStudio
         public static readonly Guid VisualC = new Guid("8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942");
         public static readonly Guid Setup = new Guid("54435603-DBB4-11D2-8724-00A0C9A8B90C");
         public static readonly Guid WebProject = new Guid("E24C65DC-7377-472B-9ABA-BC803B73C61A");
+        public static readonly Guid CSharpNewSystem = new Guid("9A19103F-16F7-4668-BE54-9A1E7A4F7556");
     }
 }

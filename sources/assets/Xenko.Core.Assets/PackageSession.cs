@@ -779,7 +779,7 @@ namespace Xenko.Core.Assets
 
                         foreach (var vsProject in solution.Projects)
                         {
-                            if (vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp)
+                            if (vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharpNewSystem)
                             {
                                 var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, false, loadParameters);
                                 project.VSProject = vsProject;
