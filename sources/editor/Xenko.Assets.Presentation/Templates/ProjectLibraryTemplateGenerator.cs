@@ -15,6 +15,7 @@ using Xenko.Core.Presentation.Services;
 using Xenko.Core.Presentation.Windows;
 using Xenko.Assets.Templates;
 using Xenko.Core.Assets.Editor.Components.TemplateDescriptions;
+using Xenko.Core.Extensions;
 
 namespace Xenko.Assets.Presentation.Templates
 {
@@ -93,7 +94,7 @@ namespace Xenko.Assets.Presentation.Templates
             // Load missing references
             session.LoadMissingDependencies(parameters.Logger);
             // Load dependency assets (needed for camera script template)
-            session.LoadMissingAssets(parameters.Logger, project.LoadedDependencies);
+            session.LoadMissingAssets(parameters.Logger, project.FlattenedDependencies.Select(x => x.Package).NotNull());
 
             // Log done
             ProjectTemplateGeneratorHelper.Progress(logger, "Done", 1, 1);

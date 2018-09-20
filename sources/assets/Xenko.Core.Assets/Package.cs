@@ -196,9 +196,6 @@ namespace Xenko.Core.Assets
         // TODO: turn that internal!
         public List<AssetItem> TemporaryAssets { get; } = new List<AssetItem>();
 
-        [DataMemberIgnore]
-        public List<LockFileLibrary> TopLevelDependencies { get; } = new List<LockFileLibrary>();
-
         /// <summary>
         /// Gets the path to the package file. May be null if the package was not loaded or saved.
         /// </summary>

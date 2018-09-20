@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-
+using Xenko.Core.Extensions;
 using Xenko.Core.IO;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
@@ -40,9 +40,10 @@ namespace Xenko.Core.Assets
 
             var session = currentPackage.Session;
 
-            foreach (var package in currentPackage.Container.LoadedDependencies)
+            foreach (var dependency in currentPackage.Container.FlattenedDependencies)
             {
-                yield return package;
+                if (dependency.Package != null)
+                    yield return dependency.Package;
             }
         }
 
@@ -102,7 +103,7 @@ namespace Xenko.Core.Assets
                 throw new InvalidOperationException("Cannot query package with dependencies when it is not attached to a session");
             }
 
-            foreach (var dependency in rootPackage.Container.LoadedDependencies)
+            foreach (var dependency in rootPackage.Container.FlattenedDependencies.Select(x => x.Package).NotNull())
             {
                 if (!packagesFound.Contains(dependency))
                     packagesFound.Add(dependency);

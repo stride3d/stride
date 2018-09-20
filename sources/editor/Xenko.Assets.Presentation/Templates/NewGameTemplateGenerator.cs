@@ -30,6 +30,7 @@ using Xenko.Rendering.Skyboxes;
 using Xenko.Assets.Models;
 using Xenko.Assets.Rendering;
 using Xenko.Assets.Templates;
+using Xenko.Core.Extensions;
 
 namespace Xenko.Assets.Presentation.Templates
 {
@@ -147,7 +148,7 @@ namespace Xenko.Assets.Presentation.Templates
             // Load missing references
             session.LoadMissingDependencies(parameters.Logger);
             // Load dependency assets (needed for camera script template)
-            session.LoadMissingAssets(parameters.Logger, project.LoadedDependencies);
+            session.LoadMissingAssets(parameters.Logger, project.FlattenedDependencies.Select(x => x.Package).NotNull());
 
             // Add Effects as an asset folder in order to load xksl
             package.AssetFolders.Add(new AssetFolder("Effects"));

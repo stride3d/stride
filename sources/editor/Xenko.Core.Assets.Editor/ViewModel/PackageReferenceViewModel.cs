@@ -14,12 +14,11 @@ namespace Xenko.Core.Assets.Editor.ViewModel
     {
         private readonly DependencyCategoryViewModel dependencies;
 
-        protected PackageReferenceViewModel(PackageViewModel target, PackageViewModel referencer, DependencyCategoryViewModel dependencies)
-            : base(target.SafeArgument(nameof(target)).Session)
+        protected PackageReferenceViewModel(PackageViewModel referencer, DependencyCategoryViewModel dependencies)
+            : base(referencer.SafeArgument(nameof(referencer)).Session)
         {
             this.dependencies = dependencies;
             Referencer = referencer;
-            Target = target;
         }
 
         /// <summary>
@@ -30,13 +29,13 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// <summary>
         /// Gets the target package of this package reference.
         /// </summary>
-        public PackageViewModel Target { get; }
+        public PackageViewModel Target { get; protected set; }
 
         public override string TypeDisplayName => "Package Reference";
 
         public override IEnumerable<IDirtiable> Dirtiables => dependencies.Dirtiables;
 
-        public override bool IsEditable => Referencer.IsEditable && Target.IsEditable;
+        public override bool IsEditable => Referencer.IsEditable;
 
         /// <inheritdoc/>
         public int CompareTo(PackageReferenceViewModel other)
@@ -65,6 +64,37 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 dependencies.Content.Add(this);
                 AddReference();
             }
+        }
+    }
+
+    public class DirectDependencyReferenceViewModel : PackageReferenceViewModel
+    {
+        private readonly DependencyRange dependency;
+
+        public DirectDependencyReferenceViewModel(DependencyRange dependency, PackageViewModel referencer, DependencyCategoryViewModel dependencies, bool canUndoRedoCreation)
+            : base(referencer, dependencies)
+        {
+            this.dependency = dependency;
+            InitialUndelete(canUndoRedoCreation);
+        }
+
+        public override string Name
+        {
+            get => dependency.Name;
+            set => throw new InvalidOperationException("The name of a package reference cannot be set");
+        }
+
+        public override void AddReference()
+        {
+            if (!Referencer.Package.Container.DirectDependencies.Contains(dependency))
+            {
+                Referencer.Package.Container.DirectDependencies.Add(dependency);
+            }
+        }
+
+        public override void RemoveReference()
+        {
+            Referencer.Package.Container.DirectDependencies.Remove(dependency);
         }
     }
 }

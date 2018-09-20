@@ -1280,11 +1280,11 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 return;
 
             var packagePicker = Dialogs.CreatePackagePickerDialog(this);
-            // Filter out the selected package, packages that are dependent on the selected package,
-            // packages that are already referenced and (for the moment) forbid to add store package.
+            // Filter out the selected package, packages that are dependent on the selected package
+            // and packages that are already referenced.
             packagePicker.Filter = x =>
             {
-                return !(x == selectedPackage || !LocalPackages.Contains(x) || x.DependsOn(selectedPackage) ||
+                return !(x == selectedPackage || x.DependsOn(selectedPackage) ||
                          selectedPackage.Dependencies.Content.Select(r => r.Target).Contains(x));
             };
 
@@ -1426,8 +1426,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             var packageSelected = false;
             var projectSelected = false;
-            var dependenciesSelected = false;
             var directorySelected = false;
+            var canAddDependency = false;
             var canDelete = ActiveAssetView.SelectedLocations.Count > 0;
             var canRename = ActiveAssetView.SelectedLocations.Count > 0;
             foreach (var location in ActiveAssetView.SelectedLocations.Cast<SessionObjectViewModel>())
@@ -1435,19 +1435,20 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 if (location is PackageViewModel package && package.IsEditable)
                 {
                     packageSelected = true;
+                    canAddDependency = true;
                     projectSelected = package is ProjectViewModel;
                 }
                 if (location is DirectoryBaseViewModel)
                 {
                     directorySelected = true;
                 }
-                if (location is DependencyCategoryViewModel)
+                if (location is DependencyCategoryViewModel dependencies)
                 {
-                    dependenciesSelected = true;
+                    canAddDependency = dependencies.Parent.IsEditable;
                 }
-                if (location is PackageReferenceViewModel)
+                if (location is PackageReferenceViewModel packageReference)
                 {
-                    dependenciesSelected = true;
+                    canAddDependency = packageReference.Referencer.IsEditable;
                     canRename = false;
                 }
                 if (!location.IsEditable)
@@ -1461,7 +1462,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
             NewProjectCommand.IsEnabled = !string.IsNullOrWhiteSpace(SolutionPath);
             IsUpdatePackageEnabled = projectSelected;
-            AddDependencyCommand.IsEnabled = packageSelected || dependenciesSelected;
+            AddDependencyCommand.IsEnabled = canAddDependency;
             SetCurrentProjectCommand.IsEnabled = projectSelected;
             DeleteSelectedSolutionItemsCommand.IsEnabled = canDelete;
             ExploreCommand.IsEnabled = ActiveAssetView.SelectedContent.Count > 0 || ActiveAssetView.SelectedLocations.Count == 1;

@@ -25,8 +25,6 @@ namespace Xenko.Core.Assets
 {
     public abstract class PackageContainer
     {
-        private PackageSession session;
-
         public PackageContainer([NotNull] Package package)
         {
             Package = package;
@@ -42,7 +40,9 @@ namespace Xenko.Core.Assets
         [NotNull]
         public Package Package { get; }
 
-        public ObservableCollection<Package> LoadedDependencies { get; } = new ObservableCollection<Package>();
+        public ObservableCollection<DependencyRange> DirectDependencies { get; } = new ObservableCollection<DependencyRange>();
+
+        public ObservableCollection<Dependency> FlattenedDependencies { get; } = new ObservableCollection<Dependency>();
 
         /// <summary>
         /// Saves this package and all dirty assets. See remarks.
@@ -243,6 +243,11 @@ namespace Xenko.Core.Assets
             Type = type;
         }
 
+        public Dependency(Package package) : this(package.Meta.Name, package.Meta.Version, DependencyType.Package)
+        {
+            Package = package;
+        }
+
         public string Name { get; set; }
 
         public string MSBuildProject { get; set; }
@@ -250,6 +255,8 @@ namespace Xenko.Core.Assets
         public PackageVersion Version { get; set; }
 
         public DependencyType Type { get; set; }
+
+        public Package Package { get; set; }
 
         public override string ToString()
         {
@@ -277,11 +284,13 @@ namespace Xenko.Core.Assets
 
     public class SolutionProject : PackageContainer
     {
-        private PackageSession session;
-        private readonly Package package;
+        protected SolutionProject([NotNull] Package package) : base(package)
+        {
+            DirectDependencies.CollectionChanged += DirectDependencies_CollectionChanged;
+        }
 
         public SolutionProject([NotNull] Package package, Guid projectGuid, string fullPath)
-            : base(package)
+            : this(package)
         {
             VSProject = new VisualStudio.Project(projectGuid, VisualStudio.KnownProjectTypeGuid.CSharp, Path.GetFileNameWithoutExtension(fullPath), fullPath, Guid.Empty,
                 Enumerable.Empty<VisualStudio.Section>(),
@@ -290,7 +299,7 @@ namespace Xenko.Core.Assets
         }
 
         public SolutionProject([NotNull] Package package, VisualStudio.Project vsProject)
-            : base(package)
+            : this(package)
         {
             VSProject = vsProject;
         }
@@ -305,13 +314,70 @@ namespace Xenko.Core.Assets
 
         public bool IsImplicitProject { get; set; }
 
+        public bool TrackDirectDependencies { get; set; }
+
         public string Name => VSProject.Name;
 
         public UFile FullPath => VSProject.FullPath;
 
-        public ObservableCollection<DependencyRange> DirectDependencies { get; } = new ObservableCollection<DependencyRange>();
+        private void DirectDependencies_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            // Ignore collection being filled during dependency resolution
+            if (Package.State < PackageState.DependenciesReady)
+                return;
 
-        public ObservableCollection<Dependency> FlattenedDependencies { get; } = new ObservableCollection<Dependency>();
+            var projectFile = FullPath;
+            var msbuildProject = VSProjectHelper.LoadProject(projectFile.ToWindowsPath());
+            var isProjectDirty = false;
+
+            if (e.OldItems != null && e.OldItems.Count > 0)
+            {
+                foreach (DependencyRange dependency in e.OldItems)
+                {
+                    switch (dependency.Type)
+                    {
+                        case DependencyType.Package:
+                            {
+                                var matchingReferences = msbuildProject.GetItems("PackageReference").Where(packageReference => packageReference.EvaluatedInclude == dependency.Name && packageReference.GetMetadataValue("Version") == dependency.VersionRange.ToString()).ToList();
+                                isProjectDirty = matchingReferences.Count > 0;
+                                msbuildProject.RemoveItems(matchingReferences);
+                                break;
+                            }
+                        case DependencyType.Project:
+                            {
+                                var matchingReferences = msbuildProject.GetItems("ProjectReference").Where(projectReference => (UFile)projectReference.EvaluatedInclude == ((UFile)dependency.MSBuildProject).MakeRelative(projectFile.GetFullDirectory())).ToList();
+                                isProjectDirty = matchingReferences.Count > 0;
+                                msbuildProject.RemoveItems(matchingReferences);
+                                break;
+                            }
+                    }
+                }
+            }
+
+            if (e.NewItems != null && e.NewItems.Count > 0)
+            {
+                foreach (DependencyRange dependency in e.NewItems)
+                {
+                    switch (dependency.Type)
+                    {
+                        case DependencyType.Package:
+                            msbuildProject.AddItem("PackageReference", dependency.Name, new[] { new KeyValuePair<string, string>("Version", dependency.VersionRange.ToString()) });
+                            isProjectDirty = true;
+                            break;
+                        case DependencyType.Project:
+                            msbuildProject.AddItem("ProjectReference", ((UFile)dependency.MSBuildProject).MakeRelative(projectFile.GetFullDirectory()).ToWindowsPath());
+                            isProjectDirty = true;
+                            break;
+                    }
+                }
+            }
+
+            if (isProjectDirty)
+                msbuildProject.Save();
+
+            msbuildProject.ProjectCollection.UnloadAllProjects();
+            msbuildProject.ProjectCollection.Dispose();
+        }
 
         protected override void SavePackage()
         {

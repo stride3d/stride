@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Xenko.Core.Assets.Analysis;
+using Xenko.Core.Extensions;
 
 namespace Xenko.Core.Assets.Compiler
 {
@@ -74,7 +75,7 @@ namespace Xenko.Core.Assets.Compiler
             }
 
             //  2. Process referenced packages as well (for their roots)
-            foreach (var dependency in package.Container.LoadedDependencies)
+            foreach (var dependency in package.Container.FlattenedDependencies.Select(x => x.Package).NotNull())
             {
                 CollectReferences(dependency, assetsReferenced, packagesProcessed);
             }

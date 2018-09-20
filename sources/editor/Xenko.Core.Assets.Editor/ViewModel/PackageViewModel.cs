@@ -99,7 +99,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// Gets all assets contained in this package, and the asset contained in packages referenced by this package.
         /// </summary>
         // TODO: we MUST guarantee that whatever the user do, the assets in this enumeration all have DIFFERENT urls!
-        public IEnumerable<AssetViewModel> AllAssets { get { return Assets.Concat(Dependencies.Content.Select(x => x.Target).SelectMany(x => x.Assets)); } }
+        public IEnumerable<AssetViewModel> AllAssets { get { return Assets.Concat(Dependencies.Content.Select(x => x.Target).NotNull().SelectMany(x => x.Assets)); } }
 
         /// <summary>
         /// Gets the properties of the package.
@@ -204,27 +204,10 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             if (cancellationToken.HasValue && cancellationToken.Value.IsCancellationRequested)
                 return;
 
-            // TODO CSPROJ=XKPKG
-            /*foreach (var localPackage in Package.LocalDependencies)
+            foreach (var dependency in Package.Container.DirectDependencies)
             {
-                var viewModel = Session.AllPackages.SingleOrDefault(x => x.Match(localPackage.Id));
-                if (viewModel != null)
-                {
-                    // ReSharper disable once ObjectCreationAsStatement - The PackageReferenceViewModel will register itself in the proper collection to keep being referenced
-                    new LocalPackageReferenceViewModel(localPackage, viewModel, this, Dependencies, false);
-                }
+                new DirectDependencyReferenceViewModel(dependency, this, Dependencies, false);
             }
-
-            foreach (var storeDependency in Package.Meta.Dependencies)
-            {
-                // TODO: Use Guid at some point to retrieve the package
-                var viewModel = Session.AllPackages.SingleOrDefault(x => x.Name == storeDependency.Name);
-                if (viewModel != null)
-                {
-                    // ReSharper disable once ObjectCreationAsStatement - The PackageReferenceViewModel will register itself in the proper collection to keep being referenced
-                    new StorePackageReferenceViewModel(storeDependency, viewModel, this, Dependencies, false);
-                }
-            }*/
 
             foreach (var asset in Package.Assets.ToList())
             {
@@ -385,7 +368,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         private static bool CheckDependsOnRecursively(PackageViewModel source, PackageViewModel target, List<PackageViewModel> visitedPackages)
         {
             visitedPackages.Add(source);
-            return source.Dependencies.Content.Any(x => x.Target == target) || source.Dependencies.Content.Select(x => x.Target).Where(x => !visitedPackages.Contains(x)).Any(x => CheckDependsOnRecursively(x, target, visitedPackages));
+            return source.Dependencies.Content.Any(x => x.Target == target) || source.Dependencies.Content.Select(x => x.Target).NotNull().Where(x => !visitedPackages.Contains(x)).Any(x => CheckDependsOnRecursively(x, target, visitedPackages));
         }
 
         public void MoveAsset(AssetViewModel asset, DirectoryBaseViewModel directory)
@@ -521,22 +504,23 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         public void AddDependency(PackageViewModel packageViewModel)
         {
-            // TODO CSPROJ=XKPKG
-            /*using (var transaction = UndoRedoService.CreateTransaction())
+            using (var transaction = UndoRedoService.CreateTransaction())
             {
-                PackageReferenceViewModel reference;
-                if (packageViewModel.Package.IsSystem)
+                DependencyRange dependency;
+                if (packageViewModel.Package.Container is SolutionProject project)
                 {
-                    var dependency = new PackageDependency(packageViewModel.Name, new PackageVersionRange(packageViewModel.Package.Meta.Version));
-                    reference = new StorePackageReferenceViewModel(dependency, packageViewModel, this, Dependencies, true);
+                    dependency = new DependencyRange(packageViewModel.Name, new PackageVersionRange(packageViewModel.Package.Meta.Version, true), DependencyType.Project)
+                    {
+                        MSBuildProject = project.FullPath,
+                    };
                 }
                 else
                 {
-                    var dependency = new PackageReference(packageViewModel.Package.Id, packageViewModel.Package.FullPath);
-                    reference = new LocalPackageReferenceViewModel(dependency, packageViewModel, this, Dependencies, true);
+                    dependency = new DependencyRange(packageViewModel.Name, new PackageVersionRange(packageViewModel.Package.Meta.Version, true), DependencyType.Package);
                 }
+                var reference = new DirectDependencyReferenceViewModel(dependency, this, Dependencies, true);
                 UndoRedoService.SetName(transaction, $"Add dependency to package '{reference.Name}'");
-            }*/
+            }
         }
 
         public List<AssetViewModel> PasteAssets(List<AssetItem> assets, [CanBeNull] ProjectViewModel project)

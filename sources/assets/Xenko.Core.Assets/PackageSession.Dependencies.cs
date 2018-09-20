@@ -190,7 +190,7 @@ namespace Xenko.Core.Assets
             await VSProjectHelper.RestoreNugetPackages(log, project.FullPath);
 
             project.FlattenedDependencies.Clear();
-            project.LoadedDependencies.Clear();
+            project.DirectDependencies.Clear();
             var projectAssetsJsonPath = Path.Combine(project.FullPath.GetFullDirectory(), @"obj", LockFileFormat.AssetsFileName);
             if (File.Exists(projectAssetsJsonPath))
             {
@@ -249,7 +249,7 @@ namespace Xenko.Core.Assets
                 }
 
                 if (loadedPackage != null)
-                    project.LoadedDependencies.Add(loadedPackage);
+                    projectDependency.Package = loadedPackage;
             }
 
             // Load some informations about the project
