@@ -195,12 +195,11 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         public void Normalize()
         {
-            int length = Length();
-            if (length > MathUtil.ZeroTolerance)
+            if (X!=0 && Y!=0)
             {
-                int inv = 1 / length;
-                X *= inv;
-                Y *= inv;
+                double inv = 1 / Math.Sqrt((X * X) + (Y * Y));
+                X = (int)(X*inv);
+                Y = (int)(Y*inv);
             }
         }
 
