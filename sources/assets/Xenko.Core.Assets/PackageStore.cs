@@ -169,7 +169,18 @@ namespace Xenko.Core.Assets
             // If package was not found, 
             if (package != null)
             {
-                return UPath.Combine(store.GetRealPath(package), new UFile(packageName + Package.PackageFileExtension));
+                var packageRoot = (UDirectory)store.GetRealPath(package);
+                var packageFilename = new UFile(packageName + Package.PackageFileExtension);
+
+                // First look for xkpkg at package root
+                var packageFile = UPath.Combine(packageRoot, packageFilename);
+                if (File.Exists(packageFile))
+                    return packageFile;
+
+                // Then look for xkpkg inside xenko subfolder
+                packageFile = UPath.Combine(UPath.Combine(packageRoot, (UDirectory)"xenko"), packageFilename);
+                if (File.Exists(packageFile))
+                    return packageFile;
             }
 
             // TODO: Check version for default package

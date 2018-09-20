@@ -378,4 +378,26 @@
     <RemoveDir Condition="Exists('$(XenkoCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetBuildPath)"/>
     <RemoveDir Condition="Exists('$(XenkoCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetOutputPath)"/>
   </Target>
+
+  <!-- Pack target / TODO: More advanced logic by using a Task/exe to move and save all assets/resources properly rather than hardcoded list of folders -->
+  <Target Name="PrepareXenkoAssetsForPack" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <None Include="*.xkpkg*" Exclude="*.user">
+        <Pack>true</Pack>
+        <PackagePath>xenko</PackagePath>
+      </None>
+      <None Include="Assets/**/*.xk*" Exclude="*.user">
+        <Pack>true</Pack>
+        <PackagePath>xenko/Assets</PackagePath>
+      </None>
+      <None Include="Effects/**/*.xk*" Exclude="*.user">
+        <Pack>true</Pack>
+        <PackagePath>xenko/Assets</PackagePath>
+      </None>
+      <None Include="Resources/*.*" Exclude="*.user">
+        <Pack>true</Pack>
+        <PackagePath>xenko/Resources</PackagePath>
+      </None>
+    </ItemGroup>
+  </Target>
 </Project>
