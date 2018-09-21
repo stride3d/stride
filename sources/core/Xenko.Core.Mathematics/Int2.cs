@@ -126,14 +126,6 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a value indicting whether this instance is normalized.
-        /// </summary>
-        public bool IsNormalized
-        {
-            get { return (X * X) + (Y * Y) == 1; }
-        }
-
-        /// <summary>
         /// Gets or sets the component at the specified index.
         /// </summary>
         /// <value>The value of the X or Y component, depending on the index.</value>
@@ -188,19 +180,6 @@ namespace Xenko.Core.Mathematics
         public int LengthSquared()
         {
             return (X * X) + (Y * Y);
-        }
-
-        /// <summary>
-        /// Converts the vector into a unit vector.
-        /// </summary>
-        public void Normalize()
-        {
-            if (X!=0 || Y!=0)
-            {
-                double inv = 1 / Math.Sqrt((X * X) + (Y * Y));
-                X = (int)(X*inv);
-                Y = (int)(Y*inv);
-            }
         }
 
         /// <summary>
@@ -406,28 +385,6 @@ namespace Xenko.Core.Mathematics
         public static int Dot(Int2 left, Int2 right)
         {
             return (left.X * right.X) + (left.Y * right.Y);
-        }
-
-        /// <summary>
-        /// Converts the vector into a unit vector.
-        /// </summary>
-        /// <param name="value">The vector to normalize.</param>
-        /// <param name="result">When the method completes, contains the normalized vector.</param>
-        public static void Normalize(ref Int2 value, out Int2 result)
-        {
-            result = value;
-            result.Normalize();
-        }
-
-        /// <summary>
-        /// Converts the vector into a unit vector.
-        /// </summary>
-        /// <param name="value">The vector to normalize.</param>
-        /// <returns>The normalized vector.</returns>
-        public static Int2 Normalize(Int2 value)
-        {
-            value.Normalize();
-            return value;
         }
 
         /// <summary>
