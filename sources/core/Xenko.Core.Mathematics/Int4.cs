@@ -140,6 +140,14 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
+        /// Gets a value indicting whether this instance is normalized.
+        /// </summary>
+        public bool IsNormalized
+        {
+            get { return (X * X) + (Y * Y) + (Z * Z) + (W * W) == 1; }
+        }
+
+        /// <summary>
         ///   Gets or sets the component at the specified index.
         /// </summary>
         /// <value>The value of the X, Y, Z, or W component, depending on the index.</value>
@@ -184,6 +192,46 @@ namespace Xenko.Core.Mathematics
                     default:
                         throw new ArgumentOutOfRangeException("index", "Indices for Int4 run from 0 to 3, inclusive.");
                 }
+            }
+        }
+        /// <summary>
+        /// Calculates the length of the vector.
+        /// </summary>
+        /// <returns>The length of the vector.</returns>
+        /// <remarks>
+        /// <see cref="Int4.LengthSquared"/> may be preferred when only the relative length is needed
+        /// and speed is of the essence.
+        /// </remarks>
+        public int Length()
+        {
+            return (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z)+ (W * W));
+        }
+
+        /// <summary>
+        /// Calculates the squared length of the vector.
+        /// </summary>
+        /// <returns>The squared length of the vector.</returns>
+        /// <remarks>
+        /// This method may be preferred to <see cref="Int4.Length"/> when only a relative length is needed
+        /// and speed is of the essence.
+        /// </remarks>
+        public int LengthSquared()
+        {
+            return (X * X) + (Y * Y) + (Z * Z)+ (W * W);
+        }
+
+        /// <summary>
+        /// Converts the vector into a unit vector.
+        /// </summary>
+        public void Normalize()
+        {
+            if (X != 0 || Y != 0 || Z != 0 || W != 0)
+            {
+                double inv = 1 / Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
+                X = (int)(X * inv);
+                Y = (int)(Y * inv);
+                Z = (int)(Z * inv);
+                W = (int)(W * inv);
             }
         }
 
@@ -366,6 +414,28 @@ namespace Xenko.Core.Mathematics
             Int4 result;
             Clamp(ref value, ref min, ref max, out result);
             return result;
+        }
+
+        /// <summary>
+        /// Converts the vector into a unit vector.
+        /// </summary>
+        /// <param name="value">The vector to normalize.</param>
+        /// <param name="result">When the method completes, contains the normalized vector.</param>
+        public static void Normalize(ref Int4 value, out Int4 result)
+        {
+            result = value;
+            result.Normalize();
+        }
+
+        /// <summary>
+        /// Converts the vector into a unit vector.
+        /// </summary>
+        /// <param name="value">The vector to normalize.</param>
+        /// <returns>The normalized vector.</returns>
+        public static Int4 Normalize(Int4 value)
+        {
+            value.Normalize();
+            return value;
         }
 
         /// <summary>

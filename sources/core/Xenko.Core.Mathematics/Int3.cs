@@ -147,7 +147,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         public bool IsNormalized
         {
-            get { return Math.Abs((X * X) + (Y * Y) + (Z * Z) - 1f) < MathUtil.ZeroTolerance; }
+            get { return (X * X) + (Y * Y) + (Z * Z) == 1; }
         }
 
         /// <summary>
