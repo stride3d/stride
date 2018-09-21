@@ -139,11 +139,7 @@ namespace Xenko.Assets.Presentation.Templates
             // Setup the assets folder
             //Directory.CreateDirectory(UPath.Combine(package.RootDirectory, (UDirectory)"Assets/Shared"));
 
-            var previousCurrent = session.CurrentProject;
-
             session.Projects.Add(project);
-
-            session.CurrentProject = project;
 
             // Load missing references
             session.LoadMissingDependencies(parameters.Logger);
@@ -163,7 +159,7 @@ namespace Xenko.Assets.Presentation.Templates
             };
 
             // Generate executable projects for each platform
-            ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(packageParameters, platforms, orientation, false);
+            var platformProjects = ProjectTemplateGeneratorHelper.UpdatePackagePlatforms(packageParameters, platforms, orientation, false).ToList();
 
             // Add asset packages
             CopyAssetPacks(parameters, package);
@@ -223,6 +219,9 @@ namespace Xenko.Assets.Presentation.Templates
 
             // Log done
             ProjectTemplateGeneratorHelper.Progress(logger, "Done", stepCount, stepCount);
+
+            // Set current project
+            session.CurrentProject = platformProjects.FirstOrDefault(x => x.Platform == PlatformType.Windows) ?? project;
 
             return true;
         }

@@ -61,7 +61,7 @@ namespace Xenko.Assets.Templates
             return parameters.Tags.TryGetValue(OptionsKey, out options) ? options : new Dictionary<string, object>();
         }
 
-        public static void UpdatePackagePlatforms(PackageTemplateGeneratorParameters packageParameters, ICollection<SelectedSolutionPlatform> platforms, DisplayOrientation orientation, bool forcePlatformRegeneration)
+        public static IEnumerable<SolutionProject> UpdatePackagePlatforms(PackageTemplateGeneratorParameters packageParameters, ICollection<SelectedSolutionPlatform> platforms, DisplayOrientation orientation, bool forcePlatformRegeneration)
         {
             if (platforms == null) throw new ArgumentNullException(nameof(platforms));
             var logger = packageParameters.Logger;
@@ -143,6 +143,8 @@ namespace Xenko.Assets.Templates
                 package.Session.Projects.Add(newExeProject);
 
                 package.Session.IsDirty = true;
+
+                yield return newExeProject;
             }
 
             foreach (var project in projectsToRemove)
@@ -224,6 +226,8 @@ namespace Xenko.Assets.Templates
             projectTemplate.Generate(outputDirectoryPath, projectName, projectGuid, parameters.Logger, options, generatedFiles);
 
             var project = new SolutionProject(package, projectGuid, projectFullPath);
+            project.Type = projectType;
+            project.Platform = platformType;
 
             return project;
         }
