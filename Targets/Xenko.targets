@@ -259,7 +259,6 @@
   -->
   <PropertyGroup>
     <ResolveReferencesDependsOn>
-      XenkoUpdateXenkoPreviousDir;
       XenkoUpdateGraphicsPlatform;
       $(ResolveReferencesDependsOn)
     </ResolveReferencesDependsOn>
@@ -290,24 +289,6 @@
     <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\AudioAssets\GameSettings.xkgamesettings))' == 'true' ">$(MSBuildProjectDirectory)\AudioAssets\GameSettings.xkgamesettings</XenkoGameSettings>
     <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\Shaders.Bytecodes\GameSettings.xkgamesettings))' == 'true' ">$(MSBuildProjectDirectory)\Shaders.Bytecodes\GameSettings.xkgamesettings</XenkoGameSettings>
   </PropertyGroup>
-
-  <!-- Detect if Xenko path changed -->
-  <Target Name="XenkoUpdateXenkoPreviousDir">
-    <!--Add XenkoDir cache to list of inputs-->
-    <ItemGroup>
-      <CustomAdditionalCompileInputs Include="$(IntermediateOutputPath)XenkoDir.cache" />
-    </ItemGroup>
-
-    <!-- Read current state -->
-    <ReadLinesFromFile Condition="Exists('$(IntermediateOutputPath)XenkoDir.cache')" File="$(IntermediateOutputPath)XenkoDir.cache">
-      <Output TaskParameter="Lines" PropertyName="XenkoPreviousDir"/>
-    </ReadLinesFromFile>
-
-    <!-- Write result back to disk if it changed -->
-    <Message Importance="Normal" Condition=" '$(XenkoPreviousDir)' != '$(XenkoDir)' " Text="Detected a change in Xenko directory: '$(XenkoDir)' (previous build: '$(XenkoPreviousDir)')"/>
-    <WriteLinesToFile Condition=" '$(XenkoPreviousDir)' != '$(XenkoDir)' " File="$(IntermediateOutputPath)XenkoDir.cache" Lines="$(XenkoDir)" Overwrite="true" />
-  </Target>
-
 
   <!-- Compute graphics platform from game settings asset -->
   <Target Name="XenkoComputeGraphicsPlatformFromGameSettings" Inputs="$(XenkoGameSettings)" Outputs="$(IntermediateOutputPath)XenkoGraphicsPlatform.cache" Condition="'$(XenkoIsExecutable)' == 'true'">
