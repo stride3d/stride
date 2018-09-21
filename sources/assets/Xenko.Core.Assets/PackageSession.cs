@@ -625,13 +625,6 @@ namespace Xenko.Core.Assets
 
                 package = project.Package;
 
-                if (loadParameters.AutoCompileProjects && loadParameters.ForceNugetRestore)
-                {
-                    // Note: solution needs to be saved right away so that we can restore nuget packages
-                    Save(logger);
-                    VSProjectHelper.RestoreNugetPackages(logger, SolutionPath).Wait();
-                }
-
                 // Load all missing references/dependencies
                 LoadMissingDependencies(logger, loadParameters);
 
@@ -808,21 +801,6 @@ namespace Xenko.Core.Assets
                     {
                         sessionResult.Error($"Unsupported file extension (only .sln are supported)");
                         return;
-                    }
-
-                    if (loadParameters.AutoCompileProjects && loadParameters.ForceNugetRestore && PackageSessionHelper.IsPackageFile(filePath))
-                    {
-                        // Restore nuget packages
-                        if (PackageSessionHelper.IsSolutionFile(filePath))
-                        {
-                            VSProjectHelper.RestoreNugetPackages(sessionResult, filePath).Wait();
-                        }
-                        else
-                        {
-                            // No .sln, run NuGet restore for each project
-                            foreach (var package in session.Packages)
-                                package.RestoreNugetPackages(sessionResult);
-                        }
                     }
 
                     // Load all missing references/dependencies

@@ -160,47 +160,6 @@ namespace Xenko.Core.Assets
 
         public static async Task RestoreNugetPackages(ILogger logger, string projectPath)
         {
-            if (Path.GetExtension(projectPath)?.ToLowerInvariant() == ".csproj")
-            {
-                var project = LoadProject(projectPath);
-
-                try
-                {
-                    var addedProjs = new HashSet<string>(); //to avoid worst case circular dependencies.
-                    var allProjs = Core.Utilities.IterateTree(project, project1 =>
-                    {
-                        var projs = new List<Project>();
-                        foreach (var item in project1.AllEvaluatedItems.Where(x => x.ItemType == "ProjectReference"))
-                        {
-                            var path = Path.Combine(project.DirectoryPath, item.EvaluatedInclude);
-                            if (!File.Exists(path)) continue;
-
-                            if (addedProjs.Add(path))
-                            {
-                                projs.Add(project.ProjectCollection.LoadProject(path));
-                            }
-                        }
-
-                        return projs;
-                    });
-
-                    await RestoreNugetPackagesNonRecursive(logger, allProjs.Select(x => x.FullPath));
-                }
-                finally
-                {
-                    project.ProjectCollection.UnloadAllProjects();
-                    project.ProjectCollection.Dispose();
-                }
-            }
-            else
-            {
-                // Solution or unknown project file
-                await RestoreNugetPackagesNonRecursive(logger, projectPath);
-            }
-        }
-
-        public static async Task RestoreNugetPackagesNonRecursive(ILogger logger, string projectPath)
-        {
             await Task.Run(() =>
             {
                 var pc = new Microsoft.Build.Evaluation.ProjectCollection();
@@ -223,14 +182,6 @@ namespace Xenko.Core.Assets
                     pc.Dispose();
                 }
             });
-        }
-
-        public static async Task RestoreNugetPackagesNonRecursive(ILogger logger, IEnumerable<string> projectPaths)
-        {
-            foreach (var projectPath in projectPaths)
-            {
-                await RestoreNugetPackagesNonRecursive(logger, projectPath);
-            }
         }
 
         public static Microsoft.Build.Evaluation.Project LoadProject(string fullProjectLocation, string configuration = "Debug", string platform = "AnyCPU", Dictionary<string, string> extraProperties = null)

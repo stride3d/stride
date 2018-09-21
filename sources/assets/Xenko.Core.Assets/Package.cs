@@ -937,19 +937,6 @@ namespace Xenko.Core.Assets
             LoadAssemblyReferencesForPackage(log, loadParameters);
         }
 
-        /// <summary>
-        /// Restore NuGet packages of all projects in this package.
-        /// </summary>
-        /// <param name="log">The log.</param>
-        public void RestoreNugetPackages(ILogger log)
-        {
-            var projectFullPath = (Container as SolutionProject)?.FullPath;
-            if (projectFullPath != null)
-            {
-                VSProjectHelper.RestoreNugetPackagesNonRecursive(log, projectFullPath.ToWindowsPath()).Wait();
-            }
-        }
-
         private static Asset LoadAsset(ILogger log, string packageName, string assetFullPath, string assetPath, byte[] assetContent, out bool assetDirty, out AttachedYamlAssetMetadata yamlMetadata)
         {
             var loadResult = assetContent != null

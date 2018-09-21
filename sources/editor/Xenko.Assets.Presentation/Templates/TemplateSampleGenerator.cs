@@ -244,7 +244,6 @@ namespace Xenko.Assets.Presentation.Templates
 
                 // Add package to session
                 var loadParams = PackageLoadParameters.Default();
-                loadParams.ForceNugetRestore = true;
                 loadParams.GenerateNewAssetIds = true;
                 loadParams.LoadMissingDependencies = false;
                 var session = parameters.Session;

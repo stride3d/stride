@@ -438,7 +438,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             return new PackageLoadParameters
             {
                 CancelToken = cancellationSource.Token,
-                ForceNugetRestore = true,
                 PackageUpgradeRequested = (package, pendingUpgrades) =>
                 {
                     // Generate message (in markdown, so we need to double line feeds)

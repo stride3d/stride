@@ -454,21 +454,6 @@ namespace Xenko.Assets
                 }
             }
 
-            // Run NuGet restore
-            if (loadParameters.AutoCompileProjects)
-            {
-                if (session.SolutionPath != null)
-                {
-                    // .sln needs to be up to date -> save everything
-                    session.Save(new ForwardingLoggerResult(log));
-                    VSProjectHelper.RestoreNugetPackages(log, session.SolutionPath).Wait();
-                }
-                else
-                {
-                    dependentPackage.RestoreNugetPackages(log);
-                }
-            }
-
             return true;
         }
         private bool IsYamlAsset(PackageLoadingAssetFile assetFile)

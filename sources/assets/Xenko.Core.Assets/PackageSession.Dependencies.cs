@@ -87,7 +87,7 @@ namespace Xenko.Core.Assets
             if (package.State >= PackageState.DependenciesReady)
                 return;
 
-            log.Verbose("Restore NuGet packages...");
+            log.Verbose($"Process dependencies for {project.Name}...");
 
             var restoreGraph = await GenerateRestoreGraph(log, project.Name, project.FullPath);
 
@@ -187,6 +187,7 @@ namespace Xenko.Core.Assets
             }
 
             // Now that our references are upgraded, let's do a real nuget restore (download files)
+            log.Verbose($"Restore NuGet packages for {project.Name}...");
             await VSProjectHelper.RestoreNugetPackages(log, project.FullPath);
 
             project.FlattenedDependencies.Clear();
