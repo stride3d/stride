@@ -195,7 +195,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         public void Normalize()
         {
-            if (X!=0 && Y!=0)
+            if (X!=0 || Y!=0)
             {
                 double inv = 1 / Math.Sqrt((X * X) + (Y * Y));
                 X = (int)(X*inv);
