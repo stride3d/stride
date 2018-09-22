@@ -749,41 +749,39 @@ namespace Xenko.Core
         }
 
         /// <summary>
-        ///       This function will force the thread to sleep when <see cref="elapsedTime"/> is lower than <see cref="minimumElapsedTime"/>,
-        /// <br/> the sleep will last for the difference between those two values.
-        /// <br/> Use this function when you want to lock your loops to a precise mean maximum rate.
+        /// This function will force the thread to sleep when <see cref="elapsedTime"/> is lower than <see cref="minimumElapsedTime"/>,
+        /// <para/>
+        /// the sleep will last for the difference between those two values.
+        /// <para/>
+        /// Use this function when you want to lock your loops to a precise mean maximum rate.
         /// </summary>
         /// <param name="minimumElapsedTime">Minimum time allowed between each call</param>
-        /// <param name="callWatch">Provides the function with the elapsed time between each call of this function, will be automatically restarted</param>
+        /// <param name="callWatch">
+        /// Provides the function with the elapsed time between each call of this function, 
+        /// will be automatically restarted
+        /// </param>
         /// <param name="fractionalSleep">Stores sleep inaccuracies to use them in the next call</param>
+        /// <param name="finalElapsedTime">
+        /// The actual elapsed time since the last call, returns a value close to <see cref="minimumElapsedTime"/>, 
+        /// use this value as your delta time.
+        /// </param>
         /// <returns><c>True</c> if we slept, <c>false</c> otherwise</returns>
-        public static bool ThrottleThread(TimeSpan minimumElapsedTime, ref Stopwatch callWatch, ref TimeSpan fractionalSleep)
+        public static bool ThrottleThread(TimeSpan minimumElapsedTime, ref Stopwatch callWatch, ref TimeSpan fractionalSleep, out TimeSpan finalElapsedTime)
         {
             if (callWatch == null)
                 callWatch = Stopwatch.StartNew();
-            bool result = ThrottleThread(minimumElapsedTime, callWatch.Elapsed, ref fractionalSleep);
-            callWatch.Restart();
-            return result;
-        }
-        
-        /// <summary>
-        ///       This function will force the thread to sleep when <see cref="elapsedTime"/> is lower than <see cref="minimumElapsedTime"/>,
-        /// <br/> the sleep will last for the difference between those two values.
-        /// <br/> Use this function when you want to lock your loops to a precise mean maximum rate.
-        /// </summary>
-        /// <param name="minimumElapsedTime">Minimum time allowed between each call</param>
-        /// <param name="elapsedTime">Time since last call, you have to measure it from right after this call to the next call to be precise</param>
-        /// <param name="fractionalSleep">Stores sleep inaccuracies to use them in the next call</param>
-        /// <returns><c>True</c> if we slept, <c>false</c> otherwise</returns>
-        public static bool ThrottleThread(TimeSpan minimumElapsedTime, TimeSpan elapsedTime, ref TimeSpan fractionalSleep)
-        {
+
             // Compare the time elapsed between our previous run and now 
             // to the minimum time allowed between two updates
-            var freeTime = minimumElapsedTime - elapsedTime;
+            var freeTime = minimumElapsedTime - callWatch.Elapsed;
 
             // Throttle only when we are too fast
             if (freeTime < TimeSpan.Zero)
+            {
+                finalElapsedTime = callWatch.Elapsed;
+                callWatch.Restart();
                 return false;
+            }
 
             // Sleep only deals with ints
             int sleepMinDuration = (int)Math.Floor(freeTime.TotalMilliseconds);
@@ -810,15 +808,85 @@ namespace Xenko.Core
                 // that should be specified into Utilities.Sleep's summary.
                 Utilities.Sleep(sleepMinDuration);
                 var sleepElapsed = ConvertRawToTimestamp(Stopwatch.GetTimestamp() - sleepStart);
-                if (sleepElapsed.TotalMilliseconds > sleepMinDuration)
-                {
-                    // Decrease next sleep duration since we slept too much this time
-                    fractionalSleep -= sleepElapsed - TimeSpan.FromMilliseconds(sleepMinDuration);
-                }
+                // Decrease next sleep duration since we slept too much this time, always happens
+                fractionalSleep -= sleepElapsed - TimeSpan.FromMilliseconds(sleepMinDuration);
+
+                finalElapsedTime = callWatch.Elapsed;
+                callWatch.Restart();
                 return true;
             }
+
+            finalElapsedTime = callWatch.Elapsed;
+            callWatch.Restart();
             return false;
         }
+
+
+        /// <summary>
+        /// Forces the thread to sleep when <see cref="elapsedTime"/> is lower than <see cref="minimumElapsedTime"/>,
+        /// it will sleep for the time remaining to reach <see cref="minimumElapsedTime"/>.
+        /// <para/> 
+        /// Use this function inside a loop when you want to lock it to a precise maximum rate.
+        /// <para/> 
+        /// Comparing it with <see cref="ThrottleThread"/>: this one is heavier on the CPU but generates
+        /// very precise synchronisation with the time specified while the other is only precise
+        /// on average but is as light as a call to Thread.Sleep.
+        /// <para/>
+        /// If you aren't sure, use <see cref="ThrottleThread"/> instead.
+        /// </summary>
+        /// <param name="minimumElapsedTime">Minimum time allowed between each call</param>
+        /// <param name="callWatch">
+        /// Provides the function with the elapsed time between each call of this function,
+        /// will be automatically restarted
+        /// </param>
+        /// <param name="averageSleepDelay">Stores the average excessive sleep to account for it when spinwaiting</param>
+        /// <param name="finalElapsedTime">
+        /// The actual elapsed time since the last call, returns a value very close to <see cref="minimumElapsedTime"/>, 
+        /// use this value as your delta time.
+        /// </param>
+        /// <returns><c>True</c> if we slept, <c>false</c> otherwise</returns>
+        public static bool ThrottleThreadPrecise(TimeSpan minimumElapsedTime, ref Stopwatch callWatch, ref long averageSleepDelay, out TimeSpan finalElapsedTime)
+        {
+            if (callWatch == null)
+                callWatch = Stopwatch.StartNew();
+
+            // Throttle only when we are too fast
+            if (callWatch.Elapsed > minimumElapsedTime)
+            {
+                finalElapsedTime = callWatch.Elapsed;
+                callWatch.Restart();
+                return false;
+            }
+            
+            bool looped = false;
+            var oneMs = TimeSpan.FromMilliseconds(1);
+            while (minimumElapsedTime - callWatch.Elapsed > oneMs + ConvertRawToTimestamp(averageSleepDelay))
+            {
+                long sleepStart = Stopwatch.GetTimestamp();
+                Utilities.Sleep(1);
+                // Include excessive time sleep took on top of the time we specified
+                averageSleepDelay += (Stopwatch.GetTimestamp() - sleepStart);
+                // Average to account for general system responsiveness
+                averageSleepDelay = averageSleepDelay == 0 ? 0 : averageSleepDelay / 2;
+                looped = true;
+            }
+
+            // We skipped the loop, probably because the system is/was extremely busy, 
+            // reduce delay slowly to force loop re-entry and re-evaluation of the current averageSleepDelay
+            if (looped == false)
+                averageSleepDelay = averageSleepDelay == 0 ? 0 : averageSleepDelay - averageSleepDelay / 10;
+
+            // prefer one tick too soon than two ticks too late
+            var epsilon = TimeSpan.FromTicks(1);
+            // 'spinwait' for the rest of the duration, that duration should take close to threadSleepDurationMs
+            while (minimumElapsedTime - callWatch.Elapsed > epsilon) { }
+
+            finalElapsedTime = callWatch.Elapsed;
+            callWatch.Restart();
+            return true;
+        }
+
+
 
         /// <summary>
         /// Writes the specified T data to a memory location.
@@ -886,7 +954,7 @@ namespace Xenko.Core
         /// <returns>The <see cref="TimeSpan" />.</returns>
         public static TimeSpan ConvertRawToTimestamp(long delta)
         {
-            return new TimeSpan((delta * 10000000) / Stopwatch.Frequency);
+            return new TimeSpan(delta == 0 ? 0 : (delta * TimeSpan.TicksPerSecond) / Stopwatch.Frequency);
         }
     }
 }

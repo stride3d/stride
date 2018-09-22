@@ -69,6 +69,7 @@ namespace Xenko.Games
         
         private TimeSpan  throttlerFractionalSleep;
         private Stopwatch throttlerStopwatch;
+        private long throttlerAverageSleepDelay;
 
         private readonly TimerTick timer;
 
@@ -99,13 +100,13 @@ namespace Xenko.Games
             timer = new TimerTick();
             IsFixedTimeStep = false;
             maximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
-            TargetElapsedTime = TimeSpan.FromTicks(10000000 / 60); // target elapsed time is by default 60Hz
+            TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
             lastUpdateCount = new int[4];
             nextLastUpdateCountIndex = 0;
             
             TreatNotFocusedLikeMinimized = true;
             WindowMinimumUpdateRate      = TimeSpan.FromSeconds(0d);
-            MinimizedMinimumUpdateRate   = TimeSpan.FromSeconds(1d / 15d); // by default 15 updates per second while minimized
+            MinimizedMinimumUpdateRate   = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 15); // by default 15 updates per second while minimized
             throttlerStopwatch           = Stopwatch.StartNew();
             throttlerFractionalSleep     = TimeSpan.Zero;
 
@@ -313,18 +314,21 @@ namespace Xenko.Games
         public ServiceRegistry Services { get; }
 
         /// <summary>
-        /// Gets or sets the target elapsed time, this is the duration of each tick/update when <see cref="IsFixedTimeStep"/> is enabled.
+        /// Gets or sets the target elapsed time, this is the duration of each tick/update 
+        /// when <see cref="IsFixedTimeStep"/> is enabled.
         /// </summary>
         /// <value>The target elapsed time.</value>
         public TimeSpan TargetElapsedTime { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimum time allowed between each updates, set it to TimeSpan.FromSeconds(1d / yourFramePerSeconds) to control the maximum frames per second.
+        /// Gets or sets the minimum time allowed between each updates, 
+        /// set it to TimeSpan.FromSeconds(1d / yourFramePerSeconds) to control the maximum frames per second.
         /// </summary>
         public TimeSpan WindowMinimumUpdateRate { get; set; }
         
         /// <summary>
-        /// Gets or sets the minimum time allowed between each updates while the window is minimized and, depending on <see cref="TreatNotFocusedLikeMinimized"/>, while unfocused.
+        /// Gets or sets the minimum time allowed between each updates while the window is minimized and,
+        /// depending on <see cref="TreatNotFocusedLikeMinimized"/>, while unfocused.
         /// </summary>
         public TimeSpan MinimizedMinimumUpdateRate { get; set; }
 
@@ -332,6 +336,12 @@ namespace Xenko.Games
         /// Considers windows without user focus like a minimized window for <see cref="MinimizedMinimumUpdateRate"/> 
         /// </summary>
         public bool TreatNotFocusedLikeMinimized { get; set; }
+
+        /// <summary>
+        /// Increases <see cref="MinimizedMinimumUpdateRate"/> and <see cref="WindowMinimumUpdateRate"/>'s precision 
+        /// to sub milliseconds but doesn't reduce CPU utilization as much.
+        /// </summary>
+        public bool PreciseUpdateRate { get; set; }
 
 
         /// <summary>
@@ -696,7 +706,10 @@ namespace Xenko.Games
                             else
                                 minimumElapsedTime = WindowMinimumUpdateRate;
                             
-                            Utilities.ThrottleThread(minimumElapsedTime, ref throttlerStopwatch, ref throttlerFractionalSleep);
+                            if(PreciseUpdateRate)
+                                Utilities.ThrottleThreadPrecise(minimumElapsedTime, ref throttlerStopwatch, ref throttlerAverageSleepDelay, out _);
+                            else
+                                Utilities.ThrottleThread(minimumElapsedTime, ref throttlerStopwatch, ref throttlerFractionalSleep, out _);
                         }
                     }
 
