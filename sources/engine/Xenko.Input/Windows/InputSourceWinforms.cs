@@ -42,6 +42,7 @@ namespace Xenko.Input
             gameContext = inputManager.Game.Context as GameContext<Control>;
             uiControl = gameContext.Control;
             uiControl.LostFocus += UIControlOnLostFocus;
+            MissingInputHack(uiControl);
 
             // Hook window proc
             defaultWndProc = Win32Native.GetWindowLong(uiControl.Handle, Win32Native.WindowLongType.WndProc);
@@ -56,6 +57,29 @@ namespace Xenko.Input
 
             mouse = new MouseWinforms(this, uiControl);
             RegisterDevice(mouse);
+        }
+
+        /// <summary>
+        /// This function houses a hack to fix the window missing some input events, see Xenko pull #181 for more information.
+        /// TODO: Find a proper solution to replace this workaround.
+        /// </summary>
+        /// <param name="winformControl"></param>
+        private void MissingInputHack(Control winformControl)
+        {
+            if (winformControl.Handle == IntPtr.Zero)
+            {
+                winformControl.HandleCreated += (sender, args) =>
+                {
+                    if (winformControl.Handle != IntPtr.Zero)
+                    {
+                        MissingInputHack(winformControl);
+                    }
+                };
+            }
+            else
+            {
+                SharpDX.RawInput.Device.RegisterDevice(SharpDX.Multimedia.UsagePage.Generic, SharpDX.Multimedia.UsageId.GenericKeyboard, SharpDX.RawInput.DeviceFlags.None, winformControl.Handle, SharpDX.RawInput.RegisterDeviceOptions.NoFiltering);
+            }
         }
 
         public override void Dispose()
@@ -104,12 +128,12 @@ namespace Xenko.Input
 
         internal void HandleKeyDown(IntPtr wParam, IntPtr lParam)
         {
-            if (MessageIsDownAutoRepeat(lParam))
+            var lParamLong = lParam.ToInt64();
+            if (MessageIsDownAutoRepeat(lParamLong))
                 return;
-            Console.WriteLine("DOWN");
 
             var virtualKey = (WinFormsKeys)wParam.ToInt64();
-            virtualKey = GetCorrectExtendedKey(virtualKey, lParam.ToInt64());
+            virtualKey = GetCorrectExtendedKey(virtualKey, lParamLong);
             keyboard?.HandleKeyDown(virtualKey);
             heldKeys.Add(virtualKey);
         }
@@ -178,12 +202,12 @@ namespace Xenko.Input
         /// </summary>
         /// <param name="lParam">lParam of the KEYDOWN message</param>
         /// <returns><c>True</c> if this message is a repeated KeyDown, <c>false</c> if it's an actual keydown</returns>
-        private static bool MessageIsDownAutoRepeat(IntPtr lParam)
+        private static bool MessageIsDownAutoRepeat(long lParam)
         {
             // According to the microsoft docs on WM_KEYDOWN
             // (https://docs.microsoft.com/en-us/windows/desktop/inputdev/wm-keydown)
             // The second to last bit is 0 when the last keyboard message was up and 1 if it was already down
-            return ((int)lParam & (1 << 30)) != 0;
+            return (lParam & (1 << 30)) != 0;
         }
     }
 }

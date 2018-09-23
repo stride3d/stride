@@ -97,7 +97,7 @@ namespace Xenko.Input
             var layout = GamePadLayouts.FindLayout(this, controller);
             if (layout != null)
             {
-                // Creata a gamepad wrapping around the controller
+                // Create a gamepad wrapping around the controller
                 var gamePad = new GamePadDirectInput(this, inputManager, controller, layout);
                 controller.Disconnected += (sender, args) =>
                 {
