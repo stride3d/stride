@@ -150,6 +150,27 @@ namespace Xenko.VirtualReality
             }
         }
 
+        public class TrackedDevice
+        {
+            public TrackedDevice(int trackerIndex)
+            {
+                TrackerIndex = trackerIndex;
+            }
+
+            public void Update()
+            {
+                var error = ETrackedPropertyError.TrackedProp_Success;
+                var result = new System.Text.StringBuilder((int)64);
+                Valve.VR.OpenVR.System.GetStringTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_SerialNumber_String, result, 64, ref error);
+                DeviceClass = Valve.VR.OpenVR.System.GetTrackedDeviceClass((uint)TrackerIndex);
+                SerialNumber = result.ToString();
+            }
+
+            internal int TrackerIndex;
+            internal ETrackedDeviceClass DeviceClass;
+            internal string SerialNumber;
+        }
+
         private static readonly TrackedDevicePose_t[] DevicePoses = new TrackedDevicePose_t[Valve.VR.OpenVR.k_unMaxTrackedDeviceCount];
         private static readonly TrackedDevicePose_t[] GamePoses = new TrackedDevicePose_t[Valve.VR.OpenVR.k_unMaxTrackedDeviceCount];
 
@@ -266,6 +287,35 @@ namespace Xenko.VirtualReality
             }
 
             return DeviceState.Invalid;
+        }
+
+        public static DeviceState GetTrackerPose(int trackerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
+        {
+            return GetTrackerPoseUnsafe(trackerIndex, out pose, out velocity, out angVelocity);
+        }
+
+        private static unsafe DeviceState GetTrackerPoseUnsafe(int trackerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
+        {
+            pose = Matrix.Identity;
+            velocity = Vector3.Zero;
+            angVelocity = Vector3.Zero;
+            var index = trackerIndex;
+
+            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref pose), (IntPtr)Interop.Fixed(ref DevicePoses[index].mDeviceToAbsoluteTracking), Utilities.SizeOf<HmdMatrix34_t>());
+            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref velocity), (IntPtr)Interop.Fixed(ref DevicePoses[index].vVelocity), Utilities.SizeOf<HmdVector3_t>());
+            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref angVelocity), (IntPtr)Interop.Fixed(ref DevicePoses[index].vAngularVelocity), Utilities.SizeOf<HmdVector3_t>());
+
+            var state = DeviceState.Invalid;
+            if (DevicePoses[index].bDeviceIsConnected && DevicePoses[index].bPoseIsValid)
+            {
+                state = DeviceState.Valid;
+            }
+            else if (DevicePoses[index].bDeviceIsConnected && !DevicePoses[index].bPoseIsValid && DevicePoses[index].eTrackingResult == ETrackingResult.Running_OutOfRange)
+            {
+                state = DeviceState.OutOfRange;
+            }
+
+            return state;
         }
 
         public static DeviceState GetHeadPose(out Matrix pose, out Vector3 linearVelocity, out Vector3 angularVelocity)

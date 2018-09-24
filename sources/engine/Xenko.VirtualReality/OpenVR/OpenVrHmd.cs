@@ -18,6 +18,7 @@ namespace Xenko.VirtualReality
         private DeviceState state;
         private OpenVRTouchController leftHandController;
         private OpenVRTouchController rightHandController;
+        private OpenVRTrackedDevice[] trackedDevices;
         private bool needsMirror;
         private Matrix currentHead;
         private Vector3 currentHeadPos;
@@ -55,6 +56,10 @@ namespace Xenko.VirtualReality
 
             leftHandController = new OpenVRTouchController(TouchControllerHand.Left);
             rightHandController = new OpenVRTouchController(TouchControllerHand.Right);
+
+            trackedDevices = new OpenVRTrackedDevice[Valve.VR.OpenVR.k_unMaxTrackedDeviceCount];
+            for (int i=0; i<trackedDevices.Length; i++) 
+                trackedDevices[i] = new OpenVRTrackedDevice(i);
         }
 
         public override VROverlay CreateOverlay(int width, int height, int mipLevels, int sampleCount)
@@ -75,6 +80,8 @@ namespace Xenko.VirtualReality
         {
             LeftHand.Update(gameTime);
             RightHand.Update(gameTime);
+            foreach (var tracker in trackedDevices)
+                tracker.Update(gameTime);
         }
 
         public override void ReadEyeParameters(Eyes eye, float near, float far, ref Vector3 cameraPosition, ref Matrix cameraRotation, bool ignoreHeadRotation, bool ignoreHeadPosition, out Matrix view, out Matrix projection)
@@ -135,6 +142,8 @@ namespace Xenko.VirtualReality
         public override TouchController LeftHand => leftHandController;
 
         public override TouchController RightHand => rightHandController;
+
+        public override TrackedDevice[] TrackedDevices => trackedDevices;
 
         public override Texture MirrorTexture { get; protected set; }
 

@@ -137,6 +137,8 @@ namespace Xenko.VirtualReality
 
         public override TouchController RightHand => rightHandController;
 
+        public override TrackedDevice[] TrackedDevices => null;
+
         public override bool CanInitialize
         {
             get
