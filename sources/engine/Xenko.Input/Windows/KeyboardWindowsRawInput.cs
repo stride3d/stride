@@ -10,7 +10,7 @@ namespace Xenko.Input
     {
         public KeyboardWindowsRawInput(InputSourceWindowsRawInput source)
         {
-            // Raw input is usually prefered above other keyboards
+            // Raw input is usually preferred above other keyboards
             Priority = 100;
             Source = source;
         }
