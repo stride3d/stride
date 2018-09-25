@@ -93,6 +93,8 @@ namespace Xenko.Core.Assets
 
             // Check if there is any package upgrade to do
             var pendingPackageUpgrades = new List<PendingPackageUpgrade>();
+            pendingPackageUpgradesPerPackage.Add(package, pendingPackageUpgrades);
+
             foreach (var item in restoreGraph.Flattened)
             {
                 if (item.Key.Type == LibraryType.Package)

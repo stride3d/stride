@@ -400,6 +400,7 @@ namespace Xenko.Core.Assets
         /// </summary>
         public static readonly Version DefaultVisualStudioVersion = new Version("14.0.23107.0");
 
+        private Dictionary<Package, List<PendingPackageUpgrade>> pendingPackageUpgradesPerPackage = new Dictionary<Package, List<PendingPackageUpgrade>>();
         private readonly ConstraintProvider constraintProvider = new ConstraintProvider();
         private readonly PackageCollection packages;
         private readonly Dictionary<Package, Package> packagesCopy;
@@ -1280,6 +1281,8 @@ namespace Xenko.Core.Assets
 
             packagesCopy.Remove(package);
 
+            pendingPackageUpgradesPerPackage.Remove(package);
+
             IsDirty = true;
         }
 
@@ -1363,8 +1366,10 @@ namespace Xenko.Core.Assets
                 if (dependencyError)
                     return false;
 
-                // TODO CSPROJ=XKPKG: get package upgraders from PreLoadPackageDependencies
-                var pendingPackageUpgrades = new List<PendingPackageUpgrade>();
+                // Get pending package upgrades
+                if (!pendingPackageUpgradesPerPackage.TryGetValue(package, out var pendingPackageUpgrades))
+                    pendingPackageUpgrades = new List<PendingPackageUpgrade>();
+                pendingPackageUpgradesPerPackage.Remove(package);
 
                 // Note: Default state is upgrade failed (for early exit on error/exceptions)
                 // We will update to success as soon as loading is finished.
