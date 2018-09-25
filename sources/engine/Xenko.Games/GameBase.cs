@@ -329,7 +329,6 @@ namespace Xenko.Games
         /// </summary>
         public bool TreatNotFocusedLikeMinimized { get; set; }
 
-
         /// <summary>
         /// Gets the abstract window.
         /// </summary>
