@@ -60,7 +60,8 @@ namespace Xenko.Input
         }
 
         /// <summary>
-        /// This function houses a hack to fix the window missing some input events, see Xenko pull #181 for more information.
+        /// This function houses a hack to fix the window missing some input events,
+        /// see Xenko pull #181 for more information (https://github.com/xenko3d/xenko/pull/181).
         /// TODO: Find a proper solution to replace this workaround.
         /// </summary>
         /// <param name="winformControl"></param>
