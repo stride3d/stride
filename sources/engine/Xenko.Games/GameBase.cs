@@ -65,7 +65,6 @@ namespace Xenko.Games
         private bool drawRunningSlowly;
         private bool forceElapsedTimeToZero;
         
-        
         private readonly TimerTick timer;
 
         protected readonly ILogger Log;
