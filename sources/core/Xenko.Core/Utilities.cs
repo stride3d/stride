@@ -804,8 +804,6 @@ namespace Xenko.Core
                 yield return c;
             }
         }
-        
-        
 
         /// <summary>
         /// Converts a <see cref="Stopwatch" /> raw time to a <see cref="TimeSpan" />.
