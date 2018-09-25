@@ -30,7 +30,6 @@ using Xenko.Core.IO;
 using Xenko.Core.Serialization.Contents;
 using Xenko.Games.Time;
 using Xenko.Graphics;
-using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Xenko.Games
 {
@@ -67,10 +66,6 @@ namespace Xenko.Games
         private bool forceElapsedTimeToZero;
         
         
-        private TimeSpan  throttlerFractionalSleep;
-        private Stopwatch throttlerStopwatch;
-        private long throttlerAverageSleepDelay;
-
         private readonly TimerTick timer;
 
         protected readonly ILogger Log;
@@ -105,10 +100,8 @@ namespace Xenko.Games
             nextLastUpdateCountIndex = 0;
             
             TreatNotFocusedLikeMinimized = true;
-            WindowMinimumUpdateRate      = TimeSpan.FromSeconds(0d);
-            MinimizedMinimumUpdateRate   = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 15); // by default 15 updates per second while minimized
-            throttlerStopwatch           = Stopwatch.StartNew();
-            throttlerFractionalSleep     = TimeSpan.Zero;
+            WindowMinimumUpdateRate      = new ThreadThrottler(TimeSpan.FromSeconds(0d));
+            MinimizedMinimumUpdateRate   = new ThreadThrottler(TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 15)); // by default 15 updates per second while minimized
 
             // Calculate the updateCountAverageSlowLimit (assuming moving average is >=3 )
             // Example for a moving average of 4:
@@ -321,27 +314,21 @@ namespace Xenko.Games
         public TimeSpan TargetElapsedTime { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimum time allowed between each updates, 
-        /// set it to TimeSpan.FromSeconds(1d / yourFramePerSeconds) to control the maximum frames per second.
+        /// Access to the throttler used to set the minimum time allowed between each updates, 
+        /// set it's <see cref="ThreadThrottler.MinimumElapsedTime"/> to TimeSpan.FromSeconds(1d / yourFramePerSeconds) to control the maximum frames per second.
         /// </summary>
-        public TimeSpan WindowMinimumUpdateRate { get; set; }
-        
+        public ThreadThrottler WindowMinimumUpdateRate { get; }
+
         /// <summary>
-        /// Gets or sets the minimum time allowed between each updates while the window is minimized and,
+        /// Access to the throttler used to set the minimum time allowed between each updates while the window is minimized and,
         /// depending on <see cref="TreatNotFocusedLikeMinimized"/>, while unfocused.
         /// </summary>
-        public TimeSpan MinimizedMinimumUpdateRate { get; set; }
+        public ThreadThrottler MinimizedMinimumUpdateRate { get; }
 
         /// <summary>
         /// Considers windows without user focus like a minimized window for <see cref="MinimizedMinimumUpdateRate"/> 
         /// </summary>
         public bool TreatNotFocusedLikeMinimized { get; set; }
-
-        /// <summary>
-        /// Increases <see cref="MinimizedMinimumUpdateRate"/> and <see cref="WindowMinimumUpdateRate"/>'s precision 
-        /// to sub milliseconds but doesn't reduce CPU utilization as much.
-        /// </summary>
-        public bool PreciseUpdateRate { get; set; }
 
 
         /// <summary>
@@ -700,16 +687,10 @@ namespace Xenko.Games
                         using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
                         {
                             EndDraw(true);
-                            TimeSpan minimumElapsedTime;
-                            if(gamePlatform.MainWindow.IsMinimized || (gamePlatform.MainWindow.Focused == false && TreatNotFocusedLikeMinimized))
-                                minimumElapsedTime = MinimizedMinimumUpdateRate;
+                            if (gamePlatform.MainWindow.IsMinimized || (gamePlatform.MainWindow.Focused == false && TreatNotFocusedLikeMinimized))
+                                MinimizedMinimumUpdateRate.Throttle(out _);
                             else
-                                minimumElapsedTime = WindowMinimumUpdateRate;
-                            
-                            if(PreciseUpdateRate)
-                                Utilities.ThrottleThreadPrecise(minimumElapsedTime, ref throttlerStopwatch, ref throttlerAverageSleepDelay, out _);
-                            else
-                                Utilities.ThrottleThread(minimumElapsedTime, ref throttlerStopwatch, ref throttlerFractionalSleep, out _);
+                                WindowMinimumUpdateRate.Throttle(out _);
                         }
                     }
 
@@ -722,11 +703,6 @@ namespace Xenko.Games
                 throw;
             }
         }
-
-
-
-        
-
 
         private void CheckEndRun()
         {
