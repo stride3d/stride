@@ -194,6 +194,7 @@ namespace Xenko.Core.Mathematics
         /// <see cref="Int4.LengthSquared"/> may be preferred when only the relative length is needed
         /// and speed is of the essence.
         /// </remarks>
+
         public int Length()
         {
             return (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
