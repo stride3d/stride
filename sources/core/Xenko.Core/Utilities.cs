@@ -24,6 +24,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -802,6 +803,16 @@ namespace Xenko.Core
                 q.AddRange(childrenF(c) ?? Enumerable.Empty<T>());
                 yield return c;
             }
+        }
+
+        /// <summary>
+        /// Converts a <see cref="Stopwatch" /> raw time to a <see cref="TimeSpan" />.
+        /// </summary>
+        /// <param name="delta">The delta.</param>
+        /// <returns>The <see cref="TimeSpan" />.</returns>
+        public static TimeSpan ConvertRawToTimestamp(long delta)
+        {
+            return new TimeSpan(delta == 0 ? 0 : (delta * TimeSpan.TicksPerSecond) / Stopwatch.Frequency);
         }
     }
 }

@@ -220,6 +220,11 @@ namespace Xenko.Games
             get { return gameForm.WindowState == OpenTK.WindowState.Minimized; }
         }
 
+        public override bool Focused
+        {
+            get { return gameForm.WindowState != OpenTK.WindowState.Minimized;  }
+        }
+
         public override bool IsMouseVisible
         {
             get { return false; }
