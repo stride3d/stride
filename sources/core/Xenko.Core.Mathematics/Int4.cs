@@ -196,7 +196,7 @@ namespace Xenko.Core.Mathematics
         /// </remarks>
         public int Length()
         {
-            return (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z)+ (W * W));
+            return (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
         }
 
         /// <summary>
@@ -209,7 +209,7 @@ namespace Xenko.Core.Mathematics
         /// </remarks>
         public int LengthSquared()
         {
-            return (X * X) + (Y * Y) + (Z * Z)+ (W * W);
+            return (X * X) + (Y * Y) + (Z * Z) + (W * W);
         }
 
         /// <summary>
