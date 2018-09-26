@@ -217,10 +217,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Windows", "G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Game", "Graphics\MaterialShader\MaterialShader.Game\MaterialShader.Game.csproj", "{CBDAF756-3F4A-4CAC-975D-A76A2B196A01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Windows", "Graphics\MaterialShader\MaterialShader.Windows\MaterialShader.Windows.csproj", "{F4F74EB3-D2B6-405B-B483-1835E81A3A40}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Game", "Graphics\MaterialShader\MaterialShader.Game\MaterialShader.Game.csproj", "{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		AppStore|Any CPU = AppStore|Any CPU
@@ -1413,66 +1409,6 @@ Global
 		{CBDAF756-3F4A-4CAC-975D-A76A2B196A01}.Testing|Mixed Platforms.Build.0 = Testing|Any CPU
 		{CBDAF756-3F4A-4CAC-975D-A76A2B196A01}.Testing|Windows.ActiveCfg = Testing|Any CPU
 		{CBDAF756-3F4A-4CAC-975D-A76A2B196A01}.Testing|Windows.Build.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Any CPU.ActiveCfg = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Any CPU.Build.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Any CPU.Deploy.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Mixed Platforms.ActiveCfg = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Mixed Platforms.Build.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Mixed Platforms.Deploy.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Windows.ActiveCfg = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Windows.Build.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Windows.Deploy.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Mixed Platforms.Deploy.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Windows.ActiveCfg = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Windows.Build.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Windows.Deploy.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Mixed Platforms.Deploy.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Windows.ActiveCfg = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Windows.Build.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Windows.Deploy.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Any CPU.ActiveCfg = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Any CPU.Build.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Any CPU.Deploy.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Mixed Platforms.ActiveCfg = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Mixed Platforms.Build.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Mixed Platforms.Deploy.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Windows.ActiveCfg = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Windows.Build.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Windows.Deploy.0 = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Any CPU.ActiveCfg = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Any CPU.Build.0 = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Mixed Platforms.ActiveCfg = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Mixed Platforms.Build.0 = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Windows.ActiveCfg = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Windows.Build.0 = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Windows.ActiveCfg = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Windows.Build.0 = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Windows.ActiveCfg = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Windows.Build.0 = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Any CPU.ActiveCfg = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Any CPU.Build.0 = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Mixed Platforms.ActiveCfg = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Mixed Platforms.Build.0 = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Windows.ActiveCfg = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Windows.Build.0 = Testing|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1532,7 +1468,5 @@ Global
 		{577D2166-5B06-4119-96CF-70D6C1716A2F} = {2FD8E3C1-D573-48AF-8AEB-3F8D053F7D0D}
 		{0BD87B72-191D-4F53-ABF7-A1B3B8A092AE} = {49E75772-2004-4975-A2CA-FAC7FCB12E70}
 		{CBDAF756-3F4A-4CAC-975D-A76A2B196A01} = {49E75772-2004-4975-A2CA-FAC7FCB12E70}
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40} = {49E75772-2004-4975-A2CA-FAC7FCB12E70}
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E} = {49E75772-2004-4975-A2CA-FAC7FCB12E70}
 	EndGlobalSection
 EndGlobal

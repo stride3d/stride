@@ -46,6 +46,7 @@ obj/
 Cache/
 /doc/xenko_doc_output/
 /.vs
+/samples/.vs
 /build/.vs
 /build/Xenko.version
 /build/Xenko.*VC.db

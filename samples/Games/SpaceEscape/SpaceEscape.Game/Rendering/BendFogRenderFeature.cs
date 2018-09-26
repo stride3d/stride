@@ -41,20 +41,20 @@ namespace SpaceEscape.Rendering
         {
             base.InitializeCore();
 
-            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
+            renderEffectKey = ((RootEffectRenderFeature)rootRenderFeature).RenderEffectKey;
 
-            fog = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(FogEffectKeys.FogColor.Name);
-            bend = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationBendWorldKeys.DeformFactorX.Name);
-            uvChange = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationTextureUVKeys.TextureRegion.Name);
+            fog = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(FogEffectKeys.FogColor.Name);
+            bend = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationBendWorldKeys.DeformFactorX.Name);
+            uvChange = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationTextureUVKeys.TextureRegion.Name);
         }
 
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
-            var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
-            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
+            var renderEffects = rootRenderFeature.RenderData.GetData(renderEffectKey);
+            int effectSlotCount = ((RootEffectRenderFeature)rootRenderFeature).EffectPermutationSlotCount;
 
-            foreach (var renderObject in RootRenderFeature.RenderObjects)
+            foreach (var renderObject in rootRenderFeature.RenderObjects)
             {
                 var staticObjectNode = renderObject.StaticObjectNode;
                 var renderMesh = (RenderMesh)renderObject;
@@ -79,7 +79,7 @@ namespace SpaceEscape.Rendering
         /// <inheritdoc/>
         public override unsafe void Prepare(RenderDrawContext context)
         {
-            foreach (var renderNode in ((RootEffectRenderFeature)RootRenderFeature).RenderNodes)
+            foreach (var renderNode in ((RootEffectRenderFeature)rootRenderFeature).RenderNodes)
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
                 if (perDrawLayout == null)
