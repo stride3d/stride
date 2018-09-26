@@ -13,15 +13,15 @@ namespace Xenko.Rendering
         /// <summary>
         /// Gets root render feature.
         /// </summary>
-        protected RootRenderFeature rootRenderFeature;
+        protected RootRenderFeature RootRenderFeature;
 
         /// <summary>
-        /// Attach this <see cref="SubRenderFeature"/> to a <see cref="rootRenderFeature"/>.
+        /// Attach this <see cref="SubRenderFeature"/> to a <see cref="RootRenderFeature"/>.
         /// </summary>
         /// <param name="rootRenderFeature"></param>
         internal void AttachRootRenderFeature(RootRenderFeature rootRenderFeature)
         {
-            this.rootRenderFeature = rootRenderFeature;
+            this.RootRenderFeature = rootRenderFeature;
             RenderSystem = rootRenderFeature.RenderSystem;
         }
 
