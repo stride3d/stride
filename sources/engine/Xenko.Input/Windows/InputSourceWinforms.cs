@@ -141,8 +141,6 @@ namespace Xenko.Input
 
         internal void HandleKeyUp(IntPtr wParam, IntPtr lParam)
         {
-            Console.WriteLine("UP");
-
             var virtualKey = (WinFormsKeys)wParam.ToInt64();
             virtualKey = GetCorrectExtendedKey(virtualKey, lParam.ToInt64());
             heldKeys.Remove(virtualKey);
