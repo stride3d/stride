@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -61,6 +61,9 @@ namespace Xenko.Games
         private double requiredRatio;
         private ApplicationView applicationView;
         private bool canResize;
+
+        private bool visible;
+        private bool focused;
 #endregion
 
 #region Public Properties
@@ -100,6 +103,8 @@ namespace Xenko.Games
         public override DisplayOrientation CurrentOrientation => DisplayOrientation.Default;
 
         public override bool IsMinimized => false;
+        
+        public override bool Focused => focused;
 
         private bool isMouseVisible;
         private CoreCursor cursor;
@@ -157,7 +162,7 @@ namespace Xenko.Games
         {
             get
             {
-                return true;
+                return visible;
             }
             set
             {
@@ -231,12 +236,39 @@ namespace Xenko.Games
             }
 
             coreWindow.SizeChanged += CurrentWindowOnSizeChanged;
+
+            visible = coreWindow.Visible;
+            coreWindow.VisibilityChanged += CurrentWindowOnVisibilityChanged;
+            coreWindow.Activated += CurrentWindowOnActivated;
         }
 
         private void CurrentWindowOnSizeChanged(object sender, WindowSizeChangedEventArgs windowSizeChangedEventArgs)
         {
             var newBounds = windowSizeChangedEventArgs.Size;
             HandleSizeChanged(sender, newBounds);
+        }
+
+        private void CurrentWindowOnVisibilityChanged( CoreWindow window, VisibilityChangedEventArgs args )
+        {
+            visible = args.Visible;
+        }
+        
+        private void CurrentWindowOnActivated(CoreWindow window, WindowActivatedEventArgs args)
+        {
+            switch( args.WindowActivationState )
+            {
+                case CoreWindowActivationState.PointerActivated:
+                case CoreWindowActivationState.CodeActivated:
+                    focused = true;
+                    break;
+                case CoreWindowActivationState.Deactivated:
+                    focused = false;
+                    break;
+                default:
+                    focused = true;
+                    Debug.WriteLine( $"{nameof(args.WindowActivationState)} '{args.WindowActivationState}' not implemented for {nameof(GameWindowUWP)} in {nameof(CurrentWindowOnActivated)}" );
+                    break;
+            }
         }
 
         void swapChainPanel_CompositionScaleChanged(SwapChainPanel sender, object args)
