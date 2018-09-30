@@ -49,11 +49,11 @@ namespace Xenko.LauncherApp.ViewModels
 
         public ObservableList<XenkoVersionViewModel> CompatibleVersions { get; private set; }
 
+        public ICommandBase ExploreCommand { get; }
+
         public ICommandBase OpenCommand { get; }
 
         public ICommandBase OpenWithCommand { get; }
-
-        public ICommandBase ExploreCommand { get; }
 
         public ICommandBase RemoveCommand { get; }
 
@@ -82,19 +82,16 @@ namespace Xenko.LauncherApp.ViewModels
             if (string.IsNullOrEmpty(this.XenkoVersionName) || string.Compare(this.XenkoVersionName, "3.0", StringComparison.Ordinal) <= 0)
             {
                 //Get all installed versions 
-                var xenkoInstalledVersions = this.Launcher.XenkoVersions?.Where(x => x.CanDelete)
+                var xenkoInstalledVersions = this.Launcher.XenkoVersions.Where(x => x.CanDelete)
                     .Select(x => $"{x.Major}.{x.Minor}").ToList();
 
-                if (xenkoInstalledVersions != null)
-                {
-                    //If original version of files is not in list get and to add it.
-                    if (!string.IsNullOrEmpty(this.XenkoVersionName) && !xenkoInstalledVersions.Any(x => x.Equals(this.XenkoVersionName)))
-                        xenkoInstalledVersions.Add(this.XenkoVersionName);
+                //If original version of files is not in list get and to add it.
+                if (!string.IsNullOrEmpty(this.XenkoVersionName) && !xenkoInstalledVersions.Any(x => x.Equals(this.XenkoVersionName)))
+                    xenkoInstalledVersions.Add(this.XenkoVersionName);
 
-                    foreach (var item in xenkoInstalledVersions)
-                    {
-                        GameStudioSettings.RemoveMostRecentlyUsed(this.fullPath, item);
-                    }
+                foreach (var item in xenkoInstalledVersions)
+                {
+                    GameStudioSettings.RemoveMostRecentlyUsed(this.fullPath, item);
                 }
             }
             else
