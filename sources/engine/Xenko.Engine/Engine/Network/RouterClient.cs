@@ -39,24 +39,24 @@ namespace Xenko.Engine.Network
         /// <returns></returns>
         public static async Task<SimpleSocket> RequestServer(string serverUrl, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var socketContext = await InitiateConnectionToRouter();
+            var socketContext = await InitiateConnectionToRouter().ConfigureAwait(false);
 
             using (cancellationToken.Register(() => socketContext.Dispose()))
             {
-                await socketContext.WriteStream.WriteInt16Async((short)ClientRouterMessage.RequestServer);
-                await socketContext.WriteStream.WriteStringAsync(serverUrl);
-                await socketContext.WriteStream.FlushAsync();
+                await socketContext.WriteStream.WriteInt16Async((short)ClientRouterMessage.RequestServer).ConfigureAwait(false);
+                await socketContext.WriteStream.WriteStringAsync(serverUrl).ConfigureAwait(false);
+                await socketContext.WriteStream.FlushAsync().ConfigureAwait(false);
 
-                var result = (ClientRouterMessage)await socketContext.ReadStream.ReadInt16Async();
+                var result = (ClientRouterMessage)await socketContext.ReadStream.ReadInt16Async().ConfigureAwait(false);
                 if (result != ClientRouterMessage.ServerStarted)
                 {
                     throw new SimpleSocketException("Could not connect to server");
                 }
 
-                var errorCode = await socketContext.ReadStream.ReadInt32Async();
+                var errorCode = await socketContext.ReadStream.ReadInt32Async().ConfigureAwait(false);
                 if (errorCode != 0)
                 {
-                    var errorMessage = await socketContext.ReadStream.ReadStringAsync();
+                    var errorMessage = await socketContext.ReadStream.ReadStringAsync().ConfigureAwait(false);
                     throw new SimpleSocketException(errorMessage);
                 }
             }
@@ -68,69 +68,65 @@ namespace Xenko.Engine.Network
         /// Initiates a connection to the router.
         /// </summary>
         /// <returns></returns>
-        private static Task<SimpleSocket> InitiateConnectionToRouter()
+        private static async Task<SimpleSocket> InitiateConnectionToRouter()
         {
             // Let's make sure this run in a different thread (in case some operation are blocking)
-            return Task.Factory.StartNew(() =>
+            var socketContextTCS = new TaskCompletionSource<SimpleSocket>();
+            var socketContext = new SimpleSocket();
+            socketContext.Connected = context =>
             {
-                var socketContextTCS = new TaskCompletionSource<SimpleSocket>();
-                var socketContext = new SimpleSocket();
-                socketContext.Connected = context =>
-                {
-                    socketContextTCS.TrySetResult(context);
-                };
+                socketContextTCS.TrySetResult(context);
+            };
 
-                try
-                {
+            try
+            {
 #if XENKO_PLATFORM_UWP
-                    var serverAddress = "127.0.0.1";
+                var serverAddress = "127.0.0.1";
 #else
-                    var serverAddress = Environment.GetEnvironmentVariable("XenkoConnectionRouterRemoteIP") ?? "127.0.0.1";
+                var serverAddress = Environment.GetEnvironmentVariable("XenkoConnectionRouterRemoteIP") ?? "127.0.0.1";
 #endif
 
-                    // If connecting as a client, try once, otherwise try to listen multiple time (in case port is shared)
-                    switch (ConnectionMode)
-                    {
-                        case RouterConnectionMode.Connect:
-                            socketContext.StartClient(serverAddress, DefaultPort).Wait();
-                            break;
-                        case RouterConnectionMode.Listen:
-                            socketContext.StartServer(DefaultListenPort, true, 10).Wait();
-                            break;
-                        case RouterConnectionMode.ConnectThenListen:
-                            bool clientException = false;
-                            try
-                            {
-                                socketContext.StartClient(serverAddress, DefaultPort).Wait();
-                            }
-                            catch (Exception) // Ideally we should filter SocketException, but not available on some platforms (maybe it should be wrapped in a type available on all paltforms?)
-                            {
-                                clientException = true;
-                            }
-                            if (clientException)
-                            {
-                                socketContext.StartServer(DefaultListenPort, true, 10).Wait();
-                            }
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-
-                    // Connection should happen within 10 seconds, otherwise consider there is no connection router trying to connect back to us
-                    if (!socketContextTCS.Task.Wait(TimeSpan.FromSeconds(10)))
-                        throw new SimpleSocketException("Connection router did not connect back to our listen socket");
-
-                    return socketContextTCS.Task.Result;
-                }
-                catch (Exception e)
+                // If connecting as a client, try once, otherwise try to listen multiple time (in case port is shared)
+                switch (ConnectionMode)
                 {
-                    Log.Error($"Could not connect to connection router using mode {ConnectionMode}", e);
-                    throw;
+                    case RouterConnectionMode.Connect:
+                        socketContext.StartClient(serverAddress, DefaultPort);
+                        break;
+                    case RouterConnectionMode.Listen:
+                        socketContext.StartServer(DefaultListenPort, true, 10);
+                        break;
+                    case RouterConnectionMode.ConnectThenListen:
+                        bool clientException = false;
+                        try
+                        {
+                            socketContext.StartClient(serverAddress, DefaultPort);
+                        }
+                        catch (Exception) // Ideally we should filter SocketException, but not available on some platforms (maybe it should be wrapped in a type available on all paltforms?)
+                        {
+                            clientException = true;
+                        }
+                        if (clientException)
+                        {
+                            socketContext.StartServer(DefaultListenPort, true, 10);
+                        }
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
-            },
-                CancellationToken.None,
-                TaskCreationOptions.LongRunning,
-                TaskScheduler.Default);
+
+                // Connection should happen within 10 seconds, otherwise consider there is no connection router trying to connect back to us
+                if (await Task.WhenAny(socketContextTCS.Task, Task.Delay(TimeSpan.FromSeconds(10))).ConfigureAwait(false) != socketContextTCS.Task)
+                {
+                    throw new SimpleSocketException("Connection router did not connect back to our listen socket");
+                }
+
+                return await socketContextTCS.Task;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Could not connect to connection router using mode {ConnectionMode}", e);
+                throw;
+            }
         }
 
         private static void StartControlConnection()

@@ -40,7 +40,7 @@ namespace Xenko.ConnectionRouter
             var socketContext = CreateSocketContext();
 
             // Wait for a connection to be possible on adb forwarded port
-            await socketContext.StartClient(address, port);
+            await socketContext.StartClient(address, port).ConfigureAwait(false);
         }
 
         private SimpleSocket CreateSocketContext()
@@ -216,10 +216,7 @@ namespace Xenko.ConnectionRouter
 
                     serviceTcs = new TaskCompletionSource<Service>();
                     registeredServices.Add(urlWithoutParameters, serviceTcs);
-                }
 
-                if (!serviceTcs.Task.IsCompleted)
-                {
                     if (urlSegments.Length < 3)
                     {
                         Log.Error($"{RouterMessage.ClientRequestServer} action URL {url} is invalid");
@@ -278,7 +275,13 @@ namespace Xenko.ConnectionRouter
 
             // Should answer within 4 sec
             var ct = new CancellationTokenSource(4000);
-            ct.Token.Register(() => serverSocketTcs.TrySetException(new TimeoutException($"{RouterMessage.ServiceRequestServer} action URL [{url}] could not connect back in time")));
+            ct.Token.Register(() =>
+            {
+                if (!serverSocketTcs.Task.IsCompleted)
+                {
+                    serverSocketTcs.TrySetException(new TimeoutException($"{RouterMessage.ServiceRequestServer} action URL [{url}] could not connect back in time"));
+                }
+            });
 
             // Wait for such a server to be available
             return await serverSocketTcs.Task;
