@@ -685,7 +685,7 @@ namespace Xenko.Games
                         using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
                         {
                             EndDraw(true);
-                            if (gamePlatform.MainWindow.IsMinimized || (gamePlatform.MainWindow.Focused == false && TreatNotFocusedLikeMinimized))
+                            if (gamePlatform.MainWindow.IsMinimized || gamePlatform.MainWindow.Visible == false || (gamePlatform.MainWindow.Focused == false && TreatNotFocusedLikeMinimized))
                                 MinimizedMinimumUpdateRate.Throttle(out _);
                             else
                                 WindowMinimumUpdateRate.Throttle(out _);
