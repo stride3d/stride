@@ -15,14 +15,14 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 {
     public class ExistingProjectViewModel : DispatcherViewModel, ITemplateDescriptionViewModel
     {
-        private Action<ExistingProjectViewModel> RemoveCallBack { get; }
+        private Action<ExistingProjectViewModel> RemoveAction;
 
-        public ExistingProjectViewModel(IViewModelServiceProvider serviceProvider, UFile path, Action<ExistingProjectViewModel> removeCallBack)
+        public ExistingProjectViewModel(IViewModelServiceProvider serviceProvider, UFile path, Action<ExistingProjectViewModel> removeAction)
             : base(serviceProvider)
         {
             Path = path;
             Id = Guid.NewGuid();
-            RemoveCallBack = removeCallBack;
+            RemoveAction = removeAction ?? throw new ArgumentNullException(nameof(removeAction));
             ExploreCommand = new AnonymousCommand(serviceProvider, Explore);
             RemoveCommand = new AnonymousCommand(serviceProvider, Remove);
         }
@@ -45,9 +45,9 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
         public IEnumerable<BitmapImage> Screenshots => Enumerable.Empty<BitmapImage>();
 
-        public ICommandBase RemoveCommand { get; }
-
         public ICommandBase ExploreCommand { get; }
+
+        public ICommandBase RemoveCommand { get; }
 
         public TemplateDescription GetTemplate()
         {
@@ -63,7 +63,7 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
         private void Remove()
         {
-            RemoveCallBack(this);
+            RemoveAction(this);
         }
     }
 }
