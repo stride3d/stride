@@ -310,6 +310,11 @@ Example of use:
       <UnitTestPrerequisites Include="@(UnitTestGame)"/>
       <UnitTest Include="@(UnitTestGameAndroid)"><Solution>$(XenkoSolution).Android.sln</Solution></UnitTest> 
     </ItemGroup>
+	
+	<!-- Samples unit tests -->
+    <ItemGroup Condition="$(XenkoTestCategories.Contains(';Samples;'))">
+      <UnitTest Include="72-XenkoSamples\Xenko.Samples.Tests"/>
+    </ItemGroup>
     
     <!-- Compute TargetName and default Solution -->    
     <ItemGroup>
