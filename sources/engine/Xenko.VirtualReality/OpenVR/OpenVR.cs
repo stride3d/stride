@@ -162,13 +162,18 @@ namespace Xenko.VirtualReality
                 var error = ETrackedPropertyError.TrackedProp_Success;
                 var result = new System.Text.StringBuilder((int)64);
                 Valve.VR.OpenVR.System.GetStringTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_SerialNumber_String, result, 64, ref error);
-                DeviceClass = Valve.VR.OpenVR.System.GetTrackedDeviceClass((uint)TrackerIndex);
                 SerialNumber = result.ToString();
+
+                BatteryPercentage = Valve.VR.OpenVR.System.GetFloatTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_DeviceBatteryPercentage_Float, ref error);
+                SerialNumber = result.ToString();
+
+                DeviceClass = Valve.VR.OpenVR.System.GetTrackedDeviceClass((uint)TrackerIndex);
             }
 
             internal int TrackerIndex;
             internal ETrackedDeviceClass DeviceClass;
             internal string SerialNumber;
+            internal float BatteryPercentage;
         }
 
         private static readonly TrackedDevicePose_t[] DevicePoses = new TrackedDevicePose_t[Valve.VR.OpenVR.k_unMaxTrackedDeviceCount];

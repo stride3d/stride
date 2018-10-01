@@ -22,6 +22,8 @@ namespace Xenko.VirtualReality
 
         public abstract string SerialNumber { get; }
 
+        public abstract float BatteryPercentage { get; }
+
         public virtual void Update(GameTime time)
         {           
         }

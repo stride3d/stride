@@ -57,6 +57,8 @@ namespace Xenko.VirtualReality
         public override DeviceClass Class => (DeviceClass)trackedDevice.DeviceClass;
 
         public override string SerialNumber => trackedDevice.SerialNumber;
+
+        public override float BatteryPercentage => trackedDevice.BatteryPercentage;
     }
 }
 
