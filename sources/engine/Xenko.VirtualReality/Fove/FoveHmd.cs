@@ -136,7 +136,7 @@ namespace Xenko.VirtualReality
 
         public override TouchController RightHand => null;
 
-        public override TrackedDevice[] TrackedDevices => null;
+        public override TrackedDevice[] TrackedDevices => new TrackedDevice[0];
 
         public override bool CanInitialize => Fove.Startup() && Fove.IsHardwareReady();
     }
