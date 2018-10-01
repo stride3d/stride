@@ -6,7 +6,7 @@ using Xenko.Games;
 
 namespace Xenko.VirtualReality
 {
-    public abstract class TrackedDevice : IDisposable
+    public abstract class TrackedItem : IDisposable
     {
         public abstract Vector3 Position { get; }
 

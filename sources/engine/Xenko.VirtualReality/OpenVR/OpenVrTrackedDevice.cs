@@ -8,7 +8,7 @@ using Xenko.Games;
 
 namespace Xenko.VirtualReality
 {
-    internal class OpenVRTrackedDevice : TrackedDevice
+    internal class OpenVRTrackedDevice : TrackedItem
     {
         private readonly int id;
         private OpenVR.TrackedDevice trackedDevice;

@@ -38,7 +38,7 @@ namespace Xenko.VirtualReality
 
         public abstract TouchController RightHand { get; }
 
-        public abstract TrackedDevice[] TrackedDevices { get; }
+        public abstract TrackedItem[] TrackedItems { get; }
 
         public VRApi VRApi { get; protected set; }
 
