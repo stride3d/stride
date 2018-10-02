@@ -268,6 +268,11 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         {
             RootAssets.Clear();
             RootAssets.AddRange(Package.RootAssets.Select(x => Session.GetAssetById(x.Id)));
+            foreach (var dependency in PackageContainer.FlattenedDependencies)
+            {
+                if (dependency.Package != null)
+                    RootAssets.AddRange(dependency.Package.RootAssets.Select(x => Session.GetAssetById(x.Id)));
+            }
             RegisterMemberCollectionForActionStack(nameof(RootAssets), RootAssets);
             RootAssets.CollectionChanged += RootAssetsCollectionChanged;
         }
