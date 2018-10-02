@@ -31,5 +31,13 @@ namespace Xenko.Core.Yaml
             var path = ((UFile)objectContext.Instance);
             return path.FullPath;
         }
+
+        protected override void WriteScalar(ref ObjectContext objectContext, ScalarEventInfo scalar)
+        {
+            // Force tag when writing back
+            scalar.Tag = objectContext.SerializerContext.TagFromType(typeof(UFile));
+            scalar.IsPlainImplicit = false;
+            base.WriteScalar(ref objectContext, scalar);
+        }
     }
 }

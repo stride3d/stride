@@ -9,7 +9,7 @@ namespace Xenko.Core.IO
     /// <summary>
     /// Defines a normalized directory path. See <see cref="UPath"/> for details. This class cannot be inherited.
     /// </summary>
-    [DataContract("UDirectory")]
+    [DataContract("dir")]
     [TypeConverter(typeof(UDirectoryTypeConverter))]
     public sealed class UDirectory : UPath
     {

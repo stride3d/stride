@@ -9,7 +9,7 @@ namespace Xenko.Core.IO
     /// <summary>
     /// Defines a normalized file path. See <see cref="UPath"/> for details. This class cannot be inherited.
     /// </summary>
-    [DataContract("UFile")]
+    [DataContract("file")]
     [TypeConverter(typeof(UFileTypeConverter))]
     public sealed class UFile : UPath
     {

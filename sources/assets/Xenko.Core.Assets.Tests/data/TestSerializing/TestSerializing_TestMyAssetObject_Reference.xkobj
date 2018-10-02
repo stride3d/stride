@@ -2,8 +2,8 @@
 Id: 00000000-0000-0000-0000-000000000000
 Tags: []
 Description: This is a test
-AssetDirectory: !UDirectory /test/dynamic/path/to/file/in/object/property
-AssetUrl: !UFile /test/dynamic/path/to/file/in/object/property
+AssetDirectory: !dir /test/dynamic/path/to/file/in/object/property
+AssetUrl: !file /test/dynamic/path/to/file/in/object/property
 CustomReference2: 00000000-0000-0000-0000-000000000000:/this/is/an/url/to/MyCustomReference2
 CustomReferences:
     63000000630000006300000063000000: 00000000-0000-0000-0000-000000000000:/this/is/an/url/to/MyCustomReferenceItem1
