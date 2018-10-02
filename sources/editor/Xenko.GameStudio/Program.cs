@@ -251,7 +251,7 @@ namespace Xenko.GameStudio
                     return;
                 }
 
-                // Running first time?
+                // Running first time? If yes, create nuget redirect package.
                 var packageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
                 if (PackageStore.Instance.IsDevelopmentStore)
                 {
