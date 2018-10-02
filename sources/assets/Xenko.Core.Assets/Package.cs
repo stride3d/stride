@@ -597,6 +597,7 @@ namespace Xenko.Core.Assets
                         Meta = { Name = Path.GetFileNameWithoutExtension(packagePath) },
                         AssetFolders = { new AssetFolder("Assets") },
                         ResourceFolders = { "Resources" },
+                        FullPath = packagePath,
                     };
                 return new SolutionProject(package, Guid.NewGuid(), projectPath) { IsImplicitProject = !packageExists };
             }
@@ -794,7 +795,7 @@ namespace Xenko.Core.Assets
             // List all package files on disk
             if (assetFiles == null)
             {
-                assetFiles = ListAssetFiles(log, this, listAssetsInMsbuild, cancelToken);
+                assetFiles = ListAssetFiles(log, this, listAssetsInMsbuild, false, cancelToken);
                 // Sort them by size (to improve concurrency during load)
                 assetFiles.Sort(PackageLoadingAssetFile.FileSizeComparer.Default);
             }
@@ -1103,7 +1104,7 @@ namespace Xenko.Core.Assets
             return existingAssetFolders;
         }
 
-        public static List<PackageLoadingAssetFile> ListAssetFiles(ILogger log, Package package, bool listAssetsInMsbuild, CancellationToken? cancelToken)
+        public static List<PackageLoadingAssetFile> ListAssetFiles(ILogger log, Package package, bool listAssetsInMsbuild, bool listUnregisteredAssets, CancellationToken? cancelToken)
         {
             var listFiles = new List<PackageLoadingAssetFile>();
 
@@ -1152,7 +1153,10 @@ namespace Xenko.Core.Assets
                         }
 
                         //project source code assets follow the csproj pipeline
-                        if (!AssetRegistry.IsAssetFileExtension(ext) || AssetRegistry.IsProjectAssetFileExtension(ext))
+                        var isAsset = listUnregisteredAssets
+                            ? ext.StartsWith(".xk", StringComparison.InvariantCultureIgnoreCase)
+                            : AssetRegistry.IsAssetFileExtension(ext);
+                        if (!isAsset || AssetRegistry.IsProjectAssetFileExtension(ext))
                         {
                             continue;
                         }

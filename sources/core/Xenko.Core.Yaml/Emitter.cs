@@ -48,6 +48,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Xenko.Core.Yaml.Events;
@@ -692,7 +693,7 @@ namespace Xenko.Core.Yaml
                     AppendTagDirective(tagDirective, true);
                 }
 
-                if (documentStart.Tags != null && documentStart.Tags.Count != 0)
+                if (documentStart.Tags != null && documentStart.Tags.Count != 0 && !Enumerable.SequenceEqual(documentStart.Tags, Constants.DefaultTagDirectives))
                 {
                     isImplicit = false;
                     foreach (var tagDirective in documentStart.Tags)

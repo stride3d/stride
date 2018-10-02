@@ -1431,7 +1431,7 @@ namespace Xenko.Core.Assets
                 package.LoadAssemblies(log, newLoadParameters);
 
                 // Load list of assets
-                newLoadParameters.AssetFiles = Package.ListAssetFiles(log, package, true, loadParameters.CancelToken);
+                newLoadParameters.AssetFiles = Package.ListAssetFiles(log, package, true, false, loadParameters.CancelToken);
                 // Sort them by size (to improve concurrency during load)
                 newLoadParameters.AssetFiles.Sort(PackageLoadingAssetFile.FileSizeComparer.Default);
 

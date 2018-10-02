@@ -164,6 +164,7 @@
   *****************************************************************************************************************************
   -->
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(XenkoAssemblyProcessorPath)" Condition=" '$(XenkoAssemblyProcessorPath)' != '' And '$(XenkoAssemblyProcessorDev)' != 'true' "/>
+  <UsingTask TaskName="Xenko.Assets.Tasks.PackAssets" AssemblyFile="$(XenkoPackageXenkoSdkBin)\Xenko.Assets.dll" />
     
   <Target Name="XenkoRunAssemblyProcessor" DependsOnTargets="ResolveProjectReferences">
     <WriteLinesToFile File="$(IntermediateOutputPath)XenkoReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
@@ -362,23 +363,8 @@
 
   <!-- Pack target / TODO: More advanced logic by using a Task/exe to move and save all assets/resources properly rather than hardcoded list of folders -->
   <Target Name="PrepareXenkoAssetsForPack" BeforeTargets="_GetPackageFiles">
-    <ItemGroup>
-      <None Include="*.xkpkg*" Exclude="*.user">
-        <Pack>true</Pack>
-        <PackagePath>xenko</PackagePath>
-      </None>
-      <None Include="Assets/**/*.xk*" Exclude="*.user">
-        <Pack>true</Pack>
-        <PackagePath>xenko/Assets</PackagePath>
-      </None>
-      <None Include="Effects/**/*.xk*" Exclude="*.user">
-        <Pack>true</Pack>
-        <PackagePath>xenko/Assets</PackagePath>
-      </None>
-      <None Include="Resources/*.*" Exclude="*.user">
-        <Pack>true</Pack>
-        <PackagePath>xenko/Resources</PackagePath>
-      </None>
-    </ItemGroup>
+    <PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\xenko">
+      <Output TaskParameter="GeneratedItems" ItemName="None"/>
+    </PackAssets>
   </Target>
 </Project>
