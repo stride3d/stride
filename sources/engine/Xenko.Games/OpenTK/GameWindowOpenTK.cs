@@ -257,6 +257,14 @@ namespace Xenko.Games
             }
         }
 
+        public override bool Focused
+        {
+            get
+            {
+                return gameForm.Focused;
+            }
+        }
+
         protected override void Destroy()
         {
             if (gameForm != null)

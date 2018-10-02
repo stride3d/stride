@@ -143,7 +143,7 @@ namespace Xenko.SamplesTestServer
 
             var socketMessageLayer = new SocketMessageLayer(clientSocket, true);
 
-            socketMessageLayer.AddPacketHandler<TestRegistrationRequest>(request =>
+            socketMessageLayer.AddPacketHandler<TestRegistrationRequest>(async request =>
             {
                 if (request.Tester)
                 {
@@ -163,43 +163,44 @@ namespace Xenko.SamplesTestServer
                                             WorkingDirectory = workingDir,
                                             FileName = request.Cmd
                                         };
-                                        start.EnvironmentVariables["XenkoDir"] = Environment.GetEnvironmentVariable("XenkoDir");
                                         start.UseShellExecute = false;
                                         start.RedirectStandardError = true;
                                         start.RedirectStandardOutput = true;
 
                                         debugInfo = "Starting process " + start.FileName + " with path " + start.WorkingDirectory;
-                                        socketMessageLayer.Send(new LogRequest { Message = debugInfo }).Wait();
+                                        await socketMessageLayer.Send(new LogRequest { Message = debugInfo });
                                         process = Process.Start(start);
                                     }
                                 }
                                 catch (Exception ex)
                                 {
-                                    socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = "Launch exception: " + ex.Message }).Wait();
+                                    await socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = "Launch exception: " + ex.Message });
                                 }
 
                                 if (process == null)
                                 {
-                                    socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = "Failed to start game process. " + debugInfo }).Wait();
+                                    await socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = "Failed to start game process. " + debugInfo });
                                 }
                                 else
                                 {
-                                    process.OutputDataReceived += (sender, args) =>
+                                    process.OutputDataReceived += async (sender, args) =>
                                     {
                                         try
                                         {
-                                            socketMessageLayer.Send(new LogRequest { Message = $"STDIO: {args.Data}" }).Wait();
+                                            if (args.Data != null)
+                                                await socketMessageLayer.Send(new LogRequest { Message = $"STDIO: {args.Data}" });
                                         }
                                         catch
                                         {
                                         }
                                     };
 
-                                    process.ErrorDataReceived += (sender, args) =>
+                                    process.ErrorDataReceived += async (sender, args) =>
                                     {
                                         try
                                         {
-                                            socketMessageLayer.Send(new LogRequest { Message = $"STDERR: {args.Data}" }).Wait();
+                                            if (args.Data != null)
+                                            await socketMessageLayer.Send(new LogRequest { Message = $"STDERR: {args.Data}" });
                                         }
                                         catch
                                         {
@@ -210,9 +211,12 @@ namespace Xenko.SamplesTestServer
                                     process.BeginErrorReadLine();
 
                                     var currenTestPair = new TestPair { TesterSocket = socketMessageLayer, GameName = request.GameAssembly, Process = process };
-                                    processes[request.GameAssembly] = currenTestPair;
-                                    testerToGame[socketMessageLayer] = currenTestPair;
-                                    socketMessageLayer.Send(new LogRequest { Message = "Process created, id: " + process.Id.ToString() }).Wait();
+                                    lock (processes)
+                                    {
+                                        processes[request.GameAssembly] = currenTestPair;
+                                        testerToGame[socketMessageLayer] = currenTestPair;
+                                    }
+                                    await socketMessageLayer.Send(new LogRequest { Message = "Process created, id: " + process.Id.ToString() });
                                 }
                                 break;
                             }
@@ -225,12 +229,12 @@ namespace Xenko.SamplesTestServer
                                 }
                                 catch (Exception ex)
                                 {
-                                    socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = "Launch exception: " + ex.Message }).Wait();
+                                    await socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = "Launch exception: " + ex.Message });
                                 }
 
                                 if (process == null)
                                 {
-                                    socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = "Failed to start game process." }).Wait();
+                                    await socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = "Failed to start game process." });
                                 }
                                 else
                                 {
@@ -250,9 +254,12 @@ namespace Xenko.SamplesTestServer
                                             Process.Start("cmd.exe", $"/C adb shell am force-stop {request.GameAssembly}.{request.GameAssembly}");
 }
                                     };
-                                    processes[request.GameAssembly] = currenTestPair;
-                                    testerToGame[socketMessageLayer] = currenTestPair;
-                                    socketMessageLayer.Send(new LogRequest { Message = "Process created, id: " + process.Id.ToString() }).Wait();
+                                    lock (processes)
+                                    {
+                                        processes[request.GameAssembly] = currenTestPair;
+                                        testerToGame[socketMessageLayer] = currenTestPair;
+                                    }
+                                    await socketMessageLayer.Send(new LogRequest { Message = "Process created, id: " + process.Id.ToString() });
                                 }
                                 break;
                             }
@@ -275,12 +282,12 @@ namespace Xenko.SamplesTestServer
                                 }
                                 catch (Exception ex)
                                 {
-                                    socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = $"Launch exception: {ex.Message} info: {debugInfo}" }).Wait();
+                                    await socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = $"Launch exception: {ex.Message} info: {debugInfo}" });
                                 }
 
                                 if (process == null)
                                 {
-                                    socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = "Failed to start game process. " + debugInfo }).Wait();
+                                    await socketMessageLayer.Send(new StatusMessageRequest { Error = true, Message = "Failed to start game process. " + debugInfo });
                                 }
                                 else
                                 {
@@ -290,9 +297,12 @@ namespace Xenko.SamplesTestServer
                                     }
 
                                     var currenTestPair = new TestPair { TesterSocket = socketMessageLayer, GameName = request.GameAssembly, Process = process };
-                                    processes[request.GameAssembly] = currenTestPair;
-                                    testerToGame[socketMessageLayer] = currenTestPair;
-                                    socketMessageLayer.Send(new LogRequest { Message = "Process created, id: " + process.Id.ToString() }).Wait();
+                                    lock (processes)
+                                    {
+                                        processes[request.GameAssembly] = currenTestPair;
+                                        testerToGame[socketMessageLayer] = currenTestPair;
+                                    }
+                                    await socketMessageLayer.Send(new LogRequest { Message = "Process created, id: " + process.Id.ToString() });
                                 }
                                 break;
                             }
@@ -301,45 +311,67 @@ namespace Xenko.SamplesTestServer
                 else //Game process
                 {
                     TestPair pair;
-                    if (!processes.TryGetValue(request.GameAssembly, out pair)) return;
+                    lock (processes)
+                    {
+                        if (!processes.TryGetValue(request.GameAssembly, out pair)) return;
 
-                    pair.GameSocket = socketMessageLayer;
+                        pair.GameSocket = socketMessageLayer;
 
-                    testerToGame[pair.TesterSocket] = pair;
-                    gameToTester[pair.GameSocket] = pair;
+                        testerToGame[pair.TesterSocket] = pair;
+                        gameToTester[pair.GameSocket] = pair;
+                    }
 
-                    pair.TesterSocket.Send(new StatusMessageRequest { Error = false, Message = "Start" }).Wait();
+                    await pair.TesterSocket.Send(new StatusMessageRequest { Error = false, Message = "Start" });
 
                     Console.WriteLine($"Starting test {request.GameAssembly}");
                 }
             });
 
-            socketMessageLayer.AddPacketHandler<KeySimulationRequest>(request =>
+            socketMessageLayer.AddPacketHandler<KeySimulationRequest>(async request =>
             {
-                var game = testerToGame[socketMessageLayer];
-                game.GameSocket.Send(request).Wait();
+                TestPair game;
+                lock (processes)
+                {
+                    game = testerToGame[socketMessageLayer];
+                }
+                await game.GameSocket.Send(request);
             });
 
-            socketMessageLayer.AddPacketHandler<TapSimulationRequest>(request =>
+            socketMessageLayer.AddPacketHandler<TapSimulationRequest>(async request =>
             {
-                var game = testerToGame[socketMessageLayer];
-                game.GameSocket.Send(request).Wait();
+                TestPair game;
+                lock (processes)
+                {
+                    game = testerToGame[socketMessageLayer];
+                }
+                await game.GameSocket.Send(request);
             });
 
-            socketMessageLayer.AddPacketHandler<ScreenshotRequest>(request =>
+            socketMessageLayer.AddPacketHandler<ScreenshotRequest>(async request =>
             {
-                var game = testerToGame[socketMessageLayer];
-                game.GameSocket.Send(request).Wait();
+                TestPair game;
+                lock (processes)
+                {
+                    game = testerToGame[socketMessageLayer];
+                }
+                await game.GameSocket.Send(request);
             });
 
-            socketMessageLayer.AddPacketHandler<TestEndedRequest>(request =>
+            socketMessageLayer.AddPacketHandler<TestEndedRequest>(async request =>
             {
-                var game = testerToGame[socketMessageLayer];
-                game.GameSocket.Send(request).Wait();
+                TestPair game;
+                lock (processes)
+                {
+                    game = testerToGame[socketMessageLayer];
+                }
+                await game.GameSocket.Send(request);
 
-                testerToGame.Remove(socketMessageLayer);
-                gameToTester.Remove(game.GameSocket);
-                processes.Remove(game.GameName);
+                lock (processes)
+                {
+                    testerToGame.Remove(socketMessageLayer);
+                    gameToTester.Remove(game.GameSocket);
+                    processes.Remove(game.GameName);
+                }
 
                 socketMessageLayer.Context.Dispose();
                 game.GameSocket.Context.Dispose();
@@ -359,10 +391,13 @@ namespace Xenko.SamplesTestServer
 
             socketMessageLayer.AddPacketHandler<TestAbortedRequest>(request =>
             {
-                var game = testerToGame[socketMessageLayer];
-
-                testerToGame.Remove(socketMessageLayer);
-                processes.Remove(game.GameName);
+                TestPair game;
+                lock (processes)
+                {
+                    game = testerToGame[socketMessageLayer];
+                    testerToGame.Remove(socketMessageLayer);
+                    processes.Remove(game.GameName);
+                }
 
                 socketMessageLayer.Context.Dispose();
 
@@ -379,19 +414,25 @@ namespace Xenko.SamplesTestServer
                 Console.WriteLine($"Aborted test {game.GameName}");
             });
 
-            socketMessageLayer.AddPacketHandler<ScreenShotPayload>(request =>
+            socketMessageLayer.AddPacketHandler<ScreenShotPayload>(async request =>
             {
-                var tester = gameToTester[socketMessageLayer];
+                TestPair tester;
+                lock (processes)
+                {
+                    tester = gameToTester[socketMessageLayer];
+                }
 
                 var imageData = new TestResultImage();
                 var stream = new MemoryStream(request.Data);
                 imageData.Read(new BinaryReader(stream));
                 stream.Dispose();
+                // Ensure directory exists
+                Directory.CreateDirectory(Path.GetDirectoryName(request.FileName));
                 var resultFileStream = File.OpenWrite(request.FileName);
                 imageData.Image.Save(resultFileStream, ImageFileType.Png);
                 resultFileStream.Dispose();
 
-                tester.TesterSocket.Send(new ScreenshotStored()).Wait();
+                await tester.TesterSocket.Send(new ScreenshotStored());
             });
 
             Task.Run(async () =>

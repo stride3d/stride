@@ -103,7 +103,7 @@ namespace Xenko.Rendering.Materials
         protected override void InitializeCore()
         {
             base.InitializeCore();
-            materialIndexConstantBufferOffsetReference = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(GBufferOutputSubsurfaceScatteringMaterialIndexKeys.MaterialIndex.Name);
+            materialIndexConstantBufferOffsetReference = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(GBufferOutputSubsurfaceScatteringMaterialIndexKeys.MaterialIndex.Name);
         }
 
         private bool HasScatteringKernel(MaterialPass material)
@@ -183,7 +183,7 @@ namespace Xenko.Rendering.Materials
 
             // Generate the material dictionary that contains only scattering materials:
             //Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>   // TODO: PERFORMANCE: Use this instead?
-            foreach (RenderNode renderNode in ((RootEffectRenderFeature)rootRenderFeature).RenderNodes)
+            foreach (RenderNode renderNode in ((RootEffectRenderFeature)RootRenderFeature).RenderNodes)
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
                 if (perDrawLayout == null)

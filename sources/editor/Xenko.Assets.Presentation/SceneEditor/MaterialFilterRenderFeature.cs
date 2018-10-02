@@ -22,17 +22,17 @@ namespace Xenko.Assets.Presentation.SceneEditor
         {
             base.InitializeCore();
 
-            renderEffectKey = ((RootEffectRenderFeature)rootRenderFeature).RenderEffectKey;
+            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
         }
 
         /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
-            var renderEffects = rootRenderFeature.RenderData.GetData(renderEffectKey);
-            int effectSlotCount = ((RootEffectRenderFeature)rootRenderFeature).EffectPermutationSlotCount;
+            var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
+            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
 
-            foreach (var renderObject in rootRenderFeature.RenderObjects)
+            foreach (var renderObject in RootRenderFeature.RenderObjects)
             {
                 var staticObjectNode = renderObject.StaticObjectNode;
 

@@ -188,6 +188,32 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
+        /// Calculates the length of the vector.
+        /// </summary>
+        /// <returns>The length of the vector.</returns>
+        /// <remarks>
+        /// <see cref="Int4.LengthSquared"/> may be preferred when only the relative length is needed
+        /// and speed is of the essence.
+        /// </remarks>
+        public int Length()
+        {
+            return (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
+        }
+
+        /// <summary>
+        /// Calculates the squared length of the vector.
+        /// </summary>
+        /// <returns>The squared length of the vector.</returns>
+        /// <remarks>
+        /// This method may be preferred to <see cref="Int4.Length"/> when only a relative length is needed
+        /// and speed is of the essence.
+        /// </remarks>
+        public int LengthSquared()
+        {
+            return (X * X) + (Y * Y) + (Z * Z) + (W * W);
+        }
+
+        /// <summary>
         ///   Creates an array containing the elements of the vector.
         /// </summary>
         /// <returns>A four-element array containing the components of the vector.</returns>

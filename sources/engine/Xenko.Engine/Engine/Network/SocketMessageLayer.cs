@@ -20,7 +20,7 @@ namespace Xenko.Engine.Network
 
         private SemaphoreSlim sendLock = new SemaphoreSlim(1);
         private readonly Dictionary<int, TaskCompletionSource<SocketMessage>> packetCompletionTasks = new Dictionary<int, TaskCompletionSource<SocketMessage>>();
-        private Dictionary<Type, Tuple<Action<object>, bool>> packetHandlers = new Dictionary<Type, Tuple<Action<object>, bool>>();
+        private Dictionary<Type, Tuple<Func<object, Task>, bool>> packetHandlers = new Dictionary<Type, Tuple<Func<object, Task>, bool>>();
 
         public SocketMessageLayer(SimpleSocket context, bool isServer)
         {
@@ -41,15 +41,23 @@ namespace Xenko.Engine.Network
             {
                 packetCompletionTasks.Add(query.StreamId, tcs);
             }
-            await Send(query);
-            return await tcs.Task;
+            await Send(query).ConfigureAwait(false);
+            return await tcs.Task.ConfigureAwait(false);
         }
 
         public void AddPacketHandler<T>(Action<T> handler, bool oneTime = false)
         {
             lock (packetHandlers)
             {
-                packetHandlers.Add(typeof(T), Tuple.Create<Action<object>, bool>((obj) => handler((T)obj), oneTime));
+                packetHandlers.Add(typeof(T), Tuple.Create<Func<object, Task>, bool>((obj) => { handler((T)obj); return Task.FromResult(true); }, oneTime));
+            }
+        }
+
+        public void AddPacketHandler<T>(Func<T, Task> asyncHandler, bool oneTime = false)
+        {
+            lock (packetHandlers)
+            {
+                packetHandlers.Add(typeof(T), Tuple.Create<Func<object, Task>, bool>((obj) => asyncHandler((T)obj), oneTime));
             }
         }
 
@@ -63,12 +71,12 @@ namespace Xenko.Engine.Network
             var memoryBuffer = memoryStream.ToArray();
 
             // Make sure everything is sent at once
-            await sendLock.WaitAsync();
+            await sendLock.WaitAsync().ConfigureAwait(false);
             try
             {
-                await context.WriteStream.WriteInt32Async((int)memoryStream.Length);
-                await context.WriteStream.WriteAsync(memoryBuffer, 0, (int)memoryStream.Length);
-                await context.WriteStream.FlushAsync();
+                await context.WriteStream.WriteInt32Async((int)memoryStream.Length).ConfigureAwait(false);
+                await context.WriteStream.WriteAsync(memoryBuffer, 0, (int)memoryStream.Length).ConfigureAwait(false);
+                await context.WriteStream.FlushAsync().ConfigureAwait(false);
             }
             finally
             {
@@ -105,7 +113,7 @@ namespace Xenko.Engine.Network
 
                     // Check if there is a specific handler for this packet type
                     bool handlerFound;
-                    Tuple<Action<object>, bool> handler;
+                    Tuple<Func<object, Task>, bool> handler;
                     lock (packetHandlers)
                     {
                         handlerFound = packetHandlers.TryGetValue(obj.GetType(), out handler);
@@ -121,7 +129,7 @@ namespace Xenko.Engine.Network
                     {
                         try
                         {
-                            handler.Item1(obj);
+                            await handler.Item1(obj);
                         }
                         catch (Exception ex)
                         {

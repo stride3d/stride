@@ -100,6 +100,12 @@ namespace Xenko.Games
         public abstract bool IsMinimized { get; }
 
         /// <summary>
+        /// Gets a value indicating whether this instance is in focus.
+        /// </summary>
+        /// <value><c>true</c> if this instance is in focus; otherwise, <c>false</c>.</value>
+        public abstract bool Focused { get; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the mouse pointer is visible over this window.
         /// </summary>
         /// <value><c>true</c> if this instance is mouse visible; otherwise, <c>false</c>.</value>

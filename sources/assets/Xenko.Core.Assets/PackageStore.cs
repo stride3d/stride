@@ -320,13 +320,6 @@ namespace Xenko.Core.Assets
                 throw new InvalidOperationException("Metadata loaded from nuspec cannot have more than one group of dependency");
             }
 
-            // Load dependencies
-            meta.Dependencies.Clear();
-            foreach (var dependency in metadata.Dependencies)
-            {
-                meta.Dependencies.Add(new PackageDependency(dependency.Item1, dependency.Item2));
-            }
-
             return meta;
         }
 
@@ -348,11 +341,6 @@ namespace Xenko.Core.Assets
             manifestMeta.Summary = meta.Summary.SafeTrim();
             manifestMeta.ReleaseNotes = meta.ReleaseNotes.SafeTrim();
             manifestMeta.Language = meta.Language.SafeTrim();
-
-            foreach (var dependency in meta.Dependencies)
-            {
-                manifestMeta.AddDependency(dependency.Name, dependency.Version);
-            }
         }
 
         private static string ConvertUrlToStringSafe(Uri url)

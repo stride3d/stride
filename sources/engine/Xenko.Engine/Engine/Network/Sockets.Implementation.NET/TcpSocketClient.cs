@@ -61,12 +61,12 @@ namespace Sockets.Plugin
         {
             RemoteAddress = address;
             RemotePort = port;
-            await _backingTcpClient.ConnectAsync(address, port);
+            await _backingTcpClient.ConnectAsync(address, port).ConfigureAwait(false);
             InitializeWriteStream();
             if (secure)
             {
                 var secureStream = new SslStream(_writeStream, true, (sender, cert, chain, sslPolicy) => ServerValidationCallback(sender, cert, chain, sslPolicy));
-                await secureStream.AuthenticateAsClientAsync(address, null, System.Security.Authentication.SslProtocols.Tls, false);
+                await secureStream.AuthenticateAsClientAsync(address, null, System.Security.Authentication.SslProtocols.Tls, false).ConfigureAwait(false);
                 _secureStream = secureStream;
             }            
         }

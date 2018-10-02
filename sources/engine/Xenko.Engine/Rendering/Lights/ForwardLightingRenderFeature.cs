@@ -146,10 +146,10 @@ namespace Xenko.Rendering.Lights
             // Track changes
             lightRenderers.CollectionChanged += LightRenderers_CollectionChanged;
 
-            renderEffectKey = ((RootEffectRenderFeature)rootRenderFeature).RenderEffectKey;
+            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
 
-            viewLightingKey = ((RootEffectRenderFeature)rootRenderFeature).CreateViewLogicalGroup("Lighting");
-            drawLightingKey = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawLogicalGroup("Lighting");
+            viewLightingKey = ((RootEffectRenderFeature)RootRenderFeature).CreateViewLogicalGroup("Lighting");
+            drawLightingKey = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawLogicalGroup("Lighting");
         }
 
         protected override void Destroy()
@@ -191,15 +191,15 @@ namespace Xenko.Rendering.Lights
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
-            var renderEffects = rootRenderFeature.RenderData.GetData(renderEffectKey);
-            int effectSlotCount = ((RootEffectRenderFeature)rootRenderFeature).EffectPermutationSlotCount;
+            var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
+            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
 
             ignoredEffectSlots.Clear();
             if (ShadowMapRenderer != null)
             {
                 foreach (var lightShadowMapRenderer in ShadowMapRenderer.Renderers)
                 {
-                    var shadowMapEffectSlot = lightShadowMapRenderer != null ? ((RootEffectRenderFeature)rootRenderFeature).GetEffectPermutationSlot(lightShadowMapRenderer.ShadowCasterRenderStage) : EffectPermutationSlot.Invalid;
+                    var shadowMapEffectSlot = lightShadowMapRenderer != null ? ((RootEffectRenderFeature)RootRenderFeature).GetEffectPermutationSlot(lightShadowMapRenderer.ShadowCasterRenderStage) : EffectPermutationSlot.Invalid;
                     ignoredEffectSlots.Add(shadowMapEffectSlot.Index);
                 }
             }
@@ -278,7 +278,7 @@ namespace Xenko.Rendering.Lights
             var directLightShaders = GetReadonlyShaderSources(shaderPermutation.DirectLightShaders);
             var environmentLightShaders = GetReadonlyShaderSources(shaderPermutation.EnvironmentLightShaders);
 
-            Dispatcher.ForEach(rootRenderFeature.RenderObjects, renderObject =>
+            Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
             {
                 var renderMesh = (RenderMesh)renderObject;
 
@@ -328,7 +328,7 @@ namespace Xenko.Rendering.Lights
         {
             foreach (var view in RenderSystem.Views)
             {
-                var viewFeature = view.Features[rootRenderFeature.Index];
+                var viewFeature = view.Features[RootRenderFeature.Index];
 
                 RenderViewLightData renderViewData;
                 if (!renderViewDatas.TryGetValue(view.LightingView ?? view, out renderViewData) || viewFeature.Layouts.Count == 0)
@@ -405,7 +405,7 @@ namespace Xenko.Rendering.Lights
                 // PerDraw
                 Dispatcher.ForEach(viewFeature.RenderNodes, () => prepareThreadLocals.Value, (renderNodeReference, locals) =>
                 {
-                    var renderNode = rootRenderFeature.GetRenderNode(renderNodeReference);
+                    var renderNode = RootRenderFeature.GetRenderNode(renderNodeReference);
 
                     // Ignore fallback effects
                     if (renderNode.RenderEffect.State != RenderEffectState.Normal)
@@ -456,7 +456,7 @@ namespace Xenko.Rendering.Lights
             if (currentRenderView == renderView)
                 return;
 
-            var viewFeature = renderView.Features[rootRenderFeature.Index];
+            var viewFeature = renderView.Features[RootRenderFeature.Index];
 
             RenderViewLightData renderViewData;
             if (!renderViewDatas.TryGetValue(renderView.LightingView ?? renderView, out renderViewData) || viewFeature.Layouts.Count == 0)

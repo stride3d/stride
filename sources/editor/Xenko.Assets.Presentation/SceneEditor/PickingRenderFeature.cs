@@ -17,19 +17,19 @@ namespace Xenko.Assets.Presentation.SceneEditor
         /// <inheritdoc/>
         protected override void InitializeCore()
         {
-            renderObjectInfoKey = rootRenderFeature.RenderData.CreateObjectKey<PickingObjectInfo>();
+            renderObjectInfoKey = RootRenderFeature.RenderData.CreateObjectKey<PickingObjectInfo>();
 
-            pickingData = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(PickingShaderKeys.PickingData.Name);
+            pickingData = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(PickingShaderKeys.PickingData.Name);
         }
 
         /// <inheritdoc/>
         public override void Extract()
         {
-            var modelObjectInfo = rootRenderFeature.RenderData.GetData(renderObjectInfoKey);
+            var modelObjectInfo = RootRenderFeature.RenderData.GetData(renderObjectInfoKey);
 
-            foreach (var objectNodeReference in rootRenderFeature.ObjectNodeReferences)
+            foreach (var objectNodeReference in RootRenderFeature.ObjectNodeReferences)
             {
-                var objectNode = rootRenderFeature.GetObjectNode(objectNodeReference);
+                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = objectNode.RenderObject as RenderMesh;
                 if (renderMesh == null)
                     continue;
@@ -51,9 +51,9 @@ namespace Xenko.Assets.Presentation.SceneEditor
         /// <inheritdoc/>
         public unsafe override void Prepare(RenderDrawContext context)
         {
-            var renderObjectInfo = rootRenderFeature.RenderData.GetData(renderObjectInfoKey);
+            var renderObjectInfo = RootRenderFeature.RenderData.GetData(renderObjectInfoKey);
 
-            foreach (var renderNode in ((RootEffectRenderFeature)rootRenderFeature).RenderNodes)
+            foreach (var renderNode in ((RootEffectRenderFeature)RootRenderFeature).RenderNodes)
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
                 if (perDrawLayout == null)

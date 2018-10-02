@@ -110,7 +110,7 @@ namespace Xenko.Input
         {
             get
             {
-                if (!HasMouse) return NoKeys;
+                if (!HasKeyboard) return NoKeys;
                 return Keyboard.PressedKeys;
             }
         }
@@ -122,7 +122,7 @@ namespace Xenko.Input
         {
             get
             {
-                if (!HasMouse) return NoKeys;
+                if (!HasKeyboard) return NoKeys;
                 return Keyboard.ReleasedKeys;
             }
         }
@@ -134,7 +134,7 @@ namespace Xenko.Input
         {
             get
             {
-                if (!HasMouse) return NoKeys;
+                if (!HasKeyboard) return NoKeys;
                 return Keyboard.DownKeys;
             }
         }

@@ -13,7 +13,7 @@ namespace Xenko.Engine.Network
         {
             while (size > 0)
             {
-                int read = await socket.ReadAsync(buffer, offset, size);
+                int read = await socket.ReadAsync(buffer, offset, size).ConfigureAwait(false);
                 if (read == 0)
                     throw new IOException("Socket closed");
                 size -= read;
@@ -24,26 +24,26 @@ namespace Xenko.Engine.Network
         public static async Task WriteInt32Async(this Stream socket, int value)
         {
             var buffer = BitConverter.GetBytes(value);
-            await socket.WriteAsync(buffer, 0, sizeof(int));
+            await socket.WriteAsync(buffer, 0, sizeof(int)).ConfigureAwait(false);
         }
 
         public static async Task<int> ReadInt32Async(this Stream socket)
         {
             var buffer = new byte[sizeof(int)];
-            await socket.ReadAllAsync(buffer, 0, sizeof(int));
+            await socket.ReadAllAsync(buffer, 0, sizeof(int)).ConfigureAwait(false);
             return BitConverter.ToInt32(buffer, 0);
         }
 
         public static async Task WriteInt16Async(this Stream socket, short value)
         {
             var buffer = BitConverter.GetBytes(value);
-            await socket.WriteAsync(buffer, 0, sizeof(short));
+            await socket.WriteAsync(buffer, 0, sizeof(short)).ConfigureAwait(false);
         }
 
         public static async Task<short> ReadInt16Async(this Stream socket)
         {
             var buffer = new byte[sizeof(short)];
-            await socket.ReadAllAsync(buffer, 0, sizeof(short));
+            await socket.ReadAllAsync(buffer, 0, sizeof(short)).ConfigureAwait(false);
             return BitConverter.ToInt16(buffer, 0);
         }
 
@@ -60,7 +60,7 @@ namespace Xenko.Engine.Network
             }
             buffer[bufferLength++] = (byte)v;
 
-            await socket.WriteAsync(buffer, 0, bufferLength);
+            await socket.WriteAsync(buffer, 0, bufferLength).ConfigureAwait(false);
         }
 
         public static async Task<int> Read7BitEncodedInt(this Stream socket)
@@ -80,7 +80,7 @@ namespace Xenko.Engine.Network
                     throw new FormatException("Bad string length. 7bit Int32 format");
 
                 // ReadByte handles end of stream cases for us.
-                if (await socket.ReadAsync(buffer, 0, 1) != 1)
+                if (await socket.ReadAsync(buffer, 0, 1).ConfigureAwait(false) != 1)
                     throw new IOException("Socket closed");
 
                 b = buffer[0];
@@ -93,15 +93,15 @@ namespace Xenko.Engine.Network
         public static async Task WriteStringAsync(this Stream socket, string value)
         {
             var buffer = System.Text.Encoding.UTF8.GetBytes(value);
-            await Write7BitEncodedInt(socket, buffer.Length);
-            await socket.WriteAsync(buffer, 0, buffer.Length);
+            await Write7BitEncodedInt(socket, buffer.Length).ConfigureAwait(false);
+            await socket.WriteAsync(buffer, 0, buffer.Length).ConfigureAwait(false);
         }
 
         public static async Task<string> ReadStringAsync(this Stream socket)
         {
             var bufferSize = await Read7BitEncodedInt(socket);
             var buffer = new byte[bufferSize];
-            await ReadAllAsync(socket, buffer, 0, buffer.Length);
+            await ReadAllAsync(socket, buffer, 0, buffer.Length).ConfigureAwait(false);
 
             return System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
         }
@@ -109,13 +109,13 @@ namespace Xenko.Engine.Network
         public static async Task WriteGuidAsync(this Stream socket, Guid guid)
         {
             var guidBuffer = guid.ToByteArray();
-            await socket.WriteAsync(guidBuffer, 0, guidBuffer.Length);
+            await socket.WriteAsync(guidBuffer, 0, guidBuffer.Length).ConfigureAwait(false);
         }
 
         public static async Task<Guid> ReadGuidAsync(this Stream socket)
         {
             var guidBuffer = new byte[16];
-            await socket.ReadAllAsync(guidBuffer, 0, guidBuffer.Length);
+            await socket.ReadAllAsync(guidBuffer, 0, guidBuffer.Length).ConfigureAwait(false);
             return new Guid(guidBuffer);
         }
     }

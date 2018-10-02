@@ -94,21 +94,21 @@ namespace Xenko.Rendering.Materials
         {
             base.InitializeCore();
 
-            renderEffectKey = ((RootEffectRenderFeature)rootRenderFeature).RenderEffectKey;
-            tessellationStateKey = rootRenderFeature.RenderData.CreateStaticObjectKey<TessellationState>();
+            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
+            tessellationStateKey = RootRenderFeature.RenderData.CreateStaticObjectKey<TessellationState>();
 
-            perMaterialDescriptorSetSlot = ((RootEffectRenderFeature)rootRenderFeature).GetOrCreateEffectDescriptorSetSlot("PerMaterial");
+            perMaterialDescriptorSetSlot = ((RootEffectRenderFeature)RootRenderFeature).GetOrCreateEffectDescriptorSetSlot("PerMaterial");
         }
 
         /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
-            var renderEffects = rootRenderFeature.RenderData.GetData(renderEffectKey);
-            var tessellationStates = rootRenderFeature.RenderData.GetData(tessellationStateKey);
-            int effectSlotCount = ((RootEffectRenderFeature)rootRenderFeature).EffectPermutationSlotCount;
+            var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
+            var tessellationStates = RootRenderFeature.RenderData.GetData(tessellationStateKey);
+            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
 
-            Dispatcher.ForEach(rootRenderFeature.RenderObjects, renderObject =>
+            Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
             {
                 var staticObjectNode = renderObject.StaticObjectNode;
 
@@ -269,12 +269,12 @@ namespace Xenko.Rendering.Materials
         public override void Prepare(RenderDrawContext context)
         {
             // Assign descriptor sets to each render node
-            var resourceGroupPool = ((RootEffectRenderFeature)rootRenderFeature).ResourceGroupPool;
+            var resourceGroupPool = ((RootEffectRenderFeature)RootRenderFeature).ResourceGroupPool;
 
-            Dispatcher.For(0, rootRenderFeature.RenderNodes.Count, () => context.RenderContext.GetThreadContext(), (renderNodeIndex, threadContext) =>
+            Dispatcher.For(0, RootRenderFeature.RenderNodes.Count, () => context.RenderContext.GetThreadContext(), (renderNodeIndex, threadContext) =>
             {
                 var renderNodeReference = new RenderNodeReference(renderNodeIndex);
-                var renderNode = rootRenderFeature.RenderNodes[renderNodeIndex];
+                var renderNode = RootRenderFeature.RenderNodes[renderNodeIndex];
                 var renderMesh = (RenderMesh)renderNode.RenderObject;
 
                 // Ignore fallback effects
@@ -294,7 +294,7 @@ namespace Xenko.Rendering.Materials
                 if (!UpdateMaterial(RenderSystem, threadContext, materialInfo, perMaterialDescriptorSetSlot.Index, renderNode.RenderEffect, materialParameters))
                     return;
 
-                var descriptorSetPoolOffset = ((RootEffectRenderFeature)rootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
+                var descriptorSetPoolOffset = ((RootEffectRenderFeature)RootRenderFeature).ComputeResourceGroupOffset(renderNodeReference);
                 resourceGroupPool[descriptorSetPoolOffset + perMaterialDescriptorSetSlot.Index] = materialInfo.Resources;
             });
         }
@@ -303,7 +303,7 @@ namespace Xenko.Rendering.Materials
         {
             if (renderMeshesToGenerateAEN.Count > 0)
             {
-                var tessellationStates = rootRenderFeature.RenderData.GetData(tessellationStateKey);
+                var tessellationStates = RootRenderFeature.RenderData.GetData(tessellationStateKey);
 
                 foreach (var renderMesh in renderMeshesToGenerateAEN)
                 {

@@ -147,7 +147,7 @@
         <MenuItem Command="ApplicationCommands.Open" Icon="{xk:Image {StaticResource ImageOpen}}"/>
         <MenuItem Header="{xk:Localize Open recent, Context=Menu}" Icon="{xk:Image {StaticResource ImageOpen}}" IsEnabled="{Binding MRU.MostRecentlyUsedFiles.Count, Converter={xk:NumericToBool}}">
           <!-- IsCheckable=True is a hack to prevent WPF from clearing the selected sub menu item -->
-          <MenuItem ItemsSource="{Binding MRU.MostRecentlyUsedFiles, Converter={xk:Take}, ConverterParameter={xk:Int 10}}" IsCheckable="True">
+          <MenuItem ItemsSource="{Binding RecentFiles}" IsCheckable="True">
             <MenuItem.ItemTemplate>
               <DataTemplate>
                 <Grid HorizontalAlignment="Stretch" ToolTip="{Binding FilePath, Converter={xk:UFileToString}, Mode=OneWay}">
@@ -312,7 +312,7 @@
           <Menu Background="Transparent" Margin="0"
                 ToolTip="{xk:Localize Open recent, Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Status}" ToolTipService.ShowOnDisabled="True"
                 ToolTipService.IsEnabled="{Binding ElementName=MRUMenu, Path=IsSubmenuOpen, Converter={xk:InvertBool}}">
-            <MenuItem x:Name="MRUMenu" ItemsSource="{Binding MRU.MostRecentlyUsedFiles, Converter={xk:Take}, ConverterParameter={xk:Int 10}}" Style="{StaticResource ToolBarDropDownMenuItemStyle}">
+            <MenuItem x:Name="MRUMenu" ItemsSource="{Binding RecentFiles}" Style="{StaticResource ToolBarDropDownMenuItemStyle}">
               <MenuItem.ItemTemplate>
                 <DataTemplate>
                   <Grid HorizontalAlignment="Stretch" ToolTip="{Binding FilePath, Converter={xk:UFileToString}, Mode=OneWay}">

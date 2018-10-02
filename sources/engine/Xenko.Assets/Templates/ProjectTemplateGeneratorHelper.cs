@@ -68,6 +68,8 @@ namespace Xenko.Assets.Templates
             var package = packageParameters.Package;
             var name = packageParameters.Name;
 
+            var addedProjects = new List<SolutionProject>();
+
             // Adjust output directory
             var parameters = new SessionTemplateGeneratorParameters
             {
@@ -144,7 +146,7 @@ namespace Xenko.Assets.Templates
 
                 package.Session.IsDirty = true;
 
-                yield return newExeProject;
+                addedProjects.Add(newExeProject);
             }
 
             foreach (var project in projectsToRemove)
@@ -166,6 +168,8 @@ namespace Xenko.Assets.Templates
                 package.Session.Projects.Remove(project);
                 package.Session.IsDirty = true;
             }
+
+            return addedProjects;
         }
 
         public static UFile GeneratePlatformProjectLocation(string name, Package package, SolutionPlatform platform)
