@@ -324,6 +324,29 @@ namespace Xenko.GameStudio
                 return;
 
             var gameSettingsAsset = startupPackage.Assets.FirstOrDefault(x => x.Url == Assets.GameSettingsAsset.GameSettingsLocation);
+            if (gameSettingsAsset == null)
+            {
+                // Scan dependencies for game settings
+                // TODO: Scanning order? (direct dependencies first)
+                // TODO: Switch to using startupPackage.Dependencies view model instead
+                foreach (var dependency in startupPackage.PackageContainer.FlattenedDependencies)
+                {
+                    if (dependency.Package == null)
+                        continue;
+
+                    var dependencyPackageViewModel = session.AllPackages.First(x => x.Package == dependency.Package);
+                    if (dependencyPackageViewModel == null)
+                        continue;
+
+                    gameSettingsAsset = dependencyPackageViewModel.Assets.FirstOrDefault(x => x.Url == Assets.GameSettingsAsset.GameSettingsLocation);
+                    if (gameSettingsAsset != null)
+                        break;
+                }
+            }
+
+            if (gameSettingsAsset == null)
+                return;
+
             var defaultScene = ((Assets.GameSettingsAsset)gameSettingsAsset?.Asset)?.DefaultScene;
             if (defaultScene == null)
                 return;

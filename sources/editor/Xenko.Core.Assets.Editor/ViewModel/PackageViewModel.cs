@@ -186,7 +186,8 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         public bool IsInScope(AssetViewModel asset)
         {
             var assetPackage = asset.Directory.Package;
-            return assetPackage == this || Dependencies.Content.Any(x => x.Target == assetPackage);
+            // Note: Would be better to switch to Dependencies view model as soon as we have FlattenedDependencies in those
+            return assetPackage == this || Package.Container.FlattenedDependencies.Any(x => x.Package == assetPackage.Package);
         }
 
         /// <summary>
