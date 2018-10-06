@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Xenko.Core;
+using Xenko.Core.Annotations;
 using Xenko.Core.Collections;
 using Xenko.Core.Diagnostics;
 
@@ -43,13 +44,30 @@ namespace Xenko.Engine
         /// </summary>
         /// <typeparam name="T">Type of the component</typeparam>
         /// <returns>The first component or null if it was not found</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [CanBeNull, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Get<T>() where T : EntityComponent
         {
             for (int i = 0; i < Count; i++)
             {
-                var item = this[i] as T;
-                if (item != null)
+                if (this[i] is T item)
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the first component implementing the specified class, derived type or interface.
+        /// </summary>
+        /// <typeparam name="T">Type of the implementation</typeparam>
+        /// <returns>The first component or null if it was not found</returns>
+        [CanBeNull, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T GetImplementing<T>() where T : class
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if ((object)this[i] is T item)
                 {
                     return item;
                 }
@@ -70,15 +88,14 @@ namespace Xenko.Engine
         /// <li>if index &lt; 0, it will start from the end of the list to the beginning. A value of -1 means the first last component.</li>
         /// </ul>
         /// </remarks>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [CanBeNull, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Get<T>(int index) where T : EntityComponent
         {
             if (index < 0)
             {
                 for (int i = Count - 1; i >= 0; i--)
                 {
-                    var item = this[i] as T;
-                    if (item != null && ++index == 0)
+                    if (this[i] is T item && ++index == 0)
                     {
                         return item;
                     }
@@ -88,8 +105,46 @@ namespace Xenko.Engine
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    var item = this[i] as T;
-                    if (item != null && index-- == 0)
+                    if (this[i] is T item && index-- == 0)
+                    {
+                        return item;
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Gets the index'th component of the specified class, derived type or interface.
+        /// </summary>
+        /// <typeparam name="T">Type of the implementation</typeparam>
+        /// <param name="index">Index of the component of the same type</param>
+        /// <returns>The component or null if it was not found</returns>
+        /// <remarks>
+        /// <ul>
+        /// <li>If index &gt; 0, it will take the index'th component of the specified <typeparamref name="T"/>.</li>
+        /// <li>An index == 0 is equivalent to calling <see cref="Get{T}()"/></li>
+        /// <li>if index &lt; 0, it will start from the end of the list to the beginning. A value of -1 means the first last component.</li>
+        /// </ul>
+        /// </remarks>
+        [CanBeNull, MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T GetImplementing<T>(int index) where T : class
+        {
+            if (index < 0)
+            {
+                for (int i = Count - 1; i >= 0; i--)
+                {
+                    if ((object)this[i] is T item && ++index == 0)
+                    {
+                        return item;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < Count; i++)
+                {
+                    if ((object)this[i] is T item && index-- == 0)
                     {
                         return item;
                     }
@@ -105,10 +160,19 @@ namespace Xenko.Engine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Remove<T>() where T : EntityComponent
         {
+            RemoveImplementing<T>();
+        }
+
+        /// <summary>
+        /// Removes the first component of the specified class, derived type or interface.
+        /// </summary>
+        /// <typeparam name="T">Type of the implementation</typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveImplementing<T>() where T : class
+        {
             for (int i = 0; i < Count; i++)
             {
-                var item = this[i] as T;
-                if (item != null)
+                if (this[i] is T)
                 {
                     RemoveAt(i);
                     break;
@@ -123,10 +187,19 @@ namespace Xenko.Engine
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAll<T>() where T : EntityComponent
         {
+            RemoveAllImplementing<T>();
+        }
+
+        /// <summary>
+        /// Removes all components of the specified class, derived type or interface.
+        /// </summary>
+        /// <typeparam name="T">Type of the implementation</typeparam>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveAllImplementing<T>() where T : class
+        {
             for (int i = Count - 1; i >= 0; i--)
             {
-                var item = this[i] as T;
-                if (item != null)
+                if (this[i] is T)
                 {
                     RemoveAt(i);
                 }
@@ -143,8 +216,24 @@ namespace Xenko.Engine
         {
             for (int i = 0; i < Count; i++)
             {
-                var item = this[i] as T;
-                if (item != null)
+                if (this[i] is T item)
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets all the components of the specified class, derived type or interface.
+        /// </summary>
+        /// <typeparam name="T">Type of the implementation</typeparam>
+        /// <returns>An iterator on the component matching the specified type</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IEnumerable<T> GetAllImplementing<T>() where T : class
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if ((object)this[i] is T item)
                 {
                     yield return item;
                 }
@@ -242,8 +331,7 @@ namespace Xenko.Engine
 
             if (entity != null)
             {
-                var transform = item as TransformComponent;
-                if (transform != null)
+                if (item is TransformComponent transform)
                 {
                     entity.TransformValue = transform;
                 }

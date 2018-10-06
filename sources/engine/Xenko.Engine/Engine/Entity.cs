@@ -165,10 +165,21 @@ namespace Xenko.Engine
         /// </summary>
         /// <typeparam name="T">Type of the component</typeparam>
         /// <returns>The component or null if does no exist</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [CanBeNull, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Get<T>() where T : EntityComponent
         {
             return Components.Get<T>();
+        }
+
+        /// <summary>
+        /// Gets the first component implementing the specified class, derived type or interface.
+        /// </summary>
+        /// <typeparam name="T">Type of the implementation</typeparam>
+        /// <returns>The first component or null if it was not found</returns>
+        [CanBeNull, MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public T GetImplementing<T>() where T : class
+        {
+            return Components.GetImplementing<T>();
         }
 
         /// <summary>
@@ -184,10 +195,29 @@ namespace Xenko.Engine
         /// <li>if index &lt; 0, it will start from the end of the list to the beginning. A value of -1 means the first last component.</li>
         /// </ul>
         /// </remarks>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [CanBeNull, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Get<T>(int index) where T : EntityComponent
         {
             return Components.Get<T>(index);
+        }
+
+        /// <summary>
+        /// Gets the index'th component of the specified class, derived type or interface.
+        /// </summary>
+        /// <typeparam name="T">Type of the implementation</typeparam>
+        /// <param name="index">Index of the component of the same type</param>
+        /// <returns>The component or null if it was not found</returns>
+        /// <remarks>
+        /// <ul>
+        /// <li>If index &gt; 0, it will take the index'th component of the specified <typeparamref name="T"/>.</li>
+        /// <li>An index == 0 is equivalent to calling <see cref="Get{T}()"/></li>
+        /// <li>if index &lt; 0, it will start from the end of the list to the beginning. A value of -1 means the first last component.</li>
+        /// </ul>
+        /// </remarks>
+        [CanBeNull, MethodImpl( MethodImplOptions.AggressiveInlining)]
+        public T GetImplementing<T>(int index) where T : class
+        {
+            return Components.GetImplementing<T>(index);
         }
 
         /// <summary>
@@ -202,6 +232,17 @@ namespace Xenko.Engine
         }
 
         /// <summary>
+        /// Gets all the components of the specified class, derived type or interface.
+        /// </summary>
+        /// <typeparam name="T">Type of the implementation</typeparam>
+        /// <returns>An iterator on the component matching the specified type</returns>
+        [MethodImpl( MethodImplOptions.AggressiveInlining)]
+        public IEnumerable<T> GetAllImplementing<T>() where T : class
+        {
+            return Components.GetAllImplementing<T>();
+        }
+
+        /// <summary>
         /// Removes the first component of the specified type or derived type.
         /// </summary>
         /// <typeparam name="T">Type of the component</typeparam>
@@ -209,6 +250,16 @@ namespace Xenko.Engine
         public void Remove<T>() where T : EntityComponent
         {
             Components.Remove<T>();
+        }
+
+        /// <summary>
+        /// Removes the first component of the specified class, derived type or interface.
+        /// </summary>
+        /// <typeparam name="T">Type of the implementation</typeparam>
+        [MethodImpl( MethodImplOptions.AggressiveInlining)]
+        public void RemoveImplementing<T>() where T : class
+        {
+            Components.RemoveImplementing<T>();
         }
 
         /// <summary>
@@ -228,6 +279,16 @@ namespace Xenko.Engine
         public void RemoveAll<T>() where T : EntityComponent
         {
             Components.RemoveAll<T>();
+        }
+
+        /// <summary>
+        /// Removes all components of the specified class, derived type or interface.
+        /// </summary>
+        /// <typeparam name="T">Type of the implementation</typeparam>
+        [MethodImpl( MethodImplOptions.AggressiveInlining)]
+        public void RemoveAllImplementing<T>() where T : class
+        {
+            Components.RemoveAllImplementing<T>();
         }
 
         internal void OnComponentChanged(int index, EntityComponent oldComponent, EntityComponent newComponent)
