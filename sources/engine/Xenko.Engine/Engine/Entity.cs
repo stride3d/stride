@@ -176,7 +176,7 @@ namespace Xenko.Engine
         /// </summary>
         /// <typeparam name="T">Type of the implementation</typeparam>
         /// <returns>The first component or null if it was not found</returns>
-        [CanBeNull, MethodImpl( MethodImplOptions.AggressiveInlining )]
+        [CanBeNull, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T GetImplementing<T>() where T : class
         {
             return Components.GetImplementing<T>();
@@ -214,7 +214,7 @@ namespace Xenko.Engine
         /// <li>if index &lt; 0, it will start from the end of the list to the beginning. A value of -1 means the first last component.</li>
         /// </ul>
         /// </remarks>
-        [CanBeNull, MethodImpl( MethodImplOptions.AggressiveInlining)]
+        [CanBeNull, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T GetImplementing<T>(int index) where T : class
         {
             return Components.GetImplementing<T>(index);
@@ -236,7 +236,7 @@ namespace Xenko.Engine
         /// </summary>
         /// <typeparam name="T">Type of the implementation</typeparam>
         /// <returns>An iterator on the component matching the specified type</returns>
-        [MethodImpl( MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public IEnumerable<T> GetAllImplementing<T>() where T : class
         {
             return Components.GetAllImplementing<T>();
@@ -256,7 +256,7 @@ namespace Xenko.Engine
         /// Removes the first component of the specified class, derived type or interface.
         /// </summary>
         /// <typeparam name="T">Type of the implementation</typeparam>
-        [MethodImpl( MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveImplementing<T>() where T : class
         {
             Components.RemoveImplementing<T>();
@@ -285,7 +285,7 @@ namespace Xenko.Engine
         /// Removes all components of the specified class, derived type or interface.
         /// </summary>
         /// <typeparam name="T">Type of the implementation</typeparam>
-        [MethodImpl( MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RemoveAllImplementing<T>() where T : class
         {
             Components.RemoveAllImplementing<T>();
