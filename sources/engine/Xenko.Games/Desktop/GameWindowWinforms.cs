@@ -379,7 +379,7 @@ namespace Xenko.Games
             {
                 if (form != null)
                 {
-                    return form.Focused;
+                    return form.ContainsFocus;
                 }
                 // Check for non-form control
                 return false;
