@@ -35,26 +35,26 @@ namespace Xenko.Rendering
         /// <inheritdoc/>
         protected override void InitializeCore()
         {
-            renderModelObjectInfoKey = rootRenderFeature.RenderData.CreateObjectKey<Matrix[]>();
-            skinningInfoKey = rootRenderFeature.RenderData.CreateStaticObjectKey<SkinningInfo>();
-            renderEffectKey = ((RootEffectRenderFeature)rootRenderFeature).RenderEffectKey;
+            renderModelObjectInfoKey = RootRenderFeature.RenderData.CreateObjectKey<Matrix[]>();
+            skinningInfoKey = RootRenderFeature.RenderData.CreateStaticObjectKey<SkinningInfo>();
+            renderEffectKey = ((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey;
 
-            blendMatrices = ((RootEffectRenderFeature)rootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationSkinningKeys.BlendMatrixArray.Name);
+            blendMatrices = ((RootEffectRenderFeature)RootRenderFeature).CreateDrawCBufferOffsetSlot(TransformationSkinningKeys.BlendMatrixArray.Name);
         }
 
         /// <param name="context"></param>
         /// <inheritdoc/>
         public override void PrepareEffectPermutations(RenderDrawContext context)
         {
-            var skinningInfos = rootRenderFeature.RenderData.GetData(skinningInfoKey);
+            var skinningInfos = RootRenderFeature.RenderData.GetData(skinningInfoKey);
 
-            var renderEffects = rootRenderFeature.RenderData.GetData(renderEffectKey);
-            int effectSlotCount = ((RootEffectRenderFeature)rootRenderFeature).EffectPermutationSlotCount;
+            var renderEffects = RootRenderFeature.RenderData.GetData(renderEffectKey);
+            int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
 
             //foreach (var objectNodeReference in RootRenderFeature.ObjectNodeReferences)
-            Dispatcher.ForEach(((RootEffectRenderFeature)rootRenderFeature).ObjectNodeReferences, objectNodeReference =>
+            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).ObjectNodeReferences, objectNodeReference =>
             {
-                var objectNode = rootRenderFeature.GetObjectNode(objectNodeReference);
+                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = (RenderMesh)objectNode.RenderObject;
                 var staticObjectNode = renderMesh.StaticObjectNode;
 
@@ -95,11 +95,11 @@ namespace Xenko.Rendering
         /// <inheritdoc/>
         public override void Extract()
         {
-            var renderModelObjectInfo = rootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
+            var renderModelObjectInfo = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
 
-            Dispatcher.ForEach(rootRenderFeature.ObjectNodeReferences, objectNodeReference =>
+            Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, objectNodeReference =>
             {
-                var objectNode = rootRenderFeature.GetObjectNode(objectNodeReference);
+                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
                 var renderMesh = (RenderMesh)objectNode.RenderObject;
 
                 // TODO GRAPHICS REFACTOR: Extract copy of matrices
@@ -110,9 +110,9 @@ namespace Xenko.Rendering
         /// <inheritdoc/>
         public override unsafe void Prepare(RenderDrawContext context)
         {
-            var renderModelObjectInfoData = rootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
+            var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
 
-            Dispatcher.ForEach(((RootEffectRenderFeature)rootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
+            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
             {
                 var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
                 if (perDrawLayout == null)

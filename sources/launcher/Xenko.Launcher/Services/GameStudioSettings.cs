@@ -35,16 +35,15 @@ namespace Xenko.LauncherApp.Services
 
         static GameStudioSettings()
         {
-            MRU = new MostRecentlyUsedFileCollection(() => InternalSettingsContainer.LoadSettingsProfile(GetLatestInternalConfigPath(), false, null, false), MostRecentlyUsedSessionsKey, null, null, true);
+            MRU = new MostRecentlyUsedFileCollection(() => InternalSettingsContainer.LoadSettingsProfile(GetLatestInternalConfigPath(), false, null, false), MostRecentlyUsedSessionsKey, () => InternalSettingsContainer.SaveSettingsProfile(InternalSettingsContainer.CurrentProfile, GetLatestInternalConfigPath()));
             MostRecentlyUsedSessionsKey.FallbackDeserializers.Add(LegacyMRUDeserializer);
             InternalSettingsContainer.LoadSettingsProfile(GetLatestInternalConfigPath(), true);
             InternalSettingsContainer.CurrentProfile.MonitorFileModification = true;
-            InternalSettingsContainer.CurrentProfile.FileModified += (sender, e) => e.ReloadFile = true;
-            InternalSettingsContainer.SettingsFileLoaded += GameStudioSettingsFileReloaded;
+            InternalSettingsContainer.CurrentProfile.FileModified += (sender, e) => { GameStudioSettingsFileChanged(sender, e); };
             GameStudioProfile = GameStudioSettingsContainer.LoadSettingsProfile(GetLatestGameStudioConfigPath(), true);
             UpdateMostRecentlyUsed();
         }
-            
+
         public static event EventHandler<EventArgs> RecentProjectsUpdated;
 
         public static string CrashReportEmail
@@ -92,9 +91,19 @@ namespace Xenko.LauncherApp.Services
             return result;
         }
 
-        private static void GameStudioSettingsFileReloaded(object sender, SettingsFileLoadedEventArgs e)
+        private static void GameStudioSettingsFileChanged(object sender, FileModifiedEventArgs e)
         {
+            e.ReloadFile = true;
             UpdateMostRecentlyUsed();
+        }
+
+        public static void RemoveMostRecentlyUsed(UFile filePath, string xenkoVersion)
+        {
+            lock (LockObject)
+            {
+                MRU.RemoveFile(filePath, xenkoVersion);
+                UpdateMostRecentlyUsed();
+            }
         }
 
         private static void UpdateMostRecentlyUsed()

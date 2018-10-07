@@ -45,7 +45,7 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
 
         protected abstract string UpdateNameFromSelectedTemplate();
 
-        private void UpdateTemplateList()
+        protected void UpdateTemplateList()
         {
             templates.Clear();
             if (SelectedGroup != null)

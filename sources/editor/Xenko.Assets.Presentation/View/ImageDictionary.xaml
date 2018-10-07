@@ -25,9 +25,9 @@
   <DrawingImage x:Key="ImageDown" >
     <DrawingImage.Drawing>
       <DrawingGroup>
-        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M16,16L0,16 0,0 16,0z" />
-        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M7.6716,-0.000199999999999534L0.3786,7.2938 3.2066,10.1208 6.0006,7.3288 6.0006,15.9998 9.9996,15.9998 9.9996,7.3288 12.7926,10.1208 15.6216,7.2938 8.3276,-0.000199999999999534z" />
-        <GeometryDrawing Brush="#FF00529C" Geometry="F1M12.793,8.707L9,4.914 9,15 7,15 7,4.914 3.207,8.707 1.793,7.293 8,1.086 14.207,7.293z" />
+        <GeometryDrawing Brush="#00FFFFFF" Geometry="F1M0,0L16,0 16,16 0,16z" />
+        <GeometryDrawing Brush="#FFF6F6F6" Geometry="F1M6.0003,-0.000199999999999534L6.0003,8.6718 3.2063,5.8788 0.3793,8.7078 7.6713,15.9998 8.3273,15.9998 15.6213,8.7078 12.7923,5.8788 10.0003,8.6718 10.0003,-0.000199999999999534z" />
+        <GeometryDrawing Brush="#FF00529C" Geometry="F1M3.207,7.293L7,11.086 7,0.999999999999999 9,0.999999999999999 9,11.086 12.793,7.293 14.207,8.707 8,14.914 1.793,8.707z" />
       </DrawingGroup>
     </DrawingImage.Drawing>
   </DrawingImage>

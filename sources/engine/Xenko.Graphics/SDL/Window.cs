@@ -253,6 +253,17 @@ namespace Xenko.Graphics.SDL
         }
 
         /// <summary>
+        /// Is current window focused?
+        /// </summary>
+        public bool Focused
+        {
+            get
+            {
+                return (SDL.SDL_GetWindowFlags(SdlHandle) & (uint)SDL.SDL_WindowFlags.SDL_WINDOW_INPUT_FOCUS) != 0;
+            }
+        }
+
+        /// <summary>
         /// Does current window offer a maximize button?
         /// </summary>
         /// <remarks>Setter is not implemented on SDL, since we do have callers, for the time being, the code does nothing instead of throwing an exception.</remarks>

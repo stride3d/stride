@@ -32,7 +32,7 @@ namespace Xenko.GameStudio
         private readonly List<IDEInfo> availableIDEs;
 
         public GameStudioViewModel([NotNull] IViewModelServiceProvider serviceProvider, MostRecentlyUsedFileCollection mru)
-            : base(serviceProvider, mru, XenkoGameStudio.EditorName)
+            : base(serviceProvider, mru, XenkoGameStudio.EditorName, XenkoGameStudio.EditorVersionMajor)
         {
             Panels = new EditionPanelViewModel(ServiceProvider);
             availableIDEs = new List<IDEInfo> { VisualStudioVersions.DefaultIDE };
@@ -53,7 +53,7 @@ namespace Xenko.GameStudio
         public PreviewViewModel Preview { get => preview; set => SetValue(ref preview, value); }
 
         public DebuggingViewModel Debugging { get => debugging; set => SetValue(ref debugging, value); }
-        
+
         [NotNull]
         public IReadOnlyList<IDEInfo> AvailableIDEs => availableIDEs;
 

@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              xmlns:views="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views"
+             xmlns:providers="clr-namespace:Xenko.Core.Assets.Editor.View.TemplateProviders"
              xmlns:viewModels="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels"
              mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:TemplateDescriptionCollectionViewModel}"
              d:DesignHeight="300" d:DesignWidth="300">
@@ -13,13 +14,50 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="../../../View/CommonResources.xaml"/>
       </ResourceDictionary.MergedDictionaries>
+
+      <providers:DataTypeTemplateSelector x:Key="dataTypeTemplateSelector" >
+        <providers:DataTypeTemplateSelector.TemplateDefinitions>
+          <providers:TemplateDefinition DataType="viewModels:ExistingProjectViewModel">
+            <providers:TemplateDefinition.DataTemplate>
+              <DataTemplate>
+                <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={xk:SumNum}, ConverterParameter={xk:Double -10}}" Margin="0,0,-5,0"  Height="56">
+                  <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
+                  <DockPanel Margin="18,0">
+                    <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
+                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
+                  </DockPanel>
+                  <DockPanel.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="{xk:Localize Show in Explorer, Context=Menu}" Command="{Binding ExploreCommand}" />
+                      <MenuItem Header="{xk:Localize Remove From List, Context=Menu}" Command="{Binding RemoveCommand}" />
+                    </ContextMenu>
+                  </DockPanel.ContextMenu>
+                </DockPanel>
+              </DataTemplate>
+            </providers:TemplateDefinition.DataTemplate>
+          </providers:TemplateDefinition>
+          <providers:TemplateDefinition DataType="viewModels:ITemplateDescriptionViewModel">
+            <providers:TemplateDefinition.DataTemplate>
+              <DataTemplate>
+                <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={xk:SumNum}, ConverterParameter={xk:Double -10}}" Margin="0,0,-5,0"  Height="56">
+                  <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
+                  <DockPanel Margin="18,0">
+                    <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
+                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
+                  </DockPanel>
+                </DockPanel>
+              </DataTemplate>
+            </providers:TemplateDefinition.DataTemplate>
+          </providers:TemplateDefinition>
+        </providers:DataTypeTemplateSelector.TemplateDefinitions>
+      </providers:DataTypeTemplateSelector>
     </ResourceDictionary>
   </UserControl.Resources>
   <views:ObjectBrowserUserControl HierarchyItemsSource="{Binding RootGroups}"
                                   SelectedHierarchyItem="{Binding SelectedGroup, Mode=TwoWay}"
                                   ObjectItemsSource="{Binding Templates}"
                                   SelectedObjectItem="{Binding SelectedTemplate}"
-                                  >
+                                  ObjectItemTemplateSelector="{StaticResource dataTypeTemplateSelector}">
     <views:ObjectBrowserUserControl.HierarchyItemContainerStyle>
       <Style TargetType="xk:TreeViewItem" BasedOn="{StaticResource {x:Type xk:TreeViewItem}}">
         <Setter Property="IsExpanded" Value="True"/>
@@ -41,17 +79,6 @@
         </Setter>
       </Style>
     </views:ObjectBrowserUserControl.ObjectItemContainerStyle>
-    <views:ObjectBrowserUserControl.ObjectItemTemplate>
-      <DataTemplate DataType="viewModels:ITemplateDescriptionViewModel">
-        <DockPanel Width="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}, Converter={xk:SumNum}, ConverterParameter={xk:Double -10}}" Margin="0,0,-5,0"  Height="56">
-          <Image Source="{Binding Icon}" DockPanel.Dock="Left" Width="48" Height="48" Margin="2"/>
-          <DockPanel Margin="18,0">
-            <TextBlock DockPanel.Dock="Top" FontSize="16" Text="{Binding Name}"/>
-            <TextBlock Text="{Binding Description}" TextWrapping="Wrap" TextTrimming="WordEllipsis"/>
-          </DockPanel>
-        </DockPanel>
-      </DataTemplate>
-    </views:ObjectBrowserUserControl.ObjectItemTemplate>
     <views:ObjectBrowserUserControl.ObjectDescriptionTemplate>
       <DataTemplate DataType="viewModels:ITemplateDescriptionViewModel">
         <StackPanel DockPanel.Dock="Top">

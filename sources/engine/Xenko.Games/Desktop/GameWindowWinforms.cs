@@ -373,6 +373,19 @@ namespace Xenko.Games
             }
         }
 
+        public override bool Focused
+        {
+            get
+            {
+                if (form != null)
+                {
+                    return form.ContainsFocus;
+                }
+                // Check for non-form control
+                return false;
+            }
+        }
+
         protected override void Destroy()
         {
             if (Control != null)

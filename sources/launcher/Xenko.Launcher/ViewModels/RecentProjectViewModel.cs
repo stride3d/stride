@@ -12,6 +12,7 @@ using Xenko.Core.Presentation.Collections;
 using Xenko.Core.Presentation.Commands;
 using Xenko.Core.Presentation.Services;
 using Xenko.Core.Presentation.ViewModel;
+using Xenko.LauncherApp.Services;
 
 namespace Xenko.LauncherApp.ViewModels
 {
@@ -31,6 +32,7 @@ namespace Xenko.LauncherApp.ViewModels
             OpenCommand = new AnonymousTaskCommand(ServiceProvider, () => OpenWith(null)) { IsEnabled = false };
             OpenWithCommand = new AnonymousTaskCommand<XenkoVersionViewModel>(ServiceProvider, OpenWith);
             ExploreCommand = new AnonymousCommand(ServiceProvider, Explore);
+            RemoveCommand = new AnonymousCommand(ServiceProvider, Remove);
             CompatibleVersions = new ObservableList<XenkoVersionViewModel>();
             DiscoverXenkoVersion();
         }
@@ -47,11 +49,13 @@ namespace Xenko.LauncherApp.ViewModels
 
         public ObservableList<XenkoVersionViewModel> CompatibleVersions { get; private set; }
 
+        public ICommandBase ExploreCommand { get; }
+
         public ICommandBase OpenCommand { get; }
 
         public ICommandBase OpenWithCommand { get; }
 
-        public ICommandBase ExploreCommand { get; }
+        public ICommandBase RemoveCommand { get; }
 
         private void DiscoverXenkoVersion()
         {
@@ -70,6 +74,30 @@ namespace Xenko.LauncherApp.ViewModels
             var startInfo = new ProcessStartInfo("explorer.exe", $"/select,{fullPath.ToWindowsPath()}") { UseShellExecute = true };
             var explorer = new Process { StartInfo = startInfo };
             explorer.Start();
+        }
+
+        private void Remove()
+        {
+            //Remove files that's was deleted or upgraded by xenko versions <= 3.0
+            if (string.IsNullOrEmpty(this.XenkoVersionName) || string.Compare(this.XenkoVersionName, "3.0", StringComparison.Ordinal) <= 0)
+            {
+                //Get all installed versions 
+                var xenkoInstalledVersions = this.Launcher.XenkoVersions.Where(x => x.CanDelete)
+                    .Select(x => $"{x.Major}.{x.Minor}").ToList();
+
+                //If original version of files is not in list get and to add it.
+                if (!string.IsNullOrEmpty(this.XenkoVersionName) && !xenkoInstalledVersions.Any(x => x.Equals(this.XenkoVersionName)))
+                    xenkoInstalledVersions.Add(this.XenkoVersionName);
+
+                foreach (var item in xenkoInstalledVersions)
+                {
+                    GameStudioSettings.RemoveMostRecentlyUsed(this.fullPath, item);
+                }
+            }
+            else
+            {
+                GameStudioSettings.RemoveMostRecentlyUsed(this.fullPath, this.XenkoVersionName);
+            }
         }
 
         private async Task OpenWith(XenkoVersionViewModel version)

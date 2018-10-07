@@ -1,0 +1,33 @@
+﻿<Project>
+  <Import Project="..\..\sources\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <XenkoAssemblyProcessorOptions>--auto-module-initializer</XenkoAssemblyProcessorOptions>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\sources\shared\AttachedChildProcessJob.cs" Link="AttachedChildProcessJob.cs" />
+    <Compile Include="..\..\sources\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\sources\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
+    <ProjectReference Include="..\..\sources\editor\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj" />
+    <ProjectReference Include="..\..\sources\engine\Xenko.Games.Testing\Xenko.Games.Testing.csproj" />
+  </ItemGroup>
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+</Project>

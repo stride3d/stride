@@ -360,6 +360,19 @@ namespace Xenko.Games
             }
         }
 
+        public override bool Focused
+        {
+            get
+            {
+                if (window != null)
+                {
+                    return window.Focused;
+                }
+                // Check for non-window control
+                return false;
+            }
+        }
+
         protected override void Destroy()
         {
             if (window != null)

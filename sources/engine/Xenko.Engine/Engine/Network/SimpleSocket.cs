@@ -68,13 +68,13 @@ namespace Xenko.Engine.Network
                 {
                     // Stop listening if we accept only a single connection
                     if (singleConnection)
-                        await listener.StopListeningAsync();
+                        await listener.StopListeningAsync().ConfigureAwait(false);
 
                     clientSocketContext.SetSocket((TcpSocketClient)args.SocketClient);
 
                     // Do an ack with magic packet (necessary so that we know it's not a dead connection,
                     // it sometimes happen when doing port forwarding because service don't refuse connection right away but only fails when sending data)
-                    await SendAndReceiveAck(clientSocketContext.socket, MagicAck, MagicAck);
+                    await SendAndReceiveAck(clientSocketContext.socket, MagicAck, MagicAck).ConfigureAwait(false);
 
                     Connected?.Invoke(clientSocketContext);
 
@@ -91,7 +91,7 @@ namespace Xenko.Engine.Network
                 try
                 {
                     // Start listening
-                    await listener.StartListeningAsync(port);
+                    await listener.StartListeningAsync(port).ConfigureAwait(false);
                     break; // Break if no exception, otherwise retry
                 }
                 catch (Exception)
@@ -110,7 +110,7 @@ namespace Xenko.Engine.Network
 
             try
             {
-                await socket.ConnectAsync(address, port);
+                await socket.ConnectAsync(address, port).ConfigureAwait(false);
 
                 SetSocket(socket);
                 //socket.NoDelay = true;
@@ -118,7 +118,7 @@ namespace Xenko.Engine.Network
                 // Do an ack with magic packet (necessary so that we know it's not a dead connection,
                 // it sometimes happen when doing port forwarding because service don't refuse connection right away but only fails when sending data)
                 if (needAck)
-                    await SendAndReceiveAck(socket, MagicAck, MagicAck);
+                    await SendAndReceiveAck(socket, MagicAck, MagicAck).ConfigureAwait(false);
 
                 Connected?.Invoke(this);
 
@@ -133,9 +133,9 @@ namespace Xenko.Engine.Network
 
         private static async Task SendAndReceiveAck(TcpSocketClient socket, uint sentAck, uint expectedAck)
         {
-            await socket.WriteStream.WriteInt32Async((int)sentAck);
-            await socket.WriteStream.FlushAsync();
-            var ack = (uint)await socket.ReadStream.ReadInt32Async();
+            await socket.WriteStream.WriteInt32Async((int)sentAck).ConfigureAwait(false);
+            await socket.WriteStream.FlushAsync().ConfigureAwait(false);
+            var ack = (uint)await socket.ReadStream.ReadInt32Async().ConfigureAwait(false);
             if (ack != expectedAck)
                 throw new SimpleSocketException("Invalid ack");
         }

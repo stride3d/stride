@@ -17,7 +17,7 @@ namespace Xenko.Core.Assets.CompilerApp
                 var installDir = DirectoryHelper.GetInstallationDirectory("Xenko");
                 Environment.SetEnvironmentVariable("XenkoDir", installDir);
 
-                // Running first time?
+                // Running first time? If yes, create nuget redirect package.
                 var packageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
                 if (PackageStore.Instance.IsDevelopmentStore)
                 {

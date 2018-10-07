@@ -23,7 +23,7 @@ namespace Xenko.Games.Testing
     public class GameTestingClient : IDisposable
     {
         private readonly SocketMessageLayer socketMessageLayer;
-        private readonly string xenkoDir;
+        private readonly string gamePath;
         private readonly string gameName;
         private readonly string platformName;
         private int screenShots;
@@ -34,12 +34,9 @@ namespace Xenko.Games.Testing
         {
             GameTestingSystem.Initialized = true; //prevent time-outs from test side!!
 
-            if (gamePath == null) throw new ArgumentNullException(nameof(gamePath));
+            this.gamePath = gamePath ?? throw new ArgumentNullException(nameof(gamePath));
 
-            xenkoDir = Environment.GetEnvironmentVariable("XenkoDir");
-            if (string.IsNullOrEmpty(xenkoDir)) throw new NullReferenceException("Could not find XenkoDir, make sure the environment variable is set.");
-
-            gameName = Path.GetFileNameWithoutExtension(gamePath);
+            gameName = Path.GetFileName(gamePath);
             switch (platform)
             {
                 case PlatformType.Windows:
@@ -85,7 +82,7 @@ namespace Xenko.Games.Testing
 
             var runTask = Task.Run(() => socketMessageLayer.MessageLoop());
 
-            var cmd = platform == PlatformType.Windows ? xenkoDir + "\\" + gamePath : "";
+            var cmd = platform == PlatformType.Windows ? Path.Combine(Environment.CurrentDirectory, gamePath, "Bin\\Windows\\Debug", gameName + ".Windows.exe") : "";
 
             socketMessageLayer.Send(new TestRegistrationRequest
             {
@@ -180,7 +177,7 @@ namespace Xenko.Games.Testing
 
         public void TakeScreenshot()
         {
-            socketMessageLayer.Send(new ScreenshotRequest { Filename = xenkoDir + "\\screenshots\\" + gameName + "_" + platformName + "_" + screenShots + ".png" }).Wait();
+            socketMessageLayer.Send(new ScreenshotRequest { Filename = gamePath + "\\..\\screenshots\\" + gameName + "_" + platformName + "_" + screenShots + ".png" }).Wait();
             Console.WriteLine(@"Screenshot requested.");
             screenShots++;
             if (!screenshotEvent.WaitOne(10000))

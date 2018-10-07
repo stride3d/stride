@@ -8,6 +8,7 @@ using Xenko.Assets.Presentation.Templates;
 using System;
 using System.Linq;
 using Xenko.Assets.Templates;
+using System.IO;
 
 namespace Xenko.SamplesBootstrapper
 {
@@ -22,18 +23,14 @@ namespace Xenko.SamplesBootstrapper
                 return 1;
             }
 
+            PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+
             Console.WriteLine(@"Bootstrapping: " + args[0]);
 
-            // When running the SamplesBootstrapper from within Visual Studio and XenkoDir
-            // points to your installation of Xenko and not the development checkout, make sure to override
-            // the environment variable properly otherwise it will get the samples from the Xenko installation.
-            var xenkoDir = Environment.GetEnvironmentVariable("XenkoDir");
-            var xenkoPkgPath = UPath.Combine(xenkoDir, new UFile("Xenko.xkpkg"));
-
-            Console.WriteLine("Loading " + xenkoPkgPath + "...");
             var session = new PackageSession();
-
             var xenkoPkg = PackageStore.Instance.DefaultPackage;
+            Console.WriteLine("Using Xenko from " + xenkoPkg.FullPath + "...");
+            var xenkoDir = Path.GetDirectoryName(xenkoPkg.FullPath);
 
             var generator = TemplateSampleGenerator.Default;
 
@@ -47,6 +44,20 @@ namespace Xenko.SamplesBootstrapper
 
             var outputPath = UPath.Combine(new UDirectory(xenkoDir), new UDirectory("samplesGenerated"));
             outputPath = UPath.Combine(outputPath, new UDirectory(args[0]));
+            session.SolutionPath = UPath.Combine<UFile>(outputPath, args[0] + ".sln");
+
+            // Properly delete previous version
+            if (Directory.Exists(outputPath))
+            {
+                try
+                {
+                    Directory.Delete(outputPath, true);
+                }
+                catch (Exception)
+                {
+                    logger.Warning($"Unable to delete directory [{outputPath}]");
+                }
+            }
 
             var xenkoTemplates = xenkoPkg.Templates;
             parameters.Description = xenkoTemplates.First(x => x.Id == new Guid(args[1]));

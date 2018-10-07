@@ -80,6 +80,7 @@
   <ItemGroup>
     <UpToDateCheckInput Include="@(XenkoNativeCFile)" />
     <UpToDateCheckInput Include="@(XenkoNativeHFile)" />
+    <UpToDateCheckOutput Include="@(XenkoNativeOutput)" />
   </ItemGroup>
   
   <!-- Update XenkoNativeOutput.Link using computed OutputPath and add to XenkoNativeLib -->
@@ -93,6 +94,10 @@
       </XenkoNativeOutput>
       <XenkoNativeLib Include="@(XenkoNativeOutput)"/>
     </ItemGroup>
+
+    <!-- This is necessary for UpToDateCheck: CompileNativeClang is checking only XenkoNativeOutput against native sources
+         but FastUpToDateCheck check XenkoNativeOutput against various other unrelated files such as C# sources, so we want to mark the file as modified after, even if CompileNativeClang was skipped -->
+    <Touch Files="@(XenkoNativeOutput)" />
   </Target>
 
   <!-- Define ItemGroup so that they are properly copied -->
