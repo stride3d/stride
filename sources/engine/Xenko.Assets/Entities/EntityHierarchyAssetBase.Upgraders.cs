@@ -104,7 +104,6 @@ namespace Xenko.Assets.Entities
                         {
                             e.Ignore();
                         }
-
                     }
                 }
             }
