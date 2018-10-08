@@ -288,6 +288,27 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
+        /// Resource options for DirextX 11 textures.
+        /// </summary>
+        public TextureOptions Options
+        {
+            get
+            {
+                return textureDescription.Options;
+            }
+        }
+
+        /// <summary>
+        /// The shared handle if created with TextureOption.Shared or TextureOption.SharedNthandle, IntPtr.Zero otherwise.
+        /// </summary>
+        public IntPtr SharedHandle { get; private set; } = IntPtr.Zero;
+
+        /// <summary>
+        /// Gets the name of the shared Nt handle when created with TextureOption.SharedNthandle.
+        /// </summary>
+        public string SharedNtHandleName { get; private set; } = string.Empty;
+
+        /// <summary>
         /// Gets a value indicating whether this instance is a render target.
         /// </summary>
         /// <value><c>true</c> if this instance is render target; otherwise, <c>false</c>.</value>
@@ -358,6 +379,9 @@ namespace Xenko.Graphics
                 return this.MultisampleCount > MultisampleCount.None;
             }
         }
+
+
+        
 
         /// <summary>
         /// Gets a boolean indicating whether this <see cref="Texture"/> is a using a block compress format (BC1, BC2, BC3, BC4, BC5, BC6H, BC7).
