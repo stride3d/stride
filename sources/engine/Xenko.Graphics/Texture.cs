@@ -288,7 +288,7 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
-        /// Resource options for DirextX 11 textures.
+        /// Resource options for DirectX 11 textures.
         /// </summary>
         public TextureOptions Options
         {

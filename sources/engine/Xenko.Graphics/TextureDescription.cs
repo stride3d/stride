@@ -101,7 +101,7 @@ namespace Xenko.Graphics
         public TextureFlags Flags;
 
         /// <summary>
-        /// Resource options for DirextX 11 textures.
+        /// Resource options for DirectX 11 textures.
         /// </summary>
         public TextureOptions Options;
 
