@@ -101,6 +101,11 @@ namespace Xenko.Graphics
         public TextureFlags Flags;
 
         /// <summary>
+        /// Resource options for DirextX 11 textures.
+        /// </summary>
+        public TextureOptions Options;
+
+        /// <summary>
         /// Gets a value indicating whether this instance is a render target.
         /// </summary>
         /// <value><c>true</c> if this instance is render target; otherwise, <c>false</c>.</value>
