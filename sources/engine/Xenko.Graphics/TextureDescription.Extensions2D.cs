@@ -14,9 +14,9 @@ namespace Xenko.Graphics
         /// <param name="arraySize">Size of the texture 2D array, default to 1.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of <see cref="TextureDescription" /> class.</returns>
-        public static TextureDescription New2D(int width, int height, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+        public static TextureDescription New2D(int width, int height, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, TextureOptions textureOptions = TextureOptions.None)
         {
-            return New2D(width, height, false, format, textureFlags, arraySize, usage);
+            return New2D(width, height, false, format, textureFlags, arraySize, usage, MultisampleCount.None, textureOptions);
         }
 
         /// <summary>
@@ -31,12 +31,12 @@ namespace Xenko.Graphics
         /// <param name="usage">The usage.</param>
         /// <param name="multisampleCount">The multisample count.</param>
         /// <returns>A new instance of <see cref="TextureDescription" /> class.</returns>
-        public static TextureDescription New2D(int width, int height, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, MultisampleCount multisampleCount = MultisampleCount.None)
+        public static TextureDescription New2D(int width, int height, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, MultisampleCount multisampleCount = MultisampleCount.None, TextureOptions textureOptions = TextureOptions.None)
         {
-            return New2D(width, height, format, textureFlags, mipCount, arraySize, usage, multisampleCount);
+            return New2D(width, height, format, textureFlags, mipCount, arraySize, usage, multisampleCount, textureOptions);
         }
 
-        private static TextureDescription New2D(int width, int height, PixelFormat format, TextureFlags textureFlags, int mipCount, int arraySize, GraphicsResourceUsage usage, MultisampleCount multisampleCount)
+        private static TextureDescription New2D(int width, int height, PixelFormat format, TextureFlags textureFlags, int mipCount, int arraySize, GraphicsResourceUsage usage, MultisampleCount multisampleCount, TextureOptions textureOptions = TextureOptions.None)
         {
             if ((textureFlags & TextureFlags.UnorderedAccess) != 0)
                 usage = GraphicsResourceUsage.Default;
@@ -53,6 +53,7 @@ namespace Xenko.Graphics
                 Format = format,
                 MipLevels = Texture.CalculateMipMapCount(mipCount, width, height),
                 Usage = Texture.GetUsageWithFlags(usage, textureFlags),
+                Options = textureOptions
             };
             return desc;
         }
