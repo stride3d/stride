@@ -612,6 +612,8 @@ namespace Xenko.Graphics
 
             if ((description.OptionFlags & ResourceOptionFlags.Shared) != 0)
                 desc.Options |= TextureOptions.Shared;
+            if ((description.OptionFlags & ResourceOptionFlags.SharedKeyedmutex) != 0)
+                desc.Options |= TextureOptions.SharedKeyedmutex;
             if ((description.OptionFlags & ResourceOptionFlags.SharedNthandle) != 0)
                 desc.Options |= TextureOptions.SharedNthandle;
 
