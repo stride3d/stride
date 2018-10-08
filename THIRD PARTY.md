@@ -39,6 +39,7 @@ Xenko uses the following open-source products.
 ### License gift to Xenko
 
 * [Advanced Installer](https://www.advancedinstaller.com/) graciously offered us an Enterprise license. Thanks!
+* [NDepend](https://www.ndepend.com/) for providing us an Open Source license. Thanks!
 
 ### Opensource
 
