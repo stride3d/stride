@@ -156,31 +156,23 @@ namespace Xenko.Graphics
             NativeRenderTargetView = GetRenderTargetView(ViewType, ArraySlice, MipLevel);
             NativeDepthStencilView = GetDepthStencilView(out HasStencil);
 
-            try
+            switch (textureDescription.Options)
             {
-                switch (textureDescription.Options)
-                {
-                    case TextureOptions.None:
-                        SharedHandle = IntPtr.Zero;
-                        break;
-                    case TextureOptions.Shared:
-                        var sharedResource = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource>();
-                        SharedHandle = sharedResource.SharedHandle;
-                        break;
-                    case TextureOptions.SharedNthandle:
-                        var sharedResource1 = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource1>();
-                        var uniqueName = "Xenko:" + Guid.NewGuid().ToString();
-                        SharedHandle = sharedResource1.CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
-                        SharedNtHandleName = uniqueName;
-                        break;
-                    default:
-                        SharedHandle = IntPtr.Zero;
-                        break;
-                }
-            }
-            catch
-            {
-                SharedHandle = IntPtr.Zero;
+                case TextureOptions.None:
+                    SharedHandle = IntPtr.Zero;
+                    break;
+                case TextureOptions.Shared:
+                    var sharedResource = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource>();
+                    SharedHandle = sharedResource.SharedHandle;
+                    break;
+                case TextureOptions.SharedNthandle:
+                    var sharedResource1 = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource1>();
+                    var uniqueName = "Xenko:" + Guid.NewGuid().ToString();
+                    SharedHandle = sharedResource1.CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
+                    SharedNtHandleName = uniqueName;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("textureDescription.Options");
             }
         }
 
