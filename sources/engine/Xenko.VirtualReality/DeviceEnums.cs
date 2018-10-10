@@ -18,4 +18,11 @@ namespace Xenko.VirtualReality
         TrackingReference,  //The device is a camera, Lighthouse base station, or other device that supplies tracking ground truth.
         DisplayRedirect     //Accessories that aren't necessarily tracked themselves, but may redirect video output from other tracked devices
     }
+
+    public enum TrackingSpace
+    {
+        Seated,
+        Standing,
+        RawAndUncalibrated
+    }
 }

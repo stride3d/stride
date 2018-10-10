@@ -252,6 +252,11 @@ namespace Xenko.VirtualReality
             Valve.VR.OpenVR.System.ResetSeatedZeroPose();
         }
 
+        public static void SetTrackingSpace(ETrackingUniverseOrigin space)
+        {
+            Valve.VR.OpenVR.Compositor.SetTrackingSpace(space);
+        }
+
         public static DeviceState GetControllerPose(int controllerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
         {
             return GetControllerPoseUnsafe(controllerIndex, out pose, out velocity, out angVelocity);

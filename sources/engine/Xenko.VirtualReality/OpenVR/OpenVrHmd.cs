@@ -129,6 +129,11 @@ namespace Xenko.VirtualReality
             OpenVR.Recenter();
         }
 
+        public override void SetTrackingSpace(TrackingSpace space)
+        {
+            OpenVR.SetTrackingSpace((Valve.VR.ETrackingUniverseOrigin)space);
+        }
+
         public override DeviceState State => state;
 
         public override Vector3 HeadPosition => currentHeadPos;
