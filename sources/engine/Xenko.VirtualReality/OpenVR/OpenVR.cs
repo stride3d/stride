@@ -3,6 +3,7 @@
 #if XENKO_GRAPHICS_API_DIRECT3D11
 
 using System;
+using System.Text;
 using SharpDX.Direct3D11;
 using Valve.VR;
 using Xenko.Core;
@@ -157,13 +158,15 @@ namespace Xenko.VirtualReality
                 TrackerIndex = trackerIndex;
             }
 
+            const int StringBuilderSize = 64;
+            StringBuilder serialNumberStringBuilder = new StringBuilder(StringBuilderSize);
             public void Update()
             {
                 var error = ETrackedPropertyError.TrackedProp_Success;
-                var result = new System.Text.StringBuilder((int)64);
-                Valve.VR.OpenVR.System.GetStringTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_SerialNumber_String, result, 64, ref error);
+                serialNumberStringBuilder.Clear();
+                Valve.VR.OpenVR.System.GetStringTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_SerialNumber_String, serialNumberStringBuilder, StringBuilderSize, ref error);
                 if (error == ETrackedPropertyError.TrackedProp_Success)
-                    SerialNumber = result.ToString();
+                    SerialNumber = serialNumberStringBuilder.ToString();
 
                 BatteryPercentage = Valve.VR.OpenVR.System.GetFloatTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_DeviceBatteryPercentage_Float, ref error);
 
