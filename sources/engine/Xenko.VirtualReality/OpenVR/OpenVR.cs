@@ -3,6 +3,7 @@
 #if XENKO_GRAPHICS_API_DIRECT3D11
 
 using System;
+using System.Text;
 using SharpDX.Direct3D11;
 using Valve.VR;
 using Xenko.Core;
@@ -155,17 +156,17 @@ namespace Xenko.VirtualReality
             public TrackedDevice(int trackerIndex)
             {
                 TrackerIndex = trackerIndex;
-
-                var error = ETrackedPropertyError.TrackedProp_Success;
-                var result = new System.Text.StringBuilder((int)64);
-                Valve.VR.OpenVR.System.GetStringTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_SerialNumber_String, result, 64, ref error);
-                if (error == ETrackedPropertyError.TrackedProp_Success)
-                    SerialNumber = result.ToString();
             }
 
+            const int StringBuilderSize = 64;
+            StringBuilder serialNumberStringBuilder = new StringBuilder(StringBuilderSize);
             public void Update()
             {
                 var error = ETrackedPropertyError.TrackedProp_Success;
+                serialNumberStringBuilder.Clear();
+                Valve.VR.OpenVR.System.GetStringTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_SerialNumber_String, serialNumberStringBuilder, StringBuilderSize, ref error);
+                if (error == ETrackedPropertyError.TrackedProp_Success)
+                    SerialNumber = serialNumberStringBuilder.ToString();
 
                 BatteryPercentage = Valve.VR.OpenVR.System.GetFloatTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_DeviceBatteryPercentage_Float, ref error);
 
@@ -252,6 +253,11 @@ namespace Xenko.VirtualReality
         public static void Recenter()
         {
             Valve.VR.OpenVR.System.ResetSeatedZeroPose();
+        }
+
+        public static void SetTrackingSpace(ETrackingUniverseOrigin space)
+        {
+            Valve.VR.OpenVR.Compositor.SetTrackingSpace(space);
         }
 
         public static DeviceState GetControllerPose(int controllerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
