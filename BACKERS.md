@@ -16,6 +16,7 @@ Thank you everybody for your generous contributions!
 * Robert Campbell
 * [vvvv.org](https://vvvv.org/)
 * Jason Kinzer
+* Mike Jones
 
 ## Backers
 
@@ -31,17 +32,16 @@ Thank you everybody for your generous contributions!
 * Nathan Warden
 * Empty Keys
 * Dmitry Terentev
-* Shane
 * Chris Beckwith
 * Harald Mühleder
-* Szymon Kobalczyk
 * Philippe Monteil
 * Cobalt
 * Matthias Hölzl
-* Ryan Galkowski
 * Jon Stelly
 * Jean-Baptiste Perrier
 * Antony K. Jones
+* Thomas Tang
+* Beliar
 
 ## Mini Backers
 
