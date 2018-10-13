@@ -165,12 +165,14 @@ namespace Xenko.Graphics
                     var sharedResource = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource>();
                     SharedHandle = sharedResource.SharedHandle;
                     break;
-                case TextureOptions.SharedNthandle:
+#if XENKO_GRAPHICS_API_DIRECT3D11
+                case TextureOptions.SharedNthandle | TextureOptions.SharedKeyedmutex:
                     var sharedResource1 = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource1>();
                     var uniqueName = "Xenko:" + Guid.NewGuid().ToString();
                     SharedHandle = sharedResource1.CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
                     SharedNtHandleName = uniqueName;
-                    break;
+                    break; 
+#endif
                 default:
                     throw new ArgumentOutOfRangeException("textureDescription.Options");
             }
@@ -601,11 +603,12 @@ namespace Xenko.Graphics
 
             if ((description.OptionFlags & ResourceOptionFlags.Shared) != 0)
                 desc.Options |= TextureOptions.Shared;
+#if XENKO_GRAPHICS_API_DIRECT3D11
             if ((description.OptionFlags & ResourceOptionFlags.SharedKeyedmutex) != 0)
                 desc.Options |= TextureOptions.SharedKeyedmutex;
             if ((description.OptionFlags & ResourceOptionFlags.SharedNthandle) != 0)
                 desc.Options |= TextureOptions.SharedNthandle;
-
+#endif
             return desc;
         }
 

@@ -303,10 +303,12 @@ namespace Xenko.Graphics
         /// </summary>
         public IntPtr SharedHandle { get; private set; } = IntPtr.Zero;
 
+#if XENKO_GRAPHICS_API_DIRECT3D11
         /// <summary>
         /// Gets the name of the shared Nt handle when created with TextureOption.SharedNthandle.
         /// </summary>
-        public string SharedNtHandleName { get; private set; } = string.Empty;
+        public string SharedNtHandleName { get; private set; } = string.Empty; 
+#endif
 
         /// <summary>
         /// Gets a value indicating whether this instance is a render target.

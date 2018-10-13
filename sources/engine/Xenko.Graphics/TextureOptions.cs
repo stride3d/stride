@@ -34,7 +34,7 @@ namespace Xenko.Graphics
         ///     and SharpDX.Direct3D11.ResourceOptionFlags.SharedKeyedmutex flags instead.
         /// </remarks>
         Shared = 2,
-
+#if XENKO_GRAPHICS_API_DIRECT3D11
         /// <summary>
         ///     Enables the resource to be synchronized by using the SharpDX.DXGI.KeyedMutex.Acquire(System.Int64,System.Int32)
         ///     and SharpDX.DXGI.KeyedMutex.Release(System.Int64) APIs.         
@@ -80,5 +80,6 @@ namespace Xenko.Graphics
         ///     driver. Direct3D 11 and earlier: This value is not supported until Direct3D 11.1.
         /// </remarks>
         SharedNthandle = 2048,
+#endif
     }
 }
