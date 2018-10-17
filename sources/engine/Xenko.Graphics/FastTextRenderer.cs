@@ -190,7 +190,7 @@ namespace Xenko.Graphics
             // Set the rendering parameters
             simpleEffect.Parameters.Set(TexturingKeys.Texture0, DebugSpriteFont);
             simpleEffect.Parameters.Set(SpriteEffectKeys.Color, TextColor);
-            simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, MatrixTransform);            
+            simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, MatrixTransform);
             
             // Swap vertex buffer
             activeVertexBufferIndex = ++activeVertexBufferIndex >= VertexBufferCount ? 0 : activeVertexBufferIndex;
