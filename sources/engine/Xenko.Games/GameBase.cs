@@ -855,7 +855,7 @@ namespace Xenko.Games
         {
         }
 
-        /// <summary>Called after the Game and GraphicsDevice are created, but before LoadContent.  Reference page contains code sample.</summary>
+        /// <summary>Called after the Game is created, but before GraphicsDevice is available and before LoadContent(). Reference page contains code sample.</summary>
         protected virtual void Initialize()
         {
             GameSystems.Initialize();
