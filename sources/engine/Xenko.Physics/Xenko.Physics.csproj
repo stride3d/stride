@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
@@ -63,4 +63,13 @@
   <ItemGroup />
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)BulletSharp.dll" />
+    </ItemGroup>
+  </Target>
 </Project>

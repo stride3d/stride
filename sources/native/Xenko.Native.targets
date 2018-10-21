@@ -12,8 +12,6 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <OutputObjectPath>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)</OutputObjectPath>
-    
     <XenkoNativeAndroidGCC>-nostdlib -ldl -lstdc++ -lc -lm</XenkoNativeAndroidGCC>
     
     <!--Use "-v" to debug the tooling -->
@@ -25,7 +23,6 @@
     <XenkoNativeClangCPP>-std=c++11 -fno-rtti -fno-exceptions</XenkoNativeClangCPP>
   
     <!--<XenkoNativeOutputPath>$([MSBuild]::MakeRelative('$(OutputPath)', '$(XenkoPackageXenkoPlatformBin)\'))</XenkoNativeOutputPath>-->
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_RegisterXenkoNativeOutputs</TargetsForTfmSpecificBuildOutput>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>.so; .a; $(AllowedOutputExtensionsInPackageBuildOutputFolder)</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
@@ -81,24 +78,15 @@
     <UpToDateCheckOutput Include="@(XenkoNativeOutput)" />
   </ItemGroup>
   
-  <!--<Target Name="Xenko_WalkEachTargetPerFramework" BeforeTargets="_GetPackageFiles">
-    <ItemGroup>
-      <None Update="@(_BuildOutputInPackage)" Condition="'%(_BuildOutputInPackage.RelativePath)' != ''" PackagePath="lib/%(_BuildOutputInPackage.TargetFramework)/%(_BuildOutputInPackage.RelativePath)" Pack="true" />
-    </ItemGroup>
-  </Target>-->
-  
   <!-- Update XenkoNativeOutput.Link using computed OutputPath and add to XenkoNativeLib -->
-  <Target Name="_RegisterXenkoNativeOutputs">
+  <Target Name="_RegisterXenkoNativeOutputs" Condition="'$(TargetFramework)' != ''" BeforeTargets="_RegisterXenkoDependenciesOutputs">
     <PropertyGroup>
-    <XenkoNativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</XenkoNativeOutputPath>
+      <OutputObjectPath>$(MSBuildProjectDirectory)\$(IntermediateOutputPath)</OutputObjectPath>
+      <XenkoNativeOutputPath>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</XenkoNativeOutputPath>
       <_OutputPathRelative>$([System.IO.Path]::GetFullPath('$(OutputPath)'))</_OutputPathRelative>
     </PropertyGroup>
     <ItemGroup>
       <XenkoNativeOutput Include="@(_XenkoNativeOutput->'$(XenkoNativeOutputPath)%(Identity)')"/>
-      <BuildOutputInPackage Include="@(_XenkoNativeOutput->'$(XenkoNativeOutputPath)%(Identity)')">
-        <FinalOutputPath>$(XenkoNativeOutputPath)%(Identity)</FinalOutputPath>
-        <TargetPath>%(RelativePath)</TargetPath>
-      </BuildOutputInPackage>
       <XenkoNativeOutput>
         <Link>$([MSBuild]::MakeRelative('$(_OutputPathRelative)', '$(XenkoNativeOutputPath)'))%(RelativePath)</Link>
       </XenkoNativeOutput>
@@ -272,8 +260,8 @@
     <Delete Files="@(IntermediateAssembly)"/>
   </Target>
   
-  <Target Name="CompileNativeClang_Clean" BeforeTargets="Clean">
-    <ItemGroup>
+  <Target Name="CompileNativeClang_Clean" BeforeTargets="Clean" DependsOnTargets="_RegisterXenkoNativeOutputs">
+    <ItemGroup Condition="'$(OutputObjectPath)' != ''">
       <ObjFiles Include="$(OutputObjectPath)\**\*.obj" />
       <OFiles Include="$(OutputObjectPath)\**\*.o" />
       <AFiles Include="$(OutputObjectPath)\**\*.a" />

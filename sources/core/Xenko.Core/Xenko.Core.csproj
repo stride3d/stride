@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
 
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
@@ -54,6 +54,8 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
+    <None Include="..\..\..\deps\AssemblyProcessor\*.*" PackagePath="tools\AssemblyProcessor\" Pack="true" />
   </ItemGroup>
   
   <ItemGroup>

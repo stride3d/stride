@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
@@ -4031,7 +4031,7 @@
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.7.0" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" IncludeAssets="all" PrivateAssets="contentfiles;analyzers" />
     <ProjectReference Include="..\Xenko.Audio\Xenko.Audio.csproj" />
     <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
     <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />

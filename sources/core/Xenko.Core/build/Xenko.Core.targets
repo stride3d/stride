@@ -1,0 +1,66 @@
+<Project InitialTargets="XenkoCheckRequirements" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Check requirements when running this build file -->
+  <Target Name="XenkoCheckRequirements">
+    <Error Condition="'$(XenkoPlatform)' == ''" Text="The property %24(XenkoPlatform) must be defined by the project"/>
+
+    <!-- If we compile without Visual Studio, still properly resolve platform if SolutionPath is given -->
+    <MSBuild Projects="$(SolutionPath)"
+             Condition="'$(BuildingInsideVisualStudio)' != 'true' and '$(BuildingSolutionFile)' != 'true' and '$(SolutionPath)' != '' and '$(SolutionPath)' != '*Undefined*'"
+             Targets="GetSolutionConfigurationContents"
+             Properties="Configuration=$(Configuration);Platform=$(SolutionPlatform)"
+             ContinueOnError="$(ContinueOnError)">
+      <Output TaskParameter="TargetOutputs" PropertyName="CurrentSolutionConfigurationContents"/>
+    </MSBuild>
+  </Target>
+  
+  <!-- 
+  *****************************************************************************************************************************
+  Platform Detection
+  *****************************************************************************************************************************
+  -->
+  <PropertyGroup>
+    <!-- Windows10 was renammed into UWP -->
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == 'Windows10'">UWP</XenkoPlatform>
+    <!-- Default mappings -->
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</XenkoPlatform>
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</XenkoPlatform>
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'Xamarin.iOS'">iOS</XenkoPlatform>
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == ''">Windows</XenkoPlatform>
+  </PropertyGroup>
+
+  <!-- 
+  *****************************************************************************************************************************
+  Assembly Processor
+  *****************************************************************************************************************************
+  -->
+  <PropertyGroup>
+    <!--By default, turn on assembly processor-->
+    <XenkoAssemblyProcessor Condition="'$(XenkoAssemblyProcessor)' == ''">true</XenkoAssemblyProcessor>
+    <XenkoAssemblyProcessorPath>$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe</XenkoAssemblyProcessorPath>
+  </PropertyGroup>
+  <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(XenkoAssemblyProcessorPath)" Condition=" '$(XenkoAssemblyProcessorPath)' != '' And '$(XenkoAssemblyProcessorDev)' != 'true' "/>
+  <Target Name="XenkoRunAssemblyProcessor" DependsOnTargets="ResolveProjectReferences">
+    <WriteLinesToFile File="$(IntermediateOutputPath)XenkoReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
+    <PropertyGroup>
+      <XenkoAssemblyProcessorOptions Condition="'$(XenkoAssemblyProcessorOptions)' == ''">--auto-notify-property --parameter-key --auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
+      <!-- If building user solutions (not unit tests), provide assembly processor with ProjectReferences paths so that they can be readded to assembly references for serialization module initializer (otherwise .exe don't have real reference on Game assemblies with auto load scene game) -->
+      <XenkoAssemblyProcessorOptions Condition="'$(XenkoUnitTest)' != 'true'">$(XenkoAssemblyProcessorOptions) @(_ResolvedProjectReferencePaths->'--add-reference=%22%(Identity)%22',' ')</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(XenkoAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)XenkoReferences.cache"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --platform=$(XenkoPlatform) --targetFramework=$(XenkoNETFrameworkVersion) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions Condition="'$(AssemblyOriginatorKeyFile)' != ''">$(XenkoAssemblyProcessorOptions) --signkeyfile="$(AssemblyOriginatorKeyFile)" --delete-on-error</XenkoAssemblyProcessorOptions>
+    </PropertyGroup>
+    
+    <!-- Run assembly processor -->
+    <Message Condition=" '$(XenkoAssemblyProcessorDev)' != 'true' " Importance="low" Text="&quot;$(XenkoAssemblyProcessorPath)&quot; $(XenkoAssemblyProcessorOptions)"/>
+    <AssemblyProcessorTask Condition=" '$(XenkoAssemblyProcessorDev)' != 'true' " Arguments="$(XenkoAssemblyProcessorOptions)"/>
+    <!-- Dev mode: don't use task to avoid locking the file -->
+    <Exec Condition=" '$(XenkoAssemblyProcessorDev)' == 'true' " Command="&quot;$(XenkoAssemblyProcessorPath)&quot; $(XenkoAssemblyProcessorOptions)"/>
+  </Target>
+  <PropertyGroup Condition=" '$(XenkoAssemblyProcessor)' == 'true'">
+    <PrepareForRunDependsOn>
+      XenkoRunAssemblyProcessor;
+      $(PrepareForRunDependsOn)
+    </PrepareForRunDependsOn>
+  </PropertyGroup>
+</Project>

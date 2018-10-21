@@ -2,8 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-
-using Xenko.Core;
+using System.IO;
 
 namespace Xenko.Core.Assets.CompilerApp
 {
@@ -13,16 +12,19 @@ namespace Xenko.Core.Assets.CompilerApp
         {
             try
             {
+                // Override search path since we are in a unit test directory
+                DirectoryHelper.PackageDirectoryOverride = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\..");
+
                 // Set the XenkoDir environment variable
                 var installDir = DirectoryHelper.GetInstallationDirectory("Xenko");
                 Environment.SetEnvironmentVariable("XenkoDir", installDir);
 
                 // Running first time? If yes, create nuget redirect package.
-                var packageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
-                if (PackageStore.Instance.IsDevelopmentStore)
-                {
-                    PackageStore.Instance.CheckDeveloperTargetRedirects("Xenko", packageVersion, PackageStore.Instance.InstallationPath).Wait();
-                }
+                //var packageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
+                //if (PackageStore.Instance.IsDevelopmentStore)
+                //{
+                //    PackageStore.Instance.CheckDeveloperTargetRedirects("Xenko", packageVersion, PackageStore.Instance.InstallationPath).Wait();
+                //}
 
                 var packageBuilder = new PackageBuilderApp();
                 var returnValue =  packageBuilder.Run(args);

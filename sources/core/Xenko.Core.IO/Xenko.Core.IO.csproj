@@ -30,7 +30,9 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj" />
+    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj">
+	  <PrivateAssets>contentfiles;analyzers</PrivateAssets>
+	</ProjectReference>
     <PackageReference Include="SharpDX" Version="4.0.1" Condition="'$(TargetFramework)' == 'uap10.0'" />
   </ItemGroup>
   

@@ -8,8 +8,8 @@
     <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Protocol" Version="4.5.0" />
-    <PackageReference Include="NuGet.PackageManagement" Version="4.5.0" />
+    <PackageReference Include="NuGet.Protocol" Version="4.8.0" />
+    <PackageReference Include="NuGet.PackageManagement" Version="4.8.0" />
     <Reference Include="System.Core" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="WindowsBase" />

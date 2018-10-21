@@ -411,7 +411,7 @@ namespace Xenko.Core.Packages
                     var projectContext = new EmptyNuGetProjectContext()
                     {
                         ActionType = NuGetActionType.Install,
-                        PackageExtractionContext = new PackageExtractionContext(NativeLogger),
+                        PackageExtractionContext = new PackageExtractionContext(PackageSaveMode.Defaultv3, XmlDocFileSaveMode.Skip, NativeLogger, null, null),
                     };
 
                     ActivityCorrelationId.StartNew();
@@ -465,15 +465,16 @@ namespace Xenko.Core.Packages
                                 {
                                     if (operation.NuGetProjectActionType == NuGetProjectActionType.Install)
                                     {
-                                        using (var downloadResult = await PackageDownloader.GetDownloadResourceResultAsync(primarySources, packageIdentity, downloadContext, InstallPath, NativeLogger, token))
+                                        var sources = new List<SourceRepository> { operation.SourceRepository };
+                                        using (var downloadResult = await PackageDownloader.GetDownloadResourceResultAsync(sources, operation.PackageIdentity, downloadContext, InstallPath, NativeLogger, token))
                                         {
                                             if (downloadResult.Status != DownloadResourceResultStatus.Available)
-                                                throw new InvalidOperationException($"Could not download package {packageIdentity}");
+                                                throw new InvalidOperationException($"Could not download package {operation.PackageIdentity}");
 
-                                            using (var installResult = await GlobalPackagesFolderUtility.AddPackageAsync(packageIdentity, downloadResult.PackageStream, InstallPath, NativeLogger, token))
+                                            using (var installResult = await GlobalPackagesFolderUtility.AddPackageAsync(downloadResult.PackageSource, operation.PackageIdentity, downloadResult.PackageStream, InstallPath, Guid.Empty, NativeLogger, token))
                                             {
                                                 if (installResult.Status != DownloadResourceResultStatus.Available)
-                                                    throw new InvalidOperationException($"Could not install package {packageIdentity}");
+                                                    throw new InvalidOperationException($"Could not install package {operation.PackageIdentity}");
                                             }
                                         }
                                     }
@@ -532,7 +533,7 @@ namespace Xenko.Core.Packages
                     var projectContext = new EmptyNuGetProjectContext()
                     {
                         ActionType = NuGetActionType.Uninstall,
-                        PackageExtractionContext = new PackageExtractionContext(NativeLogger)
+                        PackageExtractionContext = new PackageExtractionContext(PackageSaveMode.Defaultv3, XmlDocFileSaveMode.Skip, NativeLogger, null, null),
                     };
 
                     // Simply delete the installed package and its .nupkg installed in it.
@@ -669,7 +670,7 @@ namespace Xenko.Core.Packages
             foreach (var repo in repositories)
             {
                 var metadataResource = await repo.GetResourceAsync<PackageMetadataResource>(CancellationToken.None);
-                var metadataList = await metadataResource.GetMetadataAsync(packageId, true, true, NativeLogger, cancellationToken);
+                var metadataList = await metadataResource.GetMetadataAsync(packageId, true, true, null, NativeLogger, cancellationToken);
                 foreach (var metadata in metadataList)
                 {
                     resultList.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
@@ -734,7 +735,7 @@ namespace Xenko.Core.Packages
                 foreach (var repo in repositories)
                 {
                     var metadataResource = await repo.GetResourceAsync<PackageMetadataResource>(cancellationToken);
-                    var metadataList = await metadataResource.GetMetadataAsync(packageName.Id, includePrerelease, includeAllVersions, NativeLogger, cancellationToken);
+                    var metadataList = await metadataResource.GetMetadataAsync(packageName.Id, includePrerelease, includeAllVersions, null, NativeLogger, cancellationToken);
                     foreach (var metadata in metadataList)
                     {
                         res.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));

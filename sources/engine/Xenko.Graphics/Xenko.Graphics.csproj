@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
@@ -285,4 +285,14 @@
   <Import Project="..\Xenko.Shared\Refactor\Xenko.Refactor.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)SharpFont.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)SDL2-CS.dll" />
+    </ItemGroup>
+  </Target>
 </Project>
