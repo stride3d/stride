@@ -2,7 +2,7 @@
 Id: a49995f8-2380-4baa-a03e-f8d1da35b79a
 SerializedVersion: {Xenko: 2.0.0}
 Tags: []
-Source: ../../Resources/EnvironmentLightingDFGLUT16.dds
+Source: !file ../../Resources/EnvironmentLightingDFGLUT16.dds
 IsCompressed: false
 GenerateMipmaps: false
 Type: !ColorTextureType

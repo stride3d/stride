@@ -1,13 +1,12 @@
 !Texture
-Id: FF02239B-3697-4EBB-9F37-FE880659E64B
+Id: 87540190-ab97-4b4e-b3c2-d57d2fbb1ff3
 SerializedVersion: {Xenko: 2.0.0}
 Tags: []
-Source: ../../Resources/XenkoDebugSpriteFont.png
+Source: !file ../../Resources/EnvironmentLightingDFGLUT8.dds
 IsCompressed: false
+GenerateMipmaps: false
 Type: !ColorTextureType
     UseSRgbSampling: false
     ColorKeyColor: {R: 255, G: 0, B: 255, A: 255}
     Alpha: None
-    PremultiplyAlpha: false
-GenerateMipmaps: false
 IsStreamable: false

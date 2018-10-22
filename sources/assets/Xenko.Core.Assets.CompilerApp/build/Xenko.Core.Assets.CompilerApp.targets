@@ -1,0 +1,66 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- 
+  *****************************************************************************************************************************
+  Compile Asset 
+  *****************************************************************************************************************************
+  -->
+  <PropertyGroup>
+    <PrepareForRunDependsOn>
+      $(PrepareForRunDependsOn);
+      XenkoCompileAsset
+    </PrepareForRunDependsOn>
+
+    <!--This variable can be overriden by a platform specific targets (in case the executable is located into an assembly dll )-->
+    <XenkoIsExecutable Condition=" '$(OutputType)' == 'Exe'">true</XenkoIsExecutable>
+    <XenkoIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</XenkoIsExecutable>
+
+    <!--asset BuildPath for all platforms (same as package)-->
+    <XenkoCompileAssetBuildPath Condition="'$(XenkoCompileAssetBuildPath)' == ''">$(MSBuildProjectDirectory)\..\Cache\data</XenkoCompileAssetBuildPath>
+
+    <!--asset OutputPath for Android.-->
+    <XenkoCompileAssetOutputPath Condition="'$(XenkoCompileAssetOutputPath)' == '' and '$(XenkoPlatform)' == 'Android'">$(ProjectDir)$(IntermediateOutputPath)assets\data</XenkoCompileAssetOutputPath>
+
+    <!--asset OutputPath for other platforms. Note: this is overridden for UnitTests projects. -->
+    <XenkoCompileAssetOutputPath Condition="'$(XenkoCompileAssetOutputPath)' == ''">$(TargetDir)data</XenkoCompileAssetOutputPath>
+
+    <XenkoCompileAssetCommand Condition="'$(XenkoCompileAssetCommand)' == ''">$(MSBuildThisFileDirectory)..\lib\net462\Xenko.Core.Assets.CompilerApp.exe</XenkoCompileAssetCommand>
+
+    <!--<XenkoCompileAssetCommandProxy Condition="'$(DisableAssetCompilerExecServerProxy)' == 'true' Or '$(XenkoDisableAssetCompilerExecServerProxy)' == 'true'">&quot;$(XenkoCompileAssetCommand)&quot;</XenkoCompileAssetCommandProxy>
+    <XenkoCompileAssetCommandProxy Condition="'$(XenkoCompileAssetCommandProxy)' == ''">&quot;$(XenkoPackageXenkoSdkBin)\Xenko.Core.Assets.CompilerClient.exe&quot;</XenkoCompileAssetCommandProxy>-->
+    <XenkoCompileAssetCommandProxy>&quot;$(XenkoCompileAssetCommand)&quot;</XenkoCompileAssetCommandProxy>
+    
+    <!-- Quite hard-coded for our current way to find default game settings -->
+    <XenkoGameSettings Condition="'$([System.IO.File]::Exists($(MSBuildProjectDirectory)\Assets\GameSettings.xkgamesettings))'== 'true' ">$(MSBuildProjectDirectory)\Assets\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\..\Assets\Shared\GameSettings.xkgamesettings))' == 'true'">$(MSBuildProjectDirectory)\..\Assets\Shared\GameSettings.xkgamesettings</XenkoGameSettings>
+    <!-- Quite hard-coded for our current unit tests -->
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\GameAssets\GameSettings.xkgamesettings))' == 'true' ">$(MSBuildProjectDirectory)\GameAssets\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\AudioAssets\GameSettings.xkgamesettings))' == 'true' ">$(MSBuildProjectDirectory)\AudioAssets\GameSettings.xkgamesettings</XenkoGameSettings>
+    <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\Shaders.Bytecodes\GameSettings.xkgamesettings))' == 'true' ">$(MSBuildProjectDirectory)\Shaders.Bytecodes\GameSettings.xkgamesettings</XenkoGameSettings>
+  </PropertyGroup>
+
+  <!--Compile assets for all XenkoPackage items and only for an executable-->
+  <Target Name="XenkoCompileAsset" Condition="'$(XenkoIsExecutable)' == 'true'">
+    <PropertyGroup>
+      <XenkoCompileAssetCommandProxy>$(XenkoCompileAssetCommandProxy) $(XenkoCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(XenkoPlatform) --project-configuration=$(Configuration) --output-path=&quot;$(XenkoCompileAssetOutputPath)&quot; --build-path=&quot;$(XenkoCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --log-pipe=&quot;$(XenkoBuildEngineLogPipeUrl)&quot;</XenkoCompileAssetCommandProxy>
+      <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogVerbose)' != ''">$(XenkoCompileAssetCommandProxy) --verbose</XenkoCompileAssetCommandProxy>
+      <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogDebug)' != ''">$(XenkoCompileAssetCommandProxy) --debug</XenkoCompileAssetCommandProxy>
+    </PropertyGroup>
+
+    <!-- Ensure the output directory exists -->
+    <MakeDir Directories="$(TargetDir)"/>
+
+    <!-- Compile assets -->
+    <Exec WorkingDirectory="$(TargetDir)" Command="$(XenkoCompileAssetCommandProxy)" />
+    
+    <!-- Android specific: include build output in _AndroidAssetsDest so that APK is regenerated -->
+    <ItemGroup Condition="'$(XenkoPlatform)' == 'Android'">
+      <_AndroidAssetsDest Include="$(XenkoCompileAssetOutputPath)\**\*.*" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Clean assets -->
+  <Target Name="XenkoCleanAsset" Condition="'$(XenkoIsExecutable)' == 'true'">
+    <RemoveDir Condition="Exists('$(XenkoCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetBuildPath)"/>
+    <RemoveDir Condition="Exists('$(XenkoCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetOutputPath)"/>
+  </Target>
+</Project>

@@ -599,6 +599,7 @@ namespace Xenko.Core.Assets
                         ResourceFolders = { "Resources" },
                         FullPath = packagePath,
                     };
+                package.Meta.Version = TryGetPackageVersion(projectPath) ?? new PackageVersion("1.0.0");
                 return new SolutionProject(package, Guid.NewGuid(), projectPath) { IsImplicitProject = !packageExists };
             }
             else
@@ -616,6 +617,30 @@ namespace Xenko.Core.Assets
                 {
                     return new StandalonePackage(package);
                 }
+            }
+        }
+
+        private static PackageVersion TryGetPackageVersion(string projectPath)
+        {
+            try
+            {
+                // Load a project without specifying a platform to make sure we get the correct platform type
+                var msProject = VSProjectHelper.LoadProject(projectPath, platform: "NoPlatform");
+                try
+                {
+
+                    var packageVersion = msProject.GetPropertyValue("PackageVersion");
+                    return !string.IsNullOrEmpty(packageVersion) ? new PackageVersion(packageVersion) : null;
+                }
+                finally
+                {
+                    msProject.ProjectCollection.UnloadAllProjects();
+                    msProject.ProjectCollection.Dispose();
+                }
+            }
+            catch
+            {
+                return null;
             }
         }
 

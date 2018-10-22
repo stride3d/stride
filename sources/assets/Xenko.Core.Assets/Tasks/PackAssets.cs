@@ -6,13 +6,12 @@ using Microsoft.Build.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Xenko.Core.Assets;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
 using Xenko.Core.Yaml;
 using Xenko.Core.Yaml.Events;
 
-namespace Xenko.Assets.Tasks
+namespace Xenko.Core.Assets.Tasks
 {
     public class PackAssets : Task
     {
@@ -124,6 +123,7 @@ namespace Xenko.Assets.Tasks
                             var yamlEventReader = new EventReader(new Parser(streamReader));
                             yamlEventReader.ReadCurrent(parsingEvents);
 
+                            var hasChanges = false;
                             foreach (var parsingEvent in parsingEvents)
                             {
                                 if (parsingEvent is Scalar scalar)
@@ -139,17 +139,30 @@ namespace Xenko.Assets.Tasks
                                             targetResourcePath = UPath.Combine(resourceOutputPath, (UFile)sourceResourcePath.GetFileName());
                                             TryCopyResource(sourceResourcePath, targetResourcePath);
                                         }
-                                        scalar.Value = targetResourcePath.MakeRelative(assetOutputPath);
+                                        var newValue = targetResourcePath.MakeRelative(assetOutputPath);
+                                        if (scalar.Value != newValue)
+                                        {
+                                            hasChanges = true;
+                                            scalar.Value = newValue;
+                                        }
                                     }
                                 }
                             }
 
-                            using (var output = File.CreateText(outputFile))
+                            if (!hasChanges)
                             {
-                                var emitter = new Emitter(output, AssetYamlSerializer.Default.GetSerializerSettings().PreferredIndent);
-                                foreach (var parsingEvent in parsingEvents)
+                                // We do this because pure text files could be parsed as YAML events even though they are not
+                                File.Copy(asset.FilePath, outputFile, true);
+                            }
+                            else
+                            {
+                                using (var output = File.CreateText(outputFile))
                                 {
-                                    emitter.Emit(parsingEvent);
+                                    var emitter = new Emitter(output, AssetYamlSerializer.Default.GetSerializerSettings().PreferredIndent);
+                                    foreach (var parsingEvent in parsingEvents)
+                                    {
+                                        emitter.Emit(parsingEvent);
+                                    }
                                 }
                             }
 

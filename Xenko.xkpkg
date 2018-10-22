@@ -12,15 +12,6 @@ Meta:
     Description: Xenko Game Package
     LicenseUrl: http://xenko.com/license.txt
     ProjectUrl: http://xenko.com
-AssetFolders:
-    - Path: sources/engine/Xenko.Assets/AssetPackage/Assets/Shared
-    - Path: sources/engine/Xenko.Engine/Rendering
-    - Path: sources/engine/Xenko.Graphics/Shaders
-    - Path: sources/editor/Xenko.Assets.Presentation/Shaders
-    - Path: sources/engine/Xenko.Particles/Shaders
-    - Path: sources/engine/Xenko.Video/Shaders
-ResourceFolders:
-    - sources/engine/Xenko.Assets/AssetPackage/Resources
 TemplateFolders:
     - Path: sources/editor/Xenko.Assets.Presentation/Templates/Core
       Group: Core
@@ -126,7 +117,3 @@ TemplateFolders:
         - samples\Templates\ThirdPersonPlatformer\ThirdPersonPlatformer\ThirdPersonPlatformer.xktpl
         - samples\Templates\TopDownRPG\TopDownRPG\TopDownRPG.xktpl
         - samples\Templates\VRSandbox\VRSandbox\VRSandbox.xktpl
-RootAssets:
-    - c90f3988-0544-4cbe-993f-13af7d9c23c6:XenkoDefaultFont
-    - d26edb11-10bd-403c-b3c2-9c7fcccf25e5:XenkoDefaultSplashScreen
-    - FF02239B-3697-4EBB-9F37-FE880659E64B:XenkoDebugSpriteFont

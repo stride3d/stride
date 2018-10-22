@@ -102,4 +102,12 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <!-- Pack target -->
+  <UsingTask TaskName="Xenko.Core.Assets.Tasks.PackAssets" AssemblyFile="$(MSBuildThisFileDirectory)..\assets\Xenko.Core.Assets\bin\Debug\net462\Xenko.Core.Assets.dll" />
+  <Target Name="PrepareXenkoAssetsForPack" BeforeTargets="_GetPackageFiles" Condition="'$(XenkoPackAssets)' == 'true'">
+    <PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\xenko">
+      <Output TaskParameter="GeneratedItems" ItemName="None"/>
+    </PackAssets>
+  </Target>
 </Project>

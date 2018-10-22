@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
@@ -13,6 +13,7 @@
     <XenkoPlatformDependent>true</XenkoPlatformDependent>
     <XenkoProjectPlatformDependentWindows>true</XenkoProjectPlatformDependentWindows>
     <XenkoBuildTags>*</XenkoBuildTags>
+    <XenkoPackAssets>true</XenkoPackAssets>
     <DefineConstants>$(DefineConstants);XENKO_GRAPHICS_NO_DESCRIPTOR_COPIES</DefineConstants>
   </PropertyGroup>
   <Choose>

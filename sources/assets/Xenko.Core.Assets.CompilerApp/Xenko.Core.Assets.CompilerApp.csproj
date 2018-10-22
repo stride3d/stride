@@ -34,6 +34,7 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
@@ -58,4 +59,15 @@
   <Import Project="..\..\tools\Xenko.Core.VisualStudio\Xenko.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)System*.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)NuGet*.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Newtonsoft.Json.dll" />
+    </ItemGroup>
+  </Target>
 </Project>

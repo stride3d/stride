@@ -245,6 +245,7 @@ namespace Xenko.Core.Assets
                     {
                         // Load package
                         var loadedProject = LoadProject(log, file, true, loadParameters);
+                        loadedProject.Package.Meta.Version = projectDependency.Version;
                         Projects.Add(loadedProject);
 
                         loadedPackage = loadedProject.Package;

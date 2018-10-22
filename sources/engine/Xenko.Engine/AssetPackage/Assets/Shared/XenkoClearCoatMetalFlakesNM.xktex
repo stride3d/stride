@@ -1,8 +1,8 @@
 !Texture
-Id: 2f76bcba-ae9f-4954-b98d-f94c2102ff86
+Id: 7e2761d1-ef86-420a-b7a7-a0ed1c16f9bb
 SerializedVersion: {Xenko: 2.0.0.0}
 Tags: []
-Source: ../../Resources/ClearCoatOrangePeelNM.dds
+Source: !file ../../Resources/ClearCoatMetalFlakesNM.dds
 IsCompressed: false
 GenerateMipmaps: true
 Type: !NormalMapTextureType {}
