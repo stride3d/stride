@@ -99,11 +99,6 @@ namespace Xenko.LauncherApp
                     result.Actions.Clear();
                     result.Actions.Add(LauncherArguments.ActionType.Uninstall);
                 }
-                else if (string.Equals(arg, "/UpdateTargets", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    // UpdateTargets should be run first.
-                    result.Actions.Insert(0, LauncherArguments.ActionType.UpdateTargets);
-                }
             }
 
             return result;
@@ -118,9 +113,6 @@ namespace Xenko.LauncherApp
                 {
                     case LauncherArguments.ActionType.Run:
                         result = TryRun();
-                        break;
-                    case LauncherArguments.ActionType.UpdateTargets:
-                        result = ForceUpdateTargets();
                         break;
                     case LauncherArguments.ActionType.Uninstall:
                         result = Uninstall();
@@ -188,23 +180,6 @@ namespace Xenko.LauncherApp
             {
                 CrashReportHelper.HandleException(Dispatcher.CurrentDispatcher, exception);
                 return LauncherErrorCode.ErrorWhileRunningServer;
-            }
-        }
-
-        private static LauncherErrorCode ForceUpdateTargets()
-        {
-            try
-            {
-                // Force update targets
-                var store = InitializeNugetStore();
-                store.UpdateTargets();
-                return LauncherErrorCode.Success;
-            }
-            catch
-            {
-                // TODO: localize
-                MessageBox.Show("Target files couldn't be updated.", "Xenko", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                return LauncherErrorCode.ErrorUpdatingTargetFiles;
             }
         }
 

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Commands;
@@ -12,11 +13,10 @@ using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
-using NuGet.Packaging;
-using NuGet.Packaging.Core;
 using NuGet.ProjectModel;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.Versioning;
 
 namespace Xenko.Core.Assets.CompilerApp
 {
@@ -38,46 +38,53 @@ namespace Xenko.Core.Assets.CompilerApp
             var installPath = SettingsUtility.GetGlobalPackagesFolder(settings);
             var assemblies = new List<string>();
 
+            var logger = new Logger();
+            var specPath = Path.Combine("TestProject", "project.json");
+            var spec = new PackageSpec()
             {
-                var logger = new Logger();
-                var configJson = JObject.Parse(@"
+                Name = "TestProject", // make sure this package never collides with a dependency
+                FilePath = specPath,
+                Dependencies = new List<LibraryDependency>()
                 {
-                    ""dependencies"": {
-                        ""Xenko.Core.Assets.CompilerApp"": ""3.1.0.1-dev""
-                    },
-                     ""frameworks"": {
-                        ""net462"": { }
+                    new LibraryDependency
+                    {
+                        LibraryRange = new LibraryRange(Assembly.GetEntryAssembly().GetName().Name, new VersionRange(new NuGetVersion(XenkoVersion.NuGetVersion)), LibraryDependencyTarget.Package),
                     }
-                }");
-
-                var specPath = Path.Combine("TestProject", "project.json");
-                var spec = JsonPackageSpecReader.GetPackageSpec(configJson.ToString(), "TestProject", specPath);
-
-                using (var context = new SourceCacheContext())
+                },
+                TargetFrameworks =
                 {
-                    context.IgnoreFailedSources = true;
-
-                    var provider = RestoreCommandProviders.Create(installPath, new List<string>(), sourceRepositoryProvider.GetRepositories(), context, new LocalPackageFileCache(), logger);
-                    var request = new RestoreRequest(spec, provider, context, logger)
+                    new TargetFrameworkInformation
                     {
-                        LockFilePath = "project.lock.json",
-                    };
+                        FrameworkName = NuGetFramework.Parse("net462"),
+                    }
+                },
+            };
 
-                    var command = new RestoreCommand(request);
+            using (var context = new SourceCacheContext())
+            {
+                context.IgnoreFailedSources = true;
 
-                    Console.WriteLine("Restoring");
-                    // Act
-                    var result = command.ExecuteAsync().Result;
-                    Console.WriteLine("Restoring done");
+                var provider = RestoreCommandProviders.Create(installPath, new List<string>(), sourceRepositoryProvider.GetRepositories(), context, new LocalPackageFileCache(), logger);
+                var request = new RestoreRequest(spec, provider, context, logger)
+                {
+                    LockFilePath = "project.lock.json",
+                };
 
-                    foreach (var library in result.LockFile.Libraries)
+                var command = new RestoreCommand(request);
+
+                Console.WriteLine("Restoring");
+                // Act
+                var result = command.ExecuteAsync().Result;
+                Console.WriteLine("Restoring done");
+                result.CommitAsync(logger, CancellationToken.None).Wait();
+
+                foreach (var library in result.LockFile.Libraries)
+                {
+                    foreach (var file in library.Files)
                     {
-                        foreach (var file in library.Files)
+                        if (file.StartsWith("lib/net"))
                         {
-                            if (file.StartsWith("lib/net"))
-                            {
-                                assemblies.Add(Path.Combine(installPath, library.Path, file));
-                            }
+                            assemblies.Add(Path.Combine(installPath, library.Path, file));
                         }
                     }
                 }

@@ -53,7 +53,7 @@ namespace Xenko.Core.Assets.Templates
         /// <returns>A sequence containing all registered template descriptions.</returns>
         public static IEnumerable<TemplateDescription> FindTemplates(PackageSession session = null)
         {
-            var packages = session?.Packages ?? new PackageCollection { PackageStore.Instance.DefaultPackage };
+            var packages = session?.Packages ?? new PackageCollection();
             // TODO this will not work if the same package has different versions
             return packages.SelectMany(package => package.Templates).OrderBy(tpl => tpl.Order).ThenBy(tpl => tpl.Name);
         }

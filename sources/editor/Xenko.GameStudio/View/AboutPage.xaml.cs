@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using Xenko.Core.Assets;
@@ -66,7 +67,7 @@ namespace Xenko.GameStudio.View
             {
                 return await Task.Run(() =>
                 {
-                    var filePath = Path.Combine(PackageStore.Instance.DefaultPackage.RootDirectory, file);
+                    var filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), file);
                     string fileMarkdown;
                     using (var fileStream = new FileStream(filePath, FileMode.Open))
                     {

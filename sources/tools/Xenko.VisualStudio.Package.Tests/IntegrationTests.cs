@@ -133,13 +133,6 @@ namespace Xenko.VisualStudio.Package.Tests
         {
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
 
-            // Running first time?
-            var packageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
-            if (PackageStore.Instance.IsDevelopmentStore)
-            {
-                PackageStore.Instance.CheckDeveloperTargetRedirects("Xenko", packageVersion, PackageStore.Instance.InstallationPath).Wait();
-            }
-
             // Create temporary folder
             string tempDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(tempDirectory);

@@ -23,6 +23,9 @@ namespace Xenko.ConnectionRouter
         /// <returns></returns>
         public static string FindXenkoSdkDir(string xenkoVersion = null)
         {
+            // TODO: Rewrite this code
+            return null;
+
             // TODO: Almost duplicate of XenkoCommandsProxy.FindXenkoSdkDir!!
             // TODO: Maybe move it in some common class somewhere? (in this case it would be included with "Add as link" in VSPackage)
             var xenkoSdkDir = DirectoryHelper.GetInstallationDirectory("Xenko");

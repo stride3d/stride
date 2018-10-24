@@ -15,22 +15,6 @@ namespace Xenko.Core.Assets
         private static string packageDirectoryOverride;
 
         /// <summary>
-        /// If not null, the location where to find the package directory and the installation directory, overriding the default locations.
-        /// It can only be set once.
-        /// </summary>
-        public static string PackageDirectoryOverride {
-            get
-            {
-                return packageDirectoryOverride;
-            }
-            set
-            {
-                if (packageDirectoryOverride != null) throw new NotSupportedException("Cannot set more than once the directory override!");
-                packageDirectoryOverride = value;
-            }
-        }
-
-        /// <summary>
         /// Gets the directory of the package from which the <see cref="Xenko.Core.Assets"/> assembly has been loaded.
         /// </summary>
         /// <param name="packageName">The name of the expected package.</param>
@@ -38,9 +22,6 @@ namespace Xenko.Core.Assets
         /// <exception cref="InvalidOperationException">The package from which the <see cref="Xenko.Core.Assets"/> assembly has been loaded does not match the <paramref name="packageName"/>.</exception>
         public static string GetPackageDirectory(string packageName)
         {
-            if (PackageDirectoryOverride != null)
-                return PackageDirectoryOverride;
-            
             var appDomain = AppDomain.CurrentDomain;
             var baseDirectory = new DirectoryInfo(appDomain.BaseDirectory);
             var defaultPackageDirectoryTemp = baseDirectory.Parent?.Parent;

@@ -422,8 +422,6 @@ namespace Xenko.Core.Assets
             VSSolution = new VisualStudio.Solution();
             VSSolution.Headers.Add(PackageSessionHelper.SolutionHeader);
 
-            constraintProvider.AddConstraint(PackageStore.Instance.DefaultPackageName, new PackageVersionRange(PackageStore.Instance.DefaultPackageVersion));
-
             Projects = new ProjectCollection();
             Projects.CollectionChanged += ProjectsCollectionChanged;
 
@@ -1381,9 +1379,6 @@ namespace Xenko.Core.Assets
 
                 // Default package version override
                 newLoadParameters.ExtraCompileProperties = new Dictionary<string, string>();
-                var defaultPackageOverride = NugetStore.GetPackageVersionVariable(PackageStore.Instance.DefaultPackageName) + "Override";
-                var defaultPackageVersion = PackageStore.Instance.DefaultPackageVersion.Version;
-                newLoadParameters.ExtraCompileProperties.Add(defaultPackageOverride, new Version(defaultPackageVersion.Major, defaultPackageVersion.Minor).ToString());
                 if (loadParameters.ExtraCompileProperties != null)
                 {
                     foreach (var property in loadParameters.ExtraCompileProperties)

@@ -11,7 +11,7 @@ namespace Xenko.Core.Assets
     /// <summary>
     /// Attribute that describes what a package upgrader can do.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     [BaseTypeRequired(typeof(PackageUpgrader))]
     [AssemblyScan]
     public class PackageUpgraderAttribute : Attribute

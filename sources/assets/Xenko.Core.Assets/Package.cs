@@ -897,7 +897,7 @@ namespace Xenko.Core.Assets
             // the loop
             try
             {
-                AssetMigration.MigrateAssetIfNeeded(context, assetFile, PackageStore.Instance.DefaultPackageName);
+                AssetMigration.MigrateAssetIfNeeded(context, assetFile, "Xenko");
 
                 // Try to load only if asset is not already in the package or assetRef.Asset is null
                 var assetPath = assetFile.AssetLocation;

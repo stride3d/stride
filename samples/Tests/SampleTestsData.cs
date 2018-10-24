@@ -22,19 +22,5 @@ namespace Xenko.Samples.Tests
 #else
         public const PlatformType TestPlatform = PlatformType.Windows;
 #endif
-
-        [ModuleInitializer]
-        public static void Initialize()
-        {
-            // Override search path since we are in a unit test directory
-            DirectoryHelper.PackageDirectoryOverride = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..");
-
-            // Running first time? If yes, create nuget redirect package.
-            var packageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
-            if (PackageStore.Instance.IsDevelopmentStore)
-            {
-                PackageStore.Instance.CheckDeveloperTargetRedirects("Xenko", packageVersion, PackageStore.Instance.InstallationPath).Wait();
-            }
-        }
     }
 }

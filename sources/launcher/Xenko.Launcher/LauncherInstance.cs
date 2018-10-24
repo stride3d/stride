@@ -98,9 +98,6 @@ namespace Xenko.LauncherApp
             // Setup the Nuget store
             store = Launcher.InitializeNugetStore();
 
-            if (!CreateTargetFilesIfMissing(store))
-                return false;
-
             return true;
         }
 
@@ -114,25 +111,6 @@ namespace Xenko.LauncherApp
 
             // Terminate the server and the app at last
             app.Shutdown();
-        }
-
-        private static bool CreateTargetFilesIfMissing(NugetStore store)
-        {
-            // If target files doesn't exist, create it
-            if (!File.Exists(store.TargetFile) || !File.Exists(store.TargetFileOld))
-            {
-                try
-                {
-                    store.UpdateTargets();
-                }
-                catch
-                {
-                    // TODO: localize
-                    Launcher.DisplayError("Target file was missing and couldn't be updated. Please re-install Xenko");
-                    return false;
-                }
-            }
-            return true;
         }
 
         private async Task ApplicationEntryPoint(bool shouldStartHidden)

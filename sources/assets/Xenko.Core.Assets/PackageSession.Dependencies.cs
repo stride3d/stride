@@ -89,39 +89,66 @@ namespace Xenko.Core.Assets
 
             log.Verbose($"Process dependencies for {project.Name}...");
 
-            var restoreGraph = await GenerateRestoreGraph(log, project.Name, project.FullPath);
+            var packageReferences = new Dictionary<string, PackageVersionRange>();
+
+            // Load some informations about the project
+            try
+            {
+                // Load a project without specifying a platform to make sure we get the correct platform type
+                var msProject = VSProjectHelper.LoadProject(project.FullPath, platform: "NoPlatform");
+                try
+                {
+
+                    var projectIsExecutable = msProject.GetPropertyValue("XenkoIsExecutable");
+                    project.Type = projectIsExecutable.ToLowerInvariant() == "true" ? ProjectType.Executable : ProjectType.Library;
+                    if (project.Type == ProjectType.Executable)
+                        project.Platform = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
+
+                    foreach (var packageReference in msProject.GetItems("PackageReference").ToList())
+                    {
+                        if (packageReference.HasMetadata("Version") && PackageVersionRange.TryParse(packageReference.GetMetadataValue("Version"), out var packageRange))
+                            packageReferences[packageReference.EvaluatedInclude] = packageRange;
+                    }
+                }
+                finally
+                {
+                    msProject.ProjectCollection.UnloadAllProjects();
+                    msProject.ProjectCollection.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Unexpected exception while loading project [{project.FullPath.ToWindowsPath()}]", ex);
+            }
 
             // Check if there is any package upgrade to do
             var pendingPackageUpgrades = new List<PendingPackageUpgrade>();
             pendingPackageUpgradesPerPackage.Add(package, pendingPackageUpgrades);
 
-            foreach (var item in restoreGraph.Flattened)
+            foreach (var packageReference in packageReferences)
             {
-                if (item.Key.Type == LibraryType.Package)
+                var dependencyName = packageReference.Key;
+                var dependencyVersion = packageReference.Value;
+
+                var packageUpgrader = AssetRegistry.GetPackageUpgrader(dependencyName);
+                if (packageUpgrader != null)
                 {
-                    var dependencyName = item.Key.Name;
-                    var dependencyVersion = item.Key.Version.ToPackageVersion();
-
-                    var packageUpgrader = AssetRegistry.GetPackageUpgrader(dependencyName);
-                    if (packageUpgrader != null)
+                    // Check if upgrade is necessary
+                    if (dependencyVersion.MinVersion >= packageUpgrader.Attribute.UpdatedVersionRange.MinVersion)
                     {
-                        // Check if upgrade is necessary
-                        if (dependencyVersion >= packageUpgrader.Attribute.UpdatedVersionRange.MinVersion)
-                        {
-                            continue;
-                        }
-
-                        // Check if upgrade is allowed
-                        if (dependencyVersion < packageUpgrader.Attribute.PackageMinimumVersion)
-                        {
-                            // Throw an exception, because the package update is not allowed and can't be done
-                            throw new InvalidOperationException($"Upgrading project [{project.Name}] to use [{dependencyName}] from version [{dependencyVersion}] to [{packageUpgrader.Attribute.UpdatedVersionRange.MinVersion}] is not supported (supported only from version [{packageUpgrader.Attribute.PackageMinimumVersion}]");
-                        }
-
-                        log.Info($"Upgrading project [{project.Name}] to use [{dependencyName}] from version [{dependencyVersion}] to [{packageUpgrader.Attribute.UpdatedVersionRange.MinVersion}] will be required");
-
-                        pendingPackageUpgrades.Add(new PendingPackageUpgrade(packageUpgrader, new PackageDependency(dependencyName, new PackageVersionRange(dependencyVersion)), null));
+                        continue;
                     }
+
+                    // Check if upgrade is allowed
+                    if (dependencyVersion.MinVersion < packageUpgrader.Attribute.PackageMinimumVersion)
+                    {
+                        // Throw an exception, because the package update is not allowed and can't be done
+                        throw new InvalidOperationException($"Upgrading project [{project.Name}] to use [{dependencyName}] from version [{dependencyVersion}] to [{packageUpgrader.Attribute.UpdatedVersionRange.MinVersion}] is not supported (supported only from version [{packageUpgrader.Attribute.PackageMinimumVersion}]");
+                    }
+
+                    log.Info($"Upgrading project [{project.Name}] to use [{dependencyName}] from version [{dependencyVersion}] to [{packageUpgrader.Attribute.UpdatedVersionRange.MinVersion}] will be required");
+
+                    pendingPackageUpgrades.Add(new PendingPackageUpgrade(packageUpgrader, new PackageDependency(dependencyName, dependencyVersion), null));
                 }
             }
 
@@ -157,8 +184,7 @@ namespace Xenko.Core.Assets
                         var msbuildProject = VSProjectHelper.LoadProject(projectFile.ToWindowsPath());
                         var isProjectDirty = false;
 
-                        var packageReferences = msbuildProject.GetItems("PackageReference").ToList();
-                        foreach (var packageReference in packageReferences)
+                        foreach (var packageReference in msbuildProject.GetItems("PackageReference").ToList())
                         {
                             if (packageReference.EvaluatedInclude == pendingPackageUpgrade.Dependency.Name && packageReference.GetMetadataValue("Version") != expectedVersion)
                             {
@@ -254,30 +280,6 @@ namespace Xenko.Core.Assets
 
                 if (loadedPackage != null)
                     projectDependency.Package = loadedPackage;
-            }
-
-            // Load some informations about the project
-            try
-            {
-                // Load a project without specifying a platform to make sure we get the correct platform type
-                var msProject = VSProjectHelper.LoadProject(project.FullPath, platform: "NoPlatform");
-                try
-                {
-
-                    var projectIsExecutable = msProject.GetPropertyValue("XenkoIsExecutable");
-                    project.Type = projectIsExecutable.ToLowerInvariant() == "true" ? ProjectType.Executable : ProjectType.Library;
-                    if (project.Type == ProjectType.Executable)
-                        project.Platform = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
-                }
-                finally
-                {
-                    msProject.ProjectCollection.UnloadAllProjects();
-                    msProject.ProjectCollection.Dispose();
-                }
-            }
-            catch (Exception ex)
-            {
-                log.Error($"Unexpected exception while loading project [{project.FullPath.ToWindowsPath()}]", ex);
             }
 
             // 2. Load local packages

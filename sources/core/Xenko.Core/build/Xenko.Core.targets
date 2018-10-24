@@ -41,10 +41,13 @@
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(XenkoAssemblyProcessorPath)" Condition=" '$(XenkoAssemblyProcessorPath)' != '' And '$(XenkoAssemblyProcessorDev)' != 'true' "/>
   <Target Name="XenkoRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">
     <WriteLinesToFile File="$(IntermediateOutputPath)XenkoReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
+    <ItemGroup>
+      <XenkoAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.ExternallyResolved)' == 'true'" />
+    </ItemGroup>
     <PropertyGroup>
       <XenkoAssemblyProcessorOptions Condition="'$(XenkoAssemblyProcessorOptions)' == ''">--auto-notify-property --parameter-key --auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
       <!-- If building user solutions (not unit tests), provide assembly processor with ProjectReferences paths so that they can be readded to assembly references for serialization module initializer (otherwise .exe don't have real reference on Game assemblies with auto load scene game) -->
-      <XenkoAssemblyProcessorOptions Condition="'$(XenkoUnitTest)' != 'true'">$(XenkoAssemblyProcessorOptions) @(ReferencePath->'--add-reference=%22%(Identity)%22',' ')</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions Condition="'$(XenkoUnitTest)' != 'true'">$(XenkoAssemblyProcessorOptions) @(XenkoAddReference->'--add-reference=%22%(Identity)%22',' ')</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(XenkoAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)XenkoReferences.cache"</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --platform=$(XenkoPlatform) --targetFramework=$(XenkoNETFrameworkVersion) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</XenkoAssemblyProcessorOptions>

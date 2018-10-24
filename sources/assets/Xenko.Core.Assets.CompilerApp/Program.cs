@@ -12,13 +12,6 @@ namespace Xenko.Core.Assets.CompilerApp
         {
             try
             {
-                // Override search path since we are in a unit test directory
-                DirectoryHelper.PackageDirectoryOverride = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\..\..");
-
-                // Set the XenkoDir environment variable
-                var installDir = DirectoryHelper.GetInstallationDirectory("Xenko");
-                Environment.SetEnvironmentVariable("XenkoDir", installDir);
-
                 // Running first time? If yes, create nuget redirect package.
                 //var packageVersion = new PackageVersion(XenkoVersion.NuGetVersion);
                 //if (PackageStore.Instance.IsDevelopmentStore)

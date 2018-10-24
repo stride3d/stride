@@ -219,7 +219,6 @@ namespace Xenko.LauncherApp.ViewModels
                         progressReport.UpdateProgress(ProgressAction.Install, -1);
                         MetricsHelper.NotifyDownloadStarting(ServerPackage.Id, ServerPackage.Version.ToString());
                         await Store.InstallPackage(ServerPackage.Id, ServerPackage.Version, progressReport);
-                        Store.UpdateTargets();
                         downloadCompleted = true;
                         MetricsHelper.NotifyDownloadCompleted(ServerPackage.Id, ServerPackage.Version.ToString());
                     }
@@ -238,7 +237,6 @@ namespace Xenko.LauncherApp.ViewModels
                         if (localPackage != null)
                         {
                             await Store.UninstallPackage(localPackage, null);
-                            Store.UpdateTargets();
                         }
                     }
                     catch

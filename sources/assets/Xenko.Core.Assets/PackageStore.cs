@@ -25,12 +25,6 @@ namespace Xenko.Core.Assets
     {
         private static readonly Lazy<PackageStore> DefaultPackageStore = new Lazy<PackageStore>(() => new PackageStore());
 
-        private readonly Package defaultPackage;
-
-        private readonly UDirectory globalInstallationPath;
-
-        private readonly UDirectory defaultPackageDirectory;
-
         /// <summary>
         /// Associated NugetStore for our packages. Cannot be null.
         /// </summary>
@@ -40,85 +34,10 @@ namespace Xenko.Core.Assets
         /// Initializes a new instance of the <see cref="PackageStore"/> class.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">Unable to find a valid Xenko installation path</exception>
-        private PackageStore(string defaultPackageName = "Xenko", string defaultPackageVersion = XenkoVersion.NuGetVersion)
+        private PackageStore()
         {
-            // TODO: these are currently hardcoded to Xenko
-            DefaultPackageName = defaultPackageName;
-            DefaultPackageVersion = new PackageVersion(defaultPackageVersion);
-            defaultPackageDirectory = DirectoryHelper.GetPackageDirectory(defaultPackageName);
-   
-            // Try to resolve an installation path from the path of this assembly
-            // We need to be able to use the package manager from an official Xenko install as well as from a developer folder
-            if (globalInstallationPath == null)
-            {
-                globalInstallationPath = DirectoryHelper.GetInstallationDirectory(DefaultPackageName);
-            }
-
-            // If there is no root, this is an error
-            if (globalInstallationPath == null)
-            {
-                throw new InvalidOperationException("Unable to find a valid Xenko installation or dev path");
-            }
-
-            // Preload default package
-            var logger = new LoggerResult();
-            var defaultPackageFile = DirectoryHelper.GetPackageFile(defaultPackageDirectory, DefaultPackageName);
-            defaultPackage = Package.Load(logger, defaultPackageFile, GetDefaultPackageLoadParameters());
-            if (defaultPackage == null)
-            {
-                throw new InvalidOperationException("Error while loading default package from [{0}]: {1}".ToFormat(defaultPackageFile, logger.ToText()));
-            }
-            defaultPackage.IsSystem = true;
-
             // Check if we are in a root directory with store/packages facilities
-            store = new NugetStore(globalInstallationPath);
-        }
-
-        /// <summary>
-        /// Gets or sets the default package name (mainly used in dev environment).
-        /// </summary>
-        /// <value>The default package name.</value>
-        public string DefaultPackageName { get; private set; }
-
-        /// <summary>
-        /// Gets the default package minimum version.
-        /// </summary>
-        /// <value>The default package minimum version.</value>
-        public PackageVersionRange DefaultPackageMinVersion
-        {
-            get
-            {
-                return new PackageVersionRange(DefaultPackageVersion, true);
-            }
-        }
-
-        /// <summary>
-        /// Gets the default package version.
-        /// </summary>
-        /// <value>The default package version.</value>
-        public PackageVersion DefaultPackageVersion { get; }
-
-        /// <summary>
-        /// Gets the default package.
-        /// </summary>
-        /// <value>The default package.</value>
-        public Package DefaultPackage
-        {
-            get
-            {
-                return defaultPackage;
-            }
-        }
-
-        /// <summary>
-        /// The root directory of packages.
-        /// </summary>
-        public UDirectory InstallationPath
-        {
-            get
-            {
-                return globalInstallationPath;
-            }
+            store = new NugetStore(null);
         }
 
         /// <summary>
@@ -183,15 +102,6 @@ namespace Xenko.Core.Assets
                     return packageFile;
             }
 
-            // TODO: Check version for default package
-            if (packageName == DefaultPackageName)
-            {
-                if (versionRange == null || versionRange.Contains(DefaultPackageVersion))
-                {
-                    //return UPath.Combine(UPath.Combine(UPath.Combine(InstallationPath, (UDirectory)store.RepositoryPath), defaultPackageDirectory), new UFile(packageName + Package.PackageFileExtension));
-                }
-            }
-
             return null;
         }
 
@@ -212,81 +122,6 @@ namespace Xenko.Core.Assets
             // By default, we are not loading assets for installed packages
             return new PackageLoadParameters { AutoLoadTemporaryAssets = false, LoadAssemblyReferences = false, AutoCompileProjects = false };
         }
-
-        /// <summary>
-        /// Is current store a bare bone development one?
-        /// </summary>
-        public bool IsDevelopmentStore => defaultPackageDirectory != null && DirectoryHelper.IsRootDevDirectory(defaultPackageDirectory);
-
-        public async Task CheckDeveloperTargetRedirects(string id, PackageVersion version, string realPath)
-        {
-            var nupkgFile = Path.Combine(Environment.ExpandEnvironmentVariables(store.DevSource), $"{id}.{version}.nupkg");
-
-            var isRedirectToCurrentPath = false;
-            var installedPackage = store.GetLocalPackages(id).FirstOrDefault(x => x.Version == version);
-            if (installedPackage != null)
-            {
-                var redirectFile = Path.Combine(installedPackage.Path, $@"{id}.redirect");
-                if (File.Exists(redirectFile) && String.Compare(File.ReadAllText(redirectFile), realPath, StringComparison.OrdinalIgnoreCase) == 0)
-                    isRedirectToCurrentPath = true;
-            }
-
-            // Note: later, we could do better and check existing package contents and scan for differences?
-            // We could also delete older packages using same path
-            if (File.Exists(nupkgFile) && isRedirectToCurrentPath)
-                return;
-
-            Directory.CreateDirectory(Path.GetDirectoryName(nupkgFile));
-
-            var builder = new NugetPackageBuilder();
-            var meta = new PackageMeta
-            {
-                Name = id,
-                Version = version,
-                Authors = { $"{id} developers" },
-                Description = $"{id} developer package using {realPath}",
-            };
-            var nugetMeta = new ManifestMetadata();
-            ToNugetManifest(meta, nugetMeta);
-
-            builder.Populate(nugetMeta);
-            // Note: path must exist (created in NugetStore ctor)
-            using (var tempDirectory = new TemporaryDirectory())
-            {
-                // Generate fake files
-                Directory.CreateDirectory(Path.Combine(tempDirectory.DirectoryPath, "build"));
-                var files = new List<ManifestFile>();
-                foreach (var buildFileExtension in new[] { "targets", "props" })
-                {
-                    var source = Path.Combine(tempDirectory.DirectoryPath, $@"build\{id}.{buildFileExtension}");
-                    File.WriteAllText(source, $@"<?xml version=""1.0"" encoding=""utf-8"" ?>
-<Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"" >
-  <Import Project=""{realPath}\Targets\Xenko.{buildFileExtension}"" />
-</Project>
-");
-                    files.Add(new ManifestFile { Source = source, Target = $@"build\{id}.{buildFileExtension}" });
-                }
-
-                var redirectFile = Path.Combine(tempDirectory.DirectoryPath, $"{id}.redirect");
-                File.WriteAllText(redirectFile, realPath);
-                files.Add(new ManifestFile { Source = redirectFile, Target = $@"{id}.redirect" });
-
-                builder.PopulateFiles(".", files);
-                using (var nupkgStream = File.OpenWrite(nupkgFile))
-                {
-                    builder.Save(nupkgStream);
-                }
-            }
-
-            // If package is already installed in cache so that it will force reinstallation.
-            if (installedPackage != null)
-            {
-                await store.UninstallPackage(installedPackage, null);
-            }
-
-            await store.InstallPackage(id, version, null);
-        }
-
 
         /// <summary>
         /// New instance of <see cref="PackageMeta"/> from a nuget package <paramref name="metadata"/>.

@@ -316,7 +316,7 @@ namespace Xenko.LauncherApp.ViewModels
                 {
                     // Retrieve all server packages (ignoring dev ones)
                     var packages = serverPackages
-                        .Where(x => !string.Equals(x.Source, Environment.ExpandEnvironmentVariables(store.DevSource), StringComparison.OrdinalIgnoreCase))
+                        //.Where(x => !string.Equals(x.Source, Environment.ExpandEnvironmentVariables(store.DevSource), StringComparison.OrdinalIgnoreCase))
                         .GroupBy(p => $"{p.Version.Version.Major}.{p.Version.Version.Minor}", p => p);
                     foreach (var package in packages)
                     {

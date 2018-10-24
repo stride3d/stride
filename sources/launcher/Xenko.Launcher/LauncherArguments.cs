@@ -16,7 +16,6 @@ namespace Xenko.LauncherApp
         public enum ActionType
         {
             Run,
-            UpdateTargets,
             Uninstall,
         }
 
