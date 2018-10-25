@@ -17,6 +17,7 @@ Thank you everybody for your generous contributions!
 * [vvvv.org](https://vvvv.org/)
 * Jason Kinzer
 * Mike Jones
+* Jean-Baptiste Perrier
 
 ## Backers
 
@@ -38,10 +39,11 @@ Thank you everybody for your generous contributions!
 * Cobalt
 * Matthias Hölzl
 * Jon Stelly
-* Jean-Baptiste Perrier
 * Antony K. Jones
 * Thomas Tang
 * Beliar
+* Robert Iadanza
+* SleepyMode
 
 ## Mini Backers
 
