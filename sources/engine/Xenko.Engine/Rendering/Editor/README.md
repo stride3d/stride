@@ -1,0 +1,1 @@
+Those files were originally in Xenko.Assets.Presentation/Shaders and have been moved here until we can have "design-time" package references (for assets that are not part of normal compilation but exists when editing project in Game Studio).

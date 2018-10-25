@@ -144,16 +144,6 @@
       <DependentUpon>StaticThumbnails.resx</DependentUpon>
     </Compile>
     <None Include="AssetEditors.cd" />
-    <None Include="Shaders\LightConstantWhite.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>LightConstantWhite.cs</LastGenOutput>
-    </None>
-    <Compile Update="Shaders\LightConstantWhite.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>LightConstantWhite.xksl</DependentUpon>
-    </Compile>
     <Compile Update="Templates\ModelAssetTemplateWindow.xaml.cs">
       <DependentUpon>ModelAssetTemplateWindow.xaml</DependentUpon>
     </Compile>
@@ -174,12 +164,6 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>SelectedSprite.xkfx</DependentUpon>
     </Compile>
-    <Compile Update="Shaders\CompilationErrorShader.cs">
-      <DependentUpon>CompilationErrorShader.xksl</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <Compile Update="Shaders\XenkoEditorHighlightingEffect.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -192,34 +176,10 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>XenkoEditorMaterialPreviewEffect.xkfx</DependentUpon>
     </Compile>
-    <Compile Update="Shaders\SelectedSpriteShader.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>SelectedSpriteShader.xksl</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\SharedTextureCoordinate.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>SharedTextureCoordinate.xksl</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\SpritePicking.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>SpritePicking.xksl</DependentUpon>
-    </Compile>
     <Compile Update="Resources\Strings\Scene.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Scene.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\EffectCompiling.cs">
-      <DependentUpon>EffectCompiling.xksl</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DesignTime>True</DesignTime>
     </Compile>
     <Compile Update="Shaders\XenkoEditorForwardShadingEffect.cs">
       <AutoGen>True</AutoGen>
@@ -239,24 +199,10 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>SceneEditorParameters.xkfx</DependentUpon>
     </Compile>
-    <Compile Update="Shaders\Sprite3DBase.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Sprite3DBase.xksl</DependentUpon>
-    </Compile>
     <None Include="CurveEditor.cd" />
     <None Include="Shaders\SelectedSprite.xkfx">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>SelectedSprite.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\CompilationErrorShader.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>CompilationErrorShader.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\EffectCompiling.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>EffectCompiling.cs</LastGenOutput>
     </None>
     <None Include="Shaders\XenkoEditorHighlightingEffect.xkfx">
       <Generator>XenkoShaderKeyGenerator</Generator>
@@ -351,27 +297,11 @@
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>SceneEditorParameters.cs</LastGenOutput>
     </None>
-    <None Include="Shaders\SelectedSpriteShader.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>SelectedSpriteShader.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\SharedTextureCoordinate.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>SharedTextureCoordinate.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\Sprite3DBase.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>Sprite3DBase.cs</LastGenOutput>
-    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-    <None Include="Shaders\SpritePicking.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>SpritePicking.cs</LastGenOutput>
-    </None>
 	<Compile Remove="Templates\Core\**" />
 	<Compile Remove="Templates\Assets\**" />
 	<None Include="Templates\Core\**" />
