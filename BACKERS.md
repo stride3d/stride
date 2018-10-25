@@ -42,6 +42,8 @@ Thank you everybody for your generous contributions!
 * Antony K. Jones
 * Thomas Tang
 * Beliar
+* Robert Iadanza
+* SleepyMode
 
 ## Mini Backers
 
