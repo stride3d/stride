@@ -16,7 +16,7 @@ Thank you everybody for your generous contributions!
 * Robert Campbell
 * [vvvv.org](https://vvvv.org/)
 * Jason Kinzer
-* Mike Jones
+* [Marshmallow Laser Feast](http://www.marshmallowlaserfeast.com/)
 * Jean-Baptiste Perrier
 
 ## Backers
