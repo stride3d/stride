@@ -19,7 +19,7 @@ namespace Xenko.Assets.Models
         }
 
         // Supported file extensions for this importer
-        private const string FileExtensions = ".dae;.3ds;.obj;.blend;.x;.md2;.md3;.dxf";
+        private const string FileExtensions = ".dae;.3ds;.obj;.blend;.x;.md2;.md3;.dxf;.ply";
 
         private static readonly Guid Uid = new Guid("30243FC0-CEC7-4433-977E-95DCA29D846E");
 

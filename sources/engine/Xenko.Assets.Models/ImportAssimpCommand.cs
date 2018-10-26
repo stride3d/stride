@@ -17,7 +17,7 @@ namespace Xenko.Assets.Models
     [Description("Import Assimp")]
     public class ImportAssimpCommand : ImportModelCommand
     {
-        private static string[] supportedExtensions = { ".x", ".dae", ".dae", ".3ds", ".obj", ".blend" };
+        private static string[] supportedExtensions = { ".x", ".dae", ".dae", ".3ds", ".obj", ".blend", ".ply" };
 
         /// <inheritdoc/>
         public override string Title { get { string title = "Import Assimp "; try { title += Path.GetFileName(SourcePath) ?? "[File]"; } catch { title += "[INVALID PATH]"; } return title; } }
