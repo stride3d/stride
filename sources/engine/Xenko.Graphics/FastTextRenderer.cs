@@ -137,7 +137,6 @@ namespace Xenko.Graphics
 
             // Create the effect
             simpleEffect = new EffectInstance(new Effect(graphicsContext.CommandList.GraphicsDevice, SpriteEffect.Bytecode));
-            simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, Matrix.Identity);
             simpleEffect.Parameters.Set(TexturingKeys.Sampler, graphicsContext.CommandList.GraphicsDevice.SamplerStates.LinearClamp);
 
             simpleEffect.UpdateEffect(graphicsContext.CommandList.GraphicsDevice);
@@ -191,7 +190,8 @@ namespace Xenko.Graphics
             // Set the rendering parameters
             simpleEffect.Parameters.Set(TexturingKeys.Texture0, DebugSpriteFont);
             simpleEffect.Parameters.Set(SpriteEffectKeys.Color, TextColor);
-
+            simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, MatrixTransform);
+            
             // Swap vertex buffer
             activeVertexBufferIndex = ++activeVertexBufferIndex >= VertexBufferCount ? 0 : activeVertexBufferIndex;
 
@@ -277,5 +277,10 @@ namespace Xenko.Graphics
         /// Height of font Texture <see cref="DebugSpriteFont"/>.
         /// </summary>
         public int DebugSpriteHeight { get; set; } = 64;
+
+        /// <summary>
+        /// A general matrix transformation for the text. Should include view and projection if needed.
+        /// </summary>
+        public Matrix MatrixTransform { get; set; } = Matrix.Identity;
     }
 }

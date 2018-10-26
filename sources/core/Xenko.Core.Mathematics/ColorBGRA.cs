@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 namespace Xenko.Core.Mathematics
 {
     /// <summary>
-    /// Represents a 32-bit color (4 bytes) in the form of BGRA (in byte order: B, G, B, A).
+    /// Represents a 32-bit color (4 bytes) in the form of BGRA (in byte order: B, G, R, A).
     /// </summary>
     [DataContract("ColorBGRA")]
     [DataStyle(DataStyle.Compact)]

@@ -114,7 +114,7 @@ namespace Xenko.LauncherApp.ViewModels
         public string LastErrorOrWarning { get { return lastErrorOrWarning; } set { SetValue(ref lastErrorOrWarning, value); } }
 
         public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => LauncherSettings.CloseLauncherAutomatically = value); } }
-        
+
         /// <summary>
         /// Gets or Sets the visibility status of this instance.
         /// </summary>
@@ -483,7 +483,13 @@ namespace Xenko.LauncherApp.ViewModels
                 metricsForEditorBefore120?.Dispose();
             }
             await Task.Delay(5000);
-            Dispatcher.Invoke(() => StartStudioCommand.IsEnabled = ActiveVersion != null);
+            Dispatcher.Invoke(() =>
+            {
+                StartStudioCommand.IsEnabled = ActiveVersion != null;
+                //Save settings because launcher maybe have not been closed
+                LauncherSettings.ActiveVersion = ActiveVersion != null ? ActiveVersion.Name : "";
+                LauncherSettings.Save();
+            });
         }
 
         private async Task InstallLatestVersion()

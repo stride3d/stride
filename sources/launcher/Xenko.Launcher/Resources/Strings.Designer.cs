@@ -394,6 +394,15 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove From List.
+        /// </summary>
+        public static string RemoveFromList {
+            get {
+                return ResourceManager.GetString("RemoveFromList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Checking….
         /// </summary>
         public static string ReportChecking {
@@ -498,6 +507,15 @@ namespace Xenko.LauncherApp.Resources {
         public static string SelfUpdateTitle {
             get {
                 return ResourceManager.GetString("SelfUpdateTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show in Explorer.
+        /// </summary>
+        public static string ShowInExplorer {
+            get {
+                return ResourceManager.GetString("ShowInExplorer", resourceCulture);
             }
         }
         

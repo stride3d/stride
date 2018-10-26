@@ -1168,10 +1168,10 @@ private:
 		{
 			auto lMaterial = scene->mMaterials[i];
 			
-			std::string materialName = "";
 			aiString aiName;
-			if (lMaterial->Get(AI_MATKEY_NAME, aiName) == AI_SUCCESS)
-				materialName = std::string(aiName.C_Str());
+			auto materialName = (lMaterial->Get(AI_MATKEY_NAME, aiName) == AI_SUCCESS)
+				? std::string(aiName.C_Str())
+				: "Material";
 			baseNames.push_back(materialName);
 		}
 
