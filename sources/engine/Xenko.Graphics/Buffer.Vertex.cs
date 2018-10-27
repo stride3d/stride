@@ -33,15 +33,19 @@ namespace Xenko.Graphics
         public static class Vertex
         {
             /// <summary>
-            /// Creates a new Vertex buffer with <see cref="GraphicsResourceUsage.Default"/> uasge by default.
+            /// Creates a new Vertex buffer with <see cref="GraphicsResourceUsage.Default" /> uasge by default.
             /// </summary>
-            /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+            /// <param name="device">The <see cref="GraphicsDevice" />.</param>
             /// <param name="size">The size in bytes.</param>
             /// <param name="usage">The usage.</param>
-            /// <returns>A Vertex buffer</returns>
-            public static Buffer New(GraphicsDevice device, int size, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            /// <param name="isStreamOutput">if set to <c>true</c> the buffer can be bound to the geometry shader stream output stage.</param>
+            /// <returns>
+            /// A Vertex buffer
+            /// </returns>
+            public static Buffer New(GraphicsDevice device, int size, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, bool isStreamOutput = false)
             {
-                return Buffer.New(device, size, BufferFlags.VertexBuffer, usage);
+                var flags = isStreamOutput ? BufferFlags.VertexBuffer | BufferFlags.StreamOutput : BufferFlags.VertexBuffer;
+                return Buffer.New(device, size, flags, usage);
             }
 
             /// <summary>
