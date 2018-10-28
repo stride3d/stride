@@ -232,7 +232,7 @@ namespace Xenko.Core.Assets
 
         public override string ToString()
         {
-            return $"[{Asset.GetType().Name}] {location} => {Id}";
+            return $"[{Asset.GetType().Name}] {location}";
         }
 
         /// <summary>
