@@ -1,0 +1,19 @@
+{
+    "runtimes": {
+        "win": {
+            "#import": [
+                "win-d3d"
+            ]
+        },
+        "win-d3d": {
+            "#import": [
+                "win"
+            ]
+        },
+        "win-opengl": {
+            "#import": [
+                "win"
+            ]
+        }
+    }
+}

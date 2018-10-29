@@ -22,11 +22,30 @@
   <!--Import global Xenko settings-->
   <Import Project="$(MSBuildThisFileDirectory)..\targets\Xenko.Core.GlobalSettings.targets"/>
   
+  <!-- Include platform dependent assembly when specified -->
+  <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' == 'true'">
+    <RuntimeIdentifiers Condition="'$(XenkoPlatform)' == 'Windows'">win-d3d;win-opengl</RuntimeIdentifiers>
+    <ExtrasBuildEachRuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Windows'">true</ExtrasBuildEachRuntimeIdentifier>
+
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(XenkoPlatform)' == 'Windows'">win-d3d</RuntimeIdentifier>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d'">Direct3D11</XenkoGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-opengl'">OpenGL</XenkoGraphicsApi>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-d3d'">
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);XenkoIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="XenkoIncludeRefAssemblies">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(IntermediateAssembly)" PackagePath="ref/$(TargetFramework)" />
+    </ItemGroup>
+  </Target>
+  
   <!-- 
     Settings XenkoGraphicsApi specific
   -->
   <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'Direct3D11' ">
     <XenkoGraphicsApiDefines>XENKO_GRAPHICS_API_DIRECT3D;XENKO_GRAPHICS_API_DIRECT3D11</XenkoGraphicsApiDefines>
+    <XenkoUI>SDL;WINFORMS;WPF</XenkoUI>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'Direct3D12' ">
@@ -39,6 +58,7 @@
 
   <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'OpenGL' ">
     <XenkoGraphicsApiDefines>XENKO_GRAPHICS_API_OPENGL;XENKO_GRAPHICS_API_OPENGLCORE</XenkoGraphicsApiDefines>
+    <XenkoUI>SDL;WINFORMS;OPENTK</XenkoUI>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'OpenGLES' ">
@@ -94,6 +114,13 @@
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);$(XenkoGraphicsApiDefines);XENKO_SUPPORT_BETA_UPGRADE</DefineConstants>
   </PropertyGroup>
+  
+  <!-- Build the XenkoUIList using the value of XenkoUI -->
+  <ItemGroup Condition="'$(XenkoUIList)' == ''">
+    <XenkoUIList Condition="'$(XenkoUI)' != ''" Include="$(XenkoUI)" />
+    <XenkoUIList Condition="'$(XenkoUI)' == ''" Include="None" />
+  </ItemGroup>
+
   
   <!--Building Xenko SDK itself?-->
   <PropertyGroup Condition=" '$(XenkoUserBuild)' != 'true' ">

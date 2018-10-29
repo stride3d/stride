@@ -1,4 +1,4 @@
-﻿<!-- Build file pre-included by all Xenko projects -->
+<!-- Build file pre-included by all Xenko projects -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Setup this part according to your project if you want your .csproj to compile individually without going through the .sln file -->
   <PropertyGroup>
@@ -35,12 +35,6 @@
     <XenkoGlobalSettingsTargets Condition="'$(XenkoGlobalSettingsTargets)' == ''">$(MSBuildThisFileDirectory)Xenko.Core.GlobalSettings.targets</XenkoGlobalSettingsTargets>
     <XenkoPostSettingsTargets Condition="'$(XenkoPostSettingsTargets)' == ''">$(MSBuildThisFileDirectory)Xenko.Core.PostSettings.targets</XenkoPostSettingsTargets>
   </PropertyGroup>
-
-  <!-- Build the XenkoUIList using the value of XenkoUI -->
-  <ItemGroup Condition="'$(XenkoUIList)' == ''">
-    <XenkoUIList Condition="'$(XenkoUI)' != ''" Include="$(XenkoUI)" />
-    <XenkoUIList Condition="'$(XenkoUI)' == ''" Include="None" />
-  </ItemGroup>
 
   <!-- Ensure appropriate Solution Platform are available -->
   <Choose>

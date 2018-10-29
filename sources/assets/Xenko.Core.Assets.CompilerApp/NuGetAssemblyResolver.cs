@@ -48,7 +48,7 @@ namespace Xenko.Core.Assets.CompilerApp
                 {
                     new LibraryDependency
                     {
-                        LibraryRange = new LibraryRange(Assembly.GetEntryAssembly().GetName().Name, new VersionRange(new NuGetVersion(XenkoVersion.NuGetVersion)), LibraryDependencyTarget.Package),
+                        LibraryRange = new LibraryRange(Assembly.GetExecutingAssembly().GetName().Name, new VersionRange(new NuGetVersion(XenkoVersion.NuGetVersion)), LibraryDependencyTarget.Package),
                     }
                 },
                 TargetFrameworks =
@@ -68,6 +68,7 @@ namespace Xenko.Core.Assets.CompilerApp
                 var request = new RestoreRequest(spec, provider, context, logger)
                 {
                     LockFilePath = "project.lock.json",
+                    RequestedRuntimes = { "win7-d3d11" },
                 };
 
                 var command = new RestoreCommand(request);
@@ -82,7 +83,9 @@ namespace Xenko.Core.Assets.CompilerApp
                 {
                     foreach (var file in library.Files)
                     {
-                        if (file.StartsWith("lib/net"))
+                        var extension = Path.GetExtension(file).ToLowerInvariant();
+                        if ((file.StartsWith("runtimes/win-d3d11/lib/net") || file.StartsWith("lib/net"))
+                            && (extension == ".dll" || extension == ".exe"))
                         {
                             assemblies.Add(Path.Combine(installPath, library.Path, file));
                         }

@@ -212,6 +212,7 @@
     <ItemGroup>
       <_XenkoDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <_XenkoDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <None Include="@(_XenkoDepsFile)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 

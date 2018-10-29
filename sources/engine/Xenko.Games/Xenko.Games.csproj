@@ -21,6 +21,26 @@
     </When>
   </Choose>
   <Import Condition="$(XenkoUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
+  <Choose>
+    <When Condition="$(XenkoUI.Contains('WINFORMS')) OR $(XenkoUI.Contains('WPF'))">
+      <ItemGroup>
+        <Reference Include="System.Windows.Forms" />
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition=" '$(XenkoGraphicsApi)' == 'OpenGL' Or '$(XenkoGraphicsApi)' == 'OpenGLES' ">
+      <Choose>
+        <When Condition=" '$(XenkoPlatform)' == 'Windows' ">
+          <ItemGroup>
+            <Reference Include="OpenTK" Private="True">
+              <HintPath>$(XenkoDependenciesDir)OpenTK\OpenTK.dll</HintPath>
+            </Reference>
+          </ItemGroup>
+        </When>
+      </Choose>
+    </When>
+  </Choose>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

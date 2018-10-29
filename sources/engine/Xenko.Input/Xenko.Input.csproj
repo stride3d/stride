@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
@@ -18,6 +18,13 @@
     </When>
   </Choose>
   <Import Condition="$(XenkoUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
+  <Choose>
+    <When Condition="$(XenkoUI.Contains('WINFORMS')) OR $(XenkoUI.Contains('WPF'))">
+      <ItemGroup>
+        <Reference Include="System.Windows.Forms" />
+      </ItemGroup>
+    </When>
+  </Choose>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
