@@ -160,23 +160,35 @@ namespace Xenko.VirtualReality
 
             const int StringBuilderSize = 64;
             StringBuilder serialNumberStringBuilder = new StringBuilder(StringBuilderSize);
-            public void Update()
+            internal string SerialNumber
             {
-                var error = ETrackedPropertyError.TrackedProp_Success;
-                serialNumberStringBuilder.Clear();
-                Valve.VR.OpenVR.System.GetStringTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_SerialNumber_String, serialNumberStringBuilder, StringBuilderSize, ref error);
-                if (error == ETrackedPropertyError.TrackedProp_Success)
-                    SerialNumber = serialNumberStringBuilder.ToString();
+                get
+                {
+                    var error = ETrackedPropertyError.TrackedProp_Success;
+                    serialNumberStringBuilder.Clear();
+                    Valve.VR.OpenVR.System.GetStringTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_SerialNumber_String, serialNumberStringBuilder, StringBuilderSize, ref error);
+                    if (error == ETrackedPropertyError.TrackedProp_Success)
+                        return serialNumberStringBuilder.ToString();
+                    else
+                        return "";
+                }
+            }
 
-                BatteryPercentage = Valve.VR.OpenVR.System.GetFloatTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_DeviceBatteryPercentage_Float, ref error);
-
-                DeviceClass = Valve.VR.OpenVR.System.GetTrackedDeviceClass((uint)TrackerIndex);
+            internal float BatteryPercentage
+            {
+                get
+                {
+                    var error = ETrackedPropertyError.TrackedProp_Success;
+                    var value = Valve.VR.OpenVR.System.GetFloatTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_DeviceBatteryPercentage_Float, ref error);
+                    if (error == ETrackedPropertyError.TrackedProp_Success)
+                        return value;
+                    else
+                        return 0;
+                }
             }
 
             internal int TrackerIndex;
-            internal ETrackedDeviceClass DeviceClass;
-            internal string SerialNumber;
-            internal float BatteryPercentage;
+            internal ETrackedDeviceClass DeviceClass => Valve.VR.OpenVR.System.GetTrackedDeviceClass((uint)TrackerIndex);
         }
 
         private static readonly TrackedDevicePose_t[] DevicePoses = new TrackedDevicePose_t[Valve.VR.OpenVR.k_unMaxTrackedDeviceCount];
