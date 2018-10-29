@@ -7,16 +7,13 @@ Xenko is a MIT-licensed opensource project, supported by generous [sponsors and 
 
 Thank you everybody for your generous contributions!
 
-## Sponsor
-
-* Chance McDonald
-
 ## Super Backers
 
 * Robert Campbell
 * [vvvv.org](https://vvvv.org/)
 * Jason Kinzer
-* Mike Jones
+* [Marshmallow Laser Feast](http://www.marshmallowlaserfeast.com/)
+* Jean-Baptiste Perrier
 
 ## Backers
 
@@ -38,7 +35,6 @@ Thank you everybody for your generous contributions!
 * Cobalt
 * Matthias Hölzl
 * Jon Stelly
-* Jean-Baptiste Perrier
 * Antony K. Jones
 * Thomas Tang
 * Beliar
