@@ -72,24 +72,18 @@ namespace Xenko.Graphics
 
             if (effectBytecode != previousPipeline.effectBytecode)
             {
-                if (computeShader != null)
-                {
-                    if (computeShader != previousPipeline.computeShader)
-                        nativeDeviceContext.ComputeShader.Set(computeShader);
-                }
-                else
-                {
-                    if (vertexShader != previousPipeline.vertexShader)
-                        nativeDeviceContext.VertexShader.Set(vertexShader);
-                    if (pixelShader != previousPipeline.pixelShader)
-                        nativeDeviceContext.PixelShader.Set(pixelShader);
-                    if (hullShader != previousPipeline.hullShader)
-                        nativeDeviceContext.HullShader.Set(hullShader);
-                    if (domainShader != previousPipeline.domainShader)
-                        nativeDeviceContext.DomainShader.Set(domainShader);
-                    if (geometryShader != previousPipeline.geometryShader)
-                        nativeDeviceContext.GeometryShader.Set(geometryShader);
-                }
+                if (computeShader != previousPipeline.computeShader)
+                    nativeDeviceContext.ComputeShader.Set(computeShader);
+                if (vertexShader != previousPipeline.vertexShader)
+                    nativeDeviceContext.VertexShader.Set(vertexShader);
+                if (pixelShader != previousPipeline.pixelShader)
+                    nativeDeviceContext.PixelShader.Set(pixelShader);
+                if (hullShader != previousPipeline.hullShader)
+                    nativeDeviceContext.HullShader.Set(hullShader);
+                if (domainShader != previousPipeline.domainShader)
+                    nativeDeviceContext.DomainShader.Set(domainShader);
+                if (geometryShader != previousPipeline.geometryShader)
+                    nativeDeviceContext.GeometryShader.Set(geometryShader);
             }
 
             if (blendState != previousPipeline.blendState || sampleMask != previousPipeline.sampleMask)
