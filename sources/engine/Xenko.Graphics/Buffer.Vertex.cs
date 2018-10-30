@@ -38,10 +38,13 @@ namespace Xenko.Graphics
             /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
             /// <param name="size">The size in bytes.</param>
             /// <param name="usage">The usage.</param>
-            /// <returns>A Vertex buffer</returns>
-            public static Buffer New(GraphicsDevice device, int size, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+            /// <param name="bindFlags">The bind flags, can be combined with <see cref="BufferFlags.StreamOutput"/> to use the buffer as a stream output target.</param>
+            /// <returns>
+            /// A Vertex buffer
+            /// </returns>
+            public static Buffer New(GraphicsDevice device, int size, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, BufferFlags bindFlags = BufferFlags.VertexBuffer)
             {
-                return Buffer.New(device, size, BufferFlags.VertexBuffer, usage);
+                return Buffer.New(device, size, bindFlags, usage);
             }
 
             /// <summary>
