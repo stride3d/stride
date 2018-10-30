@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
@@ -28,19 +28,6 @@
       </ItemGroup>
     </When>
   </Choose>
-  <Choose>
-    <When Condition=" '$(XenkoGraphicsApi)' == 'OpenGL' Or '$(XenkoGraphicsApi)' == 'OpenGLES' ">
-      <Choose>
-        <When Condition=" '$(XenkoPlatform)' == 'Windows' ">
-          <ItemGroup>
-            <Reference Include="OpenTK" Private="True">
-              <HintPath>$(XenkoDependenciesDir)OpenTK\OpenTK.dll</HintPath>
-            </Reference>
-          </ItemGroup>
-        </When>
-      </Choose>
-    </When>
-  </Choose>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -57,8 +44,6 @@
     <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
     <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
     <ProjectReference Include="..\Xenko\Xenko.csproj" />
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
-    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D12'" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources\GameResources.resx" Condition=" '$(XenkoPlatform)' == 'Windows'">

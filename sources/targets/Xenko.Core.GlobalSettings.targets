@@ -35,7 +35,7 @@
     Settings XenkoPlatform specific
   -->
   <PropertyGroup>
-    <XenkoRuntimeTargetFrameworks>net45;uap10.0;monoandroid50;xamarin.ios10</XenkoRuntimeTargetFrameworks>
+    <XenkoRuntimeTargetFrameworks>net45;uap10.0;monoandroid50;xamarin.ios10;netstandard2.0</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFramework>net45</XenkoRuntimeTargetFramework>
     <RuntimeIdentifiers Condition=" '$(TargetFramework)' == 'net451' ">win</RuntimeIdentifiers>
     <ExtrasBuildEachRuntimeIdentifier Condition=" '$(TargetFramework)' == 'net451' ">true</ExtrasBuildEachRuntimeIdentifier>
@@ -137,10 +137,6 @@
   <PropertyGroup>
     <DefineConstants>$(XenkoPlatformDefines);$(DefineConstants)</DefineConstants>
     <DefineConstants Condition="'$(XenkoRuntimeDefines)' != ''">$(DefineConstants);$(XenkoRuntimeDefines)</DefineConstants>
-    <DefineConstants Condition="$(XenkoUI.Contains('SDL'))">$(DefineConstants);XENKO_UI_SDL</DefineConstants>
-    <DefineConstants Condition="$(XenkoUI.Contains('OPENTK'))">$(DefineConstants);XENKO_UI_OPENTK</DefineConstants>
-    <DefineConstants Condition="$(XenkoUI.Contains('WINFORMS'))">$(DefineConstants);XENKO_UI_WINFORMS</DefineConstants>
-    <DefineConstants Condition="$(XenkoUI.Contains('WPF'))">$(DefineConstants);XENKO_UI_WPF</DefineConstants>
   </PropertyGroup>
 
   <!-- Signing -->

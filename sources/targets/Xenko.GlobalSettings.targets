@@ -24,14 +24,25 @@
   
   <!-- Include platform dependent assembly when specified -->
   <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' == 'true'">
-    <RuntimeIdentifiers Condition="'$(XenkoPlatform)' == 'Windows'">win-d3d;win-opengl</RuntimeIdentifiers>
-    <ExtrasBuildEachRuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Windows'">true</ExtrasBuildEachRuntimeIdentifier>
+    <RuntimeIdentifiers Condition="'$(TargetFramework)' == 'net45'">win-d3d11;win-d3d12;win-opengl;win-opengles;win-vulkan</RuntimeIdentifiers>
+    <RuntimeIdentifierDefault Condition="'$(TargetFramework)' == 'net45'">win-d3d11</RuntimeIdentifierDefault>
+    <RuntimeIdentifiers Condition="'$(TargetFramework)' == 'netstandard2.0'">linux-opengl;linux-vulkan</RuntimeIdentifiers>
+    <RuntimeIdentifierDefault Condition="'$(TargetFramework)' == 'netstandard2.0'">linux-opengl</RuntimeIdentifierDefault>
 
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(XenkoPlatform)' == 'Windows'">win-d3d</RuntimeIdentifier>
-    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d'">Direct3D11</XenkoGraphicsApi>
+    <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifierDefault)' != ''">$(RuntimeIdentifierDefault)</RuntimeIdentifier>
+
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d11'">Direct3D11</XenkoGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d12'">Direct3D12</XenkoGraphicsApi>
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-opengl'">OpenGL</XenkoGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-opengles'">OpenGLES</XenkoGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-vulkan'">Vulkan</XenkoGraphicsApi>
+    
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'linux-opengl'">OpenGL</XenkoGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'linux-vulkan'">Vulkan</XenkoGraphicsApi>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-d3d'">
+  <!-- Use default runtime as ref assembly -->
+  <PropertyGroup Condition="'$(RuntimeIdentifierDefault)' != '' And '$(RuntimeIdentifier)' == '$(RuntimeIdentifierDefault)'">
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);XenkoIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <Target Name="XenkoIncludeRefAssemblies">
@@ -45,7 +56,6 @@
   -->
   <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'Direct3D11' ">
     <XenkoGraphicsApiDefines>XENKO_GRAPHICS_API_DIRECT3D;XENKO_GRAPHICS_API_DIRECT3D11</XenkoGraphicsApiDefines>
-    <XenkoUI>SDL;WINFORMS;WPF</XenkoUI>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'Direct3D12' ">
@@ -58,7 +68,6 @@
 
   <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'OpenGL' ">
     <XenkoGraphicsApiDefines>XENKO_GRAPHICS_API_OPENGL;XENKO_GRAPHICS_API_OPENGLCORE</XenkoGraphicsApiDefines>
-    <XenkoUI>SDL;WINFORMS;OPENTK</XenkoUI>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoGraphicsApi)' == 'OpenGLES' ">
@@ -115,6 +124,16 @@
     <DefineConstants>$(DefineConstants);$(XenkoGraphicsApiDefines);XENKO_SUPPORT_BETA_UPGRADE</DefineConstants>
   </PropertyGroup>
   
+  <PropertyGroup>
+    <XenkoUI Condition="'$(XenkoUI)' == '' AND '$(XenkoPlatform)' == 'Windows'">SDL;WINFORMS;WPF</XenkoUI>
+    <XenkoUI Condition="'$(XenkoUI)' == '' AND '$(XenkoPlatform)' == 'Linux' AND '$(XenkoGraphicsApi)' == 'Vulkan'">SDL</XenkoUI>
+    <XenkoUI Condition="'$(XenkoUI)' == '' AND '$(XenkoPlatform)' == 'Linux' AND '$(XenkoGraphicsApi)' == 'OpenGL'">SDL;OPENTK</XenkoUI>
+
+    <DefineConstants Condition="$(XenkoUI.Contains('SDL'))">$(DefineConstants);XENKO_UI_SDL</DefineConstants>
+    <DefineConstants Condition="$(XenkoUI.Contains('OPENTK'))">$(DefineConstants);XENKO_UI_OPENTK</DefineConstants>
+    <DefineConstants Condition="$(XenkoUI.Contains('WINFORMS'))">$(DefineConstants);XENKO_UI_WINFORMS</DefineConstants>
+    <DefineConstants Condition="$(XenkoUI.Contains('WPF'))">$(DefineConstants);XENKO_UI_WPF</DefineConstants>
+  </PropertyGroup>
   <!-- Build the XenkoUIList using the value of XenkoUI -->
   <ItemGroup Condition="'$(XenkoUIList)' == ''">
     <XenkoUIList Condition="'$(XenkoUI)' != ''" Include="$(XenkoUI)" />

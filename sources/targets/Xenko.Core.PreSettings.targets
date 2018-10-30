@@ -23,12 +23,11 @@
 
     <!-- Default values -->
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And ('$(RuntimeIdentifer)' == '' Or $(RuntimeIdentifer.StartsWith('win'))) ">Windows</XenkoPlatform>
-	<XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And $(RuntimeIdentifer.StartsWith('unix')) ">Linux</XenkoPlatform>
-	<XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And $(RuntimeIdentifer.StartsWith('osx')) ">macOS</XenkoPlatform>
-	<XenkoPlatform Condition=" '$(TargetFramework)' == 'uap10.0' ">UWP</XenkoPlatform>
-	<XenkoPlatform Condition=" '$(TargetFramework)' == 'monoandroid50' ">Android</XenkoPlatform>
-	<XenkoPlatform Condition=" '$(TargetFramework)' == 'xamarin.ios10' ">iOS</XenkoPlatform>
-    <XenkoUI Condition="'$(XenkoUI)' == '' AND '$(XenkoPlatform)' == 'Windows'">SDL;WINFORMS;WPF</XenkoUI>
+    <XenkoPlatform Condition=" '$(TargetFramework)' == 'netstandard2.0' ">Linux</XenkoPlatform>
+    <XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And $(RuntimeIdentifer.StartsWith('osx')) ">macOS</XenkoPlatform>
+    <XenkoPlatform Condition=" '$(TargetFramework)' == 'uap10.0' ">UWP</XenkoPlatform>
+    <XenkoPlatform Condition=" '$(TargetFramework)' == 'monoandroid50' ">Android</XenkoPlatform>
+    <XenkoPlatform Condition=" '$(TargetFramework)' == 'xamarin.ios10' ">iOS</XenkoPlatform>
 
     <XenkoPlatformFullName Condition="'$(XenkoPlatformFullName)' == ''">$(XenkoPlatform)</XenkoPlatformFullName>
     

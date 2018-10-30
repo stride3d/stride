@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
@@ -42,9 +42,9 @@
     <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
     <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj" />
     <ProjectReference Include="..\Xenko\Xenko.csproj" />
-    <PackageReference Include="SharpDX.MediaFoundation" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
-    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D12'" />
+    <PackageReference Include="SharpDX.MediaFoundation" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
+    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
   </ItemGroup>
   <Choose>
     <When Condition="$(DefineConstants.Contains(XENKO_VIDEO_FFMPEG))">
@@ -71,7 +71,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" Condition="'$(TargetFramework)' == 'net45'" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />

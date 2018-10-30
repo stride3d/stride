@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
@@ -40,9 +40,9 @@
     <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
     <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
     <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj" />
-    <PackageReference Include="SharpDX.RawInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
-    <PackageReference Include="SharpDX.DirectInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
-    <PackageReference Include="SharpDX.XInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.RawInput" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
+    <PackageReference Include="SharpDX.DirectInput" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
+    <PackageReference Include="SharpDX.XInput" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(XenkoPostSettingsTargets)" />

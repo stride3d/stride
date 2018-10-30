@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
@@ -22,34 +22,6 @@
   </Choose>
   <Import Condition="$(XenkoUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
   <Choose>
-    <When Condition=" '$(XenkoGraphicsApi)' == 'OpenGL' Or '$(XenkoGraphicsApi)' == 'OpenGLES' ">
-      <Choose>
-        <When Condition="('$(XenkoPlatform)' == 'Linux') or ('$(XenkoPlatform)' == 'macOS')">
-          <ItemGroup>
-            <Reference Include="OpenTK">
-              <HintPath Condition="'$(XenkoRuntime)' == ''">$(XenkoDependenciesDir)OpenTK\$(XenkoPlatform)\OpenTK.dll</HintPath>
-              <HintPath Condition="'$(XenkoRuntime)' != ''">$(XenkoDependenciesDir)OpenTK\$(XenkoRuntime)\$(XenkoPlatform)\OpenTK.dll</HintPath>
-            </Reference>
-          </ItemGroup>
-        </When>
-        <When Condition=" '$(XenkoPlatform)' == 'Windows' ">
-          <ItemGroup>
-            <Reference Include="OpenTK">
-              <HintPath Condition="'$(XenkoRuntime)' == ''">$(XenkoDependenciesDir)OpenTK\OpenTK.dll</HintPath>
-              <HintPath Condition="'$(XenkoRuntime)' == 'CoreCLR'">$(XenkoDependenciesDir)OpenTK\$(XenkoRuntime)\$(XenkoPlatform)\OpenTK.dll</HintPath>
-            </Reference>
-          </ItemGroup>
-        </When>
-        <When Condition=" '$(XenkoPlatform)' == 'Android' Or '$(XenkoPlatform)' == 'iOS' ">
-          <ItemGroup>
-            <Reference Include="OpenTK-1.1">
-              <HintPath Condition="'$(XenkoPlatform)' == 'Android'">$(XenkoDependenciesDir)OpenTK\Android\OpenTK-1.1.dll</HintPath>
-              <HintPath Condition="'$(XenkoPlatform)' == 'iOS'">$(XenkoDependenciesDir)OpenTK\iOS\OpenTK-1.1.dll</HintPath>
-            </Reference>
-          </ItemGroup>
-        </When>
-      </Choose>
-    </When>
     <When Condition=" '$(XenkoGraphicsApi)' == 'Vulkan' ">
       <Choose>
         <When Condition=" '$(XenkoPlatform)' == 'Windows'">
@@ -224,9 +196,10 @@
     <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj" />
     <ProjectReference Include="..\Xenko\Xenko.csproj" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.1.1" />
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
-    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D12'" />
-    <PackageReference Include="SharpDX.D3DCompiler" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11' Or '$(XenkoGraphicsApi)' == 'Direct3D12'" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
+    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
+    <PackageReference Include="Xenko.OpenTK" Version="1.0.0" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'xamarin.ios10' Or '$(TargetFramework)' == 'monoandroid50' Or '$(TargetFramework)' == 'netstandard2.0'" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
@@ -324,7 +297,6 @@
     <ItemGroup>
       <BuildOutputInPackage Include="$(OutputPath)SharpFont.dll" />
       <BuildOutputInPackage Include="$(OutputPath)SharpVulkan.dll" Condition=" '$(XenkoGraphicsApi)' == 'Vulkan' " />
-      <BuildOutputInPackage Include="$(OutputPath)OpenTK*.dll" Condition=" '$(XenkoGraphicsApi)' == 'OpenGL' " />
       <BuildOutputInPackage Include="$(OutputPath)SDL2-CS.dll" Condition="$(XenkoUI.Contains('SDL'))" />
     </ItemGroup>
   </Target>

@@ -17,16 +17,6 @@
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
   <Choose>
-    <When Condition=" '$(XenkoPlatform)' == 'Android' OR '$(XenkoPlatform)' == 'iOS' ">
-      <ItemGroup>
-        <Reference Include="OpenTK-1.1">
-          <HintPath Condition="'$(XenkoPlatform)' == 'Android'">$(XenkoDependenciesDir)OpenTK\Android\OpenTK-1.1.dll</HintPath>
-          <HintPath Condition="'$(XenkoPlatform)' == 'iOS'">$(XenkoDependenciesDir)OpenTK\iOS\OpenTK-1.1.dll</HintPath>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
-  <Choose>
     <When Condition=" '$(XenkoPlatform)' == 'Android'">
       <ItemGroup>
         <Reference Include="Mono.Android" />
@@ -67,7 +57,6 @@
       <Name>Xenko.Input</Name>
     </ProjectReference>
     <ProjectReference Include="..\Xenko\Xenko.csproj" />
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(XenkoGraphicsApi)' == 'Direct3D11'" />
   </ItemGroup>
   <ItemGroup>
     <XenkoContent Include="Xenko.VirtualReality.dll.config" />
@@ -82,4 +71,13 @@
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)GoogleVRJava.dll" Condition=" '$(XenkoPlatform)' == 'Android' " />
+    </ItemGroup>
+  </Target>
 </Project>

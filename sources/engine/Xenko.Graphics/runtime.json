@@ -2,10 +2,15 @@
     "runtimes": {
         "win": {
             "#import": [
-                "win-d3d"
+                "win-d3d11"
             ]
         },
-        "win-d3d": {
+        "win-d3d11": {
+            "#import": [
+                "win"
+            ]
+        },
+        "win-d3d12": {
             "#import": [
                 "win"
             ]
@@ -13,6 +18,31 @@
         "win-opengl": {
             "#import": [
                 "win"
+            ]
+        },
+        "win-opengles": {
+            "#import": [
+                "win"
+            ]
+        },
+        "win-vulkan": {
+            "#import": [
+                "win"
+            ]
+        },
+        "linux": {
+            "#import": [
+                "linux-opengl"
+            ]
+        },
+        "linux-opengl": {
+            "#import": [
+                "linux"
+            ]
+        },
+        "linux-vulkan": {
+            "#import": [
+                "linux"
             ]
         }
     }
