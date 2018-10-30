@@ -17,7 +17,7 @@
   <PropertyGroup Condition="'$(XenkoPlatform)' == 'Android'">
     <DefineConstants>XENKO_VIDEO_MEDIACODEC;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="('$(XenkoPlatform)' == 'Windows') and ('$(XenkoRuntime)' != 'CoreCLR')">
+  <PropertyGroup Condition="('$(XenkoPlatform)' == 'Windows') and ('$(XenkoNETRuntime)' != 'CoreCLR')">
     <DefineConstants>XENKO_VIDEO_FFMPEG;$(DefineConstants)</DefineConstants>
   </PropertyGroup>
   <ItemGroup>

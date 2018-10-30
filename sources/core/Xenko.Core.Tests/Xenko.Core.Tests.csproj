@@ -15,7 +15,7 @@
     <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
     <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
     <XenkoCompilerTargetsEnable Condition="'$(XenkoSkipUnitTests)' == 'true'">false</XenkoCompilerTargetsEnable>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoRuntime)' == 'CoreCLR'">false</XenkoCompilerTargetsEnable>
+    <XenkoCompilerTargetsEnable Condition="'$(XenkoNETRuntime)' == 'CoreCLR'">false</XenkoCompilerTargetsEnable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit" Version="2.3.1" />

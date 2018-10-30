@@ -1,7 +1,7 @@
 ﻿<Project>
 
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   
   <PropertyGroup>
     <Description>Core assembly for all Xenko assemblies.</Description>
@@ -34,7 +34,7 @@
     </When>
   </Choose>
   <Choose>
-    <When Condition=" '$(XenkoRuntime)' == 'CoreCLR' ">
+    <When Condition=" '$(XenkoNETRuntime)' == 'CoreCLR' ">
       <ItemGroup>
         <None Include="..\..\data\Linux\runtimeconfig.json">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

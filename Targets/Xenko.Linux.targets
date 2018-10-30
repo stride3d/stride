@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Condition="'$(XenkoRuntime)' == 'CoreCLR'" Include="$(XenkoPackageXenkoPlatformBin)\CoreCLRSetup.sh">
+    <None Condition="'$(XenkoNETRuntime)' == 'CoreCLR'" Include="$(XenkoPackageXenkoPlatformBin)\CoreCLRSetup.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Condition="'$(XenkoRuntime)' == 'CoreCLR'" Include="$(XenkoPackageXenkoPlatformBin)\runtimeconfig.json">
+    <None Condition="'$(XenkoNETRuntime)' == 'CoreCLR'" Include="$(XenkoPackageXenkoPlatformBin)\runtimeconfig.json">
       <Link>%(RecursiveDir)$(AssemblyName).runtimeconfig.json</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

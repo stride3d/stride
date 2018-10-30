@@ -21,10 +21,10 @@
         </Reference>
       </ItemGroup>
     </When>
-    <When Condition="'$(XenkoRuntime)' != ''">
+    <When Condition="'$(XenkoNETRuntime)' != ''">
       <ItemGroup>
         <Reference Include="CppNet">
-          <HintPath>..\..\..\deps\CppNet\$(XenkoRuntime)\CppNet.dll</HintPath>
+          <HintPath>..\..\..\deps\CppNet\$(XenkoNETRuntime)\CppNet.dll</HintPath>
         </Reference>
       </ItemGroup>
     </When>

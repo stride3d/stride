@@ -115,8 +115,8 @@
     <XenkoEffectCompiler>true</XenkoEffectCompiler>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'CoreCLR' ">
-    <XenkoRuntimeDefines>XENKO_RUNTIME_CORECLR</XenkoRuntimeDefines>
+  <PropertyGroup Condition=" '$(XenkoNETRuntime)' == 'CoreCLR' ">
+    <XenkoNETRuntimeDefines>XENKO_RUNTIME_CORECLR</XenkoNETRuntimeDefines>
     <AutoIncludeSystemAssembly>true</AutoIncludeSystemAssembly>
   </PropertyGroup>
 

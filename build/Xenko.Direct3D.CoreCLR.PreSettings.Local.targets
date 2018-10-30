@@ -8,7 +8,7 @@
 
     <!-- Defines the platform used by Xenko - Values are Windows/Android/iOS...etc. -->
     <XenkoPlatform Condition=" '$(XenkoPlatform)' == '' ">Windows</XenkoPlatform>
-    <XenkoRuntime Condition=" '$(XenkoRuntime)' == '' ">CoreCLR</XenkoRuntime>
+    <XenkoNETRuntime Condition=" '$(XenkoNETRuntime)' == '' ">CoreCLR</XenkoNETRuntime>
     <XenkoBuildDirExtension Condition=" '$(XenkoBuildDirExtension)' == '' ">CoreCLR</XenkoBuildDirExtension>
     <XenkoUI Condition=" '$(XenkoUI)' == '' ">SDL</XenkoUI>
   </PropertyGroup>

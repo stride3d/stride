@@ -128,15 +128,15 @@
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' "/>
 
   <!-- 
-    Settings XenkoRuntime specific
+    Settings XenkoNETRuntime specific
   -->
-  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'CoreCLR' ">
+  <PropertyGroup Condition=" '$(XenkoNETRuntime)' == 'CoreCLR' ">
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
     <DefineConstants>$(XenkoPlatformDefines);$(DefineConstants)</DefineConstants>
-    <DefineConstants Condition="'$(XenkoRuntimeDefines)' != ''">$(DefineConstants);$(XenkoRuntimeDefines)</DefineConstants>
+    <DefineConstants Condition="'$(XenkoNETRuntimeDefines)' != ''">$(DefineConstants);$(XenkoNETRuntimeDefines)</DefineConstants>
   </PropertyGroup>
 
   <!-- Signing -->

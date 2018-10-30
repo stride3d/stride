@@ -22,8 +22,8 @@
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Condition="'$(XenkoRuntime)' == ''" Include="System" />
-    <Reference Condition="'$(XenkoRuntime)' == ''" Include="System.Core" />
+    <Reference Condition="'$(XenkoNETRuntime)' == ''" Include="System" />
+    <Reference Condition="'$(XenkoNETRuntime)' == ''" Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>">
@@ -38,7 +38,7 @@
   <ItemGroup>
     <Content Include="Resources\Icon.ico" />
   </ItemGroup>  
-  <Import Condition="'$(XenkoRuntime)' == ''" Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Condition="'$(XenkoNETRuntime)' == ''" Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 <#@ include file="..\Common.Imports.targets.t4" #>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
     Other similar extension points exist, see Microsoft.Common.targets.

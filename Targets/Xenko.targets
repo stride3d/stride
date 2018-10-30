@@ -156,8 +156,8 @@
   <!-- Include platform specific targets -->
   <Import Condition="Exists('$(MSBuildThisFileDirectory)\$(MSBuildThisFileName).$(XenkoPlatform).targets')"
           Project="$(MSBuildThisFileDirectory)\$(MSBuildThisFileName).$(XenkoPlatform).targets"/>
-  <Import Condition="('$(XenkoRuntime)' != '') and Exists('$(MSBuildThisFileDirectory)\$(MSBuildThisFileName).$(XenkoRuntime).targets')"
-          Project="$(MSBuildThisFileDirectory)\$(MSBuildThisFileName).$(XenkoRuntime).targets"/>
+  <Import Condition="('$(XenkoNETRuntime)' != '') and Exists('$(MSBuildThisFileDirectory)\$(MSBuildThisFileName).$(XenkoNETRuntime).targets')"
+          Project="$(MSBuildThisFileDirectory)\$(MSBuildThisFileName).$(XenkoNETRuntime).targets"/>
   <!-- 
   *****************************************************************************************************************************
   Assembly Processor
