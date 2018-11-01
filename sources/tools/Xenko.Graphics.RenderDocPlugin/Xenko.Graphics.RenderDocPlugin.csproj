@@ -5,7 +5,7 @@
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
-    <TargetFramework>$(XenkoRuntimeTargetFramework)</TargetFramework>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />

@@ -1,6 +1,7 @@
 ﻿<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
+    <XenkoRuntime>true</XenkoRuntime>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
@@ -8,7 +9,6 @@
   <PropertyGroup>
     <XenkoBuildTags>*</XenkoBuildTags>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <XenkoAssemblyProcessorOptions>--auto-module-initializer</XenkoAssemblyProcessorOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(DisableRegistryUse)' != 'true' And '$(XenkoPlatform)' == 'Windows'">

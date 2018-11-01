@@ -1,9 +1,11 @@
 ﻿<Project>
+  <PropertyGroup>
+    <XenkoRuntime>true</XenkoRuntime>
+  </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <XenkoPlatformDependent>true</XenkoPlatformDependent>
     <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorDefaultOptions)</XenkoAssemblyProcessorOptions>
     <XenkoBuildTags>*</XenkoBuildTags>

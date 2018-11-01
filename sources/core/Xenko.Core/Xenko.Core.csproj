@@ -1,7 +1,9 @@
 ﻿<Project>
-
+  <PropertyGroup>
+    <XenkoRuntime>true</XenkoRuntime>
+  </PropertyGroup>
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   
   <PropertyGroup>
     <Description>Core assembly for all Xenko assemblies.</Description>
@@ -10,7 +12,6 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoNativeOutputName>libcore</XenkoNativeOutputName>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>

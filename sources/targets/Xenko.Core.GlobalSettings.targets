@@ -35,13 +35,15 @@
     Settings XenkoPlatform specific
   -->
   <PropertyGroup>
-    <XenkoRuntimeTargetFrameworks>net45;uap10.0;monoandroid50;xamarin.ios10;netstandard2.0</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFramework>net45</XenkoRuntimeTargetFramework>
-    <RuntimeIdentifiers Condition=" '$(TargetFramework)' == 'net451' ">win</RuntimeIdentifiers>
-    <ExtrasBuildEachRuntimeIdentifier Condition=" '$(TargetFramework)' == 'net451' ">true</ExtrasBuildEachRuntimeIdentifier>
     <TargetFrameworkTool>net462</TargetFrameworkTool>
     <TargetFrameworkVersionTool>v4.6.2</TargetFrameworkVersionTool>
     <XenkoPlatformDefines>XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP;NET45</XenkoPlatformDefines>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' ">
+    <TargetFrameworks>net45</TargetFrameworks>
+    <!--<TargetFrameworks>net45;uap10.0;monoandroid50;xamarin.ios10;netstandard2.0</TargetFrameworks>-->
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Windows' ">

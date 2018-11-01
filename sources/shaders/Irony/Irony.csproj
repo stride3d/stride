@@ -1,4 +1,7 @@
 ﻿<Project>
+  <PropertyGroup>
+    <XenkoRuntime>true</XenkoRuntime>
+  </PropertyGroup>
 
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
@@ -11,7 +14,6 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <XenkoBuildTags>*</XenkoBuildTags>
-    <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <AssemblyName>Xenko.Irony</AssemblyName>
   </PropertyGroup>
   
