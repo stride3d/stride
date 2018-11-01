@@ -98,12 +98,6 @@ namespace Xenko.Core.Assets
                 var msProject = VSProjectHelper.LoadProject(project.FullPath, platform: "NoPlatform");
                 try
                 {
-
-                    var projectIsExecutable = msProject.GetPropertyValue("XenkoIsExecutable");
-                    project.Type = projectIsExecutable.ToLowerInvariant() == "true" ? ProjectType.Executable : ProjectType.Library;
-                    if (project.Type == ProjectType.Executable)
-                        project.Platform = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
-
                     foreach (var packageReference in msProject.GetItems("PackageReference").ToList())
                     {
                         if (packageReference.HasMetadata("Version") && PackageVersionRange.TryParse(packageReference.GetMetadataValue("Version"), out var packageRange))
@@ -217,6 +211,30 @@ namespace Xenko.Core.Assets
             // Now that our references are upgraded, let's do a real nuget restore (download files)
             log.Verbose($"Restore NuGet packages for {project.Name}...");
             await VSProjectHelper.RestoreNugetPackages(log, project.FullPath);
+
+            // Load some informations about the project
+            try
+            {
+                // Load a project without specifying a platform to make sure we get the correct platform type
+                var msProject = VSProjectHelper.LoadProject(project.FullPath, platform: "NoPlatform");
+                try
+                {
+
+                    var projectIsExecutable = msProject.GetPropertyValue("OutputType");
+                    project.Type = projectIsExecutable.ToLowerInvariant() == "winexe" || projectIsExecutable.ToLowerInvariant() == "exe" ? ProjectType.Executable : ProjectType.Library;
+                    if (project.Type == ProjectType.Executable)
+                        project.Platform = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
+                }
+                finally
+                {
+                    msProject.ProjectCollection.UnloadAllProjects();
+                    msProject.ProjectCollection.Dispose();
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error($"Unexpected exception while loading project [{project.FullPath.ToWindowsPath()}]", ex);
+            }
 
             project.FlattenedDependencies.Clear();
             project.DirectDependencies.Clear();
