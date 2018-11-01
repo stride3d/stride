@@ -439,18 +439,29 @@ namespace Xenko.Assets
                         var xenkoReference = packageReferences.FirstOrDefault(packageReference => packageReference.EvaluatedInclude == "Xenko");
                         if (xenkoReference != null)
                         {
+                            var items = new List<Microsoft.Build.Evaluation.ProjectItem> { xenkoReference };
+
                             // Turn Xenko reference into Xenko.Engine
                             xenkoReference.UnevaluatedInclude = "Xenko.Engine";
+                            xenkoReference.SetMetadataValue("Version", CurrentVersion);
 
                             // Add plugins (old Xenko is equivalent to a meta package with all plugins)
-                            project.AddItem("PackageReference", "Xenko.Video", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") });
-                            project.AddItem("PackageReference", "Xenko.Physics", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") });
-                            project.AddItem("PackageReference", "Xenko.Navigation", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") });
-                            project.AddItem("PackageReference", "Xenko.Particles", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") });
-                            project.AddItem("PackageReference", "Xenko.UI", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") });
+                            items.AddRange(project.AddItem("PackageReference", "Xenko.Video", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            items.AddRange(project.AddItem("PackageReference", "Xenko.Physics", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            items.AddRange(project.AddItem("PackageReference", "Xenko.Navigation", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            items.AddRange(project.AddItem("PackageReference", "Xenko.Particles", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            items.AddRange(project.AddItem("PackageReference", "Xenko.UI", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
 
                             // Asset compiler
-                            project.AddItem("PackageReference", "Xenko.Core.Assets.CompilerApp", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers"), new KeyValuePair<string, string>("IncludeAssets", "build") });
+                            items.AddRange(project.AddItem("PackageReference", "Xenko.Core.Assets.CompilerApp", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers"), new KeyValuePair<string, string>("IncludeAssets", "build") }));
+
+                            foreach (var item in items)
+                            {
+                                foreach (var metadata in item.Metadata)
+                                    metadata.Xml.ExpressedAsAttribute = true;
+                            }
+
+                            isProjectDirty = true;
                         }
                     }
 
@@ -458,7 +469,9 @@ namespace Xenko.Assets
                     {
                         if (packageReference.EvaluatedInclude.StartsWith("Xenko.") && packageReference.GetMetadataValue("Version") != CurrentVersion)
                         {
-                            packageReference.SetMetadataValue("Version", CurrentVersion);
+                            packageReference.SetMetadataValue("Version", CurrentVersion).Xml.ExpressedAsAttribute = true;
+                            foreach (var metadata in packageReference.Metadata)
+                                metadata.Xml.ExpressedAsAttribute = true;
                             isProjectDirty = true;
                         }
                     }
