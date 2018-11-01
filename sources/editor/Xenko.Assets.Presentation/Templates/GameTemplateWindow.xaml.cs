@@ -51,8 +51,8 @@ namespace Xenko.Assets.Presentation.Templates
 
             // Obsolete - this will be replaced by AssetPacks at some point
             AssetPackages = new List<AssetPackageViewModel>();
-            AssetPackages.Add(new AssetPackageViewModel(services, "Animated Models", new UDirectory("mannequinModel/mannequinModel"), false));
-            AssetPackages.Add(new AssetPackageViewModel(services, "Building Blocks", new UDirectory("PrototypingBlocks/PrototypingBlocks"), false));
+            AssetPackages.Add(new AssetPackageViewModel(services, "Animated Models", new UDirectory("mannequinModel"), false));
+            AssetPackages.Add(new AssetPackageViewModel(services, "Building Blocks", new UDirectory("PrototypingBlocks"), false));
             AssetPackages.Add(new AssetPackageViewModel(services, "Materials Pack", new UDirectory("MaterialPackage"), false));
             AssetPackages.Add(new AssetPackageViewModel(services, "Particles Pack", new UDirectory("VFXPackage"), false));
             AssetPackages.Add(new AssetPackageViewModel(services, "Samples Assets", new UDirectory("SamplesAssetPackage"), false));

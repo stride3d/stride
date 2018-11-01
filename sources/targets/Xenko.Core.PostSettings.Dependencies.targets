@@ -108,6 +108,10 @@
       <Output TaskParameter="AssignedFiles" ItemName="_XenkoNativeLibAssigned"/>
     </AssignTargetPath>
 
+    <PropertyGroup>
+      <_XenkoAppendRuntimeIdentifier Condition="'$(AppendRuntimeIdentifierToOutputPath)' == 'true' and '$(RuntimeIdentifier)' != '' and '$(_UsingDefaultRuntimeIdentifier)' != 'true'">true</_XenkoAppendRuntimeIdentifier>
+    </PropertyGroup>
+
     <!-- Combine into _XenkoDependencyToCopy (and add RelativePath and Type) -->
     <ItemGroup>
       <_XenkoDependencyToCopy Include="@(_XenkoContentAssigned)">
@@ -125,8 +129,8 @@
       <_XenkoDependencyToCopy Remove="@(_XenkoNativeLibAssigned)" Condition=" '$(XenkoPackageBuild)' == 'true' And '%(_XenkoNativeLibAssigned.Extension)' == '.pdb' "/>
 
       <_XenkoDependencyToCopy>
-        <PackagePath Condition="'$(RuntimeIdentifier)' == ''">lib\$(TargetFramework)\$([System.IO.Path]::GetDirectoryName('%(TargetPath)'))</PackagePath>
-        <PackagePath Condition="'$(RuntimeIdentifier)' != ''">runtimes\$(RuntimeIdentifier)\lib\$(TargetFramework)\$([System.IO.Path]::GetDirectoryName('%(TargetPath)'))</PackagePath>
+        <PackagePath Condition="'$(_XenkoAppendRuntimeIdentifier)' != 'true'">lib\$(TargetFramework)\$([System.IO.Path]::GetDirectoryName('%(TargetPath)'))</PackagePath>
+        <PackagePath Condition="'$(_XenkoAppendRuntimeIdentifier)' == 'true'">runtimes\$(RuntimeIdentifier)\lib\$(TargetFramework)\$([System.IO.Path]::GetDirectoryName('%(TargetPath)'))</PackagePath>
       </_XenkoDependencyToCopy>
     </ItemGroup>
 
@@ -149,8 +153,8 @@
   <!-- C# -->
   <Target Name="_XenkoRegisterDependenciesOutputs" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_XenkoGenerateDependencies">
     <ItemGroup Condition="'@(_XenkoDependencyToCopy)' != ''">
-      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).ssdeps" Condition="'$(RuntimeIdentifier)' == ''" PackagePath="lib\$(TargetFramework)" />
-      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).ssdeps" Condition="'$(RuntimeIdentifier)' != ''" PackagePath="runtimes\$(RuntimeIdentifier)\lib\$(TargetFramework)" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).ssdeps" Condition="'$(_XenkoAppendRuntimeIdentifier)' != 'true'" PackagePath="lib\$(TargetFramework)" />
+      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).ssdeps" Condition="'$(_XenkoAppendRuntimeIdentifier)' == 'true'" PackagePath="runtimes\$(RuntimeIdentifier)\lib\$(TargetFramework)" />
       <TfmSpecificPackageFile Include="@(_XenkoDependencyToCopy)" />
     </ItemGroup>
   </Target>

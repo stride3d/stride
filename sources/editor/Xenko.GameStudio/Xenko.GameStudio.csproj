@@ -93,6 +93,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="..\..\assets\Xenko.Core.Assets.CompilerApp\NuGetAssemblyResolver.cs" Link="NuGetAssemblyResolver.cs" />
     <Compile Include="..\..\core\Xenko.Core.IO\TemporaryFile.cs">
       <Link>Debugging\TemporaryFile.cs</Link>
     </Compile>

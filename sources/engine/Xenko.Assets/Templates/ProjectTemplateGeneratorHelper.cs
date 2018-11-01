@@ -24,23 +24,6 @@ namespace Xenko.Assets.Templates
 
         public static UDirectory GetTemplateDataDirectory(TemplateDescription template)
         {
-            var installDir = DirectoryHelper.GetInstallationDirectory("Xenko");
-            if (DirectoryHelper.IsRootDevDirectory(installDir))
-            {
-                var templateRoot = template.TemplateDirectory;
-                while (templateRoot.GetDirectoryName() != "Templates")
-                {
-                    templateRoot = templateRoot.GetParent();
-                    // Should not happen, but let's fail gracefully
-                    if (templateRoot == UDirectory.Empty)
-                        return template.TemplateDirectory;
-                }
-
-                var relativePath = template.TemplateDirectory.MakeRelative(templateRoot);
-                var devDataPath = UPath.Combine(@"sources\data\XenkoPackage\Templates", relativePath);
-                var fullPath = UPath.Combine(installDir, devDataPath);
-                return fullPath;
-            }
             return template.TemplateDirectory;
         }
 

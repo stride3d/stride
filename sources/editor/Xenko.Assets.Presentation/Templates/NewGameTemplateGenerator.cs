@@ -405,10 +405,8 @@ namespace Xenko.Assets.Presentation.Templates
         {
             var logger = parameters.Logger;
 
-            var installDir = DirectoryHelper.GetInstallationDirectory("Xenko");
-            var assetPackagesDir = (DirectoryHelper.IsRootDevDirectory(installDir)) ?
-                UDirectory.Combine(installDir, @"samples\Templates\Packs") :
-                UDirectory.Combine(ProjectTemplateGeneratorHelper.GetTemplateDataDirectory(parameters.Description).GetParent(), @"Samples\Templates\Packs");
+            var presentationPackageFile = PackageStore.Instance.GetPackageFileName("Xenko.Assets.Presentation", new PackageVersionRange(new PackageVersion(XenkoVersion.NuGetVersion)));
+            var assetPackagesDir = UDirectory.Combine(presentationPackageFile.GetFullDirectory(), @"Templates\Samples\Templates\Packs");
             var assetPacks = parameters.TryGetTag(AssetsKey);
             if (assetPacks == null)
                 return;

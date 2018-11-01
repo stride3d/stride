@@ -13,6 +13,12 @@ namespace Xenko.Core.Assets.Templates
     {
         private static readonly object ThisLock = new object();
         private static readonly List<ITemplateGenerator> Generators = new List<ITemplateGenerator>();
+        private static readonly PackageCollection ExtraPackages = new PackageCollection();
+
+        public static void RegisterPackage(Package package)
+        {
+            ExtraPackages.Add(package);
+        }
 
         /// <summary>
         /// Registers the specified factory.
@@ -53,9 +59,9 @@ namespace Xenko.Core.Assets.Templates
         /// <returns>A sequence containing all registered template descriptions.</returns>
         public static IEnumerable<TemplateDescription> FindTemplates(PackageSession session = null)
         {
-            var packages = session?.Packages ?? new PackageCollection();
+            var packages = session?.Packages.Concat(ExtraPackages) ?? ExtraPackages;
             // TODO this will not work if the same package has different versions
-            return packages.SelectMany(package => package.Templates).OrderBy(tpl => tpl.Order).ThenBy(tpl => tpl.Name);
+            return packages.SelectMany(package => package.Templates).OrderBy(tpl => tpl.Order).ThenBy(tpl => tpl.Name).ToList();
         }
 
         /// <summary>

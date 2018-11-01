@@ -54,6 +54,18 @@ namespace Xenko.Core.Assets.Tasks
                 generatedItems.Add(generatedItem);
             }
 
+            void TryCopyDirectory(UDirectory sourceDirectory, UDirectory targetDirectory)
+            {
+                var resourceFiles = Directory.EnumerateFiles(sourceDirectory, "*.*", SearchOption.AllDirectories);
+                foreach (var resourceFile in resourceFiles)
+                {
+                    var resourceFilePath = (UFile)resourceFile;
+                    var targetFilePath = UPath.Combine(targetDirectory, resourceFilePath.MakeRelative(sourceDirectory));
+
+                    TryCopyResource(resourceFilePath, targetFilePath);
+                }
+            }
+
             void TryCopyResource(UFile resourceFilePath, UFile targetFilePath)
             {
                 resourcesSourceToTarget.Add(resourceFilePath, targetFilePath);
@@ -85,14 +97,7 @@ namespace Xenko.Core.Assets.Tasks
                 if (!Directory.Exists(resourceFolder))
                     continue;
 
-                var resourceFiles = Directory.EnumerateFiles(resourceFolder, "*.*", SearchOption.AllDirectories);
-                foreach (var resourceFile in resourceFiles)
-                {
-                    var resourceFilePath = (UFile)resourceFile;
-                    var targetFilePath = UPath.Combine(resourceOutputPath, resourceFilePath.MakeRelative(resourceFolder));
-
-                    TryCopyResource(resourceFilePath, targetFilePath);
-                }
+                TryCopyDirectory(resourceFolder, resourceOutputPath);
             }
 
             var assetOutputPath = UPath.Combine(outputPath, (UDirectory)"Assets");
@@ -190,9 +195,34 @@ namespace Xenko.Core.Assets.Tasks
             if (package.TemplateFolders.Count > 0)
             {
                 var templateOutputPath = UPath.Combine(outputPath, (UDirectory)"Templates");
-                result.Error("Packing templates is not implemented yet.");
 
-                newPackage.TemplateFolders.Add(new TemplateFolder(templateOutputPath));
+                var targetFolder = new TemplateFolder(templateOutputPath);
+
+                foreach (var templateFolder in package.TemplateFolders)
+                {
+                    UDirectory target = templateOutputPath;
+                    if (templateFolder.Group != null)
+                    {
+                        target = UPath.Combine(target, templateFolder.Group);
+                    }
+
+                    TryCopyDirectory(templateFolder.Path, target);
+
+                    // Add template files
+                    foreach (var templateFile in templateFolder.Files)
+                    {
+                        var newTemplateFile = templateFile.MakeRelative(templateFolder.Path);
+                        if (templateFolder.Group != null)
+                        {
+                            newTemplateFile = UPath.Combine(templateFolder.Group, newTemplateFile);
+                        }
+
+                        newTemplateFile = UPath.Combine(targetFolder.Path, newTemplateFile);
+                        targetFolder.Files.Add(newTemplateFile);
+                    }
+                }
+
+                newPackage.TemplateFolders.Add(targetFolder);
             }
 
             // Save package only if there is any resources and/or assets

@@ -24,6 +24,7 @@ using Xenko.Assets.Presentation.ViewModel;
 using Xenko.Assets.Presentation.ViewModel.CopyPasteProcessors;
 using Xenko.Editor;
 using Xenko.Engine;
+using Xenko.Core.Assets.Templates;
 
 namespace Xenko.Assets.Presentation
 {
@@ -79,6 +80,14 @@ namespace Xenko.Assets.Presentation
         {
             ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.EffectCompilation, TargetPackage.Executable));
             ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects,  TargetPackage.Executable));
+
+            var logger = new LoggerResult();
+            var presentationPackageFile = PackageStore.Instance.GetPackageFileName("Xenko.Assets.Presentation", new PackageVersionRange(new PackageVersion(XenkoVersion.NuGetVersion)));
+            var presentationPackage = Package.Load(logger, presentationPackageFile);
+            if (logger.HasErrors)
+                throw new InvalidOperationException($"Could not load package Xenko.Assets.Presentation:{Environment.NewLine}{logger.ToText()}");
+
+            TemplateManager.RegisterPackage(presentationPackage);
         }
 
         /// <inheritdoc />
