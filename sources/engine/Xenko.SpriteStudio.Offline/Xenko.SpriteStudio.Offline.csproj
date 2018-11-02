@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
   </PropertyGroup>
@@ -10,6 +10,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
     <XenkoAssemblyProcessorOptions>--serialization --parameter-key</XenkoAssemblyProcessorOptions>
+    <XenkoPackAssets>true</XenkoPackAssets>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
