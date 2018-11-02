@@ -69,6 +69,7 @@ namespace Xenko.Core.Assets.CompilerApp
                 {
                     LockFilePath = "project.lock.json",
                     RequestedRuntimes = { "win7-d3d11" },
+                    ProjectStyle = ProjectStyle.DotnetCliTool,
                 };
 
                 var command = new RestoreCommand(request);
