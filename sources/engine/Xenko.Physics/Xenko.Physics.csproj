@@ -18,15 +18,6 @@
     <XenkoBulletSignedDir Condition="'$(XenkoSign)' == 'true'">Signed\</XenkoBulletSignedDir>
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
-  <Choose>
-    <When Condition="'$(XenkoPlatform)' == 'Windows'">
-      <ItemGroup>
-        <XenkoNativeLib Include="..\..\..\deps\VHACD\**\VHACD.dll">
-          <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
-        </XenkoNativeLib>
-      </ItemGroup>
-    </When>
-  </Choose>
   <ItemGroup>
     <XenkoNativeLib Include="..\..\..\deps\BulletPhysics\$(XenkoPlatform)\**\libbulletc.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>

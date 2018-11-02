@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
@@ -125,9 +125,12 @@
     <Analyzer Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
   </ItemGroup-->
   <ItemGroup>
-    <None Include="..\..\..\deps\FFmpeg\ffmpeg.exe">
+    <XenkoNativeLib Include="..\..\..\deps\VHACD\**\VHACD.dll">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </XenkoNativeLib>
+    <Content Include="..\..\..\deps\FFmpeg\ffmpeg.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\..\deps\msdfgen\msdfgen.exe">
@@ -144,4 +147,13 @@
   <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)VHACDSharp.dll" />
+    </ItemGroup>
+  </Target>
 </Project>
