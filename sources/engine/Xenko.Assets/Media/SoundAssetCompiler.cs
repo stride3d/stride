@@ -40,14 +40,7 @@ namespace Xenko.Assets.Media
             protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
                 // Get path to ffmpeg
-                var installationDir = DirectoryHelper.GetPackageDirectory("Xenko");
-                var binDir = UPath.Combine(installationDir, new UDirectory("Bin"));
-                binDir = UPath.Combine(binDir, new UDirectory("Windows"));
-                var ffmpeg = UPath.Combine(binDir, new UFile("ffmpeg.exe")).ToWindowsPath();
-                if (!File.Exists(ffmpeg))
-                {
-                    throw new AssetException("Failed to compile a sound asset. ffmpeg was not found.");
-                }
+                var ffmpeg = ToolLocator.LocateTool("ffmpeg.exe")?.ToWindowsPath() ?? throw new AssetException("Failed to compile a sound asset, ffmpeg was not found.");
 
                 // Get absolute path of asset source on disk
                 var assetDirectory = Parameters.Source.GetParent();

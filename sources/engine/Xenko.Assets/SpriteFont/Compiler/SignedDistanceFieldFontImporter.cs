@@ -12,6 +12,7 @@ namespace Xenko.Assets.SpriteFont.Compiler
 {
     using System.Drawing;
     using System.Drawing.Imaging;
+    using System.Reflection;
     using SharpDX.DirectWrite;
     using Factory = SharpDX.DirectWrite.Factory;
 
@@ -128,14 +129,7 @@ namespace Xenko.Assets.SpriteFont.Compiler
                 return;
 
             // Get the msdfgen.exe location
-            var installationDir = DirectoryHelper.GetPackageDirectory("Xenko");
-            var binDir = UPath.Combine(installationDir, new UDirectory("Bin"));
-            binDir = UPath.Combine(binDir, new UDirectory("Windows"));
-            var msdfgen = UPath.Combine(binDir, new UFile("msdfgen.exe"));
-            if (!File.Exists(msdfgen))
-            {
-                throw new AssetException("Failed to compile a font asset, msdfgen was not found.");
-            }
+            var msdfgen = ToolLocator.LocateTool("msdfgen.exe") ?? throw new AssetException("Failed to compile a font asset, msdfgen was not found.");
 
             msdfgenExe = msdfgen.FullPath;
             tempDir = $"{Environment.GetEnvironmentVariable("TEMP")}\\";
