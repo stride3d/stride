@@ -162,7 +162,10 @@ namespace Xenko.Core.Yaml
                     if (objectContext.SerializerContext.AllowErrors)
                     {
                         var logger = objectContext.SerializerContext.Logger;
-                        logger?.Warning("Ignored dictionary item that could not be deserialized", ex);
+                        if(ex.InnerException is DefaultObjectFactory.InstanceCreationException ice)
+                            logger?.Warning($"Ignored dictionary item that could not be deserialized:\n{ice.Message}", ex);
+                        else
+                            logger?.Warning($"Ignored dictionary item that could not be deserialized:\n{ex.Message}", ex);
                         objectContext.Reader.Skip(currentDepth, objectContext.Reader.Parser.Current == startParsingEvent);
                     }
                     else throw;

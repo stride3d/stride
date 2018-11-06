@@ -8,7 +8,18 @@ namespace Xenko.Core.Serialization
         public override void PreSerialize(ref T obj, ArchiveMode mode, SerializationStream stream)
         {
             if (mode == ArchiveMode.Deserialize && obj == null)
-                obj = new T();
+            {
+                try
+                {
+                    obj = new T();
+                }
+                catch (System.Exception)
+                {
+                    //obj = (T)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(T));
+                    //return;
+                    throw;
+                }
+            }
         }
     }
 }

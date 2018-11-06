@@ -114,6 +114,11 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         public static readonly DependencyProperty ShowFatalMessagesProperty = DependencyProperty.Register("ShowFatalMessages", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(true, FilterPropertyChanged));
 
         /// <summary>
+        /// Identifies the <see cref="ShowStacktrace"/> dependency property.
+        /// </summary>
+        public static readonly DependencyProperty ShowStacktraceProperty = DependencyProperty.Register("ShowStacktrace", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(false, FilterPropertyChanged));
+
+        /// <summary>
         /// Identifies the <see cref="Session"/> dependency property.
         /// </summary>
         public static readonly DependencyProperty SessionProperty = DependencyProperty.Register("Session", typeof(SessionViewModel), typeof(GridLogViewer));
@@ -182,6 +187,11 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         /// Gets or sets whether the log viewer should display fatal messages.
         /// </summary>
         public bool ShowFatalMessages { get { return (bool)GetValue(ShowFatalMessagesProperty); } set { SetValue(ShowFatalMessagesProperty, value); } }
+
+        /// <summary>
+        /// Gets or sets whether the log viewer should display fatal messages.
+        /// </summary>
+        public bool ShowStacktrace { get { return (bool)GetValue(ShowStacktraceProperty); } set { SetValue(ShowStacktraceProperty, value); } }
 
         /// <summary>
         /// Gets or sets the session to use to select an asset related to a log message.
