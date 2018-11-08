@@ -33,7 +33,12 @@ namespace Xenko.Core.Packages
         }
 
         /// <summary>
-        /// Gets the full path of the file inside the package.
+        /// Gets the full path of the file on the HDD.
+        /// </summary>
+        public string FullPath => System.IO.Path.Combine(packagePath, Path);
+
+        /// <summary>
+        /// Gets the path of the file inside the package.
         /// </summary>
         public string Path { get; }
 
@@ -48,7 +53,7 @@ namespace Xenko.Core.Packages
         /// <returns>A new stream reading file pointed by <see cref="Path"/>.</returns>
         public Stream GetStream()
         {
-            return packageFile?.GetStream() ?? File.OpenRead(System.IO.Path.Combine(packagePath, Path));
+            return packageFile?.GetStream() ?? File.OpenRead(FullPath);
         }
     }
 }

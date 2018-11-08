@@ -1,4 +1,5 @@
-﻿<Project>
+<Project>
+  <Import Project="..\..\shared\Xenko.NuGetResolver\Xenko.NuGetResolver.projitems" Label="Shared" />
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>

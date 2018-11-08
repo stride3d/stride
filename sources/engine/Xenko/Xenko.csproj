@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
 
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
@@ -34,6 +34,7 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <None Include="runtime.json" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>

@@ -33,16 +33,6 @@ namespace Xenko.Core.Assets.CompilerClient
                 Environment.CurrentDirectory
             };
 
-            // Set the XenkoDir environment variable
-            var installDir = DirectoryHelper.GetInstallationDirectory("Xenko");
-            Environment.SetEnvironmentVariable("XenkoDir", installDir);
-
-            // Use shadow caching only in dev environment
-            if (DirectoryHelper.IsRootDevDirectory(installDir))
-            {
-                newArgs.Insert(0, "/shadow");
-            }
-
             newArgs.AddRange(args);
             var result = serverApp.Run(newArgs.ToArray());
 

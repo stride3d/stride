@@ -1,11 +1,14 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using NuGet.ProjectModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Xml;
 using Xenko.Core;
+using Xenko.Core.Diagnostics;
 using Xenko.Core.Extensions;
 using Xenko.Core.VisualStudio;
 using Xenko.Core.Yaml;
@@ -24,33 +27,78 @@ namespace Xenko.Core.Assets
             return String.Compare(Path.GetExtension(filePath), ".sln", StringComparison.InvariantCultureIgnoreCase) == 0;
         }
 
-        public static Version GetPackageVersion(string fullPath)
+        public static async Task<PackageVersion> GetPackageVersion(string fullPath)
         {
             try
             {
-                foreach (var packageFullPath in EnumeratePackageFullPaths(fullPath))
+                // Solution file: extract projects
+                var solutionDirectory = Path.GetDirectoryName(fullPath) ?? "";
+                var solution = Xenko.Core.VisualStudio.Solution.FromFile(fullPath);
+
+                foreach (var project in solution.Projects)
                 {
-                    // Load the package as a Yaml dynamic node, so that we can check Xenko version from dependencies
-                    var input = new StringReader(File.ReadAllText(packageFullPath));
-                    var yamlStream = new YamlStream();
-                    yamlStream.Load(input);
-                    dynamic yamlRootNode = new DynamicYamlMapping((YamlMappingNode)yamlStream.Documents[0].RootNode);
-
-                    PackageVersion dependencyVersion = null;
-
-                    foreach (var dependency in yamlRootNode.Meta.Dependencies)
+                    // Xenko up to 3.0
+                    try
                     {
-                        if ((string)dependency.Name == "Xenko")
+                        string packagePath;
+                        if (IsPackage(project, out packagePath))
                         {
-                            dependencyVersion = new PackageVersion((string) dependency.Version);
-                            break;
+                            var packageFullPath = Path.Combine(solutionDirectory, packagePath);
+
+                            // Load the package as a Yaml dynamic node, so that we can check Xenko version from dependencies
+                            var input = new StringReader(File.ReadAllText(packageFullPath));
+                            var yamlStream = new YamlStream();
+                            yamlStream.Load(input);
+                            dynamic yamlRootNode = new DynamicYamlMapping((YamlMappingNode)yamlStream.Documents[0].RootNode);
+
+                            if (yamlRootNode.Meta.Dependencies is DynamicYamlArray)
+                            {
+                                foreach (var dependency in yamlRootNode.Meta.Dependencies)
+                                {
+                                    if ((string)dependency.Name == "Xenko")
+                                    {
+                                        return new PackageVersion((string)dependency.Version);
+                                    }
+                                }
+                            }
                         }
                     }
-
-                    // Stop after first version
-                    if (dependencyVersion != null)
+                    catch (Exception e)
                     {
-                        return new Version(dependencyVersion.Version.Major, dependencyVersion.Version.Minor);
+                        e.Ignore();
+                    }
+
+                    // Xenko 3.1+
+                    if (project.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp || project.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharpNewSystem)
+                    {
+                        var projectPath = project.FullPath;
+                        var packagePath = Path.ChangeExtension(projectPath, Package.PackageFileExtension);
+                        if (File.Exists(packagePath))
+                        {
+                            var projectAssetsJsonPath = Path.Combine(Path.GetDirectoryName(projectPath), @"obj", LockFileFormat.AssetsFileName);
+#if !XENKO_LAUNCHER
+                            if (!File.Exists(projectAssetsJsonPath))
+                            {
+                                var log = new LoggerResult();
+                                await VSProjectHelper.RestoreNugetPackages(log, projectPath);
+                            }
+#endif
+                            if (File.Exists(projectAssetsJsonPath))
+                            {
+                                if (File.Exists(projectAssetsJsonPath))
+                                {
+                                    var format = new LockFileFormat();
+                                    var projectAssets = format.Read(projectAssetsJsonPath);
+                                    foreach (var library in projectAssets.Libraries)
+                                    {
+                                        if (library.Type == "package" && library.Name == "Xenko.Engine")
+                                        {
+                                            return new PackageVersion((string)library.Version.ToString());
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -85,31 +133,6 @@ namespace Xenko.Core.Assets
                 }
             }
             return false;
-        }
-
-        private static IEnumerable<string> EnumeratePackageFullPaths(string fullPath)
-        {
-            if (PackageSessionHelper.IsSolutionFile(fullPath))
-            {
-                // Solution file: extract projects
-                var solutionDirectory = Path.GetDirectoryName(fullPath) ?? "";
-                var solution = Xenko.Core.VisualStudio.Solution.FromFile(fullPath);
-
-                foreach (var project in solution.Projects)
-                {
-                    string packagePath;
-                    if (PackageSessionHelper.IsPackage(project, out packagePath))
-                    {
-                        var packageFullPath = Path.Combine(solutionDirectory, packagePath);
-                        yield return packageFullPath;
-                    }
-                }
-            }
-            else
-            {
-                // Otherwise, let's assume it was a package
-                yield return fullPath;
-            }
         }
     }
 }

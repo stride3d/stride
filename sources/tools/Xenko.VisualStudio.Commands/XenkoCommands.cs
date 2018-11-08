@@ -17,7 +17,7 @@ namespace Xenko.VisualStudio.Commands
     {
         public void Initialize(string xenkoSdkDir)
         {
-            DirectoryHelper.PackageDirectoryOverride = xenkoSdkDir;
+            //DirectoryHelper.PackageDirectoryOverride = xenkoSdkDir;
             // Don't necessarely initialize the shaders
             //XenkoShaderParser.Initialize();
         }
@@ -102,7 +102,7 @@ namespace Xenko.VisualStudio.Commands
         {
             if (packagePath == null)
             {
-                packagePath = PackageStore.Instance.DefaultPackage.FullPath;
+                //packagePath = PackageStore.Instance.DefaultPackage.FullPath;
             }
 
             var defaultLoad = PackageLoadParameters.Default();

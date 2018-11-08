@@ -71,7 +71,7 @@ namespace Xenko.Shaders.Compiler
 
         public async Task<SocketMessageLayer> Connect(string packageName, CancellationToken cancellationToken)
         {
-            var url = string.Format("/service/{0}/Xenko.EffectCompilerServer.exe", XenkoVersion.NuGetVersion);
+            var url = $"/service/Xenko.EffectCompilerServer/{XenkoVersion.NuGetVersion}/Xenko.EffectCompilerServer.exe";
             if (packageName != null)
                 url += string.Format("?packagename={0}", packageName);
 

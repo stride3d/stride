@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">15.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -16,7 +16,6 @@
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
     <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
-    <XenkoIncludeVSIX>BuiltProjectOutputGroup;BuiltProjectOutputGroupDependencies;GetCopyToOutputDirectoryItems</XenkoIncludeVSIX>
     <VSSDKTargetPlatformRegRootSuffix>Xenko</VSSDKTargetPlatformRegRootSuffix>
   </PropertyGroup>
   <ItemGroup>
@@ -86,6 +85,7 @@
     <Compile Include="..\..\assets\Xenko.Core.Assets\PackageSessionHelper.Solution.cs">
       <Link>Assets\PackageSessionHelper.Solution.cs</Link>
     </Compile>
+    <Compile Include="..\..\shared\Xenko.NuGetResolver\RestoreHelper.cs" Link="NuGet\RestoreHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="MyControl.xaml.cs">
@@ -171,6 +171,9 @@
     <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
     <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
     <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="NuGet\" />
   </ItemGroup>
   <Import Project="..\..\assets\Xenko.Core.Assets.Yaml\Xenko.Core.Assets.Yaml.projitems" Label="Shared" />
   <PropertyGroup>

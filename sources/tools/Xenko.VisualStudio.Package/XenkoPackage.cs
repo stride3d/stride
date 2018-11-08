@@ -290,53 +290,9 @@ namespace Xenko.VisualStudio
             }
         }
 
-        private void solutionEventsListener_AfterSolutionBackgroundLoadComplete()
+        private async void solutionEventsListener_AfterSolutionBackgroundLoadComplete()
         {
-            InitializeCommandProxy();
-
-            var solution = (IVsSolution)Microsoft.VisualStudio.Shell.Package.GetGlobalService(typeof(IVsSolution));
-            var updatedProjects = new List<string>();
-
-            foreach (var dteProject in VsHelper.GetDteProjectsInSolution(solution))
-            {
-                var buildProjects = ProjectCollection.GlobalProjectCollection.GetLoadedProjects(dteProject.FileName);
-                foreach (var buildProject in buildProjects)
-                {
-                    var packageVersion = buildProject.GetPropertyValue("XenkoPackageXenkoVersion");
-                    var currentPackageVersion = buildProject.GetPropertyValue("XenkoPackageXenkoVersionLast");
-                    if (!string.IsNullOrEmpty(packageVersion) && packageVersion != currentPackageVersion)
-                    {
-                        var buildPropertyStorage = VsHelper.ToHierarchy(dteProject) as IVsBuildPropertyStorage;
-                        if (buildPropertyStorage != null)
-                        {
-                            buildPropertyStorage.SetPropertyValue("XenkoPackageXenkoVersionLast", string.Empty, (uint)_PersistStorageType.PST_USER_FILE, packageVersion);
-
-                            // Only "touch" file if there was a version before (we don't want to trigger this on newly created projects)
-                            if (!string.IsNullOrEmpty(currentPackageVersion))
-                                updatedProjects.Add(buildProject.FullPath);
-                        }
-                    }
-                }
-            }
-
-            if (updatedProjects.Count > 0)
-            {
-                var messageBoxResult = VsShellUtilities.ShowMessageBox(this,
-                    "Xenko needs to update IntelliSense cache for some projects.\nThis will resave the .csproj and Visual Studio will offer to reload them.\n\nProceed?",
-                    "Xenko IntelliSense cache",
-                    OLEMSGICON.OLEMSGICON_QUERY,
-                    OLEMSGBUTTON.OLEMSGBUTTON_YESNO,
-                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-
-                if (messageBoxResult == 6) // Yes
-                {
-                    // Touch files so that VS reload them
-                    foreach (var updatedProject in updatedProjects)
-                    {
-                        File.SetLastWriteTimeUtc(updatedProject, DateTime.UtcNow);
-                    }
-                }
-            }
+            await InitializeCommandProxy();
         }
 
         private void solutionEventsListener_BeforeSolutionClosed()
@@ -345,17 +301,17 @@ namespace Xenko.VisualStudio
             UpdateCommandVisibilityContext(false);
         }
 
-        private void InitializeCommandProxy()
+        private async System.Threading.Tasks.Task InitializeCommandProxy()
         {
             // Initialize the command proxy from the current solution's package
             var dte = (DTE)GetService(typeof(DTE));
             var solutionPath = dte.Solution.FullName;
-            XenkoCommandsProxy.InitialzeFromSolution(solutionPath);
+
+            var xenkoPackageInfo = await XenkoCommandsProxy.FindXenkoSdkDir(solutionPath);
+            XenkoCommandsProxy.InitializeFromSolution(solutionPath, xenkoPackageInfo);
 
             // Get General Output pane (for error logging)
             var generalOutputPane = GetGeneralOutputPane();
-
-            var xenkoPackageInfo = XenkoCommandsProxy.CurrentPackageInfo;
 
             // Enable UIContext depending on wheter it is a Xenko project. This will show or hide Xenko menus.
             var isXenkoSolution = xenkoPackageInfo.LoadedVersion != null;
@@ -397,7 +353,7 @@ namespace Xenko.VisualStudio
                     AppDomain.Unload(buildMonitorDomain);
 
                 buildMonitorDomain = XenkoCommandsProxy.CreateXenkoDomain();
-                XenkoCommandsProxy.InitialzeFromSolution(solutionPath, buildMonitorDomain);
+                XenkoCommandsProxy.InitializeFromSolution(solutionPath, xenkoPackageInfo, buildMonitorDomain);
                 var remoteCommands = XenkoCommandsProxy.CreateProxy(buildMonitorDomain);
                 remoteCommands.StartRemoteBuildLogServer(new BuildMonitorCallback(), buildLogPipeGenerator.LogPipeUrl);
             }

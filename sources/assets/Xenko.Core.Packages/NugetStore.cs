@@ -30,6 +30,9 @@ using System.Reflection;
 using NuGet.Frameworks;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
+using NuGet.ProjectModel;
+using NuGet.LibraryModel;
+using NuGet.Commands;
 
 namespace Xenko.Core.Packages
 {
@@ -43,13 +46,12 @@ namespace Xenko.Core.Packages
 
         public const string DefaultGamePackagesDirectory = "GamePackages";
 
-        public const string MainExecutables = @"Bin\Windows\Xenko.GameStudio.exe,Bin\Windows-Direct3D11\Xenko.GameStudio.exe";
+        public const string MainExecutables = @"lib\net472\Xenko.GameStudio.exe,Bin\Windows\Xenko.GameStudio.exe,Bin\Windows-Direct3D11\Xenko.GameStudio.exe";
         public const string PrerequisitesInstaller = @"Bin\Prerequisites\install-prerequisites.exe";
 
         public const string DefaultPackageSource = "https://packages.xenko.com/nuget";
 
         private IPackagesLogger logger;
-        private readonly NuGetPackageManager manager;
         private readonly ISettings settings, localSettings;
         private ProgressReport currentProgressReport;
 
@@ -81,11 +83,6 @@ namespace Xenko.Core.Packages
 
             // Setup source provider as a V3 only.
             sourceRepositoryProvider = new NugetSourceRepositoryProvider(packageSourceProvider, this);
-
-            manager = new NuGetPackageManager(sourceRepositoryProvider, settings, InstallPath);
-            // Override PackagePathResolver
-            // Workaround for https://github.com/NuGet/Home/issues/6639
-            //manager.PackagesFolderNuGetProject.GetType().GetProperty("PackagePathResolver", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(manager.PackagesFolderNuGetProject, new PackagePathResolverV3(InstallPath));
         }
 
         private void CheckPackageSource(string name, string url)
@@ -112,7 +109,7 @@ namespace Xenko.Core.Packages
         /// List of package Ids under which the main package is known. Usually just one entry, but
         /// we could have several in case there is a product name change.
         /// </summary>
-        public IReadOnlyCollection<string> MainPackageIds { get; } = new[] { "Xenko.Core.Assets.CompilerApp" };
+        public IReadOnlyCollection<string> MainPackageIds { get; } = new[] { "Xenko.GameStudio", "Xenko" };
 
         /// <summary>
         /// Package Id of the Visual Studio Integration plugin.
@@ -148,11 +145,6 @@ namespace Xenko.Core.Packages
         /// Event executed when a package's installation has completed.
         /// </summary>
         public event EventHandler<PackageOperationEventArgs> NugetPackageInstalled;
-
-        /// <summary>
-        /// Event executed when a package's installation is in progress.
-        /// </summary>
-        public event EventHandler<PackageOperationEventArgs> NugetPackageInstalling;
 
         /// <summary>
         /// Event executed when a package's uninstallation has completed.
@@ -279,8 +271,6 @@ namespace Xenko.Core.Packages
         /// <param name="version">Version of package to install.</param>
         public async Task<NugetLocalPackage> InstallPackage(string packageId, PackageVersion version, ProgressReport progress)
         {
-            // Xenko 2.x still installs in GamePackages
-            var currentManager = manager;
             using (GetLocalRepositoryLock())
             {
                 currentProgressReport = progress;
@@ -305,69 +295,56 @@ namespace Xenko.Core.Packages
                     ActivityCorrelationId.StartNew();
 
                     {
-                        // Equivalent to:
-                        //   await manager.InstallPackageAsync(manager.PackagesFolderNuGetProject,
-                        //       identity, resolutionContext, projectContext, repositories,
-                        //       Array.Empty<SourceRepository>(),  // This is a list of secondary source respositories, probably empty
-                        //       CancellationToken.None);
-                        using (var sourceCacheContext = new SourceCacheContext())
+                        var installPath = SettingsUtility.GetGlobalPackagesFolder(settings);
+
+                        var specPath = Path.Combine("TestProject", "project.json");
+                        var spec = new PackageSpec()
                         {
-                            var nuGetProject = currentManager.PackagesFolderNuGetProject;
-                            var packageIdentity = identity;
-                            var nuGetProjectContext = projectContext;
-                            var primarySources = repositories;
-                            var secondarySources = Array.Empty<SourceRepository>();
-                            var token = CancellationToken.None;
-                            var downloadContext = new PackageDownloadContext(sourceCacheContext);
-
-                            // Step-1 : Call PreviewInstallPackageAsync to get all the nuGetProjectActions
-                            var nuGetProjectActions = await currentManager.PreviewInstallPackageAsync(nuGetProject, packageIdentity, resolutionContext,
-                                nuGetProjectContext, primarySources, secondarySources, token);
-
-                            // Notify that installations started.
-                            foreach (var operation in nuGetProjectActions)
+                            Name = "TestProject", // make sure this package never collides with a dependency
+                            FilePath = specPath,
+                            Dependencies = new List<LibraryDependency>()
                             {
-                                if (operation.NuGetProjectActionType == NuGetProjectActionType.Install)
+                                new LibraryDependency
                                 {
-                                    var installPath = GetInstalledPath(operation.PackageIdentity.Id, operation.PackageIdentity.Version.ToPackageVersion());
-                                    OnPackageInstalling(this, new PackageOperationEventArgs(new PackageName(operation.PackageIdentity.Id, operation.PackageIdentity.Version.ToPackageVersion()), installPath));
+                                    LibraryRange = new LibraryRange(packageId, new VersionRange(version.ToNuGetVersion()), LibraryDependencyTarget.Package),
                                 }
-                            }
-
-                            NuGetPackageManager.SetDirectInstall(packageIdentity, nuGetProjectContext);
-
-                            // Step-2 : Execute all the nuGetProjectActions
+                            },
+                            TargetFrameworks =
                             {
-                                // Download and install package in the global cache (can't use NuGetPackageManager anymore since it is designed for V2)
-                                foreach (var operation in nuGetProjectActions)
+                                new TargetFrameworkInformation
                                 {
-                                    if (operation.NuGetProjectActionType == NuGetProjectActionType.Install)
-                                    {
-                                        var sources = new List<SourceRepository> { operation.SourceRepository };
-                                        using (var downloadResult = await PackageDownloader.GetDownloadResourceResultAsync(sources, operation.PackageIdentity, downloadContext, InstallPath, NativeLogger, token))
-                                        {
-                                            if (downloadResult.Status != DownloadResourceResultStatus.Available)
-                                                throw new InvalidOperationException($"Could not download package {operation.PackageIdentity}");
-
-                                            using (var installResult = await GlobalPackagesFolderUtility.AddPackageAsync(downloadResult.PackageSource, operation.PackageIdentity, downloadResult.PackageStream, InstallPath, Guid.Empty, NativeLogger, token))
-                                            {
-                                                if (installResult.Status != DownloadResourceResultStatus.Available)
-                                                    throw new InvalidOperationException($"Could not install package {operation.PackageIdentity}");
-                                            }
-                                        }
-                                    }
+                                    FrameworkName = NuGetFramework.Parse("net472"),
                                 }
-                            }
+                            },
+                        };
 
-                            NuGetPackageManager.ClearDirectInstall(nuGetProjectContext);
+                        using (var context = new SourceCacheContext())
+                        {
+                            context.IgnoreFailedSources = true;
 
-                            // Notify that installations completed.
-                            foreach (var operation in nuGetProjectActions)
+                            var provider = RestoreCommandProviders.Create(installPath, new List<string>(), sourceRepositoryProvider.GetRepositories(), context, new LocalPackageFileCache(), NativeLogger);
+                            var request = new RestoreRequest(spec, provider, context, NativeLogger)
                             {
-                                if (operation.NuGetProjectActionType == NuGetProjectActionType.Install)
+                                //RequestedRuntimes = { "win7-d3d11" },
+                                ProjectStyle = ProjectStyle.DotnetCliTool,
+                            };
+
+                            var command = new RestoreCommand(request);
+
+                            // Act
+                            var result = await command.ExecuteAsync();
+
+                            if (!result.Success)
+                            {
+                                throw new InvalidOperationException($"Could not restore package {packageId}");
+                            }
+                            foreach (var install in result.RestoreGraphs.Last().Install)
+                            {
+                                var package = result.LockFile.Libraries.FirstOrDefault(x => x.Name == install.Library.Name && x.Version == install.Library.Version);
+                                if (package != null)
                                 {
-                                    var installPath = GetInstalledPath(operation.PackageIdentity.Id, operation.PackageIdentity.Version.ToPackageVersion());
-                                    OnPackageInstalled(this, new PackageOperationEventArgs(new PackageName(operation.PackageIdentity.Id, operation.PackageIdentity.Version.ToPackageVersion()), installPath));
+                                    var packagePath = Path.Combine(installPath, package.Path);
+                                    OnPackageInstalled(this, new PackageOperationEventArgs(new PackageName(install.Library.Name, install.Library.Version.ToPackageVersion()), packagePath));
                                 }
                             }
                         }
@@ -642,11 +619,6 @@ namespace Xenko.Core.Packages
         public bool IsDevRedirectPackage(NugetLocalPackage package)
         {
             return File.Exists(GetRedirectFile(package));
-        }
-
-        private void OnPackageInstalling(object sender, PackageOperationEventArgs args)
-        {
-            NugetPackageInstalling?.Invoke(sender, args);
         }
 
         private void OnPackageInstalled(object sender, PackageOperationEventArgs args)

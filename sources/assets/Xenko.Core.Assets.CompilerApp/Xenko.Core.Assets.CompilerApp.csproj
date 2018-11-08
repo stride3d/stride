@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <XenkoPlatform>Windows</XenkoPlatform>
   </PropertyGroup>
@@ -57,6 +57,7 @@
     <ProjectReference Include="..\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
   </ItemGroup>
   <Import Project="..\..\tools\Xenko.Core.VisualStudio\Xenko.Core.VisualStudio.projitems" Label="Shared" />
+  <Import Project="..\..\shared\Xenko.NuGetResolver\Xenko.NuGetResolver.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
 

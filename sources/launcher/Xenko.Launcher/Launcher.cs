@@ -194,7 +194,7 @@ namespace Xenko.LauncherApp
 
                 // Uninstall packages (they might have uninstall actions)
                 var store = new NugetStore(path);
-                foreach (var package in store.MainPackageIds.SelectMany(store.GetLocalPackages).ToList())
+                foreach (var package in store.MainPackageIds.SelectMany(store.GetLocalPackages).FilterXenkoMainPackages().ToList())
                 {
                     store.UninstallPackage(package, null).Wait();
                 }

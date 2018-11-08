@@ -1,8 +1,9 @@
-﻿<Project>
+<Project>
   <Import Project="..\Xenko.PrivacyPolicy\Xenko.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\Xenko.PrivacyPolicy\Xenko.PrivacyPolicy.projitems')" />
   <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="..\..\tools\Xenko.Core.VisualStudio\Xenko.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="..\Xenko.Editor.CrashReport\Xenko.Editor.CrashReport.projitems" Label="Shared" />
+  <Import Project="..\..\shared\Xenko.NuGetResolver\Xenko.NuGetResolver.projitems" Label="Shared" />
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
@@ -78,7 +79,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="..\..\assets\Xenko.Core.Assets.CompilerApp\NuGetAssemblyResolver.cs" Link="NuGetAssemblyResolver.cs" />
     <Compile Include="..\..\core\Xenko.Core.IO\TemporaryFile.cs">
       <Link>Debugging\TemporaryFile.cs</Link>
     </Compile>
@@ -156,6 +156,8 @@
     <ProjectReference Include="..\Xenko.Core.Assets.Editor\Xenko.Core.Assets.Editor.csproj" />
     <ProjectReference Include="..\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj" />
     <ProjectReference Include="..\Xenko.Editor\Xenko.Editor.csproj" />
+    <ProjectReference Include="..\..\tools\Xenko.EffectCompilerServer\Xenko.EffectCompilerServer.csproj" IncludeAssets="Build" />
+    <ProjectReference Include="..\..\assets\Xenko.Core.Assets.CompilerApp\Xenko.Core.Assets.CompilerApp.csproj" IncludeAssets="Build" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Logo.ico" />
@@ -260,4 +262,15 @@ IF EXIST "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" $(Soluti
   <Target Name="AfterBuild">
   </Target>
   -->
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config</AllowedOutputExtensionsInPackageBuildOutputFolder>
+  </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)Mono.Cecil.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Xenko.Core.AssemblyProcessor.exe" />
+    </ItemGroup>
+  </Target>
 </Project>

@@ -57,6 +57,13 @@ namespace Xenko.Core.Assets
             return orderedPackages.Select(PackageMetaFromNugetPackage);
         }
 
+        public NugetLocalPackage FindLocalPackage(string packageName, PackageVersionRange versionRange = null, ConstraintProvider constraintProvider = null, bool allowPreleaseVersion = true, bool allowUnlisted = false)
+        {
+            if (packageName == null) throw new ArgumentNullException(nameof(packageName));
+
+            return store.FindLocalPackage(packageName, versionRange, constraintProvider, allowPreleaseVersion, allowUnlisted);
+        }
+
         /// <summary>
         /// Gets the filename to the specific package using just a package name.
         /// </summary>

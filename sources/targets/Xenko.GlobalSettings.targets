@@ -24,19 +24,19 @@
   
   <!-- Include platform dependent assembly when specified -->
   <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' == 'true'">
-    <RuntimeIdentifiers Condition="'$(TargetFramework)' == 'net45'">win-d3d11;win-d3d12;win-opengl;win-opengles;win-vulkan</RuntimeIdentifiers>
-    <RuntimeIdentifierDefault Condition="'$(TargetFramework)' == 'net45'">win-d3d11</RuntimeIdentifierDefault>
+    <RuntimeIdentifiers Condition="'$(TargetFramework)' == 'net45'">win7-d3d11;win7-d3d12;win7-opengl;win7-opengles;win7-vulkan</RuntimeIdentifiers>
+    <RuntimeIdentifierDefault Condition="'$(TargetFramework)' == 'net45'">win7-d3d11</RuntimeIdentifierDefault>
     <RuntimeIdentifiers Condition="'$(TargetFramework)' == 'netstandard2.0'">linux-opengl;linux-vulkan</RuntimeIdentifiers>
     <RuntimeIdentifierDefault Condition="'$(TargetFramework)' == 'netstandard2.0'">linux-opengl</RuntimeIdentifierDefault>
 
     <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifierDefault)' != ''">$(RuntimeIdentifierDefault)</RuntimeIdentifier>
 
-    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d11'">Direct3D11</XenkoGraphicsApi>
-    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d12'">Direct3D12</XenkoGraphicsApi>
-    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-opengl'">OpenGL</XenkoGraphicsApi>
-    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-opengles'">OpenGLES</XenkoGraphicsApi>
-    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-vulkan'">Vulkan</XenkoGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win7-d3d11'">Direct3D11</XenkoGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win7-d3d12'">Direct3D12</XenkoGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win7-opengl'">OpenGL</XenkoGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win7-opengles'">OpenGLES</XenkoGraphicsApi>
+    <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win7-vulkan'">Vulkan</XenkoGraphicsApi>
     
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'linux-opengl'">OpenGL</XenkoGraphicsApi>
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'linux-vulkan'">Vulkan</XenkoGraphicsApi>

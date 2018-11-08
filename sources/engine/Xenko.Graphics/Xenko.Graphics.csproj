@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoRuntime>true</XenkoRuntime>
@@ -213,7 +213,6 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <None Include="runtime.json" Pack="true" PackagePath="/" />
     <None Include="Shaders.Bytecodes\CompileShaders.cmd" />
     <None Include="Shaders.Bytecodes\Graphics.xkpkg" />
     <None Include="Shaders.Bytecodes\Shaders.xkeffectlog" />

@@ -35,7 +35,7 @@ namespace Xenko.VisualStudio
 
         public static IServiceProvider ServiceProvider { get; set; }
 
-        private static void OpenWithGameStudioMenuCommand_Callback(object sender, EventArgs e)
+        private static async void OpenWithGameStudioMenuCommand_Callback(object sender, EventArgs e)
         {
             var dte = (DTE2)ServiceProvider.GetService(typeof(SDTE));
 
@@ -46,13 +46,15 @@ namespace Xenko.VisualStudio
                 return;
 
             // Locate GameStudio
-            var packageInfo = XenkoCommandsProxy.CurrentPackageInfo;
-            if (packageInfo.LoadedVersion == null || packageInfo.SdkPath == null)
+            var packageInfo = await XenkoCommandsProxy.FindXenkoSdkDir(solutionFile, "Xenko.GameStudio");
+            if (packageInfo.LoadedVersion == null || packageInfo.SdkPaths.Count == 0)
                 return;
 
-            var store = new NugetStore(packageInfo.StorePath);
-            var mainExecutable = store.LocateMainExecutable(packageInfo.SdkPath);
-
+            var mainExecutable = packageInfo.SdkPaths.First(x => Path.GetFileName(x) == "Xenko.GameStudio.exe");
+            if (mainExecutable == null)
+            {
+                throw new InvalidOperationException("Could not locate GameStudio process");
+            }
             if (Process.Start(mainExecutable, $"\"{solutionFile}\"") == null)
             {
                 throw new InvalidOperationException("Could not start GameStudio process");

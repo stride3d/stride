@@ -174,7 +174,7 @@ namespace Xenko.LauncherApp.ViewModels
             }
             try
             {
-                var localPackages = await RunLockTask(() => store.GetPackagesInstalled(store.MainPackageIds).OrderByDescending(p => p.Version).ToList());
+                var localPackages = await RunLockTask(() => store.GetPackagesInstalled(store.MainPackageIds).FilterXenkoMainPackages().OrderByDescending(p => p.Version).ToList());
                 lock (objectLock)
                 {
                     // Retrieve all local packages
@@ -291,7 +291,7 @@ namespace Xenko.LauncherApp.ViewModels
 #if SIMULATE_OFFLINE
                 var serverPackages = new List<IPackage>();
 #else
-                var serverPackages = await RunLockTask(() => store.FindSourcePackages(store.MainPackageIds, CancellationToken.None).Result.OrderByDescending(p => p.Version).ToList());
+                var serverPackages = await RunLockTask(() => store.FindSourcePackages(store.MainPackageIds, CancellationToken.None).Result.FilterXenkoMainPackages().OrderByDescending(p => p.Version).ToList());
 #endif
                 // Check if we could connect to the server
                 var wasOffline = IsOffline;

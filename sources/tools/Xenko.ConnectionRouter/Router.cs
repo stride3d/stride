@@ -10,6 +10,7 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Xenko.Core;
+using Xenko.Core.Assets;
 using Xenko.Core.Diagnostics;
 using Xenko.Engine.Network;
 
@@ -217,31 +218,29 @@ namespace Xenko.ConnectionRouter
                     serviceTcs = new TaskCompletionSource<Service>();
                     registeredServices.Add(urlWithoutParameters, serviceTcs);
 
-                    if (urlSegments.Length < 3)
+                    if (urlSegments.Length < 4)
                     {
                         Log.Error($"{RouterMessage.ClientRequestServer} action URL {url} is invalid");
                         throw new InvalidOperationException();
                     }
 
-                    var xenkoVersion = urlSegments[1];
-                    var serviceExe = urlSegments[2];
+                    var packageName = urlSegments[1];
+                    var packageVersion = urlSegments[2];
+                    var process = urlSegments[3];
 
-                    var xenkoSdkDir = RouterHelper.FindXenkoSdkDir(xenkoVersion);
-                    if (xenkoSdkDir == null)
+                    // Find package
+                    var package = PackageStore.Instance.FindLocalPackage(packageName, new PackageVersionRange(new PackageVersion(packageVersion)));
+                    if (package == null)
                     {
-                        Log.Error($"{RouterMessage.ClientRequestServer} action URL [{url}] references a Xenko version which is not installed");
+                        Log.Error($"{RouterMessage.ClientRequestServer} action URL [{url}] could not locate NuGet package");
                         throw new InvalidOperationException();
                     }
 
-                    var servicePath = Path.Combine(xenkoSdkDir, @"Bin\Windows", serviceExe);
-
-                    // For backward compatibility, we also try older Xenko 1.x paths
-                    if (!File.Exists(servicePath))
-                        servicePath = Path.Combine(xenkoSdkDir, @"Bin\Windows-Direct3D11", serviceExe);
-
-                    if (!File.Exists(servicePath))
+                    // Locate executable
+                    var servicePath = package.GetFiles().FirstOrDefault(x => string.Compare(Path.GetFileName(x.Path), process, true) == 0)?.FullPath;
+                    if (servicePath == null || !File.Exists(servicePath))
                     {
-                        Log.Error($"{RouterMessage.ClientRequestServer} action URL [{url}] references a process that doesn't seem to exist (XenkoSdkDir: {xenkoSdkDir})");
+                        Log.Error($"{RouterMessage.ClientRequestServer} action URL [{url}] references a process that doesn't seem to exist");
                         throw new InvalidOperationException();
                     }
 

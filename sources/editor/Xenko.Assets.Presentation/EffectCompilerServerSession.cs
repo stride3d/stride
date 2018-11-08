@@ -71,9 +71,7 @@ namespace Xenko.Assets.Presentation
 
             routerLaunchedTask = Task.Run(() =>
             {
-                var xenkoDir = Environment.GetEnvironmentVariable("XenkoDir");
-                bool isDevDirectory = DirectoryHelper.IsRootDevDirectory(xenkoDir);
-                RouterHelper.EnsureRouterLaunched(isDevDirectory);
+                RouterHelper.EnsureRouterLaunched();
             });
 
             TrackPackages(session.LocalPackages);
@@ -93,7 +91,7 @@ namespace Xenko.Assets.Presentation
             {
                 // Connect to effect compiler server
                 await routerLaunchedTask;
-                var effectCompilerServerSocket = await RouterClient.RequestServer($"/service/{XenkoVersion.NuGetVersion}/Xenko.EffectCompilerServer.exe?mode=gamestudio&packagename={package.Package.Meta.Name}");
+                var effectCompilerServerSocket = await RouterClient.RequestServer($"/service/Xenko.EffectCompilerServer/{XenkoVersion.NuGetVersion}/Xenko.EffectCompilerServer.exe?mode=gamestudio&packagename={package.Package.Meta.Name}");
 
                 // Cancellation by closing the socket handle
                 cancellationToken.Register(effectCompilerServerSocket.Dispose);

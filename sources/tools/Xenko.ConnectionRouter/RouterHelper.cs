@@ -11,57 +11,12 @@ using Xenko.Core.Assets;
 using Xenko.Core;
 using Xenko.Core.Packages;
 using Xenko.Engine.Network;
+using Xenko.Core.Diagnostics;
 
 namespace Xenko.ConnectionRouter
 {
     public static class RouterHelper
     {
-        /// <summary>
-        /// Gets the xenko SDK dir.
-        /// </summary>
-        /// <param name="xenkoVersion">The xenko version. If null, it will get latest version.</param>
-        /// <returns></returns>
-        public static string FindXenkoSdkDir(string xenkoVersion = null)
-        {
-            // TODO: Rewrite this code
-            return null;
-
-            // TODO: Almost duplicate of XenkoCommandsProxy.FindXenkoSdkDir!!
-            // TODO: Maybe move it in some common class somewhere? (in this case it would be included with "Add as link" in VSPackage)
-            var xenkoSdkDir = DirectoryHelper.GetInstallationDirectory("Xenko");
-
-            if (xenkoSdkDir == null)
-            {
-                xenkoSdkDir = Environment.GetEnvironmentVariable("XenkoDir");
-            }
-
-            if (xenkoSdkDir == null)
-            {
-                return null;
-            }
-
-            // Check if it is a dev directory
-            if (DirectoryHelper.IsRootDevDirectory(xenkoSdkDir))
-                return xenkoSdkDir;
-
-            // Check if we are in a root directory with store/packages facilities
-            var store = new NugetStore(xenkoSdkDir);
-
-            var xenkoPackages = store.GetPackagesInstalled(store.MainPackageIds);
-            // Convert the provided xenko version into a valid package version
-            PackageVersion.TryParse(xenkoVersion, out var packageVersion);
-            // Retrieve the corresponding package, if it exists
-            var xenkoPackage = packageVersion != null
-                ? (xenkoPackages.FirstOrDefault(p => p.Version == packageVersion)
-                    ?? xenkoPackages.FirstOrDefault(p => p.Version.Version == packageVersion.Version)) // If no exact match, try a second time without the special version tag (beta, alpha, etc...)
-                : xenkoPackages.FirstOrDefault();
-            if (xenkoPackage == null)
-                return null;
-
-            var packageDirectory = store.GetInstalledPath(xenkoPackage.Id, xenkoPackage.Version);
-            return packageDirectory;
-        }
-
         private static string VersionWithoutSpecialPart(string version)
         {
             var indexOfDash = version.IndexOf('-');
@@ -97,22 +52,19 @@ namespace Xenko.ConnectionRouter
                     throw new InvalidOperationException("Could not find Connection Router assembly location");
                 }
 
+                // Setup with default locations
                 var routerAssemblyLocation = defaultRouterAssemblyLocation;
                 var routerAssemblyExe = Path.GetFileName(routerAssemblyLocation);
 
-                // Find latest xenko
-                var xenkoSdkDir = FindXenkoSdkDir();
-                if (xenkoSdkDir != null)
+                // Try to locate using Xenko.ConnectionRouter package
+                var logger = new LoggerResult();
+                var package = PackageStore.Instance.FindLocalPackage("Xenko.ConnectionRouter", new PackageVersionRange(new PackageVersion(XenkoVersion.NuGetVersion)));
+                if (package != null)
                 {
-                    // Try to find Connection Router in Xenko Sdk
-                    routerAssemblyLocation = Path.Combine(xenkoSdkDir, @"Bin\Windows", routerAssemblyExe);
-
-                    // Could not find anything, use router from current version instead of latest version
-                    if (!File.Exists(routerAssemblyLocation))
-                        routerAssemblyLocation = defaultRouterAssemblyLocation;
+                    routerAssemblyLocation = package.GetFiles().FirstOrDefault(x => string.Compare(Path.GetFileName(x.Path), routerAssemblyExe, true) == 0)?.FullPath ?? routerAssemblyLocation;
                 }
 
-                // If already started, check if found version is better
+                // If already started, check if found version is same that we wanted to start
                 if (runningRouterVersion != null)
                 {
                     var routerAssemblyFileVersionInfo = FileVersionInfo.GetVersionInfo(routerAssemblyLocation);

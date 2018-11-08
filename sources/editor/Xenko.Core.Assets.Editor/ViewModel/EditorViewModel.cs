@@ -237,23 +237,14 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         public void RemoveRecentFile(UFile filePath)
         {
-            var packageVersion = PackageSessionHelper.GetPackageVersion(filePath);
-            //Remove considering old projects that have been deleted or upgraded from older versions
-            if (packageVersion == null || string.Compare(packageVersion.ToString(), "3.0", StringComparison.Ordinal) <= 0)
+            //Get all versions of showing on recent files
+            var xenkoVersions = RecentFiles?.Select(x => x.Version).ToList();
+            if (xenkoVersions != null)
             {
-                //Get all versions of showing on recent files
-                var xenkoVersions = RecentFiles?.Select(x => x.Version).ToList();
-                if (xenkoVersions != null)
+                foreach (var item in xenkoVersions)
                 {
-                    foreach (var item in xenkoVersions)
-                    {
-                        MRU.RemoveFile(filePath, item);
-                    }
+                    MRU.RemoveFile(filePath, item);
                 }
-            }
-            else
-            {
-                MRU.RemoveFile(filePath, packageVersion.ToString());
             }
         }
 

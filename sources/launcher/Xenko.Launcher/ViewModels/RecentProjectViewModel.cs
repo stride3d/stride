@@ -59,10 +59,10 @@ namespace Xenko.LauncherApp.ViewModels
 
         private void DiscoverXenkoVersion()
         {
-            Task.Run(() =>
+            Task.Run(async () =>
             {
-
-                XenkoVersion = PackageSessionHelper.GetPackageVersion(fullPath);
+                var packageVersion = await PackageSessionHelper.GetPackageVersion(fullPath);
+                XenkoVersion = new Version(packageVersion.Version.Major, packageVersion.Version.Minor);
                 XenkoVersionName = XenkoVersion?.ToString();
 
                 Dispatcher.Invoke(() => OpenCommand.IsEnabled = XenkoVersionName != null);

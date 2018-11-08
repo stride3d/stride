@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!-- Include proper language targets for temporary WPF projects. See https://github.com/dotnet/project-system/issues/1467 -->
@@ -33,6 +33,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <Prefer32Bit>false</Prefer32Bit>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <DefineConstants>TRACE;XENKO_LAUNCHER</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -75,6 +76,9 @@
   <ItemGroup>
     <Compile Include="..\..\assets\Xenko.Core.Assets\PackageSessionHelper.Solution.cs">
       <Link>Packages\PackageSessionHelper.Solution.cs</Link>
+    </Compile>
+    <Compile Include="..\..\assets\Xenko.Core.Assets\Package.Constants.cs">
+      <Link>Packages\Package.Constants.cs</Link>
     </Compile>
     <Compile Include="..\..\editor\Xenko.Core.Assets.Editor\EditorPath.cs">
       <Link>Editor\EditorPath.cs</Link>

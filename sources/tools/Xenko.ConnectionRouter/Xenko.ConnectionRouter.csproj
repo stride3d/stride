@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
@@ -20,6 +20,7 @@
   <ItemGroup>
     <PackageReference Include="Mono.Options" Version="5.3.0.1" />
     <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.IO.Compression" />
     <PackageReference Include="System.Runtime" Version="4.3.0">
       <SpecificVersion>False</SpecificVersion>
     </PackageReference>
@@ -53,16 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
-    <ProjectReference Include="..\..\assets\Xenko.Core.Packages\Xenko.Core.Packages.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Assets\Xenko.Assets.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Shaders.Compiler\Xenko.Shaders.Compiler.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Shaders\Xenko.Shaders.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
@@ -82,6 +74,7 @@
     </None>
   </ItemGroup>
   <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
+  <Import Project="..\..\shared\Xenko.NuGetResolver\Xenko.NuGetResolver.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
-</Project>
+  </Project>
