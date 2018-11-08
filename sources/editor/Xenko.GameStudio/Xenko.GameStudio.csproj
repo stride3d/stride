@@ -41,13 +41,11 @@
   <ItemGroup>
     <PackageReference Include="SharpDX" Version="4.0.1" />
     <PackageReference Include="EnvDTE" Version="8.0.1" />
-    <PackageReference Include="System.Management.dll" Version="1.0.0" />
+    <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
+    <PackageReference Include="Xenko.CrashReport" Version="1.0.0" />
     <Reference Include="Mono.Cecil">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(XenkoCommonDependenciesDir)Mono.Cecil\Mono.Cecil.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\deps\Metrics\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <PackageReference Include="QuickGraph" Version="3.6.61119.7" />
     <Reference Include="Renci.SshNet, Version=2016.0.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
@@ -58,18 +56,8 @@
     <Reference Include="Xenko.Core.AssemblyProcessor">
       <HintPath>..\..\..\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.exe</HintPath>
     </Reference>
-    <Reference Include="Xenko.CrashReport">
-      <HintPath>..\..\..\deps\Metrics\Xenko.CrashReport.dll</HintPath>
-    </Reference>
-    <Reference Include="Xenko.Metrics">
-      <HintPath>..\..\..\deps\Metrics\Xenko.Metrics.dll</HintPath>
-    </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Composition.Convention">
-    </Reference>
-    <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\deps\Metrics\System.Net.Http.Formatting.dll</HintPath>
     </Reference>
     <Reference Include="System.Security" />
     <Reference Include="System.ServiceModel" />

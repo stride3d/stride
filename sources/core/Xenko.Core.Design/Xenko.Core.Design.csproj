@@ -35,9 +35,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" />
-    <PackageReference Include="SharpDX" Version="4.0.1" Condition="'$(TargetFramework)' == 'uap10.0'" />
+    <PackageReference Include="SharpDX" Version="4.0.1" />
+    <PackageReference Include="System.Management" Version="4.5.0" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Management" />
   </ItemGroup>
   
   <Import Project="$(XenkoPostSettingsTargets)" />

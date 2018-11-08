@@ -50,16 +50,9 @@
     <None Remove="Announcements\Release30.md" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
+    <PackageReference Include="Xenko.CrashReport" Version="1.0.0" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\deps\Metrics\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Xenko.CrashReport">
-      <HintPath>..\..\..\deps\Metrics\Xenko.CrashReport.dll</HintPath>
-    </Reference>
-    <Reference Include="Xenko.Metrics">
-      <HintPath>..\..\..\deps\Metrics\Xenko.Metrics.dll</HintPath>
-    </Reference>
     <Reference Include="System.Diagnostics.Debug" />
     <Reference Include="System.Management" />
     <Reference Include="System.Net.Http.Formatting">
