@@ -12,7 +12,6 @@ using Xenko.Core.Presentation.Collections;
 using Xenko.Core.Presentation.Extensions;
 
 using Xceed.Wpf.DataGrid;
-using Xceed.Wpf.Toolkit.Core;
 
 namespace Xenko.Core.Assets.Editor.View
 {

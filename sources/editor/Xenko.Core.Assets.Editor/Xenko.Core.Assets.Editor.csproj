@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="3.4.0" />
     <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
     <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="System.Diagnostics.Tracing" Version="4.3.0" />
@@ -25,14 +26,6 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="Xceed.Wpf.DataGrid">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\deps\ExtendedWPFToolkit\Xceed.Wpf.DataGrid.dll</HintPath>
-    </Reference>
-    <Reference Include="Xceed.Wpf.Toolkit">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\deps\ExtendedWPFToolkit\Xceed.Wpf.Toolkit.dll</HintPath>
-    </Reference>
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
   <ItemGroup>
