@@ -5,7 +5,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Xenko.Physics.Tests</RootNamespace>
     <AssemblyName>Xenko.Physics.Tests</AssemblyName>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoPlatform>Windows</XenkoPlatform>

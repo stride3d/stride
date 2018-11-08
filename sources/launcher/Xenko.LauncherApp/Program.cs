@@ -91,10 +91,10 @@ namespace Xenko.LauncherApp
         {
             var result = true;
 
-            // Check for .NET 4.6.0+
-            if (!CheckDotNet4Version(394802))
+            // Check for .NET 4.7.2+
+            if (!CheckDotNet4Version(461808))
             {
-                prerequisiteLog.AppendLine("- .NET framework 4.6.2");
+                prerequisiteLog.AppendLine("- .NET framework 4.7.2");
                 result = false;
             }
 

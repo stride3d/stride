@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Xenko.Core.Tests</AssemblyName>
     <RootNamespace>Xenko.Core.Tests</RootNamespace>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

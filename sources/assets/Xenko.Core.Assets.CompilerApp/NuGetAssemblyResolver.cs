@@ -55,7 +55,7 @@ namespace Xenko.Core.Assets.CompilerApp
                 {
                     new TargetFrameworkInformation
                     {
-                        FrameworkName = NuGetFramework.Parse("net462"),
+                        FrameworkName = NuGetFramework.Parse("net472"),
                     }
                 },
             };

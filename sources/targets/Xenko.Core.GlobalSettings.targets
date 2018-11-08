@@ -36,8 +36,8 @@
   -->
   <PropertyGroup>
     <XenkoRuntimeTargetFramework>net45</XenkoRuntimeTargetFramework>
-    <TargetFrameworkTool>net462</TargetFrameworkTool>
-    <TargetFrameworkVersionTool>v4.6.2</TargetFrameworkVersionTool>
+    <TargetFrameworkTool>net472</TargetFrameworkTool>
+    <TargetFrameworkVersionTool>v4.7.2</TargetFrameworkVersionTool>
     <XenkoPlatformDefines>XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP;NET45</XenkoPlatformDefines>
   </PropertyGroup>
 

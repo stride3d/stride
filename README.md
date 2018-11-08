@@ -41,8 +41,8 @@ Ask for help or report issues:
 1. [Git](https://git-scm.com/downloads) (recent version that includes LFS, or install [Git LFS](https://git-lfs.github.com/) separately).
 2. [Visual Studio 2017](https://www.visualstudio.com/downloads/) with the following workloads:
   * `.NET desktop development`
-    * If your OS is Windows 10: add `.NET Framework 4.6.2 development tools` in optional components of `.NET desktop development`
-    * If your OS is Windows 7: [.NET 4.6.2 Developer Pack](https://www.microsoft.com/net/download/thank-you/net462-developer-pack))
+    * If your OS is Windows 10: add `.NET Framework 4.7.2 development tools` in optional components of `.NET desktop development`
+    * If your OS is Windows 7: [.NET 4.7.2 Developer Pack](https://www.microsoft.com/net/download/thank-you/net472-developer-pack))
   * `Desktop development with C++`
   * `.NET Core cross-platform development`
   * Optional (to target UWP): `Universal Windows Platform development`
