@@ -61,15 +61,6 @@
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
 
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.config</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
-  <Target Name="IncludeExtraAssemblies">
-    <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)System*.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)NuGet*.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)Newtonsoft.Json.dll" />
-      <BuildOutputInPackage Include="$(OutputPath)$(TargetFileName).config" />
-    </ItemGroup>
-  </Target>
 </Project>

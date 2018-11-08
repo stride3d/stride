@@ -31,9 +31,6 @@
     <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj" />
     <ProjectReference Include="..\Xenko.ConnectionRouter\Xenko.ConnectionRouter.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
 </Project>
