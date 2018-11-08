@@ -83,7 +83,7 @@ namespace Xenko.Assets.Presentation
 
             // Load templates
             // Currently hardcoded, this will need to change with plugin system
-            foreach (var packageName in new[] { "Xenko.Assets.Presentation", "Xenko.SpriteStudio.Offline" })
+            foreach (var packageName in new[] { "Xenko.Assets.Presentation", "Xenko.SpriteStudio.Offline", "Xenko.Samples.Templates" })
             {
                 var logger = new LoggerResult();
                 var packageFile = PackageStore.Instance.GetPackageFileName(packageName, new PackageVersionRange(new PackageVersion(XenkoVersion.NuGetVersion)));

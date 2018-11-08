@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+
+  <PropertyGroup>
+    <XenkoPackAssets>true</XenkoPackAssets>
+    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <EnableDefaultItems>false</EnableDefaultItems>
+  </PropertyGroup>
+
+  <Import Project="$(XenkoPostSettingsTargets)" />
+</Project>

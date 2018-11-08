@@ -355,6 +355,7 @@
     <ProjectReference Include="..\..\tools\Xenko.TextureConverter\Xenko.TextureConverter.csproj" />
     <ProjectReference Include="..\Xenko.Core.Assets.Editor\Xenko.Core.Assets.Editor.csproj" />
     <ProjectReference Include="..\Xenko.Editor\Xenko.Editor.csproj" />
+    <ProjectReference Include="..\Xenko.Samples.Templates\Xenko.Samples.Templates.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="AssetEditors\GraphicsCompositorEditor\Views\GraphicsCompositorEditorView.xaml">
