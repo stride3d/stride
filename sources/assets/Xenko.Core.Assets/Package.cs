@@ -599,7 +599,6 @@ namespace Xenko.Core.Assets
                         ResourceFolders = { "Resources" },
                         FullPath = packagePath,
                     };
-                package.Meta.Version = TryGetPackageVersion(projectPath) ?? new PackageVersion("1.0.0");
                 return new SolutionProject(package, Guid.NewGuid(), projectPath) { IsImplicitProject = !packageExists };
             }
             else
@@ -989,6 +988,7 @@ namespace Xenko.Core.Assets
             if (loadParameters == null) throw new ArgumentNullException(nameof(loadParameters));
             var assemblyContainer = loadParameters.AssemblyContainer ?? AssemblyContainer.Default;
 
+            // TODO: Add support for loading from packages
             var project = Container as SolutionProject;
             if (project == null || project.FullPath == null || project.Type != ProjectType.Library)
                 return;
@@ -1021,19 +1021,28 @@ namespace Xenko.Core.Assets
                     return;
                 }
 
-                var assembly = assemblyContainer.LoadAssemblyFromPath(assemblyPath, log);
+                // Check if assembly is already loaded in appdomain (for Xenko core assemblies that are not plugins)
+                var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(x => string.Compare(x.GetName().Name, Path.GetFileNameWithoutExtension(assemblyPath), StringComparison.InvariantCultureIgnoreCase) == 0);
+
+                // Otherwise, load assembly from its file
                 if (assembly == null)
                 {
-                    log.Error($"Unable to load assembly reference [{assemblyPath}]");
+                    assembly = assemblyContainer.LoadAssemblyFromPath(assemblyPath, log);
+
+                    if (assembly == null)
+                    {
+                        log.Error($"Unable to load assembly reference [{assemblyPath}]");
+                    }
+
+                    // Note: we should investigate so that this can also be done for Xenko core assemblies (right now they use module initializers)
+                    if (assembly != null)
+                    {
+                        // Register assembly in the registry
+                        AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
+                    }
                 }
 
                 loadedAssembly.Assembly = assembly;
-
-                if (assembly != null)
-                {
-                    // Register assembly in the registry
-                    AssemblyRegistry.Register(assembly, AssemblyCommonCategories.Assets);
-                }
             }
             catch (Exception ex)
             {

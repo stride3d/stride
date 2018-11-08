@@ -226,6 +226,8 @@ namespace Xenko.Core.Assets
             : base(package)
         {
         }
+
+        public override string ToString() => $"Package: {package.Meta.Name}";
     }
 
     public enum DependencyType
@@ -384,6 +386,8 @@ namespace Xenko.Core.Assets
             if (!IsImplicitProject)
                 base.SavePackage();
         }
+
+        public override string ToString() => $"Project: {Name}";
     }
 
     public sealed class ProjectCollection : ObservableCollection<PackageContainer>

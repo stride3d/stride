@@ -193,12 +193,6 @@ namespace Xenko.Core.Reflection
                         Assembly.Load(assembly.FullName);
                     }
 
-                    // Make sure that all referenced assemblies are loaded here
-                    foreach (var assemblyRef in assembly.GetReferencedAssemblies())
-                    {
-                        Assembly.Load(assemblyRef);
-                    }
-
                     // Make sure that Module initializer are called
                     if (assembly.GetTypes().Length > 0)
                     {

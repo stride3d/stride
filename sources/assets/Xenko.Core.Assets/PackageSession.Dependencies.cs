@@ -98,6 +98,19 @@ namespace Xenko.Core.Assets
                 var msProject = VSProjectHelper.LoadProject(project.FullPath, platform: "NoPlatform");
                 try
                 {
+                    var packageVersion = msProject.GetPropertyValue("PackageVersion");
+                    if (!string.IsNullOrEmpty(packageVersion))
+                        package.Meta.Version = new PackageVersion(packageVersion);
+
+                    package.Meta.Name = msProject.GetPropertyValue("PackageId") ?? msProject.GetPropertyValue("AssemblyName") ?? package.Meta.Name;
+
+                    var projectIsExecutable = msProject.GetPropertyValue("OutputType");
+                    project.Type = projectIsExecutable.ToLowerInvariant() == "winexe" || projectIsExecutable.ToLowerInvariant() == "exe" ? ProjectType.Executable : ProjectType.Library;
+
+                    // TODO: Platform might be incorrect if Xenko is not restored yet (it won't include Xenko targets)
+                    if (project.Type == ProjectType.Executable)
+                        project.Platform = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
+
                     foreach (var packageReference in msProject.GetItems("PackageReference").ToList())
                     {
                         if (packageReference.HasMetadata("Version") && PackageVersionRange.TryParse(packageReference.GetMetadataValue("Version"), out var packageRange))
@@ -210,31 +223,8 @@ namespace Xenko.Core.Assets
 
             // Now that our references are upgraded, let's do a real nuget restore (download files)
             log.Verbose($"Restore NuGet packages for {project.Name}...");
-            await VSProjectHelper.RestoreNugetPackages(log, project.FullPath);
-
-            // Load some informations about the project
-            try
-            {
-                // Load a project without specifying a platform to make sure we get the correct platform type
-                var msProject = VSProjectHelper.LoadProject(project.FullPath, platform: "NoPlatform");
-                try
-                {
-
-                    var projectIsExecutable = msProject.GetPropertyValue("OutputType");
-                    project.Type = projectIsExecutable.ToLowerInvariant() == "winexe" || projectIsExecutable.ToLowerInvariant() == "exe" ? ProjectType.Executable : ProjectType.Library;
-                    if (project.Type == ProjectType.Executable)
-                        project.Platform = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
-                }
-                finally
-                {
-                    msProject.ProjectCollection.UnloadAllProjects();
-                    msProject.ProjectCollection.Dispose();
-                }
-            }
-            catch (Exception ex)
-            {
-                log.Error($"Unexpected exception while loading project [{project.FullPath.ToWindowsPath()}]", ex);
-            }
+            if (loadParameters.AutoCompileProjects)
+                await VSProjectHelper.RestoreNugetPackages(log, project.FullPath);
 
             project.FlattenedDependencies.Clear();
             project.DirectDependencies.Clear();
@@ -289,6 +279,7 @@ namespace Xenko.Core.Assets
                     {
                         // Load package
                         var loadedProject = LoadProject(log, file, true, loadParameters);
+                        loadedProject.Package.Meta.Name = projectDependency.Name;
                         loadedProject.Package.Meta.Version = projectDependency.Version;
                         Projects.Add(loadedProject);
 

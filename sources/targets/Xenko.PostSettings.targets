@@ -26,7 +26,4 @@
       <Compile Include="@(XenkoSharedAssemblyFile->'$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.NuGet.cs')" />
     </ItemGroup>
   </Target>
-  
-  <!-- Import target to handle ProjectReference for executables -->
-  <Import Project="$(MSBuildThisFileDirectory)Xenko.InternalReferences.targets"/>
 </Project>

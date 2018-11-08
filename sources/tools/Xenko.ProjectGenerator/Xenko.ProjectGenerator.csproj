@@ -50,9 +50,6 @@
     </None>
     <None Include="Templates\Xenko.UnitTests\%24ProjectName%24.csproj.t4" />
     <None Include="Templates\Xenko.UnitTests\%24ProjectName%24.Shared.targets.t4" />
-    <None Include="Templates\Common.Imports.targets.t4">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Templates\Common.PropertyGroups.targets.t4" />
     <None Include="Templates\Xenko.UnitTests\MainPage.xaml.cs.t4" />
     <None Include="Templates\Xenko.UnitTests\MainPage.xaml.t4" />

@@ -76,7 +76,16 @@ namespace Xenko.Core.Assets
         public Package Find(Dependency dependency)
         {
             if (dependency == null) throw new ArgumentNullException(nameof(dependency));
-            return Find(dependency.Name, new PackageVersionRange(dependency.Version));
+            switch (dependency.Type)
+            {
+                case DependencyType.Package:
+                    return Find(dependency.Name, new PackageVersionRange(dependency.Version));
+                case DependencyType.Project:
+                    // Project versions might not be properly loaded so we check only by name
+                    return packages.FirstOrDefault(package => package.Meta.Name == dependency.Name && package.Container is SolutionProject);
+                default:
+                    throw new ArgumentException($"Unhandled value: {dependency.Type}");
+            }
         }
 
         /// <summary>

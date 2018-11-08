@@ -168,20 +168,15 @@
     
   <Target Name="XenkoRunAssemblyProcessor" DependsOnTargets="ResolveProjectReferences">
     <WriteLinesToFile File="$(IntermediateOutputPath)XenkoReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
+    <ItemGroup>
+      <XenkoAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.ExternallyResolved)' == 'true' Or '%(ReferencePath.BuildReference)' == 'true'" />
+    </ItemGroup>
     <PropertyGroup>
       <XenkoAssemblyProcessorOptions Condition="'$(XenkoAssemblyProcessorOptions)' == ''">--auto-notify-property --parameter-key --auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
-      <!-- If building user solutions (not unit tests), provide assembly processor with ProjectReferences paths so that they can be readded to assembly references for serialization module initializer (otherwise .exe don't have real reference on Game assemblies with auto load scene game) -->
-      <XenkoAssemblyProcessorOptions Condition="'$(XenkoUnitTest)' != 'true'">$(XenkoAssemblyProcessorOptions) @(_ResolvedProjectReferencePaths->'--add-reference=%22%(Identity)%22',' ')</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions Condition="'$(DocumentationFile)' != ''">$(XenkoAssemblyProcessorOptions) --docfile="$(DocumentationFile)"</XenkoAssemblyProcessorOptions>
       <!-- Physics, Particles and SpriteStudio assembly is actually hard coded/referenced here, remove once a better system is in place! -->
       <!-- Please keep in sync with AssemblyRecompiler.cs -->
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Physics.dll"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Particles.dll"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.SpriteStudio.Runtime.dll"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Native.dll"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.UI.dll"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Navigation.dll"</XenkoAssemblyProcessorOptions>
-      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\$(XenkoGraphicsApi)\Xenko.Video.dll"</XenkoAssemblyProcessorOptions>
+      <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) @(XenkoAddReference->'--add-reference=%22%(Identity)%22',' ')</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions Condition="'$(XenkoAutoTesting)' == 'true'">$(XenkoAssemblyProcessorOptions) --add-reference="$(XenkoPackageXenkoPlatformBin)\Xenko.Games.Testing.dll"</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --references-file="$(IntermediateOutputPath)XenkoReferences.cache"</XenkoAssemblyProcessorOptions>
       <XenkoAssemblyProcessorOptions>$(XenkoAssemblyProcessorOptions) --platform=$(XenkoPlatform) --targetFramework=$(XenkoNETFrameworkVersion) "$(IntermediateOutputPath)$(TargetName)$(TargetExt)"</XenkoAssemblyProcessorOptions>
@@ -278,11 +273,12 @@
     <!--asset OutputPath for other platforms. Note: this is overridden for UnitTests projects. -->
     <XenkoCompileAssetOutputPath Condition="'$(XenkoCompileAssetOutputPath)' == ''">$(TargetDir)data</XenkoCompileAssetOutputPath>
 
-    <XenkoCompileAssetCommand Condition="'$(XenkoCompileAssetCommand)' == ''">$(XenkoPackageXenkoSdkBin)\Xenko.Core.Assets.CompilerApp.exe</XenkoCompileAssetCommand>
+    <XenkoCompileAssetCommand Condition="'$(XenkoCompileAssetCommand)' == ''">$(MSBuildThisFileDirectory)..\sources\assets\Xenko.Core.Assets.CompilerApp\bin\$(Configuration)\net472\Xenko.Core.Assets.CompilerApp.exe</XenkoCompileAssetCommand>
 
-    <XenkoCompileAssetCommandProxy Condition="'$(DisableAssetCompilerExecServerProxy)' == 'true' Or '$(XenkoDisableAssetCompilerExecServerProxy)' == 'true'">&quot;$(XenkoCompileAssetCommand)&quot;</XenkoCompileAssetCommandProxy>
-    <XenkoCompileAssetCommandProxy Condition="'$(XenkoCompileAssetCommandProxy)' == ''">&quot;$(XenkoPackageXenkoSdkBin)\Xenko.Core.Assets.CompilerClient.exe&quot;</XenkoCompileAssetCommandProxy>
-    
+    <!--<XenkoCompileAssetCommandProxy Condition="'$(DisableAssetCompilerExecServerProxy)' == 'true' Or '$(XenkoDisableAssetCompilerExecServerProxy)' == 'true'">&quot;$(XenkoCompileAssetCommand)&quot;</XenkoCompileAssetCommandProxy>
+    <XenkoCompileAssetCommandProxy Condition="'$(XenkoCompileAssetCommandProxy)' == ''">&quot;$(XenkoPackageXenkoSdkBin)\Xenko.Core.Assets.CompilerClient.exe&quot;</XenkoCompileAssetCommandProxy>-->
+    <XenkoCompileAssetCommandProxy>&quot;$(XenkoCompileAssetCommand)&quot;</XenkoCompileAssetCommandProxy>
+
     <!-- Quite hard-coded for our current way to find default game settings -->
     <XenkoGameSettings Condition="'$([System.IO.File]::Exists($(MSBuildProjectDirectory)\Assets\GameSettings.xkgamesettings))'== 'true' ">$(MSBuildProjectDirectory)\Assets\GameSettings.xkgamesettings</XenkoGameSettings>
     <XenkoGameSettings Condition="'$(XenkoGameSettings)' == '' and '$([System.IO.File]::Exists($(MSBuildProjectDirectory)\..\Assets\Shared\GameSettings.xkgamesettings))' == 'true'">$(MSBuildProjectDirectory)\..\Assets\Shared\GameSettings.xkgamesettings</XenkoGameSettings>
