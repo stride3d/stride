@@ -12,7 +12,6 @@
     <XenkoPlatform>Windows</XenkoPlatform>
     <XenkoBuildProfile>Windows</XenkoBuildProfile>
     <XenkoPackageGuid>{c6c57562-42df-42ad-be2d-8d5889211366}</XenkoPackageGuid>
-    <XenkoDir>$(MSBuildThisFileDirectory)..\..\..</XenkoDir>
     <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
     <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
@@ -112,5 +111,5 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
-  <Import Project="$(XenkoDir)\sources\targets\Xenko.UnitTests.targets" />
+  <Import Project="..\..\targets\Xenko.UnitTests.targets" />
 </Project>

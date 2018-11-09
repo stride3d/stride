@@ -12,7 +12,6 @@
     <XenkoPlatform>Windows</XenkoPlatform>
     <XenkoBuildProfile>Windows</XenkoBuildProfile>
     <XenkoPackageGuid>{637e7e88-bc09-4ddd-95eb-00114fd32e5e}</XenkoPackageGuid>
-    <XenkoDir>$(MSBuildThisFileDirectory)..\..\..</XenkoDir>
     <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
     <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
@@ -190,5 +189,5 @@
   </ItemGroup>
   <Import Project="..\Xenko.Shared\Refactor\Xenko.Refactor.projitems" Label="Shared" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
-  <Import Project="$(XenkoDir)\sources\targets\Xenko.UnitTests.targets" />
+  <Import Project="..\..\targets\Xenko.UnitTests.targets" />
 </Project>

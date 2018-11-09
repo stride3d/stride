@@ -79,9 +79,6 @@ namespace Xenko.VisualStudio.Package.Tests
                     UseShellExecute = false,
                 };
 
-                // Override Xenko dir with path relative to test directory
-                psi.EnvironmentVariables["XenkoDir"] = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..");
-
                 process = Process.Start(psi);
                 if (process == null)
                     throw new InvalidOperationException("Could not start Visual Studio instance");

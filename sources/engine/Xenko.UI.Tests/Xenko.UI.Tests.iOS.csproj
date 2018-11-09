@@ -16,7 +16,6 @@
     <XenkoPlatform>iOS</XenkoPlatform>
     <XenkoBuildProfile>iOS</XenkoBuildProfile>
     <XenkoPackageGuid>{b18707e8-1d26-49fc-9911-3834506d8149}</XenkoPackageGuid>
-    <XenkoDir>$(MSBuildThisFileDirectory)..\..\..</XenkoDir>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
     <XenkoAssemblySign>true</XenkoAssemblySign>
@@ -333,11 +332,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <Import Project="$(XenkoPackageProps)" Condition="Exists('$(XenkoPackageProps)')" />
-  <Import Project="$(XenkoDir)\sources\targets\Xenko.UnitTests.targets" Condition="Exists('$(XenkoDir)\sources\targets\Xenko.UnitTests.targets')" />
-  <Target Name="EnsureXenkoInstalled" BeforeTargets="PrepareForBuild">
-    <Error Condition="'$(XenkoDir)' == ''" Text="Xenko SDK was not found. Check Xenko is installed and the global env variable [XenkoDir] is setup correctly" />
-    <Error Condition="!Exists('$(XenkoDir)\sources\targets\Xenko.UnitTests.targets')" Text="Invalid Xenko SDK installation. Target file [$(XenkoDir)\sources\targets\Xenko.UnitTests.targets] was not found." />
-  </Target>
+  <Import Project="..\..\targets\Xenko.UnitTests.targets" Condition="Exists('..\..\targets\Xenko.UnitTests.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
     Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

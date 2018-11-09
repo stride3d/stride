@@ -39,15 +39,13 @@ namespace Xenko.ConnectionRouter
 
         public static bool CanProxy()
         {
-            var currentDir = $"{Environment.GetEnvironmentVariable("XenkoDir")}\\Bin\\Windows\\";
-            var iosId = Path.Combine(currentDir, "iproxy.exe");
+            var iosId = "iproxy.exe";
             return File.Exists(iosId);
         }
 
         internal Process SetupProxy(ConnectedDevice device)
         {
-            var currentDir = $"{Environment.GetEnvironmentVariable("XenkoDir")}\\Bin\\Windows\\";
-            var iosId = Path.Combine(currentDir, "iproxy.exe");
+            var iosId = "iproxy.exe";
 
             int testedLocalPort;
             do
@@ -81,7 +79,6 @@ namespace Xenko.ConnectionRouter
                     {
                         UseShellExecute = false,
                         CreateNoWindow = true,
-                        WorkingDirectory = currentDir,
                         FileName = iosId,
                         Arguments = $"{testedLocalPort} {RouterClient.DefaultListenPort} {device.Name}"
                     }
@@ -96,8 +93,7 @@ namespace Xenko.ConnectionRouter
 
         public async Task TrackDevices()
         {
-            var currentDir = $"{Environment.GetEnvironmentVariable("XenkoDir")}\\Bin\\Windows\\";
-            var iosId = Path.Combine(currentDir, "idevice_id.exe");
+            var iosId = "idevice_id.exe";
 
             while (true)
             {
@@ -109,7 +105,6 @@ namespace Xenko.ConnectionRouter
                         UseShellExecute = false,
                         CreateNoWindow = true,
                         RedirectStandardOutput = true,
-                        WorkingDirectory = currentDir,
                         FileName = iosId,
                         Arguments = "-l"
                     }

@@ -61,9 +61,9 @@
 	</Target>
 	
 	<Target Name="BuildTests">
-		<MSBuild Condition="'$(PlatformToBuild)' == 'Windows'" Projects="$(XenkoRoot)samples\Tests\Tests.sln" Properties="DefineConstants=TRACE;XenkoDir=$(XenkoRoot)" Targets="Rebuild" />
-		<MSBuild Condition="'$(PlatformToBuild)' == 'Android'" Projects="$(XenkoRoot)samples\Tests\Tests.sln" Properties="DefineConstants=TRACE%3BTEST_ANDROID;XenkoDir=$(XenkoRoot)" Targets="Rebuild" />	
-		<MSBuild Condition="'$(PlatformToBuild)' == 'iOS'" Projects="$(XenkoRoot)samples\Tests\Tests.sln" Properties="DefineConstants=TRACE%3BTEST_IOS;XenkoDir=$(XenkoRoot)" Targets="Rebuild" />
+		<MSBuild Condition="'$(PlatformToBuild)' == 'Windows'" Projects="$(XenkoRoot)samples\Tests\Tests.sln" Properties="DefineConstants=TRACE" Targets="Rebuild" />
+		<MSBuild Condition="'$(PlatformToBuild)' == 'Android'" Projects="$(XenkoRoot)samples\Tests\Tests.sln" Properties="DefineConstants=TRACE%3BTEST_ANDROID" Targets="Rebuild" />	
+		<MSBuild Condition="'$(PlatformToBuild)' == 'iOS'" Projects="$(XenkoRoot)samples\Tests\Tests.sln" Properties="DefineConstants=TRACE%3BTEST_IOS" Targets="Rebuild" />
 	</Target>
 	
 	<Target Name="NugetExtractFix">

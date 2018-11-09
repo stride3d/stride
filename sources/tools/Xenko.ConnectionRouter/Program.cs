@@ -73,7 +73,7 @@ namespace Xenko.ConnectionRouter
                     GlobalLogger.GlobalMessageLogged += fileLogListener;
                 }
 
-                // TODO: Lock will be only for this folder but it should be shared across OS (should we resolve XenkoDir?)
+                // TODO: Lock will be only for this folder but it should be shared across OS
                 using (var mutex = FileLock.TryLock("connectionrouter.lock"))
                 {
                     if (mutex == null)

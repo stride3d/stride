@@ -26,7 +26,6 @@ namespace Xenko.Physics.Tests
         protected int IndividualTestVersion;
 
         // Local screenshots
-        private readonly string xenkoDir;
         private readonly string assemblyName;
         private readonly string testName;
         private readonly string platformName;
@@ -38,13 +37,12 @@ namespace Xenko.Physics.Tests
         {
             screenShots = 0;
             testName = name;
-            xenkoDir = Environment.GetEnvironmentVariable("XenkoDir");
             assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
 
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
             //  SaveScreenshot is only defined for windows
             platformName = "Windows";
-            Directory.CreateDirectory(xenkoDir + "\\screenshots\\");
+            Directory.CreateDirectory("screenshots\\");
 #endif
 
             AutoLoadDefaultSettings = true; // Note! This will override the preferred graphics profile so save it for later
@@ -120,7 +118,7 @@ namespace Xenko.Physics.Tests
         protected void SaveCurrentFrameBufferToHdd()
         {
             // SaveTexture is only defined for Windows and is only used to test the screenshots locally
-            var filename = xenkoDir + "\\screenshots\\" + assemblyName + "." + platformName + "_" + testName + "_" + screenShots + ".png";
+            var filename = "screenshots\\" + assemblyName + "." + platformName + "_" + testName + "_" + screenShots + ".png";
             screenShots++;
 
             SaveTexture(GraphicsDevice.Presenter.BackBuffer, filename);

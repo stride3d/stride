@@ -278,10 +278,6 @@
     <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
     <ROW Action="Xenko.exe" Type="82" Source="Xenko.exe" Target="/uninstall"/>
   </COMPONENT>
-  <COMPONENT cid="caphyon.advinst.msicomp.MsiEnvComponent">
-    <ROW Environment="XenkoDir" Name="=-*XenkoDir" Value="[APPDIR]" Component_="AdminInstall"/>
-    <ROW Environment="XenkoDir_1" Name="=-XenkoDir" Value="[APPDIR]" Component_="UserInstall"/>
-  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="Logo.exe" SourcePath="Logo.ico" Index="0"/>
   </COMPONENT>

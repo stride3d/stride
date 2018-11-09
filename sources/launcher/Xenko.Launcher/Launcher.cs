@@ -155,7 +155,7 @@ namespace Xenko.LauncherApp
         {
             try
             {
-                // Setup the XenkoDir to make sure that it is passed to the underlying process (msbuild...etc.)
+                // Only needed for Xenko up to 2.x (and possibly 3.0): setup the XenkoDir to make sure that it is passed to the underlying process (msbuild...etc.)
                 Environment.SetEnvironmentVariable("SiliconStudioXenkoDir", AppDomain.CurrentDomain.BaseDirectory);
                 Environment.SetEnvironmentVariable("XenkoDir", AppDomain.CurrentDomain.BaseDirectory);
 

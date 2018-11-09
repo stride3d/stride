@@ -45,7 +45,6 @@ var needSigning = true;
     <XenkoBuildTags>*</XenkoBuildTags>
     <XenkoPlatform><#= curPlatform #></XenkoPlatform>
     <XenkoBuildProfile>$(XenkoPlatform)</XenkoBuildProfile>
-    <XenkoDir>$(MSBuildThisFileDirectory)<#= Properties.XenkoSdkRelativeDir #></XenkoDir>
     <XenkoAssemblySign><#= needSigning.ToString().ToLowerInvariant() #></XenkoAssemblySign>
     <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''"><#= curPlatform.GetDefaultGraphicsPlatform() #></XenkoGraphicsApi>
     <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>

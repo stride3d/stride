@@ -44,24 +44,13 @@ namespace Xenko.Particles.Tests
         protected int IndividualTestVersion;
 
         // Local screenshots
-        private readonly string xenkoDir;
-        private readonly string assemblyName;
         private readonly string testName;
-        private int screenShots;
 
         private GraphicsProfile overrideGraphicsProfile;
 
         public GameTest(string name, GraphicsProfile profile = GraphicsProfile.Level_9_3)
         {
-            screenShots = 0;
             testName = name;
-            xenkoDir = Environment.GetEnvironmentVariable("XenkoDir");
-            assemblyName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
-
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-            //  SaveScreenshot is only defined for windows
-            Directory.CreateDirectory(xenkoDir + "\\screenshots\\");
-#endif
 
             AutoLoadDefaultSettings = true; // Note! This will override the preferred graphics profile so save it for later
             overrideGraphicsProfile = profile;

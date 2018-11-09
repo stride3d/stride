@@ -32,7 +32,6 @@
     <XenkoPlatform>Android</XenkoPlatform>
     <XenkoBuildProfile>Android</XenkoBuildProfile>
     <XenkoPackageGuid>{c6c57562-42df-42ad-be2d-8d5889211366}</XenkoPackageGuid>
-    <XenkoDir>$(MSBuildThisFileDirectory)..\..\..</XenkoDir>
     <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">OpenGLES</XenkoGraphicsApi>
     <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
@@ -263,11 +262,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <Import Project="$(XenkoPackageProps)" Condition="Exists('$(XenkoPackageProps)')" />
-  <Import Project="$(XenkoDir)\sources\targets\Xenko.UnitTests.targets" Condition="Exists('$(XenkoDir)\sources\targets\Xenko.UnitTests.targets')" />
-  <Target Name="EnsureXenkoInstalled" BeforeTargets="PrepareForBuild">
-    <Error Condition="'$(XenkoDir)' == ''" Text="Xenko SDK was not found. Check Xenko is installed and the global env variable [XenkoDir] is setup correctly" />
-    <Error Condition="!Exists('$(XenkoDir)\sources\targets\Xenko.UnitTests.targets')" Text="Invalid Xenko SDK installation. Target file [$(XenkoDir)\sources\targets\Xenko.UnitTests.targets] was not found." />
-  </Target>
+  <Import Project="..\..\targets\Xenko.UnitTests.targets" Condition="Exists('..\..\targets\Xenko.UnitTests.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
     Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
