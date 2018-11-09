@@ -778,7 +778,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The sum of the two colors.</returns>
         public static ColorBGRA operator +(ColorBGRA left, ColorBGRA right)
         {
-            return new ColorBGRA(left.R + right.R, left.G + right.G, left.B + right.B, left.A + right.A);
+            return new ColorBGRA((byte)(left.R + right.R), (byte)(left.G + right.G), (byte)(left.B + right.B), (byte)(left.A + right.A));
         }
 
         /// <summary>
@@ -799,7 +799,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The difference of the two colors.</returns>
         public static ColorBGRA operator -(ColorBGRA left, ColorBGRA right)
         {
-            return new ColorBGRA(left.R - right.R, left.G - right.G, left.B - right.B, left.A - right.A);
+            return new ColorBGRA((byte)(left.R - right.R), (byte)(left.G - right.G), (byte)(left.B - right.B), (byte)(left.A - right.A));
         }
 
         /// <summary>
