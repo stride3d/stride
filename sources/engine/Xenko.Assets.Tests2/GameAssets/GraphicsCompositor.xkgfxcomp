@@ -61,18 +61,8 @@ RenderFeatures:
             11c8b8ccb522e3cd1dd6688016062a6d: !Xenko.Rendering.SimpleGroupToRenderStageSelector,Xenko.Engine
                 RenderStage: ref!! 37288a03-f47b-4a2a-a16a-a3bf315e519f
                 EffectName: Test
-    93933ad00d0c357d4915ad462cbfd04c: !Xenko.Rendering.UI.UIRenderFeature,Xenko.UI
-        RenderStageSelectors:
-            14a071694411235038a102ac3794bb4d: !Xenko.Rendering.SimpleGroupToRenderStageSelector,Xenko.Engine
-                RenderStage: ref!! 1f81e62c-336a-4654-9916-b4b50b59a3fc
-                EffectName: Test
-    9013eab3ea0ef6c98bf133b86c173d45: !Xenko.Particles.Rendering.ParticleEmitterRenderFeature,Xenko.Particles
-        RenderStageSelectors:
-            af1bd241305893ef8ff7952184e1cb0b: !Xenko.Particles.Rendering.ParticleEmitterTransparentRenderStageSelector,Xenko.Particles
-                OpaqueRenderStage: ref!! 37288a03-f47b-4a2a-a16a-a3bf315e519f
-                TransparentRenderStage: ref!! 1f81e62c-336a-4654-9916-b4b50b59a3fc
-                EffectName: null
-        PipelineProcessors: {}
+    93933ad00d0c357d4915ad462cbfd04c: ~(Deleted)
+    9013eab3ea0ef6c98bf133b86c173d45: ~(Deleted)
 SharedRenderers:
     60459475d3a3adaf2d1ba5d99913ca75: !Xenko.Rendering.Compositing.ForwardRenderer,Xenko.Engine
         Id: 72bf6aa7-581a-4e8e-aea5-15b8fce7f24c

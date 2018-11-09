@@ -146,31 +146,13 @@
     <None Include="Xenko.Graphics.Tests.xkpkg" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Audio\Xenko.Audio.csproj">
-      <Project>{de042125-c270-4d1d-9270-0759c167567a}</Project>
-      <Name>Xenko.Audio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj">
-      <Project>{1dbbc150-f085-43ef-b41d-27c72d133770}</Project>
-      <Name>Xenko.Native</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.UI\Xenko.UI.csproj">
-      <Project>{bb9deeef-f18c-40d8-b016-6434cc71b8c3}</Project>
-      <Name>Xenko.UI</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Video\Xenko.Video.csproj">
-      <Project>{DA355C86-866F-4843-9B4D-63A173C750FB}</Project>
-      <Name>Xenko.Video</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.VirtualReality\Xenko.VirtualReality.csproj">
-      <Project>{53782603-3096-40c2-abd3-f8f311bae4be}</Project>
-      <Name>Xenko.VirtualReality</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
+    <ProjectReference Include="..\Xenko.Graphics.Regression\Xenko.Graphics.Regression.csproj" />
+    <ProjectReference Include="..\Xenko.UI\Xenko.UI.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <Import Project="Xenko.Graphics.Tests.Shared.targets" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <Import Project="$(XenkoDir)\sources\targets\Xenko.UnitTests.targets" />
 </Project>

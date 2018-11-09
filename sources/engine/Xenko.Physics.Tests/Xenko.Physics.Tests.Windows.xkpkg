@@ -1,0 +1,13 @@
+!Package
+Id: ccfa0e90-2531-4443-91fc-392b794c92b8
+SerializedVersion: {Assets: 3.1.0.0}
+AssetFolders:
+    -   Path: !dir GameAssets
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 901fdcf9-f6fd-4ba6-9a75-62d7fec07e88:GraphicsCompositor
+    - b98408a0-2b2d-4783-a8c2-11b0fe5bbdcc:ColliderShapesTest
+    - b98408a0-2b2d-4783-a8c2-11b0fe5bbdcd:SkinnedTest
+    - c2b9bd24-3e83-4fff-b963-79f9ff5430ac:CharacterTest

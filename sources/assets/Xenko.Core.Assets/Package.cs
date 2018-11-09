@@ -555,8 +555,7 @@ namespace Xenko.Core.Assets
 
             if (!File.Exists(filePath))
             {
-                log.Error($"Package file [{filePath}] was not found");
-                return null;
+                throw new FileNotFoundException($"Package file [{filePath}] was not found");
             }
 
             try
@@ -577,10 +576,8 @@ namespace Xenko.Core.Assets
             }
             catch (Exception ex)
             {
-                log.Error($"Error while pre-loading package [{filePath}]", ex);
+                throw new InvalidOperationException($"Error while pre-loading package [{filePath}]", ex);
             }
-
-            return null;
         }
 
         public static PackageContainer LoadProject(ILogger log, string filePath)
@@ -999,17 +996,21 @@ namespace Xenko.Core.Assets
             if (LoadedAssemblies.Any(x => x.ProjectReference == projectReference))
                 return;
 
-            string assemblyPath = null;
+            string assemblyPath = project.TargetPath;
             var fullProjectLocation = project.FullPath.ToWindowsPath();
 
             try
             {
                 var forwardingLogger = new ForwardingLoggerResult(log);
-                assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
-                if (String.IsNullOrWhiteSpace(assemblyPath))
+
+                if (loadParameters.AutoCompileProjects || string.IsNullOrWhiteSpace(assemblyPath))
                 {
-                    log.Error($"Unable to locate assembly reference for project [{fullProjectLocation}]");
-                    return;
+                    assemblyPath = VSProjectHelper.GetOrCompileProjectAssembly(Session?.SolutionPath, fullProjectLocation, forwardingLogger, "Build", loadParameters.AutoCompileProjects, loadParameters.BuildConfiguration, extraProperties: loadParameters.ExtraCompileProperties, onlyErrors: true);
+                    if (string.IsNullOrWhiteSpace(assemblyPath))
+                    {
+                        log.Error($"Unable to locate assembly reference for project [{fullProjectLocation}]");
+                        return;
+                    }
                 }
 
                 var loadedAssembly = new PackageLoadedAssembly(projectReference, assemblyPath);
@@ -1180,7 +1181,7 @@ namespace Xenko.Core.Assets
                         var ext = fileUPath.GetFileExtension();
 
                         //make sure to add default shaders in this case, since we don't have a csproj for them
-                        if (AssetRegistry.IsProjectCodeGeneratorAssetFileExtension(ext) && !(package.Container is SolutionProject))
+                        if (AssetRegistry.IsProjectCodeGeneratorAssetFileExtension(ext) && (!(package.Container is SolutionProject) || package.IsSystem))
                         {
                             listFiles.Add(new PackageLoadingAssetFile(fileUPath, sourceFolder) { CachedFileSize = filePath.Length });
                             continue;

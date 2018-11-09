@@ -1,0 +1,19 @@
+!Package
+Id: f98cfc8c-b3de-442a-ae37-06db6235f7da
+SerializedVersion: {Assets: 3.1.0.0}
+AssetFolders:
+    -   Path: !dir Assets/Shared
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 03c79b44-52a8-4ca4-8a0c-771cad0a3f64:DynamicBarrierTest
+    - 2adc5156-90ac-4f63-bf2a-e616460c5f37:B
+    - 3de395a8-4b68-4605-80fc-5185ff5cc872:GraphicsCompositor
+    - 4c2a6d1a-b9ff-4c90-8f25-c215bb91fbdc:Static
+    - 50f958e9-eea9-4a33-89da-4d8e33931d5b:A
+    - 79aebe6d-9709-47d7-a524-c0795837f95c:Floor
+    - 9672dcba-148d-47ab-9af3-9696910c496d:Cube
+    - a2239759-0d3b-4d3f-8c1c-cfff355e97d1:Capsule
+    - ad0d044e-2445-4263-abef-fe8eca15268e:StaticTest
+    - d9b7780c-a109-4f21-929f-8bbbc4b266d1:Capsule (2)

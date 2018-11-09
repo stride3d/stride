@@ -3,7 +3,7 @@
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
     <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
   </PropertyGroup>

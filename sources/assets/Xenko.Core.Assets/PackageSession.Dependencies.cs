@@ -95,13 +95,14 @@ namespace Xenko.Core.Assets
             try
             {
                 // Load a project without specifying a platform to make sure we get the correct platform type
-                var msProject = VSProjectHelper.LoadProject(project.FullPath, platform: "NoPlatform");
+                var msProject = VSProjectHelper.LoadProject(project.FullPath);
                 try
                 {
                     var packageVersion = msProject.GetPropertyValue("PackageVersion");
                     if (!string.IsNullOrEmpty(packageVersion))
                         package.Meta.Version = new PackageVersion(packageVersion);
 
+                    project.TargetPath = msProject.GetPropertyValue("TargetPath");
                     package.Meta.Name = msProject.GetPropertyValue("PackageId") ?? msProject.GetPropertyValue("AssemblyName") ?? package.Meta.Name;
 
                     var projectIsExecutable = msProject.GetPropertyValue("OutputType");

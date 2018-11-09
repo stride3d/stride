@@ -1,0 +1,23 @@
+!Package
+Id: 6d251236-da95-409a-8f4b-7d42ae1fd32c
+SerializedVersion: {Assets: 3.1.0.0}
+AssetFolders:
+    -   Path: !dir GameAssets
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 224c05c6-a9fd-43ad-b7e8-727bf088b554:VisualTestRibbons
+    - 2281b29e-cfae-4a65-ba18-ffa926b92b68:VisualTestGeneral
+    - 78a8f1bb-a796-4e7a-aec6-23e6e599fa01:VisualTestChildren
+    - 9a462c4a-207b-4a29-8ea3-748cb3dad8da:Scene01
+    - 9d573a79-80ff-46c3-bb45-dbfec2ac9766:Teapot
+    - 9f7b9af0-3929-4c98-8fdc-c56ecb2add8c:VisualTestMaterials
+    - a981c6e0-a485-45f0-bfba-4b28730fb4f4:GraphicsCompositor
+    - a9ba28ad-d83b-4957-8ed6-42863c1d903c:VisualTestSpawners
+    - ae4ecc1b-0b47-4c9d-ac8e-7f9720913084:MainScene
+    - c82d528c-c099-4ddb-ab27-b13b691b262f:VisualTestUpdaters
+    - d27b3521-9f10-4f6d-80b9-e50d961d31ae:VisualTestSoftEdge
+    - d8bf8c60-f185-4383-8c94-94b468749609:VisualTestCurves
+    - db59d494-42a0-4470-aadf-5c629cd67e3f:Material
+    - e28ed348-02ed-45c4-8437-538a39fdbb6c:VisualTestInitializers

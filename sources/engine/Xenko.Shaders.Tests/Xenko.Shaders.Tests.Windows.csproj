@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
@@ -30,94 +30,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">
-      <Project>{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}</Project>
-      <Name>Xenko.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj">
-      <Project>{1DE01410-22C9-489B-9796-1ADDAB1F64E5}</Project>
-      <Name>Xenko.Core.IO</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj">
-      <Project>{1320F627-EE43-4115-8E89-19D1753E51F2}</Project>
-      <Name>Xenko.Core.MicroThreading</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\core\Xenko.Core\Xenko.Core.csproj">
-      <Project>{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}</Project>
-      <Name>Xenko.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
-      <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
-      <Name>Xenko.Core.Serialization</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj">
-      <Project>{1677B922-CCF0-44DE-B57E-1CDD3D2B8E8A}</Project>
-      <Name>Xenko.Core.Mathematics</Name>
-    </ProjectReference>
-    <ProjectReference Condition="'$(XenkoPlatform)' == 'Windows'" Include="..\..\..\sources\engine\Xenko.Shaders.Compiler\Xenko.Shaders.Compiler.csproj">
-      <Project>{E8B3553F-A79F-4E50-B75B-ACEE771C320C}</Project>
-      <Name>Xenko.Shaders.Compiler</Name>
-    </ProjectReference>
-    <ProjectReference Condition="'$(XenkoPlatform)' == 'Windows'" Include="..\..\..\sources\engine\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj">
-      <Project>{14A47447-2A24-4ECD-B24D-6571499DCD4C}</Project>
-      <Name>Xenko.Shaders.Parser</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Xenko.Shaders\Xenko.Shaders.csproj">
-      <Project>{273BDD15-7392-4078-91F0-AF23594A3D7B}</Project>
-      <Name>Xenko.Shaders</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Xenko\Xenko.csproj">
-      <Project>{72390339-b2a1-4f61-a800-31ed0975b515}</Project>
-      <Name>Xenko</Name>
-    </ProjectReference>
-    <ProjectReference Condition="'$(XenkoPlatform)' == 'Windows'" Include="..\..\shaders\Xenko.Core.Shaders\Xenko.Core.Shaders.csproj">
-      <Project>{F2D52EDB-BC17-4243-B06D-33CD20F87A7F}</Project>
-      <Name>Xenko.Core.Shaders</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj">
-      <Project>{1E54A9A2-4439-4444-AE57-6D2ED3C0DC47}</Project>
-      <Name>Xenko.Core.Assets</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj">
-      <Project>{66581DAD-70AD-4475-AE47-C6C0DF1EC5E2}</Project>
-      <Name>Xenko.Core.Design</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Assets\Xenko.Assets.csproj">
-      <Project>{39ae9c77-e94b-404f-8768-b6261b3c1e0e}</Project>
-      <Name>Xenko.Assets</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj">
-      <Project>{C121A566-555E-42B9-9B0A-1696529A9088}</Project>
-      <Name>Xenko.Engine</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj">
-      <Project>{fb06c76a-6bb7-40be-9afa-fec13b045fb5}</Project>
-      <Name>Xenko.Graphics</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj">
-      <Project>{1dbbc150-f085-43ef-b41d-27c72d133770}</Project>
-      <Name>Xenko.Native</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Particles\Xenko.Particles.csproj">
-      <Project>{f32fda80-b6dd-47a8-8681-437e2c0d3f31}</Project>
-      <Name>Xenko.Particles</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.SpriteStudio.Runtime\Xenko.SpriteStudio.Runtime.csproj">
-      <Project>{9bc63bec-f305-451d-bb31-262938ea964d}</Project>
-      <Name>Xenko.SpriteStudio.Runtime</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Video\Xenko.Video.csproj">
-      <Project>{DA355C86-866F-4843-9B4D-63A173C750FB}</Project>
-      <Name>Xenko.Video</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.VirtualReality\Xenko.VirtualReality.csproj">
-      <Project>{53782603-3096-40c2-abd3-f8f311bae4be}</Project>
-      <Name>Xenko.VirtualReality</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\engine\Xenko.Navigation\Xenko.Navigation.csproj">
-      <Project>{fbe1fa7b-e699-4bb2-9c8f-41f4c9f3f088}</Project>
-      <Name>Xenko.Navigation</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

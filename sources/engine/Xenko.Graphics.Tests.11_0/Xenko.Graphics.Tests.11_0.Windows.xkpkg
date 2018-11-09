@@ -1,0 +1,11 @@
+!Package
+Id: 04ed1618-1a06-4a69-ac34-1006a978af11
+SerializedVersion: {Assets: 3.1.0.0}
+AssetFolders:
+    -   Path: !dir Assets
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 6e52ca68-ba84-4521-a20c-b780ea2831da:CubeMap
+    - ab59d7a4-eac1-487c-921b-e7bacf9fcbfb:GraphicsCompositor

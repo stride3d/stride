@@ -1,37 +1,8 @@
 !Package
 Id: 04ed1618-1a06-4a69-ac34-1006a978af11
-SerializedVersion: {Assets: 0.0.4}
-Meta:
-    Name: Xenko.Assets.Tests2
-    Version: 1.0.0.0
-    Authors: []
-    Owners: []
-    Dependencies:
-        -   Name: Xenko
-            Version: 2.3.0.1-dev
-            RootAssets: []
-LocalDependencies: []
-Profiles:
-    -   Name: Shared
-        Platform: Shared
-        InheritProfiles: []
-        AssetFolders:
-            -   Path: GameAssets
-        OutputGroupDirectories: {}
-        ProjectReferences:
-            -   Id: 117bf9f8-d2d9-4d32-9702-251c3e038090
-                Location: Xenko.Assets.Tests2.csproj
-                Type: Library
-    -   Name: Windows
-        Platform: Windows
-        InheritProfiles: []
-        AssetFolders:
-            -   Path: GameAssets
-        OutputGroupDirectories: {}
-        ProjectReferences:
-            -   Id: 117bf9f8-d2d9-4d32-9702-251c3e038090
-                Location: Xenko.Assets.Tests2.csproj
-                Type: Executable
+SerializedVersion: {Assets: 3.1.0.0}
+AssetFolders:
+    -   Path: !dir GameAssets
 ExplicitFolders: []
 Bundles: []
 TemplateFolders: []

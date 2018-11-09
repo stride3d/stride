@@ -10,7 +10,6 @@ using Xenko.Core;
 using Xenko.Core.Collections;
 using Xenko.Engine.Design;
 using Xenko.Engine.Processors;
-using Xenko.UI.Events;
 
 namespace Xenko.Engine.Tests
 {

@@ -1,57 +1,8 @@
 !Package
 Id: c6c57562-42df-42ad-be2d-8d5889211366
-SerializedVersion: {Assets: 0.0.4}
-Meta:
-    Name: Xenko.Engine.Tests
-    Version: 1.0.0.0
-    Authors: []
-    Owners: []
-    Dependencies:
-        -   Name: Xenko
-            Version: 3.0.0.1-dev
-            RootAssets: []
-LocalDependencies: []
-Profiles:
-    -   Name: Shared
-        Platform: Shared
-        InheritProfiles: []
-        AssetFolders:
-            -   Path: GameAssets
-        OutputGroupDirectories: {}
-        ProjectReferences:
-            -   Id: a8f8d125-7a22-489f-99bc-9a02f545a17f
-                Location: Xenko.Engine.Tests.Windows.csproj
-                Type: Library
-    -   Name: Windows
-        Platform: Windows
-        InheritProfiles: []
-        AssetFolders:
-            -   Path: Assets/Windows
-        OutputGroupDirectories: {}
-        ProjectReferences:
-            -   Id: a8f8d125-7a22-489f-99bc-9a02f545a17f
-                Location: Xenko.Engine.Tests.Windows.csproj
-                Type: Executable
-    -   Name: Android
-        Platform: Android
-        InheritProfiles: []
-        AssetFolders:
-            -   Path: Assets/Android
-        OutputGroupDirectories: {}
-        ProjectReferences:
-            -   Id: a8f8d125-7a22-489f-99bc-9a02f545a17f
-                Location: Xenko.Engine.Tests.Android.csproj
-                Type: Executable
-    -   Name: iOS
-        Platform: iOS
-        InheritProfiles: []
-        AssetFolders:
-            -   Path: Assets/iPhone
-        OutputGroupDirectories: {}
-        ProjectReferences:
-            -   Id: a8f8d125-7a22-489f-99bc-9a02f545a17f
-                Location: Xenko.Engine.Tests.iOS.csproj
-                Type: Executable
+SerializedVersion: {Assets: 3.1.0.0}
+AssetFolders:
+    -   Path: !dir GameAssets
 ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
