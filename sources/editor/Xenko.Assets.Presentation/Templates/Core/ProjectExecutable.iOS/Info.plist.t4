@@ -20,9 +20,9 @@
 <plist version="1.0">
 <dict>
   <key>CFBundleDisplayName</key>
-  <string><#= Properties.PackageDisplayName #></string>
+  <string><#= Properties.PackageGameDisplayName #></string>
   <key>CFBundleIdentifier</key>
-  <string>com.your-company.<#= Properties.PackageName #></string>
+  <string>com.your-company.<#= Properties.PackageGameName #></string>
   <key>CFBundleShortVersionString</key>
   <string>1.0</string>
   <key>CFBundleVersion</key>

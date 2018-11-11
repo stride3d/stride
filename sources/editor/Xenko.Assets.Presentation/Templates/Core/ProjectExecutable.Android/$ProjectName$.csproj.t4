@@ -25,7 +25,6 @@
     <JavaMaximumHeapSize />
     <JavaOptions />
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
-    <XenkoPackageGuid>{<#= Properties.Package.Id  #>}</XenkoPackageGuid>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
@@ -38,11 +37,11 @@
   <ItemGroup>
     <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>">
       <Project>{<#= Properties.ProjectGameGuid #>}</Project>
-      <Name><#= Properties.PackageName #></Name>
+      <Name><#= Properties.PackageGameName #></Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="<#= Properties.PackageNameShort #>Activity.cs" />
+    <Compile Include="<#= Properties.PackageGameNameShort #>Activity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Properties\AndroidManifest.xml" />
     <AndroidResource Include="Resources\Drawable\Icon.png" />

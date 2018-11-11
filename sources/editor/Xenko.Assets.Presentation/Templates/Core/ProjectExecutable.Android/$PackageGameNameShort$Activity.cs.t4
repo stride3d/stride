@@ -1,4 +1,4 @@
-﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <#
     var androidOrientation = "Landscape";
     switch ((Xenko.Graphics.DisplayOrientation)Properties.Orientation)
@@ -28,7 +28,7 @@ namespace <#= Properties.Namespace #>
               Icon = "@drawable/icon", 
               ScreenOrientation = ScreenOrientation.<#= androidOrientation #>,
               ConfigurationChanges = ConfigChanges.UiMode | ConfigChanges.Orientation | ConfigChanges.KeyboardHidden | ConfigChanges.ScreenSize)]
-    public class <#= Properties.PackageNameShort #>Activity : AndroidXenkoActivity
+    public class <#= Properties.PackageGameNameShort #>Activity : AndroidXenkoActivity
     {
         protected override void OnCreate(Bundle bundle)
         {

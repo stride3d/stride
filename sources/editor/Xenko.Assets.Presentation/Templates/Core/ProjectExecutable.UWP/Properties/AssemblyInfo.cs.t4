@@ -1,15 +1,15 @@
-﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 using System.Reflection;
 using System.Resources;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("<#= Properties.PackageName #>")]
+[assembly: AssemblyTitle("<#= Properties.PackageGameName #>")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("<#= Properties.PackageName #>")]
+[assembly: AssemblyProduct("<#= Properties.PackageGameName #>")]
 [assembly: AssemblyCopyright("Copyright ©  2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

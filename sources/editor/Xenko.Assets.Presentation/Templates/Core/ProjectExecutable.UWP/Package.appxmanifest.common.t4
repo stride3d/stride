@@ -1,4 +1,4 @@
-﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <# var identityGuid = System.Guid.NewGuid(); #>
   <Identity
     Name="<#= identityGuid.ToString().ToLowerInvariant() #>"
@@ -8,7 +8,7 @@
   <mp:PhoneIdentity PhoneProductId="<#= identityGuid.ToString().ToLowerInvariant() #>" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName><#= Properties.PackageName #></DisplayName>
+    <DisplayName><#= Properties.PackageGameName #></DisplayName>
     <PublisherDisplayName>publisher</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -22,14 +22,14 @@
   </Resources>
 
   <Applications>
-    <Application Id="<#= Properties.PackageNameShort #>"
+    <Application Id="<#= Properties.PackageGameNameShort #>"
         Executable="$targetnametoken$.exe"
         EntryPoint="<#= Properties.Namespace #>.App">
         <uap:VisualElements
-            DisplayName="<#= Properties.PackageDisplayName #>"
+            DisplayName="<#= Properties.PackageGameDisplayName #>"
             Square150x150Logo="Assets\Logo.png"
             Square44x44Logo="Assets\SmallLogo.png"
-            Description="<#= Properties.PackageName #>"
+            Description="<#= Properties.PackageGameName #>"
             BackgroundColor="#464646">
             <uap:SplashScreen Image="Assets\SplashScreen.png" />
 <#@ include file="..\Common.UWP.targets.t4" #>

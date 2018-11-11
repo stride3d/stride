@@ -38,7 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Native\Celt.cpp" />
-    <XenkoContent Include="Xenko.Audio.dll.config" />
+    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="Xenko.Audio.dll.config" />
     <None Include="Xenko.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>

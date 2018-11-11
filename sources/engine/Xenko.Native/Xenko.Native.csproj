@@ -25,7 +25,7 @@
     <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <XenkoContent Include="Xenko.Native.dll.config" />
+    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="Xenko.Native.dll.config" />
     <None Include="Xenko.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>

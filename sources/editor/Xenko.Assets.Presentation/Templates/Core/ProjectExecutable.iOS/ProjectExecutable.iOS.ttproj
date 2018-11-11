@@ -1,7 +1,7 @@
-﻿!ProjectTemplate
+!ProjectTemplate
 Files:
   - {Source: $ProjectName$.csproj.t4, Target: $ProjectName$.csproj, IsTemplate: true}
-  - {Source: $PackageNameShort$AppDelegate.cs.t4, Target: $PackageNameShort$AppDelegate.cs, IsTemplate: true}
+  - {Source: $PackageGameNameShort$AppDelegate.cs.t4, Target: $PackageGameNameShort$AppDelegate.cs, IsTemplate: true}
   - {Source: Info.plist.t4, Target: Info.plist, IsTemplate: true}
   - {Source: Properties\AssemblyInfo.cs.t4, Target: Properties\AssemblyInfo.cs, IsTemplate: true}
   - {Source: Resources\XenkoIcon57.png, Target: Resources\Icon.png }

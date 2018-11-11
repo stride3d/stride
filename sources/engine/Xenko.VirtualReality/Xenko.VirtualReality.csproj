@@ -59,7 +59,7 @@
     <ProjectReference Include="..\Xenko\Xenko.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <XenkoContent Include="Xenko.VirtualReality.dll.config" />
+    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="Xenko.VirtualReality.dll.config" />
     <None Include="Xenko.Native.Libs.targets">
       <SubType>Designer</SubType>
     </None>

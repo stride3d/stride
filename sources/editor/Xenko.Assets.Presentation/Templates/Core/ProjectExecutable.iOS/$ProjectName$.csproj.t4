@@ -14,7 +14,6 @@
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
     <AssemblyName><#= Properties.PackageNameCode #></AssemblyName>
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
-    <XenkoPackageGuid>{<#= Properties.Package.Id  #>}</XenkoPackageGuid>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
@@ -27,11 +26,11 @@
   <ItemGroup>
     <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>">
       <Project>{<#= Properties.ProjectGameGuid #>}</Project>
-      <Name><#= Properties.PackageName #></Name>
+      <Name><#= Properties.PackageGameName #></Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="<#= Properties.PackageNameShort #>AppDelegate.cs" />
+    <Compile Include="<#= Properties.PackageGameNameShort #>AppDelegate.cs" />
     <None Include="Info.plist" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

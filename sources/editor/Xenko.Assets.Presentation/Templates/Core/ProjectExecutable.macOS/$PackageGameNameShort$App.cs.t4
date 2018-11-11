@@ -1,9 +1,9 @@
-﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 using Xenko.Engine;
 
 namespace <#= Properties.Namespace #>
 {
-    class <#= Properties.PackageNameShort #>App
+    class <#= Properties.PackageGameNameShort #>App
     {
         static void Main(string[] args)
         {

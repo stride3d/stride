@@ -66,7 +66,15 @@ namespace Xenko.Assets.Templates
             // Setup the ProjectGameGuid to be accessible from exec (in order to be able to link to the game project.
             AddOption(parameters, "ProjectGameGuid", (package.Container as SolutionProject)?.Id ?? Guid.Empty);
             AddOption(parameters, "ProjectGameRelativePath", (package.Container as SolutionProject)?.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
+
+            AddOption(parameters, "PackageGameName", package.Meta.Name);
+            AddOption(parameters, "PackageGameDisplayName", package.Meta.Title ?? package.Meta.Name);
+            // Escape illegal characters for the short name
+            AddOption(parameters, "PackageGameNameShort", Utilities.BuildValidClassName(package.Meta.Name.Replace(" ", string.Empty)));
             AddOption(parameters, "PackageGameRelativePath", package.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
+
+            // Override namespace
+            AddOption(parameters, "Namespace", parameters.Namespace ?? Utilities.BuildValidNamespaceName(package.Meta.Name));
 
             // Add projects
             var stepIndex = 0;

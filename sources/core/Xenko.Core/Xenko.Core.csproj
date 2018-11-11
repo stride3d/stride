@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <XenkoRuntime>true</XenkoRuntime>
   </PropertyGroup>
@@ -56,6 +56,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.props" PackagePath="build\" Pack="true" />
     <None Include="..\..\..\deps\AssemblyProcessor\*.*" PackagePath="tools\AssemblyProcessor\" Pack="true" />
   </ItemGroup>
   
@@ -109,7 +110,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <XenkoContent Include="Xenko.Core.dll.config" />
+    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="Xenko.Core.dll.config" />
   </ItemGroup>
   
   <ItemGroup>

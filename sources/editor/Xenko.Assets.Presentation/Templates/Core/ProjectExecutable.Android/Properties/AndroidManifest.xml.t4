@@ -1,7 +1,7 @@
-﻿<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
+<#@ template inherits="ProjectTemplateTransformation" language="C#" #>
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="<#= Properties.PackageName #>" android:versionCode="1" android:versionName="1.0">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="<#= Properties.PackageGameName #>" android:versionCode="1" android:versionName="1.0">
   <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="21" />
   <uses-permission android:name="android.permission.INTERNET" />
-  <application android:label="<#= Properties.PackageDisplayName #>" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"></application>  
+  <application android:label="<#= Properties.PackageGameDisplayName #>" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"></application>  
 </manifest>
