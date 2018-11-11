@@ -42,7 +42,10 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' ">
-    <TargetFrameworks>net45</TargetFrameworks>
+    <XenkoRuntimeTargetFrameworks Condition="'$(XenkoRuntimeTargetFrameworks)' == ''">net45;uap10.0</XenkoRuntimeTargetFrameworks>
+    <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
+    <!-- UpToDate check doesn't work with multi-TFM projects! https://github.com/dotnet/project-system/issues/2487 -->
+    <DisableFastUpToDateCheck Condition="$(TargetFrameworks.Contains(';'))">true</DisableFastUpToDateCheck>
     <!--<TargetFrameworks>net45;uap10.0;monoandroid50;xamarin.ios10;netstandard2.0</TargetFrameworks>-->
   </PropertyGroup>
 
@@ -57,13 +60,6 @@
     <XenkoPlatformDefines>XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_UWP;NET45;NETFX_CORE;WINDOWS_UAP</XenkoPlatformDefines>
     <NUnitLiteBinDir>$(XenkoCommonDependenciesDir)NUnitLite\net-win10\</NUnitLiteBinDir>
   </PropertyGroup>
-  <Choose>
-    <When Condition=" '$(XenkoPlatform)' == 'UWP' ">
-      <ItemGroup>
-        <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.0.6" />
-      </ItemGroup>
-    </When>
-  </Choose>
 
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Linux' ">
     <XenkoPlatformDefines>XENKO_PLATFORM_LINUX;XENKO_PLATFORM_UNIX;NET45</XenkoPlatformDefines>

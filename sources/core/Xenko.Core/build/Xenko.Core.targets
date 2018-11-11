@@ -76,11 +76,16 @@
   *****************************************************************************************************************************
   -->
   <!-- List dependency files from .ssdeps -->
-  <Target Name="_XenkoListDepsFiles" DependsOnTargets="ResolveAssemblyReferences;ResolvePackageAssets">
+  <PropertyGroup>
+    <_XenkoListDepsFilesDependsOn>ResolveAssemblyReferences</_XenkoListDepsFilesDependsOn>
+    <_XenkoListDepsFilesDependsOn Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'">$(_XenkoListDepsFilesDependsOn);ResolvePackageAssets</_XenkoListDepsFilesDependsOn>
+  </PropertyGroup>
+  <Target Name="_XenkoListDepsFiles" DependsOnTargets="$(_XenkoListDepsFilesDependsOn)">
     <ItemGroup>
       <_XenkoDepsFile Include="@(ReferencePath->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <_XenkoDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <_XenkoDepsFile Include="@(RuntimeCopyLocalItems->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <_XenkoDepsFile Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <None Include="@(_XenkoDepsFile)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
@@ -124,11 +129,24 @@
   </Target>
 
   <!-- Copy native libraries to output -->
-  <Target Name="_XenkoSetupNativeLibraries" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoPlatform)' == 'Windows'">
+  <Target Name="_XenkoSetupNativeLibrariesWindows" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoPlatform)' == 'Windows'">
     <ItemGroup>
       <None Include="@(_XenkoDependencyNativeLib)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+  </Target>
+  <Target Name="_XenkoSetupNativeLibrariesUWP" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoPlatform)' == 'UWP'">
+    <PropertyGroup>
+      <XenkoCPU Condition="'$(Platform)' == 'x86'">x86</XenkoCPU>
+      <XenkoCPU Condition="'$(Platform)' == 'x64'">x64</XenkoCPU>
+      <XenkoCPU Condition="'$(Platform)' == 'ARM'">ARM</XenkoCPU>
+    </PropertyGroup>
+    <ItemGroup>
+      <Content Include="@(_XenkoDependencyNativeLib)" Condition="$([System.String]::Copy('%(_XenkoDependencyNativeLib.Link)').StartsWith('$(XenkoCPU)'))">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link Condition="'$(XenkoCPU)' != ''">$([System.String]::Copy('%(_XenkoDependencyNativeLib.Link)').Replace('$(XenkoCPU)\', ''))</Link>
+      </Content>
     </ItemGroup>
   </Target>
 </Project>

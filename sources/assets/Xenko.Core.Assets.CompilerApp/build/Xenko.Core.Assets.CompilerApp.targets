@@ -13,6 +13,7 @@
     <!--This variable can be overriden by a platform specific targets (in case the executable is located into an assembly dll )-->
     <XenkoIsExecutable Condition=" '$(OutputType)' == 'Exe'">true</XenkoIsExecutable>
     <XenkoIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</XenkoIsExecutable>
+    <XenkoIsExecutable Condition=" '$(OutputType)' == 'AppContainerExe'">true</XenkoIsExecutable>
 
     <!--asset BuildPath for all platforms (same as package)-->
     <XenkoCompileAssetBuildPath Condition="'$(XenkoCompileAssetBuildPath)' == ''">$(MSBuildProjectDirectory)\..\Cache\data</XenkoCompileAssetBuildPath>
@@ -62,5 +63,28 @@
   <Target Name="XenkoCleanAsset" Condition="'$(XenkoIsExecutable)' == 'true'">
     <RemoveDir Condition="Exists('$(XenkoCompileAssetBuildPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetBuildPath)"/>
     <RemoveDir Condition="Exists('$(XenkoCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetOutputPath)"/>
+  </Target>
+
+  <!-- UWP: Compile and Transform Assets into Content during PrepareResources phase -->
+  <PropertyGroup Condition="'$(XenkoIsExecutable)' == 'true' And '$(XenkoPlatform)' == 'UWP'">
+    <!-- Use OutputPath to define AppxPackage directory -->
+    <AppxPackageDir>$(OutputPath)\$(AppxPackageDirName)\</AppxPackageDir>
+    <AppxPackageTestDir>$(AppxPackageDir)Test\</AppxPackageTestDir>
+    <AppxPackageName>$(AssemblyName)</AppxPackageName>
+    <PrepareResourcesDependsOn>
+      _XenkoDeployAssetsUWP;
+      $(PrepareResourcesDependsOn)
+    </PrepareResourcesDependsOn>
+  </PropertyGroup>
+  <Target Name="_XenkoDeployAssetsUWP" DependsOnTargets="XenkoCompileAsset">
+    <ItemGroup>
+      <!-- Define the Assets to deploy -->
+      <AssetsToDeploy Include="$(XenkoCompileAssetOutputPath)\**\*.*"/>
+
+      <Content Include="@(AssetsToDeploy)">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <Link>data\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      </Content>
+    </ItemGroup>
   </Target>
 </Project>

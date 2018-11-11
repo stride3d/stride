@@ -94,8 +94,7 @@ namespace Xenko.Core.Assets
             // Load some informations about the project
             try
             {
-                // Load a project without specifying a platform to make sure we get the correct platform type
-                var msProject = VSProjectHelper.LoadProject(project.FullPath);
+                var msProject = VSProjectHelper.LoadProject(project.FullPath, extraProperties: new Dictionary<string, string> { { "SkipInvalidConfigurations", "true" } });
                 try
                 {
                     var packageVersion = msProject.GetPropertyValue("PackageVersion");
@@ -105,8 +104,11 @@ namespace Xenko.Core.Assets
                     project.TargetPath = msProject.GetPropertyValue("TargetPath");
                     package.Meta.Name = msProject.GetPropertyValue("PackageId") ?? msProject.GetPropertyValue("AssemblyName") ?? package.Meta.Name;
 
-                    var projectIsExecutable = msProject.GetPropertyValue("OutputType");
-                    project.Type = projectIsExecutable.ToLowerInvariant() == "winexe" || projectIsExecutable.ToLowerInvariant() == "exe" ? ProjectType.Executable : ProjectType.Library;
+                    var outputType = msProject.GetPropertyValue("OutputType");
+                    project.Type = outputType.ToLowerInvariant() == "winexe" || outputType.ToLowerInvariant() == "exe"
+                        || outputType.ToLowerInvariant() == "appcontainerexe" // UWP
+                        ? ProjectType.Executable
+                        : ProjectType.Library;
 
                     // TODO: Platform might be incorrect if Xenko is not restored yet (it won't include Xenko targets)
                     if (project.Type == ProjectType.Executable)
