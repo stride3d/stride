@@ -345,14 +345,11 @@ namespace Xenko.Core.Presentation.Controls
                 var searchToken = SearchToken;
                 foreach (var message in logMessages.Where(x => ShouldDisplayMessage(x.Type)))
                 {
-                    var lineText = $"{(message.Module != null ? $"[{message.Module}]: " : string.Empty)}{message.Type}:";
-
+                    string content = message.Text;
                     var ex = message.ExceptionInfo;
                     if (ShowStacktrace && ex != null)
-                        lineText = $"{lineText}{ex.InnerException}{Environment.NewLine}";
-                    else
-                        lineText = $"{message.Text}{Environment.NewLine}";
-
+                        content = $"{content}{Environment.NewLine}{ex}";
+                    var lineText = $"{(message.Module != null ? $"[{message.Module}]: " : string.Empty)}{message.Type}:{content}{Environment.NewLine}";
 
                     var logColor = GetLogColor(message.Type);
                     if (string.IsNullOrEmpty(searchToken))
