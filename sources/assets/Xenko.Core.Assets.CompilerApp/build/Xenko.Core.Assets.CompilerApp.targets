@@ -14,6 +14,7 @@
     <XenkoIsExecutable Condition=" '$(OutputType)' == 'Exe'">true</XenkoIsExecutable>
     <XenkoIsExecutable Condition=" '$(OutputType)' == 'WinExe'">true</XenkoIsExecutable>
     <XenkoIsExecutable Condition=" '$(OutputType)' == 'AppContainerExe'">true</XenkoIsExecutable>
+    <XenkoIsExecutable Condition=" '$(AndroidApplication)' == 'true'">true</XenkoIsExecutable>
 
     <!--asset BuildPath for all platforms (same as package)-->
     <XenkoCompileAssetBuildPath Condition="'$(XenkoCompileAssetBuildPath)' == ''">$(MSBuildProjectDirectory)\..\Cache\data</XenkoCompileAssetBuildPath>
@@ -86,5 +87,13 @@
         <Link>data\%(RecursiveDir)%(Filename)%(Extension)</Link>
       </Content>
     </ItemGroup>
+  </Target>
+
+  <!-- Android -->
+  <Target Name="_XenkoDeployAssetsAndroid" BeforeTargets="XenkoCompileAsset" Condition="'$(XenkoPlatform)' == 'Android'">
+    <!-- Add .bundle to list of uncompressed extensions -->
+    <PropertyGroup>
+      <AndroidStoreUncompressedFileExtensions>$(AndroidStoreUncompressedFileExtensions);.bundle</AndroidStoreUncompressedFileExtensions>
+    </PropertyGroup>
   </Target>
 </Project>

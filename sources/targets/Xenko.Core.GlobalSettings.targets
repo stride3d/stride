@@ -42,7 +42,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' ">
-    <XenkoRuntimeTargetFrameworks Condition="'$(XenkoRuntimeTargetFrameworks)' == ''">net45;uap10.0</XenkoRuntimeTargetFrameworks>
+    <XenkoRuntimeTargetFrameworks Condition="'$(XenkoRuntimeTargetFrameworks)' == ''">net45;uap10.0;monoandroid50</XenkoRuntimeTargetFrameworks>
     <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <!-- UpToDate check doesn't work with multi-TFM projects! https://github.com/dotnet/project-system/issues/2487 -->
     <DisableFastUpToDateCheck Condition="$(TargetFrameworks.Contains(';'))">true</DisableFastUpToDateCheck>

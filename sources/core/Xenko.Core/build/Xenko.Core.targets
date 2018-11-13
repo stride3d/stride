@@ -86,6 +86,8 @@
       <_XenkoDepsFile Include="@(ReferenceDependencyPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="'%(CopyLocal)' != 'false' And Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <_XenkoDepsFile Include="@(RuntimeCopyLocalItems->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <_XenkoDepsFile Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
+      <!-- Android -->
+      <_XenkoDepsFile Include="@(_ReferencesFromNuGetPackages->'%(RootDir)%(Directory)%(Filename).ssdeps')" Condition="Exists('%(RootDir)%(Directory)%(Filename).ssdeps')"/>
       <None Include="@(_XenkoDepsFile)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
@@ -149,4 +151,10 @@
       </Content>
     </ItemGroup>
   </Target>
+  <Target Name="_XenkoSetupNativeLibrariesAndroid" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoPlatform)' == 'Android'">
+    <ItemGroup>
+      <AndroidNativeLibrary Include="@(_XenkoDependencyNativeLib)"/>
+    </ItemGroup>
+  </Target>
+  
 </Project>
