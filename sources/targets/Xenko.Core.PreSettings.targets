@@ -27,7 +27,7 @@
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And $(RuntimeIdentifer.StartsWith('osx')) ">macOS</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'uap10.0' ">UWP</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'monoandroid50' ">Android</XenkoPlatform>
-    <XenkoPlatform Condition=" '$(TargetFramework)' == 'xamarin.ios10' ">iOS</XenkoPlatform>
+    <XenkoPlatform Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</XenkoPlatform>
 
     <XenkoPlatformFullName Condition="'$(XenkoPlatformFullName)' == ''">$(XenkoPlatform)</XenkoPlatformFullName>
     

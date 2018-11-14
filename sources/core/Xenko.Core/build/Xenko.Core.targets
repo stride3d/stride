@@ -156,5 +156,15 @@
       <AndroidNativeLibrary Include="@(_XenkoDependencyNativeLib)"/>
     </ItemGroup>
   </Target>
+  <Target Name="_XenkoSetupNativeLibrariesiOS" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition=" '$(OutputType)' == 'Exe' And '$(XenkoPlatform)' == 'iOS'">
+    <ItemGroup>
+      <NativeReference Include="@(_XenkoDependencyNativeLib)">
+        <Kind>Static</Kind>
+      </NativeReference>
+    </ItemGroup>
+    <PropertyGroup>
+      <MtouchExtraArgs>$(MtouchExtraArgs) --compiler=clang -cxx -gcc_flags '-lstdc++ $(MtouchExtraArgsLibs)'</MtouchExtraArgs>
+    </PropertyGroup>
+  </Target>
   
 </Project>

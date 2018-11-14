@@ -66,18 +66,22 @@
     <RemoveDir Condition="Exists('$(XenkoCompileAssetOutputPath)')" ContinueOnError="true"  Directories="$(XenkoCompileAssetOutputPath)"/>
   </Target>
 
-  <!-- UWP: Compile and Transform Assets into Content during PrepareResources phase -->
+  <!-- UWP: Adjust Appx folders -->
   <PropertyGroup Condition="'$(XenkoIsExecutable)' == 'true' And '$(XenkoPlatform)' == 'UWP'">
     <!-- Use OutputPath to define AppxPackage directory -->
     <AppxPackageDir>$(OutputPath)\$(AppxPackageDirName)\</AppxPackageDir>
     <AppxPackageTestDir>$(AppxPackageDir)Test\</AppxPackageTestDir>
     <AppxPackageName>$(AssemblyName)</AppxPackageName>
+  </PropertyGroup>
+
+  <!-- UWP & iOS: Compile and Transform Assets into Content during PrepareResources phase -->
+  <PropertyGroup Condition="'$(XenkoIsExecutable)' == 'true' And ('$(XenkoPlatform)' == 'UWP' Or '$(XenkoPlatform)' == 'Android')">
     <PrepareResourcesDependsOn>
-      _XenkoDeployAssetsUWP;
+      _XenkoDeployAssetsAsContent;
       $(PrepareResourcesDependsOn)
     </PrepareResourcesDependsOn>
   </PropertyGroup>
-  <Target Name="_XenkoDeployAssetsUWP" DependsOnTargets="XenkoCompileAsset">
+  <Target Name="_XenkoDeployAssetsAsContent" DependsOnTargets="XenkoCompileAsset">
     <ItemGroup>
       <!-- Define the Assets to deploy -->
       <AssetsToDeploy Include="$(XenkoCompileAssetOutputPath)\**\*.*"/>
@@ -97,3 +101,4 @@
     </PropertyGroup>
   </Target>
 </Project>
+ 
