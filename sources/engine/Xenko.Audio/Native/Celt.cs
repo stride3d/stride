@@ -89,10 +89,18 @@ namespace Xenko.Audio
         }
 
         /// <summary>
+        /// Reset decoder state.
+        /// </summary>
+        public void ResetDecoder()
+        {
+            xnCeltResetDecoder(celtPtr);
+        }
+
+        /// <summary>
         /// Gets the delay between encoder and decoder (in number of samples). This should be skipped at the beginning of a decoded stream.
         /// </summary>
         /// <returns></returns>
-        public unsafe int GetDecoderSampleDelay()
+        public int GetDecoderSampleDelay()
         {
             var delay = 0;
             if (xnCeltGetDecoderSampleDelay(celtPtr, ref delay) != 0)
@@ -153,6 +161,10 @@ namespace Xenko.Audio
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
         private static extern void xnCeltDestroy(IntPtr celt);
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int xnCeltResetDecoder(IntPtr celt);
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
