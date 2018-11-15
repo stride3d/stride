@@ -31,6 +31,8 @@ namespace Xenko.Audio
 
         internal IVirtualFileProvider FileProvider;
 
+        internal int Samples { get; set; }
+
         /// <summary>
         /// Create a new sound effect instance of the sound effect. 
         /// The audio data are shared between the instances so that useless memory copies is avoided. 
@@ -96,7 +98,9 @@ namespace Xenko.Audio
                     offset += samplesDecoded * Channels * sizeof(short);
                 }
 
-                AudioLayer.BufferFill(PreloadedBuffer, memory.Pointer, memory.Length * sizeof(short), SampleRate, Channels == 1);
+                // Ignore invalid data at beginning (due to encoder delay) & end of stream (due to packet size)
+                var samplesToSkip = decoder.GetDecoderSampleDelay();
+                AudioLayer.BufferFill(PreloadedBuffer, memory.Pointer + samplesToSkip * Channels * sizeof(short), Samples * Channels * sizeof(short), SampleRate, Channels == 1);
                 memory.Dispose();
             }
         }

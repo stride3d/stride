@@ -89,6 +89,18 @@ namespace Xenko.Audio
         }
 
         /// <summary>
+        /// Gets the delay between encoder and decoder (in number of samples). This should be skipped at the beginning of a decoded stream.
+        /// </summary>
+        /// <returns></returns>
+        public unsafe int GetDecoderSampleDelay()
+        {
+            var delay = 0;
+            if (xnCeltGetDecoderSampleDelay(celtPtr, ref delay) != 0)
+                delay = 0;
+            return delay;
+        }
+
+        /// <summary>
         /// Encode PCM audio into celt compressed format
         /// </summary>
         /// <param name="audioSamples">A buffer containing interleaved channels (as from constructor channels) and samples (can be any number of samples)</param>
@@ -141,6 +153,10 @@ namespace Xenko.Audio
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
         private static extern void xnCeltDestroy(IntPtr celt);
+
+        [SuppressUnmanagedCodeSecurity]
+        [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
+        private static extern int xnCeltGetDecoderSampleDelay(IntPtr celt, ref int delay);
 
         [SuppressUnmanagedCodeSecurity]
         [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]
