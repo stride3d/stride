@@ -9,8 +9,4 @@
     <XenkoOutputCommonDir>$(MSBuildThisFileDirectory)..\Bin\$(XenkoBuildDirectory)\</XenkoOutputCommonDir>
     <XenkoOutputCommonDir>$([System.IO.Path]::GetFullPath('$(XenkoOutputCommonDir)'))</XenkoOutputCommonDir>
   </PropertyGroup>
-
-  <PropertyGroup>
-  	<LangVersion>7.2</LangVersion>
-  </PropertyGroup>
 </Project>
