@@ -34,6 +34,7 @@ namespace Xenko.Assets.Media
             public DecodeSoundFileCommand(string url, SoundAsset parameters, IAssetFinder assetFinder)
                 : base(url, parameters, assetFinder)
             {
+                Version = 1;
             }
 
             /// <inheritdoc />
@@ -105,11 +106,12 @@ namespace Xenko.Assets.Media
                                 writer.Write((short)len);
                                 outputStream.Write(outputBuffer, 0, len);
 
-                                count = 0;
-                                Array.Clear(buffer, 0, frameSize);
-
+                                newSound.Samples += count / channels;
                                 newSound.NumberOfPackets++;
                                 newSound.MaxPacketLength = Math.Max(newSound.MaxPacketLength, len);
+
+                                count = 0;
+                                Array.Clear(buffer, 0, frameSize);
                             }
 
                             buffer[count] = reader.ReadSingle();
@@ -122,6 +124,7 @@ namespace Xenko.Assets.Media
                             writer.Write((short)len);
                             outputStream.Write(outputBuffer, 0, len);
 
+                            newSound.Samples += count / channels;
                             newSound.NumberOfPackets++;
                             newSound.MaxPacketLength = Math.Max(newSound.MaxPacketLength, len);
                         }

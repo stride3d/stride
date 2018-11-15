@@ -6,6 +6,10 @@ using System.Collections.Generic;
 using Xenko.Core.Assets.Analysis;
 using Xenko.Core.BuildEngine;
 using Xenko.Core.Annotations;
+using System.Threading.Tasks;
+using Xenko.Core.Diagnostics;
+using Xenko.Core.Extensions;
+using System.Linq;
 
 namespace Xenko.Core.Assets.Compiler
 {
@@ -85,19 +89,21 @@ namespace Xenko.Core.Assets.Compiler
 
                     if ((dependencyType & BuildDependencyType.Runtime) == BuildDependencyType.Runtime && compilerResult.HasErrors) //allow Runtime dependencies to fail
                     {
-                        //totally skip this asset but do not propagate errors!
-                        return;
+                        assetBuildSteps = new ErrorBuildStep(assetItem, compilerResult.Messages);
                     }
-
-                    assetBuildSteps = compilerResult.BuildSteps;
-                    compiledItems.Add(assetNode.AssetItem.Id, assetBuildSteps);
-
-                    // Copy the log to the final result (note: this does not copy or forward the build steps)
-                    compilerResult.CopyTo(finalResult);
-                    if (compilerResult.HasErrors)
+                    else
                     {
-                        finalResult.Error($"Failed to prepare asset {assetItem.Location}");
-                        return;
+
+                        assetBuildSteps = compilerResult.BuildSteps;
+                        compiledItems.Add(assetNode.AssetItem.Id, assetBuildSteps);
+
+                        // Copy the log to the final result (note: this does not copy or forward the build steps)
+                        compilerResult.CopyTo(finalResult);
+                        if (compilerResult.HasErrors)
+                        {
+                            finalResult.Error($"Failed to prepare asset {assetItem.Location}");
+                            return;
+                        }
                     }
 
                     // Add the resulting build steps to the final
@@ -125,6 +131,24 @@ namespace Xenko.Core.Assets.Compiler
             // Link the created build steps to their parent step.
             if (parentBuildStep != null && assetBuildSteps != null && (dependencyType & BuildDependencyType.CompileContent) == BuildDependencyType.CompileContent) //only if content is required Content.Load
                 BuildStep.LinkBuildSteps(assetBuildSteps, parentBuildStep);
+        }
+
+        private class ErrorBuildStep : AssetBuildStep
+        {
+            private readonly List<ILogMessage> messages;
+
+            public ErrorBuildStep(AssetItem assetItem, IEnumerable<ILogMessage> messages)
+                : base(assetItem)
+            {
+                this.messages = messages.ToList();
+            }
+
+            public override Task<ResultStatus> Execute(IExecuteContext executeContext, BuilderContext builderContext)
+            {
+                foreach (var message in messages)
+                    executeContext.Logger.Log(message);
+                return Task.FromResult(ResultStatus.Failed);
+            }
         }
     }
 }

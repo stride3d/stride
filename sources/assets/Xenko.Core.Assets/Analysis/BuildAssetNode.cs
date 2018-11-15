@@ -93,6 +93,11 @@ namespace Xenko.Core.Assets.Analysis
             }
         }
 
+        public override string ToString()
+        {
+            return $"{DependencyType}: {Source} => {Target}";
+        }
+
         /// <inheritdoc/>
         public static bool operator ==(BuildAssetLink left, BuildAssetLink right)
         {
@@ -233,6 +238,11 @@ namespace Xenko.Core.Assets.Analysis
                     }
                 }
             }
+        }
+
+        public override string ToString()
+        {
+            return $"{AssetItem.Location} ({References.Count} refs)";
         }
 
         private class RuntimeDependenciesCollector : AssetVisitorBase

@@ -357,13 +357,13 @@ namespace Xenko.Core.Presentation.Controls
                                 if (tokenIndex > 0)
                                 {
                                     var c = lineText[tokenIndex - 1];
-                                    if ((c >= 'A' && c <= 'A') || (c >= 'a' && c <= 'z'))
+                                    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
                                         acceptResult = false;
                                 }
                                 if (tokenIndex + searchToken.Length < lineText.Length)
                                 {
                                     var c = lineText[tokenIndex + searchToken.Length];
-                                    if ((c >= 'A' && c <= 'A') || (c >= 'a' && c <= 'z'))
+                                    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
                                         acceptResult = false;
                                 }
                             }
