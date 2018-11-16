@@ -17,18 +17,8 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
-    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\Xenko.Assets\Xenko.Assets.csproj" />
-    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
     <ProjectReference Include="..\Xenko.SpriteStudio.Runtime\Xenko.SpriteStudio.Runtime.csproj" />
-    <ProjectReference Include="..\Xenko\Xenko.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Templates\Assets\SpriteStudio\DefaultSpriteStudioAnimation.xktpl" />

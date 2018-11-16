@@ -22,12 +22,6 @@
     <Compile Remove="obsolete\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
     <ProjectReference Include="..\Xenko.Core.Quantum\Xenko.Core.Quantum.csproj" />
   </ItemGroup>
   <ItemGroup>

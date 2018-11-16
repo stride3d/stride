@@ -24,7 +24,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\sources\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
     <ProjectReference Include="..\..\sources\editor\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj" />
     <ProjectReference Include="..\..\sources\engine\Xenko.Games.Testing\Xenko.Games.Testing.csproj" />
   </ItemGroup>

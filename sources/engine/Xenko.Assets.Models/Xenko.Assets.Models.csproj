@@ -19,23 +19,10 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
-    <ProjectReference Include="..\..\assets\Xenko.Core.Packages\Xenko.Core.Packages.csproj" />
-    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Yaml\Xenko.Core.Yaml.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\..\tools\Xenko.Importer.Assimp\Xenko.Importer.Assimp.vcxproj" PrivateAssets="All" />
     <ProjectReference Include="..\..\tools\Xenko.Importer.Common\Xenko.Importer.Common.vcxproj" PrivateAssets="All" />
     <ProjectReference Include="..\..\tools\Xenko.Importer.FBX\Xenko.Importer.FBX.vcxproj" PrivateAssets="All" />
     <ProjectReference Include="..\Xenko.Assets\Xenko.Assets.csproj" />
-    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
-    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
-    <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj" />
-    <ProjectReference Include="..\Xenko\Xenko.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Analysis\" />

@@ -11,7 +11,6 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj" />
     <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
   </ItemGroup>

@@ -28,7 +28,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" />
-    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\Xenko.Core.IO\Xenko.Core.IO.csproj" />
   </ItemGroup>
   <ItemGroup>

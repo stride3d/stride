@@ -24,7 +24,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(XenkoEffectCompiler)' == 'true'">

@@ -13,7 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />

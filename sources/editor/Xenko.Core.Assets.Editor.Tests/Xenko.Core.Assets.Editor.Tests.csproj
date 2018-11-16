@@ -20,18 +20,11 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets.Quantum.Tests\Xenko.Core.Assets.Quantum.Tests.csproj" />
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets.Quantum\Xenko.Core.Assets.Quantum.csproj" />
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Presentation\Xenko.Core.Presentation.csproj" />
-    <ProjectReference Include="..\..\presentation\Xenko.Core.Quantum\Xenko.Core.Quantum.csproj" />
     <ProjectReference Include="..\Xenko.Core.Assets.Editor\Xenko.Core.Assets.Editor.csproj" />
   </ItemGroup>
   <ItemGroup>

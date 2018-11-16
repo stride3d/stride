@@ -20,11 +20,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\Xenko.Core.Presentation.Quantum\Xenko.Core.Presentation.Quantum.csproj" />
-    <ProjectReference Include="..\Xenko.Core.Presentation\Xenko.Core.Presentation.csproj" />
-    <ProjectReference Include="..\Xenko.Core.Quantum\Xenko.Core.Quantum.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

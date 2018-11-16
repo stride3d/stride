@@ -41,15 +41,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
-    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
-    <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj" />
-    <ProjectReference Include="..\Xenko\Xenko.csproj" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(XenkoPostSettingsTargets)" />

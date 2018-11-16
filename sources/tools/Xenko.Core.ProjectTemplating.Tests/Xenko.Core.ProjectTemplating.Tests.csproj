@@ -34,7 +34,6 @@
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\Xenko.Core.ProjectTemplating\Xenko.Core.ProjectTemplating.csproj" />
   </ItemGroup>
   <ItemGroup>

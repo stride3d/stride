@@ -23,14 +23,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
-    <ProjectReference Include="..\..\shaders\Irony\Irony.csproj" />
     <ProjectReference Include="..\..\shaders\Xenko.Core.Shaders\Xenko.Core.Shaders.csproj" />
     <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj" />
-    <ProjectReference Include="..\Xenko\Xenko.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

@@ -30,6 +30,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Xenko.Assets\Xenko.Assets.csproj" />
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
   </ItemGroup>
   <ItemGroup>

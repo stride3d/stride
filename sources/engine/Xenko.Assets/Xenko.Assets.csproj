@@ -67,30 +67,13 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
-    <ProjectReference Include="..\..\assets\Xenko.Core.Packages\Xenko.Core.Packages.csproj" />
-    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Yaml\Xenko.Core.Yaml.csproj" />
     <ProjectReference Include="..\..\tools\Xenko.Core.ProjectTemplating\Xenko.Core.ProjectTemplating.csproj" />
     <ProjectReference Include="..\..\tools\Xenko.TextureConverter\Xenko.TextureConverter.csproj" />
-    <ProjectReference Include="..\Xenko.Audio\Xenko.Audio.csproj" />
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
-    <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj" />
     <ProjectReference Include="..\Xenko.Navigation\Xenko.Navigation.csproj" />
     <ProjectReference Include="..\Xenko.Physics\Xenko.Physics.csproj" />
-    <ProjectReference Include="..\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj" />
-    <ProjectReference Include="..\..\shaders\Xenko.Core.Shaders\Xenko.Core.Shaders.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
-    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\Xenko.Shaders.Compiler\Xenko.Shaders.Compiler.csproj" />
-    <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj" />
     <ProjectReference Include="..\Xenko.UI\Xenko.UI.csproj" />
     <ProjectReference Include="..\Xenko.Video\Xenko.Video.csproj" />
     <ProjectReference Include="..\Xenko\Xenko.csproj" />

@@ -31,15 +31,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
-      <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
-      <Name>Xenko.Core.Serialization</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
-    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
-    <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj" />
     <PackageReference Include="SharpDX.RawInput" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
     <PackageReference Include="SharpDX.DirectInput" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
     <PackageReference Include="SharpDX.XInput" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />

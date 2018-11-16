@@ -161,16 +161,7 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Packages\Xenko.Core.Packages.csproj" AdditionalProperties="TargetFramework=$(TargetFramework)" />
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" AdditionalProperties="TargetFramework=$(TargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" AdditionalProperties="TargetFramework=$(TargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Yaml\Xenko.Core.Yaml.csproj" AdditionalProperties="TargetFramework=$(TargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="NuGet\" />

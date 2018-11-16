@@ -37,24 +37,11 @@
     <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Assets\Xenko.Assets.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Games\Xenko.Games.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Assets.Models\Xenko.Assets.Models.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Particles\Xenko.Particles.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Physics\Xenko.Physics.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Shaders\Xenko.Shaders.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.SpriteStudio.Offline\Xenko.SpriteStudio.Offline.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.UI\Xenko.UI.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj" />
-    <ProjectReference Include="..\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
   </ItemGroup>
   <Import Project="..\..\tools\Xenko.Core.VisualStudio\Xenko.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="..\..\shared\Xenko.NuGetResolver\Xenko.NuGetResolver.projitems" Label="Shared" />

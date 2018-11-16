@@ -29,10 +29,7 @@
     </XenkoNativeLib>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />

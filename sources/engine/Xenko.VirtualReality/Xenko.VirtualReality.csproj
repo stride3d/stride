@@ -48,15 +48,12 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
     <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
     <ProjectReference Include="..\Xenko.Input\Xenko.Input.csproj">
       <Project>{84deb606-77ed-49cd-9aed-d2b13c1f5a1e}</Project>
       <Name>Xenko.Input</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Xenko\Xenko.csproj" />
   </ItemGroup>
   <ItemGroup>
     <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="Xenko.VirtualReality.dll.config" />

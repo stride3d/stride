@@ -22,9 +22,7 @@
     <EmbeddedResource Include="files\*.yaml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" />
     <ProjectReference Include="..\Xenko.Core.Yaml\Xenko.Core.Yaml.csproj" />
-    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

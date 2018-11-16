@@ -22,14 +22,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Assets\Xenko.Assets.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Shaders.Compiler\Xenko.Shaders.Compiler.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Shaders\Xenko.Shaders.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj" />
     <ProjectReference Include="..\Xenko.ConnectionRouter\Xenko.ConnectionRouter.csproj" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />

@@ -51,20 +51,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
     <ProjectReference Include="..\..\core\Xenko.Core.Tasks\Xenko.Core.Tasks.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
-    <ProjectReference Include="..\..\editor\Xenko.Core.Assets.Editor\Xenko.Core.Assets.Editor.csproj" />
     <ProjectReference Include="..\..\editor\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Games\Xenko.Games.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Input\Xenko.Input.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Native\Xenko.Native.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.VirtualReality\Xenko.VirtualReality.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko\Xenko.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TestGenerator.xksl">

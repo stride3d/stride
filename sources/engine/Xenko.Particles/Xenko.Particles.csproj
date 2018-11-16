@@ -72,14 +72,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
-    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
-    <ProjectReference Condition="'$(XenkoPlatform)' == 'Windows'" Include="..\Xenko.Shaders.Compiler\Xenko.Shaders.Compiler.csproj" />
-    <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj" />
-    <ProjectReference Include="..\Xenko\Xenko.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\ComputeColorWhite.xksl">

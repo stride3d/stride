@@ -22,7 +22,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="Xenko.Native.dll.config" />

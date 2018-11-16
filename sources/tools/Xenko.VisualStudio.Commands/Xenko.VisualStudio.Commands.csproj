@@ -18,17 +18,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj"/>
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
-    <ProjectReference Include="..\..\shaders\Xenko.Core.Shaders\Xenko.Core.Shaders.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj" />
-    <ProjectReference Include="..\..\buildengine\Xenko.Core.BuildEngine.Common\Xenko.Core.BuildEngine.Common.csproj" />
-    <ProjectReference Include="..\..\engine\Xenko.Shaders\Xenko.Shaders.csproj" />
     <ProjectReference Include="..\Xenko.VisualStudio.Package\Xenko.VisualStudio.Package.csproj" />
   </ItemGroup>
   <ItemGroup>

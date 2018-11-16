@@ -23,9 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" />
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\Xenko.Core.Presentation\Xenko.Core.Presentation.csproj" />
     <ProjectReference Include="..\Xenko.Core.Quantum\Xenko.Core.Quantum.csproj" />
   </ItemGroup>

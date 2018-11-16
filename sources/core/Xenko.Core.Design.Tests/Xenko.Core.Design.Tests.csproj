@@ -18,12 +18,6 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
-    <ProjectReference Include="..\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" />
-    <ProjectReference Include="..\Xenko.Core.Reflection\Xenko.Core.Reflection.csproj" />
-    <ProjectReference Include="..\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
-    <ProjectReference Include="..\Xenko.Core.Yaml\Xenko.Core.Yaml.csproj" />
-    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\Xenko.Core.Design\Xenko.Core.Design.csproj" />
   </ItemGroup>
   <ItemGroup>

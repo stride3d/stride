@@ -27,7 +27,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" />
     <ProjectReference Include="..\..\core\Xenko.Core.Translation\Xenko.Core.Translation.csproj" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />

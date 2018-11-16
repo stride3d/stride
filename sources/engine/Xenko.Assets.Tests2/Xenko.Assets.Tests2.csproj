@@ -33,7 +33,6 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
     <ProjectReference Include="..\Xenko.Graphics.Regression\Xenko.Graphics.Regression.csproj" />
     <ProjectReference Include="..\Xenko.Assets\Xenko.Assets.csproj" />
   </ItemGroup>
