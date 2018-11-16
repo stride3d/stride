@@ -28,6 +28,8 @@
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'uap10.0' ">UWP</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'monoandroid50' ">Android</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</XenkoPlatform>
+    <!-- Default fallback -->
+    <XenkoPlatform Condition=" '$(XenkoPlatform)' == '' ">Windows</XenkoPlatform>
 
     <XenkoPlatformFullName Condition="'$(XenkoPlatformFullName)' == ''">$(XenkoPlatform)</XenkoPlatformFullName>
     

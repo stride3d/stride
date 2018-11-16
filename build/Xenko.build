@@ -11,7 +11,7 @@ Example of use:
     <XenkoPackage>$(XenkoRoot)Xenko.xkpkg</XenkoPackage>
     <XenkoSolution>$(XenkoRoot)build\Xenko</XenkoSolution>
     <XenkoSolutionLauncher>$(XenkoRoot)build\Xenko.Launcher</XenkoSolutionLauncher>
-    <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false</BuildProperties>
+    <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;XenkoPlatforms=$(XenkoPlatforms)</BuildProperties>
     <BuildProperties Condition="'$(XenkoSign)' != ''">$(BuildProperties);XenkoSign=$(XenkoSign)</BuildProperties>
     <BuildProperties Condition="'$(XenkoOfficialBuild)' != ''">$(BuildProperties);XenkoOfficialBuild=$(XenkoOfficialBuild)</BuildProperties>
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
@@ -115,8 +115,7 @@ Example of use:
     <PackageUpdateVersionTask Condition="'$(XenkoOfficialBuild)' == 'true'" PackageFile="$(XenkoPackage)" VersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.NuGet.cs" />
     <PackageUpdateVersionTask Condition="'$(XenkoOfficialBuild)' != 'true'" PackageFile="$(XenkoPackage)" VersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersion="beta" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true" />
   </Target>
-  <Target Name="BuildForPackageMinimal" DependsOnTargets="PreparePackageBuild;BuildWindows;BuildEditorShaders;VSIXPlugin"/>
-  <Target Name="BuildForPackage" DependsOnTargets="PreparePackageBuild;BuildWindows;BuildWindowsDirect3D12;BuildWindowsOpenGL;BuildWindowsOpenGLES;BuildEditorShaders;BuildAndroid;BuildiOS;BuildUWP;BuildWindowsVulkan;BuildLinux;BuildLinuxVulkan;VSIXPlugin"/>
+  <Target Name="BuildForPackage" DependsOnTargets="PreparePackageBuild;BuildWindows;BuildEditorShaders;VSIXPlugin"/>
   <Target Name="GeneratePackage" DependsOnTargets="PreparePackageBuild;PrerequisitesInstaller;Package;WritePackageVersionToFile"/>
   
   <Target Name="CopyXenkoKey">
@@ -128,7 +127,13 @@ Example of use:
   </Target>
 
   <Target Name="RestoreWindows">
-    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).sln"' />
+  <PropertyGroup>
+	  <RestoreExec><![CDATA[
+	set XenkoPlatforms=$(XenkoPlatforms)
+	"$(NuGetPath)" restore "$(XenkoSolution).sln"
+	  ]]></RestoreExec>
+    </PropertyGroup>
+    <Exec Command="$(RestoreExec)" />
   </Target>
   
   <Target Name="BuildWindows" DependsOnTargets="CopyXenkoKey;RestoreWindows">

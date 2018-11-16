@@ -1,8 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Build file pre-included by all Xenko projects -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <!-- Use custom project lock file (only if platform is not overriden to Windows like for Assembly processor) -->
-    <ProjectLockFile Condition="'$(ProjectLockFile)' == '' And '$(XenkoPlatform)' == 'UWP'">$(MSBuildThisFileDirectory)project.lock.json</ProjectLockFile>
-  </PropertyGroup>
-</Project>

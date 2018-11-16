@@ -1,5 +1,0 @@
-<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=E085FB8D1A093F3CA1EE5EF5581AA19D/RelativePath/@EntryValue">..\Xenko.sln.DotSettings</s:String>
-	<s:Boolean x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=E085FB8D1A093F3CA1EE5EF5581AA19D/@KeyIndexDefined">True</s:Boolean>
-	<s:Boolean x:Key="/Default/Environment/InjectedLayers/InjectedLayerCustomization/=FileE085FB8D1A093F3CA1EE5EF5581AA19D/@KeyIndexDefined">True</s:Boolean>
-	<s:Double x:Key="/Default/Environment/InjectedLayers/InjectedLayerCustomization/=FileE085FB8D1A093F3CA1EE5EF5581AA19D/RelativePriority/@EntryValue">1</s:Double></wpf:ResourceDictionary>

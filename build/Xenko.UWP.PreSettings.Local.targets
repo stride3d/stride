@@ -1,9 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Build file pre-included by all Xenko projects -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <XenkoCommonPreSettingsName>Xenko</XenkoCommonPreSettingsName>
-    <XenkoPlatform Condition="'$(XenkoPlatform)' == ''">UWP</XenkoPlatform>
-    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
-  </PropertyGroup>
-</Project>
