@@ -14,9 +14,6 @@ namespace Xenko.Core.Assets.Tests
         [ModuleInitializer]
         internal static void Initialize()
         {
-            // Override search path since we are in a unit test directory
-            DirectoryHelper.PackageDirectoryOverride = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..");
-
             AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
             RuntimeHelpers.RunModuleConstructor(typeof(Asset).Module.ModuleHandle);
 

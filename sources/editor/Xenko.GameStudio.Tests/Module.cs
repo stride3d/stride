@@ -15,9 +15,6 @@ namespace Xenko.GameStudio.Tests
         [ModuleInitializer]
         internal static void Initialize()
         {
-            // Override search path since we are in a unit test directory
-            DirectoryHelper.PackageDirectoryOverride = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..");
-
             PackageSessionPublicHelper.FindAndSetMSBuildVersion();
         }
     }
