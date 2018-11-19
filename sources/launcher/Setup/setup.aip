@@ -31,7 +31,7 @@
     <ROW Property="ProductCode" Value="1033:{B885587E-FD48-4B85-BC72-4CEC13838B84} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="Xenko"/>
-    <ROW Property="ProductVersion" Value="2.0.1" Type="32"/>
+    <ROW Property="ProductVersion" Value="2.0.2" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
     <ROW Property="UpgradeCode" Value="{B48CDC88-F979-46BC-B73C-E65080AE8F3A}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
