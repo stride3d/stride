@@ -60,11 +60,11 @@ namespace Xenko.Core.Assets
             var installPath = SettingsUtility.GetGlobalPackagesFolder(settings);
             var assemblies = new List<string>();
 
-            var specPath = Path.Combine("TestProject", "project.json");
+            var projectPath = Path.Combine("XenkoNugetResolver.json");
             var spec = new PackageSpec()
             {
-                Name = "TestProject", // make sure this package never collides with a dependency
-                FilePath = specPath,
+                Name = Path.GetFileNameWithoutExtension(projectPath), // make sure this package never collides with a dependency
+                FilePath = projectPath,
                 Dependencies = new List<LibraryDependency>()
                 {
                     new LibraryDependency
@@ -79,27 +79,53 @@ namespace Xenko.Core.Assets
                         FrameworkName = NuGetFramework.Parse("net472"),
                     }
                 },
+                RestoreMetadata = new ProjectRestoreMetadata
+                {
+                    ProjectPath = projectPath,
+                    ProjectName = Path.GetFileNameWithoutExtension(projectPath),
+                    ProjectStyle = ProjectStyle.PackageReference,
+                    ProjectUniqueName = projectPath,
+                    OutputPath = Path.Combine(Path.GetTempPath(), $"XenkoNugetResolver-{packageName}-{versionRange.MinVersion.ToString()}"),
+                    OriginalTargetFrameworks = new[] { "net472" },
+                    ConfigFilePaths = settings.GetConfigFilePaths(),
+                    PackagesPath = SettingsUtility.GetGlobalPackagesFolder(settings),
+                    Sources = SettingsUtility.GetEnabledSources(settings).ToList(),
+                    FallbackFolders = SettingsUtility.GetFallbackPackageFolders(settings).ToList()
+                },
             };
 
             using (var context = new SourceCacheContext())
             {
                 context.IgnoreFailedSources = true;
 
-                var provider = RestoreCommandProviders.Create(installPath, new List<string>(), sourceRepositoryProvider.GetRepositories(), context, new LocalPackageFileCache(), logger);
-                var request = new RestoreRequest(spec, provider, context, logger)
+                var dependencyGraphSpec = new DependencyGraphSpec();
+
+                dependencyGraphSpec.AddProject(spec);
+
+                dependencyGraphSpec.AddRestore(spec.RestoreMetadata.ProjectUniqueName);
+
+                IPreLoadedRestoreRequestProvider requestProvider = new DependencyGraphSpecRequestProvider(new RestoreCommandProvidersCache(), dependencyGraphSpec);
+
+                var restoreArgs = new RestoreArgs
                 {
-                    LockFilePath = "project.lock.json",
-                    //RequestedRuntimes = { "win7-d3d11" },
-                    ProjectStyle = ProjectStyle.DotnetCliTool,
+                    AllowNoOp = true,
+                    CacheContext = context,
+                    CachingSourceProvider = new CachingSourceProvider(new PackageSourceProvider(settings)),
+                    Log = logger,
                 };
 
-                var command = new RestoreCommand(request);
+                // Create requests from the arguments
+                var requests = requestProvider.CreateRequests(restoreArgs).Result;
 
-                // Act
-                var result = await command.ExecuteAsync();
-                await result.CommitAsync(logger, CancellationToken.None);
-
-                return (request, result);
+                // Restore the packages
+                var results = await RestoreRunner.RunWithoutCommit(requests, restoreArgs);
+                // Commit results so that noop cache works next time
+                foreach (var result in results)
+                {
+                    await result.Result.CommitAsync(logger, CancellationToken.None);
+                }
+                var mainResult = results.First();
+                return (mainResult.SummaryRequest.Request, mainResult.Result);
             }
         }
     }

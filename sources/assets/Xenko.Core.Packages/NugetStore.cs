@@ -289,7 +289,7 @@ namespace Xenko.Core.Packages
                     var projectContext = new EmptyNuGetProjectContext()
                     {
                         ActionType = NuGetActionType.Install,
-                        PackageExtractionContext = new PackageExtractionContext(PackageSaveMode.Defaultv3, XmlDocFileSaveMode.Skip, NativeLogger, null, null),
+                        PackageExtractionContext = new PackageExtractionContext(PackageSaveMode.Defaultv3, XmlDocFileSaveMode.Skip, null, NativeLogger),
                     };
 
                     ActivityCorrelationId.StartNew();
@@ -323,7 +323,7 @@ namespace Xenko.Core.Packages
                             context.IgnoreFailedSources = true;
 
                             var provider = RestoreCommandProviders.Create(installPath, new List<string>(), sourceRepositoryProvider.GetRepositories(), context, new LocalPackageFileCache(), NativeLogger);
-                            var request = new RestoreRequest(spec, provider, context, NativeLogger)
+                            var request = new RestoreRequest(spec, provider, context, null, NativeLogger)
                             {
                                 //RequestedRuntimes = { "win7-d3d11" },
                                 ProjectStyle = ProjectStyle.DotnetCliTool,
@@ -388,7 +388,7 @@ namespace Xenko.Core.Packages
                     var projectContext = new EmptyNuGetProjectContext()
                     {
                         ActionType = NuGetActionType.Uninstall,
-                        PackageExtractionContext = new PackageExtractionContext(PackageSaveMode.Defaultv3, XmlDocFileSaveMode.Skip, NativeLogger, null, null),
+                        PackageExtractionContext = new PackageExtractionContext(PackageSaveMode.Defaultv3, XmlDocFileSaveMode.Skip, null, NativeLogger),
                     };
 
                     // Simply delete the installed package and its .nupkg installed in it.
