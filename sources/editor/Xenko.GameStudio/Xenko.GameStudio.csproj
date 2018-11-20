@@ -85,6 +85,7 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <None Include="..\..\tools\Xenko.PackageInstall\bin\$(Configuration)\*.*" PackagePath="tools\" Pack="true" />
     <Compile Update="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
