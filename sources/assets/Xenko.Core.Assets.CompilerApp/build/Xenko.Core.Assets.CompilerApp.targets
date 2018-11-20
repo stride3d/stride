@@ -1,4 +1,24 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Check if Visual C++ Runtime 2013 is properly installed -->
+  <!-- Should be moved to Xenko.Assets as soon as transitive build dependencies are enabled by default in VS2019 (https://github.com/NuGet/Home/issues/6091#issuecomment-438073285) -->
+  <Target Name="_XenkoCheckVisualCRuntime2013">
+    <ItemGroup>
+      <_XenkoVisualCRuntime2013 Include="Visual C++ Redistributable for Visual Studio 2013 x86">
+        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\12.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
+        <ExpectedVersion>12.0.21005</ExpectedVersion>
+        <DownloadUrl>http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x86.exe</DownloadUrl>
+      </_XenkoVisualCRuntime2013>
+      <_XenkoVisualCRuntime2013 Include="Visual C++ Redistributable for Visual Studio 2013 x64">
+        <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\12.0\RuntimeMinimum', 'Version', null, RegistryView.Registry64))</Version>
+        <ExpectedVersion>12.0.21005</ExpectedVersion>
+        <DownloadUrl>http://download.microsoft.com/download/2/E/6/2E61CFA4-993B-4DD4-91DA-3737CD5CD6E3/vcredist_x64.exe</DownloadUrl>
+      </_XenkoVisualCRuntime2013>
+
+      <_XenkoVisualCRuntime2013NotInstalled Include="@(_XenkoVisualCRuntime2013)" Condition="'%(_XenkoVisualCRuntime2013.Version)' == '' Or $([System.Version]::Parse('%(Version)').CompareTo($([System.Version]::Parse('%(_XenkoVisualCRuntime2013.ExpectedVersion)')))) &lt; 0" />
+    </ItemGroup>
+
+    <Error Condition="'@(_XenkoVisualCRuntime2013NotInstalled)' != ''" Text="@(_XenkoVisualCRuntime2013NotInstalled->'%(Identity) is not installed. Please download from %(DownloadUrl)', '%0a')"/>
+  </Target>
   <!-- 
   *****************************************************************************************************************************
   Compile Asset 
