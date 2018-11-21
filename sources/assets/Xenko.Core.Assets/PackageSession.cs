@@ -1194,7 +1194,13 @@ namespace Xenko.Core.Assets
                 // Note: when loading, package might already be there
                 // TODO CSPROJ=XKPKG: skip it in a proper way? (context info)
                 if (!VSSolution.Projects.Contains(solutionProject.VSProject))
-                    VSSolution.Projects.Add(solutionProject.VSProject);
+                {
+                    // Special case: let's put executable windows project first, so that Visual Studio use them as startup project (first project in .sln)
+                    var insertPosition = (solutionProject.Type == ProjectType.Executable && solutionProject.Platform == PlatformType.Windows)
+                        ? 0
+                        : VSSolution.Projects.Count;
+                    VSSolution.Projects.Insert(insertPosition, solutionProject.VSProject);
+                }
             }
 
             packages.Add(project.Package);
