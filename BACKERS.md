@@ -42,6 +42,7 @@ Thank you everybody for your generous contributions!
 * SleepyMode
 * Marko Viitanen
 * David R Miller
+* Sven-Bertil Blom
 
 ## Mini Backers
 
