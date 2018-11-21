@@ -135,7 +135,7 @@ namespace Xenko.LauncherApp.ViewModels
             await Task.Run(async () =>
             {
                 await RetrieveLocalXenkoVersions();
-                //await RunLockTask(() => SelfUpdater.SelfUpdate(ServiceProvider, store));
+                await RunLockTask(() => SelfUpdater.SelfUpdate(ServiceProvider, store));
                 await RetrieveServerXenkoVersions();
                 await VsixPackage.UpdateFromStore();
                 await CheckForFirstInstall();

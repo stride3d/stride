@@ -28,10 +28,10 @@
     <ROW Property="BuildExeName" Value="XenkoSetup"/>
     <ROW Property="CTRLS" Value="2"/>
     <ROW Property="Manufacturer" Value="Xenko"/>
-    <ROW Property="ProductCode" Value="1033:{BDA8B7FF-9DBA-4BAF-860E-3D50CBC01642} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{B885587E-FD48-4B85-BC72-4CEC13838B84} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="Xenko"/>
-    <ROW Property="ProductVersion" Value="2.0.0" Type="32"/>
+    <ROW Property="ProductVersion" Value="2.0.2" Type="32"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR"/>
     <ROW Property="UpgradeCode" Value="{B48CDC88-F979-46BC-B73C-E65080AE8F3A}"/>
     <ROW Property="WindowsType9X" MultiBuildValue="DefaultBuild:Windows 9x/ME" ValueLocId="-"/>
@@ -59,7 +59,7 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCompsComponent">
     <ROW Component="AIShRegAnswer" ComponentId="{BD0931F0-C2B5-4E23-BFF6-77123283DBF9}" Directory_="APPDIR" Attributes="4" KeyPath="AIShRegAnswer"/>
-    <ROW Component="AI_CustomARPName" ComponentId="{E291074A-F480-4B8D-8BB3-674C6312B1AC}" Directory_="APPDIR" Attributes="260" KeyPath="DisplayName" Options="1"/>
+    <ROW Component="AI_CustomARPName" ComponentId="{DFE91FB9-956B-4BDF-96FC-C53B55A8FD61}" Directory_="APPDIR" Attributes="260" KeyPath="DisplayName" Options="1"/>
     <ROW Component="AI_DisableModify" ComponentId="{20B0BFF5-527E-4A4C-B788-20F10784D27D}" Directory_="APPDIR" Attributes="260" KeyPath="NoModify" Options="1"/>
     <ROW Component="AI_ExePath" ComponentId="{ECECCEFA-4B57-4B3B-B44A-B440929CD009}" Directory_="APPDIR" Attributes="4" KeyPath="AI_ExePath"/>
     <ROW Component="APPDIR" ComponentId="{995F059F-2BC1-4BA2-8A1E-F504C47564D9}" Directory_="APPDIR" Attributes="0"/>

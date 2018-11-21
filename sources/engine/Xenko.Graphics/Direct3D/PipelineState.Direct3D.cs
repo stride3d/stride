@@ -72,24 +72,18 @@ namespace Xenko.Graphics
 
             if (effectBytecode != previousPipeline.effectBytecode)
             {
-                if (computeShader != null)
-                {
-                    if (computeShader != previousPipeline.computeShader)
-                        nativeDeviceContext.ComputeShader.Set(computeShader);
-                }
-                else
-                {
-                    if (vertexShader != previousPipeline.vertexShader)
-                        nativeDeviceContext.VertexShader.Set(vertexShader);
-                    if (pixelShader != previousPipeline.pixelShader)
-                        nativeDeviceContext.PixelShader.Set(pixelShader);
-                    if (hullShader != previousPipeline.hullShader)
-                        nativeDeviceContext.HullShader.Set(hullShader);
-                    if (domainShader != previousPipeline.domainShader)
-                        nativeDeviceContext.DomainShader.Set(domainShader);
-                    if (geometryShader != previousPipeline.geometryShader)
-                        nativeDeviceContext.GeometryShader.Set(geometryShader);
-                }
+                if (computeShader != previousPipeline.computeShader)
+                    nativeDeviceContext.ComputeShader.Set(computeShader);
+                if (vertexShader != previousPipeline.vertexShader)
+                    nativeDeviceContext.VertexShader.Set(vertexShader);
+                if (pixelShader != previousPipeline.pixelShader)
+                    nativeDeviceContext.PixelShader.Set(pixelShader);
+                if (hullShader != previousPipeline.hullShader)
+                    nativeDeviceContext.HullShader.Set(hullShader);
+                if (domainShader != previousPipeline.domainShader)
+                    nativeDeviceContext.DomainShader.Set(domainShader);
+                if (geometryShader != previousPipeline.geometryShader)
+                    nativeDeviceContext.GeometryShader.Set(geometryShader);
             }
 
             if (blendState != previousPipeline.blendState || sampleMask != previousPipeline.sampleMask)
@@ -196,20 +190,23 @@ namespace Xenko.Graphics
                     case ShaderStage.Geometry:
                         if (reflection.ShaderStreamOutputDeclarations != null && reflection.ShaderStreamOutputDeclarations.Count > 0)
                         {
-                            // Calculate the strides
-                            var soStrides = new List<int>();
+                            // stream out elements
+                            var soElements = new List<SharpDX.Direct3D11.StreamOutputElement>();
                             foreach (var streamOutputElement in reflection.ShaderStreamOutputDeclarations)
                             {
-                                for (int i = soStrides.Count; i < (streamOutputElement.Stream + 1); i++)
+                                var soElem = new SharpDX.Direct3D11.StreamOutputElement()
                                 {
-                                    soStrides.Add(0);
-                                }
-
-                                soStrides[streamOutputElement.Stream] += streamOutputElement.ComponentCount * sizeof(float);
+                                    Stream = streamOutputElement.Stream,
+                                    SemanticIndex = streamOutputElement.SemanticIndex,
+                                    SemanticName = streamOutputElement.SemanticName,
+                                    StartComponent = streamOutputElement.StartComponent,
+                                    ComponentCount = streamOutputElement.ComponentCount,
+                                    OutputSlot = streamOutputElement.OutputSlot
+                                };
+                                soElements.Add(soElem);
                             }
-                            var soElements = new SharpDX.Direct3D11.StreamOutputElement[0]; // TODO CREATE StreamOutputElement from bytecode.Reflection.ShaderStreamOutputDeclarations
                             // TODO GRAPHICS REFACTOR better cache
-                            geometryShader = new SharpDX.Direct3D11.GeometryShader(GraphicsDevice.NativeDevice, shaderBytecode, soElements, soStrides.ToArray(), reflection.StreamOutputRasterizedStream);
+                            geometryShader = new SharpDX.Direct3D11.GeometryShader(GraphicsDevice.NativeDevice, shaderBytecode, soElements.ToArray(), reflection.StreamOutputStrides, reflection.StreamOutputRasterizedStream);
                         }
                         else
                         {

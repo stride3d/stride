@@ -240,6 +240,9 @@ namespace Xenko.Graphics
             if ((bufferFlags & BufferFlags.ArgumentBuffer) == BufferFlags.ArgumentBuffer)
                 desc.OptionFlags |= ResourceOptionFlags.DrawIndirectArguments;
 
+            if ((bufferFlags & BufferFlags.StreamOutput) != 0)
+                desc.BindFlags |= BindFlags.StreamOutput;
+
             return desc;
         }
 

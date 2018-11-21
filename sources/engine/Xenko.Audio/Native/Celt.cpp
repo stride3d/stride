@@ -46,6 +46,16 @@ extern "C" {
 		delete celt;
 	}
 
+	DLL_EXPORT_API void xnCeltResetDecoder(XenkoCelt* celt)
+	{
+		opus_custom_decoder_ctl(celt->GetDecoder(), OPUS_RESET_STATE);
+	}
+
+	DLL_EXPORT_API int xnCeltGetDecoderSampleDelay(XenkoCelt* celt, int32_t* delay)
+	{
+		return opus_custom_decoder_ctl(celt->GetDecoder(), OPUS_GET_LOOKAHEAD(delay));
+	}
+
 	DLL_EXPORT_API int xnCeltEncodeFloat(XenkoCelt* celt, float* inputSamples, int numberOfInputSamples, uint8_t* outputBuffer, int maxOutputSize)
 	{
 		return opus_custom_encode_float(celt->GetEncoder(), inputSamples, numberOfInputSamples, outputBuffer, maxOutputSize);

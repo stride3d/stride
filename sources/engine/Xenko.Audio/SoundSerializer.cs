@@ -27,6 +27,7 @@ namespace Xenko.Audio
                 obj.Spatialized = stream.ReadBoolean();
                 obj.NumberOfPackets = stream.ReadInt16();
                 obj.MaxPacketLength = stream.ReadInt16();
+                obj.Samples = stream.ReadInt32();
 
                 if (!obj.StreamFromDisk && audioEngine != null && audioEngine.State != AudioEngineState.Invalidated && audioEngine.State != AudioEngineState.Disposed) //immediatelly preload all the data and decode
                 {
@@ -47,6 +48,7 @@ namespace Xenko.Audio
                 stream.Write(obj.Spatialized);
                 stream.Write((short)obj.NumberOfPackets);
                 stream.Write((short)obj.MaxPacketLength);
+                stream.Write(obj.Samples);
             }
         }
     }
