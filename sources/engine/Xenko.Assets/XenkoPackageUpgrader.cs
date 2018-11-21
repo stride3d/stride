@@ -451,6 +451,8 @@ namespace Xenko.Assets
                             items.AddRange(project.AddItem("PackageReference", "Xenko.Navigation", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
                             items.AddRange(project.AddItem("PackageReference", "Xenko.Particles", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
                             items.AddRange(project.AddItem("PackageReference", "Xenko.UI", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
+                            // Necessary until "build" flows transitively
+                            items.AddRange(project.AddItem("PackageReference", "Xenko.Core", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") }));
 
                             // Asset compiler
                             items.AddRange(project.AddItem("PackageReference", "Xenko.Core.Assets.CompilerApp", new[] { new KeyValuePair<string, string>("Version", CurrentVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers"), new KeyValuePair<string, string>("IncludeAssets", "build") }));

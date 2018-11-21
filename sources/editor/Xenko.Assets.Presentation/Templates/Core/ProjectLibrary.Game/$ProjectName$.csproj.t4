@@ -17,6 +17,7 @@
     <PackageReference Include="Xenko.Navigation" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
     <PackageReference Include="Xenko.Particles" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
     <PackageReference Include="Xenko.UI" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Core" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
 
     <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
   </ItemGroup>
