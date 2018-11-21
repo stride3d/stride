@@ -7,16 +7,24 @@ This is a technical description what happens in our build and how it is organize
 * [Targets](../Targets) contains the MSBuild target files used by Games
 * [sources/common/targets](../sources/common/targets) (generic) and [sources/targets](../sources/targets) (Xenko-specific) contains the MSBuild target files used to build Xenko itself.
 
-## Outputs
+Since 3.1, we switched from our custom build system to the new csproj system with one nuget package per assembly.
 
-We output one folder per platform+runtime combination. Since each graphics platform have mostly common files, the different files are output in graphics API specific subfolders.
+We use `TargetFrameworks` to properly compile the different platforms using a single project (Android, iOS, etc...).
 
-Example:
-* `Windows`: contains most of the assemblies for the Windows platform
-* `Windows\Direct3D11`: contains D3D11-specific assemblies
-* `Windows\OpenGL`: contains OpenGL-specific assemblies
-* `Android`: contains most of the assemblies for the Android platform
-* `Android\OpenGLES`: contains OpenGLES-specific assemblies
+Also, we use `RuntimeIdentifiers` to select graphics platform. [MSBuild.Sdk.Extras](https://github.com/onovotny/MSBuildSdkExtras) is used to properly build NuGet packages with multiple `RuntimeIdentifiers` (not supported out of the box).
+
+### Limitations
+
+* Dependencies are per `TargetFramework` and can't be done per `RuntimeIdentifier` (tracked in [NuGet#1660](https://github.com/NuGet/Home/issues/1660)).
+* FastUpToDate check doesn't work with multiple `TargetFrameworks` (tracked in [project-system#2487](https://github.com/dotnet/project-system/issues/2487)).
+
+## NuGet resolver
+
+Since we want to package tools (i.e. GameStudio, ConnectionRouter, CompilerApp) with a package that contains only the executable with proper dependencies to other NuGet runtime packages, we use NuGet API to resolve assemblies at runtime.
+
+The code responsible for this is located in [Xenko.NuGetResolver](../sources/shared/Xenko.NuGetResolver).
+
+Later, we might want to take advantage of .NET Core dependency resolving to do that natively. Also, we might want to use actual project information/dependencies to resolve to different runtime assemblies and better support plugins.
 
 ## Versioning
 
