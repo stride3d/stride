@@ -122,8 +122,9 @@
   <!-- Auto NuGet build packages and deploy them -->
   <Target Name="XenkoAutoPackDeploy" AfterTargets="Pack">
     <Copy Condition="'%(Extension)' == '.nupkg'" SourceFiles="@(NuGetPackOutput)" DestinationFolder="$(LocalAppData)\Xenko\NugetDev"/>
-    <!-- Deleting .sha512 file seems to be enough for NuGet restore to force extract new package and properly compile dependent projects -->
+    <!-- Deleting .sha512 file and/or .nupkg.metadata seems to be enough for NuGet restore to force extract new package and properly compile dependent projects -->
     <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\$(PackageId).$(PackageVersion).nupkg.sha512"/>
+    <Delete Files="$(NuGetPackageRoot)\$(PackageId.ToLowerInvariant())\$(PackageVersion)\.nupkg.metadata"/>
   </Target>
   <PropertyGroup Condition="$(DesignTimeBuild) != 'true'">
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
