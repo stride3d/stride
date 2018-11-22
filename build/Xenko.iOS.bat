@@ -1,2 +1,2 @@
-set XenkoPlatforms=Windows;Linux
+set XenkoPlatforms=Windows;iOS
 Xenko.sln
