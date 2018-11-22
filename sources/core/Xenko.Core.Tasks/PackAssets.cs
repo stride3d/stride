@@ -6,12 +6,13 @@ using Microsoft.Build.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Xenko.Core.Assets;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
 using Xenko.Core.Yaml;
 using Xenko.Core.Yaml.Events;
 
-namespace Xenko.Core.Assets.Tasks
+namespace Xenko.Core.Tasks
 {
     public class PackAssets : Task
     {

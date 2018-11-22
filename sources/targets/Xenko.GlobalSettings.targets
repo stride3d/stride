@@ -150,7 +150,7 @@
   </PropertyGroup>
 
   <!-- Pack target -->
-  <UsingTask TaskName="Xenko.Core.Assets.Tasks.PackAssets" AssemblyFile="$(MSBuildThisFileDirectory)..\assets\Xenko.Core.Assets\bin\Debug\net472\Xenko.Core.Assets.dll" />
+  <UsingTask TaskName="Xenko.Core.Tasks.PackAssets" AssemblyFile="$(MSBuildThisFileDirectory)..\core\Xenko.Core.Tasks\bin\Debug\net472\Xenko.Core.Tasks.dll" />
   <Target Name="PrepareXenkoAssetsForPack" BeforeTargets="_GetPackageFiles" Condition="'$(XenkoPackAssets)' == 'true'">
     <PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\xenko">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>

@@ -51,7 +51,7 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Core.Design\Xenko.Core.Design.csproj" />
+    <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />

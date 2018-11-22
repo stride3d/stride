@@ -137,7 +137,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Engine", "..\sources\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Graphics", "..\sources\engine\Xenko.Graphics\Xenko.Graphics.csproj", "{FB06C76A-6BB7-40BE-9AFA-FEC13B045FB5}"
 	ProjectSection(ProjectDependencies) = postProject
-		{1E54A9A2-4439-4444-AE57-6D2ED3C0DC47} = {1E54A9A2-4439-4444-AE57-6D2ED3C0DC47}
+		{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A} = {7C67FF28-1B9E-4F13-8BDA-B833D588BC6A}
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Engine.Tests.Windows", "..\sources\engine\Xenko.Engine.Tests\Xenko.Engine.Tests.Windows.csproj", "{A8F8D125-7A22-489F-99BC-9A02F545A17F}"
