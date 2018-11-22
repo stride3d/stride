@@ -150,10 +150,24 @@
   </PropertyGroup>
 
   <!-- Pack target -->
-  <UsingTask TaskName="Xenko.Core.Tasks.PackAssets" AssemblyFile="$(MSBuildThisFileDirectory)..\core\Xenko.Core.Tasks\bin\Debug\net472\Xenko.Core.Tasks.dll" />
+  <!--<UsingTask TaskName="Xenko.Core.Tasks.PackAssets" AssemblyFile="$(MSBuildThisFileDirectory)..\core\Xenko.Core.Tasks\bin\$(Configuration)\net472\Xenko.Core.Tasks.exe" />-->
   <Target Name="PrepareXenkoAssetsForPack" BeforeTargets="_GetPackageFiles" Condition="'$(XenkoPackAssets)' == 'true'">
-    <PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\xenko">
+    <!-- We use exec version rather than task version, otherwise file will be locked during rebuild -->
+    <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\xenko">
       <Output TaskParameter="GeneratedItems" ItemName="None"/>
-    </PackAssets>
+    </PackAssets>-->
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)..\core\Xenko.Core.Tasks\bin\$(Configuration)\net472\Xenko.Core.Tasks.exe&quot; pack-assets &quot;$(MSBuildProjectFile)&quot; &quot;$(IntermediateOutputPath)\xenko&quot;" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
+    </Exec>
+    <ItemGroup>
+      <PackAssetsLine Update="@(PackAssetsLine)">
+        <SourcePath>$([System.String]::new('%(Identity)').Split('|')[0])</SourcePath>
+        <PackagePath>$([System.String]::new('%(Identity)').Split('|')[1])</PackagePath>
+      </PackAssetsLine>
+      <None Include="%(PackAssetsLine.SourcePath)">
+        <Pack>true</Pack>
+        <PackagePath>%(PackAssetsLine.PackagePath)</PackagePath>
+      </None>
+    </ItemGroup>
   </Target>
 </Project>

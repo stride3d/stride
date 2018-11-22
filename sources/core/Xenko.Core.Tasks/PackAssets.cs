@@ -6,6 +6,7 @@ using Microsoft.Build.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Xenko.Core.Assets;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
@@ -27,16 +28,29 @@ namespace Xenko.Core.Tasks
 
         public override bool Execute()
         {
-            var result = new RedirectLog(Log);
-            var package = Package.Load(result, ProjectFile.ItemSpec, new PackageLoadParameters()
+            var generatedItems = new List<(string SourcePath, string PackagePath)>();
+            var result = Run(new RedirectLog(Log), ProjectFile.ItemSpec, IntermediatePackagePath.ItemSpec, generatedItems);
+
+            GeneratedItems = generatedItems.Select(x =>
+            {
+                var generatedItem = new TaskItem(x.SourcePath);
+                generatedItem.SetMetadata("Pack", "true");
+                generatedItem.SetMetadata("PackagePath", x.PackagePath);
+                return generatedItem;
+            }).ToArray();
+            return result;
+        }
+
+        public static bool Run(Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems)
+        {
+            var package = Package.Load(logger, projectFile, new PackageLoadParameters()
             {
                 AutoCompileProjects = false,
                 LoadAssemblyReferences = false,
                 AutoLoadTemporaryAssets = false,
             });
 
-            var generatedItems = new List<ITaskItem>();
-            var outputPath = new UDirectory(new FileInfo(IntermediatePackagePath.ItemSpec).FullName);
+            var outputPath = new UDirectory(new FileInfo(intermediatePackagePath).FullName);
             var newPackage = new Package
             {
                 Meta = package.Meta,
@@ -49,10 +63,7 @@ namespace Xenko.Core.Tasks
 
             void RegisterItem(UFile targetFilePath)
             {
-                var generatedItem = new TaskItem(targetFilePath.ToWindowsPath());
-                generatedItem.SetMetadata("Pack", "true");
-                generatedItem.SetMetadata("PackagePath", UPath.Combine("xenko", targetFilePath.MakeRelative(outputPath)).ToWindowsPath());
-                generatedItems.Add(generatedItem);
+                generatedItems.Add((targetFilePath.ToWindowsPath(), UPath.Combine("xenko", targetFilePath.MakeRelative(outputPath)).ToWindowsPath()));
             }
 
             void TryCopyDirectory(UDirectory sourceDirectory, UDirectory targetDirectory)
@@ -73,7 +84,7 @@ namespace Xenko.Core.Tasks
 
                 if (resourcesTargetToSource.TryGetValue(targetFilePath, out var otherResourceFilePath))
                 {
-                    result.Error($"Could not copy resource file [{targetFilePath.MakeRelative(resourceOutputPath)}] because it exists in multiple locations: [{resourceFilePath.ToWindowsPath()}] and [{otherResourceFilePath.ToWindowsPath()}]");
+                    logger.Error($"Could not copy resource file [{targetFilePath.MakeRelative(resourceOutputPath)}] because it exists in multiple locations: [{resourceFilePath.ToWindowsPath()}] and [{otherResourceFilePath.ToWindowsPath()}]");
                 }
                 else
                 {
@@ -88,7 +99,7 @@ namespace Xenko.Core.Tasks
                     }
                     catch (Exception e)
                     {
-                        result.Error($"Could not copy resource file from [{resourceFilePath.ToWindowsPath()}] to [{targetFilePath.MakeRelative(resourceOutputPath)}]", e);
+                        logger.Error($"Could not copy resource file from [{resourceFilePath.ToWindowsPath()}] to [{targetFilePath.MakeRelative(resourceOutputPath)}]", e);
                     }
                 }
             }
@@ -102,7 +113,7 @@ namespace Xenko.Core.Tasks
             }
 
             var assetOutputPath = UPath.Combine(outputPath, (UDirectory)"Assets");
-            var assets = Package.ListAssetFiles(result, package, true, true, null);
+            var assets = Package.ListAssetFiles(logger, package, true, true, null);
             if (assets.Count > 0)
             {
                 newPackage.AssetFolders.Add(new AssetFolder(assetOutputPath));
@@ -183,7 +194,7 @@ namespace Xenko.Core.Tasks
                     }
                     catch (Exception e)
                     {
-                        result.Error($"Could not process asset [{asset.FilePath}]", e);
+                        logger.Error($"Could not process asset [{asset.FilePath}]", e);
                     }
                 }
             }
@@ -231,13 +242,11 @@ namespace Xenko.Core.Tasks
             {
                 // Make sure we have a standalone package
                 var standalonePackage = new StandalonePackage(newPackage);
-                standalonePackage.Save(result);
+                standalonePackage.Save(logger);
                 RegisterItem(newPackage.FullPath);
             }
 
-            GeneratedItems = generatedItems.ToArray();
-
-            return !result.HasErrors;
+            return !logger.HasErrors;
         }
 
         class RedirectLog : Core.Diagnostics.Logger

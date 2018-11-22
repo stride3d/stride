@@ -2,10 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Microsoft.Build.Locator;
 using Mono.Options;
+using Xenko.Core.Diagnostics;
 
 namespace Xenko.Core.Tasks
 {
@@ -37,6 +39,7 @@ namespace Xenko.Core.Tasks
                 "=== Commands ===",
                 string.Empty,
                 " locate-devenv <MSBuildPath>: returns devenv path",
+                " pack-assets <csprojFile> <intermediatePackagePath>: copy and adjust assets for nupkg packaging",
                 string.Empty,
                 "=== Options ===",
                 string.Empty,
@@ -69,6 +72,29 @@ namespace Xenko.Core.Tasks
                             return 1;
                         }
                         Console.WriteLine(devenvPath);
+                        break;
+                    }
+                    case "pack-assets":
+                    {
+                        if (commandArgs.Count != 3)
+                            throw new OptionException("Need two extra arguments", "");
+
+                        var csprojFile = commandArgs[1];
+                        var intermediatePackagePath = commandArgs[2];
+                        var generatedItems = new List<(string SourcePath, string PackagePath)>();
+                        var logger = new LoggerResult();
+                        if (!PackAssets.Run(logger, csprojFile, intermediatePackagePath, generatedItems))
+                        {
+                            foreach (var message in logger.Messages)
+                            {
+                                Console.WriteLine(message);
+                            }
+                            return 1;
+                        }
+                        foreach (var generatedItem in generatedItems)
+                        {
+                            Console.WriteLine($"{generatedItem.SourcePath}|{generatedItem.PackagePath}");
+                        }
                         break;
                     }
                 }
