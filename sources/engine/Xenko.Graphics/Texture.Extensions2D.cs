@@ -40,9 +40,9 @@ namespace Xenko.Graphics
         /// <param name="arraySize">Size of the texture 2D array, default to 1.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of 2D <see cref="Texture" /> class.</returns>
-        public static Texture New2D(GraphicsDevice device, int width, int height, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+        public static Texture New2D(GraphicsDevice device, int width, int height, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, TextureOptions options = TextureOptions.None)
         {
-            return New2D(device, width, height, false, format, textureFlags, arraySize, usage);
+            return New2D(device, width, height, false, format, textureFlags, arraySize, usage, options);
         }
 
         /// <summary>
@@ -57,9 +57,9 @@ namespace Xenko.Graphics
         /// <param name="arraySize">Size of the texture 2D array, default to 1.</param>
         /// <param name="usage">The usage.</param>
         /// <returns>A new instance of 2D <see cref="Texture" /> class.</returns>
-        public static Texture New2D(GraphicsDevice device, int width, int height, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default)
+        public static Texture New2D(GraphicsDevice device, int width, int height, MipMapCount mipCount, PixelFormat format, TextureFlags textureFlags = TextureFlags.ShaderResource, int arraySize = 1, GraphicsResourceUsage usage = GraphicsResourceUsage.Default, TextureOptions options = TextureOptions.None)
         {
-            return new Texture(device).InitializeFrom(TextureDescription.New2D(width, height, mipCount, format, textureFlags, arraySize, usage));
+            return new Texture(device).InitializeFrom(TextureDescription.New2D(width, height, mipCount, format, textureFlags, arraySize, usage, MultisampleCount.None, options));
         }
 
         /// <summary>
@@ -77,25 +77,28 @@ namespace Xenko.Graphics
         /// <remarks>
         /// Each value in textureData is a pixel in the destination texture.
         /// </remarks>
-        public static unsafe Texture New2D<T>(GraphicsDevice device, int width, int height, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable) where T : struct
+        public static unsafe Texture New2D<T>(GraphicsDevice device, int width, int height, PixelFormat format, T[] textureData, TextureFlags textureFlags = TextureFlags.ShaderResource, GraphicsResourceUsage usage = GraphicsResourceUsage.Immutable, TextureOptions options = TextureOptions.None) where T : struct
         {
-            return New2D(device, width, height, 1, format, new[] { GetDataBox(format, width, height, 1, textureData, (IntPtr)Interop.Fixed(textureData)) }, textureFlags, 1, usage);
+            return New2D(device, width, height, 1, format, new[] { GetDataBox(format, width, height, 1, textureData, (IntPtr)Interop.Fixed(textureData)) }, textureFlags, 1, usage, MultisampleCount.None, options);
         }
 
         /// <summary>
         /// Creates a new 2D <see cref="Texture" />.
         /// </summary>
-        /// <param name="device">The <see cref="GraphicsDevice"/>.</param>
+        /// <param name="device">The <see cref="GraphicsDevice" />.</param>
         /// <param name="width">The width.</param>
         /// <param name="height">The height.</param>
+        /// <param name="mipCount">Number of mipmaps, set to true to have all mipmaps, set to an int &gt;=1 for a particular mipmap count.</param>
         /// <param name="format">Describes the format to use.</param>
-        /// <param name="mipCount">Number of mipmaps, set to true to have all mipmaps, set to an int >=1 for a particular mipmap count.</param>
-        /// <param name="textureData">Texture datas through an array of <see cref="DataBox"/> </param>
+        /// <param name="textureData">Texture datas through an array of <see cref="DataBox" /></param>
         /// <param name="textureFlags">true if the texture needs to support unordered read write.</param>
         /// <param name="arraySize">Size of the texture 2D array, default to 1.</param>
         /// <param name="usage">The usage.</param>
         /// <param name="multisampleCount">The multisample count.</param>
-        /// <returns>A new instance of 2D <see cref="Texture" /> class.</returns>
+        /// <param name="options">The options, e.g. sharing</param>
+        /// <returns>
+        /// A new instance of 2D <see cref="Texture" /> class.
+        /// </returns>
         public static Texture New2D(
             GraphicsDevice device,
             int width,
@@ -106,9 +109,10 @@ namespace Xenko.Graphics
             TextureFlags textureFlags = TextureFlags.ShaderResource,
             int arraySize = 1,
             GraphicsResourceUsage usage = GraphicsResourceUsage.Default,
-            MultisampleCount multisampleCount = MultisampleCount.None)
+            MultisampleCount multisampleCount = MultisampleCount.None,
+            TextureOptions options = TextureOptions.None)
         {
-            return new Texture(device).InitializeFrom(TextureDescription.New2D(width, height, mipCount, format, textureFlags, arraySize, usage, multisampleCount), textureData);
+            return new Texture(device).InitializeFrom(TextureDescription.New2D(width, height, mipCount, format, textureFlags, arraySize, usage, multisampleCount, options), textureData);
         }
     }
 }
