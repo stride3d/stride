@@ -96,8 +96,6 @@ namespace Xenko.Core.Assets.Diagnostics
             {
                 assetLogMessage.Line = yamlException.Start.Line;
                 assetLogMessage.Character = yamlException.Start.Column;
-                // We've already got everything, no need to pollute log with stack trace of exception
-                assetLogMessage.Exception = null;
             }
 
             return assetLogMessage;

@@ -145,6 +145,11 @@ namespace Xenko.Core.Presentation.Controls
         public static readonly DependencyProperty ShowFatalMessagesProperty = DependencyProperty.Register("ShowFatalMessages", typeof(bool), typeof(TextLogViewer), new PropertyMetadata(BooleanBoxes.TrueBox, TextPropertyChanged));
 
         /// <summary>
+        /// Identifies the <see cref="ShowStacktrace"/> dependency property.
+        /// </summary>
+        public static readonly DependencyProperty ShowStacktraceProperty = DependencyProperty.Register("ShowStacktrace", typeof(bool), typeof(TextLogViewer), new PropertyMetadata(BooleanBoxes.FalseBox, TextPropertyChanged));
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TextLogViewer"/> class.
         /// </summary>
         public TextLogViewer()
@@ -275,6 +280,11 @@ namespace Xenko.Core.Presentation.Controls
         /// </summary>
         public bool ShowFatalMessages { get { return (bool)GetValue(ShowFatalMessagesProperty); } set { SetValue(ShowFatalMessagesProperty, value.Box()); } }
 
+        /// <summary>
+        /// Gets or sets whether the log viewer should display fatal messages.
+        /// </summary>
+        public bool ShowStacktrace { get { return (bool)GetValue(ShowStacktraceProperty); } set { SetValue(ShowStacktraceProperty, value.Box()); } }
+
         /// <inheritdoc/>
         public override void OnApplyTemplate()
         {
@@ -335,7 +345,12 @@ namespace Xenko.Core.Presentation.Controls
                 var searchToken = SearchToken;
                 foreach (var message in logMessages.Where(x => ShouldDisplayMessage(x.Type)))
                 {
-                    var lineText = message + Environment.NewLine;
+                    string content = message.Text;
+                    var ex = message.ExceptionInfo;
+                    if (ShowStacktrace && ex != null)
+                        content = $"{content}{Environment.NewLine}{ex}";
+                    var lineText = $"{(message.Module != null ? $"[{message.Module}]: " : string.Empty)}{message.Type}:{content}{Environment.NewLine}";
+
                     var logColor = GetLogColor(message.Type);
                     if (string.IsNullOrEmpty(searchToken))
                     {

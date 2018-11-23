@@ -634,6 +634,8 @@
                               IsChecked="{Binding ShowErrorMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
                 <ToggleButton Padding="4,0" Content="Fatal errors"
                               IsChecked="{Binding ShowFatalMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
+                <ToggleButton Padding="4,0" Content="Show Stacktrace"
+                              IsChecked="{Binding ShowStacktrace, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
                 <Separator />
               </ToolBar>
               <ToolBar Header="Search"

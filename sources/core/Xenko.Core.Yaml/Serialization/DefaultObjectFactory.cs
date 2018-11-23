@@ -107,7 +107,25 @@ namespace Xenko.Core.Yaml.Serialization
             if (PrimitiveDescriptor.IsPrimitive(type) || type.IsArray)
                 return null;
 
-            return type.GetConstructor(EmptyTypes) != null || type.IsValueType ? Activator.CreateInstance(type) : null;
+            if (type.GetConstructor(EmptyTypes) != null || type.IsValueType)
+            {
+                try
+                {
+                    return Activator.CreateInstance(type);
+                }
+                catch (Exception e)
+                {
+                    //return System.Runtime.Serialization.FormatterServices.GetUninitializedObject(type);
+                    throw new InstanceCreationException($"'{typeof(Activator)}' failed to create instance of type '{type}', see inner exception.", e);
+                }
+            }
+
+            return null;
+        }
+
+        public class InstanceCreationException : Exception
+        {
+            public InstanceCreationException(string message, Exception innerException) : base(message, innerException) { }
         }
     }
 }
