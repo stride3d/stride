@@ -379,7 +379,7 @@ namespace Xenko.Audio
             }
             else
             {
-                soundSource.SetPlayRange(range);
+                soundSource.PlayRange = range;
             }
 
             if (state == PlayState.Playing)
@@ -396,8 +396,9 @@ namespace Xenko.Audio
             get
             {
                 if (!AudioLayer.SourceIsPlaying(Source) || PlayState == PlayState.Stopped) return TimeSpan.Zero;
-                var position = AudioLayer.SourceGetPosition(Source);
-                return position > sound.TotalLength.TotalSeconds ? TimeSpan.Zero : TimeSpan.FromSeconds(position);
+                var rangeStart = soundSource?.PlayRange.Start ?? TimeSpan.Zero;
+                var position = TimeSpan.FromSeconds(AudioLayer.SourceGetPosition(Source)) + rangeStart;
+                return position > sound.TotalLength ? rangeStart : position;
             }
         }
     }

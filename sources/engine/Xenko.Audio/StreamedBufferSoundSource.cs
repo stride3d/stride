@@ -43,7 +43,6 @@ namespace Xenko.Audio
         private bool beginningOfStream;
 
         private PlayRange playRange;
-        private PlayRange loopRange;
         private volatile bool looped;
 
         private DateTime lastLoopTime = DateTime.Now;
@@ -118,25 +117,24 @@ namespace Xenko.Audio
             }
         }
 
-        /// <summary>
-        /// Sets the range of the sound to play.
-        /// </summary>
-        /// <param name="range">a PlayRange structure that describes the starting offset and ending point of the sound to play in seconds.</param>
-        public override void SetPlayRange(PlayRange range)
+        /// <inheritdoc/>
+        public override PlayRange PlayRange
         {
-            lock (objLock)
+            get
             {
-                playRange = range;
+                lock (objLock)
+                {
+                    return playRange;
+                }
             }
-
-            base.SetPlayRange(range);
-        }
-        
-        public void SetLoopRange(PlayRange range)
-        {
-            lock (objLock)
+            set
             {
-                loopRange = range;
+                lock (objLock)
+                {
+                    playRange = value;
+                }
+
+                base.PlayRange = value;
             }
         }
 

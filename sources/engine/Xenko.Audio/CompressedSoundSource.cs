@@ -110,18 +110,25 @@ namespace Xenko.Audio
             looped = loop;
         }
 
-        /// <summary>
-        /// Sets the range of the sound to play.
-        /// </summary>
-        /// <param name="range">a PlayRange structure that describes the starting offset and ending point of the sound to play in seconds.</param>
-        public override void SetPlayRange(PlayRange range)
+        /// <inheritdoc/>
+        public override PlayRange PlayRange
         {
-            lock (rangeLock)
+            get
             {
-                playRange = range;
+                lock (rangeLock)
+                {
+                    return playRange;
+                }
             }
+            set
+            {
+                lock (rangeLock)
+                {
+                    playRange = value;
+                }
 
-            base.SetPlayRange(range);
+                base.PlayRange = value;
+            }
         }
 
         protected override void InitializeInternal()
