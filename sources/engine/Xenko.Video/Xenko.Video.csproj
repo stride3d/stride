@@ -33,9 +33,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <PackageReference Include="SharpDX.MediaFoundation" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
-    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
+    <PackageReference Include="SharpDX.MediaFoundation" Version="4.2.0" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
+    <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" Condition="'$(TargetFramework)' == 'net45'" />
   </ItemGroup>
   <Choose>
     <When Condition="$(DefineConstants.Contains(XENKO_VIDEO_FFMPEG))">

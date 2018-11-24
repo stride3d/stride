@@ -16,7 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="15.7.179" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.7.179" ExcludeAssets="runtime" />
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.0.1" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
     <!--PackageReference Include="Esent.Interop" Version="1.9.4" /-->
     <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="2.4.0" />
