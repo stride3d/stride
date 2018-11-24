@@ -91,19 +91,23 @@ namespace Xenko.Core.Assets.CompilerApp
 
             public void Log(LogLevel level, string data)
             {
+                logs.Add(data);
             }
 
             public Task LogAsync(LogLevel level, string data)
             {
+                logs.Add(data);
                 return Task.CompletedTask;
             }
 
             public void Log(ILogMessage message)
             {
+                logs.Add(message.Message);
             }
 
             public Task LogAsync(ILogMessage message)
             {
+                logs.Add(message.Message);
                 return Task.CompletedTask;
             }
         }
