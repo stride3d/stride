@@ -395,7 +395,8 @@ namespace Xenko.Audio
         {
             get
             {
-                if (!AudioLayer.SourceIsPlaying(Source) || PlayState == PlayState.Stopped) return TimeSpan.Zero;
+                if (engine.State == AudioEngineState.Invalidated || !AudioLayer.SourceIsPlaying(Source) || PlayState == PlayState.Stopped)
+                    return TimeSpan.Zero;
                 var rangeStart = soundSource?.PlayRange.Start ?? TimeSpan.Zero;
                 var position = TimeSpan.FromSeconds(AudioLayer.SourceGetPosition(Source)) + rangeStart;
                 return position > sound.TotalLength ? rangeStart : position;
