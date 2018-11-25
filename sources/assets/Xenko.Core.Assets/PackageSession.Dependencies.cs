@@ -94,7 +94,7 @@ namespace Xenko.Core.Assets
             // Load some informations about the project
             try
             {
-                var msProject = VSProjectHelper.LoadProject(project.FullPath, extraProperties: new Dictionary<string, string> { { "SkipInvalidConfigurations", "true" }, { "ExcludeRestorePackageImports", "true" } });
+                var msProject = VSProjectHelper.LoadProject(project.FullPath, extraProperties: new Dictionary<string, string> { { "SkipInvalidConfigurations", "true" } });
                 try
                 {
                     var packageVersion = msProject.GetPropertyValue("PackageVersion");
@@ -111,8 +111,9 @@ namespace Xenko.Core.Assets
                         ? ProjectType.Executable
                         : ProjectType.Library;
 
-                    // TODO: Platform might be incorrect if Xenko is not restored yet (it won't include Xenko targets)
-                    if (project.Type == ProjectType.Executable)
+                    // Note: Platform might be incorrect if Xenko is not restored yet (it won't include Xenko targets)
+                    // Also, if already set, don't try to query it again
+                    if (project.Type == ProjectType.Executable && project.Platform == PlatformType.Shared)
                         project.Platform = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
 
                     foreach (var packageReference in msProject.GetItems("PackageReference").ToList())
@@ -229,6 +230,28 @@ namespace Xenko.Core.Assets
             log.Verbose($"Restore NuGet packages for {project.Name}...");
             if (loadParameters.AutoCompileProjects)
                 await VSProjectHelper.RestoreNugetPackages(log, project.FullPath);
+
+            // If platform was unknown (due to missing nuget packages during first pass), check it again
+            if (project.Type == ProjectType.Executable && project.Platform == PlatformType.Shared)
+            {
+                try
+                {
+                    var msProject = VSProjectHelper.LoadProject(project.FullPath, extraProperties: new Dictionary<string, string> { { "SkipInvalidConfigurations", "true" } });
+                    try
+                    {
+                        project.Platform = VSProjectHelper.GetPlatformTypeFromProject(msProject) ?? PlatformType.Shared;
+                    }
+                    finally
+                    {
+                        msProject.ProjectCollection.UnloadAllProjects();
+                        msProject.ProjectCollection.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Unexpected exception while loading project [{project.FullPath.ToWindowsPath()}]", ex);
+                }
+            }
 
             project.FlattenedDependencies.Clear();
             project.DirectDependencies.Clear();
