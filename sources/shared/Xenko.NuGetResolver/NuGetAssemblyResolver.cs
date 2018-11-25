@@ -30,6 +30,10 @@ namespace Xenko.Core.Assets.CompilerApp
         [ModuleInitializer(-100000)]
         internal static void __Initialize__()
         {
+            // Only perform this for entry assembly (which is null during module .ctor)
+            if (Assembly.GetEntryAssembly() != null)
+                return;
+
             // Note: we perform nuget restore inside the assembly resolver rather than top level module ctor (otherwise it freezes)
             AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) =>
             {
