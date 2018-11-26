@@ -7,12 +7,10 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Xenko.Core;
-using Xenko.Core.IO;
 
-namespace Xenko.Core.Tasks
+namespace Xenko.GitVersioning
 {
-    public class PackageUpdateVersionTask : Task
+    public class GenerateVersionFile : Task
     {
         /// <summary>
         /// Gets or sets the version file.
@@ -47,7 +45,7 @@ namespace Xenko.Core.Tasks
                 return false;
             }
 
-            if (VersionFile == null || !File.Exists(VersionFile.ItemSpec))
+            if (VersionFile == null || !File.Exists(Path.Combine(RootDirectory.ItemSpec, VersionFile.ItemSpec)))
             {
                 Log.LogError("VersionFile is not set or doesn't exist");
                 return false;
@@ -70,7 +68,6 @@ namespace Xenko.Core.Tasks
             {
                 var rootDirectory = RootDirectory.ItemSpec;
 
-                NativeLibrary.PreloadLibrary("git2-1196807.dll");
                 var repo = LibGit2Sharp.Repository.IsValid(rootDirectory) ? new LibGit2Sharp.Repository(rootDirectory) : null;
                 if (repo == null)
                 {
@@ -79,7 +76,7 @@ namespace Xenko.Core.Tasks
                 }
 
                 // TODO: Right now we patch the VersionFile, but ideally we should make a copy and make the build system use it
-                var versionFileData = File.ReadAllText(VersionFile.ItemSpec);
+                var versionFileData = File.ReadAllText(Path.Combine(RootDirectory.ItemSpec, VersionFile.ItemSpec));
 
                 // Patch AssemblyInformationalVersion
                 var headCommitSha = repo.Head.Commits.FirstOrDefault()?.Sha;
@@ -89,8 +86,7 @@ namespace Xenko.Core.Tasks
                 if (SpecialVersionGitHeight)
                 {
                     // Compute version based on Git info
-                    var versionFileRelative = new UFile(VersionFile.ItemSpec).MakeRelative(rootDirectory).ToWindowsPath();
-                    var height = Nerdbank.GitVersioning.GitExtensions.GetVersionHeight(repo, versionFileRelative);
+                    var height = Nerdbank.GitVersioning.GitExtensions.GetVersionHeight(repo, VersionFile.ItemSpec);
                     versionSuffix += height.ToString("D5");
                 }
                 if (SpecialVersionGitCommit && headCommitSha != null)
@@ -119,7 +115,7 @@ namespace Xenko.Core.Tasks
                 versionFileData = Regex.Replace(versionFileData, "AssemblyInformationalSuffix = (.*);", $"AssemblyInformationalSuffix = {assemblyInformationalSuffix};");
 
                 // Write back new file
-                File.WriteAllText(GeneratedVersionFile.ItemSpec, versionFileData);
+                File.WriteAllText(Path.Combine(RootDirectory.ItemSpec, GeneratedVersionFile.ItemSpec), versionFileData);
 
                 return true;
             }

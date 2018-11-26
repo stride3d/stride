@@ -1,10 +1,10 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using Xenko.Core;
 
 namespace Nerdbank.GitVersioning
 {
@@ -61,11 +61,11 @@ namespace Nerdbank.GitVersioning
             {
                 var text = reader.ReadToEnd();
 
-                var publicVersion = Regex.Match(text, "PublicVersion = (.*);");
-                if (!publicVersion.Success)
+                var publicVersion = Regex.Match(text, "PublicVersion = \"(.*)\";");
+                if (!publicVersion.Success || !Version.TryParse(publicVersion.Groups[0].Value, out var parsedVersion))
                     return null;
 
-                return new VersionOptions { Version = new PackageVersion((string)publicVersion.Groups[0].Value) };
+                return new VersionOptions { Version = parsedVersion };
             }
         }
     }

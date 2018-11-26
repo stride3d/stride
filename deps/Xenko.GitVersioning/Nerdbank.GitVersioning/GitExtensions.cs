@@ -59,7 +59,7 @@ namespace Nerdbank.GitVersioning
         /// <returns>The height of the commit. Always a positive integer.</returns>
         public static int GetVersionHeight(this Commit commit, string repoRelativeProjectDirectory = null)
         {
-            var baseVersion = VersionFile.GetVersion(commit, repoRelativeProjectDirectory)?.Version?.Version ?? Version0;
+            var baseVersion = VersionFile.GetVersion(commit, repoRelativeProjectDirectory)?.Version ?? Version0;
             int height = commit.GetHeight(c => CommitMatchesVersion(c, baseVersion, repoRelativeProjectDirectory));
             return height;
         }
@@ -83,8 +83,8 @@ namespace Nerdbank.GitVersioning
             VersionOptions workingCopyVersionOptions, committedVersionOptions;
             if (IsVersionFileChangedInWorkingCopy(repo, repoRelativeProjectDirectory, out committedVersionOptions, out workingCopyVersionOptions))
             {
-                Version workingCopyVersion = workingCopyVersionOptions?.Version?.Version;
-                Version headCommitVersion = committedVersionOptions?.Version?.Version ?? Version0;
+                Version workingCopyVersion = workingCopyVersionOptions?.Version;
+                Version headCommitVersion = committedVersionOptions?.Version ?? Version0;
                 if (workingCopyVersion == null || !workingCopyVersion.Equals(headCommitVersion))
                 {
                     // The working copy has changed the major.minor version.
@@ -376,7 +376,7 @@ namespace Nerdbank.GitVersioning
         private static bool CommitMatchesVersion(Commit commit, Version expectedVersion, string repoRelativeProjectDirectory)
         {
             var commitVersionData = VersionFile.GetVersion(commit, repoRelativeProjectDirectory);
-            Version majorMinorFromFile = commitVersionData?.Version?.Version ?? Version0;
+            Version majorMinorFromFile = commitVersionData?.Version ?? Version0;
             return majorMinorFromFile?.Major == expectedVersion.Major && majorMinorFromFile?.Minor == expectedVersion.Minor && majorMinorFromFile?.Build == expectedVersion.Build && majorMinorFromFile?.Revision == expectedVersion.Revision;
         }
 
@@ -504,7 +504,7 @@ namespace Nerdbank.GitVersioning
         /// <returns></returns>
         private static Version GetIdAsVersionHelper(Commit commit, VersionOptions versionOptions, string repoRelativeProjectDirectory, int? versionHeight)
         {
-            var baseVersion = versionOptions?.Version?.Version ?? Version0;
+            var baseVersion = versionOptions?.Version ?? Version0;
 
             // The compiler (due to WinPE header requirements) only allows 16-bit version components,
             // and forbids 0xffff as a value.

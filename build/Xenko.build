@@ -20,7 +20,7 @@ Example of use:
     <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 14.4.2\bin\x86\advinst.exe')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 14.4.2\bin\x86\advinst.exe</AdvancedInstallerPath>
   </PropertyGroup>
 
-  <UsingTask TaskName="Xenko.Core.Tasks.PackageUpdateVersionTask" AssemblyFile="$(XenkoRoot)sources\core\Xenko.Core.Tasks\bin\Release\Xenko.Core.Tasks.exe" />
+  <UsingTask TaskName="Xenko.GitVersioning.GenerateVersionFile" AssemblyFile="$(XenkoRoot)deps\Xenko.GitVersioning\bin\Debug\net472\Xenko.GitVersioning.dll" />
   <!-- TODO: those tasks will work only if the Direct3D11 files have been copied to top folder (currently works thanks to BuildEditorShaders being run before) -->
   <UsingTask TaskName="Xenko.Assets.Tasks.PackageGetVersionTask" AssemblyFile="$(XenkoRootBin)Xenko.Assets.dll" />
   
@@ -88,19 +88,20 @@ Example of use:
   </Target>
   
   <!-- Package -->
-  <Target Name="PreparePackageBuild" DependsOnTargets="RestoreWindows">
+  <Target Name="PreparePackageBuild">
     <PropertyGroup>
       <BuildProperties>$(BuildProperties);XenkoGenerateDoc=true;XenkoPackageBuild=true</BuildProperties>
     </PropertyGroup>
     
-    <!-- Make sure Xenko.Core.Assets is built to run the task to update package version.
+    <!-- Make sure Xenko.GitVersioning is built to run the task to update package version.
          It might be better to move it to a prebuilt assembly if that becomes a problem.
     -->
-    <MSBuild Targets="30-CoreDesign\Xenko_Core_Tasks" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+	<MSBuild Targets="Restore" Projects="$(XenkoRoot)deps\Xenko.GitVersioning\Xenko.GitVersioning.csproj"/>
+    <MSBuild Targets="Build" Projects="$(XenkoRoot)deps\Xenko.GitVersioning\Xenko.GitVersioning.csproj"/>
     
     <!-- Create SharedAssemblyInfo.NuGet.cs with Git information (different between official build and internal builds) -->
-    <PackageUpdateVersionTask Condition="'$(XenkoOfficialBuild)' == 'true'" RootDirectory="$(XenkoRoot)" VersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.NuGet.cs" />
-    <PackageUpdateVersionTask Condition="'$(XenkoOfficialBuild)' != 'true'" RootDirectory="$(XenkoRoot)" VersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersion="beta" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true" />
+    <GenerateVersionFile Condition="'$(XenkoOfficialBuild)' == 'true'" RootDirectory="$(XenkoRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersionGitCommit="true" />
+    <GenerateVersionFile Condition="'$(XenkoOfficialBuild)' != 'true'" RootDirectory="$(XenkoRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersion="beta" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true" />
   </Target>
   <Target Name="BuildForPackage" DependsOnTargets="PreparePackageBuild;BuildWindows;BuildEditorShaders;VSIXPlugin"/>
   <Target Name="GeneratePackage" DependsOnTargets="PreparePackageBuild;PrerequisitesInstaller;Package;WritePackageVersionToFile"/>
