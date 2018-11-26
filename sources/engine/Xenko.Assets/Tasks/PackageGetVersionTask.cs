@@ -13,13 +13,6 @@ namespace Xenko.Assets.Tasks
 {
     public class PackageGetVersionTask : Task
     {
-        /// <summary>
-        /// Gets or sets the file.
-        /// </summary>
-        /// <value>The file.</value>
-        [Required]
-        public ITaskItem File { get; set; }
-
         [Output]
         public string NuGetVersion { get; set; }
 

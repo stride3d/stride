@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 Build file used to build Xenko and package it from the command line.
 Example of use: 
@@ -8,9 +8,9 @@ Example of use:
   <PropertyGroup>
     <XenkoRoot>$(MSBuildThisFileDirectory)..\</XenkoRoot>
     <XenkoRootBin>$(XenkoRoot)Bin\Windows\</XenkoRootBin>
-    <XenkoPackage>$(XenkoRoot)Xenko.xkpkg</XenkoPackage>
     <XenkoSolution>$(XenkoRoot)build\Xenko</XenkoSolution>
     <XenkoSolutionLauncher>$(XenkoRoot)build\Xenko.Launcher</XenkoSolutionLauncher>
+    <XenkoPlatforms Condition="'$(XenkoPlatforms)' == ''">Windows</XenkoPlatforms>
     <BuildProperties>Configuration=Release;NoWarn=1591;DeployExtension=false;XenkoPlatforms=$(XenkoPlatforms)</BuildProperties>
     <BuildProperties Condition="'$(XenkoSign)' != ''">$(BuildProperties);XenkoSign=$(XenkoSign)</BuildProperties>
     <BuildProperties Condition="'$(XenkoOfficialBuild)' != ''">$(BuildProperties);XenkoOfficialBuild=$(XenkoOfficialBuild)</BuildProperties>
@@ -22,25 +22,12 @@ Example of use:
 
   <UsingTask TaskName="Xenko.Core.Tasks.PackageUpdateVersionTask" AssemblyFile="$(XenkoRoot)sources\core\Xenko.Core.Tasks\bin\Release\Xenko.Core.Tasks.exe" />
   <!-- TODO: those tasks will work only if the Direct3D11 files have been copied to top folder (currently works thanks to BuildEditorShaders being run before) -->
-  <UsingTask TaskName="Xenko.Assets.Tasks.PackageArchiveTask" AssemblyFile="$(XenkoRootBin)Xenko.Assets.dll" />
   <UsingTask TaskName="Xenko.Assets.Tasks.PackageGetVersionTask" AssemblyFile="$(XenkoRootBin)Xenko.Assets.dll" />
   
   <Target Name="Help">
     <Message Importance="high" Text="TODO"/>
   </Target>
   
-  <!--
-  Package Xenko to a nupkg
-  -->
-  <Target Name="Package">
-    <ItemGroup>
-        <FilesToDeletePackage Include="$(MSBuildThisFileDirectory)Xenko.?.*.nupkg"/>
-    </ItemGroup>
-    
-    <Delete Files="@(FilesToDeletePackage)"/>
-    <PackageArchiveTask File="$(XenkoPackage)"/>
-  </Target>
-
   <!--
   VSIX Xenko plugin
   Don't forget to build for VS2013 by using MSBuild 12.0, 
@@ -112,8 +99,8 @@ Example of use:
     <MSBuild Targets="30-CoreDesign\Xenko_Core_Tasks" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
     
     <!-- Create SharedAssemblyInfo.NuGet.cs with Git information (different between official build and internal builds) -->
-    <PackageUpdateVersionTask Condition="'$(XenkoOfficialBuild)' == 'true'" PackageFile="$(XenkoPackage)" VersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.NuGet.cs" />
-    <PackageUpdateVersionTask Condition="'$(XenkoOfficialBuild)' != 'true'" PackageFile="$(XenkoPackage)" VersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersion="beta" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true" />
+    <PackageUpdateVersionTask Condition="'$(XenkoOfficialBuild)' == 'true'" RootDirectory="$(XenkoRoot)" VersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.NuGet.cs" />
+    <PackageUpdateVersionTask Condition="'$(XenkoOfficialBuild)' != 'true'" RootDirectory="$(XenkoRoot)" VersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="$(XenkoRoot)sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersion="beta" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true" />
   </Target>
   <Target Name="BuildForPackage" DependsOnTargets="PreparePackageBuild;BuildWindows;BuildEditorShaders;VSIXPlugin"/>
   <Target Name="GeneratePackage" DependsOnTargets="PreparePackageBuild;PrerequisitesInstaller;Package;WritePackageVersionToFile"/>
@@ -208,7 +195,7 @@ Example of use:
   </Target> 
 
   <Target Name="WritePackageVersionToFile">
-    <PackageGetVersionTask File="$(XenkoPackage)">
+    <PackageGetVersionTask>
       <Output TaskParameter="NuGetVersion" PropertyName="XenkoPackageVersion"/>
     </PackageGetVersionTask>
     <Delete Files="$(MSBuildThisFileDirectory)Xenko.version"/>

@@ -70,7 +70,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Config", "00-Config", "{7662CECF-2A3D-4DBA-AB3D-77FD8536E7A3}"
 	ProjectSection(SolutionItems) = preProject
 		..\sources\shared\SharedAssemblyInfo.cs = ..\sources\shared\SharedAssemblyInfo.cs
-		..\Xenko.xkpkg = ..\Xenko.xkpkg
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Xenko.Shared", "Xenko.Shared", "{1AC70118-C90F-4EC6-9D8B-C628BDF900F7}"

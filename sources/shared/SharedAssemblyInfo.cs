@@ -18,8 +18,7 @@ namespace Xenko
     /// Internal version used to identify Xenko version.
     /// </summary>
     /// <remarks>
-    /// Note: Xenko.xkpkg and PublicVersion versions should match.
-    /// Also, during package build, PackageUpdateVersionTask is updating that file and expect some specific text regex so be careful if you change any of this.
+    /// During package build, PackageUpdateVersionTask is updating that file and expect some specific text regex so be careful if you change any of this.
     /// </remarks>
     internal class XenkoVersion
     {

@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using Xenko.Core;
-using Xenko.Core.Yaml;
-using Xenko.Core.Yaml.Serialization;
 
 namespace Nerdbank.GitVersioning
 {
@@ -57,19 +57,16 @@ namespace Nerdbank.GitVersioning
         private static VersionOptions GetVersionFromStream(Stream stream)
         {
             // Load the asset as a YamlNode object
-            var input = new StreamReader(stream);
-            var yamlStream = new YamlStream();
-            yamlStream.Load(input);
+            using (StreamReader reader = new StreamReader(stream, Encoding.UTF8))
+            {
+                var text = reader.ReadToEnd();
 
-            // Version is stored in Meta.Version
-            var rootNode = (YamlMappingNode)yamlStream.Documents[0].RootNode;
-            var metaNode = rootNode?.Children[new YamlScalarNode("Meta")] as YamlMappingNode;
-            if (metaNode == null)
-                return null;
+                var publicVersion = Regex.Match(text, "PublicVersion = (.*);");
+                if (!publicVersion.Success)
+                    return null;
 
-            var versionNode = (YamlScalarNode)metaNode.Children[new YamlScalarNode("Version")];
-
-            return new VersionOptions { Version = new PackageVersion((string)versionNode) };
+                return new VersionOptions { Version = new PackageVersion((string)publicVersion.Groups[0].Value) };
+            }
         }
     }
 }
