@@ -63,11 +63,11 @@ namespace Xenko.Core.Packages
         /// <param name="rootDirectory">The location of the Nuget store.</param>
         public NugetStore(string rootDirectory)
         {
-            settings = NuGet.Configuration.Settings.LoadDefaultSettings(Directory.GetCurrentDirectory());
+            settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
             // Add dev source
             Directory.CreateDirectory(Environment.ExpandEnvironmentVariables(DevSource));
-            CheckPackageSource("Xenko Dev", DevSource);
+            CheckPackageSource("Xenko Dev", NuGet.Configuration.Settings.ApplyEnvironmentTransform(DevSource));
             CheckPackageSource("Xenko", DefaultPackageSource);
 
             InstallPath = SettingsUtility.GetGlobalPackagesFolder(settings);
@@ -88,11 +88,8 @@ namespace Xenko.Core.Packages
         private void CheckPackageSource(string name, string url)
         {
             var settingsPackageSources = settings.GetSettingValues("packageSources", true);
-            if (!settingsPackageSources.Any(x => x.Key == name && x.Value == url))
-            {
-                settings.DeleteValue("packageSources", name);
-                settings.SetValue("packageSources", name, url);
-            }
+            settings.AddOrUpdate("packageSources", new SourceItem(name, url));
+            settings.SaveToDisk();
         }
 
         private readonly NugetSourceRepositoryProvider sourceRepositoryProvider;

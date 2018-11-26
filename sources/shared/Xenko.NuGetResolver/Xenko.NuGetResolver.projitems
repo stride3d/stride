@@ -17,7 +17,7 @@
   </PropertyGroup>
   <Target Name="IncludeNuGetResolverAssemblies">
     <ItemGroup>
-	  <BuildOutputInPackage Include="$(OutputPath)System.ValueTuple.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)System.ValueTuple.dll" />
       <BuildOutputInPackage Include="$(OutputPath)NuGet*.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Newtonsoft.Json.dll" />
     </ItemGroup>
