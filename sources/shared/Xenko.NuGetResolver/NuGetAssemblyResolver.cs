@@ -34,6 +34,21 @@ namespace Xenko.Core.Assets.CompilerApp
             if (Assembly.GetEntryAssembly() != null)
                 return;
 
+            // Make sure our nuget local store is added to nuget config
+            var folder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string xenkoFolder = null;
+            while (folder != null)
+            {
+                if (File.Exists(Path.Combine(folder, @"build\Xenko.sln")))
+                {
+                    xenkoFolder = folder;
+                    var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
+                    CheckPackageSource(settings, $"Xenko Dev {xenkoFolder}", Path.Combine(xenkoFolder, @"bin\packages"));
+                    break;
+                }
+                folder = Path.GetDirectoryName(folder);
+            }
+
             // Note: we perform nuget restore inside the assembly resolver rather than top level module ctor (otherwise it freezes)
             AppDomain.CurrentDomain.AssemblyResolve += (sender, eventArgs) =>
             {
@@ -68,6 +83,12 @@ namespace Xenko.Core.Assets.CompilerApp
                 }
                 return null;
             };
+        }
+
+        private static void CheckPackageSource(ISettings settings, string name, string url)
+        {
+            settings.AddOrUpdate("packageSources", new SourceItem(name, url));
+            settings.SaveToDisk();
         }
 
         public class Logger : ILogger

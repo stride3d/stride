@@ -66,8 +66,6 @@ namespace Xenko.Core.Packages
             settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
             // Add dev source
-            Directory.CreateDirectory(Environment.ExpandEnvironmentVariables(DevSource));
-            CheckPackageSource("Xenko Dev", NuGet.Configuration.Settings.ApplyEnvironmentTransform(DevSource));
             CheckPackageSource("Xenko", DefaultPackageSource);
 
             InstallPath = SettingsUtility.GetGlobalPackagesFolder(settings);
@@ -87,14 +85,11 @@ namespace Xenko.Core.Packages
 
         private void CheckPackageSource(string name, string url)
         {
-            var settingsPackageSources = settings.GetSettingValues("packageSources", true);
             settings.AddOrUpdate("packageSources", new SourceItem(name, url));
             settings.SaveToDisk();
         }
 
         private readonly NugetSourceRepositoryProvider sourceRepositoryProvider;
-
-        public string DevSource { get; } = @"%LocalAppData%\Xenko\NugetDev";
 
         /// <summary>
         /// Path where all packages are installed.

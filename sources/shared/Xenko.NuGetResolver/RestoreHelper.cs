@@ -21,8 +21,6 @@ namespace Xenko.Core.Assets
 {
     static class RestoreHelper
     {
-        public const string DevSource = @"%LocalAppData%\Xenko\NugetDev";
-
         public static List<string> ListAssemblies(RestoreRequest request, RestoreResult result)
         {
             var assemblies = new List<string>();
@@ -50,9 +48,6 @@ namespace Xenko.Core.Assets
         public static async Task<(RestoreRequest, RestoreResult)> Restore(ILogger logger, string packageName, VersionRange versionRange)
         {
             var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
-
-            // Make sure our nuget local store is added to config
-            CheckPackageSource(settings, "Xenko Dev", NuGet.Configuration.Settings.ApplyEnvironmentTransform(DevSource));
 
             var packageSourceProvider = new PackageSourceProvider(settings);
 
@@ -133,13 +128,6 @@ namespace Xenko.Core.Assets
                 var mainResult = results.First();
                 return (mainResult.SummaryRequest.Request, mainResult.Result);
             }
-        }
-
-        private static void CheckPackageSource(ISettings settings, string name, string url)
-        {
-            var settingsPackageSources = settings.GetSettingValues("packageSources", true);
-            settings.AddOrUpdate("packageSources", new SourceItem(name, url));
-            settings.SaveToDisk();
         }
     }
 }
