@@ -14,7 +14,13 @@
     <XenkoNuGetVersion>$(XenkoPublicVersion)$([System.Text.RegularExpressions.Regex]::Match($(_XenkoSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</XenkoNuGetVersion>
     
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(XenkoNuGetVersion)</PackageVersion>
+    <PackageLicenseUrl>https://github.com/xenko3d/xenko/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://xenko.com</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/xenko3d/media/master/images/mainlogo/nuget/logo.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/xenko3d/xenko</RepositoryUrl>
     <Copyright>Copyright © Xenko contributors and Silicon Studio Corp.</Copyright>
+    <Authors>Xenko contributors;Silicon Studio Corp.</Authors>
+    <PackageTags>Xenko;3D;gamedev;Game Engine;engine;games;D3D;OpenGL;Vulkan</PackageTags>
   </PropertyGroup>
 
   <!--Import Local Pre Settings for the solution being loaded -->
