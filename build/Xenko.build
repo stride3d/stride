@@ -90,7 +90,7 @@ Example of use:
   <!-- Package -->
   <Target Name="PreparePackageBuild">
     <PropertyGroup>
-      <BuildProperties>$(BuildProperties);XenkoGenerateDoc=true;XenkoPackageBuild=true</BuildProperties>
+      <BuildProperties>$(BuildProperties);XenkoGenerateDoc=true;XenkoPackageBuild=true;XenkoSignTool=true</BuildProperties>
     </PropertyGroup>
     
     <!-- Make sure Xenko.GitVersioning is built to run the task to update package version.
