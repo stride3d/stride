@@ -568,13 +568,16 @@ namespace Xenko.Core.Packages
             var foundPackage = await NuGetPackageManager.GetLatestVersionAsync(packageName.Id, NuGetFramework.AgnosticFramework, resolutionContext, repositories, NativeLogger, cancellationToken);
             if (packageName.Version.ToNuGetVersion() <= foundPackage.LatestVersion)
             {
-                foreach (var repo in repositories)
+                using (var context = new SourceCacheContext())
                 {
-                    var metadataResource = await repo.GetResourceAsync<PackageMetadataResource>(cancellationToken);
-                    var metadataList = await metadataResource.GetMetadataAsync(packageName.Id, includePrerelease, includeAllVersions, null, NativeLogger, cancellationToken);
-                    foreach (var metadata in metadataList)
+                    foreach (var repo in repositories)
                     {
-                        res.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
+                        var metadataResource = await repo.GetResourceAsync<PackageMetadataResource>(cancellationToken);
+                        var metadataList = await metadataResource.GetMetadataAsync(packageName.Id, includePrerelease, includeAllVersions, context, NativeLogger, cancellationToken);
+                        foreach (var metadata in metadataList)
+                        {
+                            res.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
+                        }
                     }
                 }
             }
