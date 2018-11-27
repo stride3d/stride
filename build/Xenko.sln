@@ -33,7 +33,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Ta
 		..\sources\targets\Xenko.PreSettings.User.targets = ..\sources\targets\Xenko.PreSettings.User.targets
 		..\sources\targets\Xenko.UnitTests.DisableBuild.targets = ..\sources\targets\Xenko.UnitTests.DisableBuild.targets
 		..\sources\targets\Xenko.UnitTests.targets = ..\sources\targets\Xenko.UnitTests.targets
-		..\Xenko.xkpkg = ..\Xenko.xkpkg
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "80-Shaders", "80-Shaders", "{10D145AF-C8AE-428F-A80F-CA1B591D0DB2}"
@@ -88,31 +87,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "70-XenkoAssets", "70-XenkoA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Build", "00-Targets.Build", "{0B81090E-4066-4723-A658-8AEDBEADE619}"
 	ProjectSection(SolutionItems) = preProject
-		Xenko.Android.PreSettings.Local.targets = Xenko.Android.PreSettings.Local.targets
 		Xenko.build = Xenko.build
 		Xenko.Core.GlobalSettings.Local.targets = Xenko.Core.GlobalSettings.Local.targets
 		Xenko.Core.PostSettings.Local.targets = Xenko.Core.PostSettings.Local.targets
 		Xenko.Core.PreSettings.Local.targets = Xenko.Core.PreSettings.Local.targets
-		Xenko.Direct3D.CoreCLR.PreSettings.Local.targets = Xenko.Direct3D.CoreCLR.PreSettings.Local.targets
-		Xenko.Direct3D.PreSettings.Local.targets = Xenko.Direct3D.PreSettings.Local.targets
-		Xenko.Direct3D.SDL.PreSettings.Local.targets = Xenko.Direct3D.SDL.PreSettings.Local.targets
-		Xenko.Direct3D12.PreSettings.Local.targets = Xenko.Direct3D12.PreSettings.Local.targets
-		Xenko.ILMerge.CSharp.targets = Xenko.ILMerge.CSharp.targets
-		Xenko.iOS.PreSettings.Local.targets = Xenko.iOS.PreSettings.Local.targets
-		Xenko.Linux.CoreCLR.PreSettings.Local.targets = Xenko.Linux.CoreCLR.PreSettings.Local.targets
-		Xenko.Linux.PreSettings.Local.targets = Xenko.Linux.PreSettings.Local.targets
-		Xenko.Linux.Vulkan.CoreCLR.PreSettings.Local.targets = Xenko.Linux.Vulkan.CoreCLR.PreSettings.Local.targets
-		Xenko.Linux.Vulkan.PreSettings.Local.targets = Xenko.Linux.Vulkan.PreSettings.Local.targets
-		Xenko.macOS.CoreCLR.PreSettings.Local.targets = Xenko.macOS.CoreCLR.PreSettings.Local.targets
-		Xenko.macOS.PreSettings.Local.targets = Xenko.macOS.PreSettings.Local.targets
-		Xenko.OpenGL.CoreCLR.PreSettings.Local.targets = Xenko.OpenGL.CoreCLR.PreSettings.Local.targets
-		Xenko.OpenGL.PreSettings.Local.targets = Xenko.OpenGL.PreSettings.Local.targets
-		Xenko.OpenGLES.PreSettings.Local.targets = Xenko.OpenGLES.PreSettings.Local.targets
 		Xenko.PreSettings.Local.targets = Xenko.PreSettings.Local.targets
-		Xenko.UWP.GlobalSettings.Local.targets = Xenko.UWP.GlobalSettings.Local.targets
-		Xenko.UWP.PreSettings.Local.targets = Xenko.UWP.PreSettings.Local.targets
-		Xenko.Vulkan.PreSettings.Local.targets = Xenko.Vulkan.PreSettings.Local.targets
-		Xenko.Vulkan.SDL.PreSettings.Local.targets = Xenko.Vulkan.SDL.PreSettings.Local.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "30-CoreDesign", "30-CoreDesign", "{25F10A0B-7259-404C-86BE-FD2363C92F72}"
