@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -119,14 +120,45 @@ namespace Xenko.Core.Assets
                 var requests = requestProvider.CreateRequests(restoreArgs).Result;
 
                 // Restore the packages
-                var results = await RestoreRunner.RunWithoutCommit(requests, restoreArgs);
-                // Commit results so that noop cache works next time
-                foreach (var result in results)
+                for (int tryCount = 0; tryCount < 2; ++tryCount)
                 {
-                    await result.Result.CommitAsync(logger, CancellationToken.None);
+                    try
+                    {
+                        var results = await RestoreRunner.RunWithoutCommit(requests, restoreArgs);
+
+                        // Commit results so that noop cache works next time
+                        foreach (var result in results)
+                        {
+                            await result.Result.CommitAsync(logger, CancellationToken.None);
+                        }
+                        var mainResult = results.First();
+                        return (mainResult.SummaryRequest.Request, mainResult.Result);
+                    }
+                    catch (Exception e) when (e is UnauthorizedAccessException || e is IOException)
+                    {
+                        // If we have an unauthorized access exception, it means assemblies are locked by running Xenko process
+                        // During first try, kill some known harmless processes, and try again
+                        if (tryCount == 1)
+                            throw;
+
+                        foreach (var process in new[] { "Xenko.ConnectionRouter" }.SelectMany(Process.GetProcessesByName))
+                        {
+                            try
+                            {
+                                if (process.Id != Process.GetCurrentProcess().Id)
+                                {
+                                    process.Kill();
+                                    process.WaitForExit();
+                                }
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        }
+                    }
                 }
-                var mainResult = results.First();
-                return (mainResult.SummaryRequest.Request, mainResult.Result);
+
+                throw new InvalidOperationException("Unreachable code");
             }
         }
     }
