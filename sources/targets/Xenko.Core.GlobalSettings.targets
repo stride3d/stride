@@ -7,10 +7,16 @@
     <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <PackageVersion Condition=" '$(PackageVersion)' == '' ">3.1.0.1-dev</PackageVersion>
+
+    <_XenkoSharedAssemblyInfoLines Condition="'$(XenkoPackageBuild)' == 'true'">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.NuGet.cs'))</_XenkoSharedAssemblyInfoLines>
+    <_XenkoSharedAssemblyInfoLines Condition="'$(XenkoPackageBuild)' != 'true'">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.cs'))</_XenkoSharedAssemblyInfoLines>
+    <XenkoPublicVersion>$([System.Text.RegularExpressions.Regex]::Match($(_XenkoSharedAssemblyInfoLines), `.*PublicVersion = \"(.*)\";.*`).Groups[1].Value)</XenkoPublicVersion>
+    <XenkoNuGetVersion>$(XenkoPublicVersion)$([System.Text.RegularExpressions.Regex]::Match($(_XenkoSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</XenkoNuGetVersion>
+    
+    <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(XenkoNuGetVersion)</PackageVersion>
     <Copyright>Copyright © Xenko contributors and Silicon Studio Corp.</Copyright>
   </PropertyGroup>
-  
+
   <!--Import Local Pre Settings for the solution being loaded -->
   <Import Project="$(SolutionDir)$(SolutionName).GlobalSettings.Local.targets" Condition="Exists('$(SolutionDir)$(SolutionName).GlobalSettings.Local.targets')" />
   <Import Project="$(SolutionDir)Xenko.Core.GlobalSettings.Local.targets" Condition="Exists('$(SolutionDir)Xenko.Core.GlobalSettings.Local.targets')" />
