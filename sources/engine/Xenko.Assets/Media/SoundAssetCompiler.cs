@@ -34,7 +34,7 @@ namespace Xenko.Assets.Media
             public DecodeSoundFileCommand(string url, SoundAsset parameters, IAssetFinder assetFinder)
                 : base(url, parameters, assetFinder)
             {
-                Version = 1;
+                Version = 2;
             }
 
             /// <inheritdoc />
