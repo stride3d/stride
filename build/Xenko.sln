@@ -460,6 +460,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Xenko.NuGetResolver", "..\s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Samples.Templates", "..\sources\editor\Xenko.Samples.Templates\Xenko.Samples.Templates.csproj", "{040F754C-17F4-4B5F-B974-93F1E39D107F}"
 	ProjectSection(ProjectDependencies) = postProject
+		{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A} = {7C67FF28-1B9E-4F13-8BDA-B833D588BC6A}
 		{1E54A9A2-4439-4444-AE57-6D2ED3C0DC47} = {1E54A9A2-4439-4444-AE57-6D2ED3C0DC47}
 	EndProjectSection
 EndProject
