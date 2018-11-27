@@ -174,6 +174,7 @@ namespace Xenko.Rendering.Compositing
                 System.Diagnostics.Debug.Assert(output.IsDepthStencil, "input and output IsDepthStencil don't match");
 
                 // Resolve using custom pixel shader (output depth only)
+                msaaDepthResolver.DepthStencilState = new DepthStencilStateDescription(true, true) { DepthBufferFunction = CompareFunction.Always };
                 msaaDepthResolver.Parameters.Set(MSAAResolverParams.MSAASamples, samplesCount);
                 msaaDepthResolver.Parameters.Set(MSAADepthResolverShaderKeys.SvPosUnpack, svPosUnpack);
                 msaaDepthResolver.Parameters.Set(MSAADepthResolverShaderKeys.TextureSizeLess1, textureSizeLess1);

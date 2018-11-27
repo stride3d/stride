@@ -19,6 +19,7 @@ namespace Xenko.Rendering.Images
         private MutablePipelineState pipelineState;
         private bool pipelineStateDirty = true;
         private BlendStateDescription blendState = BlendStateDescription.Default;
+        private DepthStencilStateDescription depthStencilState = DepthStencilStateDescription.Default;
         private EffectBytecode previousBytecode;
         private bool delaySetRenderTargets;
 
@@ -27,6 +28,13 @@ namespace Xenko.Rendering.Images
         {
             get { return blendState; }
             set { blendState = value; pipelineStateDirty = true; }
+        }
+
+        [DataMemberIgnore]
+        public DepthStencilStateDescription DepthStencilState
+        {
+            get { return depthStencilState; }
+            set { depthStencilState = value; pipelineStateDirty = true; }
         }
 
         /// <summary>
@@ -135,6 +143,7 @@ namespace Xenko.Rendering.Images
                 pipelineState.State.RootSignature = EffectInstance.RootSignature;
                 pipelineState.State.EffectBytecode = EffectInstance.Effect.Bytecode;
                 pipelineState.State.BlendState = blendState;
+                pipelineState.State.DepthStencilState = depthStencilState;
 
                 var renderTargetCount = OutputCount;
                 if (renderTargetCount > 0)

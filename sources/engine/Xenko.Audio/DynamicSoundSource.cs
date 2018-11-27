@@ -167,12 +167,12 @@ namespace Xenko.Audio
         public bool IsPausedOrPlaying => playingQueued || state != PlayState.Stopped || isSourcePausedOrPlaying;
 
         /// <summary>
-        /// Sets the region of time to play from the audio clip.
+        /// Gets or sets the region of time to play from the audio clip.
         /// </summary>
-        /// <param name="range">a PlayRange structure that describes the starting offset and ending point of the sound to play in seconds.</param>
-        public virtual void SetPlayRange(PlayRange range)
+        public virtual PlayRange PlayRange
         {
-            Commands.Enqueue(AsyncCommand.SetRange);
+            get => new PlayRange(TimeSpan.Zero, TimeSpan.Zero);
+            set => Commands.Enqueue(AsyncCommand.SetRange);
         }
 
         /// <summary>
@@ -245,11 +245,12 @@ namespace Xenko.Audio
             AudioLayer.SourcePause(soundInstance.Source);
         }
 
-        protected virtual void StopInternal()
+        protected virtual void StopInternal(bool ignoreQueuedBuffer = true)
         {
             Ended.TrySetResult(true);
             state = PlayState.Stopped;
-            AudioLayer.SourceStop(soundInstance.Source);
+            if (ignoreQueuedBuffer)
+                AudioLayer.SourceStop(soundInstance.Source);
             RestartInternal();
         }
 
@@ -397,7 +398,7 @@ namespace Xenko.Audio
                         continue;
                     }
                     
-                    if (source.CanFill)
+                    if (source.CanFill && source.isSourcePausedOrPlaying)
                         source.ExtractAndFillData();
                 }
 
