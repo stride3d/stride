@@ -55,6 +55,8 @@
 
     <!-- Note: ideally we would split using ItemGroup but then PropertyGroup are not properly evaluated if they contain ItemGroup (unless using Targets) -->
     <XenkoPlatforms Condition="'$(XenkoPlatforms)' == ''">Windows</XenkoPlatforms>
+    <!-- Let's support escaped MSBuild variables, in case it was sent from Xenko.build (not sure why but I couldn't make it work properly when passing to MSBuild.Properties) -->
+    <XenkoPlatforms>$([MSBuild]::Unescape('$(XenkoPlatforms)'))</XenkoPlatforms>
     <_XenkoPlatforms>;$(XenkoPlatforms);</_XenkoPlatforms>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Windows;'))">$(XenkoRuntimeTargetFrameworks);net45</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';UWP;'))">$(XenkoRuntimeTargetFrameworks);uap10.0</XenkoRuntimeTargetFrameworks>
