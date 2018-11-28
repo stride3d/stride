@@ -92,4 +92,5 @@
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="&#xD;&#xA;&#xD;&#xA;cd $(TargetDir)&#xD;&#xA;rem Ensure we are in the right place&#xD;&#xA;&#xD;&#xA;rem Delete all DLLs in the current directory and the immediate subdirectories&#xD;&#xA;del /q $(TargetDir)\*.dll&#xD;&#xA;for /d %25%25f in (&quot;$(TargetDir)\*&quot;) do del /q %25%25f\*.dll&#xD;&#xA;&#xD;&#xA;rem Delete empty directories at the first level&#xD;&#xA;rem See http://stackoverflow.com/questions/7831286/how-to-delete-empty-folders-using-windows-command-prompt for explanations&#xD;&#xA;rem Use %25SystemRoot%25 to use the right sort tool as people may have the unix sort in their path&#xD;&#xA;for /f &quot;usebackq delims=&quot; %25%25d in (`&quot;dir /ad/b $(TargetDir) | %25SystemRoot%25\System32\sort.exe /R&quot;`) do rd &quot;%25%25d&quot;" />
   </Target>
+  <Import Project="..\..\targets\Xenko.Core.Sign.targets" />
 </Project>

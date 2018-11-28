@@ -204,6 +204,7 @@
   <Import Project="..\..\editor\Xenko.Core.MostRecentlyUsedFiles\Xenko.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
   <Import Project="..\..\assets\Xenko.Core.Assets.Yaml\Xenko.Core.Assets.Yaml.projitems" Label="Shared" />
   <Import Project="..\..\editor\Xenko.Editor.CrashReport\Xenko.Editor.CrashReport.projitems" Label="Shared" />
+  <Import Project="..\..\targets\Xenko.Core.Sign.targets" />
   <!--   <Target Name="AfterResolveReferences">
     <ItemGroup>
       <EmbeddedResource Update="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll'">

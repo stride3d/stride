@@ -103,9 +103,11 @@
     <Exec Condition=" '$(XenkoAssemblyProcessorDev)' == 'true' " Command="&quot;$(XenkoAssemblyProcessorPath)&quot; $(XenkoAssemblyProcessorOptions)"/>
   </Target>
 
+  <Import Project="$(MSBuildThisFileDirectory)Xenko.Core.Sign.targets" />
+  
   <Target Name="SignExecutable" BeforeTargets="CopyFilesToOutputDirectory">
-    <SignFile Condition="'$(XenkoSignTool)' == 'true' And '$(XenkoProjectType)' != 'Cpp'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="$(IntermediateOutputPath)$(TargetName)$(TargetExt)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
-    <SignFile Condition="'$(XenkoSignTool)' == 'true' And '$(XenkoProjectType)' == 'Cpp'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="$(OutputPath)$(TargetName)$(TargetExt)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
+    <SignFile Condition="'$(XenkoProjectType)' != 'Cpp'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="$(IntermediateOutputPath)$(TargetName)$(TargetExt)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
+    <SignFile Condition="'$(XenkoProjectType)' == 'Cpp'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="$(OutputPath)$(TargetName)$(TargetExt)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
   </Target>
 
   <Target Name="SetPrivateOnProjectReferences" BeforeTargets="BeforeCompile" AfterTargets="IncludeTransitiveProjectReferences">
