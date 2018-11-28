@@ -6,7 +6,6 @@ using Xenko.Core.Assets;
 using Xenko.Core.Assets.Templates;
 using Xenko.Core;
 using Xenko.Core.IO;
-using Xenko.Assets;
 
 namespace Xenko.ProjectGenerator
 {

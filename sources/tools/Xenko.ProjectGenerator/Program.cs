@@ -164,10 +164,10 @@ namespace Xenko.ProjectGenerator
                 return;
             }
 
-            var package = session.LocalPackages.Single();
+            var project = session.Projects.OfType<SolutionProject>().Single();
 
-            var previousCurrent = session.CurrentPackage;
-            session.CurrentPackage = package;
+            var previousCurrent = session.CurrentProject;
+            session.CurrentProject = project;
 
             // Compute Xenko Sdk relative path
             // We are supposed to be in standard output binary folder, so Xenko root should be at ..\..
@@ -179,7 +179,7 @@ namespace Xenko.ProjectGenerator
             xenkoRelativePath = xenkoRelativePath.TrimEnd('\\');
 
             options["Namespace"] = projectNamespace ?? name;
-            options["Package"] = package;
+            options["Package"] = project.Package;
             options["Platforms"] = new List<SolutionPlatform>(AssetRegistry.SupportedPlatforms);
             options["XenkoSdkRelativeDir"] = xenkoRelativePath;
 
@@ -194,7 +194,7 @@ namespace Xenko.ProjectGenerator
             // Setup the assets folder
             Directory.CreateDirectory(UPath.Combine(outputDirectory, (UDirectory)"Assets/Shared"));
 
-            session.CurrentPackage = previousCurrent;
+            session.CurrentProject = previousCurrent;
 
             session.Save(result);
             if (result.HasErrors)
@@ -277,7 +277,7 @@ namespace Xenko.ProjectGenerator
             string projectSuffix = platform;
 
             // Read .sln
-            var solution = Solution.FromFile(inputFile);
+            var solution = Solution.FromFile(Path.Combine(Environment.CurrentDirectory, inputFile));
 
             var processors = new List<IProjectProcessor>();
 
@@ -317,7 +317,7 @@ namespace Xenko.ProjectGenerator
             RemoveEmptySolutionFolders(solution);
 
             // Save .sln
-            solution.SaveAs(outputFile);
+            solution.SaveAs(Path.Combine(Environment.CurrentDirectory, outputFile));
 
             // If there is a DotSettings (Resharper team shared file), create one that also reuse this one
             // Note: For now, it assumes input and output solutions are in the same folder (when constructing relative path to DotSetting file)
@@ -356,7 +356,7 @@ namespace Xenko.ProjectGenerator
                 while (currentProject != null)
                 {
                     usedSolutionFolders.Add(currentProject);
-                    currentProject = currentProject.ParentProject;
+                    currentProject = currentProject.GetParentProject(solution);
                 }
             }
 
@@ -538,7 +538,7 @@ namespace Xenko.ProjectGenerator
 
                     // Solution should point to new generated file
                     context.Project.Name = context.Project.Name.Replace(".Windows", string.Empty) + "." + projectSuffix;
-                    context.Project.RelativePath = context.Project.RelativePath.Replace(projectFileName,
+                    context.Project.FullPath = context.Project.FullPath.Replace(projectFileName,
                         generatedProjectFileName);
                 }
             }
@@ -573,7 +573,7 @@ namespace Xenko.ProjectGenerator
                 case PlatformType.Linux:
                 case PlatformType.macOS:
                 case PlatformType.UWP:
-                    configurations.Add(platform, "Any CPU");
+                    configurations.Add("Any CPU", "Any CPU");
                     needDeploy = true;
                     break;
 

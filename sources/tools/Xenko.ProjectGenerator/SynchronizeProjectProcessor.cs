@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 
@@ -20,7 +21,6 @@ namespace Xenko.ProjectGenerator
         public void Process(ProjectProcessorContext context)
         {
             var doc = context.Document;
-            var ns = context.Document.Root.Name.Namespace;
 
             var fullPath = context.Project.FullPath;
             
@@ -37,10 +37,13 @@ namespace Xenko.ProjectGenerator
 
                 // First, let's load project
                 var newDoc = XDocument.Load(fullPath);
+                var ns = newDoc.Root.Name.Namespace;
+                var mgr = new XmlNamespaceManager(new NameTable());
+                mgr.AddNamespace("x", ns.NamespaceName);
 
                 // Let's load ItemGroup items from previous and new items
                 var oldItemGroups = doc.XPathSelectElements("/x:Project/x:ItemGroup", context.NamespaceManager).ToArray();
-                var newItemGroups = newDoc.XPathSelectElements("/x:Project/x:ItemGroup", context.NamespaceManager).ToArray();
+                var newItemGroups = newDoc.XPathSelectElements("/x:Project/x:ItemGroup", mgr).ToArray();
 
                 // Remove non-tagged item from new document
                 foreach (var itemGroup in newItemGroups)
@@ -55,12 +58,20 @@ namespace Xenko.ProjectGenerator
                 // Copy back non-tagged item from old document
                 // Try to insert in second ItemGroup (usually first one is Reference)
                 var insertionItemGroup = newItemGroups.Length >= 2 ? newItemGroups[1] : newItemGroups[0];
+
                 foreach (var itemGroup in oldItemGroups)
                 {
                     var nonTaggedElements = GetUserElements(itemGroup);
                     foreach (var nonTaggedElement in nonTaggedElements)
                     {
-                        insertionItemGroup.Add(new XElement(nonTaggedElement));
+                        var element = new XElement(nonTaggedElement);
+                        // fixup namespace (https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/how-to-change-the-namespace-for-an-entire-xml-tree)
+                        foreach (var el in element.DescendantsAndSelf())
+                        {
+                            el.Name = ns.GetName(el.Name.LocalName);
+                            var atList = el.Attributes().ToList();
+                        }
+                        insertionItemGroup.Add(element);
                     }
                 }
 
@@ -69,15 +80,6 @@ namespace Xenko.ProjectGenerator
                 {
                     if (!itemGroup.HasElements)
                         itemGroup.Remove();
-                }
-
-                if (projectType == ProjectType.iOS)
-                {
-                    // Remove ProjectReference/Private (seems they cause problem for iOS deployment of unit tests)
-                    foreach (var projectReferencePrivate in newDoc.XPathSelectElements("/x:Project/x:ItemGroup/x:ProjectReference/x:Private", context.NamespaceManager).ToArray())
-                    {
-                        projectReferencePrivate.Remove();
-                    }
                 }
 
                 // Set newly generated document

@@ -31,6 +31,9 @@ namespace Xenko.GitVersioning
         [Required]
         public ITaskItem RootDirectory { get; set; }
 
+        [Output]
+        public string NuGetVersion { get; set; }
+
         public string SpecialVersion { get; set; }
 
         public bool SpecialVersionGitHeight { get; set; }
@@ -60,6 +63,15 @@ namespace Xenko.GitVersioning
             var currentAssemblyLocation = Assembly.GetExecutingAssembly().Location;
             var mainPlatformDirectory = Path.GetFileName(Path.GetDirectoryName(currentAssemblyLocation));
 
+            // TODO: Right now we patch the VersionFile, but ideally we should make a copy and make the build system use it
+            var versionFileData = File.ReadAllText(Path.Combine(RootDirectory.ItemSpec, VersionFile.ItemSpec));
+
+            var publicVersionMatch = Regex.Match(versionFileData, "PublicVersion = \"(.*)\";");
+            var publicVersion = publicVersionMatch.Success ? publicVersionMatch.Groups[1].Value : "0.0.0.0";
+
+            // Patch NuGetVersion
+            var versionSuffix = SpecialVersion ?? string.Empty;
+
             EnsureLibGit2UnmanagedInPath(mainPlatformDirectory);
 
             // Compute Git Height using Nerdbank.GitVersioning
@@ -75,14 +87,9 @@ namespace Xenko.GitVersioning
                     return false;
                 }
 
-                // TODO: Right now we patch the VersionFile, but ideally we should make a copy and make the build system use it
-                var versionFileData = File.ReadAllText(Path.Combine(RootDirectory.ItemSpec, VersionFile.ItemSpec));
-
                 // Patch AssemblyInformationalVersion
                 var headCommitSha = repo.Head.Commits.FirstOrDefault()?.Sha;
 
-                // Patch NuGetVersion
-                var versionSuffix = SpecialVersion ?? string.Empty;
                 if (SpecialVersionGitHeight)
                 {
                     // Compute version based on Git info
@@ -91,13 +98,11 @@ namespace Xenko.GitVersioning
                 }
                 if (SpecialVersionGitCommit && headCommitSha != null)
                 {
-                    if (versionSuffix.Length > 0)
-                        versionSuffix += "-";
-                    versionSuffix += "g" + headCommitSha.Substring(0, 8);
+                    versionSuffix += "+g" + headCommitSha.Substring(0, 8);
                 }
 
                 // Prefix with dash (if non empty)
-                if (versionSuffix.Length > 0)
+                if (versionSuffix.Length > 0 && !versionSuffix.StartsWith("+"))
                     versionSuffix = "-" + versionSuffix;
 
                 // Replace NuGetVersionSuffix
@@ -117,10 +122,13 @@ namespace Xenko.GitVersioning
                 // Write back new file
                 File.WriteAllText(Path.Combine(RootDirectory.ItemSpec, GeneratedVersionFile.ItemSpec), versionFileData);
 
+                NuGetVersion = publicVersion + versionSuffix;
+
                 return true;
             }
             catch (Exception e)
             {
+                NuGetVersion = publicVersion + versionSuffix;
                 Log.LogWarning($"Could not determine version using git history: {e}", e);
                 return false;
             }

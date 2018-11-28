@@ -1,2 +1,2 @@
 set XenkoPlatforms=Windows;UWP
-Xenko.sln
+Xenko.Runtime.sln

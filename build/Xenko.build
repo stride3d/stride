@@ -21,8 +21,6 @@ Example of use:
   </PropertyGroup>
 
   <UsingTask TaskName="Xenko.GitVersioning.GenerateVersionFile" AssemblyFile="$(XenkoRoot)deps\Xenko.GitVersioning\bin\Debug\net472\Xenko.GitVersioning.dll" />
-  <!-- TODO: those tasks will work only if the Direct3D11 files have been copied to top folder (currently works thanks to BuildEditorShaders being run before) -->
-  <UsingTask TaskName="Xenko.Assets.Tasks.PackageGetVersionTask" AssemblyFile="$(XenkoRootBin)Xenko.Assets.dll" />
   
   <Target Name="Help">
     <Message Importance="high" Text="TODO"/>
@@ -100,11 +98,17 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(XenkoRoot)deps\Xenko.GitVersioning\Xenko.GitVersioning.csproj"/>
     
     <!-- Create SharedAssemblyInfo.NuGet.cs with Git information (different between official build and internal builds) -->
-    <GenerateVersionFile Condition="'$(XenkoOfficialBuild)' == 'true'" RootDirectory="$(XenkoRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersionGitCommit="true" />
-    <GenerateVersionFile Condition="'$(XenkoOfficialBuild)' != 'true'" RootDirectory="$(XenkoRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersion="beta" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true" />
+    <GenerateVersionFile Condition="'$(XenkoOfficialBuild)' == 'true'" RootDirectory="$(XenkoRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs">
+      <Output TaskParameter="NuGetVersion" PropertyName="XenkoPackageVersion"/>
+    </GenerateVersionFile>
+    <GenerateVersionFile Condition="'$(XenkoOfficialBuild)' != 'true'" RootDirectory="$(XenkoRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersion="beta" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true">
+      <Output TaskParameter="NuGetVersion" PropertyName="XenkoPackageVersion"/>
+    </GenerateVersionFile>
+
+	<Message Text="Done preparing build for version $(XenkoPackageVersion)"/>
+	<TeamCitySetBuildNumber BuildNumber="$(XenkoPackageVersion)" Condition="'$(TEAMCITY_BUILD_PROPERTIES_FILE)' != '' " />
   </Target>
-  <Target Name="BuildForPackage" DependsOnTargets="PreparePackageBuild;BuildWindows;BuildEditorShaders;VSIXPlugin"/>
-  <Target Name="GeneratePackage" DependsOnTargets="PreparePackageBuild;PrerequisitesInstaller;Package;WritePackageVersionToFile"/>
+  <Target Name="Package" DependsOnTargets="PreparePackageBuild;Build;BuildEditorShaders;VSIXPlugin;PrerequisitesInstaller"/>
   
   <Target Name="CopyXenkoKey">
     <Copy Condition="'$(XenkoSign)' == 'true' And Exists('$(LOCALAPPDATA)\Xenko\XenkoBuildKey\xenko.snk')" SourceFiles="$(LOCALAPPDATA)\Xenko\XenkoBuildKey\xenko.snk" DestinationFolder="$(MSBuildThisFileDirectory)"/>
@@ -123,39 +127,48 @@ Example of use:
     </PropertyGroup>
     <Exec Command="$(RestoreExec)" />
   </Target>
-  
-  <Target Name="BuildWindows" DependsOnTargets="CopyXenkoKey;RestoreWindows">
+
+  <Target Name="Build" DependsOnTargets="CopyXenkoKey">
+    <CallTarget Targets="Restore"/>
 	<MSBuild Targets="Build" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
   </Target>
 
+  <Target Name="BuildRuntime" DependsOnTargets="CopyXenkoKey">
+    <PropertyGroup>
+      <XenkoSolution>$(XenkoSolution).Runtime</XenkoSolution>
+    </PropertyGroup>
+    <CallTarget Targets="Restore"/>
+	<MSBuild Targets="Build" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties)"/>
+  </Target>
+
   <Target Name="BuildWindowsDirect3D11" DependsOnTargets="CopyXenkoKey">
-    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Direct3D.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).Direct3D.sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Runtime.sln"' />
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties)"/>
   </Target>
   
   <Target Name="BuildWindowsDirect3D12" DependsOnTargets="CopyXenkoKey">
-    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Direct3D12.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).Direct3D12.sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Runtime.sln"' />
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoGraphicsApi=Direct3D12"/>
   </Target>
 
   <Target Name="BuildWindowsOpenGL" DependsOnTargets="CopyXenkoKey">
-    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).OpenGL.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).OpenGL.sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Runtime.sln"' />
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoGraphicsApi=OpenGL"/>
   </Target>
 
   <Target Name="BuildWindowsOpenGLES" DependsOnTargets="CopyXenkoKey">
-    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).OpenGLES.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).OpenGLES.sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
+    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Runtime.sln"' />
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoGraphicsApi=OpenGLES"/>
   </Target>
 
   <Target Name="BuildAndroid" DependsOnTargets="CopyXenkoKey">
     <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Android.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).Android.sln" Properties="$(BuildProperties);Platform=Android"/>
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).Android.sln" Properties="$(BuildProperties);XenkoPlatform=Android"/>
   </Target>
 
   <Target Name="BuildiOS" DependsOnTargets="CopyXenkoKey">
     <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).iOS.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).iOS.sln" Properties="$(BuildProperties);Platform=iPhone"/>
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).iOS.sln" Properties="$(BuildProperties);XenkoPlatform=iOS"/>
   </Target>
   
   <Target Name="BuildWindowsStore" DependsOnTargets="CopyXenkoKey">
@@ -195,14 +208,6 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(XenkoSolution).macOS.sln" Properties="$(BuildProperties);Platform=macOS"/>
   </Target> 
 
-  <Target Name="WritePackageVersionToFile">
-    <PackageGetVersionTask>
-      <Output TaskParameter="NuGetVersion" PropertyName="XenkoPackageVersion"/>
-    </PackageGetVersionTask>
-    <Delete Files="$(MSBuildThisFileDirectory)Xenko.version"/>
-    <WriteLinesToFile File="$(MSBuildThisFileDirectory)Xenko.version" Lines="$(XenkoPackageVersion)" />
-  </Target>
-  
   <Target Name="DownloadXunitRunnerConsole">
     <MakeDir Directories="$(MSBuildThisFileDirectory)packages"/>
     <PropertyGroup>

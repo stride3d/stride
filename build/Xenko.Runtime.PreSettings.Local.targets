@@ -1,0 +1,7 @@
+﻿<!-- Build file pre-included by all Xenko projects -->
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <XenkoCommonPreSettingsName>Xenko</XenkoCommonPreSettingsName>
+  </PropertyGroup>
+</Project>
+

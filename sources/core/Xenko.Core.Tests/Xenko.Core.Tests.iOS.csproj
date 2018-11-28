@@ -38,11 +38,15 @@
     <Compile Include="..\..\tests\nunitlite\NUnitLiteLauncher.iPhone.cs" Label="Xenko.DoNotSync">
       <Link>NUnitLiteLauncher.iPhone.cs</Link>
     </Compile>
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="XunitAttributes.cs" />
+    <Compile Include="NonParallelCollectionDefinition.cs" />
     <Compile Include="TestObjectIdBuilder.cs" />
     <Compile Include="TestPriorityLinkedQueue.cs" />
     <Compile Include="MemoryFileProvider.cs" />
@@ -54,22 +58,9 @@
     <Compile Include="TestMicroThread.cs" />
     <Compile Include="TestStore.cs" />
     <Compile Include="TestSerialization.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestUnmanagedArray.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="TestWatcher.cs" />
-    <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj">
-      <Project>{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}</Project>
-      <Name>Xenko.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Core.IO\Xenko.Core.IO.csproj">
-      <Project>{1DE01410-22C9-489B-9796-1ADDAB1F64E5}</Project>
-      <Name>Xenko.Core.IO</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj">
-      <Project>{1320F627-EE43-4115-8E89-19D1753E51F2}</Project>
-      <Name>Xenko.Core.MicroThreading</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
       <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
       <Name>Xenko.Core.Serialization</Name>
@@ -77,6 +68,7 @@
     <XenkoEmbeddedNativeLibrary Include="$(XenkoPackageXenkoPlatformBin)\libcore">
       <Visible>false</Visible>
     </XenkoEmbeddedNativeLibrary>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
