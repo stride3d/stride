@@ -105,11 +105,6 @@
 
   <Import Project="$(MSBuildThisFileDirectory)Xenko.Core.Sign.targets" />
   
-  <Target Name="SignExecutable" BeforeTargets="CopyFilesToOutputDirectory">
-    <SignFile Condition="'$(XenkoProjectType)' != 'Cpp'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="$(IntermediateOutputPath)$(TargetName)$(TargetExt)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
-    <SignFile Condition="'$(XenkoProjectType)' == 'Cpp'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="$(OutputPath)$(TargetName)$(TargetExt)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
-  </Target>
-
   <Target Name="SetPrivateOnProjectReferences" BeforeTargets="BeforeCompile" AfterTargets="IncludeTransitiveProjectReferences">
     <!-- Automatically add Private on project references if they are already built in same folder as output folder -->
 	<!-- Also add PrivateAssets All to all Private projects -->

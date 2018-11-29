@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Target Name="_XenkoSignExecutable" BeforeTargets="CopyFilesToOutputDirectory">
-    <SignFile Condition="'$(XenkoPackageBuild)' == 'true' And '$(XenkoProjectType)' != 'Cpp'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="$(IntermediateOutputPath)$(TargetName)$(TargetExt)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
-    <SignFile Condition="'$(XenkoPackageBuild)' == 'true' And '$(XenkoProjectType)' == 'Cpp'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="$(OutputPath)$(TargetName)$(TargetExt)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
+    <SignFile Condition="'$(XenkoSignTool)' == 'true' And '$(XenkoProjectType)' != 'Cpp'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="$(IntermediateOutputPath)$(TargetName)$(TargetExt)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
+    <SignFile Condition="'$(XenkoSignTool)' == 'true' And '$(XenkoProjectType)' == 'Cpp'" CertificateThumbprint="6969a724bf72c0b69e31c44bdd22dc11e5272bba" SigningTarget="$(OutputPath)$(TargetName)$(TargetExt)" TimestampUrl="http://timestamp.globalsign.com/scripts/timstamp.dll" />
   </Target>
 </Project>
