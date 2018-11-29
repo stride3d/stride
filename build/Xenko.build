@@ -31,7 +31,7 @@ Example of use:
   Don't forget to build for VS2013 by using MSBuild 12.0, 
   or if you're using a newer version of MSBuild, pass the flag /p:VisualStudioVersion=12.0 when calling MSBuild in the command line.
   -->
-  <Target Name="VSIXPlugin" DependsOnTargets="RestoreWindows">
+  <Target Name="VSIXPlugin" DependsOnTargets="Restore">
     <ItemGroup>
       <FilesToDeleteVSIX Include="$(MSBuildThisFileDirectory)Xenko.VisualStudio.Package.*.nupkg"/>
     </ItemGroup>
@@ -118,18 +118,18 @@ Example of use:
     <Exec Command="$(XenkoRoot)sources\editor\Xenko.Assets.Presentation\EditorPackage\generate-editor-package.bat" WorkingDirectory="$(XenkoRoot)sources\editor\Xenko.Assets.Presentation\EditorPackage"/>
   </Target>
 
-  <Target Name="RestoreWindows">
-  <PropertyGroup>
+  <Target Name="Restore">
+    <PropertyGroup>
 	  <RestoreExec><![CDATA[
-	set XenkoPlatforms=$(XenkoPlatforms)
-	"$(NuGetPath)" restore "$(XenkoSolution).sln"
-	  ]]></RestoreExec>
+        set XenkoPlatforms=$(XenkoPlatforms)
+        "$(NuGetPath)" restore "$(XenkoSolution).sln"
+      ]]></RestoreExec>
     </PropertyGroup>
     <Exec Command="$(RestoreExec)" />
   </Target>
 
   <Target Name="Build" DependsOnTargets="CopyXenkoKey">
-    <CallTarget Targets="Restore"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution)"/>
 	<MSBuild Targets="Build" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
   </Target>
 
@@ -137,7 +137,7 @@ Example of use:
     <PropertyGroup>
       <XenkoSolution>$(XenkoSolution).Runtime</XenkoSolution>
     </PropertyGroup>
-    <CallTarget Targets="Restore"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution)"/>
 	<MSBuild Targets="Build" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties)"/>
   </Target>
   
@@ -184,8 +184,12 @@ Example of use:
   <Target Name="BuildWindows10" DependsOnTargets="BuildUWP" />
 
   <Target Name="BuildUWP" DependsOnTargets="CopyXenkoKey">
-    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Runtime.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoPlatforms=UWP;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
+    <PropertyGroup>
+      <XenkoSolution>$(XenkoSolution).Runtime</XenkoSolution>
+      <XenkoPlatforms>UWP</XenkoPlatforms>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution)"/>
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);XenkoPlatforms=$(XenkoPlatforms);XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target>
   
   <Target Name="BuildWindowsPhone" DependsOnTargets="CopyXenkoKey">
@@ -199,13 +203,21 @@ Example of use:
   </Target>
   
   <Target Name="BuildLinux" DependsOnTargets="CopyXenkoKey">
-    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Runtime.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoPlatforms=Linux;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
+    <PropertyGroup>
+      <XenkoSolution>$(XenkoSolution).Runtime</XenkoSolution>
+      <XenkoPlatforms>Linux</XenkoPlatforms>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution)"/>
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);XenkoPlatforms=$(XenkoPlatforms);XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target> 
 
   <Target Name="BuildLinuxVulkan" DependsOnTargets="CopyXenkoKey">
-    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Runtime.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoPlatforms=Linux;XenkoGraphicsApi=Vulkan;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
+    <PropertyGroup>
+      <XenkoSolution>$(XenkoSolution).Runtime</XenkoSolution>
+      <XenkoPlatforms>Linux</XenkoPlatforms>
+    </PropertyGroup>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution)"/>
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);XenkoPlatforms=$(XenkoPlatforms);XenkoGraphicsApi=Vulkan;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target> 
   
   <Target Name="BuildmacOS" DependsOnTargets="CopyXenkoKey">
