@@ -205,7 +205,7 @@ Example of use:
 
   <Target Name="BuildLinuxVulkan" DependsOnTargets="CopyXenkoKey">
     <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Linux.Vulkan.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).Linux.Vulkan.sln" Properties="$(BuildProperties);XenkoPlatforms=Linux;XenkoGraphicsApi=Vulkan;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true""/>
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).Linux.Vulkan.sln" Properties="$(BuildProperties);XenkoPlatforms=Linux;XenkoGraphicsApi=Vulkan;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target> 
   
   <Target Name="BuildmacOS" DependsOnTargets="CopyXenkoKey">
