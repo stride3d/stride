@@ -44,37 +44,6 @@
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
 
-  <!-- 
-    Settings XenkoPlatform specific
-  -->
-  <PropertyGroup>
-    <XenkoRuntimeTargetFramework>net45</XenkoRuntimeTargetFramework>
-    <TargetFrameworkTool>net472</TargetFrameworkTool>
-    <TargetFrameworkVersionTool>v4.7.2</TargetFrameworkVersionTool>
-    <XenkoPlatformDefines>XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP;NET45</XenkoPlatformDefines>
-
-    <!-- Note: ideally we would split using ItemGroup but then PropertyGroup are not properly evaluated if they contain ItemGroup (unless using Targets) -->
-    <XenkoPlatforms Condition="'$(XenkoPlatforms)' == ''">Windows</XenkoPlatforms>
-    <!-- Let's support escaped MSBuild variables, in case it was sent from Xenko.build (not sure why but I couldn't make it work properly when passing to MSBuild.Properties) -->
-    <XenkoPlatforms>$([MSBuild]::Unescape('$(XenkoPlatforms)'))</XenkoPlatforms>
-    <_XenkoPlatforms>;$(XenkoPlatforms);</_XenkoPlatforms>
-    <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Windows;'))">$(XenkoRuntimeTargetFrameworks);net45</XenkoRuntimeTargetFrameworks>
-    <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';UWP;'))">$(XenkoRuntimeTargetFrameworks);uap10.0</XenkoRuntimeTargetFrameworks>
-    <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Android;'))">$(XenkoRuntimeTargetFrameworks);monoandroid50</XenkoRuntimeTargetFrameworks>
-    <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';iOS;'))">$(XenkoRuntimeTargetFrameworks);xamarinios10</XenkoRuntimeTargetFrameworks>
-    <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Linux;'))">$(XenkoRuntimeTargetFrameworks);netstandard2.0</XenkoRuntimeTargetFrameworks>
-    
-    <XenkoRuntimeTargetFrameworks>$([MSBuild]::Unescape($(XenkoRuntimeTargetFrameworks.Trim(';'))))</XenkoRuntimeTargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' ">
-    <TargetFrameworks Condition="$(XenkoRuntimeTargetFrameworks.Contains(';'))">$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
-    <TargetFramework Condition="!$(XenkoRuntimeTargetFrameworks.Contains(';'))">$(XenkoRuntimeTargetFrameworks)</TargetFramework>
-    <!-- UpToDate check doesn't work with multi-TFM projects! https://github.com/dotnet/project-system/issues/2487 -->
-    <DisableFastUpToDateCheck Condition="$(TargetFrameworks.Contains(';'))">true</DisableFastUpToDateCheck>
-    <!--<TargetFrameworks>net45;uap10.0;monoandroid50;xamarinios10;netstandard2.0</TargetFrameworks>-->
-  </PropertyGroup>
-
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Windows' ">
     <!-- Limited version used by tools but that doesn't require installation of .NET on most computers (4.5.1 is default of many OS, 4.5.2/4.6 isn't) -->
     <XenkoPlatformDefines>XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP;NET45</XenkoPlatformDefines>
