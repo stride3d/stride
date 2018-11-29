@@ -140,6 +140,11 @@ Example of use:
     <CallTarget Targets="Restore"/>
 	<MSBuild Targets="Build" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties)"/>
   </Target>
+  
+  <Target Name="BuildWindows" DependsOnTargets="CopyXenkoKey">
+    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).sln"' />
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
+  </Target>
 
   <Target Name="BuildWindowsDirect3D11" DependsOnTargets="CopyXenkoKey">
     <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Runtime.sln"' />
@@ -179,8 +184,8 @@ Example of use:
   <Target Name="BuildWindows10" DependsOnTargets="BuildUWP" />
 
   <Target Name="BuildUWP" DependsOnTargets="CopyXenkoKey">
-    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).UWP.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).UWP.sln" Properties="$(BuildProperties);Platform=UWP;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
+    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Runtime.sln"' />
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoPlatforms=UWP;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target>
   
   <Target Name="BuildWindowsPhone" DependsOnTargets="CopyXenkoKey">
@@ -194,13 +199,13 @@ Example of use:
   </Target>
   
   <Target Name="BuildLinux" DependsOnTargets="CopyXenkoKey">
-    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Linux.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).Linux.sln" Properties="$(BuildProperties);Platform=Linux"/>
+    <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Runtime.sln"' />
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoPlatforms=Linux;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target> 
 
   <Target Name="BuildLinuxVulkan" DependsOnTargets="CopyXenkoKey">
     <Exec Command='"$(NuGetPath)" restore "$(XenkoSolution).Linux.Vulkan.sln"' />
-    <MSBuild Targets="Build" Projects="$(XenkoSolution).Linux.Vulkan.sln" Properties="$(BuildProperties);Platform=Linux"/>
+    <MSBuild Targets="Build" Projects="$(XenkoSolution).Linux.Vulkan.sln" Properties="$(BuildProperties);XenkoPlatforms=Linux;XenkoGraphicsApi=Vulkan;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true""/>
   </Target> 
   
   <Target Name="BuildmacOS" DependsOnTargets="CopyXenkoKey">
