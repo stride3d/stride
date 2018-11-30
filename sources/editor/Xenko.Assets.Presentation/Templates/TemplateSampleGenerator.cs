@@ -26,13 +26,18 @@ namespace Xenko.Assets.Presentation.Templates
     {
         private static readonly PropertyKey<Package> GeneratedPackageKey = new PropertyKey<Package>("GeneratedPackage", typeof(TemplateSampleGenerator));
         private static readonly PropertyKey<List<SelectedSolutionPlatform>> PlatformsKey = new PropertyKey<List<SelectedSolutionPlatform>>("Platforms", typeof(TemplateSampleGenerator));
+        private static readonly PropertyKey<bool> AddGamesTestingKey = new PropertyKey<bool>("AddGamesTesting", typeof(TemplateSampleGenerator));
 
         public static readonly TemplateSampleGenerator Default = new TemplateSampleGenerator();
 
         /// <summary>
         /// Sets the parameters required by this template when running in <see cref="TemplateGeneratorParameters.Unattended"/> mode.
         /// </summary>
-        public static void SetParameters(SessionTemplateGeneratorParameters parameters, IEnumerable<SelectedSolutionPlatform> platforms) => parameters.SetTag(PlatformsKey, new List<SelectedSolutionPlatform>(platforms));
+        public static void SetParameters(SessionTemplateGeneratorParameters parameters, IEnumerable<SelectedSolutionPlatform> platforms, bool addGamesTesting = false)
+        {
+            parameters.SetTag(PlatformsKey, new List<SelectedSolutionPlatform>(platforms));
+            parameters.SetTag(AddGamesTestingKey, addGamesTesting);
+        }
 
         public override bool IsSupportingTemplate(TemplateDescription templateDescription)
         {
@@ -181,6 +186,17 @@ namespace Xenko.Assets.Presentation.Templates
                 var inputProject = (SolutionProject)Package.LoadProject(log, packageInputFile);
                 var outputProject = (SolutionProject)Package.LoadProject(log, packageOutputFile);
                 var msbuildProject = VSProjectHelper.LoadProject(outputProject.FullPath, platform: "NoPlatform");
+
+                // If requested, add reference to Xenko.Games.Testing
+                if (parameters.TryGetTag(AddGamesTestingKey))
+                {
+                    var items = msbuildProject.AddItem("PackageReference", "Xenko.Games.Testing", new[] { new KeyValuePair<string, string>("Version", XenkoVersion.NuGetVersion), new KeyValuePair<string, string>("PrivateAssets", "contentfiles;analyzers") });
+                    foreach (var item in items)
+                    {
+                        foreach (var metadata in item.Metadata)
+                            metadata.Xml.ExpressedAsAttribute = true;
+                    }
+                }
 
                 // Copy dependency files locally
                 //  We only want to copy the asset files. The raw files are in Resources and the game assets are in Assets.

@@ -11,7 +11,7 @@ namespace Xenko.Samples.Tests
 {
     public class TouchInputsTest : IClassFixture<TouchInputsTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\TouchInputs";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\TouchInputs";
 
         public class Fixture : SampleTestFixture
         {

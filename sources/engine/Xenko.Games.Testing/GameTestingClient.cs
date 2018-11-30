@@ -56,7 +56,7 @@ namespace Xenko.Games.Testing
                     break;
             }
 
-            var url = $"/service/{XenkoVersion.NuGetVersion}/Xenko.SamplesTestServer.exe";
+            var url = $"/service/Xenko.SamplesTestServer/{XenkoVersion.NuGetVersion}/Xenko.SamplesTestServer.exe";
 
             var socketContext = RouterClient.RequestServer(url).Result;
 

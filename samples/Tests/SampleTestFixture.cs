@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Xenko.Assets.Presentation;
 using Xenko.Assets.Presentation.Templates;
 using Xenko.Assets.Templates;
 using Xenko.Core.Assets;
@@ -47,10 +48,6 @@ namespace Xenko.Samples.Tests
             Console.WriteLine(@"Bootstrapping: " + sampleName);
 
             var session = new PackageSession();
-            var xenkoPkg = PackageStore.Instance.DefaultPackage;
-            Console.WriteLine("Using Xenko from " + xenkoPkg.FullPath + "...");
-            var xenkoDir = Path.GetDirectoryName(xenkoPkg.FullPath);
-
             var generator = TemplateSampleGenerator.Default;
 
             // Ensure progress is shown while it is happening.
@@ -58,7 +55,10 @@ namespace Xenko.Samples.Tests
 
             var parameters = new SessionTemplateGeneratorParameters { Session = session };
             parameters.Unattended = true;
-            TemplateSampleGenerator.SetParameters(parameters, AssetRegistry.SupportedPlatforms.Where(x => x.Type == Core.PlatformType.Windows).Select(x => new SelectedSolutionPlatform(x, x.Templates.FirstOrDefault())).ToList());
+            TemplateSampleGenerator.SetParameters(
+                parameters,
+                AssetRegistry.SupportedPlatforms.Where(x => x.Type == Core.PlatformType.Windows).Select(x => new SelectedSolutionPlatform(x, x.Templates.FirstOrDefault())).ToList(),
+                addGamesTesting: true);
 
             session.SolutionPath = UPath.Combine<UFile>(outputPath, sampleName + ".sln");
 
@@ -75,7 +75,10 @@ namespace Xenko.Samples.Tests
                 }
             }
 
-            var xenkoTemplates = xenkoPkg.Templates;
+            // Load templates
+            XenkoDefaultAssetsPlugin.LoadDefaultTemplates();
+            var xenkoTemplates = TemplateManager.FindTemplates(session);
+
             parameters.Description = xenkoTemplates.First(x => x.Id == templateGuid);
             parameters.Name = sampleName;
             parameters.Namespace = sampleName;

@@ -11,7 +11,7 @@ namespace Xenko.Samples.Tests
 {
     public class TPPTest : IClassFixture<TPPTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\ThirdPersonPlatformer";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\ThirdPersonPlatformer";
 
         public class Fixture : SampleTestFixture
         {

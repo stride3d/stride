@@ -11,7 +11,7 @@ namespace Xenko.Samples.Tests
 {
     public class SpaceEscapeTest : IClassFixture<SpaceEscapeTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\SpaceEscape";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\SpaceEscape";
 
         public class Fixture : SampleTestFixture
         {

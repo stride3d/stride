@@ -11,7 +11,7 @@ namespace Xenko.Samples.Tests
 {
     public class ParticlesSampleTest : IClassFixture<ParticlesSampleTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\ParticlesSample";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\ParticlesSample";
 
         public class Fixture : SampleTestFixture
         {

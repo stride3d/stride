@@ -10,7 +10,7 @@ namespace Xenko.Samples.Tests
 {
     public class CustomEffectTest : IClassFixture<CustomEffectTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\CustomEffect";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\CustomEffect";
 
         public class Fixture : SampleTestFixture
         {

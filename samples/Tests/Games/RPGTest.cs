@@ -11,7 +11,7 @@ namespace Xenko.Samples.Tests
 {
     public class RPGTest : IClassFixture<RPGTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\TopDownRPG";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\TopDownRPG";
 
         public class Fixture : SampleTestFixture
         {

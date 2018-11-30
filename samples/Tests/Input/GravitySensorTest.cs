@@ -11,7 +11,7 @@ namespace Xenko.Samples.Tests
 {
     public class GravitySensorTest : IClassFixture<GravitySensorTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\GravitySensor";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\GravitySensor";
 
         public class Fixture : SampleTestFixture
         {

@@ -18,7 +18,7 @@ namespace Xenko.Samples.Tests
         public static void Initialize()
         {
             // Locate connection router
-            var connectionRouterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\..\Bin\Windows\Xenko.ConnectionRouter.exe");
+            var connectionRouterPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"Xenko.ConnectionRouter.exe");
             if (!File.Exists(connectionRouterPath))
                 throw new InvalidOperationException("Connection router not found");
 

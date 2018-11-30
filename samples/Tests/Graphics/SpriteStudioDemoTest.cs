@@ -11,7 +11,7 @@ namespace Xenko.Samples.Tests
 {
     public class SpriteStudioDemoTest : IClassFixture<SpriteStudioDemoTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\SpriteStudioDemo";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\SpriteStudioDemo";
 
         public class Fixture : SampleTestFixture
         {

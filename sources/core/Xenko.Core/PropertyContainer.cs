@@ -230,7 +230,7 @@ namespace Xenko.Core
         {
             foreach (var keyValuePair in this)
             {
-                destination.SetObject(keyValuePair.Key, keyValuePair.Key.IsValueType ? ((ValueHolder)keyValuePair.Value).ObjectValue : keyValuePair.Value);
+                destination.SetObject(keyValuePair.Key, keyValuePair.Value);
             }
         }
 

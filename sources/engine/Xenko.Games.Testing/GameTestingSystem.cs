@@ -50,7 +50,7 @@ namespace Xenko.Games.Testing
         {
             var game = (Game)Game;
 
-            var url = $"/service/{XenkoVersion.NuGetVersion}/Xenko.SamplesTestServer.exe";
+            var url = $"/service/Xenko.SamplesTestServer/{XenkoVersion.NuGetVersion}/Xenko.SamplesTestServer.exe";
 
             var socketContext = await RouterClient.RequestServer(url);
 

@@ -11,7 +11,7 @@ namespace Xenko.Samples.Tests
 {
     public class JumpyJetTest : IClassFixture<JumpyJetTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\JumpyJet";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\JumpyJet";
 
         public class Fixture : SampleTestFixture
         {

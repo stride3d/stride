@@ -10,7 +10,7 @@ namespace Xenko.Samples.Tests
 {
     public class AnimatedModelTest : IClassFixture<AnimatedModelTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\AnimatedModel";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\AnimatedModel";
 
         public class Fixture : SampleTestFixture
         {

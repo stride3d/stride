@@ -11,7 +11,7 @@ namespace Xenko.Samples.Tests
 {
     public class GameMenuTest : IClassFixture<GameMenuTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\GameMenu";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\GameMenu";
 
         public class Fixture : SampleTestFixture
         {

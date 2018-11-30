@@ -10,7 +10,7 @@ namespace Xenko.Samples.Tests
 {
     public class MaterialShaderTest : IClassFixture<MaterialShaderTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\MaterialShader";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\MaterialShader";
 
         public class Fixture : SampleTestFixture
         {

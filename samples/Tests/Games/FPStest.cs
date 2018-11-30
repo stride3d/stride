@@ -11,7 +11,7 @@ namespace Xenko.Samples.Tests
 {
     public class FPSTest : IClassFixture<FPSTest.Fixture>
     {
-        private const string Path = "..\\..\\..\\..\\samplesGenerated\\FirstPersonShooter";
+        private const string Path = "..\\..\\..\\..\\..\\samplesGenerated\\FirstPersonShooter";
 
         public class Fixture : SampleTestFixture
         {

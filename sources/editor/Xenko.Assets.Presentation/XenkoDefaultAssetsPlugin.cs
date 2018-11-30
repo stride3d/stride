@@ -79,17 +79,22 @@ namespace Xenko.Assets.Presentation
         public XenkoDefaultAssetsPlugin()
         {
             ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.EffectCompilation, TargetPackage.Executable));
-            ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects,  TargetPackage.Executable));
+            ProfileSettings.Add(new PackageSettingsEntry(GameUserSettings.Effect.RecordUsedEffects, TargetPackage.Executable));
 
+            LoadDefaultTemplates();
+        }
+
+        public static void LoadDefaultTemplates()
+        {
             // Load templates
             // Currently hardcoded, this will need to change with plugin system
-            foreach (var packageName in new[] { "Xenko.Assets.Presentation", "Xenko.SpriteStudio.Offline", "Xenko.Samples.Templates" })
+            foreach (var packageInfo in new[] { new { Name = "Xenko.Assets.Presentation", Version = XenkoVersion.NuGetVersion }, new { Name = "Xenko.SpriteStudio.Offline", Version = XenkoVersion.NuGetVersion }, new { Name = "Xenko.Samples.Templates", Version = XenkoVersion.NuGetVersionSuffix == "-dev" ? "3.1.0.1-dev" : "3.1.0.1" } })
             {
                 var logger = new LoggerResult();
-                var packageFile = PackageStore.Instance.GetPackageFileName(packageName, new PackageVersionRange(new PackageVersion(XenkoVersion.NuGetVersion)));
+                var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
                 var package = Package.Load(logger, packageFile);
                 if (logger.HasErrors)
-                    throw new InvalidOperationException($"Could not load package {packageName}:{Environment.NewLine}{logger.ToText()}");
+                    throw new InvalidOperationException($"Could not load package {packageInfo.Name}:{Environment.NewLine}{logger.ToText()}");
 
                 TemplateManager.RegisterPackage(package);
             }
