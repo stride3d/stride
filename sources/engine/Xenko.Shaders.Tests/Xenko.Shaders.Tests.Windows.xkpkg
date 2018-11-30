@@ -1,0 +1,9 @@
+!Package
+Id: 04ed1618-1a06-4a69-ac34-1006a978af11
+SerializedVersion: {Assets: 3.1.0.0}
+AssetFolders:
+    -   Path: !dir GameAssets
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets: []
