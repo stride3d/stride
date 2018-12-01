@@ -86,6 +86,7 @@ namespace Xenko.Core.Assets.CompilerApp
                     AutoCompileProjects = !builderOptions.DisableAutoCompileProjects,
                     ExtraCompileProperties = builderOptions.ExtraCompileProperties,
                     RemoveUnloadableObjects = true,
+                    BuildConfiguration = builderOptions.ProjectConfiguration,
                 };
 
                 // Loads the root Package

@@ -94,7 +94,7 @@ namespace Xenko.Core.Assets
             // Load some informations about the project
             try
             {
-                var msProject = VSProjectHelper.LoadProject(project.FullPath, extraProperties: new Dictionary<string, string> { { "SkipInvalidConfigurations", "true" } });
+                var msProject = VSProjectHelper.LoadProject(project.FullPath, loadParameters.BuildConfiguration, extraProperties: new Dictionary<string, string> { { "SkipInvalidConfigurations", "true" } });
                 try
                 {
                     var packageVersion = msProject.GetPropertyValue("PackageVersion");
