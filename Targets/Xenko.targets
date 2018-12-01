@@ -333,7 +333,7 @@
   </Target>
 
   <!--Compile assets for all XenkoPackage items and only for an executable-->
-  <Target Name="XenkoCompileAsset" DependsOnTargets="XenkoUpdateGraphicsPlatform" Condition="'$(XenkoIsExecutable)' == 'true'">
+  <Target Name="XenkoCompileAsset" DependsOnTargets="XenkoUpdateGraphicsPlatform" Condition="'$(XenkoIsExecutable)' == 'true' And '$(XenkoCompileAssets)' != 'false'">
     <PropertyGroup>
       <XenkoCompileAssetCommandProxy>$(XenkoCompileAssetCommandProxy) $(XenkoCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(XenkoPlatform) --project-configuration=$(Configuration) --output-path=&quot;$(XenkoCompileAssetOutputPath)&quot; --build-path=&quot;$(XenkoCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --log-pipe=&quot;$(XenkoBuildEngineLogPipeUrl)&quot;</XenkoCompileAssetCommandProxy>
       <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogVerbose)' != ''">$(XenkoCompileAssetCommandProxy) --verbose</XenkoCompileAssetCommandProxy>

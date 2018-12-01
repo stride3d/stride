@@ -11,6 +11,7 @@
     <XenkoPlatform>Windows</XenkoPlatform>
     <XenkoBuildProfile>Windows</XenkoBuildProfile>
     <XenkoPackageGuid>{04ed1618-1a06-4a69-ac34-1006a978af11}</XenkoPackageGuid>
+    <XenkoCompileAssets>false</XenkoCompileAssets>
     <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
     <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
     <XenkoOpenSourceSign>false</XenkoOpenSourceSign>
