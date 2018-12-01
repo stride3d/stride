@@ -28,7 +28,7 @@ namespace Xenko.Core.Assets
             foreach (var library in result.LockFile.Libraries)
             {
                 // Try several known path (note: order matters)
-                foreach (var startPattern in new[] { "runtimes/win7-d3d11/lib/net4", "runtimes/win/lib/net4", "lib/net4", "lib/net35", "lib/netstandard2.", "lib/netstandard1." })
+                foreach (var startPattern in new[] { "runtimes/win7-d3d11/lib/net4", "runtimes/win/lib/net4", "lib/net4", "lib/net35", "lib/netstandard2.", "lib/netstandard1.", "lib/net10" })
                 {
                     foreach (var file in library.Files)
                     {
