@@ -106,6 +106,7 @@ namespace Xenko.Core.Assets.Tests
 
             var package = new Package();
             package.Assets.Add(new AssetItem("0", asset));
+            var session = new PackageSession(package);
 
             for (int i = 0; i < 10; i++)
             {

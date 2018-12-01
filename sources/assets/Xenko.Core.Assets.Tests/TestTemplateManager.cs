@@ -28,11 +28,6 @@ namespace Xenko.Core.Assets.Tests
         {
             TemplateManager.Register(this);
 
-            // Preload templates defined in Xenko.xkpkg
-            var descriptions = TemplateManager.FindTemplates().ToList();
-
-            Assert.True(descriptions.Count > 0);
-
             var templateGenerator = TemplateManager.FindTemplateGenerator(new SessionTemplateGeneratorParameters());
 
             Assert.Equal(this, templateGenerator);
