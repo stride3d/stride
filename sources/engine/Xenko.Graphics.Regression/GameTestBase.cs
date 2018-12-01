@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using Xunit;
@@ -324,6 +325,20 @@ namespace Xenko.Graphics.Regression
             Assert.True(failedTests.Count == 0, $"Some image comparison tests failed: {string.Join(", ", failedTests.Select(x => x))}");
         }
 
+        private static string FindXenkoRootFolder()
+        {
+            // Make sure our nuget local store is added to nuget config
+            var folder = PlatformFolders.ApplicationBinaryDirectory;
+            while (folder != null)
+            {
+                if (File.Exists(Path.Combine(folder, @"build\Xenko.sln")))
+                    return folder;
+                folder = Path.GetDirectoryName(folder);
+            }
+
+            throw new InvalidOperationException("Could not locate Xenko folder");
+        }
+
         /// <summary>
         /// Send the data of the test to the server.
         /// </summary>
@@ -347,10 +362,12 @@ namespace Xenko.Graphics.Regression
             throw new NotImplementedException();
 #endif
 
-            var testFilename = GenerateName(Path.Combine(PlatformFolders.ApplicationBinaryDirectory, @"..\..\..\..\..\tests"), frame, platformSpecific);
-            var testFilenamePattern = GenerateName(Path.Combine(PlatformFolders.ApplicationBinaryDirectory, @"..\..\..\..\..\tests"), frame, null);
+            var rootFolder = FindXenkoRootFolder();
+
+            var testFilename = GenerateName(Path.Combine(rootFolder, "tests"), frame, platformSpecific);
+            var testFilenamePattern = GenerateName(Path.Combine(rootFolder, "tests"), frame, null);
             testFilenamePattern = Path.Combine(Path.GetDirectoryName(testFilenamePattern), Path.GetFileNameWithoutExtension(testFilenamePattern) + ".*" + Path.GetExtension(testFilenamePattern));
-            var testFilenameUser = GenerateName(Path.Combine(PlatformFolders.ApplicationBinaryDirectory, @"..\..\..\..\..\tests\local"), frame, platformSpecific);
+            var testFilenameUser = GenerateName(Path.Combine(rootFolder, @"tests\local"), frame, platformSpecific);
 
             var testFilenames = new[] { testFilename };
             
