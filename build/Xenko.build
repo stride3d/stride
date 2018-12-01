@@ -7,7 +7,6 @@ Example of use:
 <Project ToolsVersion="15.0" DefaultTarget="Help" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <XenkoRoot>$(MSBuildThisFileDirectory)..\</XenkoRoot>
-    <XenkoRootBin>$(XenkoRoot)Bin\Windows\</XenkoRootBin>
     <XenkoSolution>$(XenkoRoot)build\Xenko</XenkoSolution>
     <XenkoSolutionLauncher>$(XenkoRoot)build\Xenko.Launcher</XenkoSolutionLauncher>
     <XenkoPlatforms Condition="'$(XenkoPlatforms)' == ''">Windows</XenkoPlatforms>
@@ -364,7 +363,7 @@ Example of use:
 	
     <!-- Run unit tests -->
     <MakeDir Directories="$(MSBuildThisFileDirectory)TestResults"/>
-    <Exec Command="&quot;$(XunitRunnerConsolePath)&quot; @(AssembliesToTest->'%(Identity)', ' ')" WorkingDirectory="$(XenkoRootBin)"/>
+    <Exec Command="&quot;$(XunitRunnerConsolePath)&quot; @(AssembliesToTest->'%(Identity)', ' ')"/>
   </Target>
   
   <ItemGroup>
@@ -390,7 +389,6 @@ Example of use:
   <Target Name="RunTestsMobile" DependsOnTargets="DownloadXunitRunnerConsole" Outputs="%(MobileUnitTestProject.Identity)">
     <PropertyGroup>
       <XenkoRoot>$(MSBuildThisFileDirectory)..\</XenkoRoot>
-      <XenkoRootBin>$(XenkoRoot)Bin\Windows\</XenkoRootBin>
       <XenkoPlatform></XenkoPlatform>
       <XenkoPlatform Condition="'$(PlatformToBuild)' == 'iOS'">Platform=iPhone</XenkoPlatform>
       <XenkoPlatform Condition="'$(PlatformToBuild)' == 'Android'">Platform=Android</XenkoPlatform>
@@ -407,7 +405,7 @@ Example of use:
     </MSBuild>
     <Exec IgnoreExitCode="True" Command='taskkill /F /FI "Imagename eq Xenko.Core.Assets.CompilerApp*"' />
     
-    <Exec Condition="'$(PlatformToBuild)' == 'Android'" Command="$(XenkoRootBin)Xenko.TestRunner.exe %(MobileUnitTestApk.Identity)" WorkingDirectory="$(XenkoRootBin)">
+    <Exec Condition="'$(PlatformToBuild)' == 'Android'" Command="$(XenkoRoot)sources\tools\Xenko.TestRunner\bin\Release\net472\Xenko.TestRunner.exe %(MobileUnitTestApk.Identity)">
       <Output TaskParameter="ExitCode" ItemName="exitCode" />
     </Exec>
   </Target>
