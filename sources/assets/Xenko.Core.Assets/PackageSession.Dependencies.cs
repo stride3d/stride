@@ -295,7 +295,8 @@ namespace Xenko.Core.Assets
                     switch (projectDependency.Type)
                     {
                         case DependencyType.Project:
-                            file = UPath.Combine(project.FullPath.GetFullDirectory(), (UFile)projectDependency.MSBuildProject);
+                            if (Path.GetExtension(projectDependency.MSBuildProject).ToLowerInvariant() == ".csproj")
+                                file = UPath.Combine(project.FullPath.GetFullDirectory(), (UFile)projectDependency.MSBuildProject);
                             break;
                         case DependencyType.Package:
                             file = PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(projectDependency.Version), constraintProvider);
