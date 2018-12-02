@@ -54,8 +54,37 @@ namespace Xenko.Assets.Physics
         protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
         {
             var asset = (ColliderShapeAsset)assetItem.Asset;
+
+            var urls = new List<string>();
+
+            foreach (var desc in asset.ColliderShapes)
+            {
+                if (desc is ConvexHullColliderShapeDesc)
+                {
+                    var convexHullDesc = desc as ConvexHullColliderShapeDesc;
+
+                    if (convexHullDesc.Model != null)
+                    {
+                        var url = AttachedReferenceManager.GetUrl(convexHullDesc.Model);
+
+                        if (!string.IsNullOrEmpty(url))
+                        {
+                            urls.Add(url);
+                        }
+                    }
+                }
+            }
+
+            IEnumerable<ObjectUrl> InputFilesGetter()
+            {
+                foreach (var url in urls)
+                {
+                    yield return new ObjectUrl(UrlType.Content, url);
+                }
+            }
+
             result.BuildSteps = new AssetBuildStep(assetItem);
-            result.BuildSteps.Add(new ColliderShapeCombineCommand(targetUrlInStorage, asset, assetItem.Package));
+            result.BuildSteps.Add(new ColliderShapeCombineCommand(targetUrlInStorage, asset, assetItem.Package) { InputFilesGetter = InputFilesGetter });
         }
 
         public class ColliderShapeCombineCommand : AssetCommand<ColliderShapeAsset>
