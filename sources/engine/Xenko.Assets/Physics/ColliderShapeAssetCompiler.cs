@@ -51,12 +51,9 @@ namespace Xenko.Assets.Physics
             yield return typeof(TextureAsset);
         }
 
-        protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
+        public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
         {
             var asset = (ColliderShapeAsset)assetItem.Asset;
-
-            var urls = new List<string>();
-
             foreach (var desc in asset.ColliderShapes)
             {
                 if (desc is ConvexHullColliderShapeDesc)
@@ -69,22 +66,19 @@ namespace Xenko.Assets.Physics
 
                         if (!string.IsNullOrEmpty(url))
                         {
-                            urls.Add(url);
+                            yield return new ObjectUrl(UrlType.Content, url);
                         }
                     }
                 }
             }
+        }
 
-            IEnumerable<ObjectUrl> InputFilesGetter()
-            {
-                foreach (var url in urls)
-                {
-                    yield return new ObjectUrl(UrlType.Content, url);
-                }
-            }
+        protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
+        {
+            var asset = (ColliderShapeAsset)assetItem.Asset;
 
             result.BuildSteps = new AssetBuildStep(assetItem);
-            result.BuildSteps.Add(new ColliderShapeCombineCommand(targetUrlInStorage, asset, assetItem.Package) { InputFilesGetter = InputFilesGetter });
+            result.BuildSteps.Add(new ColliderShapeCombineCommand(targetUrlInStorage, asset, assetItem.Package) { InputFilesGetter = () => GetInputFiles(assetItem) });
         }
 
         public class ColliderShapeCombineCommand : AssetCommand<ColliderShapeAsset>
