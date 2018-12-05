@@ -796,15 +796,16 @@ namespace Xenko.Core.Assets
 
                         session.LoadMissingDependencies(sessionResult, loadParameters);
                     }
-                    else if (Path.GetExtension(filePath).ToLowerInvariant() == ".csproj")
+                    else if (Path.GetExtension(filePath).ToLowerInvariant() == ".csproj"
+                        || Path.GetExtension(filePath).ToLowerInvariant() == Package.PackageFileExtension)
                     {
-                        var project = (SolutionProject)session.LoadProject(sessionResult, filePath, false, loadParameters);
+                        var project = session.LoadProject(sessionResult, filePath, false, loadParameters);
                         session.Projects.Add(project);
-                        firstProject = project;
+                        firstProject = project as SolutionProject;
                     }
                     else
                     {
-                        sessionResult.Error($"Unsupported file extension (only .sln are supported)");
+                        sessionResult.Error($"Unsupported file extension (only .sln, .csproj and .xkpkg are supported)");
                         return;
                     }
 

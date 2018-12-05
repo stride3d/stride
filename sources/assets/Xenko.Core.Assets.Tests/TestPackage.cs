@@ -21,8 +21,6 @@ namespace Xenko.Core.Assets.Tests
             var dirPath = DirectoryTestBase + @"TestBasicPackageCreateSaveLoad";
 
             string testGenerated1 = Path.Combine(dirPath, "TestPackage_TestBasicPackageCreateSaveLoad_Generated1.xkpkg");
-            string testGenerated2 = Path.Combine(dirPath,"TestPackage_TestBasicPackageCreateSaveLoad_Generated2.xkpkg");
-            string referenceFilePath = Path.Combine(dirPath,"TestPackage_TestBasicPackageCreateSaveLoad_Reference.xkpkg");
 
             // Force the PackageId to be the same each time we run the test
             // Usually the PackageId is unique and generated each time we create a new project
@@ -56,17 +54,8 @@ namespace Xenko.Core.Assets.Tests
             var project2 = project2Result.Session.LocalPackages.FirstOrDefault();
             Assert.NotNull(project2);
             Assert.True(project2.AssetFolders.Count > 0);
-            Assert.Equal(project2.Container, project2Result.Session.CurrentProject); // Check that the current package is setup when loading a single package
             var sourceFolder = project.AssetFolders.First().Path;
             Assert.Equal(sourceFolder, project2.AssetFolders.First().Path);
-
-            // Reload the package from the sln
-            var sessionResult = PackageSession.Load(session.SolutionPath);
-            Assert.False(sessionResult.HasErrors);
-
-            var sessionReload = sessionResult.Session;
-            Assert.Single(sessionReload.LocalPackages);
-            var reloadPackage = sessionReload.LocalPackages.First();
         }
 
         [Fact]
