@@ -616,6 +616,11 @@ namespace Xenko.Core.Packages
             return File.Exists(GetRedirectFile(package));
         }
 
+        public bool IsDevRedirectPackage(NugetServerPackage package)
+        {
+            return package.Version.SpecialVersion?.StartsWith("dev") ?? false;
+        }
+
         private void OnPackageInstalled(object sender, PackageOperationEventArgs args)
         {
             var packageInstallPath = Path.Combine(args.InstallPath, "tools\\packageinstall.exe");
