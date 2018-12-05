@@ -22,11 +22,6 @@ namespace Xenko.Core.Assets
         private const string XenkoPackage = "XenkoPackage";
         private static readonly string[] SolutionPackageIdentifier = new[] { XenkoPackage, "SiliconStudioPackage" };
 
-        public static bool IsSolutionFile(string filePath)
-        {
-            return String.Compare(Path.GetExtension(filePath), ".sln", StringComparison.InvariantCultureIgnoreCase) == 0;
-        }
-
         public static async Task<PackageVersion> GetPackageVersion(string fullPath)
         {
             try

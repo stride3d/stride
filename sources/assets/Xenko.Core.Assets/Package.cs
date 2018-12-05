@@ -1278,9 +1278,9 @@ namespace Xenko.Core.Assets
 
                             for (int i = 0; i < profile.ResourceFolders.Count; ++i)
                             {
-                                var resourcePath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UDirectory)(string)profile.ResourceFolders[i].Path);
+                                var resourcePath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UDirectory)(string)profile.ResourceFolders[i]);
                                 resourcePath = resourcePath.MakeRelative(assetFile.FilePath.GetFullDirectory());
-                                profile.ResourceFolders[i].Path = (string)resourcePath;
+                                profile.ResourceFolders[i] = (string)resourcePath;
                             }
 
                             asset.AssetFolders = profile.AssetFolders;

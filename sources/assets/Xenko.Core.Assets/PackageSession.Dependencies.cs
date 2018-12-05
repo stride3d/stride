@@ -121,6 +121,20 @@ namespace Xenko.Core.Assets
                         if (packageReference.HasMetadata("Version") && PackageVersionRange.TryParse(packageReference.GetMetadataValue("Version"), out var packageRange))
                             packageReferences[packageReference.EvaluatedInclude] = packageRange;
                     }
+
+                    // Need to go recursively
+                    foreach (var projectReference in msProject.GetItems("ProjectReference").ToList())
+                    {
+                        var projectFile = new UFile(Path.Combine(Path.GetDirectoryName(project.FullPath), projectReference.EvaluatedInclude));
+                        if (File.Exists(projectFile))
+                        {
+                            var referencedProject = Projects.OfType<SolutionProject>().FirstOrDefault(x => x.FullPath == new UFile(projectFile));
+                            if (referencedProject != null)
+                            {
+                                await PreLoadPackageDependencies(log, referencedProject, loadParameters);
+                            }
+                        }
+                    }
                 }
                 finally
                 {

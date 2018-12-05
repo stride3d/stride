@@ -401,6 +401,11 @@ namespace Xenko.Core.Assets
     /// </summary>
     public sealed partial class PackageSession : IDisposable, IAssetFinder
     {
+        internal static readonly string SolutionHeader = @"Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = {0}
+MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
+
         /// <summary>
         /// The visual studio version property used for newly created project solution files
         /// </summary>
@@ -426,7 +431,7 @@ namespace Xenko.Core.Assets
         public PackageSession()
         {
             VSSolution = new VisualStudio.Solution();
-            VSSolution.Headers.Add(PackageSessionHelper.SolutionHeader);
+            VSSolution.Headers.Add(SolutionHeader);
 
             Projects = new ProjectCollection();
             Projects.CollectionChanged += ProjectsCollectionChanged;
@@ -706,6 +711,30 @@ namespace Xenko.Core.Assets
         {
             var project = Package.LoadProject(log, filePath);
 
+            // Upgrade from 3.0: figure out if this was the package project
+            var vsProject = VSSolution.Projects.FirstOrDefault(x => x.FullPath == filePath);
+            var vsPackage = vsProject?.GetParentProject(VSSolution);
+            if (vsPackage != null && PackageSessionHelper.IsPackage(vsPackage, out var packagePathRelative))
+            {
+                var packagePath = Path.Combine(Path.GetDirectoryName(VSSolution.FullPath), packagePathRelative);
+                if (File.Exists(packagePath))
+                {
+                    var packageProject = Package.LoadProject(log, packagePath);
+                    if ((packageProject as SolutionProject)?.FullPath == new UFile(filePath))
+                    {
+                        project = packageProject;
+
+                        // Remove solution folder
+                        foreach (var vsProject2 in VSSolution.Projects)
+                        {
+                            if (vsProject2.ParentGuid == vsPackage.Guid)
+                                vsProject2.ParentGuid = Guid.Empty;
+                        }
+                        VSSolution.Projects.Remove(vsPackage);
+                    }
+                }
+            }
+
             var package = project.Package;
             package.IsSystem = isSystem;
 
@@ -762,7 +791,7 @@ namespace Xenko.Core.Assets
                     SolutionProject firstProject = null;
 
                     // If we have a solution, load all packages
-                    if (PackageSessionHelper.IsSolutionFile(filePath))
+                    if (Path.GetExtension(filePath).ToLowerInvariant() == ".sln")
                     {
                         // The session should save back its changes to the solution
                         var solution = session.VSSolution = VisualStudio.Solution.FromFile(filePath);
@@ -775,7 +804,8 @@ namespace Xenko.Core.Assets
                         else
                             session.VisualStudioVersion = null;
 
-                        foreach (var vsProject in solution.Projects)
+                        // Note: using ToList() because upgrade from old package system might change Projects list
+                        foreach (var vsProject in solution.Projects.ToList())
                         {
                             if (vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharpNewSystem)
                             {
