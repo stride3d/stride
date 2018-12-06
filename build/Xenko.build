@@ -89,7 +89,13 @@ Example of use:
     <PropertyGroup>
       <BuildProperties>$(BuildProperties);XenkoGenerateDoc=true;XenkoPackageBuild=true;XenkoSignTool=true</BuildProperties>
     </PropertyGroup>
-    
+	
+    <ItemGroup>
+      <FilesToDeletePackages Include="$(XenkoRoot)bin\packages\*.nupkg"/>
+    </ItemGroup>
+
+    <Delete Files="@(FilesToDeletePackages)"/>
+
     <!-- Make sure Xenko.GitVersioning is built to run the task to update package version.
          It might be better to move it to a prebuilt assembly if that becomes a problem.
     -->
