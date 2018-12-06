@@ -12,7 +12,7 @@
     <tags>internal</tags>
   </metadata>
   <files>
-    <file src="bin\Release\Xenko.vsix" target="tools" />
+    <file src="bin\Xenko.vsix" target="tools" />
     <file src="..\Xenko.VisualStudio.PackageInstall\bin\Release\packageinstall.exe" target="tools" />
     <file src="..\Xenko.VisualStudio.PackageInstall\bin\Release\Microsoft.VisualStudio.Setup.Configuration.Interop.dll" target="tools" />
   </files>

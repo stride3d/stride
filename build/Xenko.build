@@ -32,13 +32,13 @@ Example of use:
   -->
   <Target Name="VSIXPlugin" DependsOnTargets="Restore">
     <ItemGroup>
-      <FilesToDeleteVSIX Include="$(XenkoRoot)bin\launcher\*.nupkg"/>
+      <FilesToDeleteVSIX Include="$(XenkoRoot)bin\vsix\*.nupkg"/>
     </ItemGroup>
 
     <Delete Files="@(FilesToDeleteVSIX)"/>
 
     <MSBuild Targets="91-VisualStudio\Xenko_VisualStudio_Package;91-VisualStudio\Xenko_VisualStudio_PackageInstall" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
-    <Exec Command='"$(NuGetPath)" pack "$(XenkoRoot)sources\tools\Xenko.VisualStudio.Package\Xenko.VisualStudio.Package.nuspec" -BasePath "$(XenkoRoot)sources\tools\Xenko.VisualStudio.Package" -OutputDirectory "$(XenkoRoot)bin\launcher"' />
+    <Exec Command='"$(NuGetPath)" pack "$(XenkoRoot)sources\tools\Xenko.VisualStudio.Package\Xenko.VisualStudio.Package.nuspec" -BasePath "$(XenkoRoot)sources\tools\Xenko.VisualStudio.Package" -OutputDirectory "$(XenkoRoot)bin\vsix"' />
   </Target>
   
   <!--

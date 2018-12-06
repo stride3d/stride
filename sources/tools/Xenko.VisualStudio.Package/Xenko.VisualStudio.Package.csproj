@@ -9,8 +9,8 @@
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
     <TargetVsixContainerName>Xenko.vsix</TargetVsixContainerName>
+    <TargetVsixContainer>bin\$(TargetVsixContainerName)</TargetVsixContainer>
     <RootNamespace>Xenko.VisualStudio</RootNamespace>
-    <XenkoOutputPath>bin\$(Configuration)\</XenkoOutputPath>
     <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>Key.snk</AssemblyOriginatorKeyFile>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
