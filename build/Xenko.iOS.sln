@@ -36,19 +36,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Ta
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "80-Shaders", "80-Shaders", "{10D145AF-C8AE-428F-A80F-CA1B591D0DB2}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.User", "00-Targets.User", "{BB2D1F96-E184-4EE2-8677-3EA5E059E1A6}"
-	ProjectSection(SolutionItems) = preProject
-		..\Targets\Xenko.Android.targets = ..\Targets\Xenko.Android.targets
-		..\Targets\Xenko.Common.targets = ..\Targets\Xenko.Common.targets
-		..\Targets\Xenko.CoreCLR.targets = ..\Targets\Xenko.CoreCLR.targets
-		..\Targets\Xenko.iOS.targets = ..\Targets\Xenko.iOS.targets
-		..\Targets\Xenko.Linux.targets = ..\Targets\Xenko.Linux.targets
-		..\Targets\Xenko.macOS.targets = ..\Targets\Xenko.macOS.targets
-		..\Targets\Xenko.targets = ..\Targets\Xenko.targets
-		..\Targets\Xenko.UWP.targets = ..\Targets\Xenko.UWP.targets
-		..\Targets\Xenko.Windows.targets = ..\Targets\Xenko.Windows.targets
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Config", "00-Config", "{7662CECF-2A3D-4DBA-AB3D-77FD8536E7A3}"
 	ProjectSection(SolutionItems) = preProject
 		..\sources\shared\SharedAssemblyInfo.cs = ..\sources\shared\SharedAssemblyInfo.cs

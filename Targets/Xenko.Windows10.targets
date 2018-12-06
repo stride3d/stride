@@ -1,4 +1,0 @@
-<!-- Build file post-included by all Xenko projects -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildThisFileDirectory)\Xenko.UWP.targets"/>
-</Project>

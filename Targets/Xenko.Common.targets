@@ -1,8 +1,0 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup>
-    <XenkoPackageXenkoVersion>dev</XenkoPackageXenkoVersion>
-  </PropertyGroup>
-
-  <!-- This is the target file used by samples at development time. -->
-  <Import Project="$(MSBuildThisFileDirectory)\Xenko.targets"/>
-</Project>
