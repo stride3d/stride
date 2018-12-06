@@ -4,6 +4,8 @@
   <Import Project="$(SolutionDir)$(SolutionName).PreSettings.Local.targets" Condition="Exists('$(SolutionDir)$(SolutionName).PreSettings.Local.targets')" />
   <Import Project="$(SolutionDir)Xenko.Core.PreSettings.Local.targets" Condition="Exists('$(SolutionDir)Xenko.Core.PreSettings.Local.targets')" />
 
+  <Import Project="$(MSBuildThisDirectory)..\..\sources\core\Xenko.Core\build\Xenko.Core.props"/>
+
   <PropertyGroup>
     <XenkoPlatformFullName>$(XenkoPlatform)</XenkoPlatformFullName>
     <XenkoPlatformFullName Condition="'$(XenkoBuildDirExtension)' != ''">$(XenkoPlatformFullName)-$(XenkoBuildDirExtension)</XenkoPlatformFullName>

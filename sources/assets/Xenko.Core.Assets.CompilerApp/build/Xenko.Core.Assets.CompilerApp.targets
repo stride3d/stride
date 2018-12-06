@@ -45,7 +45,8 @@
     <!--asset OutputPath for other platforms. Note: this is overridden for UnitTests projects. -->
     <XenkoCompileAssetOutputPath Condition="'$(XenkoCompileAssetOutputPath)' == ''">$(TargetDir)data</XenkoCompileAssetOutputPath>
 
-    <XenkoCompileAssetCommand Condition="'$(XenkoCompileAssetCommand)' == ''">$(MSBuildThisFileDirectory)..\lib\net472\Xenko.Core.Assets.CompilerApp.exe</XenkoCompileAssetCommand>
+    <XenkoCompileAssetCommand Condition="'$(XenkoCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\lib\net472\Xenko.Core.Assets.CompilerApp.exe')">$(MSBuildThisFileDirectory)..\lib\net472\Xenko.Core.Assets.CompilerApp.exe</XenkoCompileAssetCommand>
+    <XenkoCompileAssetCommand Condition="'$(XenkoCompileAssetCommand)' == '' And Exists('$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net472\Xenko.Core.Assets.CompilerApp.exe')">$(MSBuildThisFileDirectory)..\bin\$(Configuration)\net472\Xenko.Core.Assets.CompilerApp.exe</XenkoCompileAssetCommand>
 
     <!--<XenkoCompileAssetCommandProxy Condition="'$(DisableAssetCompilerExecServerProxy)' == 'true' Or '$(XenkoDisableAssetCompilerExecServerProxy)' == 'true'">&quot;$(XenkoCompileAssetCommand)&quot;</XenkoCompileAssetCommandProxy>
     <XenkoCompileAssetCommandProxy Condition="'$(XenkoCompileAssetCommandProxy)' == ''">&quot;$(XenkoPackageXenkoSdkBin)\Xenko.Core.Assets.CompilerClient.exe&quot;</XenkoCompileAssetCommandProxy>-->

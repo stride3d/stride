@@ -37,7 +37,8 @@
     <AssemblyOriginatorKeyFile Condition="'$(XenkoOpenSourceSign)' == 'true'">$(SolutionDir)xenko.public.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   
-  <Import Project="$(MSBuildThisFileDirectory)\..\..\Targets\Xenko.Common.targets"/>
+  <Import Project="$(MSBuildThisDirectory)..\..\sources\core\Xenko.Core\build\Xenko.Core.targets"/>
+  <Import Project="$(MSBuildThisDirectory)..\..\sources\assets\Xenko.Core.Assets.CompilerApp\build\Xenko.Core.Assets.CompilerApp.targets"/>
 
   <!-- Add Default targets used by Msbuild for undefined Platforms / or when skipping compilation under a platform -->
   <Import Condition="'$(XenkoCompilerTargetsEnable)' == 'false'" Project="$(MSBuildThisFileDirectory)Xenko.UnitTests.DisableBuild.targets"/>

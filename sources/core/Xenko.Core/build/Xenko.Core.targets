@@ -55,7 +55,8 @@
   <PropertyGroup>
     <!--By default, turn on assembly processor-->
     <XenkoAssemblyProcessor Condition="'$(XenkoAssemblyProcessor)' == ''">true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorPath>$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe</XenkoAssemblyProcessorPath>
+    <XenkoAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe</XenkoAssemblyProcessorPath>
+    <XenkoAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe</XenkoAssemblyProcessorPath>
   </PropertyGroup>
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(XenkoAssemblyProcessorPath)" Condition=" '$(XenkoAssemblyProcessorPath)' != '' And '$(XenkoAssemblyProcessorDev)' != 'true' "/>
   <Target Name="XenkoRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">
