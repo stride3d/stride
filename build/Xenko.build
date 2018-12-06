@@ -16,7 +16,7 @@ Example of use:
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
     <XunitRunnerConsoleVersion>2.3.1</XunitRunnerConsoleVersion>
     <XenkoStoreUrl Condition="'$(XenkoStoreUrl)' == ''">https://xenko-packages.azurewebsites.net/api/v2/package</XenkoStoreUrl>
-    <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 14.4.2\bin\x86\advinst.exe')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 14.4.2\bin\x86\advinst.exe</AdvancedInstallerPath>
+    <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 15.5.1\bin\x86\advinst.exe')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 15.5.1\bin\x86\advinst.exe</AdvancedInstallerPath>
   </PropertyGroup>
 
   <UsingTask TaskName="Xenko.GitVersioning.GenerateVersionFile" AssemblyFile="$(XenkoRoot)deps\Xenko.GitVersioning\bin\Debug\net472\Xenko.GitVersioning.dll" />
@@ -32,13 +32,13 @@ Example of use:
   -->
   <Target Name="VSIXPlugin" DependsOnTargets="Restore">
     <ItemGroup>
-      <FilesToDeleteVSIX Include="$(MSBuildThisFileDirectory)Xenko.VisualStudio.Package.*.nupkg"/>
+      <FilesToDeleteVSIX Include="$(XenkoRoot)bin\launcher\*.nupkg"/>
     </ItemGroup>
 
     <Delete Files="@(FilesToDeleteVSIX)"/>
 
     <MSBuild Targets="91-VisualStudio\Xenko_VisualStudio_Package;91-VisualStudio\Xenko_VisualStudio_PackageInstall" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);Platform=Mixed Platforms"/>
-    <Exec Command='"$(NuGetPath)" pack "$(XenkoRoot)sources\tools\Xenko.VisualStudio.Package\Xenko.VisualStudio.Package.nuspec" -BasePath "$(XenkoRoot)sources\tools\Xenko.VisualStudio.Package"' />
+    <Exec Command='"$(NuGetPath)" pack "$(XenkoRoot)sources\tools\Xenko.VisualStudio.Package\Xenko.VisualStudio.Package.nuspec" -BasePath "$(XenkoRoot)sources\tools\Xenko.VisualStudio.Package" -OutputDirectory "$(XenkoRoot)bin\launcher"' />
   </Target>
   
   <!--
@@ -107,14 +107,10 @@ Example of use:
 	<Message Text="Done preparing build for version $(XenkoPackageVersion)"/>
 	<TeamCitySetBuildNumber BuildNumber="$(XenkoPackageVersion)" Condition="'$(TEAMCITY_BUILD_PROPERTIES_FILE)' != '' " />
   </Target>
-  <Target Name="Package" DependsOnTargets="PreparePackageBuild;Build;BuildEditorShaders;VSIXPlugin;PrerequisitesInstaller"/>
+  <Target Name="Package" DependsOnTargets="PreparePackageBuild;Build;VSIXPlugin;PrerequisitesInstaller"/>
   
   <Target Name="CopyXenkoKey">
     <Copy Condition="'$(XenkoSign)' == 'true' And Exists('$(LOCALAPPDATA)\Xenko\XenkoBuildKey\xenko.snk')" SourceFiles="$(LOCALAPPDATA)\Xenko\XenkoBuildKey\xenko.snk" DestinationFolder="$(MSBuildThisFileDirectory)"/>
-  </Target>
-
-  <Target Name="BuildEditorShaders">
-    <Exec Command="$(XenkoRoot)sources\editor\Xenko.Assets.Presentation\EditorPackage\generate-editor-package.bat" WorkingDirectory="$(XenkoRoot)sources\editor\Xenko.Assets.Presentation\EditorPackage"/>
   </Target>
 
   <Target Name="Restore">
@@ -415,24 +411,24 @@ Example of use:
   -->
   <Target Name="PackageLauncher" DependsOnTargets="LauncherPrerequisitesInstaller">
     <ItemGroup>
-      <FilesToDeleteLauncher Include="$(MSBuildThisFileDirectory)Xenko.Launcher*.nupkg"/>
+      <FilesToDeleteLauncher Include="$(XenkoRoot)bin\launcher\*.nupkg"/>
     </ItemGroup>
 
     <!-- Note: we avoid building again if BuildWindows was already ran just before -->
     <Delete Files="@(FilesToDeleteLauncher)"/>
     
     <!-- Generate the nuget package for the launcher application -->
-    <Exec Command='"$(NuGetPath)" pack "$(XenkoRoot)sources\launcher\Xenko.LauncherApp\Xenko.LauncherApp.nuspec" -BasePath "$(XenkoRoot)sources\launcher\Xenko.LauncherApp\bin\Release"' />
+    <Exec Command='"$(NuGetPath)" pack "$(XenkoRoot)sources\launcher\Xenko.LauncherApp\Xenko.LauncherApp.nuspec" -BasePath "$(XenkoRoot)sources\launcher\Xenko.LauncherApp\bin\Release" -OutputDirectory "$(XenkoRoot)bin\launcher"' />
   </Target>
   
   <!--
   Package Installer: XenkoSetup.exe
   -->
   <Target Name="PackageInstallerSimple" DependsOnTargets="PackageLauncher">
-    <Delete Files="XenkoSetup.exe"/>
+    <Delete Files="$(XenkoRoot)bin\launcher\XenkoSetup.exe"/>
     <!-- Run advanced installer -->
     <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(XenkoRoot)sources\launcher\Setup\setup.aip"'/>
-    <Copy SourceFiles="$(XenkoRoot)sources\launcher\Setup\setup-SetupFiles\XenkoSetup.exe" DestinationFolder="$(MSBuildThisFileDirectory)"/>
+    <Copy SourceFiles="$(XenkoRoot)sources\launcher\Setup\setup-SetupFiles\XenkoSetup.exe" DestinationFolder="$(XenkoRoot)bin\launcher"/>
   </Target>
   <Target Name="PackageInstallerCustom" DependsOnTargets="PackageLauncher">
     <Error Condition="'$(CustomInstaller)' == '' Or '$(CustomInstallerStoreUrl)' == ''" Text="When CustomInstaller is set, CustomInstallerStoreUrl also needs to be defined"/>
@@ -497,7 +493,7 @@ Example of use:
   
   <Target Name="BuildLauncher" DependsOnTargets="CopyXenkoKey">
     <Exec Command='"$(NuGetPath)" restore "$(XenkoSolutionLauncher).sln"' />
-	<MSBuild Targets="Build" Projects="$(XenkoSolutionLauncher).sln" Properties="$(BuildProperties);Platform=Any CPU"/>
+	<MSBuild Targets="Build" Projects="$(XenkoSolutionLauncher).sln" Properties="$(BuildProperties);XenkoSignTool=true;Platform=Any CPU"/>
   </Target>
 
 </Project>

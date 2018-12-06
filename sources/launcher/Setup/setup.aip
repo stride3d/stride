@@ -82,7 +82,7 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
     <ROW File="Xenko.exe" Component_="Xenko.exe" FileName="Xenko.exe" Attributes="0" SourcePath="..\Xenko.LauncherApp\bin\Release\Xenko.exe" SelfReg="false" NextFile="store.config"/>
     <ROW File="Xenko.exe.config" Component_="store.config" FileName="XENKOE~1.CON|Xenko.exe.config" Attributes="0" SourcePath="..\Xenko.LauncherApp\bin\Release\Xenko.exe.config" SelfReg="false" NextFile="launcherprerequisites.exe"/>
-    <ROW File="launcherprerequisites.exe" Component_="launcherprerequisites.exe" FileName="LAUNCH~1.EXE|launcher-prerequisites.exe" Attributes="0" SourcePath="..\Prerequisites\launcher-prerequisites.exe" SelfReg="false" DigSign="true"/>
+    <ROW File="launcherprerequisites.exe" Component_="launcherprerequisites.exe" FileName="LAUNCH~1.EXE|launcher-prerequisites.exe" Attributes="0" SourcePath="..\Prerequisites\launcher-prerequisites.exe" SelfReg="false"/>
     <ROW File="store.config" Component_="store.config" FileName="STORE~1.CON|store.config" Attributes="0" SourcePath="..\Xenko.LauncherApp\bin\Release\store.config" SelfReg="false" NextFile="Xenko.exe.config"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AiRemoveFileComponent">
