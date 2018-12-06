@@ -504,11 +504,18 @@ namespace Xenko.Core.Packages
             {
                 foreach (var repo in repositories)
                 {
-                    var metadataResource = await repo.GetResourceAsync<PackageMetadataResource>(CancellationToken.None);
-                    var metadataList = await metadataResource.GetMetadataAsync(packageId, true, true, sourceCacheContext, NativeLogger, cancellationToken);
-                    foreach (var metadata in metadataList)
+                    try
                     {
-                        resultList.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
+                        var metadataResource = await repo.GetResourceAsync<PackageMetadataResource>(CancellationToken.None);
+                        var metadataList = await metadataResource.GetMetadataAsync(packageId, true, true, sourceCacheContext, NativeLogger, cancellationToken);
+                        foreach (var metadata in metadataList)
+                        {
+                            resultList.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
+                        }
+                    }
+                    catch (FatalProtocolException)
+                    {
+                        // Ignore 404/403 etc... (invalid sources)
                     }
                 }
             }
@@ -526,21 +533,28 @@ namespace Xenko.Core.Packages
             var res = new List<NugetPackage>();
             foreach (var repo in repositories)
             {
-                var searchResource = await repo.GetResourceAsync<PackageSearchResource>(CancellationToken.None);
-
-                if (searchResource != null)
+                try
                 {
-                    var searchResults = await searchResource.SearchAsync(searchTerm, new SearchFilter(includePrerelease: false), 0, 0, NativeLogger, CancellationToken.None);
+                    var searchResource = await repo.GetResourceAsync<PackageSearchResource>(CancellationToken.None);
 
-                    if (searchResults != null)
+                    if (searchResource != null)
                     {
-                        var packages = searchResults.ToArray();
+                        var searchResults = await searchResource.SearchAsync(searchTerm, new SearchFilter(includePrerelease: false), 0, 0, NativeLogger, CancellationToken.None);
 
-                        foreach (var package in packages)
+                        if (searchResults != null)
                         {
-                            res.Add(new NugetServerPackage(package, repo.PackageSource.Source));
+                            var packages = searchResults.ToArray();
+
+                            foreach (var package in packages)
+                            {
+                                res.Add(new NugetServerPackage(package, repo.PackageSource.Source));
+                            }
                         }
                     }
+                }
+                catch (FatalProtocolException)
+                {
+                    // Ignore 404/403 etc... (invalid sources)
                 }
             }
             return res.AsQueryable();
@@ -565,12 +579,11 @@ namespace Xenko.Core.Packages
             var repositories = PackageSources.Select(sourceRepositoryProvider.CreateRepository).ToArray();
 
             var res = new List<NugetPackage>();
-            var foundPackage = await NuGetPackageManager.GetLatestVersionAsync(packageName.Id, NuGetFramework.AgnosticFramework, resolutionContext, repositories, NativeLogger, cancellationToken);
-            if (packageName.Version.ToNuGetVersion() <= foundPackage.LatestVersion)
+            using (var context = new SourceCacheContext())
             {
-                using (var context = new SourceCacheContext())
+                foreach (var repo in repositories)
                 {
-                    foreach (var repo in repositories)
+                    try
                     {
                         var metadataResource = await repo.GetResourceAsync<PackageMetadataResource>(cancellationToken);
                         var metadataList = await metadataResource.GetMetadataAsync(packageName.Id, includePrerelease, includeAllVersions, context, NativeLogger, cancellationToken);
@@ -578,6 +591,10 @@ namespace Xenko.Core.Packages
                         {
                             res.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
                         }
+                    }
+                    catch (FatalProtocolException)
+                    {
+                        // Ignore 404/403 etc... (invalid sources)
                     }
                 }
             }
