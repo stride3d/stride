@@ -28,7 +28,7 @@
     <AddSyntheticProjectReferencesForSolutionDependencies>false</AddSyntheticProjectReferencesForSolutionDependencies>
 	
 	<!-- Assembly version for the launcher, used to generate the appropriate nuget package -->
-    <InformationalVersion>2.0.2</InformationalVersion>
+    <InformationalVersion>3.0.1</InformationalVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
