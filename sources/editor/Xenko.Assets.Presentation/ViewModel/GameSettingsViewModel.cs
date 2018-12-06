@@ -136,7 +136,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             }
         }
 
-        public override bool IsLocked => true;
+        public override bool IsLocked => false;
 
         public SceneViewModel DefaultScene
         {

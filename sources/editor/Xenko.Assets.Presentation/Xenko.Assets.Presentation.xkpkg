@@ -29,6 +29,7 @@ TemplateFolders:
         - !file Templates/Assets/Media/DefaultVideo.xktpl
         - !file Templates/Assets/Media/SpatializedSound.xktpl
         - !file Templates/Assets/Media/MusicSound.xktpl
+        - !file Templates/Assets/Misc/DefaultGameSettings.xktpl
         - !file Templates/Assets/Misc/DefaultGraphicsCompositorLevel10.xktpl
         - !file Templates/Assets/Misc/DefaultGraphicsCompositorLevel9.xktpl
         - !file Templates/Assets/Misc/DefaultRawAsset.xktpl
