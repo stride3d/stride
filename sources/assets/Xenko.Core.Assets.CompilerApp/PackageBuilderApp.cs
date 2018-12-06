@@ -90,8 +90,6 @@ namespace Xenko.Core.Assets.CompilerApp
                 { "disable-auto-compile", "Disable auto-compile of projects", v => options.DisableAutoCompileProjects = v != null},
                 { "project-configuration=", "Project configuration", v => options.ProjectConfiguration = v },
                 { "platform=", "Platform name", v => options.Platform = (PlatformType)Enum.Parse(typeof(PlatformType), v) },
-                { "graphics-platform=", "Graphics Platform name", v => options.GraphicsPlatform = (GraphicsPlatform)Enum.Parse(typeof(GraphicsPlatform), v) },
-                { "get-graphics-platform", "Get Graphics Platform name (needs a xkpkg and a profile)", v => options.GetGraphicsPlatform = v != null },
                 { "solution-file=", "Solution File Name", v => options.SolutionFile = v },
                 { "package-id=", "Package Id from the solution file", v => options.PackageId = Guid.Parse(v) },
                 { "package-file=", "Input Package File Name", v => options.PackageFile = v },
@@ -231,11 +229,9 @@ namespace Xenko.Core.Assets.CompilerApp
                         fileLogListener = new TextWriterLogListener(new FileStream(logFileName, FileMode.Create)) { TextFormatter = FormatLog };
                         GlobalLogger.GlobalMessageLogged += fileLogListener;
                     }
-                    if (!options.GetGraphicsPlatform)
-                    {
-                        options.Logger.Info("BuildEngine arguments: " + string.Join(" ", args));
-                        options.Logger.Info("Starting builder.");
-                    }
+
+                    options.Logger.Info("BuildEngine arguments: " + string.Join(" ", args));
+                    options.Logger.Info("Starting builder.");
                 }
                 else
                 {

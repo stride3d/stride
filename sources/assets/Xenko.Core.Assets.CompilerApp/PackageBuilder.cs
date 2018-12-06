@@ -71,12 +71,6 @@ namespace Xenko.Core.Assets.CompilerApp
                 return BuildResultCode.BuildError;
             }
 
-            // Only querying graphics platform, let's load package, print it and exit
-            if (builderOptions.GetGraphicsPlatform)
-            {
-                return BuildGetGraphicsPlatform();
-            }
-
             AssetCompilerContext context = null;
             PackageSession projectSession = null;
             try
