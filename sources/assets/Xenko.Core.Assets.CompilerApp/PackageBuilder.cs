@@ -167,33 +167,6 @@ namespace Xenko.Core.Assets.CompilerApp
             }
         }
 
-        private BuildResultCode BuildGetGraphicsPlatform()
-        {
-            var loadParameters = new PackageLoadParameters
-            {
-                AutoLoadTemporaryAssets = true,
-                LoadAssemblyReferences = false,
-                AutoCompileProjects = false,
-                TemporaryAssetFilter = (asset) => asset.AssetLocation == GameSettingsAsset.GameSettingsLocation,
-                TemporaryAssetsInMsbuild = false,
-            };
-            var sessionResult = PackageSession.Load(builderOptions.PackageFile, loadParameters);
-            var simplePackage = sessionResult.Session.Packages.First();
-            sessionResult.Session.LoadMissingReferences(sessionResult, loadParameters);
-
-            if (simplePackage == null || sessionResult.HasErrors)
-            {
-                sessionResult.CopyTo(builderOptions.Logger);
-                return BuildResultCode.BuildError;
-            }
-
-            var settings = simplePackage.GetGameSettingsAsset();
-            var renderingSettings = settings.GetOrCreate<RenderingSettings>();
-
-            Console.WriteLine(RenderingSettings.GetGraphicsPlatform(builderOptions.Platform, renderingSettings.PreferredGraphicsPlatform));
-            return BuildResultCode.Successful;
-        }
-
         private void RegisterBuildStepProcessedHandler(object sender, AssetCompiledArgs e)
         {
             if (e.Result.BuildSteps == null)

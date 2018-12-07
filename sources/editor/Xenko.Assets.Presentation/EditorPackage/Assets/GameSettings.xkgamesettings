@@ -12,7 +12,6 @@ Defaults:
         DefaultGraphicsProfile: Level_11_0
         ColorSpace: Linear
         DisplayOrientation: Default
-        PreferredGraphicsPlatform: Default
     - !Xenko.Assets.EditorSettings,Xenko.Assets
         RenderingMode: HDR
     - !Xenko.Assets.Textures.TextureSettings,Xenko.Assets

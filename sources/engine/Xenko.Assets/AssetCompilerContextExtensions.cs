@@ -36,9 +36,8 @@ namespace Xenko.Assets
             if (context.OptionProperties.TryGetValue("XenkoGraphicsApi", out graphicsApi))
                 return (GraphicsPlatform)Enum.Parse(typeof(GraphicsPlatform), graphicsApi);
 
-            // Ohterwise, use game settings, or default as fallback
-            var settings = package.GetGameSettingsAsset();
-            return settings == null ? context.Platform.GetDefaultGraphicsPlatform() : RenderingSettings.GetGraphicsPlatform(context.Platform, settings.GetOrCreate<RenderingSettings>().PreferredGraphicsPlatform);
+            // Ohterwise, use default as fallback
+            return context.Platform.GetDefaultGraphicsPlatform();
         }
 
         public static GraphicsPlatform GetDefaultGraphicsPlatform(this PlatformType platformType)
