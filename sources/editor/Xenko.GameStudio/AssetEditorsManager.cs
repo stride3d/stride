@@ -118,6 +118,7 @@ namespace Xenko.GameStudio
                 {
                     Content = new CurveEditorView { DataContext = editorViewModel },
                     Title = "Curve Editor",
+                    CanClose = true,
                 };
 
                 editorPane.Closed += CurveEditorClosed;
@@ -307,7 +308,7 @@ namespace Xenko.GameStudio
                     editorPane = AvalonDockHelper.GetAllAnchorables(dockingLayoutManager.DockingManager).FirstOrDefault(p => p.Title == asset.Url);
                     if (editorPane == null)
                     {
-                        editorPane = new LayoutAnchorable();
+                        editorPane = new LayoutAnchorable { CanClose = true };
                         // Stack the asset in the dictionary of editor to prevent double-opening while double-clicking twice on the asset, since the initialization is async
                         AvalonDockHelper.GetDocumentPane(dockingLayoutManager.DockingManager).Children.Add(editorPane);
                     }
