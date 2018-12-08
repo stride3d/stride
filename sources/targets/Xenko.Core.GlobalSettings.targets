@@ -11,7 +11,9 @@
     <_XenkoSharedAssemblyInfoLines Condition="'$(XenkoPackageBuild)' == 'true'">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.NuGet.cs'))</_XenkoSharedAssemblyInfoLines>
     <_XenkoSharedAssemblyInfoLines Condition="'$(XenkoPackageBuild)' != 'true'">$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\shared\SharedAssemblyInfo.cs'))</_XenkoSharedAssemblyInfoLines>
     <XenkoPublicVersion>$([System.Text.RegularExpressions.Regex]::Match($(_XenkoSharedAssemblyInfoLines), `.*PublicVersion = \"(.*)\";.*`).Groups[1].Value)</XenkoPublicVersion>
-    <XenkoNuGetVersion>$(XenkoPublicVersion)$([System.Text.RegularExpressions.Regex]::Match($(_XenkoSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</XenkoNuGetVersion>
+    <XenkoNuGetVersionSuffix>$([System.Text.RegularExpressions.Regex]::Match($(_XenkoSharedAssemblyInfoLines), `.*NuGetVersionSuffix = \"(.*)\";.*`).Groups[1].Value)</XenkoNuGetVersionSuffix>
+    <XenkoBuildMetadata>$([System.Text.RegularExpressions.Regex]::Match($(_XenkoSharedAssemblyInfoLines), `.*BuildMetadata = \"(.*)\";.*`).Groups[1].Value)</XenkoBuildMetadata>
+    <XenkoNuGetVersion>$(XenkoPublicVersion)$(XenkoNuGetVersionSuffix)$(XenkoBuildMetadata)</XenkoNuGetVersion>
     
     <PackageVersion Condition=" '$(PackageVersion)' == '' ">$(XenkoNuGetVersion)</PackageVersion>
     <PackageLicenseUrl>https://github.com/xenko3d/xenko/blob/master/LICENSE.md</PackageLicenseUrl>

@@ -96,10 +96,6 @@ namespace Xenko.GitVersioning
                     var height = Nerdbank.GitVersioning.GitExtensions.GetVersionHeight(repo, VersionFile.ItemSpec);
                     versionSuffix += height.ToString("D5");
                 }
-                if (SpecialVersionGitCommit && headCommitSha != null)
-                {
-                    versionSuffix += "+g" + headCommitSha.Substring(0, 8);
-                }
 
                 // Prefix with dash (if non empty)
                 if (versionSuffix.Length > 0 && !versionSuffix.StartsWith("+"))
@@ -108,16 +104,12 @@ namespace Xenko.GitVersioning
                 // Replace NuGetVersionSuffix
                 versionFileData = Regex.Replace(versionFileData, "NuGetVersionSuffix = (.*);", $"NuGetVersionSuffix = \"{versionSuffix}\";");
 
-                var assemblyInformationalSuffix = "NuGetVersionSuffix";
-
                 // Always include git commit (even if not part of NuGetVersionSuffix)
-                if (!SpecialVersionGitCommit && headCommitSha != null)
+                if (SpecialVersionGitCommit && headCommitSha != null)
                 {
-                    assemblyInformationalSuffix += $" + \"-g{headCommitSha.Substring(0, 8)}\"";
+                    // Replace build metadata
+                    versionFileData = Regex.Replace(versionFileData, "BuildMetadata = (.*);", $"BuildMetadata = \"+g{headCommitSha.Substring(0, 8)}\";");
                 }
-
-                // Replace AssemblyInformationalSuffix
-                versionFileData = Regex.Replace(versionFileData, "AssemblyInformationalSuffix = (.*);", $"AssemblyInformationalSuffix = {assemblyInformationalSuffix};");
 
                 // Write back new file
                 File.WriteAllText(Path.Combine(RootDirectory.ItemSpec, GeneratedVersionFile.ItemSpec), versionFileData);

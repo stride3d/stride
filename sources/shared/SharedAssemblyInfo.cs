@@ -48,14 +48,14 @@ namespace Xenko
         public const string NuGetVersionSuffix = "-dev";
 
         /// <summary>
-        /// The informational assembly version, containing -dev or -g[git_hash] during package.
+        /// The build metadata, usually +g[git_hash] during package. Note: might be replaced during package build.
         /// </summary>
-        public const string AssemblyInformationalVersion = PublicVersion + AssemblyInformationalSuffix;
+        public const string BuildMetadata = "";
 
         /// <summary>
-        /// The assembly suffix. Note: replaced by git commit during package build.
+        /// The informational assembly version, containing -dev or +g[git_hash] during package.
         /// </summary>
-        private const string AssemblyInformationalSuffix = "-dev";
+        public const string AssemblyInformationalVersion = PublicVersion + NuGetVersionSuffix + BuildMetadata;
     }
 
     /// <summary>
