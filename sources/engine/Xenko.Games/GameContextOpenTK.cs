@@ -109,7 +109,7 @@ namespace Xenko.Games
 #if XENKO_GRAPHICS_API_OPENGL || XENKO_GRAPHICS_API_OPENGLES
                 // Preload proper SDL native library (depending on CPU type)
                 // This is for OpenGL ES on desktop
-                Core.NativeLibrary.PreloadLibrary("SDL2.dll", typeof(GameContextOpenTK).Assembly);
+                Core.NativeLibrary.PreloadLibrary("SDL2.dll", typeof(GameContextOpenTK));
 #endif
 
                 var gameWindow = new OpenTK.GameWindow(requestedWidth, requestedHeight, graphicMode, GameContext.ProductName, GameWindowFlags.Default, DisplayDevice.Default, versionMajor, versionMinor,

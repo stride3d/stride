@@ -14,7 +14,7 @@ namespace Xenko.VirtualReality
         static Fove()
         {
 #if XENKO_PLATFORM_WINDOWS
-            NativeLibrary.PreloadLibrary(NativeInvoke.Library + ".dll", typeof(Fove).Assembly);
+            NativeLibrary.PreloadLibrary(NativeInvoke.Library + ".dll", typeof(Fove));
 #endif
         }
 

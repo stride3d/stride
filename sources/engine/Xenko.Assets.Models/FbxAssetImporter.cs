@@ -14,7 +14,7 @@ namespace Xenko.Assets.Models
     {
         static FbxAssetImporter()
         {
-            NativeLibrary.PreloadLibrary("libfbxsdk.dll", typeof(FbxAssetImporter).Assembly);
+            NativeLibrary.PreloadLibrary("libfbxsdk.dll", typeof(FbxAssetImporter));
         }
 
         // Supported file extensions for this importer

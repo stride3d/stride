@@ -121,7 +121,7 @@ namespace Xenko.Rendering.LightProbes
         {
             // TODO: Add native to Xenko.Engine?
 #if XENKO_PLATFORM_WINDOWS
-            NativeLibrary.PreloadLibrary(NativeInvoke.Library + ".dll", typeof(BowyerWatsonTetrahedralization).Assembly);
+            NativeLibrary.PreloadLibrary(NativeInvoke.Library + ".dll", typeof(BowyerWatsonTetrahedralization));
 #endif
             exactinit();
         }

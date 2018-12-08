@@ -77,14 +77,14 @@ namespace Xenko.Video.FFmpeg
             //   |---- avcodec
             //   |---- avutil
 #if XENKO_PLATFORM_WINDOWS
-            var assembly = typeof(FFmpegUtils).Assembly;
-            Core.NativeLibrary.PreloadLibrary("avutil-55", assembly);
-            Core.NativeLibrary.PreloadLibrary("swresample-2", assembly);
-            Core.NativeLibrary.PreloadLibrary("avcodec-57", assembly);
-            Core.NativeLibrary.PreloadLibrary("avformat-57", assembly);
-            Core.NativeLibrary.PreloadLibrary("swscale-4", assembly);
-            Core.NativeLibrary.PreloadLibrary("avfilter-6", assembly);
-            Core.NativeLibrary.PreloadLibrary("avdevice-57", assembly);
+            var type = typeof(FFmpegUtils);
+            Core.NativeLibrary.PreloadLibrary("avutil-55", type);
+            Core.NativeLibrary.PreloadLibrary("swresample-2", type);
+            Core.NativeLibrary.PreloadLibrary("avcodec-57", type);
+            Core.NativeLibrary.PreloadLibrary("avformat-57", type);
+            Core.NativeLibrary.PreloadLibrary("swscale-4", type);
+            Core.NativeLibrary.PreloadLibrary("avfilter-6", type);
+            Core.NativeLibrary.PreloadLibrary("avdevice-57", type);
 #else
             uint version;
             version = ffmpeg.avutil_version();

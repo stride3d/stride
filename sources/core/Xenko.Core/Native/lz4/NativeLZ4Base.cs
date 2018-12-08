@@ -8,7 +8,7 @@ namespace Xenko.Core.Native
     {
         static NativeLz4Base()
         {
-            NativeLibrary.PreloadLibrary(NativeInvoke.LibraryName, typeof(NativeLz4Base).Assembly);
+            NativeLibrary.PreloadLibrary(NativeInvoke.LibraryName, typeof(NativeLz4Base));
         }
 
         [DllImport(NativeInvoke.Library, CallingConvention = CallingConvention.Cdecl)]

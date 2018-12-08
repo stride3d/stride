@@ -36,13 +36,13 @@ namespace Xenko.TextureConverter
         
         static TextureTool()
         {
-            var assembly = typeof(TextureTool).Assembly;
-            NativeLibrary.PreloadLibrary("AtitcWrapper.dll", assembly);
-            NativeLibrary.PreloadLibrary("DxtWrapper.dll", assembly);
-            NativeLibrary.PreloadLibrary("PVRTexLib.dll", assembly);
-            NativeLibrary.PreloadLibrary("PvrttWrapper.dll", assembly);
-            NativeLibrary.PreloadLibrary("FreeImage.dll", assembly);
-            NativeLibrary.PreloadLibrary("FreeImageNET.dll", assembly);
+            var type = typeof(TextureTool);
+            NativeLibrary.PreloadLibrary("AtitcWrapper.dll", type);
+            NativeLibrary.PreloadLibrary("DxtWrapper.dll", type);
+            NativeLibrary.PreloadLibrary("PVRTexLib.dll", type);
+            NativeLibrary.PreloadLibrary("PvrttWrapper.dll", type);
+            NativeLibrary.PreloadLibrary("FreeImage.dll", type);
+            NativeLibrary.PreloadLibrary("FreeImageNET.dll", type);
         }
 
         /// <summary>

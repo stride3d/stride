@@ -15,7 +15,7 @@ namespace Xenko.Assets.Models
     {
         static AssimpAssetImporter()
         {
-            NativeLibrary.PreloadLibrary("assimp-vc120-mt.dll", typeof(AssimpAssetImporter).Assembly);
+            NativeLibrary.PreloadLibrary("assimp-vc120-mt.dll", typeof(AssimpAssetImporter));
         }
 
         // Supported file extensions for this importer

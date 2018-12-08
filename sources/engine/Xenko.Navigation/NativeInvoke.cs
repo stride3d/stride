@@ -16,9 +16,9 @@ namespace Xenko.Navigation
         internal static void PreLoad()
         {
 #if XENKO_PLATFORM_WINDOWS
-            NativeLibrary.PreloadLibrary(Library + ".dll", typeof(NativeInvoke).Assembly);
+            NativeLibrary.PreloadLibrary(Library + ".dll", typeof(NativeInvoke));
 #else
-            NativeLibrary.PreloadLibrary(Library + ".so", typeof(NativeInvoke).Assembly);
+            NativeLibrary.PreloadLibrary(Library + ".so", typeof(NativeInvoke));
 #endif
         }
 
