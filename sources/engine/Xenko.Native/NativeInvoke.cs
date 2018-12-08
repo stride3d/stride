@@ -22,9 +22,9 @@ namespace Xenko.Native
         internal static void PreLoad()
         {
 #if XENKO_PLATFORM_WINDOWS
-            NativeLibrary.PreloadLibrary(Library + ".dll");
+            NativeLibrary.PreloadLibrary(Library + ".dll", typeof(NativeInvoke).Assembly);
 #else
-            NativeLibrary.PreloadLibrary(Library + ".so");
+            NativeLibrary.PreloadLibrary(Library + ".so", typeof(NativeInvoke).Assembly);
 #endif
         }
 

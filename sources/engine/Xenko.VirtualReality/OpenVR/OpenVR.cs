@@ -155,7 +155,7 @@ namespace Xenko.VirtualReality
 
         static OpenVR()
         {
-            NativeLibrary.PreloadLibrary("openvr_api.dll");
+            NativeLibrary.PreloadLibrary("openvr_api.dll", typeof(OpenVR).Assembly);
         }
 
         public static bool InitDone = false;

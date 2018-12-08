@@ -15,7 +15,7 @@ namespace Xenko.VirtualReality
         static OculusOvr()
         {
 #if XENKO_PLATFORM_WINDOWS
-            NativeLibrary.PreloadLibrary(NativeInvoke.Library + ".dll");
+            NativeLibrary.PreloadLibrary(NativeInvoke.Library + ".dll", typeof(OculusOvr).Assembly);
 #endif
         }
 

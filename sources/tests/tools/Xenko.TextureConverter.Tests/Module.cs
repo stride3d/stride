@@ -21,12 +21,7 @@ namespace Xenko.TextureConverter.Tests
 
         public static void LoadLibraries()
         {
-            NativeLibrary.PreloadLibrary("AtitcWrapper.dll");
-            NativeLibrary.PreloadLibrary("DxtWrapper.dll");
-            NativeLibrary.PreloadLibrary("PVRTexLib.dll");
-            NativeLibrary.PreloadLibrary("PvrttWrapper.dll");
-            NativeLibrary.PreloadLibrary("FreeImage.dll");
-            NativeLibrary.PreloadLibrary("FreeImageNET.dll");
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(TextureTool).TypeHandle);
         }
     }
 }

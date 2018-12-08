@@ -46,7 +46,7 @@ namespace Xenko.Shaders.Compiler
         public EffectCompiler(IVirtualFileProvider fileProvider)
         {
             FileProvider = fileProvider;
-            NativeLibrary.PreloadLibrary("d3dcompiler_47.dll");
+            NativeLibrary.PreloadLibrary("d3dcompiler_47.dll", typeof(EffectCompiler).Assembly);
             SourceDirectories = new List<string>();
             UrlToFilePath = new Dictionary<string, string>();
         }
@@ -89,7 +89,7 @@ namespace Xenko.Shaders.Compiler
             // Note: No lock, it's probably fine if it gets called from multiple threads at the same time.
             if (Platform.IsWindowsDesktop && !d3dCompilerLoaded)
             {
-                NativeLibrary.PreloadLibrary("d3dcompiler_47.dll");
+                NativeLibrary.PreloadLibrary("d3dcompiler_47.dll", typeof(EffectCompiler).Assembly);
                 d3dCompilerLoaded = true;
             }
 

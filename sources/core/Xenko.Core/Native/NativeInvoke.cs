@@ -27,7 +27,7 @@ namespace Xenko.Core.Native
 
         static NativeInvoke()
         {
-            NativeLibrary.PreloadLibrary(LibraryName);
+            NativeLibrary.PreloadLibrary(LibraryName, typeof(NativeInvoke).Assembly);
         }
 
         /// <summary>

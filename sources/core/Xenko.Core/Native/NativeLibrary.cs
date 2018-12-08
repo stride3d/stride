@@ -28,8 +28,9 @@ namespace Xenko.Core
         /// Only available on Windows for now.
         /// </summary>
         /// <param name="libraryName">Name of the library.</param>
+        /// <param name="owner">Assembly whose location is related to the native library.</param>
         /// <exception cref="System.InvalidOperationException">Library could not be loaded.</exception>
-        public static void PreloadLibrary(string libraryName)
+        public static void PreloadLibrary(string libraryName, Assembly owner)
         {
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
             lock (LoadedLibraries)
@@ -52,9 +53,8 @@ namespace Xenko.Core
 
                 // We are trying to load the dll from a shadow path if it is already registered, otherwise we use it directly from the folder
                 var dllFolder = NativeLibraryInternal.GetShadowPathForNativeDll(libraryName);
-                var callingAssembly = Assembly.GetCallingAssembly();
                 if (dllFolder == null)
-                    dllFolder = Path.Combine(Path.GetDirectoryName(callingAssembly.Location), cpu);
+                    dllFolder = Path.Combine(Path.GetDirectoryName(owner.Location), cpu);
                 if (!Directory.Exists(dllFolder))
                     dllFolder = Path.Combine(Environment.CurrentDirectory, cpu);
                 var libraryFilename = Path.Combine(dllFolder, libraryName);

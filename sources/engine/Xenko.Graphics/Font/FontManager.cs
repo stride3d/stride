@@ -81,7 +81,7 @@ namespace Xenko.Graphics.Font
             contentManager = new ContentManager(fileProviderService);
 
             // Preload proper freetype native library (depending on CPU type)
-            Core.NativeLibrary.PreloadLibrary("freetype.dll");
+            Core.NativeLibrary.PreloadLibrary("freetype.dll", typeof(FontManager).Assembly);
 
             // create a freetype library used to generate the bitmaps
             freetypeLibrary = new Library();
