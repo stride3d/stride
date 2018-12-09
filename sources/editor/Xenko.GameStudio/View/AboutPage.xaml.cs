@@ -68,6 +68,8 @@ namespace Xenko.GameStudio.View
                 return await Task.Run(() =>
                 {
                     var filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), file);
+                    if (!File.Exists(filePath))
+                        filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"..\..\content", file);
                     string fileMarkdown;
                     using (var fileStream = new FileStream(filePath, FileMode.Open))
                     {
