@@ -42,7 +42,7 @@
       <!-- Copyright info -->
       <TextBlock Grid.Row="0" Grid.Column="0"
                  HorizontalAlignment="Left" VerticalAlignment="Center">
-        <Run Text="{xk:Localize Xenko version, Context=About}" /> <Run Text="{x:Static gameStudio:XenkoGameStudio.EditorVersion}" /><LineBreak />
+        <Run Text="{xk:Localize Xenko version, Context=About}" /> <Run Text="{x:Static gameStudio:XenkoGameStudio.EditorVersionWithMetadata}" /><LineBreak />
         <Run Text="{x:Static gameStudio:XenkoGameStudio.CopyrightText1}" /><LineBreak />
         <Run Text="{x:Static gameStudio:XenkoGameStudio.CopyrightText2}" /><LineBreak />
         <!-- License -->

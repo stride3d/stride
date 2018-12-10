@@ -21,6 +21,9 @@ namespace Xenko.GameStudio
         [NotNull]
         public static string EditorVersion => XenkoVersion.NuGetVersion;
 
+        [NotNull]
+        public static string EditorVersionWithMetadata => XenkoVersion.NuGetVersion + XenkoVersion.BuildMetadata;
+
         public static string EditorVersionMajor => new System.Version(XenkoVersion.PublicVersion).ToString(2);
 
         [NotNull]
