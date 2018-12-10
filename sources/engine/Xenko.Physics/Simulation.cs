@@ -279,7 +279,7 @@ namespace Xenko.Physics
             var collider = character.NativeCollisionObject;
             var action = character.KinematicCharacter;
             discreteDynamicsWorld.AddCollisionObject(collider, (BulletSharp.CollisionFilterGroups)group, (BulletSharp.CollisionFilterGroups)mask);
-            discreteDynamicsWorld.AddCharacter(action);
+            discreteDynamicsWorld.AddAction(action);
 
             character.Simulation = this;
         }
@@ -291,7 +291,7 @@ namespace Xenko.Physics
             var collider = character.NativeCollisionObject;
             var action = character.KinematicCharacter;
             discreteDynamicsWorld.RemoveCollisionObject(collider);
-            discreteDynamicsWorld.RemoveCharacter(action);
+            discreteDynamicsWorld.RemoveAction(action);
 
             character.Simulation = null;
         }
@@ -607,7 +607,7 @@ namespace Xenko.Physics
             constraint.Simulation = null;
         }
 
-        private class XenkoAllHitsConvexResultCallback : BulletSharp.AllHitsConvexResultCallback
+        private class XenkoAllHitsConvexResultCallback : BulletSharp.ConvexResultCallback
         {
             private IList<HitResult> resultsList;
 
@@ -616,16 +616,23 @@ namespace Xenko.Physics
                 resultsList = results;
             }
 
-            public override void AddSingleResult(BulletSharp.CollisionObject collisionObject, ref Vector3 point, ref Vector3 normal, float hitFraction)
+            public override float AddSingleResult(BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
             {
+                Vector3 normal;
+                if (normalInWorldSpace)
+                    normal = convexResult.HitNormalLocal;
+                else
+                    normal = Vector3.TransformNormal(convexResult.HitNormalLocal, convexResult.HitCollisionObject.WorldTransform.Basis);
+
                 resultsList.Add(new HitResult
                 {
                     Succeeded = true,
-                    Collider = collisionObject.UserObject as PhysicsComponent,
-                    Point = point,
+                    Collider = convexResult.HitCollisionObject.UserObject as PhysicsComponent,
+                    Point = Vector3.TransformCoordinate(convexResult.HitPointLocal, convexResult.HitCollisionObject.WorldTransform.Basis),
                     Normal = normal,
-                    HitFraction = hitFraction,
+                    HitFraction = convexResult.HitFraction,
                 });
+                return convexResult.HitFraction;
             }
         }
 
@@ -638,16 +645,23 @@ namespace Xenko.Physics
                 resultsList = results;
             }
 
-            public override void AddSingleResult(BulletSharp.CollisionObject collisionObject, ref Vector3 point, ref Vector3 normal, float hitFraction)
+            public override float AddSingleResult(BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
             {
+                Vector3 normal;
+                if (normalInWorldSpace)
+                    normal = rayResult.HitNormalLocal;
+                else
+                    normal = Vector3.TransformNormal(rayResult.HitNormalLocal, rayResult.CollisionObject.WorldTransform.Basis);
+
                 resultsList.Add(new HitResult
                 {
                     Succeeded = true,
-                    Collider = collisionObject.UserObject as PhysicsComponent,
-                    Point = point,
+                    Collider = rayResult.CollisionObject.UserObject as PhysicsComponent,
+                    Point = Vector3.Lerp(this.RayFromWorld, this.RayToWorld, rayResult.HitFraction),
                     Normal = normal,
-                    HitFraction = hitFraction,
+                    HitFraction = rayResult.HitFraction,
                 });
+                return rayResult.HitFraction;
             }
         }
 
