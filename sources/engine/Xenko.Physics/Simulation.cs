@@ -633,7 +633,7 @@ namespace Xenko.Physics
         {
             private IList<HitResult> resultsList;
 
-            public XenkoAllHitsRayResultCallback(ref Vector3 from, ref Vector3 to, IList<HitResult> results) : base(ref from, ref to)
+            public XenkoAllHitsRayResultCallback(ref Vector3 from, ref Vector3 to, IList<HitResult> results) : base(from, to)
             {
                 resultsList = results;
             }
@@ -661,9 +661,10 @@ namespace Xenko.Physics
         {
             var result = new HitResult(); //result.Succeeded is false by default
 
-            using (var rcb = new BulletSharp.ClosestRayResultCallback(from, to))
+            BulletSharp.Math.Vector3 fromBullet = from, toBullet = to;
+            using (var rcb = new BulletSharp.ClosestRayResultCallback(ref fromBullet, ref toBullet))
             {
-                collisionWorld.RayTest(ref from, ref to, rcb);
+                collisionWorld.RayTest(fromBullet, toBullet, rcb);
 
                 if (rcb.CollisionObject == null) return result;
                 result.Succeeded = true;
@@ -688,13 +689,14 @@ namespace Xenko.Physics
         {
             var result = new HitResult(); //result.Succeeded is false by default
 
-            using (var rcb = new BulletSharp.ClosestRayResultCallback(from, to)
+            BulletSharp.Math.Vector3 fromBullet = from, toBullet = to;
+            using (var rcb = new BulletSharp.ClosestRayResultCallback(ref fromBullet, ref toBullet)
             {
                 CollisionFilterGroup = (short)collisionFilterGroups,
                 CollisionFilterMask = (short)collisionFilterGroupFlags,
             })
             {
-                collisionWorld.RayTest(ref from, ref to, rcb);
+                collisionWorld.RayTest(fromBullet, toBullet, rcb);
 
                 if (rcb.CollisionObject == null) return result;
                 result.Succeeded = true;
@@ -717,7 +719,7 @@ namespace Xenko.Physics
         {
             using (var rcb = new XenkoAllHitsRayResultCallback(ref from, ref to, resultsOutput))
             {
-                collisionWorld.RayTest(ref from, ref to, rcb);
+                collisionWorld.RayTest(from, to, rcb);
             }
         }
 
@@ -751,7 +753,7 @@ namespace Xenko.Physics
                 CollisionFilterMask = (short)collisionFilterGroupFlags,
             })
             {
-                collisionWorld.RayTest(ref from, ref to, rcb);
+                collisionWorld.RayTest(from, to, rcb);
             }
         }
 
@@ -785,7 +787,8 @@ namespace Xenko.Physics
 
             var result = new HitResult(); //result.Succeeded is false by default
 
-            using (var rcb = new BulletSharp.ClosestConvexResultCallback(from.TranslationVector, to.TranslationVector))
+            BulletSharp.Math.Vector3 fromBullet = from.TranslationVector, toBullet = to.TranslationVector;
+            using (var rcb = new BulletSharp.ClosestConvexResultCallback(ref fromBullet, ref toBullet))
             {
                 collisionWorld.ConvexSweepTest(sh, from, to, rcb);
 
@@ -817,10 +820,11 @@ namespace Xenko.Physics
 
             var result = new HitResult(); //result.Succeeded is false by default
 
-            using (var rcb = new BulletSharp.ClosestConvexResultCallback(from.TranslationVector, to.TranslationVector)
+            BulletSharp.Math.Vector3 fromBullet = from.TranslationVector, toBullet = to.TranslationVector;
+            using (var rcb = new BulletSharp.ClosestConvexResultCallback(ref fromBullet, ref toBullet)
             {
-                CollisionFilterGroup = (BulletSharp.CollisionFilterGroups)collisionFilterGroups,
-                CollisionFilterMask = (BulletSharp.CollisionFilterGroups)collisionFilterGroupFlags,
+                CollisionFilterGroup = (int)collisionFilterGroups,
+                CollisionFilterMask = (int)collisionFilterGroupFlags,
             })
             {
                 collisionWorld.ConvexSweepTest(sh, from, to, rcb);
@@ -887,8 +891,8 @@ namespace Xenko.Physics
 
             using (var rcb = new XenkoAllHitsConvexResultCallback(resultsOutput)
             {
-                CollisionFilterGroup = (BulletSharp.CollisionFilterGroups)collisionFilterGroups,
-                CollisionFilterMask = (BulletSharp.CollisionFilterGroups)collisionFilterGroupFlags,
+                CollisionFilterGroup = (int)collisionFilterGroups,
+                CollisionFilterMask = (int)collisionFilterGroupFlags,
             })
             {
                 collisionWorld.ConvexSweepTest(sh, from, to, rcb);

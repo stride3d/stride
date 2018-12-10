@@ -1732,5 +1732,29 @@ namespace Xenko.Core.Mathematics
             return new Vector3(value.X, value.Y, value.Z);
         }
 #endif
+
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Vector3"/> to <see cref="BulletSharp.Math.Vector3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator BulletSharp.Math.Vector3(Vector3 value)
+        {
+            unsafe { return *(BulletSharp.Math.Vector3*)&value; }
+            //return new BulletSharp.Math.Vector3(value.X, value.Y, value.Z);
+        }
+
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="BulletSharp.Math.Vector3"/> to <see cref="Xenko.Core.Mathematics.Vector3"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Vector3(BulletSharp.Math.Vector3 value)
+        {
+            unsafe { return *(Vector3*)&value; }
+            //return new Vector3(value.X, value.Y, value.Z);
+        }
     }
 }

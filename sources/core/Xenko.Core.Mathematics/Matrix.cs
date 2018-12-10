@@ -32,6 +32,7 @@
 using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace Xenko.Core.Mathematics
 {
@@ -3477,5 +3478,41 @@ namespace Xenko.Core.Mathematics
             };
         }
 #endif
+
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Matrix"/> to <see cref="BulletSharp.Math.Matrix"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator BulletSharp.Math.Matrix(Matrix value)
+        {
+            unsafe { return *(BulletSharp.Math.Matrix*)&value; }
+            /*return new BulletSharp.Math.Matrix()
+            {
+                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
+                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
+                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
+                M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
+            };*/
+        }
+
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="BulletSharp.Math.Matrix"/> to <see cref="Xenko.Core.Mathematics.Matrix"/>.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The result of the conversion.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Matrix(BulletSharp.Math.Matrix value)
+        {
+            unsafe { return *(Matrix*)&value; }
+            /*return new Matrix()
+            {
+                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
+                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
+                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
+                M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
+            };*/
+        }
     }
 }

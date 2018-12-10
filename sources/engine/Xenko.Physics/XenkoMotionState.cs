@@ -5,7 +5,7 @@ using Xenko.Core.Mathematics;
 
 namespace Xenko.Physics
 {
-    internal class XenkoMotionState : BulletSharp.SharpMotionState
+    internal class XenkoMotionState : BulletSharp.MotionState//.SharpMotionState
     {
         private RigidbodyComponent rigidBody;
 
@@ -19,11 +19,12 @@ namespace Xenko.Physics
             rigidBody = null;
         }
 
-        public override void GetWorldTransform(out Matrix transform)
+        public override void GetWorldTransform(out BulletSharp.Math.Matrix transform)
         {
             if (rigidBody.GetWorldTransformCallback != null)
             {
-                rigidBody.GetWorldTransformCallback(out transform);
+                rigidBody.GetWorldTransformCallback(out Matrix temp);
+                transform = temp;
             }
             else
             {
@@ -31,7 +32,7 @@ namespace Xenko.Physics
             }
         }
 
-        public override void SetWorldTransform(Matrix transform)
+        public override void SetWorldTransform(ref BulletSharp.Math.Matrix transform)
         {
             rigidBody.SetWorldTransformCallback?.Invoke(transform);
         }
