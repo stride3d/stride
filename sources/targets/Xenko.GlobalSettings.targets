@@ -42,6 +42,11 @@
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'linux-opengl'">OpenGL</XenkoGraphicsApi>
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'linux-vulkan'">Vulkan</XenkoGraphicsApi>
   </PropertyGroup>
+  <!-- Force cross-targeting if there is multiple runtime identifiers -->
+  <PropertyGroup Condition="$(RuntimeIdentifiers.Contains(';')) And '$(TargetFrameworks)' == ''">
+    <TargetFrameworks>$(TargetFramework)</TargetFrameworks>
+    <TargetFramework></TargetFramework>
+  </PropertyGroup>
   <!-- Use default runtime as ref assembly -->
   <PropertyGroup Condition="'$(RuntimeIdentifierDefault)' != '' And '$(RuntimeIdentifier)' == '$(RuntimeIdentifierDefault)'">
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);XenkoIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>
