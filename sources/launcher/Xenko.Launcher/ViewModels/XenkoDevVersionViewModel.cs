@@ -32,7 +32,7 @@ namespace Xenko.LauncherApp.ViewModels
         public override string Name => "Local " + path.MakeRelative(path.GetParent());
 
         /// <inheritdoc/>
-        public override string DisplayName => localPackage != null ? $"{localPackage.Id} {localPackage.Version} (local)" : base.DisplayName;
+        public override string DisplayName => localPackage != null ? $"{localPackage.Version} (local)" : base.DisplayName;
 
         /// <inheritdoc/>
         public override string FullName => localPackage?.Version.ToString() ?? path.MakeRelative(path.GetParent());

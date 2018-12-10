@@ -231,9 +231,7 @@ namespace Xenko.LauncherApp.ViewModels
                 {
                     try
                     {
-                        var realPath = File.ReadAllText(store.GetRedirectFile(package));
-                        if (!Directory.Exists(realPath))
-                            throw new DirectoryNotFoundException();
+                        var realPath = store.GetRealPath(package);
                         var version = new XenkoDevVersionViewModel(this, store, package, realPath, true);
                         Dispatcher.Invoke(() => xenkoVersions.Add(version));
                     }

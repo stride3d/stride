@@ -612,7 +612,7 @@ namespace Xenko.Core.Packages
 
         public string GetRealPath(NugetLocalPackage package)
         {
-            if (IsDevRedirectPackage(package))
+            if (IsDevRedirectPackage(package) && package.Version < new PackageVersion(3, 1, 0, 0))
             {
                 var realPath = File.ReadAllText(GetRedirectFile(package));
                 if (!Directory.Exists(realPath))
@@ -630,7 +630,9 @@ namespace Xenko.Core.Packages
 
         public bool IsDevRedirectPackage(NugetLocalPackage package)
         {
-            return File.Exists(GetRedirectFile(package));
+            return package.Version < new PackageVersion(3, 1, 0, 0)
+                ? File.Exists(GetRedirectFile(package))
+                : (package.Version.SpecialVersion?.StartsWith("dev") ?? false);
         }
 
         public bool IsDevRedirectPackage(NugetServerPackage package)
