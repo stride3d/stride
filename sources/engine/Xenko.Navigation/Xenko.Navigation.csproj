@@ -42,6 +42,9 @@
     <None Include="NavigationMesh.cpp" />
     <None Include="NavigationMesh.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BulletSharp" Version="0.11.1" />
+  </ItemGroup>
 
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />

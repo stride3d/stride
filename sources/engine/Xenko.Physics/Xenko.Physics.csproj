@@ -41,9 +41,11 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="BulletSharp" Version="0.11.1" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
 
