@@ -18,7 +18,7 @@
 <#      // List all the correspondances: Major.minor -> latest installed explicit version
 
         // Get all the related versions of the same package also installed, and order by Major.Minor
-        var allMajorVersions = store.GetLocalPackages(package.Id).GroupBy(p => p.Version.Version.Major, p => p);
+        var allMajorVersions = store.GetLocalPackages(package.Id).Where(p => p.Version.Version.Major < 3).GroupBy(p => p.Version.Version.Major, p => p);
         foreach (var major in allMajorVersions)
         {
             var majorVersion = major.Key;
@@ -45,7 +45,7 @@
 <#  foreach (var package in packages)
     {
         var packageVar = NugetStore.GetPackageVersionVariable(package.Id, packageVersionPrefix);
-        foreach (var packageVersion in store.GetLocalPackages(package.Id))
+        foreach (var packageVersion in store.GetLocalPackages(package.Id).Where(p => p.Version.Version.Major < 3))
         {
             var packageTarget = String.Format(@"{0}\Targets\{1}.targets", packageVersion.Path, packageVersion.Id); #>
   <Import Project="<#=packageTarget#>" Condition="Exists('<#=packageTarget#>') And '$(<#=packageVar#>)' == '<#=packageVersion.Version.ToNuGetVersion().ToNormalizedString()#>'" />

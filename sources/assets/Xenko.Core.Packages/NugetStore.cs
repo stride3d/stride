@@ -41,11 +41,6 @@ namespace Xenko.Core.Packages
     /// </summary>
     public class NugetStore : INugetDownloadProgress
     {
-        private const string DefaultTargets = @"Targets\Xenko.Common.targets";
-        private const string DefaultTargetsOld = @"Targets\SiliconStudio.Common.targets";
-
-        public const string DefaultGamePackagesDirectory = "GamePackages";
-
         public const string MainExecutables = @"lib\net472\Xenko.GameStudio.exe,Bin\Windows\Xenko.GameStudio.exe,Bin\Windows-Direct3D11\Xenko.GameStudio.exe";
         public const string PrerequisitesInstaller = @"Bin\Prerequisites\install-prerequisites.exe";
 
@@ -55,14 +50,19 @@ namespace Xenko.Core.Packages
         private readonly ISettings settings, localSettings;
         private ProgressReport currentProgressReport;
 
+        private readonly string oldRootDirectory;
+
         private static Regex powerShellProgressRegex = new Regex(@".*\[ProgressReport:\s*(\d*)%\].*");
 
         /// <summary>
         /// Initialize a new instance of <see cref="NugetStore"/>.
         /// </summary>
-        /// <param name="rootDirectory">The location of the Nuget store.</param>
-        public NugetStore(string rootDirectory)
+        /// <param name="oldRootDirectory">The location of the Nuget store.</param>
+        public NugetStore(string oldRootDirectory)
         {
+            // Used only for versions before 3.0
+            this.oldRootDirectory = oldRootDirectory;
+
             settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
             // Add dev source
@@ -71,7 +71,7 @@ namespace Xenko.Core.Packages
             InstallPath = SettingsUtility.GetGlobalPackagesFolder(settings);
 
             var pathContext = NuGetPathContext.Create(settings);
-            InstalledPathResolver = new FallbackPackagePathResolver(pathContext);
+            InstalledPathResolver = new FallbackPackagePathResolver(pathContext.UserPackageFolder, oldRootDirectory != null ? pathContext.FallbackPackageFolders.Concat(new[] { oldRootDirectory }) : pathContext.FallbackPackageFolders);
             var packageSourceProvider = new PackageSourceProvider(settings);
 
             var availableSources = packageSourceProvider.LoadPackageSources().Where(source => source.IsEnabled);
@@ -189,11 +189,19 @@ namespace Xenko.Core.Packages
         {
             var res = new List<NugetLocalPackage>();
 
-            var localResource = new FindLocalPackagesResourceV3(InstallPath);
-            var packages = localResource.FindPackagesById(packageId, NativeLogger, CancellationToken.None);
-            foreach (var package in packages)
+            // We also scan rootDirectory for 1.x/2.x
+            foreach (var installPath in new[] { InstallPath, oldRootDirectory })
             {
-                res.Add(new NugetLocalPackage(package));
+                // oldRootDirectory might be null
+                if (installPath == null)
+                    continue;
+
+                var localResource = new FindLocalPackagesResourceV3(installPath);
+                var packages = localResource.FindPackagesById(packageId, NativeLogger, CancellationToken.None);
+                foreach (var package in packages)
+                {
+                    res.Add(new NugetLocalPackage(package));
+                }
             }
 
             return res;
@@ -289,6 +297,12 @@ namespace Xenko.Core.Packages
                     {
                         var installPath = SettingsUtility.GetGlobalPackagesFolder(settings);
 
+                        // Old version expects to be installed in GamePackages
+                        if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)
+                        {
+                            installPath = oldRootDirectory;
+                        }
+
                         var specPath = Path.Combine("TestProject", "project.json");
                         var spec = new PackageSpec()
                         {
@@ -339,6 +353,11 @@ namespace Xenko.Core.Packages
                                     OnPackageInstalled(this, new PackageOperationEventArgs(new PackageName(install.Library.Name, install.Library.Version.ToPackageVersion()), packagePath));
                                 }
                             }
+                        }
+
+                        if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0))
+                        {
+                            UpdateTargetsHelper();
                         }
                     }
 
@@ -397,6 +416,11 @@ namespace Xenko.Core.Packages
                     //{
                     //    currentProgressReport = null;
                     //}
+
+                    if (package.Id == "Xenko" && package.Version < new PackageVersion(3, 0, 0, 0))
+                    {
+                        UpdateTargetsHelper();
+                    }
                 }
                 finally
                 {
@@ -734,6 +758,29 @@ namespace Xenko.Core.Packages
                     throw new InvalidOperationException($"Error code {exitCode} while running install package process [{packageInstall}]\n\n" + errorOutput);
                 }
             }
+        }
+
+        // Used only for Xenko 1.x and 2.x
+        private void UpdateTargetsHelper()
+        {
+            if (oldRootDirectory == null)
+                return;
+
+            // Get latest package only for each MainPackageIds (up to 2.x)
+            var xenkoOldPackages = GetLocalPackages("Xenko").Where(package => !((package.Tags != null) && package.Tags.Contains("internal"))).Where(x => x.Version.Version.Major < 3).ToList();
+
+            // Generate target file
+            var targetGenerator = new TargetGenerator(this, xenkoOldPackages, "SiliconStudioPackage");
+            var targetFileContent = targetGenerator.TransformText();
+            var targetFile = Path.Combine(oldRootDirectory, @"Targets\SiliconStudio.Common.targets");
+
+            var targetFilePath = Path.GetDirectoryName(targetFile);
+
+            // Make sure directory exists
+            if (targetFilePath != null && !Directory.Exists(targetFilePath))
+                Directory.CreateDirectory(targetFilePath);
+
+            File.WriteAllText(targetFile, targetFileContent, Encoding.UTF8);
         }
 
         private class PackagePathResolverV3 : PackagePathResolver
