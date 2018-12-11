@@ -3487,14 +3487,29 @@ namespace Xenko.Core.Mathematics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator BulletSharp.Math.Matrix(Matrix value)
         {
-            unsafe { return *(BulletSharp.Math.Matrix*)&value; }
-            /*return new BulletSharp.Math.Matrix()
+            // 11, 22, 33 & 44's offsets are shared, ~10% faster
+            BulletSharp.Math.Matrix d;
+            unsafe
             {
-                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
-                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
-                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
-                M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
-            };*/
+                d = *(BulletSharp.Math.Matrix*)&value;
+            }
+            //11
+            d.M12 = value.M12;
+            d.M13 = value.M13;
+            d.M14 = value.M14;
+            d.M21 = value.M21;
+            //22
+            d.M23 = value.M23;
+            d.M24 = value.M24;
+            d.M31 = value.M31;
+            d.M32 = value.M32;
+            //33
+            d.M34 = value.M34;
+            d.M41 = value.M41;
+            d.M42 = value.M42;
+            d.M43 = value.M43;
+            //44
+            return d;
         }
 
         /// <summary>
@@ -3505,14 +3520,29 @@ namespace Xenko.Core.Mathematics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static implicit operator Matrix(BulletSharp.Math.Matrix value)
         {
-            unsafe { return *(Matrix*)&value; }
-            /*return new Matrix()
+            // 11, 22, 33 & 44's offsets are shared, ~10% faster
+            Matrix d;
+            unsafe
             {
-                M11 = value.M11, M12 = value.M12, M13 = value.M13, M14 = value.M14,
-                M21 = value.M21, M22 = value.M22, M23 = value.M23, M24 = value.M24,
-                M31 = value.M31, M32 = value.M32, M33 = value.M33, M34 = value.M34,
-                M41 = value.M41, M42 = value.M42, M43 = value.M43, M44 = value.M44
-            };*/
+                d = *(Matrix*)&value;
+            }
+            //11
+            d.M12 = value.M12;
+            d.M13 = value.M13;
+            d.M14 = value.M14;
+            d.M21 = value.M21;
+            //22
+            d.M23 = value.M23;
+            d.M24 = value.M24;
+            d.M31 = value.M31;
+            d.M32 = value.M32;
+            //33
+            d.M34 = value.M34;
+            d.M41 = value.M41;
+            d.M42 = value.M42;
+            d.M43 = value.M43;
+            //44
+            return d;
         }
     }
 }
