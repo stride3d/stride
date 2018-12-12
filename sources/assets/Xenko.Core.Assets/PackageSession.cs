@@ -401,15 +401,15 @@ namespace Xenko.Core.Assets
     /// </summary>
     public sealed partial class PackageSession : IDisposable, IAssetFinder
     {
+        /// <summary>
+        /// The visual studio version property used for newly created project solution files
+        /// </summary>
+        internal static readonly Version DefaultVisualStudioVersion = new Version("14.0.23107.0");
+
         internal static readonly string SolutionHeader = @"Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = {0}
 MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
-
-        /// <summary>
-        /// The visual studio version property used for newly created project solution files
-        /// </summary>
-        public static readonly Version DefaultVisualStudioVersion = new Version("14.0.23107.0");
 
         private Dictionary<Package, List<PendingPackageUpgrade>> pendingPackageUpgradesPerPackage = new Dictionary<Package, List<PendingPackageUpgrade>>();
         private readonly ConstraintProvider constraintProvider = new ConstraintProvider();
