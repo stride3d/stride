@@ -21,7 +21,7 @@
 
   <!--Import global Xenko settings-->
   <Import Project="$(MSBuildThisFileDirectory)..\targets\Xenko.Core.GlobalSettings.targets"/>
-  
+
   <!-- Include platform dependent assembly when specified -->
   <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' == 'true' And '$(XenkoGraphicsApiDependentBuildAll)' == 'true'">
     <RuntimeIdentifiers Condition="'$(TargetFramework)' == 'net45'">win7-d3d11;win7-d3d12;win7-opengl;win7-opengles;win7-vulkan</RuntimeIdentifiers>
@@ -38,15 +38,11 @@
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win7-opengl'">OpenGL</XenkoGraphicsApi>
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win7-opengles'">OpenGLES</XenkoGraphicsApi>
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win7-vulkan'">Vulkan</XenkoGraphicsApi>
-    
+
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'linux-opengl'">OpenGL</XenkoGraphicsApi>
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'linux-vulkan'">Vulkan</XenkoGraphicsApi>
   </PropertyGroup>
-  <!-- Force cross-targeting if there is multiple runtime identifiers -->
-  <PropertyGroup Condition="$(RuntimeIdentifiers.Contains(';')) And '$(TargetFrameworks)' == ''">
-    <TargetFrameworks>$(TargetFramework)</TargetFrameworks>
-    <TargetFramework></TargetFramework>
-  </PropertyGroup>
+  
   <!-- Use default runtime as ref assembly -->
   <PropertyGroup Condition="'$(RuntimeIdentifierDefault)' != '' And '$(RuntimeIdentifier)' == '$(RuntimeIdentifierDefault)'">
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);XenkoIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>

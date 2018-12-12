@@ -36,6 +36,21 @@ namespace Xenko.Assets
             if (context.OptionProperties.TryGetValue("XenkoGraphicsApi", out graphicsApi))
                 return (GraphicsPlatform)Enum.Parse(typeof(GraphicsPlatform), graphicsApi);
 
+            if (context.OptionProperties.TryGetValue("RuntimeIdentifier", out var runtimeIdentifier))
+            {
+                if (runtimeIdentifier.Contains("-d3d11"))
+                    return GraphicsPlatform.Direct3D11;
+                else if (runtimeIdentifier.Contains("-d3d12"))
+                    return GraphicsPlatform.Direct3D12;
+                // Note: testing opengles before opengl since one string contains another
+                else if (runtimeIdentifier.Contains("-opengles"))
+                    return GraphicsPlatform.OpenGLES;
+                else if (runtimeIdentifier.Contains("-opengl"))
+                    return GraphicsPlatform.OpenGL;
+                else if (runtimeIdentifier.Contains("-vulkan"))
+                    return GraphicsPlatform.Vulkan;
+            }
+
             // Ohterwise, use default as fallback
             return context.Platform.GetDefaultGraphicsPlatform();
         }

@@ -34,11 +34,15 @@
     <XenkoRuntimeTargetFrameworks>$([MSBuild]::Unescape($(XenkoRuntimeTargetFrameworks.Trim(';'))))</XenkoRuntimeTargetFrameworks>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' ">
-    <TargetFrameworks Condition="$(XenkoRuntimeTargetFrameworks.Contains(';'))">$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
-    <TargetFramework Condition="!$(XenkoRuntimeTargetFrameworks.Contains(';'))">$(XenkoRuntimeTargetFrameworks)</TargetFramework>
+  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true'">
+    <XenkoForceCrossTargeting Condition="$(XenkoRuntimeTargetFrameworks.Contains(';'))">true</XenkoForceCrossTargeting>
+    <!-- Should ideally go into non-Core targets (but we currently don't know XenkoPlatforms until PreSettings.Local is included) -->
+    <XenkoForceCrossTargeting Condition=" '$(XenkoGraphicsApiDependent)' == 'true' And '$(XenkoGraphicsApiDependentBuildAll)' == 'true' And ('$(XenkoPlatforms)' == 'Windows' Or '$(XenkoPlatforms)' == 'Linux')">true</XenkoForceCrossTargeting>
+    
+    <TargetFrameworks Condition="'$(XenkoForceCrossTargeting)' == 'true'">$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
+    <TargetFramework Condition="'$(XenkoForceCrossTargeting)' != 'true'">$(XenkoRuntimeTargetFrameworks)</TargetFramework>
     <!-- UpToDate check doesn't work with multi-TFM projects! https://github.com/dotnet/project-system/issues/2487 -->
-    <DisableFastUpToDateCheck Condition="$(TargetFrameworks.Contains(';'))">true</DisableFastUpToDateCheck>
+    <DisableFastUpToDateCheck Condition="'$(XenkoForceCrossTargeting)' == 'true'">true</DisableFastUpToDateCheck>
     <!--<TargetFrameworks>net45;uap10.0;monoandroid50;xamarinios10;netstandard2.0</TargetFrameworks>-->
   </PropertyGroup>
 
