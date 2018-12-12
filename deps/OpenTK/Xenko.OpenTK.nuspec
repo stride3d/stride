@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>Xenko.OpenTK</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <authors>Xenko contributors and OpenTK team</authors>
     <owners>Xenko contributors and OpenTK team</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -11,7 +11,7 @@
   
   <files>
     <file src="OpenTK.dll" target="ref\net45" />
-    <file src="OpenTK.dll" target="runtimes\win\lib\net45" />
+    <file src="OpenTK.dll" target="runtimes\win7\lib\net45" />
 	<file src="Linux\OpenTK.dll" target="lib\netstandard2.0" />
 	<file src="Android\OpenTK-1.1.dll" target="lib\monoandroid50" />
 	<file src="iOS\OpenTK-1.1.dll" target="lib\xamarinios10" />
