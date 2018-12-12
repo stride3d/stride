@@ -53,6 +53,15 @@
     </ItemGroup>
   </Target>
   
+  <!-- Workaround: Remove RuntimeIdentifier from Solution references (https://github.com/onovotny/MSBuildSdkExtras/issues/139) -->
+  <Target Name="_XenkoRemoveRuntimeIdentifierFromSolutionDependencies" AfterTargets="AssignProjectConfiguration">
+    <ItemGroup>
+      <ProjectReferenceWithConfiguration Condition="'%(ProjectReferenceWithConfiguration.ReferenceSourceTarget)' != 'ProjectReference'">
+        <GlobalPropertiesToRemove>%(ProjectReferenceWithConfiguration.GlobalPropertiesToRemove);RuntimeIdentifier</GlobalPropertiesToRemove>
+      </ProjectReferenceWithConfiguration>
+    </ItemGroup>
+  </Target>
+  
   <!-- 
     Settings XenkoGraphicsApi specific
   -->
