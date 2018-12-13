@@ -723,14 +723,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                     if ((packageProject as SolutionProject)?.FullPath == new UFile(filePath))
                     {
                         project = packageProject;
-
-                        // Remove solution folder
-                        foreach (var vsProject2 in VSSolution.Projects)
-                        {
-                            if (vsProject2.ParentGuid == vsPackage.Guid)
-                                vsProject2.ParentGuid = Guid.Empty;
-                        }
-                        VSSolution.Projects.Remove(vsPackage);
+                        PackageSessionHelper.RemovePackageSections(vsPackage);
                     }
                 }
             }

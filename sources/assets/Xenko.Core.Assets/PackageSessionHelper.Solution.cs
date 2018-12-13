@@ -129,5 +129,14 @@ namespace Xenko.Core.Assets
             }
             return false;
         }
+
+        internal static void RemovePackageSections(Project project)
+        {
+            if (project.IsSolutionFolder)
+            {
+                foreach (var solutionPackageIdentifier in SolutionPackageIdentifier)
+                    project.Sections.Remove(solutionPackageIdentifier);
+            }
+        }
     }
 }
