@@ -80,27 +80,6 @@ namespace Xenko.Assets.Presentation.Templates
             //  Setting this to true will enforce all package dependencies to be moved to a folder local to the project
             bool doMoveParentDependencies = true;
 
-            var packageFile = Path.ChangeExtension(description.FullPath.ToWindowsPath(), Package.PackageFileExtension);
-
-            if (!File.Exists(packageFile))
-            {
-                log.Error($"Unable to find package [{packageFile}]");
-                return false;
-            }
-
-            var packageLoadResult = new LoggerResult();
-            var package = Package.Load(packageLoadResult, packageFile, new PackageLoadParameters
-            {
-                AutoLoadTemporaryAssets = false,
-                AutoCompileProjects = false,
-                LoadAssemblyReferences = false,
-            });
-            packageLoadResult.CopyTo(log);
-            if (packageLoadResult.HasErrors)
-            {
-                return false;
-            }
-
             var regexes = new List<Tuple<Regex, MatchEvaluator>>();
             var patternName = description.PatternName ?? description.DefaultOutputName;
 
@@ -129,8 +108,8 @@ namespace Xenko.Assets.Presentation.Templates
             //write gitignore
             WriteGitIgnore(parameters);
 
-            UFile packageOutputFile = null;
-            UFile packageInputFile = null;
+            UFile projectOutputFile = null;
+            UFile projectInputFile = null;
 
             // Process files
             foreach (var directory in FileUtility.EnumerateDirectories(description.TemplateDirectory, SearchDirection.Down))
@@ -156,13 +135,13 @@ namespace Xenko.Assets.Presentation.Templates
                     var outputFile = UPath.Combine(outputDirectory, relativeFile);
                     var outputFileDirectory = outputFile.GetParent();
 
-                    // Grab the name of the output package file
-                    var isPackageFile = (packageOutputFile == null && file.FullName.EndsWith(Package.PackageFileExtension));
+                    // Determine if we are processing the main game project
+                    var isPackageFile = (projectOutputFile == null && Path.GetExtension(file.FullName).ToLowerInvariant() == ".csproj" && !Path.GetFileNameWithoutExtension(file.FullName).EndsWith(".Windows"));
 
                     if (isPackageFile)
                     {
-                        packageInputFile = file.FullName;
-                        packageOutputFile = outputFile;
+                        projectInputFile = file.FullName;
+                        projectOutputFile = outputFile;
                     }
 
                     if (!Directory.Exists(outputFileDirectory))
@@ -181,10 +160,10 @@ namespace Xenko.Assets.Presentation.Templates
                 }
             }
 
-            if (packageOutputFile != null)
+            if (projectOutputFile != null)
             {
-                var inputProject = (SolutionProject)Package.LoadProject(log, packageInputFile);
-                var outputProject = (SolutionProject)Package.LoadProject(log, packageOutputFile);
+                var inputProject = (SolutionProject)Package.LoadProject(log, projectInputFile);
+                var outputProject = (SolutionProject)Package.LoadProject(log, projectOutputFile);
                 var msbuildProject = VSProjectHelper.LoadProject(outputProject.FullPath, platform: "NoPlatform");
 
                 // If requested, add reference to Xenko.Games.Testing
@@ -264,7 +243,7 @@ namespace Xenko.Assets.Presentation.Templates
                 loadParams.LoadMissingDependencies = false;
                 var session = parameters.Session;
                 // We should switch to loading .csproj once all samples are upgraded
-                var loadedProject = session.AddExistingProject(packageOutputFile, log, loadParams);
+                var loadedProject = session.AddExistingProject(projectOutputFile, log, loadParams);
 
                 RemoveUnusedAssets(loadedProject.Package, session);
 
