@@ -595,6 +595,7 @@ namespace Xenko.Core.Assets
                         AssetFolders = { new AssetFolder("Assets") },
                         ResourceFolders = { "Resources" },
                         FullPath = packagePath,
+                        IsDirty = false,
                     };
                 return new SolutionProject(package, Guid.NewGuid(), projectPath) { IsImplicitProject = !packageExists };
             }
