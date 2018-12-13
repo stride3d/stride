@@ -16,10 +16,6 @@ Defaults:
         RenderingMode: HDR
     - !Xenko.Assets.Textures.TextureSettings,Xenko.Assets
         TextureQuality: Fast
-    - !Xenko.Physics.PhysicsSettings,Xenko.Physics
-        Flags: None
-        MaxSubSteps: 1
-        FixedTimeStep: 0.0166666675
     - !Xenko.Audio.AudioEngineSettings,Xenko.Audio
         HrtfSupport: false
     - !Xenko.Streaming.StreamingSettings,Xenko.Engine
