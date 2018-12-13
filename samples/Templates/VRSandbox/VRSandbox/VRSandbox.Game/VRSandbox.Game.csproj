@@ -1,15 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <RootNamespace>VRSandbox</RootNamespace>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Xenko" Version="3.0.0.1-dev">
-      <PrivateAssets>contentfiles;analyzers</PrivateAssets>
-    </PackageReference>
-    <ProjectReference Include="..\..\..\Packs\mannequinModel\mannequinModel.csproj"/>
-    <ProjectReference Include="..\..\..\Packs\SamplesAssetPackage\SamplesAssetPackage.csproj"/>
+    <PackageReference Include="Xenko.Core" Version="3.1.0.1-dev" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="3.1.0.1-dev" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Xenko.Engine" Version="3.1.0.1-dev" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Navigation" Version="3.1.0.1-dev" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Particles" Version="3.1.0.1-dev" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Physics" Version="3.1.0.1-dev" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.UI" Version="3.1.0.1-dev" PrivateAssets="contentfiles;analyzers" />
+    <ProjectReference Include="..\..\..\Packs\mannequinModel\mannequinModel.csproj" />
+    <ProjectReference Include="..\..\..\Packs\SamplesAssetPackage\SamplesAssetPackage.csproj" />
   </ItemGroup>
 </Project>

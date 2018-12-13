@@ -1,6 +1,6 @@
 !SceneAsset
 Id: 23bec781-4d51-45db-bdf4-8e93d693f53f
-SerializedVersion: {Xenko: 2.1.0.1}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
 ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -444,8 +444,8 @@ Hierarchy:
                                 Size: XLarge
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                ComputeTransmittance: false
                                 BiasParameters: {}
+                                ComputeTransmittance: false
                         Intensity: 5.0
         -   Entity:
                 Id: 3880e6af-35c6-476c-8a44-356d8d97c690

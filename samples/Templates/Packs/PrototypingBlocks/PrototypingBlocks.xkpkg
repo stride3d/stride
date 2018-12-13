@@ -1,25 +1,15 @@
 !Package
-Id: c9b4f26a-e7ba-4201-a6e0-0c0eedfe9de2
-SerializedVersion: {Assets: 0.0.4}
+SerializedVersion: {Assets: 3.1.0.0}
 Meta:
     Name: PrototypingBlocks
-    Version: 1.0.0.0
+    Version: 1.0.0
     Authors: []
     Owners: []
-    Dependencies:
-        -   Name: Xenko
-            Version: 3.0.0.1-dev
-            RootAssets: []
-LocalDependencies: []
-Profiles:
-    -   Name: Shared
-        Platform: Shared
-        InheritProfiles: []
-        AssetFolders:
-            -   Path: Assets
-        ResourceFolders: []
-        OutputGroupDirectories: {}
-        ProjectReferences: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir Assets
+ResourceFolders: []
+OutputGroupDirectories: {}
 ExplicitFolders: []
 Bundles: []
 TemplateFolders: []

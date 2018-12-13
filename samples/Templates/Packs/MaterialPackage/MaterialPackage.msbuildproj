@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
-  </PropertyGroup>
-
-  <Target Name="CreateManifestResourceNames" />
-  <Target Name="CoreCompile" />
-</Project>
