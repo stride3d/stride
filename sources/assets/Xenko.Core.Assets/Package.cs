@@ -604,7 +604,7 @@ namespace Xenko.Core.Assets
 
                 // Find the .csproj next to .xkpkg (if any)
                 // Note that we use package.FullPath since we must first perform package upgrade from 3.0 to 3.1+ (might move package in .csproj folder)
-                var projectPath = Path.ChangeExtension(package.FullPath, ".csproj");
+                var projectPath = Path.ChangeExtension(package.FullPath.ToWindowsPath(), ".csproj");
                 if (File.Exists(projectPath))
                 {
                     return new SolutionProject(package, Guid.NewGuid(), projectPath);

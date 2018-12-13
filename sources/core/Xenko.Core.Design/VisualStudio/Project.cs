@@ -368,7 +368,7 @@ namespace Xenko.Core.VisualStudio
         {
             if (TypeGuid == KnownProjectTypeGuid.SolutionFolder)
                 return FullPath;
-            return Uri.UnescapeDataString(new Uri(solution.FullPath, UriKind.Absolute).MakeRelativeUri(new Uri(FullPath, UriKind.Absolute)).ToString());
+            return Uri.UnescapeDataString(new Uri(solution.FullPath, UriKind.Absolute).MakeRelativeUri(new Uri(FullPath, UriKind.Absolute)).ToString()).Replace('/', '\\');
         }
 
         /// <summary>

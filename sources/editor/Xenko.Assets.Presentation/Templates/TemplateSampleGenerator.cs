@@ -80,7 +80,7 @@ namespace Xenko.Assets.Presentation.Templates
             //  Setting this to true will enforce all package dependencies to be moved to a folder local to the project
             bool doMoveParentDependencies = true;
 
-            var packageFile = Path.ChangeExtension(description.FullPath, Package.PackageFileExtension);
+            var packageFile = Path.ChangeExtension(description.FullPath.ToWindowsPath(), Package.PackageFileExtension);
 
             if (!File.Exists(packageFile))
             {
