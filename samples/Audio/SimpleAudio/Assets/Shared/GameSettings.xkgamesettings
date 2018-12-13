@@ -22,20 +22,6 @@ Defaults:
         FixedTimeStep: 0.0166666675
     - !Xenko.Audio.AudioEngineSettings,Xenko.Audio
         HrtfSupport: false
-    - !Xenko.Navigation.NavigationSettings,Xenko.Navigation
-        EnableDynamicNavigationMesh: false
-        IncludedCollisionGroups: AllFilter
-        BuildSettings:
-            CellHeight: 0.2
-            CellSize: 0.3
-            TileSize: 32
-            MinRegionArea: 2
-            RegionMergeArea: 20
-            MaxEdgeLen: 12.0
-            MaxEdgeError: 1.3
-            DetailSamplingDistance: 6.0
-            MaxDetailSamplingError: 1.0
-        Groups: []
     - !Xenko.Streaming.StreamingSettings,Xenko.Engine
         ManagerUpdatesInterval: 0:00:00:00.0330000
         ResourceLiveTimeout: 0:00:00:08.0000000
