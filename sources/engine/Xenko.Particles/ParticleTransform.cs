@@ -34,7 +34,7 @@ namespace Xenko.Particles
         [Display("Scale offset")]
         public Vector3 Scale { get; set; } = new Vector3(1, 1, 1);
 
-        [DataMember(5)]
+        [DataMember(6)]
         [Display("Uniform Scale")]
         public float ScaleUniform { get; set; } = 1f;
 
@@ -42,13 +42,13 @@ namespace Xenko.Particles
         [DataMember(10)]
         public bool DisplayParticlePosition = false;
 
-        [DataMember(10)]
+        [DataMember(11)]
         public bool DisplayParticleRotation = false;
 
-        [DataMember(10)]
+        [DataMember(12)]
         public bool DisplayParticleScale = false;
 
-        [DataMember(10)]
+        [DataMember(13)]
         public bool DisplayParticleScaleUniform = false;
 
         [DataMemberIgnore]
