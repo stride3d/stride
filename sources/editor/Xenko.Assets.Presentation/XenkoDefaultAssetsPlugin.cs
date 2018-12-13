@@ -92,7 +92,7 @@ namespace Xenko.Assets.Presentation
             {
                 var logger = new LoggerResult();
                 var packageFile = PackageStore.Instance.GetPackageFileName(packageInfo.Name, new PackageVersionRange(new PackageVersion(packageInfo.Version)));
-                var package = Package.Load(logger, packageFile);
+                var package = Package.Load(logger, packageFile.ToWindowsPath());
                 if (logger.HasErrors)
                     throw new InvalidOperationException($"Could not load package {packageInfo.Name}:{Environment.NewLine}{logger.ToText()}");
 
