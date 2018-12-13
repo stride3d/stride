@@ -1,0 +1,16 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: GravitySensor.Game
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir ../Assets/Shared
+ResourceFolders: []
+OutputGroupDirectories: {}
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets: []

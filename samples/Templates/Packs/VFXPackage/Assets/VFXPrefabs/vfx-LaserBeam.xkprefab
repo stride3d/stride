@@ -1,6 +1,6 @@
 !PrefabAsset
 Id: 8a4fed52-02c4-46fa-9f41-bee3decdc3d1
-SerializedVersion: {Xenko: 2.1.0.1}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
 Hierarchy:
     RootParts:
@@ -102,12 +102,12 @@ Hierarchy:
                                             InheritScale: true
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
-                                            DisplayParticleRotation: true
                                             DisplayParticlePosition: false
                                             Target: ref!! e97c6f33-1882-4429-8239-55cce7f2b5ee
-                                            DisplayParticleScaleUniform: false
-                                            DisplayParticleScale: false
+                                            DisplayParticleRotation: true
                                             FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
+                                            DisplayParticleScale: false
+                                            DisplayParticleScaleUniform: false
                                             ArcHeight: 1.0
                                             Sequential: true
                                             FixedLength: 0
@@ -204,15 +204,15 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                                            DisplayParticleRotation: true
+                                            ScaleUniform: 1.0
                                             DisplayParticlePosition: false
-                                            DisplayParticleScaleUniform: true
-                                            DisplayParticleScale: false
+                                            DisplayParticleRotation: true
                                             ParentName: LaserEmitter01
+                                            DisplayParticleScale: false
                                             ParentSeedOffset: 0
                                             ParentControlFlag: Group00
+                                            DisplayParticleScaleUniform: true
                                             SeedOffset: 0
                                             PositionMin: {X: -0.1, Y: -0.1, Z: -0.1}
                                             PositionMax: {X: 0.1, Y: 0.1, Z: 0.1}
@@ -251,15 +251,15 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                                            DisplayParticleRotation: false
+                                            ScaleUniform: 1.0
                                             DisplayParticlePosition: false
-                                            DisplayParticleScaleUniform: false
-                                            DisplayParticleScale: false
+                                            DisplayParticleRotation: false
                                             ParentName: LaserEmitter01
+                                            DisplayParticleScale: false
                                             ParentSeedOffset: 0
                                             ParentControlFlag: Group00
+                                            DisplayParticleScaleUniform: false
                                             SeedOffset: 0
                                             ColorMin: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             ColorMax: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
@@ -314,12 +314,12 @@ Hierarchy:
                                             InheritScale: true
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
                                             ScaleUniform: 1.0
-                                            DisplayParticleRotation: true
                                             DisplayParticlePosition: false
                                             Target: ref!! e97c6f33-1882-4429-8239-55cce7f2b5ee
-                                            DisplayParticleScaleUniform: false
-                                            DisplayParticleScale: false
+                                            DisplayParticleRotation: true
                                             FallbackTarget: {X: 0.0, Y: 0.0, Z: -1.0}
+                                            DisplayParticleScale: false
+                                            DisplayParticleScaleUniform: false
                                             ArcHeight: 1.0
                                             Sequential: true
                                             FixedLength: 0
@@ -358,15 +358,15 @@ Hierarchy:
                                             InheritRotation: true
                                             Rotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                                             InheritScale: true
-                                            ScaleUniform: 1.0
                                             Scale: {X: 1.0, Y: 1.0, Z: 1.0}
-                                            DisplayParticleRotation: false
+                                            ScaleUniform: 1.0
                                             DisplayParticlePosition: false
-                                            DisplayParticleScaleUniform: false
-                                            DisplayParticleScale: false
+                                            DisplayParticleRotation: false
                                             ParentName: LaserEmitter01
+                                            DisplayParticleScale: false
                                             ParentSeedOffset: 0
                                             ParentControlFlag: Group00
+                                            DisplayParticleScaleUniform: false
                                             SeedOffset: 0
                                             ColorMin: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}
                                             ColorMax: {R: 1.0, G: 1.0, B: 1.0, A: 1.0}

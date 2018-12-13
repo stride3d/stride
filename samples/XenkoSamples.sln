@@ -4,67 +4,46 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.26430.14
 MinimumVisualStudioVersion = 14.0.23107.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SpaceEscape", "SpaceEscape", "{3665E984-37E5-4B32-B351-D4254F5E6D94}"
-	ProjectSection(XenkoPackage) = preProject
-		Games/SpaceEscape/SpaceEscape.xkpkg = Games/SpaceEscape/SpaceEscape.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceEscape.Game", "Games\SpaceEscape\SpaceEscape.Game\SpaceEscape.Game.csproj", "{8573B1CB-C5A4-47A0-9B8E-092466E1CD0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpaceEscape.Game", "Games\SpaceEscape\SpaceEscape.Game\SpaceEscape.Game.csproj", "{8573B1CB-C5A4-47A0-9B8E-092466E1CD0F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpaceEscape.Windows", "Games\SpaceEscape\SpaceEscape.Windows\SpaceEscape.Windows.csproj", "{C9B0B66A-5A11-4866-AD75-718C80EC383A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpaceEscape.Windows", "Games\SpaceEscape\SpaceEscape.Windows\SpaceEscape.Windows.csproj", "{C9B0B66A-5A11-4866-AD75-718C80EC383A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SimpleAudio", "SimpleAudio", "{8427AB2B-9E4B-42B1-AE0A-CC590BEC6880}"
-	ProjectSection(XenkoPackage) = preProject
-		Audio/SimpleAudio/SimpleAudio.xkpkg = Audio/SimpleAudio/SimpleAudio.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleAudio.Game", "Audio\SimpleAudio\SimpleAudio.Game\SimpleAudio.Game.csproj", "{88B8B752-B70C-4A4D-8B4F-6D256EFBF064}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleAudio.Game", "Audio\SimpleAudio\SimpleAudio.Game\SimpleAudio.Game.csproj", "{88B8B752-B70C-4A4D-8B4F-6D256EFBF064}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleAudio.Windows", "Audio\SimpleAudio\SimpleAudio.Windows\SimpleAudio.Windows.csproj", "{22223CE8-BD79-4EF4-ABE7-7F4E5D45CD4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleAudio.Windows", "Audio\SimpleAudio\SimpleAudio.Windows\SimpleAudio.Windows.csproj", "{22223CE8-BD79-4EF4-ABE7-7F4E5D45CD4C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CustomEffect", "CustomEffect", "{35E18FE9-55F3-4286-BB27-47F977BA160A}"
-	ProjectSection(XenkoPackage) = preProject
-		Graphics/CustomEffect/CustomEffect.xkpkg = Graphics/CustomEffect/CustomEffect.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomEffect.Game", "Graphics\CustomEffect\CustomEffect.Game\CustomEffect.Game.csproj", "{9EADBAB9-0AFB-4D61-AC4B-6A691E26EC8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomEffect.Game", "Graphics\CustomEffect\CustomEffect.Game\CustomEffect.Game.csproj", "{9EADBAB9-0AFB-4D61-AC4B-6A691E26EC8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomEffect.Windows", "Graphics\CustomEffect\CustomEffect.Windows\CustomEffect.Windows.csproj", "{151A8119-5850-462D-B2F4-2E559583067E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomEffect.Windows", "Graphics\CustomEffect\CustomEffect.Windows\CustomEffect.Windows.csproj", "{151A8119-5850-462D-B2F4-2E559583067E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GameMenu", "GameMenu", "{D381BE88-451F-4701-A0E5-64992D2BF627}"
-	ProjectSection(XenkoPackage) = preProject
-		UI/GameMenu/GameMenu.xkpkg = UI/GameMenu/GameMenu.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameMenu.Game", "UI\GameMenu\GameMenu.Game\GameMenu.Game.csproj", "{8B89A998-A276-4376-A831-8C9F87042D88}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameMenu.Game", "UI\GameMenu\GameMenu.Game\GameMenu.Game.csproj", "{8B89A998-A276-4376-A831-8C9F87042D88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameMenu.Windows", "UI\GameMenu\GameMenu.Windows\GameMenu.Windows.csproj", "{3423703A-46EA-4DA6-9B57-F0AFB9BE3EF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameMenu.Windows", "UI\GameMenu\GameMenu.Windows\GameMenu.Windows.csproj", "{3423703A-46EA-4DA6-9B57-F0AFB9BE3EF1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AnimatedModel", "AnimatedModel", "{80373992-22A3-45ED-B0C4-ED5BBFC1BD12}"
-	ProjectSection(XenkoPackage) = preProject
-		Graphics/AnimatedModel/AnimatedModel.xkpkg = Graphics/AnimatedModel/AnimatedModel.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimatedModel.Game", "Graphics\AnimatedModel\AnimatedModel.Game\AnimatedModel.Game.csproj", "{A07E6E07-5068-4E26-B8A5-051BEC0D8F81}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimatedModel.Game", "Graphics\AnimatedModel\AnimatedModel.Game\AnimatedModel.Game.csproj", "{A07E6E07-5068-4E26-B8A5-051BEC0D8F81}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimatedModel.Windows", "Graphics\AnimatedModel\AnimatedModel.Windows\AnimatedModel.Windows.csproj", "{BDBC48A7-1FE7-48CA-B634-B05E7C0E8DB6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimatedModel.Windows", "Graphics\AnimatedModel\AnimatedModel.Windows\AnimatedModel.Windows.csproj", "{BDBC48A7-1FE7-48CA-B634-B05E7C0E8DB6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TouchInputs", "TouchInputs", "{141F872B-DBD5-426F-89C7-64FA6DB0B77F}"
-	ProjectSection(XenkoPackage) = preProject
-		Input/TouchInputs/TouchInputs.xkpkg = Input/TouchInputs/TouchInputs.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TouchInputs.Game", "Input\TouchInputs\TouchInputs.Game\TouchInputs.Game.csproj", "{34E90514-FD40-4FB2-815E-77A0E2455EF1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TouchInputs.Game", "Input\TouchInputs\TouchInputs.Game\TouchInputs.Game.csproj", "{34E90514-FD40-4FB2-815E-77A0E2455EF1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TouchInputs.Windows", "Input\TouchInputs\TouchInputs.Windows\TouchInputs.Windows.csproj", "{6412AABE-5FD0-461C-888E-97101B670DA1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TouchInputs.Windows", "Input\TouchInputs\TouchInputs.Windows\TouchInputs.Windows.csproj", "{6412AABE-5FD0-461C-888E-97101B670DA1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SpriteFonts", "SpriteFonts", "{C148408B-43BC-465C-825A-D74B122377EF}"
-	ProjectSection(XenkoPackage) = preProject
-		Graphics/SpriteFonts/SpriteFonts.xkpkg = Graphics/SpriteFonts/SpriteFonts.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteFonts.Game", "Graphics\SpriteFonts\SpriteFonts.Game\SpriteFonts.Game.csproj", "{A38806F0-3B25-4AAF-9EC3-476BBCDCAF52}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpriteFonts.Game", "Graphics\SpriteFonts\SpriteFonts.Game\SpriteFonts.Game.csproj", "{A38806F0-3B25-4AAF-9EC3-476BBCDCAF52}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteFonts.Windows", "Graphics\SpriteFonts\SpriteFonts.Windows\SpriteFonts.Windows.csproj", "{4534CF31-201D-4B3B-9CD1-C0FDFB5FB61B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpriteFonts.Windows", "Graphics\SpriteFonts\SpriteFonts.Windows\SpriteFonts.Windows.csproj", "{4534CF31-201D-4B3B-9CD1-C0FDFB5FB61B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Graphics", "Graphics", "{2CA32623-ED9C-4125-9946-885554F16E37}"
 EndProject
@@ -77,149 +56,94 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Audio", "Audio", "{AD2C3C68-86DC-4E65-957E-ED7E17F0E40E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GravitySensor", "GravitySensor", "{69972EAE-E2A4-4A4F-9059-59063DBB633C}"
-	ProjectSection(XenkoPackage) = preProject
-		Input/GravitySensor/GravitySensor.xkpkg = Input/GravitySensor/GravitySensor.xkpkg
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Physics", "Physics", "{ED0924FF-2147-4C47-9DE6-37A549629A9D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PhysicsSample", "PhysicsSample", "{5C3ACE5D-F60D-4138-8EC8-EB8BC7D9F5BD}"
-	ProjectSection(XenkoPackage) = preProject
-		Physics/PhysicsSample/PhysicsSample.xkpkg = Physics/PhysicsSample/PhysicsSample.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhysicsSample.Game", "Physics\PhysicsSample\PhysicsSample.Game\PhysicsSample.Game.csproj", "{95CFD515-3747-41CE-893E-B7E279BE5F2D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhysicsSample.Game", "Physics\PhysicsSample\PhysicsSample.Game\PhysicsSample.Game.csproj", "{95CFD515-3747-41CE-893E-B7E279BE5F2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhysicsSample.Windows", "Physics\PhysicsSample\PhysicsSample.Windows\PhysicsSample.Windows.csproj", "{3C442DD9-2A24-4523-AAD1-0D7E778A2594}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhysicsSample.Windows", "Physics\PhysicsSample\PhysicsSample.Windows\PhysicsSample.Windows.csproj", "{3C442DD9-2A24-4523-AAD1-0D7E778A2594}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GravitySensor.Game", "Input\GravitySensor\GravitySensor.Game\GravitySensor.Game.csproj", "{EC1EED7A-9F01-45FF-9BED-29EC8635B18A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GravitySensor.Game", "Input\GravitySensor\GravitySensor.Game\GravitySensor.Game.csproj", "{EC1EED7A-9F01-45FF-9BED-29EC8635B18A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GravitySensor.Windows", "Input\GravitySensor\GravitySensor.Windows\GravitySensor.Windows.csproj", "{62DEC7C9-C494-4F3B-8AA6-A58D61FB5E07}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Others", "Others", "{A4012D9F-A826-45C3-8A87-072EBBA4C632}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GravitySensor.Windows", "Input\GravitySensor\GravitySensor.Windows\GravitySensor.Windows.csproj", "{62DEC7C9-C494-4F3B-8AA6-A58D61FB5E07}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SpriteStudioDemo", "SpriteStudioDemo", "{48195305-1F56-44A9-BE69-7FA0597A50DC}"
-	ProjectSection(XenkoPackage) = preProject
-		Graphics/SpriteStudioDemo/SpriteStudioDemo.xkpkg = Graphics/SpriteStudioDemo/SpriteStudioDemo.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteStudioDemo.Windows", "Graphics\SpriteStudioDemo\SpriteStudioDemo.Windows\SpriteStudioDemo.Windows.csproj", "{BDE88C50-CF68-46AE-93F8-39509AD90176}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpriteStudioDemo.Windows", "Graphics\SpriteStudioDemo\SpriteStudioDemo.Windows\SpriteStudioDemo.Windows.csproj", "{BDE88C50-CF68-46AE-93F8-39509AD90176}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpriteStudioDemo.Game", "Graphics\SpriteStudioDemo\SpriteStudioDemo.Game\SpriteStudioDemo.Game.csproj", "{C2CDE5BC-7BD2-4E74-AB9E-9CF56AAE0E79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SpriteStudioDemo.Game", "Graphics\SpriteStudioDemo\SpriteStudioDemo.Game\SpriteStudioDemo.Game.csproj", "{C2CDE5BC-7BD2-4E74-AB9E-9CF56AAE0E79}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Particles", "Particles", "{82EAB4A6-B265-47C2-B544-D7671BDB3D2D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ParticlesSample", "ParticlesSample", "{2B920979-D010-44FA-A415-E52D97E51DF3}"
-	ProjectSection(XenkoPackage) = preProject
-		Particles/ParticlesSample/ParticlesSample.xkpkg = Particles/ParticlesSample/ParticlesSample.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParticlesSample.Windows", "Particles\ParticlesSample\ParticlesSample.Windows\ParticlesSample.Windows.csproj", "{BDDD6C01-7873-4066-BC52-3E5847FE9F39}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParticlesSample.Windows", "Particles\ParticlesSample\ParticlesSample.Windows\ParticlesSample.Windows.csproj", "{BDDD6C01-7873-4066-BC52-3E5847FE9F39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParticlesSample.Game", "Particles\ParticlesSample\ParticlesSample.Game\ParticlesSample.Game.csproj", "{C821E6B2-04B2-4983-8348-7AC37B23C5E1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParticlesSample.Game", "Particles\ParticlesSample\ParticlesSample.Game\ParticlesSample.Game.csproj", "{C821E6B2-04B2-4983-8348-7AC37B23C5E1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UIParticles", "UIParticles", "{9F892E18-E9CD-4C4F-BD2F-7837E10265BF}"
-	ProjectSection(XenkoPackage) = preProject
-		UI/UIParticles/UIParticles.xkpkg = UI/UIParticles/UIParticles.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIParticles.Windows", "UI\UIParticles\UIParticles.Windows\UIParticles.Windows.csproj", "{20504AB5-3696-4381-B61D-4928BB6369E4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIParticles.Windows", "UI\UIParticles\UIParticles.Windows\UIParticles.Windows.csproj", "{20504AB5-3696-4381-B61D-4928BB6369E4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIParticles.Game", "UI\UIParticles\UIParticles.Game\UIParticles.Game.csproj", "{85DA6EC0-B144-46FA-8F30-878BC95B377C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIParticles.Game", "UI\UIParticles\UIParticles.Game\UIParticles.Game.csproj", "{85DA6EC0-B144-46FA-8F30-878BC95B377C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIElementLink.Game", "UI\UIElementLink\UIElementLink.Game\UIElementLink.Game.csproj", "{88396FD1-9DDA-4338-B6E3-EECA9ECCBE43}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIElementLink.Game", "UI\UIElementLink\UIElementLink.Game\UIElementLink.Game.csproj", "{88396FD1-9DDA-4338-B6E3-EECA9ECCBE43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UIElementLink.Windows", "UI\UIElementLink\UIElementLink.Windows\UIElementLink.Windows.csproj", "{31828B12-B551-4253-B797-5A8CFBA0E977}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UIElementLink.Windows", "UI\UIElementLink\UIElementLink.Windows\UIElementLink.Windows.csproj", "{31828B12-B551-4253-B797-5A8CFBA0E977}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UIElementLink", "UIElementLink", "{6244D6F9-F6AC-4B64-B8F6-C895036B53C0}"
-	ProjectSection(XenkoPackage) = preProject
-		UI/UIElementLink/UIElementLink.xkpkg = UI/UIElementLink/UIElementLink.xkpkg
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FirstPersonShooter", "FirstPersonShooter", "{2CA471D1-0216-4BC8-A03A-3CCEC16B7F85}"
-	ProjectSection(XenkoPackage) = preProject
-		Templates/FirstPersonShooter/FirstPersonShooter/FirstPersonShooter.xkpkg = Templates/FirstPersonShooter/FirstPersonShooter/FirstPersonShooter.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPersonShooter.Game", "Templates\FirstPersonShooter\FirstPersonShooter\FirstPersonShooter.Game\FirstPersonShooter.Game.csproj", "{A2F50F1F-AF89-4264-8327-20BE994592D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FirstPersonShooter.Game", "Templates\FirstPersonShooter\FirstPersonShooter\FirstPersonShooter.Game\FirstPersonShooter.Game.csproj", "{A2F50F1F-AF89-4264-8327-20BE994592D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPersonShooter.Windows", "Templates\FirstPersonShooter\FirstPersonShooter\FirstPersonShooter.Windows\FirstPersonShooter.Windows.csproj", "{152D59A3-17BF-4A67-ABFF-B2F6FB2B7DFA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FirstPersonShooter.Windows", "Templates\FirstPersonShooter\FirstPersonShooter\FirstPersonShooter.Windows\FirstPersonShooter.Windows.csproj", "{152D59A3-17BF-4A67-ABFF-B2F6FB2B7DFA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ThirdPersonPlatformer", "ThirdPersonPlatformer", "{AFAE975A-E8BC-4B00-82B3-7D9C67DD6A41}"
-	ProjectSection(XenkoPackage) = preProject
-		Templates/ThirdPersonPlatformer/ThirdPersonPlatformer/ThirdPersonPlatformer.xkpkg = Templates/ThirdPersonPlatformer/ThirdPersonPlatformer/ThirdPersonPlatformer.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThirdPersonPlatformer.Game", "Templates\ThirdPersonPlatformer\ThirdPersonPlatformer\ThirdPersonPlatformer.Game\ThirdPersonPlatformer.Game.csproj", "{6807D261-4AF2-405C-8EBF-D8A0B08C7801}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThirdPersonPlatformer.Game", "Templates\ThirdPersonPlatformer\ThirdPersonPlatformer\ThirdPersonPlatformer.Game\ThirdPersonPlatformer.Game.csproj", "{6807D261-4AF2-405C-8EBF-D8A0B08C7801}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThirdPersonPlatformer.Windows", "Templates\ThirdPersonPlatformer\ThirdPersonPlatformer\ThirdPersonPlatformer.Windows\ThirdPersonPlatformer.Windows.csproj", "{1D5D1B2E-B157-4E5B-BE35-2ED9E1C262CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ThirdPersonPlatformer.Windows", "Templates\ThirdPersonPlatformer\ThirdPersonPlatformer\ThirdPersonPlatformer.Windows\ThirdPersonPlatformer.Windows.csproj", "{1D5D1B2E-B157-4E5B-BE35-2ED9E1C262CB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TopDownRPG", "TopDownRPG", "{1ADF36A6-5E90-4DA5-9E31-2C9FE29CAD18}"
-	ProjectSection(XenkoPackage) = preProject
-		Templates/TopDownRPG/TopDownRPG/TopDownRPG.xkpkg = Templates/TopDownRPG/TopDownRPG/TopDownRPG.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TopDownRPG.Game", "Templates\TopDownRPG\TopDownRPG\TopDownRPG.Game\TopDownRPG.Game.csproj", "{92B5077F-3D0D-4043-A3B4-25A32C9D64AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TopDownRPG.Game", "Templates\TopDownRPG\TopDownRPG\TopDownRPG.Game\TopDownRPG.Game.csproj", "{92B5077F-3D0D-4043-A3B4-25A32C9D64AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TopDownRPG.Windows", "Templates\TopDownRPG\TopDownRPG\TopDownRPG.Windows\TopDownRPG.Windows.csproj", "{436E0287-CC11-4E08-BD1B-C7AB4B20B0DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TopDownRPG.Windows", "Templates\TopDownRPG\TopDownRPG\TopDownRPG.Windows\TopDownRPG.Windows.csproj", "{436E0287-CC11-4E08-BD1B-C7AB4B20B0DD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Templates", "Templates", "{1167BFE9-9460-4E2D-9FDB-A084B8961385}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "JumpyJet", "JumpyJet", "{A66FF22B-5604-4711-A52B-7D09D2720FDF}"
-	ProjectSection(XenkoPackage) = preProject
-		Games/JumpyJet/JumpyJet.xkpkg = Games/JumpyJet/JumpyJet.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JumpyJet.Windows", "Games\JumpyJet\JumpyJet.Windows\JumpyJet.Windows.csproj", "{AA5698D8-580A-4D8D-A746-5F4576C7CC40}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JumpyJet.Windows", "Games\JumpyJet\JumpyJet.Windows\JumpyJet.Windows.csproj", "{AA5698D8-580A-4D8D-A746-5F4576C7CC40}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JumpyJet.Game", "Games\JumpyJet\JumpyJet.Game\JumpyJet.Game.csproj", "{597B3943-F261-406D-ADAD-96C1F38F30A9}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VFXPackage", "VFXPackage", "{575B8DC7-3FAD-497D-ACF7-FBDFABCECE80}"
-	ProjectSection(XenkoPackage) = preProject
-		Templates/Packs/VFXPackage/VFXPackage.xkpkg = Templates/Packs/VFXPackage/VFXPackage.xkpkg
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PrototypingBlocks", "PrototypingBlocks", "{C9B4F26A-E7BA-4201-A6E0-0C0EEDFE9DE2}"
-	ProjectSection(XenkoPackage) = preProject
-		Templates/Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.xkpkg = Templates/Packs/PrototypingBlocks/PrototypingBlocks/PrototypingBlocks.xkpkg
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "mannequinModel", "mannequinModel", "{EC64FD24-824F-4DA4-B077-3661CF988027}"
-	ProjectSection(XenkoPackage) = preProject
-		Templates/Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg = Templates/Packs/mannequinModel/mannequinModel/mannequinModel.xkpkg
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SamplesAssetPackage", "SamplesAssetPackage", "{BDD7A38F-3FF5-4279-B7B7-27A4C677F4D7}"
-	ProjectSection(XenkoPackage) = preProject
-		Templates/Packs/SamplesAssetPackage/SamplesAssetPackage.xkpkg = Templates/Packs/SamplesAssetPackage/SamplesAssetPackage.xkpkg
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MaterialPackage", "MaterialPackage", "{31044D7A-FBDB-446D-AF96-15596AD3EB6D}"
-	ProjectSection(XenkoPackage) = preProject
-		Templates/Packs/MaterialPackage/MaterialPackage.xkpkg = Templates/Packs/MaterialPackage/MaterialPackage.xkpkg
-	EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JumpyJet.Game", "Games\JumpyJet\JumpyJet.Game\JumpyJet.Game.csproj", "{597B3943-F261-406D-ADAD-96C1F38F30A9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VRSandbox", "VRSandbox", "{2FD8E3C1-D573-48AF-8AEB-3F8D053F7D0D}"
-	ProjectSection(XenkoPackage) = preProject
-		Templates/VRSandbox/VRSandbox/VRSandbox.xkpkg = Templates/VRSandbox/VRSandbox/VRSandbox.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VRSandbox.Windows", "Templates\VRSandbox\VRSandbox\VRSandbox.Windows\VRSandbox.Windows.csproj", "{BD079676-2C54-43C7-8476-14B007EE6780}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VRSandbox.Windows", "Templates\VRSandbox\VRSandbox\VRSandbox.Windows\VRSandbox.Windows.csproj", "{BD079676-2C54-43C7-8476-14B007EE6780}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VRSandbox.Game", "Templates\VRSandbox\VRSandbox\VRSandbox.Game\VRSandbox.Game.csproj", "{577D2166-5B06-4119-96CF-70D6C1716A2F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VRSandbox.Game", "Templates\VRSandbox\VRSandbox\VRSandbox.Game\VRSandbox.Game.csproj", "{577D2166-5B06-4119-96CF-70D6C1716A2F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MaterialShader", "MaterialShader", "{49E75772-2004-4975-A2CA-FAC7FCB12E70}"
-	ProjectSection(XenkoPackage) = preProject
-		Graphics/MaterialShader/MaterialShader.xkpkg = Graphics/MaterialShader/MaterialShader.xkpkg
-	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Windows", "Graphics\MaterialShader\MaterialShader.Windows\MaterialShader.Windows.csproj", "{0BD87B72-191D-4F53-ABF7-A1B3B8A092AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaterialShader.Windows", "Graphics\MaterialShader\MaterialShader.Windows\MaterialShader.Windows.csproj", "{0BD87B72-191D-4F53-ABF7-A1B3B8A092AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Game", "Graphics\MaterialShader\MaterialShader.Game\MaterialShader.Game.csproj", "{CBDAF756-3F4A-4CAC-975D-A76A2B196A01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaterialShader.Game", "Graphics\MaterialShader\MaterialShader.Game\MaterialShader.Game.csproj", "{CBDAF756-3F4A-4CAC-975D-A76A2B196A01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Windows", "Graphics\MaterialShader\MaterialShader.Windows\MaterialShader.Windows.csproj", "{F4F74EB3-D2B6-405B-B483-1835E81A3A40}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mannequinModel", "Templates\Packs\mannequinModel\mannequinModel.csproj", "{17CE69A0-470B-49E0-8D4A-21D5472DE6CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Game", "Graphics\MaterialShader\MaterialShader.Game\MaterialShader.Game.csproj", "{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PrototypingBlocks", "Templates\Packs\PrototypingBlocks\PrototypingBlocks.csproj", "{6A8521BF-ECB9-4A4C-8820-E95479FA8381}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SamplesAssetPackage", "Templates\Packs\SamplesAssetPackage\SamplesAssetPackage.csproj", "{723F76B5-33F0-4814-9EBB-C70FD7904BFC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VFXPackage", "Templates\Packs\VFXPackage\VFXPackage.csproj", "{7532804B-4809-4950-86D0-D114516787FC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packs", "Packs", "{4186D350-84A7-4ADC-B0C1-6482989302A6}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MaterialPackage", "Templates\Packs\MaterialPackage\MaterialPackage.csproj", "{6CDBC939-6739-4F8E-95F7-629C58874208}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1413,66 +1337,6 @@ Global
 		{CBDAF756-3F4A-4CAC-975D-A76A2B196A01}.Testing|Mixed Platforms.Build.0 = Testing|Any CPU
 		{CBDAF756-3F4A-4CAC-975D-A76A2B196A01}.Testing|Windows.ActiveCfg = Testing|Any CPU
 		{CBDAF756-3F4A-4CAC-975D-A76A2B196A01}.Testing|Windows.Build.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Any CPU.ActiveCfg = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Any CPU.Build.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Any CPU.Deploy.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Mixed Platforms.ActiveCfg = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Mixed Platforms.Build.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Mixed Platforms.Deploy.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Windows.ActiveCfg = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Windows.Build.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.AppStore|Windows.Deploy.0 = AppStore|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Mixed Platforms.Deploy.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Windows.ActiveCfg = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Windows.Build.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Debug|Windows.Deploy.0 = Debug|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Mixed Platforms.Deploy.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Windows.ActiveCfg = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Windows.Build.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Release|Windows.Deploy.0 = Release|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Any CPU.ActiveCfg = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Any CPU.Build.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Any CPU.Deploy.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Mixed Platforms.ActiveCfg = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Mixed Platforms.Build.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Mixed Platforms.Deploy.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Windows.ActiveCfg = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Windows.Build.0 = Testing|Any CPU
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40}.Testing|Windows.Deploy.0 = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Any CPU.ActiveCfg = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Any CPU.Build.0 = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Mixed Platforms.ActiveCfg = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Mixed Platforms.Build.0 = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Windows.ActiveCfg = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.AppStore|Windows.Build.0 = AppStore|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Windows.ActiveCfg = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Debug|Windows.Build.0 = Debug|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Windows.ActiveCfg = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Release|Windows.Build.0 = Release|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Any CPU.ActiveCfg = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Any CPU.Build.0 = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Mixed Platforms.ActiveCfg = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Mixed Platforms.Build.0 = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Windows.ActiveCfg = Testing|Any CPU
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}.Testing|Windows.Build.0 = Testing|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1526,13 +1390,23 @@ Global
 		{1ADF36A6-5E90-4DA5-9E31-2C9FE29CAD18} = {1167BFE9-9460-4E2D-9FDB-A084B8961385}
 		{92B5077F-3D0D-4043-A3B4-25A32C9D64AA} = {1ADF36A6-5E90-4DA5-9E31-2C9FE29CAD18}
 		{436E0287-CC11-4E08-BD1B-C7AB4B20B0DD} = {1ADF36A6-5E90-4DA5-9E31-2C9FE29CAD18}
+		{A66FF22B-5604-4711-A52B-7D09D2720FDF} = {493BD2AD-D7AD-49EE-9726-3986D7E42851}
 		{AA5698D8-580A-4D8D-A746-5F4576C7CC40} = {A66FF22B-5604-4711-A52B-7D09D2720FDF}
 		{597B3943-F261-406D-ADAD-96C1F38F30A9} = {A66FF22B-5604-4711-A52B-7D09D2720FDF}
+		{2FD8E3C1-D573-48AF-8AEB-3F8D053F7D0D} = {1167BFE9-9460-4E2D-9FDB-A084B8961385}
 		{BD079676-2C54-43C7-8476-14B007EE6780} = {2FD8E3C1-D573-48AF-8AEB-3F8D053F7D0D}
 		{577D2166-5B06-4119-96CF-70D6C1716A2F} = {2FD8E3C1-D573-48AF-8AEB-3F8D053F7D0D}
+		{49E75772-2004-4975-A2CA-FAC7FCB12E70} = {2CA32623-ED9C-4125-9946-885554F16E37}
 		{0BD87B72-191D-4F53-ABF7-A1B3B8A092AE} = {49E75772-2004-4975-A2CA-FAC7FCB12E70}
 		{CBDAF756-3F4A-4CAC-975D-A76A2B196A01} = {49E75772-2004-4975-A2CA-FAC7FCB12E70}
-		{F4F74EB3-D2B6-405B-B483-1835E81A3A40} = {49E75772-2004-4975-A2CA-FAC7FCB12E70}
-		{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E} = {49E75772-2004-4975-A2CA-FAC7FCB12E70}
+		{17CE69A0-470B-49E0-8D4A-21D5472DE6CC} = {4186D350-84A7-4ADC-B0C1-6482989302A6}
+		{6A8521BF-ECB9-4A4C-8820-E95479FA8381} = {4186D350-84A7-4ADC-B0C1-6482989302A6}
+		{723F76B5-33F0-4814-9EBB-C70FD7904BFC} = {4186D350-84A7-4ADC-B0C1-6482989302A6}
+		{7532804B-4809-4950-86D0-D114516787FC} = {4186D350-84A7-4ADC-B0C1-6482989302A6}
+		{4186D350-84A7-4ADC-B0C1-6482989302A6} = {1167BFE9-9460-4E2D-9FDB-A084B8961385}
+		{6CDBC939-6739-4F8E-95F7-629C58874208} = {4186D350-84A7-4ADC-B0C1-6482989302A6}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6F8B04D3-3886-4523-9B40-74FAA1948673}
 	EndGlobalSection
 EndGlobal

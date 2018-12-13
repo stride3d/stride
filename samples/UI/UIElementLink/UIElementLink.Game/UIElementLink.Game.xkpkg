@@ -1,0 +1,20 @@
+!Package
+SerializedVersion: {Assets: 3.1.0.0}
+Meta:
+    Name: UIElementLink.Game
+    Version: 1.0.0
+    Authors: []
+    Owners: []
+    Dependencies: null
+AssetFolders:
+    -   Path: !dir ../Assets/Shared
+    -   Path: !dir Effects
+ResourceFolders: []
+OutputGroupDirectories: {}
+ExplicitFolders: []
+Bundles: []
+TemplateFolders: []
+RootAssets:
+    - 0bbdf1ab-bb41-46c5-86ef-4f2635d65c6a:TiltedScreen
+    - 67a9eb30-7686-4b8c-89c3-19f12755774e:FullScreen
+    - a140a866-a7b3-4c89-8953-5f7adc428c0a:BillboardedScreen
