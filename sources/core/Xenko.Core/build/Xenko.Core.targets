@@ -44,6 +44,7 @@
     <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</XenkoPlatform>
     <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</XenkoPlatform>
     <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'Xamarin.iOS'">iOS</XenkoPlatform>
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And $(RuntimeIdentifier.StartsWith('linux'))">Linux</XenkoPlatform>
     <XenkoPlatform Condition="'$(XenkoPlatform)' == ''">Windows</XenkoPlatform>
   </PropertyGroup>
 
