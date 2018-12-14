@@ -602,13 +602,6 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         public void PluginsInitialized()
         {
-            // Select the first package of the session
-            var packageToSelect = CurrentProject ?? LocalPackages.First();
-            Dispatcher.InvokeAsync(() =>
-            {
-                ActiveAssetView.SelectedLocations.Clear();
-                ActiveAssetView.SelectedLocations.Add(packageToSelect != null ? (object)packageToSelect : PackageCategories[LocalPackageCategoryName]);
-            });
             IsEditorInitialized = true;
         }
 
