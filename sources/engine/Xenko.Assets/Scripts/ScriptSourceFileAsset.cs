@@ -7,7 +7,7 @@ using Xenko.Core;
 namespace Xenko.Assets.Scripts
 {
     [DataContract("ScriptSourceFileAsset")]
-    [AssetDescription(Extension, AlwaysMarkAsRoot = true, AllowArchetype = false)]
+    [AssetDescription(Extension, AlwaysMarkAsRoot = true, AllowArchetype = false, Referenceable = false)]
     public sealed partial class ScriptSourceFileAsset : ProjectSourceCodeAsset
     {
         public const string Extension = ".cs";

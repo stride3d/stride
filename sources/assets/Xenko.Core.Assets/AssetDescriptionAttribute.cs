@@ -31,6 +31,12 @@ namespace Xenko.Core.Assets
         public bool AllowArchetype { get; set; } = true;
 
         /// <summary>
+        /// Defines if an asset is referenceable through an <see cref="AssetReference"/>.
+        /// Asset name collision is allowed in this case because they exist only at compile-time.
+        /// </summary>
+        public bool Referenceable { get; set; } = true;
+
+        /// <summary>
         /// Always mark this asset type as root.
         /// </summary>
         public bool AlwaysMarkAsRoot { get; set; }
