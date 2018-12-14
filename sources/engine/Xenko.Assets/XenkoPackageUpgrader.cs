@@ -25,7 +25,7 @@ using Xenko.Graphics;
 namespace Xenko.Assets
 {
 #if XENKO_SUPPORT_BETA_UPGRADE
-    [PackageUpgrader(XenkoConfig.PackageName, "1.10.0-alpha01", CurrentVersion)]
+    [PackageUpgrader(new[] { XenkoConfig.PackageName, "Xenko.Core", "Xenko.Engine" }, "1.10.0-alpha01", CurrentVersion)]
 #else
     [PackageUpgrader(XenkoConfig.PackageName, "2.0.0.0", CurrentVersion)]
 #endif
