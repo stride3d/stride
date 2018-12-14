@@ -79,6 +79,7 @@ namespace Xenko.GameStudio
             LoadFromSettings();
 
             var data = GetOrCreateDataPrivate(filePath);
+            data.DockingLayoutVersion = GameStudioInternalSettings.CurrentLayoutVersion;
             data.DockingLayout = GameStudioInternalSettings.DefaultLayout;
             data.DockingLayoutEditors = GameStudioInternalSettings.DefaultEditorLayout;
 
@@ -171,6 +172,7 @@ namespace Xenko.GameStudio
                 {
                     DockingLayout = GameStudioInternalSettings.DefaultLayout,
                     DockingLayoutEditors = GameStudioInternalSettings.DefaultEditorLayout,
+                    DockingLayoutVersion = GameStudioInternalSettings.CurrentLayoutVersion,
                 };
                 mruList.Insert(0, data);
             }

@@ -421,9 +421,9 @@
           <xcad:LayoutPanel Orientation="Horizontal">
             <xcad:LayoutPanel Orientation="Vertical">
               <xcad:LayoutPanel Orientation="Horizontal">
-                <xcad:LayoutAnchorablePane DockWidth="240">
+                <xcad:LayoutAnchorablePane DockWidth="300">
                   <!-- SOLUTION EXPLORER -->
-                  <xcad:LayoutAnchorable ContentId="SolutionExplorer" Title="{Binding Source={xk:Localize Solution explorer, Context=View}}"
+                  <xcad:LayoutAnchorable AutoHideMinWidth="300" ContentId="SolutionExplorer" Title="{Binding Source={xk:Localize Solution explorer, Context=View}}"
                                          gs:AvalonDockHelper.IsVisible="{Binding Panels.SessionExplorerPanelVisible, Mode=TwoWay,
                                          Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                     <DockPanel>
@@ -557,7 +557,7 @@
                 </xcad:LayoutAnchorablePane>
                 <xcad:LayoutDocumentPane>
                   <!-- ASSET VIEW -->
-                  <xcad:LayoutAnchorable ContentId="AssetView" Title="{Binding Source={xk:Localize Asset view, Context=View}}"
+                  <xcad:LayoutAnchorable AutoHideMinWidth="300" ContentId="AssetView" Title="{Binding Source={xk:Localize Asset view, Context=View}}"
                                            gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetViewPanelVisible, Mode=TwoWay,
                                            Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                     <xk:AssetViewUserControl AssetCollection="{Binding Session.ActiveAssetView}" AssetContextMenu="{StaticResource AssetContextMenu}"
@@ -576,9 +576,9 @@
                   </xcad:LayoutAnchorable>
                 </xcad:LayoutDocumentPane>
               </xcad:LayoutPanel>
-              <xcad:LayoutAnchorablePane DockHeight="195">
+              <xcad:LayoutAnchorablePane DockHeight="200">
                 <!-- REFERENCES -->
-                <xcad:LayoutAnchorable ContentId="References" Title="{Binding Source={xk:Localize References, Context=View}}"
+                <xcad:LayoutAnchorable AutoHideMinHeight="200" ContentId="References" Title="{Binding Source={xk:Localize References, Context=View}}"
                                        gs:AvalonDockHelper.IsVisible="{Binding Panels.ReferencesPanelVisible, Mode=TwoWay,
                                        Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                   <DockPanel LastChildFill="True" x:Name="RefViewDockPanel">
@@ -606,14 +606,14 @@
                   </DockPanel>
                 </xcad:LayoutAnchorable>
                 <!-- ASSET LOG -->
-                <xcad:LayoutAnchorable ContentId="AssetLog"
+                <xcad:LayoutAnchorable AutoHideMinHeight="200" ContentId="AssetLog"
                                        Title="{xk:Localize Asset error ({0}), Plural=Asset errors ({0}), Count={Binding Session.AssetLog.ErrorCount, Source={x:Static gs:GameStudioViewModel.GameStudio}}, IsStringFormat=True, Context=View}"
                                        gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetLogPanelVisible, Mode=TwoWay,
                                        Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                   <xk:GridLogViewer LogMessages="{Binding Session.AssetLog.FilteredMessages}" Session="{Binding Session}" ShowDebugMessages="False" ShowVerboseMessages="False" ShowInfoMessages="False"/>
                 </xcad:LayoutAnchorable>
                 <!-- BUILD LOG -->
-                <xcad:LayoutAnchorable ContentId="BuildLog" Title="{Binding Debugging.OutputTitle, Source={x:Static gs:GameStudioViewModel.GameStudio}}"
+                <xcad:LayoutAnchorable AutoHideMinHeight="200" ContentId="BuildLog" Title="{Binding Debugging.OutputTitle, Source={x:Static gs:GameStudioViewModel.GameStudio}}"
                                        gs:AvalonDockHelper.IsVisible="{Binding Panels.BuildLogPanelVisible, Mode=TwoWay,
                                        Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                   <TabControl x:Name="LogTabControl">
@@ -656,10 +656,10 @@
                 </xcad:LayoutAnchorable>
               </xcad:LayoutAnchorablePane>
             </xcad:LayoutPanel>
-            <xcad:LayoutPanel Orientation="Vertical" DockWidth="400">
+            <xcad:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="400">
               <xcad:LayoutAnchorablePane DockHeight="2*">
                 <!-- PROPERTY GRID -->
-                <xcad:LayoutAnchorable ContentId="PropertyGrid" Title="{Binding Source={xk:Localize Property grid, Context=View}}"
+                <xcad:LayoutAnchorable AutoHideMinWidth="400" ContentId="PropertyGrid" Title="{Binding Source={xk:Localize Property grid, Context=View}}"
                                        gs:AvalonDockHelper.IsVisible="{Binding Panels.PropertyGridPanelVisible, Mode=TwoWay,
                                        Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                   <Grid Background="{StaticResource ToolBarBackgroundBrush}">
@@ -876,7 +876,7 @@
               <xcad:LayoutAnchorablePaneGroup DockHeight="1*">
                 <xcad:LayoutAnchorablePane>
                   <!-- ASSET PREVIEW -->
-                  <xcad:LayoutAnchorable ContentId="AssetPreview" Title="{Binding Source={xk:Localize Asset preview, Context=View}}"
+                  <xcad:LayoutAnchorable AutoHideMinWidth="400" ContentId="AssetPreview" Title="{Binding Source={xk:Localize Asset preview, Context=View}}"
                                          gs:AvalonDockHelper.IsVisible="{Binding Panels.AssetPreviewPanelVisible, Mode=TwoWay,
                                          Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                     <DockPanel LastChildFill="True">
@@ -884,7 +884,7 @@
                     </DockPanel>
                   </xcad:LayoutAnchorable>
                   <!-- ACTION HISTORY -->
-                  <xcad:LayoutAnchorable ContentId="ActionHistory" Title="{Binding Source={xk:Localize Edit history, Context=View}}"
+                  <xcad:LayoutAnchorable AutoHideMinWidth="400" ContentId="ActionHistory" Title="{Binding Source={xk:Localize Edit history, Context=View}}"
                                          gs:AvalonDockHelper.IsVisible="{Binding Panels.ActionHistoryPanelVisible, Mode=TwoWay,
                                          Source={x:Static gs:GameStudioViewModel.GameStudio}, FallbackValue={xk:True}}">
                     <ListBox ItemsSource="{Binding Session.ActionHistory.Transactions}" HorizontalContentAlignment="Stretch">
@@ -913,7 +913,7 @@
                   </xcad:LayoutAnchorable>
                 </xcad:LayoutAnchorablePane>
               </xcad:LayoutAnchorablePaneGroup>
-            </xcad:LayoutPanel>
+            </xcad:LayoutAnchorablePaneGroup>
           </xcad:LayoutPanel>
         </xcad:LayoutRoot>
       </xcad:DockingManager>
