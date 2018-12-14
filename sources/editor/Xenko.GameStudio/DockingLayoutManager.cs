@@ -150,6 +150,10 @@ namespace Xenko.GameStudio
             try
             {
                 // This exception is normal and will trigger a reset of the layout, since no layout can be loaded from the settings file.
+                if (GameStudioInternalSettings.CurrentLayoutVersion != data.DockingLayoutVersion)
+                    throw new InvalidOperationException("Layout is out of date, need reset.");
+
+                // This exception is normal and will trigger a reset of the layout, since no layout can be loaded from the settings file.
                 if (string.IsNullOrWhiteSpace(layout))
                     throw new InvalidOperationException("No layout available in the settings file.");
 
@@ -161,7 +165,11 @@ namespace Xenko.GameStudio
                     return;
 
                 // Erase saved layout if we're unable to load it.
-                if (isInEditorLayout)
+                if (GameStudioInternalSettings.CurrentLayoutVersion != data.DockingLayoutVersion)
+                {
+                    mruDataCollection.ResetAllLayouts(session.SessionFilePath);
+                }
+                else if (isInEditorLayout)
                 {
                     mruDataCollection.ResetEditorsLayout(session.SessionFilePath);
                 }
