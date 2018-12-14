@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Xenko.Core.Assets.Analysis;
@@ -399,7 +400,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         public void CheckConsistency()
         {
-            var assetList = Package.Assets.ToDictionary(x => x.Location.FullPath);
+            var assetList = Package.Assets.Where(item => item.Asset.GetType().GetCustomAttribute<AssetDescriptionAttribute>()?.Referenceable ?? true).ToDictionary(x => x.Location.FullPath);
             var assetViewModels = Assets.ToList();
             var logger = Session.AssetLog.GetLogger(LogKey.Get("Consistency"));
 
