@@ -37,7 +37,7 @@
     <XenkoIsExecutable Condition=" '$(AndroidApplication)' == 'true'">true</XenkoIsExecutable>
 
     <!--asset BuildPath for all platforms (same as package)-->
-    <XenkoCompileAssetBuildPath Condition="'$(XenkoCompileAssetBuildPath)' == ''">$(MSBuildProjectDirectory)\..\Cache\data</XenkoCompileAssetBuildPath>
+    <XenkoCompileAssetBuildPath Condition="'$(XenkoCompileAssetBuildPath)' == ''">$(ProjectDir)$(BaseIntermediateOutputPath)xenko\assetbuild\data</XenkoCompileAssetBuildPath>
 
     <!--asset OutputPath for Android.-->
     <XenkoCompileAssetOutputPath Condition="'$(XenkoCompileAssetOutputPath)' == '' and '$(XenkoPlatform)' == 'Android'">$(ProjectDir)$(IntermediateOutputPath)assets\data</XenkoCompileAssetOutputPath>
