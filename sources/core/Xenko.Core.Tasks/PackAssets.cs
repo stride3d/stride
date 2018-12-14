@@ -3,6 +3,8 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -66,13 +68,21 @@ namespace Xenko.Core.Tasks
                 generatedItems.Add((targetFilePath.ToWindowsPath(), UPath.Combine("xenko", targetFilePath.MakeRelative(outputPath)).ToWindowsPath()));
             }
 
-            void TryCopyDirectory(UDirectory sourceDirectory, UDirectory targetDirectory)
+            void TryCopyDirectory(UDirectory sourceDirectory, UDirectory targetDirectory, string exclude = null)
             {
-                var resourceFiles = Directory.EnumerateFiles(sourceDirectory, "*.*", SearchOption.AllDirectories);
-                foreach (var resourceFile in resourceFiles)
+                var matcher = new Matcher(StringComparison.OrdinalIgnoreCase);
+                matcher.AddInclude("**/*.*");
+                if (exclude != null)
                 {
-                    var resourceFilePath = (UFile)resourceFile;
-                    var targetFilePath = UPath.Combine(targetDirectory, resourceFilePath.MakeRelative(sourceDirectory));
+                    foreach (var excludeEntry in exclude.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
+                        matcher.AddExclude(excludeEntry);
+                }
+
+                //var resourceFiles = Directory.EnumerateFiles(sourceDirectory, "*.*", SearchOption.AllDirectories);
+                foreach (var resourceFile in matcher.Execute(new DirectoryInfoWrapper(new DirectoryInfo(sourceDirectory))).Files)
+                {
+                    var resourceFilePath = UPath.Combine(sourceDirectory, (UFile)resourceFile.Path);
+                    var targetFilePath = UPath.Combine(targetDirectory, (UFile)resourceFile.Path);
 
                     TryCopyResource(resourceFilePath, targetFilePath);
                 }
@@ -218,7 +228,7 @@ namespace Xenko.Core.Tasks
                         target = UPath.Combine(target, templateFolder.Group);
                     }
 
-                    TryCopyDirectory(templateFolder.Path, target);
+                    TryCopyDirectory(templateFolder.Path, target, templateFolder.Exclude);
 
                     // Add template files
                     foreach (var templateFile in templateFolder.Files)
