@@ -5,9 +5,10 @@
     <XenkoPackAssets>true</XenkoPackAssets>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <!-- Note: we version this package manually because most of the time the samples are big and don't need to be updated -->
+    <!-- Note: we version this package manually because most of the time the samples are big and don't need to be updated.
+         PLEASE UPDATE XenkoDefaultAssetsPlugin.LoadDefaultTemplates() accordingly! -->
     <PackageVersion>3.1.0.1</PackageVersion>
-    <PackageVersion Condition="'$(XenkoPackageBuild)' != 'true'">$(PackageVersion)-dev</PackageVersion>
+    <PackageVersion Condition="'$(XenkoPackageBuild)' != 'true'">$(PackageVersion)-beta01</PackageVersion>
   </PropertyGroup>
 
   <Import Project="$(XenkoPostSettingsTargets)" />

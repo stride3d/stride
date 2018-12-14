@@ -43,17 +43,21 @@ namespace Xenko
         public const string NuGetVersion = NuGetVersionSimple + NuGetVersionSuffix;
 
         /// <summary>
-        /// The NuGet package suffix (i.e. -beta01). Note: might be replaced during package build.
+        /// The NuGet package suffix (i.e. -beta01). Automatically set by Xenko.GitVersioning.GenerateVersionFile.
+        /// Three possible values:
+        /// - Empty: official release
+        /// - -betaXX: development version (XX should corespond to development asset versioning)
+        /// - -betaXX-YYYY: beta release (YYYY is the git height since current version has been bumped)
         /// </summary>
-        public const string NuGetVersionSuffix = "-dev";
+        public const string NuGetVersionSuffix = "-beta01";
 
         /// <summary>
-        /// The build metadata, usually +g[git_hash] during package. Note: might be replaced during package build.
+        /// The build metadata, usually +g[git_hash] during package. Automatically set by Xenko.GitVersioning.GenerateVersionFile.
         /// </summary>
         public const string BuildMetadata = "";
 
         /// <summary>
-        /// The informational assembly version, containing -dev or +g[git_hash] during package.
+        /// The informational assembly version, containing -beta01 or +g[git_hash] during package.
         /// </summary>
         public const string AssemblyInformationalVersion = PublicVersion + NuGetVersionSuffix + BuildMetadata;
     }

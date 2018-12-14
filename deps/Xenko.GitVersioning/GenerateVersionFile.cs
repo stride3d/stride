@@ -94,15 +94,11 @@ namespace Xenko.GitVersioning
                 {
                     // Compute version based on Git info
                     var height = Nerdbank.GitVersioning.GitExtensions.GetVersionHeight(repo, VersionFile.ItemSpec);
-                    versionSuffix += height.ToString("D5");
+                    versionSuffix += height.ToString("D4");
                 }
 
-                // Prefix with dash (if non empty)
-                if (versionSuffix.Length > 0 && !versionSuffix.StartsWith("+"))
-                    versionSuffix = "-" + versionSuffix;
-
                 // Replace NuGetVersionSuffix
-                versionFileData = Regex.Replace(versionFileData, "NuGetVersionSuffix = (.*);", $"NuGetVersionSuffix = \"{versionSuffix}\";");
+                versionFileData = Regex.Replace(versionFileData, "NuGetVersionSuffix = \"(.*)\";", $"NuGetVersionSuffix = \"$1{versionSuffix}\";");
 
                 // Always include git commit (even if not part of NuGetVersionSuffix)
                 if (SpecialVersionGitCommit && headCommitSha != null)
