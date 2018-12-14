@@ -5,7 +5,7 @@ using Xenko.Core.Mathematics;
 
 namespace Xenko.Physics
 {
-    internal class XenkoMotionState : BulletSharp.MotionState//.SharpMotionState
+    internal class XenkoMotionState : BulletSharp.MotionState
     {
         private RigidbodyComponent rigidBody;
 

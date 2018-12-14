@@ -1069,7 +1069,7 @@ namespace Xenko.Physics
             var previous = currentFrameContacts;
             currentFrameContacts = previousFrameContacts;
             currentFrameContacts.Clear();
-            previousFrameContacts = previous;         
+            previousFrameContacts = previous;
         }
 
         private void ContactRemoval(ContactPoint contact, PhysicsComponent component0, PhysicsComponent component1)
@@ -1232,38 +1232,45 @@ namespace Xenko.Physics
             }     
         }
 
-        private HashSet<ContactPoint> currentFrameContacts = new HashSet<ContactPoint>(ContactPointEqualityComparer.Default);
-        private HashSet<ContactPoint> previousFrameContacts = new HashSet<ContactPoint>(ContactPointEqualityComparer.Default);
+        private DefaultContactResultCallback currentFrameContacts = new DefaultContactResultCallback();
+        private DefaultContactResultCallback previousFrameContacts = new DefaultContactResultCallback();
 
-        internal unsafe void ContactTest(PhysicsComponent component)
+        class DefaultContactResultCallback : BulletSharp.ContactResultCallback
         {
-            IntPtr buffer;
-            int bufferSize;
-            collisionWorld.GetCollisions(component.NativeCollisionObject, (short)component.CanCollideWith, (short)component.CollisionGroup, out buffer, out bufferSize);
-            var contacts = (NativeContactPoint*)buffer;
-            for (var i = 0; i < bufferSize; i++)
-            {
-                var contact = contacts[i];
+            HashSet<ContactPoint> contacts = new HashSet<ContactPoint>(ContactPointEqualityComparer.Default);
 
-                var obj0 = BulletSharp.CollisionObject.GetManaged(contact.ColliderA);
-                var obj1 = BulletSharp.CollisionObject.GetManaged(contact.ColliderB);
-                var component0 = (PhysicsComponent)obj0.UserObject;
-                var component1 = (PhysicsComponent)obj1.UserObject;
+            public override float AddSingleResult(BulletSharp.ManifoldPoint contact, BulletSharp.CollisionObjectWrapper obj0, int partId0, int index0, BulletSharp.CollisionObjectWrapper obj1, int partId1, int index1)
+            {
+                var component0 = (PhysicsComponent)obj0.CollisionObject.UserObject;
+                var component1 = (PhysicsComponent)obj1.CollisionObject.UserObject;
 
                 //disable static-static
                 if ((component0 is StaticColliderComponent && component1 is StaticColliderComponent) || !component0.Enabled || !component1.Enabled)
-                    continue;
+                    return 0f;
 
-                currentFrameContacts.Add(new ContactPoint
+                contacts.Add(new ContactPoint
                 {
                     ColliderA = component0,
                     ColliderB = component1,
                     Distance = contact.Distance,
-                    Normal = contact.Normal,
-                    PositionOnA = contact.PositionOnA,
-                    PositionOnB = contact.PositionOnB,
+                    Normal = contact.NormalWorldOnB,
+                    PositionOnA = contact.PositionWorldOnA,
+                    PositionOnB = contact.PositionWorldOnB,
                 });
+                return 0f;
             }
+
+            public void Remove(ContactPoint contact) => contacts.Remove(contact);
+            public bool Contains(ContactPoint contact) => contacts.Contains(contact);
+            public void Clear() => contacts.Clear();
+            public HashSet<ContactPoint>.Enumerator GetEnumerator() => contacts.GetEnumerator();
+        }
+
+        internal unsafe void ContactTest(PhysicsComponent component)
+        {
+            currentFrameContacts.CollisionFilterMask = (int)component.CanCollideWith;
+            currentFrameContacts.CollisionFilterGroup = (int)component.CollisionGroup;
+            collisionWorld.ContactTest( component.NativeCollisionObject, currentFrameContacts );
         }
 
         private readonly FastList<ContactPoint> previousToRemove = new FastList<ContactPoint>();

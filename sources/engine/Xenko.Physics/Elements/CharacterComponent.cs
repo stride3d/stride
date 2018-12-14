@@ -177,7 +177,7 @@ namespace Xenko.Physics
         /// <value>
         /// <c>true</c> if this instance is grounded; otherwise, <c>false</c>.
         /// </value>
-        public bool IsGrounded => KinematicCharacter?.OnGround() ?? false;
+        public bool IsGrounded => KinematicCharacter?.OnGround ?? false;
 
         /// <summary>
         /// Teleports the specified target position.
@@ -194,7 +194,8 @@ namespace Xenko.Physics
             var entityPos = Entity.Transform.Position;
             var physPos = PhysicsWorldTransform.TranslationVector;
             var diff = physPos - entityPos;
-            KinematicCharacter.Warp(targetPosition + diff);
+            BulletSharp.Math.Vector3 bV3 = targetPosition + diff;
+            KinematicCharacter.Warp(ref bV3);
         }
 
         /// <summary>

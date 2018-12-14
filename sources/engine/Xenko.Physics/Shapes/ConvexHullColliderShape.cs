@@ -1,6 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Xenko.Core.Mathematics;
@@ -14,7 +15,7 @@ namespace Xenko.Physics
     public class ConvexHullColliderShape : ColliderShape
     {
         private readonly IReadOnlyList<Vector3> pointsList;
-        private readonly IReadOnlyList<uint> indicesList; 
+        private readonly IReadOnlyList<uint> indicesList;
 
         public ConvexHullColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<uint> indices, Vector3 scaling)
         {
@@ -22,7 +23,8 @@ namespace Xenko.Physics
             Is2D = false;
 
             cachedScaling = scaling;
-            InternalShape = new BulletSharp.ConvexHullShape(points)
+
+            InternalShape = new BulletSharp.ConvexHullShape(new EnumConverterToBullet(points))
             {
                 LocalScaling = cachedScaling,
             };
@@ -72,6 +74,30 @@ namespace Xenko.Physics
             var meshData = new GeometricMeshData<VertexPositionNormalTexture>(verts, intIndices, false);
 
             return new GeometricPrimitive(device, meshData).ToMeshDraw();
+        }
+
+        class EnumConverterToBullet : IEnumerator<BulletSharp.Math.Vector3>, IEnumerable<BulletSharp.Math.Vector3>
+        {
+            IReadOnlyList<Vector3> l;
+            int c;
+
+            public EnumConverterToBullet(IReadOnlyList<Vector3> refList)
+            {
+                l = refList;
+                c = -1;
+            }
+
+            public bool MoveNext() => ++c < l.Count;
+            public void Reset() => c = -1;
+            public BulletSharp.Math.Vector3 Current => l[c];
+            public EnumConverterToBullet GetEnumerator() => this;
+
+
+            object IEnumerator.Current => Current;
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+            IEnumerator<BulletSharp.Math.Vector3> IEnumerable<BulletSharp.Math.Vector3>.GetEnumerator() => GetEnumerator();
+
+            public void Dispose() { }
         }
     }
 }
