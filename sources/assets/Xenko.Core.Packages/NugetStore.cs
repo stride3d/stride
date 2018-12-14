@@ -656,12 +656,12 @@ namespace Xenko.Core.Packages
         {
             return package.Version < new PackageVersion(3, 1, 0, 0)
                 ? File.Exists(GetRedirectFile(package))
-                : (package.Version.SpecialVersion?.StartsWith("dev") ?? false);
+                : (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev") && !package.Version.SpecialVersion.Contains('.'));
         }
 
         public bool IsDevRedirectPackage(NugetServerPackage package)
         {
-            return package.Version.SpecialVersion?.StartsWith("dev") ?? false;
+            return (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev") && !package.Version.SpecialVersion.Contains('.'));
         }
 
         private void OnPackageInstalled(object sender, PackageOperationEventArgs args)
