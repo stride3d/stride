@@ -44,7 +44,7 @@
   </PropertyGroup>
   
   <!-- Use default runtime as ref assembly -->
-  <PropertyGroup Condition="'$(RuntimeIdentifierDefault)' != '' And '$(RuntimeIdentifier)' == '$(RuntimeIdentifierDefault)'">
+  <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' == 'true' And '$(XenkoGraphicsApiDependentBuildAll)' == 'true' And ('$(RuntimeIdentifierDefault)' == '' Or '$(RuntimeIdentifier)' == '$(RuntimeIdentifierDefault)')">
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);XenkoIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <Target Name="XenkoIncludeRefAssemblies">
