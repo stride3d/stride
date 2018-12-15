@@ -48,6 +48,12 @@
     <XenkoPlatform Condition="'$(XenkoPlatform)' == ''">Windows</XenkoPlatform>
   </PropertyGroup>
 
+  <!-- If not set, Android executable doesn't work properly because ResolveNuGetPackageAssets has no NuGetRuntimeIdentifier and use only the ref assemblies -->
+  <PropertyGroup Condition="'$(XenkoPlatform)' == 'Android' And '$(AndroidApplication)' == 'true'">
+    <RuntimeIdentifier>win</RuntimeIdentifier>
+    <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
+  </PropertyGroup>
+
   <!-- 
   *****************************************************************************************************************************
   Assembly Processor
