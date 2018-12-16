@@ -8,7 +8,7 @@
   <mp:PhoneIdentity PhoneProductId="<#= identityGuid.ToString().ToLowerInvariant() #>" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName><#= Properties.PackageGameName #></DisplayName>
+    <DisplayName><#= Properties.PackageGameDisplayName #></DisplayName>
     <PublisherDisplayName>publisher</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>

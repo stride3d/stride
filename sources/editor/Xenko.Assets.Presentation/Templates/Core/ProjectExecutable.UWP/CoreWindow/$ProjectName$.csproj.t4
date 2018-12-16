@@ -34,7 +34,7 @@
   <ItemGroup>
     <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>">
       <Project>{<#= Properties.ProjectGameGuid #>}</Project>
-      <Name><#= Properties.PackageGameName #></Name>
+      <Name><#= Properties.PackageGameAssemblyName #></Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
