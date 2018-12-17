@@ -205,9 +205,12 @@ namespace Xenko.VisualStudio.Commands
             return remote.GenerateShaderKeys(inputFileName, inputFileContent);
         }
 
-        public RawShaderNavigationResult AnalyzeAndGoToDefinition(string sourceCode, RawSourceSpan span)
+        public RawShaderNavigationResult AnalyzeAndGoToDefinition(string projectPath, string sourceCode, RawSourceSpan span)
         {
+
             // TODO: We need to know which package is currently selected in order to query all valid shaders
+            if (remote is IXenkoCommands2 remote2)
+                return remote2.AnalyzeAndGoToDefinition(projectPath, sourceCode, span);
             return remote.AnalyzeAndGoToDefinition(sourceCode, span);
         }
 
@@ -221,6 +224,10 @@ namespace Xenko.VisualStudio.Commands
             var assemblyName = new AssemblyName(args.Name);
             if (assemblyName.Name == executingAssembly.GetName().Name)
                 return executingAssembly;
+
+            // Necessary to avoid conflicts with Visual Studio NuGet
+            if (args.Name.StartsWith("NuGet", StringComparison.InvariantCultureIgnoreCase))
+                return Assembly.Load(assemblyName);
 
             return null;
         }
@@ -309,7 +316,8 @@ namespace Xenko.VisualStudio.Commands
                 // Xenko 3.1+
                 else
                 {
-                    var (request, result) = await RestoreHelper.Restore(new Logger(), packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion()));
+                    var logger = new Logger();
+                    var (request, result) = await RestoreHelper.Restore(logger, packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion()));
                     if (result.Success)
                     {
                         packageInfo.SdkPaths.AddRange(RestoreHelper.ListAssemblies(request, result));
@@ -323,64 +331,72 @@ namespace Xenko.VisualStudio.Commands
 
         public class Logger : ILogger
         {
-            private List<string> logs = new List<string>();
+            private object logLock = new object();
+            public List<(LogLevel Level, string Message)> Logs { get; } = new List<(LogLevel, string)>();
 
             public void LogDebug(string data)
             {
-                logs.Add(data);
+                Log(LogLevel.Debug, data);
             }
 
             public void LogVerbose(string data)
             {
-                logs.Add(data);
+                Log(LogLevel.Verbose, data);
             }
 
             public void LogInformation(string data)
             {
-                Console.WriteLine(data);
-                logs.Add(data);
+                Log(LogLevel.Information, data);
             }
 
             public void LogMinimal(string data)
             {
-                logs.Add(data);
+                Log(LogLevel.Minimal, data);
             }
 
             public void LogWarning(string data)
             {
-                logs.Add(data);
+                Log(LogLevel.Warning, data);
             }
 
             public void LogError(string data)
             {
-                logs.Add(data);
+                Log(LogLevel.Error, data);
             }
 
             public void LogInformationSummary(string data)
             {
-                logs.Add(data);
+                Log(LogLevel.Information, data);
             }
 
             public void LogErrorSummary(string data)
             {
-                logs.Add(data);
+                Log(LogLevel.Error, data);
             }
 
             public void Log(LogLevel level, string data)
             {
+                lock (logLock)
+                {
+                    Debug.WriteLine($"[{level}] {data}");
+                    Logs.Add((level, data));
+                }
             }
 
             public Task LogAsync(LogLevel level, string data)
             {
+                Log(level, data);
                 return Task.CompletedTask;
             }
 
             public void Log(ILogMessage message)
             {
+                Log(message.Level, message.Message);
             }
 
             public Task LogAsync(ILogMessage message)
             {
+                Log(message);
                 return Task.CompletedTask;
             }
         }

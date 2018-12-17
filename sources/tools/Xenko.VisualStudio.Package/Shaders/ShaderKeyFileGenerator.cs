@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
 using Xenko.VisualStudio.CodeGenerator;
 using Xenko.VisualStudio.Commands;
@@ -30,8 +31,11 @@ namespace Xenko.VisualStudio.Shaders
         {
             try
             {
-                var remoteCommands = XenkoCommandsProxy.GetProxy();
-                return remoteCommands.GenerateShaderKeys(inputFileName, inputFileContent);
+                return System.Threading.Tasks.Task.Run(() =>
+                {
+                    var remoteCommands = XenkoCommandsProxy.GetProxy();
+                    return remoteCommands.GenerateShaderKeys(inputFileName, inputFileContent);
+                }).Result;
             }
             catch (Exception ex)
             {
