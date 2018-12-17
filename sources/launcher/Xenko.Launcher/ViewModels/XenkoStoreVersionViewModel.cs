@@ -41,7 +41,16 @@ namespace Xenko.LauncherApp.ViewModels
         /// Gets the full name of this version, including revision number and special revision string.
         /// </summary>
         /// <remarks>If this version is installed, it will use the name of the installed version. Otherwise, it will use the name of the latest version available on the server.</remarks>
-        public override string FullName => Version?.ToString();
+        public override string FullName
+        {
+            get
+            {
+                var result = Version?.ToString() ?? "Unknown";
+                if (ServerPackage != null)
+                    result += $" ({ServerPackage.Source})";
+                return result;
+            }
+        }
 
         /// <summary>
         /// Gets the full name of this version on the server.
@@ -80,7 +89,7 @@ namespace Xenko.LauncherApp.ViewModels
         /// Updates the server package of this version.
         /// </summary>
         /// <param name="package">The server package corresponding to this version.</param>
-        internal void UpdateServerPackage(NugetPackage package)
+        internal void UpdateServerPackage(NugetServerPackage package)
         {
             ServerPackage = package;
             Dispatcher.Invoke(UpdateStatus);
