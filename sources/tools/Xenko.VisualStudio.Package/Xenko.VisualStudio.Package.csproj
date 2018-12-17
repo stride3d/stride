@@ -16,6 +16,8 @@
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
     <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
+    <XenkoSkipAutoPack>true</XenkoSkipAutoPack>
+    <PackageVersion>3.0.1</PackageVersion>
     <VSSDKTargetPlatformRegRootSuffix>Xenko</VSSDKTargetPlatformRegRootSuffix>
   </PropertyGroup>
   <ItemGroup>

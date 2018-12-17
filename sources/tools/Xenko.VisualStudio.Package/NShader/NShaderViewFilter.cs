@@ -88,8 +88,7 @@ namespace NShader
                     Column = column + 1,
                     Line = line + 1
                 };
-                var result = remoteCommands.AnalyzeAndGoToDefinition(text, location);
-
+                var result = langService.AnalyzeAndGoToDefinition(text, location);
                 langService.OutputAnalysisAndGotoLocation(result, TextView);
             }
             catch (Exception)

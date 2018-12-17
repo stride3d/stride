@@ -34,6 +34,11 @@ namespace Xenko.VisualStudio.Commands
         RawShaderNavigationResult AnalyzeAndGoToDefinition(string sourceCode, RawSourceSpan span);
     }
 
+    public interface IXenkoCommands2
+    {
+        RawShaderNavigationResult AnalyzeAndGoToDefinition(string projectPath, string sourceCode, RawSourceSpan span);
+    }
+
     public interface IBuildMonitorCallback
     {
         void Message(string type, string module, string text);
