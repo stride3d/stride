@@ -19,7 +19,7 @@ namespace Xenko.LauncherApp.ViewModels
     internal abstract class PackageVersionViewModel : DispatcherViewModel
     {
         protected NugetLocalPackage LocalPackage;
-        protected NugetPackage ServerPackage;
+        protected NugetServerPackage ServerPackage;
         private ProgressAction currentProgressAction;
         private int currentProgress;
         private bool isProcessing;
