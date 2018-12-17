@@ -26,7 +26,7 @@
     <XenkoPlatforms>$([MSBuild]::Unescape('$(XenkoPlatforms)'))</XenkoPlatforms>
     <_XenkoPlatforms>;$(XenkoPlatforms);</_XenkoPlatforms>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Windows;'))">$(XenkoRuntimeTargetFrameworks);net45</XenkoRuntimeTargetFrameworks>
-    <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';UWP;'))">$(XenkoRuntimeTargetFrameworks);uap10.0</XenkoRuntimeTargetFrameworks>
+    <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';UWP;'))">$(XenkoRuntimeTargetFrameworks);uap10.0.16299</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Android;'))">$(XenkoRuntimeTargetFrameworks);monoandroid50</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';iOS;'))">$(XenkoRuntimeTargetFrameworks);xamarinios10</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Linux;'))">$(XenkoRuntimeTargetFrameworks);netstandard2.0</XenkoRuntimeTargetFrameworks>
@@ -43,7 +43,7 @@
     <TargetFramework Condition="'$(XenkoForceCrossTargeting)' != 'true'">$(XenkoRuntimeTargetFrameworks)</TargetFramework>
     <!-- UpToDate check doesn't work with multi-TFM projects! https://github.com/dotnet/project-system/issues/2487 -->
     <DisableFastUpToDateCheck Condition="'$(XenkoForceCrossTargeting)' == 'true'">true</DisableFastUpToDateCheck>
-    <!--<TargetFrameworks>net45;uap10.0;monoandroid50;xamarinios10;netstandard2.0</TargetFrameworks>-->
+    <!--<TargetFrameworks>net45;uap10.0.16299;monoandroid50;xamarinios10;netstandard2.0</TargetFrameworks>-->
   </PropertyGroup>
 
   <PropertyGroup>
@@ -60,7 +60,7 @@
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And ('$(RuntimeIdentifer)' == '' Or $(RuntimeIdentifer.StartsWith('win'))) ">Windows</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'netstandard2.0' ">Linux</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And $(RuntimeIdentifer.StartsWith('osx')) ">macOS</XenkoPlatform>
-    <XenkoPlatform Condition=" '$(TargetFramework)' == 'uap10.0' ">UWP</XenkoPlatform>
+    <XenkoPlatform Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'monoandroid50' ">Android</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</XenkoPlatform>
     <!-- Default fallback -->
