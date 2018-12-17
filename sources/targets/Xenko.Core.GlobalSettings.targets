@@ -56,6 +56,7 @@
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <XenkoPlatformDefines>XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_UWP;NET45;NETFX_CORE;WINDOWS_UAP</XenkoPlatformDefines>
     <NUnitLiteBinDir>$(XenkoCommonDependenciesDir)NUnitLite\net-win10\</NUnitLiteBinDir>
+    <ExtrasUwpMetaPackageVersion>6.2.2</ExtrasUwpMetaPackageVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Linux' ">

@@ -87,7 +87,7 @@ namespace Xenko.Assets
             {
                 Name = PlatformType.UWP.ToString(),
                 Type = PlatformType.UWP,
-                TargetFramework = "uap10.0",
+                TargetFramework = "uap10.0.16299",
                 Templates =
                 {
                     //new SolutionPlatformTemplate("ProjectExecutable.UWP/CoreWindow/ProjectExecutable.UWP.ttproj", "Core Window"),
