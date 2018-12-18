@@ -1742,7 +1742,6 @@ namespace Xenko.Core.Mathematics
         public static implicit operator BulletSharp.Math.Vector3(Vector3 value)
         {
             unsafe { return *(BulletSharp.Math.Vector3*)&value; }
-            //return new BulletSharp.Math.Vector3(value.X, value.Y, value.Z);
         }
 
         /// <summary>
@@ -1754,7 +1753,6 @@ namespace Xenko.Core.Mathematics
         public static implicit operator Vector3(BulletSharp.Math.Vector3 value)
         {
             unsafe { return *(Vector3*)&value; }
-            //return new Vector3(value.X, value.Y, value.Z);
         }
     }
 }

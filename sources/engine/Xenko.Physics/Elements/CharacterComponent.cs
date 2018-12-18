@@ -28,8 +28,8 @@ namespace Xenko.Physics
             {
                 throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
             }
-
-            KinematicCharacter.Jump(ref jumpDirection);
+            
+            KinematicCharacter.Jump(jumpDirection);
         }
 
         /// <summary>
@@ -41,9 +41,7 @@ namespace Xenko.Physics
             {
                 throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
             }
-
-            var zeroV = Vector3.Zero; //passing zero will jump on Up Axis
-            KinematicCharacter.Jump(ref zeroV);
+            KinematicCharacter.Jump();
         }
 
         /// <summary>
