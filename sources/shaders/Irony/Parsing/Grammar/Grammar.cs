@@ -470,9 +470,7 @@ namespace Irony.Parsing {
       //create new term
       if (!CaseSensitive)
         text = text.ToLowerInvariant();
-#if !XENKO_RUNTIME_CORECLR && !XENKO_PLATFORM_UWP
       text = string.Intern(text); 
-#endif
       term = new KeyTerm(text, name);
       KeyTerms[text] = term;
       return term; 

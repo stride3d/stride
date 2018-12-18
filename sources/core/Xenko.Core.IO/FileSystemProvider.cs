@@ -11,13 +11,8 @@ namespace Xenko.Core.IO
     /// </summary>
     public partial class FileSystemProvider : VirtualFileProviderBase
     {
-#if XENKO_PLATFORM_UWP
-        public static readonly char VolumeSeparatorChar = ':';
-        public static readonly char DirectorySeparatorChar = '\\';
-#else
         public static readonly char VolumeSeparatorChar = Path.VolumeSeparatorChar;
         public static readonly char DirectorySeparatorChar = Path.DirectorySeparatorChar;
-#endif
         public static readonly char AltDirectorySeparatorChar = AltDirectorySeparatorChar == '/' ? '\\' : '/';
 
         /// <summary>
@@ -68,7 +63,7 @@ namespace Xenko.Core.IO
         public override bool DirectoryExists(string url)
         {
             var path = ConvertUrlToFullPath(url);
-            return NativeFile.DirectoryExists(path);
+            return Directory.Exists(path);
         }
 
         /// <inheritdoc/>
@@ -77,7 +72,7 @@ namespace Xenko.Core.IO
             var path = ConvertUrlToFullPath(url);
             try
             {
-                NativeFile.DirectoryCreate(path);
+                Directory.CreateDirectory(path);
             }
             catch (Exception ex)
             {
@@ -88,24 +83,25 @@ namespace Xenko.Core.IO
         /// <inheritdoc/>
         public override bool FileExists(string url)
         {
-            return NativeFile.FileExists(ConvertUrlToFullPath(url));
+            return File.Exists(ConvertUrlToFullPath(url));
         }
 
         public override long FileSize(string url)
         {
-            return NativeFile.FileSize(ConvertUrlToFullPath(url));
+            var fileInfo = new FileInfo(ConvertUrlToFullPath(url));
+            return fileInfo.Length;
         }
 
         /// <inheritdoc/>
         public override void FileDelete(string url)
         {
-            NativeFile.FileDelete(ConvertUrlToFullPath(url));
+            File.Delete(ConvertUrlToFullPath(url));
         }
 
         /// <inheritdoc/>
         public override void FileMove(string sourceUrl, string destinationUrl)
         {
-            NativeFile.FileMove(ConvertUrlToFullPath(sourceUrl), ConvertUrlToFullPath(destinationUrl));
+            File.Move(ConvertUrlToFullPath(sourceUrl), ConvertUrlToFullPath(destinationUrl));
         }
 
         /// <inheritdoc/>
@@ -115,7 +111,7 @@ namespace Xenko.Core.IO
             if (fsProvider != null)
             {
                 destinationProvider.CreateDirectory(destinationUrl.Substring(0, destinationUrl.LastIndexOf(VirtualFileSystem.DirectorySeparatorChar)));
-                NativeFile.FileMove(ConvertUrlToFullPath(sourceUrl), fsProvider.ConvertUrlToFullPath(destinationUrl));
+                File.Move(ConvertUrlToFullPath(sourceUrl), fsProvider.ConvertUrlToFullPath(destinationUrl));
             }
             else
             {
@@ -124,7 +120,7 @@ namespace Xenko.Core.IO
                 {
                     sourceStream.CopyTo(destinationStream);
                 }
-                NativeFile.FileDelete(sourceUrl);
+                File.Delete(sourceUrl);
             }
         }
     }

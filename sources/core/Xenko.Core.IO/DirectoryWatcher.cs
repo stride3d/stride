@@ -12,9 +12,7 @@ namespace Xenko.Core.IO
     public partial class DirectoryWatcher : IDisposable
     {
         private const int SleepBetweenWatcherCheck = 200;
-#if !XENKO_PLATFORM_UWP
         private Thread watcherCheckThread;
-#endif
         private bool exitThread;
 
         /// <summary>
@@ -44,13 +42,11 @@ namespace Xenko.Core.IO
         public virtual void Dispose()
         {
             exitThread = true;
-#if !XENKO_PLATFORM_UWP
             if (watcherCheckThread != null)
             {
                 watcherCheckThread.Join();
                 watcherCheckThread = null;
             }
-#endif
             DisposeInternal();
         }
 

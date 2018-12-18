@@ -977,7 +977,7 @@ namespace Xenko.Core.Storage
                 if (bundleFileDeletePredicate(bundleMainFile))
                 {
                     foreach (var bundleRealFile in bundleFilesInGroup)
-                        NativeFile.FileDelete(VirtualFileSystem.GetAbsolutePath(bundleRealFile));
+                        File.Delete(VirtualFileSystem.GetAbsolutePath(bundleRealFile));
                 }
             }
         }

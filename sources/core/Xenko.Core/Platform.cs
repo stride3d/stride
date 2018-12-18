@@ -62,43 +62,16 @@ namespace Xenko.Core
         /// </summary>
         private static bool GetIsRunningDebugAssembly()
         {
-#if XENKO_PLATFORM_UWP
-            return false;
-#else
             var entryAssembly = Assembly.GetEntryAssembly();
             if (entryAssembly != null)
             {
                 var debuggableAttribute = entryAssembly.GetCustomAttributes<DebuggableAttribute>().FirstOrDefault();
                 if (debuggableAttribute != null)
                 {
-#if !XENKO_RUNTIME_CORECLR
                     return (debuggableAttribute.DebuggingFlags & DebuggableAttribute.DebuggingModes.DisableOptimizations) != 0;
-#else
-                    // Workaround using reflection as CoreCLR does not provide `DebuggingFlags' on DebuggableAttribute. When
-                    // using mscorlib from CoreCLR, the field `m_debuggingModes', if it exists, stores this value, so we try
-                    // to find it and get its value.
-                    try
-                    {
-                        foreach (var f in debuggableAttribute.GetType().GetTypeInfo().DeclaredFields)
-                        {
-                            if (f.Name.Equals("m_debuggingModes"))
-                            {
-                                return ((DebuggableAttribute.DebuggingModes)f.GetValue(debuggableAttribute) & DebuggableAttribute.DebuggingModes.DisableOptimizations) != 0;
-                            }
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        // Catch all errors 
-                    }
-
-                    // Could not find the field holding the `DebuggingFlags', we assume false by default.
-                    return false;
-#endif
                 }
             }
             return false;
-#endif
         }
     }
 }

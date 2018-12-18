@@ -42,12 +42,10 @@ namespace Xenko.Graphics.Font
         /// </summary>
         private readonly AutoResetEvent bitmapBuildSignal = new AutoResetEvent(false);
 
-#if !XENKO_PLATFORM_UWP
         /// <summary>
         /// The thread in charge of building the characters bitmaps
         /// </summary>
         private readonly Thread bitmapBuilderThread;
-#endif
 
         /// <summary>
         /// Boolean specifying if we need to quit the bitmap building thread.
@@ -86,13 +84,9 @@ namespace Xenko.Graphics.Font
             // create a freetype library used to generate the bitmaps
             freetypeLibrary = new Library();
 
-#if XENKO_PLATFORM_UWP
-            Windows.System.Threading.ThreadPool.RunAsync(operation => SafeAction.Wrap(BuildBitmapThread)());
-#else
             // launch the thumbnail builder thread
             bitmapBuilderThread = new Thread(SafeAction.Wrap(BuildBitmapThread)) { IsBackground = true, Name = "Bitmap Builder thread" };
             bitmapBuilderThread.Start();
-#endif
         }
 
         /// <summary>
@@ -235,9 +229,7 @@ namespace Xenko.Graphics.Font
             // terminate the build thread
             bitmapShouldEndThread = true;
             bitmapBuildSignal.Set();
-#if !XENKO_PLATFORM_UWP
             bitmapBuilderThread.Join();
-#endif
 
             // free and clear the list of generated bitmaps
             foreach (var character in generatedBitmaps)

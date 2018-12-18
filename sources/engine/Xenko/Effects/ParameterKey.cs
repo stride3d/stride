@@ -48,11 +48,7 @@ namespace Xenko.Rendering
         {
             if (name == null) throw new ArgumentNullException("name");
 
-#if XENKO_PLATFORM_UWP || XENKO_RUNTIME_CORECLR
-            Name = name;
-#else
             Name = string.Intern(name);
-#endif
             UpdateName();
         }
 
