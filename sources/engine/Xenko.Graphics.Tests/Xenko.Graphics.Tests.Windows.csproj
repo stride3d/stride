@@ -5,7 +5,7 @@
     <OutputType>WinExe</OutputType>
     <AssemblyName>Xenko.Graphics.Tests</AssemblyName>
     <RootNamespace>Xenko.Graphics.Tests</RootNamespace>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>

@@ -1,5 +1,5 @@
 <!-- Global settings used to configure the XenkoGraphicsApi -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="RuntimeIdentifier">
 
   <!-- Default values -->
   <PropertyGroup>
@@ -12,6 +12,14 @@
     <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'macOS'">OpenGL</XenkoDefaultGraphicsApi>
     <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == '' and '$(XenkoDefaultGraphicsApi)' != ''">$(XenkoDefaultGraphicsApi)</XenkoGraphicsApi>
     <XenkoAssemblyProcessorOptions Condition="'$(XenkoAssemblyProcessorOptions)' == ''">$(XenkoAssemblyProcessorDefaultOptions)</XenkoAssemblyProcessorOptions>
+
+    <XenkoGraphicsApiRuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Windows' And '$(XenkoGraphicsApi)' == 'Direct3D11'">win-d3d11</XenkoGraphicsApiRuntimeIdentifier>
+    <XenkoGraphicsApiRuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Windows' And '$(XenkoGraphicsApi)' == 'Direct3D12'">win-d3d12</XenkoGraphicsApiRuntimeIdentifier>
+    <XenkoGraphicsApiRuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Windows' And '$(XenkoGraphicsApi)' == 'OpenGL'">win-opengl</XenkoGraphicsApiRuntimeIdentifier>
+    <XenkoGraphicsApiRuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Windows' And '$(XenkoGraphicsApi)' == 'OpenGLES'">win-opengles</XenkoGraphicsApiRuntimeIdentifier>
+    <XenkoGraphicsApiRuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Windows' And '$(XenkoGraphicsApi)' == 'Vulkan'">win-vulkan</XenkoGraphicsApiRuntimeIdentifier>
+    <XenkoGraphicsApiRuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Linux' And '$(XenkoGraphicsApi)' == 'OpenGL'">linux-opengl</XenkoGraphicsApiRuntimeIdentifier>
+    <XenkoGraphicsApiRuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Linux' And '$(XenkoGraphicsApi)' == 'Vulkan'">linux-vulkan</XenkoGraphicsApiRuntimeIdentifier>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -24,14 +32,16 @@
 
   <!-- Include platform dependent assembly when specified -->
   <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' == 'true' And '$(XenkoGraphicsApiDependentBuildAll)' == 'true'">
-    <RuntimeIdentifiers Condition="'$(TargetFramework)' == 'net45'">win-d3d11;win-d3d12;win-opengl;win-opengles;win-vulkan</RuntimeIdentifiers>
-    <RuntimeIdentifierDefault Condition="'$(TargetFramework)' == 'net45'">win-d3d11</RuntimeIdentifierDefault>
-    <RuntimeIdentifiers Condition="'$(TargetFramework)' == 'netstandard2.0'">linux-opengl;linux-vulkan</RuntimeIdentifiers>
-    <RuntimeIdentifierDefault Condition="'$(TargetFramework)' == 'netstandard2.0'">linux-opengl</RuntimeIdentifierDefault>
+    <RuntimeIdentifiers Condition="'$(XenkoPlatform)' == 'Windows'">win-d3d11;win-d3d12;win-opengl;win-opengles;win-vulkan</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(XenkoPlatform)' == 'Linux'">linux-opengl;linux-vulkan</RuntimeIdentifiers>
+    <RuntimeIdentifierDefault Condition="'$(RuntimeIdentifiers)' != ''">$(RuntimeIdentifiers.Split(';')[0])</RuntimeIdentifierDefault>
 
     <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
-    <DisableFastUpToDateCheck Condition="$(RuntimeIdentifiers.Contains(';'))">true</DisableFastUpToDateCheck>
+    <!--<DisableFastUpToDateCheck Condition="$(RuntimeIdentifiers.Contains(';'))">true</DisableFastUpToDateCheck>-->
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifierDefault)' != ''">$(RuntimeIdentifierDefault)</RuntimeIdentifier>
+
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == 'win'">win-d3d11</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == 'linux'">linux-opengl</RuntimeIdentifier>
 
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d11'">Direct3D11</XenkoGraphicsApi>
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d12'">Direct3D12</XenkoGraphicsApi>
@@ -136,9 +146,9 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <XenkoUI Condition="'$(XenkoUI)' == '' AND '$(XenkoPlatform)' == 'Windows'">SDL;WINFORMS;WPF</XenkoUI>
-    <XenkoUI Condition="'$(XenkoUI)' == '' AND '$(XenkoPlatform)' == 'Linux' AND '$(XenkoGraphicsApi)' == 'Vulkan'">SDL</XenkoUI>
-    <XenkoUI Condition="'$(XenkoUI)' == '' AND '$(XenkoPlatform)' == 'Linux' AND '$(XenkoGraphicsApi)' == 'OpenGL'">SDL;OPENTK</XenkoUI>
+    <XenkoUI Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'">SDL</XenkoUI>
+    <XenkoUI Condition="'$(XenkoGraphicsApi)' == 'OpenGL'">$(XenkoUI);OPENTK</XenkoUI>
+    <XenkoUI Condition="'$(XenkoPlatform)' == 'Windows' AND $(TargetFramework.StartsWith('net4')) AND ('$(XenkoGraphicsApi)' == 'Direct3D11' Or '$(XenkoGraphicsApi)' == 'Direct3D12')">$(XenkoUI);WINFORMS;WPF</XenkoUI>
 
     <DefineConstants Condition="$(XenkoUI.Contains('SDL'))">$(DefineConstants);XENKO_UI_SDL</DefineConstants>
     <DefineConstants Condition="$(XenkoUI.Contains('OPENTK'))">$(DefineConstants);XENKO_UI_OPENTK</DefineConstants>

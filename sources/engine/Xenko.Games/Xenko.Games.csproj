@@ -2,6 +2,7 @@
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoRuntime>true</XenkoRuntime>
+    <XenkoRuntimeWindowsDotNet>true</XenkoRuntimeWindowsDotNet>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
@@ -16,10 +17,6 @@
     <XenkoBuildTags>*</XenkoBuildTags>
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-    </When>
-  </Choose>
   <Import Condition="$(XenkoUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
   <Choose>
     <When Condition="$(XenkoUI.Contains('WINFORMS')) OR $(XenkoUI.Contains('WPF'))">
@@ -32,6 +29,7 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="..\Xenko.Graphics\OpenGL\OpenGLUtils.cs" Link="OpenGLUtils.cs" />
     <Compile Update="Resources\GameResources.Designer.cs" Condition=" '$(XenkoPlatform)' == 'Windows'">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

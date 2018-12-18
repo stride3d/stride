@@ -164,11 +164,11 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Note: we need to include those manually otherwise we run into this issue: https://stackoverflow.com/questions/41832161/missing-builtprojectoutputgroupdependencies-building-vsix-depending-on-new-sim -->
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" AdditionalProperties="TargetFramework=$(TargetFramework)" />
   </ItemGroup>
   <ItemGroup>

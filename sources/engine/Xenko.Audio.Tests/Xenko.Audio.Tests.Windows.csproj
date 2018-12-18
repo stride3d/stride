@@ -5,7 +5,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>Xenko.Audio.Tests</RootNamespace>
     <AssemblyName>Xenko.Audio.Tests</AssemblyName>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>

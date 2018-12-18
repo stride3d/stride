@@ -15,7 +15,7 @@
     Settings XenkoPlatform specific
   -->
   <PropertyGroup>
-    <XenkoRuntimeTargetFramework>net45</XenkoRuntimeTargetFramework>
+    <XenkoRuntimeTargetFramework>net461</XenkoRuntimeTargetFramework>
     <TargetFrameworkTool>net472</TargetFrameworkTool>
     <TargetFrameworkVersionTool>v4.7.2</TargetFrameworkVersionTool>
     <XenkoPlatformDefines>XENKO_PLATFORM_WINDOWS;XENKO_PLATFORM_WINDOWS_DESKTOP;NET45</XenkoPlatformDefines>
@@ -25,26 +25,48 @@
     <!-- Let's support escaped MSBuild variables, in case it was sent from Xenko.build (not sure why but I couldn't make it work properly when passing to MSBuild.Properties) -->
     <XenkoPlatforms>$([MSBuild]::Unescape('$(XenkoPlatforms)'))</XenkoPlatforms>
     <_XenkoPlatforms>;$(XenkoPlatforms);</_XenkoPlatforms>
-    <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Windows;'))">$(XenkoRuntimeTargetFrameworks);net45</XenkoRuntimeTargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' And '$(XenkoRuntimeNetStandard)' != 'true' ">
+    <!-- Add netstandard2.0 no matter what (needed for references) -->
+    <XenkoRuntimeTargetFrameworks>netstandard2.0</XenkoRuntimeTargetFrameworks>
+    <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Windows;')) And '$(XenkoRuntimeWindowsDotNet)' == 'true'">$(XenkoRuntimeTargetFrameworks);net461</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';UWP;'))">$(XenkoRuntimeTargetFrameworks);uap10.0.16299</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Android;'))">$(XenkoRuntimeTargetFrameworks);monoandroid50</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';iOS;'))">$(XenkoRuntimeTargetFrameworks);xamarinios10</XenkoRuntimeTargetFrameworks>
-    <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';Linux;'))">$(XenkoRuntimeTargetFrameworks);netstandard2.0</XenkoRuntimeTargetFrameworks>
-    
+
+    <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';Windows;'))">$(XenkoRuntimeIdentifiers);win</XenkoRuntimeIdentifiers>
+    <!-- We compile linux version as "ref" if XenkoRuntimeWindowsDotNet is true (otherwise single platform build wouldn't work) -->
+    <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';Linux;'))">$(XenkoRuntimeIdentifiers);linux</XenkoRuntimeIdentifiers>
+
     <XenkoRuntimeTargetFrameworks>$([MSBuild]::Unescape($(XenkoRuntimeTargetFrameworks.Trim(';'))))</XenkoRuntimeTargetFrameworks>
+    <XenkoRuntimeIdentifiers>$([MSBuild]::Unescape($(XenkoRuntimeIdentifiers.Trim(';'))))</XenkoRuntimeIdentifiers>
+
+    <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
+    <RuntimeIdentifiers Condition="'$(XenkoRuntimeIdentifiers)' != ''">$(XenkoRuntimeIdentifiers)</RuntimeIdentifiers>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifiers)' != ''">$(RuntimeIdentifiers.Split(';')[0])</RuntimeIdentifier>
+
+    <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
+
+    <!-- UpToDate check doesn't work with multi-TFM projects! https://github.com/dotnet/project-system/issues/2487 -->
+    <!--<DisableFastUpToDateCheck Condition="$(TargetFrameworks.Contains(';')) Or $(RuntimeIdentifiers.Contains(';'))">true</DisableFastUpToDateCheck>-->
+    <!--<TargetFrameworks>net461;uap10.0.16299;monoandroid50;xamarinios10;netstandard2.0</TargetFrameworks>-->
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true'">
-    <XenkoForceCrossTargeting Condition="$(XenkoRuntimeTargetFrameworks.Contains(';'))">true</XenkoForceCrossTargeting>
-    <!-- Should ideally go into non-Core targets (but we currently don't know XenkoPlatforms until PreSettings.Local is included) -->
-    <XenkoForceCrossTargeting Condition=" '$(XenkoGraphicsApiDependent)' == 'true' And '$(XenkoGraphicsApiDependentBuildAll)' == 'true' And ('$(XenkoPlatforms)' == 'Windows' Or '$(XenkoPlatforms)' == 'Linux')">true</XenkoForceCrossTargeting>
-    
-    <TargetFrameworks Condition="'$(XenkoForceCrossTargeting)' == 'true'">$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
-    <TargetFramework Condition="'$(XenkoForceCrossTargeting)' != 'true'">$(XenkoRuntimeTargetFrameworks)</TargetFramework>
-    <!-- UpToDate check doesn't work with multi-TFM projects! https://github.com/dotnet/project-system/issues/2487 -->
-    <DisableFastUpToDateCheck Condition="'$(XenkoForceCrossTargeting)' == 'true'">true</DisableFastUpToDateCheck>
-    <!--<TargetFrameworks>net45;uap10.0.16299;monoandroid50;xamarinios10;netstandard2.0</TargetFrameworks>-->
+  <Target Name="GetPackagingOutputs" Condition=" '$(XenkoRuntime)' == 'true' And '$(XenkoRuntimeNetStandard)' == 'true' " />
+  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' And '$(XenkoRuntimeNetStandard)' == 'true' ">
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
+
+  <!-- Use default runtime as ref assembly -->
+  <PropertyGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == $(RuntimeIdentifiers.Split(';')[0])">
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);XenkoIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="XenkoIncludeRefAssemblies">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="@(IntermediateAssembly)" PackagePath="ref/$(TargetFramework)" />
+    </ItemGroup>
+  </Target>
 
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -57,9 +79,9 @@
     <XenkoWindowsOnly Condition="'$(XenkoWindowsOnly)' == ''">false</XenkoWindowsOnly>
 
     <!-- Default values -->
-    <XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And ('$(RuntimeIdentifer)' == '' Or $(RuntimeIdentifer.StartsWith('win'))) ">Windows</XenkoPlatform>
-    <XenkoPlatform Condition=" '$(TargetFramework)' == 'netstandard2.0' ">Linux</XenkoPlatform>
-    <XenkoPlatform Condition=" '$(TargetFramework)' == 'net45' And $(RuntimeIdentifer.StartsWith('osx')) ">macOS</XenkoPlatform>
+    <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And ('$(RuntimeIdentifier)' == '' Or $(RuntimeIdentifier.StartsWith('win'))) ">Windows</XenkoPlatform>
+    <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('linux')) ">Linux</XenkoPlatform>
+    <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('osx')) ">macOS</XenkoPlatform>
     <XenkoPlatform Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'monoandroid50' ">Android</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</XenkoPlatform>
