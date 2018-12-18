@@ -24,15 +24,15 @@ namespace Xenko.Physics
 
             cachedScaling = scaling;
 
-            InternalShape = new BulletSharp.ConvexHullShape(new EnumConverterToBullet(points))
+            pointsList = points;
+            indicesList = indices;
+
+            InternalShape = new BulletSharp.ConvexHullShape(PointsAsBullet())
             {
                 LocalScaling = cachedScaling,
             };
 
             DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(1, 1, 1) * DebugScaling);
-
-            pointsList = points;
-            indicesList = indices;
         }
 
         public IReadOnlyList<Vector3> Points
@@ -76,28 +76,10 @@ namespace Xenko.Physics
             return new GeometricPrimitive(device, meshData).ToMeshDraw();
         }
 
-        class EnumConverterToBullet : IEnumerator<BulletSharp.Math.Vector3>, IEnumerable<BulletSharp.Math.Vector3>
+        IEnumerable<BulletSharp.Math.Vector3> PointsAsBullet()
         {
-            IReadOnlyList<Vector3> l;
-            int c;
-
-            public EnumConverterToBullet(IReadOnlyList<Vector3> refList)
-            {
-                l = refList;
-                c = -1;
-            }
-
-            public bool MoveNext() => ++c < l.Count;
-            public void Reset() => c = -1;
-            public BulletSharp.Math.Vector3 Current => l[c];
-            public EnumConverterToBullet GetEnumerator() => this;
-
-
-            object IEnumerator.Current => Current;
-            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-            IEnumerator<BulletSharp.Math.Vector3> IEnumerable<BulletSharp.Math.Vector3>.GetEnumerator() => GetEnumerator();
-
-            public void Dispose() { }
+            for (int i = 0; i < pointsList.Count; i++)
+                yield return pointsList[i];
         }
     }
 }
