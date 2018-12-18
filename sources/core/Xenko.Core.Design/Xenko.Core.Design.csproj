@@ -21,7 +21,7 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="..\Xenko.Core.Serialization\IO\NativeLockFile.cs">
+    <Compile Include="..\Xenko.Core.IO\NativeLockFile.cs">
       <Link>Windows\NativeLockFile.cs</Link>
     </Compile>
   </ItemGroup>

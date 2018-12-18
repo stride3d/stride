@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Xenko.Core;
 using Xenko.Core.Diagnostics;
 
 namespace Xenko.Engine.Network
@@ -80,11 +81,7 @@ namespace Xenko.Engine.Network
 
             try
             {
-#if XENKO_PLATFORM_UWP
-                var serverAddress = "127.0.0.1";
-#else
                 var serverAddress = Environment.GetEnvironmentVariable("XenkoConnectionRouterRemoteIP") ?? "127.0.0.1";
-#endif
 
                 // If connecting as a client, try once, otherwise try to listen multiple time (in case port is shared)
                 switch (ConnectionMode)
@@ -142,13 +139,16 @@ namespace Xenko.Engine.Network
         {
             get
             {
-#if XENKO_PLATFORM_UWP
-                return RouterConnectionMode.ConnectThenListen;
-#elif XENKO_PLATFORM_ANDROID || XENKO_PLATFORM_IOS
-                return RouterConnectionMode.Listen;
-#else
-                return RouterConnectionMode.Connect;
-#endif
+                switch (Platform.Type)
+                {
+                    case PlatformType.UWP:
+                        return RouterConnectionMode.ConnectThenListen;
+                    case PlatformType.Android:
+                    case PlatformType.iOS:
+                        return RouterConnectionMode.Listen;
+                    default:
+                        return RouterConnectionMode.Connect;
+                }
             }
         }
 

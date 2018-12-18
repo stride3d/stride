@@ -111,11 +111,7 @@ namespace Xenko.Core.MicroThreading
         /// </summary>
         public void Run()
         {
-#if XENKO_PLATFORM_UWP
-            int managedThreadId = 0;
-#else
             int managedThreadId = Thread.CurrentThread.ManagedThreadId;
-#endif
 
             MicroThreadCallbackList callbacks = default(MicroThreadCallbackList);
 

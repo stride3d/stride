@@ -109,15 +109,9 @@ namespace Xenko.Shaders.Compiler.OpenGL
                 using (var stream = new MemoryStream())
                 {
                     BinarySerialization.Write(stream, shaderBytecodes);
-#if !XENKO_RUNTIME_CORECLR && !XENKO_PLATFORM_UWP
                     rawData = stream.GetBuffer();
-#else
-// FIXME: Manu: The call to "ToArray()" might be slower than "GetBuffer()"
-                    rawData = stream.ToArray();
-#endif
                 }
             }
-#if !XENKO_RUNTIME_CORECLR && !XENKO_PLATFORM_UWP
             else if (effectParameters.Platform == GraphicsPlatform.Vulkan)
             {
                 string inputFileExtension;
@@ -168,7 +162,6 @@ namespace Xenko.Shaders.Compiler.OpenGL
                 File.Delete(inputFileName);
                 File.Delete(outputFileName);
             }
-#endif
             else
             {
                 // store string on OpenGL platforms

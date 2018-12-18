@@ -15,17 +15,12 @@ namespace Xenko.Physics
     [Display(500, "Convex Hull")]
     public class ConvexHullColliderShapeDesc : IAssetColliderShapeDesc
     {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
 
         [Display(Browsable = false)]
-#endif
         [DataMember(10)]
         public List<List<List<Vector3>>> ConvexHulls; // Multiple meshes -> Multiple Hulls -> Hull points
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-
         [Display(Browsable = false)]
-#endif
         [DataMember(20)]
         public List<List<List<uint>>> ConvexHullsIndices; // Multiple meshes -> Multiple Hulls -> Hull tris
 
