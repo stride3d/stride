@@ -331,7 +331,7 @@ namespace Xenko.Core.Packages
                             var provider = RestoreCommandProviders.Create(installPath, new List<string>(), sourceRepositoryProvider.GetRepositories(), context, new LocalPackageFileCache(), NativeLogger);
                             var request = new RestoreRequest(spec, provider, context, null, NativeLogger)
                             {
-                                //RequestedRuntimes = { "win7-d3d11" },
+                                //RequestedRuntimes = { "win-d3d11" },
                                 ProjectStyle = ProjectStyle.DotnetCliTool,
                             };
 
