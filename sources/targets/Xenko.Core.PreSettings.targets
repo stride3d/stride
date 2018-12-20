@@ -79,6 +79,7 @@
     <XenkoWindowsOnly Condition="'$(XenkoWindowsOnly)' == ''">false</XenkoWindowsOnly>
 
     <!-- Default values -->
+    <XenkoPlatformOriginal>$(XenkoPlatform)</XenkoPlatformOriginal>
     <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And ('$(RuntimeIdentifier)' == '' Or $(RuntimeIdentifier.StartsWith('win'))) ">Windows</XenkoPlatform>
     <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('linux')) ">Linux</XenkoPlatform>
     <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('osx')) ">macOS</XenkoPlatform>
