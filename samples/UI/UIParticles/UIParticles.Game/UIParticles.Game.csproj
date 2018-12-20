@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>UIParticles</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
