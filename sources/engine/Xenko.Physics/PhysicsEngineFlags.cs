@@ -18,6 +18,6 @@ namespace Xenko.Physics
 
         UseHardwareWhenPossible = 0x8,
 
-        ContinuosCollisionDetection = 0x10,
+        ContinuousCollisionDetection = 0x10,
     }
 }

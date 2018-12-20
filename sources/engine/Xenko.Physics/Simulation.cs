@@ -129,7 +129,7 @@ namespace Xenko.Physics
 
                 solverInfo.SolverMode |= BulletSharp.SolverModes.CacheFriendly; //todo test if helps with performance or not
 
-                if (configuration.Flags.HasFlag(PhysicsEngineFlags.ContinuosCollisionDetection))
+                if (configuration.Flags.HasFlag(PhysicsEngineFlags.ContinuousCollisionDetection))
                 {
                     CanCcd = true;
                     solverInfo.SolverMode |= BulletSharp.SolverModes.Use2FrictionDirections | BulletSharp.SolverModes.RandomizeOrder;
