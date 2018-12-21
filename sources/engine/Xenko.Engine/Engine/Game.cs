@@ -187,7 +187,7 @@ namespace Xenko.Engine
         /// <summary>
         /// Initializes a new instance of the <see cref="Game"/> class.
         /// </summary>
-        public Game()
+        public Game(ScriptSystem customScriptSystem = null)
         {
             // Register the logger backend before anything else
             logListener = GetLogListener();
@@ -197,7 +197,7 @@ namespace Xenko.Engine
 
             // Create all core services, except Input which is created during `Initialize'.
             // Registration takes place in `Initialize'.
-            Script = new ScriptSystem(Services);
+            Script = customScriptSystem == null ? new ScriptSystem(Services) : customScriptSystem;
             Services.AddService(Script);
 
             SceneSystem = new SceneSystem(Services);

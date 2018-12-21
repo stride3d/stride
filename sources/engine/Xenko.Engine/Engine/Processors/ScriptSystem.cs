@@ -17,8 +17,9 @@ namespace Xenko.Engine.Processors
 {
     /// <summary>
     /// The script system handles scripts scheduling in a game.
+    /// This class can be derived from, to do so you'll have to provide your derived type to the game's constructor.
     /// </summary>
-    public sealed class ScriptSystem : GameSystemBase
+    public class ScriptSystem : GameSystemBase
     {
         private const long UpdateBit = 1L << 32;
 
@@ -127,7 +128,7 @@ namespace Xenko.Engine.Processors
         /// Allows to wait for next frame.
         /// </summary>
         /// <returns>ChannelMicroThreadAwaiter&lt;System.Int32&gt;.</returns>
-        public ChannelMicroThreadAwaiter<int> NextFrame()
+        public virtual ChannelMicroThreadAwaiter<int> NextFrame()
         {
             return Scheduler.NextFrame();
         }
@@ -159,7 +160,7 @@ namespace Xenko.Engine.Processors
         /// Add the provided script to the script system.
         /// </summary>
         /// <param name="script">The script to add</param>
-        public void Add(ScriptComponent script)
+        public virtual void Add(ScriptComponent script)
         {
             script.Initialize(Services);
             registeredScripts.Add(script);
@@ -182,7 +183,7 @@ namespace Xenko.Engine.Processors
         /// Remove the provided script from the script system.
         /// </summary>
         /// <param name="script">The script to remove</param>
-        public void Remove(ScriptComponent script)
+        public virtual void Remove(ScriptComponent script)
         {
             // Make sure it's not registered in any pending list
             var startWasPending = scriptsToStart.Remove(script);
