@@ -59,10 +59,10 @@
   </PropertyGroup>
 
   <!-- Use default runtime as ref assembly -->
-  <PropertyGroup Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == $(RuntimeIdentifiers.Split(';')[0])">
+  <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);XenkoIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-  <Target Name="XenkoIncludeRefAssemblies">
+  <Target Name="XenkoIncludeRefAssemblies" Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == $(RuntimeIdentifiers.Split(';')[0])">
     <ItemGroup>
       <TfmSpecificPackageFile Include="@(IntermediateAssembly)" PackagePath="ref/$(TargetFramework)" />
     </ItemGroup>
