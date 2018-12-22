@@ -6,7 +6,7 @@
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Mono.TextTemplating" Version="1.3.0" />
+    <PackageReference Include="Mono.TextTemplating" Version="2.0.2" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
