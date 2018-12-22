@@ -3,7 +3,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <RuntimeIdentifier>linux-opengl</RuntimeIdentifier>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>" />
+    <!-- Needed for custom runtime.json -->
+    <PackageReference Include="Xenko" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #> PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
 
 </Project>
