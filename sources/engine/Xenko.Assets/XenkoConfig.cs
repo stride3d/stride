@@ -137,7 +137,7 @@ namespace Xenko.Assets
                 Name = PlatformType.Linux.ToString(),
                 IsAvailable = true,
                 TargetFramework = "netcoreapp2.1",
-                RuntimeIdentifier = "linux",
+                RuntimeIdentifier = "linux-x64",
                 Type = PlatformType.Linux,
             };
             linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
