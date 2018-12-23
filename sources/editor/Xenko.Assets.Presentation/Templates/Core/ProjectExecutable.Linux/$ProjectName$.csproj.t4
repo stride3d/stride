@@ -18,7 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>" />
     <!-- Needed for custom runtime.json -->
-    <PackageReference Include="Xenko" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #> PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
 
 </Project>
