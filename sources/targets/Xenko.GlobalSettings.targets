@@ -46,11 +46,12 @@
     <RuntimeIdentifierDefault Condition="'$(RuntimeIdentifiers)' != ''">$(RuntimeIdentifiers.Split(';')[0])</RuntimeIdentifierDefault>
 
     <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
-    <!--<DisableFastUpToDateCheck Condition="$(RuntimeIdentifiers.Contains(';'))">true</DisableFastUpToDateCheck>-->
+    
+    <!-- Compute RuntimeIdentifier (it might be different if passed from a ProjectReference) -->
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifierDefault)' != ''">$(RuntimeIdentifierDefault)</RuntimeIdentifier>
 
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == 'win'">win-d3d11</RuntimeIdentifier>
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == 'linux'">linux-opengl</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Windows' And '$(RuntimeIdentifier)' == 'win'">win-d3d11</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Linux' And '$(RuntimeIdentifier)' == 'linux'">linux-opengl</RuntimeIdentifier>
 
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d11'">Direct3D11</XenkoGraphicsApi>
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d12'">Direct3D12</XenkoGraphicsApi>
@@ -62,20 +63,11 @@
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'linux-vulkan'">Vulkan</XenkoGraphicsApi>
   </PropertyGroup>
   
-  <!-- Use default runtime as ref assembly -->
-  <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' == 'true' And '$(XenkoGraphicsApiDependentBuildAll)' == 'true' And ('$(RuntimeIdentifierDefault)' == '' Or '$(RuntimeIdentifier)' == '$(RuntimeIdentifierDefault)')">
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);XenkoIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>
-  </PropertyGroup>
-  <Target Name="XenkoIncludeRefAssemblies">
+  <!-- Workaround: Remove RuntimeIdentifier from Solution references (https://github.com/onovotny/MSBuildSdkExtras/issues/139)
+                   additionally, also remove it from all references to avoid issues -->
+  <Target Name="_XenkoRemoveRuntimeIdentifier" AfterTargets="AssignProjectConfiguration">
     <ItemGroup>
-      <TfmSpecificPackageFile Include="@(IntermediateAssembly)" PackagePath="ref/$(TargetFramework)" />
-    </ItemGroup>
-  </Target>
-  
-  <!-- Workaround: Remove RuntimeIdentifier from Solution references (https://github.com/onovotny/MSBuildSdkExtras/issues/139) -->
-  <Target Name="_XenkoRemoveRuntimeIdentifierFromSolutionDependencies" AfterTargets="AssignProjectConfiguration">
-    <ItemGroup>
-      <ProjectReferenceWithConfiguration Condition="'%(ProjectReferenceWithConfiguration.ReferenceSourceTarget)' != 'ProjectReference'">
+      <ProjectReferenceWithConfiguration>
         <GlobalPropertiesToRemove>%(ProjectReferenceWithConfiguration.GlobalPropertiesToRemove);RuntimeIdentifier</GlobalPropertiesToRemove>
       </ProjectReferenceWithConfiguration>
     </ItemGroup>

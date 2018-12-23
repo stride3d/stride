@@ -1,5 +1,5 @@
 <!-- Build file pre-included by all Xenko projects -->
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="RuntimeIdentifier">
   <!-- Setup this part according to your project if you want your .csproj to compile individually without going through the .sln file -->
   <PropertyGroup>
     <SolutionDir Condition=" '$(SolutionDir)' == '' ">$(MSBuildThisFileDirectory)..\..\build\</SolutionDir>
@@ -26,6 +26,14 @@
     <XenkoPlatforms>$([MSBuild]::Unescape('$(XenkoPlatforms)'))</XenkoPlatforms>
     <_XenkoPlatforms>;$(XenkoPlatforms);</_XenkoPlatforms>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
+    <!-- Reset runtime identifier by default (otherwise GetPackagingOutputs fail) -->
+    <RuntimeIdentifier></RuntimeIdentifier>
+    <WindowsAppContainer>false</WindowsAppContainer>
+    <AppxPackage>false</AppxPackage>
+    <Platform>AnyCPU</Platform>
+  </PropertyGroup>
 
   <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' And '$(XenkoRuntimeNetStandard)' != 'true' ">
     <!-- Add netstandard2.0 no matter what (needed for references) -->
@@ -38,6 +46,9 @@
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';Windows;'))">$(XenkoRuntimeIdentifiers);win</XenkoRuntimeIdentifiers>
     <!-- We compile linux version as "ref" if XenkoRuntimeWindowsDotNet is true (otherwise single platform build wouldn't work) -->
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';Linux;'))">$(XenkoRuntimeIdentifiers);linux</XenkoRuntimeIdentifiers>
+
+    <!-- Need to use "win" runtime identifier for all other platforms as a workaround https://github.com/NuGet/Home/issues/7661#issuecomment-450040204 -->
+    <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' != 'netstandard2.0'">win</XenkoRuntimeIdentifiers>
 
     <XenkoRuntimeTargetFrameworks>$([MSBuild]::Unescape($(XenkoRuntimeTargetFrameworks.Trim(';'))))</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeIdentifiers>$([MSBuild]::Unescape($(XenkoRuntimeIdentifiers.Trim(';'))))</XenkoRuntimeIdentifiers>
@@ -60,9 +71,9 @@
 
   <!-- Use default runtime as ref assembly -->
   <PropertyGroup>
-    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);XenkoIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_XenkoIncludeRefAssemblies</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
-  <Target Name="XenkoIncludeRefAssemblies" Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == $(RuntimeIdentifiers.Split(';')[0])">
+  <Target Name="_XenkoIncludeRefAssemblies" Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == $(RuntimeIdentifiers.Split(';')[0])">
     <ItemGroup>
       <TfmSpecificPackageFile Include="@(IntermediateAssembly)" PackagePath="ref/$(TargetFramework)" />
     </ItemGroup>
