@@ -46,8 +46,8 @@ namespace Xenko.LauncherApp.ViewModels
             get
             {
                 var result = Version?.ToString() ?? "Unknown";
-                if (ServerPackage != null)
-                    result += $" ({ServerPackage.Source})";
+                //if (ServerPackage != null)
+                //    result += $" ({ServerPackage.Source})";
                 return result;
             }
         }

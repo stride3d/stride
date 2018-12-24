@@ -303,11 +303,11 @@ namespace Xenko.Core.Packages
                             installPath = oldRootDirectory;
                         }
 
-                        var specPath = Path.Combine("TestProject", "project.json");
+                        var projectPath = Path.Combine("XenkoLauncher.json");
                         var spec = new PackageSpec()
                         {
-                            Name = "TestProject", // make sure this package never collides with a dependency
-                            FilePath = specPath,
+                            Name = Path.GetFileNameWithoutExtension(projectPath), // make sure this package never collides with a dependency
+                            FilePath = projectPath,
                             Dependencies = new List<LibraryDependency>()
                             {
                                 new LibraryDependency
@@ -322,35 +322,63 @@ namespace Xenko.Core.Packages
                                     FrameworkName = NuGetFramework.Parse("net472"),
                                 }
                             },
+                            RestoreMetadata = new ProjectRestoreMetadata
+                            {
+                                ProjectPath = projectPath,
+                                ProjectName = Path.GetFileNameWithoutExtension(projectPath),
+                                ProjectStyle = ProjectStyle.PackageReference,
+                                ProjectUniqueName = projectPath,
+                                OutputPath = Path.Combine(Path.GetTempPath(), $"XenkoLauncher-{packageId}-{version.ToString()}"),
+                                OriginalTargetFrameworks = new[] { "net472" },
+                                ConfigFilePaths = settings.GetConfigFilePaths(),
+                                PackagesPath = installPath,
+                                Sources = SettingsUtility.GetEnabledSources(settings).ToList(),
+                                FallbackFolders = SettingsUtility.GetFallbackPackageFolders(settings).ToList()
+                            },
                         };
 
                         using (var context = new SourceCacheContext())
                         {
                             context.IgnoreFailedSources = true;
 
-                            var provider = RestoreCommandProviders.Create(installPath, new List<string>(), sourceRepositoryProvider.GetRepositories(), context, new LocalPackageFileCache(), NativeLogger);
-                            var request = new RestoreRequest(spec, provider, context, null, NativeLogger)
+                            var dependencyGraphSpec = new DependencyGraphSpec();
+
+                            dependencyGraphSpec.AddProject(spec);
+
+                            dependencyGraphSpec.AddRestore(spec.RestoreMetadata.ProjectUniqueName);
+
+                            IPreLoadedRestoreRequestProvider requestProvider = new DependencyGraphSpecRequestProvider(new RestoreCommandProvidersCache(), dependencyGraphSpec);
+
+                            var restoreArgs = new RestoreArgs
                             {
-                                //RequestedRuntimes = { "win-d3d11" },
-                                ProjectStyle = ProjectStyle.DotnetCliTool,
+                                AllowNoOp = true,
+                                CacheContext = context,
+                                CachingSourceProvider = new CachingSourceProvider(new PackageSourceProvider(settings)),
+                                Log = NativeLogger,
                             };
 
-                            var command = new RestoreCommand(request);
+                            // Create requests from the arguments
+                            var requests = requestProvider.CreateRequests(restoreArgs).Result;
 
-                            // Act
-                            var result = await command.ExecuteAsync();
+                            foreach (var request in requests)
+                            {
+                                var command = new RestoreCommand(request.Request);
 
-                            if (!result.Success)
-                            {
-                                throw new InvalidOperationException($"Could not restore package {packageId}");
-                            }
-                            foreach (var install in result.RestoreGraphs.Last().Install)
-                            {
-                                var package = result.LockFile.Libraries.FirstOrDefault(x => x.Name == install.Library.Name && x.Version == install.Library.Version);
-                                if (package != null)
+                                // Act
+                                var result = await command.ExecuteAsync();
+
+                                if (!result.Success)
                                 {
-                                    var packagePath = Path.Combine(installPath, package.Path);
-                                    OnPackageInstalled(this, new PackageOperationEventArgs(new PackageName(install.Library.Name, install.Library.Version.ToPackageVersion()), packagePath));
+                                    throw new InvalidOperationException($"Could not restore package {packageId}");
+                                }
+                                foreach (var install in result.RestoreGraphs.Last().Install)
+                                {
+                                    var package = result.LockFile.Libraries.FirstOrDefault(x => x.Name == install.Library.Name && x.Version == install.Library.Version);
+                                    if (package != null)
+                                    {
+                                        var packagePath = Path.Combine(installPath, package.Path);
+                                        OnPackageInstalled(this, new PackageOperationEventArgs(new PackageName(install.Library.Name, install.Library.Version.ToPackageVersion()), packagePath));
+                                    }
                                 }
                             }
                         }
