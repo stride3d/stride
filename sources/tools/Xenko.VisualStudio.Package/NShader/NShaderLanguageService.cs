@@ -298,7 +298,7 @@ namespace NShader
             {
                 projectFile = projectItem.ContainingProject.FileName;
             }
-            return XenkoCommandsProxy.GetProxy().AnalyzeAndGoToDefinition(projectFile, text, span);
+            return XenkoCommandsProxy.GetProxy()?.AnalyzeAndGoToDefinition(projectFile, text, span) ?? new RawShaderNavigationResult();
         }
 
         private NShaderSource GetCurrentNShaderSource()

@@ -82,6 +82,8 @@ namespace NShader
             try
             {
                 var remoteCommands = XenkoCommandsProxy.GetProxy();
+                if (remoteCommands == null)
+                    return;
                 var location = new RawSourceSpan()
                 {
                     File = this.Source.GetFilePath(),

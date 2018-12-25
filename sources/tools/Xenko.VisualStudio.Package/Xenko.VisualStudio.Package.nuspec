@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Xenko.VisualStudio.Package</id>
-    <version>3.0.1</version>
+    <version>3.0.2</version>
     <authors>Xenko</authors>
     <owners>Xenko</owners>
     <licenseUrl>http://xenko.com/license.txt</licenseUrl>
