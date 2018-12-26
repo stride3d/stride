@@ -308,6 +308,8 @@ namespace Xenko.VisualStudio
             var solutionPath = dte.Solution.FullName;
 
             var xenkoPackageInfo = await XenkoCommandsProxy.FindXenkoSdkDir(solutionPath);
+            if (xenkoPackageInfo.LoadedVersion == null)
+                return;
             XenkoCommandsProxy.InitializeFromSolution(solutionPath, xenkoPackageInfo);
 
             // Get General Output pane (for error logging)

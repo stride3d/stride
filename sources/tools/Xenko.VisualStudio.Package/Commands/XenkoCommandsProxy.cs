@@ -83,7 +83,7 @@ namespace Xenko.VisualStudio.Commands
             else
             {
                 var initializationHelper = (InitializationHelper)domain.CreateInstanceFromAndUnwrap(typeof(InitializationHelper).Assembly.Location, typeof(InitializationHelper).FullName);
-                initializationHelper.Initialize(solutionPath, xenkoPackageInfo.SdkPaths, xenkoPackageInfo.ExpectedVersion.ToString(), xenkoPackageInfo.LoadedVersion.ToString());
+                initializationHelper.Initialize(solutionPath, xenkoPackageInfo.SdkPaths, xenkoPackageInfo.ExpectedVersion?.ToString(), xenkoPackageInfo.LoadedVersion?.ToString());
             }
         }
 
@@ -91,7 +91,12 @@ namespace Xenko.VisualStudio.Commands
         {
             public void Initialize(string solutionPath, List<string> sdkPaths, string expectedVersion, string loadedVersion)
             {
-                InitializeFromSolution(solutionPath, new PackageInfo { SdkPaths = sdkPaths, ExpectedVersion = new PackageVersion(expectedVersion), LoadedVersion = new PackageVersion(loadedVersion) });
+                InitializeFromSolution(solutionPath, new PackageInfo
+                {
+                    SdkPaths = sdkPaths,
+                    ExpectedVersion = expectedVersion != null ? new PackageVersion(expectedVersion) : null,
+                    LoadedVersion = loadedVersion != null ? new PackageVersion(loadedVersion) : null,
+                });
             }
         }
 
@@ -135,9 +140,11 @@ namespace Xenko.VisualStudio.Commands
                         }
                     }
 
-                    currentAppDomain = CreateXenkoDomain();
-
                     var xenkoPackageInfo = FindXenkoSdkDir(solution).Result;
+                    if (xenkoPackageInfo.LoadedVersion == null)
+                        return null;
+
+                    currentAppDomain = CreateXenkoDomain();
                     InitializeFromSolution(solution, xenkoPackageInfo, currentAppDomain);
                     currentInstance = CreateProxy(currentAppDomain);
                     currentInstance.Initialize();
@@ -235,6 +242,10 @@ namespace Xenko.VisualStudio.Commands
         private Assembly XenkoDomainAssemblyResolve(object sender, ResolveEventArgs args)
         {
             var assemblyName = new AssemblyName(args.Name);
+
+            // Necessary to avoid conflicts with Visual Studio NuGet
+            if (args.Name.StartsWith("NuGet", StringComparison.InvariantCultureIgnoreCase))
+                return Assembly.Load(assemblyName);
 
             var assemblyPath = computedPackageInfo.SdkPaths.FirstOrDefault(x => Path.GetFileNameWithoutExtension(x) == assemblyName.Name);
             if (assemblyPath != null)

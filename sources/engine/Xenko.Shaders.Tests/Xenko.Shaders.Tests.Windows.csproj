@@ -3,8 +3,8 @@
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>Xenko.Physics.Tests</RootNamespace>
-    <AssemblyName>Xenko.Physics.Tests</AssemblyName>
+    <RootNamespace>Xenko.Shaders.Tests</RootNamespace>
+    <AssemblyName>Xenko.Shaders.Tests</AssemblyName>
     <TargetFramework>net472</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>

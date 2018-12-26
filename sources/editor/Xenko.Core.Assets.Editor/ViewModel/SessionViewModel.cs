@@ -396,7 +396,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 }
                 catch (Exception e)
                 {
-                    sessionResult.Error(string.Format(Tr._p("Log", "There was a problem opening the solution."), e));
+                    sessionResult.Error(string.Format(Tr._p("Log", "There was a problem opening the solution.")), e);
                     result = null;
                 }
                 return result;
@@ -873,7 +873,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 }
                 catch (Exception e)
                 {
-                    sessionResult.Error(string.Format(Tr._p("Log", "There was a problem saving the solution. {0}"), e));
+                    sessionResult.Error(string.Format(Tr._p("Log", "There was a problem saving the solution. {0}"), e.Message), e);
                 }
             });
 
