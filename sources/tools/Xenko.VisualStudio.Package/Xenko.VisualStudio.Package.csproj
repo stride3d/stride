@@ -17,11 +17,7 @@
     <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
     <XenkoSkipAutoPack>true</XenkoSkipAutoPack>
-<<<<<<< HEAD
-    <PackageVersion>3.0.1</PackageVersion>
-=======
     <PackageVersion>3.0.2</PackageVersion>
->>>>>>> 1844890dcc1fa6135ed9e91cf256df45387f3f0b
     <VSSDKTargetPlatformRegRootSuffix>Xenko</VSSDKTargetPlatformRegRootSuffix>
   </PropertyGroup>
   <ItemGroup>
