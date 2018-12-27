@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -14,11 +15,13 @@ namespace Xenko.Core.Reflection
 {
     public class LoadedAssembly
     {
+        public AssemblyContainer Container { get; }
         public string Path { get; }
         public Assembly Assembly { get; }
 
-        public LoadedAssembly([NotNull] string path, [NotNull] Assembly assembly)
+        public LoadedAssembly([NotNull] AssemblyContainer container, [NotNull] string path, [NotNull] Assembly assembly)
         {
+            Container = container;
             Path = path;
             Assembly = assembly;
         }
@@ -30,13 +33,15 @@ namespace Xenko.Core.Reflection
         private readonly Dictionary<string, LoadedAssembly> loadedAssembliesByName = new Dictionary<string, LoadedAssembly>(StringComparer.InvariantCultureIgnoreCase);
         private static readonly string[] KnownAssemblyExtensions = { ".dll", ".exe" };
         [ThreadStatic]
-        private static AssemblyContainer loadingInstance;
+        private static AssemblyContainer currentContainer;
 
         [ThreadStatic]
         private static LoggerResult log;
 
         [ThreadStatic]
-        private static List<string> searchDirectoryList;
+        private static string currentSearchDirectory;
+
+        private static readonly ConditionalWeakTable<Assembly, LoadedAssembly> assemblyToContainers = new ConditionalWeakTable<Assembly, LoadedAssembly>();
 
         /// <summary>
         /// The default assembly container loader.
@@ -67,13 +72,12 @@ namespace Xenko.Core.Reflection
         }
 
         [CanBeNull]
-        public Assembly LoadAssemblyFromPath([NotNull] string assemblyFullPath, ILogger outputLog = null, List<string> lookupDirectoryList = null)
+        public Assembly LoadAssemblyFromPath([NotNull] string assemblyFullPath, ILogger outputLog = null)
         {
             if (assemblyFullPath == null) throw new ArgumentNullException(nameof(assemblyFullPath));
 
             log = new LoggerResult();
 
-            lookupDirectoryList = lookupDirectoryList ?? new List<string>();
             assemblyFullPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, assemblyFullPath));
             var assemblyDirectory = Path.GetDirectoryName(assemblyFullPath);
 
@@ -82,24 +86,12 @@ namespace Xenko.Core.Reflection
                 throw new ArgumentException("Invalid assembly path. Doesn't contain directory information");
             }
 
-            if (!lookupDirectoryList.Contains(assemblyDirectory, StringComparer.InvariantCultureIgnoreCase))
-            {
-                lookupDirectoryList.Add(assemblyDirectory);
-            }
-
-            var previousLookupList = searchDirectoryList;
             try
             {
-                loadingInstance = this;
-                searchDirectoryList = lookupDirectoryList;
-
                 return LoadAssemblyFromPathInternal(assemblyFullPath);
             }
             finally
             {
-                loadingInstance = null;
-                searchDirectoryList = previousLookupList;
-
                 if (outputLog != null)
                 {
                     log.CopyTo(outputLog);
@@ -117,27 +109,25 @@ namespace Xenko.Core.Reflection
 
                 loadedAssemblies.Remove(loadedAssembly);
                 loadedAssembliesByName.Remove(loadedAssembly.Path);
+                assemblyToContainers.Remove(assembly);
                 return true;
             }
         }
 
         [CanBeNull]
-        private Assembly LoadAssemblyByName([NotNull] string assemblyName)
+        private Assembly LoadAssemblyByName([NotNull] string assemblyName, [NotNull] string searchDirectory)
         {
             if (assemblyName == null) throw new ArgumentNullException(nameof(assemblyName));
 
             var assemblyPartialPathList = new List<string>();
             assemblyPartialPathList.AddRange(KnownAssemblyExtensions.Select(knownExtension => assemblyName + knownExtension));
 
-            foreach (var directoryPath in searchDirectoryList)
+            foreach (var assemblyPartialPath in assemblyPartialPathList)
             {
-                foreach (var assemblyPartialPath in assemblyPartialPathList)
+                var assemblyFullPath = Path.Combine(searchDirectory, assemblyPartialPath);
+                if (File.Exists(assemblyFullPath))
                 {
-                    var assemblyFullPath = Path.Combine(directoryPath, assemblyPartialPath);
-                    if (File.Exists(assemblyFullPath))
-                    {
-                        return LoadAssemblyFromPathInternal(assemblyFullPath);
-                    }
+                    return LoadAssemblyFromPathInternal(assemblyFullPath);
                 }
             }
             return null;
@@ -184,22 +174,36 @@ namespace Xenko.Core.Reflection
                     {
                         // TODO: Is using AppDomain would provide more opportunities for unloading?
                         assembly = pdbBytes != null ? Assembly.Load(assemblyBytes, pdbBytes) : Assembly.Load(assemblyBytes);
-                        loadedAssembly = new LoadedAssembly(assemblyFullPath, assembly);
+                        loadedAssembly = new LoadedAssembly(this, assemblyFullPath, assembly);
                         loadedAssemblies.Add(loadedAssembly);
                         loadedAssembliesByName.Add(assemblyFullPath, loadedAssembly);
 
-                        // Force assembly resolve with proper name
-                        // (doing it here, because if done later, loadingInstance will be set to null and it won't work)
-                        Assembly.Load(assembly.FullName);
+                        // Force assembly resolve with proper name (with proper context)
+                        var previousSearchDirectory = currentSearchDirectory;
+                        var previousContainer = currentContainer;
+                        try
+                        {
+                            currentContainer = this;
+                            currentSearchDirectory = Path.GetDirectoryName(assemblyFullPath);
+
+                            Assembly.Load(assembly.FullName);
+                        }
+                        finally
+                        {
+                            currentContainer = previousContainer;
+                            currentSearchDirectory = previousSearchDirectory;
+                        }
                     }
 
+                    // Make sure there is no duplicate
+                    Debug.Assert(!assemblyToContainers.TryGetValue(assembly, out var _));
+                    // Add to mapping
+                    assemblyToContainers.GetValue(assembly, _ => loadedAssembly);
+
                     // Make sure that Module initializer are called
-                    if (assembly.GetTypes().Length > 0)
+                    foreach (var module in assembly.Modules)
                     {
-                        foreach (var module in assembly.Modules)
-                        {
-                            RuntimeHelpers.RunModuleConstructor(module.ModuleHandle);
-                        }
+                        RuntimeHelpers.RunModuleConstructor(module.ModuleHandle);
                     }
                     return assembly;
                 }
@@ -223,12 +227,24 @@ namespace Xenko.Core.Reflection
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             // If it is handled by current thread, then we can handle it here.
-            var container = loadingInstance;
+            var container = currentContainer;
+            string searchDirectory = currentSearchDirectory;
+
+            // If it's a dependent assembly loaded later, find container and path
+            if (container == null && args.RequestingAssembly != null && assemblyToContainers.TryGetValue(args.RequestingAssembly, out var loadedAssembly))
+            {
+                // Assembly reference requested after initial resolve, we need to setup context temporarily
+                container = loadedAssembly.Container;
+                searchDirectory = Path.GetDirectoryName(loadedAssembly.Path);
+            }
+
+            // Load assembly
             if (container != null)
             {
                 var assemblyName = new AssemblyName(args.Name);
-                return container.LoadAssemblyByName(assemblyName.Name);
+                return container.LoadAssemblyByName(assemblyName.Name, searchDirectory);
             }
+
             return null;
         }
     }
