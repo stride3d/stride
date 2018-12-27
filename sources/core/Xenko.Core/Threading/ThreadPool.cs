@@ -37,8 +37,10 @@ namespace Xenko.Core.Threading
                 PooledDelegateHelper.AddReference(workItem);
                 workItems.Enqueue(workItem);
                 workAvailable.Set();
-                
-                if (workingCount + 1 >= aliveCount && aliveCount < maxThreadCount)
+
+                var curWorkingCount = Interlocked.CompareExchange(ref workingCount, 0, 0);
+                var curAliveCount = Interlocked.CompareExchange(ref aliveCount, 0, 0);
+                if (curWorkingCount + 1 >= curAliveCount && curAliveCount < maxThreadCount)
                 {
                     Interlocked.Increment(ref aliveCount);
                     Task.Factory.StartNew(ProcessWorkItems, TaskCreationOptions.LongRunning);
