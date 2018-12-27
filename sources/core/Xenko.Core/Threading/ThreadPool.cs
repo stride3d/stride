@@ -1,10 +1,10 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Collections.Generic;
 using Xenko.Core.Annotations;
 
 namespace Xenko.Core.Threading
@@ -23,22 +23,31 @@ namespace Xenko.Core.Threading
         private readonly Queue<Action> workItems = new Queue<Action>();
         private readonly ManualResetEvent workAvailable = new ManualResetEvent(false);
 
-        private object _lock = new object();
-        volatile private int activeThreadCount;
-        volatile private int aliveThreadCount;
+        private SpinLock spinLock = new SpinLock();
+        private volatile int workingCount;
+        private volatile int aliveCount;
 
         public void QueueWorkItem([NotNull] [Pooled] Action workItem)
         {
-            lock (_lock)
+            var lockTaken = false;
+            try
             {
+                spinLock.Enter(ref lockTaken);
+
                 PooledDelegateHelper.AddReference(workItem);
                 workItems.Enqueue(workItem);
                 workAvailable.Set();
-                if (activeThreadCount + 1 >= aliveThreadCount && aliveThreadCount < maxThreadCount)
+                
+                if (workingCount + 1 >= aliveCount && aliveCount < maxThreadCount)
                 {
-                    Interlocked.Increment(ref aliveThreadCount);
+                    Interlocked.Increment(ref aliveCount);
                     Task.Factory.StartNew(ProcessWorkItems, TaskCreationOptions.LongRunning);
                 }
+            }
+            finally
+            {
+                if (lockTaken)
+                    spinLock.Exit(true);
             }
         }
 
@@ -51,9 +60,11 @@ namespace Xenko.Core.Threading
                 do
                 {
                     Action workItem = null;
-
-                    lock (_lock)
+                    var lockTaken = false;
+                    try
                     {
+                        spinLock.Enter(ref lockTaken);
+
                         if (workItems.Count > 0)
                         {
                             workItem = workItems.Dequeue();
@@ -61,10 +72,15 @@ namespace Xenko.Core.Threading
                                 workAvailable.Reset();
                         }
                     }
+                    finally
+                    {
+                        if (lockTaken)
+                            spinLock.Exit(true);
+                    }
 
                     if (workItem != null)
                     {
-                        Interlocked.Increment(ref activeThreadCount);
+                        Interlocked.Increment(ref workingCount);
                         try
                         {
                             workItem.Invoke();
@@ -73,7 +89,7 @@ namespace Xenko.Core.Threading
                         {
                             // Ignoring Exception
                         }
-                        Interlocked.Decrement(ref activeThreadCount);
+                        Interlocked.Decrement(ref workingCount);
                         PooledDelegateHelper.Release(workItem);
                         lastWork = Stopwatch.GetTimestamp();
                     }
@@ -84,7 +100,7 @@ namespace Xenko.Core.Threading
             }
             finally
             {
-                Interlocked.Decrement(ref aliveThreadCount);
+                Interlocked.Decrement(ref aliveCount);
             }
         }
     }
