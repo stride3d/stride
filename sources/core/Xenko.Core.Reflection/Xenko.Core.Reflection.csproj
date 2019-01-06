@@ -3,7 +3,7 @@
     <XenkoAssemblySign>true</XenkoAssemblySign>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -35,5 +35,5 @@
     </When>
   </Choose>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
 </Project>

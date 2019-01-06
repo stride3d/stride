@@ -1,6 +1,6 @@
 <Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
@@ -86,7 +86,7 @@
     <Folder Include="EditorGame\Services\" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <PostBuildEvent>Path=$(MSBuildBinPath)\Roslyn;$(Path)
 IF EXIST "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" $(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe --lib-dir $(SolutionDir)..\deps\Gettext.Net --resource $(TargetName) -d $(TargetDir) --locale ja "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" --verbose</PostBuildEvent>

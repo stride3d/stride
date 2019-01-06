@@ -1,7 +1,7 @@
 ﻿<Project>
   <Import Project="..\..\sources\shared\Xenko.NuGetResolver\Xenko.NuGetResolver.projitems" Label="Shared" />
   <Import Project="..\..\sources\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
@@ -33,5 +33,5 @@
     <ProjectReference Include="..\..\sources\tools\Xenko.SamplesTestServer\Xenko.SamplesTestServer.csproj" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
 </Project>

@@ -1,6 +1,6 @@
 ﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
@@ -15,5 +15,5 @@
     <ProjectReference Include="..\..\core\Xenko.Core.Design\Xenko.Core.Design.csproj" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
 </Project>
