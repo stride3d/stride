@@ -164,7 +164,7 @@ namespace Xenko.Assets
             {
                 Name = PlatformType.Android.ToString(),
                 Type = PlatformType.Android,
-                TargetFramework = "monoandroid50",
+                TargetFramework = "monoandroid81",
                 IsAvailable = IsVSComponentAvailableAnyVersion(XamarinAndroidComponents)
             };
             androidPlatform.DefineConstants.Add("XENKO_PLATFORM_MONO_MOBILE");

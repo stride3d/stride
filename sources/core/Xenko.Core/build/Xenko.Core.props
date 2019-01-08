@@ -8,10 +8,10 @@
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
     <LanguageTargets>$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets</LanguageTargets>
   </PropertyGroup>
-  <!-- Support for TargetFramework monoandroid50 -->
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'monoandroid50' ">
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <TargetFramework>monoandroid50</TargetFramework>
+  <!-- Support for TargetFramework monoandroid81 -->
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'monoandroid81' ">
+    <TargetFrameworkVersion>v8.1</TargetFrameworkVersion>
+    <TargetFramework>monoandroid81</TargetFramework>
     <TargetFrameworkIdentifier>MonoAndroid</TargetFrameworkIdentifier>
     <XenkoPlatformDefines>XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID;NET45</XenkoPlatformDefines>
     <AndroidSupportedAbis>armeabi-v7a%3barmeabi%3bx86</AndroidSupportedAbis>
