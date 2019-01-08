@@ -123,6 +123,7 @@ Example of use:
     <PropertyGroup>
 	  <RestoreExec><![CDATA[
         set XenkoGraphicsApiDependentBuildAll=$(XenkoGraphicsApiDependentBuildAll)
+        set XenkoGraphicsApi=$(XenkoGraphicsApi)
         set XenkoPlatforms=$(XenkoPlatforms)
         "$(NuGetPath)" restore "$(XenkoSolution).sln"
       ]]></RestoreExec>
@@ -154,17 +155,17 @@ Example of use:
   </Target>
   
   <Target Name="BuildWindowsDirect3D12" DependsOnTargets="CopyXenkoKey">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution).Runtime"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution).Runtime;XenkoGraphicsApi=Direct3D12"/>
     <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoGraphicsApi=Direct3D12;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildWindowsOpenGL" DependsOnTargets="CopyXenkoKey">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution).Runtime"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution).Runtime;XenkoGraphicsApi=OpenGL"/>
     <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoGraphicsApi=OpenGL;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target>
 
   <Target Name="BuildWindowsOpenGLES" DependsOnTargets="CopyXenkoKey">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution).Runtime"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution).Runtime;XenkoGraphicsApi=OpenGLES"/>
     <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoGraphicsApi=OpenGLES;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target>
 
@@ -200,7 +201,7 @@ Example of use:
   </Target>
   
   <Target Name="BuildWindowsVulkan" DependsOnTargets="CopyXenkoKey">
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution).Runtime"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution).Runtime;XenkoGraphicsApi=Vulkan"/>
     <MSBuild Targets="Build" Projects="$(XenkoSolution).Runtime.sln" Properties="$(BuildProperties);XenkoGraphicsApi=Vulkan;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target>
   
@@ -218,7 +219,7 @@ Example of use:
       <XenkoSolution>$(XenkoSolution).Runtime</XenkoSolution>
       <XenkoPlatforms>Linux</XenkoPlatforms>
     </PropertyGroup>
-    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution)"/>
+    <MSBuild Targets="Restore" Projects="$(MSBuildThisFileFullPath)" Properties="XenkoPlatforms=$(XenkoPlatforms);XenkoSolution=$(XenkoSolution);XenkoGraphicsApi=Vulkan"/>
     <MSBuild Targets="Build" Projects="$(XenkoSolution).sln" Properties="$(BuildProperties);XenkoPlatforms=$(XenkoPlatforms);XenkoGraphicsApi=Vulkan;XenkoSkipAutoPack=true;XenkoSkipUnitTests=true"/>
   </Target> 
   
