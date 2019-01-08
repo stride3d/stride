@@ -69,7 +69,13 @@
   <Target Name="XenkoRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">
     <WriteLinesToFile File="$(IntermediateOutputPath)XenkoReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
     <ItemGroup>
-      <XenkoAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.ExternallyResolved)' == 'true' Or '%(ReferencePath.BuildReference)' == 'true'" />
+      <!-- We want list of references coming from direct and explicit PackageReference. We are using metadata to combine ReferencePath and PackageReference items https://stackoverflow.com/a/18032552 -->
+      <XenkoAddReference Include="@(ReferencePath)" Condition="'%(PackageReference.IsImplicitlyDefined)' != 'true'">
+        <NuGetPackageReference>%(PackageReference.Identity)</NuGetPackageReference>
+      </XenkoAddReference>
+      <XenkoAddReference Remove="@(XenkoAddReference)" Condition="'%(XenkoAddReference.NuGetPackageId)' != '%(XenkoAddReference.NuGetPackageReference)' Or ('%(XenkoAddReference.ExternallyResolved)' != 'true' And '%(XenkoAddReference.BuildReference)' != 'true')"/>
+      <!-- Also include non-nuget references (Reference and ProjectReference) -->
+      <XenkoAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.NuGetPackageId)' == ''"/>
     </ItemGroup>
     <PropertyGroup>
       <XenkoAssemblyProcessorOptions Condition="'$(XenkoAssemblyProcessorOptions)' == ''">--auto-notify-property --parameter-key --auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
