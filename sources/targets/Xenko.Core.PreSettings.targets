@@ -30,6 +30,7 @@
   <PropertyGroup Condition="$(TargetFramework.StartsWith('uap10.0'))">
     <!-- Reset runtime identifier by default (otherwise GetPackagingOutputs fail) -->
     <RuntimeIdentifier></RuntimeIdentifier>
+    <RuntimeIdentifiers></RuntimeIdentifiers>
     <WindowsAppContainer>false</WindowsAppContainer>
     <AppxPackage>false</AppxPackage>
     <Platform>AnyCPU</Platform>
