@@ -25,6 +25,7 @@ using Xenko.Particles;
 using Xenko.Rendering.Materials;
 using Xenko.Rendering.ProceduralModels;
 using Xenko.SpriteStudio.Offline;
+using Xenko.Core.Assets.CompilerApp.Tasks;
 
 namespace Xenko.Core.Assets.CompilerApp
 {
@@ -66,6 +67,7 @@ namespace Xenko.Core.Assets.CompilerApp
 
             var exeName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             var showHelp = false;
+            var packMode = false;
             var buildEngineLogger = GlobalLogger.GetLogger("BuildEngine");
             var options = new PackageBuilderOptions(new ForwardingLoggerResult(buildEngineLogger));
 
@@ -112,6 +114,7 @@ namespace Xenko.Core.Assets.CompilerApp
                 } },
                 { "slave=", "Slave pipe", v => options.SlavePipe = v }, // Benlitz: I don't think this should be documented
                 { "server=", "This Compiler is launched as a server", v => { } },
+                { "pack", "Special mode to copy assets and resources in a folder for NuGet packaging", v => packMode = true },
                 { "t|threads=", "Number of threads to create. Default value is the number of hardware threads available.", v => options.ThreadCount = int.Parse(v) },
                 { "test=", "Run a test session.", v => options.TestName = v },
                 { "property:", "Properties. Format is name1=value1;name2=value2", v =>
@@ -210,6 +213,34 @@ namespace Xenko.Core.Assets.CompilerApp
                     throw new OptionException(ex.Message, ex.ParamName);
                 }
 
+                if (showHelp)
+                {
+                    p.WriteOptionDescriptions(Console.Out);
+                    return (int)BuildResultCode.Successful;
+                }
+                else if (packMode)
+                {
+                    PackageSessionPublicHelper.FindAndSetMSBuildVersion();
+
+                    var csprojFile = options.PackageFile;
+                    var intermediatePackagePath = options.BuildDirectory;
+                    var generatedItems = new List<(string SourcePath, string PackagePath)>();
+                    var logger = new LoggerResult();
+                    if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems))
+                    {
+                        foreach (var message in logger.Messages)
+                        {
+                            Console.WriteLine(message);
+                        }
+                        return (int)BuildResultCode.BuildError;
+                    }
+                    foreach (var generatedItem in generatedItems)
+                    {
+                        Console.WriteLine($"{generatedItem.SourcePath}|{generatedItem.PackagePath}");
+                    }
+                    return (int)BuildResultCode.Successful;
+                }
+
                 // Also write logs from master process into a file
                 if (options.SlavePipe == null)
                 {
@@ -238,12 +269,7 @@ namespace Xenko.Core.Assets.CompilerApp
                     IsSlave = true;
                 }
 
-                if (showHelp)
-                {
-                    p.WriteOptionDescriptions(Console.Out);
-                    exitCode = BuildResultCode.Successful;
-                }
-                else if (!string.IsNullOrEmpty(options.TestName))
+                if (!string.IsNullOrEmpty(options.TestName))
                 {
                     var test = new TestSession();
                     test.RunTest(options.TestName, options.Logger);

@@ -40,6 +40,7 @@
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\assets\Xenko.Core.Assets.CompilerApp\Tasks\PackAssets.cs" Link="PackAssets.cs" />
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>

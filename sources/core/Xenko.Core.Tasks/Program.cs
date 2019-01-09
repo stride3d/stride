@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using Microsoft.Build.Locator;
 using Mono.Options;
+using Xenko.Core.Assets.CompilerApp.Tasks;
 using Xenko.Core.Diagnostics;
 
 namespace Xenko.Core.Tasks
@@ -83,7 +84,7 @@ namespace Xenko.Core.Tasks
                         var intermediatePackagePath = commandArgs[2];
                         var generatedItems = new List<(string SourcePath, string PackagePath)>();
                         var logger = new LoggerResult();
-                        if (!PackAssets.Run(logger, csprojFile, intermediatePackagePath, generatedItems))
+                        if (!PackAssetsHelper.Run(logger, csprojFile, intermediatePackagePath, generatedItems))
                         {
                             foreach (var message in logger.Messages)
                             {

@@ -113,4 +113,26 @@
       <AndroidStoreUncompressedFileExtensions>$(AndroidStoreUncompressedFileExtensions);.bundle</AndroidStoreUncompressedFileExtensions>
     </PropertyGroup>
   </Target>
+
+  <!-- Pack target -->
+  <!--<UsingTask TaskName="Xenko.Core.Tasks.PackAssets" AssemblyFile="$(XenkoCompileAssetCommand)" />-->
+  <Target Name="_XenkoPrepareAssetsForPack" BeforeTargets="_GetPackageFiles">
+    <!-- We use exec version rather than task version, otherwise file will be locked during rebuild -->
+    <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\xenko">
+      <Output TaskParameter="GeneratedItems" ItemName="None"/>
+    </PackAssets>-->
+    <Exec Command="&quot;$(XenkoCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)xenko\pack&quot;" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
+    </Exec>
+    <ItemGroup>
+      <PackAssetsLine Update="@(PackAssetsLine)">
+        <SourcePath>$([System.String]::new('%(Identity)').Split('|')[0])</SourcePath>
+        <PackagePath>$([System.String]::new('%(Identity)').Split('|')[1])</PackagePath>
+      </PackAssetsLine>
+      <None Include="%(PackAssetsLine.SourcePath)">
+        <Pack>true</Pack>
+        <PackagePath>%(PackAssetsLine.PackagePath)</PackagePath>
+      </None>
+    </ItemGroup>
+  </Target>
 </Project>

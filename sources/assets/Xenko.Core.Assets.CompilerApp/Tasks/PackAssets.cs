@@ -9,41 +9,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Xenko.Core.Assets;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
 using Xenko.Core.Yaml;
 using Xenko.Core.Yaml.Events;
 
-namespace Xenko.Core.Tasks
+namespace Xenko.Core.Assets.CompilerApp.Tasks
 {
-    public class PackAssets : Task
+    public static class PackAssetsHelper
     {
-        [Required]
-        public ITaskItem ProjectFile { get; set; }
-
-        [Required]
-        public ITaskItem IntermediatePackagePath { get; set; }
-
-        [Output]
-        public ITaskItem[] GeneratedItems { get; private set; }
-
-        public override bool Execute()
-        {
-            var generatedItems = new List<(string SourcePath, string PackagePath)>();
-            var result = Run(new RedirectLog(Log), ProjectFile.ItemSpec, IntermediatePackagePath.ItemSpec, generatedItems);
-
-            GeneratedItems = generatedItems.Select(x =>
-            {
-                var generatedItem = new TaskItem(x.SourcePath);
-                generatedItem.SetMetadata("Pack", "true");
-                generatedItem.SetMetadata("PackagePath", x.PackagePath);
-                return generatedItem;
-            }).ToArray();
-            return result;
-        }
-
-        public static bool Run(Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems)
+        public static bool Run(Core.Diagnostics.Logger logger, string projectFile, string intermediatePackagePath, List<(string SourcePath, string PackagePath)> generatedItems)
         {
             var package = Package.Load(logger, projectFile, new PackageLoadParameters()
             {
@@ -257,6 +232,32 @@ namespace Xenko.Core.Tasks
             }
 
             return !logger.HasErrors;
+        }
+    }
+    public class PackAssets : Task
+    {
+        [Required]
+        public ITaskItem ProjectFile { get; set; }
+
+        [Required]
+        public ITaskItem IntermediatePackagePath { get; set; }
+
+        [Output]
+        public ITaskItem[] GeneratedItems { get; private set; }
+
+        public override bool Execute()
+        {
+            var generatedItems = new List<(string SourcePath, string PackagePath)>();
+            var result = PackAssetsHelper.Run(new RedirectLog(Log), ProjectFile.ItemSpec, IntermediatePackagePath.ItemSpec, generatedItems);
+
+            GeneratedItems = generatedItems.Select(x =>
+            {
+                var generatedItem = new TaskItem(x.SourcePath);
+                generatedItem.SetMetadata("Pack", "true");
+                generatedItem.SetMetadata("PackagePath", x.PackagePath);
+                return generatedItem;
+            }).ToArray();
+            return result;
         }
 
         class RedirectLog : Core.Diagnostics.Logger
