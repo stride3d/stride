@@ -45,8 +45,9 @@
     <XenkoRuntimeTargetFrameworks Condition="$(_XenkoPlatforms.Contains(';iOS;'))">$(XenkoRuntimeTargetFrameworks);xamarinios10</XenkoRuntimeTargetFrameworks>
 
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';Windows;'))">$(XenkoRuntimeIdentifiers);win</XenkoRuntimeIdentifiers>
-    <!-- We compile linux version as "ref" if XenkoRuntimeWindowsDotNet is true (otherwise single platform build wouldn't work) -->
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';Linux;'))">$(XenkoRuntimeIdentifiers);linux</XenkoRuntimeIdentifiers>
+    <!-- Default: at least win (used when compiling only a single platform such as UWP for netstandard assemblies) -->
+    <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And '$(XenkoRuntimeIdentifiers)' == ''">win</XenkoRuntimeIdentifiers>
 
     <!-- Need to use "win" runtime identifier for all other platforms as a workaround https://github.com/NuGet/Home/issues/7661#issuecomment-450040204 -->
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' != 'netstandard2.0'">any</XenkoRuntimeIdentifiers>
