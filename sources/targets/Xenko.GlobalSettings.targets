@@ -52,8 +52,8 @@
     <!-- Compute RuntimeIdentifier (it might be different if passed from a ProjectReference) -->
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifierDefault)' != ''">$(RuntimeIdentifierDefault)</RuntimeIdentifier>
     <!-- Properly setup RuntimeIdentifier if it was not a Graphics-API-specific one -->
-    <RuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Windows' And ('$(RuntimeIdentifier)' == 'win' Or '$(RuntimeIdentifier)' == 'any')">$(RuntimeIdentifierDefault)</RuntimeIdentifier>
-    <RuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Linux' And ('$(RuntimeIdentifier)' == 'linux' Or '$(RuntimeIdentifier)' == 'any')">$(RuntimeIdentifierDefault)</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Windows' And '$(RuntimeIdentifier)' != 'win-d3d11' And '$(RuntimeIdentifier)' != 'win-d3d12' And '$(RuntimeIdentifier)' != 'win-opengl' And '$(RuntimeIdentifier)' != 'win-opengles' And '$(RuntimeIdentifier)' != 'win-vulkan'">$(RuntimeIdentifierDefault)</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(XenkoPlatform)' == 'Linux' And '$(RuntimeIdentifier)' != 'linux-opengl' And '$(RuntimeIdentifier)' != 'linux-vulkan'">$(RuntimeIdentifierDefault)</RuntimeIdentifier>
 
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d11'">Direct3D11</XenkoGraphicsApi>
     <XenkoGraphicsApi Condition="'$(RuntimeIdentifier)' == 'win-d3d12'">Direct3D12</XenkoGraphicsApi>

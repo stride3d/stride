@@ -57,7 +57,6 @@
 
     <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers Condition="'$(XenkoRuntimeIdentifiers)' != ''">$(XenkoRuntimeIdentifiers)</RuntimeIdentifiers>
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' And '$(RuntimeIdentifiers)' != ''">$(RuntimeIdentifiers.Split(';')[0])</RuntimeIdentifier>
 
     <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
 
@@ -66,9 +65,45 @@
     <!--<TargetFrameworks>net461;uap10.0.16299;monoandroid81;xamarinios10;netstandard2.0</TargetFrameworks>-->
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' != 'true'">
+    <!-- Force default runtime identifier -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifiers)' == ''"></RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">$(RuntimeIdentifiers.Split(';')[0])</RuntimeIdentifier>
+  </PropertyGroup>
+
+
+  <!-- Those two targets are used to properly set the RuntimeIdentifier of ProjectReference (since we have sometimes weird transitions like win => win-d3d11 or win => noRID)
+       If we don't do it, MSBuild slap current RID, and even if this RID is overriden inside the build of the project, it will still trigger an unecessary build w/ double writes -->  
+  <Target Name="_XenkoSdkGetDefaultRidForTfm" Returns="$(RuntimeIdentifier)">
+    <PropertyGroup>
+      <ExtrasBuildEachRuntimeIdentifier Condition="'$(ExtrasBuildEachRuntimeIdentifier)' == ''">false</ExtrasBuildEachRuntimeIdentifier>
+    </PropertyGroup>
+  </Target>
+  <Target Name="_XenkoProjectReferenceRuntimeIdentifier" BeforeTargets="PrepareProjectReferences">
+    <!-- Query default RID of ProjectReference that are not RidAgnostic -->
+    <MSBuild Projects="@(_MSBuildProjectReferenceExistent)"
+             Condition="'%(_MSBuildProjectReferenceExistent.IsRidAgnostic)' == 'false'"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="TargetFramework=%(_MSBuildProjectReferenceExistent.NearestTargetFramework)"
+             Targets="_XenkoSdkGetDefaultRidForTfm">
+      <Output ItemName="_MSBuildProjectReferenceExistentWithRID" TaskParameter="TargetOutputs"  />
+    </MSBuild>
+    <ItemGroup>
+      <_MSBuildProjectReferenceExistentWithRID2 Include="@(_MSBuildProjectReferenceExistentWithRID->'%(OriginalItemSpec)')">
+        <RuntimeIdentifier>%(Identity)</RuntimeIdentifier>
+        <SetTargetFramework>%(_MSBuildProjectReferenceExistentWithRID.SetTargetFramework);RuntimeIdentifier=%(Identity)</SetTargetFramework>
+        <GlobalPropertiesToRemove>$([System.String]::Copy('%(_MSBuildProjectReferenceExistentWithRID.GlobalPropertiesToRemove)').Replace(';RuntimeIdentifier', ''))</GlobalPropertiesToRemove>
+      </_MSBuildProjectReferenceExistentWithRID2>
+      
+      <_MSBuildProjectReferenceExistent Remove="@(_MSBuildProjectReferenceExistentWithRID2)"/>
+      <_MSBuildProjectReferenceExistent Include="@(_MSBuildProjectReferenceExistentWithRID2)"/>
+    </ItemGroup>
+  </Target>
+
   <Target Name="GetPackagingOutputs" Condition=" '$(XenkoRuntime)' == 'true' And '$(XenkoRuntimeNetStandard)' == 'true' " />
   <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' And '$(XenkoRuntimeNetStandard)' == 'true' ">
     <TargetFramework>netstandard2.0</TargetFramework>
+    <RuntimeIdentifier></RuntimeIdentifier>
   </PropertyGroup>
 
   <!-- Use default runtime as ref assembly -->
