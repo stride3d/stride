@@ -15,7 +15,7 @@ Example of use:
     <BuildProperties Condition="'$(XenkoOfficialBuild)' != ''">$(BuildProperties);XenkoOfficialBuild=$(XenkoOfficialBuild)</BuildProperties>
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
     <XunitRunnerConsoleVersion>2.3.1</XunitRunnerConsoleVersion>
-    <XenkoStoreUrl Condition="'$(XenkoStoreUrl)' == ''">https://xenko-packages.azurewebsites.net/api/v2/package</XenkoStoreUrl>
+    <XenkoStoreUrl Condition="'$(XenkoStoreUrl)' == ''">https://api.nuget.org/v3/index.json</XenkoStoreUrl>
     <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 15.5.1\bin\x86\advinst.exe')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 15.5.1\bin\x86\advinst.exe</AdvancedInstallerPath>
   </PropertyGroup>
 
@@ -66,7 +66,14 @@ Example of use:
   <Target Name="Publish">
     <Error Condition="'$(XenkoStoreApiKey)' == ''" Text="Missing env variable XenkoStoreApiKey"/>
     <!-- Waiting 30min in case NuGet.Gallery/Server takes time to process -->
-    <Exec Command='"$(NuGetPath)" push Xenko.?.*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -Timeout 1800 '/>
+    <ItemGroup>
+      <NuGetPackage Include="..\bin\packages\*.nupkg"/>
+      <!-- Remove GameStudio (pushed in a second stage) -->
+      <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Xenko.GameStudio'))"/>
+    </ItemGroup>
+    <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -Timeout 1800 '/>
+    <!-- Push GameStudio so that dependencies are already uploaded -->
+    <Exec Command='"$(NuGetPath)" push ..\bin\packages\Xenko.GameStudio*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -Timeout 1800 '/>
   </Target>
 
   <!--
@@ -74,7 +81,7 @@ Example of use:
   -->
   <Target Name="PublishVSIX">
     <Error Condition="'$(XenkoStoreApiKey)' == ''" Text="Missing env variable XenkoStoreApiKey"/>
-    <Exec Command='"$(NuGetPath)" push Xenko.VisualStudio.Package.*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) "'/>
+    <Exec Command='"$(NuGetPath)" push ..\bin\vsix\*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) "'/>
   </Target>
   
   <!--
@@ -496,7 +503,7 @@ Example of use:
   -->
   <Target Name="PublishLauncher">
     <Error Condition="'$(XenkoStoreApiKey)' == ''" Text="Missing env variable XenkoStoreApiKey"/>
-    <Exec Command='"$(NuGetPath)" push Xenko.Launcher*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) "'/>
+    <Exec Command='"$(NuGetPath)" push ..\bin\launcher\*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) "'/>
   </Target>
   
   <Target Name="BuildLauncher" DependsOnTargets="CopyXenkoKey">
