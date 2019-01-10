@@ -120,6 +120,9 @@
   <data name="Answers" xml:space="preserve">
     <value>http://answers.xenko.com/</value>
   </data>
+  <data name="Discord" xml:space="preserve">
+    <value>https://discord.gg/f6aerfE</value>
+  </data>
   <data name="Documentation" xml:space="preserve">
     <value>http://doc.xenko.com/{0}/</value>
     <comment>{0}: the major version of Xenko (eg. 1.2)</comment>
@@ -136,9 +139,6 @@
   </data>
   <data name="Github" xml:space="preserve">
     <value>https://github.com/xenko3d/xenko/</value>
-  </data>
-  <data name="Gitter" xml:space="preserve">
-    <value>https://gitter.im/xenko3d/xenko</value>
   </data>
   <data name="Issues" xml:space="preserve">
     <value>https://github.com/xenko3d/xenko/issues/</value>

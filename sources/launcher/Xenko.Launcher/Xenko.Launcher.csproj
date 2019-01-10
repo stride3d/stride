@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <!-- Include proper language targets for temporary WPF projects. See https://github.com/dotnet/project-system/issues/1467 -->
@@ -134,7 +134,7 @@
     <Resource Include="Resources\switch-version.png" />
     <Resource Include="Resources\visual-studio.png" />
     <Resource Include="Resources\chat-16.png" />
-    <Resource Include="Resources\gitter.png" />
+    <Resource Include="Resources\discord.png" />
     <Resource Include="Resources\showcase.png" />
     <Resource Include="Resources\Robot.jpg" />
     <Resource Include="Resources\twitch.png" />
