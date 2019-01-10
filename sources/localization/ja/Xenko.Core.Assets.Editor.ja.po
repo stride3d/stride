@@ -1,16 +1,19 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: xenko\n"
 "POT-Creation-Date: 2017-10-23 17:15:53+0900\n"
-"PO-Revision-Date: 2017-10-25 12:09+0900\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: ja\n"
+"PO-Revision-Date: 2019-01-10 12:27\n"
+"Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
+"Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.4\n"
+"X-Generator: crowdin.com\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Crowdin-Project: xenko\n"
+"X-Crowdin-Language: ja\n"
+"X-Crowdin-File: /master/sources/localization/Xenko.Core.Assets.Editor.pot\n"
+"Language: ja_JP\n"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:144
 msgctxt "Properties"
@@ -196,8 +199,7 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:490
 msgctxt "Message"
-msgid ""
-"Unable to use the selected template because it is not an asset template."
+msgid "Unable to use the selected template because it is not an asset template."
 msgstr ""
 
 #. Error message when the template generator of the selected template is unreachable
@@ -206,8 +208,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:283
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1149
 msgctxt "Message"
-msgid ""
-"Unable to retrieve template generator for the selected template. Aborting."
+msgid "Unable to retrieve template generator for the selected template. Aborting."
 msgstr "選択されたテンプレート"
 
 #. Title of the AddAssetWindow
@@ -218,24 +219,17 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:678
 msgctxt "Message"
-msgid ""
-"Game Studio can't create assets in multiple locations. In the solution "
-"explorer, select a single directory or package to create the asset in."
+msgid "Game Studio can't create assets in multiple locations. In the solution explorer, select a single directory or package to create the asset in."
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:683
 msgctxt "Message"
-msgid ""
-"Game Studio can't create an asset here. In the solution explorer, select a "
-"directory or package to create the asset in."
+msgid "Game Studio can't create an asset here. In the solution explorer, select a directory or package to create the asset in."
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:690
 msgctxt "Message"
-msgid ""
-"Game Studio can't create an asset here because the selected directory or "
-"package can't be edited. In the solution explorer, select a directory or "
-"package to create the asset in."
+msgid "Game Studio can't create an asset here because the selected directory or package can't be edited. In the solution explorer, select a directory or package to create the asset in."
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:763
@@ -255,9 +249,7 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:855
 msgctxt "Message"
-msgid ""
-"Unable to cut or copy a selection that contains a folder and one of its "
-"subfolders."
+msgid "Unable to cut or copy a selection that contains a folder and one of its subfolders."
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:931
@@ -266,20 +258,13 @@ msgid "Select a valid asset folder to paste the selection to."
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:939
-#, fuzzy
-#| msgctxt "Message"
-#| msgid "The selected package or directory cannot be modified."
 msgctxt "Message"
 msgid "This package or directory can't be modified."
 msgstr ""
-"このソリューション内に選択されたパッケージとリンクできるパッケージがありませ"
-"ん"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1403
 msgctxt "Message"
-msgid ""
-"This location is invalid. Please select a package folder in the Solution "
-"explorer."
+msgid "This location is invalid. Please select a package folder in the Solution explorer."
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1409
@@ -294,9 +279,7 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:593
 msgctxt "Message"
-msgid ""
-"Unable to rename asset to '{0}' because an asset with the same name exists "
-"in the same directory"
+msgid "Unable to rename asset to '{0}' because an asset with the same name exists in the same directory"
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:598
@@ -351,8 +334,7 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:124
 msgctxt "Message"
-msgid ""
-"The last attempt to load the project **{0}** failed. \r\n"
+msgid "The last attempt to load the project **{0}** failed. \r\n"
 "\r\n"
 "Do you want to try to load it again?"
 msgstr ""
@@ -439,15 +421,12 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:454
 msgctxt "Message"
-msgid ""
-"- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"
+msgid "- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:458
 msgctxt "Message"
-msgid ""
-"Upgrading assets might break them. We recommend you make a manual backup of "
-"your project before you upgrade."
+msgid "Upgrading assets might break them. We recommend you make a manual backup of your project before you upgrade."
 msgstr ""
 
 #. Displayed in a button (must be short)
@@ -476,45 +455,20 @@ msgstr ""
 
 #. Message displayed when trying to open a modified asset with the text editor
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:706
-#, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "This asset has been modified and must be saved in order to be opened. Do "
-#| "you want to save the session now?"
 msgctxt "Message"
-msgid ""
-"This asset has unsaved changes. To open it, you need to save the session "
-"first. Do you want to save now?"
-msgstr ""
-"このアセットを開くには変更を保存する必要があります。セッションを保存します"
-"か？"
+msgid "This asset has unsaved changes. To open it, you need to save the session first. Do you want to save now?"
+msgstr "このアセットを開くには変更を保存する必要があります。セッションを保存しますか？"
 
 #. Message displayed when an exception occurs while trying to open a file with the text editor
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:728
-#, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "An error occurred while starting the text editor. Please verify that the "
-#| "path to the text editor set in the Settings is correct."
 msgctxt "Message"
-msgid ""
-"There was a problem starting the text editor. Make sure the path to the text "
-"editor in Settings is correct."
+msgid "There was a problem starting the text editor. Make sure the path to the text editor in Settings is correct."
 msgstr "エディターでエラーが起きました"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:745
-#, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "This asset has been modified and must be saved in order to be opened. Do "
-#| "you want to save the session now?"
 msgctxt "Message"
-msgid ""
-"This asset has unsaved changes. To open it, you need to save it first. Do "
-"you want to save the session now?"
-msgstr ""
-"このアセットを開くには変更を保存する必要があります。セッションを保存します"
-"か？"
+msgid "This asset has unsaved changes. To open it, you need to save it first. Do you want to save the session now?"
+msgstr "このアセットを開くには変更を保存する必要があります。セッションを保存しますか？"
 
 #. Error displayed when trying to open the source file of an asset that has no source file
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:764
@@ -530,12 +484,9 @@ msgstr ""
 
 #. Message displayed when an exception occurs while trying to explore an asset
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:849
-#, fuzzy
-#| msgctxt "Message"
-#| msgid "An error occurred while starting the file explorer."
 msgctxt "Message"
 msgid "There was a problem starting the file explorer."
-msgstr "エクスプローラーでエラーが起きました"
+msgstr ""
 
 #. Title for the progress window of the session saving
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:873
@@ -556,12 +507,9 @@ msgstr ""
 
 #. Message displayed when closing an unsaved project
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1022
-#, fuzzy
-#| msgctxt "Message"
-#| msgid "The current project has unsaved changes. Would you like to save it?"
 msgctxt "Message"
 msgid "The project has unsaved changes. Do you want to save it?"
-msgstr "現在のプロジェクトは変更を保存されていません。保存しますか？"
+msgstr ""
 
 #. Message displayed when a session managed to save some files while some others have failed.
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1035
@@ -583,63 +531,33 @@ msgstr "パッケージをインポートしています"
 
 #. Log message displayed when an exception occurs while importing a package.
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1211
-#, fuzzy
-#| msgctxt "Log"
-#| msgid "An exception occurred while importing the package."
 msgctxt "Log"
 msgid "There was a problem importing the package."
-msgstr "パッケージのインポート中に例外が発生しました。"
+msgstr ""
 
 #. Message displayed when the selection contains zero or multiple packages but a single one is required
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1251
-#, fuzzy
-#| msgctxt "Message"
-#| msgid "Please select a single package to perform this operation."
 msgctxt "Message"
 msgid "Please select a single package."
-msgstr "この操作を行うために１つのパッケージを選択してください"
+msgstr ""
 
 #. Message displayed when the user try to add dependencies to a package but no acceptable package is available
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1302
-#, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "No package in this solution can be added as a dependency to the selected "
-#| "package."
 msgctxt "Message"
-msgid ""
-"There are no packages that can be added as dependencies to this package."
-msgstr ""
-"このソリューション内に選択されたパッケージとリンクできるパッケージがありませ"
-"ん"
+msgid "There are no packages that can be added as dependencies to this package."
+msgstr "このソリューション内に選択されたパッケージとリンクできるパッケージがありません"
 
 #. Message displayed when a single location is selected but invalid for directory creation
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1361
-#, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "Unable to create a directory in the selected location. Directories can "
-#| "only be created in the Assets hierarchy of a package."
 msgctxt "Message"
 msgid "Folders can only be created in the Assets hierarchy of a package."
-msgstr ""
-"選択された場所でディレクトリが作成できませんでした。ディレクトリはパッケージ"
-"のアセット階層内のみ新規作成ができます。"
+msgstr "選択された場所でディレクトリが作成できませんでした。ディレクトリはパッケージのアセット階層内のみ新規作成ができます。"
 
 #. Message displayed when some of the multiple selected locations are invalid for directory creation
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1362
-#, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "Unable to create a directory in some of the selected locations. "
-#| "Directories can only be created in the Assets hierarchy of a package."
 msgctxt "Message"
-msgid ""
-"Game Studio can't create a folder in some of the locations you selected. "
-"Folders can only be created in the Assets hierarchy of a package."
-msgstr ""
-"選択された場所の中でいくつかディレクトリの新規作成ができませんでした。ディレ"
-"クトリはパッケージのアセット階層内のみ新規作成ができます。"
+msgid "Game Studio can't create a folder in some of the locations you selected. Folders can only be created in the Assets hierarchy of a package."
+msgstr "選択された場所の中でいくつかディレクトリの新規作成ができませんでした。ディレクトリはパッケージのアセット階層内のみ新規作成ができます。"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1518
 msgctxt "Settings"
@@ -666,36 +584,21 @@ msgstr ""
 
 #. Message displayed when the user tries to delete a system package
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1597
-#, fuzzy
-#| msgctxt "Message"
-#| msgid "Unable to delete the asset root directory of a package."
 msgctxt "Message"
 msgid "Xenko can't delete the system package."
-msgstr "パッケージのルートアセットルートディレクトリは削除できません"
+msgstr ""
 
 #. Message displayed when the user is about to delete a package from the session
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1609
-#, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "You're about to delete a package. Are you sure you want to perform this "
-#| "operation? Note that the package files will remain on the disk."
 msgctxt "Message"
-msgid ""
-"Are you sure you want to delete this package? The package files will remain "
-"on the disk."
-msgstr ""
-"パッケージの参照を削除しようとしています。よろしいですか？(このパッケージは"
-"ディクス上に残ります)"
+msgid "Are you sure you want to delete this package? The package files will remain on the disk."
+msgstr "パッケージの参照を削除しようとしています。よろしいですか？(このパッケージはディクス上に残ります)"
 
 #. Message displayed when the user is about to delete a dependency from the package
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1640
-#, fuzzy
-#| msgctxt "Message"
-#| msgid "Are you sure to delete the selected dependencies?"
 msgctxt "Message"
 msgid "Are you sure you want to delete this dependency?"
-msgstr "選択された依存関係を削除しますか？"
+msgstr ""
 
 #. Message displayed when the user tries to delete the root asset directory of a package
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1681
@@ -705,12 +608,9 @@ msgstr ""
 
 #. Message displayed when the user is about to delete a project from the package
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1694
-#, fuzzy
-#| msgctxt "Message"
-#| msgid "Are you sure to delete the selected projects?"
 msgctxt "Message"
 msgid "Are you sure you want to delete these projects?"
-msgstr "選択されたプロジェクトを削除しますか？"
+msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/AddAssets/View/ItemTemplatesWindow.xaml:11
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/AddItemWindow.xaml:10
@@ -726,9 +626,7 @@ msgid "Fix references ({0})"
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:36
-msgid ""
-"The asset {0} is referenced by other assets. Choose how to handle these "
-"references."
+msgid "The asset {0} is referenced by other assets. Choose how to handle these references."
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:38
@@ -1079,9 +977,7 @@ msgid "Clear filters"
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:489
-msgid ""
-"No asset to display in this folder or no folder selected. Check your active "
-"filters."
+msgid "No asset to display in this folder or no folder selected. Check your active filters."
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:492
@@ -1284,3 +1180,4 @@ msgstr ""
 msgctxt "Button"
 msgid "Close"
 msgstr ""
+
