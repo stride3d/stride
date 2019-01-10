@@ -651,5 +651,49 @@ namespace Xenko.Core.Mathematics
                 (float)Math.Round((value.Z / gap), MidpointRounding.AwayFromZero) * gap,
                 (float)Math.Round((value.W / gap), MidpointRounding.AwayFromZero) * gap);
         }
+
+        /// <summary>
+        /// Returns the minimum value from the passed params of float.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static float Min(params float[] args)
+        {
+            if (args.Length == 0)
+            {
+                return default(float);
+            }
+
+            float min = args[0];
+
+            for (int i = 1; i < args.Length; i++)
+            {
+                min = Math.Min(min, args[i]);
+            }
+
+            return min;
+        }
+
+        /// <summary>
+        /// Returns the maximum value from the passed params of float.
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static float Max(params float[] args)
+        {
+            if(args.Length == 0)
+            {
+                return default(float);
+            }
+
+            float max = args[0];
+
+            for (int i = 1; i < args.Length; i++)
+            {
+                max = Math.Max(max, args[i]);
+            }
+
+            return max;
+        }
     }
 }
