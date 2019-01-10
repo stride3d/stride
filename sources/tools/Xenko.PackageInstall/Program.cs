@@ -73,7 +73,7 @@ namespace Xenko.PackageInstall
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error: {e}");
+                Console.Error.WriteLine($"Error: {e}");
                 return 1;
             }
         }

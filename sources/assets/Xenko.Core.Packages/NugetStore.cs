@@ -757,14 +757,21 @@ namespace Xenko.Core.Packages
 
                 process.OutputDataReceived += (_, args) =>
                 {
-                    // Report progress
-                    if (progress != null && !string.IsNullOrEmpty(args.Data))
+                    if (!string.IsNullOrEmpty(args.Data))
                     {
                         var matches = powerShellProgressRegex.Match(args.Data);
                         int percentageResult;
                         if (matches.Success && int.TryParse(matches.Groups[1].Value, out percentageResult))
                         {
-                            progress.UpdateProgress(ProgressAction.Install, percentageResult);
+                            // Report progress
+                            progress?.UpdateProgress(ProgressAction.Install, percentageResult);
+                        }
+                        else
+                        {
+                            lock (process)
+                            {
+                                errorOutput.AppendLine(args.Data);
+                            }
                         }
                     }
                 };
