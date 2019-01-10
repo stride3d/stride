@@ -362,6 +362,9 @@ namespace Xenko.Core.Packages
 
                             foreach (var request in requests)
                             {
+                                // Limit concurrency to avoid timeout
+                                request.Request.MaxDegreeOfConcurrency = 4;
+
                                 var command = new RestoreCommand(request.Request);
 
                                 // Act

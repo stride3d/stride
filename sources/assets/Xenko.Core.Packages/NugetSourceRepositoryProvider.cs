@@ -29,7 +29,6 @@ namespace Xenko.Core.Packages
             PackageSourceProvider = packageSourceProvider;
 
             _resourceProviders = new List<Lazy<INuGetResourceProvider>>();
-            _resourceProviders.Add(new Lazy<INuGetResourceProvider>(() => new NugetHttpSourceWithDownloadProgressResourceProvider(downloadProgress)));
             _resourceProviders.AddRange(Repository.Provider.GetCoreV3());
 
             // Create repositories
