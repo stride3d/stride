@@ -534,7 +534,7 @@ namespace Xenko.Core.Packages
             var res = new List<NugetServerPackage>();
             foreach (var packageId in packageIds)
             {
-                await FindSourcePacakgesByIdHelper(packageId, res, repositories, cancellationToken);
+                await FindSourcePackagesByIdHelper(packageId, res, repositories, cancellationToken);
             }
             return res;
         }
@@ -549,13 +549,13 @@ namespace Xenko.Core.Packages
         {
             var repositories = PackageSources.Select(sourceRepositoryProvider.CreateRepository).ToArray();
             var res = new List<NugetServerPackage>();
-            await FindSourcePacakgesByIdHelper(packageId, res, repositories, cancellationToken);
+            await FindSourcePackagesByIdHelper(packageId, res, repositories, cancellationToken);
             return res;
         }
 
-        private async Task FindSourcePacakgesByIdHelper(string packageId, List<NugetServerPackage> resultList, SourceRepository [] repositories, CancellationToken cancellationToken)
+        private async Task FindSourcePackagesByIdHelper(string packageId, List<NugetServerPackage> resultList, SourceRepository [] repositories, CancellationToken cancellationToken)
         {
-            using (var sourceCacheContext = new SourceCacheContext())
+            using (var sourceCacheContext = new SourceCacheContext { NoCache = true })
             {
                 foreach (var repo in repositories)
                 {
@@ -565,7 +565,8 @@ namespace Xenko.Core.Packages
                         var metadataList = await metadataResource.GetMetadataAsync(packageId, true, true, sourceCacheContext, NativeLogger, cancellationToken);
                         foreach (var metadata in metadataList)
                         {
-                            resultList.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
+                            if (metadata.IsListed)
+                                resultList.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
                         }
                     }
                     catch (FatalProtocolException)
@@ -602,7 +603,8 @@ namespace Xenko.Core.Packages
 
                             foreach (var package in packages)
                             {
-                                res.Add(new NugetServerPackage(package, repo.PackageSource.Source));
+                                if (package.IsListed)
+                                    res.Add(new NugetServerPackage(package, repo.PackageSource.Source));
                             }
                         }
                     }
@@ -634,7 +636,7 @@ namespace Xenko.Core.Packages
             var repositories = PackageSources.Select(sourceRepositoryProvider.CreateRepository).ToArray();
 
             var res = new List<NugetPackage>();
-            using (var context = new SourceCacheContext())
+            using (var context = new SourceCacheContext { NoCache = true })
             {
                 foreach (var repo in repositories)
                 {
@@ -644,7 +646,8 @@ namespace Xenko.Core.Packages
                         var metadataList = await metadataResource.GetMetadataAsync(packageName.Id, includePrerelease, includeAllVersions, context, NativeLogger, cancellationToken);
                         foreach (var metadata in metadataList)
                         {
-                            res.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
+                            if (metadata.IsListed)
+                                res.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
                         }
                     }
                     catch (FatalProtocolException)
