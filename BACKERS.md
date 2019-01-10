@@ -44,6 +44,7 @@ Thank you everybody for your generous contributions!
 * Sven-Bertil Blom
 * Natan Sinigaglia
 * Jarmo
+* Eideren
 
 ## Mini Backers
 
