@@ -55,6 +55,8 @@
     <XenkoRuntimeTargetFrameworks>$([MSBuild]::Unescape($(XenkoRuntimeTargetFrameworks.Trim(';'))))</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeIdentifiers>$([MSBuild]::Unescape($(XenkoRuntimeIdentifiers.Trim(';'))))</XenkoRuntimeIdentifiers>
 
+    <XenkoRuntimeIdentifier Condition="'$(XenkoRuntimeIdentifiers)' != ''">$(XenkoRuntimeIdentifiers.Split(';')[0])</XenkoRuntimeIdentifier>
+
     <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers Condition="'$(XenkoRuntimeIdentifiers)' != ''">$(XenkoRuntimeIdentifiers)</RuntimeIdentifiers>
 
@@ -65,12 +67,14 @@
     <!--<TargetFrameworks>net461;uap10.0.16299;monoandroid81;xamarinios10;netstandard2.0</TargetFrameworks>-->
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' != 'true'">
-    <!-- Force default runtime identifier -->
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifiers)' == ''"></RuntimeIdentifier>
-    <RuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">$(RuntimeIdentifiers.Split(';')[0])</RuntimeIdentifier>
+  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' And '$(XenkoRuntimeNetStandard)' == 'true' ">
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' != 'true'">
+    <!-- Force default runtime identifier -->
+    <RuntimeIdentifier>$(XenkoRuntimeIdentifier)</RuntimeIdentifier>
+  </PropertyGroup>
 
   <!-- Those two targets are used to properly set the RuntimeIdentifier of ProjectReference (since we have sometimes weird transitions like win => win-d3d11 or win => noRID)
        If we don't do it, MSBuild slap current RID, and even if this RID is overriden inside the build of the project, it will still trigger an unecessary build w/ double writes -->  
@@ -101,10 +105,6 @@
   </Target>
 
   <Target Name="GetPackagingOutputs" Condition=" '$(XenkoRuntime)' == 'true' And '$(XenkoRuntimeNetStandard)' == 'true' " />
-  <PropertyGroup Condition=" '$(XenkoRuntime)' == 'true' And '$(XenkoRuntimeNetStandard)' == 'true' ">
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <RuntimeIdentifier></RuntimeIdentifier>
-  </PropertyGroup>
 
   <!-- Use default runtime as ref assembly -->
   <PropertyGroup>
@@ -128,9 +128,9 @@
 
     <!-- Default values -->
     <XenkoPlatformOriginal>$(XenkoPlatform)</XenkoPlatformOriginal>
-    <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And ('$(RuntimeIdentifier)' == '' Or $(RuntimeIdentifier.StartsWith('win'))) ">Windows</XenkoPlatform>
-    <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('linux')) ">Linux</XenkoPlatform>
-    <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(RuntimeIdentifier.StartsWith('osx')) ">macOS</XenkoPlatform>
+    <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And ('$(XenkoRuntimeIdentifier)' == '' Or $(XenkoRuntimeIdentifier.StartsWith('win'))) ">Windows</XenkoPlatform>
+    <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(XenkoRuntimeIdentifier.StartsWith('linux')) ">Linux</XenkoPlatform>
+    <XenkoPlatform Condition=" ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(XenkoRuntimeIdentifier.StartsWith('osx')) ">macOS</XenkoPlatform>
     <XenkoPlatform Condition=" $(TargetFramework.StartsWith('uap10.0')) ">UWP</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'monoandroid81' ">Android</XenkoPlatform>
     <XenkoPlatform Condition=" '$(TargetFramework)' == 'xamarinios10' ">iOS</XenkoPlatform>
