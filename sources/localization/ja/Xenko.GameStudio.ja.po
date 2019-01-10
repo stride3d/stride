@@ -1,16 +1,19 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: xenko\n"
 "POT-Creation-Date: 2017-10-23 17:15:54+0900\n"
-"PO-Revision-Date: 2017-10-25 12:11+0900\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: ja\n"
+"PO-Revision-Date: 2019-01-10 12:27\n"
+"Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
+"Language-Team: Japanese\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.4\n"
+"X-Generator: crowdin.com\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Crowdin-Project: xenko\n"
+"X-Crowdin-Language: ja\n"
+"X-Crowdin-File: /master/sources/localization/Xenko.GameStudio.pot\n"
+"Language: ja_JP\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
@@ -19,9 +22,7 @@ msgstr "ビルドログ"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:189
 msgctxt "Message"
-msgid ""
-"Some game code files have been modified. Do you want to reload the "
-"assemblies?"
+msgid "Some game code files have been modified. Do you want to reload the assemblies?"
 msgstr ""
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
@@ -69,9 +70,7 @@ msgstr "{0}が見つかりません。"
 #. Displayed when Android tools "adb" can't be found
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:519
 msgctxt "Message"
-msgid ""
-"Android tool \"\"adb\"\" couldn't found (no running process, in registry or "
-"on the PATH). Please add it to your PATH."
+msgid "Android tool \"\"adb\"\" couldn't found (no running process, in registry or on the PATH). Please add it to your PATH."
 msgstr ""
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:526
@@ -107,12 +106,8 @@ msgstr "ビルド中に例外が発生しました:{0}"
 #. Message displayed when the user tries to build without having selected a current project
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:584
 msgctxt "Message"
-msgid ""
-"To process the build, set an executable project as the current project in "
-"the session explorer."
-msgstr ""
-"ビルドをするためにセッションエクスプローラー内で現在のプロジェクトに設定する"
-"必要があります"
+msgid "To process the build, set an executable project as the current project in the session explorer."
+msgstr "ビルドをするためにセッションエクスプローラー内で現在のプロジェクトに設定する必要があります"
 
 #. Message displayed when the user cancels the saving of the current session when trying to build
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:592
@@ -127,9 +122,7 @@ msgstr ""
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml.cs:78
 msgctxt "Message"
-msgid ""
-"To reset the layout, Game Studio needs to close and re-open all asset and "
-"document editors. You won't lose unsaved changes."
+msgid "To reset the layout, Game Studio needs to close and re-open all asset and document editors. You won't lose unsaved changes."
 msgstr ""
 
 #. Generic error message when we are unable to launch a game on a remote host.
@@ -141,12 +134,8 @@ msgstr ""
 #. Message displayed when the user tries to build without having selected a current project
 #: ../editor/Xenko.GameStudio/Debugging/XenkoDebugService.cs:41
 msgctxt "Message"
-msgid ""
-"An executable project must be set as current project in the session explorer "
-"in order to process build."
-msgstr ""
-"ビルドをするためにセッションエクスプローラー内で現在のプロジェクトに設定する"
-"必要があります"
+msgid "An executable project must be set as current project in the session explorer in order to process build."
+msgstr "ビルドをするためにセッションエクスプローラー内で現在のプロジェクトに設定する必要があります"
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:14
 msgctxt "Settings"
@@ -208,7 +197,6 @@ msgctxt "Credentials"
 msgid "Your credentials are correct."
 msgstr ""
 
-#. Display error message when host does not respond.
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:77
 msgctxt "Credentials"
 msgid "Couldn't reach the specified host."
@@ -420,8 +408,8 @@ msgstr "依存関係の追加..."
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:490
 msgctxt "Menu"
-msgid "Set as current project"
-msgstr "現在のプロジェクトに設定"
+msgid "Set as current package"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:211
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:491
@@ -438,7 +426,13 @@ msgstr "ソリューション"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:214
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:494
 msgctxt "Menu"
-msgid "New project..."
+msgid "New package..."
+msgstr ""
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:215
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:495
+msgctxt "Menu"
+msgid "Add existing package..."
 msgstr ""
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:216
@@ -815,12 +809,9 @@ msgctxt "Credentials"
 msgid "Credentials"
 msgstr ""
 
-#. Explanation of the purpose of the credentials dialog.
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:13
 msgctxt "Credentials"
-msgid ""
-"Provide information about the host to connect to. Your password is encrypted "
-"on this machine."
+msgid "Provide information about the host to connect to. Your password is encrypted on this machine."
 msgstr ""
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:15
@@ -877,3 +868,4 @@ msgstr ""
 msgctxt "Menu"
 msgid "Remove From List"
 msgstr ""
+
