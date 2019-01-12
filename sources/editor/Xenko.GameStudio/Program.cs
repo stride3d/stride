@@ -377,6 +377,9 @@ namespace Xenko.GameStudio
                 case SupportedLanguage.English:
                     TranslationManager.Instance.CurrentLanguage = new CultureInfo("en-US");
                     break;
+                case SupportedLanguage.French:
+                    TranslationManager.Instance.CurrentLanguage = new CultureInfo("fr-FR");
+                    break;
                 case SupportedLanguage.Japanese:
                     TranslationManager.Instance.CurrentLanguage = new CultureInfo("ja-JP");
                     break;
