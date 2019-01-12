@@ -46,16 +46,22 @@
 
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';Windows;'))">$(XenkoRuntimeIdentifiers);win</XenkoRuntimeIdentifiers>
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';Linux;'))">$(XenkoRuntimeIdentifiers);linux</XenkoRuntimeIdentifiers>
+    <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoPlatforms.Contains(';macOS;'))">$(XenkoRuntimeIdentifiers);osx</XenkoRuntimeIdentifiers>
     <!-- Default: at least win (used when compiling only a single platform such as UWP for netstandard assemblies) -->
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' == 'netstandard2.0' And '$(XenkoRuntimeIdentifiers)' == ''">win</XenkoRuntimeIdentifiers>
 
     <!-- Need to use "win" runtime identifier for all other platforms as a workaround https://github.com/NuGet/Home/issues/7661#issuecomment-450040204 -->
     <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeNetStandardNoRuntimeIdentifiers)' != 'true' And '$(TargetFramework)' != 'netstandard2.0'">any</XenkoRuntimeIdentifiers>
+    
+    <XenkoRuntimeIdentifiers Condition="'$(XenkoRuntimeIdentifiers)' != ''">;$(XenkoRuntimeIdentifiers);</XenkoRuntimeIdentifiers>
+
+    <!-- Make sure RuntimeIdentifier is part of the list -->
+    <XenkoRuntimeIdentifier Condition="'$(XenkoRuntimeIdentifiers)' != '' And $(XenkoRuntimeIdentifiers.Contains(';$(RuntimeIdentifier);'))">$(RuntimeIdentifier)</XenkoRuntimeIdentifier>
+    <!-- Otherwise compute fallback -->
+    <XenkoRuntimeIdentifier Condition="'$(XenkoRuntimeIdentifiers)' != '' And '$(XenkoRuntimeIdentifier)' == ''">$(XenkoRuntimeIdentifiers.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</XenkoRuntimeIdentifier>
 
     <XenkoRuntimeTargetFrameworks>$([MSBuild]::Unescape($(XenkoRuntimeTargetFrameworks.Trim(';'))))</XenkoRuntimeTargetFrameworks>
     <XenkoRuntimeIdentifiers>$([MSBuild]::Unescape($(XenkoRuntimeIdentifiers.Trim(';'))))</XenkoRuntimeIdentifiers>
-
-    <XenkoRuntimeIdentifier Condition="'$(XenkoRuntimeIdentifiers)' != ''">$(XenkoRuntimeIdentifiers.Split(';')[0])</XenkoRuntimeIdentifier>
 
     <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers Condition="'$(XenkoRuntimeIdentifiers)' != ''">$(XenkoRuntimeIdentifiers)</RuntimeIdentifiers>
@@ -73,7 +79,7 @@
 
   <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' != 'true'">
     <!-- Force default runtime identifier -->
-    <RuntimeIdentifier>$(XenkoRuntimeIdentifier)</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' != 'win' And '$(RuntimeIdentifier)' != 'linux' And '$(RuntimeIdentifier)' != 'osx'">$(XenkoRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
 
   <!-- Those two targets are used to properly set the RuntimeIdentifier of ProjectReference (since we have sometimes weird transitions like win => win-d3d11 or win => noRID)

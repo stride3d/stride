@@ -46,6 +46,12 @@
             "#import": [
                 "linux"
             ]
+        },
+        "osx": {
+            "#import": [
+                "osx-vulkan",
+                "unix"
+            ]
         }
     }
 }
