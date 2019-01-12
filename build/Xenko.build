@@ -70,6 +70,8 @@ Example of use:
       <NuGetPackage Include="..\bin\packages\*.nupkg"/>
       <!-- Remove GameStudio (pushed in a second stage) -->
       <NuGetPackage Remove="@(NuGetPackage)" Condition="$([System.String]::Copy('%(Filename)').Contains('Xenko.GameStudio'))"/>
+      <!-- Remove Samples.Templates (pushed only when requested since versionned separately -->
+      <NuGetPackage Remove="@(NuGetPackage)" Condition="'$(XenkoPublishSkipSamplesTemplates)' == 'true' And $([System.String]::Copy('%(Filename)').Contains('Xenko.Samples.Templates'))"/>
     </ItemGroup>
     <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -Timeout 1800 '/>
     <!-- Push GameStudio so that dependencies are already uploaded -->
