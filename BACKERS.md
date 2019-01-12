@@ -14,6 +14,7 @@ Thank you everybody for your generous contributions!
 * Jason Kinzer
 * [Marshmallow Laser Feast](http://www.marshmallowlaserfeast.com/)
 * Jean-Baptiste Perrier
+* Cody Lee
 
 ## Backers
 
@@ -45,6 +46,8 @@ Thank you everybody for your generous contributions!
 * Natan Sinigaglia
 * Jarmo
 * Eideren
+* Connie
+* Berwyn
 
 ## Mini Backers
 
