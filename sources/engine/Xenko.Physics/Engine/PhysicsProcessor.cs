@@ -167,8 +167,9 @@ namespace Xenko.Physics
 
             ((IReferencable)physicsSystem).AddReference();
 
+            var graphicsDeviceService = Services.GetServiceAs<Graphics.IGraphicsDeviceService>();
             debugShapeRendering = Services.GetService<PhysicsShapesRenderingService>();
-            if (debugShapeRendering == null)
+            if (graphicsDeviceService != null && debugShapeRendering == null)
             {
                 debugShapeRendering = new PhysicsShapesRenderingService(Services);
                 var gameSystems = Services.GetSafeServiceAs<IGameSystemCollection>();
