@@ -10,6 +10,7 @@ namespace Xenko.Rendering.Sprites
     {
         private Matrix lastWorldMatrix;
         private Vector2 lastHalfSpriteSize;
+        private SpriteType lastSpriteType;
 
         public SpriteComponent SpriteComponent;
         public TransformComponent TransformComponent;
@@ -19,13 +20,15 @@ namespace Xenko.Rendering.Sprites
             var transform = TransformComponent;
             var currentSprite = SpriteComponent.CurrentSprite;
 
+            RenderGroup = SpriteComponent.RenderGroup;
+
             // update the sprite bounding box
             Vector3 halfBoxSize;
             var halfSpriteSize = currentSprite?.Size / 2 ?? Vector2.Zero;
             var worldMatrix = TransformComponent.WorldMatrix;
 
             // Only calculate if we've changed...
-            if (lastWorldMatrix != worldMatrix || lastHalfSpriteSize != halfSpriteSize)
+            if (lastWorldMatrix != worldMatrix || lastHalfSpriteSize != halfSpriteSize || lastSpriteType != SpriteComponent.SpriteType)
             {
                 var boxWorldPosition = worldMatrix.TranslationVector;
 
@@ -57,11 +60,11 @@ namespace Xenko.Rendering.Sprites
                 // Assignment...
                 BoundingBox.Center = transform.WorldMatrix.TranslationVector;
                 BoundingBox.Extent = new Vector3(width / 2, height / 2, 0);
-                RenderGroup = SpriteComponent.RenderGroup;
-            }
 
-            lastWorldMatrix = worldMatrix;
-            lastHalfSpriteSize = halfSpriteSize;
+                lastWorldMatrix = worldMatrix;
+                lastHalfSpriteSize = halfSpriteSize;
+                lastSpriteType = SpriteComponent.SpriteType;
+            }
         }
     }
 }
