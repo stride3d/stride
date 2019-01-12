@@ -25,7 +25,7 @@ namespace Xenko.Rendering.Sprites
             // update the sprite bounding box
             Vector3 halfBoxSize;
             var halfSpriteSize = currentSprite?.Size / 2 ?? Vector2.Zero;
-            var worldMatrix = TransformComponent.WorldMatrix;
+            var worldMatrix = transform.WorldMatrix;
 
             // Only calculate if we've changed...
             if (lastWorldMatrix != worldMatrix || lastHalfSpriteSize != halfSpriteSize || lastSpriteType != SpriteComponent.SpriteType)
@@ -58,7 +58,7 @@ namespace Xenko.Rendering.Sprites
                 var height = maxY - minY;
 
                 // Assignment...
-                BoundingBox.Center = transform.WorldMatrix.TranslationVector;
+                BoundingBox.Center = boxWorldPosition;
                 BoundingBox.Extent = new Vector3(width / 2, height / 2, 0);
 
                 lastWorldMatrix = worldMatrix;
