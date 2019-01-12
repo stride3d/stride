@@ -33,7 +33,7 @@ namespace Xenko.Rendering.Sprites
                 {
                     // Make a gross estimation here as we don't have access to the camera view matrix
                     // TODO: move this code or grant camera view matrix access to this processor
-                    var maxScale = MathUtil.Max(worldMatrix.Row1.Length(), worldMatrix.Row2.Length(), worldMatrix.Row3.Length());
+                    var maxScale = Math.Max(worldMatrix.Row1.Length(), Math.Max(worldMatrix.Row2.Length(), worldMatrix.Row3.Length()));
                     halfBoxSize = maxScale * halfSpriteSize.Length() * Vector3.One;
                 }
                 else
