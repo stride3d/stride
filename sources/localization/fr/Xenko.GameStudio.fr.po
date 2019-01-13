@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xenko\n"
 "POT-Creation-Date: 2019-01-11 23:17:20+0900\n"
-"PO-Revision-Date: 2019-01-13 02:43\n"
+"PO-Revision-Date: 2019-01-13 07:32\n"
 "Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -259,14 +259,14 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:513
 msgctxt "Menu"
 msgid "Rename"
-msgstr ""
+msgstr "Renommer"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:99
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:478
 msgctxt "Menu"
 msgid "Create folder"
-msgstr ""
+msgstr "Créer un dossier"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:100
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:246
@@ -292,7 +292,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:518
 msgctxt "Menu"
 msgid "Explore"
-msgstr ""
+msgstr "Explorer"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:105
 msgctxt "Menu"
@@ -319,17 +319,17 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:145
 msgctxt "Menu"
 msgid "File"
-msgstr ""
+msgstr "Fichier"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:148
 msgctxt "Menu"
 msgid "Open recent"
-msgstr ""
+msgstr "Ouvrir récents"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:178
 msgctxt "Menu"
 msgid "Clear list"
-msgstr ""
+msgstr "Effacer la liste"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:182
 msgctxt "Menu"
@@ -339,12 +339,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:184
 msgctxt "Menu"
 msgid "Quit"
-msgstr ""
+msgstr "Quitter"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:191
 msgctxt "Menu"
 msgid "Edit"
-msgstr ""
+msgstr "Éditer"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:200
 msgctxt "Menu"
@@ -455,7 +455,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:253
 msgctxt "Menu"
 msgid "View"
-msgstr ""
+msgstr "Vue"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:254
 msgctxt "Menu"
@@ -495,12 +495,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:266
 msgctxt "Menu"
 msgid "Output"
-msgstr ""
+msgstr "Sortie"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:270
 msgctxt "Menu"
 msgid "Help"
-msgstr ""
+msgstr "Aide"
 
 #. Link to the documentation
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:271
@@ -579,7 +579,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:363
 msgctxt "ToolTip"
 msgid "Open with..."
-msgstr ""
+msgstr "Ouvrir avec…"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:374
 msgctxt "ToolTip"
@@ -614,12 +614,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:433
 msgctxt "ToolTip"
 msgid "Create a project..."
-msgstr ""
+msgstr "Créer un projet..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:437
 msgctxt "ToolTip"
 msgid "Create a folder"
-msgstr ""
+msgstr "Nouveau dossier"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:442
 msgctxt "ToolTip"
@@ -644,17 +644,17 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:459
 msgctxt "ToolTip"
 msgid "Expand all"
-msgstr ""
+msgstr "Tout afficher"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:463
 msgctxt "ToolTip"
 msgid "Collapse all"
-msgstr ""
+msgstr "Réduire tout"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:468
 msgctxt "ToolTip"
 msgid "Show in Explorer"
-msgstr ""
+msgstr "Afficher dans l'explorer"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:560
 msgctxt "View"
@@ -752,7 +752,7 @@ msgctxt "StatusBar"
 msgid "{0} item"
 msgid_plural "{0} items"
 msgstr[0] ""
-msgstr[1] ""
+msgstr[1] "{0} éléments"
 
 #. Keep parenthesis - {0} is a number
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:940
@@ -760,7 +760,7 @@ msgctxt "StatusBar"
 msgid "({0} selected)"
 msgid_plural "({0} selected)"
 msgstr[0] ""
-msgstr[1] ""
+msgstr[1] "({0} sélectionnés)"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:10
 msgctxt "About"
@@ -775,7 +775,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:50
 msgctxt "About"
 msgid "MIT License"
-msgstr ""
+msgstr "Licence MIT"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:56
 msgctxt "About"
@@ -790,7 +790,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:64
 msgctxt "About"
 msgid "Privacy policy"
-msgstr ""
+msgstr "Politique de confidentialité"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:73
 msgctxt "About"
@@ -800,7 +800,7 @@ msgstr "Fermer"
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:9
 msgctxt "Credentials"
 msgid "Credentials"
-msgstr ""
+msgstr "Identifiants"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:13
 msgctxt "Credentials"
@@ -815,7 +815,7 @@ msgstr "Hôte"
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:18
 msgctxt "Credentials"
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:21
 msgctxt "Credentials"
@@ -835,7 +835,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:34
 msgctxt "Credentials"
 msgid "Don't ask again"
-msgstr ""
+msgstr "Ne plus le demander"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:35
 msgctxt "Credentials"
