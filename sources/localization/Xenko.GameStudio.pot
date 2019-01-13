@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2017-10-23 17:15:54+0900\n"
-"PO-Revision-Date: 2017-10-23 17:15:54+0900\n"
+"POT-Creation-Date: 2019-01-11 23:17:20+0900\n"
+"PO-Revision-Date: 2019-01-11 23:17:20+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -117,7 +117,7 @@ msgctxt "Message"
 msgid "To build, save the project first."
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioViewModel.cs:92
+#: ../editor/Xenko.GameStudio/GameStudioViewModel.cs:91
 msgctxt "Message"
 msgid "The file {0} does not exist."
 msgstr ""
@@ -203,6 +203,7 @@ msgctxt "Credentials"
 msgid "Your credentials are correct."
 msgstr ""
 
+#. Display error message when host does not respond.
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:77
 msgctxt "Credentials"
 msgid "Couldn't reach the specified host."
@@ -226,539 +227,533 @@ msgctxt "Credentials"
 msgid "An unknown error occurred."
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:40
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:223
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:505
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:63
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:245
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:515
 msgctxt "Menu"
 msgid "Asset"
 msgstr ""
 
 #. Open the asset editor
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:41
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:64
 msgctxt "Menu"
 msgid "Edit asset..."
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:42
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:65
 msgctxt "Menu"
 msgid "Don't include in build as root asset"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:42
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:65
 msgctxt "Menu"
 msgid "Include in build as root asset"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:69
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:92
 msgctxt "Menu"
 msgid "Copy with dependencies"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:73
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:96
 msgctxt "Menu"
 msgid "Copy asset URL"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:74
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:221
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:503
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:97
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:243
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:513
 msgctxt "Menu"
 msgid "Rename"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:76
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:187
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:467
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:99
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:478
 msgctxt "Menu"
 msgid "Create folder"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:77
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:224
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:506
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:100
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:246
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:516
 msgctxt "Menu"
 msgid "Add asset..."
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:78
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:225
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:101
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:247
 msgctxt "Menu"
 msgid "Update selected assets from their source"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:79
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:226
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:102
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:248
 msgctxt "Menu"
 msgid "Update all assets with modified source"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:81
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:227
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:508
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:104
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:249
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:518
 msgctxt "Menu"
 msgid "Explore"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:82
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:105
 msgctxt "Menu"
 msgid "Open with text editor"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:83
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:106
 msgctxt "Menu"
 msgid "Open asset file"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:84
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:107
 msgctxt "Menu"
 msgid "Open source file"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:85
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:228
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:509
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:108
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:250
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:519
 msgctxt "Menu"
 msgid "Show in Explorer"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:122
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:145
 msgctxt "Menu"
 msgid "File"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:125
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:148
 msgctxt "Menu"
 msgid "Open recent"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:155
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:178
 msgctxt "Menu"
 msgid "Clear list"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:159
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:182
 msgctxt "Menu"
 msgid "Reload project"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:161
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:184
 msgctxt "Menu"
 msgid "Quit"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:168
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:191
 msgctxt "Menu"
 msgid "Edit"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:177
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:200
 msgctxt "Menu"
 msgid "Settings"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:180
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:203
 msgctxt "Menu"
 msgid "Project"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:181
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:204
 msgctxt "Menu"
 msgid "Build project"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:182
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:205
 msgctxt "Menu"
 msgid "Start project"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:184
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:207
 msgctxt "Menu"
 msgid "Start live-scripting"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:185
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:208
 msgctxt "Menu"
 msgid "Cancel build"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:186
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:466
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:209
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:477
 msgctxt "Menu"
 msgid "Folder"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:189
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:469
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:212
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:480
 msgctxt "Menu"
 msgid "Package"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:190
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:470
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:213
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:481
 msgctxt "Menu"
 msgid "Update package"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:208
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:488
-msgctxt "Menu"
-msgid "Add existing project..."
-msgstr ""
-
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:209
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:489
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:231
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:499
 msgctxt "Menu"
 msgid "Add dependency..."
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:490
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:232
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:500
 msgctxt "Menu"
-msgid "Set as current package"
+msgid "Set as current project"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:211
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:491
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:233
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:501
 msgctxt "Menu"
 msgid "Package properties"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:213
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:493
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:235
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:503
 msgctxt "Menu"
 msgid "Solution"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:214
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:494
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:236
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:504
 msgctxt "Menu"
-msgid "New package..."
+msgid "New project..."
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:215
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:495
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:237
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:505
 msgctxt "Menu"
-msgid "Add existing package..."
+msgid "Add existing project..."
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:216
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:496
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:238
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:506
 msgctxt "Menu"
 msgid "Open in IDE"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:217
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:239
 msgctxt "Menu"
 msgid "Reload game assemblies"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:219
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:498
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:241
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:508
 msgctxt "Menu"
 msgid "Actions"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:220
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:242
 msgctxt "Menu"
 msgid "Delete"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:231
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:253
 msgctxt "Menu"
 msgid "View"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:232
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:254
 msgctxt "Menu"
 msgid "Solution explorer"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:233
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:255
 msgctxt "Menu"
 msgid "Asset view"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:234
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:256
 msgctxt "Menu"
 msgid "References"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:236
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:258
 msgctxt "Menu"
 msgid "Asset preview"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:239
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:261
 msgctxt "Menu"
 msgid "Property grid"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:240
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:262
 msgctxt "Menu"
 msgid "Edit history"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:243
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:265
 msgctxt "Menu"
 msgid "Asset errors"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:244
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:266
 msgctxt "Menu"
 msgid "Output"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:248
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:270
 msgctxt "Menu"
 msgid "Help"
 msgstr ""
 
 #. Link to the documentation
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:249
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:271
 msgctxt "Menu"
 msgid "Online documentation"
 msgstr ""
 
 #. Link to the answer hub
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:251
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:273
 msgctxt "Menu"
 msgid "Questions and answers"
 msgstr ""
 
 #. Link to GitHub issues
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:252
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:274
 msgctxt "Menu"
 msgid "Report an issue..."
 msgstr ""
 
 #. Link to the forums
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:253
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:275
 msgctxt "Menu"
 msgid "Community forums"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:255
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:277
 msgctxt "Menu"
 msgid "Show debug window"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:257
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:279
 msgctxt "Menu"
 msgid "About..."
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:283
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:305
 msgctxt "ToolTip"
 msgid "Create a project"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:287
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:309
 msgctxt "ToolTip"
 msgid "Open an existing project"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:291
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:313
 msgctxt "ToolTip"
 msgid "Open recent"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:317
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:339
 msgctxt "ToolTip"
 msgid "Save the project and all its documents"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:322
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:344
 msgctxt "ToolTip"
 msgid "Reload current project (ask to save)"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:327
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:349
 msgctxt "ToolTip"
 msgid "Undo last action"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:331
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:353
 msgctxt "ToolTip"
 msgid "Redo last cancelled action"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:337
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:359
 msgctxt "ToolTip"
 msgid "Open in IDE"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:341
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:363
 msgctxt "ToolTip"
 msgid "Open with..."
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:352
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:374
 msgctxt "ToolTip"
 msgid "Reload game assemblies and update scripts"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:373
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:395
 msgctxt "ToolTip"
 msgid "Build the project"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:377
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:399
 msgctxt "ToolTip"
 msgid "Build the project and start the game"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:383
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:405
 msgctxt "ToolTip"
 msgid "Start project in live-scripting mode"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:388
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:410
 msgctxt "ToolTip"
 msgid "Cancel the current build"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:415
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:426
 msgctxt "View"
 msgid "Solution explorer"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:422
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:433
 msgctxt "ToolTip"
-msgid "Create a package..."
+msgid "Create a project..."
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:426
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:437
 msgctxt "ToolTip"
 msgid "Create a folder"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:431
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:442
 msgctxt "ToolTip"
 msgid "Display the properties of the selected package in the property grid"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:435
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:446
 msgctxt "ToolTip"
 msgid "Rename the selected folder or package"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:439
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:450
 msgctxt "ToolTip"
 msgid "Delete the selected items"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:444
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:455
 msgctxt "ToolTip"
 msgid "Expand all asset folders"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:448
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:459
 msgctxt "ToolTip"
 msgid "Expand all"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:452
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:463
 msgctxt "ToolTip"
 msgid "Collapse all"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:457
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:468
 msgctxt "ToolTip"
 msgid "Show in Explorer"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:550
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:560
 msgctxt "View"
 msgid "Asset view"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:571
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:581
 msgctxt "View"
 msgid "References"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:588
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:598
 msgid "References"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:589
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:599
 msgid "Referenced by"
 msgstr ""
 
 #. {0}: The number of errors
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:600
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:610
 msgctxt "View"
 msgid "Asset error ({0})"
 msgid_plural "Asset errors ({0})"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:614
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:624
 msgid "Build"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:628
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:638
 msgid "Live-scripting"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:652
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:662
 msgctxt "View"
 msgid "Property grid"
 msgstr ""
 
 #. Translation must not be longer that the english words
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:667
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:677
 msgid "Add new tag"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:677
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:687
 msgctxt "ToolTip"
 msgid "Previous selection"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:680
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:690
 msgctxt "ToolTip"
 msgid "Next selection"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:698
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:708
 msgctxt "ToolTip"
 msgid "Add tag to all"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:715
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:725
 msgid "Open this asset in editor"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:717
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:727
 msgid "Show this asset in editor"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:724
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:734
 msgctxt "ToolTip"
 msgid "Display only overridden properties"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:727
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:737
 msgid "Search properties"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:755
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:765
 msgctxt "Menu"
 msgid "Reset to base value"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:869
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:879
 msgctxt "View"
 msgid "Asset preview"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:877
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:887
 msgctxt "View"
 msgid "Edit history"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:929
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:939
 msgctxt "StatusBar"
 msgid "{0} item"
 msgid_plural "{0} items"
@@ -766,7 +761,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. Keep parenthesis - {0} is a number
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:930
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:940
 msgctxt "StatusBar"
 msgid "({0} selected)"
 msgid_plural "({0} selected)"
@@ -783,27 +778,22 @@ msgctxt "About"
 msgid "Xenko version"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:47
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:50
 msgctxt "About"
-msgid "All rights reserved."
+msgid "MIT License"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:52
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:56
 msgctxt "About"
-msgid "Xenko uses open-source software."
+msgid "Xenko uses open-source software"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:55
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:58
 msgctxt "About"
 msgid "See the list"
 msgstr ""
 
-#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:62
-msgctxt "About"
-msgid "End user license agreement"
-msgstr ""
-
-#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:67
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:64
 msgctxt "About"
 msgid "Privacy policy"
 msgstr ""
@@ -870,12 +860,3 @@ msgctxt "Button"
 msgid "Cancel"
 msgstr ""
 
-#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:31
-msgctxt "Menu"
-msgid "Show in Explorer"
-msgstr ""
-
-#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:32
-msgctxt "Menu"
-msgid "Remove From List"
-msgstr ""

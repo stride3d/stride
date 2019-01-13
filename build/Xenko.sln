@@ -389,7 +389,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Localization", "00-Local
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ja", "ja", "{B4EABB0D-E495-405C-B7B1-E2A7A3711AF5}"
 	ProjectSection(SolutionItems) = preProject
+		..\sources\localization\ja\Xenko.Assets.Presentation.ja.po = ..\sources\localization\ja\Xenko.Assets.Presentation.ja.po
 		..\sources\localization\ja\Xenko.Core.Assets.Editor.ja.po = ..\sources\localization\ja\Xenko.Core.Assets.Editor.ja.po
+		..\sources\localization\ja\Xenko.Core.Presentation.ja.po = ..\sources\localization\ja\Xenko.Core.Presentation.ja.po
 		..\sources\localization\ja\Xenko.GameStudio.ja.po = ..\sources\localization\ja\Xenko.GameStudio.ja.po
 	EndProjectSection
 EndProject
@@ -410,6 +412,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Samples.Templates", "..\sources\editor\Xenko.Samples.Templates\Xenko.Samples.Templates.csproj", "{040F754C-17F4-4B5F-B974-93F1E39D107F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{7C67FF28-1B9E-4F13-8BDA-B833D588BC6A} = {7C67FF28-1B9E-4F13-8BDA-B833D588BC6A}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "fr", "fr", "{62E9A8E4-79AF-4081-84D5-FEC5A0B28598}"
+	ProjectSection(SolutionItems) = preProject
+		..\sources\localization\fr\Xenko.Assets.Presentation.fr.po = ..\sources\localization\fr\Xenko.Assets.Presentation.fr.po
+		..\sources\localization\fr\Xenko.Core.Assets.Editor.fr.po = ..\sources\localization\fr\Xenko.Core.Assets.Editor.fr.po
+		..\sources\localization\fr\Xenko.Core.Presentation.fr.po = ..\sources\localization\fr\Xenko.Core.Presentation.fr.po
+		..\sources\localization\fr\Xenko.GameStudio.fr.po = ..\sources\localization\fr\Xenko.GameStudio.fr.po
 	EndProjectSection
 EndProject
 Global
@@ -1670,6 +1680,7 @@ Global
 		{2FC40214-A4AA-45DC-9C93-72ED800C40B0} = {75608B5C-1C03-4B38-810E-14EED5165E59}
 		{00B72ED7-00E9-47F7-868D-8162027CD068} = {1AE1AC60-5D2F-4CA7-AE20-888F44551185}
 		{040F754C-17F4-4B5F-B974-93F1E39D107F} = {75608B5C-1C03-4B38-810E-14EED5165E59}
+		{62E9A8E4-79AF-4081-84D5-FEC5A0B28598} = {FC791F56-C1F1-4C41-A193-868D8197F8E2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}

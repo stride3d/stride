@@ -4,8 +4,9 @@ namespace Xenko.Core.Assets.Editor
 {
     public enum SupportedLanguage
     {
-        MachineDefault,
+        MachineDefault = 0,
         English,
+        French,
         Japanese,
     }
 }

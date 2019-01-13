@@ -2,14 +2,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-01-11 23:16:55+0900\n"
-"PO-Revision-Date: 2019-01-11 23:16:55+0900\n"
-"Last-Translator: \n"
+"PO-Revision-Date: 2019-01-13 02:28+0900\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: MonoDevelop Gettext addin\n"
-
+"X-Generator: Poedit 2.2\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: fr\n"
 
 #: ../presentation/Xenko.Core.Presentation/Windows/DialogHelper.cs:20
 msgid "Don't ask again"
@@ -126,4 +127,3 @@ msgstr ""
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4330
 msgid "All components:"
 msgstr ""
-
