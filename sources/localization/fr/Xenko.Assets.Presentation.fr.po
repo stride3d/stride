@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xenko\n"
 "POT-Creation-Date: 2019-01-11 23:17:07+0900\n"
-"PO-Revision-Date: 2019-01-13 02:52\n"
+"PO-Revision-Date: 2019-01-13 03:02\n"
 "Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -406,22 +406,22 @@ msgstr "Chargement de la scène..."
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:168
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:212
 msgid "This might take a few minutes the first time."
-msgstr ""
+msgstr "Cela peut prendre quelques minutes, la première fois."
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:182
 msgctxt "ToolTip"
 msgid "Create a new entity"
-msgstr ""
+msgstr "Créer une nouvelle entité"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:189
 msgctxt "Menu"
 msgid "New folder"
-msgstr ""
+msgstr "Nouveau dossier"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:222
 msgctxt "ToolTip"
 msgid "Filter entities by name"
-msgstr ""
+msgstr "Filtrer les entités par nom"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:230
 msgctxt "ToolTip"
@@ -436,11 +436,11 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:258
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:211
 msgid "Loading..."
-msgstr ""
+msgstr "Chargement ..."
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:262
 msgid "Unloading..."
-msgstr ""
+msgstr "Déchargement..."
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:330
 msgctxt "ToolTip"
@@ -475,7 +475,7 @@ msgstr ""
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:406
 msgid "(Unloaded)"
-msgstr ""
+msgstr "(déchargé)"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:473
 msgctxt "ToolTip"
@@ -502,7 +502,7 @@ msgstr ""
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:504
 msgid "Reset"
-msgstr ""
+msgstr "Réinitialiser"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:510
 msgid "Cubemap"
@@ -531,14 +531,14 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:25
 msgctxt "Button"
 msgid "All"
-msgstr ""
+msgstr "Tout"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:540
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:597
 #: ../editor/Xenko.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:27
 msgctxt "Button"
 msgid "None"
-msgstr ""
+msgstr "Aucun"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:566
 msgctxt "ToolTip"
@@ -580,17 +580,17 @@ msgstr ""
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:626
 msgid "Projection"
-msgstr ""
+msgstr "Projection"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:629
 msgctxt "Button"
 msgid "Perspective"
-msgstr ""
+msgstr "Perspective"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:630
 msgctxt "Button"
 msgid "Orthographic"
-msgstr ""
+msgstr "Orthographique"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:632
 msgid "Near plane:"
@@ -702,7 +702,7 @@ msgstr ""
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:13
 msgid "Select an entity"
-msgstr ""
+msgstr "Sélectionner une entité"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:23
 msgctxt "ToolTip"
@@ -713,26 +713,26 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/View/DebuggerPickerWindow.xaml:26
 msgctxt "ToolTip"
 msgid "Cancel (Esc)"
-msgstr ""
+msgstr "Annuler (Echap)"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:37
 msgid "Select an entity:"
-msgstr ""
+msgstr "Sélectionner une entité:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:66
 msgid "(Index: {0})"
-msgstr ""
+msgstr "(Index: {0})"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:49
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:129
 msgctxt "Menu"
 msgid "Action"
-msgstr ""
+msgstr "Action"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:50
 msgctxt "Menu"
 msgid "Delete selection"
-msgstr ""
+msgstr "Supprimer la sélection"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:202
 msgid "Render stages:"
@@ -763,7 +763,7 @@ msgstr ""
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:253
 msgid "No suggestions"
-msgstr ""
+msgstr "Aucune suggestion"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:53
 msgctxt "Button"
@@ -857,13 +857,13 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:382
 msgctxt "ToolTip"
 msgid "Zoom out"
-msgstr ""
+msgstr "Zoomer en arrière"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:237
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:386
 msgctxt "ToolTip"
 msgid "Zoom in"
-msgstr ""
+msgstr "Zoomer en avant"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:241
 msgctxt "ToolTip"
