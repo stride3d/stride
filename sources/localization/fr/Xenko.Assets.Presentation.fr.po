@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xenko\n"
 "POT-Creation-Date: 2019-01-11 23:17:07+0900\n"
-"PO-Revision-Date: 2019-01-13 03:02\n"
+"PO-Revision-Date: 2019-01-13 07:22\n"
 "Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -23,12 +23,12 @@ msgstr "Impossible de renommer le dossier' {0} 'en' {1} '. Un dossier avec le m�
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:495
 msgctxt "Message"
 msgid "Are you sure you want to delete this entity?"
-msgstr ""
+msgstr "Voulez-vous vraiment supprimer cette entité ?"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
 msgctxt "Message"
 msgid "Are you sure you want to delete these {0} entities?"
-msgstr ""
+msgstr "Voulez-vous vraiment supprimer ces {0} entités ?"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
@@ -90,12 +90,12 @@ msgstr "Taille de police"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:185
 msgctxt "Message"
 msgid "Couldn't find the file"
-msgstr ""
+msgstr "Impossible de trouver le fichier"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:172
 msgctxt "Message"
 msgid "There was a problem while editing the image.{0}"
-msgstr ""
+msgstr "Il y a eu un problème pour éditer l'image.{0}"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:195
 msgctxt "Message"
@@ -105,7 +105,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:11
 msgctxt "Settings"
 msgid "UI editor"
-msgstr ""
+msgstr "Editeur UI"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:18
 msgctxt "Settings"
@@ -281,7 +281,7 @@ msgstr "Vous devez sélectionner au moins une plateforme."
 #: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:69
 msgctxt "Button"
 msgid "Remove"
-msgstr ""
+msgstr "Retirer"
 
 #: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:72
 msgctxt "Message"
@@ -329,7 +329,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:33
 msgctxt "Menu"
 msgid "Create"
-msgstr ""
+msgstr "Créer"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:65
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:109
@@ -506,7 +506,7 @@ msgstr "Réinitialiser"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:510
 msgid "Cubemap"
-msgstr ""
+msgstr "Cubemap"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:514
 msgctxt "ToolTip"
@@ -561,7 +561,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:590
 msgctxt "Button"
 msgid "Camera preview"
-msgstr ""
+msgstr "Aperçu de la caméra"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:591
 msgctxt "Button"
@@ -571,12 +571,12 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:608
 msgctxt "Button"
 msgid "Other entities"
-msgstr ""
+msgstr "Autres entités"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:616
 msgctxt "ToolTip"
 msgid "Editor camera options..."
-msgstr ""
+msgstr "Options de la caméra éditeur..."
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:626
 msgid "Projection"
@@ -594,61 +594,61 @@ msgstr "Orthographique"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:632
 msgid "Near plane:"
-msgstr ""
+msgstr "Plan éloigné:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:634
 msgid "Far plane:"
-msgstr ""
+msgstr "Plan proche:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:636
 msgid "Field of view:"
-msgstr ""
+msgstr "Champ de vision:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:642
 msgid "Orthographic size:"
-msgstr ""
+msgstr "Dim. orthographique:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:648
 msgid "Movement"
-msgstr ""
+msgstr "Déplacement"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:652
 msgid "Speed:"
-msgstr ""
+msgstr "Vitesse :"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:657
 msgid "Orientation"
-msgstr ""
+msgstr "Orientation"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
 msgctxt "Button"
 msgid "Front"
-msgstr ""
+msgstr "Avant"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:662
 msgctxt "Button"
 msgid "Back"
-msgstr ""
+msgstr "Arrière"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:664
 msgctxt "Button"
 msgid "Top"
-msgstr ""
+msgstr "Haut"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:666
 msgctxt "Button"
 msgid "Bottom"
-msgstr ""
+msgstr "Bas"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:668
 msgctxt "Button"
 msgid "Left"
-msgstr ""
+msgstr "Gauche"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:670
 msgctxt "Button"
 msgid "Right"
-msgstr ""
+msgstr "Droite"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
 msgctxt "ToolTip"
@@ -692,13 +692,13 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:516
 msgctxt "Button"
 msgid "Resume"
-msgstr ""
+msgstr "Reprendre"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:861
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:518
 msgctxt "Button"
 msgid "Copy error to clipboard"
-msgstr ""
+msgstr "Copier l'erreur dans le presse-papier"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:13
 msgid "Select an entity"
