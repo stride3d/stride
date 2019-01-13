@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xenko\n"
 "POT-Creation-Date: 2019-01-11 23:17:17+0900\n"
-"PO-Revision-Date: 2019-01-13 11:03\n"
+"PO-Revision-Date: 2019-01-13 11:15\n"
 "Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -66,22 +66,22 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:25
 msgctxt "Settings"
 msgid "Environment"
-msgstr ""
+msgstr "Environnement"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:26
 msgctxt "Settings"
 msgid "External tools"
-msgstr ""
+msgstr "Outils externes"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:27
 msgctxt "Settings"
 msgid "Interface"
-msgstr ""
+msgstr "Interface"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:28
 msgctxt "Settings"
 msgid "Tools"
-msgstr ""
+msgstr "Outils"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:34
 msgctxt "Settings"
@@ -132,12 +132,12 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:77
 msgctxt "Settings"
 msgid "Language"
-msgstr ""
+msgstr "Langue"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:81
 msgctxt "Settings"
 msgid "Reset"
-msgstr ""
+msgstr "Réinitialiser"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:82
 msgctxt "Settings"
@@ -190,7 +190,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1079
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1305
 msgid "(Different values)"
-msgstr ""
+msgstr "(Valeurs différentes)"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:490
 msgctxt "Message"
@@ -306,7 +306,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:137
 msgctxt "Button"
 msgid "Try again"
-msgstr ""
+msgstr "Réessayer"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:138
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:693
@@ -325,7 +325,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:32
 msgctxt "Button"
 msgid "Cancel"
-msgstr ""
+msgstr "Annuler"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:140
 msgctxt "Message"
@@ -351,7 +351,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:233
 msgctxt "Message"
 msgid "An error occurred while opening the file."
-msgstr ""
+msgstr "Une erreur est survenue lors de la lecture du fichier."
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/PackageViewModel.cs:642
 msgctxt "Message"
@@ -366,25 +366,25 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:102
 msgctxt "Message"
 msgid "The name is too long."
-msgstr ""
+msgstr "Le nom est trop long."
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:108
 msgctxt "Message"
 msgid "The name contains invalid characters."
-msgstr ""
+msgstr "Le nom contient des caractères incorrects."
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:114
 msgctxt "Message"
 msgid "The name is empty."
-msgstr ""
+msgstr "Le nom est vide."
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:44
 msgid "External packages"
-msgstr ""
+msgstr "Packages externes"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:45
 msgid "Local packages"
-msgstr ""
+msgstr "Packages locaux"
 
 #. {0} is a file name
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:565
@@ -428,13 +428,13 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:459
 msgctxt "Button"
 msgid "Upgrade"
-msgstr ""
+msgstr "Mettre à jour"
 
 #. Displayed in a button (must be short)
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:460
 msgctxt "Button"
 msgid "Skip"
-msgstr ""
+msgstr "Ignorer"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:462
 msgctxt "Message"
@@ -446,7 +446,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:998
 msgctxt "Button"
 msgid "Save"
-msgstr ""
+msgstr "Sauvegarder"
 
 #. Message displayed when trying to open a modified asset with the text editor
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:695
@@ -563,7 +563,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1672
 msgctxt "Button"
 msgid "Delete"
-msgstr ""
+msgstr "Supprimer"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1522
 msgctxt "Message"
@@ -603,7 +603,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1675
 msgctxt "Message"
 msgid "Are you sure you want to delete these projects?"
-msgstr ""
+msgstr "Etes vous sûr de vouloir supprimer ces projets?"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/AddAssets/View/ItemTemplatesWindow.xaml:11
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/AddItemWindow.xaml:10
@@ -665,7 +665,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:80
 msgctxt "Button"
 msgid "Done"
-msgstr ""
+msgstr "Fait"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:81
 msgctxt "Button"
@@ -694,7 +694,7 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/AddItemUserControl.xaml:21
 msgid "Search"
-msgstr ""
+msgstr "Rechercher"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/AddItemUserControl.xaml:38
 msgctxt "ToolTip"
@@ -709,7 +709,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:29
 msgctxt "Button"
 msgid "Select"
-msgstr ""
+msgstr "Sélectionner"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:26
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:30
@@ -777,7 +777,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:32
 msgctxt "Menu"
 msgid "Remove From List"
-msgstr ""
+msgstr "Retirer de la liste"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:25
 msgctxt "Menu"
@@ -787,17 +787,17 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:26
 msgctxt "Menu"
 msgid "Delete"
-msgstr ""
+msgstr "Supprimer"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:28
 msgctxt "Menu"
 msgid "Rename"
-msgstr ""
+msgstr "Renommer"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:30
 msgctxt "Menu"
 msgid "Explore"
-msgstr ""
+msgstr "Explorer"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:31
 msgctxt "Menu"
