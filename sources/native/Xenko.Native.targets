@@ -48,7 +48,7 @@
   
   <!-- Define default CPU architectures -->
   <ItemGroup>
-    <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP' Or '$(XenkoPlatform)' == 'macOS' " Include="x86;x64"/>
+    <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP' " Include="x86;x64"/>
     <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'UWP' " Include="ARM"/>
     <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Android' " Include="arm64-v8a;armeabi;armeabi-v7a;x86;x86_64"/>
   </ItemGroup>
@@ -241,22 +241,15 @@
   </Target>
 
   <Target Name="CompileNativeClang_Linux" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)" Condition="'$(XenkoPlatform)' == 'Linux' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_XenkoRegisterNativeOutputs">
-    <MakeDir Directories="$(XenkoNativeOutputPath)\x86;$(XenkoNativeOutputPath)\x64;"/>
-    
     <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
     <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target x86_64-linux-gnu" />
     <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\lld.exe&quot; -flavor gnu --eh-frame-hdr -m elf_x86_64 -shared -o &quot;$(XenkoNativeOutputPath)\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x64.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Linux\x86_64\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Linux\x86_64\libNativePath.a&quot;" />
   </Target>
 
   <Target Name="CompileNativeClang_macOS" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)" Condition="'$(XenkoPlatform)' == 'macOS' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_XenkoRegisterNativeOutputs">
-    <MakeDir Directories="$(XenkoNativeOutputPath)\x86;$(XenkoNativeOutputPath)\x64;"/>
     <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
     <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x64.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target x86_64-apple-darwin" />
-    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\darwin_ld.exe&quot; -arch x86_64 -w -flat_namespace -undefined dynamic_lookup -sdk_version 10.11  -macosx_version_min 10.11 -dylib -o &quot;$(XenkoNativeOutputPath)\x64\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x64.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\$(XenkoPlatform)\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\$(XenkoPlatform)\libNativePath.a&quot;" />
-
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target i386-apple-darwin" />
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_x86.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -fPIC -target i386-apple-darwin" />
-    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\darwin_ld.exe&quot; -arch i386 -w -flat_namespace -undefined dynamic_lookup -sdk_version 10.11  -macosx_version_min 10.11 -dylib -o &quot;$(XenkoNativeOutputPath)\x86\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x86.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\$(XenkoPlatform)\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\$(XenkoPlatform)\libNativePath.a&quot;" />
+    <Exec Command="&quot;$(XenkoDependenciesDir)\LLVM\darwin_ld.exe&quot; -arch x86_64 -w -flat_namespace -undefined dynamic_lookup -sdk_version 10.11  -macosx_version_min 10.11 -dylib -o &quot;$(XenkoNativeOutputPath)\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_x64.o&quot;', ' ') @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\$(XenkoPlatform)\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\$(XenkoPlatform)\libNativePath.a&quot;" />
 
     <!-- Workaround: forcing C# rebuild so that timestamp are up to date (ideally we should have separate input/output groups for C# and Native) -->
     <Delete Files="@(IntermediateAssembly)"/>
