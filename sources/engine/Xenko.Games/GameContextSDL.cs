@@ -13,7 +13,7 @@ namespace Xenko.Games
         static GameContextSDL()
         {
             // Preload proper SDL native library (depending on CPU type)
-            Core.NativeLibrary.PreloadLibrary("SDL2.dll", typeof(GameContextSDL));
+            Core.NativeLibrary.PreloadLibrary("SDL2.dll", typeof(Window));
         }
 
         /// <inheritDoc/>
