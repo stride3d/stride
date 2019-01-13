@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xenko\n"
 "POT-Creation-Date: 2019-01-11 23:16:55+0900\n"
-"PO-Revision-Date: 2019-01-13 07:22\n"
+"PO-Revision-Date: 2019-01-13 07:32\n"
 "Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -87,47 +87,47 @@ msgstr "T:"
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:663
 msgctxt "ToolTip"
 msgid "Hue"
-msgstr ""
+msgstr "Teinte"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:479
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:672
 msgctxt "HSB"
 msgid "S:"
-msgstr ""
+msgstr "S:"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:480
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:672
 msgctxt "ToolTip"
 msgid "Saturation"
-msgstr ""
+msgstr "Saturation"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:494
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:681
 msgctxt "HSB"
 msgid "B:"
-msgstr ""
+msgstr "V:"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:495
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:681
 msgctxt "ToolTip"
 msgid "Value"
-msgstr ""
+msgstr "Valeur"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:3916
 msgctxt "ToolTip"
 msgid "Toggle editing mode"
-msgstr ""
+msgstr "Changer le mode d'édition"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4172
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4242
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4321
 msgctxt "ToolTip"
 msgid "Advanced options"
-msgstr ""
+msgstr "Options avancées"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4181
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4250
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4330
 msgid "All components:"
-msgstr ""
+msgstr "Tous les composants:"
 
