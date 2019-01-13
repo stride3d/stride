@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xenko\n"
 "POT-Creation-Date: 2019-01-11 23:16:55+0900\n"
-"PO-Revision-Date: 2019-01-13 02:43\n"
+"PO-Revision-Date: 2019-01-13 07:22\n"
 "Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -17,71 +17,71 @@ msgstr ""
 
 #: ../presentation/Xenko.Core.Presentation/Windows/DialogHelper.cs:20
 msgid "Don't ask again"
-msgstr ""
+msgstr "Ne plus le demander"
 
 #: ../presentation/Xenko.Core.Presentation/Windows/MessageBox.cs:70
 msgctxt "KeyGesture"
 msgid "N"
-msgstr ""
+msgstr "N"
 
 #: ../presentation/Xenko.Core.Presentation/Windows/MessageBox.cs:99
 msgctxt "KeyGesture"
 msgid "Y"
-msgstr ""
+msgstr "O"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:399
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:623
 msgctxt "RGBA"
 msgid "R:"
-msgstr ""
+msgstr "R :"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:400
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:623
 msgctxt "ToolTip"
 msgid "Red"
-msgstr ""
+msgstr "Rouge"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:414
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:632
 msgctxt "RGBA"
 msgid "G:"
-msgstr ""
+msgstr "V :"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:415
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:632
 msgctxt "ToolTip"
 msgid "Green"
-msgstr ""
+msgstr "Vert"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:429
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:641
 msgctxt "RGBA"
 msgid "B:"
-msgstr ""
+msgstr "B:"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:430
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:641
 msgctxt "ToolTip"
 msgid "Blue"
-msgstr ""
+msgstr "Bleu"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:444
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:650
 msgctxt "RGBA"
 msgid "A:"
-msgstr ""
+msgstr "A:"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:445
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:650
 msgctxt "ToolTip"
 msgid "Alpha"
-msgstr ""
+msgstr "Alpha"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:464
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:663
 msgctxt "HSB"
 msgid "H:"
-msgstr ""
+msgstr "T:"
 
 #: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:465
 #: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:663
