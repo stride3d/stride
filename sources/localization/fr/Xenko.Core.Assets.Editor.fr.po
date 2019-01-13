@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xenko\n"
 "POT-Creation-Date: 2019-01-11 23:17:17+0900\n"
-"PO-Revision-Date: 2019-01-13 02:43\n"
+"PO-Revision-Date: 2019-01-13 11:03\n"
 "Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -929,46 +929,46 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:369
 msgctxt "Menu"
 msgid "Name"
-msgstr ""
+msgstr "Nom"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:372
 msgctxt "Menu"
 msgid "Date modified"
-msgstr ""
+msgstr "Date de modification"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:375
 msgctxt "Menu"
 msgid "Type"
-msgstr ""
+msgstr "Type"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:378
 msgctxt "Menu"
 msgid "Unsaved changes"
-msgstr ""
+msgstr "Modifications non enregistrées"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:387
 msgctxt "ToolTip"
 msgid "Zoom in"
-msgstr ""
+msgstr "Zoom avant"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:392
 msgctxt "ToolTip"
 msgid "Zoom out"
-msgstr ""
+msgstr "Zoom arrière"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:397
 msgctxt "Menu"
 msgid "Grid"
-msgstr ""
+msgstr "Grille"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:405
 msgctxt "Menu"
 msgid "Tiles"
-msgstr ""
+msgstr "Tuiles"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:418
 msgid "Add a filter..."
-msgstr ""
+msgstr "Ajouter un filtre..."
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:422
 msgid "Filter assets by name, type or tag"
@@ -977,7 +977,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:448
 msgctxt "ToolTip"
 msgid "Clear filters"
-msgstr ""
+msgstr "Effacer les filtres"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:490
 msgid "No asset to display in this folder or no folder selected. Check your active filters."
@@ -991,33 +991,33 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:123
 msgctxt "ToolTip"
 msgid "Add..."
-msgstr ""
+msgstr "Ajouter..."
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:54
 msgctxt "ToolTip"
 msgid "Replace..."
-msgstr ""
+msgstr "Remplacer..."
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:132
 msgctxt "ToolTip"
 msgid "Delete"
-msgstr ""
+msgstr "Supprimer"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:407
 msgid "List"
-msgstr ""
+msgstr "Liste"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:408
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:472
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:530
 msgid "{0} item"
 msgid_plural "{0} items"
-msgstr[0] ""
+msgstr[0] "{0} élément"
 msgstr[1] ""
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:450
 msgid "Add to {0}"
-msgstr ""
+msgstr "Ajouter à {0}"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:467
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:493
@@ -1028,7 +1028,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:471
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:529
 msgid "Dictionary"
-msgstr ""
+msgstr "Dictionnaire"
 
 #. Keep the colon (:)
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:504
@@ -1054,7 +1054,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:938
 msgctxt "ToolTip"
 msgid "Angle in degrees"
-msgstr ""
+msgstr "Angle en degrés"
 
 #. This button opens a file dialog
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:985
@@ -1071,7 +1071,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1036
 msgctxt "Button"
 msgid "All"
-msgstr ""
+msgstr "Tout"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1036
 msgctxt "ToolTip"
@@ -1082,17 +1082,17 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1038
 msgctxt "Button"
 msgid "None"
-msgstr ""
+msgstr "Aucun"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1038
 msgctxt "ToolTip"
 msgid "Clear selection"
-msgstr ""
+msgstr "Vider la sélection"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1040
 msgctxt "Button"
 msgid "Invert"
-msgstr ""
+msgstr "Inverser"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1040
 msgctxt "ToolTip"
@@ -1147,7 +1147,7 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/View/NotificationWindow.xaml:6
 msgid "Notification"
-msgstr ""
+msgstr "Notification"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/PackagePickerWindow.xaml:10
 msgid "Select a package"
@@ -1160,28 +1160,28 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/View/SettingsWindow.xaml:15
 msgid "Settings"
-msgstr ""
+msgstr "Réglages"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/SettingsWindow.xaml:26
 msgctxt "Button"
 msgid "Save and close"
-msgstr ""
+msgstr "Sauvegarder et fermer"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:19
 msgid "Operation completed."
-msgstr ""
+msgstr "Opération terminée."
 
 #: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:20
 msgid "Operation failed."
-msgstr ""
+msgstr "Echec de l'opération."
 
 #. Log message displayed when an operation has been canceled
 #: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:21
 msgid "Operation cancelled."
-msgstr ""
+msgstr "Opération annulée."
 
 #: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:27
 msgctxt "Button"
 msgid "Close"
-msgstr ""
+msgstr "Fermer"
 
