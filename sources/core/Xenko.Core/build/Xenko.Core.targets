@@ -13,7 +13,7 @@
     </MSBuild>
   </Target>
   <!-- Check if Visual C++ Runtime 2015 is properly installed -->
-  <Target Name="_XenkoCheckVisualCRuntime2015">
+  <Target Name="_XenkoCheckVisualCRuntime2015" Condition="'$(MSBuildRuntimeType)' == 'Full'">
     <ItemGroup>
       <_XenkoVisualCRuntime2015 Include="Visual C++ Redistributable for Visual Studio 2015 x86">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>

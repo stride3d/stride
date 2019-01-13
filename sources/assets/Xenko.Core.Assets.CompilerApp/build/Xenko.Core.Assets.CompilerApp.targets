@@ -1,7 +1,7 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project InitialTargets="_XenkoCheckVisualCRuntime2013" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Check if Visual C++ Runtime 2013 is properly installed -->
   <!-- Should be moved to Xenko.Assets as soon as transitive build dependencies are enabled by default in VS2019 (https://github.com/NuGet/Home/issues/6091#issuecomment-438073285) -->
-  <Target Name="_XenkoCheckVisualCRuntime2013">
+  <Target Name="_XenkoCheckVisualCRuntime2013" Condition="'$(MSBuildRuntimeType)' == 'Full'">
     <ItemGroup>
       <_XenkoVisualCRuntime2013 Include="Visual C++ Redistributable for Visual Studio 2013 x86">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\12.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
