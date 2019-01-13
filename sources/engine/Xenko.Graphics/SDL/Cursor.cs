@@ -24,9 +24,11 @@ namespace Xenko.Graphics.SDL
         /// <param name="h">Height of cursor</param>
         /// <param name="hot_x">Hotspot X coordinate of cursor</param>
         /// <param name="hot_y">Hotspot Y coordinate of cursor</param>
-        public Cursor(byte[] data, byte[] mask, int w, int h, int hot_x, int hot_y)
+        public unsafe Cursor(byte[] data, byte[] mask, int w, int h, int hot_x, int hot_y)
         {
-            Handle = SDL.SDL_CreateCursor(data, mask, w, h, hot_x, hot_y);
+            fixed (byte* dataPtr = data)
+            fixed (byte* maskPtr = mask)
+                Handle = SDL.SDL_CreateCursor((IntPtr)dataPtr, (IntPtr)maskPtr, w, h, hot_x, hot_y);
         }
 #endregion
 
