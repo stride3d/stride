@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xenko\n"
 "POT-Creation-Date: 2019-01-11 23:17:07+0900\n"
-"PO-Revision-Date: 2019-01-13 02:43\n"
+"PO-Revision-Date: 2019-01-13 02:52\n"
 "Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -34,7 +34,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
 msgctxt "Button"
 msgid "Delete"
-msgstr ""
+msgstr "Supprimer"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
@@ -50,7 +50,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:55
 msgctxt "Button"
 msgid "Cancel"
-msgstr ""
+msgstr "Annuler"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:16
 msgid "Use translation gizmo"
@@ -79,12 +79,12 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:11
 msgctxt "Settings"
 msgid "Script editor"
-msgstr ""
+msgstr "Éditeur de Script"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:18
 msgctxt "Settings"
 msgid "Font size"
-msgstr ""
+msgstr "Taille de police"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:162
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:185
@@ -130,7 +130,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:13
 msgctxt "Settings"
 msgid "Scene editor"
-msgstr ""
+msgstr "Éditeur de scènes"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:14
 msgctxt "Settings"
@@ -225,7 +225,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:48
 msgctxt "Button"
 msgid "Create"
-msgstr ""
+msgstr "Créer"
 
 #: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:49
 msgctxt "Button"
@@ -266,7 +266,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:59
 msgctxt "Button"
 msgid "Save"
-msgstr ""
+msgstr "Sauvegarder"
 
 #: ../editor/Xenko.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:62
 msgctxt "Message"
@@ -276,7 +276,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:61
 msgctxt "Message"
 msgid "You must select at least one platform."
-msgstr ""
+msgstr "Vous devez sélectionner au moins une plateforme."
 
 #: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:69
 msgctxt "Button"
@@ -335,7 +335,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:109
 msgctxt "Menu"
 msgid "Folder"
-msgstr ""
+msgstr "Dossier"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:66
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:110
@@ -343,20 +343,20 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:788
 msgctxt "Menu"
 msgid "Empty entity"
-msgstr ""
+msgstr "Entité vide"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:92
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:136
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:814
 msgctxt "Menu"
 msgid "Actions"
-msgstr ""
+msgstr "Actions"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:93
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:139
 msgctxt "Menu"
 msgid "Open prefab in editor"
-msgstr ""
+msgstr "Ouvrir un préfab dans l'éditeur"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:94
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:140
@@ -377,7 +377,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:818
 msgctxt "Menu"
 msgid "Create prefab from selection"
-msgstr ""
+msgstr "Créer un préfab depuis la sélection"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:98
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:144
@@ -385,7 +385,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:137
 msgctxt "Menu"
 msgid "Duplicate"
-msgstr ""
+msgstr "Doublon"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:137
 msgctxt "Menu"
@@ -397,11 +397,11 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:143
 msgctxt "Menu"
 msgid "Rename"
-msgstr ""
+msgstr "Renommer"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:167
 msgid "Loading scene..."
-msgstr ""
+msgstr "Chargement de la scène..."
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:168
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:212
