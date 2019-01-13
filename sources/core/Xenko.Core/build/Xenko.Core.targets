@@ -45,6 +45,7 @@
     <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</XenkoPlatform>
     <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'Xamarin.iOS'">iOS</XenkoPlatform>
     <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And $(RuntimeIdentifier.StartsWith('linux'))">Linux</XenkoPlatform>
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And $(RuntimeIdentifier.StartsWith('osx'))">macOS</XenkoPlatform>
     <XenkoPlatform Condition="'$(XenkoPlatform)' == ''">Windows</XenkoPlatform>
   </PropertyGroup>
 
@@ -111,7 +112,7 @@
   <!-- List dependency files from .ssdeps -->
   <PropertyGroup>
     <_XenkoListDepsFilesDependsOn>ResolveAssemblyReferences</_XenkoListDepsFilesDependsOn>
-    <_XenkoListDepsFilesDependsOn Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'">$(_XenkoListDepsFilesDependsOn);ResolvePackageAssets</_XenkoListDepsFilesDependsOn>
+    <_XenkoListDepsFilesDependsOn Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'macOS'">$(_XenkoListDepsFilesDependsOn);ResolvePackageAssets</_XenkoListDepsFilesDependsOn>
   </PropertyGroup>
   <Target Name="_XenkoListDepsFiles" DependsOnTargets="$(_XenkoListDepsFilesDependsOn)">
     <ItemGroup>

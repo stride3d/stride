@@ -66,8 +66,9 @@ namespace Xenko.Assets
                 case PlatformType.iOS:
                     return GraphicsPlatform.OpenGLES;
                 case PlatformType.Linux:
-                case PlatformType.macOS:
                     return GraphicsPlatform.OpenGL;
+                case PlatformType.macOS:
+                    return GraphicsPlatform.Vulkan;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

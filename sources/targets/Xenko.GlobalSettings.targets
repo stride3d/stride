@@ -160,7 +160,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <XenkoUI Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'">SDL</XenkoUI>
+    <XenkoUI Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'macOS'">SDL</XenkoUI>
     <XenkoUI Condition="'$(XenkoGraphicsApi)' == 'OpenGL'">$(XenkoUI);OPENTK</XenkoUI>
     <XenkoUI Condition="'$(XenkoPlatform)' == 'Windows' AND $(TargetFramework.StartsWith('net4')) AND ('$(XenkoGraphicsApi)' == 'Direct3D11' Or '$(XenkoGraphicsApi)' == 'Direct3D12')">$(XenkoUI);WINFORMS;WPF</XenkoUI>
 
