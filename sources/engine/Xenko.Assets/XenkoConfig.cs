@@ -131,7 +131,6 @@ namespace Xenko.Assets
             solutionPlatforms.Add(uwpPlatform);
 
             // Linux
-            // Note: Linux is using a target framework that will be used for other platforms. We will need to use multiple runtime identifiers later
             var linuxPlatform = new SolutionPlatform()
             {
                 Name = PlatformType.Linux.ToString(),
@@ -144,21 +143,19 @@ namespace Xenko.Assets
             linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_LINUX");
             solutionPlatforms.Add(linuxPlatform);
 
-#if FALSE   // Disabling macOS for time being
             // macOS
             var macOSPlatform = new SolutionPlatform()
             {
                 Name = PlatformType.macOS.ToString(),
                 IsAvailable = true,
-                TargetFramework = "net461",
+                TargetFramework = "netcoreapp2.1",
+                RuntimeIdentifier = "osx-x64",
                 Type = PlatformType.macOS,
             };
             macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
             macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_MACOS");
-            macOSPlatform.Configurations.Add(coreClrRelease);
-            macOSPlatform.Configurations.Add(coreClrDebug);
             solutionPlatforms.Add(macOSPlatform);
-#endif
+
             // Android
             var androidPlatform = new SolutionPlatform()
             {
