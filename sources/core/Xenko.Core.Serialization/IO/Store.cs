@@ -15,6 +15,9 @@ namespace Xenko.Core.IO
     /// <typeparam name="T">The type of elements in the store.</typeparam>
     public abstract class Store<T> : IDisposable where T : new()
     {
+        // macOS doesn't support Lock/Unlock (https://github.com/dotnet/corefx/issues/5964)
+        private static readonly bool LockEnabled = Platform.Type != PlatformType.macOS;
+
         protected Stream stream;
 
         protected int transaction;
@@ -130,7 +133,7 @@ namespace Xenko.Core.IO
 
                 // Acquire lock on end of file (for appending)
                 // This will prevent another thread from writing at the same time, or reading before it is flushed.
-                if (stream is FileStream)
+                if (LockEnabled && stream is FileStream)
                     NativeLockFile.LockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
 
                 try
@@ -159,7 +162,7 @@ namespace Xenko.Core.IO
                 }
                 finally
                 {
-                    if (stream is FileStream)
+                    if (LockEnabled && stream is FileStream)
                         NativeLockFile.UnlockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition);
                 }
             }
@@ -176,7 +179,7 @@ namespace Xenko.Core.IO
 
                 // Acquire lock on end of file (for appending)
                 // This will prevent another thread from writing at the same time, or reading before it is flushed.
-                if (stream is FileStream)
+                if (LockEnabled && stream is FileStream)
                     NativeLockFile.LockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
 
                 try
@@ -199,7 +202,7 @@ namespace Xenko.Core.IO
                 }
                 finally
                 {
-                    if (stream is FileStream)
+                    if (LockEnabled && stream is FileStream)
                         NativeLockFile.UnlockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition);
                 }
             }
@@ -272,7 +275,7 @@ namespace Xenko.Core.IO
                 // Note: Maybe we should release the lock quickly so that two threads can read at the same time?
                 // Or if the previously described case doesn't happen, maybe no lock at all is required?
                 // Otherwise, last possibility would be deterministic filesize (with size encoded at the beginning of each block).
-                if (stream is FileStream)
+                if (LockEnabled && stream is FileStream)
                     NativeLockFile.LockFile((FileStream)stream, position, long.MaxValue - position, false);
 
                 try
@@ -284,7 +287,7 @@ namespace Xenko.Core.IO
                 finally
                 {
                     // Release the lock
-                    if (stream is FileStream)
+                    if (LockEnabled && stream is FileStream)
                         NativeLockFile.UnlockFile((FileStream)stream, position, long.MaxValue - position);
                 }
 
