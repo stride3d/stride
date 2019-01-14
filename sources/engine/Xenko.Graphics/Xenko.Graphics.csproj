@@ -24,11 +24,11 @@
   <Choose>
     <When Condition=" '$(XenkoGraphicsApi)' == 'Vulkan' ">
       <Choose>
-        <When Condition=" '$(XenkoPlatform)' == 'Windows'">
+        <When Condition=" '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'macOS' ">
           <ItemGroup>
             <Reference Include="SharpVulkan">
               <SpecificVersion>False</SpecificVersion>
-              <HintPath>$(XenkoDependenciesDir)\SharpVulkan\Windows\SharpVulkan.dll</HintPath>
+              <HintPath>$(XenkoDependenciesDir)\SharpVulkan\$(XenkoPlatform)\SharpVulkan.dll</HintPath>
             </Reference>
           </ItemGroup>
         </When>
