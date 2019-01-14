@@ -302,6 +302,10 @@ namespace Xenko.Shaders.Compiler.OpenGL
                     // Defines the ordering of resource groups in Vulkan. This is mirrored in the PipelineState
                     var resourceGroups = reflection.ResourceBindings.Select(x => x.ResourceGroup ?? "Globals").Distinct().ToList();
 
+                    // Register "NoSampler", required by HLSL=>GLSL translation to support HLSL such as texture.Load().
+                    var noSampler = new EffectResourceBindingDescription { KeyInfo = { KeyName = "NoSampler" }, RawName = "NoSampler", Class = EffectParameterClass.Sampler, SlotStart = -1, SlotCount = 1 };
+                    reflection.ResourceBindings.Add(noSampler);
+
                     var bindings = resourceGroups.SelectMany(resourceGroup => reflection.ResourceBindings
                         .Where(x => x.ResourceGroup == resourceGroup || (x.ResourceGroup == null && resourceGroup == "Globals"))
                         .GroupBy(x => new { KeyName = x.KeyInfo.KeyName, RawName = x.RawName, Class = x.Class, Type = x.Type, SlotCount = x.SlotCount, LogicalGroup = x.LogicalGroup })
