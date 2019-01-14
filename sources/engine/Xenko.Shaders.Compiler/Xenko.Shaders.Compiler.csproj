@@ -30,14 +30,14 @@
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </XenkoNativeLib>
-    <XenkoContent Include="..\..\..\deps\glslang\glslangValidator.exe">
+    <XenkoContent Include="..\..\..\deps\glslang\Windows\glslangValidator.exe">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </XenkoContent>
   </ItemGroup>
-  <ItemGroup Condition="'$(XenkoPlatform)' == 'Linux' And '$(XenkoGraphicsApi)' == 'Vulkan'">
-    <XenkoContent Include="..\..\..\deps\glslang\glslangValidator">
+  <ItemGroup Condition="('$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'macOS') And '$(XenkoGraphicsApi)' == 'Vulkan'">
+    <XenkoContent Include="..\..\..\deps\glslang\$(XenkoPlatform)\glslangValidator">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
       <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
