@@ -54,6 +54,13 @@
       </ItemGroup>
     </When>
   </Choose>
+  <ItemGroup Condition=" '$(XenkoPlatform)' == 'macOS' Or '$(XenkoGraphicsApi)' == 'Vulkan' ">
+    <XenkoNativeLib Include="$(XenkoDependenciesDir)\MoltenVK\$(XenkoPlatform)\**\*.*">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </XenkoNativeLib>
+  </ItemGroup>
   <ItemGroup>
     <XenkoNativeLib Include="$(XenkoDependenciesDir)\freetype\$(XenkoPlatform)\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
