@@ -3,7 +3,7 @@ SerializedVersion: {Assets: 3.1.0.0}
 TemplateFolders:
     - Path: !dir ../../../samples
       Group: Samples
-      Exclude: "**/Testing/**;**/.git/**;**/_ReSharper.*/**;**/Bin/**;**/obj/**;**/*.sln;**/*.suo;**/.vs/**;**/*.GhostDoc.xml;readme.md;.gitignore;**/*.psess;**/*.vspx;**/*.userprefs"
+      Exclude: "**/Testing/**;**/Cache/**;**/.git/**;**/_ReSharper.*/**;**/Bin/**;**/obj/**;**/*.sln;**/*.suo;**/.vs/**;**/*.GhostDoc.xml;readme.md;.gitignore;**/*.psess;**/*.vspx;**/*.userprefs"
       Files:
         - !file ../../../samples/Audio/SimpleAudio/SimpleAudio.xktpl
         - !file ../../../samples/Games/JumpyJet/JumpyJet.xktpl
