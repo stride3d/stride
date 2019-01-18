@@ -24,8 +24,9 @@ namespace Xenko.Core.Threading
         private readonly ManualResetEvent workAvailable = new ManualResetEvent(false);
 
         private SpinLock spinLock = new SpinLock();
-        private volatile int workingCount;
-        private volatile int aliveCount;
+        private int workingCount;
+        /// <summary> Usage only within <see cref="spinLock"/> </summary>
+        private int aliveCount;
 
         public void QueueWorkItem([NotNull] [Pooled] Action workItem)
         {
@@ -39,10 +40,9 @@ namespace Xenko.Core.Threading
                 workAvailable.Set();
 
                 var curWorkingCount = Interlocked.CompareExchange(ref workingCount, 0, 0);
-                var curAliveCount = Interlocked.CompareExchange(ref aliveCount, 0, 0);
-                if (curWorkingCount + 1 >= curAliveCount && curAliveCount < maxThreadCount)
+                if (curWorkingCount + 1 >= aliveCount && aliveCount < maxThreadCount)
                 {
-                    Interlocked.Increment(ref aliveCount);
+                    aliveCount++;
                     Task.Factory.StartNew(ProcessWorkItems, TaskCreationOptions.LongRunning);
                 }
             }
@@ -55,54 +55,52 @@ namespace Xenko.Core.Threading
 
         private void ProcessWorkItems(object state)
         {
-            try
+            long lastWork = Stopwatch.GetTimestamp();
+            TimeSpan maxIdleTime = TimeSpan.FromSeconds(5);
+            while(true)
             {
-                long lastWork = Stopwatch.GetTimestamp();
-                TimeSpan maxIdleTime = TimeSpan.FromSeconds(5);
-                do
+                Action workItem = null;
+                var lockTaken = false;
+                try
                 {
-                    Action workItem = null;
-                    var lockTaken = false;
+                    spinLock.Enter(ref lockTaken);
+
+                    if (workItems.Count > 0)
+                    {
+                        workItem = workItems.Dequeue();
+                        if (workItems.Count == 0)
+                            workAvailable.Reset();
+                    }
+                    else if(Utilities.ConvertRawToTimestamp(Stopwatch.GetTimestamp() - lastWork) < maxIdleTime)
+                    {
+                        aliveCount++;
+                        return;
+                    }
+                }
+                finally
+                {
+                    if (lockTaken)
+                        spinLock.Exit(true);
+                }
+
+                if (workItem != null)
+                {
+                    Interlocked.Increment(ref workingCount);
                     try
                     {
-                        spinLock.Enter(ref lockTaken);
-
-                        if (workItems.Count > 0)
-                        {
-                            workItem = workItems.Dequeue();
-                            if (workItems.Count == 0)
-                                workAvailable.Reset();
-                        }
+                        workItem.Invoke();
                     }
-                    finally
+                    catch (Exception)
                     {
-                        if (lockTaken)
-                            spinLock.Exit(true);
+                        // Ignoring Exception
                     }
+                    Interlocked.Decrement(ref workingCount);
+                    PooledDelegateHelper.Release(workItem);
+                    lastWork = Stopwatch.GetTimestamp();
+                }
 
-                    if (workItem != null)
-                    {
-                        Interlocked.Increment(ref workingCount);
-                        try
-                        {
-                            workItem.Invoke();
-                        }
-                        catch (Exception)
-                        {
-                            // Ignoring Exception
-                        }
-                        Interlocked.Decrement(ref workingCount);
-                        PooledDelegateHelper.Release(workItem);
-                        lastWork = Stopwatch.GetTimestamp();
-                    }
-
-                    // Wait for another work item to be (potentially) available
-                    workAvailable.WaitOne(maxIdleTime);
-                } while (Utilities.ConvertRawToTimestamp(Stopwatch.GetTimestamp() - lastWork) < maxIdleTime);
-            }
-            finally
-            {
-                Interlocked.Decrement(ref aliveCount);
+                // Wait for another work item to be (potentially) available
+                workAvailable.WaitOne(maxIdleTime);
             }
         }
     }
