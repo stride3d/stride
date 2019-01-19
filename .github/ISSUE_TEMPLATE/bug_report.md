@@ -1,3 +1,12 @@
+---
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: 'bug'
+assignees: ''
+
+---
+
 **Release Type**: Official Release/GitHub (please choose appropriate option)
 
 **Version**: Version number and/or git branch
