@@ -48,6 +48,7 @@ Thank you everybody for your generous contributions!
 * Eideren
 * Connie
 * Berwyn
+* Andrew Wilson
 
 ## Mini Backers
 
