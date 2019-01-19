@@ -17,6 +17,8 @@ namespace Xenko.Core.Threading
     /// </remarks>
     internal class ThreadPool
     {
+        private const long MaxIdleTimeInTicks = 5 * TimeSpan.TicksPerSecond;
+
         public static readonly ThreadPool Instance = new ThreadPool();
 
         private readonly int maxThreadCount = Environment.ProcessorCount + 2;
@@ -56,7 +58,7 @@ namespace Xenko.Core.Threading
         private void ProcessWorkItems(object state)
         {
             long lastWork = Stopwatch.GetTimestamp();
-            TimeSpan maxIdleTime = TimeSpan.FromSeconds(5);
+            TimeSpan maxIdleTime = TimeSpan.FromTicks(MaxIdleTimeInTicks);
             while(true)
             {
                 Action workItem = null;
