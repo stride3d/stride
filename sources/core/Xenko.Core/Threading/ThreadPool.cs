@@ -61,6 +61,7 @@ namespace Xenko.Core.Threading
             {
                 Action workItem = null;
                 var lockTaken = false;
+                bool idleForTooLong = Utilities.ConvertRawToTimestamp(Stopwatch.GetTimestamp() - lastWork) < maxIdleTime;
                 try
                 {
                     spinLock.Enter(ref lockTaken);
@@ -71,9 +72,9 @@ namespace Xenko.Core.Threading
                         if (workItems.Count == 0)
                             workAvailable.Reset();
                     }
-                    else if(Utilities.ConvertRawToTimestamp(Stopwatch.GetTimestamp() - lastWork) < maxIdleTime)
+                    else if (idleForTooLong)
                     {
-                        aliveCount++;
+                        aliveCount--;
                         return;
                     }
                 }
