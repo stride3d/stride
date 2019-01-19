@@ -449,7 +449,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The sum of the two colors.</returns>
         public static ColorBGRA Add(ColorBGRA left, ColorBGRA right)
         {
-            return new ColorBGRA(left.R + right.R, left.G + right.G, left.B + right.B, left.A + right.A);
+            return new ColorBGRA((byte)(left.R + right.R), (byte)(left.G + right.G), (byte)(left.B + right.B), (byte)(left.A + right.A));
         }
 
         /// <summary>
@@ -474,7 +474,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The difference of the two colors.</returns>
         public static ColorBGRA Subtract(ColorBGRA left, ColorBGRA right)
         {
-            return new ColorBGRA(left.R - right.R, left.G - right.G, left.B - right.B, left.A - right.A);
+            return new ColorBGRA((byte)(left.R - right.R), (byte)(left.G - right.G), (byte)(left.B - right.B), (byte)(left.A - right.A));
         }
 
         /// <summary>
@@ -485,10 +485,10 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the modulated color.</param>
         public static void Modulate(ref ColorBGRA left, ref ColorBGRA right, out ColorBGRA result)
         {
-            result.A = (byte)(left.A * right.A / 255.0f);
-            result.R = (byte)(left.R * right.R / 255.0f);
-            result.G = (byte)(left.G * right.G / 255.0f);
-            result.B = (byte)(left.B * right.B / 255.0f);
+            result.A = (byte)(left.A * right.A / 255);
+            result.R = (byte)(left.R * right.R / 255);
+            result.G = (byte)(left.G * right.G / 255);
+            result.B = (byte)(left.B * right.B / 255);
         }
 
         /// <summary>
@@ -499,7 +499,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The modulated color.</returns>
         public static ColorBGRA Modulate(ColorBGRA left, ColorBGRA right)
         {
-            return new ColorBGRA((left.R * right.R) >> 8, (left.G * right.G) >> 8, (left.B * right.B) >> 8, (left.A * right.A) >> 8);
+            return new ColorBGRA((byte)((left.R * right.R) / 255), (byte)((left.G * right.G) / 255), (byte)((left.B * right.B) / 255), (byte)((left.A * right.A) / 255));
         }
 
         /// <summary>
@@ -547,7 +547,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The negated color.</returns>
         public static ColorBGRA Negate(ColorBGRA value)
         {
-            return new ColorBGRA(255 - value.R, 255 - value.G, 255 - value.B, 255 - value.A);
+            return new ColorBGRA((byte)(255 - value.R), (byte)(255 - value.G), (byte)(255 - value.B), (byte)(255 - value.A));
         }
 
         /// <summary>
@@ -778,7 +778,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The sum of the two colors.</returns>
         public static ColorBGRA operator +(ColorBGRA left, ColorBGRA right)
         {
-            return new ColorBGRA(left.R + right.R, left.G + right.G, left.B + right.B, left.A + right.A);
+            return new ColorBGRA((byte)(left.R + right.R), (byte)(left.G + right.G), (byte)(left.B + right.B), (byte)(left.A + right.A));
         }
 
         /// <summary>
@@ -799,7 +799,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The difference of the two colors.</returns>
         public static ColorBGRA operator -(ColorBGRA left, ColorBGRA right)
         {
-            return new ColorBGRA(left.R - right.R, left.G - right.G, left.B - right.B, left.A - right.A);
+            return new ColorBGRA((byte)(left.R - right.R), (byte)(left.G - right.G), (byte)(left.B - right.B), (byte)(left.A - right.A));
         }
 
         /// <summary>
