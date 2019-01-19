@@ -1,6 +1,6 @@
 ﻿The MIT License (MIT)
 
-Copyright (c) 2018 Xenko contributors (https://xenko.com)  
+Copyright (c) 2018-2019 Xenko contributors (https://xenko.com)  
 Copyright (c) 2011-2018 Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 
 All rights reserved.
