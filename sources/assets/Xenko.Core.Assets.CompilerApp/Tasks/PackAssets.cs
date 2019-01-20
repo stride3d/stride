@@ -141,7 +141,7 @@ namespace Xenko.Core.Assets.CompilerApp.Tasks
                                             targetResourcePath = UPath.Combine(resourceOutputPath, (UFile)sourceResourcePath.GetFileName());
                                             TryCopyResource(sourceResourcePath, targetResourcePath);
                                         }
-                                        var newValue = targetResourcePath.MakeRelative(assetOutputPath);
+                                        var newValue = targetResourcePath.MakeRelative(outputFile.GetFullDirectory());
                                         if (scalar.Value != newValue)
                                         {
                                             hasChanges = true;
