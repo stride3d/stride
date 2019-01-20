@@ -2,10 +2,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <!-- We should switch Windows Game to netCore as well. Would help us find xplatform issues quicker -->
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+
     <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
     <OutputType>WinExe</OutputType>
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
+
+    <!-- This resolves native dep publishing -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
     <OutputPath>..\Bin\Windows\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -16,6 +22,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>" />
+    <!-- Needed for custom runtime.json -->
+    <PackageReference Include="Xenko" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
+
+  <!-- Would be nice to do this from Xenko targets somehow, but I am unclear how to... -->
+  <Target Name="CopyData" AfterTargets="Publish">
+    <ItemGroup>  
+        <SourceDataFiles Include="$(OutDir)data\**\*.*"/>  
+    </ItemGroup>  
+    <Copy SourceFiles="@(SourceDataFiles)" DestinationFiles="@(SourceDataFiles->'$(PublishDir)data\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
 
 </Project>

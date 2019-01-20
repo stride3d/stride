@@ -8,6 +8,9 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace><#= Properties.Namespace #></RootNamespace>
 
+    <!-- This resolves native dep publishing -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
     <OutputPath>..\Bin\macOS\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
@@ -21,4 +24,12 @@
     <PackageReference Include="Xenko" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
 
+  <!-- Would be nice to do this from Xenko targets somehow, but I am unclear how to... -->
+  <Target Name="CopyData" AfterTargets="Publish">
+    <ItemGroup>  
+        <SourceDataFiles Include="$(OutDir)data\**\*.*"/>  
+    </ItemGroup>  
+    <Copy SourceFiles="@(SourceDataFiles)" DestinationFiles="@(SourceDataFiles->'$(PublishDir)data\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+  
 </Project>

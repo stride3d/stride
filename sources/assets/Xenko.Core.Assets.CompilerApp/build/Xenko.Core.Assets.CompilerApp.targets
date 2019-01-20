@@ -135,4 +135,14 @@
       </None>
     </ItemGroup>
   </Target>
+
+  <!--Feels like we could do this here, but it does not appear to work-->
+  <!--Also we only really want this per Game not for each dependent dll-->
+  <!--<Target Name="CopyDataFolder" AfterTargets="Publish">
+    <ItemGroup>  
+        <SourceDataFiles Include="$(OutDir)data\**\*.*"/>  
+    </ItemGroup>  
+    <Copy SourceFiles="@(SourceDataFiles)" DestinationFiles="@(SourceDataFiles->'$(PublishDir)data\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>-->
+
 </Project>
