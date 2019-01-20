@@ -105,6 +105,27 @@
 
   <!-- 
   *****************************************************************************************************************************
+  NuGet tweaks
+  *****************************************************************************************************************************
+  -->
+  <!-- Workaround to copy .xml and .pdb files for new csproj targeting (https://github.com/dotnet/sdk/issues/1458#issuecomment-401497095) -->
+  <Target Name="_XenkoResolveCopyLocalNuGetPackagePdbsAndXml"
+           Condition="$(CopyLocalLockFileAssemblies) == true"
+           AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths
+        Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).pdb')"
+        Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
+                    and Exists('%(RootDir)%(Directory)%(Filename).pdb')" />
+      <ReferenceCopyLocalPaths
+        Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')"
+        Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
+                    and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+    </ItemGroup>
+  </Target>
+  
+  <!-- 
+  *****************************************************************************************************************************
   Dependencies reading (from .ssdeps)
   Important: Please keep in sync with Xenko.Core.PostSettings.Dependencies.Targets
   *****************************************************************************************************************************
