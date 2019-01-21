@@ -43,7 +43,7 @@ Ask for help or report issues:
   * `.NET desktop development`
     * If your OS is Windows 10: add `.NET Framework 4.7.2 development tools` in optional components of `.NET desktop development`
     * If your OS is Windows 7: [.NET 4.7.2 Developer Pack](https://www.microsoft.com/net/download/thank-you/net472-developer-pack))
-  * `Desktop development with C++`
+  * `Desktop development with C++` with `Windows 10 SDK (10.0.17134)` or later
   * `.NET Core cross-platform development`
   * Optional (to target UWP): `Universal Windows Platform development` with `Windows 10 SDK (10.0.16299.0)` and `Windows 10 SDK (10.0.17134.0)`
   * Optional (to target iOS/Android): `Mobile development with .NET` and `Android NDK R13B+` individual component
