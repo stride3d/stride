@@ -105,6 +105,19 @@
       </Content>
     </ItemGroup>
   </Target>
+  
+  <!-- Publish: always deploy files as content -->
+  <Target Name="_XenkoDeployAssetsPublish" DependsOnTargets="XenkoCompileAsset" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <!-- Define the Assets to deploy -->
+      <AssetsToPublish Include="$(XenkoCompileAssetOutputPath)\**\*.*"/>
+
+      <!-- Define the Assets to deploy -->
+      <ResolvedFileToPublish Include="@(AssetsToPublish)">
+        <RelativePath>data\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 
   <!-- Android -->
   <Target Name="_XenkoDeployAssetsAndroid" BeforeTargets="XenkoCompileAsset" Condition="'$(XenkoPlatform)' == 'Android'">

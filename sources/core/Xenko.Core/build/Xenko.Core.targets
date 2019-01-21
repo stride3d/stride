@@ -193,6 +193,14 @@
       </None>
     </ItemGroup>
   </Target>
+  <!-- When publishing, copy native libraries (only needed if CopyLocalLockFileAssemblies is set to false since _XenkoSetupNativeLibrariesWindows won't run) -->
+  <Target Name="_XenkoSetupNativeLibrariesDotNetPublish" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ComputeFilesToPublish" Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(CopyLocalLockFileAssemblies)' == 'false'">
+    <ItemGroup>
+      <ResolvedFileToPublish Include="@(_XenkoDependencyNativeLib)">
+        <RelativePath>%(_XenkoDependencyNativeLib.Link)</RelativePath>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
   <Target Name="_XenkoSetupNativeLibrariesUWP" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoPlatform)' == 'UWP'">
     <PropertyGroup>
       <XenkoCPU Condition="'$(Platform)' == 'x86'">x86</XenkoCPU>
@@ -221,5 +229,4 @@
       <MtouchExtraArgs>$(MtouchExtraArgs) --compiler=clang -cxx -gcc_flags '-lstdc++ $(MtouchExtraArgsLibs)'</MtouchExtraArgs>
     </PropertyGroup>
   </Target>
-  
 </Project>
