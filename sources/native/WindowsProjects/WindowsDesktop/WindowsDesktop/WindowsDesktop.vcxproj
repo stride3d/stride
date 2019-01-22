@@ -22,7 +22,9 @@
     <ProjectGuid>{75C5F896-0E36-4348-9E80-5E9EFE494D94}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>$(XenkoNativeOutputName)</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</WindowsTargetPlatformVersion>
+    <!-- If not there, it will ask user to install 8.1 if nothing is installed, so provide a better fallback -->
+    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
