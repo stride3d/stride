@@ -215,7 +215,7 @@ namespace Xenko.Core.Shaders.Ast
         /// </returns>
         public override int GetHashCode()
         {
-            return Name.GetHashCode();
+            return Name?.GetHashCode() ?? 0;
         }
 
         /// <summary>
@@ -226,7 +226,7 @@ namespace Xenko.Core.Shaders.Ast
         /// </returns>
         public override string ToString()
         {
-            return Name.ToString();
+            return Name?.ToString();
         }
 
         #endregion
