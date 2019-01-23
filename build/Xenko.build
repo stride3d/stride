@@ -47,7 +47,6 @@ Example of use:
   <Target Name="PrerequisitesInstaller">
     <Delete Files="$(XenkoRoot)Bin\Prerequisites\install-prerequisites.exe"/>
     <Exec Command='"$(AdvancedInstallerPath)" /rebuild "$(XenkoRoot)sources\prerequisites\prerequisites.aip"'/>
-    <Copy SourceFiles="$(XenkoRoot)sources\prerequisites\install-prerequisites.exe" DestinationFolder="$(XenkoRoot)Bin\Prerequisites"/>
   </Target>
 
   <!--
@@ -56,7 +55,6 @@ Example of use:
   <Target Name="FullBuild">
     <CallTarget Targets="Build"/>
     <CallTarget Targets="Package"/>
-    <CallTarget Targets="PrerequisitesInstaller"/>
     <CallTarget Targets="VSIXPlugin"/>
   </Target>
   
@@ -122,7 +120,7 @@ Example of use:
 	<Message Text="Done preparing build for version $(XenkoPackageVersion)"/>
 	<TeamCitySetBuildNumber BuildNumber="$(XenkoPackageVersion)" Condition="'$(TEAMCITY_BUILD_PROPERTIES_FILE)' != '' " />
   </Target>
-  <Target Name="Package" DependsOnTargets="PreparePackageBuild;Build;VSIXPlugin;PrerequisitesInstaller"/>
+  <Target Name="Package" DependsOnTargets="PreparePackageBuild;PrerequisitesInstaller;Build;VSIXPlugin"/>
   
   <Target Name="CopyXenkoKey">
     <Copy Condition="'$(XenkoSign)' == 'true' And Exists('$(LOCALAPPDATA)\Xenko\XenkoBuildKey\xenko.snk')" SourceFiles="$(LOCALAPPDATA)\Xenko\XenkoBuildKey\xenko.snk" DestinationFolder="$(MSBuildThisFileDirectory)"/>

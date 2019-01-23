@@ -34,7 +34,7 @@ namespace Xenko.PackageInstall
                     case "/repair":
                     {
                         // Run prerequisites installer (if it exists)
-                        var prerequisitesInstallerPath = @"..\Bin\Prerequisites\install-prerequisites.exe";
+                        var prerequisitesInstallerPath = @"install-prerequisites.exe";
                         if (File.Exists(prerequisitesInstallerPath))
                         {
                             var prerequisitesInstalled = false;
