@@ -112,9 +112,22 @@ namespace Xenko.PackageInstall
                 var vsInstallerPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Visual Studio\Installer\vs_installer.exe");
                 if (AllowVisualStudioOnly && existingVisualStudio2017Install != null && File.Exists(vsInstallerPath))
                 {
-                    var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --passive --norestart --installPath \"{existingVisualStudio2017Install.InstallationPath}\" {string.Join(" ", NecessaryVS2017Workloads.Select(x => $"--add {x}"))}");
-                    if (vsInstallerExitCode == 0)
-                        MessageBox.Show("Visual Studio 2017 was missing the .NET desktop develpment workload.\r\nWe highly recommend a reboot after the installation is finished, otherwise Xenko projects won't compile.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // Check workloads
+                    {
+                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --passive --norestart --installPath \"{existingVisualStudio2017Install.InstallationPath}\" {string.Join(" ", NecessaryVS2017Workloads.Select(x => $"--add {x}"))}");
+                        if (vsInstallerExitCode != 0)
+                        {
+                            var errorMessage = $"Visual Studio 2017 install failed with error {vsInstallerExitCode}";
+                            MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            throw new InvalidOperationException(errorMessage);
+                        }
+                    }
+
+                    // Refresh existingVisualStudio2017Install.Complete and check if restart is needed
+                    VisualStudioVersions.Refresh();
+                    existingVisualStudio2017Install = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => x.InstallationPath == existingVisualStudio2017Install.InstallationPath);
+                    if (existingVisualStudio2017Install != null && !existingVisualStudio2017Install.Complete)
+                        MessageBox.Show("Visual Studio 2017 install needs a computer restart.\r\nIf you don't restart, Xenko projects likely won't compile.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
