@@ -87,13 +87,18 @@ namespace Xenko.Core.VisualStudio
     {
         // ReSharper disable once InconsistentNaming
         private const int REGDB_E_CLASSNOTREG = unchecked((int)0x80040154);
-        private static readonly Lazy<List<IDEInfo>> IDEInfos = new Lazy<List<IDEInfo>>(BuildIDEInfos);
+        private static Lazy<List<IDEInfo>> IDEInfos = new Lazy<List<IDEInfo>>(BuildIDEInfos);
 
         public static IDEInfo DefaultIDE = new IDEInfo("0.0", "Default IDE", string.Empty);
 
         public static IEnumerable<IDEInfo> AvailableVisualStudioInstances => IDEInfos.Value.Where(x => x.HasDevenv);
 
         public static IEnumerable<IDEInfo> AvailableBuildTools => IDEInfos.Value.Where(x => x.HasBuildTools);
+
+        public static void Refresh()
+        {
+            IDEInfos = new Lazy<List<IDEInfo>>(BuildIDEInfos);
+        }
 
         private static List<IDEInfo> BuildIDEInfos()
         {
