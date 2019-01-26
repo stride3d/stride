@@ -440,9 +440,57 @@ namespace Xenko.Assets
                     for (var i = 0; i < sharedProjects.Count; i++)
                     {
                         var project = sharedProjects[i];
+                        var projectLocation = UPath.Combine(dependentPackage.FullPath.GetFullDirectory(), project.Location);
+
+                        Microsoft.Build.Evaluation.Project oldmsProject = null;
+                        try
+                        {
+                            oldmsProject = VSProjectHelper.LoadProject(projectLocation.ToWindowsPath());
+                        }
+                        catch (Exception e)
+                        {
+                            log.Warning($"Unable to load project [{project.Location.GetFileName()}], extra project items info will be lost", e);
+                        }
+
                         var projectGameReference = ProjectTemplateGeneratorHelper.GenerateTemplate(parameters, platforms, dependentPackage,
                             i == 0 ? "ProjectLibrary.Game/ProjectLibrary.Game.ttproj" : "ProjectLibrary/ProjectLibrary.ttproj",
                             project.Location.GetFileNameWithoutExtension(), PlatformType.Shared, null, null, ProjectType.Library, DisplayOrientation.Default, project.Id);
+
+                        try
+                        {
+                            if (oldmsProject != null)
+                            {
+                                // Readd custom files
+                                var msProject = VSProjectHelper.LoadProject(projectLocation.ToWindowsPath());
+
+                                // Keep None and Compile+AutoGen (used by custom tools such as shader key gen)
+                                var msProjectChanged = false;
+                                foreach (var item in oldmsProject.Items.Where(x => (x.ItemType == "Compile" && x.GetMetadataValue("AutoGen").ToLowerInvariant() == "true") || (x.ItemType == "None")))
+                                {
+                                    msProjectChanged = true;
+                                    var addedItem = msProject.AddItem(item.ItemType, item.UnevaluatedInclude, item.Metadata.Select(x => new KeyValuePair<string, string>(x.Name, x.UnevaluatedValue))).First();
+                                    if (addedItem.ItemType == "Compile")
+                                    {
+                                        // Use Update instead of Include
+                                        var itemIdentity = addedItem.Xml.Include;
+                                        addedItem.Xml.Include = string.Empty;
+                                        addedItem.Xml.Update = itemIdentity;
+                                    }
+                                }
+
+                                if (msProjectChanged)
+                                    msProject.Save();
+
+                                oldmsProject.ProjectCollection.UnloadAllProjects();
+                                oldmsProject.ProjectCollection.Dispose();
+                                msProject.ProjectCollection.UnloadAllProjects();
+                                msProject.ProjectCollection.Dispose();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            log.Warning($"Unable to load project [{project.Location.GetFileName()}], extra project items info will be lost", e);
+                        }
                     }
 
                     // Regenerate executable projects
