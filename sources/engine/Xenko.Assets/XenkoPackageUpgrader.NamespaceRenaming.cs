@@ -22,6 +22,8 @@ namespace Xenko.Assets
         private static string RemoveSiliconStudioNamespaces(string content)
         {
             // Namespaces
+            content = content.Replace("SiliconStudio.Xenko.Rendering.Composers", "SiliconStudio.Xenko.Rendering.Compositing");
+            content = content.Replace("SiliconStudio.Core.Serialization.Assets", "SiliconStudio.Core.Serialization.Contents");
             content = content.Replace("SiliconStudio.Core", "Xenko.Core");
             content = content.Replace("SiliconStudio.Xenko", "Xenko");
             content = content.Replace("SiliconStudio.Common", "Xenko.Common");
