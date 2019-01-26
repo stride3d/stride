@@ -797,7 +797,7 @@ namespace Xenko.Assets
                                 lightComponent.Type["Skybox"] = (string)skyboxInfo.Component.Skybox;
 
                                 // Check if this light is now referencing a removed skybox asset
-                                string referenceId = ((string)skyboxInfo.Component.Skybox)?.Split('/').Last().Split(':').First();
+                                string referenceId = ((string)skyboxInfo.Component.Skybox)?.Split(':').First();
                                 if (referenceId == null || !skyboxAssetInfos.ContainsKey(referenceId) || skyboxAssetInfos[referenceId].Deleted)
                                 {
                                     lightComponent.Type["Skybox"] = "null";
@@ -816,7 +816,7 @@ namespace Xenko.Assets
                         if (skyboxInfo.Component.Skybox == null)
                             continue;
 
-                        string referenceId = ((string)skyboxInfo.Component.Skybox).Split('/').Last().Split(':').First();
+                        string referenceId = ((string)skyboxInfo.Component.Skybox).Split(':').First();
                         if (!skyboxAssetInfos.TryGetValue(referenceId, out skyboxAssetInfo))
                             continue;
                         
@@ -858,7 +858,7 @@ namespace Xenko.Assets
                         rootMapping.RemoveChild("Model");
                     }
                     rootMapping.AddChild("CubeMap", cubemapReference);
-                    var splitReference = cubemapReference.Split('/'); // TODO
+                    var textureReference = cubemapReference; // TODO
                     
                     // We will remove skyboxes that are only used as a background
                     if (root.Usage != null && (string)root.Usage == "Background")
@@ -871,7 +871,7 @@ namespace Xenko.Assets
                                         (string)root.Usage == "LightingAndBackground";
                     skyboxAssetInfos.Add((string)root.Id, new SkyboxAssetInfo
                     {
-                        TextureReference = splitReference.Last(),
+                        TextureReference = textureReference,
                         IsBackground = isBackground,
                         Deleted = skyboxAsset.Deleted,
                     });
