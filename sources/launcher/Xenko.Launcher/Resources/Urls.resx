@@ -143,6 +143,9 @@
   <data name="Issues" xml:space="preserve">
     <value>https://github.com/xenko3d/xenko/issues/</value>
   </data>
+  <data name="Patreon" xml:space="preserve">
+    <value>https://www.patreon.com/xenko</value>
+  </data>
   <data name="Reddit" xml:space="preserve">
     <value>http://www.reddit.com/r/xenko</value>
   </data>
