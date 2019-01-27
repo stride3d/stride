@@ -147,7 +147,7 @@
     <value>http://www.reddit.com/r/xenko</value>
   </data>
   <data name="Roadmap" xml:space="preserve">
-    <value>https://trello.com/b/FwbjOjjB/xenko-roadmap</value>
+    <value>https://github.com/xenko3d/xenko/projects/3</value>
   </data>
   <data name="RssFeed" xml:space="preserve">
     <value>http://xenko.com/feed.xml</value>
