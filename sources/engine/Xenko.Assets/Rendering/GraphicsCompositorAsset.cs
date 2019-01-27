@@ -32,14 +32,7 @@ namespace Xenko.Assets.Rendering
     [DataContract("GraphicsCompositorAsset")]
     [AssetContentType(typeof(GraphicsCompositor))]
     [AssetDescription(FileExtension)]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion)]
-    [AssetUpgrader(XenkoConfig.PackageName, "0.0.0", "1.10.0-beta01", typeof(AssetComposite.FixPartReferenceUpgrader))]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.10.0-beta01", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
-    [AssetUpgrader(XenkoConfig.PackageName, "2.0.0.0", "2.1.0.2", typeof(FXAAEffectDefaultQualityUpgrader))]
+    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.1.0.2")]
     public partial class GraphicsCompositorAsset : Asset
     {
         private const string CurrentVersion = "2.1.0.2";
@@ -130,21 +123,6 @@ namespace Xenko.Assets.Rendering
             }
 
             return graphicsCompositor;
-        }
-
-        private class FXAAEffectDefaultQualityUpgrader : AssetUpgraderBase
-        {
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
-            {
-                var rootNode = (YamlNode)asset.Node;
-
-                foreach (var fxaaEffectNode in rootNode.AllNodes.OfType<YamlMappingNode>().Where(x => x.Tag == "!FXAAEffect").Select(x => new DynamicYamlMapping(x)))
-                {
-                    // We could remap quality but probably not worth the code complexity (esp. since previous quality slider from 10 to 39 was not "continuous", user probably didn't set it up properly anyway)
-                    // Simply remove it so that it goes back to default value
-                    fxaaEffectNode.RemoveChild("Quality");
-                }
-            }
         }
     }
 }

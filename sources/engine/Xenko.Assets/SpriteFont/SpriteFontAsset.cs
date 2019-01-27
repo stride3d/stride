@@ -16,12 +16,7 @@ namespace Xenko.Assets.SpriteFont
     [AssetContentType(typeof(Graphics.SpriteFont))]
     [CategoryOrder(10, "Font")]
     [CategoryOrder(30, "Rendering")]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "1.7.0-beta04")]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.7.0-beta04", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
     public partial class SpriteFontAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";

@@ -20,14 +20,7 @@ namespace Xenko.Assets.Textures
     [AssetContentType(typeof(Texture))]
     [CategoryOrder(10, "Size")]
     [CategoryOrder(20, "Format")]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "1.4.0-beta")]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.4.0-beta", "1.10.0-alpha01", typeof(DescriptionUpgrader))]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.10.0-alpha01", "1.11.1.2", typeof(CompressionUpgrader))]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.11.1.2", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
     public sealed partial class TextureAsset : AssetWithSource
     {
         private const string CurrentVersion = "2.0.0.0";
@@ -125,70 +118,5 @@ namespace Xenko.Assets.Textures
         [NotNull]
         [Display(null, "Format", Expand = ExpandRule.Always)]
         public ITextureType Type { get; set; } = new ColorTextureType();
-
-        private class CompressionUpgrader : AssetUpgraderBase
-        {
-            // public TextureFormat Format { get; set; } = TextureFormat.Compressed;
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
-            {
-                if (asset.ContainsChild("Format"))
-                {
-                    if (asset.Format == "Compressed")
-                    {
-                        asset.IsCompressed = true;
-                    }
-                    else
-                    {
-                        asset.IsCompressed = false;
-                    }
-
-                    asset.RemoveChild("Format");
-                }
-                else
-                {
-                    asset.IsCompressed = true;
-                }
-            }
-        }
-
-        private class DescriptionUpgrader : AssetUpgraderBase
-        {
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
-            {
-                if (asset.Hint == "NormalMap")
-                {
-                    dynamic textureType = asset.Type = new DynamicYamlMapping(new YamlMappingNode());
-                    textureType.Node.Tag = "!NormalMapTextureType";
-                }
-                else if (asset.Hint == "Grayscale")
-                {
-                    dynamic textureType = asset.Type = new DynamicYamlMapping(new YamlMappingNode());
-                    textureType.Node.Tag = "!GrayscaleTextureType";
-                }
-                else
-                {
-                    dynamic textureType = asset.Type = new DynamicYamlMapping(new YamlMappingNode());
-                    textureType.Node.Tag = "!ColorTextureType";
-
-                    if (asset.ContainsChild("ColorSpace"))
-                        textureType.UseSRgbSampling = (asset.ColorSpace != "Gamma"); // This is correct. It converts some legacy code with ambiguous meaning.
-                    if (asset.ContainsChild("ColorKeyEnabled"))
-                        textureType.ColorKeyEnabled = asset.ColorKeyEnabled;
-                    if (asset.ContainsChild("ColorKeyColor"))
-                        textureType.ColorKeyColor = asset.ColorKeyColor;
-                    if (asset.ContainsChild("Alpha"))
-                        textureType.Alpha = asset.Alpha;
-                    if (asset.ContainsChild("PremultiplyAlpha"))
-                        textureType.PremultiplyAlpha = asset.PremultiplyAlpha;
-                }
-
-                asset.RemoveChild("ColorSpace");
-                asset.RemoveChild("ColorKeyEnabled");
-                asset.RemoveChild("ColorKeyColor");
-                asset.RemoveChild("Alpha");
-                asset.RemoveChild("PremultiplyAlpha");
-                asset.RemoveChild("Hint");
-            }
-        }
     }
 }

@@ -17,12 +17,7 @@ namespace Xenko.Assets.Models
     [AssetDescription(FileExtension, AllowArchetype = false)]
     [AssetContentType(typeof(Skeleton))]
     [Display((int)AssetDisplayPriority.Models, "Skeleton", "A skeleton (node hierarchy)")]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "1.7.8-beta")]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.7.8-beta", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
     public class SkeletonAsset : Asset, IAssetWithSource
     {
         private const string CurrentVersion = "2.0.0.0";
