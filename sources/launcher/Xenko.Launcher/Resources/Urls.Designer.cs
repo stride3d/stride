@@ -142,7 +142,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://trello.com/b/FwbjOjjB/xenko-roadmap.
+        ///   Looks up a localized string similar to https://github.com/xenko3d/xenko/projects/3.
         /// </summary>
         public static string Roadmap {
             get {
