@@ -16,3 +16,9 @@ Once you work on some task, notify people on the appropriate issue (create one i
 ## Coding style
 
 There's no Coding Style spec yet (and it will properly be done through a StyleCop & editorconfig file), but in the meantime please follow the coding style of other Xenko files.
+
+## Submitting Changes
+
+* Sign the [Contributor License Agreement](https://github.com/xenko3d/xenko/blob/master/docs/ContributorLicenseAgreement.md).
+* Push your changes to a topic branch in your fork of the repository.
+* Submit a pull request to the repository in Xenko organization following pull-request template.
