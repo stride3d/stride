@@ -61,15 +61,6 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://answers.xenko.com/.
-        /// </summary>
-        public static string Answers {
-            get {
-                return ResourceManager.GetString("Answers", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to https://discord.gg/f6aerfE.
         /// </summary>
         public static string Discord {
