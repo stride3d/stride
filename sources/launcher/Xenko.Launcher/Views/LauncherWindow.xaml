@@ -23,7 +23,6 @@
       <BitmapImage x:Key="ImageVisualStudio" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/visual-studio.png"/>
       <BitmapImage x:Key="ImageProjects" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/recent-projects.png"/>
       <BitmapImage x:Key="ImageGithub" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/github.png"/>
-      <BitmapImage x:Key="ImageAnswerhub" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/answerhub.png"/>
       <BitmapImage x:Key="ImageIssues" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/issues.png"/>
       <BitmapImage x:Key="ImageForums" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/chat-16.png"/>
       <BitmapImage x:Key="ImageChat" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/discord.png"/>
@@ -348,20 +347,6 @@
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
                       <Image Margin="5" Source="{StaticResource ImageForums}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonForums}" VerticalAlignment="Center"/>
-                    </StackPanel>
-                  </Button>
-                  <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
-                        Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static r:Urls.Answers}"
-                        ToolTipService.IsEnabled="False"
-                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}">
-                    <i:Interaction.Behaviors>
-                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
-                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
-                    </i:Interaction.Behaviors>
-                    <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
-                      <Image Margin="5" Source="{StaticResource ImageAnswerhub}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
-                      <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonAnswers}" VerticalAlignment="Center"/>
                     </StackPanel>
                   </Button>
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
