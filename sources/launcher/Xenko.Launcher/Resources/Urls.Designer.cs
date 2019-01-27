@@ -133,6 +133,15 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://www.patreon.com/xenko.
+        /// </summary>
+        public static string Patreon {
+            get {
+                return ResourceManager.GetString("Patreon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to http://www.reddit.com/r/xenko.
         /// </summary>
         public static string Reddit {

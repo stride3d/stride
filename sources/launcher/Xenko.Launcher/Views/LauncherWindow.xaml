@@ -33,6 +33,8 @@
       <BitmapImage x:Key="ImageTwitter" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/twitter_bird_24.png"/>
       <BitmapImage x:Key="ImageFacebook" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/facebook_24.png"/>
       <BitmapImage x:Key="ImageReddit" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/reddit_24.png"/>
+      <BitmapImage x:Key="ImagePatreon" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/patreon_mark_coral_24.png"/>
+      
       <BitmapImage x:Key="ImageDownload" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/download-26-dark.png"/>
       <BitmapImage x:Key="ImageUpdate" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/update.png"/>
       <BitmapImage x:Key="ImageDelete" UriSource="pack://application:,,,/Xenko.Launcher;component/Resources/delete-26-dark.png"/>
@@ -287,6 +289,17 @@
                         ToolTipService.IsEnabled="False"
                         ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
                         Content="{sskk:Image {StaticResource ImageReddit}, 24, 24, NearestNeighbor}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
+                  </Button>
+                  <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
+                        Command="{Binding OpenUrlCommand}"
+                        CommandParameter="{x:Static r:Urls.Patreon}" SnapsToDevicePixels="True" Margin="2"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
+                        Content="{sskk:Image {StaticResource ImagePatreon}, 24, 24, NearestNeighbor}">
                     <i:Interaction.Behaviors>
                       <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
                                                      DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
