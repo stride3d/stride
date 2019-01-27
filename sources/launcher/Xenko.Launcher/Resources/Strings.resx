@@ -418,4 +418,8 @@
     <value>Remove From List</value>
     <comment>Menu item of recent files list</comment>
   </data>
+  <data name="ToolTipOpenLink" xml:space="preserve">
+    <value>Open '{0}'</value>
+    <comment>The tooltip for website links.</comment>
+  </data>
 </root>

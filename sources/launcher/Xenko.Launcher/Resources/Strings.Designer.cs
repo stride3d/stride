@@ -610,6 +610,15 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open &apos;{0}&apos;.
+        /// </summary>
+        public static string ToolTipOpenLink {
+            get {
+                return ResourceManager.GetString("ToolTipOpenLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set current version to {0}.
         /// </summary>
         public static string ToolTipSetActiveVersion {

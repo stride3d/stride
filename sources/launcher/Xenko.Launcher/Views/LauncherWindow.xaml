@@ -260,19 +260,37 @@
               <DockPanel Margin="10">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="10">
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
-                        Command="{Binding OpenUrlCommand}"
+                        Command="{Binding OpenUrlCommand}" 
                         CommandParameter="{x:Static r:Urls.Twitter}" SnapsToDevicePixels="True" Margin="2"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
                         Content="{sskk:Image {StaticResource ImageTwitter}, 24, 24, NearestNeighbor}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
                   </Button>
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static r:Urls.Facebook}" SnapsToDevicePixels="True" Margin="2"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
                         Content="{sskk:Image {StaticResource ImageFacebook}, 24, 24, NearestNeighbor}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
                   </Button>
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
                         CommandParameter="{x:Static r:Urls.Reddit}" SnapsToDevicePixels="True" Margin="2"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}"
                         Content="{sskk:Image {StaticResource ImageReddit}, 24, 24, NearestNeighbor}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
                   </Button>
                   <!--<Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
@@ -293,7 +311,13 @@
                 <UniformGrid Columns="2">
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static r:Urls.Issues}">
+                        CommandParameter="{x:Static r:Urls.Issues}"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
                       <Image Margin="5" Source="{StaticResource ImageIssues}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonIssues}" VerticalAlignment="Center"/>
@@ -301,7 +325,13 @@
                   </Button>
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static r:Urls.Forums}">
+                        CommandParameter="{x:Static r:Urls.Forums}"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
                       <Image Margin="5" Source="{StaticResource ImageForums}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonForums}" VerticalAlignment="Center"/>
@@ -309,7 +339,13 @@
                   </Button>
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static r:Urls.Answers}">
+                        CommandParameter="{x:Static r:Urls.Answers}"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
                       <Image Margin="5" Source="{StaticResource ImageAnswerhub}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonAnswers}" VerticalAlignment="Center"/>
@@ -317,7 +353,13 @@
                   </Button>
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static r:Urls.Discord}">
+                        CommandParameter="{x:Static r:Urls.Discord}"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
                       <Image Margin="5" Source="{StaticResource ImageChat}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonDiscord}" VerticalAlignment="Center"/>
@@ -325,7 +367,13 @@
                   </Button>
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static r:Urls.Github}">
+                        CommandParameter="{x:Static r:Urls.Github}"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
                       <Image Margin="5" Source="{StaticResource ImageGithub}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonGithub}" VerticalAlignment="Center"/>
@@ -333,7 +381,13 @@
                   </Button>
                   <Button Style="{StaticResource TransparentButtonStyle}" HorizontalAlignment="Left"
                         Command="{Binding OpenUrlCommand}"
-                        CommandParameter="{x:Static r:Urls.Roadmap}">
+                        CommandParameter="{x:Static r:Urls.Roadmap}"
+                        ToolTipService.IsEnabled="False"
+                        ToolTip="{Binding CommandParameter, RelativeSource={RelativeSource Self}, Converter={sskk:FormatString}, ConverterParameter={x:Static r:Strings.ToolTipOpenLink}}">
+                    <i:Interaction.Behaviors>
+                      <sskk:BindCurrentToolTipStringBehavior ToolTipTarget="{Binding CurrentToolTip}"
+                                                     DefaultValue="{x:Static r:Strings.ToolTipDefault}"/>
+                    </i:Interaction.Behaviors>
                     <StackPanel Orientation="Horizontal" SnapsToDevicePixels="True">
                       <Image Margin="5" Source="{StaticResource ImageRoadmap}" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="16" Height="16"/>
                       <TextBlock DockPanel.Dock="Bottom" HorizontalAlignment="Center" Text="{x:Static r:Strings.ButtonRoadmap}" VerticalAlignment="Center"/>
