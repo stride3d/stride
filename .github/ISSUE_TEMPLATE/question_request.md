@@ -1,5 +1,5 @@
 ---
-name: Questions and/or Comment
+name: Question and/or Comment
 about: Have a question that needs to be answered?
 title: ''
 labels: 'question'
