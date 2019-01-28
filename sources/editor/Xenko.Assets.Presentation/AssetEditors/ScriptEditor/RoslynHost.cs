@@ -61,6 +61,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
                 Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features"),
                 Assembly.Load("Microsoft.CodeAnalysis.Workspaces.MSBuild"),
                 typeof(IRoslynHost).Assembly, // RoslynPad.Roslyn
+                typeof(SymbolDisplayPartExtensions).Assembly, // RoslynPad.Roslyn.Windows
+                typeof(AvalonEditTextContainer).Assembly, // RoslynPad.Editor.Windows
             };
 
             var partTypes = assemblies
