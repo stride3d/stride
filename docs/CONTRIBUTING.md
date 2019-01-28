@@ -19,6 +19,6 @@ There's no Coding Style spec yet (and it will properly be done through a StyleCo
 
 ## Submitting Changes
 
-* Sign the [Contributor License Agreement](https://github.com/xenko3d/xenko/blob/master/docs/ContributorLicenseAgreement.md).
 * Push your changes to a topic branch in your fork of the repository.
+* If it's your first time contributing, [CLA assistant](https://cla-assistant.io/) will ask you to sign the [Contributor License Agreement](https://github.com/xenko3d/xenko/blob/master/docs/ContributorLicenseAgreement.md).
 * Submit a pull request to the repository in Xenko organization following pull-request template.
