@@ -42,7 +42,7 @@ namespace Xenko.Physics
             get { return indicesList; }
         }
 
-        public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
+        public override IDebugPrimitive CreateDebugPrimitive(GraphicsDevice device)
         {
             var verts = new VertexPositionNormalTexture[pointsList.Count];
             for (var i = 0; i < pointsList.Count; i++)
@@ -71,7 +71,7 @@ namespace Xenko.Physics
 
             var meshData = new GeometricMeshData<VertexPositionNormalTexture>(verts, intIndices, false);
 
-            return new GeometricPrimitive(device, meshData).ToMeshDraw();
+            return new DebugPrimitive { new GeometricPrimitive(device, meshData).ToMeshDraw() };
         }
     }
 }

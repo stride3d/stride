@@ -58,9 +58,9 @@ namespace Xenko.Physics
             DebugPrimitiveMatrix = Matrix.Translation(offset * Vector3.UnitY) * rotationMatrix;
         }
 
-        public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
+        public override IDebugPrimitive CreateDebugPrimitive(GraphicsDevice device)
         {
-            return GeometricPrimitive.Plane.New(device, 1000, 1000, 100, 100, normalDirection: NormalDirection.UpY).ToMeshDraw();
+            return new DebugPrimitive { GeometricPrimitive.Plane.New(device, 1000, 1000, 100, 100, normalDirection: NormalDirection.UpY).ToMeshDraw() };
         }
     }
 }

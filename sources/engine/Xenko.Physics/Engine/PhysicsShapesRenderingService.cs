@@ -36,8 +36,8 @@ namespace Xenko.Physics.Engine
         private readonly Dictionary<ComponentType, Material> componentTypeDefaultMaterial = new Dictionary<ComponentType, Material>();
         private readonly Dictionary<ComponentType, Material> componentTypeStaticPlaneMaterial = new Dictionary<ComponentType, Material>();
 
-        private readonly Dictionary<Type, MeshDraw> debugMeshCache = new Dictionary<Type, MeshDraw>();
-        private readonly Dictionary<ColliderShape, MeshDraw> debugMeshCache2 = new Dictionary<ColliderShape, MeshDraw>();
+        private readonly Dictionary<Type, IDebugPrimitive> debugMeshCache = new Dictionary<Type, IDebugPrimitive>();
+        private readonly Dictionary<ColliderShape, IDebugPrimitive> debugMeshCache2 = new Dictionary<ColliderShape, IDebugPrimitive>();
 
         public override void Initialize()
         {
@@ -130,37 +130,39 @@ namespace Xenko.Physics.Engine
                 case ColliderShapeTypes.Cone:
                 case ColliderShapeTypes.StaticPlane:
                     {
-                        MeshDraw draw;
+                        IDebugPrimitive debugPrimitive;
                         var type = shape.GetType();
                         if (type == typeof(CapsuleColliderShape) || type == typeof(ConvexHullColliderShape))
                         {
-                            if (!debugMeshCache2.TryGetValue(shape, out draw))
+                            if (!debugMeshCache2.TryGetValue(shape, out debugPrimitive))
                             {
-                                draw = shape.CreateDebugPrimitive(graphicsDevice);
-                                debugMeshCache2[shape] = draw;
+                                debugPrimitive = shape.CreateDebugPrimitive(graphicsDevice);
+                                debugMeshCache2[shape] = debugPrimitive;
                             }
                         }
                         else
                         {
-                            if (!debugMeshCache.TryGetValue(shape.GetType(), out draw))
+                            if (!debugMeshCache.TryGetValue(shape.GetType(), out debugPrimitive))
                             {
-                                draw = shape.CreateDebugPrimitive(graphicsDevice);
-                                debugMeshCache[shape.GetType()] = draw;
+                                debugPrimitive = shape.CreateDebugPrimitive(graphicsDevice);
+                                debugMeshCache[shape.GetType()] = debugPrimitive;
                             }
+                        }
+
+                        var model = new Model
+                        {
+                            GetMaterial(component, shape),
+                        };
+                        foreach (var meshDraw in debugPrimitive.GetMeshDraws())
+                        {
+                            model.Add(new Mesh { Draw = meshDraw });
                         }
 
                         var entity = new Entity
                         {
                             new ModelComponent
                             {
-                                Model = new Model
-                                {
-                                    GetMaterial(component, shape),
-                                    new Mesh
-                                    {
-                                        Draw = draw,
-                                    },
-                                },
+                                Model = model,
                                 RenderGroup = renderGroup,
                             },
                         };

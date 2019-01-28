@@ -44,9 +44,9 @@ namespace Xenko.Physics
             }
         }
 
-        public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
+        public override IDebugPrimitive CreateDebugPrimitive(GraphicsDevice device)
         {
-            return GeometricPrimitive.Sphere.New(device).ToMeshDraw();
+            return new DebugPrimitive { GeometricPrimitive.Sphere.New(device).ToMeshDraw() };
         }
     }
 }

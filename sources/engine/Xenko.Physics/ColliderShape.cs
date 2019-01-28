@@ -124,7 +124,7 @@ namespace Xenko.Physics
 
         internal CompoundColliderShape Parent;
 
-        public virtual MeshDraw CreateDebugPrimitive(GraphicsDevice device)
+        public virtual IDebugPrimitive CreateDebugPrimitive(GraphicsDevice device)
         {
             return null;
         }
