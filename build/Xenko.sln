@@ -21,6 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00-Targets.Private", "00-Ta
 		..\sources\targets\Xenko.Core.PostSettings.Dependencies.targets = ..\sources\targets\Xenko.Core.PostSettings.Dependencies.targets
 		..\sources\targets\Xenko.Core.PostSettings.targets = ..\sources\targets\Xenko.Core.PostSettings.targets
 		..\sources\targets\Xenko.Core.PreSettings.targets = ..\sources\targets\Xenko.Core.PreSettings.targets
+		..\sources\targets\Xenko.Core.Sign.targets = ..\sources\targets\Xenko.Core.Sign.targets
 		..\sources\targets\Xenko.Core.UWP.Cpp.targets = ..\sources\targets\Xenko.Core.UWP.Cpp.targets
 		..\sources\targets\Xenko.Core.UWP.CSharp.targets = ..\sources\targets\Xenko.Core.UWP.CSharp.targets
 		..\sources\targets\Xenko.GlobalSettings.targets = ..\sources\targets\Xenko.GlobalSettings.targets

@@ -35,4 +35,5 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <Import Project="..\..\targets\Xenko.Core.Sign.targets" />
 </Project>
