@@ -92,9 +92,7 @@ namespace Xenko.Assets.Presentation.Templates
             session.Projects.Add(project);
 
             // Load missing references
-            session.LoadMissingDependencies(parameters.Logger);
-            // Load dependency assets (needed for camera script template)
-            session.LoadMissingAssets(parameters.Logger, project.FlattenedDependencies.Select(x => x.Package).NotNull());
+            session.LoadMissingReferences(parameters.Logger);
 
             // Log done
             ProjectTemplateGeneratorHelper.Progress(logger, "Done", 1, 1);
