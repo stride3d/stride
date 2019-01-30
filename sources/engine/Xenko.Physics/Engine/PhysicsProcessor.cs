@@ -44,6 +44,8 @@ namespace Xenko.Physics
 
         internal void RenderColliderShapes(bool enabled)
         {
+            debugShapeRendering.Enabled = enabled;
+
             colliderShapesRendering = enabled;
 
             if (!colliderShapesRendering)
@@ -62,6 +64,8 @@ namespace Xenko.Physics
             }
             else
             {
+                debugShapeRendering.ResetUpdatableDebugMeshes();
+
                 debugScene = new Scene();
 
                 foreach (var element in elements)

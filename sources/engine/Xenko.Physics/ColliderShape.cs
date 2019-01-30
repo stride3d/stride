@@ -129,6 +129,10 @@ namespace Xenko.Physics
             return null;
         }
 
+        public virtual void UpdateDebugPrimitive(CommandList commandList, IDebugPrimitive debugPrimitive)
+        {
+        }
+
         public Matrix DebugPrimitiveMatrix;
 
         internal bool NeedsCustomCollisionCallback;

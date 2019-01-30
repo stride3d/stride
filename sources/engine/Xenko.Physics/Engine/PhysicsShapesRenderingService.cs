@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
+using Xenko.Games;
 using Xenko.Graphics;
+using Xenko.Physics.Shapes;
 using Xenko.Rendering;
 
 namespace Xenko.Physics.Engine
@@ -38,6 +40,9 @@ namespace Xenko.Physics.Engine
 
         private readonly Dictionary<Type, IDebugPrimitive> debugMeshCache = new Dictionary<Type, IDebugPrimitive>();
         private readonly Dictionary<ColliderShape, IDebugPrimitive> debugMeshCache2 = new Dictionary<ColliderShape, IDebugPrimitive>();
+        private readonly Dictionary<ColliderShape, IDebugPrimitive> updatableDebugMeshCache = new Dictionary<ColliderShape, IDebugPrimitive>();
+
+        private readonly Dictionary<ColliderShape, IDebugPrimitive> updatableDebugMeshes = new Dictionary<ColliderShape, IDebugPrimitive>();
 
         public override void Initialize()
         {
@@ -51,6 +56,22 @@ namespace Xenko.Physics.Engine
                 // TODO enable this once material is implemented.
                 // ComponentTypeStaticPlaneMaterial[type] = PhysicsDebugShapeMaterial.CreateStaticPlane(graphicsDevice, Color.AdjustSaturation(ComponentTypeColor[type], 0.77f), 1); 
             }
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            foreach (var keyValuePair in updatableDebugMeshes)
+            {
+                if (keyValuePair.Value != null)
+                {
+                    keyValuePair.Key?.UpdateDebugPrimitive(Game.GraphicsContext.CommandList, keyValuePair.Value);
+                }
+            }
+        }
+
+        public void ResetUpdatableDebugMeshes()
+        {
+            updatableDebugMeshes.Clear();
         }
 
         public PhysicsShapesRenderingService(IServiceRegistry registry) : base(registry)
@@ -129,10 +150,23 @@ namespace Xenko.Physics.Engine
                 case ColliderShapeTypes.Sphere:
                 case ColliderShapeTypes.Cone:
                 case ColliderShapeTypes.StaticPlane:
+                case ColliderShapeTypes.Heightfield:
                     {
                         IDebugPrimitive debugPrimitive;
                         var type = shape.GetType();
-                        if (type == typeof(CapsuleColliderShape) || type == typeof(ConvexHullColliderShape))
+                        if (type == typeof(HeightfieldColliderShape))
+                        {
+                            if (!updatableDebugMeshCache.TryGetValue(shape, out debugPrimitive))
+                            {
+                                debugPrimitive = shape.CreateDebugPrimitive(graphicsDevice);
+                                updatableDebugMeshCache[shape] = debugPrimitive;
+                            }
+                            if (!updatableDebugMeshes.ContainsKey(shape))
+                            {
+                                updatableDebugMeshes.Add(shape, debugPrimitive);
+                            }
+                        }
+                        else if (type == typeof(CapsuleColliderShape) || type == typeof(ConvexHullColliderShape))
                         {
                             if (!debugMeshCache2.TryGetValue(shape, out debugPrimitive))
                             {
