@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Isam.Esent.Interop;
 using Xenko.Core.Assets;
 using Xenko.Core.Assets.Quantum;
 using Xenko.Core;

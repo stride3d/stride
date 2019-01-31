@@ -102,7 +102,7 @@ namespace Xenko.Core.Assets
                         package.Meta.Version = new PackageVersion(packageVersion);
 
                     project.TargetPath = msProject.GetPropertyValue("TargetPath");
-                    package.Meta.Name = msProject.GetPropertyValue("PackageId") ?? msProject.GetPropertyValue("AssemblyName") ?? package.Meta.Name;
+                    package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
 
                     var outputType = msProject.GetPropertyValue("OutputType");
                     project.Type = outputType.ToLowerInvariant() == "winexe" || outputType.ToLowerInvariant() == "exe"

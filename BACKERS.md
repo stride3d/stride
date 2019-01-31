@@ -48,6 +48,8 @@ Thank you everybody for your generous contributions!
 * Connie
 * Berwyn
 * Andrew Wilson
+* Boris Callens
+* Jarrett K Robertson
 
 ## Mini Backers
 

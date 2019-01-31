@@ -18,7 +18,10 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="15.7.179" ExcludeAssets="runtime" />
-    <PackageReference Include="RoslynPad.Editor.Windows" Version="1.0.4" />
+    <PackageReference Include="AvalonEdit" Version="5.0.4" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.1.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="2.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.10.0" />
     <Reference Include="QuickGraph">
       <HintPath>$(XenkoCommonDependenciesDir)GraphX\QuickGraph.dll</HintPath>
     </Reference>
@@ -27,6 +30,15 @@
     </Reference>
     <Reference Include="GraphX.WPF.Controls">
       <HintPath>$(XenkoCommonDependenciesDir)GraphX\GraphX.WPF.Controls.dll</HintPath>
+    </Reference>
+    <Reference Include="RoslynPad.Editor.Windows">
+      <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\RoslynPad.Editor.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="RoslynPad.Roslyn.Windows">
+      <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\RoslynPad.Roslyn.Windows.dll</HintPath>
+    </Reference>
+    <Reference Include="RoslynPad.Roslyn">
+      <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\RoslynPad.Roslyn.dll</HintPath>
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Windows.Forms" />
@@ -774,6 +786,14 @@
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)RoslynPad*.dll" />
+    </ItemGroup>
+  </Target>
   <Target Name="RemoveVisualStudioRoslynDependencies" AfterTargets="ResolveAssemblyReferences">
     <ItemGroup>
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.FileName)').StartsWith('Microsoft.VisualStudio.'))" />

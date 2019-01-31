@@ -38,6 +38,8 @@ namespace Xenko.VirtualReality
 
         public abstract TouchController RightHand { get; }
 
+        public abstract TrackedItem[] TrackedItems { get; }
+
         public VRApi VRApi { get; protected set; }
 
         /// <summary>
@@ -62,6 +64,10 @@ namespace Xenko.VirtualReality
         public abstract void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight);
 
         public virtual void Recenter()
+        {
+        }
+
+        public virtual void SetTrackingSpace(TrackingSpace space)
         {
         }
 

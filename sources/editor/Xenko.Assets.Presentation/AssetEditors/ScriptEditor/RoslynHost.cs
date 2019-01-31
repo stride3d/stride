@@ -55,32 +55,22 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
         {
             var assemblies = new[]
             {
-                Assembly.Load("Microsoft.CodeAnalysis"),
-                Assembly.Load("Microsoft.CodeAnalysis.CSharp"),
+                Assembly.Load("Microsoft.CodeAnalysis.Workspaces"),
+                Assembly.Load("Microsoft.CodeAnalysis.CSharp.Workspaces"),
                 Assembly.Load("Microsoft.CodeAnalysis.Features"),
                 Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features"),
-                Assembly.Load("Microsoft.CodeAnalysis.Workspaces.Desktop"),
+                Assembly.Load("Microsoft.CodeAnalysis.Workspaces.MSBuild"),
                 typeof(IRoslynHost).Assembly, // RoslynPad.Roslyn
                 typeof(SymbolDisplayPartExtensions).Assembly, // RoslynPad.Roslyn.Windows
                 typeof(AvalonEditTextContainer).Assembly, // RoslynPad.Editor.Windows
             };
 
-            var partTypes = MefHostServices.DefaultAssemblies.Concat(assemblies)
-                .Distinct()
-                .SelectMany(x => x.GetTypes())
-                //.Concat(new[] { typeof(DocumentationProviderServiceFactory) })
-                .ToArray();
-
-            //var partTypes = new[]
-            //{
-            //    Assembly.Load("Microsoft.CodeAnalysis.EditorFeatures").GetType("Microsoft.CodeAnalysis.CodeFixes.CodeFixService"),
-            //    //typeof(RoslynDocumentTrackingServiceFactory),
-            //};
+            var partTypes = assemblies
+                .SelectMany(x => x.DefinedTypes)
+                .Select(x => x.AsType());
 
             return new ContainerConfiguration()
-                //.WithAssemblies(MefHostServices.DefaultAssemblies.Concat(assemblies))
                 .WithParts(partTypes)
-                .WithDefaultConventions(new AttributeFilterProvider())
                 .CreateContainer();
         }
 
@@ -129,24 +119,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
         public void CloseDocument(DocumentId documentId)
         {
             workspace.CloseDocument(documentId);
-        }
-
-        // Note: from RoslynPad, need to check if really necessary
-        private class AttributeFilterProvider : AttributedModelProvider
-        {
-            public override IEnumerable<Attribute> GetCustomAttributes(Type reflectedType, MemberInfo member)
-            {
-                var customAttributes = member.GetCustomAttributes().Where(x => !(x is ExtensionOrderAttribute)).ToArray();
-                //ReplaceMefV1Attributes(customAttributes);
-                return customAttributes;
-            }
-
-            public override IEnumerable<Attribute> GetCustomAttributes(Type reflectedType, ParameterInfo member)
-            {
-                var customAttributes = member.GetCustomAttributes().Where(x => !(x is ExtensionOrderAttribute)).ToArray();
-                //ReplaceMefV1Attributes(customAttributes);
-                return customAttributes;
-            }
         }
     }
 }

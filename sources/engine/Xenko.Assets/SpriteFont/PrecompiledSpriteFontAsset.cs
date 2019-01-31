@@ -17,9 +17,7 @@ namespace Xenko.Assets.SpriteFont
     [DataContract("PregeneratedSpriteFont")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Graphics.SpriteFont))]
-    [AssetFormatVersion(XenkoConfig.PackageName, "1.7.0-alpha01")]
-    [AssetUpgrader(XenkoConfig.PackageName, "0.0.0", "1.5.0-alpha09", typeof(PremultiplyUpgrader))]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.5.0-alpha09", "1.7.0-alpha01", typeof(SourceMembersUpgrader))]
+    [AssetFormatVersion(XenkoConfig.PackageName, "1.7.0-alpha01", "1.7.0-alpha01")]
     [CategoryOrder(10, "Font Data")]
     [CategoryOrder(20, "Font Properties")]
     [CategoryOrder(30, "Font Characters")]
@@ -134,29 +132,5 @@ namespace Xenko.Assets.SpriteFont
         [Display("Kernings", "Font Characters")]
         [DataMember(90)]
         public List<Kerning> Kernings = new List<Kerning>();
-
-        class PremultiplyUpgrader : AssetUpgraderBase
-        {
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
-            {
-                if (asset.IsNotPremultiplied != null)
-                {
-                    asset.IsPremultiplied = !(bool)asset.IsNotPremultiplied;
-                    asset.IsNotPremultiplied = DynamicYamlEmpty.Default;
-                }
-            }
-        }
-
-        class SourceMembersUpgrader : AssetUpgraderBase
-        {
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
-            {
-                if (asset.Source != null)
-                {
-                    asset.OriginalFont = asset.Source;
-                    asset.Source = DynamicYamlEmpty.Default;
-                }
-            }
-        }
     }
 }

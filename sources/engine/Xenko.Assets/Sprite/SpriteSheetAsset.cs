@@ -25,13 +25,7 @@ namespace Xenko.Assets.Sprite
     [CategoryOrder(150, "Sprites")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(SpriteSheet))]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "1.5.0-alpha01")]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.5.0-alpha01", "1.10.0-alpha01", typeof(SpriteSheetSRGBUpgrader))]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.10.0-alpha01", "2.0.0.0", typeof(CompressionUpgrader))]
-#else
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
     public partial class SpriteSheetAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";
@@ -187,50 +181,6 @@ namespace Xenko.Assets.Sprite
         public static string BuildTextureAtlasUrl(UFile textureAbsolutePath, int atlasIndex)
         {
             return textureAbsolutePath + "__ATLAS_TEXTURE__" + atlasIndex;
-        }
-
-        private class SpriteSheetSRGBUpgrader : AssetUpgraderBase
-        {
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
-            {
-                if (asset.ColorSpace != null)
-                {
-                    asset.UseSRgbSampling = (asset.ColorSpace != "Gamma"); // This is correct. It converts some legacy code with ambiguous meaning.
-                    asset.RemoveChild("ColorSpace");
-                }
-            }
-        }
-
-        private class CompressionUpgrader : AssetUpgraderBase
-        {
-            // public TextureFormat Format { get; set; } = TextureFormat.Compressed;
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
-            {
-                if (asset.ContainsChild("IsCompressed"))
-                {
-                    // This asset was already upgraded manually, so just bump the version
-                    return;
-                }
-
-                if (asset.ContainsChild("Format"))
-                {
-                    if (asset.Format == "Compressed")
-                    {
-                        asset.IsCompressed = true;
-                    }
-                    else
-                    {
-                        asset.IsCompressed = false;
-                    }
-
-                    asset.RemoveChild("Format");
-                }
-                else
-                {
-                    // The asset has no Format, so assign a value matching the default Format (Compressed)
-                    asset.IsCompressed = true;
-                }
-            }
         }
     }
 }
