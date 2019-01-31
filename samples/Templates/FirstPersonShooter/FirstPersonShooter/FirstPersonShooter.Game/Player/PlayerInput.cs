@@ -42,6 +42,12 @@ namespace FirstPersonShooter.Player
 
         public List<Keys> KeysReload { get; } = new List<Keys>();
 
+        public PlayerInput()
+        {
+            // Fix single frame input lag
+            Priority = -1000;
+        }
+
         public override void Update()
         {
             // Character movement
