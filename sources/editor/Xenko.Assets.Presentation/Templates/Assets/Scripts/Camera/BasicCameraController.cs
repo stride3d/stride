@@ -64,29 +64,29 @@ namespace ##Namespace##
             // Move with keyboard
             if (Input.IsKeyDown(Keys.W) || Input.IsKeyDown(Keys.Up))
             {
-                translation.Z -= KeyboardMovementSpeed.Z;
+                translation.Z = -KeyboardMovementSpeed.Z;
             }
-            if (Input.IsKeyDown(Keys.S) || Input.IsKeyDown(Keys.Down))
+            else if (Input.IsKeyDown(Keys.S) || Input.IsKeyDown(Keys.Down))
             {
-                translation.Z += KeyboardMovementSpeed.Z;
+                translation.Z = KeyboardMovementSpeed.Z;
             }
 
             if (Input.IsKeyDown(Keys.A) || Input.IsKeyDown(Keys.Left))
             {
-                translation.X -= KeyboardMovementSpeed.X;
+                translation.X = -KeyboardMovementSpeed.X;
             }
-            if (Input.IsKeyDown(Keys.D) || Input.IsKeyDown(Keys.Right))
+            else if (Input.IsKeyDown(Keys.D) || Input.IsKeyDown(Keys.Right))
             {
-                translation.X += KeyboardMovementSpeed.X;
+                translation.X = KeyboardMovementSpeed.X;
             }
 
             if (Input.IsKeyDown(Keys.Q))
             {
-                translation.Y -= KeyboardMovementSpeed.Y;
+                translation.Y = -KeyboardMovementSpeed.Y;
             }
-            if (Input.IsKeyDown(Keys.E))
+            else if (Input.IsKeyDown(Keys.E))
             {
-                translation.Y += KeyboardMovementSpeed.Y;
+                translation.Y = KeyboardMovementSpeed.Y;
             }
 
             // Alternative translation speed
@@ -98,28 +98,21 @@ namespace ##Namespace##
             // Rotate with keyboard
             if (Input.IsKeyDown(Keys.NumPad2))
             {
-                pitch += KeyboardRotationSpeed.X;
+                pitch = KeyboardRotationSpeed.X;
             }
-            if (Input.IsKeyDown(Keys.NumPad8))
+            else if (Input.IsKeyDown(Keys.NumPad8))
             {
-                pitch -= KeyboardRotationSpeed.X;
+                pitch = -KeyboardRotationSpeed.X;
             }
 
             if (Input.IsKeyDown(Keys.NumPad4))
             {
-                yaw += KeyboardRotationSpeed.Y;
+                yaw = KeyboardRotationSpeed.Y;
             }
-            if (Input.IsKeyDown(Keys.NumPad6))
+            else if (Input.IsKeyDown(Keys.NumPad6))
             {
-                yaw -= KeyboardRotationSpeed.Y;
+                yaw = -KeyboardRotationSpeed.Y;
             }
-
-            // Deal with non-consistant frame-rate, do it before 'flick-based' inputs 
-            // like mouse and gestures as scaling them would negatively impact their precision.
-            var elapsedTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-            translation *= elapsedTime;
-            pitch *= elapsedTime;
-            yaw *= elapsedTime;
 
             // Rotate with mouse
             if (Input.IsMouseButtonDown(MouseButton.Right))
@@ -127,8 +120,8 @@ namespace ##Namespace##
                 Input.LockMousePosition();
                 Game.IsMouseVisible = false;
 
-                yaw -= Input.MouseDelta.X * MouseRotationSpeed.X;
-                pitch -= Input.MouseDelta.Y * MouseRotationSpeed.Y;
+                yaw = -Input.MouseDelta.X * MouseRotationSpeed.X;
+                pitch = -Input.MouseDelta.Y * MouseRotationSpeed.Y;
             }
             else
             {
@@ -162,6 +155,12 @@ namespace ##Namespace##
 
         private void UpdateTransform()
         {
+            var elapsedTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
+
+            translation *= elapsedTime;
+            yaw *= elapsedTime;
+            pitch *= elapsedTime;
+
             // Get the local coordinate system
             var rotation = Matrix.RotationQuaternion(Entity.Transform.Rotation);
 
