@@ -26,8 +26,9 @@ namespace Xenko.UI.Renderers
 
             if (textBlock.Font == null || textBlock.TextToDisplay == null)
                 return;
-
-            var drawCommand = new SpriteFont.InternalUIDrawCommand {
+            
+            var drawCommand = new SpriteFont.InternalUIDrawCommand
+            {
                 Color = textBlock.RenderOpacity * textBlock.TextColor,
                 DepthBias = context.DepthBias,
                 RealVirtualResolutionRatio = element.LayoutingContext.RealVirtualResolutionRatio,

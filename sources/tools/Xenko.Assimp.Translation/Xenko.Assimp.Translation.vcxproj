@@ -29,7 +29,6 @@
     <ProjectGuid>{FCDF1B87-1C76-46EB-AD6A-D55EF5F195B8}</ProjectGuid>
     <RootNamespace>Xenko.AssimpNet.NetTranslation</RootNamespace>
     <ProjectName>Xenko.Assimp.Translation</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
