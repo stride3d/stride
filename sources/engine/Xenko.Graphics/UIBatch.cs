@@ -26,7 +26,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// The view projection matrix that will be used for the current begin/end draw calls.
         /// </summary>
-        private Matrix viewProjectionMatrix;
+        public Matrix viewProjectionMatrix;
 
         // Cached states
         private BlendStateDescription? currentBlendState;
@@ -400,7 +400,7 @@ namespace Xenko.Graphics
             if (texture == null) throw new ArgumentNullException(nameof(texture));
 
             // Calculate the information needed to draw.
-            var drawInfo = new UIImageDrawInfo
+            /*var drawInfo = new UIImageDrawInfo
             {
                 Source =
                 {
@@ -418,7 +418,34 @@ namespace Xenko.Graphics
                 UnitXWorld = worldViewProjectionMatrix.Row1,
                 UnitYWorld = worldViewProjectionMatrix.Row2,
                 LeftTopCornerWorld = worldViewProjectionMatrix.Row4,
+            };*/
+
+            // Calculate the information needed to draw.
+            var drawInfo = new UIImageDrawInfo {
+                Source =
+                {
+                    X = sourceRectangle.X / texture.ViewWidth,
+                    Y = sourceRectangle.Y / texture.ViewHeight,
+                    Width = sourceRectangle.Width / texture.ViewWidth,
+                    Height = sourceRectangle.Height / texture.ViewHeight,
+                },
+                DepthBias = depthBias,
+                ColorScale = color,
+                ColorAdd = new Color(0, 0, 0, 0),
+                Swizzle = swizzle,
+                Primitive = PrimitiveType.Rectangle,
+                VertexShift = Vector4.Zero,
+                UnitXWorld = worldViewProjectionMatrix.Row1,
+                UnitYWorld = worldViewProjectionMatrix.Row2,
+                LeftTopCornerWorld = worldViewProjectionMatrix.Row4,
             };
+
+            Matrix worldViewProjection;
+            Matrix.Multiply(ref worldViewProjectionMatrix, ref viewProjectionMatrix, out worldViewProjection);
+            drawInfo.UnitXWorld = worldViewProjection.Row1;
+            drawInfo.UnitYWorld = worldViewProjection.Row2;
+            drawInfo.UnitZWorld = worldViewProjection.Row3;
+            //Vector4.Transform(ref vector4LeftTop, ref worldViewProjection, out drawInfo.LeftTopCornerWorld);
 
             var elementInfo = new ElementInfo(4, 6, ref drawInfo, depthBias);
 
@@ -438,12 +465,12 @@ namespace Xenko.Graphics
             worldMatrix.M41 -= worldMatrix.M11 * leftTopCornerOffset.X + worldMatrix.M21 * leftTopCornerOffset.Y;
             worldMatrix.M42 -= worldMatrix.M12 * leftTopCornerOffset.X + worldMatrix.M22 * leftTopCornerOffset.Y;
             worldMatrix.M43 -= worldMatrix.M13 * leftTopCornerOffset.X + worldMatrix.M23 * leftTopCornerOffset.Y;
-
+            
             // transform the world matrix into the world view project matrix
             Matrix.MultiplyTo(ref worldMatrix, ref viewProjectionMatrix, out drawCommand.Matrix);
 
             // do not snap static fonts when real/virtual resolution does not match.
-            if (font.FontType == SpriteFontType.SDF)
+            /*if (font.FontType == SpriteFontType.SDF) //debug
             {
                 drawCommand.SnapText = false;
                 float scaling = drawCommand.RequestedFontSize / font.Size;
@@ -456,9 +483,11 @@ namespace Xenko.Graphics
 
                 drawCommand.RealVirtualResolutionRatio = Vector2.One; // ensure that static font are not scaled internally
             }
+            */
+            drawCommand.RealVirtualResolutionRatio = Vector2.One;
 
             // snap draw start position to prevent characters to be drawn in between two pixels
-            if (drawCommand.SnapText)
+            /*if (drawCommand.SnapText)
             {
                 var invW = 1.0f / drawCommand.Matrix.M44;
                 var backBufferHalfWidth = GraphicsContext.CommandList.RenderTarget.ViewWidth / 2;
@@ -470,7 +499,7 @@ namespace Xenko.Graphics
                 drawCommand.Matrix.M42 = (float)(Math.Round(drawCommand.Matrix.M42 * backBufferHalfHeight) / backBufferHalfHeight);
                 drawCommand.Matrix.M41 /= invW;
                 drawCommand.Matrix.M42 /= invW;
-            }
+            }*/
 
             font.InternalUIDraw(GraphicsContext.CommandList, ref proxy, ref drawCommand);
         }

@@ -40,6 +40,7 @@
     <ProjectGuid>{43A6E62E-1B1C-4630-ABB8-C3F716004645}</ProjectGuid>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>Xenko.Importer.Common</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">

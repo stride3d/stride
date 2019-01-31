@@ -284,7 +284,7 @@ namespace Xenko.Graphics
             worldMatrix.M41 += worldMatrix.M11 * xScaledShift + worldMatrix.M21 * yScaledShift;
             worldMatrix.M42 += worldMatrix.M12 * xScaledShift + worldMatrix.M22 * yScaledShift;
             worldMatrix.M43 += worldMatrix.M13 * xScaledShift + worldMatrix.M23 * yScaledShift;
-
+        
             worldMatrix.M11 *= elementSize.X;
             worldMatrix.M12 *= elementSize.X;
             worldMatrix.M13 *= elementSize.X;
