@@ -134,11 +134,13 @@ namespace Xenko.Physics.Shapes
                     var tileWidth = Math.Min(MaxTileWidth, width - i);
                     var tileHeight = Math.Min(MaxTileHeight, height - j);
 
-                    CreateMeshData(tileWidth, tileHeight, offset + new Vector3(i, 0, j), out var vertices, out var indices);
+                    var point = new Point(i, j);
+
+                    CreateMeshData(point, tileWidth, tileHeight, offset + new Vector3(i, 0, j), out var vertices, out var indices);
 
                     var tile = new HeightfieldDebugPrimitiveTile
                     {
-                        Point = new Point(i, j),
+                        Point = point,
                         Width = tileWidth,
                         Height = tileHeight,
                         Vertices = vertices,
@@ -161,33 +163,13 @@ namespace Xenko.Physics.Shapes
                 return;
             }
 
-            float GetHeightStickValue(int x, int y)
-            {
-                var index = y * HeightStickWidth + x;
-
-                switch (HeightType)
-                {
-                    case HeightfieldTypes.Short:
-                        return ShortArray[index];
-
-                    case HeightfieldTypes.Byte:
-                        return ByteArray[index];
-
-                    case HeightfieldTypes.Float:
-                        return FloatArray[index];
-
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
-
             Dispatcher.ForEach(heightfield.Tiles, (tile) =>
             {
                 for (int j = 0; j <= tile.Height; ++j)
                 {
                     for (int i = 0; i <= tile.Width; ++i)
                     {
-                        tile.Vertices[j * (tile.Width + 1) + i].Position.Y = GetHeightStickValue(tile.Point.X + i, tile.Point.Y + j) * HeightScale;
+                        tile.Vertices[j * (tile.Width + 1) + i].Position.Y = GetHeight(tile.Point.X + i, tile.Point.Y + j);
                     }
                 }
             });
@@ -195,6 +177,26 @@ namespace Xenko.Physics.Shapes
             foreach (var tile in heightfield.Tiles)
             {
                 tile.MeshDraw.VertexBuffers[0].Buffer.SetData(commandList, tile.Vertices);
+            }
+        }
+
+        private float GetHeight(int x, int y)
+        {
+            var index = y * HeightStickWidth + x;
+
+            switch (HeightType)
+            {
+                case HeightfieldTypes.Short:
+                    return ShortArray[index] * HeightScale;
+
+                case HeightfieldTypes.Byte:
+                    return ByteArray[index] * HeightScale;
+
+                case HeightfieldTypes.Float:
+                    return FloatArray[index];
+
+                default:
+                    throw new NotSupportedException();
             }
         }
 
@@ -215,7 +217,7 @@ namespace Xenko.Physics.Shapes
             return meshDraw;
         }
 
-        private void CreateMeshData(int width, int height, Vector3 offset, out VertexPositionNormalTexture[] vertices, out short[] indices)
+        private void CreateMeshData(Point point, int width, int height, Vector3 offset, out VertexPositionNormalTexture[] vertices, out short[] indices)
         {
             vertices = new VertexPositionNormalTexture[(width + 1) * (height + 1)];
 
@@ -228,7 +230,7 @@ namespace Xenko.Physics.Shapes
             {
                 for (int i = 0; i <= width; ++i)
                 {
-                    vertices[GetIndex(i, j)] = new VertexPositionNormalTexture(offset + new Vector3(i, 0, j), Vector3.UnitY, new Vector2(stepU * i, stepV * j));
+                    vertices[GetIndex(i, j)] = new VertexPositionNormalTexture(offset + new Vector3(i, GetHeight(point.X + i, point.Y + j), j), Vector3.UnitY, new Vector2(stepU * i, stepV * j));
                 }
             }
 
