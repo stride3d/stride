@@ -200,7 +200,7 @@ namespace Xenko.Physics.Shapes
             }
         }
 
-        private MeshDraw CreateMeshDraw(GraphicsDevice graphicsDevice, VertexPositionNormalTexture[] vertices, short[] indices)
+        private MeshDraw CreateMeshDraw(GraphicsDevice graphicsDevice, VertexPositionNormalTexture[] vertices, ushort[] indices)
         {
             var vertexBuffer = Buffer.Vertex.New(graphicsDevice, vertices, GraphicsResourceUsage.Dynamic).RecreateWith(vertices);
             var indexBuffer = Buffer.Index.New(graphicsDevice, indices).RecreateWith(indices);
@@ -217,11 +217,11 @@ namespace Xenko.Physics.Shapes
             return meshDraw;
         }
 
-        private void CreateMeshData(Point point, int width, int height, Vector3 offset, out VertexPositionNormalTexture[] vertices, out short[] indices)
+        private void CreateMeshData(Point point, int width, int height, Vector3 offset, out VertexPositionNormalTexture[] vertices, out ushort[] indices)
         {
             vertices = new VertexPositionNormalTexture[(width + 1) * (height + 1)];
 
-            short GetIndex(int x, int y) => (short)(y * (width + 1) + x);
+            ushort GetIndex(int x, int y) => (ushort)(y * (width + 1) + x);
 
             var stepU = 1f / width;
             var stepV = 1f / height;
@@ -234,7 +234,7 @@ namespace Xenko.Physics.Shapes
                 }
             }
 
-            indices = new short[width * height * 6];
+            indices = new ushort[width * height * 6];
             var count = 0;
             for (int j = 0; j < height; ++j)
             {
