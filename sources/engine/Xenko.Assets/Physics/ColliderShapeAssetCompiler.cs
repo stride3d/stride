@@ -101,7 +101,8 @@ namespace Xenko.Assets.Physics
                 //pre process special types
                 foreach (var convexHullDesc in
                     (from shape in validShapes let type = shape.GetType() where type == typeof(ConvexHullColliderShapeDesc) select shape)
-                    .Cast<ConvexHullColliderShapeDesc>())
+                    .Cast<ConvexHullColliderShapeDesc>()
+                    .Where(s => s.Generator is IVhacdConvexHullGenerator))
                 {
                     // Clone the convex hull shape description so the fields that should not be serialized can be cleared (Model in this case)
                     ConvexHullColliderShapeDesc convexHullDescClone = new ConvexHullColliderShapeDesc
@@ -109,13 +110,7 @@ namespace Xenko.Assets.Physics
                         Scaling = convexHullDesc.Scaling,
                         LocalOffset = convexHullDesc.LocalOffset,
                         LocalRotation = convexHullDesc.LocalRotation,
-                        Depth = convexHullDesc.Depth,
-                        PosSampling = convexHullDesc.PosSampling,
-                        AngleSampling = convexHullDesc.AngleSampling,
-                        PosRefine = convexHullDesc.PosRefine,
-                        AngleRefine = convexHullDesc.AngleRefine,
-                        Alpha = convexHullDesc.Alpha,
-                        Threshold = convexHullDesc.Threshold,
+                        Generator = convexHullDesc.Generator,
                     };
 
                     // Replace shape in final result with cloned description
@@ -264,20 +259,22 @@ namespace Xenko.Assets.Physics
                             }
                         }
 
+                        var generator = convexHullDesc.Generator as IVhacdConvexHullGenerator;
+
                         var decompositionDesc = new ConvexHullMesh.DecompositionDesc
                         {
                             VertexCount = (uint)combinedVerts.Count / 3,
                             IndicesCount = (uint)combinedIndices.Count,
                             Vertexes = combinedVerts.ToArray(),
                             Indices = combinedIndices.ToArray(),
-                            Depth = convexHullDesc.Depth,
-                            PosSampling = convexHullDesc.PosSampling,
-                            PosRefine = convexHullDesc.PosRefine,
-                            AngleSampling = convexHullDesc.AngleSampling,
-                            AngleRefine = convexHullDesc.AngleRefine,
-                            Alpha = convexHullDesc.Alpha,
-                            Threshold = convexHullDesc.Threshold,
-                            SimpleHull = convexHullDesc.SimpleWrap
+                            Depth = generator.Depth,
+                            PosSampling = generator.PosSampling,
+                            PosRefine = generator.PosRefine,
+                            AngleSampling = generator.AngleSampling,
+                            AngleRefine = generator.AngleRefine,
+                            Alpha = generator.Alpha,
+                            Threshold = generator.Threshold,
+                            SimpleHull = generator.SimpleHull,
                         };
 
                         var convexHullMesh = new ConvexHullMesh();
