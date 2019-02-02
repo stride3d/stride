@@ -158,7 +158,7 @@ namespace Xenko.Physics.Engine
                         {
                             if (!updatableDebugMeshCache.TryGetValue(shape, out debugPrimitive))
                             {
-                                debugPrimitive = shape.CreateDebugPrimitive(graphicsDevice);
+                                debugPrimitive = shape.CreateUpdatableDebugPrimitive(graphicsDevice);
                                 updatableDebugMeshCache[shape] = debugPrimitive;
                             }
                             if (!updatableDebugMeshes.ContainsKey(shape))
@@ -170,7 +170,7 @@ namespace Xenko.Physics.Engine
                         {
                             if (!debugMeshCache2.TryGetValue(shape, out debugPrimitive))
                             {
-                                debugPrimitive = shape.CreateDebugPrimitive(graphicsDevice);
+                                debugPrimitive = new DebugPrimitive { shape.CreateDebugPrimitive(graphicsDevice) };
                                 debugMeshCache2[shape] = debugPrimitive;
                             }
                         }
@@ -178,7 +178,7 @@ namespace Xenko.Physics.Engine
                         {
                             if (!debugMeshCache.TryGetValue(shape.GetType(), out debugPrimitive))
                             {
-                                debugPrimitive = shape.CreateDebugPrimitive(graphicsDevice);
+                                debugPrimitive = new DebugPrimitive { shape.CreateDebugPrimitive(graphicsDevice) };
                                 debugMeshCache[shape.GetType()] = debugPrimitive;
                             }
                         }

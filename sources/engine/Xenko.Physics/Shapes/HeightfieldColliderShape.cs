@@ -118,7 +118,7 @@ namespace Xenko.Physics.Shapes
         private readonly int MaxTileWidth = 64;
         private readonly int MaxTileHeight = 64;
 
-        public override IDebugPrimitive CreateDebugPrimitive(GraphicsDevice graphicsDevice)
+        public override IDebugPrimitive CreateUpdatableDebugPrimitive(GraphicsDevice graphicsDevice)
         {
             var width = HeightStickWidth - 1;
             var height = HeightStickLength - 1;

@@ -73,9 +73,9 @@ namespace Xenko.Physics
             DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(DebugScaling)) * rotation;
         }
 
-        public override IDebugPrimitive CreateDebugPrimitive(GraphicsDevice device)
+        public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
         {
-            return new DebugPrimitive { GeometricPrimitive.Capsule.New(device, capsuleLength, capsuleRadius).ToMeshDraw() };
+            return GeometricPrimitive.Capsule.New(device, capsuleLength, capsuleRadius).ToMeshDraw();
         }
 
         public override Vector3 Scaling
