@@ -30,7 +30,7 @@ namespace Xenko.Physics.Shapes
         {
         }
 
-        private HeightfieldColliderShape
+        internal HeightfieldColliderShape
         (
             int heightStickWidth,
             int heightStickLength,
