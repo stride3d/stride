@@ -5,8 +5,8 @@ namespace Xenko.Physics
 {
     public enum HeightfieldTypes
     {
-        Short,
         Byte,
+        Short,
         Float,
     }
 }
