@@ -280,7 +280,7 @@ namespace Xenko.Graphics
             var xScaledShift = xShift / parameters.RealVirtualResolutionRatio.X;
             var yScaledShift = yShift / parameters.RealVirtualResolutionRatio.Y;
 
-            var worldMatrix = parameters.Matrix;
+            var worldMatrix = parameters.OriginalMatrix;
             worldMatrix.M41 += worldMatrix.M11 * xScaledShift + worldMatrix.M21 * yScaledShift;
             worldMatrix.M42 += worldMatrix.M12 * xScaledShift + worldMatrix.M22 * yScaledShift;
             worldMatrix.M43 += worldMatrix.M13 * xScaledShift + worldMatrix.M23 * yScaledShift;
@@ -292,8 +292,11 @@ namespace Xenko.Graphics
             worldMatrix.M22 *= elementSize.Y;
             worldMatrix.M23 *= elementSize.Y;
 
+            Matrix projMat = parameters.Batch.getViewProjectionMatrix();
+            Matrix.Multiply(ref worldMatrix, ref projMat, out parameters.Matrix);
+
             RectangleF sourceRectangle = glyph.Subrect;
-            parameters.Batch.DrawCharacter(Textures[glyph.BitmapIndex], ref worldMatrix, ref sourceRectangle, ref parameters.Color, parameters.DepthBias, swizzle);
+            parameters.Batch.DrawCharacter(Textures[glyph.BitmapIndex], ref parameters.Matrix, ref sourceRectangle, ref parameters.Color, parameters.DepthBias, swizzle);
         }
 
         /// <summary>
@@ -685,7 +688,7 @@ namespace Xenko.Graphics
 
             public UIBatch Batch;
 
-            public Matrix Matrix;
+            public Matrix OriginalMatrix, Matrix;
 
             /// <summary>
             /// The size of the rectangle containing the text

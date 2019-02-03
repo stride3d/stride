@@ -28,6 +28,10 @@ namespace Xenko.Graphics
         /// </summary>
         private Matrix viewProjectionMatrix;
 
+        public Matrix getViewProjectionMatrix() {
+            return viewProjectionMatrix;
+        }
+
         // Cached states
         private BlendStateDescription? currentBlendState;
         private SamplerState currentSamplerState;
@@ -433,14 +437,14 @@ namespace Xenko.Graphics
             var proxy = new SpriteFont.StringProxy(text);
 
             // shift the string position so that it is written from the left/top corner of the element
-            var leftTopCornerOffset = drawCommand.TextBoxSize / 2;
-            var worldMatrix = drawCommand.Matrix;
-            worldMatrix.M41 -= worldMatrix.M11 * leftTopCornerOffset.X + worldMatrix.M21 * leftTopCornerOffset.Y;
-            worldMatrix.M42 -= worldMatrix.M12 * leftTopCornerOffset.X + worldMatrix.M22 * leftTopCornerOffset.Y;
-            worldMatrix.M43 -= worldMatrix.M13 * leftTopCornerOffset.X + worldMatrix.M23 * leftTopCornerOffset.Y;
+            var leftTopCornerOffset = drawCommand.TextBoxSize / 2f;
+            drawCommand.OriginalMatrix = drawCommand.Matrix;
+            drawCommand.OriginalMatrix.M41 -= drawCommand.OriginalMatrix.M11 * leftTopCornerOffset.X + drawCommand.OriginalMatrix.M21 * leftTopCornerOffset.Y;
+            drawCommand.OriginalMatrix.M42 -= drawCommand.OriginalMatrix.M12 * leftTopCornerOffset.X + drawCommand.OriginalMatrix.M22 * leftTopCornerOffset.Y;
+            drawCommand.OriginalMatrix.M43 -= drawCommand.OriginalMatrix.M13 * leftTopCornerOffset.X + drawCommand.OriginalMatrix.M23 * leftTopCornerOffset.Y;
 
             // transform the world matrix into the world view project matrix
-            Matrix.MultiplyTo(ref worldMatrix, ref viewProjectionMatrix, out drawCommand.Matrix);
+            Matrix.MultiplyTo(ref drawCommand.OriginalMatrix, ref viewProjectionMatrix, out drawCommand.Matrix);
 
             // do not snap static fonts when real/virtual resolution does not match.
             if (font.FontType == SpriteFontType.SDF)
@@ -457,6 +461,9 @@ namespace Xenko.Graphics
                 drawCommand.RealVirtualResolutionRatio = Vector2.One; // ensure that static font are not scaled internally
             }
 
+            drawCommand.RealVirtualResolutionRatio.X = 1f;
+            drawCommand.RealVirtualResolutionRatio.Y = 1f;
+            
             // snap draw start position to prevent characters to be drawn in between two pixels
             if (drawCommand.SnapText)
             {
