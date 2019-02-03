@@ -60,12 +60,21 @@ namespace Xenko.Physics.Engine
 
         public override void Update(GameTime gameTime)
         {
+            var unusedShapes = new List<ColliderShape>();
             foreach (var keyValuePair in updatableDebugMeshes)
             {
-                if (keyValuePair.Value != null)
+                if (keyValuePair.Value != null && keyValuePair.Key.DebugEntity?.Scene != null)
                 {
-                    keyValuePair.Key?.UpdateDebugPrimitive(Game.GraphicsContext.CommandList, keyValuePair.Value);
+                    keyValuePair.Key.UpdateDebugPrimitive(Game.GraphicsContext.CommandList, keyValuePair.Value);
                 }
+                else
+                {
+                    unusedShapes.Add(keyValuePair.Key);
+                }
+            }
+            foreach (var shape in unusedShapes)
+            {
+                updatableDebugMeshes.Remove(shape);
             }
         }
 
