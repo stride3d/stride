@@ -212,5 +212,19 @@ namespace Xenko.Core.Extensions
 
             return result;
         }
+
+        /// <summary>
+        /// Fill the array.
+        /// </summary>
+        /// <typeparam name="T">Type of the array element</typeparam>
+        /// <param name="unmanagedArray">The array to fill</param>
+        /// <param name="value">The value to fill the array elements</param>
+        public static void Fill<T>([NotNull] this UnmanagedArray<T> unmanagedArray, T value) where T : struct
+        {
+            for (int i = 0; i < unmanagedArray.Length; ++i)
+            {
+                unmanagedArray[i] = value;
+            }
+        }
     }
 }
