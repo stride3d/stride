@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xenko.Core;
+using Xenko.Core.Extensions;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Threading;
 using Xenko.Graphics;
@@ -261,6 +262,22 @@ namespace Xenko.Physics.Shapes
             ByteArray = null;
             FloatArray?.Dispose();
             FloatArray = null;
+        }
+
+        public static UnmanagedArray<T> CreateDynamicFieldData<T>(int length, T defaultValue, T[] initialData = null) where T : struct
+        {
+            var dynamicFieldData = new UnmanagedArray<T>(length);
+
+            if (initialData != null)
+            {
+                dynamicFieldData.Write(initialData);
+            }
+            else
+            {
+                dynamicFieldData.Fill(defaultValue);
+            }
+
+            return dynamicFieldData;
         }
 
         private enum BulletPhyScalarType
