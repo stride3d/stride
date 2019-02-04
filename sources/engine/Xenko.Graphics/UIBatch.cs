@@ -26,11 +26,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// The view projection matrix that will be used for the current begin/end draw calls.
         /// </summary>
-        private Matrix viewProjectionMatrix;
-
-        public Matrix getViewProjectionMatrix() {
-            return viewProjectionMatrix;
-        }
+        public Matrix viewProjectionMatrix;
 
         // Cached states
         private BlendStateDescription? currentBlendState;
@@ -438,16 +434,21 @@ namespace Xenko.Graphics
 
             // shift the string position so that it is written from the left/top corner of the element
             var leftTopCornerOffset = drawCommand.TextBoxSize / 2f;
-            drawCommand.OriginalMatrix = drawCommand.Matrix;
-            drawCommand.OriginalMatrix.M41 -= drawCommand.OriginalMatrix.M11 * leftTopCornerOffset.X + drawCommand.OriginalMatrix.M21 * leftTopCornerOffset.Y;
-            drawCommand.OriginalMatrix.M42 -= drawCommand.OriginalMatrix.M12 * leftTopCornerOffset.X + drawCommand.OriginalMatrix.M22 * leftTopCornerOffset.Y;
-            drawCommand.OriginalMatrix.M43 -= drawCommand.OriginalMatrix.M13 * leftTopCornerOffset.X + drawCommand.OriginalMatrix.M23 * leftTopCornerOffset.Y;
-
-            // transform the world matrix into the world view project matrix
-            Matrix.MultiplyTo(ref drawCommand.OriginalMatrix, ref viewProjectionMatrix, out drawCommand.Matrix);
+            drawCommand.Matrix.M41 -= drawCommand.Matrix.M11 * leftTopCornerOffset.X + drawCommand.Matrix.M21 * leftTopCornerOffset.Y;
+            drawCommand.Matrix.M42 -= drawCommand.Matrix.M12 * leftTopCornerOffset.X + drawCommand.Matrix.M22 * leftTopCornerOffset.Y;
+            drawCommand.Matrix.M43 -= drawCommand.Matrix.M13 * leftTopCornerOffset.X + drawCommand.Matrix.M23 * leftTopCornerOffset.Y;
 
             // do not snap static fonts when real/virtual resolution does not match.
-            if (font.FontType == SpriteFontType.SDF)
+            if(drawCommand.Batch.viewProjectionMatrix.M12 != 0f ||
+               drawCommand.Batch.viewProjectionMatrix.M13 != 0f ||
+               drawCommand.Batch.viewProjectionMatrix.M14 != 0f )
+            {
+                // we are drawing in 3D, don't snap or scale
+                drawCommand.SnapText = false;
+                drawCommand.RealVirtualResolutionRatio.X = 1f;
+                drawCommand.RealVirtualResolutionRatio.Y = 1f;
+            } 
+            else if (font.FontType == SpriteFontType.SDF)
             {
                 drawCommand.SnapText = false;
                 float scaling = drawCommand.RequestedFontSize / font.Size;
@@ -460,9 +461,6 @@ namespace Xenko.Graphics
 
                 drawCommand.RealVirtualResolutionRatio = Vector2.One; // ensure that static font are not scaled internally
             }
-
-            drawCommand.RealVirtualResolutionRatio.X = 1f;
-            drawCommand.RealVirtualResolutionRatio.Y = 1f;
             
             // snap draw start position to prevent characters to be drawn in between two pixels
             if (drawCommand.SnapText)
