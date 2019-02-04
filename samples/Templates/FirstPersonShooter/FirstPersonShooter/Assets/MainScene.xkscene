@@ -4872,6 +4872,7 @@ Hierarchy:
                         MaxRunSpeed: 9.0
                     5cea3fc41b5e1c40865911bd77ee624c: !FirstPersonShooter.Player.PlayerInput,FirstPersonShooter.Game
                         Id: c43fea5c-5e1b-401c-8659-11bd77ee624c
+                        Priority: -1000
                         DeadZone: 0.25
                         Camera: ref!! 79c1cebd-d690-4e7f-b9d1-d3a9197c95a2
                         MouseSensitivity: 100.0
