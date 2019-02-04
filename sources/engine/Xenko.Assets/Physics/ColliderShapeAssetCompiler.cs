@@ -101,8 +101,7 @@ namespace Xenko.Assets.Physics
                 //pre process special types
                 foreach (var convexHullDesc in
                     (from shape in validShapes let type = shape.GetType() where type == typeof(ConvexHullColliderShapeDesc) select shape)
-                    .Cast<ConvexHullColliderShapeDesc>()
-                    .Where(s => s.Generator is IVhacdConvexHullGenerator))
+                    .Cast<ConvexHullColliderShapeDesc>())
                 {
                     // Clone the convex hull shape description so the fields that should not be serialized can be cleared (Model in this case)
                     ConvexHullColliderShapeDesc convexHullDescClone = new ConvexHullColliderShapeDesc
@@ -110,7 +109,7 @@ namespace Xenko.Assets.Physics
                         Scaling = convexHullDesc.Scaling,
                         LocalOffset = convexHullDesc.LocalOffset,
                         LocalRotation = convexHullDesc.LocalRotation,
-                        Generator = convexHullDesc.Generator,
+                        DecompositionParameters = convexHullDesc.DecompositionParameters,
                     };
 
                     // Replace shape in final result with cloned description
@@ -259,22 +258,20 @@ namespace Xenko.Assets.Physics
                             }
                         }
 
-                        var generator = convexHullDesc.Generator as IVhacdConvexHullGenerator;
-
                         var decompositionDesc = new ConvexHullMesh.DecompositionDesc
                         {
                             VertexCount = (uint)combinedVerts.Count / 3,
                             IndicesCount = (uint)combinedIndices.Count,
                             Vertexes = combinedVerts.ToArray(),
                             Indices = combinedIndices.ToArray(),
-                            Depth = generator.Depth,
-                            PosSampling = generator.PosSampling,
-                            PosRefine = generator.PosRefine,
-                            AngleSampling = generator.AngleSampling,
-                            AngleRefine = generator.AngleRefine,
-                            Alpha = generator.Alpha,
-                            Threshold = generator.Threshold,
-                            SimpleHull = generator.SimpleHull,
+                            Depth = convexHullDesc.DecompositionParameters.Depth,
+                            PosSampling = convexHullDesc.DecompositionParameters.PosSampling,
+                            PosRefine = convexHullDesc.DecompositionParameters.PosRefine,
+                            AngleSampling = convexHullDesc.DecompositionParameters.AngleSampling,
+                            AngleRefine = convexHullDesc.DecompositionParameters.AngleRefine,
+                            Alpha = convexHullDesc.DecompositionParameters.Alpha,
+                            Threshold = convexHullDesc.DecompositionParameters.Threshold,
+                            SimpleHull = !convexHullDesc.DecompositionParameters.Enabled,
                         };
 
                         var convexHullMesh = new ConvexHullMesh();

@@ -7,15 +7,15 @@ using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Physics
 {
-    [ContentSerializer(typeof(DataContentSerializer<ComplexConvexHullGenerator>))]
-    [DataContract("ComplexConvexHullGenerator")]
-    [Display("Complex")]
-    public class ComplexConvexHullGenerator : IVhacdConvexHullGenerator
+    [ContentSerializer(typeof(DataContentSerializer<DecompositionParameters>))]
+    [DataContract("DecompositionParameters")]
+    [Display("DecompositionParameters")]
+    public class DecompositionParameters
     {
         /// <userdoc>
-        /// If this is checked the following parameters are totally ignored, as only a simple convex hull of the whole model will be generated.
+        /// If this is unchecked the following parameters are totally ignored, as only a simple convex hull of the whole model will be generated.
         /// </userdoc>
-        public bool SimpleHull => false;
+        public bool Enabled { get; set; }
 
         /// <userdoc>
         /// Control how many sub convex hulls will be created, more depth will result in a more complex decomposition.
@@ -61,20 +61,21 @@ namespace Xenko.Physics
 
         public bool Match(object obj)
         {
-            var other = obj as ComplexConvexHullGenerator;
+            var other = obj as DecompositionParameters;
 
             if (other == null)
             {
                 return false;
             }
 
-            return other.Depth == Depth &&
-                   other.PosSampling == PosSampling &&
-                   other.AngleSampling == AngleSampling &&
-                   other.PosRefine == PosRefine &&
-                   other.AngleRefine == AngleRefine &&
-                   Math.Abs(other.Alpha - Alpha) < float.Epsilon &&
-                   Math.Abs(other.Threshold - Threshold) < float.Epsilon;
+            return other.Enabled == Enabled &&
+                other.Depth == Depth &&
+                other.PosSampling == PosSampling &&
+                other.AngleSampling == AngleSampling &&
+                other.PosRefine == PosRefine &&
+                other.AngleRefine == AngleRefine &&
+                Math.Abs(other.Alpha - Alpha) < float.Epsilon &&
+                Math.Abs(other.Threshold - Threshold) < float.Epsilon;
         }
     }
 }
