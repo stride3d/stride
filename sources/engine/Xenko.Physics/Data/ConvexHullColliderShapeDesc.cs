@@ -49,17 +49,17 @@ namespace Xenko.Physics
         public Quaternion LocalRotation = Quaternion.Identity;
 
         /// <userdoc>
+        /// The scaling of the generated convex hull.
+        /// </userdoc>
+        [DataMember(45)]
+        public Vector3 Scaling = Vector3.One;
+
+        /// <userdoc>
         /// If this is checked the following parameters are totally ignored, as only a simple convex hull of the whole model will be generated.
         /// </userdoc>
         [DataMember(50)]
         [NotNull]
         public ConvexHullDecompositionParameters Decomposition { get; set; } = new ConvexHullDecompositionParameters();
-
-        /// <userdoc>
-        /// The scaling of the generated convex hull.
-        /// </userdoc>
-        [DataMember(45)]
-        public Vector3 Scaling = Vector3.One;
 
         public bool Match(object obj)
         {
