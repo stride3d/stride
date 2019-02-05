@@ -17,9 +17,8 @@ namespace Xenko.Assets.Physics
     [DataContract("ColliderShapeAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(PhysicsColliderShape))]
-    [AssetUpgrader(XenkoConfig.PackageName, "2.0.0.0", "3.0.0.0", typeof(ConvexHullDecompositionParametersUpgrader))]
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-    [AssetUpgrader(XenkoConfig.PackageName, "2.0.0.0", "3.0.0.0", typeof(ConvexHullGeneratorUpgrader))]
+    [AssetUpgrader(XenkoConfig.PackageName, "2.0.0.0", "3.0.0.0", typeof(ConvexHullDecompositionParametersUpgrader))]
     public partial class ColliderShapeAsset : Asset
     {
         private const string CurrentVersion = "3.0.0.0";
