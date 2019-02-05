@@ -48,39 +48,39 @@ namespace Xenko.Assets.Physics
                     dynamic shape = item.Value;
                     if (shape.Node.Tag == "!ConvexHullColliderShapeDesc")
                     {
-                        dynamic decompositionParameters = shape.DecompositionParameters = new DynamicYamlMapping(new YamlMappingNode());
+                        dynamic decomposition = shape.Decomposition = new DynamicYamlMapping(new YamlMappingNode());
 
                         if (shape.ContainsChild("SimpleWrap"))
                         {
-                            decompositionParameters.Enabled = shape.SimpleWrap.ToString().ToLowerInvariant().Equals("false");
+                            decomposition.Enabled = shape.SimpleWrap.ToString().ToLowerInvariant().Equals("false");
                         }
                         if (shape.ContainsChild("Depth"))
                         {
-                            decompositionParameters.Depth = shape.Depth;
+                            decomposition.Depth = shape.Depth;
                         }
                         if (shape.ContainsChild("PosSampling"))
                         {
-                            decompositionParameters.PosSampling = shape.PosSampling;
+                            decomposition.PosSampling = shape.PosSampling;
                         }
                         if (shape.ContainsChild("AngleSampling"))
                         {
-                            decompositionParameters.AngleSampling = shape.AngleSampling;
+                            decomposition.AngleSampling = shape.AngleSampling;
                         }
                         if (shape.ContainsChild("PosRefine"))
                         {
-                            decompositionParameters.PosRefine = shape.PosRefine;
+                            decomposition.PosRefine = shape.PosRefine;
                         }
                         if (shape.ContainsChild("AngleRefine"))
                         {
-                            decompositionParameters.AngleRefine = shape.AngleRefine;
+                            decomposition.AngleRefine = shape.AngleRefine;
                         }
                         if (shape.ContainsChild("Alpha"))
                         {
-                            decompositionParameters.Alpha = shape.Alpha;
+                            decomposition.Alpha = shape.Alpha;
                         }
                         if (shape.ContainsChild("Threshold"))
                         {
-                            decompositionParameters.Threshold = shape.Threshold;
+                            decomposition.Threshold = shape.Threshold;
                         }
 
                         shape.RemoveChild("SimpleWrap");
