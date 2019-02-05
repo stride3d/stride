@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.DependencyModel;
 using Xenko.Core.Annotations;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
@@ -19,11 +20,14 @@ namespace Xenko.Core.Reflection
         public string Path { get; }
         public Assembly Assembly { get; }
 
-        public LoadedAssembly([NotNull] AssemblyContainer container, [NotNull] string path, [NotNull] Assembly assembly)
+        public Dictionary<string, string> Dependencies { get; }
+
+        public LoadedAssembly([NotNull] AssemblyContainer container, [NotNull] string path, [NotNull] Assembly assembly, Dictionary<string, string> dependencies)
         {
             Container = container;
             Path = path;
             Assembly = assembly;
+            Dependencies = dependencies;
         }
     }
     public class AssemblyContainer
@@ -122,6 +126,7 @@ namespace Xenko.Core.Reflection
             var assemblyPartialPathList = new List<string>();
             assemblyPartialPathList.AddRange(KnownAssemblyExtensions.Select(knownExtension => assemblyName + knownExtension));
 
+            // Look in search paths
             foreach (var assemblyPartialPath in assemblyPartialPathList)
             {
                 var assemblyFullPath = Path.Combine(searchDirectory, assemblyPartialPath);
@@ -130,6 +135,20 @@ namespace Xenko.Core.Reflection
                     return LoadAssemblyFromPathInternal(assemblyFullPath);
                 }
             }
+
+            // Use .deps.json files
+            foreach (var loadedAssembly in loadedAssemblies)
+            {
+                var dependencies = loadedAssembly.Dependencies;
+                if (dependencies == null)
+                    continue;
+
+                if (dependencies.TryGetValue(assemblyName, out var fullPath))
+                {
+                    return LoadAssemblyFromPathInternal(fullPath);
+                }
+            }
+
             return null;
         }
 
@@ -172,9 +191,51 @@ namespace Xenko.Core.Reflection
                     }
                     else
                     {
+                        // Load .deps.json file (if any)
+                        var depsFile = Path.ChangeExtension(assemblyFullPath, ".deps.json");
+                        Dictionary<string, string> dependenciesMapping = null;
+                        if (File.Exists(depsFile))
+                        {
+                            // Read file
+                            var dependenciesReader = new DependencyContextJsonReader();
+                            DependencyContext dependencies = null;
+                            using (var dependenciesStream = File.OpenRead(depsFile))
+                            {
+                                dependencies = dependenciesReader.Read(dependenciesStream);
+                            }
+
+                            // Locate NuGet package folder
+                            var settings = NuGet.Configuration.Settings.LoadDefaultSettings(Path.GetDirectoryName(assemblyFullPath));
+                            var globalPackagesFolder = NuGet.Configuration.SettingsUtility.GetGlobalPackagesFolder(settings);
+
+                            // Build list of assemblies listed in .deps.json file
+                            dependenciesMapping = new Dictionary<string, string>();
+                            foreach (var library in dependencies.RuntimeLibraries)
+                            {
+                                if (library.Path == null)
+                                    continue;
+
+                                foreach (var runtimeAssemblyGroup in library.RuntimeAssemblyGroups)
+                                {
+                                    foreach (var runtimeFile in runtimeAssemblyGroup.RuntimeFiles)
+                                    {
+                                        var fullPath = Path.Combine(globalPackagesFolder, library.Path, runtimeFile.Path);
+                                        if (File.Exists(fullPath))
+                                        {
+                                            var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile.Path);
+
+                                            // TODO: Properly deal with file duplicates (same file in multiple package, or RID conflicts)
+                                            if (!dependenciesMapping.ContainsKey(assemblyName))
+                                                dependenciesMapping.Add(assemblyName, fullPath);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // TODO: Is using AppDomain would provide more opportunities for unloading?
                         assembly = pdbBytes != null ? Assembly.Load(assemblyBytes, pdbBytes) : Assembly.Load(assemblyBytes);
-                        loadedAssembly = new LoadedAssembly(this, assemblyFullPath, assembly);
+                        loadedAssembly = new LoadedAssembly(this, assemblyFullPath, assembly, dependenciesMapping);
                         loadedAssemblies.Add(loadedAssembly);
                         loadedAssembliesByName.Add(assemblyFullPath, loadedAssembly);
 
