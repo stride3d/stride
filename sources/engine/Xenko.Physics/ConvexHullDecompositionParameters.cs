@@ -7,10 +7,10 @@ using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Physics
 {
-    [ContentSerializer(typeof(DataContentSerializer<DecompositionParameters>))]
+    [ContentSerializer(typeof(DataContentSerializer<ConvexHullDecompositionParameters>))]
     [DataContract("DecompositionParameters")]
     [Display("DecompositionParameters")]
-    public class DecompositionParameters
+    public class ConvexHullDecompositionParameters
     {
         /// <userdoc>
         /// If this is unchecked the following parameters are totally ignored, as only a simple convex hull of the whole model will be generated.
@@ -61,7 +61,7 @@ namespace Xenko.Physics
 
         public bool Match(object obj)
         {
-            var other = obj as DecompositionParameters;
+            var other = obj as ConvexHullDecompositionParameters;
 
             if (other == null)
             {

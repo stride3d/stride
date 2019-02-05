@@ -53,7 +53,7 @@ namespace Xenko.Physics
         /// </userdoc>
         [DataMember(50)]
         [NotNull]
-        public DecompositionParameters DecompositionParameters { get; set; } = new DecompositionParameters();
+        public ConvexHullDecompositionParameters Decomposition { get; set; } = new ConvexHullDecompositionParameters();
 
         /// <userdoc>
         /// The scaling of the generated convex hull.
@@ -72,7 +72,7 @@ namespace Xenko.Physics
 
             return other.Model == Model &&
                    other.Scaling == Scaling &&
-                   other.DecompositionParameters.Match(DecompositionParameters);
+                   other.Decomposition.Match(Decomposition);
         }
     }
 }

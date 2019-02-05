@@ -109,7 +109,7 @@ namespace Xenko.Assets.Physics
                         Scaling = convexHullDesc.Scaling,
                         LocalOffset = convexHullDesc.LocalOffset,
                         LocalRotation = convexHullDesc.LocalRotation,
-                        DecompositionParameters = convexHullDesc.DecompositionParameters,
+                        Decomposition = convexHullDesc.Decomposition,
                     };
 
                     // Replace shape in final result with cloned description
@@ -264,14 +264,14 @@ namespace Xenko.Assets.Physics
                             IndicesCount = (uint)combinedIndices.Count,
                             Vertexes = combinedVerts.ToArray(),
                             Indices = combinedIndices.ToArray(),
-                            Depth = convexHullDesc.DecompositionParameters.Depth,
-                            PosSampling = convexHullDesc.DecompositionParameters.PosSampling,
-                            PosRefine = convexHullDesc.DecompositionParameters.PosRefine,
-                            AngleSampling = convexHullDesc.DecompositionParameters.AngleSampling,
-                            AngleRefine = convexHullDesc.DecompositionParameters.AngleRefine,
-                            Alpha = convexHullDesc.DecompositionParameters.Alpha,
-                            Threshold = convexHullDesc.DecompositionParameters.Threshold,
-                            SimpleHull = !convexHullDesc.DecompositionParameters.Enabled,
+                            Depth = convexHullDesc.Decomposition.Depth,
+                            PosSampling = convexHullDesc.Decomposition.PosSampling,
+                            PosRefine = convexHullDesc.Decomposition.PosRefine,
+                            AngleSampling = convexHullDesc.Decomposition.AngleSampling,
+                            AngleRefine = convexHullDesc.Decomposition.AngleRefine,
+                            Alpha = convexHullDesc.Decomposition.Alpha,
+                            Threshold = convexHullDesc.Decomposition.Threshold,
+                            SimpleHull = !convexHullDesc.Decomposition.Enabled,
                         };
 
                         var convexHullMesh = new ConvexHullMesh();
