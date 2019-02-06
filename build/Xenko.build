@@ -71,9 +71,9 @@ Example of use:
       <!-- Remove Samples.Templates (pushed only when requested since versionned separately -->
       <NuGetPackage Remove="@(NuGetPackage)" Condition="'$(XenkoPublishSkipSamplesTemplates)' == 'true' And $([System.String]::Copy('%(Filename)').Contains('Xenko.Samples.Templates'))"/>
     </ItemGroup>
-    <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -Timeout 1800 '/>
+    <Exec Command='"$(NuGetPath)" push %(NuGetPackage.Identity) -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -Timeout 1800 -NoSymbols'/>
     <!-- Push GameStudio so that dependencies are already uploaded -->
-    <Exec Command='"$(NuGetPath)" push ..\bin\packages\Xenko.GameStudio*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -Timeout 1800 '/>
+    <Exec Command='"$(NuGetPath)" push ..\bin\packages\Xenko.GameStudio*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -Timeout 1800 -NoSymbols'/>
   </Target>
 
   <!--
@@ -81,7 +81,7 @@ Example of use:
   -->
   <Target Name="PublishVSIX">
     <Error Condition="'$(XenkoStoreApiKey)' == ''" Text="Missing env variable XenkoStoreApiKey"/>
-    <Exec Command='"$(NuGetPath)" push ..\bin\vsix\*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) "'/>
+    <Exec Command='"$(NuGetPath)" push ..\bin\vsix\*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -NoSymbols'/>
   </Target>
   
   <!--
@@ -503,7 +503,7 @@ Example of use:
   -->
   <Target Name="PublishLauncher">
     <Error Condition="'$(XenkoStoreApiKey)' == ''" Text="Missing env variable XenkoStoreApiKey"/>
-    <Exec Command='"$(NuGetPath)" push ..\bin\launcher\*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) "'/>
+    <Exec Command='"$(NuGetPath)" push ..\bin\launcher\*.nupkg -ApiKey $(XenkoStoreApiKey) -Source $(XenkoStoreUrl) -NoSymbols'/>
   </Target>
   
   <Target Name="BuildLauncher" DependsOnTargets="CopyXenkoKey">
