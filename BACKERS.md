@@ -38,7 +38,6 @@ Thank you everybody for your generous contributions!
 * Antony K. Jones
 * Thomas Tang
 * Beliar
-* Robert Iadanza
 * SleepyMode
 * Marko Viitanen
 * Sven-Bertil Blom
@@ -48,6 +47,9 @@ Thank you everybody for your generous contributions!
 * Connie
 * Berwyn
 * Andrew Wilson
+* Boris Callens
+* Jarrett K Robertson
+* Daniel Keenan
 
 ## Mini Backers
 
