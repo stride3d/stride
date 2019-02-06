@@ -42,9 +42,9 @@ namespace Xenko.Rendering.Sprites
                 else
                 {
                     halfBoxSize = new Vector3(
-                        Math.Abs(worldMatrix.M11 * halfSpriteSize.X + worldMatrix.M21 * halfSpriteSize.Y),
-                        Math.Abs(worldMatrix.M12 * halfSpriteSize.X + worldMatrix.M22 * halfSpriteSize.Y),
-                        Math.Abs(worldMatrix.M13 * halfSpriteSize.X + worldMatrix.M23 * halfSpriteSize.Y));
+                        Math.Abs(worldMatrix.M11 * halfSpriteSize.X) + Math.Abs(worldMatrix.M21 * halfSpriteSize.Y),
+                        Math.Abs(worldMatrix.M12 * halfSpriteSize.X) + Math.Abs(worldMatrix.M22 * halfSpriteSize.Y),
+                        Math.Abs(worldMatrix.M13 * halfSpriteSize.X) + Math.Abs(worldMatrix.M23 * halfSpriteSize.Y));
                 }
 
                 // Update bounding box
