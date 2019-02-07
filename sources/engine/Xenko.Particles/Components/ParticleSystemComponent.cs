@@ -31,13 +31,7 @@ namespace Xenko.Particles.Components
         /// </userdoc>
         [DataMember(10)]
         [Display("Source")]
-        public ParticleSystem ParticleSystem
-        {
-            get
-            {
-                return particleSystem;
-            }
-        }
+        public ParticleSystem ParticleSystem => particleSystem;
 
         ~ParticleSystemComponent()
         {
