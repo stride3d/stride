@@ -32,5 +32,12 @@ namespace Xenko.Rendering
 
         // TODO: Switch to a "StaticPropertyContainer" that will be optimized by assembly processor
         //public PropertyContainer Tags;
+
+        // TODO: We should probably switch to RenderData (but right now its local to either VisibilityGroup or RenderFeature) or the previously mentioned StaticPropertyContainer to have more flexibility.
+        /// <summary>
+        /// Can be used to setup a link to a source.
+        /// Typically, this might be an entity component.
+        /// </summary>
+        public object Source;
     }
 }

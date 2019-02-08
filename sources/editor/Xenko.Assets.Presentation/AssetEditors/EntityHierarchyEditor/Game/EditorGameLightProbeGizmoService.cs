@@ -384,7 +384,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 if (renderMesh != null)
                 {
                     // TODO: Avoid having to go through entity
-                    return renderMesh.RenderModel?.ModelComponent?.Entity?.Tags.Get(EditorGameComponentGizmoService.SelectedKey) ?? false;
+                    return (renderMesh.Source as ModelComponent)?.Entity?.Tags.Get(EditorGameComponentGizmoService.SelectedKey) ?? false;
                 }
 
                 return false;

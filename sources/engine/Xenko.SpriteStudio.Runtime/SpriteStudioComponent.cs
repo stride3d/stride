@@ -40,8 +40,5 @@ namespace Xenko.Engine
 
         [DataMemberIgnore, DataMemberUpdatable]
         public List<SpriteStudioNodeState> Nodes { get; } = new List<SpriteStudioNodeState>();
-
-        [DataMemberIgnore]
-        internal List<SpriteStudioNodeState> SortedNodes { get; } = new List<SpriteStudioNodeState>();
     }
 }

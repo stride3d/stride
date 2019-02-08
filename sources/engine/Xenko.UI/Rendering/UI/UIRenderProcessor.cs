@@ -70,12 +70,12 @@ namespace Xenko.Rendering.UI
 
         protected override RenderUIElement GenerateComponentData(Entity entity, UIComponent component)
         {
-            return new RenderUIElement { RenderGroup = component.RenderGroup };
+            return new RenderUIElement { Source = component };
         }
 
         protected override bool IsAssociatedDataValid(Entity entity, UIComponent component, RenderUIElement associatedData)
         {
-            return true;
+            return associatedData.Source == component;
         }
     }
 }

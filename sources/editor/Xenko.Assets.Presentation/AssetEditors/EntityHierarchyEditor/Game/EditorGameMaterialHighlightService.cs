@@ -360,7 +360,9 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 return renderMesh != null &&
                     (HighlightRenderFeature.MaterialHighlightColors.ContainsKey(renderMesh.MaterialPass.Material) ||
                     HighlightRenderFeature.MeshHighlightColors.ContainsKey(renderMesh.Mesh) ||
-                    HighlightRenderFeature.MaterialsHighlightedForModel.Contains(renderMesh.MaterialPass.Material) && HighlightRenderFeature.ModelHighlightColors.ContainsKey(renderMesh.RenderModel.ModelComponent));
+                    (HighlightRenderFeature.MaterialsHighlightedForModel.Contains(renderMesh.MaterialPass.Material)
+                     && renderMesh.Source is ModelComponent component
+                     && HighlightRenderFeature.ModelHighlightColors.ContainsKey(component)));
             }
         }
     }

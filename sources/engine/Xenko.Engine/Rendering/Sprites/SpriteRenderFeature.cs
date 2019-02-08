@@ -16,7 +16,7 @@ namespace Xenko.Rendering.Sprites
         private ThreadLocal<ThreadContext> threadContext;
 
         private Dictionary<BlendModes, BlendStateDescription> blendModeToDescription = new Dictionary<BlendModes, BlendStateDescription>();
-        private Dictionary<SpriteComponent.SpriteBlend, BlendModes> spriteBlendToBlendMode = new Dictionary<SpriteComponent.SpriteBlend, BlendModes>();
+        private Dictionary<SpriteBlend, BlendModes> spriteBlendToBlendMode = new Dictionary<SpriteBlend, BlendModes>();
 
         public override Type SupportedRenderObjectType => typeof(RenderSprite);
 
@@ -35,9 +35,9 @@ namespace Xenko.Rendering.Sprites
 
             threadContext = new ThreadLocal<ThreadContext>(() => new ThreadContext(Context.GraphicsDevice), true);
 
-            spriteBlendToBlendMode[SpriteComponent.SpriteBlend.None] = BlendModes.Default;
-            spriteBlendToBlendMode[SpriteComponent.SpriteBlend.AdditiveBlend] = BlendModes.Additive;
-            spriteBlendToBlendMode[SpriteComponent.SpriteBlend.NoColor] = BlendModes.NoColor;
+            spriteBlendToBlendMode[SpriteBlend.None] = BlendModes.Default;
+            spriteBlendToBlendMode[SpriteBlend.AdditiveBlend] = BlendModes.Additive;
+            spriteBlendToBlendMode[SpriteBlend.NoColor] = BlendModes.NoColor;
 
             blendModeToDescription[BlendModes.Default] = BlendStates.Default;
             blendModeToDescription[BlendModes.Additive] = BlendStates.Additive;
@@ -86,17 +86,14 @@ namespace Xenko.Rendering.Sprites
 
                 var renderSprite = (RenderSprite)renderNode.RenderObject;
 
-                var spriteComp = renderSprite.SpriteComponent;
-                var transfoComp = renderSprite.TransformComponent;
-
-                var sprite = spriteComp.CurrentSprite;
+                var sprite = renderSprite.Sprite;
                 if (sprite == null)
                     continue;
 
                 // TODO: this should probably be moved to Prepare()
                 // Project the position
                 // TODO: This could be done in a SIMD batch, but we need to figure-out how to plugin in with RenderMesh object
-                var worldPosition = new Vector4(renderSprite.TransformComponent.WorldMatrix.TranslationVector, 1.0f);
+                var worldPosition = new Vector4(renderSprite.WorldMatrix.TranslationVector, 1.0f);
 
                 Vector4 projectedPosition;
                 Vector4.Transform(ref worldPosition, ref renderView.ViewProjection, out projectedPosition);
@@ -111,13 +108,13 @@ namespace Xenko.Rendering.Sprites
                 }
                 else
                 {
-                    var spriteBlend = spriteComp.BlendMode;
-                    if (spriteBlend == SpriteComponent.SpriteBlend.Auto)
-                        spriteBlend = sprite.IsTransparent ? SpriteComponent.SpriteBlend.AlphaBlend : SpriteComponent.SpriteBlend.None;
+                    var spriteBlend = renderSprite.BlendMode;
+                    if (spriteBlend == SpriteBlend.Auto)
+                        spriteBlend = sprite.IsTransparent ? SpriteBlend.AlphaBlend : SpriteBlend.None;
 
-                    if (spriteBlend == SpriteComponent.SpriteBlend.AlphaBlend)
+                    if (spriteBlend == SpriteBlend.AlphaBlend)
                     {
-                        blendMode = spriteComp.PremultipliedAlpha ? BlendModes.Alpha : BlendModes.NonPremultiplied;
+                        blendMode = renderSprite.PremultipliedAlpha ? BlendModes.Alpha : BlendModes.NonPremultiplied;
                     }
                     else
                     {
@@ -128,28 +125,28 @@ namespace Xenko.Rendering.Sprites
                 // Check if the current blend state has changed in any way, if not
                 // Note! It doesn't really matter in what order we build the bitmask, the result is not preserved anywhere except in this method
                 var currentBatchState = (uint)blendMode;
-                currentBatchState = (currentBatchState << 1) + (renderSprite.SpriteComponent.IgnoreDepth ? 1U : 0U);
-                currentBatchState = (currentBatchState << 1) + (spriteComp.IsAlphaCutoff ? 1U : 0U);
-                currentBatchState = (currentBatchState << 2) + ((uint)renderSprite.SpriteComponent.Sampler);
+                currentBatchState = (currentBatchState << 1) + (renderSprite.IgnoreDepth ? 1U : 0U);
+                currentBatchState = (currentBatchState << 1) + (renderSprite.IsAlphaCutoff ? 1U : 0U);
+                currentBatchState = (currentBatchState << 2) + ((uint)renderSprite.Sampler);
 
                 if (previousBatchState != currentBatchState)
                 {
                     var blendState = blendModeToDescription[blendMode];
 
-                    if (spriteComp.IsAlphaCutoff)
+                    if (renderSprite.IsAlphaCutoff)
                         currentEffect = batchContext.GetOrCreateAlphaCutoffSpriteEffect(RenderSystem.EffectSystem);
 
-                    var depthStencilState = renderSprite.SpriteComponent.IgnoreDepth ? DepthStencilStates.None : DepthStencilStates.Default;
+                    var depthStencilState = renderSprite.IgnoreDepth ? DepthStencilStates.None : DepthStencilStates.Default;
 
                     var samplerState = context.GraphicsDevice.SamplerStates.LinearClamp;
-                    if (renderSprite.SpriteComponent.Sampler != SpriteComponent.SpriteSampler.LinearClamp)
+                    if (renderSprite.Sampler != SpriteSampler.LinearClamp)
                     {
-                        switch (renderSprite.SpriteComponent.Sampler)
+                        switch (renderSprite.Sampler)
                         {
-                            case SpriteComponent.SpriteSampler.PointClamp:
+                            case SpriteSampler.PointClamp:
                                 samplerState = context.GraphicsDevice.SamplerStates.PointClamp;
                                 break;
-                            case SpriteComponent.SpriteSampler.AnisotropicClamp:
+                            case SpriteSampler.AnisotropicClamp:
                                 samplerState = context.GraphicsDevice.SamplerStates.AnisotropicClamp;
                                 break;
                         }
@@ -174,10 +171,10 @@ namespace Xenko.Rendering.Sprites
 
                 var sourceRegion = sprite.Region;
                 var texture = sprite.Texture;
-                var color = spriteComp.ColorFinal;                
+                var color = renderSprite.Color;                
                 if (isPicking) // TODO move this code corresponding to picking out of the runtime code.
                 {
-                    var compId = RuntimeIdHelper.ToRuntimeId(spriteComp);
+                    var compId = RuntimeIdHelper.ToRuntimeId(renderSprite.Source);
                     color = new Color4(compId, 0.0f, 0.0f, 0.0f);
                 }
 
@@ -186,8 +183,8 @@ namespace Xenko.Rendering.Sprites
                     continue;
 
                 // determine the element world matrix depending on the type of sprite
-                var worldMatrix = transfoComp.WorldMatrix;
-                if (spriteComp.SpriteType == SpriteType.Billboard)
+                var worldMatrix = renderSprite.WorldMatrix;
+                if (renderSprite.SpriteType == SpriteType.Billboard)
                 {
                     worldMatrix = viewInverse;
 
@@ -196,14 +193,14 @@ namespace Xenko.Rendering.Sprites
                     worldMatrix.Row2 /= ((Vector3)viewInverse.Row2).Length();
 
                     // set the scale of the object
-                    worldMatrix.Row1 *= ((Vector3)transfoComp.WorldMatrix.Row1).Length();
-                    worldMatrix.Row2 *= ((Vector3)transfoComp.WorldMatrix.Row2).Length();
+                    worldMatrix.Row1 *= ((Vector3)renderSprite.WorldMatrix.Row1).Length();
+                    worldMatrix.Row2 *= ((Vector3)renderSprite.WorldMatrix.Row2).Length();
 
                     // set the position
-                    worldMatrix.TranslationVector = transfoComp.WorldMatrix.TranslationVector;
+                    worldMatrix.TranslationVector = renderSprite.WorldMatrix.TranslationVector;
 
                     // set the rotation
-                    var localRotationZ = transfoComp.RotationEulerXYZ.Z;
+                    var localRotationZ = renderSprite.RotationEulerZ;
                     if (localRotationZ != 0)
                         worldMatrix = Matrix.RotationZ(localRotationZ) * worldMatrix;
                 }
@@ -238,7 +235,7 @@ namespace Xenko.Rendering.Sprites
                 Context.StreamingManager?.StreamResources(texture);
 
                 // draw the sprite
-                batchContext.SpriteBatch.Draw(texture, ref worldMatrix, ref sourceRegion, ref sprite.SizeInternal, ref color, sprite.Orientation, spriteComp.Swizzle, projectedZ);
+                batchContext.SpriteBatch.Draw(texture, ref worldMatrix, ref sourceRegion, ref sprite.SizeInternal, ref color, sprite.Orientation, renderSprite.Swizzle, projectedZ);
             }
 
             if (hasBegin)

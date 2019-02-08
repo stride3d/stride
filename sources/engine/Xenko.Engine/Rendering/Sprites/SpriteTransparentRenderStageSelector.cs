@@ -12,7 +12,7 @@ namespace Xenko.Rendering.Sprites
             {
                 var renderSprite = (RenderSprite)renderObject;
 
-                var renderStage = renderSprite.SpriteComponent.CurrentSprite.IsTransparent ? TransparentRenderStage : OpaqueRenderStage;
+                var renderStage = renderSprite.Sprite.IsTransparent ? TransparentRenderStage : OpaqueRenderStage;
                 if (renderStage != null)
                     renderObject.ActiveRenderStages[renderStage.Index] = new ActiveRenderStage(EffectName);
             }

@@ -10,15 +10,10 @@ namespace Xenko.Rendering
     /// </summary>
     public class RenderModel
     {
-        public readonly ModelComponent ModelComponent;
         public Model Model;
         public RenderMesh[] Meshes;
         public MaterialInfo[] Materials;
 
-        public RenderModel(ModelComponent modelComponent)
-        {
-            ModelComponent = modelComponent;
-        }
 
         public struct MaterialInfo
         {
