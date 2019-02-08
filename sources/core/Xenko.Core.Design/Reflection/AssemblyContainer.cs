@@ -119,14 +119,20 @@ namespace Xenko.Core.Reflection
         }
 
         [CanBeNull]
-        private Assembly LoadAssemblyByName([NotNull] string assemblyName, [NotNull] string searchDirectory)
+        private Assembly LoadAssemblyByName([NotNull] AssemblyName assemblyName, [NotNull] string searchDirectory)
         {
             if (assemblyName == null) throw new ArgumentNullException(nameof(assemblyName));
 
-            var assemblyPartialPathList = new List<string>();
-            assemblyPartialPathList.AddRange(KnownAssemblyExtensions.Select(knownExtension => assemblyName + knownExtension));
+            // First, check the list of already loaded assemblies
+            {
+                var matchingAssembly = loadedAssemblies.FirstOrDefault(x => x.Assembly.FullName == assemblyName.FullName);
+                if (matchingAssembly != null)
+                    return matchingAssembly.Assembly;
+            }
 
             // Look in search paths
+            var assemblyPartialPathList = new List<string>();
+            assemblyPartialPathList.AddRange(KnownAssemblyExtensions.Select(knownExtension => assemblyName.Name + knownExtension));
             foreach (var assemblyPartialPath in assemblyPartialPathList)
             {
                 var assemblyFullPath = Path.Combine(searchDirectory, assemblyPartialPath);
@@ -143,7 +149,7 @@ namespace Xenko.Core.Reflection
                 if (dependencies == null)
                     continue;
 
-                if (dependencies.TryGetValue(assemblyName, out var fullPath))
+                if (dependencies.TryGetValue(assemblyName.Name, out var fullPath))
                 {
                     return LoadAssemblyFromPathInternal(fullPath);
                 }
@@ -303,7 +309,7 @@ namespace Xenko.Core.Reflection
             if (container != null)
             {
                 var assemblyName = new AssemblyName(args.Name);
-                return container.LoadAssemblyByName(assemblyName.Name, searchDirectory);
+                return container.LoadAssemblyByName(assemblyName, searchDirectory);
             }
 
             return null;
