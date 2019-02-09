@@ -280,6 +280,16 @@ namespace Xenko.Engine
             UpdateWorldMatrixInternal(true);
         }
 
+        /// <summary>
+        /// Gets the world position.
+        /// Default call does not recalcuate the position. It just gets the last frame's position quickly.
+        /// If you pass true to this function, it will update the world position (which is a costly procedure) to get the most up-to-date position.
+        /// </summary>
+        public Vector3 WorldPosition(bool recalculate = false) {
+            if (recalculate) UpdateWorldMatrix();
+            return WorldMatrix.TranslationVector;
+        }
+
         internal void UpdateWorldMatrixInternal(bool recursive)
         {
             if (TransformLink != null)
