@@ -11,7 +11,6 @@ using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
 using Xenko.Engine.Design;
-using Xenko.Physics.Shapes;
 
 namespace Xenko.Physics
 {
@@ -211,61 +210,6 @@ namespace Xenko.Physics
                 compound.Description = desc;
 
                 return compound;
-            }
-            else if (type == typeof(HeightfieldColliderShapeDesc))
-            {
-                var heightfieldDesc = (HeightfieldColliderShapeDesc)desc;
-
-                if (!heightfieldDesc.IsValid())
-                {
-                    return null;
-                }
-
-                var length = heightfieldDesc.HeightStickWidth * heightfieldDesc.HeightStickLength;
-
-                object dynamicFieldData;
-
-                switch (heightfieldDesc.HeightType)
-                {
-                    case HeightfieldTypes.Short:
-
-                        dynamicFieldData = HeightfieldColliderShape.CreateDynamicFieldData(length, default(short), heightfieldDesc.ShortHeights?.ToArray());
-
-                        break;
-
-                    case HeightfieldTypes.Byte:
-
-                        dynamicFieldData = HeightfieldColliderShape.CreateDynamicFieldData(length, default(byte), heightfieldDesc.ByteHeights?.ToArray());
-
-                        break;
-
-                    case HeightfieldTypes.Float:
-
-                        var defaultValue = MathUtil.Clamp(0, heightfieldDesc.MinHeight, heightfieldDesc.MaxHeight);
-
-                        dynamicFieldData = HeightfieldColliderShape.CreateDynamicFieldData(length, defaultValue, heightfieldDesc.FloatHeights?.ToArray());
-
-                        break;
-
-                    default:
-                        return null;
-                }
-
-                shape = new HeightfieldColliderShape(
-                    heightfieldDesc.HeightStickWidth,
-                    heightfieldDesc.HeightStickLength,
-                    heightfieldDesc.HeightType,
-                    dynamicFieldData,
-                    heightfieldDesc.HeightScale,
-                    heightfieldDesc.MinHeight,
-                    heightfieldDesc.MaxHeight,
-                    heightfieldDesc.FlipQuadEdges)
-                {
-                    LocalOffset = heightfieldDesc.LocalOffset,
-                    LocalRotation = heightfieldDesc.LocalRotation
-                };
-
-                //shape.Description = desc;
             }
             else if (type == typeof(ColliderShapeAssetDesc))
             {
