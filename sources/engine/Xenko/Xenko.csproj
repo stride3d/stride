@@ -28,7 +28,11 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <None Include="runtime.json" Pack="true" PackagePath="/" />
+    <None Include="runtime.json" Pack="true" PackagePath="/">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>runtime.tt</DependentUpon>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -41,6 +45,13 @@
 
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="runtime.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>runtime.json</LastGenOutput>
+    </None>
   </ItemGroup>
 
   <Import Project="$(XenkoPostSettingsTargets)" />
