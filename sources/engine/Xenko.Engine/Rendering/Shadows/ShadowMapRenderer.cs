@@ -285,28 +285,5 @@ namespace Xenko.Rendering.Shadows
             var factor = (float)Math.Pow(2.0f, (int)shadowMapSize - 3.0f);
             return factor;
         }
-
-        public struct LightComponentKey : IEquatable<LightComponentKey>
-        {
-            public readonly LightComponent LightComponent;
-
-            public readonly RenderView RenderView;
-
-            public LightComponentKey(LightComponent lightComponent, RenderView renderView)
-            {
-                LightComponent = lightComponent;
-                RenderView = renderView;
-            }
-
-            public bool Equals(LightComponentKey other)
-            {
-                return LightComponent == other.LightComponent && RenderView == other.RenderView;
-            }
-
-            public override int GetHashCode()
-            {
-                return LightComponent.GetHashCode() ^ (397 * RenderView.GetHashCode());
-            }
-        }
     }
 }
