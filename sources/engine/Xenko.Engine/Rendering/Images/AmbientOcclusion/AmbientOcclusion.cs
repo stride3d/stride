@@ -159,7 +159,7 @@ namespace Xenko.Rendering.Images
 
             var outputTexture = GetSafeOutput(0);
 
-            var camera = context.RenderContext.GetCurrentCamera();
+            var renderView = context.RenderContext.RenderView;
 
             //---------------------------------
             // Ambient Occlusion
@@ -172,31 +172,28 @@ namespace Xenko.Rendering.Images
 
             aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOKeys.Count, NumberOfSamples > 0 ? NumberOfSamples : 9);
 
-            if (camera != null)
-            {
-                // Set Near/Far pre-calculated factors to speed up the linear depth reconstruction
-                aoRawImageEffect.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(camera.NearClipPlane, camera.FarClipPlane));
+            // Set Near/Far pre-calculated factors to speed up the linear depth reconstruction
+            aoRawImageEffect.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane));
 
-                Vector4 screenSize = new Vector4(originalColorBuffer.Width, originalColorBuffer.Height, 0, 0);
-                screenSize.Z = screenSize.X / screenSize.Y;
-                aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ScreenInfo, screenSize);
+            Vector4 screenSize = new Vector4(originalColorBuffer.Width, originalColorBuffer.Height, 0, 0);
+            screenSize.Z = screenSize.X / screenSize.Y;
+            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ScreenInfo, screenSize);
 
-                // Projection infor used to reconstruct the View space position from linear depth
-                var p00 = camera.ProjectionMatrix.M11;
-                var p11 = camera.ProjectionMatrix.M22;
-                var p02 = camera.ProjectionMatrix.M13;
-                var p12 = camera.ProjectionMatrix.M23;
-                Vector4 projInfo = new Vector4(-2.0f / (screenSize.X * p00), -2.0f / (screenSize.Y * p11), (1.0f - p02) / p00, (1.0f + p12) / p11);
-                aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ProjInfo, projInfo);
+            // Projection infor used to reconstruct the View space position from linear depth
+            var p00 = renderView.Projection.M11;
+            var p11 = renderView.Projection.M22;
+            var p02 = renderView.Projection.M13;
+            var p12 = renderView.Projection.M23;
+            Vector4 projInfo = new Vector4(-2.0f / (screenSize.X * p00), -2.0f / (screenSize.Y * p11), (1.0f - p02) / p00, (1.0f + p12) / p11);
+            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ProjInfo, projInfo);
 
-                //**********************************
-                // User parameters
-                aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ParamProjScale, ParamProjScale);
-                aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ParamIntensity, ParamIntensity);
-                aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ParamBias, ParamBias);
-                aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ParamRadius, ParamRadius);
-                aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ParamRadiusSquared, ParamRadius * ParamRadius);
-            }
+            //**********************************
+            // User parameters
+            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ParamProjScale, ParamProjScale);
+            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ParamIntensity, ParamIntensity);
+            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ParamBias, ParamBias);
+            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ParamRadius, ParamRadius);
+            aoRawImageEffect.Parameters.Set(AmbientOcclusionRawAOShaderKeys.ParamRadiusSquared, ParamRadius * ParamRadius);
 
             aoRawImageEffect.SetInput(0, originalDepthBuffer);
             aoRawImageEffect.SetOutput(aoTexture1);
@@ -218,12 +215,9 @@ namespace Xenko.Rendering.Images
                     nameGaussianBlurV = string.Format("AmbientOcclusionBlurV{0}x{0}", offsetsWeights.Length);
                 }
 
-                if (camera != null)
-                {
-                    // Set Near/Far pre-calculated factors to speed up the linear depth reconstruction
-                    blurH.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(camera.NearClipPlane, camera.FarClipPlane));
-                    blurV.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(camera.NearClipPlane, camera.FarClipPlane));
-                }
+                // Set Near/Far pre-calculated factors to speed up the linear depth reconstruction
+                blurH.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane));
+                blurV.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane));
 
                 // Update permutation parameters
                 blurH.Parameters.Set(AmbientOcclusionBlurKeys.Count, offsetsWeights.Length);

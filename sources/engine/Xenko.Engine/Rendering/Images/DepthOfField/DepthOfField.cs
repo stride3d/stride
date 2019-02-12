@@ -359,10 +359,8 @@ namespace Xenko.Rendering.Images
             // Render target will contain "CoC"(16 bits) "Linear depth"(16bits).
             var cocLinearDepthTexture = GetScopedRenderTarget(originalColorBuffer.Description, 1f, PixelFormat.R16G16_Float);
 
-            var cameraState = context.RenderContext.GetCurrentCamera();
-            if (cameraState == null) throw new InvalidOperationException("No valid camera");
-
-            var farPlane = cameraState.FarClipPlane;
+            var renderView = context.RenderContext.RenderView;
+            var farPlane = renderView.FarClipPlane;
 
             var depthAreas = DOFAreas;
             if (AutoFocus)
@@ -372,16 +370,14 @@ namespace Xenko.Rendering.Images
                 var maxAmplitude = farPlane * 0.2f;
                 diffToTarget = MathUtil.Clamp(diffToTarget, -maxAmplitude, maxAmplitude);
                 autoFocusDistanceCurrent = autoFocusDistanceCurrent + 0.1f * diffToTarget;
-                if (autoFocusDistanceCurrent < cameraState.NearClipPlane * 2.0f) autoFocusDistanceCurrent = cameraState.NearClipPlane * 2.0f;
-                depthAreas = new Vector4(cameraState.NearClipPlane, autoFocusDistanceCurrent, autoFocusDistanceCurrent, autoFocusDistanceCurrent + farPlane * 0.5f);
+                if (autoFocusDistanceCurrent < renderView.NearClipPlane * 2.0f) autoFocusDistanceCurrent = renderView.NearClipPlane * 2.0f;
+                depthAreas = new Vector4(renderView.NearClipPlane, autoFocusDistanceCurrent, autoFocusDistanceCurrent, autoFocusDistanceCurrent + farPlane * 0.5f);
             }
 
             coclinearDepthMapEffect.SetInput(0, originalDepthBuffer);
             coclinearDepthMapEffect.SetOutput(cocLinearDepthTexture);
             coclinearDepthMapEffect.Parameters.Set(CircleOfConfusionKeys.depthAreas, depthAreas);
-            var camera = context.RenderContext.GetCurrentCamera();
-            if (camera != null)
-                coclinearDepthMapEffect.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(camera.NearClipPlane, camera.FarClipPlane));
+            coclinearDepthMapEffect.Parameters.Set(CameraKeys.ZProjection, CameraKeys.ZProjectionACalculate(renderView.NearClipPlane, renderView.FarClipPlane));
             coclinearDepthMapEffect.Draw(context, "CoC_LinearDepth");
 
             if (AutoFocus)

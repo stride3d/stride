@@ -258,7 +258,7 @@ namespace Xenko.Rendering.Images
         /// </summary>
         private class TemporalFrameCache
         {
-            public CameraComponent Camera;
+            public RenderView RenderView;
             public int LastUsageFrame;
             public Texture TemporalBuffer;
             public Matrix PrevViewProjection;
@@ -285,7 +285,7 @@ namespace Xenko.Rendering.Images
         private readonly List<TemporalFrameCache> frameCache = new List<TemporalFrameCache>(4);
 
         [NotNull]
-        private TemporalFrameCache GetFrameCache(int frameIndex, CameraComponent camera)
+        private TemporalFrameCache GetFrameCache(int frameIndex, RenderView renderView)
         {
             TemporalFrameCache cache;
 
@@ -293,7 +293,7 @@ namespace Xenko.Rendering.Images
             for (int i = 0; i < frameCache.Count; i++)
             {
                 cache = frameCache[i];
-                if (cache.Camera == camera && cache.LastUsageFrame != frameIndex)
+                if (cache.RenderView == renderView && cache.LastUsageFrame != frameIndex)
                 {
                     cache.LastUsageFrame = frameIndex;
                     return cache;
@@ -302,9 +302,9 @@ namespace Xenko.Rendering.Images
 
             // Create new one
             cache = new TemporalFrameCache();
-            cache.Camera = camera;
+            cache.RenderView = renderView;
             cache.LastUsageFrame = frameIndex;
-            cache.PrevViewProjection = camera.ViewProjectionMatrix;
+            cache.PrevViewProjection = renderView.ViewProjection;
             frameCache.Add(cache);
 
             return cache;
@@ -370,17 +370,15 @@ namespace Xenko.Rendering.Images
         {
             TemporalFrameCache cache = null;
 
-            var currentCamera = context.RenderContext.GetCurrentCamera();
-            if (currentCamera == null)
-                throw new InvalidOperationException("No valid camera");
-            Matrix viewMatrix = currentCamera.ViewMatrix;
-            Matrix projectionMatrix = currentCamera.ProjectionMatrix;
-            Matrix viewProjectionMatrix = currentCamera.ViewProjectionMatrix;
+            var renderView = context.RenderContext.RenderView;
+            Matrix viewMatrix = renderView.View;
+            Matrix projectionMatrix = renderView.Projection;
+            Matrix viewProjectionMatrix = renderView.ViewProjection;
             Matrix inverseViewMatrix = Matrix.Invert(viewMatrix);
             Matrix inverseViewProjectionMatrix = Matrix.Invert(viewProjectionMatrix);
             Vector4 eye = inverseViewMatrix.Row4;
-            float nearclip = currentCamera.NearClipPlane;
-            float farclip = currentCamera.FarClipPlane;
+            float nearclip = renderView.NearClipPlane;
+            float farclip = renderView.FarClipPlane;
             Vector4 viewInfo = new Vector4(1.0f / projectionMatrix.M11, 1.0f / projectionMatrix.M22, farclip / (farclip - nearclip), (-farclip * nearclip) / (farclip - nearclip) / farclip);
             Vector3 cameraPos = new Vector3(eye.X, eye.Y, eye.Z);
 
@@ -397,7 +395,7 @@ namespace Xenko.Rendering.Images
 
                 temporalTime = (float)time;
 
-                cache = GetFrameCache(gameTime.FrameCount, currentCamera);
+                cache = GetFrameCache(gameTime.FrameCount, renderView);
             }
 
             var traceBufferSize = GetBufferResolution(outputBuffer, RayTracePassResolution);
