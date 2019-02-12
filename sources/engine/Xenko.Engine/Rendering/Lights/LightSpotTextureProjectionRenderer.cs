@@ -108,11 +108,11 @@ namespace Xenko.Rendering.Lights
         }
 
         // Computes the view-projection matrix without any offset or scaling cascade.
-        private static Matrix ComputeWorldToTextureUVMatrix(LightComponent lightComponent)
+        private static Matrix ComputeWorldToTextureUVMatrix(RenderLight light)
         {
-            var spotLight = (LightSpot)lightComponent.Type;
+            var spotLight = (LightSpot)light.Type;
 
-            Matrix viewMatrix = lightComponent.Entity.Transform.WorldMatrix;
+            Matrix viewMatrix = light.WorldMatrix;
             viewMatrix.Invert();
 
             // TODO: PERFORMANCE: This does redundant work. The view projection matrix is already calculated within "LightSpotShadowMapRenderer".
@@ -130,9 +130,9 @@ namespace Xenko.Rendering.Lights
         }
 
         // Computes the view-projection matrix without any offset or scaling cascade.
-        private static Matrix ComputeProjectorPlaneMatrix(LightComponent lightComponent)
+        private static Matrix ComputeProjectorPlaneMatrix(RenderLight light)
         {
-            var spotLight = (LightSpot)lightComponent.Type;
+            var spotLight = (LightSpot)light.Type;
 
             // Calculate the width and height of the near plane in world space:
             var nearClipDistance = Math.Min(spotLight.ProjectionPlaneDistance, spotLight.Range);
@@ -140,7 +140,7 @@ namespace Xenko.Rendering.Lights
             float height = (float)Math.Tan(angleOuterInRadians / 2.0f) * nearClipDistance;  // TODO: Is this correct?
             float width = height * spotLight.AspectRatio;  // TODO: Is this correct?
 
-            Matrix viewMatrix = lightComponent.Entity.Transform.WorldMatrix;
+            Matrix viewMatrix = light.WorldMatrix;
 
             // Translate the matrix to position it at the near plane.
             Vector3 translation = viewMatrix.Forward * nearClipDistance;
@@ -165,7 +165,7 @@ namespace Xenko.Rendering.Lights
         public void Collect(RenderContext context, RenderView sourceView, LightShadowMapTexture lightShadowMap) // TODO: Remove the shadow map parameter.
         {
             // Computes the cascade splits
-            var lightComponent = lightShadowMap.LightComponent;
+            var lightComponent = lightShadowMap.RenderLight;
             var spotLight = (LightSpot)lightComponent.Type;
 
             // Get new shader data from pool
@@ -254,12 +254,12 @@ namespace Xenko.Rendering.Lights
 
                 for (int i = 0; i < currentLights.Count; ++i)
                 {
-                    LightDynamicEntry lightEntry = currentLights[i];
-                    LightComponent lightComponent = lightEntry.Light;
+                    var lightEntry = currentLights[i];
+                    var light = lightEntry.Light;
 
-                    if (lightComponent.BoundingBox.Intersects(ref boundingBoxCasted))
+                    if (light.BoundingBox.Intersects(ref boundingBoxCasted))
                     {
-                        var spotLight = (LightSpot)lightComponent.Type;
+                        var spotLight = (LightSpot)light.Type;
 
                         /*
                         // TODO: Just save the shaderdata struct directly within "LightDynamicEntry"?
@@ -271,8 +271,8 @@ namespace Xenko.Rendering.Lights
                         */
 
                         // TODO: Move this to "Collect()" and use "LightSpotTextureProjectionShaderData", but IDK how!
-                        worldToTextureUV[lightIndex] = ComputeWorldToTextureUVMatrix(lightComponent);
-                        projectorPlaneMatrices[lightIndex] = ComputeProjectorPlaneMatrix(lightComponent);
+                        worldToTextureUV[lightIndex] = ComputeWorldToTextureUVMatrix(light);
+                        projectorPlaneMatrices[lightIndex] = ComputeProjectorPlaneMatrix(light);
 
                         // We use the maximum number of mips instead of the actual number,
                         // so things like video textures behave more consistently when changing the number of mip maps to generate.

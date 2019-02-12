@@ -48,9 +48,9 @@ namespace Xenko.Rendering.Shadows
             return false;
         }
 
-        public override LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, LightComponent lightComponent, IDirectLight light, int shadowMapSize)
+        public override LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, RenderLight renderLight, IDirectLight light, int shadowMapSize)
         {
-            var shadowMapTexture = base.CreateShadowMapTexture(renderView, lightComponent, light, shadowMapSize);
+            var shadowMapTexture = base.CreateShadowMapTexture(renderView, renderLight, light, shadowMapSize);
             shadowMapTexture.CascadeCount = 6; // 6 faces
             return shadowMapTexture;
         }
@@ -66,7 +66,7 @@ namespace Xenko.Rendering.Shadows
             Matrix rotation = Matrix.Identity;
 
             // Apply light position
-            view = Matrix.Translation(-shadowMapTexture.LightComponent.Position);
+            view = Matrix.Translation(-shadowMapTexture.RenderLight.Position);
 
             // Select face based on index
             switch (index)

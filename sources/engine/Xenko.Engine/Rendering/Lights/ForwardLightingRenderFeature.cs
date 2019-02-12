@@ -30,14 +30,14 @@ namespace Xenko.Rendering.Lights
             /// Gets the lights without shadow per light type.
             /// </summary>
             /// <value>The lights.</value>
-            public readonly Dictionary<Type, LightComponentCollectionGroup> ActiveLightGroups;
+            public readonly Dictionary<Type, RenderLightCollectionGroup> ActiveLightGroups;
 
             internal readonly List<ActiveLightGroupRenderer> ActiveRenderers;
 
-            public readonly List<LightComponent> VisibleLights;
-            public readonly List<LightComponent> VisibleLightsWithShadows;
+            public readonly List<RenderLight> VisibleLights;
+            public readonly List<RenderLight> VisibleLightsWithShadows;
 
-            public readonly Dictionary<LightComponent, LightShadowMapTexture> LightComponentsWithShadows;
+            public readonly Dictionary<RenderLight, LightShadowMapTexture> RenderLightsWithShadows;
 
             internal ObjectId ViewLayoutHash;
             internal ParameterCollectionLayout ViewParameterLayout;
@@ -45,12 +45,12 @@ namespace Xenko.Rendering.Lights
 
             public RenderViewLightData()
             {
-                ActiveLightGroups = new Dictionary<Type, LightComponentCollectionGroup>(16);
+                ActiveLightGroups = new Dictionary<Type, RenderLightCollectionGroup>(16);
                 ActiveRenderers = new List<ActiveLightGroupRenderer>(16);
 
-                VisibleLights = new List<LightComponent>(1024);
-                VisibleLightsWithShadows = new List<LightComponent>(1024);
-                LightComponentsWithShadows = new Dictionary<LightComponent, LightShadowMapTexture>(16);
+                VisibleLights = new List<RenderLight>(1024);
+                VisibleLightsWithShadows = new List<RenderLight>(1024);
+                RenderLightsWithShadows = new Dictionary<RenderLight, LightShadowMapTexture>(16);
             }
         }
 
@@ -503,7 +503,7 @@ namespace Xenko.Rendering.Lights
 
                 foreach (var p in lightRenderersByType)
                 {
-                    LightComponentCollectionGroup lightGroup;
+                    RenderLightCollectionGroup lightGroup;
                     viewData.ActiveLightGroups.TryGetValue(p.Key, out lightGroup);
                     
                     if (lightGroup != null && lightGroup.Count > 0)
@@ -634,14 +634,14 @@ namespace Xenko.Rendering.Lights
                         LightIndices = lightIndicesToProcess,
                         LightType = activeRenderer.LightGroup.LightType,
                         ShadowMapRenderer = shadowMapRenderer,
-                        ShadowMapTexturesPerLight = renderViewData.LightComponentsWithShadows,
+                        ShadowMapTexturesPerLight = renderViewData.RenderLightsWithShadows,
                     };
                     renderer.ProcessLights(processLightsParameters);
                 }
             }
         }
 
-        private static void AllocateCollectionsPerGroupOfCullingMask(Dictionary<Type, LightComponentCollectionGroup> lights)
+        private static void AllocateCollectionsPerGroupOfCullingMask(Dictionary<Type, RenderLightCollectionGroup> lights)
         {
             foreach (var lightPair in lights)
             {
@@ -649,7 +649,7 @@ namespace Xenko.Rendering.Lights
             }
         }
 
-        private static void ClearCache(Dictionary<Type, LightComponentCollectionGroup> lights)
+        private static void ClearCache(Dictionary<Type, RenderLightCollectionGroup> lights)
         {
             foreach (var lightPair in lights)
             {
@@ -657,9 +657,9 @@ namespace Xenko.Rendering.Lights
             }
         }
 
-        private LightComponentCollectionGroup GetLightGroup(RenderViewLightData renderViewData, LightComponent light)
+        private RenderLightCollectionGroup GetLightGroup(RenderViewLightData renderViewData, RenderLight light)
         {
-            LightComponentCollectionGroup lightGroup;
+            RenderLightCollectionGroup lightGroup;
 
             var directLight = light.Type as IDirectLight;
             var lightGroups = renderViewData.ActiveLightGroups;
@@ -667,7 +667,7 @@ namespace Xenko.Rendering.Lights
             var type = light.Type.GetType();
             if (!lightGroups.TryGetValue(type, out lightGroup))
             {
-                lightGroup = new LightComponentCollectionGroup(type);
+                lightGroup = new RenderLightCollectionGroup(type);
                 lightGroups.Add(type, lightGroup);
             }
             return lightGroup;
@@ -748,7 +748,7 @@ namespace Xenko.Rendering.Lights
 
         internal struct ActiveLightGroupRenderer
         {
-            public ActiveLightGroupRenderer(LightComponentCollectionGroup lightGroup, IEnumerable<LightGroupRendererBase> lightGroupRenderers)
+            public ActiveLightGroupRenderer(RenderLightCollectionGroup lightGroup, IEnumerable<LightGroupRendererBase> lightGroupRenderers)
             {
                 LightGroup = lightGroup;
                 Renderers = lightGroupRenderers.ToArray();
@@ -759,7 +759,7 @@ namespace Xenko.Rendering.Lights
             /// </summary>
             public readonly LightGroupRendererBase[] Renderers;
 
-            public readonly LightComponentCollectionGroup LightGroup;
+            public readonly RenderLightCollectionGroup LightGroup;
         }
 
         private class PrepareThreadLocals

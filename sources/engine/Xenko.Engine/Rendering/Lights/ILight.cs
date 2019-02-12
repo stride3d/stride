@@ -10,6 +10,6 @@ namespace Xenko.Rendering.Lights
     /// </summary>
     public interface ILight
     {
-        bool Update(LightComponent lightComponent);
+        bool Update(RenderLight light);
     }
 }

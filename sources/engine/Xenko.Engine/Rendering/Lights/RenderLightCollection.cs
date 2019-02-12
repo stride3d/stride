@@ -10,20 +10,20 @@ namespace Xenko.Rendering.Lights
     /// <summary>
     /// A list of <see cref="LightComponent"/> for a specified <see cref="RenderGroupMask"/>.
     /// </summary>
-    public class LightComponentCollection : FastList<LightComponent>
+    public class RenderLightCollection : FastList<RenderLight>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="LightComponentCollection"/> class.
+        /// Initializes a new instance of the <see cref="RenderLightCollection"/> class.
         /// </summary>
-        public LightComponentCollection()
+        public RenderLightCollection()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LightComponentCollection"/> class.
+        /// Initializes a new instance of the <see cref="RenderLightCollection"/> class.
         /// </summary>
         /// <param name="capacity">The capacity.</param>
-        public LightComponentCollection(int capacity)
+        public RenderLightCollection(int capacity)
             : base(capacity)
         {
         }

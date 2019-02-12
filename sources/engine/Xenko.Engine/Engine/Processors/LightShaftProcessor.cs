@@ -2,17 +2,19 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
+using Xenko.Rendering.Images;
 using Xenko.Rendering.Lights;
 
 namespace Xenko.Engine.Processors
 {
     public class LightShaftProcessor : EntityProcessor<LightShaftComponent, LightShaftProcessor.AssociatedData>
     {
-        private readonly List<AssociatedData> activeLightShafts = new List<AssociatedData>();
+        private readonly List<RenderLightShaft> activeLightShafts = new List<RenderLightShaft>();
 
-        public List<AssociatedData> LightShafts => activeLightShafts;
+        public List<RenderLightShaft> LightShafts => activeLightShafts;
 
         /// <inheritdoc />
         protected override AssociatedData GenerateComponentData(Entity entity, LightShaftComponent component)
@@ -35,20 +37,46 @@ namespace Xenko.Engine.Processors
         public override void Update(GameTime time)
         {
             activeLightShafts.Clear();
+
+            // Get processors
+            var lightProcessor = EntityManager.GetProcessor<LightProcessor>();
+            if (lightProcessor == null)
+                return;
+
+            var lightShaftBoundingVolumeProcessor = EntityManager.GetProcessor<LightShaftBoundingVolumeProcessor>();
+            if (lightShaftBoundingVolumeProcessor == null)
+                return;
+
             foreach (var pair in ComponentDatas)
             {
                 if (!pair.Key.Enabled)
                     continue;
 
                 var lightShaft = pair.Value;
-                var light = lightShaft.LightComponent;
+                if (lightShaft.LightComponent == null)
+                    continue;
 
-                var directLight = light?.Type as IDirectLight;
+                var light = lightProcessor.GetRenderLight(lightShaft.LightComponent);
+                if (light == null)
+                    continue;
+
+                var directLight = light.Type as IDirectLight;
                 if (directLight == null)
                     continue;
 
-                lightShaft.Light = directLight;
-                activeLightShafts.Add(lightShaft);
+                var boundingVolumes = lightShaftBoundingVolumeProcessor.GetBoundingVolumesForComponent(lightShaft.Component);
+                if (boundingVolumes == null)
+                    continue;
+
+                activeLightShafts.Add(new RenderLightShaft
+                {
+                    Light = light,
+                    Light2 = directLight,
+                    SampleCount = lightShaft.Component.SampleCount,
+                    DensityFactor = lightShaft.Component.DensityFactor,
+                    BoundingVolumes = boundingVolumes,
+                    SeparateBoundingVolumes = lightShaft.Component.SeparateBoundingVolumes,
+                });
             }
         }
 
@@ -56,11 +84,6 @@ namespace Xenko.Engine.Processors
         {
             public LightShaftComponent Component;
             public LightComponent LightComponent;
-            public IDirectLight Light;
-            public int SampleCount => Component.SampleCount;
-            public Matrix LightWorld => Component.Entity.Transform.WorldMatrix;
-            public float DensityFactor => Component.DensityFactor;
-            public bool SeparateBoundingVolumes => Component.SeparateBoundingVolumes;
         }
     }
 }

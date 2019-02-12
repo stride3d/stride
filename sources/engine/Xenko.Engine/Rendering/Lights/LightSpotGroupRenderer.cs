@@ -153,7 +153,7 @@ namespace Xenko.Rendering.Lights
                 // These variables will contain the relevant parameters of the next usable light:
                 var nextGroupParameters = SpotLightGroupParameters.Null;
                 LightShadowMapTexture nextShadowTexture = null;
-                LightComponent nextLight = null;
+                RenderLight nextLight = null;
 
                 // Find the next light whose attributes aren't null:
                 if (j < parameters.LightIndices.Count)

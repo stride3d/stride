@@ -25,9 +25,9 @@ namespace Xenko.Rendering.Lights
         [DataMemberIgnore]
         internal Quaternion Rotation;
 
-        public bool Update(LightComponent lightComponent)
+        public bool Update(RenderLight light)
         {
-            Rotation = Quaternion.RotationMatrix(lightComponent.Entity.Transform.WorldMatrix);
+            Rotation = Quaternion.RotationMatrix(light.WorldMatrix);
             return Skybox != null;
         }
     }

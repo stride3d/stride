@@ -102,7 +102,7 @@ namespace Xenko.Rendering.Lights
         /// <param name="light"></param>
         /// <param name="shadowMapTexture"></param>
         /// <returns></returns>
-        public bool AddLight(LightComponent light, LightShadowMapTexture shadowMapTexture)
+        public bool AddLight(RenderLight light, LightShadowMapTexture shadowMapTexture)
         {
             lights.Add(new LightDynamicEntry(light, shadowMapTexture));
             return true;

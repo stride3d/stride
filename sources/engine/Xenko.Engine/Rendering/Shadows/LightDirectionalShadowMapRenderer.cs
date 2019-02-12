@@ -101,9 +101,9 @@ namespace Xenko.Rendering.Shadows
             return light is LightDirectional;
         }
 
-        public override LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, LightComponent lightComponent, IDirectLight light, int shadowMapSize)
+        public override LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, RenderLight renderLight, IDirectLight light, int shadowMapSize)
         {
-            var shadowMap = base.CreateShadowMapTexture(renderView, lightComponent, light, shadowMapSize);
+            var shadowMap = base.CreateShadowMapTexture(renderView, renderLight, light, shadowMapSize);
             shadowMap.CascadeCount = ((LightDirectionalShadowMap)light.Shadow).GetCascadeCount();
             // Views with orthographic cameras cannot use cascades, we force it to 1 shadow map here.
             if (renderView.Projection.M44 == 1.0f)
@@ -129,7 +129,7 @@ namespace Xenko.Rendering.Shadows
 
             // Computes the cascade splits
             var minMaxDistance = ComputeCascadeSplits(context, sourceView, ref lightShadowMap);
-            var direction = lightShadowMap.LightComponent.Direction;
+            var direction = lightShadowMap.RenderLight.Direction;
 
             // Fake value
             // It will be setup by next loop

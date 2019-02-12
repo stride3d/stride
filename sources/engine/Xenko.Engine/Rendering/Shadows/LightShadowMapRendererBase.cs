@@ -88,10 +88,10 @@ namespace Xenko.Rendering.Shadows
         {
         }
 
-        public virtual LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, LightComponent lightComponent, IDirectLight light, int shadowMapSize)
+        public virtual LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, RenderLight renderLight, IDirectLight light, int shadowMapSize)
         {
             var shadowMap = shadowMaps.Add();
-            shadowMap.Initialize(renderView, lightComponent, light, light.Shadow, shadowMapSize, this);
+            shadowMap.Initialize(renderView, renderLight, light, light.Shadow, shadowMapSize, this);
             return shadowMap;
         }
 

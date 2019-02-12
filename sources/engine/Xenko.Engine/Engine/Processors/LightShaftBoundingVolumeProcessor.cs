@@ -6,12 +6,13 @@ using System.Collections.Generic;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
 using Xenko.Rendering;
+using Xenko.Rendering.Images;
 
 namespace Xenko.Engine.Processors
 {
     public class LightShaftBoundingVolumeProcessor : EntityProcessor<LightShaftBoundingVolumeComponent>
     {
-        private Dictionary<LightShaftComponent, List<Data>> volumesPerLightShaft = new Dictionary<LightShaftComponent, List<Data>>();
+        private Dictionary<LightShaftComponent, List<RenderLightShaftBoundingVolume>> volumesPerLightShaft = new Dictionary<LightShaftComponent, List<RenderLightShaftBoundingVolume>>();
         private bool isDirty;
 
         public override void Update(GameTime time)
@@ -23,10 +24,9 @@ namespace Xenko.Engine.Processors
             }
         }
 
-        public IReadOnlyList<Data> GetBoundingVolumesForComponent(LightShaftComponent component)
+        public IReadOnlyList<RenderLightShaftBoundingVolume> GetBoundingVolumesForComponent(LightShaftComponent component)
         {
-            List<Data> data;
-            if (!volumesPerLightShaft.TryGetValue(component, out data))
+            if (!volumesPerLightShaft.TryGetValue(component, out var data))
                 return null;
             return data;
         }
@@ -75,22 +75,16 @@ namespace Xenko.Engine.Processors
                 if (lightShaft == null)
                     continue;
 
-                List<Data> data;
+                List<RenderLightShaftBoundingVolume> data;
                 if (!volumesPerLightShaft.TryGetValue(lightShaft, out data))
-                    volumesPerLightShaft.Add(lightShaft, data = new List<Data>());
+                    volumesPerLightShaft.Add(lightShaft, data = new List<RenderLightShaftBoundingVolume>());
 
-                data.Add(new Data
+                data.Add(new RenderLightShaftBoundingVolume
                 {
-                    Component = pair.Key,
+                    World = pair.Key.Entity.Transform.WorldMatrix,
+                    Model = pair.Key.Model,
                 });
             }
-        }
-
-        public class Data
-        {
-            public LightShaftBoundingVolumeComponent Component;
-            public Matrix World => Component.Entity.Transform.WorldMatrix;
-            public Model Model => Component.Model;
         }
     }
 }

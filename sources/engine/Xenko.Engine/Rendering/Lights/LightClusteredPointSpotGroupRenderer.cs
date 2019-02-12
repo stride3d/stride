@@ -76,17 +76,17 @@ namespace Xenko.Rendering.Lights
             spotGroup.SetViews(views);
         }
 
-        private bool CanRenderLight(LightComponent lightComponent, ProcessLightsParameters parameters, bool hasNextRenderer)
+        private bool CanRenderLight(RenderLight renderLight, ProcessLightsParameters parameters, bool hasNextRenderer)
         {
             Texture projectionTexture = null;
-            if (lightComponent.Type is LightSpot spotLight) // TODO: PERFORMANCE: I would say that casting this for every light is slow, no?
+            if (renderLight.Type is LightSpot spotLight) // TODO: PERFORMANCE: I would say that casting this for every light is slow, no?
             {
                 projectionTexture = spotLight.ProjectiveTexture;
             }
 
             // Check if there might be a renderer that supports shadows instead (in that case skip the light)
             LightShadowMapTexture shadowMapTexture;
-            if ((hasNextRenderer && parameters.ShadowMapTexturesPerLight.TryGetValue(lightComponent, out shadowMapTexture)) // If the light has shadows:
+            if ((hasNextRenderer && parameters.ShadowMapTexturesPerLight.TryGetValue(renderLight, out shadowMapTexture)) // If the light has shadows:
                 // TODO: Check for "hasNextRenderer && projectionTexture != null" instead?
                 || projectionTexture != null) // If the light projects a texture (we check for this because otherwise this renderer would "steal" the light from the spot light renderer which handles texture projection):
             {
@@ -111,10 +111,10 @@ namespace Xenko.Rendering.Lights
             for (int i = 0; i < parameters.LightIndices.Count;)
             {
                 int index = parameters.LightIndices[i];
-                var lightComponent = parameters.LightCollection[index];
+                var renderLight = parameters.LightCollection[index];
 
                 // Check if there might be a renderer that supports shadows instead (in that case skip the light)
-                if (!CanRenderLight(lightComponent, parameters, hasNextRenderer)) // If the light projects a texture (we check for this because otherwise this renderer would "steal" the light from the spot light renderer which handle texture projection):    // TODO: Also check for texture projection renderer?
+                if (!CanRenderLight(renderLight, parameters, hasNextRenderer)) // If the light projects a texture (we check for this because otherwise this renderer would "steal" the light from the spot light renderer which handle texture projection):    // TODO: Also check for texture projection renderer?
                 {
                     // Skip this light
                     i++;

@@ -13,13 +13,12 @@ namespace Xenko.Rendering.Lights
 {
     internal class ShadowComparer : IComparer<int>
     {
-        public Dictionary<LightComponent, LightShadowMapTexture> ShadowMapTexturesPerLight;
-        public LightComponentCollection Lights;
+        public Dictionary<RenderLight, LightShadowMapTexture> ShadowMapTexturesPerLight;
+        public RenderLightCollection Lights;
 
-        private LightShadowType GetShadowType(LightComponent lightComponent)
+        private LightShadowType GetShadowType(RenderLight light)
         {
-            LightShadowMapTexture shadow;
-            ShadowMapTexturesPerLight.TryGetValue(lightComponent, out shadow);
+            ShadowMapTexturesPerLight.TryGetValue(light, out LightShadowMapTexture shadow);
             return shadow?.ShadowType ?? 0;
         }
 
@@ -154,7 +153,7 @@ namespace Xenko.Rendering.Lights
                 LightShadowType nextShadowType = 0;
                 ILightShadowMapRenderer nextShadowRenderer = null;
                 LightShadowMapTexture nextShadowTexture = null;
-                LightComponent nextLight = null;
+                RenderLight nextLight = null;
 
                 // Find the next light whose attributes aren't null:
                 if (j < parameters.LightIndices.Count)

@@ -41,6 +41,6 @@ namespace Xenko.Rendering.Lights
             return color;
         }
 
-        public abstract bool Update(LightComponent lightComponent);
+        public abstract bool Update(RenderLight light);
     }
 }

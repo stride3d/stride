@@ -17,7 +17,7 @@ namespace Xenko.Rendering.Lights
     /// </summary>
     public class LightSkyboxRenderer : LightGroupRendererBase
     {
-        private readonly Dictionary<LightComponent, LightSkyBoxShaderGroup> lightShaderGroupsPerSkybox = new Dictionary<LightComponent, LightSkyBoxShaderGroup>();
+        private readonly Dictionary<RenderLight, LightSkyBoxShaderGroup> lightShaderGroupsPerSkybox = new Dictionary<RenderLight, LightSkyBoxShaderGroup>();
         private PoolListStruct<LightSkyBoxShaderGroup> pool = new PoolListStruct<LightSkyBoxShaderGroup>(8, CreateLightSkyBoxShaderGroup);
 
         public override Type[] LightTypes { get; } = { typeof(LightSkybox) };
@@ -82,8 +82,6 @@ namespace Xenko.Rendering.Lights
         {
             private static readonly ShaderClassSource EmptyComputeEnvironmentColorSource = new ShaderClassSource("IComputeEnvironmentColor");
 
-            private LightComponent light;
-
             private ValueParameterKey<float> intensityKey;
             private ValueParameterKey<Matrix> skyMatrixKey;
             private PermutationParameterKey<ShaderSource> lightDiffuseColorKey;
@@ -92,11 +90,7 @@ namespace Xenko.Rendering.Lights
             private ObjectParameterKey<Texture> specularCubeMapkey;
             private ValueParameterKey<float> specularMipCountKey;
 
-            public LightComponent Light
-            {
-                get { return light; }
-                set { light = value; }
-            }
+            public RenderLight Light { get; set; }
 
             public LightSkyBoxShaderGroup(ShaderSource mixin) : base(mixin)
             {
@@ -119,7 +113,7 @@ namespace Xenko.Rendering.Lights
 
             public override void ApplyEffectPermutations(RenderEffect renderEffect)
             {
-                var lightSkybox = (LightSkybox)light.Type;
+                var lightSkybox = (LightSkybox)Light.Type;
                 var skybox = lightSkybox.Skybox;
 
                 var diffuseParameters = skybox.DiffuseLightingParameters;
@@ -136,10 +130,10 @@ namespace Xenko.Rendering.Lights
             {
                 base.ApplyViewParameters(context, viewIndex, parameters);
 
-                var lightSkybox = ((LightSkybox)light.Type);
+                var lightSkybox = ((LightSkybox)Light.Type);
                 var skybox = lightSkybox.Skybox;
 
-                var intensity = light.Intensity;
+                var intensity = Light.Intensity;
 
                 var skyMatrix = Matrix.Invert(Matrix.RotationQuaternion(lightSkybox.Rotation));
 

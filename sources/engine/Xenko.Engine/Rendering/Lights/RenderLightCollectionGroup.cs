@@ -12,10 +12,10 @@ using Xenko.Engine;
 namespace Xenko.Rendering.Lights
 {
     /// <summary>
-    /// A list of <see cref="LightComponentCollection"/> for a particular type of light (direct light, direct light + shadows, environment lights).
+    /// A list of <see cref="RenderLightCollection"/> for a particular type of light (direct light, direct light + shadows, environment lights).
     /// </summary>
     [DebuggerDisplay("LightCollections[{Count}]")]
-    public sealed class LightComponentCollectionGroup : IEnumerable<LightComponentCollection>
+    public sealed class RenderLightCollectionGroup : IEnumerable<RenderLightCollection>
     {
         // The reason of this class is to store lights according to their culling mask while minimizing the number of LightComponentCollection needed
         // if culling mask are similar.
@@ -42,10 +42,10 @@ namespace Xenko.Rendering.Lights
         //
         // We are also able to retreive efficiently a LightComponentCollection for a specific group mask
 
-        private PoolListStruct<LightComponentCollection> lightCollectionPool;
-        private readonly List<LightComponent> allLights;
+        private PoolListStruct<RenderLightCollection> lightCollectionPool;
+        private readonly List<RenderLight> allLights;
 
-        private readonly List<LightComponent> allLightsWithShadows;
+        private readonly List<RenderLight> allLightsWithShadows;
 
         // a 32 bits * 2 entry per bits storing for each bit:
         // [0] The 'and' mask of all active light culling mask associated to this bit
@@ -55,25 +55,25 @@ namespace Xenko.Rendering.Lights
         private readonly HashSet<RenderGroupMask> allMasks;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LightComponentCollectionGroup"/> class.
+        /// Initializes a new instance of the <see cref="RenderLightCollectionGroup"/> class.
         /// </summary>
-        internal LightComponentCollectionGroup(Type lightType)
+        internal RenderLightCollectionGroup(Type lightType)
         {
             LightType = lightType;
-            lightCollectionPool = new PoolListStruct<LightComponentCollection>(32, LightComponentCollectionFactory);
+            lightCollectionPool = new PoolListStruct<RenderLightCollection>(32, LightComponentCollectionFactory);
             groupMasks = new uint[32 * 2];
-            allLights = new List<LightComponent>(128);
-            allLightsWithShadows = new List<LightComponent>(128);
+            allLights = new List<RenderLight>(128);
+            allLightsWithShadows = new List<RenderLight>(128);
             allMasks = new HashSet<RenderGroupMask>();
         }
 
         /// <summary>
-        /// Gets the <see cref="LightComponentCollection"/> at the specified index.
+        /// Gets the <see cref="RenderLightCollection"/> at the specified index.
         /// </summary>
         /// <param name="index">The index.</param>
         /// <returns>LightComponentCollection.</returns>
         /// <exception cref="System.ArgumentOutOfRangeException">index [{0}] out of range [0, {1}].ToFormat(index, lights.Count - 1)</exception>
-        public LightComponentCollection this[int index]
+        public RenderLightCollection this[int index]
         {
             get
             {
@@ -86,7 +86,7 @@ namespace Xenko.Rendering.Lights
         /// </summary>
         /// <param name="group">The group.</param>
         /// <returns>LightComponentCollection.</returns>
-        public LightComponentCollection FindLightCollectionByGroup(RenderGroup group)
+        public RenderLightCollection FindLightCollectionByGroup(RenderGroup group)
         {
             // If a mask is not zero, then we have a collection associated for this bit
             int groupBaseIndex = (int)group * 2;
@@ -101,37 +101,19 @@ namespace Xenko.Rendering.Lights
         /// Gets all the lights stored in this group.
         /// </summary>
         /// <value>All lights.</value>
-        public List<LightComponent> AllLights
-        {
-            get
-            {
-                return allLights;
-            }
-        }
+        public List<RenderLight> AllLights => allLights;
 
         /// <summary>
         /// Gets the lights with shadows.
         /// </summary>
         /// <value>The lights with shadows.</value>
-        public List<LightComponent> AllLightsWithShadows
-        {
-            get
-            {
-                return allLightsWithShadows;
-            }
-        }
+        public List<RenderLight> AllLightsWithShadows => allLightsWithShadows;
 
         /// <summary>
-        /// Gets the number of <see cref="LightComponentCollection"/> stored in this group.
+        /// Gets the number of <see cref="RenderLightCollection"/> stored in this group.
         /// </summary>
-        /// <value>The number of <see cref="LightComponentCollection"/> stored in this group.</value>
-        public int Count
-        {
-            get
-            {
-                return lightCollectionPool.Count;
-            }
-        }
+        /// <value>The number of <see cref="RenderLightCollection"/> stored in this group.</value>
+        public int Count => lightCollectionPool.Count;
 
         /// <summary>
         /// Gets the light type this collection contains.
@@ -154,7 +136,7 @@ namespace Xenko.Rendering.Lights
             }
         }
 
-        internal void PrepareLight(LightComponent lightComponent)
+        internal void PrepareLight(RenderLight renderLight)
         {
             var cullingMask = RenderGroupMask.All; //lightComponent.CullingMask;
 
@@ -222,7 +204,7 @@ namespace Xenko.Rendering.Lights
             }
         }
 
-        internal void AddLight(LightComponent lightComponent)
+        internal void AddLight(RenderLight renderLight)
         {
             var cullingMask = RenderGroupMask.All; //lightComponent.CullingMask;
 
@@ -234,26 +216,26 @@ namespace Xenko.Rendering.Lights
                 {
                     continue;
                 }
-                lightCollectionGroup.Add(lightComponent);
+                lightCollectionGroup.Add(renderLight);
             }
 
             // Keep a list of all lights for this group
-            allLights.Add(lightComponent);
+            allLights.Add(renderLight);
 
             // If the light has shadows, populate a separate list
-            var directLight = lightComponent.Type as IDirectLight;
+            var directLight = renderLight.Type as IDirectLight;
             if (directLight != null && directLight.Shadow.Enabled)
             {
-                allLightsWithShadows.Add(lightComponent);
+                allLightsWithShadows.Add(renderLight);
             }
         }
 
-        public FastListStruct<LightComponentCollection>.Enumerator GetEnumerator()
+        public FastListStruct<RenderLightCollection>.Enumerator GetEnumerator()
         {
             return lightCollectionPool.GetEnumerator();
         }
 
-        IEnumerator<LightComponentCollection> IEnumerable<LightComponentCollection>.GetEnumerator()
+        IEnumerator<RenderLightCollection> IEnumerable<RenderLightCollection>.GetEnumerator()
         {
             return lightCollectionPool.GetEnumerator();
         }
@@ -263,9 +245,9 @@ namespace Xenko.Rendering.Lights
             return lightCollectionPool.GetEnumerator();
         }
 
-        private static LightComponentCollection LightComponentCollectionFactory()
+        private static RenderLightCollection LightComponentCollectionFactory()
         {
-            return new LightComponentCollection();
+            return new RenderLightCollection();
         }
     }
 }

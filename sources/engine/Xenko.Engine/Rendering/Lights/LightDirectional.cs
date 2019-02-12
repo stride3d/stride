@@ -43,7 +43,7 @@ namespace Xenko.Rendering.Lights
             return Math.Max(renderView.ViewSize.X, renderView.ViewSize.Y);
         }
 
-        public override bool Update(LightComponent lightComponent)
+        public override bool Update(RenderLight light)
         {
             return true;
         }

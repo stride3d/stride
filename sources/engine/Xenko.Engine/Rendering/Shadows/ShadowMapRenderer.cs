@@ -58,11 +58,11 @@ namespace Xenko.Rendering.Shadows
             return null;
         }
 
-        public LightShadowMapTexture FindShadowMap(RenderView renderView, LightComponent lightComponent)
+        public LightShadowMapTexture FindShadowMap(RenderView renderView, RenderLight light)
         {
             foreach (var shadowMap in shadowMaps)
             {
-                if (shadowMap.RenderView == renderView && shadowMap.LightComponent == lightComponent)
+                if (shadowMap.RenderView == renderView && shadowMap.RenderLight == light)
                     return shadowMap;
             }
 
@@ -81,7 +81,7 @@ namespace Xenko.Rendering.Shadows
 
             foreach (var renderViewData in renderViewLightDatas)
             {
-                renderViewData.Value.LightComponentsWithShadows.Clear();
+                renderViewData.Value.RenderLightsWithShadows.Clear();
 
                 // Collect shadows only if enabled on this view
                 if (!RenderViewsWithShadows.Contains(renderViewData.Key))
@@ -113,7 +113,7 @@ namespace Xenko.Rendering.Shadows
                     // Collect all required shadow maps
                     CollectShadowMaps(renderViewData.Key, renderViewData.Value);
 
-                    foreach (var lightShadowMapTexture in renderViewData.Value.LightComponentsWithShadows)
+                    foreach (var lightShadowMapTexture in renderViewData.Value.RenderLightsWithShadows)
                     {
                         var shadowMapTexture = lightShadowMapTexture.Value;
 
@@ -229,9 +229,9 @@ namespace Xenko.Rendering.Shadows
         private void CollectShadowMaps(RenderView renderView, ForwardLightingRenderFeature.RenderViewLightData renderViewLightData)
         {
             // TODO GRAPHICS REFACTOR Only lights of current scene!
-            foreach (var lightComponent in renderViewLightData.VisibleLightsWithShadows)
+            foreach (var renderLight in renderViewLightData.VisibleLightsWithShadows)
             {
-                var light = lightComponent.Type as IDirectLight;
+                var light = renderLight.Type as IDirectLight;
                 if (light == null)
                 {
                     continue;
@@ -250,8 +250,8 @@ namespace Xenko.Rendering.Shadows
                     continue;
                 }
 
-                var direction = lightComponent.Direction;
-                var position = lightComponent.Position;
+                var direction = renderLight.Direction;
+                var position = renderLight.Position;
 
                 // Compute the coverage of this light on the screen
                 var size = light.ComputeScreenCoverage(renderView, position, direction);
@@ -268,12 +268,12 @@ namespace Xenko.Rendering.Shadows
                     continue;
                 }
 
-                var shadowMapTexture = renderer.CreateShadowMapTexture(renderView, lightComponent, light, shadowMapSize);
+                var shadowMapTexture = renderer.CreateShadowMapTexture(renderView, renderLight, light, shadowMapSize);
 
                 // Assign rectangles for shadowmap
                 AssignRectangle(shadowMapTexture);
 
-                renderViewLightData.LightComponentsWithShadows.Add(lightComponent, shadowMapTexture);
+                renderViewLightData.RenderLightsWithShadows.Add(renderLight, shadowMapTexture);
 
                 shadowMaps.Add(shadowMapTexture);
             }

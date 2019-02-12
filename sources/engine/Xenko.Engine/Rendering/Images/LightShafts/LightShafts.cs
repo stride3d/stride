@@ -51,12 +51,11 @@ namespace Xenko.Rendering.Images
 
         private IShadowMapRenderer shadowMapRenderer;
         private LightShaftProcessor lightShaftProcessor;
-        private LightShaftBoundingVolumeProcessor lightShaftBoundingVolumeProcessor;
 
         private MutablePipelineState[] minmaxPipelineStates = new MutablePipelineState[2];
         private EffectBytecode previousMinmaxEffectBytecode;
 
-        private LightShaftBoundingVolumeProcessor.Data[] singleBoundingVolume = new LightShaftBoundingVolumeProcessor.Data[1];
+        private RenderLightShaftBoundingVolume[] singleBoundingVolume = new RenderLightShaftBoundingVolume[1];
 
         // This could be used at some point when we have colored shadows
         private bool needsColorLightBuffer = true;
@@ -122,12 +121,11 @@ namespace Xenko.Rendering.Images
         public void Collect(RenderContext context)
         {
             lightShaftProcessor = context.SceneInstance.GetProcessor<LightShaftProcessor>();
-            lightShaftBoundingVolumeProcessor = context.SceneInstance.GetProcessor<LightShaftBoundingVolumeProcessor>();
         }
 
         protected override void DrawCore(RenderDrawContext context)
         {
-            if (lightShaftProcessor == null || lightShaftBoundingVolumeProcessor == null)
+            if (lightShaftProcessor == null)
                 return; // Not collected
 
             if (LightBufferDownsampleLevel < 1)
@@ -173,29 +171,25 @@ namespace Xenko.Rendering.Images
 
             foreach (var lightShaft in lightShaftDatas)
             {
-                if (lightShaft.LightComponent == null)
+                if (lightShaft.Light == null)
                     continue; // Skip entities without a light component
 
                 // Set sample count for this light
                 lightShaftsParameters.Set(LightShaftsEffectKeys.SampleCount, lightShaft.SampleCount);
 
                 // Setup the shader group used for sampling shadows
-                var shadowMapTexture = shadowMapRenderer.FindShadowMap(renderView.LightingView ?? renderView, lightShaft.LightComponent);
+                var shadowMapTexture = shadowMapRenderer.FindShadowMap(renderView.LightingView ?? renderView, lightShaft.Light);
                 SetupLight(context, lightShaft, shadowMapTexture, lightShaftsParameters);
-                
-                var boundingVolumes = lightShaftBoundingVolumeProcessor.GetBoundingVolumesForComponent(lightShaft.Component);
-                if (boundingVolumes == null)
-                    continue;
-                
+
                 // Check if we can pack bounding volumes together or need to draw them one by one
-                var boundingVolumeLoop = lightShaft.SeparateBoundingVolumes ? boundingVolumes.Count : 1;
+                var boundingVolumeLoop = lightShaft.SeparateBoundingVolumes ? lightShaft.BoundingVolumes.Count : 1;
                 var lightBufferUsed = false;
                 for (int i = 0; i < boundingVolumeLoop; ++i)
                 {
                     // Generate list of bounding volume (either all or one by one depending on SeparateBoundingVolumes)
-                    var currentBoundingVolumes = (lightShaft.SeparateBoundingVolumes) ? singleBoundingVolume : boundingVolumes;
+                    var currentBoundingVolumes = (lightShaft.SeparateBoundingVolumes) ? singleBoundingVolume : lightShaft.BoundingVolumes;
                     if (lightShaft.SeparateBoundingVolumes)
-                        singleBoundingVolume[0] = boundingVolumes[i];
+                        singleBoundingVolume[0] = lightShaft.BoundingVolumes[i];
                     
                     using (context.PushRenderTargetsAndRestore())
                     {
@@ -253,7 +247,7 @@ namespace Xenko.Rendering.Images
                 }
 
                 // Additive blend pass
-                Color3 lightColor = lightShaft.Light.ComputeColor(context.GraphicsDevice.ColorSpace, lightShaft.LightComponent.Intensity);
+                Color3 lightColor = lightShaft.Light2.ComputeColor(context.GraphicsDevice.ColorSpace, lightShaft.Light.Intensity);
                 applyLightEffectShader.Parameters.Set(AdditiveLightShaderKeys.LightColor, lightColor);
                 applyLightEffectShader.Parameters.Set(AdditiveLightEffectKeys.Color, needsColorLightBuffer);
                 applyLightEffectShader.SetInput(lightBuffer);
@@ -281,17 +275,17 @@ namespace Xenko.Rendering.Images
             Draw(drawContext);
         }
 
-        private void UpdateRenderData(RenderDrawContext context, LightShaftRenderData data, LightShaftProcessor.AssociatedData lightShaft, LightShadowMapTexture shadowMapTexture)
+        private void UpdateRenderData(RenderDrawContext context, LightShaftRenderData data, RenderLightShaft lightShaft, LightShadowMapTexture shadowMapTexture)
         {
-            if (lightShaft.Light is LightPoint)
+            if (lightShaft.Light2 is LightPoint)
             {
                 data.GroupRenderer = new LightPointGroupRenderer();
             }
-            else if (lightShaft.Light is LightSpot)
+            else if (lightShaft.Light2 is LightSpot)
             {
                 data.GroupRenderer = new LightSpotGroupRenderer();
             }
-            else if (lightShaft.Light is LightDirectional)
+            else if (lightShaft.Light2 is LightDirectional)
             {
                 data.GroupRenderer = new LightDirectionalGroupRenderer();
             }
@@ -315,15 +309,15 @@ namespace Xenko.Rendering.Images
             data.ShaderGroup = data.GroupRenderer.CreateLightShaderGroup(context, shadowGroup);   // TODO: Implement support for texture projection and attenuation?
         }
 
-        private void SetupLight(RenderDrawContext context, LightShaftProcessor.AssociatedData lightShaft, LightShadowMapTexture shadowMapTexture, ParameterCollection lightParameterCollection)
+        private void SetupLight(RenderDrawContext context, RenderLightShaft lightShaft, LightShadowMapTexture shadowMapTexture, ParameterCollection lightParameterCollection)
         {
             BoundingBoxExt box = new BoundingBoxExt(new Vector3(-float.MaxValue), new Vector3(float.MaxValue)); // TODO
 
             LightShaftRenderData data;
-            if (!renderData.TryGetValue(lightShaft.Light, out data))
+            if (!renderData.TryGetValue(lightShaft.Light2, out data))
             {
                 data = new LightShaftRenderData();
-                renderData.Add(lightShaft.Light, data);
+                renderData.Add(lightShaft.Light2, data);
                 UpdateRenderData(context, data, lightShaft, shadowMapTexture);
             }
 
@@ -343,7 +337,7 @@ namespace Xenko.Rendering.Images
             data.ShaderGroup.SetViews(data.RenderViews);
             data.ShaderGroup.AddView(0, context.RenderContext.RenderView, 1);
 
-            data.ShaderGroup.AddLight(lightShaft.LightComponent, shadowMapTexture);
+            data.ShaderGroup.AddLight(lightShaft.Light, shadowMapTexture);
             data.ShaderGroup.UpdateLayout("lightGroup");
 
             lightParameterCollection.Set(LightShaftsEffectKeys.LightGroup, data.ShaderGroup.ShaderSource);
@@ -357,19 +351,19 @@ namespace Xenko.Rendering.Images
             data.UsageCounter = usageCounter;
         }
 
-        private void DrawLightShaft(RenderDrawContext context, LightShaftProcessor.AssociatedData lightShaft)
+        private void DrawLightShaft(RenderDrawContext context, RenderLightShaft lightShaft)
         {
             lightShaftsEffectShader.Parameters.Set(LightShaftsShaderKeys.DensityFactor, lightShaft.DensityFactor);
 
-            lightShaftsEffectShader.Draw(context, $"Light shaft [{lightShaft.LightComponent.Entity.Name}]");
+            lightShaftsEffectShader.Draw(context, "Light shaft");
         }
 
-        private bool DrawBoundingVolumeMinMax(RenderDrawContext context, IReadOnlyList<LightShaftBoundingVolumeProcessor.Data> boundingVolumes)
+        private bool DrawBoundingVolumeMinMax(RenderDrawContext context, IReadOnlyList<RenderLightShaftBoundingVolume> boundingVolumes)
         {
             return DrawBoundingVolumes(context, boundingVolumes, context.RenderContext.RenderView.ViewProjection);
         }
 
-        private void DrawBoundingVolumeBackside(RenderDrawContext context, IReadOnlyList<LightShaftBoundingVolumeProcessor.Data> boundingVolumes)
+        private void DrawBoundingVolumeBackside(RenderDrawContext context, IReadOnlyList<RenderLightShaftBoundingVolume> boundingVolumes)
         {
             float backSideMaximumDistance = context.RenderContext.RenderView.FarClipPlane;
             float backSideMinimumDistance = -context.RenderContext.RenderView.NearClipPlane;
@@ -377,7 +371,7 @@ namespace Xenko.Rendering.Images
             DrawBoundingVolumes(context, boundingVolumes, backSideProjection);
         }
 
-        private bool DrawBoundingVolumes(RenderDrawContext context, IReadOnlyList<LightShaftBoundingVolumeProcessor.Data> boundingVolumes, Matrix viewProjection)
+        private bool DrawBoundingVolumes(RenderDrawContext context, IReadOnlyList<RenderLightShaftBoundingVolume> boundingVolumes, Matrix viewProjection)
         {
             var commandList = context.CommandList;
 

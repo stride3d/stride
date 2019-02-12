@@ -71,7 +71,7 @@ namespace Xenko.Rendering.Lights
             // Index into the Renderers array
             public int RendererIndex;
             
-            public LightComponentCollection LightCollection;
+            public RenderLightCollection LightCollection;
             public Type LightType;
             
             // Light range to process in LightCollection
@@ -80,7 +80,7 @@ namespace Xenko.Rendering.Lights
 
             public IShadowMapRenderer ShadowMapRenderer;
 
-            public Dictionary<LightComponent, LightShadowMapTexture> ShadowMapTexturesPerLight;
+            public Dictionary<RenderLight, LightShadowMapTexture> ShadowMapTexturesPerLight;
         }
 
         public abstract void UpdateShaderPermutationEntry(ForwardLightingRenderFeature.LightShaderPermutationEntry shaderEntry);

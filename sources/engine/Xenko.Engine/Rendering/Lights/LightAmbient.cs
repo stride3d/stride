@@ -13,7 +13,7 @@ namespace Xenko.Rendering.Lights
     [Display("Ambient")]
     public class LightAmbient : ColorLightBase
     {
-        public override bool Update(LightComponent lightComponent)
+        public override bool Update(RenderLight light)
         {
             return true;
         }

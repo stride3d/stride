@@ -49,8 +49,8 @@ namespace Xenko.Rendering.Shadows
             var shadow = (LightStandardShadowMap)lightShadowMap.Shadow;
 
             // Computes the cascade splits
-            var lightComponent = lightShadowMap.LightComponent;
-            var spotLight = (LightSpot)lightComponent.Type;
+            var renderLight = lightShadowMap.RenderLight;
+            var spotLight = (LightSpot)renderLight.Type;
 
             // Get new shader data from pool
             var shaderData = shaderDataPool.Add();
@@ -66,7 +66,7 @@ namespace Xenko.Rendering.Shadows
             shaderData.DepthRange = new Vector2(nearClip, farClip); //////////////////////////////////////////
 
             // Update the shadow camera
-            var viewMatrix = lightComponent.Entity.Transform.WorldMatrix;
+            var viewMatrix = renderLight.WorldMatrix;
             viewMatrix.Invert();
             var projectionMatrix = Matrix.PerspectiveFovRH(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip); // Perspective Projection for spotlights
             Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out var viewProjectionMatrix);
@@ -217,8 +217,8 @@ namespace Xenko.Rendering.Shadows
 
                 for (int i = 0; i < currentLights.Count; ++i)
                 {
-                    LightDynamicEntry lightEntry = currentLights[i];
-                    LightComponent light = lightEntry.Light;
+                    var lightEntry = currentLights[i];
+                    var light = lightEntry.Light;
 
                     if (light.BoundingBox.Intersects(ref boundingBox2))
                     {

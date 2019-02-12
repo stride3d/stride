@@ -83,10 +83,10 @@ namespace Xenko.Rendering.Lights
 
     public struct LightDynamicEntry
     {
-        public readonly LightComponent Light;
+        public readonly RenderLight Light;
         public readonly LightShadowMapTexture ShadowMapTexture;
 
-        public LightDynamicEntry(LightComponent light, LightShadowMapTexture shadowMapTexture)
+        public LightDynamicEntry(RenderLight light, LightShadowMapTexture shadowMapTexture)
         {
             Light = light;
             ShadowMapTexture = shadowMapTexture;

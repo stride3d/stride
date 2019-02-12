@@ -50,7 +50,7 @@ namespace Xenko.Rendering.Lights
             }
         }
 
-        public override bool Update(LightComponent lightComponent)
+        public override bool Update(RenderLight light)
         {
             var range = Math.Max(0.001f, Radius);
             InvSquareRadius = 1.0f / (range * range);

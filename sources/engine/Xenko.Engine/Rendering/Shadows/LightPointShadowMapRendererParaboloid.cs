@@ -50,10 +50,10 @@ namespace Xenko.Rendering.Shadows
             return false;
         }
 
-        public override LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, LightComponent lightComponent, IDirectLight light, int shadowMapSize)
+        public override LightShadowMapTexture CreateShadowMapTexture(RenderView renderView, RenderLight renderLight, IDirectLight light, int shadowMapSize)
         {
             var shadowMap = shadowMaps.Add();
-            shadowMap.Initialize(renderView, lightComponent, light, light.Shadow, shadowMapSize, this);
+            shadowMap.Initialize(renderView, renderLight, light, light.Shadow, shadowMapSize, this);
             shadowMap.CascadeCount = 2; // 2 faces
             return shadowMap;
         }
@@ -122,7 +122,7 @@ namespace Xenko.Rendering.Shadows
         private void CalculateViewDirection(LightShadowMapTexture shadowMapTexture)
         {
             var pointShadowMapTexture = shadowMapTexture as ShadowMapTexture;
-            Matrix.Orthonormalize(ref shadowMapTexture.LightComponent.Entity.Transform.WorldMatrix, out pointShadowMapTexture.ForwardMatrix);
+            Matrix.Orthonormalize(ref shadowMapTexture.RenderLight.WorldMatrix, out pointShadowMapTexture.ForwardMatrix);
             pointShadowMapTexture.ForwardMatrix.Invert();
         }
 
@@ -162,7 +162,7 @@ namespace Xenko.Rendering.Shadows
             }
 
             // Apply light position
-            view = Matrix.Translation(-shadowMapTexture.LightComponent.Position);
+            view = Matrix.Translation(-shadowMapTexture.RenderLight.Position);
 
             // Apply mapping plane rotatation
             view *= pointShadowMapTexture.ForwardMatrix;
