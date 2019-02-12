@@ -16,9 +16,8 @@ namespace Xenko.Rendering.Lights
     public class LightSkybox : IEnvironmentLight
     {
         /// <summary>
-        /// Gets the skybox (this is set after the <see cref="LightProcessor"/> has processed this light.
+        /// Gets or sets the skybox.
         /// </summary>
-        /// <value>The skybox.</value>
         [DataMember(0)]
         public Skybox Skybox { get; set; }
 
