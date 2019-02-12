@@ -11,6 +11,11 @@ namespace Xenko.Rendering.Shadows
     /// </summary>
     public class ShadowMapRenderView : RenderView
     {
+        public ShadowMapRenderView()
+        {
+            VisiblityIgnoreDepthPlanes = true;
+        }
+
         /// <summary>
         /// The view for which this shadow map is rendered
         /// </summary>
@@ -28,11 +33,6 @@ namespace Xenko.Rendering.Shadows
 
         public ProfilingKey ProfilingKey { get; } = new ProfilingKey($"ShadowMapRenderView");
         
-        /// <summary>
-        /// Ignore depth planes in visibility test
-        /// </summary>
-        public bool VisiblityIgnoreDepthPlanes = true;
-
         internal ParameterCollection ViewParameters = new ParameterCollection();
     }
 }

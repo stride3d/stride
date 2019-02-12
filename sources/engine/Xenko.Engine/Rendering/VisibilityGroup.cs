@@ -106,10 +106,6 @@ namespace Xenko.Rendering
             var pointOnPlane = viewInverse.TranslationVector + viewInverse.Forward * view.NearClipPlane;
             var plane = new Plane(planeNormal, Vector3.Dot(pointOnPlane, planeNormal)); // TODO: Point-normal-constructor seems wrong. Check.
 
-            // TODO: This should be configured by the creator of the view. E.g. near clipping can be enabled for spot light shadows.
-            var shadowView = view as ShadowMapRenderView;
-            var ignoreDepthPlanes = shadowView?.VisiblityIgnoreDepthPlanes ?? false;
-
             // Prepare culling mask
             foreach (var renderViewStage in view.RenderStages)
             {
@@ -169,7 +165,7 @@ namespace Xenko.Rendering
                 // Compute transformed AABB (by world)
                 if (cullingMode == CameraCullingMode.Frustum
                     && renderObject.BoundingBox.Extent != Vector3.Zero
-                    && !FrustumContainsBox(ref frustum, ref renderObject.BoundingBox, ignoreDepthPlanes))
+                    && !FrustumContainsBox(ref frustum, ref renderObject.BoundingBox, view.VisiblityIgnoreDepthPlanes))
                 {
                     return;
                 }

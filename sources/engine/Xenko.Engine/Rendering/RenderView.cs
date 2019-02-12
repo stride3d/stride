@@ -95,6 +95,12 @@ namespace Xenko.Rendering
         /// <remarks>This is a temporary workaround until shadow maps have a real scope: global or view-dependent (single view or multiple views).</remarks>
         public RenderView LightingView { get; set; }
 
+        // TODO: This should be configured by the creator of the view. E.g. near clipping can be enabled for spot light shadows.
+        /// <summary>
+        /// Ignore depth planes in visibility test
+        /// </summary>
+        public bool VisiblityIgnoreDepthPlanes = false;
+
         public override string ToString()
         {
             return $"RenderView ({Features.Sum(x => x.ViewObjectNodes.Count)} objects, {Features.Sum(x => x.RenderNodes.Count)} render nodes, {RenderStages.Count} stages)";
