@@ -372,6 +372,11 @@ namespace Xenko.Engine
             // If requested in game settings, compile effects remotely and/or notify new shader requests
             EffectSystem.Compiler = EffectSystem.CreateEffectCompiler(Content.FileProvider, EffectSystem, Settings?.PackageName, Settings?.EffectCompilation ?? EffectCompilationMode.Local, Settings?.RecordUsedEffects ?? false);
 
+            // Setup shader compiler settings from a compilation mode. 
+            // TODO: We might want to provide overrides on the GameSettings to specify debug and/or optim level specifically.
+            if (Settings != null)
+                EffectSystem.SetCompilationMode(Settings.CompilationMode);
+
             GameSystems.Add(EffectSystem);
 
             GameSystems.Add(Streaming);

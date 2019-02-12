@@ -7,12 +7,8 @@ using System.IO;
 using System.Threading.Tasks;
 using Xenko.Core;
 using Xenko.Core.Diagnostics;
-using Xenko.Core.Extensions;
 using Xenko.Core.IO;
 using Xenko.Core.ReferenceCounting;
-using Xenko.Core.Serialization.Contents;
-using Xenko.Engine;
-using Xenko.Engine.Design;
 using Xenko.Games;
 using Xenko.Graphics;
 using Xenko.Shaders;
@@ -79,13 +75,11 @@ namespace Xenko.Rendering
             directoryWatcher.Modified += FileModifiedEvent;
             // TODO: xkfx too
 #endif
+        }
 
-            // Setup shader compiler settings from a compilation mode. 
-            // TODO: We might want to provide overrides on the GameSettings to specify debug and/or optim level specifically.
-            if (Game != null && (((Game)Game).Settings != null))
-            {
-                effectCompilerParameters.ApplyCompilationMode(((Game)Game).Settings.CompilationMode);
-            }
+        public void SetCompilationMode(CompilationMode compilationMode)
+        {
+            effectCompilerParameters.ApplyCompilationMode(compilationMode);
         }
 
         protected override void Destroy()
