@@ -9,6 +9,8 @@ namespace Xenko.Rendering.Compositing
 {
     public class ForceAspectRatioSceneRenderer : SceneRendererBase
     {
+        public const float DefaultAspectRatio = 16.0f / 9.0f;
+
         public ISceneRenderer Child { get; set; }
 
         /// <summary>
@@ -18,8 +20,8 @@ namespace Xenko.Rendering.Compositing
         /// The aspect ratio.
         /// </value>
         /// <userdoc>The aspect ratio used if Add Letterbox/Pillarbox is checked.</userdoc>
-        [DefaultValue(CameraComponent.DefaultAspectRatio)]
-        public float FixedAspectRatio { get; set; } = CameraComponent.DefaultAspectRatio;
+        [DefaultValue(DefaultAspectRatio)]
+        public float FixedAspectRatio { get; set; } = DefaultAspectRatio;
 
         /// <summary>
         /// Gets or sets a value wether to edit the Viewport to force the aspect ratio and add letterboxes or pillarboxes where needed
