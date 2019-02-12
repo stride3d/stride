@@ -2111,7 +2111,7 @@ extern "C" {
 				source->source_voice_->SetOutputMatrix(source->mastering_voice_, 1, AUDIO_CHANNELS, source->dsp_settings_->pMatrixCoefficients);
 				source->doppler_pitch_ = source->dsp_settings_->DopplerFactor;
 				source->source_voice_->SetFrequencyRatio(source->dsp_settings_->DopplerFactor * source->pitch_);
-				XAUDIO2_FILTER_PARAMETERS filter_parameters = { LowPassFilter, 2.0f * sin(X3DAUDIO_PI / 6.0f * source->dsp_settings_->LPFDirectCoefficient), 1.0f };
+				XAUDIO2_FILTER_PARAMETERS filter_parameters = { LowPassFilter, 2.0f * (float)sin(X3DAUDIO_PI / 6.0f * source->dsp_settings_->LPFDirectCoefficient), 1.0f };
 				if (!xnAudioWindows7Hacks) source->source_voice_->SetFilterParameters(&filter_parameters);
 
 				source->apply3DLock_.Unlock();
