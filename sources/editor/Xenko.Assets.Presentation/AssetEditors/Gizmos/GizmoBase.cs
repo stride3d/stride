@@ -8,6 +8,7 @@ using Xenko.Engine;
 using Xenko.Games;
 using Xenko.Graphics;
 using Xenko.Input;
+using Xenko.Rendering;
 
 namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
 {

@@ -3,7 +3,7 @@
 
 using Xenko.Core;
 
-namespace Xenko.Engine
+namespace Xenko.Rendering
 {
     /// <summary>
     /// An entity group.

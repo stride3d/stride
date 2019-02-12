@@ -5,6 +5,7 @@ using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Engine.Design;
 using Xenko.Core.Serialization;
+using Xenko.Rendering;
 using Xenko.SpriteStudio.Runtime;
 using Xenko.Updater;
 

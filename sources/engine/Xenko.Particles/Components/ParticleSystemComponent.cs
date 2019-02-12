@@ -8,6 +8,7 @@ using Xenko.Core.Mathematics;
 using Xenko.Engine.Design;
 using Xenko.Engine;
 using Xenko.Particles.Rendering;
+using Xenko.Rendering;
 
 namespace Xenko.Particles.Components
 {

@@ -9,6 +9,7 @@ using Xenko.Core.Annotations;
 using Xenko.Core.Mathematics;
 using Xenko.Engine.Design;
 using Xenko.Graphics;
+using Xenko.Rendering;
 using Xenko.Rendering.Sprites;
 
 namespace Xenko.Engine

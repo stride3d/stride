@@ -4,7 +4,7 @@
 using System;
 using Xenko.Core;
 
-namespace Xenko.Engine
+namespace Xenko.Rendering
 {
     /// <summary>
     /// A mask for <see cref="RenderGroup"/>.

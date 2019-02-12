@@ -3,7 +3,7 @@
 
 using System.Runtime.CompilerServices;
 
-namespace Xenko.Engine
+namespace Xenko.Rendering
 {
     /// <summary>
     /// Extensions for <see cref="RenderGroupMask"/>
