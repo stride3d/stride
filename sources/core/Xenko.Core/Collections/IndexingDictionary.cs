@@ -3,11 +3,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Xenko.Core.Collections;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Serializers;
 
-namespace Xenko.Engine
+namespace Xenko.Core.Collections
 {
     /// <summary>
     /// A dictionary that maps index values to items. It uses a sparse list internally for storage.
