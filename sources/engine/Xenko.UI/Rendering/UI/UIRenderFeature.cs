@@ -80,7 +80,7 @@ namespace Xenko.Rendering.UI
         {
             base.Draw(context, renderView, renderViewStage, startIndex, endIndex);
 
-            var uiProcessor = renderView.SceneInstance.GetProcessor<UIRenderProcessor>();
+            var uiProcessor = SceneInstance.GetCurrent(context.RenderContext).GetProcessor<UIRenderProcessor>();
             if (uiProcessor == null)
                 return;
 

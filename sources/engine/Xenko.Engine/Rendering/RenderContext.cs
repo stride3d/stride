@@ -90,11 +90,6 @@ namespace Xenko.Rendering
         public RenderSystem RenderSystem { get; set; }
 
         /// <summary>
-        /// The current scene instance.
-        /// </summary>
-        public SceneInstance SceneInstance { get; set; }
-
-        /// <summary>
         /// The current visibility group from the <see cref="SceneInstance"/> and <see cref="RenderSystem"/>.
         /// </summary>
         public VisibilityGroup VisibilityGroup { get; set; }

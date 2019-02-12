@@ -92,7 +92,7 @@ namespace Xenko.Rendering.LightProbes
                 // Setup light probe shader only if there is some light probe data
                 // TODO: Just like the ForwardLightingRenderFeature access the LightProcessor, accessing the SceneInstance.LightProbeProcessor is not what we want.
                 // Ideally, we should send the data the other way around. Let's fix that together when we refactor the lighting at some point.
-                var lightProbeRuntimeData = renderContext.SceneInstance?.GetProcessor<LightProbeProcessor>()?.RuntimeData;
+                var lightProbeRuntimeData = SceneInstance.GetCurrent(renderContext)?.GetProcessor<LightProbeProcessor>()?.RuntimeData;
                 ShaderSource = lightProbeRuntimeData != null ? shaderSourceEnabled : shaderSourceDisabled;
             }
         }

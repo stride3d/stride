@@ -48,7 +48,6 @@ namespace Xenko.Rendering.Compositing
 
             // Setup render view
             context.RenderSystem.Views.Add(RenderView);
-            RenderView.SceneInstance = context.SceneInstance;
             UpdateCameraToRenderView(context, RenderView, camera);
 
             using (context.PushRenderViewAndRestore(RenderView))

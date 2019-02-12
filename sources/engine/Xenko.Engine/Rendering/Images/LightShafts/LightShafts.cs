@@ -120,7 +120,7 @@ namespace Xenko.Rendering.Images
 
         public void Collect(RenderContext context)
         {
-            lightShaftProcessor = context.SceneInstance.GetProcessor<LightShaftProcessor>();
+            lightShaftProcessor = Engine.SceneInstance.GetCurrent(context).GetProcessor<LightShaftProcessor>();
         }
 
         protected override void DrawCore(RenderDrawContext context)

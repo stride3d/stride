@@ -69,7 +69,7 @@ namespace Xenko.Editor.Thumbnails
         private static void SafeRenderSprites(RenderDrawContext context)
         {
             // Note: this assumes that the Scene returned by CreateScene is the first child scene of the RootScene. Changing this in ThumbnailGenerator will break this code!
-            var command = context.RenderContext.SceneInstance.RootScene.Children.First().Tags.Get(ThumbnailFromSpriteBatchCommand.Key);
+            var command = SceneInstance.GetCurrent(context.RenderContext).RootScene.Children.First().Tags.Get(ThumbnailFromSpriteBatchCommand.Key);
             command.RenderSprites(context);
         }
 

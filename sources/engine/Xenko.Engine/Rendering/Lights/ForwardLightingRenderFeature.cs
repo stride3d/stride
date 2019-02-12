@@ -546,7 +546,7 @@ namespace Xenko.Rendering.Lights
                 renderViewLightData.VisibleLights.Clear();
                 renderViewLightData.VisibleLightsWithShadows.Clear();
 
-                lightProcessor = lightRenderView.SceneInstance.GetProcessor<LightProcessor>();
+                lightProcessor = SceneInstance.GetCurrent(Context).GetProcessor<LightProcessor>();
 
                 // No light processors means no light in the scene, so we can early exit
                 if (lightProcessor == null)

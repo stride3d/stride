@@ -56,12 +56,6 @@ namespace Xenko.Rendering
         /// </summary>
         public Matrix ViewProjection;
 
-        // TODO GRAPHICS REFACTOR probably obsolete (otherwise we can't share view between multiple SceneInstance)
-        /// <summary>
-        /// The scene instance that created this view.
-        /// </summary>
-        public SceneInstance SceneInstance;
-
         /// <summary>
         /// Far clip plane.
         /// </summary>
