@@ -17,11 +17,7 @@ namespace Xenko.Engine.Processors
 
         public override void Update(GameTime time)
         {
-            if (isDirty)
-            {
-                UpdateVolumesPerLightShaft();
-                isDirty = false;
-            }
+            RegenerateVolumesPerLightShaft();
         }
 
         public IReadOnlyList<RenderLightShaftBoundingVolume> GetBoundingVolumesForComponent(LightShaftComponent component)
@@ -62,9 +58,21 @@ namespace Xenko.Engine.Processors
             isDirty = true;
         }
 
-        private void UpdateVolumesPerLightShaft()
+        private void RegenerateVolumesPerLightShaft()
         {
-            volumesPerLightShaft.Clear();
+            // Clear
+            if (isDirty)
+            {
+                volumesPerLightShaft.Clear();
+            }
+            // Keep existing collections
+            else
+            {
+                foreach (var lightShaft in volumesPerLightShaft)
+                {
+                    lightShaft.Value.Clear();
+                }
+            }
 
             foreach (var pair in ComponentDatas)
             {
@@ -85,6 +93,8 @@ namespace Xenko.Engine.Processors
                     Model = pair.Key.Model,
                 });
             }
+
+            isDirty = false;
         }
     }
 }

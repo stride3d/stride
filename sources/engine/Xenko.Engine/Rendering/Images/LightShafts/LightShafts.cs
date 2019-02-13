@@ -9,7 +9,6 @@ using Xenko.Core.Annotations;
 using Xenko.Core.Collections;
 using Xenko.Core.Extensions;
 using Xenko.Core.Mathematics;
-using Xenko.Engine.Processors;
 using Xenko.Graphics;
 using Xenko.Rendering.Lights;
 using Xenko.Rendering.Shadows;
@@ -20,6 +19,12 @@ namespace Xenko.Rendering.Images
     [DataContract("LightShafts")]
     public class LightShafts : ImageEffect
     {
+        /// <summary>
+        /// Property key to access the current collection of <see cref="List{RenderLightShaft}"/> from <see cref="VisibilityGroup.Tags"/>.
+        /// </summary>
+        [DataMemberIgnore]
+        public static readonly PropertyKey<List<RenderLightShaft>> CurrentLightShafts = new PropertyKey<List<RenderLightShaft>>("LightShafts.CurrentLightShafts", typeof(LightShafts));
+
         /// <summary>
         /// The number of times the resolution is lowered for the light buffer
         /// </summary>
@@ -50,7 +55,7 @@ namespace Xenko.Rendering.Images
         private GaussianBlur blur;
 
         private IShadowMapRenderer shadowMapRenderer;
-        private LightShaftProcessor lightShaftProcessor;
+        private List<RenderLightShaft> lightShafts;
 
         private MutablePipelineState[] minmaxPipelineStates = new MutablePipelineState[2];
         private EffectBytecode previousMinmaxEffectBytecode;
@@ -120,20 +125,18 @@ namespace Xenko.Rendering.Images
 
         public void Collect(RenderContext context)
         {
-            lightShaftProcessor = Engine.SceneInstance.GetCurrent(context).GetProcessor<LightShaftProcessor>();
+            lightShafts = context.VisibilityGroup.Tags.Get(CurrentLightShafts);
         }
 
         protected override void DrawCore(RenderDrawContext context)
         {
-            if (lightShaftProcessor == null)
+            if (lightShafts == null)
                 return; // Not collected
 
             if (LightBufferDownsampleLevel < 1)
                 throw new ArgumentOutOfRangeException(nameof(LightBufferDownsampleLevel));
             if (BoundingVolumeBufferDownsampleLevel < 1)
                 throw new ArgumentOutOfRangeException(nameof(BoundingVolumeBufferDownsampleLevel));
-
-            var lightShaftDatas = lightShaftProcessor.LightShafts;
 
             var depthInput = GetSafeInput(0);
 
@@ -169,7 +172,7 @@ namespace Xenko.Rendering.Images
 
             applyLightEffectShader.SetOutput(GetSafeOutput(0));
 
-            foreach (var lightShaft in lightShaftDatas)
+            foreach (var lightShaft in lightShafts)
             {
                 if (lightShaft.Light == null)
                     continue; // Skip entities without a light component

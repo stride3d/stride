@@ -5,16 +5,32 @@ using System.Collections.Generic;
 using System.Linq;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
+using Xenko.Rendering;
 using Xenko.Rendering.Images;
 using Xenko.Rendering.Lights;
 
 namespace Xenko.Engine.Processors
 {
-    public class LightShaftProcessor : EntityProcessor<LightShaftComponent, LightShaftProcessor.AssociatedData>
+    public class LightShaftProcessor : EntityProcessor<LightShaftComponent, LightShaftProcessor.AssociatedData>, IEntityComponentRenderProcessor
     {
         private readonly List<RenderLightShaft> activeLightShafts = new List<RenderLightShaft>();
 
-        public List<RenderLightShaft> LightShafts => activeLightShafts;
+        /// <inheritdoc/>
+        public VisibilityGroup VisibilityGroup { get; set; }
+
+        protected internal override void OnSystemAdd()
+        {
+            base.OnSystemAdd();
+
+            VisibilityGroup.Tags.Set(LightShafts.CurrentLightShafts, activeLightShafts);
+        }
+
+        protected internal override void OnSystemRemove()
+        {
+            VisibilityGroup.Tags.Set(LightShafts.CurrentLightShafts, null);
+
+            base.OnSystemRemove();
+        }
 
         /// <inheritdoc />
         protected override AssociatedData GenerateComponentData(Entity entity, LightShaftComponent component)
