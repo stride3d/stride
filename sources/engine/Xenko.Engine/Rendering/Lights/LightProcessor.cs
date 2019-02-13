@@ -10,7 +10,7 @@ namespace Xenko.Rendering.Lights
     /// <summary>
     /// Process <see cref="LightComponent"/> stored in an <see cref="EntityManager"/> by providing grouped lights per types/shadows.
     /// </summary>
-    public class LightProcessor : EntityProcessor<LightComponent, RenderLight>
+    public class LightProcessor : EntityProcessor<LightComponent, RenderLight>, IEntityComponentRenderProcessor
     {
         /// <summary>
         /// The default direction of a light vector is (x,y,z) = (0,0,-1)
@@ -26,6 +26,9 @@ namespace Xenko.Rendering.Lights
         {
         }
 
+        /// <inheritdoc/>
+        public VisibilityGroup VisibilityGroup { get; set; }
+
         /// <summary>
         /// Gets the active lights.
         /// </summary>
@@ -38,17 +41,21 @@ namespace Xenko.Rendering.Lights
             return renderLight;
         }
 
-        protected override void OnEntityComponentAdding(Entity entity, LightComponent component, RenderLight state)
-        {
-        }
-
-        protected override void OnEntityComponentRemoved(Entity entity, LightComponent component, RenderLight state)
-        {
-        }
-
         protected override RenderLight GenerateComponentData(Entity entity, LightComponent component) => new RenderLight();
 
         protected override bool IsAssociatedDataValid(Entity entity, LightComponent component, RenderLight associatedData) => true;
+
+        protected internal override void OnSystemAdd()
+        {
+            base.OnSystemAdd();
+            VisibilityGroup.Tags.Set(ForwardLightingRenderFeature.CurrentLights, Lights);
+        }
+
+        protected internal override void OnSystemRemove()
+        {
+            VisibilityGroup.Tags.Set(ForwardLightingRenderFeature.CurrentLights, null);
+            base.OnSystemRemove();
+        }
 
         public override void Draw(RenderContext context)
         {

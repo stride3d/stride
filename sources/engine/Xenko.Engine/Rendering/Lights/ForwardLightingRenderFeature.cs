@@ -12,7 +12,6 @@ using Xenko.Core.Annotations;
 using Xenko.Core.Collections;
 using Xenko.Core.Storage;
 using Xenko.Core.Threading;
-using Xenko.Engine;
 using Xenko.Graphics;
 using Xenko.Rendering.Shadows;
 using Xenko.Shaders;
@@ -24,6 +23,11 @@ namespace Xenko.Rendering.Lights
     /// </summary>
     public class ForwardLightingRenderFeature : SubRenderFeature
     {
+        /// <summary>
+        /// Property key to access the current collection of <see cref="CameraComponent"/> from <see cref="RenderContext.Tags"/>.
+        /// </summary>
+        public static readonly PropertyKey<RenderLightCollection> CurrentLights = new PropertyKey<RenderLightCollection>("ForwardLightingRenderFeature.CurrentLights", typeof(ForwardLightingRenderFeature));
+
         public class RenderViewLightData
         {
             /// <summary>
@@ -62,8 +66,6 @@ namespace Xenko.Rendering.Lights
         private const string EnvironmentLightsCompositionName = "environmentLights";
 
         private readonly LightShaderPermutationEntry shaderPermutation = new LightShaderPermutationEntry();
-
-        private LightProcessor lightProcessor;
 
         private readonly TrackingCollection<LightGroupRendererBase> lightRenderers = new TrackingCollection<LightGroupRendererBase>();
 
@@ -546,10 +548,10 @@ namespace Xenko.Rendering.Lights
                 renderViewLightData.VisibleLights.Clear();
                 renderViewLightData.VisibleLightsWithShadows.Clear();
 
-                lightProcessor = SceneInstance.GetCurrent(Context).GetProcessor<LightProcessor>();
+                var lights = Context.VisibilityGroup.Tags.Get(CurrentLights);
 
                 // No light processors means no light in the scene, so we can early exit
-                if (lightProcessor == null)
+                if (lights == null)
                     continue;
 
                 // TODO GRAPHICS REFACTOR
@@ -557,7 +559,7 @@ namespace Xenko.Rendering.Lights
 
                 // 2) Cull lights with the frustum
                 var frustum = lightRenderView.Frustum;
-                foreach (var light in lightProcessor.Lights)
+                foreach (var light in lights)
                 {
                     // TODO: New mechanism for light selection (probably in ForwardLighting configuration)
                     //       Light should probably have their own LightGroup (separate from RenderGroup)

@@ -44,12 +44,19 @@ namespace Xenko.Rendering
         public RenderDataHolder RenderData;
 
         /// <summary>
+        /// Gets the attached properties to this visibility group.
+        /// </summary>
+        public PropertyContainer Tags;
+
+        /// <summary>
         /// List of objects registered in this group.
         /// </summary>
         public RenderObjectCollection RenderObjects { get; }
 
         public VisibilityGroup(RenderSystem renderSystem)
         {
+            Tags = new PropertyContainer(this);
+
             RenderSystem = renderSystem;
             RenderObjects = new RenderObjectCollection(this);
             RenderData.Initialize(ComputeDataArrayExpectedSize);

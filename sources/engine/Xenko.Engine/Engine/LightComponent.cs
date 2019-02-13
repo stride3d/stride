@@ -18,7 +18,7 @@ namespace Xenko.Engine
     [Display("Light", Expand = ExpandRule.Once)]
     // TODO GRAPHICS REFACTOR
     //[DefaultEntityComponentRenderer(typeof(LightComponentRenderer), -10)]
-    [DefaultEntityComponentProcessor(typeof(LightProcessor))]
+    [DefaultEntityComponentRenderer(typeof(LightProcessor))]
     [ComponentOrder(12000)]
     public sealed class LightComponent : ActivableEntityComponent
     {
