@@ -141,6 +141,10 @@
       <Project>{c121a566-555e-42b9-9b0a-1696529a9088}</Project>
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\..\engine\Xenko.Rendering\Xenko.Rendering.csproj">
+      <Project>{ad4fdc24-b64d-4ed7-91aa-62c9eda12fa4}</Project>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\engine\Xenko.Graphics\Xenko.Graphics.csproj">
       <Project>{fb06c76a-6bb7-40be-9afa-fec13b045fb5}</Project>
       <Private>False</Private>
