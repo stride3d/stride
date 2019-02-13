@@ -34,6 +34,7 @@ namespace Xenko.Streaming
         private bool isDisposing;
         private int frameIndex;
         private long currentlyAllocatedMemory; // in bytes
+        private TimeSpan lastUpdate;
 #if USE_TEST_MANUAL_QUALITY
         private int testQuality = 100;
 #endif
@@ -95,25 +96,19 @@ namespace Xenko.Streaming
             services.AddService<ITexturesStreamingProvider>(this);
 
             ContentStreaming = new ContentStreamingService();
-            (Game as Game)?.Script.AddTask(Update);
 
             Enabled = true;
             EnabledChanged += OnEnabledChanged;
         }
 
         /// <inheritdoc />
-        public override void Initialize()
+        public void SetStreamingSettings(StreamingSettings streamingSettings)
         {
-            var settings = (Game as Game)?.Settings;
-            if (settings != null)
-            {
-                var streamingSettings = settings.Configurations.Get<StreamingSettings>();
-                ManagerUpdatesInterval = streamingSettings.ManagerUpdatesInterval;
-                MaxResourcesPerUpdate = streamingSettings.MaxResourcesPerUpdate;
-                ResourceLiveTimeout = streamingSettings.ResourceLiveTimeout;
-                Enabled = streamingSettings.Enabled;
-                TargetedMemoryBudget = streamingSettings.TargetedMemoryBudget;
-            }
+            ManagerUpdatesInterval = streamingSettings.ManagerUpdatesInterval;
+            MaxResourcesPerUpdate = streamingSettings.MaxResourcesPerUpdate;
+            ResourceLiveTimeout = streamingSettings.ResourceLiveTimeout;
+            Enabled = streamingSettings.Enabled;
+            TargetedMemoryBudget = streamingSettings.TargetedMemoryBudget;
         }
 
         /// <inheritdoc />
@@ -434,60 +429,64 @@ namespace Xenko.Streaming
             FlushSync();
         }
 
-        private async Task Update()
+        public override void Update(GameTime gameTime)
         {
-            while (!IsDisposed)
+            base.Update(gameTime);
+
+            // Make sure enough time passed
+            if (gameTime.Total < lastUpdate + ManagerUpdatesInterval)
+                return;
+
+            // Update resources
+            lock (resources)
             {
-                // Update resources
-                lock (resources)
+                if (Enabled)
                 {
-                    if (Enabled)
-                    {
-                        // Perform synchronization
-                        FlushSync();
+                    // Perform synchronization
+                    FlushSync();
 
 #if USE_TEST_MANUAL_QUALITY // Temporary testing code used for testing quality changing using K/L keys
-                        if (((Game)Game).Input.IsKeyPressed(Xenko.Input.Keys.K))
-                        {
-                            testQuality = Math.Min(testQuality + 5, 100);
-                        }
-                        if (((Game)Game).Input.IsKeyPressed(Xenko.Input.Keys.L))
-                        {
-                            testQuality = Math.Max(testQuality - 5, 0);
-                        }
-    #endif
-                        int resourcesCount = Resources.Count;
-                        if (resourcesCount > 0)
-                        {
-                            var now = DateTime.UtcNow;
-                            var resourcesChecks = resourcesCount;
+                    if (((Game)Game).Input.IsKeyPressed(Xenko.Input.Keys.K))
+                    {
+                        testQuality = Math.Min(testQuality + 5, 100);
+                    }
+                    if (((Game)Game).Input.IsKeyPressed(Xenko.Input.Keys.L))
+                    {
+                        testQuality = Math.Max(testQuality - 5, 0);
+                    }
+#endif
+                    int resourcesCount = Resources.Count;
+                    if (resourcesCount > 0)
+                    {
+                        var now = DateTime.UtcNow;
+                        var resourcesChecks = resourcesCount;
 
-                            while (resourcesChecks-- > 0 && HasActiveTaskSlotFree)
+                        while (resourcesChecks-- > 0 && HasActiveTaskSlotFree)
+                        {
+                            // Move forward
+                            // Note: we update resources like in a ring buffer
+                            lastUpdateResourcesIndex++;
+                            if (lastUpdateResourcesIndex >= resourcesCount)
+                                lastUpdateResourcesIndex = 0;
+
+                            // Update resource
+                            var resource = resources[lastUpdateResourcesIndex];
+                            var ignoreResource = resource.StreamingOptions?.IgnoreResource ?? false;
+                            if (resource.CanBeUpdated && !ignoreResource)
                             {
-                                // Move forward
-                                // Note: we update resources like in a ring buffer
-                                lastUpdateResourcesIndex++;
-                                if (lastUpdateResourcesIndex >= resourcesCount)
-                                    lastUpdateResourcesIndex = 0;
-
-                                // Update resource
-                                var resource = resources[lastUpdateResourcesIndex];
-                                var ignoreResource = resource.StreamingOptions?.IgnoreResource ?? false;
-                                if (resource.CanBeUpdated && !ignoreResource)
-                                {
-                                    Update(resource, ref now);
-                                }
+                                Update(resource, ref now);
                             }
-                            // TODO: add StreamingManager stats, update time per frame, updates per frame, etc.
                         }
+                        // TODO: add StreamingManager stats, update time per frame, updates per frame, etc.
                     }
                 }
-
-                ContentStreaming.Update();
-
-                frameIndex++;
-                await Task.Delay(ManagerUpdatesInterval);
             }
+
+            ContentStreaming.Update();
+
+            frameIndex++;
+
+            lastUpdate = gameTime.Total;
         }
 
         private void Update(StreamableResource resource, ref DateTime now)

@@ -380,6 +380,8 @@ namespace Xenko.Engine
 
             GameSystems.Add(EffectSystem);
 
+            if (Settings != null)
+                Streaming.SetStreamingSettings(Settings.Configurations.Get<StreamingSettings>());
             GameSystems.Add(Streaming);
             GameSystems.Add(SceneSystem);
 
