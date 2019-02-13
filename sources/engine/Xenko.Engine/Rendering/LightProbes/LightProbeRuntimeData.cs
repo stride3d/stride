@@ -22,8 +22,11 @@ namespace Xenko.Rendering.LightProbes
 {
     public class LightProbeRuntimeData
     {
-        // Input data
-        public LightProbeComponent[] LightProbes;
+        /// <summary>
+        /// Can be used to setup a link to a source.
+        /// Typically, this might be a lightprobe component.
+        /// </summary>
+        public object[] LightProbes;
 
         // Computed data
         public Vector3[] Vertices;

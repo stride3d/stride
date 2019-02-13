@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using Xenko.Core;
 using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
-using Xenko.Engine;
 using Xenko.Graphics;
 using Xenko.Rendering.Lights;
 using Xenko.Shaders;
@@ -14,13 +14,15 @@ using Buffer = Xenko.Graphics.Buffer;
 namespace Xenko.Rendering.LightProbes
 {
     /// <summary>
-    /// Light renderer for clustered shading.
+    /// Light probe renderer.
     /// </summary>
-    /// <remarks>
-    /// Due to the fact that it handles both Point and Spot with a single logic, it doesn't fit perfectly the current logic of one "direct light groups" per renderer.
-    /// </remarks>
     public class LightProbeRenderer : LightGroupRendererBase
     {
+        /// <summary>
+        /// Property key to access the current collection of <see cref="LightProbeRuntimeData"/> from <see cref="VisibilityGroup.Tags"/>.
+        /// </summary>
+        public static readonly PropertyKey<LightProbeRuntimeData> CurrentLightProbes = new PropertyKey<LightProbeRuntimeData>("LightProbeRenderer.CurrentLightProbes", typeof(LightProbeRenderer));
+
         private LightProbeShaderGroupData lightprobeGroup;
 
         public override Type[] LightTypes { get; } = Type.EmptyTypes;
@@ -92,7 +94,7 @@ namespace Xenko.Rendering.LightProbes
                 // Setup light probe shader only if there is some light probe data
                 // TODO: Just like the ForwardLightingRenderFeature access the LightProcessor, accessing the SceneInstance.LightProbeProcessor is not what we want.
                 // Ideally, we should send the data the other way around. Let's fix that together when we refactor the lighting at some point.
-                var lightProbeRuntimeData = SceneInstance.GetCurrent(renderContext)?.GetProcessor<LightProbeProcessor>()?.RuntimeData;
+                var lightProbeRuntimeData = renderContext.VisibilityGroup.Tags.Get(LightProbeRenderer.CurrentLightProbes);
                 ShaderSource = lightProbeRuntimeData != null ? shaderSourceEnabled : shaderSourceDisabled;
             }
         }

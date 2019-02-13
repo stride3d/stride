@@ -12,7 +12,7 @@ namespace Xenko.Engine
 {
     [DataContract("LightProbeComponent")]
     [Display("Light probe", Expand = ExpandRule.Once)]
-    [DefaultEntityComponentProcessor(typeof(LightProbeProcessor))]
+    [DefaultEntityComponentRenderer(typeof(LightProbeProcessor))]
     [ComponentOrder(15000)]
     public class LightProbeComponent : EntityComponent
     {
