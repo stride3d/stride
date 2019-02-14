@@ -66,6 +66,9 @@ namespace Xenko.SpriteStudio.Runtime
             foreach (var renderObject in RenderObjects)
             {
                 var renderSpriteStudio = (RenderSpriteStudio)renderObject;
+                if (!renderObject.Enabled)
+                    continue;
+
                 var sprites = renderSpriteStudio.Sheet.Sprites;
                 if (sprites == null)
                     continue;

@@ -13,6 +13,6 @@ namespace Xenko.SpriteStudio.Runtime
         public Matrix WorldMatrix;
 
         public SpriteStudioSheet Sheet;
-        public List<SpriteStudioNodeState> SortedNodes;
+        public List<SpriteStudioNodeState> SortedNodes = new List<SpriteStudioNodeState>();
     }
 }
