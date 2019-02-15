@@ -8,6 +8,7 @@
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <XenkoPlatformDependent>true</XenkoPlatformDependent>
     <XenkoBuildTags>*</XenkoBuildTags>
     <XenkoPackAssets>true</XenkoPackAssets>
   </PropertyGroup>
