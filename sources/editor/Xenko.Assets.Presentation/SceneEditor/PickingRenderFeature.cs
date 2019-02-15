@@ -1,6 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using Xenko.Core;
+using Xenko.Engine;
 using Xenko.Rendering;
 
 namespace Xenko.Assets.Presentation.SceneEditor
@@ -35,16 +36,20 @@ namespace Xenko.Assets.Presentation.SceneEditor
                     continue;
 
                 int meshIndex = 0;
-                for (int i = 0; i < renderMesh.RenderModel.ModelComponent.Model.Meshes.Count; i++)
+                var modelComponent = renderMesh.Source as ModelComponent;
+                if (modelComponent == null)
+                    continue;
+
+                for (int i = 0; i < modelComponent.Model.Meshes.Count; i++)
                 {
-                    if (renderMesh.RenderModel.ModelComponent.Model.Meshes[i] == renderMesh.Mesh)
+                    if (modelComponent.Model.Meshes[i] == renderMesh.Mesh)
                     {
                         meshIndex = i;
                         break;
                     }
                 }
 
-                modelObjectInfo[objectNodeReference] = new PickingObjectInfo(RuntimeIdHelper.ToRuntimeId(renderMesh.RenderModel.ModelComponent), meshIndex, renderMesh.Mesh.MaterialIndex);
+                modelObjectInfo[objectNodeReference] = new PickingObjectInfo(RuntimeIdHelper.ToRuntimeId(modelComponent), meshIndex, renderMesh.Mesh.MaterialIndex);
             }
         }
 

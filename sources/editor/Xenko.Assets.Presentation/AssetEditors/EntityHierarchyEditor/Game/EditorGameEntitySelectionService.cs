@@ -601,17 +601,10 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
             public override bool IsVisible(RenderObject renderObject, RenderView renderView, RenderViewStage renderViewStage)
             {
-                var renderMesh = renderObject as RenderMesh;
-                if (renderMesh != null)
+                var entity = (renderObject.Source as EntityComponent)?.Entity;
+                if (entity != null)
                 {
-                    var entityId = service.Editor.Controller.GetAbsoluteId(renderMesh.RenderModel.ModelComponent.Entity);
-                    return service.SelectableIds.Contains(entityId);
-                }
-
-                var renderSprite = renderObject as RenderSprite;
-                if (renderSprite != null)
-                {
-                    var entityId = service.Editor.Controller.GetAbsoluteId(renderSprite.SpriteComponent.Entity);
+                    var entityId = service.Editor.Controller.GetAbsoluteId(entity);
                     return service.SelectableIds.Contains(entityId);
                 }
 

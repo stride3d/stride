@@ -9,6 +9,7 @@ using Xenko.Core.Annotations;
 using Xenko.Core.Mathematics;
 using Xenko.Engine.Design;
 using Xenko.Graphics;
+using Xenko.Rendering;
 using Xenko.Rendering.Sprites;
 
 namespace Xenko.Engine
@@ -22,43 +23,6 @@ namespace Xenko.Engine
     [ComponentOrder(10000)]
     public sealed class SpriteComponent : ActivableEntityComponent
     {
-        public enum SpriteSampler
-        {
-            [Display("Point (Nearest)")]
-            PointClamp,
-
-            [Display("Linear")]
-            LinearClamp,
-
-            [Display("Anisotropic")]
-            AnisotropicClamp,
-
-            // Note These values are left out on purpose, but can be included if needed
-            //PointWrap,
-            //LinearWrap,
-            //AnisotropicWrap,
-        }
-        public enum SpriteBlend
-        {
-            ///<userdoc>No blending, the sprite is drawn as-is.</userdoc>
-            None,
-
-            ///<userdoc>Use alpha blending if the sprite has transparent pixels, disable the blending otherwise.</userdoc>
-            Auto,
-
-            /// <userdoc>Use the alpha component for blending the source and sprite.</userdoc>
-            [Display("Alpha blend")]
-            AlphaBlend,
-
-            /// <userdoc>The sprite color is added to the source without using the alpha.</userdoc>
-            [Display("Additive blend")]
-            AdditiveBlend,
-
-            ///<userdoc>Do not render the colors of the sprite. Renders only the depth to the stencil buffer.</userdoc>
-            [Display("No color")]
-            NoColor,
-        }
-
         /// <summary>
         /// The group of sprites associated to the component.
         /// </summary>
@@ -78,17 +42,15 @@ namespace Xenko.Engine
         public SpriteType SpriteType;
 
         /// <summary>
-        /// The color shade to apply on the sprite. If you need the final color, use <see cref="ColorFinal"/> instead.
+        /// The color shade to apply on the sprite.
         /// </summary>
         /// <userdoc>The color to apply to the sprite.</userdoc>
         [DataMember(40)]
         [Display("Color")]
-        public Color4 Color { get { return color; } set { color = value; colorFinal = color * intensity; colorFinal.A = color.A; } }
-
-        private Color4 color = Color4.White;
+        public Color4 Color { get; set; } = Color4.White;
 
         /// <summary>
-        /// The intensity by which the color is scaled. If you need the final color, use <see cref="ColorFinal"/> instead.
+        /// The intensity by which the color is scaled.
         /// </summary>
         /// <userdoc>
         /// The intensity by which the color is scaled. Mainly used for rendering LDR sprites in in HDR scenes.
@@ -96,17 +58,9 @@ namespace Xenko.Engine
         [DataMember(42)]
         [Display("Intensity")]
         [DefaultValue(1f)]
-        public float Intensity { get { return intensity; } set { intensity = Math.Max(value, 0f); colorFinal = color * intensity; colorFinal.A = color.A; } }
+        public float Intensity { get => intensity; set => intensity = Math.Max(value, 0f); }
 
         private float intensity = 1f;
-
-        /// <summary>
-        /// The combined value of Color and Intensity
-        /// </summary>
-        [DataMemberIgnore]
-        public Color4 ColorFinal { get { return colorFinal; } }
-
-        private Color4 colorFinal = Color4.White;
 
         /// <summary>
         /// Gets or sets a value indicating whether the sprite is a pre-multiplied alpha (default is true).

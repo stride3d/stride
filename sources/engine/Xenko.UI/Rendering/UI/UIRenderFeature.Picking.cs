@@ -21,7 +21,7 @@ namespace Xenko.Rendering.UI
 
         partial void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime)
         {
-            if (renderUIElement.UIComponent.Page?.RootElement == null)
+            if (renderUIElement.Page?.RootElement == null)
                 return;
 
             var inverseZViewProj = worldViewProj;
@@ -112,7 +112,7 @@ namespace Xenko.Rendering.UI
         /// <param name="screenPosition">The position of the lick on the screen in normalized (0..1, 0..1) range</param>
         /// <param name="uiRay"><see cref="Ray"/> from the click in object space of the ui component in (-Resolution.X/2 .. Resolution.X/2, -Resolution.Y/2 .. Resolution.Y/2) range</param>
         /// <returns></returns>
-        private bool GetTouchPosition(UIComponent uiComponent, ref Viewport viewport, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
+        private bool GetTouchPosition(Vector3 resolution, ref Viewport viewport, ref Matrix worldViewProj, Vector2 screenPosition, out Ray uiRay)
         {
             uiRay = new Ray(new Vector3(float.NegativeInfinity), new Vector3(0, 1, 0));
 
@@ -123,8 +123,8 @@ namespace Xenko.Rendering.UI
 
             // If the click point is outside the canvas ignore any further testing
             var dist = -touchRay.Position.Z / touchRay.Direction.Z;
-            if (Math.Abs(touchRay.Position.X + touchRay.Direction.X * dist) > uiComponent.Resolution.X * 0.5f ||
-                Math.Abs(touchRay.Position.Y + touchRay.Direction.Y * dist) > uiComponent.Resolution.Y * 0.5f)
+            if (Math.Abs(touchRay.Position.X + touchRay.Direction.X * dist) > resolution.X * 0.5f ||
+                Math.Abs(touchRay.Position.Y + touchRay.Direction.Y * dist) > resolution.Y * 0.5f)
                 return false;
 
             uiRay = touchRay;
@@ -133,7 +133,7 @@ namespace Xenko.Rendering.UI
 
         private void UpdateTouchEvents(ref Viewport viewport, ref Matrix worldViewProj, RenderUIElement state, GameTime gameTime)
         {
-            var rootElement = state.UIComponent.Page.RootElement;
+            var rootElement = state.Page.RootElement;
             var intersectionPoint = Vector3.Zero;
             var lastTouchPosition = new Vector2(float.NegativeInfinity);
 
@@ -154,7 +154,7 @@ namespace Xenko.Rendering.UI
                 if (lastTouchPosition != currentTouchPosition)
                 {
                     Ray uiRay;
-                    if (!GetTouchPosition(state.UIComponent, ref viewport, ref worldViewProj, currentTouchPosition, out uiRay))
+                    if (!GetTouchPosition(state.Resolution, ref viewport, ref worldViewProj, currentTouchPosition, out uiRay))
                         continue;
 
                     currentTouchedElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
@@ -236,7 +236,7 @@ namespace Xenko.Rendering.UI
 
             var intersectionPoint = Vector3.Zero;
             var mousePosition = input.MousePosition;
-            var rootElement = state.UIComponent.Page.RootElement;
+            var rootElement = state.Page.RootElement;
             var lastMouseOverElement = state.LastMouseOverElement;
             var mouseOverElement = lastMouseOverElement;
 
@@ -244,7 +244,7 @@ namespace Xenko.Rendering.UI
             if (mousePosition != state.LastMousePosition)
             {
                 Ray uiRay;
-                if (!GetTouchPosition(state.UIComponent, ref viewport, ref worldViewProj, mousePosition, out uiRay))
+                if (!GetTouchPosition(state.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
                     return;
 
                 mouseOverElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);

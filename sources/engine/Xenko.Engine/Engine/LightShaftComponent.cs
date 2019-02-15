@@ -16,7 +16,7 @@ namespace Xenko.Engine
     /// </summary>
     [Display("Light shaft", Expand = ExpandRule.Always)]
     [DataContract("LightShaftComponent")]
-    [DefaultEntityComponentProcessor(typeof(LightShaftProcessor), ExecutionMode = ExecutionMode.All)]
+    [DefaultEntityComponentRenderer(typeof(LightShaftProcessor))]
     public class LightShaftComponent : ActivableEntityComponent
     {
         /// <summary>

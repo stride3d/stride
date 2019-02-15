@@ -24,7 +24,7 @@ namespace Xenko.Rendering.LightProbes
     {
         public const int LambertHamonicOrder = 3;
 
-        public static Dictionary<LightProbeComponent, FastList<Color3>> GenerateCoefficients(ISceneRendererContext context, LightProbeComponent[] lightProbes)
+        public static Dictionary<LightProbeComponent, FastList<Color3>> GenerateCoefficients(ISceneRendererContext context)
         {
             using (var cubemapRenderer = new CubemapSceneRenderer(context, 256))
             {
@@ -96,10 +96,10 @@ namespace Xenko.Rendering.LightProbes
             {
                 for (var lightProbeIndex = 0; lightProbeIndex < runtimeData.LightProbes.Length; lightProbeIndex++)
                 {
-                    var lightProbe = runtimeData.LightProbes[lightProbeIndex];
+                    var lightProbe = runtimeData.LightProbes[lightProbeIndex] as LightProbeComponent;
 
                     // Copy coefficients
-                    if (lightProbe.Coefficients != null)
+                    if (lightProbe?.Coefficients != null)
                     {
                         var lightProbeCoefStart = lightProbeIndex * LambertHamonicOrder * LambertHamonicOrder;
                         for (var index = 0; index < LambertHamonicOrder * LambertHamonicOrder; index++)
@@ -175,7 +175,7 @@ namespace Xenko.Rendering.LightProbes
                 probeIndices[i] = *(Int4*)tetrahedron.Vertices;
             }
 
-            var lightProbesCopy = new LightProbeComponent[lightProbes.Count];
+            var lightProbesCopy = new object[lightProbes.Count];
             for (int i = 0; i < lightProbes.Count; ++i)
                 lightProbesCopy[i] = lightProbes[i];
 

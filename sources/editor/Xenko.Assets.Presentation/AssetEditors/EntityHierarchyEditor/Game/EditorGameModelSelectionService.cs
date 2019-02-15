@@ -113,8 +113,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
             public override bool IsVisible(RenderObject renderObject, RenderView renderView, RenderViewStage renderViewStage)
             {
-                var renderMesh = renderObject as RenderMesh;
-                return renderMesh != null && selectedEntities.Contains(renderMesh.RenderModel.ModelComponent.Entity);
+                var entity = ((renderObject as RenderMesh)?.Source as ModelComponent)?.Entity;
+                return entity != null && selectedEntities.Contains(entity);
             }
         }
 

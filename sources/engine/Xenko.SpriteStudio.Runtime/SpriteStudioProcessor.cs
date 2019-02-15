@@ -39,7 +39,6 @@ namespace Xenko.SpriteStudio.Runtime
             {
                 var component = componentData.Value;
                 if (!component.ValidState) continue;
-                SortNodes(component);
                 component.RootNode.UpdateTransformation();
             }
         }
@@ -63,18 +62,6 @@ namespace Xenko.SpriteStudio.Runtime
             }
 
             return (component.RootNode != null);
-        }
-
-        // ReSharper disable once ParameterTypeCanBeEnumerable.Local
-        // Enumerables are Evil
-        private static void SortNodes(SpriteStudioComponent component)
-        {
-            component.SortedNodes.Clear();
-            var sortedNodes = component.Nodes.OrderBy(x => x.Priority);
-            foreach (var node in sortedNodes)
-            {
-                component.SortedNodes.Add(node);
-            }
         }
 
         private static SpriteStudioNodeState InitializeNodes(SpriteStudioComponent spriteStudioComponent)

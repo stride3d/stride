@@ -43,13 +43,13 @@ namespace Xenko.Rendering
         /// <inheritdoc />
         protected override RenderModel GenerateComponentData(Entity entity, ModelComponent component)
         {
-            return new RenderModel(component);
+            return new RenderModel();
         }
 
         /// <inheritdoc />
         protected override bool IsAssociatedDataValid(Entity entity, ModelComponent component, RenderModel associatedData)
         {
-            return component == associatedData.ModelComponent;
+            return true;
         }
 
         /// <inheritdoc />
@@ -74,19 +74,19 @@ namespace Xenko.Rendering
             //foreach (var entity in ComponentDatas)
             Dispatcher.ForEach(ComponentDatas, entity =>
             {
+                var modelComponent = entity.Key;
                 var renderModel = entity.Value;
 
-                CheckMeshes(renderModel);
-                UpdateRenderModel(renderModel);
+                CheckMeshes(modelComponent, renderModel);
+                UpdateRenderModel(modelComponent, renderModel);
             });
         }
 
-        private void UpdateRenderModel(RenderModel renderModel)
+        private void UpdateRenderModel(ModelComponent modelComponent, RenderModel renderModel)
         {
-            if (renderModel.ModelComponent.Model == null)
+            if (modelComponent.Model == null)
                 return;
 
-            var modelComponent = renderModel.ModelComponent;
             var modelViewHierarchy = modelComponent.Skeleton;
             var nodeTransformations = modelViewHierarchy.NodeTransformations;
 
@@ -134,10 +134,9 @@ namespace Xenko.Rendering
             return materialOverride ?? modelMaterialInstance?.Material ?? fallbackMaterial;
         }
 
-        private void CheckMeshes(RenderModel renderModel)
+        private void CheckMeshes(ModelComponent modelComponent, RenderModel renderModel)
         {
             // Check if model changed
-            var modelComponent = renderModel.ModelComponent;
             var model = modelComponent.Model;
             if (renderModel.Model == model)
             {
@@ -222,6 +221,7 @@ namespace Xenko.Rendering
                     var materialIndex = mesh.MaterialIndex;
                     renderMeshes[meshIndex] = new RenderMesh
                     {
+                        Source = modelComponent,
                         RenderModel = renderModel,
                         Mesh = mesh,
                     };
@@ -234,7 +234,7 @@ namespace Xenko.Rendering
             renderModel.Meshes = renderMeshes;
 
             // Update before first add so that RenderGroup is properly set
-            UpdateRenderModel(renderModel);
+            UpdateRenderModel(modelComponent, renderModel);
 
             // Update and register with render system
             lock (VisibilityGroup.RenderObjects)

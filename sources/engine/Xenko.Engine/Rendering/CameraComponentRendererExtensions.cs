@@ -12,7 +12,7 @@ namespace Xenko.Rendering
         /// <summary>
         /// Property key to access the current collection of <see cref="CameraComponent"/> from <see cref="RenderContext.Tags"/>.
         /// </summary>
-        public static readonly PropertyKey<CameraComponent> Current = new PropertyKey<CameraComponent>("CameraComponentRenderer.CurrentCamera", typeof(CameraComponent));
+        public static readonly PropertyKey<CameraComponent> Current = new PropertyKey<CameraComponent>("CameraComponentRenderer.CurrentCamera", typeof(RenderContext));
 
         public static CameraComponent GetCurrentCamera(this RenderContext context)
         {

@@ -31,9 +31,10 @@ namespace Xenko.Assets
     [CategoryOrder(4050, "Splash screen")]
     [NonIdentifiableCollectionItems]
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.1.0.3")]
+    [AssetUpgrader(XenkoConfig.PackageName, "2.1.0.3", "3.1.0.1", typeof(RenderingSplitUpgrader))]
     public partial class GameSettingsAsset : Asset
     {
-        private const string CurrentVersion = "2.1.0.3";
+        private const string CurrentVersion = "3.1.0.1";
 
         /// <summary>
         /// The default file extension used by the <see cref="GameSettingsAsset"/>.
@@ -156,6 +157,22 @@ namespace Xenko.Assets
             }
 
             return GetOrCreate<T>();
+        }
+
+        // In 3.1, Xenko.Engine was splitted into a sub-assembly Xenko.Rendering
+        private class RenderingSplitUpgrader : AssetUpgraderBase
+        {
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
+            {
+                YamlNode assetNode = asset.Node;
+                foreach (var node in assetNode.AllNodes)
+                {
+                    if (node.Tag == "!Xenko.Streaming.StreamingSettings,Xenko.Engine")
+                    {
+                        node.Tag = node.Tag.Replace(",Xenko.Engine", ",Xenko.Rendering");
+                    }
+                }
+            }
         }
     }
 }

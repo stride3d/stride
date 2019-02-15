@@ -26,13 +26,31 @@ namespace Xenko.Rendering.Sprites
         {
             foreach (var spriteStateKeyPair in ComponentDatas)
             {
+                var spriteComponent = spriteStateKeyPair.Key;
                 var renderSprite = spriteStateKeyPair.Value.RenderSprite;
-                var currentSprite = renderSprite.SpriteComponent.CurrentSprite;
+                var currentSprite = spriteComponent.CurrentSprite;
 
-                renderSprite.Enabled = renderSprite.SpriteComponent.Enabled;
+                renderSprite.Enabled = spriteComponent.Enabled;
 
                 if (renderSprite.Enabled)
                 {
+                    renderSprite.WorldMatrix = spriteComponent.Entity.Transform.WorldMatrix;
+                    renderSprite.RotationEulerZ = spriteComponent.Entity.Transform.RotationEulerXYZ.Z;
+
+                    renderSprite.RenderGroup = spriteComponent.RenderGroup;
+
+                    renderSprite.Sprite = currentSprite;
+                    renderSprite.SpriteType = spriteComponent.SpriteType;
+                    renderSprite.IgnoreDepth = spriteComponent.IgnoreDepth;
+                    renderSprite.Sampler = spriteComponent.Sampler;
+                    renderSprite.BlendMode = spriteComponent.BlendMode;
+                    renderSprite.Swizzle = spriteComponent.Swizzle;
+                    renderSprite.IsAlphaCutoff = spriteComponent.IsAlphaCutoff;
+                    renderSprite.PremultipliedAlpha = spriteComponent.PremultipliedAlpha;
+                    // Use intensity for RGB part
+                    renderSprite.Color = spriteComponent.Color * spriteComponent.Intensity;
+                    renderSprite.Color.A = spriteComponent.Color.A;
+
                     renderSprite.CalculateBoundingBox();
                 }
 
@@ -55,21 +73,12 @@ namespace Xenko.Rendering.Sprites
 
         protected override SpriteInfo GenerateComponentData(Entity entity, SpriteComponent spriteComponent)
         {
-            return new SpriteInfo
-            {
-                RenderSprite = new RenderSprite
-                {
-                    SpriteComponent = spriteComponent,
-                    TransformComponent = entity.Transform,
-                },
-            };
+            return new SpriteInfo { RenderSprite = new RenderSprite { Source = spriteComponent } };
         }
 
         protected override bool IsAssociatedDataValid(Entity entity, SpriteComponent spriteComponent, SpriteInfo associatedData)
         {
-            return
-                spriteComponent == associatedData.RenderSprite.SpriteComponent &&
-                entity.Transform == associatedData.RenderSprite.TransformComponent;
+            return associatedData.RenderSprite.Source == spriteComponent;
         }
 
         public class SpriteInfo
