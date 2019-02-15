@@ -30,14 +30,28 @@ namespace Xenko.Rendering.UI
             UIRoots.Clear();
             foreach (var spriteStateKeyPair in ComponentDatas)
             {
+                var uiComponent = spriteStateKeyPair.Key;
                 var renderUIElement = spriteStateKeyPair.Value;
-                renderUIElement.Enabled = renderUIElement.UIComponent.Enabled;
+                renderUIElement.Enabled = uiComponent.Enabled;
 
                 if (renderUIElement.Enabled)
                 {
                     // TODO GRAPHICS REFACTOR: Proper bounding box.
                     //renderSprite.BoundingBox = new BoundingBoxExt(new Vector3(float.NegativeInfinity), new Vector3(float.PositiveInfinity));
-                    renderUIElement.RenderGroup = renderUIElement.UIComponent.RenderGroup;
+
+                    // Copy values from ECS to render object
+                    renderUIElement.WorldMatrix = uiComponent.Entity.Transform.WorldMatrix;
+
+                    renderUIElement.RenderGroup = uiComponent.RenderGroup;
+
+                    renderUIElement.Page = uiComponent.Page;
+                    renderUIElement.IsFullScreen = uiComponent.IsFullScreen;
+                    renderUIElement.Resolution = uiComponent.Resolution;
+                    renderUIElement.Size = uiComponent.Size;
+                    renderUIElement.ResolutionStretch = uiComponent.ResolutionStretch;
+                    renderUIElement.IsBillboard = uiComponent.IsBillboard;
+                    renderUIElement.SnapText = uiComponent.SnapText;
+                    renderUIElement.IsFixedSize = uiComponent.IsFixedSize;
 
                     UIRoots.Add(renderUIElement);
                 }
@@ -56,14 +70,12 @@ namespace Xenko.Rendering.UI
 
         protected override RenderUIElement GenerateComponentData(Entity entity, UIComponent component)
         {
-            return new RenderUIElement(component, entity.Transform) { RenderGroup = component.RenderGroup };
+            return new RenderUIElement { Source = component };
         }
 
         protected override bool IsAssociatedDataValid(Entity entity, UIComponent component, RenderUIElement associatedData)
         {
-            return
-                component == associatedData.UIComponent &&
-                entity.Transform == associatedData.TransformComponent;
+            return associatedData.Source == component;
         }
     }
 }

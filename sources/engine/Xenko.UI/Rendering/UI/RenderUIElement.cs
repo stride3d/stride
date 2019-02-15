@@ -8,15 +8,21 @@ namespace Xenko.Rendering.UI
 {
     public class RenderUIElement : RenderObject
     {
-        public RenderUIElement(UIComponent uiComponent, TransformComponent transformComponent)
+        public RenderUIElement()
         {
-            UIComponent = uiComponent;
-            TransformComponent = transformComponent;
         }
 
-        public readonly UIComponent UIComponent;
+        public Matrix WorldMatrix;
 
-        public readonly TransformComponent TransformComponent;
+        // UIComponent values
+        public UIPage Page;
+        public bool IsFullScreen;
+        public Vector3 Resolution;
+        public Vector3 Size;
+        public ResolutionStretch ResolutionStretch;
+        public bool IsBillboard;
+        public bool SnapText;
+        public bool IsFixedSize;
 
         /// <summary>
         /// Last registered position of teh mouse

@@ -137,7 +137,7 @@ namespace Xenko.Editor.Thumbnails
             EffectSystem.Initialize();
 
             // Mount the same database for the cache
-            EffectSystem.Compiler = EffectSystem.CreateEffectCompiler(effectCompiler.FileProvider, EffectSystem);
+            EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(effectCompiler.FileProvider, EffectSystem);
 
             // Deactivate the asynchronous effect compilation
             ((EffectCompilerCache)EffectSystem.Compiler).CompileEffectAsynchronously = false;

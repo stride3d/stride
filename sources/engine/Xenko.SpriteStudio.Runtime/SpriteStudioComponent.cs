@@ -5,6 +5,7 @@ using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Engine.Design;
 using Xenko.Core.Serialization;
+using Xenko.Rendering;
 using Xenko.SpriteStudio.Runtime;
 using Xenko.Updater;
 
@@ -40,8 +41,5 @@ namespace Xenko.Engine
 
         [DataMemberIgnore, DataMemberUpdatable]
         public List<SpriteStudioNodeState> Nodes { get; } = new List<SpriteStudioNodeState>();
-
-        [DataMemberIgnore]
-        internal List<SpriteStudioNodeState> SortedNodes { get; } = new List<SpriteStudioNodeState>();
     }
 }

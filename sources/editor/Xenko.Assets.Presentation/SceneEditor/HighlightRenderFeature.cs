@@ -47,7 +47,9 @@ namespace Xenko.Assets.Presentation.SceneEditor
                 var isHighlighted =
                     MaterialHighlightColors.TryGetValue(renderMesh.MaterialPass.Material, out highlightColor) ||
                     MeshHighlightColors.TryGetValue(renderMesh.Mesh, out highlightColor) ||
-                    MaterialsHighlightedForModel.Contains(renderMesh.MaterialPass.Material) && ModelHighlightColors.TryGetValue(renderMesh.RenderModel.ModelComponent, out highlightColor);
+                    (MaterialsHighlightedForModel.Contains(renderMesh.MaterialPass.Material)
+                     && renderMesh.Source is ModelComponent component
+                     && ModelHighlightColors.TryGetValue(component, out highlightColor));
 
                 renderModelObjectInfo[objectNodeReference] = highlightColor;
             }

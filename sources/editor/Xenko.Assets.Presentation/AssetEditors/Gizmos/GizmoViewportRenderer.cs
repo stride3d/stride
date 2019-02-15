@@ -50,7 +50,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
             {
                 var oldRenderView = context.RenderView;
 
-                RenderView.SceneInstance = context.SceneInstance;
                 context.RenderSystem.Views.Add(RenderView);
                 context.RenderView = RenderView;
 

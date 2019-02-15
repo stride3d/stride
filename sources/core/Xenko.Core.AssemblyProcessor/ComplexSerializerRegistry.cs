@@ -382,7 +382,7 @@ namespace Xenko.Core.AssemblyProcessor
             }
         }
 
-        private static bool IsMemberIgnored(ICollection<CustomAttribute> customAttributes, ComplexTypeSerializerFlags flags, DataMemberMode dataMemberMode)
+        internal static bool IsMemberIgnored(ICollection<CustomAttribute> customAttributes, ComplexTypeSerializerFlags flags, DataMemberMode dataMemberMode)
         {
             // Check for DataMemberIgnore
             if (customAttributes.Any(x => x.AttributeType.FullName == "Xenko.Core.DataMemberIgnoreAttribute"))
