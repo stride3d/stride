@@ -50,7 +50,7 @@ namespace Xenko.Physics
         public Vector3 Scaling = Vector3.One;
 
         /// <userdoc>
-        /// If this is checked the following parameters are totally ignored, as only a simple convex hull of the whole model will be generated.
+        /// If this is not checked, the contained parameters are ignored and only a simple convex hull of the model will be generated.
         /// </userdoc>
         [DataMember(50)]
         [NotNull]
