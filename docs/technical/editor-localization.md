@@ -418,7 +418,7 @@ In Xenko's projects file, a command line similar to the following one is used:
 
 ```
 Path=$(MSBuildBinPath)\Roslyn;$(Path)
-IF EXIST "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" $(SolutionDir)..\sources\common\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe --lib-dir $(SolutionDir)..\sources\common\deps\Gettext.Net --resource $(TargetName) -d $(TargetDir) --locale ja "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" --verbose
+IF EXIST "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" "$(SolutionDir)..\sources\common\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe" --lib-dir "$(SolutionDir)..\sources\common\deps\Gettext.Net" --resource $(TargetName) -d "$(TargetDir)." --locale ja "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" --verbose
 ```
 
 Remarks:
