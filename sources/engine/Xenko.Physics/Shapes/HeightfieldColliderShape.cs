@@ -144,7 +144,7 @@ namespace Xenko.Physics.Shapes
                         Width = tileWidth,
                         Height = tileHeight,
                         Vertices = vertices,
-                        MeshDraw = CreateMeshDraw(graphicsDevice, vertices, indices),
+                        MeshDraw = CreateTileMeshDraw(graphicsDevice, vertices, indices),
                     };
 
                     debugPrimitive.Tiles.Add(tile);
@@ -200,7 +200,7 @@ namespace Xenko.Physics.Shapes
             }
         }
 
-        private MeshDraw CreateMeshDraw(GraphicsDevice graphicsDevice, VertexPositionNormalTexture[] vertices, ushort[] indices)
+        private MeshDraw CreateTileMeshDraw(GraphicsDevice graphicsDevice, VertexPositionNormalTexture[] vertices, ushort[] indices)
         {
             var vertexBuffer = Buffer.Vertex.New(graphicsDevice, vertices, GraphicsResourceUsage.Dynamic).RecreateWith(vertices);
             var indexBuffer = Buffer.Index.New(graphicsDevice, indices).RecreateWith(indices);
