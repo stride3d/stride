@@ -136,7 +136,7 @@ namespace Xenko.Physics.Shapes
 
                     var point = new Point(i, j);
 
-                    CreateMeshData(point, tileWidth, tileHeight, offset + new Vector3(i, 0, j), out var vertices, out var indices);
+                    CreateTileMeshData(point, tileWidth, tileHeight, offset + new Vector3(i, 0, j), out var vertices, out var indices);
 
                     var tile = new HeightfieldDebugPrimitiveTile
                     {
@@ -217,7 +217,7 @@ namespace Xenko.Physics.Shapes
             return meshDraw;
         }
 
-        private void CreateMeshData(Point point, int width, int height, Vector3 offset, out VertexPositionNormalTexture[] vertices, out ushort[] indices)
+        private void CreateTileMeshData(Point point, int width, int height, Vector3 offset, out VertexPositionNormalTexture[] vertices, out ushort[] indices)
         {
             vertices = new VertexPositionNormalTexture[(width + 1) * (height + 1)];
 
