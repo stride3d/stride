@@ -78,11 +78,6 @@ namespace Xenko.Physics.Engine
             }
         }
 
-        public void ResetUpdatableDebugMeshes()
-        {
-            updatableDebugMeshes.Clear();
-        }
-
         public PhysicsShapesRenderingService(IServiceRegistry registry) : base(registry)
         {
         }

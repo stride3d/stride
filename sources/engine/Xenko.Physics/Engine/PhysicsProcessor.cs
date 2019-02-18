@@ -64,8 +64,6 @@ namespace Xenko.Physics
             }
             else
             {
-                debugShapeRendering.ResetUpdatableDebugMeshes();
-
                 debugScene = new Scene();
 
                 foreach (var element in elements)
