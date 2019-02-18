@@ -195,31 +195,43 @@ namespace Xenko.Assets.Presentation.Test
         public Vector4 Vector4 { get; set; }
 
         [DataMember(48)]
+        [Display("Int2", "Int types")]
+        public Int2 Int2 { get; set; }
+
+        [DataMember(49)]
+        [Display("Int3", "Int types")]
+        public Int3 Int3 { get; set; }
+
+        [DataMember(50)]
+        [Display("Int4", "Int types")]
+        public Int4 Int4 { get; set; }
+
+        [DataMember(51)]
         [Display("RectangleF", "Vector types")]
         public RectangleF RectangleF { get; set; }
 
-        [DataMember(49)]
+        [DataMember(52)]
         [Display("Rectangle", "Vector types")]
         public Rectangle Rectangle { get; set; }
 
-        [DataMember(50)]
+        [DataMember(53)]
         [Display("Angle", "Vector types")]
         public AngleSingle Angle { get; set; }
 
-        [DataMember(51)]
+        [DataMember(54)]
         [Display("Rotation", "Vector types")]
         public Quaternion Rotation { get; set; }
 
-        [DataMember(52)]
+        [DataMember(55)]
         [Display("Matrix", "Vector types")]
         public Matrix Matrix { get; set; }
 
         // TODO: Add ImageEnum and ImageFlagEnum
-        [DataMember(53)]
+        [DataMember(56)]
         [Display("Nullable Enum", "Class & Struct types")]
         public TestEnum? NullableEnum { get; set; }
 
-        [DataMember(55)]
+        [DataMember(57)]
         [Display("Nullable Rectangle", "Class & Struct types")]
         public Rectangle? NullableRectangle { get; set; }
 
