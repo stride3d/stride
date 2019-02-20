@@ -222,6 +222,9 @@ namespace Xenko.GameStudio
                 // Open assets that were being edited in the previous session
                 ReopenAssetEditors(dockingLayout.LoadOpenAssets().ToList()).Forget();
 
+                // Make room for an autohiding taskbar so it doesn't get covered
+                this.MaxHeight = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea.Size.Height - 2.0;
+
                 // Listen to clipboard
                 ClipboardMonitor.RegisterListener(this);
                 // Notify start

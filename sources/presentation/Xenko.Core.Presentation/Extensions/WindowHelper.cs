@@ -127,7 +127,7 @@ namespace Xenko.Core.Presentation.Extensions
 
             var monitor = GetMonitorInfo(new WindowInteropHelper(window).Handle);
             if (monitor == null) return Rect.Empty;
-            
+
             var area = (Rect)monitor.rcWork;
             var rect = window.RectFromScreen(ref area);
             rect.Offset(window.Left, window.Top);
