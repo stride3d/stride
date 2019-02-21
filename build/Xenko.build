@@ -94,7 +94,7 @@ Example of use:
   <!-- Package -->
   <Target Name="PreparePackageBuild">
     <PropertyGroup>
-      <BuildProperties>$(BuildProperties);XenkoGenerateDoc=true;XenkoPackageBuild=true;XenkoSignTool=true</BuildProperties>
+      <BuildProperties>$(BuildProperties);XenkoPublicApi=true;XenkoPackageBuild=true;XenkoSignTool=true</BuildProperties>
     </PropertyGroup>
 	
     <ItemGroup>
