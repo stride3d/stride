@@ -115,140 +115,21 @@ namespace Xenko.Physics.Shapes
         public float MinHeight { get; private set; }
         public float MaxHeight { get; private set; }
 
-        private readonly int MaxTileWidth = 64;
-        private readonly int MaxTileHeight = 64;
-
         public override IDebugPrimitive CreateUpdatableDebugPrimitive(GraphicsDevice graphicsDevice)
         {
-            var width = HeightStickWidth - 1;
-            var height = HeightStickLength - 1;
-
-            var debugPrimitive = new HeightfieldDebugPrimitive();
-
-            var offset = new Vector3(-(width * 0.5f), 0, -(height * 0.5f));
-
-            for (int j = 0; j < height; j += MaxTileHeight)
-            {
-                for (int i = 0; i < width; i += MaxTileWidth)
-                {
-                    var tileWidth = Math.Min(MaxTileWidth, width - i);
-                    var tileHeight = Math.Min(MaxTileHeight, height - j);
-
-                    var point = new Point(i, j);
-
-                    CreateTileMeshData(point, tileWidth, tileHeight, offset + new Vector3(i, 0, j), out var vertices, out var indices);
-
-                    var tile = new HeightfieldDebugPrimitiveTile
-                    {
-                        Point = point,
-                        Width = tileWidth,
-                        Height = tileHeight,
-                        Vertices = vertices,
-                        MeshDraw = CreateTileMeshDraw(graphicsDevice, vertices, indices),
-                    };
-
-                    debugPrimitive.Tiles.Add(tile);
-                }
-            }
-
-            return debugPrimitive;
+            return HeightfieldDebugPrimitive.New(graphicsDevice, this);
         }
 
         public override void UpdateDebugPrimitive(CommandList commandList, IDebugPrimitive debugPrimitive)
         {
-            var heightfield = debugPrimitive as HeightfieldDebugPrimitive;
+            var heightfieldDebugPrimitive = debugPrimitive as HeightfieldDebugPrimitive;
 
-            if (heightfield == null)
+            if (heightfieldDebugPrimitive == null)
             {
                 return;
             }
 
-            Dispatcher.ForEach(heightfield.Tiles, (tile) =>
-            {
-                for (int j = 0; j <= tile.Height; ++j)
-                {
-                    for (int i = 0; i <= tile.Width; ++i)
-                    {
-                        tile.Vertices[j * (tile.Width + 1) + i].Position.Y = GetHeight(tile.Point.X + i, tile.Point.Y + j);
-                    }
-                }
-            });
-
-            foreach (var tile in heightfield.Tiles)
-            {
-                tile.MeshDraw.VertexBuffers[0].Buffer.SetData(commandList, tile.Vertices);
-            }
-        }
-
-        private float GetHeight(int x, int y)
-        {
-            var index = y * HeightStickWidth + x;
-
-            switch (HeightType)
-            {
-                case HeightfieldTypes.Short:
-                    return ShortArray[index] * HeightScale;
-
-                case HeightfieldTypes.Byte:
-                    return ByteArray[index] * HeightScale;
-
-                case HeightfieldTypes.Float:
-                    return FloatArray[index];
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        private MeshDraw CreateTileMeshDraw(GraphicsDevice graphicsDevice, VertexPositionNormalTexture[] vertices, ushort[] indices)
-        {
-            var vertexBuffer = Buffer.Vertex.New(graphicsDevice, vertices, GraphicsResourceUsage.Dynamic).RecreateWith(vertices);
-            var indexBuffer = Buffer.Index.New(graphicsDevice, indices).RecreateWith(indices);
-
-            var meshDraw = new MeshDraw
-            {
-                PrimitiveType = PrimitiveType.TriangleList,
-                VertexBuffers = new VertexBufferBinding[] { new VertexBufferBinding(vertexBuffer, VertexPositionNormalTexture.Layout, vertexBuffer.ElementCount) },
-                IndexBuffer = new IndexBufferBinding(indexBuffer, false, indexBuffer.ElementCount),
-                StartLocation = 0,
-                DrawCount = indexBuffer.ElementCount,
-            };
-
-            return meshDraw;
-        }
-
-        private void CreateTileMeshData(Point point, int width, int height, Vector3 offset, out VertexPositionNormalTexture[] vertices, out ushort[] indices)
-        {
-            vertices = new VertexPositionNormalTexture[(width + 1) * (height + 1)];
-
-            ushort GetIndex(int x, int y) => (ushort)(y * (width + 1) + x);
-
-            var stepU = 1f / width;
-            var stepV = 1f / height;
-
-            for (int j = 0; j <= height; ++j)
-            {
-                for (int i = 0; i <= width; ++i)
-                {
-                    vertices[GetIndex(i, j)] = new VertexPositionNormalTexture(offset + new Vector3(i, GetHeight(point.X + i, point.Y + j), j), Vector3.UnitY, new Vector2(stepU * i, stepV * j));
-                }
-            }
-
-            indices = new ushort[width * height * 6];
-            var count = 0;
-            for (int j = 0; j < height; ++j)
-            {
-                for (int i = 0; i < width; ++i)
-                {
-                    indices[count++] = GetIndex(i, j);
-                    indices[count++] = GetIndex(i + 1, j);
-                    indices[count++] = GetIndex(i, j + 1);
-
-                    indices[count++] = GetIndex(i + 1, j);
-                    indices[count++] = GetIndex(i + 1, j + 1);
-                    indices[count++] = GetIndex(i, j + 1);
-                }
-            }
+            heightfieldDebugPrimitive.Update(commandList);
         }
 
         public override void Dispose()
@@ -273,22 +154,158 @@ namespace Xenko.Physics.Shapes
             PhyUchar,
         }
 
-        public class HeightfieldDebugPrimitiveTile
-        {
-            public Point Point;
-            public int Width;
-            public int Height;
-            public VertexPositionNormalTexture[] Vertices;
-            public MeshDraw MeshDraw;
-        }
-
         public class HeightfieldDebugPrimitive : IDebugPrimitive
         {
-            public readonly List<HeightfieldDebugPrimitiveTile> Tiles = new List<HeightfieldDebugPrimitiveTile>();
+            private static readonly int MaxTileWidth = 64;
+            private static readonly int MaxTileHeight = 64;
+
+            public class Tile
+            {
+                public Point Point;
+                public int Width;
+                public int Height;
+                public VertexPositionNormalTexture[] Vertices;
+                public MeshDraw MeshDraw;
+            }
+
+            public readonly List<Tile> Tiles = new List<Tile>();
+
+            private HeightfieldColliderShape heightfield;
+
+            private HeightfieldDebugPrimitive(HeightfieldColliderShape heightfieldColliderShape)
+            {
+                heightfield = heightfieldColliderShape;
+            }
+
+            private float GetHeight(int x, int y)
+            {
+                var index = y * heightfield.HeightStickWidth + x;
+
+                switch (heightfield.HeightType)
+                {
+                    case HeightfieldTypes.Short:
+                        return heightfield.ShortArray[index] * heightfield.HeightScale;
+
+                    case HeightfieldTypes.Byte:
+                        return heightfield.ByteArray[index] * heightfield.HeightScale;
+
+                    case HeightfieldTypes.Float:
+                        return heightfield.FloatArray[index];
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+
+            private void CreateTileMeshData(Point point, int width, int height, Vector3 offset, out VertexPositionNormalTexture[] vertices, out ushort[] indices)
+            {
+                vertices = new VertexPositionNormalTexture[(width + 1) * (height + 1)];
+
+                ushort GetIndex(int x, int y) => (ushort)(y * (width + 1) + x);
+
+                var stepU = 1f / width;
+                var stepV = 1f / height;
+
+                for (int j = 0; j <= height; ++j)
+                {
+                    for (int i = 0; i <= width; ++i)
+                    {
+                        vertices[GetIndex(i, j)] = new VertexPositionNormalTexture(offset + new Vector3(i, GetHeight(point.X + i, point.Y + j), j), Vector3.UnitY, new Vector2(stepU * i, stepV * j));
+                    }
+                }
+
+                indices = new ushort[width * height * 6];
+                var count = 0;
+                for (int j = 0; j < height; ++j)
+                {
+                    for (int i = 0; i < width; ++i)
+                    {
+                        indices[count++] = GetIndex(i, j);
+                        indices[count++] = GetIndex(i + 1, j);
+                        indices[count++] = GetIndex(i, j + 1);
+
+                        indices[count++] = GetIndex(i + 1, j);
+                        indices[count++] = GetIndex(i + 1, j + 1);
+                        indices[count++] = GetIndex(i, j + 1);
+                    }
+                }
+            }
+
+            private MeshDraw CreateTileMeshDraw(GraphicsDevice device, VertexPositionNormalTexture[] vertices, ushort[] indices)
+            {
+                var vertexBuffer = Buffer.Vertex.New(device, vertices, GraphicsResourceUsage.Dynamic).RecreateWith(vertices);
+                var indexBuffer = Buffer.Index.New(device, indices).RecreateWith(indices);
+
+                var meshDraw = new MeshDraw
+                {
+                    PrimitiveType = PrimitiveType.TriangleList,
+                    VertexBuffers = new VertexBufferBinding[] { new VertexBufferBinding(vertexBuffer, VertexPositionNormalTexture.Layout, vertexBuffer.ElementCount) },
+                    IndexBuffer = new IndexBufferBinding(indexBuffer, false, indexBuffer.ElementCount),
+                    StartLocation = 0,
+                    DrawCount = indexBuffer.ElementCount,
+                };
+
+                return meshDraw;
+            }
+
+            public void Update(CommandList commandList)
+            {
+                Dispatcher.ForEach(Tiles, (tile) =>
+                {
+                    for (int j = 0; j <= tile.Height; ++j)
+                    {
+                        for (int i = 0; i <= tile.Width; ++i)
+                        {
+                            tile.Vertices[j * (tile.Width + 1) + i].Position.Y = GetHeight(tile.Point.X + i, tile.Point.Y + j);
+                        }
+                    }
+                });
+
+                foreach (var tile in Tiles)
+                {
+                    tile.MeshDraw.VertexBuffers[0].Buffer.SetData(commandList, tile.Vertices);
+                }
+            }
 
             public IEnumerable<MeshDraw> GetMeshDraws()
             {
                 return Tiles.Select((t) => t.MeshDraw);
+            }
+
+            public static HeightfieldDebugPrimitive New(GraphicsDevice device, HeightfieldColliderShape heightfieldColliderShape)
+            {
+                var debugPrimitive = new HeightfieldDebugPrimitive(heightfieldColliderShape);
+
+                var width = heightfieldColliderShape.HeightStickWidth - 1;
+                var height = heightfieldColliderShape.HeightStickLength - 1;
+
+                var offset = new Vector3(-(width * 0.5f), 0, -(height * 0.5f));
+
+                for (int j = 0; j < height; j += MaxTileHeight)
+                {
+                    for (int i = 0; i < width; i += MaxTileWidth)
+                    {
+                        var tileWidth = Math.Min(MaxTileWidth, width - i);
+                        var tileHeight = Math.Min(MaxTileHeight, height - j);
+
+                        var point = new Point(i, j);
+
+                        debugPrimitive.CreateTileMeshData(point, tileWidth, tileHeight, offset + new Vector3(i, 0, j), out var vertices, out var indices);
+
+                        var tile = new Tile
+                        {
+                            Point = point,
+                            Width = tileWidth,
+                            Height = tileHeight,
+                            Vertices = vertices,
+                            MeshDraw = debugPrimitive.CreateTileMeshDraw(device, vertices, indices),
+                        };
+
+                        debugPrimitive.Tiles.Add(tile);
+                    }
+                }
+
+                return debugPrimitive;
             }
         }
     }
