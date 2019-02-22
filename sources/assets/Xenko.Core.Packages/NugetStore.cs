@@ -66,7 +66,9 @@ namespace Xenko.Core.Packages
             settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
             // Add dev source
+            RemoveDeletedSources(settings, "Xenko");
             CheckPackageSource("Xenko", DefaultPackageSource);
+            settings.SaveToDisk();
 
             InstallPath = SettingsUtility.GetGlobalPackagesFolder(settings);
 
@@ -83,10 +85,29 @@ namespace Xenko.Core.Packages
             sourceRepositoryProvider = new NugetSourceRepositoryProvider(packageSourceProvider, this);
         }
 
+        private static void RemoveDeletedSources(ISettings settings, string prefixName)
+        {
+            var packageSources = settings.GetSection("packageSources");
+            if (packageSources != null)
+            {
+                foreach (var packageSource in packageSources.Items.OfType<SourceItem>().ToList())
+                {
+                    var path = packageSource.GetValueAsPath();
+
+                    if (packageSource.Key.StartsWith(prefixName)
+                        && Uri.TryCreate(path, UriKind.Absolute, out var uri) && uri.IsFile // make sure it's a valid file URI
+                        && !Directory.Exists(path)) // detect if directory has been deleted
+                    {
+                        // Remove entry from packageSources
+                        settings.Remove("packageSources", packageSource);
+                    }
+                }
+            }
+        }
+
         private void CheckPackageSource(string name, string url)
         {
             settings.AddOrUpdate("packageSources", new SourceItem(name, url));
-            settings.SaveToDisk();
         }
 
         private readonly NugetSourceRepositoryProvider sourceRepositoryProvider;
