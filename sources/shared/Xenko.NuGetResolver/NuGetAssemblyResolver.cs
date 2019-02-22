@@ -43,7 +43,10 @@ namespace Xenko.Core.Assets.CompilerApp
                 {
                     xenkoFolder = folder;
                     var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
+                    // Remove non-existing sources: https://github.com/xenko3d/xenko/issues/338
+                    RemoveDeletedSources(settings, "Xenko");
                     CheckPackageSource(settings, $"Xenko Dev {xenkoFolder}", Path.Combine(xenkoFolder, @"bin\packages"));
+                    settings.SaveToDisk();
                     break;
                 }
                 folder = Path.GetDirectoryName(folder);
@@ -112,10 +115,29 @@ namespace Xenko.Core.Assets.CompilerApp
             };
         }
 
+        private static void RemoveDeletedSources(ISettings settings, string prefixName)
+        {
+            var packageSources = settings.GetSection("packageSources");
+            if (packageSources != null)
+            {
+                foreach (var packageSource in packageSources.Items.OfType<SourceItem>().ToList())
+                {
+                    var path = packageSource.GetValueAsPath();
+
+                    if (packageSource.Key.StartsWith(prefixName)
+                        && Uri.TryCreate(path, UriKind.Absolute, out var uri) && uri.IsFile // make sure it's a valid file URI
+                        && !Directory.Exists(path)) // detect if directory has been deleted
+                    {
+                        // Remove entry from packageSources
+                        settings.Remove("packageSources", packageSource);
+                    }
+                }
+            }
+        }
+
         private static void CheckPackageSource(ISettings settings, string name, string url)
         {
             settings.AddOrUpdate("packageSources", new SourceItem(name, url));
-            settings.SaveToDisk();
         }
 
         public class Logger : ILogger
