@@ -37,6 +37,7 @@ namespace Xenko.Physics.Engine
 
         private readonly Dictionary<ComponentType, Material> componentTypeDefaultMaterial = new Dictionary<ComponentType, Material>();
         private readonly Dictionary<ComponentType, Material> componentTypeStaticPlaneMaterial = new Dictionary<ComponentType, Material>();
+        private readonly Dictionary<ComponentType, Material> componentTypeHeightfieldMaterial = new Dictionary<ComponentType, Material>();
 
         private readonly Dictionary<Type, IDebugPrimitive> debugMeshCache = new Dictionary<Type, IDebugPrimitive>();
         private readonly Dictionary<ColliderShape, IDebugPrimitive> debugMeshCache2 = new Dictionary<ColliderShape, IDebugPrimitive>();
@@ -53,6 +54,7 @@ namespace Xenko.Physics.Engine
                 var type = (ComponentType)typeObject;
                 componentTypeDefaultMaterial[type] = PhysicsDebugShapeMaterial.CreateDefault(graphicsDevice, Color.AdjustSaturation(componentTypeColor[type], 0.77f), 1);
                 componentTypeStaticPlaneMaterial[type] = componentTypeDefaultMaterial[type];
+                componentTypeHeightfieldMaterial[type] = PhysicsDebugShapeMaterial.CreateHeightfieldMaterial(graphicsDevice, Color.AdjustSaturation(componentTypeColor[type], 0.77f), 1);
                 // TODO enable this once material is implemented.
                 // ComponentTypeStaticPlaneMaterial[type] = PhysicsDebugShapeMaterial.CreateStaticPlane(graphicsDevice, Color.AdjustSaturation(ComponentTypeColor[type], 0.77f), 1); 
             }
@@ -240,9 +242,18 @@ namespace Xenko.Physics.Engine
                 componentType = staticCollider.IsTrigger ? ComponentType.Trigger : ComponentType.Static;
             }
 
-            return shape is StaticPlaneColliderShape
-                ? componentTypeStaticPlaneMaterial[componentType]
-                : componentTypeDefaultMaterial[componentType];
+            if (shape is StaticPlaneColliderShape)
+            {
+                return componentTypeStaticPlaneMaterial[componentType];
+            }
+            else if (shape is HeightfieldColliderShape)
+            {
+                return componentTypeHeightfieldMaterial[componentType];
+            }
+            else
+            {
+                return componentTypeDefaultMaterial[componentType];
+            }
         }
     }
 }

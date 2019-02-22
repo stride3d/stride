@@ -164,7 +164,7 @@ namespace Xenko.Physics.Shapes
                 public Point Point;
                 public int Width;
                 public int Height;
-                public VertexPositionNormalTexture[] Vertices;
+                public VertexPositionNormalColor[] Vertices;
                 public MeshDraw MeshDraw;
             }
 
@@ -177,40 +177,53 @@ namespace Xenko.Physics.Shapes
                 heightfield = heightfieldColliderShape;
             }
 
-            private float GetHeight(int x, int y)
+            private void GetHeightStickHeightAndColor(int x, int y, out float heightStickHeight, out Color heightStickColor)
             {
                 var index = y * heightfield.HeightStickWidth + x;
 
                 switch (heightfield.HeightType)
                 {
                     case HeightfieldTypes.Short:
-                        return heightfield.ShortArray[index] * heightfield.HeightScale;
+                        heightStickHeight = heightfield.ShortArray[index] * heightfield.HeightScale;
+                        break;
 
                     case HeightfieldTypes.Byte:
-                        return heightfield.ByteArray[index] * heightfield.HeightScale;
+                        heightStickHeight = heightfield.ByteArray[index] * heightfield.HeightScale;
+                        break;
 
                     case HeightfieldTypes.Float:
-                        return heightfield.FloatArray[index];
+                        heightStickHeight = heightfield.FloatArray[index];
+                        break;
 
                     default:
                         throw new NotSupportedException();
                 }
+
+                if (heightfield.MinHeight <= heightStickHeight && heightStickHeight <= heightfield.MaxHeight)
+                {
+                    heightStickColor = Color.White;
+                }
+                else
+                {
+                    heightStickColor = Color.Black;
+                }
             }
 
-            private void CreateTileMeshData(Point point, int width, int height, Vector3 offset, out VertexPositionNormalTexture[] vertices, out ushort[] indices)
+            private void CreateTileMeshData(Point point, int width, int height, Vector3 offset, out VertexPositionNormalColor[] vertices, out ushort[] indices)
             {
-                vertices = new VertexPositionNormalTexture[(width + 1) * (height + 1)];
+                vertices = new VertexPositionNormalColor[(width + 1) * (height + 1)];
 
                 ushort GetIndex(int x, int y) => (ushort)(y * (width + 1) + x);
-
-                var stepU = 1f / width;
-                var stepV = 1f / height;
 
                 for (int j = 0; j <= height; ++j)
                 {
                     for (int i = 0; i <= width; ++i)
                     {
-                        vertices[GetIndex(i, j)] = new VertexPositionNormalTexture(offset + new Vector3(i, GetHeight(point.X + i, point.Y + j), j), Vector3.UnitY, new Vector2(stepU * i, stepV * j));
+                        GetHeightStickHeightAndColor(point.X + i, point.Y + j, out var heightStickHeight, out var color);
+                        vertices[GetIndex(i, j)] = new VertexPositionNormalColor(
+                            offset + new Vector3(i, heightStickHeight, j),
+                            Vector3.UnitY,
+                            color);
                     }
                 }
 
@@ -231,7 +244,7 @@ namespace Xenko.Physics.Shapes
                 }
             }
 
-            private MeshDraw CreateTileMeshDraw(GraphicsDevice device, VertexPositionNormalTexture[] vertices, ushort[] indices)
+            private MeshDraw CreateTileMeshDraw(GraphicsDevice device, VertexPositionNormalColor[] vertices, ushort[] indices)
             {
                 var vertexBuffer = Buffer.Vertex.New(device, vertices, GraphicsResourceUsage.Dynamic).RecreateWith(vertices);
                 var indexBuffer = Buffer.Index.New(device, indices).RecreateWith(indices);
@@ -239,7 +252,7 @@ namespace Xenko.Physics.Shapes
                 var meshDraw = new MeshDraw
                 {
                     PrimitiveType = PrimitiveType.TriangleList,
-                    VertexBuffers = new VertexBufferBinding[] { new VertexBufferBinding(vertexBuffer, VertexPositionNormalTexture.Layout, vertexBuffer.ElementCount) },
+                    VertexBuffers = new VertexBufferBinding[] { new VertexBufferBinding(vertexBuffer, VertexPositionNormalColor.Layout, vertexBuffer.ElementCount) },
                     IndexBuffer = new IndexBufferBinding(indexBuffer, false, indexBuffer.ElementCount),
                     StartLocation = 0,
                     DrawCount = indexBuffer.ElementCount,
@@ -256,7 +269,11 @@ namespace Xenko.Physics.Shapes
                     {
                         for (int i = 0; i <= tile.Width; ++i)
                         {
-                            tile.Vertices[j * (tile.Width + 1) + i].Position.Y = GetHeight(tile.Point.X + i, tile.Point.Y + j);
+                            GetHeightStickHeightAndColor(tile.Point.X + i, tile.Point.Y + j, out var heightStickHeight, out var color);
+
+                            var index = j * (tile.Width + 1) + i;
+                            tile.Vertices[index].Position.Y = heightStickHeight;
+                            tile.Vertices[index].Color = color;
                         }
                     }
                 });
