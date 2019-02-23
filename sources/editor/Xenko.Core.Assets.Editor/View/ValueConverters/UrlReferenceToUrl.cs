@@ -35,9 +35,9 @@ namespace Xenko.Core.Assets.Editor.View.ValueConverters
 
             //Using the generic type so it works in both situtations.
             var contentType = AssetRegistry.GetContentType(asset.AssetType);
-            var urlReferenceType = typeof(UrlReference<>).MakeGenericType(contentType);
+            var urlReferenceType = contentType == null ? typeof(UrlReference) : typeof(UrlReference<>).MakeGenericType(contentType);
 
-            return Activator.CreateInstance(urlReferenceType, url);
+            return Activator.CreateInstance(urlReferenceType, asset.Id, url);
         }
     }
 }

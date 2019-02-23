@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Text;
+using Xenko.Core.Assets;
 
 namespace Xenko.Core.Serialization
 {
@@ -16,13 +17,14 @@ namespace Xenko.Core.Serialization
         /// Create a new <see cref="UrlReference"/> instance.
         /// </summary>
         /// <param name="url"></param>
-        public UrlReference(string url)
+        public UrlReference(AssetId id, string url)
         {
             if (string.IsNullOrWhiteSpace(url))
             {
                 throw new ArgumentException($"{nameof(url)} cannot be null or empty.", nameof(url));
             }
 
+            Id = id;
             Url = url;
         }
 
@@ -34,6 +36,10 @@ namespace Xenko.Core.Serialization
         [DataMember]
         [Display(Browsable = false)]
         public string Url { get; set; }
+
+        [DataMember]
+        [Display(Browsable = false)]
+        internal AssetId Id { get; set; }
 
         /// <inheritdoc />
         public override string ToString() => Url;
@@ -51,7 +57,7 @@ namespace Xenko.Core.Serialization
         /// Create a new <see cref="UrlReference{T}"/> instance.
         /// </summary>
         /// <param name="url"></param>
-        public UrlReference(string url) : base(url)
+        public UrlReference(AssetId id, string url) : base(id, url)
         {
         }
 
