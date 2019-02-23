@@ -13,7 +13,7 @@ using System.ComponentModel;
 
 namespace Xenko.Core.Assets.Editor.View.ValueConverters
 {
-    public class UrlReferenceToUrl : LocalizableConverter<ContentReferenceToUrl>
+    public class UrlReferenceToUrl : LocalizableConverter<UrlReferenceToUrl>
     {
         public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -30,43 +30,14 @@ namespace Xenko.Core.Assets.Editor.View.ValueConverters
         {
             var url = (string)value;
             var asset = SessionViewModel.Instance.AllAssets.FirstOrDefault(x => x.Url == url);
-            if (asset == null || !typeof(UrlReference).IsAssignableFrom(targetType))
+            if (asset == null)
                 return null;
 
-            return Activator.CreateInstance(targetType, url);
-        }
-
-        static UrlReferenceToUrl()
-        {
-            //TODO: Move this somewhere else.
-            TypeDescriptor.AddAttributes(typeof(UrlReference), new TypeConverterAttribute(typeof(UrlReferenceTypeConverter)));
-        }
-    }
-
-    //TODO: Move this to somewhere else.
-    public class UrlReferenceTypeConverter : TypeConverter
-    {
-        public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
-        {
-            return AssetRegistry.IsContentType(sourceType);
-        }
-
-        public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-        {
             //Using the generic type so it works in both situtations.
-            var urlReferenceType = typeof(UrlReference<>).MakeGenericType(value.GetType());
-            var assetUrl = GetUrl(value);
+            var contentType = AssetRegistry.GetContentType(asset.AssetType);
+            var urlReferenceType = typeof(UrlReference<>).MakeGenericType(contentType);
 
-            if (assetUrl == null) return null;
-
-            return Activator.CreateInstance(urlReferenceType, assetUrl);
-        }
-
-        private string GetUrl(object value)
-        {
-            var contentReference = value as IReference ?? AttachedReferenceManager.GetOrCreateAttachedReference(value);
-            var asset = contentReference != null && contentReference.Id != AssetId.Empty ? SessionViewModel.Instance.GetAssetById(contentReference.Id) : null;
-            return asset?.Url;
+            return Activator.CreateInstance(urlReferenceType, url);
         }
     }
 }

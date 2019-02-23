@@ -32,6 +32,7 @@ namespace Xenko.Core.Serialization
         }
 
         [DataMember]
+        [Display(Browsable = false)]
         public string Url { get; set; }
 
         /// <inheritdoc />
