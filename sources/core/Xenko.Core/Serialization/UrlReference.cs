@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.Text;
 
 namespace Xenko.Core.Serialization
@@ -7,6 +9,7 @@ namespace Xenko.Core.Serialization
     /// <summary>
     /// Represents a Url to an asset.
     /// </summary>
+    [DataContract]
     public class UrlReference
     {
         /// <summary>
@@ -23,14 +26,23 @@ namespace Xenko.Core.Serialization
             Url = url;
         }
 
-        public string Url { get; }
+        public UrlReference()
+        {
 
+        }
+
+        [DataMember]
+        public string Url { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString() => Url;
     }
 
     /// <summary>
     /// Represents a Url to an asset of type <see cref="T"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type off asset.</typeparam>
+    [DataContract]
     public class UrlReference<T> : UrlReference
         where T : class
     {
@@ -41,5 +53,12 @@ namespace Xenko.Core.Serialization
         public UrlReference(string url) : base(url)
         {
         }
+
+        public UrlReference()
+        {
+
+        }
     }
+
+    
 }

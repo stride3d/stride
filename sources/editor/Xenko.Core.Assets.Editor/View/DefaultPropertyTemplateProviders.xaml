@@ -1200,6 +1200,36 @@
                                          Template="{StaticResource SimpleContentReferencePropertyTemplate}" OverrideRule="Some">
   </pvdr:ContentReferenceTemplateProvider>
 
+  <DataTemplate x:Key="UrlReferencePropertyTemplate">
+    <DockPanel>
+      <UniformGrid Rows="1" DockPanel.Dock="Right">
+        <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding PickupAsset}" CommandParameter="{Binding Type}"
+                ToolTip="{xk:Localize Select an asset, Context=ToolTip}">
+          <Image Source="{StaticResource ImagePickup}" Width="16" Height="16" Margin="-1"/>
+        </Button>
+        <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding CreateNewInstance}" CommandParameter="{x:Static assetCommands:AbstractNodeValue.Null}"
+                ToolTip="{xk:Localize Clear the reference, Context=ToolTip}">
+          <Image Source="{StaticResource ImageClear}" Width="16" Height="16" Margin="-1"/>
+        </Button>
+        <Button Style="{StaticResource ImageButtonStyle}" Command="{Binding FetchAsset}"
+                ToolTip="{xk:Localize Select the referenced asset, Context=ToolTip}">
+          <Image Source="{StaticResource ImageFetchAsset}" Width="16" Height="16" Margin="-1"/>
+        </Button>
+      </UniformGrid>
+      <xk:TextBox SelectAllOnFocus="True" Text="{Binding NodeValue, Converter={cvt:UrlReferenceToUrl}}" Margin="5"
+                    ContextMenu="{StaticResource ReferenceContextMenu}" IsReadOnly="{Binding IsReadOnly}">
+        <i:Interaction.Behaviors>
+          <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+        </i:Interaction.Behaviors>
+      </xk:TextBox>
+    </DockPanel>
+  </DataTemplate>
+
+  <pvdr:UrlReferenceTemplateProvider x:Key="UrlReferencePropertyTemplateProvider"
+                                         edvw:PropertyViewHelper.TemplateCategory="PropertyEditor"
+                                         Template="{StaticResource UrlReferencePropertyTemplate}" OverrideRule="Some">
+  </pvdr:UrlReferenceTemplateProvider>
+
   <pvdr:ContentReferenceTemplateProvider x:Key="ThumbnailContentReferencePropertyTemplateProvider" DynamicThumbnail="True" edvw:PropertyViewHelper.TemplateCategory="PropertyEditor" OverrideRule="Some">
     <DataTemplate>
       <DockPanel>
