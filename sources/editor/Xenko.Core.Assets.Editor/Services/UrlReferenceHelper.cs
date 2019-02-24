@@ -18,7 +18,7 @@ namespace Xenko.Core.Assets.Editor.Services
         /// <param name="typeDescriptor">The type descriptor to analyze.</param>
         /// <returns>True if the type descriptor represents a url reference type, false otherwise.</returns>
         /// <remarks>A reference type is either an <see cref="AssetReference"/> or a content type registered in the <see cref="AssetRegistry"/>.</remarks>
-        public static bool ContainsReferenceType(ITypeDescriptor typeDescriptor)
+        public static bool ContainsUrlReferenceType(ITypeDescriptor typeDescriptor)
         {
             var type = typeDescriptor.GetInnerCollectionType();
             return IsUrlReferenceType(type);
@@ -45,6 +45,23 @@ namespace Xenko.Core.Assets.Editor.Services
             if (IsSubclassOfRawGeneric(GenericType, type))
             {
                 return type.GetGenericArguments()[0];
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Retrieves the view model corresponding to the asset referenced by the <paramref name="source"/> parameter.
+        /// </summary>
+        /// <param name="session">The session view model to use to retrieve the asset view model.</param>
+        /// <param name="source">The source of the reference.</param>
+        /// <returns>The view model corresponding to the referenced asset if found, null otherwise.</returns>
+        /// <remarks>The <paramref name="source"/> parameter must either be an <see cref="UrlReference"/>, or a proxy object of an <see cref="UrlReference{T}"/>.</remarks>
+        public static AssetViewModel GetReferenceTarget(SessionViewModel session, object source)
+        {
+            if (source is UrlReference urlReference)
+            {
+                return session.GetAssetById(urlReference.Id);
             }
 
             return null;

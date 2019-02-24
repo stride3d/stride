@@ -40,7 +40,7 @@ namespace Xenko.Core.Serialization
 
         [DataMember]
         [Display(Browsable = false)]
-        internal AssetId Id { get; set; }
+        public AssetId Id { get; internal set; }
 
         /// <inheritdoc />
         public override string ToString() => Url;

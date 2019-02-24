@@ -40,7 +40,7 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc />
         public override bool CanAttach(INodePresenter nodePresenter)
         {
-            return UrlReferenceHelper.ContainsReferenceType(nodePresenter.Descriptor);
+            return UrlReferenceHelper.ContainsUrlReferenceType(nodePresenter.Descriptor);
         }
 
         /// <inheritdoc />
