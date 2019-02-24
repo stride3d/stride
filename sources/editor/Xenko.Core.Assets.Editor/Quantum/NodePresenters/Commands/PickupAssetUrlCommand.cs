@@ -29,7 +29,7 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc />
         protected override bool FilterAsset(AssetViewModel asset, Type referenceType)
         {
-            var targetType = UrlReferenceHelper.GetTargetType(referenceType);
+            var targetType = UrlReferenceHelper.GetTargetContentType(referenceType);
 
             if (targetType == null) return true;
 
@@ -38,20 +38,23 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
             return contentType == targetType;
         }
 
+        /// <inheritdoc />
         protected override AssetViewModel GetCurrentTarget(object currentValue)
         {
             return UrlReferenceHelper.GetReferenceTarget(Session, currentValue);
         }
 
+        /// <inheritdoc />
         protected override IEnumerable<Type> GetAssetTypes(Type contentType)
         {
-            var targetType = UrlReferenceHelper.GetTargetType(contentType);
+            var targetType = UrlReferenceHelper.GetTargetContentType(contentType);
 
             if (targetType == null) return AssetRegistry.GetPublicTypes();
 
             return AssetRegistry.GetAssetTypes(targetType);
         }
 
+        /// <inheritdoc />
         protected override object CreateReference(AssetViewModel asset, Type referenceType)
         {
             return UrlReferenceHelper.CreateReference(asset, referenceType);

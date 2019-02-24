@@ -48,8 +48,11 @@ namespace Xenko.Core.Assets.Editor.Components.Properties
             RegisterNodePresenterCommand(new FetchAssetCommand(session));
             RegisterNodePresenterCommand(new PickupAssetCommand(session));
             RegisterNodePresenterCommand(new SetContentReferenceCommand());
+
+            RegisterNodePresenterCommand(new FetchUrlAssetCommand(session));
             RegisterNodePresenterCommand(new PickupAssetUrlCommand(session));
             RegisterNodePresenterCommand(new SetUrlReferenceCommand());
+
             RegisterNodePresenterCommand(new ResetOverrideCommand());
 
             RegisterNodePresenterUpdater(new ArchetypeNodeUpdater());

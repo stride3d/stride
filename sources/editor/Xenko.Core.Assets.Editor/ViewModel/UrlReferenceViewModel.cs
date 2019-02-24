@@ -32,7 +32,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
                     var isCompatible = false;
 
-                    var targetType = UrlReferenceHelper.GetTargetType(TargetNode.Type);
+                    var targetType = UrlReferenceHelper.GetTargetContentType(TargetNode.Type);
 
                     if (targetType == null)
                     {
