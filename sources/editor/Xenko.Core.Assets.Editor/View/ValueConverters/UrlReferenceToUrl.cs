@@ -39,38 +39,5 @@ namespace Xenko.Core.Assets.Editor.View.ValueConverters
 
             return Activator.CreateInstance(urlReferenceType, asset.Id, url);
         }
-
-        //static UrlReferenceToUrl()
-        //{
-        //    //TODO: Move this somewhere else.
-        //    TypeDescriptor.AddAttributes(typeof(UrlReference), new TypeConverterAttribute(typeof(UrlReferenceTypeConverter)));
-        //}
     }
-
-    ////TODO: Move this to somewhere else.
-    //public class UrlReferenceTypeConverter : TypeConverter
-    //{
-    //    public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
-    //    {
-    //        return AssetRegistry.IsContentType(sourceType);
-    //    }
-
-    //    public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
-    //    {
-    //        //Using the generic type so it works in both situtations.
-    //        var urlReferenceType = typeof(UrlReference<>).MakeGenericType(value.GetType());
-    //        var assetUrl = GetUrl(value);
-
-    //        if (assetUrl == null) return null;
-
-    //        return Activator.CreateInstance(urlReferenceType, assetUrl);
-    //    }
-
-    //    private string GetUrl(object value)
-    //    {
-    //        var contentReference = value as IReference ?? AttachedReferenceManager.GetOrCreateAttachedReference(value);
-    //        var asset = contentReference != null && contentReference.Id != AssetId.Empty ? SessionViewModel.Instance.GetAssetById(contentReference.Id) : null;
-    //        return asset?.Url;
-    //    }
-    //}
 }
