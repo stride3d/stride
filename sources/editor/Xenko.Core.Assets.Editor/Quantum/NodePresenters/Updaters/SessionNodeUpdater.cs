@@ -6,6 +6,7 @@ using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Keys;
 using Xenko.Core.Assets.Editor.Services;
 using Xenko.Core.Assets.Editor.ViewModel;
 using Xenko.Core.Reflection;
+using Xenko.Core.Serialization;
 
 namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Updaters
 {
@@ -25,6 +26,13 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Updaters
                 node.AttachedProperties.Add(SessionData.SessionKey, session);
                 node.AttachedProperties.Add(ReferenceData.Key, new ContentReferenceViewModel());
             }
+
+            if (UrlReferenceHelper.IsUrlReferenceType(node.Type))
+            {
+                node.AttachedProperties.Add(SessionData.SessionKey, session);
+                node.AttachedProperties.Add(ReferenceData.Key, new UrlReferenceViewModel());
+            }
+
             // Numeric and TimeSpan templates need access to the UndoRedoService to create transactions
             if (node.Type == typeof(TimeSpan) || node.Type.IsNumeric())
             {

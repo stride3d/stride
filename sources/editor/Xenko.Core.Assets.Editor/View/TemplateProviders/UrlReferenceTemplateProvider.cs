@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xenko.Core.Assets.Editor.Services;
 using Xenko.Core.Presentation.Quantum.View;
 using Xenko.Core.Presentation.Quantum.ViewModels;
 using Xenko.Core.Serialization;
@@ -15,7 +16,7 @@ namespace Xenko.Core.Assets.Editor.View.TemplateProviders
 
         public override bool MatchNode(NodeViewModel node)
         {
-            var isReference = typeof(UrlReference).IsAssignableFrom(node.Type);
+            var isReference = UrlReferenceHelper.IsUrlReferenceType(node.Type);
             return isReference;
         }
     }

@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Text;
 using Xenko.Core.Assets;
+using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Core.Serialization
 {
@@ -43,6 +44,9 @@ namespace Xenko.Core.Serialization
 
         /// <inheritdoc />
         public override string ToString() => Url;
+
+
+        
     }
 
     /// <summary>
