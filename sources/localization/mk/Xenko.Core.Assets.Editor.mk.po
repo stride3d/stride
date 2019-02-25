@@ -2,14 +2,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-02-25 13:25:06+0900\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2019-02-26 08:01+0000\n"
+"Last-Translator: Christian Georgiev <hepticftw@gmail.com>\n"
+"Language-Team: Macedonian <https://hosted.weblate.org/projects/xenko/"
+"coreassetseditor/mk/>\n"
 "Language: mk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: MonoDevelop Gettext addin\n"
+"Plural-Forms: nplurals=2; plural=n==1 || n%10==1 ? 0 : 1;\n"
+"X-Generator: Weblate 3.5-dev\n"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:144
 msgctxt "Properties"
@@ -25,7 +27,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:34
 msgctxt "Log"
 msgid "Operation cancelled."
-msgstr ""
+msgstr "Операцијата е откажана."
 
 #. Message displayed when an exception occurs while generating a template
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:41
@@ -1203,7 +1205,7 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:20
 msgid "Operation failed."
-msgstr ""
+msgstr "Работата не успеа"
 
 #. Log message displayed when an operation has been canceled
 #: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:21
@@ -1213,4 +1215,4 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:27
 msgctxt "Button"
 msgid "Close"
-msgstr ""
+msgstr "затвори"
