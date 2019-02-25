@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 11:53:42+0900\n"
-"PO-Revision-Date: 2019-02-23 11:18+0000\n"
+"PO-Revision-Date: 2019-02-26 08:01+0000\n"
 "Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "ru/>\n"
@@ -10,8 +10,8 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<="
+"4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Weblate 3.5-dev\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
@@ -157,7 +157,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:14
 msgctxt "Settings"
 msgid "Remote"
-msgstr "Удалённый"
+msgstr "Удалённо"
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:22
 msgctxt "Settings"
@@ -266,14 +266,14 @@ msgstr "Включить в сборку как корневой ресурс"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:509
 msgctxt "Menu"
 msgid "Cut"
-msgstr ""
+msgstr "Вырезать"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:91
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:196
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:510
 msgctxt "Menu"
 msgid "Copy"
-msgstr ""
+msgstr "Копировать"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:92
 msgctxt "Menu"
@@ -285,7 +285,7 @@ msgstr "Копировать с зависимостями"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:511
 msgctxt "Menu"
 msgid "Paste"
-msgstr ""
+msgstr "Вставить"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:94
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:198
@@ -370,12 +370,12 @@ msgstr "Файл"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:146
 msgctxt "Menu"
 msgid "New"
-msgstr ""
+msgstr "Новый"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:147
 msgctxt "Menu"
 msgid "Open"
-msgstr ""
+msgstr "Открыть"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:148
 msgctxt "Menu"
@@ -388,7 +388,6 @@ msgid "Clear list"
 msgstr "Очистить недавние"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:180
-#, fuzzy
 msgctxt "Menu"
 msgid "Save"
 msgstr "Сохранить"
@@ -411,12 +410,12 @@ msgstr "Редактировать"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:192
 msgctxt "Menu"
 msgid "Undo"
-msgstr ""
+msgstr "Отменить"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:193
 msgctxt "Menu"
 msgid "Redo"
-msgstr ""
+msgstr "Вернуть"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:200
 msgctxt "Menu"
@@ -726,7 +725,7 @@ msgstr "Показать в проводнике"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:560
 msgctxt "View"
 msgid "Asset view"
-msgstr "Вид актива"
+msgstr "Обзор активов"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:581
 msgctxt "View"
@@ -794,7 +793,7 @@ msgstr "Показать этот актив в редакторе"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:734
 msgctxt "ToolTip"
 msgid "Display only overridden properties"
-msgstr "Отображать только переназначенные свойства"
+msgstr "Отображать только изменённые свойства"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:737
 msgid "Search properties"
@@ -909,7 +908,7 @@ msgstr "Расположение"
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:34
 msgctxt "Credentials"
 msgid "Don't ask again"
-msgstr "Не спрашивать"
+msgstr "Не напоминать"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:35
 msgctxt "Credentials"
