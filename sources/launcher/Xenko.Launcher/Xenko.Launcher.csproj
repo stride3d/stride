@@ -52,7 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
-    <PackageReference Include="Xenko.CrashReport" Version="1.0.0" />
+    <PackageReference Include="Xenko.CrashReport" Version="1.0.1" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Diagnostics.Debug" />
     <Reference Include="System.Management" />

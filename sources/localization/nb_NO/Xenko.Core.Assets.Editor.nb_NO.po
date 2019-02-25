@@ -1,21 +1,20 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-01-13 02:30+0900\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: fr\n"
+"POT-Creation-Date: 2019-01-11 23:17:17+0900\n"
+"PO-Revision-Date: 2019-01-11 23:17:17+0900\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: nb_NO\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: MonoDevelop Gettext addin\n"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:144
 msgctxt "Properties"
 msgid "Loading properties..."
-msgstr "Chargement des propriétés..."
+msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/Properties/SessionObjectPropertiesViewModel.cs:131
 msgctxt "Properties"
@@ -26,7 +25,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:34
 msgctxt "Log"
 msgid "Operation cancelled."
-msgstr "Opération annulée."
+msgstr ""
 
 #. Message displayed when an exception occurs while generating a template
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:41
@@ -229,8 +228,8 @@ msgstr ""
 msgctxt "Message"
 msgid ""
 "Game Studio can't create an asset here because the selected directory or "
-"package can't be edited. In the solution explorer, select a directory or "
-"package to create the asset in."
+"package can't be edited. In the solution explorer, select a directory or package "
+"to create the asset in."
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:775
@@ -285,8 +284,8 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:593
 msgctxt "Message"
 msgid ""
-"Unable to rename asset to '{0}' because an asset with the same name exists "
-"in the same directory"
+"Unable to rename asset to '{0}' because an asset with the same name exists in "
+"the same directory"
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:598
@@ -483,8 +482,8 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:734
 msgctxt "Message"
 msgid ""
-"This asset has unsaved changes. To open it, you need to save it first. Do "
-"you want to save the session now?"
+"This asset has unsaved changes. To open it, you need to save it first. Do you "
+"want to save the session now?"
 msgstr ""
 
 #. Error displayed when trying to open the source file of an asset that has no source file

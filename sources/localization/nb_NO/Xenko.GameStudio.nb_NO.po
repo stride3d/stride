@@ -2,20 +2,19 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 11:53:42+0900\n"
-"PO-Revision-Date: 2019-01-13 10:52+0900\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: fr\n"
+"PO-Revision-Date: 2019-01-11 23:17:20+0900\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: nb_NO\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: MonoDevelop Gettext addin\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
 msgid "Output"
-msgstr "Sortie"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:189
 msgctxt "Message"
@@ -27,12 +26,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
 msgid "Reload"
-msgstr "Recharger"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
 msgid "Don't reload"
-msgstr "Ne pas recharger"
+msgstr ""
 
 #. Displayed when user tries to run a project that is not on a supported platform (for execution).
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:317
@@ -40,13 +39,13 @@ msgstr "Ne pas recharger"
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:467
 msgctxt "Message"
 msgid "Platform {0} isn't supported for execution."
-msgstr "La plateforme {0} n'est pas prise en charge pour l'exécution."
+msgstr ""
 
 #. Displayed when user tries to run Android project without an Android device attached.
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:422
 msgctxt "Message"
 msgid "No Android device found for execution."
-msgstr "Aucun appareil Android trouvé pour l'exécution."
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:475
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:639
@@ -157,22 +156,22 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:26
 msgctxt "Settings"
 msgid "Host"
-msgstr "Hôte"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:30
 msgctxt "Settings"
 msgid "Port"
-msgstr "Port"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:34
 msgctxt "Settings"
 msgid "Username"
-msgstr "Nom d'utilisateur"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:38
 msgctxt "Settings"
 msgid "Password"
-msgstr "Mot de passe"
+msgstr ""
 
 #. Location where to deploy.
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:42
@@ -233,7 +232,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:515
 msgctxt "Menu"
 msgid "Asset"
-msgstr "Asset"
+msgstr ""
 
 #. Open the asset editor
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:64
@@ -378,10 +377,9 @@ msgid "Clear list"
 msgstr ""
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:180
-#, fuzzy
 msgctxt "Menu"
 msgid "Save"
-msgstr "Sauvegarder"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:182
 msgctxt "Menu"
@@ -591,7 +589,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:279
 msgctxt "Menu"
 msgid "About..."
-msgstr "À propos..."
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:305
 msgctxt "ToolTip"
@@ -822,7 +820,7 @@ msgstr[1] ""
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:10
 msgctxt "About"
 msgid "About Xenko"
-msgstr "A propos de Xenko"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:45
 msgctxt "About"
@@ -852,7 +850,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:73
 msgctxt "About"
 msgid "Close"
-msgstr "Fermer"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:9
 msgctxt "Credentials"
@@ -869,22 +867,22 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:15
 msgctxt "Credentials"
 msgid "Host"
-msgstr "Hôte"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:18
 msgctxt "Credentials"
 msgid "Port"
-msgstr "Port"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:21
 msgctxt "Credentials"
 msgid "Username"
-msgstr "Nom d'utilisateur"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:24
 msgctxt "Credentials"
 msgid "Password"
-msgstr "Mot de passe"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:27
 msgctxt "Credentials"
@@ -904,9 +902,9 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:40
 msgctxt "Button"
 msgid "Save"
-msgstr "Sauvegarder"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:45
 msgctxt "Button"
 msgid "Cancel"
-msgstr "Annuler"
+msgstr ""

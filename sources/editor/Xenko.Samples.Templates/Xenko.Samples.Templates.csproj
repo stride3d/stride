@@ -8,7 +8,7 @@
     <!-- Note: we version this package manually because most of the time the samples are big and don't need to be updated.
          PLEASE UPDATE XenkoDefaultAssetsPlugin.LoadDefaultTemplates() accordingly! -->
     <PackageVersion>3.1.0.1</PackageVersion>
-    <PackageVersion Condition="'$(XenkoOfficialBuild)' != 'true'">$(PackageVersion)-beta01</PackageVersion>
+    <PackageVersion Condition="'$(XenkoOfficialBuild)' != 'true'">$(PackageVersion)-beta02</PackageVersion>
   </PropertyGroup>
 
   <Import Project="$(XenkoPostSettingsTargets)" />

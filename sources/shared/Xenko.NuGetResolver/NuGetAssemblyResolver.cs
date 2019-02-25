@@ -19,13 +19,18 @@ using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 
-namespace Xenko.Core.Assets.CompilerApp
+namespace Xenko.Core.Assets
 {
     class NuGetAssemblyResolver
     {
         static bool assembliesResolved;
         static object assembliesLock = new object();
         static List<string> assemblies;
+
+        internal static void DisableAssemblyResolve()
+        {
+            assembliesResolved = true;
+        }
 
         [ModuleInitializer(-100000)]
         internal static void __Initialize__()
