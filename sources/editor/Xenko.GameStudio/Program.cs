@@ -209,6 +209,9 @@ namespace Xenko.GameStudio
             if (terminating) return;
             terminating = true;
 
+            // In case assembly resolve was not done yet, disable it altogether
+            NuGetAssemblyResolver.DisableAssemblyResolve();
+
             var englishCulture = new CultureInfo("en-US");
             var crashLogThread = new Thread(CrashReport) { CurrentUICulture = englishCulture, CurrentCulture = englishCulture };
             crashLogThread.SetApartmentState(ApartmentState.STA);

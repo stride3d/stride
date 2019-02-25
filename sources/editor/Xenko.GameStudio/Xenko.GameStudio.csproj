@@ -43,7 +43,7 @@
     <PackageReference Include="SharpDX" Version="4.0.1" />
     <PackageReference Include="EnvDTE" Version="8.0.1" />
     <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
-    <PackageReference Include="Xenko.CrashReport" Version="1.0.0" />
+    <PackageReference Include="Xenko.CrashReport" Version="1.0.1" />
     <Reference Include="Mono.Cecil">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(XenkoCommonDependenciesDir)Mono.Cecil\Mono.Cecil.dll</HintPath>
