@@ -43,7 +43,7 @@ namespace TouchInputs
             spriteBatch.End();
 
             // Draw touch inputs
-            var entity = context.SceneInstance.RootScene.Entities[0]; // Note: there's only one entity in our scene
+            var entity = SceneInstance.GetCurrent(context).RootScene.Entities[0]; // Note: there's only one entity in our scene
             entity.Get<TouchInputsScript>().Render(drawContext, spriteBatch);
         }
     }
