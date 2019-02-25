@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xenko\n"
-"POT-Creation-Date: 2019-01-11 23:17:20+0900\n"
-"PO-Revision-Date: 2019-01-13 07:32\n"
+"POT-Creation-Date: 2019-02-25 11:53:42+0900\n"
+"PO-Revision-Date: 2019-02-25 03:04\n"
 "Last-Translator: xen2 <virgile+crowdin@xenko.com>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -244,9 +244,38 @@ msgctxt "Menu"
 msgid "Include in build as root asset"
 msgstr ""
 
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:90
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:195
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:509
+msgctxt "Menu"
+msgid "Cut"
+msgstr ""
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:91
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:196
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:510
+msgctxt "Menu"
+msgid "Copy"
+msgstr ""
+
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:92
 msgctxt "Menu"
 msgid "Copy with dependencies"
+msgstr ""
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:93
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:197
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:511
+msgctxt "Menu"
+msgid "Paste"
+msgstr ""
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:94
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:198
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:242
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:512
+msgctxt "Menu"
+msgid "Delete"
 msgstr ""
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:96
@@ -321,6 +350,16 @@ msgctxt "Menu"
 msgid "File"
 msgstr "Fichier"
 
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:146
+msgctxt "Menu"
+msgid "New"
+msgstr ""
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:147
+msgctxt "Menu"
+msgid "Open"
+msgstr ""
+
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:148
 msgctxt "Menu"
 msgid "Open recent"
@@ -330,6 +369,11 @@ msgstr "Ouvrir récents"
 msgctxt "Menu"
 msgid "Clear list"
 msgstr "Effacer la liste"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:180
+msgctxt "Menu"
+msgid "Save"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:182
 msgctxt "Menu"
@@ -345,6 +389,16 @@ msgstr "Quitter"
 msgctxt "Menu"
 msgid "Edit"
 msgstr "Éditer"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:192
+msgctxt "Menu"
+msgid "Undo"
+msgstr ""
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:193
+msgctxt "Menu"
+msgid "Redo"
+msgstr ""
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:200
 msgctxt "Menu"
@@ -445,11 +499,6 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:508
 msgctxt "Menu"
 msgid "Actions"
-msgstr ""
-
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:242
-msgctxt "Menu"
-msgid "Delete"
 msgstr ""
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:253
