@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-01-11 23:17:17+0900\n"
+"POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
 "PO-Revision-Date: 2019-01-13 02:39+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -262,8 +262,6 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:951
 #, fuzzy
-#| msgctxt "Message"
-#| msgid "The selected package or directory cannot be modified."
 msgctxt "Message"
 msgid "This package or directory can't be modified."
 msgstr ""
@@ -472,10 +470,6 @@ msgstr ""
 #. Message displayed when trying to open a modified asset with the text editor
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:695
 #, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "This asset has been modified and must be saved in order to be opened. Do "
-#| "you want to save the session now?"
 msgctxt "Message"
 msgid ""
 "This asset has unsaved changes. To open it, you need to save the session "
@@ -487,10 +481,6 @@ msgstr ""
 #. Message displayed when an exception occurs while trying to open a file with the text editor
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:717
 #, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "An error occurred while starting the text editor. Please verify that the "
-#| "path to the text editor set in the Settings is correct."
 msgctxt "Message"
 msgid ""
 "There was a problem starting the text editor. Make sure the path to the text "
@@ -499,10 +489,6 @@ msgstr "エディターでエラーが起きました"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:734
 #, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "This asset has been modified and must be saved in order to be opened. Do "
-#| "you want to save the session now?"
 msgctxt "Message"
 msgid ""
 "This asset has unsaved changes. To open it, you need to save it first. Do "
@@ -526,8 +512,6 @@ msgstr ""
 #. Message displayed when an exception occurs while trying to explore an asset
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:829
 #, fuzzy
-#| msgctxt "Message"
-#| msgid "An error occurred while starting the file explorer."
 msgctxt "Message"
 msgid "There was a problem starting the file explorer."
 msgstr "エクスプローラーでエラーが起きました"
@@ -552,8 +536,6 @@ msgstr ""
 #. Message displayed when closing an unsaved project
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1002
 #, fuzzy
-#| msgctxt "Message"
-#| msgid "The current project has unsaved changes. Would you like to save it?"
 msgctxt "Message"
 msgid "The project has unsaved changes. Do you want to save it?"
 msgstr "現在のプロジェクトは変更を保存されていません。保存しますか？"
@@ -566,16 +548,12 @@ msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1118
 #, fuzzy
-#| msgctxt "Title"
-#| msgid "Creating package..."
 msgctxt "Title"
 msgid "Creating project..."
 msgstr "パッケージの作成中"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1171
 #, fuzzy
-#| msgctxt "Title"
-#| msgid "Importing package..."
 msgctxt "Title"
 msgid "Importing project..."
 msgstr "パッケージをインポートしています"
@@ -583,8 +561,6 @@ msgstr "パッケージをインポートしています"
 #. Log message displayed when an exception occurs while importing a package.
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1191
 #, fuzzy
-#| msgctxt "Log"
-#| msgid "An exception occurred while importing the package."
 msgctxt "Log"
 msgid "There was a problem importing the package."
 msgstr "パッケージのインポート中に例外が発生しました。"
@@ -592,8 +568,6 @@ msgstr "パッケージのインポート中に例外が発生しました。"
 #. Message displayed when the selection contains zero or multiple packages but a single one is required
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1243
 #, fuzzy
-#| msgctxt "Message"
-#| msgid "Please select a single package to perform this operation."
 msgctxt "Message"
 msgid "Please select a single package."
 msgstr "この操作を行うために１つのパッケージを選択してください"
@@ -601,10 +575,6 @@ msgstr "この操作を行うために１つのパッケージを選択してく
 #. Message displayed when the user try to add dependencies to a package but no acceptable package is available
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1285
 #, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "No package in this solution can be added as a dependency to the selected "
-#| "package."
 msgctxt "Message"
 msgid ""
 "There are no packages that can be added as dependencies to this package."
@@ -615,10 +585,6 @@ msgstr ""
 #. Message displayed when a single location is selected but invalid for directory creation
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1344
 #, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "Unable to create a directory in the selected location. Directories can "
-#| "only be created in the Assets hierarchy of a package."
 msgctxt "Message"
 msgid "Folders can only be created in the Assets hierarchy of a package."
 msgstr ""
@@ -628,10 +594,6 @@ msgstr ""
 #. Message displayed when some of the multiple selected locations are invalid for directory creation
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1345
 #, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "Unable to create a directory in some of the selected locations. "
-#| "Directories can only be created in the Assets hierarchy of a package."
 msgctxt "Message"
 msgid ""
 "Game Studio can't create a folder in some of the locations you selected. "
@@ -666,8 +628,6 @@ msgstr ""
 #. Message displayed when the user tries to delete a system package
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1578
 #, fuzzy
-#| msgctxt "Message"
-#| msgid "Unable to delete the asset root directory of a package."
 msgctxt "Message"
 msgid "Xenko can't delete the system package."
 msgstr "パッケージのルートアセットルートディレクトリは削除できません"
@@ -675,10 +635,6 @@ msgstr "パッケージのルートアセットルートディレクトリは削
 #. Message displayed when the user is about to delete a package from the session
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1590
 #, fuzzy
-#| msgctxt "Message"
-#| msgid ""
-#| "You're about to delete a package. Are you sure you want to perform this "
-#| "operation? Note that the package files will remain on the disk."
 msgctxt "Message"
 msgid ""
 "Are you sure you want to delete this package? The package files will remain "
@@ -690,8 +646,6 @@ msgstr ""
 #. Message displayed when the user is about to delete a dependency from the package
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1621
 #, fuzzy
-#| msgctxt "Message"
-#| msgid "Are you sure to delete the selected dependencies?"
 msgctxt "Message"
 msgid "Are you sure you want to delete this dependency?"
 msgstr "選択された依存関係を削除しますか？"
@@ -705,8 +659,6 @@ msgstr ""
 #. Message displayed when the user is about to delete a project from the package
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1675
 #, fuzzy
-#| msgctxt "Message"
-#| msgid "Are you sure to delete the selected projects?"
 msgctxt "Message"
 msgid "Are you sure you want to delete these projects?"
 msgstr "選択されたプロジェクトを削除しますか？"
