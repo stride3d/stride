@@ -50,6 +50,14 @@ namespace Xenko.Core.Assets.Editor.Services
             => type != null && typeof(UrlReference).IsAssignableFrom(type);
 
         /// <summary>
+        /// Checks if the given type is a <see cref="UrlReference{T}"/>
+        /// </summary>
+        /// <param name="type">The type to test.</param>
+        /// <returns></returns>
+        public static bool IsGenericUrlReferenceType(Type type)
+            => type != null && IsSubclassOfRawGeneric(GenericType,type);
+
+        /// <summary>
         /// Gets the asset content type for a given url reference type.
         /// </summary>
         /// <param name="type">The type is an url reference type, either an <see cref="UrlReference"/> or a <see cref="UrlReference{T}"/></param>
