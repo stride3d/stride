@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-02-26 12:40+0000\n"
-"Last-Translator: Polymo <heari@web.de>\n"
+"PO-Revision-Date: 2019-02-27 13:19+0000\n"
+"Last-Translator: Tebjan Halm <tebjan@vvvv.org>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "de/>\n"
 "Language: de\n"
@@ -16,7 +16,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
 msgid "Output"
-msgstr "Ausgabe"
+msgstr "Output"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:189
 msgctxt "Message"
@@ -47,7 +47,7 @@ msgstr "Die Plattform {0} wird nicht zur Ausführung unterstützt."
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:422
 msgctxt "Message"
 msgid "No Android device found for execution."
-msgstr "Es wurde kein zur Ausgabe bereitstehendes Androidgerät gefunden."
+msgstr "Kein Android-Gerät zur Ausführung gefunden."
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:475
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:639
