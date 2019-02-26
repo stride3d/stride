@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-01-11 23:17:17+0900\n"
-"PO-Revision-Date: 2019-02-23 11:19+0000\n"
+"PO-Revision-Date: 2019-02-26 08:01+0000\n"
 "Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/xenko/"
 "coreassetseditor/ru/>\n"
@@ -1192,7 +1192,7 @@ msgstr "Очистить ссылку"
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1209
 msgctxt "ToolTip"
 msgid "Select the referenced asset"
-msgstr "Выберите связанный актив"
+msgstr "Выберите референсный актив"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1261
 msgctxt "ToolTip"
