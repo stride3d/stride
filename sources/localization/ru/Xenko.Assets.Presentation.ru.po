@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-01-11 23:17:07+0900\n"
-"PO-Revision-Date: 2019-02-23 11:19+0000\n"
+"PO-Revision-Date: 2019-02-26 08:01+0000\n"
 "Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/xenko/"
 "assetspresentation/ru/>\n"
@@ -57,15 +57,15 @@ msgstr "Отмена"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:16
 msgid "Use translation gizmo"
-msgstr "Использовать перевод gizmo(указателя осей)"
+msgstr "Перемещение"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:22
 msgid "Use rotation gizmo"
-msgstr "Использовать вращение gizmo(указателя осей)"
+msgstr "Вращение"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:28
 msgid "Use scale gizmo"
-msgstr "Использовать шкалу gizmo(указателя осей)"
+msgstr "Масштабировать"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:16
 msgid "Use world coordinates for transformations"
@@ -206,22 +206,22 @@ msgstr "Переключиться в режим масштабирования"
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:69
 msgctxt "Settings"
 msgid "Switch to next gizmo mode"
-msgstr "Переключиться в следующий режим gizmo"
+msgstr "Переключиться в следующий режим"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:73
 msgctxt "Settings"
 msgid "Default snap distance for translation"
-msgstr "Расстояние привязки для трансляции по умолчанию"
+msgstr "Шаг перемещений по умолчанию"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:77
 msgctxt "Settings"
 msgid "Default snap angle for rotation"
-msgstr "Значение для угла поворота по умолчанию"
+msgstr "Шаг угла поворота по умолчанию"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:81
 msgctxt "Settings"
 msgid "Default snap factor for scale"
-msgstr "Значение для масштаба по умолчанию"
+msgstr "Шаг масштаба по умолчанию"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:85
 msgctxt "Settings"
@@ -267,7 +267,7 @@ msgstr "Введите допустимое имя библиотеки. Оши�
 #: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml.cs:62
 msgctxt "Message"
 msgid "The names you entered are invalid or empty."
-msgstr "Введенные имена недопустимы или вообще отсутствуют."
+msgstr "Введенное имя недопустимо или отсутствует."
 
 #: ../editor/Xenko.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:59
 msgctxt "Button"
@@ -387,7 +387,7 @@ msgstr "Действие"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:139
 msgctxt "Menu"
 msgid "Open prefab in editor"
-msgstr "Открыть префаб в редакторе"
+msgstr "Редактировать префаб"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:94
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:140
@@ -401,7 +401,7 @@ msgstr "Выберите префаб в окне активов"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:817
 msgctxt "Menu"
 msgid "Break link to prefab"
-msgstr "Разорвать привязку к префабу"
+msgstr "Сделать независимым от префаба"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:96
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:142
@@ -520,7 +520,7 @@ msgstr "Световые зонды"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:488
 msgid "Bounces:"
-msgstr "Отраженный:"
+msgstr "Отражения:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:492
 msgctxt "ToolTip"
@@ -575,20 +575,20 @@ msgstr "Нет"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:566
 msgctxt "ToolTip"
 msgid "Grid and gizmo options..."
-msgstr "Параметры сетки и gizmo..."
+msgstr "Параметры сетки и указателя осей..."
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:576
 msgid "Transformation gizmo size:"
-msgstr "Изменение размера gizmo:"
+msgstr "Размер указателя осей:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:581
 msgid "Component gizmo size:"
-msgstr "Размер компонентов gizmo:"
+msgstr "Размер компонентов указателя осей:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:582
 msgctxt "Button"
 msgid "Fixed"
-msgstr "Фиксированный"
+msgstr "Зафиксировать"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:590
 msgctxt "Button"
@@ -685,7 +685,7 @@ msgstr "Справа"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
 msgctxt "ToolTip"
 msgid "Snap translations to this value"
-msgstr "Задать это значение для перевода"
+msgstr "Задать это значение для перемещения"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:710
 msgctxt "ToolTip"
@@ -717,7 +717,7 @@ msgstr "Загрузка активов..."
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:815
 msgctxt "Menu"
 msgid "Open in prefab editor"
-msgstr "Открыть префаб в редакторе"
+msgstr "Редактировать префаб"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:857
 msgid ""
@@ -1101,7 +1101,7 @@ msgstr "Сместить вперёд"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:130
 msgctxt "Menu"
 msgid "Open library in editor"
-msgstr "Открыть библиотеку в редакторе"
+msgstr "Редактировать библиотеку"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:131
 msgctxt "Menu"
@@ -1243,7 +1243,7 @@ msgstr "Кривые:"
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:73
 msgctxt "ToolTip"
 msgid "Show or hide the tracker"
-msgstr "Показать или скрыть трекер"
+msgstr "Показать или скрыть шкалу"
 
 #: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:79
 msgctxt "ToolTip"
@@ -1412,7 +1412,7 @@ msgstr "Использовать другой скелет для этой мо�
 
 #: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
 msgid "New code library"
-msgstr "Новая библиотека кода"
+msgstr "Новая библиотека скриптов"
 
 #: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:21
 msgid "Library name:"
@@ -1506,12 +1506,12 @@ msgstr "Предварительный просмотр текста"
 #: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:353
 msgctxt "ToolTip"
 msgid "Previous slice"
-msgstr "Предыдущий кусок"
+msgstr "Предыдущий фрагмент"
 
 #: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:357
 msgctxt "ToolTip"
 msgid "Next slice"
-msgstr "Следующий кусок"
+msgstr "Следующий фрагмент"
 
 #: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:380
 msgid "W: {0}"
@@ -1567,7 +1567,7 @@ msgstr "Очистить ссылку"
 #: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:221
 msgctxt "ToolTip"
 msgid "Select the referenced asset"
-msgstr "Выберите связанный актив"
+msgstr "Выберите референсный актив"
 
 #: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:133
 msgid "Add component"
