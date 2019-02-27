@@ -389,6 +389,12 @@ namespace Xenko.GameStudio
                 case SupportedLanguage.Russian:
                     TranslationManager.Instance.CurrentLanguage = new CultureInfo("ru-RU");
                     break;
+                case SupportedLanguage.German:
+                    TranslationManager.Instance.CurrentLanguage = new CultureInfo("de-DE");
+                    break;
+                case SupportedLanguage.Spanish:
+                    TranslationManager.Instance.CurrentLanguage = new CultureInfo("es-ES");
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
