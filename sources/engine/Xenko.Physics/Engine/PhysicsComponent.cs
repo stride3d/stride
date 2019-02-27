@@ -12,6 +12,7 @@ using Xenko.Core.MicroThreading;
 using Xenko.Engine.Design;
 using Xenko.Physics;
 using Xenko.Physics.Engine;
+using Xenko.Rendering;
 
 namespace Xenko.Engine
 {

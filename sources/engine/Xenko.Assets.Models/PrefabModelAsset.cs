@@ -15,12 +15,7 @@ namespace Xenko.Assets.Models
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(Model))]
     [Display((int)AssetDisplayPriority.Models + 60, "Prefab model")]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "0.0.0")]
-    [AssetUpgrader(XenkoConfig.PackageName, "0.0.0", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
     public sealed class PrefabModelAsset : Asset, IModelAsset
     {
         private const string CurrentVersion = "2.0.0.0";

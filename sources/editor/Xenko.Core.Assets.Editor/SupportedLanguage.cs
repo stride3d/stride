@@ -8,5 +8,8 @@ namespace Xenko.Core.Assets.Editor
         English,
         French,
         Japanese,
+        Russian,
+        German,
+        Spanish,
     }
 }

@@ -6,7 +6,7 @@
 #include "../../../deps/Recast/include/DetourNavMeshQuery.h"
 #include "../../deps/NativePath/TINYSTL/unordered_set.h"
 
-#pragma pack(4)
+#pragma pack(push, 4)
 struct NavMeshPathfindQuery
 {
 	Vector3 source;
@@ -34,6 +34,7 @@ struct NavMeshRaycastResult
 	Vector3 position;
 	Vector3 normal;
 };
+#pragma pack(pop)
 
 class NavigationMesh
 {

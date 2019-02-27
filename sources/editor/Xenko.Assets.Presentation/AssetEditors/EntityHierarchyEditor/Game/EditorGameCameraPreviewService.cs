@@ -280,7 +280,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                         IsIncrustEnabled = false;
                     }
 
-                    RenderView.SceneInstance = context.SceneInstance;
                     context.RenderSystem.Views.Add(RenderView);
                     context.RenderView = RenderView;
 

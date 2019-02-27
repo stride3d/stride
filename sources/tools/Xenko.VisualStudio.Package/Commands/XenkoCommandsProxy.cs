@@ -330,6 +330,10 @@ namespace Xenko.VisualStudio.Commands
                         packageInfo.SdkPaths.AddRange(RestoreHelper.ListAssemblies(request, result));
                         packageInfo.LoadedVersion = packageInfo.ExpectedVersion;
                     }
+                    else
+                    {
+                        // TODO: Report error from log
+                    }
                 }
             }
 

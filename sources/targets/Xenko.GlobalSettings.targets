@@ -156,7 +156,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants);$(XenkoGraphicsApiDefines);XENKO_SUPPORT_BETA_UPGRADE</DefineConstants>
+    <DefineConstants>$(DefineConstants);$(XenkoGraphicsApiDefines)</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup>

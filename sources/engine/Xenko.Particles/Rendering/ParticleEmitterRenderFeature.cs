@@ -163,7 +163,7 @@ namespace Xenko.Particles.Rendering
 
                 // TODO: ParticleMaterial should set this up
                 var materialInfo = (ParticleMaterialInfo)renderParticleEmitter.ParticleMaterialInfo;
-                var colorShade = renderParticleEmitter.RenderParticleSystem.ParticleSystemComponent.Color.ToColorSpace(context.GraphicsDevice.ColorSpace);
+                var colorShade = renderParticleEmitter.Color.ToColorSpace(context.GraphicsDevice.ColorSpace);
                 materialInfo?.Material.Parameters.Set(ParticleBaseKeys.ColorScale, colorShade);
             }
 

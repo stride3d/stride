@@ -80,7 +80,7 @@ namespace Xenko.Rendering.UI
         {
             base.Draw(context, renderView, renderViewStage, startIndex, endIndex);
 
-            var uiProcessor = renderView.SceneInstance.GetProcessor<UIRenderProcessor>();
+            var uiProcessor = SceneInstance.GetCurrent(context.RenderContext).GetProcessor<UIRenderProcessor>();
             if (uiProcessor == null)
                 return;
 
@@ -111,7 +111,7 @@ namespace Xenko.Rendering.UI
             Texture scopedDepthBuffer = null;
             foreach (var uiElement in uiElementStates)
             {
-                if (uiElement.RenderObject.UIComponent.IsFullScreen)
+                if (uiElement.RenderObject.IsFullScreen)
                 {
                     var renderTarget = renderingContext.RenderTarget;
                     var description = TextureDescription.New2D(renderTarget.Width, renderTarget.Height, PixelFormat.D24_UNorm_S8_UInt, TextureFlags.DepthStencil);
@@ -123,32 +123,32 @@ namespace Xenko.Rendering.UI
             // update view parameters and perform UI picking
             foreach (var uiElementState in uiElementStates)
             {
-                var uiComponent = uiElementState.RenderObject.UIComponent;
-                var rootElement = uiComponent.Page?.RootElement;
+                var renderObject = uiElementState.RenderObject;
+                var rootElement = renderObject.Page?.RootElement;
                 if (rootElement == null)
                     continue;
 
                 // calculate the size of the virtual resolution depending on target size (UI canvas)
-                var virtualResolution = uiComponent.Resolution;
+                var virtualResolution = renderObject.Resolution;
 
-                if (uiComponent.IsFullScreen)
+                if (renderObject.IsFullScreen)
                 {
                     //var targetSize = viewportSize;
                     var targetSize = new Vector2(renderingContext.RenderTarget.Width, renderingContext.RenderTarget.Height);
 
                     // update the virtual resolution of the renderer
-                    if (uiComponent.ResolutionStretch == ResolutionStretch.FixedWidthAdaptableHeight)
+                    if (renderObject.ResolutionStretch == ResolutionStretch.FixedWidthAdaptableHeight)
                         virtualResolution.Y = virtualResolution.X * targetSize.Y / targetSize.X;
-                    if (uiComponent.ResolutionStretch == ResolutionStretch.FixedHeightAdaptableWidth)
+                    if (renderObject.ResolutionStretch == ResolutionStretch.FixedHeightAdaptableWidth)
                         virtualResolution.X = virtualResolution.Y * targetSize.X / targetSize.Y;
 
-                    uiElementState.Update(uiComponent.Entity, virtualResolution);
+                    uiElementState.Update(renderObject, virtualResolution);
                 }
                 else
                 {
                     var cameraComponent = context.RenderContext.Tags.Get(CameraComponentRendererExtensions.Current);
                     if (cameraComponent != null)
-                        uiElementState.Update(uiComponent.Entity, cameraComponent);
+                        uiElementState.Update(renderObject, cameraComponent);
                 }
 
                 // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
@@ -161,19 +161,19 @@ namespace Xenko.Rendering.UI
             // render the UI elements of all the entities
             foreach (var uiElementState in uiElementStates)
             {
-                var uiComponent = uiElementState.RenderObject.UIComponent;
-                var rootElement = uiComponent.Page?.RootElement;
+                var renderObject = uiElementState.RenderObject;
+                var rootElement = renderObject.Page?.RootElement;
                 if (rootElement == null)
                     continue;
 
                 var updatableRootElement = (IUIElementUpdate)rootElement;
-                var virtualResolution = uiComponent.Resolution;
+                var virtualResolution = renderObject.Resolution;
 
                 // update the rendering context values specific to this element
                 renderingContext.Resolution = virtualResolution;
                 renderingContext.ViewProjectionMatrix = uiElementState.WorldViewProjectionMatrix;
-                renderingContext.DepthStencilBuffer = uiComponent.IsFullScreen ? scopedDepthBuffer : context.CommandList.DepthStencilBuffer;
-                renderingContext.ShouldSnapText = uiComponent.SnapText;
+                renderingContext.DepthStencilBuffer = renderObject.IsFullScreen ? scopedDepthBuffer : context.CommandList.DepthStencilBuffer;
+                renderingContext.ShouldSnapText = renderObject.SnapText;
 
                 // calculate an estimate of the UI real size by projecting the element virtual resolution on the screen
                 var virtualOrigin = uiElementState.WorldViewProjectionMatrix.Row4;
@@ -217,7 +217,7 @@ namespace Xenko.Rendering.UI
                 uiElementState.RenderObject.LastRootMatrix = rootMatrix;
 
                 // clear and set the Depth buffer as required
-                if (uiComponent.IsFullScreen)
+                if (renderObject.IsFullScreen)
                 {
                     context.CommandList.Clear(renderingContext.DepthStencilBuffer, DepthStencilClearOptions.DepthBuffer | DepthStencilClearOptions.Stencil);
                 }
@@ -323,17 +323,14 @@ namespace Xenko.Rendering.UI
                 WorldViewProjectionMatrix = Matrix.Identity;
             }
 
-            public void Update(Entity entity, CameraComponent camera)
+            public void Update(RenderUIElement renderObject, CameraComponent camera)
             {
                 var frustumHeight = 2 * (float)Math.Tan(MathUtil.DegreesToRadians(camera.VerticalFieldOfView) / 2);
 
-                // extract the world matrix of the UI entity
-                var worldMatrix = entity.Get<TransformComponent>().WorldMatrix;
+                var worldMatrix = renderObject.WorldMatrix;
 
                 // rotate the UI element perpendicular to the camera view vector, if billboard is activated
-                var uiComponent = entity.Get<UIComponent>();
-
-                if (uiComponent.IsFullScreen)
+                if (renderObject.IsFullScreen)
                 {
                     worldMatrix = Matrix.Identity;
                 }
@@ -343,7 +340,7 @@ namespace Xenko.Rendering.UI
                     Matrix.Invert(ref camera.ViewMatrix, out viewInverse);
                     var forwardVector = viewInverse.Forward;
 
-                    if (uiComponent.IsBillboard)
+                    if (renderObject.IsBillboard)
                     {
                         // remove scale of the camera
                         viewInverse.Row1 /= viewInverse.Row1.XYZ().Length();
@@ -359,7 +356,7 @@ namespace Xenko.Rendering.UI
                         worldMatrix.Row3 = viewInverse.Row3;
                     }
 
-                    if (uiComponent.IsFixedSize)
+                    if (renderObject.IsFixedSize)
                     {
                         forwardVector.Normalize();
                         var distVec = (worldMatrix.TranslationVector - camera.Entity.Transform.Position);
@@ -375,7 +372,7 @@ namespace Xenko.Rendering.UI
                     }
 
                     // If the UI component is not drawn fullscreen it should be drawn as a quad with world sizes corresponding to its actual size
-                    worldMatrix = Matrix.Scaling(uiComponent.Size / uiComponent.Resolution) * worldMatrix;
+                    worldMatrix = Matrix.Scaling(renderObject.Size / renderObject.Resolution) * worldMatrix;
                 }
 
                 // Rotation of Pi along 0x to go from UI space to world space
@@ -387,7 +384,7 @@ namespace Xenko.Rendering.UI
                 Matrix.Multiply(ref worldViewMatrix, ref camera.ProjectionMatrix, out WorldViewProjectionMatrix);
             }
 
-            public void Update(Entity entity, Vector3 virtualResolution)
+            public void Update(RenderUIElement renderObject, Vector3 virtualResolution)
             {
                 var nearPlane = virtualResolution.Z / 2;
                 var farPlane = nearPlane + virtualResolution.Z;
@@ -404,7 +401,7 @@ namespace Xenko.Rendering.UI
                     ProjectionMatrix = Matrix.PerspectiveFovRH(verticalFov, aspectRatio, nearPlane, farPlane),
                 };
 
-                Update(entity, cameraComponent);
+                Update(renderObject, cameraComponent);
             }
         }
     }

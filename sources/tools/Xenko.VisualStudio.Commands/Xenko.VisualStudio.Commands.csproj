@@ -20,7 +20,8 @@
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj" />
     <ProjectReference Include="..\..\engine\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj" />
-    <ProjectReference Include="..\Xenko.VisualStudio.Package\Xenko.VisualStudio.Package.csproj" />
+    <!-- Use PrivateReference="All" so that it is not a NuGet dependency, and to make sure we don't have any transitive reference of VS.Package being used (we should have explicit ProjectReference to everything we need) -->
+    <ProjectReference Include="..\Xenko.VisualStudio.Package\Xenko.VisualStudio.Package.csproj" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

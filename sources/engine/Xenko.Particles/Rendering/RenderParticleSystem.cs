@@ -11,9 +11,7 @@ namespace Xenko.Particles.Rendering
     /// </summary>
     public class RenderParticleSystem
     {
-        public ParticleSystemComponent ParticleSystemComponent;
-
-        public TransformComponent TransformComponent;
+        public ParticleSystem ParticleSystem;
 
         public RenderParticleEmitter[] Emitters;
     }

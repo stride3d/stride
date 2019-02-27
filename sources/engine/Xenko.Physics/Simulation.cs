@@ -7,6 +7,7 @@ using Xenko.Core.Collections;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
+using Xenko.Rendering;
 
 namespace Xenko.Physics
 {

@@ -2,11 +2,13 @@
 <package>
   <metadata>
     <id>Xenko.VisualStudio.Package</id>
-    <version>3.0.3</version>
+    <version>3.0.4</version>
     <authors>Xenko</authors>
     <owners>Xenko</owners>
-    <licenseUrl>http://xenko.com/license.txt</licenseUrl>
+    <licenseUrl>https://github.com/xenko3d/xenko/blob/master/LICENSE.md</licenseUrl>
     <projectUrl>http://xenko.com/</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/xenko3d/media/master/images/mainlogo/nuget/logo.png</iconUrl>
+    <repository type="git" url="https://github.com/xenko3d/xenko" />
     <copyright>&#169; Xenko contributors and Silicon Studio Corp.</copyright>
     <description>Visual Studio Integration Plugin for Xenko</description>
     <tags>internal</tags>

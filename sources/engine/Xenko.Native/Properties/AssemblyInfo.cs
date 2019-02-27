@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 [assembly: NeutralResourcesLanguage("en")]
 
 [assembly: InternalsVisibleTo("Xenko.Graphics")]
-[assembly: InternalsVisibleTo("Xenko.Engine")]
+[assembly: InternalsVisibleTo("Xenko.Rendering")]
 [assembly: InternalsVisibleTo("Xenko.Audio")]
 [assembly: InternalsVisibleTo("Xenko.Engine")]
 [assembly: InternalsVisibleTo("Xenko.Assets")]

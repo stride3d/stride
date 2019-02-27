@@ -22,6 +22,8 @@ namespace Xenko.Assets
         private static string RemoveSiliconStudioNamespaces(string content)
         {
             // Namespaces
+            content = content.Replace("SiliconStudio.Xenko.Rendering.Composers", "SiliconStudio.Xenko.Rendering.Compositing");
+            content = content.Replace("SiliconStudio.Core.Serialization.Assets", "SiliconStudio.Core.Serialization.Contents");
             content = content.Replace("SiliconStudio.Core", "Xenko.Core");
             content = content.Replace("SiliconStudio.Xenko", "Xenko");
             content = content.Replace("SiliconStudio.Common", "Xenko.Common");
@@ -87,47 +89,6 @@ namespace Xenko.Assets
             /// </summary>
             /// <param name="filePath">A path to a source file</param>
             Task UpgradeSourceFile(UFile filePath);
-        }
-
-        /// <summary>
-        /// Code upgrader for renaming to Xenko
-        /// </summary>
-        private class RenameToXenkoCodeUpgrader : ICodeUpgrader
-        {
-            public void UpgradeProject(MSBuildWorkspace workspace, UFile projectPath)
-            {
-                // Upgrade .csproj file
-                // TODO: Use parsed file?
-                var fileContents = File.ReadAllText(projectPath);
-                var newFileContents = fileContents;
-
-                // Rename namespaces
-                newFileContents = RemoveSiliconStudioNamespaces(newFileContents);
-
-                // Save file if there were any changes
-                if (newFileContents != fileContents)
-                {
-                    File.WriteAllText(projectPath, newFileContents);
-                }
-            }
-
-            // TODO: Reverted to simple regex, to upgrade text in .pdxfx's generated code files. Should use syntax analysis again.
-#pragma warning disable 1998
-            public async Task UpgradeSourceFile(UFile filePath) // TODO: Should really use async I/O
-#pragma warning restore 1998
-            {
-                var fileContents = File.ReadAllText(filePath);
-                var newFileContents = fileContents;
-
-                // Rename namespaces
-                newFileContents = RemoveSiliconStudioNamespaces(newFileContents);
-
-                // Save file if there were any changes
-                if (newFileContents != fileContents)
-                {
-                    File.WriteAllText(filePath, newFileContents);
-                }
-            }
         }
     }
 }

@@ -12,6 +12,7 @@ using Xenko.Core.Presentation.ViewModel;
 using Xenko.Core.Quantum;
 using Xenko.Assets.Models;
 using Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModels;
+using Xenko.Core.Collections;
 using Xenko.Engine;
 using Xenko.Rendering;
 

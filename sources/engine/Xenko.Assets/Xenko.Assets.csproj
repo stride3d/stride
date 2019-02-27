@@ -19,18 +19,15 @@
     <PackageReference Include="SharpDX.Direct2D1" Version="4.0.1" />
     <!--PackageReference Include="Esent.Interop" Version="1.9.4" /-->
     <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.4.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.4.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.4.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="0.10.6" />
-    <!--PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="2.4.0" /-->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.10.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="2.10.0" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Renci.SshNet">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\deps\SSH.NET\Renci.SshNet.dll</HintPath>
     </Reference>
     <PackageReference Include="System.AppContext" Version="4.3.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
     <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="System.Composition.AttributedModel" Version="1.1.0" />
     <PackageReference Include="System.Composition.Convention" Version="1.1.0" />
@@ -46,7 +43,7 @@
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Reflection" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.Metadata" Version="1.5.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="1.6.0" />
     <PackageReference Include="System.Runtime" Version="4.3.0" />
     <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />

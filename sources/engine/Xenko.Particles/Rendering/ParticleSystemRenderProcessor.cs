@@ -30,10 +30,10 @@ namespace Xenko.Particles.Rendering
             if (renderParticleSystem == null)
                 return;
 
-            var emitters = renderParticleSystem.ParticleSystemComponent.ParticleSystem.Emitters;
+            var emitters = renderParticleSystem.ParticleSystem.Emitters;
 
             var emitterCount = 0;
-            if (renderParticleSystem.ParticleSystemComponent.ParticleSystem.Enabled)
+            if (renderParticleSystem.ParticleSystem.Enabled)
             {
                 foreach (var particleEmitter in emitters)
                 {
@@ -86,20 +86,21 @@ namespace Xenko.Particles.Rendering
         {
             foreach (var componentData in ComponentDatas)
             {
+                var particleSystemComponent = componentData.Key;
                 var renderSystem = componentData.Value;
 
                 CheckEmitters(renderSystem);
 
-
                 // Update render objects
                 foreach (var emitter in renderSystem.Emitters)
                 {
-                    if ((emitter.Enabled = renderSystem.ParticleSystemComponent.Enabled) == true)
+                    if ((emitter.Enabled = particleSystemComponent.Enabled) == true)
                     {
-                        var aabb = emitter.RenderParticleSystem.ParticleSystemComponent.ParticleSystem.GetAABB();
+                        var aabb = emitter.RenderParticleSystem.ParticleSystem.GetAABB();
                         emitter.BoundingBox = new BoundingBoxExt(aabb.Minimum, aabb.Maximum);
                         emitter.StateSortKey = ((uint) emitter.ParticleEmitter.DrawPriority) << 16;     // Maybe include the RenderStage precision as well
-                        emitter.RenderGroup = renderSystem.ParticleSystemComponent.RenderGroup;
+                        emitter.Color = particleSystemComponent.Color;
+                        emitter.RenderGroup = particleSystemComponent.RenderGroup;
                     }
                 }
             }
@@ -139,16 +140,13 @@ namespace Xenko.Particles.Rendering
         {
             return new RenderParticleSystem
             {
-                ParticleSystemComponent = particleSystemComponent,
-                TransformComponent = entity.Transform,
+                ParticleSystem = particleSystemComponent.ParticleSystem,
             };
         }
 
         protected override bool IsAssociatedDataValid(Entity entity, ParticleSystemComponent spriteComponent, RenderParticleSystem associatedData)
         {
-            return
-                spriteComponent == associatedData.ParticleSystemComponent &&
-                entity.Transform == associatedData.TransformComponent;
+            return true;
         }
     }
 }

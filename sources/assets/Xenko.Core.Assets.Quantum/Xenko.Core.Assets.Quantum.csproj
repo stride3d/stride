@@ -15,7 +15,7 @@
     <Reference Include="Microsoft.CSharp" />
     <PackageReference Include="Microsoft.Build" Version="15.7.179" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.7.179" ExcludeAssets="runtime" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <PackageReference Include="System.Diagnostics.Tracing" Version="4.3.0" />

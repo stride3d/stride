@@ -1,0 +1,1262 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
+"PO-Revision-Date: 2019-02-26 08:02+0000\n"
+"Last-Translator: Oscar Sanchez <trollainas@gmail.com>\n"
+"Language-Team: Spanish <https://hosted.weblate.org/projects/xenko/"
+"coreassetseditor/es/>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.5-dev\n"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:144
+msgctxt "Properties"
+msgid "Loading properties..."
+msgstr "Cargando propiedades..."
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/Properties/SessionObjectPropertiesViewModel.cs:131
+msgctxt "Properties"
+msgid "There was a problem loading properties of the selection."
+msgstr "Ha ocurrido un problema cargando las propiedades de la selección."
+
+#. Log message displayed when an operation has been canceled
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:34
+msgctxt "Log"
+msgid "Operation cancelled."
+msgstr "Operación cancelada."
+
+#. Message displayed when an exception occurs while generating a template
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:41
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:60
+msgctxt "Log"
+msgid "An exception occurred while generating the template."
+msgstr "Se ha producido una excepción al generar la plantilla."
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml.cs:28
+msgctxt "Title"
+msgid "Project selection - {0}"
+msgstr "Selección de proyecto - {0}"
+
+#: ../editor/Xenko.Core.Assets.Editor/Services/VisualStudioService.cs:92
+msgctxt "Message"
+msgid "An error occurred while starting Visual Studio."
+msgstr "Se ha producido un error al iniciar Visual Studio."
+
+#: ../editor/Xenko.Core.Assets.Editor/Services/VisualStudioService.cs:101
+msgctxt "Message"
+msgid "The session currently open is not a Visual Studio session."
+msgstr "La sesión actualmente abierta no es una sesión de Visual Studio."
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:21
+msgctxt "Settings"
+msgid "Always delete {0} without asking"
+msgstr "Siempre eliminar los siguientes archivos {0} sin preguntar"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:22
+msgctxt "Settings"
+msgid "Always save new scripts without asking"
+msgstr "Guardar siempre los nuevos scripts sin preguntar"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:25
+msgctxt "Settings"
+msgid "Environment"
+msgstr "Entorno"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:26
+msgctxt "Settings"
+msgid "External tools"
+msgstr "Herramientas externas"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:27
+msgctxt "Settings"
+msgid "Interface"
+msgstr "Interfaz"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:28
+msgctxt "Settings"
+msgid "Tools"
+msgstr "Herramientas"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:34
+msgctxt "Settings"
+msgid "Default text editor"
+msgstr "Editor de texto predeterminado"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:38
+msgctxt "Settings"
+msgid "Shader editor"
+msgstr "Editor de shaders"
+
+#. IDE: Integrated development environment (http://en.wikipedia.org/wiki/Integrated_development_environment)
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:48
+msgctxt "Settings"
+msgid "Default IDE"
+msgstr "IDE por defecto"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:52
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:53
+msgctxt "Settings"
+msgid "Ask before deleting assets"
+msgstr "Preguntar antes de eliminar activos"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:57
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:58
+msgctxt "Settings"
+msgid "Ask before reloading assemblies"
+msgstr "Pregunte antes de recargar los ensamblajes"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:62
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:63
+msgctxt "Settings"
+msgid "Automatically reload assemblies"
+msgstr "Recargar automáticamente los ensamblajes"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:67
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:68
+msgctxt "Settings"
+msgid "Ask before saving new scripts"
+msgstr "Preguntar antes de guardar nuevos scripts"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:72
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:73
+msgctxt "Settings"
+msgid "Crash report e-mail"
+msgstr "E-mail para informar sobre posibles errores"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:77
+msgctxt "Settings"
+msgid "Language"
+msgstr "Idioma"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:81
+msgctxt "Settings"
+msgid "Reset"
+msgstr "Reiniciar"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:82
+msgctxt "Settings"
+msgid "Reset Game Studio layout"
+msgstr "Reiniciar Game Studio"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:88
+msgctxt "Settings"
+msgid "Use effect compiler server for mobile platforms"
+msgstr "Usar el servidor de compilación de efectos para dispositivos móviles"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:92
+msgctxt "Settings"
+msgid "Automatically reload last session at startup"
+msgstr "Cargar automáticamente la última sesión al inicio"
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:117
+msgctxt "Message"
+msgid "Some changes will be applied after you restart Game Studio."
+msgstr "Algunos cambios se aplicarán después de reiniciar Game Studio."
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:128
+msgctxt "Properties"
+msgid "Select a settings category."
+msgstr "Seleccione una categoría de configuración."
+
+#: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:138
+msgctxt "Properties"
+msgid "There was a problem loading the Settings page."
+msgstr "Ha ocurrido un problema al cargar la página de configuración."
+
+#: ../editor/Xenko.Core.Assets.Editor/View/Behaviors/DragDrop/DragDropBehavior.cs:25
+msgctxt "Message"
+msgid "Can't drop here"
+msgstr "No se puede soltar aquí"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/ValueConverters/ContentReferenceToUrl.cs:25
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:299
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:372
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:572
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:626
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:693
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:717
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:750
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:764
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:947
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:973
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:999
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1014
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1079
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1305
+msgid "(Different values)"
+msgstr "(Valores diferentes)"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:490
+msgctxt "Message"
+msgid ""
+"Unable to use the selected template because it is not an asset template."
+msgstr ""
+"Imposible usar la plantilla seleccionada porque no es una plantilla de "
+"assets."
+
+#. Error message when the template generator of the selected template is unreachable
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:556
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/PackageViewModel.cs:450
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:281
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1137
+msgctxt "Message"
+msgid ""
+"Unable to retrieve template generator for the selected template. Aborting."
+msgstr ""
+"No se ha podido recuperar el generador de plantillas para la plantilla "
+"seleccionada. Abortando."
+
+#. Title of the AddAssetWindow
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:562
+msgctxt "Title"
+msgid "Add asset…"
+msgstr "Añadir asset…"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:690
+msgctxt "Message"
+msgid ""
+"Game Studio can't create assets in multiple locations. In the solution "
+"explorer, select a single directory or package to create the asset in."
+msgstr ""
+"Game Studio no puede crear assets en varias ubicaciones. En el explorador de "
+"soluciones, seleccione un único directorio o paquete para crear el asset."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:695
+msgctxt "Message"
+msgid ""
+"Game Studio can't create an asset here. In the solution explorer, select a "
+"directory or package to create the asset in."
+msgstr ""
+"Game Studio no puede crear un asset aquí. En el explorador de soluciones, "
+"seleccione un directorio o un paquete para crear el asset."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:702
+msgctxt "Message"
+msgid ""
+"Game Studio can't create an asset here because the selected directory or "
+"package can't be edited. In the solution explorer, select a directory or package "
+"to create the asset in."
+msgstr ""
+"Game Studio no puede crear un asset aquí porque el directorio o paquete "
+"seleccionado no puede ser editado. En el explorador de soluciones, "
+"seleccione un directorio o paquete para crear el asset."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:775
+msgctxt "Message"
+msgid "Read-only folders can't be cut."
+msgstr "Los directorios de solo lectura no se puede cortar."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:790
+msgctxt "Message"
+msgid "The asset {0} can't be deleted. {1}{2}"
+msgstr "El asset {0} no puede ser eliminado. {1}{2}"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:820
+msgctxt "Message"
+msgid "{0} can't be deleted. {1}{2}"
+msgstr "{0} no puede ser eliminado. {1}{2}"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:867
+msgctxt "Message"
+msgid ""
+"Unable to cut or copy a selection that contains a folder and one of its "
+"subfolders."
+msgstr ""
+"No se puede cortar o copiar una selección que contiene un directorio y uno "
+"de sus subdirectorios."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:943
+msgctxt "Message"
+msgid "Select a valid asset folder to paste the selection to."
+msgstr "Seleccione un directorio de assets válidos para pegar la selección."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:951
+msgctxt "Message"
+msgid "This package or directory can't be modified."
+msgstr "Este paquete o directorio no se puede modificar."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1414
+msgctxt "Message"
+msgid ""
+"This location is invalid. Please select a package folder in the Solution "
+"explorer."
+msgstr ""
+"Esta ubicación no es válida. Por favor, seleccione un directorio de paquetes "
+"en el explorador de soluciones."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1420
+msgctxt "Message"
+msgid "Drop files"
+msgstr "Arrastrar archivos"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1488
+msgctxt "Message"
+msgid "These files aren't supported."
+msgstr "Estos archivos no son compatibles."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:593
+msgctxt "Message"
+msgid ""
+"Unable to rename asset to '{0}' because an asset with the same name exists in "
+"the same directory"
+msgstr ""
+"Imposible renombrar el asset a '{0}' porque existe un asset con idéntico "
+"nombre en el mismo directorio"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:598
+msgctxt "Message"
+msgid "Unable to rename asset with an empty name"
+msgstr "Imposible renombrar el asset con un nombre en blanco"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:107
+msgctxt "Message"
+msgid "This package that contains this folder can't be edited."
+msgstr "El paquete que contiene este directorio no se puede editar."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:144
+msgctxt "Message"
+msgid "Unable to rename folder. {0}"
+msgstr "Imposible renombrar el directorio. {0}"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:169
+msgctxt "Message"
+msgid "A folder with the same name already exists in the parent folder."
+msgstr "Ya existe un directorio con el mismo nombre en el direcorio principal."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:191
+msgctxt "Message"
+msgid "Path is a device name"
+msgstr "La ruta es un nombre de dispositivo"
+
+#. Message displayed when the previous attempt to load the startup project failed. {0} is a file name
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:137
+msgctxt "Button"
+msgid "Try again"
+msgstr "Intentarlo de nuevo"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:138
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:693
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:732
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1000
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1500
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1588
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1619
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1673
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:83
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:31
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:35
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:53
+#: ../editor/Xenko.Core.Assets.Editor/View/PackagePickerWindow.xaml:21
+#: ../editor/Xenko.Core.Assets.Editor/View/SettingsWindow.xaml:31
+#: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:32
+msgctxt "Button"
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:140
+msgctxt "Message"
+msgid ""
+"The last attempt to load the project **{0}** failed. \r\n"
+"\r\n"
+"Do you want to try to load it again?"
+msgstr ""
+"El último intento de cargar el proyecto ** {0} ** ha fallado. \n"
+"\n"
+"¿Quieres probar a cargarlo otra vez?"
+
+#. Message displayed when the solution file to open does not exist. {0} is a file path
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:172
+msgctxt "Message"
+msgid "The file '{0}' does not exist."
+msgstr "El archivo '{0}' no existe."
+
+#. Message displayed when trying to open an unsaved file with the text editor
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:202
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:709
+msgctxt "Message"
+msgid "You need to save the file before you can open it."
+msgstr "Debe guardar el archivo antes de poder abrirlo."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:215
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:233
+msgctxt "Message"
+msgid "An error occurred while opening the file."
+msgstr "Se ha producido un error al abrir el archivo."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/PackageViewModel.cs:642
+msgctxt "Message"
+msgid "This package couldn't be renamed. {0}"
+msgstr "Este paquete no puede ser renombrado. {0}"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/PackageViewModel.cs:673
+msgctxt "Message"
+msgid "A package with the same name already exists in the session."
+msgstr "Un paquete con el mismo nombre ya existe en la sesión."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:102
+msgctxt "Message"
+msgid "The name is too long."
+msgstr "El nombre es demasiado largo."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:108
+msgctxt "Message"
+msgid "The name contains invalid characters."
+msgstr "El nombre contiene caracteres no válidos."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:114
+msgctxt "Message"
+msgid "The name is empty."
+msgstr "El nombre está en blanco."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:44
+msgid "External packages"
+msgstr "Paquetes externos"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:45
+msgid "Local packages"
+msgstr "Paquetes locales"
+
+#. {0} is a file name
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:565
+msgid "Solution '{0}'"
+msgstr "Solución '{0}'"
+
+#. Title for the progress window of the session creation
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:254
+msgctxt "Title"
+msgid "Creating session..."
+msgstr "Creando sesión..."
+
+#. Title for the progress window of the session loading
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:366
+msgctxt "Title"
+msgid "Opening session..."
+msgstr "Abriendo sesión..."
+
+#. Log message displayed when an exception occurs while opening a session.
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:399
+msgctxt "Log"
+msgid "There was a problem opening the solution."
+msgstr "Ha ocurrido un problema al abrir la solución."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:446
+msgctxt "Message"
+msgid "The following dependencies in the **{0}** package need to be upgraded:"
+msgstr ""
+"Las siguientes dependencias de paquetes ** {0} **  necesitan actualizarse:"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:451
+msgctxt "Message"
+msgid ""
+"- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"
+msgstr ""
+"- La dependencia **{0}** debe actualizarse de la versión **{1}** a **{2}**"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:455
+msgctxt "Message"
+msgid ""
+"Upgrading assets might break them. We recommend you make a manual backup of "
+"your project before you upgrade."
+msgstr ""
+"Al actualizar los assets estos se podrían romper. Le recomendamos que haga "
+"una copia de seguridad manual de su proyecto antes de realizar la "
+"actualización."
+
+#. Displayed in a button (must be short)
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:459
+msgctxt "Button"
+msgid "Upgrade"
+msgstr "Actualizar"
+
+#. Displayed in a button (must be short)
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:460
+msgctxt "Button"
+msgid "Skip"
+msgstr "Omitir"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:462
+msgctxt "Message"
+msgid "Do this for every package in the solution"
+msgstr "Hacer esto para cada paquete de la solución"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:692
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:731
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:998
+msgctxt "Button"
+msgid "Save"
+msgstr "Guardar"
+
+#. Message displayed when trying to open a modified asset with the text editor
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:695
+msgctxt "Message"
+msgid ""
+"This asset has unsaved changes. To open it, you need to save the session "
+"first. Do you want to save now?"
+msgstr ""
+"Este asset tiene modificaciones sin guardar. Para abrirlo, primero debe "
+"guardar la sesión. ¿Desea guardar ahora?"
+
+#. Message displayed when an exception occurs while trying to open a file with the text editor
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:717
+msgctxt "Message"
+msgid ""
+"There was a problem starting the text editor. Make sure the path to the text "
+"editor in Settings is correct."
+msgstr ""
+"Hubo un problema al iniciar el editor de texto. Asegúrese de que la ruta del "
+"editor en la configuración es correcta."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:734
+msgctxt "Message"
+msgid ""
+"This asset has unsaved changes. To open it, you need to save it first. Do you "
+"want to save the session now?"
+msgstr ""
+"Este asset tiene cambios sin guardar. Para abrirlo, debe guardarlo primero. ¿"
+"Desea guardar la sesión ahora?"
+
+#. Error displayed when trying to open the source file of an asset that has no source file
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:753
+msgctxt "Message"
+msgid "This asset doesn't have a source file to open."
+msgstr "Este asset no tiene un archivo de origen para abrir."
+
+#. Message displayed when trying to explore an unsaved asset
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:818
+msgctxt "Message"
+msgid "You need to save the asset before you can explore it."
+msgstr "Es necesario guardar el asset antes de poder visualizarlo."
+
+#. Message displayed when an exception occurs while trying to explore an asset
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:829
+msgctxt "Message"
+msgid "There was a problem starting the file explorer."
+msgstr "Hubo un problema al iniciar el explorador de archivos."
+
+#. Title for the progress window of the session saving
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:853
+msgctxt "Title"
+msgid "Saving session..."
+msgstr "Guardando sesión..."
+
+#. Log message displayed when an exception occurs while saving a session.
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:876
+msgctxt "Log"
+msgid "There was a problem saving the solution. {0}"
+msgstr "Hubo un problema al guardar la solución. {0}"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:999
+msgctxt "Button"
+msgid "Don't save"
+msgstr "No guardar"
+
+#. Message displayed when closing an unsaved project
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1002
+msgctxt "Message"
+msgid "The project has unsaved changes. Do you want to save it?"
+msgstr "El proyecto tiene cambios sin guardar. ¿Desea guardar?"
+
+#. Message displayed when a session managed to save some files while some others have failed.
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1015
+msgctxt "Message"
+msgid "Some assets couldn't be saved. Check the assets and try again."
+msgstr ""
+"Algunos assets no han podido guardarse. Revise los assets y vuelva a "
+"intentarlo."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1118
+msgctxt "Title"
+msgid "Creating project..."
+msgstr "Creando proyecto..."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1171
+msgctxt "Title"
+msgid "Importing project..."
+msgstr "Importando proyecto..."
+
+#. Log message displayed when an exception occurs while importing a package.
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1191
+msgctxt "Log"
+msgid "There was a problem importing the package."
+msgstr "Hubo un problema al importar el paquete."
+
+#. Message displayed when the selection contains zero or multiple packages but a single one is required
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1243
+msgctxt "Message"
+msgid "Please select a single package."
+msgstr "Por favor, seleccione un único paquete."
+
+#. Message displayed when the user try to add dependencies to a package but no acceptable package is available
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1285
+msgctxt "Message"
+msgid ""
+"There are no packages that can be added as dependencies to this package."
+msgstr "No hay paquetes que se puedan añadir como dependencias a este paquete."
+
+#. Message displayed when a single location is selected but invalid for directory creation
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1344
+msgctxt "Message"
+msgid "Folders can only be created in the Assets hierarchy of a package."
+msgstr ""
+"Los directorios sólo se pueden crear en la jerarquía de assets de un paquete."
+
+#. Message displayed when some of the multiple selected locations are invalid for directory creation
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1345
+msgctxt "Message"
+msgid ""
+"Game Studio can't create a folder in some of the locations you selected. "
+"Folders can only be created in the Assets hierarchy of a package."
+msgstr ""
+"Game Studio no puede crear un directorio en algunas de las ubicaciones "
+"seleccionadas. Las carpetas sólo se pueden crear en la jerarquía de assets "
+"de un paquete."
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1499
+msgctxt "Settings"
+msgid "Always delete without asking"
+msgstr "Siempre eliminar sin preguntar"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1500
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1587
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1618
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1672
+msgctxt "Button"
+msgid "Delete"
+msgstr "Eliminar"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1522
+msgctxt "Message"
+msgid "Xenko can't delete the {0} asset. {1}{2}"
+msgstr "Xenko no puede eliminar el asset {0}. {1} {2}"
+
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1532
+msgctxt "Message"
+msgid "Xenko can't delete the {0} folder. {1}{2}"
+msgstr "Xenko no puede eliminar el directorio de {0}. {1} {2}"
+
+#. Message displayed when the user tries to delete a system package
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1578
+msgctxt "Message"
+msgid "Xenko can't delete the system package."
+msgstr "Xenko no puede eliminar el paquete del sistema."
+
+#. Message displayed when the user is about to delete a package from the session
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1590
+msgctxt "Message"
+msgid ""
+"Are you sure you want to delete this package? The package files will remain "
+"on the disk."
+msgstr ""
+"¿Está seguro que desea eliminar este paquete? Los archivos del paquete "
+"permanecerán en el disco."
+
+#. Message displayed when the user is about to delete a dependency from the package
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1621
+msgctxt "Message"
+msgid "Are you sure you want to delete this dependency?"
+msgstr "¿Está seguro que desea eliminar esta dependencia?"
+
+#. Message displayed when the user tries to delete the root asset directory of a package
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1662
+msgctxt "Message"
+msgid "Asset root folders can't be deleted."
+msgstr "No se pueden eliminar los directorios raíz de los assets."
+
+#. Message displayed when the user is about to delete a project from the package
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1675
+msgctxt "Message"
+msgid "Are you sure you want to delete these projects?"
+msgstr "¿Está seguro que desea eliminar estos proyectos?"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/AddAssets/View/ItemTemplatesWindow.xaml:11
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/AddItemWindow.xaml:10
+msgid "Add asset..."
+msgstr "Añadir asset..."
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/AddAssets/View/ItemTemplatesWindow.xaml:33
+msgid "out of {0} file(s)"
+msgstr "de {0} archivo(s)"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:14
+msgid "Fix references ({0})"
+msgstr "Arreglar referencias ({0})"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:36
+msgid ""
+"The asset {0} is referenced by other assets. Choose how to handle these "
+"references."
+msgstr ""
+"El asset {0} está referenciado por otros activos. Elija cómo gestionar estas "
+"referencias."
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:38
+msgctxt "Button"
+msgid "Replace all the references with a reference to a different asset:"
+msgstr ""
+"Reemplace todas las referencias con una referencia a un asset diferente:"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:41
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:60
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:14
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1162
+msgid "Select an asset"
+msgstr "Seleccione un asset"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:43
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:55
+msgctxt "ToolTip"
+msgid "Select asset"
+msgstr "Seleccionar asset"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:49
+msgctxt "Button"
+msgid "Replace references individually:"
+msgstr "Reemplazar las referencias individualmente:"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:57
+msgctxt "Button"
+msgid "Clear this reference"
+msgstr "Limpiar esta referencia"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:65
+msgid "Referencer"
+msgstr "Referenciador"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:66
+msgid "Reference path"
+msgstr "Ruta de la referencia"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:67
+msgid "Replacement asset"
+msgstr "Assets de reemplazo"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:80
+msgctxt "Button"
+msgid "Done"
+msgstr "Hecho"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:81
+msgctxt "Button"
+msgid "Clear references"
+msgstr "Limpiar referencias"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:81
+msgctxt "ToolTip"
+msgid "Clear the references of the current asset"
+msgstr "Limpiar las referencias del asset actual"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:82
+msgctxt "Button"
+msgid "Clear all references"
+msgstr "Limpiar todas las referencias"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:82
+msgctxt "ToolTip"
+msgid "Clear references for all assets being deleted"
+msgstr "Limpiar las referencias para todos los assets en proceso de eliminación"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:83
+msgctxt "ToolTip"
+msgid "Cancel operation"
+msgstr "Cancelar operación"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/AddItemUserControl.xaml:21
+msgid "Search"
+msgstr "Buscar"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/AddItemUserControl.xaml:38
+msgctxt "ToolTip"
+msgid "Import directly from files"
+msgstr "Importación directa desde archivos"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:11
+msgid "New package"
+msgstr "Nuevo paquete"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:25
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:29
+msgctxt "Button"
+msgid "Select"
+msgstr "Seleccionar"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:26
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:30
+msgctxt "ToolTip"
+msgid "Use the selected template"
+msgstr "Utilizar la plantilla seleccionada"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:31
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:35
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:53
+#: ../editor/Xenko.Core.Assets.Editor/View/PackagePickerWindow.xaml:21
+msgctxt "ToolTip"
+msgid "Cancel (Esc)"
+msgstr "Cancelar (Esc)"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:57
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:64
+msgid "Name:"
+msgstr "Nombre:"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:63
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:70
+msgid "Location:"
+msgstr "Ubicación:"
+
+#. This button opens a file dialog
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:65
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:72
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:959
+msgctxt "ToolTip"
+msgid "Browse directory"
+msgstr "Examinar directorio"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:24
+msgctxt "Button"
+msgid "Browse for existing project"
+msgstr "Buscar proyecto existente"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:25
+msgctxt "Button"
+msgid "Reload last session automatically at startup"
+msgstr "Recargar la última sesión automáticamente al iniciar"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:82
+msgid "Solution name:"
+msgstr "Nombre de la solución:"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:83
+msgid "(Auto-generate solution name)"
+msgstr "(Generar automáticamente el nombre de la solución)"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:89
+msgid "Solution location:"
+msgstr "Ubicación de la solución:"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:94
+msgid "(Same location)"
+msgstr "(Mismo lugar)"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:31
+msgctxt "Menu"
+msgid "Show in Explorer"
+msgstr "Ver en el explorador de archivos"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:32
+msgctxt "Menu"
+msgid "Remove From List"
+msgstr "Eliminar de la lista"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:25
+msgctxt "Menu"
+msgid "Asset"
+msgstr "'Asset'"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:26
+msgctxt "Menu"
+msgid "Delete"
+msgstr "Eliminar"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:28
+msgctxt "Menu"
+msgid "Rename"
+msgstr "Renombrar"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:30
+msgctxt "Menu"
+msgid "Explore"
+msgstr "Explorar"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:31
+msgctxt "Menu"
+msgid "OpenWithTextEditor"
+msgstr "AbrirConEditorDeTexto"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:33
+msgctxt "Menu"
+msgid "OpenAssetFile"
+msgstr "AbrirAsset"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:35
+msgctxt "Menu"
+msgid "OpenSourceFile"
+msgstr "AbrirCodigoFuente"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:37
+msgctxt "Menu"
+msgid "ShowInExplorer"
+msgstr "MostrarEnExplorer"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:48
+#: ../editor/Xenko.Core.Assets.Editor/View/PackagePickerWindow.xaml:15
+msgctxt "Button"
+msgid "OK"
+msgstr "De acuerdo"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:48
+msgctxt "ToolTip"
+msgid "Select these assets"
+msgstr "Seleccione estos assets"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:91
+msgid "Name: {0}"
+msgstr "Nombre: {0}"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:92
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:99
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:119
+msgid "Type: {0}"
+msgstr "Tipo: {0}"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:98
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:118
+msgid "URL: {0}"
+msgstr "URL: {0}"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:100
+msgid "Tags: {0}"
+msgstr "Etiquetas: {0}"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:103
+msgid "Included in build as root"
+msgstr "Incluido en la compilación como raíz"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:107
+msgid "Included in build as dependency"
+msgstr "Incluido en la compilación como dependencia"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:111
+msgid "Excluded from build"
+msgstr "Excluidos de la construcción"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:204
+msgid "Name"
+msgstr "Nombre"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:205
+msgid "Type"
+msgstr "Tipo"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:206
+msgid "URL"
+msgstr "URL"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:207
+msgid "Included"
+msgstr "Incluido"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:265
+msgctxt "ToolTip"
+msgid "Add an asset to this location"
+msgstr "Añadir un asset a esta ubicación"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:269
+msgid "Add asset"
+msgstr "Añadir asset"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:290
+msgctxt "ToolTip"
+msgid "Update assets whose source files have changed"
+msgstr "Actualización de los assets con origen cambiado"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:317
+msgctxt "ToolTip"
+msgid "Import last effects compiled remotely"
+msgstr "Importación de los últimos efectos compilados remotamente"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:343
+msgctxt "ToolTip"
+msgid "Open asset in dedicated editor"
+msgstr "Abrir un asset en un editor dedicado"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:352
+msgctxt "ToolTip"
+msgid "Asset view options"
+msgstr "Opciones de vista del asset"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:357
+msgctxt "Menu"
+msgid "Display"
+msgstr "X11 Display"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:358
+msgctxt "Menu"
+msgid "Assets in selected folder only"
+msgstr "Assets sólo en el directorio seleccionado"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:361
+msgctxt "Menu"
+msgid "Assets and folders in selected folder"
+msgstr "Assets y directorios en el directorio seleccionado"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:364
+msgctxt "Menu"
+msgid "Assets in selected folder and subfolders"
+msgstr "Assets en los directorios y subdirectorios"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:369
+msgctxt "Menu"
+msgid "Name"
+msgstr "Nombre"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:372
+msgctxt "Menu"
+msgid "Date modified"
+msgstr "Fecha de modificación"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:375
+msgctxt "Menu"
+msgid "Type"
+msgstr "Tipo"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:378
+msgctxt "Menu"
+msgid "Unsaved changes"
+msgstr "Cambios no guardados"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:387
+msgctxt "ToolTip"
+msgid "Zoom in"
+msgstr "Zoom"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:392
+msgctxt "ToolTip"
+msgid "Zoom out"
+msgstr "Zoom de alejamiento"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:397
+msgctxt "Menu"
+msgid "Grid"
+msgstr "Cuadrícula"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:405
+msgctxt "Menu"
+msgid "Tiles"
+msgstr "Secciones"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:418
+msgid "Add a filter..."
+msgstr "Agregar un filtro..."
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:422
+msgid "Filter assets by name, type or tag"
+msgstr "Filtrar assets por nombre, tipo o etiqueta"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:448
+msgctxt "ToolTip"
+msgid "Clear filters"
+msgstr "Limpiar filtros"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:490
+msgid ""
+"No asset to display in this folder or no folder selected. Check your active "
+"filters."
+msgstr ""
+"No hay ningún asset que mostrar en este directorio o no hay ningun "
+"directorio seleccionado. Compruebe sus filtros activos."
+
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:493
+msgid "You can also drop files here to import assets."
+msgstr "También puede arrastrar archivos aquí para importar assets."
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:29
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:123
+msgctxt "ToolTip"
+msgid "Add..."
+msgstr "Añadir..."
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:54
+msgctxt "ToolTip"
+msgid "Replace..."
+msgstr "Reemplazar...."
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:132
+msgctxt "ToolTip"
+msgid "Delete"
+msgstr "Eliminar"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:407
+msgid "List"
+msgstr "Lista"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:408
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:472
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:530
+msgid "{0} item"
+msgid_plural "{0} items"
+msgstr[0] "{0} elemento"
+msgstr[1] "{0} elementos"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:450
+msgid "Add to {0}"
+msgstr "Añadir a {0}"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:467
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:493
+msgctxt "ToolTip"
+msgid "Add a new entry to the dictionary"
+msgstr "Agregar una nueva entrada al Diccionario"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:471
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:529
+msgid "Dictionary"
+msgstr "Diccionario"
+
+#. Keep the colon (:)
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:504
+msgid "Key name:"
+msgstr "Nombre de clave:"
+
+#. Default name for a new key in a dictionary
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:506
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:522
+msgid "New key"
+msgstr "Nueva clave"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:555
+msgctxt "ToolTIp"
+msgid "Character"
+msgstr "Personaje"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:562
+msgctxt "ToolTip"
+msgid "Unicode value"
+msgstr "Valor Unicode"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:938
+msgctxt "ToolTip"
+msgid "Angle in degrees"
+msgstr "Ángulo en grados"
+
+#. This button opens a file dialog
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:985
+msgctxt "ToolTip"
+msgid "Browse file"
+msgstr "Examinar archivo"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1027
+msgctxt "Button"
+msgid "Change values..."
+msgstr "Modificar valores...."
+
+#. As for "Select all items"
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1036
+msgctxt "Button"
+msgid "All"
+msgstr "todo"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1036
+msgctxt "ToolTip"
+msgid "Select all values"
+msgstr "Seleccione todos los valores"
+
+#. As for "Clear selection"
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1038
+msgctxt "Button"
+msgid "None"
+msgstr "Ninguno"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1038
+msgctxt "ToolTip"
+msgid "Clear selection"
+msgstr "Deseleccionar"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1040
+msgctxt "Button"
+msgid "Invert"
+msgstr "Invertir"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1040
+msgctxt "ToolTip"
+msgid "Invert selection"
+msgstr "Invertir selección"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1157
+msgid "Select the referenced asset"
+msgstr "Seleccione el asset que se hace referencia"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1167
+msgid "Clear this reference"
+msgstr "Limpiar esta referencia"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1177
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1220
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1243
+msgctxt "ToolTip"
+msgid "Select an asset"
+msgstr "Seleccione un asset"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1181
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1248
+msgctxt "ToolTip"
+msgid "Clear the reference"
+msgstr "Limpiar la referencia"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1185
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1209
+msgctxt "ToolTip"
+msgid "Select the referenced asset"
+msgstr "Seleccione el asset que se hace referencia"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1261
+msgctxt "ToolTip"
+msgid "Create an instance of this structure"
+msgstr "Crear una instancia de esta estructura"
+
+#. It is ok to keep "null" in english
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1266
+msgctxt "ToolTip"
+msgid "Clear value (set to null)"
+msgstr "Borrar valor (establecido en null)"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1273
+msgid "(null)"
+msgstr "(null)"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1318
+msgid "Unable to load the object of type {0} from assembly {1}"
+msgstr "No se puede cargar el objeto del tipo {0} desde el ensamblaje {1}"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/NotificationWindow.xaml:6
+msgid "Notification"
+msgstr "Notificación"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/PackagePickerWindow.xaml:10
+msgid "Select a package"
+msgstr "Seleccione un paquete"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/PackagePickerWindow.xaml:15
+msgctxt "ToolTip"
+msgid "Select this package"
+msgstr "Seleccione este paquete"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/SettingsWindow.xaml:15
+msgid "Settings"
+msgstr "Configuración"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/SettingsWindow.xaml:26
+msgctxt "Button"
+msgid "Save and close"
+msgstr "Guardar y cerrar"
+
+#: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:19
+msgid "Operation completed."
+msgstr "Operación completada."
+
+#: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:20
+msgid "Operation failed."
+msgstr "Error en la operación."
+
+#. Log message displayed when an operation has been canceled
+#: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:21
+msgid "Operation cancelled."
+msgstr "Operación cancelada."
+
+#: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:27
+msgctxt "Button"
+msgid "Close"
+msgstr "Cerrar"

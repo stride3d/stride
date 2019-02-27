@@ -222,6 +222,9 @@ namespace Xenko.Core.Assets.CompilerApp.Tasks
                 newPackage.TemplateFolders.Add(targetFolder);
             }
 
+            foreach (var rootAsset in package.RootAssets)
+                newPackage.RootAssets.Add(rootAsset);
+
             // Save package only if there is any resources and/or assets
             if (generatedItems.Count > 0)
             {

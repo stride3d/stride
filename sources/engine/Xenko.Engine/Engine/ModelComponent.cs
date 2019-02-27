@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Core.Annotations;
+using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Engine.Design;
 using Xenko.Engine.Processors;

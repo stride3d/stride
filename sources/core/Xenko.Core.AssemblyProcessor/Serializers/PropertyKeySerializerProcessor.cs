@@ -17,6 +17,9 @@ namespace Xenko.Core.AssemblyProcessor.Serializers
                     if (!member.IsStatic || !member.IsPublic)
                         continue;
 
+                    if (ComplexSerializerRegistry.IsMemberIgnored(member.CustomAttributes, ComplexTypeSerializerFlags.SerializePublicFields, DataMemberMode.Default))
+                        continue;
+
                     if (member.FieldType.Name == "PropertyKey`1"
                         || member.FieldType.Name == "ParameterKey`1"
                         || member.FieldType.Name == "ValueParameterKey`1"

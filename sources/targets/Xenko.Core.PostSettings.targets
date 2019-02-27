@@ -60,8 +60,24 @@
     <!-- On Android, everything is library (even Exe) -->
     <OutputType Condition=" '$(XenkoPlatform)' == 'Android' ">Library</OutputType>
 
-    <GenerateDocumentationFile Condition="'$(XenkoPublicApi)' == 'true'">true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  <!-- User Documentation (.usrdoc) -->
+  <PropertyGroup Condition="'$(XenkoPublicApi)' == 'true'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.usrdoc</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);_XenkoRegisterUserDocOutputs</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="_XenkoRegisterUserDocOutputs">
+    <ItemGroup Condition="Exists('$(OutputPath)$(AssemblyName).usrdoc')">
+      <BuildOutputInPackage Include="$(OutputPath)$(AssemblyName).usrdoc"/>
+    </ItemGroup>
+  </Target>
+  <Target Name="_XenkoRegisterUserDocReferenceRelatedFileExtensions" Condition="'$(XenkoPublicApi)' == 'true'" BeforeTargets="ResolveAssemblyReferences">
+    <PropertyGroup>
+      <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.usrdoc</AllowedReferenceRelatedFileExtensions>
+    </PropertyGroup>
+  </Target>
 
   <PropertyGroup>
     <XenkoCompilerTargetsEnable Condition=" '$(XenkoPlatform)' != 'Windows' and $(XenkoWindowsOnly) == 'true'">false</XenkoCompilerTargetsEnable>
@@ -101,6 +117,21 @@
     <AssemblyProcessorTask Condition=" '$(XenkoAssemblyProcessorDev)' != 'true' " Arguments="$(XenkoAssemblyProcessorOptions)"/>
     <!-- Dev mode: don't use task to avoid locking the file -->
     <Exec Condition=" '$(XenkoAssemblyProcessorDev)' == 'true' " Command="&quot;$(XenkoAssemblyProcessorPath)&quot; $(XenkoAssemblyProcessorOptions)"/>
+
+    <!-- Copy User Documentation (.usrdoc) file to output -->
+    <Copy
+      Condition="'$(XenkoPublicApi)' == 'true' And Exists('%(RelativeDir)%(Filename).usrdoc')"
+      SourceFiles="@(DocFileItem->'%(RelativeDir)%(Filename).usrdoc')"
+      DestinationFolder="$(OutDir)"
+      SkipUnchangedFiles="$(SkipCopyUnchangedFiles)"
+      OverwriteReadOnlyFiles="$(OverwriteReadOnlyFiles)"
+      Retries="$(CopyRetryCount)"
+      RetryDelayMilliseconds="$(CopyRetryDelayMilliseconds)"
+      UseHardlinksIfPossible="$(CreateHardLinksForCopyFilesToOutputDirectoryIfPossible)"
+      UseSymboliclinksIfPossible="$(CreateSymbolicLinksForCopyFilesToOutputDirectoryIfPossible)"
+    >
+      <Output TaskParameter="DestinationFiles" ItemName="FileWrites"/>
+    </Copy>
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)Xenko.Core.Sign.targets" />

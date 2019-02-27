@@ -26,40 +26,32 @@ namespace Xenko.Rendering.Sprites
         {
             foreach (var spriteStateKeyPair in ComponentDatas)
             {
+                var spriteComponent = spriteStateKeyPair.Key;
                 var renderSprite = spriteStateKeyPair.Value.RenderSprite;
-                var currentSprite = renderSprite.SpriteComponent.CurrentSprite;
+                var currentSprite = spriteComponent.CurrentSprite;
 
-                renderSprite.Enabled = renderSprite.SpriteComponent.Enabled;
+                renderSprite.Enabled = spriteComponent.Enabled;
 
                 if (renderSprite.Enabled)
                 {
-                    var transform = renderSprite.TransformComponent;
+                    renderSprite.WorldMatrix = spriteComponent.Entity.Transform.WorldMatrix;
+                    renderSprite.RotationEulerZ = spriteComponent.Entity.Transform.RotationEulerXYZ.Z;
 
-                    // TODO GRAPHICS REFACTOR: Proper bounding box. Reuse calculations in sprite batch.
-                    // For now we only set a center for sorting, but no extent (which disable culling)
-                    renderSprite.BoundingBox = new BoundingBoxExt { Center = transform.WorldMatrix.TranslationVector };
-                    renderSprite.RenderGroup = renderSprite.SpriteComponent.RenderGroup;
+                    renderSprite.RenderGroup = spriteComponent.RenderGroup;
 
-                    // update the sprite bounding box
-                    Vector3 halfBoxSize;
-                    var halfSpriteSize = currentSprite?.Size / 2 ?? Vector2.Zero;
-                    var worldMatrix = renderSprite.TransformComponent.WorldMatrix;
-                    var boxOffset = worldMatrix.TranslationVector;
-                    if (renderSprite.SpriteComponent.SpriteType == SpriteType.Billboard)
-                    {
-                        // Make a gross estimation here as we don't have access to the camera view matrix
-                        // TODO: move this code or grant camera view matrix access to this processor
-                        var maxScale = Math.Max(worldMatrix.Row1.Length(), Math.Max(worldMatrix.Row2.Length(), worldMatrix.Row3.Length()));
-                        halfBoxSize = maxScale * halfSpriteSize.Length() * Vector3.One;
-                    }
-                    else
-                    {
-                        halfBoxSize = new Vector3(
-                            Math.Abs(worldMatrix.M11 * halfSpriteSize.X + worldMatrix.M21 * halfSpriteSize.Y),
-                            Math.Abs(worldMatrix.M12 * halfSpriteSize.X + worldMatrix.M22 * halfSpriteSize.Y),
-                            Math.Abs(worldMatrix.M13 * halfSpriteSize.X + worldMatrix.M23 * halfSpriteSize.Y));
-                    }
-                    renderSprite.BoundingBox = new BoundingBoxExt(boxOffset - halfBoxSize, boxOffset + halfBoxSize);
+                    renderSprite.Sprite = currentSprite;
+                    renderSprite.SpriteType = spriteComponent.SpriteType;
+                    renderSprite.IgnoreDepth = spriteComponent.IgnoreDepth;
+                    renderSprite.Sampler = spriteComponent.Sampler;
+                    renderSprite.BlendMode = spriteComponent.BlendMode;
+                    renderSprite.Swizzle = spriteComponent.Swizzle;
+                    renderSprite.IsAlphaCutoff = spriteComponent.IsAlphaCutoff;
+                    renderSprite.PremultipliedAlpha = spriteComponent.PremultipliedAlpha;
+                    // Use intensity for RGB part
+                    renderSprite.Color = spriteComponent.Color * spriteComponent.Intensity;
+                    renderSprite.Color.A = spriteComponent.Color.A;
+
+                    renderSprite.CalculateBoundingBox();
                 }
 
                 // TODO Should we allow adding RenderSprite without a CurrentSprite instead? (if yes, need some improvement in RenderSystem)
@@ -81,21 +73,12 @@ namespace Xenko.Rendering.Sprites
 
         protected override SpriteInfo GenerateComponentData(Entity entity, SpriteComponent spriteComponent)
         {
-            return new SpriteInfo
-            {
-                RenderSprite = new RenderSprite
-                {
-                    SpriteComponent = spriteComponent,
-                    TransformComponent = entity.Transform,
-                },
-            };
+            return new SpriteInfo { RenderSprite = new RenderSprite { Source = spriteComponent } };
         }
 
         protected override bool IsAssociatedDataValid(Entity entity, SpriteComponent spriteComponent, SpriteInfo associatedData)
         {
-            return
-                spriteComponent == associatedData.RenderSprite.SpriteComponent &&
-                entity.Transform == associatedData.RenderSprite.TransformComponent;
+            return associatedData.RenderSprite.Source == spriteComponent;
         }
 
         public class SpriteInfo
