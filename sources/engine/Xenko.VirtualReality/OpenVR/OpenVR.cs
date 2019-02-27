@@ -1,6 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if XENKO_PLATFORM_WINDOWS_DESKTOP
 
 using System;
 using System.Text;
@@ -231,7 +231,7 @@ namespace Xenko.VirtualReality
             {
                 eType = ETextureType.Vulkan,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer,
+                handle = texture.SharedHandle, //texture.NativeResource.NativePointer,
             };
             var bounds = new VRTextureBounds_t
             {
@@ -403,11 +403,12 @@ namespace Xenko.VirtualReality
 
         public static Texture GetMirrorTexture(GraphicsDevice device, int eyeIndex)
         {
-            var nativeDevice = device.NativeDevice.NativePointer;
-            var eyeTexSrv = IntPtr.Zero;
-            Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, nativeDevice, ref eyeTexSrv);
+            // unfortunately no mirror function for Vulkan..? see https://github.com/ValveSoftware/openvr/issues/1053
+            //var nativeDevice = device.NativeDevice.NativePointer;
+            //var eyeTexSrv = IntPtr.Zero;
+            //Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, nativeDevice, ref eyeTexSrv);
             var tex = new Texture(device);
-            tex.InitializeFromImpl(new ShaderResourceView(eyeTexSrv));
+            //tex.InitializeFromImpl(new ShaderResourceView(eyeTexSrv));
             return tex;
         }
 
@@ -430,7 +431,7 @@ namespace Xenko.VirtualReality
             {
                 eType = ETextureType.Vulkan,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer,
+                handle = texture.SharedHandle, //texture.NativeResource.NativePointer,
             };
            
             return Valve.VR.OpenVR.Overlay.SetOverlayTexture(overlayId, ref tex) == EVROverlayError.None;
