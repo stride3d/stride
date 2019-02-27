@@ -9,5 +9,7 @@ namespace Xenko.Core.Assets.Editor
         French,
         Japanese,
         Russian,
+        German,
+        Spanish,
     }
 }
