@@ -75,7 +75,7 @@ namespace Xenko.VirtualReality
                         }
                         case VRApi.OpenVR:
                         {
-#if XENKO_GRAPHICS_API_DIRECT3D11
+#if XENKO_PLATFORM_WINDOWS_DESKTOP
                             Device = new OpenVRHmd();
 #endif
                             break;
