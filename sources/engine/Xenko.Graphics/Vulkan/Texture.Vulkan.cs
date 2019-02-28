@@ -206,6 +206,7 @@ namespace Xenko.Graphics
             if (NativeMemory != DeviceMemory.Null)
             {
                 GraphicsDevice.NativeDevice.BindBufferMemory(NativeBuffer, NativeMemory, 0);
+                SharedHandle = NativeMemory.NativeHandle;
             }
         }
 
@@ -269,6 +270,7 @@ namespace Xenko.Graphics
             if (NativeMemory != DeviceMemory.Null)
             {
                 GraphicsDevice.NativeDevice.BindImageMemory(NativeImage, NativeMemory, 0);
+                SharedHandle = NativeMemory.NativeHandle;
             }
         }
 
@@ -394,6 +396,7 @@ namespace Xenko.Graphics
                 {
                     GraphicsDevice.Collect(NativeMemory);
                     NativeMemory = DeviceMemory.Null;
+                    SharedHandle = IntPtr.Zero;
                 }
 
                 if (NativeImage != SharpVulkan.Image.Null)
