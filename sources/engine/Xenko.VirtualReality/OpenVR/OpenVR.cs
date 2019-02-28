@@ -231,7 +231,7 @@ namespace Xenko.VirtualReality
             {
                 eType = ETextureType.Vulkan,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.SharedHandle, //texture.NativeResource.NativePointer,
+                handle = texture.SharedHandle,
             };
             var bounds = new VRTextureBounds_t
             {
