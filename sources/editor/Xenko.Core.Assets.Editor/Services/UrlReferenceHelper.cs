@@ -93,7 +93,7 @@ namespace Xenko.Core.Assets.Editor.Services
 
         private static readonly Type GenericType = typeof(UrlReference<>);
 
-        //TODO: this should probably be put in one of the Xenko.Core.Reflection helper classes.
+        //TODO: this should probably be put in one of the Reflection helper classes.
         static bool IsSubclassOfRawGeneric(Type type, Type c)
         {
             while (c != null && c != typeof(object))
