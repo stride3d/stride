@@ -169,13 +169,21 @@
     <ItemGroup>
       <!-- Current list of languages to try to generate -->
       <XenkoTraductions Include="fr;ja;es;de;ru"/>
+      <XenkoTraductions Include="zh-Hans">
+        <Source>zh_HANS-CN</Source>
+      </XenkoTraductions>
+
+      <_XenkoTraductions Include="@(XenkoTraductions)">
+        <Source Condition="%(XenkoTraductions.Source) == ''">%(XenkoTraductions.Identity)</Source>
+      </_XenkoTraductions>
     </ItemGroup>
-    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(XenkoTraductions.Identity)\$(TargetName).%(XenkoTraductions.Identity).po')" Command="Path=$(RoslynTargetsPath);$(Path)
-&quot;$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; --lib-dir &quot;$(SolutionDir)..\deps\Gettext.Net&quot; --resource $(TargetName) -d &quot;$(TargetDir).&quot; --locale %(XenkoTraductions.Identity) &quot;$(MSBuildThisFileDirectory)..\localization\%(XenkoTraductions.Identity)\$(TargetName).%(XenkoTraductions.Identity).po&quot; --verbose" />
+    <Message Importance="High" Text="Generating traduction for %(_XenkoTraductions.Identity) %(_XenkoTraductions.SourceFolder)"/>
+    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(_XenkoTraductions.Source)\$(TargetName).%(_XenkoTraductions.Source).po')" Command="Path=$(RoslynTargetsPath);$(Path)
+&quot;$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; --lib-dir &quot;$(SolutionDir)..\deps\Gettext.Net&quot; --resource $(TargetName) -d &quot;$(TargetDir).&quot; --locale %(_XenkoTraductions.Identity) &quot;$(MSBuildThisFileDirectory)..\localization\%(_XenkoTraductions.Source)\$(TargetName).%(_XenkoTraductions.Source).po&quot; --verbose" />
     <ItemGroup>
-      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll')">
-        <TargetPath>%(XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
-        <Culture>%(XenkoTraductions.Identity)</Culture>
+      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(_XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(_XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll')">
+        <TargetPath>%(_XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
+        <Culture>%(_XenkoTraductions.Identity)</Culture>
       </SatelliteDllsProjectOutputGroupOutputIntermediate>
     </ItemGroup>
   </Target>
