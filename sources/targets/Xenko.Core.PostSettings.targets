@@ -164,4 +164,20 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
+  <!-- Generate localization satellite assemblies -->
+  <Target Name="XenkoGenerateLocalizationSatelliteDlls" BeforeTargets="SatelliteDllsProjectOutputGroup" Returns="@(SatelliteDllsProjectOutputGroupOutput)" Condition="'$(XenkoLocalized)' == 'true' And '$(Configuration)' == 'Release'">
+    <ItemGroup>
+      <!-- Current list of languages to try to generate -->
+      <XenkoTraductions Include="fr;ja;es;de;ru"/>
+    </ItemGroup>
+    <Exec Condition="Exists('$(SolutionDir)..\sources\localization\%(XenkoTraductions.Identity)\$(TargetName).%(XenkoTraductions.Identity).po')" Command="Path=$(RoslynTargetsPath);$(Path)
+&quot;$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe&quot; --lib-dir &quot;$(SolutionDir)..\deps\Gettext.Net&quot; --resource $(TargetName) -d &quot;$(TargetDir).&quot; --locale %(XenkoTraductions.Identity) &quot;$(MSBuildThisFileDirectory)..\localization\%(XenkoTraductions.Identity)\$(TargetName).%(XenkoTraductions.Identity).po&quot; --verbose" />
+    <ItemGroup>
+      <SatelliteDllsProjectOutputGroupOutputIntermediate Include="$(OutDir)%(XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll" Condition="Exists('$(OutDir)%(XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll')">
+        <TargetPath>%(XenkoTraductions.Identity)\$(TargetName).Messages.resources.dll</TargetPath>
+        <Culture>%(XenkoTraductions.Identity)</Culture>
+      </SatelliteDllsProjectOutputGroupOutputIntermediate>
+    </ItemGroup>
+  </Target>
+
 </Project>

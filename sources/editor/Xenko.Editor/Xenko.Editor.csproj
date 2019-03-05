@@ -1,9 +1,10 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <XenkoLocalized>true</XenkoLocalized>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -87,12 +88,4 @@
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <PostBuildEvent>Path=$(MSBuildBinPath)\Roslyn;$(Path)
-IF EXIST "$(SolutionDir)..\sources\localization\fr\$(TargetName).fr.po" "$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe" --lib-dir "$(SolutionDir)..\deps\Gettext.Net" --resource $(TargetName) -d "$(TargetDir)." --locale fr "$(SolutionDir)..\sources\localization\ja\$(TargetName).fr.po" --verbose
-IF EXIST "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" "$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe" --lib-dir "$(SolutionDir)..\deps\Gettext.Net" --resource $(TargetName) -d "$(TargetDir)." --locale ja "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" --verbose
-IF EXIST "$(SolutionDir)..\sources\localization\es\$(TargetName).es.po" "$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe" --lib-dir "$(SolutionDir)..\deps\Gettext.Net" --resource $(TargetName) -d "$(TargetDir)." --locale es "$(SolutionDir)..\sources\localization\es\$(TargetName).es.po" --verbose
-IF EXIST "$(SolutionDir)..\sources\localization\de\$(TargetName).de.po" "$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe" --lib-dir "$(SolutionDir)..\deps\Gettext.Net" --resource $(TargetName) -d "$(TargetDir)." --locale de "$(SolutionDir)..\sources\localization\de\$(TargetName).de.po" --verbose
-IF EXIST "$(SolutionDir)..\sources\localization\ru\$(TargetName).ru.po" "$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe" --lib-dir "$(SolutionDir)..\deps\Gettext.Net" --resource $(TargetName) -d "$(TargetDir)." --locale ru "$(SolutionDir)..\sources\localization\ru\$(TargetName).ru.po" --verbose</PostBuildEvent>
-  </PropertyGroup>
 </Project>
