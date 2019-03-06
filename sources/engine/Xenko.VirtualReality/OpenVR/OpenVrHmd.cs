@@ -8,7 +8,7 @@ using Xenko.Graphics;
 
 namespace Xenko.VirtualReality
 {
-    internal class OpenVRHmd : VRDevice
+    public class OpenVRHmd : VRDevice
     {
         private RectangleF leftView = new RectangleF(0.0f, 0.0f, 0.5f, 1.0f);
         private RectangleF rightView = new RectangleF(0.5f, 0.0f, 1.0f, 1.0f);
@@ -25,11 +25,13 @@ namespace Xenko.VirtualReality
         private Vector3 currentHeadLinearVelocity;
         private Vector3 currentHeadAngularVelocity;
         private Quaternion currentHeadRot;
+        private GameBase mainGame;
 
         public override bool CanInitialize => OpenVR.InitDone || OpenVR.Init();
 
-        public OpenVRHmd()
+        public OpenVRHmd(GameBase game)
         {
+            mainGame = game;
             VRApi = VRApi.OpenVR;
             SupportsOverlays = true;
         }
@@ -43,7 +45,11 @@ namespace Xenko.VirtualReality
 
             ActualRenderFrameSize = new Size2(width, height);
 
+#if XENKO_GRAPHICS_API_VULKAN
+            needsMirror = false; // Vulkan doesn't support mirrors :/
+#else
             needsMirror = requireMirror;
+#endif
 
             if (needsMirror)
             {
@@ -60,6 +66,10 @@ namespace Xenko.VirtualReality
             trackedDevices = new OpenVRTrackedDevice[Valve.VR.OpenVR.k_unMaxTrackedDeviceCount];
             for (int i=0; i<trackedDevices.Length; i++) 
                 trackedDevices[i] = new OpenVRTrackedDevice(i);
+
+#if XENKO_GRAPHICS_API_VULKAN
+            OpenVR.InitVulkan(mainGame);
+#endif
         }
 
         public override VROverlay CreateOverlay(int width, int height, int mipLevels, int sampleCount)

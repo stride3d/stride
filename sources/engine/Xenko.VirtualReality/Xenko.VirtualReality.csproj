@@ -42,6 +42,28 @@
       </ItemGroup>
     </When>
   </Choose>
+  <Choose>
+    <When Condition=" '$(XenkoGraphicsApi)' == 'Vulkan' ">
+      <Choose>
+        <When Condition=" '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'macOS' ">
+          <ItemGroup>
+            <Reference Include="SharpVulkan">
+              <SpecificVersion>False</SpecificVersion>
+              <HintPath>$(XenkoDependenciesDir)\SharpVulkan\$(XenkoPlatform)\SharpVulkan.dll</HintPath>
+            </Reference>
+          </ItemGroup>
+        </When>
+        <Otherwise>
+          <ItemGroup>
+            <Reference Include="SharpVulkan">
+              <SpecificVersion>False</SpecificVersion>
+              <HintPath>$(XenkoDependenciesDir)\SharpVulkan\Other\SharpVulkan.dll</HintPath>
+            </Reference>
+          </ItemGroup>
+        </Otherwise>
+      </Choose>
+    </When>
+  </Choose>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>

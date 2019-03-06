@@ -4,15 +4,20 @@
 
 using System;
 using System.Text;
+#if XENKO_GRAPHICS_API_DIRECT3D11
 using SharpDX.Direct3D11;
+#elif XENKO_GRAPHICS_API_VULKAN
+using SharpVulkan;
+#endif
 using Valve.VR;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
+using Xenko.Games;
 using Xenko.Graphics;
 
 namespace Xenko.VirtualReality
 {
-    internal static class OpenVR
+    public static class OpenVR
     {
         public class Controller
         {
@@ -201,6 +206,22 @@ namespace Xenko.VirtualReality
 
         public static bool InitDone = false;
 
+#if XENKO_GRAPHICS_API_VULKAN
+        private static unsafe VRVulkanTextureData_t vkTexData;
+        public static bool InitVulkan(GameBase baseGame) {
+            vkTexData = new VRVulkanTextureData_t {
+                m_pDevice = baseGame.GraphicsDevice.NativeDevice.NativeHandle, // struct VkDevice_T *
+                m_pPhysicalDevice = baseGame.GraphicsDevice.NativePhysicalDevice.NativeHandle, // struct VkPhysicalDevice_T *
+                m_pInstance = baseGame.GraphicsDevice.NativeInstance.PhysicalDevices[0].NativeHandle, // struct VkInstance_T *
+                m_pQueue = baseGame.GraphicsDevice.NativeDevice.GetQueue(0, 0).NativeHandle, // struct VkQueue_T *
+                m_nQueueFamilyIndex = 0,
+                m_nFormat = (uint)37, //VkFormat.VK_FORMAT_R8G8B8A8_UNORM (37)
+                m_nSampleCount = 1
+            };
+            return false;
+        }
+#endif
+
         public static bool Init()
         {
             var err = EVRInitError.None;
@@ -212,8 +233,7 @@ namespace Xenko.VirtualReality
 
             InitDone = true;
 
-            //this makes the camera behave like oculus rift default!
-            Valve.VR.OpenVR.Compositor.SetTrackingSpace(ETrackingUniverseOrigin.TrackingUniverseSeated);
+            Valve.VR.OpenVR.Compositor.SetTrackingSpace(ETrackingUniverseOrigin.TrackingUniverseStanding);
 
             return true;
         }
@@ -227,21 +247,35 @@ namespace Xenko.VirtualReality
 
         public static bool Submit(int eyeIndex, Texture texture, ref RectangleF viewport)
         {
-            var tex = new Texture_t
-            {
-                eType = ETextureType.Vulkan,
-                eColorSpace = EColorSpace.Auto,
-                handle = texture.SharedHandle,
-            };
-            var bounds = new VRTextureBounds_t
-            {
+            var bounds = new VRTextureBounds_t {
                 uMin = viewport.X,
                 uMax = viewport.Width,
                 vMin = viewport.Y,
                 vMax = viewport.Height,
             };
+#if XENKO_GRAPHICS_API_VULKAN
+            vkTexData.m_nHeight = (uint)texture.Height;
+            vkTexData.m_nWidth = (uint)texture.Width;
+            unsafe {
+                fixed(VRVulkanTextureData_t* vkAddress = &vkTexData) {
+                    var tex = new Texture_t {
+                        eType = ETextureType.Vulkan,
+                        handle = (IntPtr)vkAddress,
+                        eColorSpace = EColorSpace.Auto,
+                    };
+
+                    return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
+                }
+            }
+#elif XENKO_GRAPHICS_API_DIRECT3D11
+            var tex = new Texture_t {
+                    eType = ETextureType.DirectX,
+                    handle = texture.SharedHandle,
+                    eColorSpace = EColorSpace.Auto,
+            };
 
             return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
+#endif
         }
 
         public static void GetEyeToHead(int eyeIndex, out Matrix pose)
@@ -403,13 +437,17 @@ namespace Xenko.VirtualReality
 
         public static Texture GetMirrorTexture(GraphicsDevice device, int eyeIndex)
         {
+#if XENKO_GRAPHICS_API_VULKAN
             // unfortunately no mirror function for Vulkan..? see https://github.com/ValveSoftware/openvr/issues/1053
-            //var nativeDevice = device.NativeDevice.NativePointer;
-            //var eyeTexSrv = IntPtr.Zero;
-            //Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, nativeDevice, ref eyeTexSrv);
+            return new Texture(device);
+#else
+            var nativeDevice = device.NativeDevice.NativePointer;
+            var eyeTexSrv = IntPtr.Zero;
+            Valve.VR.OpenVR.Compositor.GetMirrorTextureD3D11(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, nativeDevice, ref eyeTexSrv);
             var tex = new Texture(device);
-            //tex.InitializeFromImpl(new ShaderResourceView(eyeTexSrv));
+            tex.InitializeFromImpl(new ShaderResourceView(eyeTexSrv));
             return tex;
+#endif
         }
 
         public static ulong CreateOverlay()
