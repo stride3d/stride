@@ -256,6 +256,7 @@ namespace Xenko.VirtualReality
 #if XENKO_GRAPHICS_API_VULKAN
             vkTexData.m_nHeight = (uint)texture.Height;
             vkTexData.m_nWidth = (uint)texture.Width;
+            vkTexData.m_nImage = (ulong)texture.NativeImage.NativeHandle;
             unsafe {
                 fixed(VRVulkanTextureData_t* vkAddress = &vkTexData) {
                     var tex = new Texture_t {
