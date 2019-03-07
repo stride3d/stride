@@ -212,11 +212,11 @@ namespace Xenko.VirtualReality
             vkTexData = new VRVulkanTextureData_t {
                 m_pDevice = baseGame.GraphicsDevice.NativeDevice.NativeHandle, // struct VkDevice_T *
                 m_pPhysicalDevice = baseGame.GraphicsDevice.NativePhysicalDevice.NativeHandle, // struct VkPhysicalDevice_T *
-                m_pInstance = baseGame.GraphicsDevice.NativeInstance.PhysicalDevices[0].NativeHandle, // struct VkInstance_T *
+                m_pInstance = baseGame.GraphicsDevice.NativeInstance.NativeHandle, // struct VkInstance_T *
                 m_pQueue = baseGame.GraphicsDevice.NativeDevice.GetQueue(0, 0).NativeHandle, // struct VkQueue_T *
                 m_nQueueFamilyIndex = 0,
                 m_nFormat = (uint)37, //VkFormat.VK_FORMAT_R8G8B8A8_UNORM (37)
-                m_nSampleCount = 1
+                m_nSampleCount = 4
             };
             return false;
         }
