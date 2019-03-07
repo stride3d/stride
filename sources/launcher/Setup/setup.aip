@@ -51,7 +51,7 @@
     <ROW Directory="APPDIR" Directory_Parent="TARGETDIR" DefaultDir="APPDIR:." IsPseudoRoot="1" DirectoryOptions="12"/>
     <ROW Directory="Cache_Dir" Directory_Parent="APPDIR" DefaultDir="Cache" DirectoryOptions="12"/>
     <ROW Directory="DesktopFolder" Directory_Parent="TARGETDIR" DefaultDir="DESKTO~1|DesktopFolder" IsPseudoRoot="1"/>
-    <ROW Directory="GamePackages_Dir" Directory_Parent="APPDIR" DefaultDir="GAMEPA~1|GamePackages" DirectoryOptions="12"/>
+    <ROW Directory="GamePackages_Dir" Directory_Parent="APPDIR" DefaultDir="xenko" DirectoryOptions="12"/>
     <ROW Directory="Prerequisites_Dir" Directory_Parent="APPDIR" DefaultDir="PREREQ~1|Prerequisites" DirectoryOptions="12"/>
     <ROW Directory="SHORTCUTDIR" Directory_Parent="TARGETDIR" DefaultDir="SHORTC~1|SHORTCUTDIR" IsPseudoRoot="1"/>
     <ROW Directory="TARGETDIR" DefaultDir="SourceDir"/>
@@ -86,7 +86,6 @@
     <ROW File="store.config" Component_="store.config" FileName="STORE~1.CON|store.config" Attributes="0" SourcePath="..\Xenko.LauncherApp\bin\Release\store.config" SelfReg="false" NextFile="Xenko.exe.config"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.AiRemoveFileComponent">
-    <ROW RemoveFile="_" Options="3"/>
     <ROW RemoveFile="__1" Condition="(AI_CLEAN_RESOURCES_UNINSTALL = &quot;1&quot;) AND (NOT UPGRADINGPRODUCTCODE)" Options="3"/>
     <ROW RemoveFile="__2" Condition="(AI_CLEAN_RESOURCES_UNINSTALL = &quot;1&quot;) AND (NOT UPGRADINGPRODUCTCODE)" Options="3"/>
     <ROW RemoveFile="__3" Condition="(AI_CLEAN_RESOURCES_UNINSTALL = &quot;1&quot;) AND (NOT UPGRADINGPRODUCTCODE)" Options="3"/>
