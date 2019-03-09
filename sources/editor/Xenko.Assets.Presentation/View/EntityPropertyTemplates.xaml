@@ -12,7 +12,8 @@
                     xmlns:data="clr-namespace:Xenko.Data;assembly=Xenko"
                     xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                     xmlns:assetCommands="clr-namespace:Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands;assembly=Xenko.Core.Assets.Editor"
-                    xmlns:qvm="clr-namespace:Xenko.Core.Presentation.Quantum.ViewModels;assembly=Xenko.Core.Presentation.Quantum">
+                    xmlns:qvm="clr-namespace:Xenko.Core.Presentation.Quantum.ViewModels;assembly=Xenko.Core.Presentation.Quantum"
+                    xmlns:localView="clr-namespace:Xenko.Assets.Presentation.View">
 
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/DefaultPropertyTemplateProviders.xaml"/>
@@ -120,7 +121,8 @@
       <Border xk:PropertyViewHelper.Increment="0" xk:PropertyViewHelper.IsExpanded="True"
           Visibility="{Binding IsVisible, Converter={xk:VisibleOrCollapsed}}">
         <Border x:Name="PART_Name" Background="{Binding Background}" MinHeight="26" Margin="4,4,1,8" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ToolTip="{Binding Documentation}">
-          <ComboBox IsEditable="False" ItemsSource="{Binding EntityComponentAvailableTypes}" x:Name="EntityComponentSelectionComboBox" IsTextSearchEnabled="True"
+          <localView:AddEntityComponentUserControl/>
+          <!--<ComboBox IsEditable="False" ItemsSource="{Binding EntityComponentAvailableTypes}" x:Name="EntityComponentSelectionComboBox" IsTextSearchEnabled="True"
                     Visibility="{Binding EntityComponentAvailableTypes, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:VisibleOrHidden}}}">
             <ComboBox.Template>
               <ControlTemplate TargetType="{x:Type ComboBox}">
@@ -177,7 +179,7 @@
               <behaviors:OnSelectionChangedWithSelectionBehavior Command="{Binding AddNewItem}"
                              CommandParameter="{Binding SelectedItem, ElementName=EntityComponentSelectionComboBox}"/>
             </i:Interaction.Behaviors>
-          </ComboBox>
+          </ComboBox>-->
         </Border>
       </Border>
     </DataTemplate>
