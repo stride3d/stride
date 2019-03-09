@@ -32,22 +32,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="Resources\VectorResources.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\ExpressionDark\Theme.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Compile Update="Themes\ExpressionDark\Theme.xaml.cs">
-      <DependentUpon>Themes\ExpressionDark\Theme.xaml</DependentUpon>
-    </Compile>
-    <Page Include="Themes\generic.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-
+    <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
+    <Compile Update="**\*.xaml.cs" SubType="Designer" DependentUpon="%(Filename)" />
   </ItemGroup>
 
   <ItemGroup>
