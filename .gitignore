@@ -154,3 +154,6 @@ fastlane/report.xml
 fastlane/screenshots
 *.user
 project.lock.json
+*.lock
+*.bak
+routerlog.txt
