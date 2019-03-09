@@ -151,24 +151,28 @@ namespace Xenko.Graphics
             desiredExtensionNames.Add("VK_KHR_win32_surface");
             if (!availableExtensionNames.Contains("VK_KHR_win32_surface"))
                 throw new InvalidOperationException("Required extension VK_KHR_win32_surface is not available");
+
+            // set OpenVR extensions required
+            desiredExtensionNames.Add("VK_NV_external_memory_capabilities");
+
 #elif XENKO_PLATFORM_ANDROID
-                desiredExtensionNames.Add("VK_KHR_android_surface");
-                if (!availableExtensionNames.Contains("VK_KHR_android_surface"))
-                    throw new InvalidOperationException("Required extension VK_KHR_android_surface is not available");
+            desiredExtensionNames.Add("VK_KHR_android_surface");
+            if (!availableExtensionNames.Contains("VK_KHR_android_surface"))
+                throw new InvalidOperationException("Required extension VK_KHR_android_surface is not available");
 #elif XENKO_PLATFORM_LINUX
-                if (availableExtensionNames.Contains("VK_KHR_xlib_surface"))
-                {
-                    desiredExtensionNames.Add("VK_KHR_xlib_surface");
-                    HasXlibSurfaceSupport = true;
-                }
-                else if (availableExtensionNames.Contains("VK_KHR_xcb_surface"))
-                {
-                    desiredExtensionNames.Add("VK_KHR_xcb_surface");
-                }
-                else
-                {
-                    throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
-                }
+            if (availableExtensionNames.Contains("VK_KHR_xlib_surface"))
+            {
+                desiredExtensionNames.Add("VK_KHR_xlib_surface");
+                HasXlibSurfaceSupport = true;
+            }
+            else if (availableExtensionNames.Contains("VK_KHR_xcb_surface"))
+            {
+                desiredExtensionNames.Add("VK_KHR_xcb_surface");
+            }
+            else
+            {
+                throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
+            }
 #endif
             bool enableDebugReport = enableValidation && availableExtensionNames.Contains("VK_EXT_debug_report");
             if (enableDebugReport)

@@ -216,9 +216,9 @@ namespace Xenko.VirtualReality
                 m_pQueue = baseGame.GraphicsDevice.NativeDevice.GetQueue(0, 0).NativeHandle, // struct VkQueue_T *
                 m_nQueueFamilyIndex = 0,
                 m_nFormat = (uint)37, //VkFormat.VK_FORMAT_R8G8B8A8_UNORM (37)
-                m_nSampleCount = 4
             };
-            return false;
+            Valve.VR.OpenVR.Compositor.SetExplicitTimingMode(EVRCompositorTimingMode.Explicit_ApplicationPerformsPostPresentHandoff);
+            return true;
         }
 #endif
 
@@ -257,6 +257,7 @@ namespace Xenko.VirtualReality
             vkTexData.m_nHeight = (uint)texture.Height;
             vkTexData.m_nWidth = (uint)texture.Width;
             vkTexData.m_nImage = (ulong)texture.NativeImage.NativeHandle;
+            vkTexData.m_nSampleCount = texture.IsMultisample ? (uint)texture.MultisampleCount : 1;
             unsafe {
                 fixed(VRVulkanTextureData_t* vkAddress = &vkTexData) {
                     var tex = new Texture_t {
@@ -265,6 +266,7 @@ namespace Xenko.VirtualReality
                         eColorSpace = EColorSpace.Auto,
                     };
 
+                    Valve.VR.OpenVR.Compositor.SubmitExplicitTimingData();
                     return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
                 }
             }
@@ -274,7 +276,6 @@ namespace Xenko.VirtualReality
                     handle = texture.SharedHandle,
                     eColorSpace = EColorSpace.Auto,
             };
-
             return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
 #endif
         }
@@ -294,6 +295,7 @@ namespace Xenko.VirtualReality
 
         public static void UpdatePoses()
         {
+            Valve.VR.OpenVR.Compositor.PostPresentHandoff();
             Valve.VR.OpenVR.Compositor.WaitGetPoses(DevicePoses, GamePoses);
         }
 
