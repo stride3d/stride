@@ -4,6 +4,7 @@
 
 using System;
 using System.Text;
+#if XENKO_GRAPHICS_API_DIRECT3D11
 using SharpDX.Direct3D11;
 #elif XENKO_GRAPHICS_API_VULKAN
 using SharpVulkan;
