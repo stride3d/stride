@@ -37,7 +37,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
-    <Compile Update="**\*.xaml.cs" SubType="Designer" DependentUpon="%(Filename)" />
+    <Compile Update="**\*.xaml.cs" SubType="Code" DependentUpon="%(Filename)" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
