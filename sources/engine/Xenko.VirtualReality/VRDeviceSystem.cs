@@ -50,6 +50,8 @@ namespace Xenko.VirtualReality
                     return;
                 }
 
+                float refreshRate = 90f;
+
                 if (physicalDeviceInUse)
                 {
                     Device = null;
@@ -129,9 +131,18 @@ postswitch:
                 var deviceManager = (GraphicsDeviceManager)Services.GetService<IGraphicsDeviceManager>();
                 if (Device != null)
                 {
+                    Game.IsFixedTimeStep = true;
+                    Game.IsDrawDesynchronized = true;
+                    deviceManager.SynchronizeWithVerticalRetrace = false;
+
                     Device.RenderFrameScaling = PreferredScalings[Device.VRApi];
                     Device.Enable(GraphicsDevice, deviceManager, RequireMirror, MirrorWidth, MirrorHeight);
                     physicalDeviceInUse = true;
+
+#if XENKO_PLATFORM_WINDOWS_DESKTOP
+                    if (Device is OpenVRHmd) refreshRate = ((OpenVRHmd)Device).RefreshRate();
+#endif
+                    Game.TargetElapsedTime = TimeSpan.FromSeconds(1 / refreshRate);
                 }
                 else
                 {

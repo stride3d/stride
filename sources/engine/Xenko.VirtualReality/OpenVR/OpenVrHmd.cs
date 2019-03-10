@@ -26,6 +26,7 @@ namespace Xenko.VirtualReality
         private Vector3 currentHeadAngularVelocity;
         private Quaternion currentHeadRot;
         private GameBase mainGame;
+        private int HMDindex;
 
         public override bool CanInitialize => OpenVR.InitDone || OpenVR.Init();
 
@@ -38,9 +39,10 @@ namespace Xenko.VirtualReality
 
         public override void Enable(GraphicsDevice device, GraphicsDeviceManager graphicsDeviceManager, bool requireMirror, int mirrorWidth, int mirrorHeight)
         {
-            var width = (int)(OptimalRenderFrameSize.Width * RenderFrameScaling);
+            Size2 renderSize = OptimalRenderFrameSize;
+            var width = (int)(renderSize.Width * RenderFrameScaling);
             width += width % 2;
-            var height = (int)(OptimalRenderFrameSize.Height * RenderFrameScaling);
+            var height = (int)(renderSize.Height * RenderFrameScaling);
             height += height % 2;
 
             ActualRenderFrameSize = new Size2(width, height);
@@ -64,8 +66,12 @@ namespace Xenko.VirtualReality
             rightHandController = new OpenVRTouchController(TouchControllerHand.Right);
 
             trackedDevices = new OpenVRTrackedDevice[Valve.VR.OpenVR.k_unMaxTrackedDeviceCount];
-            for (int i=0; i<trackedDevices.Length; i++) 
+            for (int i = 0; i < trackedDevices.Length; i++) {
                 trackedDevices[i] = new OpenVRTrackedDevice(i);
+                if (trackedDevices[i].Class == DeviceClass.HMD) {
+                    HMDindex = i;
+                }
+            }
 
 #if XENKO_GRAPHICS_API_VULKAN
             OpenVR.InitVulkan(mainGame);
@@ -166,7 +172,18 @@ namespace Xenko.VirtualReality
 
         public override Size2 ActualRenderFrameSize { get; protected set; }
 
-        public override Size2 OptimalRenderFrameSize => new Size2(2160, 1200);
+        public override Size2 OptimalRenderFrameSize {
+            get {
+                uint width = 0, height = 0;
+                Valve.VR.OpenVR.System.GetRecommendedRenderTargetSize(ref width, ref height);
+                return new Size2((int)width, (int)height);
+            }
+        }
+
+        public float RefreshRate() {
+            Valve.VR.ETrackedPropertyError err = default;
+            return Valve.VR.OpenVR.System.GetFloatTrackedDeviceProperty((uint)HMDindex, Valve.VR.ETrackedDeviceProperty.Prop_DisplayFrequency_Float, ref err);
+        }
 
         public override void Dispose()
         {
