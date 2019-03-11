@@ -172,13 +172,13 @@ namespace Xenko.Rendering.Compositing
                     }
                     vrSystem.PreferredScalings = preferredScalings;
 
-#if XENKO_GRAPHICS_API_VULKAN
-                    // no mirror support for vulkan
-                    vrSystem.RequireMirror = false;
-                    VRSettings.CopyMirror = false;
-#else
-                    vrSystem.RequireMirror =  VRSettings.CopyMirror;
-#endif
+                    if( GraphicsDevice.Platform == GraphicsPlatform.Vulkan ) {
+                        // no mirror support for vulkan
+                        vrSystem.RequireMirror = false;
+                        VRSettings.CopyMirror = false;
+                    } else {
+                        vrSystem.RequireMirror = VRSettings.CopyMirror;
+                    }
 
                     vrSystem.MirrorWidth = GraphicsDevice.Presenter.BackBuffer.Width;
                     vrSystem.MirrorHeight = GraphicsDevice.Presenter.BackBuffer.Height;
