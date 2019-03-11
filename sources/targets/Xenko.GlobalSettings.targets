@@ -8,7 +8,7 @@
     <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'UWP'">Direct3D11</XenkoDefaultGraphicsApi>
     <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'Android'">OpenGLES</XenkoDefaultGraphicsApi>
     <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'iOS'">OpenGLES</XenkoDefaultGraphicsApi>
-    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'Linux'">Vulkan</XenkoDefaultGraphicsApi>
+    <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'Linux'">OpenGL</XenkoDefaultGraphicsApi>
     <XenkoDefaultGraphicsApi Condition="'$(XenkoPlatform)' == 'macOS'">Vulkan</XenkoDefaultGraphicsApi>
     <XenkoGraphicsApiOriginal>$(XenkoGraphicsApi)</XenkoGraphicsApiOriginal>
     <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == '' and '$(XenkoDefaultGraphicsApi)' != ''">$(XenkoDefaultGraphicsApi)</XenkoGraphicsApi>
