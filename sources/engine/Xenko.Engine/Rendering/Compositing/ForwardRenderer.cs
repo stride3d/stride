@@ -172,11 +172,14 @@ namespace Xenko.Rendering.Compositing
                     }
                     vrSystem.PreferredScalings = preferredScalings;
 
-                    if( GraphicsDevice.Platform == GraphicsPlatform.Vulkan ) {
+                    if (GraphicsDevice.Platform == GraphicsPlatform.Vulkan)
+                    {
                         // no mirror support for vulkan
                         vrSystem.RequireMirror = false;
                         VRSettings.CopyMirror = false;
-                    } else {
+                    }
+                    else
+                    {
                         vrSystem.RequireMirror = VRSettings.CopyMirror;
                     }
 
