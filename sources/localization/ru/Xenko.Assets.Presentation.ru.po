@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-01-11 23:17:07+0900\n"
-"PO-Revision-Date: 2019-02-26 08:01+0000\n"
+"PO-Revision-Date: 2019-03-09 00:04+0000\n"
 "Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/xenko/"
 "assetspresentation/ru/>\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<="
 "4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 3.5-dev\n"
+"X-Generator: Weblate 3.5.1-dev\n"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
 msgctxt "Message"
@@ -65,7 +65,7 @@ msgstr "Вращение"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:28
 msgid "Use scale gizmo"
-msgstr "Масштабировать"
+msgstr "Масштаб"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:16
 msgid "Use world coordinates for transformations"
@@ -351,7 +351,7 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:65
 msgctxt "Message"
 msgid "Which color space do you want to use?"
-msgstr "Какое цветовое пространство вы хотите использовать?"
+msgstr "Какое цветовое пространство использовать?"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:64
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:108
@@ -583,12 +583,12 @@ msgstr "Размер указателя осей:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:581
 msgid "Component gizmo size:"
-msgstr "Размер компонентов указателя осей:"
+msgstr "Размер компонентных указателей:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:582
 msgctxt "Button"
 msgid "Fixed"
-msgstr "Зафиксировать"
+msgstr "Фиксировано"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:590
 msgctxt "Button"
@@ -598,7 +598,7 @@ msgstr "Пред.просмотр камеры"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:591
 msgctxt "Button"
 msgid "Light probe volumes"
-msgstr "Размер светового зонда"
+msgstr "Световой зонд"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:608
 msgctxt "Button"
@@ -655,7 +655,7 @@ msgstr "Направление"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
 msgctxt "Button"
 msgid "Front"
-msgstr "Перед"
+msgstr "Спереди"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:662
 msgctxt "Button"
@@ -665,12 +665,12 @@ msgstr "Сзади"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:664
 msgctxt "Button"
 msgid "Top"
-msgstr "Верх"
+msgstr "Сверху"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:666
 msgctxt "Button"
 msgid "Bottom"
-msgstr "Дно"
+msgstr "Снизу"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:668
 msgctxt "Button"
@@ -685,17 +685,17 @@ msgstr "Справа"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
 msgctxt "ToolTip"
 msgid "Snap translations to this value"
-msgstr "Задать это значение для перемещения"
+msgstr "Задать значение для перемещения"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:710
 msgctxt "ToolTip"
 msgid "Snap rotations to this value"
-msgstr "Задать это значение для вращения"
+msgstr "Задать значение для вращения"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:719
 msgctxt "ToolTip"
 msgid "Snap scale to this factor"
-msgstr "Задать это значение для масштаба"
+msgstr "Задать значение для масштаба"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:743
 msgctxt "ToolTip"
@@ -1054,7 +1054,7 @@ msgstr "Сзади"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:101
 msgctxt "Menu"
 msgid "Row"
-msgstr "Вряд"
+msgstr "В ряд"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:103
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:121
@@ -1358,12 +1358,12 @@ msgstr "Визуализация"
 #: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:90
 msgctxt "Button"
 msgid "High dynamic range (HDR)"
-msgstr "Высокий динамический диапазон (HDR)"
+msgstr "Графика высоко (HDR)"
 
 #: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:92
 msgctxt "Button"
 msgid "Low dynamic range (LDR)"
-msgstr "Низкий динамический диапазон (LDR)"
+msgstr "Графика низко (LDR)"
 
 #: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:126
 #: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:51
@@ -1408,7 +1408,7 @@ msgstr "Нет скелета"
 #: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:37
 msgctxt "Button"
 msgid "Use another skeleton for this model:"
-msgstr "Использовать другой скелет для этой модели:"
+msgstr "Использовать другой скелет:"
 
 #: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
 msgid "New code library"
