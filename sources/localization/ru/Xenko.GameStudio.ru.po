@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 11:53:42+0900\n"
-"PO-Revision-Date: 2019-02-26 08:01+0000\n"
+"PO-Revision-Date: 2019-03-09 00:04+0000\n"
 "Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "ru/>\n"
@@ -12,12 +12,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<="
 "4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 3.5-dev\n"
+"X-Generator: Weblate 3.5.1-dev\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
 msgid "Output"
-msgstr "Выйти"
+msgstr "Лог действий"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:189
 msgctxt "Message"
@@ -561,7 +561,7 @@ msgstr "Ошибки активов"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:266
 msgctxt "Menu"
 msgid "Output"
-msgstr "Выйти"
+msgstr "Лог действий"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:270
 msgctxt "Menu"
@@ -715,7 +715,7 @@ msgstr "Развернуть всё"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:463
 msgctxt "ToolTip"
 msgid "Collapse all"
-msgstr "Схлопнуть всё"
+msgstr "Свернуть всё"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:468
 msgctxt "ToolTip"
@@ -784,11 +784,11 @@ msgstr "Добавить тэг ко всем"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:725
 msgid "Open this asset in editor"
-msgstr "Открыть этот актив в редакторе"
+msgstr "Редактировать"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:727
 msgid "Show this asset in editor"
-msgstr "Показать этот актив в редакторе"
+msgstr "Редактировать"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:734
 msgctxt "ToolTip"
