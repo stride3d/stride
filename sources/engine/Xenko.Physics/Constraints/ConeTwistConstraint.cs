@@ -139,7 +139,7 @@ namespace Xenko.Physics
         /// <param name="angularOnly">if set to <c>true</c> [angular only].</param>
         public void SetAngularOnly(bool angularOnly)
         {
-            InternalConeTwistConstraint.SetAngularOnly(angularOnly);
+            InternalConeTwistConstraint.AngularOnly = angularOnly;
         }
 
         /// <summary>
@@ -148,7 +148,7 @@ namespace Xenko.Physics
         /// <param name="damping">The damping.</param>
         public void SetDamping(float damping)
         {
-            InternalConeTwistConstraint.SetDamping(damping);
+            InternalConeTwistConstraint.Damping = damping;
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace Xenko.Physics
         /// <param name="maxMotorImpulse">The maximum motor impulse.</param>
         public void SetMaxMotorImpulse(float maxMotorImpulse)
         {
-            InternalConeTwistConstraint.SetMaxMotorImpulse(maxMotorImpulse);
+            InternalConeTwistConstraint.MaxMotorImpulse = maxMotorImpulse;
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace Xenko.Physics
         /// <param name="q">The q.</param>
         public void SetMotorTarget(Quaternion q)
         {
-            InternalConeTwistConstraint.SetMotorTarget(q);
+            InternalConeTwistConstraint.MotorTarget = q;
         }
 
         /// <summary>
