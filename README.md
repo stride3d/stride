@@ -1,3 +1,23 @@
+This branch is developing alongside official xenko, making changes to keep the engine running as deterministically as possible to be safely used within lockstep online games.
+
+Here's a couple of things that you have to keep in mind, or get rid of, to avoid online desyncs:
+  * ~finalizers, the GC's execution point of that method isn't constant accross system and configurations.
+  * GUID and random numbers, instead if you need random it can fairly easily be implemented deterministically using a hash of the current frame count for example.
+  * Conditions based on local data, file access, player-specific settings etc. Be *extremely* carefull when doing so, everything that comes out of that must not act upon the simulation or it will desync.
+
+Usage differences with Xenko Master:
+  * Removed AsyncScript. There isn't any way to serialize async function's internal state properly AFAIK.
+  * Reworked SyncScript as an interface (ISyncScript), no good reason to keep it as a class after those changes.
+  * Implemented editor-side update function (IEditorSyncScript) to run thing within the editor.
+  * Stripped most of ScriptComponent's fields, you can still access that data by overriding `InitializeService` and fetching it from the registry.
+
+
+Original readme's content below
+
+
+----------
+
+
 ![Xenko](https://xenko.com/images/external/xenko-logo-side.png)
 =======
 
