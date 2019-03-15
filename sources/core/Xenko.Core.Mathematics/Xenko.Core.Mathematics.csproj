@@ -26,9 +26,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BulletSharp" Version="0.11.1" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
