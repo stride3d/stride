@@ -478,9 +478,16 @@ namespace Xenko.Engine
         private void CheckEntityWithProcessors(Entity entity, bool forceRemove, bool collecComponentTypesAndProcessors)
         {
             var components = entity.Components;
-            for (int i = 0; i < components.Count; i++)
+
+            // Load transform(s) last, if they are loaded first it'll process child components
+            // before finishing this one which will break execution order of scripts start function.
+            if (!(components[0] is TransformComponent tc))
+                throw new Exception($"First component of entity {entity} is not its transform");
+
+            for (int i = 1; i <= components.Count; i++)
             {
-                var component = components[i];
+                EntityComponent component = (i == components.Count) ? tc : components[i];
+
                 CheckEntityComponentWithProcessors(entity, component, forceRemove, null);
                 if (collecComponentTypesAndProcessors)
                 {
