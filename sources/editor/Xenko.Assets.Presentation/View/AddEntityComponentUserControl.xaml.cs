@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands;
+using Xenko.Core.Presentation.Controls;
 using Xenko.Core.Presentation.Extensions;
 
 namespace Xenko.Assets.Presentation.View
@@ -23,21 +26,104 @@ namespace Xenko.Assets.Presentation.View
     /// </summary>
     public partial class AddEntityComponentUserControl : UserControl
     {
-        public const double ComponentListWidth = 500.0;
+        public const double ComponentListWidth = 250.0;
+
+
+        public IEnumerable<AbstractNodeType> AvailableComponentTypes
+        {
+            get { return (IEnumerable<AbstractNodeType>)GetValue(AvailableComponentTypesProperty); }
+            set { SetValue(AvailableComponentTypesProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for ComponentTypes.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty AvailableComponentTypesProperty =
+            DependencyProperty.Register("AvailableComponentTypes", typeof(IEnumerable<AbstractNodeType>), typeof(AddEntityComponentUserControl), new PropertyMetadata(null));
+
+        public IEnumerable<AbstractNodeTypeGroup> AvailableComponentTypeGroups
+        {
+            get { return (IEnumerable<AbstractNodeTypeGroup>)GetValue(AvailableComponentTypeGroupsProperty); }
+            set { SetValue(AvailableComponentTypeGroupsProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for AvailableComponentTypeGroups.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty AvailableComponentTypeGroupsProperty =
+            DependencyProperty.Register("AvailableComponentTypeGroups", typeof(IEnumerable<AbstractNodeTypeGroup>), typeof(AddEntityComponentUserControl), new PropertyMetadata(null));
+
+        public AbstractNodeTypeGroup SelectedGroup
+        {
+            get { return (AbstractNodeTypeGroup)GetValue(SelectedGroupProperty); }
+            set { SetValue(SelectedGroupProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for SelectedGroup.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty SelectedGroupProperty =
+            DependencyProperty.Register("SelectedGroup", typeof(AbstractNodeTypeGroup), typeof(AddEntityComponentUserControl), new PropertyMetadata(null, OnSelectedGroupChanged));
+
+        public string SearchToken
+        {
+            get { return (string)GetValue(SearchTokenProperty); }
+            set { SetValue(SearchTokenProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for SearchToken.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty SearchTokenProperty =
+            DependencyProperty.Register("SearchToken", typeof(string), typeof(AddEntityComponentUserControl), new PropertyMetadata(null,OnSearchTokenChanged));        
+
+        public IEnumerable<AbstractNodeType> ComponentTypes
+        {
+            get { return (IEnumerable<AbstractNodeType>)GetValue(ComponentTypesProperty); }
+            set { SetValue(ComponentTypesProperty, value); }
+        }
+
+        public static readonly DependencyProperty ComponentTypesProperty =
+            DependencyProperty.Register("ComponentTypes", typeof(IEnumerable<AbstractNodeType>), typeof(AddEntityComponentUserControl), new PropertyMetadata(null));
+
+
+        private static void OnSelectedGroupChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is AddEntityComponentUserControl control)
+            {
+                d.SetValue(ComponentTypesProperty, e.NewValue is AbstractNodeTypeGroup group ? group.Types : null);
+            }
+        }
+
+        private static void OnSearchTokenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is AddEntityComponentUserControl control)
+            {
+                if(string.IsNullOrEmpty(e.NewValue as string))
+                {
+                    control.ComponentTypes = null;
+                }
+                else
+                {
+                    control.ComponentTypes = control.AvailableComponentTypes;
+                }
+            }
+        }
 
         public AddEntityComponentUserControl()
         {
             InitializeComponent();
-            //FilteringComboBox.Loaded += ControlLoaded;
+            FilteringComboBox.DataContext = this;
+
+            DependencyPropertyDescriptor dpd = DependencyPropertyDescriptor
+            .FromProperty(FilteringComboBox.IsDropDownOpenProperty, typeof(FilteringComboBox));
+            if (dpd != null)
+            {
+                dpd.AddValueChanged(FilteringComboBox, OnIsDropDownOpenChanged);
+            }
+
         }
 
-        //private void ControlLoaded(object sender, RoutedEventArgs e)
-        //{
-        //    FilteringComboBox.SelectedIndex = -1;
-        //    FilteringComboBox.Text = "";
-        //    var groupList = this.FindVisualChildrenOfType<ListBox>().FirstOrDefault(x => x.Name == "GroupList");
-        //    if (groupList != null)
-        //        groupList.SelectedIndex = -1;
-        //}
+        private void OnIsDropDownOpenChanged(object sender, EventArgs e)
+        {
+            if (!FilteringComboBox.IsDropDownOpen)
+            {
+                ComponentTypes = null;
+                SearchToken = null;
+            }
+        }
+
     }
 }

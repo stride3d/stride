@@ -19,8 +19,9 @@
   </UserControl.Resources>
   <xk:FilteringComboBox 
                 x:Name="FilteringComboBox"
-                ItemsSource="{Binding EntityComponentAvailableTypes}"
-                Visibility="{Binding EntityComponentAvailableTypes, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:VisibleOrHidden}}}"
+                ItemsSource="{Binding ComponentTypes}"
+                Text="{Binding SearchToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Visibility="{Binding AvailableComponentTypes, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:VisibleOrHidden}}}"
                 ClearTextAfterValidation="True" ValidateOnLostFocus="False"
                 WatermarkContent="{xk:Localize Search}" >
     <xk:FilteringComboBox.Template>
@@ -53,7 +54,7 @@
                                     IsEnabled="{TemplateBinding IsEnabled}" CancelWithEscape="False"/>
                     </Grid>
                     <ListBox x:Name="GroupList" MinWidth="160" VerticalAlignment="Top"
-                               ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
+                               ItemsSource="{Binding AvailableComponentTypeGroups}"
                                IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:InvertBool}}}">
                       <ListBox.Style>
                         <Style TargetType="{x:Type ListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
@@ -96,15 +97,15 @@
                                 </ControlTemplate.Triggers>
                               </ControlTemplate>
                             </ToggleButton.Template>
-                            <TextBlock Text="Item" Margin="10,0"/>
+                            <TextBlock Text="{Binding DisplayValue}" Margin="10,0"/>
                           </ToggleButton>
                         </DataTemplate>
                       </ListBox.ItemTemplate>
                       <i:Interaction.Behaviors>
-                        <!--<xk:ListBoxHighlightedItemBehavior IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Converter={xk:EmptyStringToBool}}"
+                        <xk:ListBoxHighlightedItemBehavior IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Converter={xk:EmptyStringToBool}}"
                                                           HighlightedItem="{Binding SelectedGroup, Mode=OneWayToSource}"
                                                           SelectHighlightedWhenEnteringControl="{Binding ElementName=PART_ListBox}"
-                                                          UseSelectedItemIfAvailable="True" DelayToUpdate="0.2"/>-->
+                                                          UseSelectedItemIfAvailable="True" DelayToUpdate="0.2"/>
                       </i:Interaction.Behaviors>
                     </ListBox>
                   </DockPanel>
