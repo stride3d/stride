@@ -18,6 +18,7 @@ namespace Xenko.Navigation
     [Display("Navigation", Expand = ExpandRule.Once)]
     [ComponentOrder(20000)]
     [DefaultEntityComponentProcessor(typeof(NavigationProcessor), ExecutionMode = ExecutionMode.Runtime)]
+    [ComponentCategory("Navigation")]
     public class NavigationComponent : EntityComponent
     {
         [DataMemberIgnore]

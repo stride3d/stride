@@ -56,7 +56,7 @@ namespace Xenko.Assets.Presentation.NodePresenters.Updaters
 
                 //TODO: Choose a better grouping method.
                 var typeGroups =                     
-                    types.GroupBy(t => Utils.SplitCamelCase( t.Type.Namespace.Substring(t.Type.Namespace.LastIndexOf('.') + 1)))
+                    types.GroupBy(t => ComponentCategoryAttribute.GetCategory(t.Type))
                     .OrderBy(g => g.Key)
                     .Select(g => new AbstractNodeTypeGroup(g.Key, g.ToArray())).ToArray();
 

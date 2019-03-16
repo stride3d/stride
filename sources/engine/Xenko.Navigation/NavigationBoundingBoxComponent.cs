@@ -15,6 +15,7 @@ namespace Xenko.Navigation
     [DataContract]
     [DefaultEntityComponentProcessor(typeof(BoundingBoxProcessor), ExecutionMode = ExecutionMode.All)]
     [Display("Navigation bounding box")]
+    [ComponentCategory("Navigation")]
     public class NavigationBoundingBoxComponent : EntityComponent
     {
         /// <summary>
