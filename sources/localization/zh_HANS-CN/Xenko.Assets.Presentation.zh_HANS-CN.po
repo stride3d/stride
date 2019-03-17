@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:05+0900\n"
-"PO-Revision-Date: 2019-03-02 14:19+0000\n"
-"Last-Translator: Lucifer <786325481@qq.com>\n"
+"PO-Revision-Date: 2019-03-18 16:04+0000\n"
+"Last-Translator: pansan <sinkhile@live.cn>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "xenko/assetspresentation/zh_HANS-CN/>\n"
 "Language: zh_HANS-CN\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 3.5-dev\n"
+"X-Generator: Weblate 3.6-dev\n"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
 msgctxt "Message"
@@ -498,40 +498,47 @@ msgid "(Unloaded)"
 msgstr "(卸载)"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:473
+#, fuzzy
 msgctxt "ToolTip"
 msgid "Light probes and cubemaps..."
-msgstr "Light probes 和 cubemaps..."
+msgstr "灯光探测器和立方体贴图..."
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:483
+#, fuzzy
 msgid "Light probes"
-msgstr "Light probes"
+msgstr "灯光探测器"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:488
+#, fuzzy
 msgid "Bounces:"
-msgstr "Bounces:"
+msgstr "反弹:"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:492
+#, fuzzy
 msgctxt "ToolTip"
 msgid "Compute lighting using light probes"
-msgstr "使用 light probes 计算光照"
+msgstr "使用灯光探测器计算光照"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:500
+#, fuzzy
 msgctxt "ToolTip"
 msgid "Reset light probes"
-msgstr "重置 light probes"
+msgstr "重置灯光探测器"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:504
 msgid "Reset"
 msgstr "重置"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:510
+#, fuzzy
 msgid "Cubemap"
-msgstr "Cubemap"
+msgstr "立方体贴图"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:514
+#, fuzzy
 msgctxt "ToolTip"
 msgid "Generate a cubemap from the scene view and save as a texture"
-msgstr "从场景视图中生成一个 cubemap 并保存为纹理"
+msgstr "从场景视图中生成一个立方体贴图并保存为纹理"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:518
 msgid "Capture"
