@@ -512,7 +512,7 @@ namespace Xenko.Editor.EditorGame.ContentLoader
                             foreach (var reference in node.References)
                             {
                                 // Check if this reference is actually a compile-time dependency
-                                if (reference.Target.AssetItem.Id == assetToProcess.Id && reference.HasOne(BuildDependencyType.CompileContent | BuildDependencyType.Runtime))
+                                if (reference.Target.AssetItem.Id == assetToProcess.Id && reference.HasOne(BuildDependencyType.CompileContent | BuildDependencyType.CompileAsset))
                                 {
                                     // If yes, process this asset later
                                     if (processedAssets.Add(referencer))
