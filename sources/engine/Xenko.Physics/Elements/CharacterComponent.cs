@@ -18,20 +18,7 @@ namespace Xenko.Physics
             StepHeight = 0.1f;
             ProcessCollisions = true;
         }
-
-        /// <summary>
-        /// Jumps this instance.
-        /// </summary>
-        public void Jump(BulletSharp.Math.Vector3 jumpDirection)
-        {
-            if (KinematicCharacter == null)
-            {
-                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
-            }
-            
-            KinematicCharacter.Jump(ref jumpDirection);
-        }
-
+        
         /// <summary>
         /// Jumps this instance.
         /// </summary>
@@ -40,7 +27,7 @@ namespace Xenko.Physics
                 throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
             }
 
-            BulletSharp.Math.Vector3 v = new BulletSharp.Math.Vector3(jumpDirection.X, jumpDirection.Y, jumpDirection.Z);
+            BulletSharp.Math.Vector3 v = jumpDirection;
             KinematicCharacter.Jump(ref v);
         }
         
