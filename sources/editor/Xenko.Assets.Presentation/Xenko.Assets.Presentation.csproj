@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
@@ -163,6 +163,9 @@
     </Compile>
     <Compile Update="Templates\ScriptNameWindow.xaml.cs">
       <DependentUpon>ScriptNameWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="View\AddEntityComponentUserControl.xaml.cs">
+      <DependentUpon>AddEntityComponentUserControl.xaml</DependentUpon>
     </Compile>
     <Compile Update="View\DebugEntityHierarchyEditorUserControl.xaml.cs">
       <DependentUpon>DebugEntityHierarchyEditorUserControl.xaml</DependentUpon>
@@ -369,6 +372,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Templates\ScriptNameWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\AddEntityComponentUserControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -784,6 +791,11 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\Components\video-16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="View\AddEntityComponentUserControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />

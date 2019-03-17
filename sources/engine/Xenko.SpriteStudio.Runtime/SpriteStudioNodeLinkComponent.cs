@@ -11,6 +11,7 @@ namespace Xenko.SpriteStudio.Runtime
     [Display("SpriteStudio node link", Expand = ExpandRule.Once)]
     [DefaultEntityComponentProcessor(typeof(SpriteStudioNodeLinkProcessor))]
     [ComponentOrder(1400)]
+    [ComponentCategory("Sprites")]
     public sealed class SpriteStudioNodeLinkComponent : EntityComponent
     {
         /// <summary>

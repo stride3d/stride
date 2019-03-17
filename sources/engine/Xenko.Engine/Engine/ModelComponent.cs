@@ -24,6 +24,7 @@ namespace Xenko.Engine
     [DefaultEntityComponentProcessor(typeof(ModelTransformProcessor))]
     [DefaultEntityComponentRenderer(typeof(ModelRenderProcessor))]
     [ComponentOrder(11000)]
+    [ComponentCategory("Model")]
     public sealed class ModelComponent : ActivableEntityComponent, IModelInstance
     {
         private readonly List<MeshInfo> meshInfos = new List<MeshInfo>();
