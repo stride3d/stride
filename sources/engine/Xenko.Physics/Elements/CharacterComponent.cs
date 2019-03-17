@@ -22,19 +22,31 @@ namespace Xenko.Physics
         /// <summary>
         /// Jumps this instance.
         /// </summary>
-        public void Jump(Vector3 jumpDirection)
+        public void Jump(BulletSharp.Math.Vector3 jumpDirection)
         {
             if (KinematicCharacter == null)
             {
                 throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
             }
             
-            KinematicCharacter.Jump(jumpDirection);
+            KinematicCharacter.Jump(ref jumpDirection);
         }
 
         /// <summary>
         /// Jumps this instance.
         /// </summary>
+        public void Jump(Vector3 jumpDirection) {
+            if (KinematicCharacter == null) {
+                throw new InvalidOperationException("Attempted to call a Physics function that is avaliable only when the Entity has been already added to the Scene.");
+            }
+
+            BulletSharp.Math.Vector3 v = new BulletSharp.Math.Vector3(jumpDirection.X, jumpDirection.Y, jumpDirection.Z);
+            KinematicCharacter.Jump(ref v);
+        }
+        
+        /// <summary>
+                 /// Jumps this instance.
+                 /// </summary>
         public void Jump()
         {
             if (KinematicCharacter == null)
@@ -78,8 +90,8 @@ namespace Xenko.Physics
             set
             {
                 fallSpeed = value;
-                
-                KinematicCharacter?.SetFallSpeed(value);
+
+                if( KinematicCharacter != null ) KinematicCharacter.FallSpeed = fallSpeed;
             }
         }
 
@@ -135,7 +147,7 @@ namespace Xenko.Physics
             {
                 jumpSpeed = value;
 
-                KinematicCharacter?.SetJumpSpeed(value);
+                if (KinematicCharacter != null) KinematicCharacter.JumpSpeed = jumpSpeed;
             }
         }
 
@@ -255,7 +267,8 @@ namespace Xenko.Physics
 
             NativeCollisionObject.ContactProcessingThreshold = !Simulation.CanCcd ? 1e18f : 1e30f;
 
-            KinematicCharacter = new BulletSharp.KinematicCharacterController((BulletSharp.PairCachingGhostObject)NativeCollisionObject, (BulletSharp.ConvexShape)ColliderShape.InternalShape, StepHeight, Vector3.UnitY);
+            BulletSharp.Math.Vector3 unitY = new BulletSharp.Math.Vector3(0f, 1f, 0f);
+            KinematicCharacter = new BulletSharp.KinematicCharacterController((BulletSharp.PairCachingGhostObject)NativeCollisionObject, (BulletSharp.ConvexShape)ColliderShape.InternalShape, StepHeight, ref unitY);
 
             base.OnAttach();
 
