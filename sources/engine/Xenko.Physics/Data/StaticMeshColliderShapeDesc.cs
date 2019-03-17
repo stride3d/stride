@@ -1,32 +1,35 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using Xenko.Core;
-using Xenko.Core.Annotations;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization.Contents;
 using Xenko.Rendering;
 
 namespace Xenko.Physics
 {
-    [ContentSerializer(typeof(DataContentSerializer<ConvexHullColliderShapeDesc>))]
-    [DataContract("ConvexHullColliderShapeDesc")]
-    [Display(500, "Convex Hull")]
-    public class ConvexHullColliderShapeDesc : IAssetColliderShapeDesc
+    [ContentSerializer(typeof(DataContentSerializer<StaticMeshColliderShapeDesc>))]
+    [DataContract("StaticMeshColliderShapeDesc")]
+    [Display(500, "Static Mesh")]
+    public class StaticMeshColliderShapeDesc : IAssetColliderShapeDesc
     {
+#if XENKO_PLATFORM_WINDOWS_DESKTOP
 
         [Display(Browsable = false)]
+#endif
         [DataMember(10)]
-        public List<List<List<Vector3>>> ConvexHulls; // Multiple meshes -> Multiple Hulls -> Hull points
+        public List<List<List<Vector3>>> Points; // Multiple meshes -> Multiple Hulls -> Hull points
+
+#if XENKO_PLATFORM_WINDOWS_DESKTOP
 
         [Display(Browsable = false)]
+#endif
         [DataMember(20)]
-        public List<List<List<uint>>> ConvexHullsIndices; // Multiple meshes -> Multiple Hulls -> Hull tris
+        public List<List<List<uint>>> Indices; // Multiple meshes -> Multiple Hulls -> Hull tris
 
         /// <userdoc>
-        /// Model asset from where the engine will derive the convex hull.
+        /// Model asset from where the engine will derive the collider shape.
         /// </userdoc>
         [DataMember(30)]
         public Model Model;
@@ -44,21 +47,15 @@ namespace Xenko.Physics
         public Quaternion LocalRotation = Quaternion.Identity;
 
         /// <userdoc>
-        /// The scaling of the generated convex hull.
+        /// The scaling of the collider shape.
         /// </userdoc>
         [DataMember(45)]
         public Vector3 Scaling = Vector3.One;
 
-        /// <userdoc>
-        /// If this is not checked, the contained parameters are ignored and only a simple convex hull of the model will be generated.
-        /// </userdoc>
-        [DataMember(50)]
-        [NotNull]
-        public ConvexHullDecompositionParameters Decomposition { get; set; } = new ConvexHullDecompositionParameters();
 
         public bool Match(object obj)
         {
-            var other = obj as ConvexHullColliderShapeDesc;
+            var other = obj as StaticMeshColliderShapeDesc;
             if (other == null)
                 return false;
 
@@ -66,22 +63,19 @@ namespace Xenko.Physics
                 return false;
 
             return other.Model == Model &&
-                   other.Scaling == Scaling &&
-                   other.Decomposition.Match(Decomposition);
+                   other.Scaling == Scaling;
         }
 
         public ColliderShape NewShapeFromDesc()
         {
-            if (ConvexHulls == null) return null;
-            ColliderShape shape;
+            if (Points == null) return null;
+            
 
-            //Optimize performance and focus on less shapes creation since this shape could be nested
-
-            if (ConvexHulls.Count == 1)
+            if (Points.Count == 1)
             {
-                if (ConvexHulls[0].Count == 1 && ConvexHullsIndices[0][0].Count > 0)
+                if (Points[0].Count == 1 && Indices[0][0].Count > 0)
                 {
-                    shape = new ConvexHullColliderShape(ConvexHulls[0][0], ConvexHullsIndices[0][0], Scaling)
+                    var shape = new StaticMeshColliderShape(Points[0][0], Indices[0][0], Scaling)
                     {
                         NeedsCustomCollisionCallback = true,
                     };
@@ -92,21 +86,21 @@ namespace Xenko.Physics
                     return shape;
                 }
 
-                if (ConvexHulls[0].Count <= 1) return null;
+                if (Points[0].Count <= 1) return null;
 
                 var subCompound = new CompoundColliderShape
                 {
                     NeedsCustomCollisionCallback = true,
                 };
 
-                for (var i = 0; i < ConvexHulls[0].Count; i++)
+                for (var i = 0; i < Points[0].Count; i++)
                 {
-                    var verts = ConvexHulls[0][i];
-                    var indices = ConvexHullsIndices[0][i];
+                    var verts = Points[0][i];
+                    var indices = Indices[0][i];
 
                     if (indices.Count == 0) continue;
 
-                    var subHull = new ConvexHullColliderShape(verts, indices, Scaling);
+                    var subHull = new StaticMeshColliderShape(verts, indices, Scaling);
                     //subHull.UpdateLocalTransformations();
                     subCompound.AddChildShape(subHull);
                 }
@@ -117,23 +111,23 @@ namespace Xenko.Physics
                 return subCompound;
             }
 
-            if (ConvexHulls.Count <= 1) return null;
+            if (Points.Count <= 1) return null;
 
             var compound = new CompoundColliderShape
             {
                 NeedsCustomCollisionCallback = true,
             };
 
-            for (var i = 0; i < ConvexHulls.Count; i++)
+            for (var i = 0; i < Points.Count; i++)
             {
-                var verts = ConvexHulls[i];
-                var indices = ConvexHullsIndices[i];
+                var verts = Points[i];
+                var indices = Indices[i];
 
                 if (verts.Count == 1)
                 {
                     if (indices[0].Count == 0) continue;
 
-                    var subHull = new ConvexHullColliderShape(verts[0], indices[0], Scaling);
+                    var subHull = new StaticMeshColliderShape(verts[0], indices[0], Scaling);
                     //subHull.UpdateLocalTransformations();
                     compound.AddChildShape(subHull);
                 }
@@ -148,7 +142,7 @@ namespace Xenko.Physics
 
                         if (subIndex.Count == 0) continue;
 
-                        var subHull = new ConvexHullColliderShape(subVerts, subIndex, Scaling);
+                        var subHull = new StaticMeshColliderShape(subVerts, subIndex, Scaling);
                         //subHull.UpdateLocalTransformations();
                         subCompound.AddChildShape(subHull);
                     }

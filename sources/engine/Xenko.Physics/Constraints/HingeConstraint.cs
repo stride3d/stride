@@ -60,7 +60,7 @@ namespace Xenko.Physics
         /// </value>
         public float MotorTargetVelocity
         {
-            get { return InternalHingeConstraint.MotorTargetVelosity; }
+            get { return InternalHingeConstraint.MotorTargetVelocity; }
         }
 
         /// <summary>
@@ -170,7 +170,7 @@ namespace Xenko.Physics
         /// <param name="enableMotor">if set to <c>true</c> [enable motor].</param>
         public void EnableMotor(bool enableMotor)
         {
-            InternalHingeConstraint.EnableMotor(enableMotor);
+            InternalHingeConstraint.EnableMotor = enableMotor;
         }
 
         /// <summary>

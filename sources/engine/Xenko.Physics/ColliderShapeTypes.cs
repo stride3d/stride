@@ -31,6 +31,8 @@ namespace Xenko.Physics
 
         StaticPlane,
 
+        StaticMesh,
+
         Cone,
     }
 }

@@ -129,10 +129,11 @@ namespace Xenko.Physics.Engine
                 case ColliderShapeTypes.Sphere:
                 case ColliderShapeTypes.Cone:
                 case ColliderShapeTypes.StaticPlane:
+                case ColliderShapeTypes.StaticMesh:
                     {
                         MeshDraw draw;
                         var type = shape.GetType();
-                        if (type == typeof(CapsuleColliderShape) || type == typeof(ConvexHullColliderShape))
+                        if (type == typeof(CapsuleColliderShape) || type == typeof(ConvexHullColliderShape) || type == typeof(StaticMeshColliderShape))
                         {
                             if (!debugMeshCache2.TryGetValue(shape, out draw))
                             {

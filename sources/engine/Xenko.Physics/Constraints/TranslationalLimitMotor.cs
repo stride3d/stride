@@ -120,8 +120,8 @@ namespace Xenko.Physics
         /// </value>
         public Vector3 NormalCFM
         {
-            get { return mMotor.NormalCFM; }
-            set { mMotor.NormalCFM = value; }
+            get { return mMotor.NormalCfm; }
+            set { mMotor.NormalCfm = value; }
         }
 
         /// <summary>
@@ -144,8 +144,8 @@ namespace Xenko.Physics
         /// </value>
         public Vector3 StopCFM
         {
-            get { return mMotor.StopCFM; }
-            set { mMotor.StopCFM = value; }
+            get { return mMotor.StopCfm; }
+            set { mMotor.StopCfm = value; }
         }
 
         /// <summary>
@@ -156,8 +156,8 @@ namespace Xenko.Physics
         /// </value>
         public Vector3 StopERP
         {
-            get { return mMotor.StopERP; }
-            set { mMotor.StopERP = value; }
+            get { return mMotor.StopErp; }
+            set { mMotor.StopErp = value; }
         }
 
         /// <summary>

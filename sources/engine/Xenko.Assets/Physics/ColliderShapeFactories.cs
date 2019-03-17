@@ -95,4 +95,17 @@ namespace Xenko.Assets.Physics
             return Create();
         }
     }
+
+    public class ColliderShapeStaticMeshFactory : AssetFactory<ColliderShapeAsset>
+    {
+        public static ColliderShapeAsset Create()
+        {
+            return new ColliderShapeAsset { ColliderShapes = { new StaticMeshColliderShapeDesc() } };
+        }
+
+        public override ColliderShapeAsset New()
+        {
+            return Create();
+        }
+    }
 }

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using BulletSharp;
 using Xenko.Core.Collections;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Mathematics;
@@ -280,7 +281,7 @@ namespace Xenko.Physics
             var collider = character.NativeCollisionObject;
             var action = character.KinematicCharacter;
             discreteDynamicsWorld.AddCollisionObject(collider, (BulletSharp.CollisionFilterGroups)group, (BulletSharp.CollisionFilterGroups)mask);
-            discreteDynamicsWorld.AddCharacter(action);
+            discreteDynamicsWorld.AddAction(action);
 
             character.Simulation = this;
         }
@@ -292,7 +293,7 @@ namespace Xenko.Physics
             var collider = character.NativeCollisionObject;
             var action = character.KinematicCharacter;
             discreteDynamicsWorld.RemoveCollisionObject(collider);
-            discreteDynamicsWorld.RemoveCharacter(action);
+            discreteDynamicsWorld.RemoveAction(action);
 
             character.Simulation = null;
         }
@@ -608,7 +609,7 @@ namespace Xenko.Physics
             constraint.Simulation = null;
         }
 
-        private class XenkoAllHitsConvexResultCallback : BulletSharp.AllHitsConvexResultCallback
+        private class XenkoAllHitsConvexResultCallback : BulletSharp.ConvexResultCallback
         {
             private IList<HitResult> resultsList;
 
@@ -617,16 +618,23 @@ namespace Xenko.Physics
                 resultsList = results;
             }
 
-            public override void AddSingleResult(BulletSharp.CollisionObject collisionObject, ref Vector3 point, ref Vector3 normal, float hitFraction)
+            public override float AddSingleResult(ref LocalConvexResult convexResult, bool normalInWorldSpace)
             {
+                Vector3 normal;
+                if (normalInWorldSpace)
+                    normal = convexResult.HitNormalLocal;
+                else
+                    normal = Vector3.TransformNormal(convexResult.HitNormalLocal, convexResult.HitCollisionObject.WorldTransform.Basis);
+
                 resultsList.Add(new HitResult
                 {
                     Succeeded = true,
-                    Collider = collisionObject.UserObject as PhysicsComponent,
-                    Point = point,
+                    Collider = convexResult.HitCollisionObject.UserObject as PhysicsComponent,
+                    Point = Vector3.TransformCoordinate(convexResult.HitPointLocal, convexResult.HitCollisionObject.WorldTransform.Basis),
                     Normal = normal,
-                    HitFraction = hitFraction,
+                    HitFraction = convexResult.HitFraction,
                 });
+                return convexResult.HitFraction;
             }
         }
 
@@ -634,21 +642,28 @@ namespace Xenko.Physics
         {
             private IList<HitResult> resultsList;
 
-            public XenkoAllHitsRayResultCallback(ref Vector3 from, ref Vector3 to, IList<HitResult> results) : base(ref from, ref to)
+            public XenkoAllHitsRayResultCallback(ref Vector3 from, ref Vector3 to, IList<HitResult> results) : base(from, to)
             {
                 resultsList = results;
             }
 
-            public override void AddSingleResult(BulletSharp.CollisionObject collisionObject, ref Vector3 point, ref Vector3 normal, float hitFraction)
+            public override float AddSingleResult(ref LocalRayResult rayResult, bool normalInWorldSpace)
             {
+                Vector3 normal;
+                if (normalInWorldSpace)
+                    normal = rayResult.HitNormalLocal;
+                else
+                    normal = Vector3.TransformNormal(rayResult.HitNormalLocal, rayResult.CollisionObject.WorldTransform.Basis);
+
                 resultsList.Add(new HitResult
                 {
                     Succeeded = true,
-                    Collider = collisionObject.UserObject as PhysicsComponent,
-                    Point = point,
+                    Collider = rayResult.CollisionObject.UserObject as PhysicsComponent,
+                    Point = Vector3.Lerp(this.RayFromWorld, this.RayToWorld, rayResult.HitFraction),
                     Normal = normal,
-                    HitFraction = hitFraction,
+                    HitFraction = rayResult.HitFraction,
                 });
+                return rayResult.HitFraction;
             }
         }
 
@@ -662,9 +677,10 @@ namespace Xenko.Physics
         {
             var result = new HitResult(); //result.Succeeded is false by default
 
-            using (var rcb = new BulletSharp.ClosestRayResultCallback(from, to))
+            BulletSharp.Math.Vector3 fromBullet = from, toBullet = to;
+            using (var rcb = new BulletSharp.ClosestRayResultCallback(ref fromBullet, ref toBullet))
             {
-                collisionWorld.RayTest(ref from, ref to, rcb);
+                collisionWorld.RayTest(fromBullet, toBullet, rcb);
 
                 if (rcb.CollisionObject == null) return result;
                 result.Succeeded = true;
@@ -689,13 +705,14 @@ namespace Xenko.Physics
         {
             var result = new HitResult(); //result.Succeeded is false by default
 
-            using (var rcb = new BulletSharp.ClosestRayResultCallback(from, to)
+            BulletSharp.Math.Vector3 fromBullet = from, toBullet = to;
+            using (var rcb = new BulletSharp.ClosestRayResultCallback(ref fromBullet, ref toBullet)
             {
                 CollisionFilterGroup = (short)collisionFilterGroups,
                 CollisionFilterMask = (short)collisionFilterGroupFlags,
             })
             {
-                collisionWorld.RayTest(ref from, ref to, rcb);
+                collisionWorld.RayTest(fromBullet, toBullet, rcb);
 
                 if (rcb.CollisionObject == null) return result;
                 result.Succeeded = true;
@@ -718,7 +735,7 @@ namespace Xenko.Physics
         {
             using (var rcb = new XenkoAllHitsRayResultCallback(ref from, ref to, resultsOutput))
             {
-                collisionWorld.RayTest(ref from, ref to, rcb);
+                collisionWorld.RayTest(from, to, rcb);
             }
         }
 
@@ -752,7 +769,7 @@ namespace Xenko.Physics
                 CollisionFilterMask = (short)collisionFilterGroupFlags,
             })
             {
-                collisionWorld.RayTest(ref from, ref to, rcb);
+                collisionWorld.RayTest(from, to, rcb);
             }
         }
 
@@ -786,7 +803,8 @@ namespace Xenko.Physics
 
             var result = new HitResult(); //result.Succeeded is false by default
 
-            using (var rcb = new BulletSharp.ClosestConvexResultCallback(from.TranslationVector, to.TranslationVector))
+            BulletSharp.Math.Vector3 fromBullet = from.TranslationVector, toBullet = to.TranslationVector;
+            using (var rcb = new BulletSharp.ClosestConvexResultCallback(ref fromBullet, ref toBullet))
             {
                 collisionWorld.ConvexSweepTest(sh, from, to, rcb);
 
@@ -818,10 +836,11 @@ namespace Xenko.Physics
 
             var result = new HitResult(); //result.Succeeded is false by default
 
-            using (var rcb = new BulletSharp.ClosestConvexResultCallback(from.TranslationVector, to.TranslationVector)
+            BulletSharp.Math.Vector3 fromBullet = from.TranslationVector, toBullet = to.TranslationVector;
+            using (var rcb = new BulletSharp.ClosestConvexResultCallback(ref fromBullet, ref toBullet)
             {
-                CollisionFilterGroup = (BulletSharp.CollisionFilterGroups)collisionFilterGroups,
-                CollisionFilterMask = (BulletSharp.CollisionFilterGroups)collisionFilterGroupFlags,
+                CollisionFilterGroup = (int)collisionFilterGroups,
+                CollisionFilterMask = (int)collisionFilterGroupFlags,
             })
             {
                 collisionWorld.ConvexSweepTest(sh, from, to, rcb);
@@ -888,8 +907,8 @@ namespace Xenko.Physics
 
             using (var rcb = new XenkoAllHitsConvexResultCallback(resultsOutput)
             {
-                CollisionFilterGroup = (BulletSharp.CollisionFilterGroups)collisionFilterGroups,
-                CollisionFilterMask = (BulletSharp.CollisionFilterGroups)collisionFilterGroupFlags,
+                CollisionFilterGroup = (int)collisionFilterGroups,
+                CollisionFilterMask = (int)collisionFilterGroupFlags,
             })
             {
                 collisionWorld.ConvexSweepTest(sh, from, to, rcb);
@@ -1052,7 +1071,7 @@ namespace Xenko.Physics
             var previous = currentFrameContacts;
             currentFrameContacts = previousFrameContacts;
             currentFrameContacts.Clear();
-            previousFrameContacts = previous;         
+            previousFrameContacts = previous;
         }
 
         private void ContactRemoval(ContactPoint contact, PhysicsComponent component0, PhysicsComponent component1)
@@ -1215,38 +1234,45 @@ namespace Xenko.Physics
             }     
         }
 
-        private HashSet<ContactPoint> currentFrameContacts = new HashSet<ContactPoint>(ContactPointEqualityComparer.Default);
-        private HashSet<ContactPoint> previousFrameContacts = new HashSet<ContactPoint>(ContactPointEqualityComparer.Default);
+        private DefaultContactResultCallback currentFrameContacts = new DefaultContactResultCallback();
+        private DefaultContactResultCallback previousFrameContacts = new DefaultContactResultCallback();
 
-        internal unsafe void ContactTest(PhysicsComponent component)
+        class DefaultContactResultCallback : BulletSharp.ContactResultCallback
         {
-            IntPtr buffer;
-            int bufferSize;
-            collisionWorld.GetCollisions(component.NativeCollisionObject, (short)component.CanCollideWith, (short)component.CollisionGroup, out buffer, out bufferSize);
-            var contacts = (NativeContactPoint*)buffer;
-            for (var i = 0; i < bufferSize; i++)
-            {
-                var contact = contacts[i];
+            HashSet<ContactPoint> contacts = new HashSet<ContactPoint>(ContactPointEqualityComparer.Default);
 
-                var obj0 = BulletSharp.CollisionObject.GetManaged(contact.ColliderA);
-                var obj1 = BulletSharp.CollisionObject.GetManaged(contact.ColliderB);
-                var component0 = (PhysicsComponent)obj0.UserObject;
-                var component1 = (PhysicsComponent)obj1.UserObject;
+            public override float AddSingleResult(BulletSharp.ManifoldPoint contact, BulletSharp.CollisionObjectWrapper obj0, int partId0, int index0, BulletSharp.CollisionObjectWrapper obj1, int partId1, int index1)
+            {
+                var component0 = (PhysicsComponent)obj0.CollisionObject.UserObject;
+                var component1 = (PhysicsComponent)obj1.CollisionObject.UserObject;
 
                 //disable static-static
                 if ((component0 is StaticColliderComponent && component1 is StaticColliderComponent) || !component0.Enabled || !component1.Enabled)
-                    continue;
+                    return 0f;
 
-                currentFrameContacts.Add(new ContactPoint
+                contacts.Add(new ContactPoint
                 {
                     ColliderA = component0,
                     ColliderB = component1,
                     Distance = contact.Distance,
-                    Normal = contact.Normal,
-                    PositionOnA = contact.PositionOnA,
-                    PositionOnB = contact.PositionOnB,
+                    Normal = contact.NormalWorldOnB,
+                    PositionOnA = contact.PositionWorldOnA,
+                    PositionOnB = contact.PositionWorldOnB,
                 });
+                return 0f;
             }
+
+            public void Remove(ContactPoint contact) => contacts.Remove(contact);
+            public bool Contains(ContactPoint contact) => contacts.Contains(contact);
+            public void Clear() => contacts.Clear();
+            public HashSet<ContactPoint>.Enumerator GetEnumerator() => contacts.GetEnumerator();
+        }
+
+        internal unsafe void ContactTest(PhysicsComponent component)
+        {
+            currentFrameContacts.CollisionFilterMask = (int)component.CanCollideWith;
+            currentFrameContacts.CollisionFilterGroup = (int)component.CollisionGroup;
+            collisionWorld.ContactTest( component.NativeCollisionObject, currentFrameContacts );
         }
 
         private readonly FastList<ContactPoint> previousToRemove = new FastList<ContactPoint>();

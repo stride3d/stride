@@ -11,7 +11,7 @@ namespace Xenko.Physics.Shapes
         public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
         {
             cachedScaling = Vector3.One;
-            InternalShape = new BulletSharp.HeightfieldShape(heightStickWidth, heightStickLength, dynamicFieldData.Pointer, heightScale, minHeight, maxHeight, 1, (int)BulletPhyScalarType.PhyShort, flipQuadEdges)
+            InternalShape = new BulletSharp.HeightfieldTerrainShape(heightStickWidth, heightStickLength, dynamicFieldData.Pointer, heightScale, minHeight, maxHeight, 1, BulletSharp.PhyScalarType.Int16, flipQuadEdges)
             {
                 LocalScaling = cachedScaling,
             };
@@ -21,7 +21,7 @@ namespace Xenko.Physics.Shapes
         public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<byte> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
         {
             cachedScaling = Vector3.One;
-            InternalShape = new BulletSharp.HeightfieldShape(heightStickWidth, heightStickLength, dynamicFieldData.Pointer, heightScale, minHeight, maxHeight, 1, (int)BulletPhyScalarType.PhyUchar, flipQuadEdges)
+            InternalShape = new BulletSharp.HeightfieldTerrainShape(heightStickWidth, heightStickLength, dynamicFieldData.Pointer, heightScale, minHeight, maxHeight, 1, BulletSharp.PhyScalarType.Byte, flipQuadEdges)
             {
                 LocalScaling = cachedScaling,
             };
@@ -31,7 +31,7 @@ namespace Xenko.Physics.Shapes
         public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<float> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
         {
             cachedScaling = Vector3.One;
-            InternalShape = new BulletSharp.HeightfieldShape(heightStickWidth, heightStickLength, dynamicFieldData.Pointer, heightScale, minHeight, maxHeight, 1, (int)BulletPhyScalarType.PhyFloat, flipQuadEdges)
+            InternalShape = new BulletSharp.HeightfieldTerrainShape(heightStickWidth, heightStickLength, dynamicFieldData.Pointer, heightScale, minHeight, maxHeight, 1, BulletSharp.PhyScalarType.Single, flipQuadEdges)
             {
                 LocalScaling = cachedScaling,
             };
@@ -40,12 +40,12 @@ namespace Xenko.Physics.Shapes
 
         public bool UseDiamondSubdivision
         {
-            set { ((BulletSharp.HeightfieldShape)InternalShape).SetUseDiamondSubdivision(value); }
+            set { ((BulletSharp.HeightfieldTerrainShape)InternalShape).SetUseDiamondSubdivision(value); }
         }
 
         public bool UseZigzagSubdivision
         {
-            set { ((BulletSharp.HeightfieldShape)InternalShape).SetUseZigzagSubdivision(value); }
+            set { ((BulletSharp.HeightfieldTerrainShape)InternalShape).SetUseZigzagSubdivision(value); }
         }
 
         public UnmanagedArray<short> ShortArray { get; private set; }
@@ -68,12 +68,12 @@ namespace Xenko.Physics.Shapes
 
         private enum BulletPhyScalarType
         {
-            PhyFloat,
-            PhyDouble,
-            PhyInteger,
-            PhyShort,
-            PhyFixedpoint88,
-            PhyUchar,
+            PhyFloat = BulletSharp.PhyScalarType.Single,
+            PhyDouble = BulletSharp.PhyScalarType.Double,
+            PhyInteger = BulletSharp.PhyScalarType.Int32,
+            PhyShort = BulletSharp.PhyScalarType.Int16,
+            PhyFixedpoint88 = BulletSharp.PhyScalarType.FixedPoint88,
+            PhyUchar = BulletSharp.PhyScalarType.Byte,
         }
     }
 }
