@@ -14,6 +14,7 @@ using Xenko.Assets.Entities;
 using Xenko.Assets.Presentation.NodePresenters.Keys;
 using Xenko.Assets.Presentation.ViewModel;
 using Xenko.Engine;
+using Xenko.Core.Presentation.Core;
 
 namespace Xenko.Assets.Presentation.NodePresenters.Updaters
 {
@@ -50,8 +51,16 @@ namespace Xenko.Assets.Presentation.NodePresenters.Updaters
                                 (EntityComponentAttributes.Get(x).AllowMultipleComponents
                                  || ((EntityComponentCollection)node.Value).All(y => y.GetType() != x)))
                     .OrderBy(DisplayAttribute.GetDisplayName)
-                    .Select(x => new AbstractNodeType(x));
+                    .Select(x => new AbstractNodeType(x)).ToArray();
                 node.AttachedProperties.Add(EntityHierarchyData.EntityComponentAvailableTypesKey, types);
+
+                //TODO: Choose a better grouping method.
+                var typeGroups =                     
+                    types.GroupBy(t => ComponentCategoryAttribute.GetCategory(t.Type))
+                    .OrderBy(g => g.Key)
+                    .Select(g => new AbstractNodeTypeGroup(g.Key, g.ToArray())).ToArray();
+
+                node.AttachedProperties.Add(EntityHierarchyData.EntityComponentAvailableTypeGroupsKey, typeGroups);
 
                 // Cannot replace entity component collection.
                 var replaceCommandIndex = node.Commands.IndexOf(x => x.Name == ReplacePropertyCommand.CommandName);

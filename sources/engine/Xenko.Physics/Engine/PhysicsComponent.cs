@@ -21,6 +21,7 @@ namespace Xenko.Engine
     [DefaultEntityComponentProcessor(typeof(PhysicsProcessor))]
     [AllowMultipleComponents]
     [ComponentOrder(3000)]
+    [ComponentCategory("Physics")]
     public abstract class PhysicsComponent : ActivableEntityComponent
     {
         protected static Logger logger = GlobalLogger.GetLogger("PhysicsComponent");
