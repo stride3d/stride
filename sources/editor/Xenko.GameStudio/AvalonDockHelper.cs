@@ -35,7 +35,7 @@ namespace Xenko.GameStudio
             foreach (var anchorable in GetAllAnchorables(docking))
             {
                 if (!string.IsNullOrEmpty(anchorable.ContentId))
-                anchorable.IsVisibleChanged += AnchorableIsVisibleChanged;
+                    anchorable.IsVisibleChanged += AnchorableIsVisibleChanged;
                 AdjustAnchorableHideAndCloseCommands(anchorable);
             }
 
@@ -101,7 +101,17 @@ namespace Xenko.GameStudio
 
         private static void ElementAdded(object sender, LayoutElementEventArgs e)
         {
-            AdjustAnchorableHideAndCloseCommands(e.Element as LayoutAnchorable);
+            if (e.Element is LayoutAnchorable anchorable)
+            {
+                AdjustAnchorableHideAndCloseCommands(anchorable);
+            }
+            else
+            {
+                foreach (var anchorable2 in e.Element.Descendents().OfType<LayoutAnchorable>())
+                {
+                    AdjustAnchorableHideAndCloseCommands(anchorable2);
+                }
+            }
         }
 
         /// <summary>
@@ -117,12 +127,13 @@ namespace Xenko.GameStudio
         /// </remarks>
         private static void AdjustAnchorableHideAndCloseCommands(LayoutAnchorable anchorable)
         {
-            if (anchorable == null)
-                return;
-
             var layoutItem = (LayoutAnchorableItem)anchorable.Root.Manager.GetLayoutItemFromModel(anchorable);
             if (layoutItem == null)
                 throw new InvalidOperationException("The anchorable must be added to the docking manager before calling this method.");
+
+            // There's a bug in AvalonDock 3.4.0 which sets CanClose to false once a LayoutAnchorable is dragged into a new floating window or a new pane.
+            // This is because ResetCanCloseInternal() is called without SetCanCloseInternal() so value gets reset to false.
+            layoutItem.CanClose = true;
 
             var isPersistent = !string.IsNullOrEmpty(anchorable.ContentId);
             if (isPersistent)
