@@ -15,8 +15,8 @@ namespace Xenko.Graphics
 
         public void Reset()
         {
-            GraphicsDevice.descriptorPools.RecycleObject(GraphicsDevice.NextFenceValue, NativeDescriptorPool);
-            NativeDescriptorPool = GraphicsDevice.descriptorPools.GetObject();
+            GraphicsDevice.DescriptorPools.RecycleObject(GraphicsDevice.NextFenceValue, NativeDescriptorPool);
+            NativeDescriptorPool = GraphicsDevice.DescriptorPools.GetObject();
 
             allocatedSetCount = 0;
             for (int i = 0; i < DescriptorSetLayout.DescriptorTypeCount; i++)
@@ -66,7 +66,7 @@ namespace Xenko.Graphics
 
         private void Recreate()
         {
-            NativeDescriptorPool = GraphicsDevice.descriptorPools.GetObject();
+            NativeDescriptorPool = GraphicsDevice.DescriptorPools.GetObject();
             
             allocatedTypeCounts = new uint[DescriptorSetLayout.DescriptorTypeCount];
             allocatedSetCount = 0;
@@ -82,7 +82,7 @@ namespace Xenko.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
-            GraphicsDevice.descriptorPools.RecycleObject(GraphicsDevice.NextFenceValue, NativeDescriptorPool);
+            GraphicsDevice.DescriptorPools.RecycleObject(GraphicsDevice.NextFenceValue, NativeDescriptorPool);
 
             base.OnDestroyed();
         }
