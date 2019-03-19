@@ -317,6 +317,13 @@ namespace Xenko.Graphics
                 var sourceSet = boundDescriptorSets[mapping.SourceSet];
                 var heapObject = sourceSet.HeapObjects[sourceSet.DescriptorStartOffset + mapping.SourceBinding];
 
+                // if we don't have a loaded image for sampling yet, skip this whole prepare to avoid a memory access violation
+                if( mapping.DescriptorType == DescriptorType.SampledImage &&
+                    (heapObject.Value == null || ((Texture)heapObject.Value).NativeImageView == ImageView.Null ) )
+                {
+                    return;
+				}
+				
                 var write = writes + index;
                 var descriptorData = descriptorDatas + index;
 
