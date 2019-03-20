@@ -24,6 +24,7 @@ namespace Xenko.Graphics
         private int framebufferAttachmentCount;
         private bool framebufferDirty = true;
         private Framebuffer activeFramebuffer;
+        private Texture dummyTexture;
 
         private SharpVulkan.DescriptorPool descriptorPool;
         private SharpVulkan.DescriptorSet descriptorSet;
@@ -42,6 +43,7 @@ namespace Xenko.Graphics
         private CommandList(GraphicsDevice device) : base(device)
         {
             Recreate();
+            dummyTexture = Texture.New2D(GraphicsDevice, 1, 1, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.ShaderResource);
         }
 
         private void Recreate()
@@ -317,13 +319,6 @@ namespace Xenko.Graphics
                 var sourceSet = boundDescriptorSets[mapping.SourceSet];
                 var heapObject = sourceSet.HeapObjects[sourceSet.DescriptorStartOffset + mapping.SourceBinding];
 
-                // if we don't have a loaded image for sampling yet, skip this whole prepare to avoid a memory access violation
-                if( mapping.DescriptorType == DescriptorType.SampledImage &&
-                    (heapObject.Value == null || ((Texture)heapObject.Value).NativeImageView == ImageView.Null ) )
-                {
-                    return;
-				}
-				
                 var write = writes + index;
                 var descriptorData = descriptorDatas + index;
 
@@ -341,7 +336,11 @@ namespace Xenko.Graphics
                 {
                     case DescriptorType.SampledImage:
                         var texture = heapObject.Value as Texture;
-                        descriptorData->ImageInfo = new DescriptorImageInfo { ImageView = texture?.NativeImageView ?? ImageView.Null, ImageLayout = ImageLayout.ShaderReadOnlyOptimal };
+                        descriptorData->ImageInfo = new DescriptorImageInfo
+                        {
+                            ImageView = (texture == null || texture.NativeImageView == ImageView.Null) ? dummyTexture.NativeImageView : texture.NativeImageView,
+                            ImageLayout = ImageLayout.ShaderReadOnlyOptimal
+                        };
                         write->ImageInfo = new IntPtr(descriptorData);
                         break;
 
