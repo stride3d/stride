@@ -20,7 +20,7 @@ namespace Xenko.Graphics
         /// <param name="position">The position of this vertex.</param>
         /// <param name="normal">The vertex normal.</param>
         /// <param name="color">the color</param>
-        public VertexPositionNormalColor(Vector3 position, Vector3 normal, Color color)
+        public VertexPositionNormalColor(Vector3 position, Vector3 normal, Color4 color)
             : this()
         {
             Position = position;
@@ -41,7 +41,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// The color.
         /// </summary>
-        public Color Color;
+        public Color4 Color;
 
         /// <summary>
         /// Defines structure byte size.
@@ -54,7 +54,7 @@ namespace Xenko.Graphics
         public static readonly VertexDeclaration Layout = new VertexDeclaration(
             VertexElement.Position<Vector3>(),
             VertexElement.Normal<Vector3>(),
-            VertexElement.Color<Color>());
+            VertexElement.Color<Color4>());
 
         public bool Equals(VertexPositionNormalColor other)
         {
