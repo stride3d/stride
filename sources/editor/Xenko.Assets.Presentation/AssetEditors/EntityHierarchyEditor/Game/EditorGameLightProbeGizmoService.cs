@@ -330,7 +330,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             var vertices = new VertexPositionNormalColor[lightProbeRuntimeData.LightProbes.Length];
             for (var i = 0; i < lightProbeRuntimeData.LightProbes.Length; i++)
             {
-                vertices[i] = new VertexPositionNormalColor(lightProbeRuntimeData.Vertices[i], Vector3.Zero, Color.White);
+                vertices[i] = new VertexPositionNormalColor(lightProbeRuntimeData.Vertices[i], Vector3.Zero, Color4.White);
             }
 
             // Generate data for index buffer
