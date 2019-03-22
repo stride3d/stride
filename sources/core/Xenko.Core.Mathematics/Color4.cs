@@ -159,8 +159,8 @@ namespace Xenko.Core.Mathematics
         {
             if (values == null)
                 throw new ArgumentNullException(nameof(values));
-            if (values.Length < 3)
-                throw new ArgumentOutOfRangeException(nameof(values), "There must be at least 3 float[] values for Color4.");
+            if (values.Length != 3 && values.Length != 4)
+                throw new ArgumentOutOfRangeException(nameof(values), "There must be 3 or 4 float[] values for Color4.");
 
             R = values[0];
             G = values[1];
