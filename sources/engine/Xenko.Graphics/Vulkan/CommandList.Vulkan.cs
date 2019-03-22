@@ -338,7 +338,7 @@ namespace Xenko.Graphics
                         var texture = heapObject.Value as Texture;
                         descriptorData->ImageInfo = new DescriptorImageInfo
                         {
-                            ImageView = (texture == null || texture.NativeImageView == ImageView.Null || texture.IsInitialized == false ) ? dummyTexture.NativeImageView : texture.NativeImageView,
+                            ImageView = (texture == null || texture.NativeImageView == ImageView.Null || texture.ReadyForSampling == false ) ? dummyTexture.NativeImageView : texture.NativeImageView,
                             ImageLayout = ImageLayout.ShaderReadOnlyOptimal
                         };
                         write->ImageInfo = new IntPtr(descriptorData);

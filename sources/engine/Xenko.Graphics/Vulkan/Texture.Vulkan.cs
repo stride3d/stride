@@ -23,7 +23,7 @@ namespace Xenko.Graphics
         internal ImageView NativeImageView;
 
         private bool isNotOwningResources;
-        internal bool IsInitialized;
+        internal bool IsInitialized, ReadyForSampling;
 
         internal Format NativeFormat;
         internal bool HasStencil;
@@ -52,6 +52,7 @@ namespace Xenko.Graphics
             Utilities.Swap(ref NativeImageView, ref other.NativeImageView);
             Utilities.Swap(ref isNotOwningResources, ref other.isNotOwningResources);
             Utilities.Swap(ref IsInitialized, ref other.IsInitialized);
+            Utilities.Swap(ref ReadyForSampling, ref other.ReadyForSampling);
             Utilities.Swap(ref NativeFormat, ref other.NativeFormat);
             Utilities.Swap(ref HasStencil, ref other.HasStencil);
             Utilities.Swap(ref NativeLayout, ref other.NativeLayout);
@@ -67,7 +68,6 @@ namespace Xenko.Graphics
         internal Texture InitializeFromPersistent(TextureDescription description, SharpVulkan.Image nativeImage)
         {
             NativeImage = nativeImage;
-
             return InitializeFrom(description);
         }
 
@@ -174,6 +174,7 @@ namespace Xenko.Graphics
                     NativeImageView = GetImageView(ViewType, ArraySlice, MipLevel);
                     NativeColorAttachmentView = GetColorAttachmentView(ViewType, ArraySlice, MipLevel);
                     NativeDepthStencilView = GetDepthStencilView();
+                    ReadyForSampling = true;
                 }
             }
         }
@@ -384,6 +385,8 @@ namespace Xenko.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
+            ReadyForSampling = false;
+
             if (ParentTexture != null || isNotOwningResources)
             {
                 NativeImage = SharpVulkan.Image.Null;
