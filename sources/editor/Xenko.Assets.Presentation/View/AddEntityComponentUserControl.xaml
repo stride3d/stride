@@ -52,7 +52,7 @@
                               DockPanel.Dock="Right" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                               ClickMode="Press"
                               Command="{Binding AddNewScriptComponentCommand}" CommandParameter="{Binding SearchToken}"
-                              ToolTip="{xk:Localize Create new script, Context=ToolTip}" Width="20" Height="20" Padding="2">
+                              ToolTip="{xk:Localize New script, Context=ToolTip}" Width="20" Height="20" Padding="2">
                         <Image Source="{StaticResource ImageNewScript}" Width="16" Height="16"/>
                       </Button>
                       <xk:TextBox x:Name="PART_EditableTextBox" ValidateOnLostFocus="False" VerticalAlignment="Center" Focusable="True"
