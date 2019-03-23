@@ -13,6 +13,7 @@ using MessageBoxImage = Xenko.Core.Presentation.Services.MessageBoxImage;
 using MessageBoxButton = Xenko.Core.Presentation.Services.MessageBoxButton;
 using Xenko.Core.Extensions;
 using Xenko.Core.Translation;
+using Xenko.Core.Assets.Templates;
 
 namespace Xenko.Assets.Presentation.Templates
 {
@@ -23,6 +24,8 @@ namespace Xenko.Assets.Presentation.Templates
     {
         private readonly ViewModelServiceProvider services;
         private static readonly List<string> ReservedNames = new List<string>();
+        private readonly bool overrideTemplate;
+        private readonly TemplateAssetDescription scriptTemplateDescription;
 
         static ScriptNameWindow()
         {
@@ -39,18 +42,35 @@ namespace Xenko.Assets.Presentation.Templates
             }
         }
 
-        public ScriptNameWindow(string defaultClassName, string defaultNamespace)
+        public ScriptNameWindow(
+            string defaultClassName, 
+            string defaultNamespace, 
+            bool overrideTemplate, 
+            TemplateAssetDescription scriptTemplateDescription, 
+            IEnumerable<TemplateAssetDescription> scriptTemplates)
         {
             var dispatcher = new DispatcherService(Dispatcher);
             services = new ViewModelServiceProvider(new object[] { dispatcher, new DialogService(dispatcher, EditorViewModel.Instance.EditorName) });
             InitializeComponent();
             ClassNameTextBox.Text = defaultClassName;
             NamespaceTextBox.Text = defaultNamespace;
+
+            TemplateComboBox.Visibility = overrideTemplate ? Visibility.Visible : Visibility.Collapsed;
+            if (overrideTemplate)
+            {
+                TemplateComboBox.ItemsSource = scriptTemplates;
+                TemplateComboBox.SelectedValue = scriptTemplateDescription; 
+            }
+
+            this.overrideTemplate = overrideTemplate;
+            this.scriptTemplateDescription = scriptTemplateDescription;
         }
 
         public string ClassName { get; private set; }
 
         public string Namespace { get; private set; }
+
+        public TemplateAssetDescription ScriptTemplateDescription { get; private set; }
 
         private async void Validate()
         {
@@ -63,6 +83,8 @@ namespace Xenko.Assets.Presentation.Templates
                 return;
             }
 
+            ScriptTemplateDescription = overrideTemplate ? TemplateComboBox.SelectedValue as TemplateAssetDescription : scriptTemplateDescription;
+
             Result = Xenko.Core.Presentation.Services.DialogResult.Ok;
             Close();
         }
@@ -71,6 +93,7 @@ namespace Xenko.Assets.Presentation.Templates
         {
             ClassName = null;
             Namespace = null;
+            ScriptTemplateDescription = null;
             Result = Xenko.Core.Presentation.Services.DialogResult.Cancel;
             Close();
         }
