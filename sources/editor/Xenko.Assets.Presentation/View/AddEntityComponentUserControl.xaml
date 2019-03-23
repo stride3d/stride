@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-            
+             xmlns:engine="clr-namespace:Xenko.Engine;assembly=Xenko.Engine"
+             
              xmlns:local="clr-namespace:Xenko.Assets.Presentation.View"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
@@ -13,7 +14,7 @@
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/CommonResources.xaml"/>
+        <ResourceDictionary Source="ImageDictionary.xaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
@@ -46,13 +47,13 @@
                     <ColumnDefinition/>
                   </Grid.ColumnDefinitions>
                   <DockPanel Grid.Column="0" Margin="4" x:Name="LeftPanel">
-                    <DockPanel Margin="4" DockPanel.Dock="Top">
-                      <Button VerticalAlignment="Center" Margin="8,0,0,0" Style="{StaticResource ImageButtonStyle}"
+                    <DockPanel Margin="0,4" DockPanel.Dock="Top">
+                      <Button VerticalAlignment="Center" Margin="4,0,0,0" Style="{StaticResource ImageButtonStyle}"
                               DockPanel.Dock="Right" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                               ClickMode="Press"
                               Command="{Binding AddNewScriptComponentCommand}" CommandParameter="{Binding SearchToken}"
                               ToolTip="{xk:Localize Create new script, Context=ToolTip}" Width="20" Height="20" Padding="2">
-                        <Image Source="{StaticResource ImageImportAsset}" Width="16" Height="16"/>
+                        <Image Source="{StaticResource ImageNewScript}" Width="16" Height="16"/>
                       </Button>
                       <xk:TextBox x:Name="PART_EditableTextBox" ValidateOnLostFocus="False" VerticalAlignment="Center" Focusable="True"
                                     WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
