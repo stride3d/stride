@@ -48,25 +48,13 @@ namespace Xenko.Assets.Presentation.NodePresenters.Commands
             var session = assetPresenter.Asset.Session;
             var serviceProvider = assetPresenter.Asset.ServiceProvider;
 
-            var templates = session.FindTemplates(TemplateScope.Asset)
-                                       .OfType<TemplateAssetDescription>()
-                                       .Where(t => t.AssetTypeName == ScriptTemplateGenerator.AssetTypeName)
-                                       .ToList();
-
-            var template = templates.FirstOrDefault();
+            var template = ScriptTemplateGenerator.GetScriptTemplateAssetDescriptions(session.FindTemplates(TemplateScope.Asset)).FirstOrDefault();
 
             if (template != null)
             {
                 var viewModel = new TemplateDescriptionViewModel(serviceProvider, template);
 
-                var customParameters = new PropertyContainer();
-
-                if (parameter is string className && !string.IsNullOrEmpty(className))
-                {
-                    customParameters[ScriptTemplateGenerator.DefaultClassNameKey] = className;
-                }
-
-                customParameters[ScriptTemplateGenerator.ShowScriptAssetDropdownKey] = true;
+                var customParameters = ScriptTemplateGenerator.GetAssetOverrideParameters(parameter as string, true);
 
                 var script = (await session.ActiveAssetView.RunAssetTemplate(viewModel, null, customParameters)).SingleOrDefault();
                 if (script == null)
@@ -80,5 +68,6 @@ namespace Xenko.Assets.Presentation.NodePresenters.Commands
             //}
         }
 
+        
     }
 }
