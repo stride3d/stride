@@ -2,19 +2,22 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-01-11 23:17:17+0900\n"
-"PO-Revision-Date: 2019-01-11 23:17:17+0900\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2019-03-24 02:39+0000\n"
+"Last-Translator: Allan Nordhøy <epost@anotheragency.no>\n"
+"Language-Team: Norwegian Bokmål <https://hosted.weblate.org/projects/xenko/"
+"coreassetseditor/nb_NO/>\n"
 "Language: nb_NO\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: MonoDevelop Gettext addin\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.6-dev\n"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:144
+#, fuzzy
 msgctxt "Properties"
 msgid "Loading properties..."
-msgstr ""
+msgstr "Laster inn egenskaper…"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/Properties/SessionObjectPropertiesViewModel.cs:131
 msgctxt "Properties"
@@ -57,43 +60,43 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:22
 msgctxt "Settings"
 msgid "Always save new scripts without asking"
-msgstr ""
+msgstr "Alltid lagre nye skript uten å spørre"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:25
 msgctxt "Settings"
 msgid "Environment"
-msgstr ""
+msgstr "Miljø"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:26
 msgctxt "Settings"
 msgid "External tools"
-msgstr ""
+msgstr "Eksterne verktøy"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:27
 msgctxt "Settings"
 msgid "Interface"
-msgstr ""
+msgstr "Grensesnitt"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:28
 msgctxt "Settings"
 msgid "Tools"
-msgstr ""
+msgstr "Verktøy"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:34
 msgctxt "Settings"
 msgid "Default text editor"
-msgstr ""
+msgstr "Forvalgt tekstbehandler"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:38
 msgctxt "Settings"
 msgid "Shader editor"
-msgstr ""
+msgstr "Skyggeleggingsredigerer"
 
 #. IDE: Integrated development environment (http://en.wikipedia.org/wiki/Integrated_development_environment)
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:48
 msgctxt "Settings"
 msgid "Default IDE"
-msgstr ""
+msgstr "Forvalgt IDE"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:52
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:53
@@ -128,12 +131,12 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:77
 msgctxt "Settings"
 msgid "Language"
-msgstr ""
+msgstr "Språk"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:81
 msgctxt "Settings"
 msgid "Reset"
-msgstr ""
+msgstr "Tilbakestill"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:82
 msgctxt "Settings"
@@ -156,9 +159,10 @@ msgid "Some changes will be applied after you restart Game Studio."
 msgstr ""
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:128
+#, fuzzy
 msgctxt "Properties"
 msgid "Select a settings category."
-msgstr ""
+msgstr "Velg en innstillingskategori."
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:138
 msgctxt "Properties"
@@ -186,7 +190,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1079
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1305
 msgid "(Different values)"
-msgstr ""
+msgstr "(Forskjellige verdier)"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:490
 msgctxt "Message"
@@ -245,7 +249,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:820
 msgctxt "Message"
 msgid "{0} can't be deleted. {1}{2}"
-msgstr ""
+msgstr "{0} kan ikke slettes. {1}{2}"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:867
 msgctxt "Message"
@@ -279,7 +283,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1488
 msgctxt "Message"
 msgid "These files aren't supported."
-msgstr ""
+msgstr "Disse filene støttes ikke."
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:593
 msgctxt "Message"
@@ -311,13 +315,13 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:191
 msgctxt "Message"
 msgid "Path is a device name"
-msgstr ""
+msgstr "Stien er et enhetsnavn"
 
 #. Message displayed when the previous attempt to load the startup project failed. {0} is a file name
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:137
 msgctxt "Button"
 msgid "Try again"
-msgstr ""
+msgstr "Prøv igjen"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:138
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:693
@@ -336,7 +340,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/WorkProgressWindow.xaml:32
 msgctxt "Button"
 msgid "Cancel"
-msgstr ""
+msgstr "Avbryt"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:140
 msgctxt "Message"
@@ -350,7 +354,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:172
 msgctxt "Message"
 msgid "The file '{0}' does not exist."
-msgstr ""
+msgstr "Filen '{0}' finnes ikke."
 
 #. Message displayed when trying to open an unsaved file with the text editor
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:202
@@ -378,42 +382,44 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:102
 msgctxt "Message"
 msgid "The name is too long."
-msgstr ""
+msgstr "Navnet er for langt."
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:108
 msgctxt "Message"
 msgid "The name contains invalid characters."
-msgstr ""
+msgstr "Navnet inneholder forbudte tegn."
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:114
 msgctxt "Message"
 msgid "The name is empty."
-msgstr ""
+msgstr "Navnet er tomt."
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:44
 msgid "External packages"
-msgstr ""
+msgstr "Eksterne pakker"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:45
 msgid "Local packages"
-msgstr ""
+msgstr "Lokale pakker"
 
 #. {0} is a file name
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:565
 msgid "Solution '{0}'"
-msgstr ""
+msgstr "Løsning \"{0}\""
 
 #. Title for the progress window of the session creation
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:254
+#, fuzzy
 msgctxt "Title"
 msgid "Creating session..."
-msgstr ""
+msgstr "Oppretter økt…"
 
 #. Title for the progress window of the session loading
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:366
+#, fuzzy
 msgctxt "Title"
 msgid "Opening session..."
-msgstr ""
+msgstr "Åpner økt…"
 
 #. Log message displayed when an exception occurs while opening a session.
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:399
@@ -443,13 +449,13 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:459
 msgctxt "Button"
 msgid "Upgrade"
-msgstr ""
+msgstr "Oppgrader"
 
 #. Displayed in a button (must be short)
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:460
 msgctxt "Button"
 msgid "Skip"
-msgstr ""
+msgstr "Hopp over"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:462
 msgctxt "Message"
@@ -461,7 +467,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:998
 msgctxt "Button"
 msgid "Save"
-msgstr ""
+msgstr "Lagre"
 
 #. Message displayed when trying to open a modified asset with the text editor
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:695
@@ -506,9 +512,10 @@ msgstr ""
 
 #. Title for the progress window of the session saving
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:853
+#, fuzzy
 msgctxt "Title"
 msgid "Saving session..."
-msgstr ""
+msgstr "Lagrer økt…"
 
 #. Log message displayed when an exception occurs while saving a session.
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:876
@@ -519,7 +526,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:999
 msgctxt "Button"
 msgid "Don't save"
-msgstr ""
+msgstr "Ikke lagre"
 
 #. Message displayed when closing an unsaved project
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1002
@@ -587,7 +594,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1672
 msgctxt "Button"
 msgid "Delete"
-msgstr ""
+msgstr "Slett"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1522
 msgctxt "Message"
@@ -751,7 +758,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/PackagePickerWindow.xaml:21
 msgctxt "ToolTip"
 msgid "Cancel (Esc)"
-msgstr ""
+msgstr "Avbryt (Esc)"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewProjectWindow.xaml:57
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:64
@@ -820,7 +827,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:28
 msgctxt "Menu"
 msgid "Rename"
-msgstr ""
+msgstr "Gi nytt navn"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:30
 msgctxt "Menu"
@@ -851,7 +858,7 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/PackagePickerWindow.xaml:15
 msgctxt "Button"
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:48
 msgctxt "ToolTip"
@@ -977,12 +984,12 @@ msgstr ""
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:387
 msgctxt "ToolTip"
 msgid "Zoom in"
-msgstr ""
+msgstr "Forstørr"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:392
 msgctxt "ToolTip"
 msgid "Zoom out"
-msgstr ""
+msgstr "Forminsk"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:397
 msgctxt "Menu"
@@ -1099,9 +1106,10 @@ msgstr ""
 
 #. As for "Select all items"
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1036
+#, fuzzy
 msgctxt "Button"
 msgid "All"
-msgstr ""
+msgstr "Alle"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1036
 msgctxt "ToolTip"
@@ -1110,9 +1118,10 @@ msgstr ""
 
 #. As for "Clear selection"
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1038
+#, fuzzy
 msgctxt "Button"
 msgid "None"
-msgstr ""
+msgstr "Ingen"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:1038
 msgctxt "ToolTip"
