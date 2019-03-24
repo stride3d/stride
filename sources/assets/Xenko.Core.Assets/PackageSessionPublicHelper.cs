@@ -71,7 +71,7 @@ namespace Xenko.Core.Assets
             {
                 if (s_msBuildToolVersions.Select(ver => projectCollection.GetToolset(ver)).Any())
                 {
-                    throw new InvalidOperationException("Could not find MSBuild toolset 15.0");
+                    throw new InvalidOperationException("Could not find a supported MSBuild toolset version");
                 }
             }
         }
