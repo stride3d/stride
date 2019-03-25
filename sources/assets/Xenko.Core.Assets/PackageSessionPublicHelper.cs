@@ -20,12 +20,6 @@ namespace Xenko.Core.Assets
             "Microsoft.Build.Utilities.Core"
         };
 
-        private static readonly string[] s_msBuildToolVersions =
-        {
-            "15.0",
-            "16.0"
-        };
-
         private static int MSBuildLocatorCount = 0;
         private static VisualStudioInstance MSBuildInstance;
 
@@ -69,7 +63,7 @@ namespace Xenko.Core.Assets
             // Check that we can create a project
             using (var projectCollection = new Microsoft.Build.Evaluation.ProjectCollection())
             {
-                if (!s_msBuildToolVersions.Select(ver => projectCollection.GetToolset(ver)).Any())
+                if (projectCollection.Toolsets.Any(x => new Version(x.ToolsVersion).Major >= 15))
                 {
                     throw new InvalidOperationException("Could not find a supported MSBuild toolset version");
                 }
