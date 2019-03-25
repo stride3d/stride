@@ -20,7 +20,7 @@ namespace Xenko.Graphics
         /// <param name="color">The color of this vertex.</param>
         /// <param name="textureCoordinate">UV texture coordinates.</param>
         /// <param name="swizzle">The swizzle mode</param>
-        public VertexPositionColorTextureSwizzle(Vector4 position, Color color, Color colorAdd, Vector2 textureCoordinate, SwizzleMode swizzle)
+        public VertexPositionColorTextureSwizzle(Vector4 position, Color4 color, Color4 colorAdd, Vector2 textureCoordinate, SwizzleMode swizzle)
             : this()
         {
             Position = position;

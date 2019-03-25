@@ -18,7 +18,7 @@ namespace Xenko.Graphics
         /// <param name="position">The position of this vertex.</param>
         /// <param name="color">The color of this vertex.</param>
         /// <param name="textureCoordinate">UV texture coordinates.</param>
-        public VertexPositionColorTexture(Vector3 position, Color color, Vector2 textureCoordinate)
+        public VertexPositionColorTexture(Vector3 position, Color4 color, Vector2 textureCoordinate)
             : this()
         {
             Position = position;
@@ -34,7 +34,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// The vertex color.
         /// </summary>
-        public Color Color;
+        public Color4 Color;
 
         /// <summary>
         /// UV texture coordinates.
@@ -44,14 +44,14 @@ namespace Xenko.Graphics
         /// <summary>
         /// Defines structure byte size.
         /// </summary>
-        public static readonly int Size = 24;
+        public static readonly int Size = 36;
 
         /// <summary>
         /// The vertex layout of this struct.
         /// </summary>
         public static readonly VertexDeclaration Layout = new VertexDeclaration(
             VertexElement.Position<Vector3>(),
-            VertexElement.Color<Color>(),
+            VertexElement.Color<Color4>(),
             VertexElement.TextureCoordinate<Vector2>());
 
         public bool Equals(VertexPositionColorTexture other)

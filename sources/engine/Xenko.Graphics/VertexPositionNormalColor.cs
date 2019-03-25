@@ -46,7 +46,7 @@ namespace Xenko.Graphics
         /// <summary>
         /// Defines structure byte size.
         /// </summary>
-        public static readonly int Size = 28;
+        public static readonly int Size = 40;
 
         /// <summary>
         /// The vertex layout of this structure.
