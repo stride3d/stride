@@ -21,8 +21,6 @@ namespace Xenko.Physics
 
         static Bullet2PhysicsSystem()
         {
-            // Preload proper libbulletc native library (depending on CPU type)
-            NativeLibrary.PreloadLibrary("libbulletc.dll", typeof(Bullet2PhysicsSystem));
         }
 
         public Bullet2PhysicsSystem(IServiceRegistry registry)
