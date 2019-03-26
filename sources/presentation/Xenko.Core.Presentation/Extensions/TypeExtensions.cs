@@ -61,7 +61,7 @@ namespace Xenko.Core.Presentation.Extensions
                 return fullTypeName.Substring(simpleNameStart);
             }
 
-            if(Nullable.GetUnderlyingType(type) is Type nullableType)
+            if (Nullable.GetUnderlyingType(type) is Type nullableType)
             {
                 return ToSimpleCSharpName(nullableType) + "?";
             }
