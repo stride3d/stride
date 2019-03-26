@@ -280,6 +280,32 @@ namespace Xenko.Engine
             UpdateWorldMatrixInternal(true);
         }
 
+        /// <summary>
+        /// Gets the world position.
+        /// Default call does not recalcuate the position. It just gets the last frame's position quickly.
+        /// If you pass true to this function, it will update the world position (which is a costly procedure) to get the most up-to-date position.
+        /// </summary>
+        public Vector3 WorldPosition(bool recalculate = false)
+        {
+            if (recalculate) UpdateWorldMatrix();
+            return WorldMatrix.TranslationVector;
+        }
+
+        /// <summary>
+        /// Gets the world rotation.
+        /// Default call does not recalcuate the rotation. It just gets the last frame's rotation (relatively) quickly.
+        /// If you pass true to this function, it will update the world position (which is a costly procedure) to get the most up-to-date rotation.
+        /// </summary>
+        public Quaternion WorldRotation(bool recalculate = false)
+        {
+            if (recalculate) UpdateWorldMatrix();
+            if (WorldMatrix.GetRotationQuaternion(out Quaternion q)) {
+                return q;
+            } else {
+                return Quaternion.Identity;
+            }
+        }
+
         internal void UpdateWorldMatrixInternal(bool recursive)
         {
             if (TransformLink != null)

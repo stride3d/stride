@@ -426,13 +426,10 @@ namespace Xenko.Physics
             Data.PhysicsComponent.Simulation.SimulationProfiler.Mark();
             Data.PhysicsComponent.Simulation.UpdatedRigidbodies++;
 
-            if (BoneIndex == -1)
-            {
-                DerivePhysicsTransformation(out physicsTransform);
-            }
-            else
-            {
-                DeriveBonePhysicsTransformation(out physicsTransform);
+            if (BoneIndex == -1) {
+                DerivePhysicsTransform(ref Entity.Transform.WorldMatrix, out physicsTransform);
+            } else {
+                DerivePhysicsTransform(ref BoneWorldMatrix, out physicsTransform);
             }
         }
 

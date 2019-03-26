@@ -439,6 +439,12 @@ namespace Xenko.Engine
             DebugEntity = null;
         }
 
+        public void SetPhysicsTransform(Vector3? worldPosition = null, Matrix? worldRotation = null, Vector3? worldScale = null) 
+        {
+            DerivePhysicsTransform(worldPosition, worldRotation, worldScale, out Matrix outMatrix);
+            PhysicsWorldTransform = outMatrix;
+        }
+
         #endregion Ignore or Private/Internal
 
         #region Utility
@@ -447,70 +453,41 @@ namespace Xenko.Engine
         /// Computes the physics transformation from the TransformComponent values
         /// </summary>
         /// <returns></returns>
-        internal void DerivePhysicsTransformation(out Matrix derivedTransformation)
+        internal void DerivePhysicsTransform(ref Matrix fromMatrix, out Matrix outMatrix)
         {
-            Matrix rotation;
-            Vector3 translation;
-            Vector3 scale;
-            Entity.Transform.WorldMatrix.Decompose(out scale, out rotation, out translation);
-
-            var translationMatrix = Matrix.Translation(translation);
-            Matrix.Multiply(ref rotation, ref translationMatrix, out derivedTransformation);
-
-            //handle dynamic scaling if allowed (aka not using assets)
-            if (CanScaleShape)
-            {
-                if (ColliderShape.Scaling != scale)
-                {
-                    ColliderShape.Scaling = scale;
-                }
-            }
-
-            //Handle collider shape offset
-            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
-            {
-                derivedTransformation = Matrix.Multiply(ColliderShape.PositiveCenterMatrix, derivedTransformation);
-            }
-
-            if (DebugEntity == null) return;
-
-            derivedTransformation.Decompose(out scale, out rotation, out translation);
-            DebugEntity.Transform.Position = translation;
-            DebugEntity.Transform.Rotation = Quaternion.RotationMatrix(rotation);
+            fromMatrix.Decompose(out Vector3 scale, out Matrix rotation, out Vector3 translation);
+            DerivePhysicsTransform(translation, rotation, scale, out outMatrix);
         }
 
-        /// <summary>
-        /// Computes the physics transformation from the TransformComponent values
-        /// </summary>
-        /// <returns></returns>
-        internal void DeriveBonePhysicsTransformation(out Matrix derivedTransformation)
+        internal void DerivePhysicsTransform(Vector3? worldPosition, Matrix? worldRotation, Vector3? worldScale, out Matrix outMatrix)
         {
+            Vector3 translation = worldPosition ?? Entity.Transform.WorldPosition(), scale = worldScale ?? Entity.Transform.WorldMatrix.ScaleVector;
             Matrix rotation;
-            Vector3 translation;
-            Vector3 scale;
-            BoneWorldMatrix.Decompose(out scale, out rotation, out translation);
+
+            if (worldRotation.HasValue) {
+                rotation = worldRotation.Value;
+            } else {
+                Entity.Transform.WorldMatrix.GetRotationMatrix(out rotation);
+            }
 
             var translationMatrix = Matrix.Translation(translation);
-            Matrix.Multiply(ref rotation, ref translationMatrix, out derivedTransformation);
+            Matrix.Multiply(ref rotation, ref translationMatrix, out outMatrix);
 
             //handle dynamic scaling if allowed (aka not using assets)
-            if (CanScaleShape)
-            {
-                if (ColliderShape.Scaling != scale)
-                {
+            if (CanScaleShape) {
+                if (ColliderShape.Scaling != scale) {
                     ColliderShape.Scaling = scale;
                 }
             }
 
             //Handle collider shape offset
-            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity)
-            {
-                derivedTransformation = Matrix.Multiply(ColliderShape.PositiveCenterMatrix, derivedTransformation);
+            if (ColliderShape.LocalOffset != Vector3.Zero || ColliderShape.LocalRotation != Quaternion.Identity) {
+                outMatrix = Matrix.Multiply(ColliderShape.PositiveCenterMatrix, outMatrix);
             }
 
             if (DebugEntity == null) return;
 
-            derivedTransformation.Decompose(out scale, out rotation, out translation);
+            outMatrix.Decompose(out scale, out rotation, out translation);
             DebugEntity.Transform.Position = translation;
             DebugEntity.Transform.Rotation = Quaternion.RotationMatrix(rotation);
         }
@@ -596,15 +573,11 @@ namespace Xenko.Engine
         public void UpdatePhysicsTransformation()
         {
             Matrix transform;
-            if (BoneIndex == -1)
-            {
-                DerivePhysicsTransformation(out transform);
+            if (BoneIndex == -1) {
+                DerivePhysicsTransform(ref Entity.Transform.WorldMatrix, out transform);
+            } else {
+                DerivePhysicsTransform(ref BoneWorldMatrix, out transform);
             }
-            else
-            {
-                DeriveBonePhysicsTransformation(out transform);
-            }
-            //finally copy back to bullet
             PhysicsWorldTransform = transform;
         }
 
@@ -685,18 +658,22 @@ namespace Xenko.Engine
             //this is not optimal as UpdateWorldMatrix will end up being called twice this frame.. but we need to ensure that we have valid data.
             Entity.Transform.UpdateWorldMatrix();
 
-            if (ColliderShapes.Count == 0)
-            {
-                logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
-                return; //no shape no purpose
-            }
-
-            if (ColliderShape == null) ComposeShape();
-
+            // if we don't already have a collidershape, try to construct one with ColliderShapes
             if (ColliderShape == null)
             {
-                logger.Error($"Entity {Entity.Name} has a PhysicsComponent but it failed to compose the collider shape.");
-                return; //no shape no purpose
+                if (ColliderShapes.Count == 0)
+                {
+                    logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
+                    return; //no shape no purpose
+                }
+
+                ComposeShape();
+
+                if (ColliderShape == null)
+                {
+                    logger.Error($"Entity {Entity.Name} has a PhysicsComponent but it failed to compose the collider shape.");
+                    return; //no shape no purpose
+                }
             }
 
             BoneIndex = -1;
