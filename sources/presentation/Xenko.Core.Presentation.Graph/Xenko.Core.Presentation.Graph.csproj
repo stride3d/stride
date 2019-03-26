@@ -43,10 +43,8 @@
     </Compile>  
   </ItemGroup>
   <ItemGroup>
-    <Page Include="Themes\generic.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
+    <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
+    <Compile Update="**\*.xaml.cs" SubType="Code" DependentUpon="%(Filename)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Core.Presentation\Xenko.Core.Presentation.csproj" />

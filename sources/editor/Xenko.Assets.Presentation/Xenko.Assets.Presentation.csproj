@@ -57,274 +57,32 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Update="AssetEditors\GraphicsCompositorEditor\Views\GraphicsCompositorEditorView.xaml.cs">
-      <DependentUpon>GraphicsCompositorEditorView.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="AssetEditors\ScriptEditor\ScriptEditorView.xaml.cs">
-      <DependentUpon>ScriptEditorView.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="AssetEditors\UIEditor\Views\UIEditorView.xaml.cs">
-      <DependentUpon>UIEditorView.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="AssetEditors\VisualScriptEditor\Views\VisualScriptEditorView.xaml.cs">
-      <DependentUpon>VisualScriptEditorView.xaml</DependentUpon>
-    </Compile>
-    <EmbeddedResource Update="Resources\Strings\Messages.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Messages.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\GraphicsCompositorEditor.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>GraphicsCompositorEditor.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\VisualScriptEditor.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>VisualScriptEditor.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\SpriteEditor.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>SpriteEditor.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\KeyGestures.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>KeyGestures.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\ScriptEditor.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>ScriptEditor.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\UIEditor.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>UIEditor.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\KeyGestures.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>KeyGestures.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Thumbnails\StaticThumbnails.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>StaticThumbnails.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <None Include="app.config" />
+    <None Include="*.cd" />
+    <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
+    <Compile Update="**\*.xaml.cs" SubType="Code" DependentUpon="%(Filename)" />
     <EmbeddedResource Update="AssetEditors\Gizmos\GizmoResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>GizmoResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Update="Resources\Strings\Messages.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Messages.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\GraphicsCompositorEditor.Designer.cs">
-      <DependentUpon>GraphicsCompositorEditor.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Update="Resources\Strings\VisualScriptEditor.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>VisualScriptEditor.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\SpriteEditor.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SpriteEditor.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\KeyGestures.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>KeyGestures.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\ScriptEditor.Designer.cs">
-      <DependentUpon>ScriptEditor.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Update="Resources\Strings\UIEditor.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>UIEditor.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Thumbnails\StaticThumbnails.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>StaticThumbnails.resx</DependentUpon>
-    </Compile>
-    <None Include="AssetEditors.cd" />
-    <Compile Update="Templates\ModelAssetTemplateWindow.xaml.cs">
-      <DependentUpon>ModelAssetTemplateWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\ScriptNameWindow.xaml.cs">
-      <DependentUpon>ScriptNameWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\AddEntityComponentUserControl.xaml.cs">
-      <DependentUpon>AddEntityComponentUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\DebugEntityHierarchyEditorUserControl.xaml.cs">
-      <DependentUpon>DebugEntityHierarchyEditorUserControl.xaml</DependentUpon>
-    </Compile>
     <Compile Update="AssetEditors\Gizmos\GizmoResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>GizmoResources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\SelectedSprite.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>SelectedSprite.xkfx</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\XenkoEditorHighlightingEffect.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>XenkoEditorHighlightingEffect.xkfx</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\XenkoEditorMaterialPreviewEffect.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>XenkoEditorMaterialPreviewEffect.xkfx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\Scene.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Scene.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\XenkoEditorForwardShadingEffect.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>XenkoEditorForwardShadingEffect.xkfx</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\PreviewTexture.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>PreviewTexture.xkfx</DependentUpon>
-    </Compile>
-    <Compile Update="Shaders\SceneEditorParameters.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>SceneEditorParameters.xkfx</DependentUpon>
-    </Compile>
-    <None Include="CurveEditor.cd" />
-    <None Include="Shaders\SelectedSprite.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>SelectedSprite.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\XenkoEditorHighlightingEffect.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>XenkoEditorHighlightingEffect.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\XenkoEditorMaterialPreviewEffect.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>XenkoEditorMaterialPreviewEffect.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\PreviewTexture.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>PreviewTexture.cs</LastGenOutput>
-    </None>
-    <Compile Update="CurveEditor\Views\CurveEditorView.xaml.cs">
-      <DependentUpon>CurveEditorView.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\DebuggerPickerWindow.xaml.cs">
-      <DependentUpon>DebuggerPickerWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="AssetEditors\EntityHierarchyEditor\Views\EntityPickerWindow.xaml.cs">
-      <DependentUpon>EntityPickerWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\GameTemplateWindow.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>GameTemplateWindow.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\PropertyTemplates.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>PropertyTemplates.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\TextureBasePreviewView.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>TextureBasePreviewView.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\ProjectLibraryWindow.xaml.cs">
-      <DependentUpon>ProjectLibraryWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\UpdatePlatformsWindows.xaml.cs">
-      <DependentUpon>UpdatePlatformsWindows.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Templates\GameTemplateWindow.xaml.cs">
-      <DependentUpon>GameTemplateWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Update="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <Compile Update="AssetEditors\EntityHierarchyEditor\Views\EntityHierarchyEditorView.xaml.cs">
-      <DependentUpon>EntityHierarchyEditorView.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="AssetEditors\SpriteEditor\Views\SpriteEditorView.xaml.cs">
-      <DependentUpon>SpriteEditorView.xaml</DependentUpon>
-    </Compile>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\GameTemplateWindow.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>GameTemplateWindow.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\PropertyTemplates.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>PropertyTemplates.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\Scene.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Scene.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\TextureBasePreviewView.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>TextureBasePreviewView.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <None Include="app.config" />
-    <None Include="Shaders\XenkoEditorForwardShadingEffect.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>XenkoEditorForwardShadingEffect.cs</LastGenOutput>
-    </None>
-    <None Include="Shaders\SceneEditorParameters.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>SceneEditorParameters.cs</LastGenOutput>
-    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-	<Compile Remove="Templates\Core\**" />
-	<Compile Remove="Templates\Assets\**" />
-	<None Include="Templates\Core\**" />
-	<None Include="Templates\Assets\**" />
-	<None Remove="EditorPackage\buildpath\**" />
-	<None Remove="EditorPackage\outputpath\**" />
+	  <None Remove="EditorPackage\buildpath\**" />
+	  <None Remove="EditorPackage\outputpath\**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets.Quantum\Xenko.Core.Assets.Quantum.csproj" />
@@ -339,458 +97,54 @@
     <ProjectReference Include="..\Xenko.Samples.Templates\Xenko.Samples.Templates.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="AssetEditors\GraphicsCompositorEditor\Views\GraphicsCompositorEditorView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="AssetEditors\ScriptEditor\Resources\ThemeScriptEditor.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="AssetEditors\ScriptEditor\Resources\Icons.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="AssetEditors\ScriptEditor\ScriptEditorView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="AssetEditors\UIEditor\Views\UIEditorView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="AssetEditors\VisualScriptEditor\Views\VisualScriptEditorView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="AssetEditors\VisualScriptEditor\Views\GraphTemplates.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Templates\ModelAssetTemplateWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Templates\ScriptNameWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\AddEntityComponentUserControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\DebugEntityHierarchyEditorUserControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Templates\ProjectLibraryWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Templates\UpdatePlatformsWindows.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Templates\GameTemplateWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\AnimationPropertyTemplates.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="CurveEditor\Views\CurveEditorView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="AssetEditors\EntityHierarchyEditor\Views\EntityPickerWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\DebuggerPickerWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="AssetEditors\EntityHierarchyEditor\Views\EntityHierarchyEditorView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\EntityPropertyTemplates.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\ImageDictionary.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Themes\Generic.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\GraphicsCompositorTemplates.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\VisualScriptingTemplates.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\UIPropertyTemplates.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\SpriteFontPropertyTemplates.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\MaterialPropertyTemplates.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\SkeletonPropertyTemplates.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="AssetEditors\SpriteEditor\Views\SpriteEditorView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\edit-bold.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\edit-italic.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\control-pause.png" />
-    <Resource Include="Resources\Icons\control.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\cube.png" />
-    <Resource Include="Resources\Icons\cylinder.png" />
-    <Resource Include="Resources\Icons\sphere.png" />
-    <Resource Include="Resources\Icons\torus.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\camera.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\exclamation-circle.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\arrow-090-medium.png" />
-    <Resource Include="Resources\Icons\arrow-270-medium.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\move_24.png" />
-    <Resource Include="Resources\Icons\rotate_24.png" />
-    <Resource Include="Resources\Icons\scale_24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\camera_24.png" />
-    <Resource Include="Resources\Icons\wooden-box.png" />
-    <Resource Include="Resources\Icons\globe-green_24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\move_24+lock.png" />
-    <Resource Include="Resources\Icons\rotate_24+lock.png" />
-    <Resource Include="Resources\Icons\scale_24+lock.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\eye_24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\globe-green.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\zsphere_16.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
+  <!-- Resources -->
   <ItemGroup>
-    <Resource Include="Resources\Icons\zsphere_24.png" />
-    <Resource Include="Resources\Icons\plane.png" />
-    <Resource Include="Resources\Icons\teapot.png" />
-    <Resource Include="Resources\Icons\magnifier-small.png" />
-    <Resource Include="Resources\Icons\capsule.png" />
-    <Resource Include="Resources\Icons\cone.png" />
-    <Resource Include="Resources\Icons\gizmos.png" />
-    <Resource Include="Resources\Icons\selection_mask_yellow.png" />
-    <Resource Include="Resources\Icons\infinite_light_24.png" />
+    <Resource Include="Resources\Components\*.png" />
+    <Resource Include="Resources\Gizmos\*.png" />
+    <Resource Include="Resources\Icons\*.png" />
+    <Compile Update="Resources\Strings\KeyGestures.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>KeyGestures.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Strings\KeyGestures.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>KeyGestures.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Resources\Thumbnails\*.png" />
+    <Compile Update="Resources\Thumbnails\StaticThumbnails.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>StaticThumbnails.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Thumbnails\StaticThumbnails.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>StaticThumbnails.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\*.cur" />
   </ItemGroup>
+  <!-- Shaders -->
   <ItemGroup>
-    <Resource Include="Resources\Components\animation-16.png" />
-    <Resource Include="Resources\Components\background-16.png" />
-    <Resource Include="Resources\Components\camera-16.png" />
-    <Resource Include="Resources\Components\light-16.png" />
-    <Resource Include="Resources\Components\model-16.png" />
-    <Resource Include="Resources\Components\modelnodelink-16.png" />
-    <Resource Include="Resources\Components\physics-16.png" />
-    <Resource Include="Resources\Components\script-16.png" />
-    <Resource Include="Resources\Components\sprite-16.png" />
-    <Resource Include="Resources\Components\ui-16.png" />
+    <Compile Update="Shaders\*.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>%(Filename).xkfx</DependentUpon>
+    </Compile>
+    <None Include="Shaders\*.xkfx">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>%(Filename).cs</LastGenOutput>
+    </None>
   </ItemGroup>
+  <!-- Templates -->
   <ItemGroup>
-    <Resource Include="Resources\Components\audioemitter-16.png" />
-    <Resource Include="Resources\Components\audiolistener-16.png" />
-    <Resource Include="Resources\Components\entity-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Gizmos\AudioGizmo.png" />
-    <Resource Include="Resources\Gizmos\BackgroundGizmo.png" />
-    <Resource Include="Resources\Gizmos\CameraGizmo.png" />
-    <Resource Include="Resources\Gizmos\FallbackGizmo.png" />
-    <Resource Include="Resources\Gizmos\NodeLinkGizmo.png" />
-    <Resource Include="Resources\Gizmos\PointLightGizmo.png" />
-    <Resource Include="Resources\Gizmos\ScriptGizmo.png" />
-    <Resource Include="Resources\Gizmos\SkyboxLightGizmo.png" />
-    <Resource Include="Resources\Gizmos\SpotLightGizmo.png" />
-    <Resource Include="Resources\Gizmos\SunLightGizmo.png" />
-    <Resource Include="Resources\Gizmos\UIGizmo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Gizmos\AmbientLightGizmo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Gizmos\AudioListenerGizmo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Components\folder-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\slides.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\wand-magic.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\MagicWand.cur" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\image-select.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\image-resize-actual.png" />
-    <Resource Include="Resources\Icons\image-resize.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\magnifier-zoom-fit.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\pipette.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\ColorPicker.cur" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Components\spritestudio-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\lock-unlock.png" />
-    <Resource Include="Resources\Icons\lock.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Components\particle-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Gizmos\ParticleGizmo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Thumbnails\SkeletonThumbnail.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\create_skeleton-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\lightbulb-16.png" />
-    <Resource Include="Resources\Icons\android.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\ios-icon-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\windows.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\uwp.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\control-stop.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\curve-24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\curve-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\curve_fit-32.png" />
-    <Resource Include="Resources\Icons\curve_fit_height-32.png" />
-    <Resource Include="Resources\Icons\curve_fit_width-32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\end-32.png" />
-    <Resource Include="Resources\Icons\play-32.png" />
-    <Resource Include="Resources\Icons\skip_to_start-32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Core\.xktpl\NewCode.png" />
-    <None Include="Templates\Core\.xktpl\NewGame.png" />
-    <None Include="Templates\Core\.xktpl\NewGameScreenshot.jpg" />
-    <None Include="Templates\Core\.xktpl\NewPackage.png" />
-    <None Include="Templates\Core\.xktpl\UpdatePlatforms.png" />
-    <None Include="Templates\Core\ProjectExecutable.Android\Resources\drawable\XenkoIcon.png" />
-    <None Include="Templates\Core\ProjectExecutable.iOS\Resources\Default-568h%402x.png" />
-    <None Include="Templates\Core\ProjectExecutable.iOS\Resources\XenkoIcon114.png" />
-    <None Include="Templates\Core\ProjectExecutable.iOS\Resources\XenkoIcon120.png" />
-    <None Include="Templates\Core\ProjectExecutable.iOS\Resources\XenkoIcon57.png" />
-    <None Include="Templates\Core\ProjectExecutable.Linux\Resources\XenkoIcon.ico" />
-    <None Include="Templates\Core\ProjectExecutable.macOS\Resources\XenkoIcon.ico" />
-    <None Include="Templates\Core\ProjectExecutable.UWP\Assets\XenkoIcon100x100.png" />
-    <None Include="Templates\Core\ProjectExecutable.UWP\Assets\XenkoIcon150x150.png" />
-    <None Include="Templates\Core\ProjectExecutable.UWP\Assets\XenkoIcon300x300.png" />
-    <None Include="Templates\Core\ProjectExecutable.UWP\Assets\XenkoIcon44x44.png" />
-    <None Include="Templates\Core\ProjectExecutable.UWP\Assets\XenkoIcon50x50.png" />
-    <None Include="Templates\Core\ProjectExecutable.UWP\Assets\XenkoIcon88x88.png" />
-    <None Include="Templates\Core\ProjectExecutable.UWP\Assets\XenkoSplashScreen1240x600.png" />
-    <None Include="Templates\Core\ProjectExecutable.UWP\Assets\XenkoSplashScreen620x300.png" />
-    <None Include="Templates\Core\ProjectExecutable.UWP\Properties\Default.rd.xml" />
-    <None Include="Templates\Core\ProjectExecutable.Windows\Resources\XenkoIcon.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Assets\.xktpl\ProceduralCapsule.png" />
-    <None Include="Templates\Assets\.xktpl\ProceduralCone.png" />
-    <None Include="Templates\Assets\.xktpl\ProceduralCube.png" />
-    <None Include="Templates\Assets\.xktpl\ProceduralCylinder.png" />
-    <None Include="Templates\Assets\.xktpl\ProceduralGeoSphere.png" />
-    <None Include="Templates\Assets\.xktpl\ProceduralModel.png" />
-    <None Include="Templates\Assets\.xktpl\ProceduralPlane.png" />
-    <None Include="Templates\Assets\.xktpl\ProceduralSphere.png" />
-    <None Include="Templates\Assets\.xktpl\ProceduralTeapot.png" />
-    <None Include="Templates\Assets\.xktpl\ProceduralTore.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Assets\.xktpl\Animation.png" />
-    <None Include="Templates\Assets\.xktpl\DefaultAsset.png" />
-    <None Include="Templates\Assets\.xktpl\Prefab.png" />
-    <None Include="Templates\Assets\.xktpl\Scene.png" />
-    <None Include="Templates\Assets\.xktpl\Skeleton.png" />
-    <None Include="Templates\Assets\.xktpl\SoundEffect.png" />
-    <None Include="Templates\Assets\.xktpl\SoundMusic.png" />
-    <None Include="Templates\Assets\.xktpl\SourceCode.png" />
-    <None Include="Templates\Assets\.xktpl\Sprite.png" />
-    <None Include="Templates\Assets\.xktpl\SpriteFont.png" />
-    <None Include="Templates\Assets\.xktpl\SpriteUI.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\animal-penguin.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Assets\.xktpl\ColliderCapsule.png" />
-    <None Include="Templates\Assets\.xktpl\ColliderCube.png" />
-    <None Include="Templates\Assets\.xktpl\ColliderCylinder.png" />
-    <None Include="Templates\Assets\.xktpl\ColliderHull.png" />
-    <None Include="Templates\Assets\.xktpl\ColliderPlane.png" />
-    <None Include="Templates\Assets\.xktpl\ColliderShape.png" />
-    <None Include="Templates\Assets\.xktpl\ColliderSphere.png" />
-    <None Include="Templates\Assets\.xktpl\Material.png" />
-    <None Include="Templates\Assets\.xktpl\Skybox.png" />
-    <None Include="Templates\Assets\.xktpl\Texture.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="AssetEditors\AssetCompositeGameEditor\Game\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Assets\.xktpl\MaterialDiffuse.png" />
-    <None Include="Templates\Assets\.xktpl\MaterialEmpty.png" />
-    <None Include="Templates\Assets\.xktpl\MaterialMetalness.png" />
-    <None Include="Templates\Assets\.xktpl\MaterialSpecular.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\mac-os.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\down-16.png" />
-    <Resource Include="Resources\Icons\left-16.png" />
-    <Resource Include="Resources\Icons\right-16.png" />
-    <Resource Include="Resources\Icons\up-16.png" />
-    <Resource Include="Resources\Icons\layers-arrange-back.png" />
-    <Resource Include="Resources\Icons\layers-arrange.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\eye-16.png" />
-    <Resource Include="Resources\Icons\eye-hide-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\magnifier-medium.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Components\scene-blue-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\lock-unlock-gray.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\cube_map_24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\light_probes_compute.png" />
-    <Resource Include="Resources\Icons\light_probes_reset.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\navigation.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Thumbnails\AnimationThumbnail.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Thumbnails\SoundThumbnail.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Thumbnails\SceneThumbnail.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Thumbnails\ScriptSourceFileThumbnail.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Thumbnails\GameSettingsThumbnail.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Thumbnails\SkyboxThumbnail.png" />
-    <None Include="Resources\Thumbnails\UILibraryThumbnail.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Thumbnails\GraphicsCompositorThumbnail.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Assets\.xktpl\ColliderCone.png" />
-    <None Include="Templates\Assets\.xktpl\RenderTexture.png" />
-    <None Include="Templates\Assets\.xktpl\TextureColor.png" />
-    <None Include="Templates\Assets\.xktpl\TextureGray.png" />
-    <None Include="Templates\Assets\.xktpl\TextureNormal.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Assets\.xktpl\UI.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Assets\.xktpl\GraphicsCompositor.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Assets\.xktpl\MaterialClearCoat.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Assets\.xktpl\MaterialGlass.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Templates\Assets\.xktpl\Video.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Thumbnails\VideoThumbnail.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Components\video-16.png" />
+    <Compile Remove="Templates\Core\**" />
+    <Compile Remove="Templates\Assets\**" />
+    <None Include="Templates\Core\**" />
+    <None Include="Templates\Assets\**" />
   </ItemGroup>
   <ItemGroup>
     <None Update="View\AddEntityComponentUserControl.xaml">
