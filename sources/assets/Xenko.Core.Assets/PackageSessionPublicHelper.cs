@@ -63,13 +63,11 @@ namespace Xenko.Core.Assets
             // Check that we can create a project
             using (var projectCollection = new Microsoft.Build.Evaluation.ProjectCollection())
             {
-                if (projectCollection.Toolsets.Any(x => new Version(x.ToolsVersion).Major >= 15))
+                if (!projectCollection.Toolsets.Any(x => new Version(x.ToolsVersion).Major >= 15))
                 {
-                    return;
+                    throw new InvalidOperationException("Could not find a supported MSBuild toolset version");
                 }
             }
-
-            throw new InvalidOperationException("Could not find a supported MSBuild toolset version");
         }
     }
 }
