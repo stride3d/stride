@@ -1249,26 +1249,26 @@ namespace Xenko.Physics
             }
         }
 
-        private readonly FastList<ContactPoint> previousToRemove = new FastList<ContactPoint>();
+        private readonly FastList<ContactPoint> currentToRemove = new FastList<ContactPoint>();
 
         internal void CleanContacts(PhysicsComponent component)
         {
-            previousToRemove.Clear(true);
+            currentToRemove.Clear(true);
 
-            foreach (var previousFrameContact in previousFrameContacts)
+            foreach (var currentFrameContact in currentFrameContacts)
             {
-                var component0 = previousFrameContact.ColliderA;
-                var component1 = previousFrameContact.ColliderB;
+                var component0 = currentFrameContact.ColliderA;
+                var component1 = currentFrameContact.ColliderB;
                 if (component == component0 || component == component1)
                 {
-                    previousToRemove.Add(previousFrameContact);
-                    ContactRemoval(previousFrameContact, component0, component1);
+                    currentToRemove.Add(currentFrameContact);
+                    ContactRemoval(currentFrameContact, component0, component1);
                 }
             }
 
-            foreach (var contactPoint in previousToRemove)
+            foreach (var contactPoint in currentToRemove)
             {
-                previousFrameContacts.Remove(contactPoint);
+                currentFrameContacts.Remove(contactPoint);
             }
         }
     }
