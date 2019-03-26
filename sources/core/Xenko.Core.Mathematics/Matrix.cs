@@ -695,7 +695,7 @@ namespace Xenko.Core.Mathematics
         /// Decomposes a matrix into a scale, rotation, and translation.
         /// </summary>
         /// <param name="scale">When the method completes, contains the scaling component of the decomposed matrix.</param>
-        /// <param name="rotation">When the method completes, contains the rtoation component of the decomposed matrix.</param>
+        /// <param name="rotation">When the method completes, contains the rotation component of the decomposed matrix.</param>
         /// <param name="translation">When the method completes, contains the translation component of the decomposed matrix.</param>
         /// <remarks>
         /// This method is designed to decompose an SRT transformation matrix only.
@@ -709,10 +709,86 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
+        /// Decomposes a matrix into a rotation.
+        /// </summary>
+        /// <param name="matrix">When the method completes, contains the rotation component of the decomposed matrix.</param>
+        /// <remarks>
+        /// This method is designed to decompose an SRT transformation matrix only.
+        /// </remarks>
+        public bool GetRotationMatrix(out Matrix matrix)
+        {
+            Vector3 scale;
+            
+            //Scaling is the length of the rows.
+            scale.X = (float)Math.Sqrt((M11 * M11) + (M12 * M12) + (M13 * M13));
+            scale.Y = (float)Math.Sqrt((M21 * M21) + (M22 * M22) + (M23 * M23));
+            scale.Z = (float)Math.Sqrt((M31 * M31) + (M32 * M32) + (M33 * M33));
+            
+            //If any of the scaling factors are zero, than the rotation matrix can not exist.
+            if (Math.Abs(scale.X) < MathUtil.ZeroTolerance ||
+                Math.Abs(scale.Y) < MathUtil.ZeroTolerance ||
+                Math.Abs(scale.Z) < MathUtil.ZeroTolerance)
+            {
+                matrix = Matrix.Identity;
+                return false;
+            }
+
+            // Calculate an perfect orthonormal matrix (no reflections)
+            var at = new Vector3(M31 / scale.Z, M32 / scale.Z, M33 / scale.Z);
+            var up = Vector3.Cross(at, new Vector3(M11 / scale.X, M12 / scale.X, M13 / scale.X));
+            var right = Vector3.Cross(up, at);
+
+            matrix = Identity;
+            matrix.Right = right;
+            matrix.Up = up;
+            matrix.Backward = at;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Decomposes a matrix into a rotation.
+        /// </summary>
+        /// <param name="q">When the method completes, contains the rotation component of the decomposed matrix.</param>
+        /// <remarks>
+        /// This method is designed to decompose an SRT transformation matrix only.
+        /// </remarks>
+        public bool GetRotationQuaternion(out Quaternion q)
+        {
+            Vector3 scale;
+
+            //Scaling is the length of the rows.
+            scale.X = (float)Math.Sqrt((M11 * M11) + (M12 * M12) + (M13 * M13));
+            scale.Y = (float)Math.Sqrt((M21 * M21) + (M22 * M22) + (M23 * M23));
+            scale.Z = (float)Math.Sqrt((M31 * M31) + (M32 * M32) + (M33 * M33));
+
+            //If any of the scaling factors are zero, than the rotation matrix can not exist.
+            if (Math.Abs(scale.X) < MathUtil.ZeroTolerance ||
+                Math.Abs(scale.Y) < MathUtil.ZeroTolerance ||
+                Math.Abs(scale.Z) < MathUtil.ZeroTolerance) {
+                q = Quaternion.Identity;
+                return false;
+            }
+
+            // Calculate an perfect orthonormal matrix (no reflections)
+            var at = new Vector3(M31 / scale.Z, M32 / scale.Z, M33 / scale.Z);
+            var up = Vector3.Cross(at, new Vector3(M11 / scale.X, M12 / scale.X, M13 / scale.X));
+            var right = Vector3.Cross(up, at);
+
+            Matrix matrix = Identity;
+            matrix.Right = right;
+            matrix.Up = up;
+            matrix.Backward = at;
+            q = Quaternion.RotationMatrix(matrix);
+
+            return true;
+        }
+
+        /// <summary>
         /// Decomposes a matrix into a scale, rotation, and translation.
         /// </summary>
         /// <param name="scale">When the method completes, contains the scaling component of the decomposed matrix.</param>
-        /// <param name="rotation">When the method completes, contains the rtoation component of the decomposed matrix.</param>
+        /// <param name="rotation">When the method completes, contains the rotation component of the decomposed matrix.</param>
         /// <param name="translation">When the method completes, contains the translation component of the decomposed matrix.</param>
         /// <remarks>
         /// This method is designed to decompose an SRT transformation matrix only.
