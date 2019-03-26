@@ -28,8 +28,6 @@ namespace Xenko.Engine
 
         static PhysicsComponent()
         {
-            // Preload proper libbulletc native library (depending on CPU type)
-            NativeLibrary.PreloadLibrary("libbulletc.dll", typeof(PhysicsComponent));
         }
 
         protected PhysicsComponent()
