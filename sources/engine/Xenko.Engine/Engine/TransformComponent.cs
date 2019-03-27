@@ -292,6 +292,18 @@ namespace Xenko.Engine
         }
 
         /// <summary>
+        /// Gets the world scale.
+        /// Default call does not recalcuate the scale. It just gets the last frame's scale quickly.
+        /// If you pass true to this function, it will update the world position (which is a costly procedure) to get the most up-to-date scale.
+        /// </summary>
+        public Vector3 WorldScale(bool recalculate = false)
+        {
+            if (recalculate) UpdateWorldMatrix();
+            WorldMatrix.GetScale(out Vector3 scale);
+            return scale;
+        }
+
+        /// <summary>
         /// Gets the world rotation.
         /// Default call does not recalcuate the rotation. It just gets the last frame's rotation (relatively) quickly.
         /// If you pass true to this function, it will update the world position (which is a costly procedure) to get the most up-to-date rotation.

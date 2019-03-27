@@ -747,6 +747,17 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
+        /// Decomposes a matrix into a scale.
+        /// </summary>
+        /// <param name="scale">When the method completes, contains the scale component of the decomposed matrix.</param>
+        public void GetScale(out Vector3 scale) {
+            //Scaling is the length of the rows.
+            scale.X = (float)Math.Sqrt((M11 * M11) + (M12 * M12) + (M13 * M13));
+            scale.Y = (float)Math.Sqrt((M21 * M21) + (M22 * M22) + (M23 * M23));
+            scale.Z = (float)Math.Sqrt((M31 * M31) + (M32 * M32) + (M33 * M33));
+        }
+
+        /// <summary>
         /// Decomposes a matrix into a rotation.
         /// </summary>
         /// <param name="q">When the method completes, contains the rotation component of the decomposed matrix.</param>
