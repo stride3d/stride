@@ -441,10 +441,17 @@ namespace Xenko.Engine
             DebugEntity = null;
         }
 
-        public void SetPhysicsTransform(Vector3? worldPosition = null, Matrix? worldRotation = null, Vector3? worldScale = null) 
+        /// <summary>
+        /// Sets the physics transformation. You can supply any or all parameters; null parameters will be filled in with the current
+        /// entity's WorldMatrix information. Returns false if no native physics object exists yet, and the entity's transform should
+        /// be set instead.
+        /// </summary>
+        public bool SetPhysicsTransform(Vector3? worldPosition = null, Matrix? worldRotation = null, Vector3? worldScale = null) 
         {
+            if (NativeCollisionObject == null) return false;
             DerivePhysicsTransform(worldPosition, worldRotation, worldScale, out Matrix outMatrix);
             PhysicsWorldTransform = outMatrix;
+            return true;
         }
 
         #endregion Ignore or Private/Internal

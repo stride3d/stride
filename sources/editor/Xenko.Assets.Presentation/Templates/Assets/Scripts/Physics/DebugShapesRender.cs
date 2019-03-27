@@ -14,19 +14,18 @@ namespace ##Namespace##
 
         public override async Task Execute()
         {
-        //setup rendering in the debug entry point if we have it
-        var compositor = SceneSystem.GraphicsCompositor;
-        var debugRenderer =
-            ((compositor.Game as SceneCameraRenderer)?.Child as SceneRendererCollection)?.Children.Where(
-                x => x is DebugRenderer).Cast<DebugRenderer>().FirstOrDefault();
-        if (debugRenderer == null)
-            return;
+            //setup rendering in the debug entry point if we have it
+            var compositor = SceneSystem.GraphicsCompositor;
+            var debugRenderer =
+                ((compositor.Game as SceneCameraRenderer)?.Child as SceneRendererCollection)?.Children.Where(
+                    x => x is DebugRenderer).Cast<DebugRenderer>().FirstOrDefault();
+            if (debugRenderer == null)
+                return;
 
-        var shapesRenderState = new RenderStage("PhysicsDebugShapes", "Main");
+            var shapesRenderState = new RenderStage("PhysicsDebugShapes", "Main");
             compositor.RenderStages.Add(shapesRenderState);
             var meshRenderFeature = compositor.RenderFeatures.OfType<MeshRenderFeature>().First();
-            meshRenderFeature.RenderStageSelectors.Add(new SimpleGroupToRenderStageSelector
-            {
+            meshRenderFeature.RenderStageSelectors.Add(new SimpleGroupToRenderStageSelector {
                 EffectName = "XenkoForwardShadingEffect",
                 RenderGroup = (RenderGroupMask)(1 << (int)RenderGroup),
                 RenderStage = shapesRenderState,
@@ -35,23 +34,23 @@ namespace ##Namespace##
             debugRenderer.DebugRenderStages.Add(shapesRenderState);
 
             var simulation = this.GetSimulation();
-            if (simulation != null)
-                simulation.ColliderShapesRenderGroup = RenderGroup;
 
             var enabled = false;
-            while (Game.IsRunning)
-            {
-                if (Input.IsKeyDown(Keys.LeftShift) && Input.IsKeyDown(Keys.LeftCtrl) && Input.IsKeyReleased(Keys.P))
-                {
+            while (Game.IsRunning) {
+                // if we didn't get the simulation yet, try again each frame
+                if (simulation == null) {
+                    simulation = this.GetSimulation();
+
                     if (simulation != null)
-                    {
-                        if (enabled)
-                        {
+                        simulation.ColliderShapesRenderGroup = RenderGroup;
+                }
+
+                if (Input.IsKeyDown(Keys.LeftShift) && Input.IsKeyDown(Keys.LeftCtrl) && Input.IsKeyReleased(Keys.P)) {
+                    if (simulation != null) {
+                        if (enabled) {
                             simulation.ColliderShapesRendering = false;
                             enabled = false;
-                        }
-                        else
-                        {
+                        } else {
                             simulation.ColliderShapesRendering = true;
                             enabled = true;
                         }
