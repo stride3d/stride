@@ -461,8 +461,14 @@ namespace Xenko.Engine
 
         internal void DerivePhysicsTransform(Vector3? worldPosition, Matrix? worldRotation, Vector3? worldScale, out Matrix outMatrix)
         {
-            Vector3 translation = worldPosition ?? Entity.Transform.WorldPosition(), scale = worldScale ?? Entity.Transform.WorldMatrix.ScaleVector;
+            Vector3 translation = worldPosition ?? Entity.Transform.WorldPosition(), scale;
             Matrix rotation;
+
+            if( worldScale.HasValue ) {
+                scale = worldScale.Value;
+            } else {
+                Entity.Transform.WorldMatrix.GetScale(out scale);
+            }
 
             if (worldRotation.HasValue) {
                 rotation = worldRotation.Value;
