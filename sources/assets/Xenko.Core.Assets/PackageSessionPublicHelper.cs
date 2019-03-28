@@ -63,7 +63,8 @@ namespace Xenko.Core.Assets
             // Check that we can create a project
             using (var projectCollection = new Microsoft.Build.Evaluation.ProjectCollection())
             {
-                if (!projectCollection.Toolsets.Any(x => new Version(x.ToolsVersion).Major >= 15))
+                if (projectCollection.GetToolset("15.0") == null // VS 2017
+                    && projectCollection.GetToolset("Current") == null) // VS 2019+ (https://github.com/Microsoft/msbuild/issues/3778)
                 {
                     throw new InvalidOperationException("Could not find a supported MSBuild toolset version (expected 15.0 or later)");
                 }
