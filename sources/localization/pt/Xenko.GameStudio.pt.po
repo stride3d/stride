@@ -2,19 +2,21 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-02-25 13:25:06+0900\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2019-03-29 12:04+0000\n"
+"Last-Translator: Rui Mendes <xz9@protonmail.com>\n"
+"Language-Team: Portuguese <https://hosted.weblate.org/projects/xenko/"
+"gamestudio/pt/>\n"
 "Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: MonoDevelop Gettext addin\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 3.6-dev\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
 msgid "Output"
-msgstr ""
+msgstr "Saída"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:189
 msgctxt "Message"
@@ -22,16 +24,18 @@ msgid ""
 "Some game code files have been modified. Do you want to reload the "
 "assemblies?"
 msgstr ""
+"Alguns ficheiros de código do jogo foram alterados. Quer recarregar as "
+"montagens?"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
 msgid "Reload"
-msgstr ""
+msgstr "Recarregar"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
 msgid "Don't reload"
-msgstr ""
+msgstr "Não recarregar"
 
 #. Displayed when user tries to run a project that is not on a supported platform (for execution).
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:317
@@ -39,31 +43,31 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:467
 msgctxt "Message"
 msgid "Platform {0} isn't supported for execution."
-msgstr ""
+msgstr "A plataforma {0} não é suportada para executar."
 
 #. Displayed when user tries to run Android project without an Android device attached.
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:422
 msgctxt "Message"
 msgid "No Android device found for execution."
-msgstr ""
+msgstr "Não foi encontrado nenhum dispositivo para a sua execução."
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:475
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:639
 msgctxt "Message"
 msgid "Unable to load and compile project {0}"
-msgstr ""
+msgstr "Não foi possível carregar e compilar o projeto {0}"
 
 #. Log message displayed when the executable can't be found after building the project. {0}: the expected executable path
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:492
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:539
 msgctxt "Message"
 msgid "Unable to reach to output executable: {0}"
-msgstr ""
+msgstr "Não foi possível encontrar o executável de saída: {0}"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:509
 msgctxt "Message"
 msgid "Couldn't find Android package name for {0}."
-msgstr ""
+msgstr "Não foi possível encontrar o pacote Android de {0}."
 
 #. Displayed when Android tools "adb" can't be found
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:519
