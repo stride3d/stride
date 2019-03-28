@@ -9,6 +9,7 @@ using Xenko.Core;
 using Xenko.Core.Collections;
 using Xenko.Core.Serialization;
 using Xenko.Shaders;
+using System.Threading;
 using Encoding = System.Text.Encoding;
 
 namespace Xenko.Graphics
@@ -148,29 +149,33 @@ namespace Xenko.Graphics
                 ViewportCount = 1,
             };
 
-            fixed (DynamicState* dynamicStatesPointer = &dynamicStates[0])
+            fixed (void* dynamicStatesPointer = &dynamicStates[0],
+                         inputAttributesPointer = &inputAttributes[0],
+                         inputBindingsPointer = &inputBindings[0],
+                         colorBlendAttachmentsPointer = &colorBlendAttachments[0],
+                         stagesPointer = &stages[0])
             {
                 var vertexInputState = new PipelineVertexInputStateCreateInfo
                 {
                     StructureType = StructureType.PipelineVertexInputStateCreateInfo,
                     VertexAttributeDescriptionCount = (uint)inputAttributeCount,
-                    VertexAttributeDescriptions = inputAttributes.Length > 0 ? new IntPtr(Interop.Fixed(inputAttributes)) : IntPtr.Zero,
+                    VertexAttributeDescriptions = (IntPtr)inputAttributesPointer,
                     VertexBindingDescriptionCount = (uint)inputBindingCount,
-                    VertexBindingDescriptions = inputBindings.Length > 0 ? new IntPtr(Interop.Fixed(inputBindings)) : IntPtr.Zero,
+                    VertexBindingDescriptions = (IntPtr)inputBindingsPointer,
                 };
 
                 var colorBlendState = new PipelineColorBlendStateCreateInfo
                 {
                     StructureType = StructureType.PipelineColorBlendStateCreateInfo,
                     AttachmentCount = (uint)renderTargetCount,
-                    Attachments = colorBlendAttachments.Length > 0 ? new IntPtr(Interop.Fixed(colorBlendAttachments)) : IntPtr.Zero,
+                    Attachments = (IntPtr)colorBlendAttachmentsPointer,
                 };
 
                 var dynamicState = new PipelineDynamicStateCreateInfo
                 {
                     StructureType = StructureType.PipelineDynamicStateCreateInfo,
                     DynamicStateCount = (uint)dynamicStates.Length,
-                    DynamicStates = new IntPtr(dynamicStatesPointer)
+                    DynamicStates = (IntPtr)dynamicStatesPointer,
                 };
 
                 var createInfo = new GraphicsPipelineCreateInfo
@@ -178,8 +183,8 @@ namespace Xenko.Graphics
                     StructureType = StructureType.GraphicsPipelineCreateInfo,
                     Layout = NativeLayout,
                     StageCount = (uint)stages.Length,
-                    Stages = stages.Length > 0 ? new IntPtr(Interop.Fixed(stages)) : IntPtr.Zero,
-                    //TessellationState = new IntPtr(&tessellationState),
+                    Stages = (IntPtr)stagesPointer,
+                    TessellationState = new IntPtr(&tessellationState),
                     VertexInputState = new IntPtr(&vertexInputState),
                     InputAssemblyState = new IntPtr(&inputAssemblyState),
                     RasterizationState = new IntPtr(&rasterizationState),

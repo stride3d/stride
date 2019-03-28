@@ -86,6 +86,11 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
+        /// A minimal 1x1 texture used while bigger textures are loading.
+        /// </summary>
+        public Texture dummyTexture { get; private set; }
+
+        /// <summary>
         /// The tick frquency of timestamp queries in Hertz.
         /// </summary>
         public long TimestampFrequency { get; private set; }
@@ -361,6 +366,8 @@ namespace Xenko.Graphics
             graphicsResourceLinkCollector = new GraphicsResourceLinkCollector(this);
 
             EmptyTexelBuffer = Buffer.Typed.New(this, 1, PixelFormat.R32G32B32A32_Float);
+
+            dummyTexture = Texture.New2D(this, 1, 1, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.ShaderResource);
         }
         internal unsafe IntPtr AllocateUploadBuffer(int size, out SharpVulkan.Buffer resource, out int offset)
         {

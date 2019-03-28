@@ -24,7 +24,6 @@ namespace Xenko.Graphics
         private int framebufferAttachmentCount;
         private bool framebufferDirty = true;
         private Framebuffer activeFramebuffer;
-        private Texture dummyTexture;
 
         private SharpVulkan.DescriptorPool descriptorPool;
         private SharpVulkan.DescriptorSet descriptorSet;
@@ -43,7 +42,6 @@ namespace Xenko.Graphics
         private CommandList(GraphicsDevice device) : base(device)
         {
             Recreate();
-            dummyTexture = Texture.New2D(GraphicsDevice, 1, 1, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.ShaderResource);
         }
 
         private void Recreate()
@@ -338,7 +336,7 @@ namespace Xenko.Graphics
                         var texture = heapObject.Value as Texture;
                         descriptorData->ImageInfo = new DescriptorImageInfo
                         {
-                            ImageView = (texture == null || texture.NativeImageView == ImageView.Null || texture.ReadyForSampling == false ) ? dummyTexture.NativeImageView : texture.NativeImageView,
+                            ImageView = (texture == null || texture.NativeImageView == ImageView.Null || texture.ReadyForSampling == false ) ? GraphicsDevice.dummyTexture.NativeImageView : texture.NativeImageView,
                             ImageLayout = ImageLayout.ShaderReadOnlyOptimal
                         };
                         write->ImageInfo = new IntPtr(descriptorData);
@@ -424,6 +422,9 @@ namespace Xenko.Graphics
                     texture = texture.ParentTexture;
 
                 // TODO VULKAN: Check for change
+                
+                // wait, are we ready to use this texture yet?
+                if (texture.ReadyForSampling == false) texture = GraphicsDevice.dummyTexture;
 
                 var oldLayout = texture.NativeLayout;
                 var oldAccessMask = texture.NativeAccessMask;
