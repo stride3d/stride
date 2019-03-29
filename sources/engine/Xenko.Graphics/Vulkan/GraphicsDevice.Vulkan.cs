@@ -478,6 +478,7 @@ namespace Xenko.Graphics
             // Release fenced resources
             nativeResourceCollector.Dispose();
             DescriptorPools.Dispose();
+            if( dummyTexture != null ) dummyTexture.Dispose();
 
             nativeDevice.DestroyCommandPool(NativeCopyCommandPool);
             nativeDevice.Destroy();
