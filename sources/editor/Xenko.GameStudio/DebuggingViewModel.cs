@@ -279,6 +279,7 @@ namespace Xenko.GameStudio
                         {
                             await scriptsSorter.AnalyzeProject(Session, assemblyToReload.Key, assemblyTrackingCancellation.Token);
                         }
+                        Session.RaiseAssembliesReloaded();
                         UpdateCommands();
                     }, () =>
                     {

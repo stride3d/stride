@@ -16,6 +16,10 @@ using Xenko.Core.Assets;
 using Xenko.Assets.Presentation.Templates;
 using Xenko.Core;
 using Xenko.Engine;
+using Xenko.Assets.Presentation.ViewModel;
+using Xenko.Core.Assets.Editor.Components.Properties;
+using Xenko.Assets.Presentation.AssetEditors;
+using Xenko.Core.Presentation.Dirtiables;
 
 namespace Xenko.Assets.Presentation.NodePresenters.Commands
 {
@@ -41,33 +45,64 @@ namespace Xenko.Assets.Presentation.NodePresenters.Commands
         /// <inheritdoc/>
         protected override async void ExecuteSync(INodePresenter nodePresenter, object parameter, object preExecuteResult)
         {
-            if (!(nodePresenter.Root is AssetRootNodePresenter assetPresenter))
+            if (!(nodePresenter is AssetMemberNodePresenter assetPresenter))
                 return;
 
             var undoRedoService = assetPresenter.Asset.UndoRedoService;
             var session = assetPresenter.Asset.Session;
             var serviceProvider = assetPresenter.Asset.ServiceProvider;
 
+            var scriptSourceCodeProvider = serviceProvider.TryGet<IScriptSourceCodeResolver>();
+
+            if (scriptSourceCodeProvider == null)
+                return;
+
             var template = ScriptTemplateGenerator.GetScriptTemplateAssetDescriptions(session.FindTemplates(TemplateScope.Asset)).FirstOrDefault();
 
-            if (template != null)
+            if (template == null)
+                return;
+
+            var viewModel = new TemplateDescriptionViewModel(serviceProvider, template);
+            var customParameters = ScriptTemplateGenerator.GetAssetOverrideParameters(parameter as string, true);
+            var assetViewModel = (await session.ActiveAssetView.RunAssetTemplate(viewModel, null, customParameters)).FirstOrDefault();
+
+            if (assetViewModel == null)
+                return;
+
+            EventHandler reloadHandler = null;
+
+            reloadHandler = (sender, args) =>
             {
-                var viewModel = new TemplateDescriptionViewModel(serviceProvider, template);
+                session.AssembliesReloaded -= reloadHandler;
 
-                var customParameters = ScriptTemplateGenerator.GetAssetOverrideParameters(parameter as string, true);
-
-                var script = (await session.ActiveAssetView.RunAssetTemplate(viewModel, null, customParameters)).SingleOrDefault();
-                if (script == null)
+                //TODO: Maybe situations where this asset/node are no longer valid.
+                if (assetViewModel.IsDeleted)
+                {
                     return;
-            }
+                }
 
-            //TODO: Add script component to entity.
-            //using (var transaction = undoRedoService.CreateTransaction())
-            //{
-            //    undoRedoService.SetName(transaction, "Create Script");
-            //}
+                IEnumerable<Type> componentTypes = scriptSourceCodeProvider.GetTypesFromSourceFile(assetViewModel.AssetItem.FullPath);
+                var componentType = componentTypes.FirstOrDefault();
+                if (componentType != null)
+                {
+                    using (var transaction = session.UndoRedoService.CreateTransaction())
+                    {
+                        object component = Activator.CreateInstance(componentType);
+                        nodePresenter.AddItem(component);
+
+                        //session.UndoRedoService.PushOperation(
+                        //    new AnonymousDirtyingOperation(
+                        //        assetPresenter.Asset.Dirtiables,
+                        //        () => nodePresenter.RemoveItem(component,Index.Empty),
+                        //        () => nodePresenter.AddItem(component)));
+                        
+                        
+                        session.UndoRedoService.SetName(transaction, "Add new script component.");
+                    }
+                }
+            };
+
+            session.AssembliesReloaded += reloadHandler;
         }
-
-        
     }
 }

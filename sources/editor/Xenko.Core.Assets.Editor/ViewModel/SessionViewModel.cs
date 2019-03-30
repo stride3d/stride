@@ -217,6 +217,14 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         /// </summary>
         public event EventHandler<ActiveAssetsChangedArgs> ActiveAssetsChanged;
 
+        /// <summary>
+        /// Raised when the Assemblies are reloaded.
+        /// </summary>
+        public event EventHandler AssembliesReloaded;
+
+        internal void RaiseAssembliesReloaded()
+            => AssembliesReloaded?.Invoke(this, EventArgs.Empty);
+
         internal readonly IDictionary<Type, Type> AssetViewModelTypes = new Dictionary<Type, Type>();
 
         /// <summary>
