@@ -360,6 +360,9 @@ namespace Xenko.Engine
         public bool ColliderShapeChanged { get; private set; }
 
         [DataMemberIgnore]
+        public bool IgnorePhysicsRotation = false;
+
+        [DataMemberIgnore]
         protected ColliderShape colliderShape;
 
         [DataMemberIgnore]
@@ -530,10 +533,8 @@ namespace Xenko.Engine
 
             entity.Transform.UpdateLocalFromWorld();
 
-            Quaternion rotQuat;
-            entity.Transform.LocalMatrix.Decompose(out scale, out rotQuat, out translation);
-            entity.Transform.Position = translation;
-            entity.Transform.Rotation = rotQuat;
+            entity.Transform.Position = entity.Transform.LocalMatrix.TranslationVector;
+            if ( IgnorePhysicsRotation == false ) entity.Transform.LocalMatrix.GetRotationQuaternion(out entity.Transform.Rotation);
 
             if (DebugEntity == null) return;
 

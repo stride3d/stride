@@ -790,7 +790,7 @@ namespace Xenko.Core.Mathematics
             matrix.Right = right;
             matrix.Up = up;
             matrix.Backward = at;
-            q = Quaternion.RotationMatrix(matrix);
+            Quaternion.RotationMatrix(ref matrix, out q);
 
             return true;
         }
