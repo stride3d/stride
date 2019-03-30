@@ -88,15 +88,14 @@ namespace Xenko.Assets.Presentation.NodePresenters.Commands
                     using (var transaction = session.UndoRedoService.CreateTransaction())
                     {
                         object component = Activator.CreateInstance(componentType);
+                        var index = new Index(nodePresenter.Children.Count);
                         nodePresenter.AddItem(component);
+                        session.UndoRedoService.PushOperation(
+                            new AnonymousDirtyingOperation(
+                                assetPresenter.Asset.Dirtiables,
+                                () => nodePresenter.RemoveItem(component, index),
+                                () => nodePresenter.AddItem(component)));
 
-                        //session.UndoRedoService.PushOperation(
-                        //    new AnonymousDirtyingOperation(
-                        //        assetPresenter.Asset.Dirtiables,
-                        //        () => nodePresenter.RemoveItem(component,Index.Empty),
-                        //        () => nodePresenter.AddItem(component)));
-                        
-                        
                         session.UndoRedoService.SetName(transaction, "Add new script component.");
                     }
                 }
