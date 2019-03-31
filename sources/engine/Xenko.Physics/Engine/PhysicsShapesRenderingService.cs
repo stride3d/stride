@@ -188,8 +188,21 @@ namespace Xenko.Physics.Engine
             var rigidbodyComponent = component as RigidbodyComponent;
             if (rigidbodyComponent != null)
             {
-                componentType = rigidbodyComponent.IsTrigger ? ComponentType.Trigger : 
-                    rigidbodyComponent.IsKinematic ? ComponentType.Kinematic : ComponentType.Dynamic;
+                if( rigidbodyComponent.IsTrigger ) {
+                    componentType = ComponentType.Trigger;
+                } else {
+                    switch( rigidbodyComponent.RigidBodyType ) {
+                        case RigidBodyTypes.Dynamic:
+                            componentType = ComponentType.Dynamic;
+                            break;
+                        case RigidBodyTypes.Kinematic:
+                            componentType = ComponentType.Kinematic;
+                            break;
+                        case RigidBodyTypes.Static:
+                            componentType = ComponentType.Static;
+                            break;
+                    }
+                }
             }
             else if (component is CharacterComponent)
             {

@@ -31,9 +31,8 @@ namespace Xenko.Physics
         [DataMemberIgnore]
         internal XenkoMotionState MotionState;
 
-        private bool isKinematic;
         private float mass = 1.0f;
-        private RigidBodyTypes type;
+        private RigidBodyTypes type = RigidBodyTypes.Dynamic;
         private Vector3 gravity = Vector3.Zero;
         private float angularDamping;
         private float linearDamping;
@@ -52,26 +51,6 @@ namespace Xenko.Physics
         {
             LinkedConstraints = new List<Constraint>();
             ProcessCollisions = true;
-        }
-
-        /// <summary>
-        /// Gets or sets the kinematic property
-        /// </summary>
-        /// <value>true, false</value>
-        /// <userdoc>
-        /// Move the rigidbody only by the transform property, not other forces
-        /// </userdoc>
-        [DataMember(75)]
-        public bool IsKinematic
-        {
-            get { return isKinematic; }
-            set
-            {
-                isKinematic = value;
-
-                if (InternalRigidBody == null) return;
-                RigidBodyType = value ? RigidBodyTypes.Kinematic : RigidBodyTypes.Dynamic;
-            }
         }
 
         /// <summary>
@@ -355,7 +334,7 @@ namespace Xenko.Physics
             AngularDamping = angularDamping;
             OverrideGravity = overrideGravity;
             Gravity = gravity;
-            RigidBodyType = IsKinematic ? RigidBodyTypes.Kinematic : RigidBodyTypes.Dynamic;
+            RigidBodyType = type;
 
             Simulation.AddRigidBody(this, (CollisionFilterGroupFlags)CollisionGroup, CanCollideWith);
         }
@@ -398,8 +377,8 @@ namespace Xenko.Physics
             {
                 //write to ModelViewHierarchy
                 var model = Data.ModelComponent;
-                model.Skeleton.NodeTransformations[BoneIndex].Flags = !IsKinematic ? ModelNodeFlags.EnableRender | ModelNodeFlags.OverrideWorldMatrix : ModelNodeFlags.Default;
-                if (!IsKinematic) model.Skeleton.NodeTransformations[BoneIndex].WorldMatrix = BoneWorldMatrixOut;
+                model.Skeleton.NodeTransformations[BoneIndex].Flags = type != RigidBodyTypes.Kinematic ? ModelNodeFlags.EnableRender | ModelNodeFlags.OverrideWorldMatrix : ModelNodeFlags.Default;
+                if (type != RigidBodyTypes.Kinematic) model.Skeleton.NodeTransformations[BoneIndex].WorldMatrix = BoneWorldMatrixOut;
             }
         }
 

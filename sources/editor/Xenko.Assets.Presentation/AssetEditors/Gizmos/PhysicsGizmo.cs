@@ -53,7 +53,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
             {
                 shape = component.ColliderShape;
                 var rigidbodyComponent = component as RigidbodyComponent;
-                isKinematic = rigidbodyComponent != null && rigidbodyComponent.IsKinematic;
+                isKinematic = rigidbodyComponent != null && rigidbodyComponent.RigidBodyType == RigidBodyTypes.Kinematic;
                 colliderShapes = component.ColliderShapes != null ? CloneDescs(component.ColliderShapes) : null;
                 var componentBase = component as PhysicsSkinnedComponentBase;
                 boneName = componentBase?.NodeName;
@@ -76,7 +76,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
                 (colliderShapes != null && component.ColliderShapes == null) ||
                 DescsAreDifferent(colliderShapes, component.ColliderShapes) ||
                 component.ColliderShapeChanged ||
-                (rb != null && isKinematic != rb.IsKinematic) || 
+                (rb != null && isKinematic != (rb.RigidBodyType == RigidBodyTypes.Kinematic)) || 
                 skeleton != skeletonUpdater ||
                 boneIndex != newIndex ||
                 boneIndex == -1 && skeletonUpdater != null && !string.IsNullOrEmpty(boneName) || //force recreation if we have a skeleton?.. wrong name tho is also possible...
