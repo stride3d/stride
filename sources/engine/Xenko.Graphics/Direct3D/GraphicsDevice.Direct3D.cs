@@ -113,19 +113,18 @@ namespace Xenko.Graphics
             FrameTriangleCount = 0;
             FrameDrawCalls = 0;
 
-            // Try to read back the oldest disjoint query and reuse it. If not ready, create a new one.
-            if (disjointQueries.Count > 0 && NativeDeviceContext.GetData(disjointQueries.Peek(), out QueryDataTimestampDisjoint result))
-            {
-                TimestampFrequency = result.Frequency;
-                currentDisjointQuery = disjointQueries.Dequeue();
-            }
-            else
+            if (currentDisjointQuery == null)
             {
                 var disjointQueryDiscription = new QueryDescription { Type = SharpDX.Direct3D11.QueryType.TimestampDisjoint };
                 currentDisjointQuery = new Query(NativeDevice, disjointQueryDiscription);
             }
 
-            disjointQueries.Enqueue(currentDisjointQuery);
+            // Try to read back the oldest disjoint query and reuse it. If not ready, create a new one.
+            if (NativeDeviceContext.GetData(currentDisjointQuery, out QueryDataTimestampDisjoint result))
+            {
+                TimestampFrequency = result.Frequency;
+            }
+
             NativeDeviceContext.Begin(currentDisjointQuery);
         }
 
