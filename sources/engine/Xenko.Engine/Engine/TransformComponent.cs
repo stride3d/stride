@@ -207,7 +207,8 @@ namespace Xenko.Engine
                     return;
 
                 var previousScene = oldParent?.Entity?.Scene;
-                var newScene = value?.Entity?.Scene;
+                // retain old scene information if we are setting a null parent
+                var newScene = value == null ? Entity?.Scene : value.Entity?.Scene;
 
                 // Get to root scene
                 while (previousScene?.Parent != null)
@@ -222,7 +223,12 @@ namespace Xenko.Engine
 
                 // Add/Remove
                 oldParent?.Children.Remove(this);
-                value?.Children.Add(this);
+                if (value != null) {
+                    value.Children.Add(this);
+                } else if (Entity != null && newScene != null && Entity.Scene == null) {
+                    // takes care of a specific case: null parent shouldn't have entity detached from scene
+                    newScene.Entities.Add(Entity);
+                }
 
                 if (moving)
                     IsMovingInsideRootScene = false;
