@@ -202,37 +202,40 @@ namespace Xenko.Engine
             get { return parent; }
             set
             {
-                var oldParent = Parent;
+                TransformComponent oldParent = Parent;
                 if (oldParent == value)
                     return;
 
-                var previousScene = oldParent?.Entity?.Scene;
-                // retain old scene information if we are setting a null parent
-                var newScene = value == null ? Entity?.Scene : value.Entity?.Scene;
+                Scene newParentScene = value?.Entity?.Scene;
+                Scene entityScene = Entity?.Scene;
 
                 // Get to root scene
-                while (previousScene?.Parent != null)
-                    previousScene = previousScene.Parent;
-                while (newScene?.Parent != null)
-                    newScene = newScene.Parent;
+                while (entityScene?.Parent != null)
+                    entityScene = entityScene.Parent;
+                while (newParentScene?.Parent != null)
+                    newParentScene = newParentScene.Parent;
 
                 // Check if root scene didn't change
-                bool moving = (newScene != null && newScene == previousScene);
-                if (moving)
-                    IsMovingInsideRootScene = true;
+                IsMovingInsideRootScene = (newParentScene != null && newParentScene == entityScene);
 
                 // Add/Remove
-                oldParent?.Children.Remove(this);
+                if (oldParent == null) {
+                    entityScene?.Entities.Remove(Entity);
+                } else oldParent.Children.Remove(this);
                 if (value != null) {
+                    // normal procedure of adding to another transform
                     value.Children.Add(this);
-                } else if (Entity != null && newScene != null && Entity.Scene == null) {
-                    // takes care of a specific case: null parent shouldn't have entity detached from scene
-                    newScene.Entities.Add(Entity);
+                } else if (entityScene != null && Entity.Scene != entityScene) {
+                    // special case where we are just going to root scene
+                    Entity.Scene = entityScene;
                 }
 
-                if (moving)
-                    IsMovingInsideRootScene = false;
+                IsMovingInsideRootScene = false;
             }
+        }
+
+        private void Entities_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e) {
+            throw new NotImplementedException();
         }
 
         /// <summary>

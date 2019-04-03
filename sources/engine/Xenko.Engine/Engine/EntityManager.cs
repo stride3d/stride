@@ -219,7 +219,7 @@ namespace Xenko.Engine
             if (entities.Contains(entity))
                 return;
 
-            if (entity.EntityManager != null)
+            if (entity.EntityManager != null && entity.EntityManager != this)
             {
                 throw new InvalidOperationException("Cannot add an entity to this entity manager when it is already used by another entity manager");
             }
