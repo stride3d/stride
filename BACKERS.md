@@ -58,6 +58,8 @@ Thank you everybody for your generous contributions!
 * Jorn Theunissen
 * Robin Hübner
 * Ben Temple-Heald
+* Daniel Gilbert
+* Stefan Sailer
 
 ## Mini Backers
 
