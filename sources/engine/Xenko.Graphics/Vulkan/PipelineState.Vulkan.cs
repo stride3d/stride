@@ -149,11 +149,11 @@ namespace Xenko.Graphics
                 ViewportCount = 1,
             };
 
-            fixed (void* dynamicStatesPointer = dynamicStates,
-                         inputAttributesPointer = inputAttributes,
-                         inputBindingsPointer = inputBindings,
-                         colorBlendAttachmentsPointer = colorBlendAttachments,
-                         stagesPointer = stages)
+            fixed (void* dynamicStatesPointer = dynamicStates.Length == 0 ? null : dynamicStates,
+                         inputAttributesPointer = inputAttributes.Length == 0 ? null : inputAttributes,
+                         inputBindingsPointer = inputBindings.Length == 0 ? null : inputBindings,
+                         colorBlendAttachmentsPointer = colorBlendAttachments.Length == 0 ? null : colorBlendAttachments,
+                         stagesPointer = stages.Length == 0 ? null : stages)
             {
                 var vertexInputState = new PipelineVertexInputStateCreateInfo
                 {
