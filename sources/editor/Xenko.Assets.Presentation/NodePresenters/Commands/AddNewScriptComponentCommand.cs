@@ -69,39 +69,30 @@ namespace Xenko.Assets.Presentation.NodePresenters.Commands
             if (assetViewModel == null)
                 return;
 
-            EventHandler reloadHandler = null;
-
-            reloadHandler = (sender, args) =>
+            //TODO: Maybe situations where this asset/node are no longer valid.
+            if (assetViewModel.IsDeleted)
             {
-                session.AssembliesReloaded -= reloadHandler;
+                return;
+            }
 
-                //TODO: Maybe situations where this asset/node are no longer valid.
-                if (assetViewModel.IsDeleted)
+            IEnumerable<Type> componentTypes = scriptSourceCodeProvider.GetTypesFromSourceFile(assetViewModel.AssetItem.FullPath);
+            var componentType = componentTypes.FirstOrDefault();
+            if (componentType != null)
+            {
+                using (var transaction = session.UndoRedoService.CreateTransaction())
                 {
-                    return;
+                    object component = Activator.CreateInstance(componentType);
+                    var index = new Index(nodePresenter.Children.Count);
+                    nodePresenter.AddItem(component);
+                    session.UndoRedoService.PushOperation(
+                        new AnonymousDirtyingOperation(
+                            assetPresenter.Asset.Dirtiables,
+                            () => nodePresenter.RemoveItem(component, index),
+                            () => nodePresenter.AddItem(component)));
+
+                    session.UndoRedoService.SetName(transaction, "Add new script component.");
                 }
-
-                IEnumerable<Type> componentTypes = scriptSourceCodeProvider.GetTypesFromSourceFile(assetViewModel.AssetItem.FullPath);
-                var componentType = componentTypes.FirstOrDefault();
-                if (componentType != null)
-                {
-                    using (var transaction = session.UndoRedoService.CreateTransaction())
-                    {
-                        object component = Activator.CreateInstance(componentType);
-                        var index = new Index(nodePresenter.Children.Count);
-                        nodePresenter.AddItem(component);
-                        session.UndoRedoService.PushOperation(
-                            new AnonymousDirtyingOperation(
-                                assetPresenter.Asset.Dirtiables,
-                                () => nodePresenter.RemoveItem(component, index),
-                                () => nodePresenter.AddItem(component)));
-
-                        session.UndoRedoService.SetName(transaction, "Add new script component.");
-                    }
-                }
-            };
-
-            session.AssembliesReloaded += reloadHandler;
+            }
         }
     }
 }

@@ -48,13 +48,13 @@
                   </Grid.ColumnDefinitions>
                   <DockPanel Grid.Column="0" Margin="4" x:Name="LeftPanel">
                     <DockPanel Margin="0,4" DockPanel.Dock="Top">
-                      <Button VerticalAlignment="Center" Margin="4,0,0,0" Style="{StaticResource ImageButtonStyle}"
+                      <!--<Button VerticalAlignment="Center" Margin="4,0,0,0" Style="{StaticResource ImageButtonStyle}"
                               DockPanel.Dock="Right" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"
                               ClickMode="Press"
                               Command="{Binding AddNewScriptComponentCommand}" CommandParameter="{Binding SearchToken}"
                               ToolTip="{xk:Localize New script, Context=ToolTip}" Width="20" Height="20" Padding="2">
                         <Image Source="{StaticResource ImageNewScript}" Width="16" Height="16"/>
-                      </Button>
+                      </Button>-->
                       <xk:TextBox x:Name="PART_EditableTextBox" ValidateOnLostFocus="False" VerticalAlignment="Center" Focusable="True"
                                     WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
                                     Text="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox},
