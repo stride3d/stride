@@ -2,14 +2,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-02-25 13:25:06+0900\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2019-04-07 09:05+0000\n"
+"Last-Translator: Louies <louies0623@gmail.com>\n"
+"Language-Team: Chinese (Traditional) <https://hosted.weblate.org/projects/"
+"xenko/gamestudio/zh_Hant/>\n"
 "Language: zh_Hant\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: MonoDevelop Gettext addin\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 3.6-dev\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
@@ -26,7 +28,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
 msgid "Reload"
-msgstr ""
+msgstr "重新整理"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
@@ -166,18 +168,18 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:34
 msgctxt "Settings"
 msgid "Username"
-msgstr ""
+msgstr "使用者名稱"
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:38
 msgctxt "Settings"
 msgid "Password"
-msgstr ""
+msgstr "密碼"
 
 #. Location where to deploy.
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:42
 msgctxt "Settings"
 msgid "Location"
-msgstr ""
+msgstr "位置"
 
 #. Ask if we should prompt user with the crendential dialogs if necessary.
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:46
@@ -255,14 +257,14 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:509
 msgctxt "Menu"
 msgid "Cut"
-msgstr ""
+msgstr "剪下"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:91
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:196
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:510
 msgctxt "Menu"
 msgid "Copy"
-msgstr ""
+msgstr "複製"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:92
 msgctxt "Menu"
@@ -282,7 +284,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:512
 msgctxt "Menu"
 msgid "Delete"
-msgstr ""
+msgstr "刪除"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:96
 msgctxt "Menu"
@@ -294,7 +296,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:513
 msgctxt "Menu"
 msgid "Rename"
-msgstr ""
+msgstr "重新命名"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:99
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
@@ -354,17 +356,17 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:145
 msgctxt "Menu"
 msgid "File"
-msgstr ""
+msgstr "檔案"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:146
 msgctxt "Menu"
 msgid "New"
-msgstr ""
+msgstr "新增"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:147
 msgctxt "Menu"
 msgid "Open"
-msgstr ""
+msgstr "開啟"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:148
 msgctxt "Menu"
@@ -379,7 +381,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:180
 msgctxt "Menu"
 msgid "Save"
-msgstr ""
+msgstr "儲存"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:182
 msgctxt "Menu"
@@ -389,32 +391,32 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:184
 msgctxt "Menu"
 msgid "Quit"
-msgstr ""
+msgstr "退出"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:191
 msgctxt "Menu"
 msgid "Edit"
-msgstr ""
+msgstr "編輯"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:192
 msgctxt "Menu"
 msgid "Undo"
-msgstr ""
+msgstr "復原"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:193
 msgctxt "Menu"
 msgid "Redo"
-msgstr ""
+msgstr "重複"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:200
 msgctxt "Menu"
 msgid "Settings"
-msgstr ""
+msgstr "設定"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:203
 msgctxt "Menu"
 msgid "Project"
-msgstr ""
+msgstr "專案"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:204
 msgctxt "Menu"
@@ -482,7 +484,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:504
 msgctxt "Menu"
 msgid "New project..."
-msgstr ""
+msgstr "新增專案..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:237
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:505
@@ -555,7 +557,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:270
 msgctxt "Menu"
 msgid "Help"
-msgstr ""
+msgstr "幫助"
 
 #. Link to the documentation
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:271
@@ -579,17 +581,17 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:275
 msgctxt "Menu"
 msgid "Community forums"
-msgstr ""
+msgstr "社區論壇"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:277
 msgctxt "Menu"
 msgid "Show debug window"
-msgstr ""
+msgstr "顯示偵錯視窗"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:279
 msgctxt "Menu"
 msgid "About..."
-msgstr ""
+msgstr "關於..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:305
 msgctxt "ToolTip"
@@ -619,22 +621,22 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:349
 msgctxt "ToolTip"
 msgid "Undo last action"
-msgstr ""
+msgstr "復原上一個動作"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:353
 msgctxt "ToolTip"
 msgid "Redo last cancelled action"
-msgstr ""
+msgstr "重作上一個取消的動作"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:359
 msgctxt "ToolTip"
 msgid "Open in IDE"
-msgstr ""
+msgstr "在 IDE 中開啟"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:363
 msgctxt "ToolTip"
 msgid "Open with..."
-msgstr ""
+msgstr "開啟從..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:374
 msgctxt "ToolTip"
@@ -799,7 +801,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:887
 msgctxt "View"
 msgid "Edit history"
-msgstr ""
+msgstr "編輯歷史"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:939
 msgctxt "StatusBar"
@@ -817,12 +819,12 @@ msgstr[0] ""
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:10
 msgctxt "About"
 msgid "About Xenko"
-msgstr ""
+msgstr "關於  Xenko"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:45
 msgctxt "About"
 msgid "Xenko version"
-msgstr ""
+msgstr "Xenko 版本"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:50
 msgctxt "About"
@@ -842,12 +844,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:64
 msgctxt "About"
 msgid "Privacy policy"
-msgstr ""
+msgstr "隱私政策"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:73
 msgctxt "About"
 msgid "Close"
-msgstr ""
+msgstr "關閉"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:9
 msgctxt "Credentials"
@@ -874,34 +876,34 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:21
 msgctxt "Credentials"
 msgid "Username"
-msgstr ""
+msgstr "使用者名稱"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:24
 msgctxt "Credentials"
 msgid "Password"
-msgstr ""
+msgstr "密碼"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:27
 msgctxt "Credentials"
 msgid "Location"
-msgstr ""
+msgstr "位置"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:34
 msgctxt "Credentials"
 msgid "Don't ask again"
-msgstr ""
+msgstr "別再問了"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:35
 msgctxt "Credentials"
 msgid "Test settings"
-msgstr ""
+msgstr "測試設定"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:40
 msgctxt "Button"
 msgid "Save"
-msgstr ""
+msgstr "儲存"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:45
 msgctxt "Button"
 msgid "Cancel"
-msgstr ""
+msgstr "取消"
