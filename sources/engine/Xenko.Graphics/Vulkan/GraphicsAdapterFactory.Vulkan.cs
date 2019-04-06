@@ -152,8 +152,11 @@ namespace Xenko.Graphics
             if (!availableExtensionNames.Contains("VK_KHR_win32_surface"))
                 throw new InvalidOperationException("Required extension VK_KHR_win32_surface is not available");
 
-            // set OpenVR extensions required
-            desiredExtensionNames.Add("VK_NV_external_memory_capabilities");
+            if (availableExtensionNames.Contains("VK_NV_external_memory_capabilities"))
+            {
+                // set OpenVR extensions if we have them (but isn't required if not using VR)
+                desiredExtensionNames.Add("VK_NV_external_memory_capabilities");
+            }
 
 #elif XENKO_PLATFORM_ANDROID
             desiredExtensionNames.Add("VK_KHR_android_surface");
