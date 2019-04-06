@@ -85,10 +85,26 @@ namespace Xenko.Graphics
             }
         }
 
+        private Texture _dummyTexture;
+
         /// <summary>
         /// A minimal 1x1 texture used while bigger textures are loading.
         /// </summary>
-        public Texture dummyTexture { get; private set; }
+        public Texture dummyTexture
+        {
+            get
+            {
+                while( _dummyTexture.NativeImageView == ImageView.Null ) 
+                {
+                    Thread.Sleep(1); // wait until this dummy texture is ready to be used
+                }
+                return _dummyTexture;
+            }
+            private set
+            {
+                _dummyTexture = value;
+            }
+        }
 
         /// <summary>
         /// The tick frquency of timestamp queries in Hertz.
