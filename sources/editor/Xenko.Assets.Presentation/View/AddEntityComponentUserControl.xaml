@@ -5,12 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:xk="http://schemas.xenko.com/xaml/presentation"
              xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-             xmlns:engine="clr-namespace:Xenko.Engine;assembly=Xenko.Engine"
-             
              xmlns:local="clr-namespace:Xenko.Assets.Presentation.View"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"
-             >
+             d:DesignHeight="450" d:DesignWidth="800">
   <UserControl.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
@@ -18,26 +15,27 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
-  <xk:FilteringComboBox 
-                x:Name="FilteringComboBox"
-                ItemsSource="{Binding ComponentTypes}"
-                Text="{Binding SearchToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                Visibility="{Binding AvailableComponentTypes, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:VisibleOrHidden}}}"
-                ClearTextAfterValidation="True" ValidateOnLostFocus="False"
-                WatermarkContent="{xk:Localize Search}" >
+  <xk:FilteringComboBox x:Name="FilteringComboBox"
+                        ItemsSource="{Binding ComponentTypes}"
+                        Text="{Binding SearchToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Visibility="{Binding AvailableComponentTypes, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:VisibleOrHidden}}}"
+                        ClearTextAfterValidation="True" ValidateOnLostFocus="False"
+                        WatermarkContent="{xk:Localize Search}" >
     <xk:FilteringComboBox.Template>
       <ControlTemplate TargetType="{x:Type xk:FilteringComboBox}">
         <Grid x:Name="grid" Margin="4">
-          <ToggleButton SnapsToDevicePixels="True" x:Name="ToggleButton"                  
-                        Focusable="False" ClickMode="Press"
-                  IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+          <ToggleButton SnapsToDevicePixels="True" x:Name="ToggleButton"
+                        IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
             <DockPanel Margin="4">
               <Image DockPanel.Dock="Left" Source="{DynamicResource ImageAdd}" Width="16" Height="16" Margin="4,0"/>
               <TextBlock Text="{xk:Localize Add component}" Margin="4,0"/>
             </DockPanel>
+            <i:Interaction.Behaviors>
+              <xk:ToggleButtonPopupBehavior/>
+            </i:Interaction.Behaviors>
           </ToggleButton>
           <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" x:Name="Popup"
-            Focusable="False" AllowsTransparency="True" PopupAnimation="Slide">
+                 StaysOpen="False"  AllowsTransparency="True" PopupAnimation="Slide">
             <Grid x:Name="DropDown" SnapsToDevicePixels="True">
               <Border x:Name="DropDownBorder"  Background="{DynamicResource BackgroundBrush}" BorderBrush="Black" BorderThickness="1">
                 <Grid Margin="6" MaxHeight="380">
@@ -56,14 +54,14 @@
                         <Image Source="{StaticResource ImageNewScript}" Width="16" Height="16"/>
                       </Button>-->
                       <xk:TextBox x:Name="PART_EditableTextBox" ValidateOnLostFocus="False" VerticalAlignment="Center" Focusable="True"
-                                    WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
-                                    Text="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox},
-                                    UpdateSourceTrigger=PropertyChanged}" ValidateOnTextChange="False" GetFocusOnLoad="True"
-                                    IsEnabled="{TemplateBinding IsEnabled}" CancelWithEscape="False"/>
+                                  WatermarkContent="{Binding WatermarkContent, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
+                                  Text="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox},
+                                  UpdateSourceTrigger=PropertyChanged}" ValidateOnTextChange="False" GetFocusOnLoad="True"
+                                  IsEnabled="{TemplateBinding IsEnabled}" CancelWithEscape="False"/>
                     </DockPanel>
                     <ListBox x:Name="GroupList" MinWidth="160" VerticalAlignment="Top"
-                               ItemsSource="{Binding AvailableComponentTypeGroups}"
-                               IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:InvertBool}}}">
+                             ItemsSource="{Binding AvailableComponentTypeGroups}"
+                             IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:InvertBool}}}">
                       <ListBox.Style>
                         <Style TargetType="{x:Type ListBox}" BasedOn="{StaticResource {x:Type ListBox}}">
                           <Style.Triggers>
@@ -84,14 +82,19 @@
                       <ListBox.ItemTemplate>
                         <DataTemplate >
                           <ToggleButton IsChecked="{Binding IsSelected, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
-                                Padding="6,3">
+                                        Padding="6,3">
                             <ToggleButton.Template>
                               <ControlTemplate TargetType="{x:Type ToggleButton}">
                                 <DockPanel Background="Transparent">
-                                  <Border DockPanel.Dock="Right" Visibility="Hidden" x:Name="GlyphPanel" VerticalAlignment="Center"
-                                  Margin="{TemplateBinding Padding}">
-                                    <Path VerticalAlignment="Center" Fill="{TemplateBinding Foreground}" Data="M0,0 L0,8 L4,4 z" FlowDirection="LeftToRight"
-                                  Margin="4,2"/>
+                                  <Border x:Name="GlyphPanel" 
+                                          DockPanel.Dock="Right"
+                                          Visibility="Hidden"
+                                          VerticalAlignment="Center"
+                                          Margin="{TemplateBinding Padding}">
+                                    <Path VerticalAlignment="Center" 
+                                          Fill="{TemplateBinding Foreground}" Data="M0,0 L0,8 L4,4 z" 
+                                          FlowDirection="LeftToRight"
+                                          Margin="4,2"/>
                                   </Border>
                                   <ContentPresenter HorizontalAlignment="Left" Margin="{TemplateBinding Padding}" VerticalAlignment="Top" Focusable="False"/>
                                 </DockPanel>
@@ -111,25 +114,25 @@
                       </ListBox.ItemTemplate>
                       <i:Interaction.Behaviors>
                         <xk:ListBoxHighlightedItemBehavior IsEnabled="{Binding Text, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Converter={xk:EmptyStringToBool}}"
-                                                          HighlightedItem="{Binding SelectedGroup, Mode=OneWayToSource}"
-                                                          SelectHighlightedWhenEnteringControl="{Binding ElementName=PART_ListBox}"
-                                                          UseSelectedItemIfAvailable="True" DelayToUpdate="0.2"/>
+                                                           HighlightedItem="{Binding SelectedGroup, Mode=OneWayToSource}"
+                                                           SelectHighlightedWhenEnteringControl="{Binding ElementName=PART_ListBox}"
+                                                           UseSelectedItemIfAvailable="True" DelayToUpdate="0.2"/>
                       </i:Interaction.Behaviors>
                     </ListBox>
                   </DockPanel>
                   <Separator Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Width="1" Background="{StaticResource NormalBrush}"
-                     Visibility="{Binding Items.Count, ElementName=PART_ListBox, Converter={xk:VisibleOrCollapsed}}"/>
+                             Visibility="{Binding Items.Count, ElementName=PART_ListBox, Converter={xk:VisibleOrCollapsed}}"/>
                   <ListBox x:Name="PART_ListBox" SnapsToDevicePixels="True" Width="{x:Static local:AddEntityComponentUserControl.ComponentListWidth}"
-                        Margin="4" Grid.Column="2" Height="{Binding ActualHeight, ElementName=LeftPanel}"
-                        FocusManager.IsFocusScope="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                        ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
-                        SelectedIndex="{Binding SelectedIndex, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
-                        SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
-                        SelectedValue="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
-                        SelectedValuePath="{Binding SelectedValuePath, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=OneWay}"
-                        ItemTemplate="{TemplateBinding ItemTemplate}" ItemTemplateSelector="{TemplateBinding ItemTemplateSelector}"
-                        ItemStringFormat="{TemplateBinding ItemStringFormat}"
-                        Visibility="{Binding Items.Count, RelativeSource={RelativeSource Self}, Converter={xk:VisibleOrCollapsed}}">
+                           Margin="4" Grid.Column="2" Height="{Binding ActualHeight, ElementName=LeftPanel}"
+                           FocusManager.IsFocusScope="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                           ItemsSource="{Binding ItemsSource, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"
+                           SelectedIndex="{Binding SelectedIndex, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
+                           SelectedItem="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
+                           SelectedValue="{Binding SelectedValue, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=TwoWay}"
+                           SelectedValuePath="{Binding SelectedValuePath, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}, Mode=OneWay}"
+                           ItemTemplate="{TemplateBinding ItemTemplate}" ItemTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                           ItemStringFormat="{TemplateBinding ItemStringFormat}"
+                           Visibility="{Binding Items.Count, RelativeSource={RelativeSource Self}, Converter={xk:VisibleOrCollapsed}}">
                     <ListBox.ItemContainerStyle>
                       <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                         <Setter Property="Background" Value="Transparent"/>
@@ -147,8 +150,9 @@
     <xk:FilteringComboBox.ItemTemplate>
       <DataTemplate>
         <StackPanel Orientation="Horizontal" Margin="2">
-          <Image Source="{Binding Converter={xk:Chained {xk:AbstractNodeEntryToType}, {xk:TypeToResource}}}" Width="16" Height="16"
-                              RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="0,0,4,0"/>
+          <Image Source="{Binding Converter={xk:Chained {xk:AbstractNodeEntryToType}, {xk:TypeToResource}}}" 
+                 Width="16" Height="16"
+                 RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="0,0,4,0"/>
           <TextBlock Text="{Binding Converter={xk:AbstractNodeEntryToDisplayName}}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
         </StackPanel>
       </DataTemplate>
