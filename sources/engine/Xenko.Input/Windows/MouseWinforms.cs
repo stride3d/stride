@@ -123,6 +123,11 @@ namespace Xenko.Input
         private void OnSizeChanged(object sender, EventArgs eventArgs)
         {
             SetSurfaceSize(new Vector2(uiControl.ClientSize.Width, uiControl.ClientSize.Height));
+            if (isPositionLocked) {
+                // update center of screen for locking cursor
+                capturedPosition = uiControl.PointToScreen(new Point(uiControl.ClientSize.Width / 2, uiControl.ClientSize.Height / 2));
+                Cursor.Position = capturedPosition;
+            }
         }
 
         private void OnMouseWheelEvent(object sender, MouseEventArgs mouseEventArgs)

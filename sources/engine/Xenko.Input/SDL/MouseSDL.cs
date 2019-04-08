@@ -91,6 +91,11 @@ namespace Xenko.Input
         private void OnSizeChanged(SDL.SDL_WindowEvent eventArgs)
         {
             SetSurfaceSize(new Vector2(uiControl.ClientSize.Width, uiControl.ClientSize.Height));
+            if (IsPositionLocked) {
+                // update center of screen for locking cursor
+                relativeCapturedPosition = new Point(uiControl.ClientSize.Width / 2, uiControl.ClientSize.Height / 2);
+                uiControl.RelativeCursorPosition = relativeCapturedPosition;
+            }
         }
 
         private void OnMouseWheelEvent(SDL.SDL_MouseWheelEvent sdlMouseWheelEvent)
