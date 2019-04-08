@@ -152,12 +152,6 @@ namespace Xenko.Graphics
             if (!availableExtensionNames.Contains("VK_KHR_win32_surface"))
                 throw new InvalidOperationException("Required extension VK_KHR_win32_surface is not available");
 
-            if (availableExtensionNames.Contains("VK_NV_external_memory_capabilities"))
-            {
-                // set OpenVR extensions if we have them (but isn't required if not using VR)
-                desiredExtensionNames.Add("VK_NV_external_memory_capabilities");
-            }
-
 #elif XENKO_PLATFORM_ANDROID
             desiredExtensionNames.Add("VK_KHR_android_surface");
             if (!availableExtensionNames.Contains("VK_KHR_android_surface"))
@@ -177,6 +171,22 @@ namespace Xenko.Graphics
                 throw new InvalidOperationException("None of the supported surface extensions VK_KHR_xcb_surface or VK_KHR_xlib_surface is available");
             }
 #endif
+            
+#if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_LINUX
+            // set some extensions that may be needed for OpenVR
+            if (availableExtensionNames.Contains("VK_NV_external_memory_capabilities"))
+            {
+                // NVIDIA needs this one for OpenVR
+                desiredExtensionNames.Add("VK_NV_external_memory_capabilities");
+            }
+
+            if (availableExtensionNames.Contains("VK_KHR_external_memory_capabilities"))
+            {
+                // this one might be used in the future for OpenVR
+                desiredExtensionNames.Add("VK_KHR_external_memory_capabilities");
+            }
+#endif
+
             bool enableDebugReport = enableValidation && availableExtensionNames.Contains("VK_EXT_debug_report");
             if (enableDebugReport)
                 desiredExtensionNames.Add("VK_EXT_debug_report");
