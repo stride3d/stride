@@ -370,7 +370,6 @@ namespace Xenko.Graphics.SDL
         /// <summary>
         /// Style of border. Currently can only be Sizable or FixedSingle.
         /// </summary>
-        /// <remarks>On SDL, one cannot change the style after the window has been created.</remarks>
         public FormBorderStyle FormBorderStyle
         {
             get
@@ -387,7 +386,7 @@ namespace Xenko.Graphics.SDL
             }
             set
             {
-                // FIXME: How to implement this since this is being called.
+                SDL.SDL_SetWindowResizable(SdlHandle, value == FormBorderStyle.Sizable ? SDL.SDL_bool.SDL_TRUE : SDL.SDL_bool.SDL_FALSE);
             }
         }
 
