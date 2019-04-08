@@ -151,14 +151,13 @@ namespace Xenko.Graphics
                 GraphicsDevice.NativeCommandQueue.Present(ref presentInfo);
 
                 // Get next image
-                currentBufferIndex = GraphicsDevice.NativeDevice.AcquireNextImage(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null);
+                GraphicsDevice.NativeDevice.AcquireNextImageWithResult(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null, out currentBufferIndex);
 
                 // Flip render targets
                 backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
             }
             catch (SharpVulkanException e) when (e.Result == Result.ErrorOutOfDate)
             {
-                // TODO VULKAN 
             }
         }
 
@@ -191,9 +190,6 @@ namespace Xenko.Graphics
         /// <inheritdoc/>
         public override void OnRecreated()
         {
-            // TODO VULKAN: Violent driver crashes when recreating device and swapchain
-            throw new NotImplementedException();
-
             base.OnRecreated();
 
             // Recreate swap chain
@@ -399,6 +395,7 @@ namespace Xenko.Graphics
                 StructureType = StructureType.ImageViewCreateInfo,
                 SubresourceRange = new ImageSubresourceRange(ImageAspectFlags.Color, 0, 1, 0, 1),
                 Format = backbuffer.NativeFormat,
+                ViewType = ImageViewType.Image2D
             };
 
             // We initialize swapchain images to PresentSource, since we swap them out while in this layout.
