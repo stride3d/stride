@@ -7,6 +7,10 @@ Xenko is a MIT-licensed opensource project, supported by generous [sponsors and 
 
 Thank you everybody for your generous contributions!
 
+## Gold Sponsor
+
+* [TurboPlay](http://www.turboplay.com/)
+
 ## Super Backers
 
 * Robert Campbell
@@ -50,6 +54,12 @@ Thank you everybody for your generous contributions!
 * Boris Callens
 * Jarrett K Robertson
 * Daniel Keenan
+* David Conway
+* Jorn Theunissen
+* Robin Hübner
+* Ben Temple-Heald
+* Daniel Gilbert
+* Stefan Sailer
 
 ## Mini Backers
 

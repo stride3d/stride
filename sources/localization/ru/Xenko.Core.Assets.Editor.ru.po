@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-01-11 23:17:17+0900\n"
-"PO-Revision-Date: 2019-02-26 08:01+0000\n"
+"PO-Revision-Date: 2019-03-09 00:04+0000\n"
 "Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
 "Language-Team: Russian <https://hosted.weblate.org/projects/xenko/"
 "coreassetseditor/ru/>\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<="
 "4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 3.5-dev\n"
+"X-Generator: Weblate 3.5.1-dev\n"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:144
 msgctxt "Properties"
@@ -151,7 +151,7 @@ msgstr "Использовать сервер компиляторов эффе�
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:92
 msgctxt "Settings"
 msgid "Automatically reload last session at startup"
-msgstr "Автоматически загружать последнюю сессию при запуске"
+msgstr "Загружать последнюю сессию при запуске"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:117
 msgctxt "Message"
@@ -328,7 +328,7 @@ msgstr "Папка с таким именем уже существует в р�
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:191
 msgctxt "Message"
 msgid "Path is a device name"
-msgstr "Путь - это имя устройства"
+msgstr "Путь - имя устройства"
 
 #. Message displayed when the previous attempt to load the startup project failed. {0} is a file name
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:137
@@ -804,17 +804,17 @@ msgstr "Расположение:"
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:959
 msgctxt "ToolTip"
 msgid "Browse directory"
-msgstr "Обзор каталога"
+msgstr "Выбрать каталог"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:24
 msgctxt "Button"
 msgid "Browse for existing project"
-msgstr "Обзор существующего проекта"
+msgstr "Выбрать существующий проект"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:25
 msgctxt "Button"
 msgid "Reload last session automatically at startup"
-msgstr "Автоматически загрузить последнюю сессию при запуске"
+msgstr "Загружать последнюю сессию при запуске"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:82
 msgid "Solution name:"
@@ -922,7 +922,7 @@ msgstr "Включено в сборку как зависимость"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:111
 msgid "Excluded from build"
-msgstr "Исключено из сборки"
+msgstr "Не включено в сборку"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:204
 msgid "Name"
@@ -943,7 +943,7 @@ msgstr "Входит в комплект"
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:265
 msgctxt "ToolTip"
 msgid "Add an asset to this location"
-msgstr "Добавить актив в это место"
+msgstr "Добавить актив в это расположение"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:269
 msgid "Add asset"
@@ -962,22 +962,22 @@ msgstr "Импорт последних эффектов, скомпилиров
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:343
 msgctxt "ToolTip"
 msgid "Open asset in dedicated editor"
-msgstr "Открыть актив в специальном редакторе"
+msgstr "Редактировать"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:352
 msgctxt "ToolTip"
 msgid "Asset view options"
-msgstr "Параметры просмотра активов"
+msgstr "Настройки просмотра активов"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:357
 msgctxt "Menu"
 msgid "Display"
-msgstr "Дисплей"
+msgstr "Показывать"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:358
 msgctxt "Menu"
 msgid "Assets in selected folder only"
-msgstr "Активы только в выбранной папке"
+msgstr "Только активы в выбранной папке"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:361
 msgctxt "Menu"
@@ -1022,12 +1022,12 @@ msgstr "Уменьшить"
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:397
 msgctxt "Menu"
 msgid "Grid"
-msgstr "Сетка"
+msgstr "Подробно"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:405
 msgctxt "Menu"
 msgid "Tiles"
-msgstr "Клетки"
+msgstr "Эскизы"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:418
 msgid "Add a filter..."
