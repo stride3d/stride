@@ -16,6 +16,8 @@ namespace Xenko.Core.MicroThreading
         internal Action Continuation;
         internal T Result;
 
+        public bool SuppressCancellationExceptions = false;
+
         public static ChannelMicroThreadAwaiter<T> New(MicroThread microThread)
         {
             lock (pool)
@@ -58,7 +60,8 @@ namespace Xenko.Core.MicroThreading
         public T GetResult()
         {
             // Check Task Result (exception, etc...)
-            MicroThread.CancellationToken.ThrowIfCancellationRequested();
+            if (SuppressCancellationExceptions == false)
+                MicroThread.CancellationToken.ThrowIfCancellationRequested();
 
             var result = Result;
 
@@ -69,6 +72,7 @@ namespace Xenko.Core.MicroThreading
                 if (pool.Count < 4096)
                 {
                     isCompleted = false;
+                    SuppressCancellationExceptions = false;
                     MicroThread = null;
                     Continuation = null;
                     Result = default(T);
