@@ -142,6 +142,9 @@ namespace Xenko.Physics
 
         internal bool NeedsCustomCollisionCallback;
 
+        /// <summary>
+        /// If you want the ColliderShape to stick around after a Detach or Dispose for reuse, set this to true.
+        /// </summary>
         public bool DoNotDispose = false;
 
         internal Entity DebugEntity;
