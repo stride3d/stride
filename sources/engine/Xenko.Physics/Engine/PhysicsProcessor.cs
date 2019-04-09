@@ -44,6 +44,8 @@ namespace Xenko.Physics
 
         internal void RenderColliderShapes(bool enabled)
         {
+            debugShapeRendering.Enabled = enabled;
+
             colliderShapesRendering = enabled;
 
             if (!colliderShapesRendering)
