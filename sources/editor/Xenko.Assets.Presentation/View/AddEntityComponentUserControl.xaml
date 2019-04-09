@@ -15,27 +15,26 @@
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </UserControl.Resources>
-  <xk:FilteringComboBox x:Name="FilteringComboBox"
+  <Grid x:Name="grid" Margin="4">
+    <ToggleButton SnapsToDevicePixels="True" x:Name="ToggleButton">
+      <DockPanel Margin="4">
+        <Image DockPanel.Dock="Left" Source="{DynamicResource ImageAdd}" Width="16" Height="16" Margin="4,0"/>
+        <TextBlock Text="{xk:Localize Add component}" Margin="4,0"/>
+      </DockPanel>
+      <i:Interaction.Behaviors>
+        <xk:ToggleButtonPopupBehavior/>
+      </i:Interaction.Behaviors>
+    </ToggleButton>
+    <Popup IsOpen="{Binding Path=IsChecked, Mode=TwoWay, ElementName=ToggleButton}" Placement="Bottom" x:Name="Popup"
+                 StaysOpen="False"  AllowsTransparency="True" PopupAnimation="Slide">
+      <xk:FilteringComboBox x:Name="FilteringComboBox"
                         ItemsSource="{Binding ComponentTypes}"
                         Text="{Binding SearchToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                         Visibility="{Binding AvailableComponentTypes, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:VisibleOrHidden}}}"
                         ClearTextAfterValidation="True" ValidateOnLostFocus="False"
                         WatermarkContent="{xk:Localize Search}" >
-    <xk:FilteringComboBox.Template>
-      <ControlTemplate TargetType="{x:Type xk:FilteringComboBox}">
-        <Grid x:Name="grid" Margin="4">
-          <ToggleButton SnapsToDevicePixels="True" x:Name="ToggleButton"
-                        IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
-            <DockPanel Margin="4">
-              <Image DockPanel.Dock="Left" Source="{DynamicResource ImageAdd}" Width="16" Height="16" Margin="4,0"/>
-              <TextBlock Text="{xk:Localize Add component}" Margin="4,0"/>
-            </DockPanel>
-            <i:Interaction.Behaviors>
-              <xk:ToggleButtonPopupBehavior/>
-            </i:Interaction.Behaviors>
-          </ToggleButton>
-          <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" x:Name="Popup"
-                 StaysOpen="False"  AllowsTransparency="True" PopupAnimation="Slide">
+        <xk:FilteringComboBox.Template>
+          <ControlTemplate TargetType="{x:Type xk:FilteringComboBox}">
             <Grid x:Name="DropDown" SnapsToDevicePixels="True">
               <Border x:Name="DropDownBorder"  Background="{DynamicResource BackgroundBrush}" BorderBrush="Black" BorderThickness="1">
                 <Grid Margin="6" MaxHeight="380">
@@ -142,25 +141,28 @@
                 </Grid>
               </Border>
             </Grid>
-          </Popup>
-        </Grid>
-        
-      </ControlTemplate>
-    </xk:FilteringComboBox.Template>
-    <xk:FilteringComboBox.ItemTemplate>
-      <DataTemplate>
-        <StackPanel Orientation="Horizontal" Margin="2">
-          <Image Source="{Binding Converter={xk:Chained {xk:AbstractNodeEntryToType}, {xk:TypeToResource}}}" 
+          </ControlTemplate>
+        </xk:FilteringComboBox.Template>
+        <xk:FilteringComboBox.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Orientation="Horizontal" Margin="2">
+              <Image Source="{Binding Converter={xk:Chained {xk:AbstractNodeEntryToType}, {xk:TypeToResource}}}" 
                  Width="16" Height="16"
                  RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="0,0,4,0"/>
-          <TextBlock Text="{Binding Converter={xk:AbstractNodeEntryToDisplayName}}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-        </StackPanel>
-      </DataTemplate>
-    </xk:FilteringComboBox.ItemTemplate>
-    <i:Interaction.Behaviors>
-      <xk:OnEventCommandBehavior EventName="Validated" 
+              <TextBlock Text="{Binding Converter={xk:AbstractNodeEntryToDisplayName}}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            </StackPanel>
+          </DataTemplate>
+        </xk:FilteringComboBox.ItemTemplate>
+        <i:Interaction.Behaviors>
+          <xk:OnEventCommandBehavior EventName="Validated" 
                                  Command="{Binding AddNewItemCommand}" 
                                  CommandParameter="{Binding ValidatedItem, RelativeSource={RelativeSource AncestorType=xk:FilteringComboBox}}"/>
-    </i:Interaction.Behaviors>
-  </xk:FilteringComboBox>
+        </i:Interaction.Behaviors>
+      </xk:FilteringComboBox>
+
+      <i:Interaction.Behaviors>
+        <xk:OnEventSetPropertyBehavior EventName="Validated" EventOwnerType="xk:FilteringComboBox" Property="{x:Static Popup.IsOpenProperty}" Value="{xk:False}"/>
+      </i:Interaction.Behaviors>
+    </Popup>
+  </Grid>  
 </UserControl>

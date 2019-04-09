@@ -126,26 +126,12 @@ namespace Xenko.Assets.Presentation.View
             InitializeComponent();
             FilteringComboBox.DataContext = this;
 
-            DependencyPropertyDescriptor dpd = DependencyPropertyDescriptor
-            .FromProperty(FilteringComboBox.IsDropDownOpenProperty, typeof(FilteringComboBox));
-            if (dpd != null)
-            {
-                dpd.AddValueChanged(FilteringComboBox, OnIsDropDownOpenChanged);
-            }
-
+            Popup.Closed += Popup_Closed;
         }
 
-        private void OnIsDropDownOpenChanged(object sender, EventArgs e)
+        private void Popup_Closed(object sender, EventArgs e)
         {
-            if (FilteringComboBox.IsDropDownOpen)
-            {
-                SearchToken = null;
-            }
-            else
-            {
-                ComponentTypes = null;
-            }
+            SearchToken = null;
         }
-
     }
 }
