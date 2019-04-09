@@ -15,7 +15,7 @@ namespace Xenko.Assets
             {
                 DisplayName = "Effect Compiler"
             };
-            public static SettingsKey<bool> RecordUsedEffects = new SettingsKey<bool>("Package/Game/Effect/RecordUsedEffects", PackageUserSettings.SettingsContainer, true)
+            public static SettingsKey<bool> RecordUsedEffects = new SettingsKey<bool>("Package/Game/Effect/RecordUsedEffects", PackageUserSettings.SettingsContainer, false)
             {
                 DisplayName = "Record used effects"
             };
