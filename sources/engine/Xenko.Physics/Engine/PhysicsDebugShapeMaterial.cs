@@ -50,5 +50,26 @@ namespace Xenko.Physics
 
             return material;
         }
+
+        public static Material CreateHeightfieldMaterial(GraphicsDevice device, Color color, float intensity)
+        {
+            var colorVertexStream = new ComputeVertexStreamColor { Stream = new ColorVertexStreamDefinition() };
+            var computeColor = new ComputeBinaryColor(new ComputeColor(new Color4(color).ToColorSpace(device.ColorSpace)), colorVertexStream, BinaryOperator.Multiply);
+
+            var material = Material.New(device, new MaterialDescriptor
+            {
+                Attributes = new MaterialAttributes
+                {
+                    Diffuse = new MaterialDiffuseMapFeature(computeColor),
+                    DiffuseModel = new MaterialDiffuseLambertModelFeature(),
+                    Emissive = new MaterialEmissiveMapFeature(computeColor),
+                },
+            });
+
+            // set the color to the material
+            material.Passes[0].Parameters.Set(MaterialKeys.EmissiveIntensity, intensity);
+
+            return material;
+        }
     }
 }
