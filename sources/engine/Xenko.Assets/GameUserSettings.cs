@@ -11,7 +11,7 @@ namespace Xenko.Assets
     {
         public static class Effect
         {
-            public static SettingsKey<EffectCompilationMode> EffectCompilation = new SettingsKey<EffectCompilationMode>("Package/Game/Effect/EffectCompilation", PackageUserSettings.SettingsContainer, EffectCompilationMode.LocalOrRemote)
+            public static SettingsKey<EffectCompilationMode> EffectCompilation = new SettingsKey<EffectCompilationMode>("Package/Game/Effect/EffectCompilation", PackageUserSettings.SettingsContainer, EffectCompilationMode.Local)
             {
                 DisplayName = "Effect Compiler"
             };
