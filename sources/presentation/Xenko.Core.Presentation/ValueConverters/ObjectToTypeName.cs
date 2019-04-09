@@ -2,7 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Xenko.Core.Annotations;
+using Xenko.Core.Presentation.Extensions;
 
 namespace Xenko.Core.Presentation.ValueConverters
 {
@@ -23,7 +25,7 @@ namespace Xenko.Core.Presentation.ValueConverters
         [NotNull]
         public override object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value?.GetType().Name ?? NullObjectType;
+            return value?.GetType().ToSimpleCSharpName() ?? NullObjectType;
         }
     }
 }

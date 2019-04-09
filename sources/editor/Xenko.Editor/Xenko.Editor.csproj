@@ -32,11 +32,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Update="Resources\DefaultThumbnails.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DefaultThumbnails.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets.CompilerApp\Xenko.Core.Assets.CompilerApp.csproj" />
@@ -58,33 +53,19 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
+  <!-- Resources -->
   <ItemGroup>
+    <None Include="Resources\*.png" />
+    <Compile Update="Resources\DefaultThumbnails.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DefaultThumbnails.resx</DependentUpon>
+    </Compile>
     <EmbeddedResource Update="Resources\DefaultThumbnails.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>DefaultThumbnails.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.checkmark.cross.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.resource.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.page.delete.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.box.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ThumbnailDependencyError.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ThumbnailDependencyWarning.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="EditorGame\Services\" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />

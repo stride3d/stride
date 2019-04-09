@@ -358,7 +358,7 @@ namespace Xenko.Core.Packages
                             },
                         };
 
-                        using (var context = new SourceCacheContext())
+                        using (var context = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })
                         {
                             context.IgnoreFailedSources = true;
 
@@ -576,7 +576,7 @@ namespace Xenko.Core.Packages
 
         private async Task FindSourcePackagesByIdHelper(string packageId, List<NugetServerPackage> resultList, SourceRepository [] repositories, CancellationToken cancellationToken)
         {
-            using (var sourceCacheContext = new SourceCacheContext { NoCache = true })
+            using (var sourceCacheContext = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })
             {
                 foreach (var repo in repositories)
                 {
@@ -657,7 +657,7 @@ namespace Xenko.Core.Packages
             var repositories = PackageSources.Select(sourceRepositoryProvider.CreateRepository).ToArray();
 
             var res = new List<NugetPackage>();
-            using (var context = new SourceCacheContext { NoCache = true })
+            using (var context = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })
             {
                 foreach (var repo in repositories)
                 {

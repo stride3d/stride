@@ -20,8 +20,8 @@ namespace Xenko.Graphics
 
         private Device nativeDevice;
         private DeviceContext nativeDeviceContext;
-        private readonly Queue<Query> disjointQueries = new Queue<Query>();
-        private Query currentDisjointQuery;
+        private readonly Queue<Query> disjointQueries = new Queue<Query>(4);
+        private readonly Stack<Query> currentDisjointQueries = new Stack<Query>(2);
 
         internal GraphicsProfile RequestedProfile;
 
@@ -113,6 +113,8 @@ namespace Xenko.Graphics
             FrameTriangleCount = 0;
             FrameDrawCalls = 0;
 
+            Query currentDisjointQuery;
+
             // Try to read back the oldest disjoint query and reuse it. If not ready, create a new one.
             if (disjointQueries.Count > 0 && NativeDeviceContext.GetData(disjointQueries.Peek(), out QueryDataTimestampDisjoint result))
             {
@@ -125,7 +127,7 @@ namespace Xenko.Graphics
                 currentDisjointQuery = new Query(NativeDevice, disjointQueryDiscription);
             }
 
-            disjointQueries.Enqueue(currentDisjointQuery);
+            currentDisjointQueries.Push(currentDisjointQuery);
             NativeDeviceContext.Begin(currentDisjointQuery);
         }
 
@@ -142,7 +144,10 @@ namespace Xenko.Graphics
         /// </summary>
         public void End()
         {
+            // If this fails, it means Begin()/End() don't match, something is very wrong
+            var currentDisjointQuery = currentDisjointQueries.Pop();
             NativeDeviceContext.End(currentDisjointQuery);
+            disjointQueries.Enqueue(currentDisjointQuery);
         }
 
         /// <summary>
