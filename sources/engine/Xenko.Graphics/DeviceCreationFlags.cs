@@ -16,6 +16,11 @@ namespace Xenko.Graphics
         Debug = unchecked((int)2),
 
         /// <summary>
+        /// If we are using Validation debug layers, don't cause exceptions if something fails validation.
+        /// </summary>
+        NoValidationExceptions = unchecked((int)4),
+
+        /// <summary>
         /// Required for Direct2D interoperability with Direct3D resource.
         /// </summary>
         BgraSupport = unchecked((int)32),
