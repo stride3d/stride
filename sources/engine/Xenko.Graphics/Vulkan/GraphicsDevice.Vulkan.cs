@@ -85,26 +85,10 @@ namespace Xenko.Graphics
             }
         }
 
-        private Texture _dummyTexture;
-
         /// <summary>
         /// A minimal 1x1 texture used while bigger textures are loading.
         /// </summary>
-        public Texture dummyTexture
-        {
-            get
-            {
-                while( _dummyTexture.NativeImageView == ImageView.Null ) 
-                {
-                    Thread.Sleep(1); // wait until this dummy texture is ready to be used
-                }
-                return _dummyTexture;
-            }
-            private set
-            {
-                _dummyTexture = value;
-            }
-        }
+        public Texture dummyTexture;
 
         /// <summary>
         /// The tick frquency of timestamp queries in Hertz.
@@ -495,7 +479,7 @@ namespace Xenko.Graphics
             // Release fenced resources
             nativeResourceCollector.Dispose();
             DescriptorPools.Dispose();
-            if( _dummyTexture != null ) _dummyTexture.Dispose();
+            if( dummyTexture != null ) dummyTexture.Dispose();
 
             nativeDevice.DestroyCommandPool(NativeCopyCommandPool);
             nativeDevice.Destroy();
