@@ -142,7 +142,7 @@ namespace Xenko.Physics
 
         internal bool NeedsCustomCollisionCallback;
 
-        internal bool IsPartOfAsset = false;
+        public bool DoNotDispose = false;
 
         internal Entity DebugEntity;
     }

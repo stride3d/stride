@@ -60,7 +60,7 @@ namespace Xenko.Physics
             {
                 res = CreateShape(descs[0]);
                 if (res == null) return null;
-                res.IsPartOfAsset = true;
+                res.DoNotDispose = true;
             }
             else if (descs.Count > 1) //need a compound shape in this case
             {
@@ -72,7 +72,7 @@ namespace Xenko.Physics
                     compound.AddChildShape(subShape);
                 }
                 res = compound;
-                res.IsPartOfAsset = true;
+                res.DoNotDispose = true;
             }
 
             return res;

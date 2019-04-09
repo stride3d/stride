@@ -603,7 +603,7 @@ namespace Xenko.Engine
 
             if (ColliderShape != null)
             {
-                if (!ColliderShape.IsPartOfAsset)
+                if (!ColliderShape.DoNotDispose)
                 {
                     ColliderShape.Dispose();
                     ColliderShape = null;
@@ -710,7 +710,7 @@ namespace Xenko.Engine
             // Actually call the detach
             OnDetach();
 
-            if (ColliderShape != null && !ColliderShape.IsPartOfAsset)
+            if (ColliderShape != null && !ColliderShape.DoNotDispose)
             {
                 ColliderShape.Dispose();
                 ColliderShape = null;
