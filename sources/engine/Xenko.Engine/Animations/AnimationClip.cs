@@ -120,8 +120,12 @@ namespace Xenko.Animations
                 {
                     var channel = Channels[curve.Key];
 
+                    // This is commented out to keep curve data when building a clip asset
+                    // to use within our internal animation blender
+                    /* 
                     Curves[channel.CurveIndex] = null;
                     channel.CurveIndex = -1;
+                    */
 
                     Channels[curve.Key] = channel;
                 }

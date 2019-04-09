@@ -76,6 +76,11 @@ namespace Xenko.Animations
     /// </summary>
     /// <typeparam name="T"></typeparam>
     [DataContract]
+    [Core.Serialization.DataSerializerGlobal(null, typeof(AnimationCurve<float>))]
+    [Core.Serialization.DataSerializerGlobal(null, typeof(AnimationCurve<Core.Mathematics.Vector2>))]
+    [Core.Serialization.DataSerializerGlobal(null, typeof(AnimationCurve<Core.Mathematics.Vector3>))]
+    [Core.Serialization.DataSerializerGlobal(null, typeof(AnimationCurve<Core.Mathematics.Vector4>))]
+    [Core.Serialization.DataSerializerGlobal(null, typeof(AnimationCurve<Core.Mathematics.Quaternion>))]
     public class AnimationCurve<T> : AnimationCurve
     {
         /// <summary>
