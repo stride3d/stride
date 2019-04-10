@@ -408,14 +408,18 @@ namespace Xenko.Games
                 case Win32Native.WM_SYSKEYDOWN: //alt is down
                     if (wparam == VK_RETURN)
                     {
-                        isSwitchingFullScreen = true;
-                        if (!enableFullscreenToggle) return;
-                        OnFullscreenToggle(new EventArgs()); //we handle alt enter manually
-                        isSwitchingFullScreen = false;
+                        ToggleFullscreen();
                     }
                     break;
             }
             base.WndProc(ref m);
+        }
+
+        public void ToggleFullscreen() {
+            if (!enableFullscreenToggle) return;
+            isSwitchingFullScreen = true;
+            OnFullscreenToggle(new EventArgs()); //we handle alt enter manually
+            isSwitchingFullScreen = false;        
         }
 
         protected override void OnKeyUp(KeyEventArgs e)

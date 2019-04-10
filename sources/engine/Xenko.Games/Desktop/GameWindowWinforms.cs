@@ -127,7 +127,11 @@ namespace Xenko.Games
             }
             set {
                 GameForm gform = form as GameForm;
-                if( gform != null ) gform.IsFullScreen = value;
+                if( gform != null ) {
+                    if( gform.IsFullScreen == value ) return;
+                    gform.ToggleFullscreen();
+                    gform.IsFullScreen = value;
+                }
             }
         }
 
