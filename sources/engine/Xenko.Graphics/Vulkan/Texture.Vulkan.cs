@@ -310,10 +310,11 @@ namespace Xenko.Graphics
                 var uploadMemory = GraphicsDevice.AllocateUploadBuffer(totalSize, out uploadResource, out uploadOffset);
 
                 // Upload buffer barrier
-                var bufferMemoryBarrier = new BufferMemoryBarrier(uploadResource, AccessFlags.HostWrite, AccessFlags.TransferRead, (ulong)uploadOffset, (ulong)totalSize);
+                var bufferMemoryBarrier = new BufferMemoryBarrier(uploadResource, AccessFlags.None, AccessFlags.TransferRead, (ulong)uploadOffset, (ulong)totalSize);
 
                 // Image barrier
-                var initialBarrier = new ImageMemoryBarrier(NativeImage, ImageLayout.Undefined, ImageLayout.TransferDestinationOptimal, AccessFlags.None, AccessFlags.TransferWrite, new ImageSubresourceRange(NativeImageAspect));
+                NativeLayout = ImageLayout.TransferDestinationOptimal;
+                var initialBarrier = new ImageMemoryBarrier(NativeImage, ImageLayout.Undefined, NativeLayout, AccessFlags.None, AccessFlags.TransferWrite, new ImageSubresourceRange(NativeImageAspect));
                 commandBuffer.PipelineBarrier(PipelineStageFlags.TopOfPipe, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 1, &bufferMemoryBarrier, 1, &initialBarrier);
 
                 // Copy data boxes to upload buffer
