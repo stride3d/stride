@@ -66,73 +66,12 @@ namespace Xenko.Graphics
         {
             get
             {
-                //return swapChain.IsFullScreen;
                 return false;
             }
 
             set
             {
-//#if !XENKO_PLATFORM_UWP
-//                if (swapChain == null)
-//                    return;
-
-//                var outputIndex = Description.PreferredFullScreenOutputIndex;
-
-//                // no outputs connected to the current graphics adapter
-//                var output = GraphicsDevice.Adapter != null && outputIndex < GraphicsDevice.Adapter.Outputs.Length ? GraphicsDevice.Adapter.Outputs[outputIndex] : null;
-
-//                Output currentOutput = null;
-
-//                try
-//                {
-//                    RawBool isCurrentlyFullscreen;
-//                    swapChain.GetFullscreenState(out isCurrentlyFullscreen, out currentOutput);
-
-//                    // check if the current fullscreen monitor is the same as new one
-//                    if (isCurrentlyFullscreen == value && output != null && currentOutput != null && currentOutput.NativePointer == output.NativeOutput.NativePointer)
-//                        return;
-//                }
-//                finally
-//                {
-//                    if (currentOutput != null)
-//                        currentOutput.Dispose();
-//                }
-
-//                bool switchToFullScreen = value;
-//                // If going to fullscreen mode: call 1) SwapChain.ResizeTarget 2) SwapChain.IsFullScreen
-//                var description = new ModeDescription(backBuffer.ViewWidth, backBuffer.ViewHeight, Description.RefreshRate.ToSharpDX(), (SharpDX.DXGI.Format)Description.BackBufferFormat);
-//                if (switchToFullScreen)
-//                {
-//                    // Force render target destruction
-//                    // TODO: We should track all user created render targets that points to back buffer as well (or deny their creation?)
-//                    backBuffer.OnDestroyed();
-
-//                    OnDestroyed();
-
-//                    Description.IsFullScreen = true;
-
-//                    OnRecreated();
-
-//                    // Recreate render target
-//                    backBuffer.OnRecreate();
-//                }
-//                else
-//                {
-//                    Description.IsFullScreen = false;
-//                    swapChain.IsFullScreen = false;
-
-//                    // call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
-//                    Resize(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
-//                }
-
-//                // If going to window mode: 
-//                if (!switchToFullScreen)
-//                {
-//                    // call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
-//                    description.RefreshRate = new SharpDX.DXGI.Rational(0, 0);
-//                    swapChain.ResizeTarget(ref description);
-//                }
-//#endif
+                // TODO
             }
         }
 
@@ -200,9 +139,17 @@ namespace Xenko.Graphics
             CreateSwapChain();
         }
 
-        protected override void ResizeBackBuffer(int width, int height, PixelFormat format)
+        protected unsafe override void ResizeBackBuffer(int width, int height, PixelFormat format)
         {
-            CreateSwapChain();
+            GraphicsDevice.NativeDevice.WaitIdle();
+            backbuffer.OnDestroyed();
+            foreach (var swapchainImage in swapchainImages)
+            {
+                GraphicsDevice.NativeDevice.DestroyImageView(swapchainImage.NativeColorAttachmentView);
+            }
+            swapchainImages = null;
+            backbuffer = new Texture(GraphicsDevice);
+            CreateBackBuffers(true);
         }
 
         protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
@@ -406,7 +353,7 @@ namespace Xenko.Graphics
 #endif
         }
 
-        private unsafe void CreateBackBuffers()
+        private unsafe void CreateBackBuffers(bool recreate = false)
         {
             // Create the texture object
             var backBufferDescription = new TextureDescription
@@ -467,21 +414,24 @@ namespace Xenko.Graphics
             // Close and submit
             commandBuffer.End();
 
-            var submitInfo = new SubmitInfo
+            if( recreate == false )
             {
-                StructureType = StructureType.SubmitInfo,
-                CommandBufferCount = 1,
-                CommandBuffers = new IntPtr(&commandBuffer),
-            };
-            GraphicsDevice.NativeCommandQueue.Submit(1, &submitInfo, Fence.Null);
-            GraphicsDevice.NativeCommandQueue.WaitIdle();
-            commandBuffer.Reset(CommandBufferResetFlags.None);
+                var submitInfo = new SubmitInfo
+                {
+                    StructureType = StructureType.SubmitInfo,
+                    CommandBufferCount = 1,
+                    CommandBuffers = new IntPtr(&commandBuffer),
+                };
+                GraphicsDevice.NativeCommandQueue.Submit(1, &submitInfo, Fence.Null);
+                GraphicsDevice.NativeCommandQueue.WaitIdle();
+                commandBuffer.Reset(CommandBufferResetFlags.None);
 
-            // Get next image
-            currentBufferIndex = GraphicsDevice.NativeDevice.AcquireNextImage(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null);
+                // Get next image
+                currentBufferIndex = GraphicsDevice.NativeDevice.AcquireNextImage(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null);
             
-            // Apply the first swap chain image to the texture
-            backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+                // Apply the first swap chain image to the texture
+                backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+            }
         }
     }
 }
