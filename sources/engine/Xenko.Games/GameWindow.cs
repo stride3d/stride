@@ -124,6 +124,12 @@ namespace Xenko.Games
         public abstract bool Visible { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="GameWindow" /> is fullscreen.
+        /// </summary>
+        /// <value><c>true</c> if visible; otherwise, <c>false</c>.</value>
+        public abstract bool IsFullscreen { get; set; }
+
+        /// <summary>
         /// Gets or sets the position of the window on the screen.
         /// </summary>
         public virtual Int2 Position { get; set; }
@@ -188,7 +194,7 @@ namespace Xenko.Games
 
         internal abstract void Run();
 
-        internal abstract void Resize(int width, int height);
+        public abstract void Resize(int width, int height);
 
         internal IServiceRegistry Services { get; set; }
 

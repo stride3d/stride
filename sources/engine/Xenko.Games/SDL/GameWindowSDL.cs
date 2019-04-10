@@ -278,7 +278,16 @@ namespace Xenko.Games
             }
         }
 
-        internal override void Resize(int width, int height)
+        public override bool IsFullscreen {
+            get {
+                return window == null ? false : window.IsFullScreen;
+            }
+            set {
+                if( window != null ) window.IsFullScreen = value;
+            }
+        }
+
+        public override void Resize(int width, int height)
         {
             window.ClientSize = new Size2(width, height);
         }

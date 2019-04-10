@@ -120,6 +120,17 @@ namespace Xenko.Games
             deviceChangeWillBeFullScreen = null;
         }
 
+        public override bool IsFullscreen {
+            get {
+                GameForm gform = form as GameForm;
+                return gform == null ? false : gform.IsFullScreen;
+            }
+            set {
+                GameForm gform = form as GameForm;
+                if( gform != null ) gform.IsFullScreen = value;
+            }
+        }
+
         protected internal override void SetSupportedOrientations(DisplayOrientation orientations)
         {
             // Desktop doesn't have orientation (unless on Windows 8?)
@@ -291,7 +302,7 @@ namespace Xenko.Games
             }
         }
 
-        internal override void Resize(int width, int height)
+        public override void Resize(int width, int height)
         {
             Control.ClientSize = new Size(width, height);
         }

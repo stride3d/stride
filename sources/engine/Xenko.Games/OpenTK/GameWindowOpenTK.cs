@@ -200,7 +200,16 @@ namespace Xenko.Games
             gameForm.Title = title;
         }
 
-        internal override void Resize(int width, int height)
+        public override bool IsFullscreen {
+            get {
+                return false; // TODO: is this supported?
+            }
+            set {
+                // TODO: is this supported?
+            }
+        }
+
+        public override void Resize(int width, int height)
         {
             // Unfortunately on OpenTK, depending on how you compile it, it may use System.Drawing.Size or
             // OpenTK.Size. To avoid having to put the exact type, we will use C# inference to guess the right
