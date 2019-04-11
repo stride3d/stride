@@ -137,15 +137,7 @@ namespace Xenko.Graphics
 
         protected unsafe override void ResizeBackBuffer(int width, int height, PixelFormat format)
         {
-            GraphicsDevice.NativeDevice.WaitIdle();
-            backbuffer.OnDestroyed();
-            foreach (var swapchainImage in swapchainImages)
-            {
-                GraphicsDevice.NativeDevice.DestroyImageView(swapchainImage.NativeColorAttachmentView);
-            }
-            swapchainImages = null;
-            backbuffer = new Texture(GraphicsDevice);
-            CreateBackBuffers(true);
+            CreateSwapChain();
         }
 
         protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
@@ -319,7 +311,7 @@ namespace Xenko.Graphics
 #endif
         }
 
-        private unsafe void CreateBackBuffers(bool recreate = false)
+        private unsafe void CreateBackBuffers()
         {
             // Create the texture object
             var backBufferDescription = new TextureDescription
@@ -380,24 +372,21 @@ namespace Xenko.Graphics
             // Close and submit
             commandBuffer.End();
 
-            if( recreate == false )
+            var submitInfo = new SubmitInfo
             {
-                var submitInfo = new SubmitInfo
-                {
-                    StructureType = StructureType.SubmitInfo,
-                    CommandBufferCount = 1,
-                    CommandBuffers = new IntPtr(&commandBuffer),
-                };
-                GraphicsDevice.NativeCommandQueue.Submit(1, &submitInfo, Fence.Null);
-                GraphicsDevice.NativeCommandQueue.WaitIdle();
-                commandBuffer.Reset(CommandBufferResetFlags.None);
-
-                // Get next image
-                currentBufferIndex = GraphicsDevice.NativeDevice.AcquireNextImage(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null);
+                StructureType = StructureType.SubmitInfo,
+                CommandBufferCount = 1,
+                CommandBuffers = new IntPtr(&commandBuffer),
+            };
+            GraphicsDevice.NativeCommandQueue.Submit(1, &submitInfo, Fence.Null);
+            GraphicsDevice.NativeCommandQueue.WaitIdle();
+            commandBuffer.Reset(CommandBufferResetFlags.None);
             
-                // Apply the first swap chain image to the texture
-                backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
-            }
+            // Get next image
+            currentBufferIndex = GraphicsDevice.NativeDevice.AcquireNextImage(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null);
+
+            // Apply the first swap chain image to the texture
+            backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
         }
     }
 }
