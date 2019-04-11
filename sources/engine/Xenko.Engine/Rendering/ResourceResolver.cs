@@ -33,8 +33,10 @@ namespace Xenko.Rendering
             if (!renderContext.GraphicsDevice.Features.HasDepthAsSRV || !renderContext.GraphicsDevice.Features.HasDepthAsReadOnlyRT)
                 return texture;
 
-            // Check if changed
-            if (readOnlyCached != null && readOnlyCached.ParentTexture == texture)
+            // Check if changed (include size check too)
+            if (readOnlyCached != null && readOnlyCached.ParentTexture == texture &&
+                readOnlyCached.Description.Width == texture.Description.Width &&
+                readOnlyCached.Description.Height == texture.Description.Height )
                 return readOnlyCached;
 
             return texture.ToDepthStencilReadOnlyTexture();
