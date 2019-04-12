@@ -93,6 +93,7 @@ namespace Xenko.Games
             totalUpdateTime = new TimeSpan();
             timer = new TimerTick();
             IsFixedTimeStep = false;
+            IsDrawDesynchronized = true;
             maximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
             TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
             lastUpdateCount = new int[4];
@@ -256,7 +257,7 @@ namespace Xenko.Games
         /// Gets or sets a value indicating whether this instance should force exactly one update step per one draw step
         /// </summary>
         /// <value><c>true</c> if this instance forces one update step per one draw step; otherwise, <c>false</c>.</value>
-        protected internal bool ForceOneUpdatePerDraw { get; set; }
+        public bool ForceOneUpdatePerDraw { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether draw can happen as fast as possible, even when <see cref="IsFixedTimeStep"/> is set.

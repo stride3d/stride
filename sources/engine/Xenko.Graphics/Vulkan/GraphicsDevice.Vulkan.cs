@@ -43,7 +43,7 @@ namespace Xenko.Graphics
         private int nativeUploadBufferSize;
         private int nativeUploadBufferOffset;
 
-        private Queue<KeyValuePair<long, Fence>> nativeFences = new Queue<KeyValuePair<long, Fence>>();
+        private ConcurrentQueue<KeyValuePair<long, Fence>> nativeFences = new ConcurrentQueue<KeyValuePair<long, Fence>>();
         private long lastCompletedFence;
         internal long NextFenceValue = 1;
 
@@ -567,29 +567,20 @@ namespace Xenko.Graphics
             return fenceValue <= lastCompletedFence;
         }
 
-        private SpinLock spinLock = new SpinLock();
-
         internal unsafe long GetCompletedValue()
         {
-            bool lockTaken = false;
-            try
-            {
-                spinLock.Enter(ref lockTaken);
-
-                while (nativeFences.Count > 0 && NativeDevice.GetFenceStatus(nativeFences.Peek().Value) == Result.Success)
-                {
-                    var fence = nativeFences.Dequeue();
+            while (nativeFences.TryDequeue(out KeyValuePair<long, Fence> fence)) {
+                if (NativeDevice.GetFenceStatus(fence.Value) == Result.Success) {
                     NativeDevice.DestroyFence(fence.Value);
                     lastCompletedFence = Math.Max(lastCompletedFence, fence.Key);
+                } else {
+                    // not ready, put back
+                    nativeFences.Enqueue(fence);
+                    break;
                 }
+            }
 
-                return lastCompletedFence;
-            }
-            finally
-            {
-                if (lockTaken)
-                    spinLock.Exit(false);
-            }
+            return lastCompletedFence;
         }
 
         internal unsafe void WaitForFenceInternal(long fenceValue)
@@ -597,17 +588,16 @@ namespace Xenko.Graphics
             if (IsFenceCompleteInternal(fenceValue))
                 return;
 
-            // TODO D3D12 in case of concurrency, this lock could end up blocking too long a second thread with lower fenceValue then first one
-            lock (nativeFences)
-            {
-                while (nativeFences.Count > 0 && nativeFences.Peek().Key <= fenceValue)
-                {
-                    var fence = nativeFences.Dequeue();
+            while (nativeFences.TryDequeue(out KeyValuePair<long, Fence> fence)) {
+                if (fence.Key <= fenceValue) {
                     var fenceCopy = fence.Value;
-
                     NativeDevice.WaitForFences(1, &fenceCopy, true, ulong.MaxValue);
                     NativeDevice.DestroyFence(fence.Value);
                     lastCompletedFence = fenceValue;
+                } else {
+                    // not ready, put it back
+                    nativeFences.Enqueue(fence);
+                    break;
                 }
             }
         }
@@ -914,7 +904,7 @@ namespace Xenko.Graphics
     internal abstract class TemporaryResourceCollector<T> : IDisposable
     {
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly Queue<KeyValuePair<long, T>> items = new Queue<KeyValuePair<long, T>>();
+        private readonly ConcurrentQueue<KeyValuePair<long, T>> items = new ConcurrentQueue<KeyValuePair<long, T>>();
 
         protected TemporaryResourceCollector(GraphicsDevice graphicsDevice)
         {
@@ -923,19 +913,19 @@ namespace Xenko.Graphics
 
         public void Add(long fenceValue, T item)
         {
-            lock (items)
-            {
-                items.Enqueue(new KeyValuePair<long, T>(fenceValue, item));
-            }
+            items.Enqueue(new KeyValuePair<long, T>(fenceValue, item));
         }
 
         public void Release()
         {
-            lock (items)
+            while (items.TryDequeue(out KeyValuePair<long, T> item))
             {
-                while (items.Count > 0 && GraphicsDevice.IsFenceCompleteInternal(items.Peek().Key))
-                {
-                    ReleaseObject(items.Dequeue().Value);
+                if (GraphicsDevice.IsFenceCompleteInternal(item.Key)) {
+                    ReleaseObject(item.Value);
+                } else {
+                    // not ready, put it back
+                    items.Enqueue(item);
+                    break;
                 }
             }
         }
@@ -944,9 +934,9 @@ namespace Xenko.Graphics
 
         public void Dispose()
         {
-            while (items.Count > 0)
+            while (items.TryDequeue(out KeyValuePair<long, T> item))
             {
-                ReleaseObject(items.Dequeue().Value);
+                ReleaseObject(item.Value);
             }
         }
     }
