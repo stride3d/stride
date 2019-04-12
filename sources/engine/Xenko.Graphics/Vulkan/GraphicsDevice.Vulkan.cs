@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using SharpVulkan;
+using System.Collections.Concurrent;
 
 using Xenko.Core;
 using Xenko.Core.Threading;
@@ -659,7 +660,7 @@ namespace Xenko.Graphics
     internal abstract class ResourcePool<T> : ComponentBase
     {
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly Queue<KeyValuePair<long, T>> liveObjects = new Queue<KeyValuePair<long, T>>();
+        private readonly ConcurrentQueue<KeyValuePair<long, T>> liveObjects = new ConcurrentQueue<KeyValuePair<long, T>>();
 
         protected ResourcePool(GraphicsDevice graphicsDevice)
         {
@@ -668,30 +669,21 @@ namespace Xenko.Graphics
 
         public T GetObject()
         {
-            lock (liveObjects)
-            {
-                // Check if first allocator is ready for reuse
-                if (liveObjects.Count > 0)
-                {
-                    var firstAllocator = liveObjects.Peek();
-                    if (firstAllocator.Key <= GraphicsDevice.GetCompletedValue())
-                    {
-                        liveObjects.Dequeue();
-                        ResetObject(firstAllocator.Value);
-                        return firstAllocator.Value;
-                    }
+            // Check if first allocator is ready for reuse
+            if (liveObjects.TryDequeue(out KeyValuePair<long, T> firstAllocator)) {
+                if (firstAllocator.Key <= GraphicsDevice.GetCompletedValue()) {                    
+                    ResetObject(firstAllocator.Value);
+                    return firstAllocator.Value;
                 }
-
-                return CreateObject();
+                // not ready yet, put it back
+                liveObjects.Enqueue(firstAllocator);
             }
+            return CreateObject();
         }
 
         public void RecycleObject(long fenceValue, T obj)
         {
-            lock (liveObjects)
-            {
-                liveObjects.Enqueue(new KeyValuePair<long, T>(fenceValue, obj));
-            }
+            liveObjects.Enqueue(new KeyValuePair<long, T>(fenceValue, obj));
         }
 
         protected abstract T CreateObject();
@@ -704,12 +696,9 @@ namespace Xenko.Graphics
 
         protected override void Destroy()
         {
-            lock (liveObjects)
-            { 
-                foreach (var item in liveObjects)
-                {
-                    DestroyObject(item.Value);
-                }
+            foreach (var item in liveObjects)
+            {
+                DestroyObject(item.Value);
             }
 
             base.Destroy();
