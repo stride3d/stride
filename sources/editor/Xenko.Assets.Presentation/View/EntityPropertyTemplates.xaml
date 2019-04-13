@@ -12,7 +12,8 @@
                     xmlns:data="clr-namespace:Xenko.Data;assembly=Xenko"
                     xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                     xmlns:assetCommands="clr-namespace:Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands;assembly=Xenko.Core.Assets.Editor"
-                    xmlns:qvm="clr-namespace:Xenko.Core.Presentation.Quantum.ViewModels;assembly=Xenko.Core.Presentation.Quantum">
+                    xmlns:qvm="clr-namespace:Xenko.Core.Presentation.Quantum.ViewModels;assembly=Xenko.Core.Presentation.Quantum"
+                    xmlns:localView="clr-namespace:Xenko.Assets.Presentation.View">
 
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/DefaultPropertyTemplateProviders.xaml"/>
@@ -120,64 +121,11 @@
       <Border xk:PropertyViewHelper.Increment="0" xk:PropertyViewHelper.IsExpanded="True"
           Visibility="{Binding IsVisible, Converter={xk:VisibleOrCollapsed}}">
         <Border x:Name="PART_Name" Background="{Binding Background}" MinHeight="26" Margin="4,4,1,8" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ToolTip="{Binding Documentation}">
-          <ComboBox IsEditable="False" ItemsSource="{Binding EntityComponentAvailableTypes}" x:Name="EntityComponentSelectionComboBox" IsTextSearchEnabled="True"
-                    Visibility="{Binding EntityComponentAvailableTypes, Converter={xk:Chained {xk:CountEnumerable}, {xk:NumericToBool}, {xk:VisibleOrHidden}}}">
-            <ComboBox.Template>
-              <ControlTemplate TargetType="{x:Type ComboBox}">
-                <Grid x:Name="grid" Margin="4">
-                  <ToggleButton SnapsToDevicePixels="True" x:Name="ToggleButton"
-                                Focusable="false" ClickMode="Press"
-                                IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
-                    <DockPanel Margin="4">
-                      <Image DockPanel.Dock="Left" Source="{DynamicResource ImageAdd}" Width="16" Height="16" Margin="4,0"/>
-                      <TextBlock Text="{xk:Localize Add component}" Margin="4,0"/>
-                    </DockPanel>
-                  </ToggleButton>
-                  <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" x:Name="Popup"
-                         Focusable="False" AllowsTransparency="True" PopupAnimation="Slide">
-                    <Grid MaxHeight="{TemplateBinding MaxDropDownHeight}" MinWidth="{TemplateBinding ActualWidth}" x:Name="DropDown" SnapsToDevicePixels="True">
-                      <Border x:Name="DropDownBorder" Background="{DynamicResource ControlBackgroundBrush}" CornerRadius="3,3,3,3" />
-                      <ScrollViewer Margin="4,6,4,6" Style="{DynamicResource NuclearScrollViewer}"
-                                    SnapsToDevicePixels="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-                                    CanContentScroll="True" Foreground="{DynamicResource {x:Static SystemColors.ActiveCaptionTextBrushKey}}">
-                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
-                      </ScrollViewer>
-                    </Grid>
-                  </Popup>
-                </Grid>
-                <ControlTemplate.Triggers>
-                  <Trigger Property="HasItems" Value="false">
-                    <Setter Property="MinHeight" Value="95" TargetName="DropDownBorder" />
-                  </Trigger>
-                  <Trigger Property="IsEnabled" Value="false">
-                    <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush}" />
-                    <Setter Property="Opacity" TargetName="grid" Value="0.5" />
-                  </Trigger>
-                  <Trigger Property="IsGrouping" Value="true">
-                    <Setter Property="ScrollViewer.CanContentScroll" Value="false" />
-                  </Trigger>
-                  <Trigger Property="AllowsTransparency" SourceName="Popup" Value="true">
-                    <Setter Property="Margin" Value="0,2,0,0" TargetName="DropDownBorder" />
-                  </Trigger>
-                </ControlTemplate.Triggers>
-              </ControlTemplate>
-            </ComboBox.Template>
-            <ComboBox.ItemTemplate>
-              <DataTemplate>
-                <StackPanel Orientation="Horizontal" Margin="2">
-                  <Image Source="{Binding Converter={xk:Chained {xk:AbstractNodeEntryToType}, {valueConverters:TypeToResource}}}" Width="16" Height="16"
-                              RenderOptions.BitmapScalingMode="NearestNeighbor" Margin="0,0,4,0"/>
-                  <TextBlock Text="{Binding Converter={xk:AbstractNodeEntryToDisplayName}}" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                </StackPanel>
-              </DataTemplate>
-            </ComboBox.ItemTemplate>
-            <i:Interaction.Behaviors>
-              <behaviors:OnComboBoxClosedWithSelectionBehavior Command="{Binding AddNewItem}"
-                             CommandParameter="{Binding SelectedItem, ElementName=EntityComponentSelectionComboBox}"/>
-              <behaviors:OnSelectionChangedWithSelectionBehavior Command="{Binding AddNewItem}"
-                             CommandParameter="{Binding SelectedItem, ElementName=EntityComponentSelectionComboBox}"/>
-            </i:Interaction.Behaviors>
-          </ComboBox>
+          <localView:AddEntityComponentUserControl 
+            AvailableComponentTypes="{Binding EntityComponentAvailableTypes}"
+            AvailableComponentTypeGroups="{Binding EntityComponentAvailableTypeGroups}"
+            AddNewItemCommand="{Binding AddNewItem}"
+            AddNewScriptComponentCommand="{Binding AddNewScriptComponent}"/>
         </Border>
       </Border>
     </DataTemplate>

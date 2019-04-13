@@ -14,18 +14,48 @@ using Xenko.Core.Presentation.Windows;
 using Xenko.Core.Translation;
 using Xenko.Assets.Scripts;
 using EditorViewModel = Xenko.Core.Assets.Editor.ViewModel.EditorViewModel;
+using System.Linq;
 
 namespace Xenko.Assets.Presentation.Templates
 {
     public class ScriptTemplateGenerator : AssetTemplateGenerator
     {
+        private const string AssetTypeName = "ScriptSourceFileAsset";
+
         public static readonly ScriptTemplateGenerator Default = new ScriptTemplateGenerator();
 
         private static readonly PropertyKey<string> ClassNameKey = new PropertyKey<string>("ClassNameKey", typeof(ScriptTemplateGenerator));
 
+        private static readonly PropertyKey<string> DefaultClassNameKey = new PropertyKey<string>(nameof(DefaultClassNameKey), typeof(ScriptTemplateGenerator));
+
+        private static readonly PropertyKey<bool> EnableTemplateSelectKey = new PropertyKey<bool>(nameof(EnableTemplateSelectKey), typeof(ScriptTemplateGenerator));
+
         private static readonly PropertyKey<bool> SaveSessionKey = new PropertyKey<bool>("SaveSessionKey", typeof(ScriptTemplateGenerator));
 
         public static void SetClassName(AssetTemplateGeneratorParameters parameters, string className) => parameters.Tags.Set(ClassNameKey, className);
+
+        public static IEnumerable<TemplateAssetDescription> GetScriptTemplateAssetDescriptions(IEnumerable<TemplateDescription> templates)
+        {
+            if (templates == null)
+            {
+                throw new ArgumentNullException(nameof(templates));
+            }
+
+            return templates.OfType<TemplateAssetDescription>().Where(t => t.AssetTypeName == AssetTypeName);
+        }
+
+        public static PropertyContainer GetAssetOverrideParameters(string defaultClassName, bool enableTemplateSelect = true)
+        {
+            var customParameters = new PropertyContainer();
+
+            if (!string.IsNullOrEmpty(defaultClassName))
+            {
+                customParameters[DefaultClassNameKey] = defaultClassName;
+            }
+
+            customParameters[EnableTemplateSelectKey] = enableTemplateSelect;
+            return customParameters;
+        }
 
         public override bool IsSupportingTemplate(TemplateDescription templateDescription)
         {
@@ -42,7 +72,24 @@ namespace Xenko.Assets.Presentation.Templates
         {
             if (!parameters.Unattended)
             {
-                var window = new ScriptNameWindow(parameters.Description.DefaultOutputName, parameters.Namespace);
+                string defaultClassName = parameters.Description.DefaultOutputName;
+
+                if(parameters.Tags.TryGetValue(DefaultClassNameKey, out string className) && !string.IsNullOrEmpty(className))
+                {
+                    defaultClassName = className;
+                }
+
+                bool enableTemplateSelect = parameters.TryGetTag(EnableTemplateSelectKey);
+
+                IEnumerable<TemplateAssetDescription> scriptTemplates = null;
+
+                if (enableTemplateSelect)
+                {
+                    scriptTemplates = GetScriptTemplateAssetDescriptions(TemplateManager.FindTemplates(TemplateScope.Asset, parameters.Package.Session));
+                }
+
+                var window = new ScriptNameWindow(defaultClassName, parameters.Namespace, parameters.Description as TemplateAssetDescription, enableTemplateSelect, scriptTemplates);
+
                 await window.ShowModal();
 
                 if (window.Result == DialogResult.Cancel)
@@ -50,6 +97,7 @@ namespace Xenko.Assets.Presentation.Templates
 
                 parameters.Namespace = window.Namespace;
                 parameters.Tags.Set(ClassNameKey, window.ClassName);
+                parameters.Description = window.ScriptTemplate;
 
                 var ask = Xenko.Core.Assets.Editor.Settings.EditorSettings.AskBeforeSavingNewScripts.GetValue();
                 if (ask)

@@ -28,6 +28,7 @@ namespace Xenko.Engine
     [Display(Expand = ExpandRule.Once)]
     [AllowMultipleComponents]
     [ComponentOrder(1000)]
+    [ComponentCategory("Scripts")]
     public abstract class ScriptComponent : EntityComponent, ICollectorHolder
     {
         public const uint LiveScriptingMask = 128;

@@ -473,7 +473,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             base.Destroy();
         }
 
-        public async Task<List<AssetViewModel>> RunAssetTemplate(ITemplateDescriptionViewModel template, IEnumerable<UFile> files)
+        public async Task<List<AssetViewModel>> RunAssetTemplate(ITemplateDescriptionViewModel template, IEnumerable<UFile> files, PropertyContainer? customParameters = null)
         {
             if (template == null)
                 return new List<AssetViewModel>();
@@ -503,7 +503,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 name = templateDescription.DefaultOutputName ?? templateDescription.AssetTypeName;
             }
 
-            return await InvokeAddAssetTemplate(loggerResult, name, directory, templateDescription, files);
+            return await InvokeAddAssetTemplate(loggerResult, name, directory, templateDescription, files, customParameters);
         }
 
         private async Task ShowAddAssetDialog()
@@ -537,7 +537,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             }
         }
 
-        private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, IEnumerable<UFile> files)
+        private async Task<List<AssetViewModel>> InvokeAddAssetTemplate(LoggerResult logger, string name, DirectoryBaseViewModel directory, TemplateAssetDescription templateDescription, IEnumerable<UFile> files, PropertyContainer? customParameters)
         {
             List<AssetViewModel> newAssets = new List<AssetViewModel>();
 
@@ -549,6 +549,14 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 Logger = logger,
                 Namespace = ComputeNamespace(directory),
             };
+
+            if (customParameters.HasValue)
+            {
+                foreach (var tag in customParameters.Value)
+                {
+                    parameters.Tags[tag.Key] = tag.Value;
+                }
+            }
 
             var generator = TemplateManager.FindTemplateGenerator(parameters);
             if (generator == null)

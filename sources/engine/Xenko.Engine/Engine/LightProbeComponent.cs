@@ -14,6 +14,7 @@ namespace Xenko.Engine
     [Display("Light probe", Expand = ExpandRule.Once)]
     [DefaultEntityComponentRenderer(typeof(LightProbeProcessor))]
     [ComponentOrder(15000)]
+    [ComponentCategory("Lights")]
     public class LightProbeComponent : EntityComponent
     {
         [Display(Browsable = false)]

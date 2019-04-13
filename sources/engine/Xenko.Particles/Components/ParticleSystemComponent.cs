@@ -20,6 +20,7 @@ namespace Xenko.Particles.Components
     [DefaultEntityComponentProcessor(typeof(ParticleSystemSimulationProcessor))]
     [DefaultEntityComponentRenderer(typeof(ParticleSystemRenderProcessor))]
     [ComponentOrder(10200)]
+    [ComponentCategory("Particles")]
     public sealed class ParticleSystemComponent : ActivableEntityComponent
     {        
         private ParticleSystem particleSystem;

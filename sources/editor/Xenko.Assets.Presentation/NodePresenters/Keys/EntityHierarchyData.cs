@@ -13,5 +13,9 @@ namespace Xenko.Assets.Presentation.NodePresenters.Keys
     {
         public const string EntityComponentAvailableTypes = nameof(EntityComponentAvailableTypes);
         public static readonly PropertyKey<IEnumerable<AbstractNodeType>> EntityComponentAvailableTypesKey = new PropertyKey<IEnumerable<AbstractNodeType>>(EntityComponentAvailableTypes, typeof(EntityHierarchyData), new PropertyCombinerMetadata(AbstractNodeEntryData.CombineProperty));
+
+
+        public const string EntityComponentAvailableTypeGroups = nameof(EntityComponentAvailableTypeGroups);
+        public static readonly PropertyKey<IEnumerable<AbstractNodeTypeGroup>> EntityComponentAvailableTypeGroupsKey = new PropertyKey<IEnumerable<AbstractNodeTypeGroup>>(EntityComponentAvailableTypeGroups, typeof(EntityHierarchyData), new PropertyCombinerMetadata(AbstractNodeEntryData.CombineProperty));
     }
 }

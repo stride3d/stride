@@ -17,6 +17,7 @@ namespace Xenko.Engine
     [Display("UI", Expand = ExpandRule.Once)]
     [DefaultEntityComponentRenderer(typeof(UIRenderProcessor))]
     [ComponentOrder(9800)]
+    [ComponentCategory("UI")]
     public sealed class UIComponent : ActivableEntityComponent
     {
         public static readonly float DefaultDepth = 1000;
