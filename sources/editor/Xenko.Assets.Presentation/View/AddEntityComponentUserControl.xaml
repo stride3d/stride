@@ -21,6 +21,9 @@
         <Image DockPanel.Dock="Left" Source="{DynamicResource ImageAdd}" Width="16" Height="16" Margin="4,0"/>
         <TextBlock Text="{xk:Localize Add component}" Margin="4,0"/>
       </DockPanel>
+      <i:Interaction.Behaviors>
+        <xk:ToggleButtonPopupBehavior/>
+      </i:Interaction.Behaviors>
     </ToggleButton>
     <Popup IsOpen="{Binding Path=IsChecked, Mode=TwoWay, ElementName=ToggleButton}" Placement="Bottom" x:Name="Popup"
                  StaysOpen="False"  AllowsTransparency="True" PopupAnimation="Slide">
