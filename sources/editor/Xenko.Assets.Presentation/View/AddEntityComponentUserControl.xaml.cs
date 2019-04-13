@@ -131,7 +131,12 @@ namespace Xenko.Assets.Presentation.View
 
         private void Popup_Closed(object sender, EventArgs e)
         {
+            FilteringComboBox.SelectedIndex = -1;
             SearchToken = null;
+            SelectedGroup = null;
+            var groupList = FilteringComboBox.FindVisualChildrenOfType<ListBox>().FirstOrDefault(x => x.Name == "GroupList");
+            if (groupList != null)
+                groupList.SelectedIndex = -1;
         }
     }
 }
