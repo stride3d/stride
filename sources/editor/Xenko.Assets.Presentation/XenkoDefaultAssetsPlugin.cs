@@ -182,6 +182,8 @@ namespace Xenko.Assets.Presentation
             session.AssetViewProperties.RegisterNodePresenterCommand(new PickupEntityComponentCommand(session));
             session.AssetViewProperties.RegisterNodePresenterCommand(new EditCurveCommand(session));
             session.AssetViewProperties.RegisterNodePresenterCommand(new SkeletonNodePreserveAllCommand());
+            //TODO: Add back once properly implemented.
+            //session.AssetViewProperties.RegisterNodePresenterCommand(new AddNewScriptComponentCommand());
 
             session.AssetViewProperties.RegisterNodePresenterUpdater(new AnimationAssetNodeUpdater());
             session.AssetViewProperties.RegisterNodePresenterUpdater(new CameraSlotNodeUpdater(session));

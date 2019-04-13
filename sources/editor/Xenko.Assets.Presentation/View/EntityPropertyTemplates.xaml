@@ -123,7 +123,9 @@
         <Border x:Name="PART_Name" Background="{Binding Background}" MinHeight="26" Margin="4,4,1,8" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" ToolTip="{Binding Documentation}">
           <localView:AddEntityComponentUserControl 
             AvailableComponentTypes="{Binding EntityComponentAvailableTypes}"
-            AvailableComponentTypeGroups="{Binding EntityComponentAvailableTypeGroups}"/>        
+            AvailableComponentTypeGroups="{Binding EntityComponentAvailableTypeGroups}"
+            AddNewItemCommand="{Binding AddNewItem}"
+            AddNewScriptComponentCommand="{Binding AddNewScriptComponent}"/>
         </Border>
       </Border>
     </DataTemplate>

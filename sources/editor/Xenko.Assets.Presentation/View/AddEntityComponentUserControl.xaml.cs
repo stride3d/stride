@@ -78,6 +78,25 @@ namespace Xenko.Assets.Presentation.View
         public static readonly DependencyProperty ComponentTypesProperty =
             DependencyProperty.Register("ComponentTypes", typeof(IEnumerable<AbstractNodeType>), typeof(AddEntityComponentUserControl), new PropertyMetadata(null));
 
+        public ICommand AddNewItemCommand
+        {
+            get { return (ICommand)GetValue(AddNewItemCommandProperty); }
+            set { SetValue(AddNewItemCommandProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for AddNewItemCommand.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty AddNewItemCommandProperty =
+            DependencyProperty.Register("AddNewItemCommand", typeof(ICommand), typeof(AddEntityComponentUserControl), new PropertyMetadata(null));
+
+        public ICommand AddNewScriptComponentCommand
+        {
+            get { return (ICommand)GetValue(AddNewScriptComponentCommandProperty); }
+            set { SetValue(AddNewScriptComponentCommandProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for AddNewScriptComponentCommand.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty AddNewScriptComponentCommandProperty =
+            DependencyProperty.Register("AddNewScriptComponentCommand", typeof(ICommand), typeof(AddEntityComponentUserControl), new PropertyMetadata(null));
 
         private static void OnSelectedGroupChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -107,23 +126,17 @@ namespace Xenko.Assets.Presentation.View
             InitializeComponent();
             FilteringComboBox.DataContext = this;
 
-            DependencyPropertyDescriptor dpd = DependencyPropertyDescriptor
-            .FromProperty(FilteringComboBox.IsDropDownOpenProperty, typeof(FilteringComboBox));
-            if (dpd != null)
-            {
-                dpd.AddValueChanged(FilteringComboBox, OnIsDropDownOpenChanged);
-            }
-
+            Popup.Closed += Popup_Closed;
         }
 
-        private void OnIsDropDownOpenChanged(object sender, EventArgs e)
+        private void Popup_Closed(object sender, EventArgs e)
         {
-            if (!FilteringComboBox.IsDropDownOpen)
-            {
-                ComponentTypes = null;
-                SearchToken = null;
-            }
+            FilteringComboBox.SelectedIndex = -1;
+            SearchToken = null;
+            SelectedGroup = null;
+            var groupList = FilteringComboBox.FindVisualChildrenOfType<ListBox>().FirstOrDefault(x => x.Name == "GroupList");
+            if (groupList != null)
+                groupList.SelectedIndex = -1;
         }
-
     }
 }
