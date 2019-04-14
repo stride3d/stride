@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if XENKO_GRAPHICS_API_VULKAN
 using System;
+using System.Threading;
 using System.Linq;
 using SharpVulkan;
 using Xenko.Core;
@@ -23,7 +24,7 @@ namespace Xenko.Graphics
         internal ImageView NativeImageView;
 
         private bool isNotOwningResources;
-        internal bool IsInitialized, ReadyForSampling;
+        internal bool IsInitialized;
 
         internal Format NativeFormat;
         internal bool HasStencil;
@@ -35,6 +36,19 @@ namespace Xenko.Graphics
         public void Recreate(DataBox[] dataBoxes = null)
         {
             InitializeFromImpl(dataBoxes);
+        }
+
+        public Texture AwaitReady() {
+            int awaitCount = 0;
+            while (NativeImageView == ImageView.Null) {
+                // this isn't ready, but will it ever be?
+                if (isNotOwningResources || 
+                    awaitCount++ > 100 ||
+                    Description.Width == 0 && Description.Height == 0) return null;
+                // might still be loading, let's wait...
+                Thread.Sleep(1);                
+            }
+            return this;
         }
 
         public static bool IsDepthStencilReadOnlySupported(GraphicsDevice device)
@@ -52,13 +66,11 @@ namespace Xenko.Graphics
             Utilities.Swap(ref NativeImageView, ref other.NativeImageView);
             Utilities.Swap(ref isNotOwningResources, ref other.isNotOwningResources);
             Utilities.Swap(ref IsInitialized, ref other.IsInitialized);
-            Utilities.Swap(ref ReadyForSampling, ref other.ReadyForSampling);
             Utilities.Swap(ref NativeFormat, ref other.NativeFormat);
             Utilities.Swap(ref HasStencil, ref other.HasStencil);
             Utilities.Swap(ref NativeLayout, ref other.NativeLayout);
             Utilities.Swap(ref NativeAccessMask, ref other.NativeAccessMask);
             Utilities.Swap(ref NativeImageAspect, ref other.NativeImageAspect);
-            //
             Utilities.Swap(ref NativeMemory, ref other.NativeMemory);
             Utilities.Swap(ref StagingFenceValue, ref other.StagingFenceValue);
             Utilities.Swap(ref StagingBuilder, ref other.StagingBuilder);
@@ -171,10 +183,9 @@ namespace Xenko.Graphics
 
                 if (!isNotOwningResources)
                 {
-                    NativeImageView = GetImageView(ViewType, ArraySlice, MipLevel);
                     NativeColorAttachmentView = GetColorAttachmentView(ViewType, ArraySlice, MipLevel);
                     NativeDepthStencilView = GetDepthStencilView();
-                    ReadyForSampling = true;
+                    NativeImageView = GetImageView(ViewType, ArraySlice, MipLevel);
                 }
             }
         }
@@ -384,8 +395,6 @@ namespace Xenko.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
-            ReadyForSampling = false;
-
             if (ParentTexture != null || isNotOwningResources)
             {
                 NativeImage = SharpVulkan.Image.Null;
