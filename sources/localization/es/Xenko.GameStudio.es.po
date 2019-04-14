@@ -738,7 +738,7 @@ msgstr "Referencias"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:598
 msgid "References"
-msgstr "Referencias"
+msgstr "Assets"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:599
 msgid "Referenced by"
@@ -754,7 +754,7 @@ msgstr[1] "Error de assets ({0})"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:624
 msgid "Build"
-msgstr "Construir"
+msgstr "Compilar"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:638
 msgid "Live-scripting"
@@ -805,7 +805,7 @@ msgstr "Buscar propiedades"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:765
 msgctxt "Menu"
 msgid "Reset to base value"
-msgstr "Reiniciar al valor base"
+msgstr "Reiniciar al valor inicial"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:879
 msgctxt "View"
