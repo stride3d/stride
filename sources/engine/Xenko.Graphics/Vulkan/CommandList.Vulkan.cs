@@ -333,10 +333,10 @@ namespace Xenko.Graphics
                 switch (mapping.DescriptorType)
                 {
                     case DescriptorType.SampledImage:
-                        var texture = heapObject.Value as Texture;
+                        var texture = (heapObject.Value as Texture)?.AwaitReady();
                         descriptorData->ImageInfo = new DescriptorImageInfo
                         {
-                            ImageView = (texture == null || texture.NativeImageView == ImageView.Null || texture.ReadyForSampling == false ) ? GraphicsDevice.dummyTexture.NativeImageView : texture.NativeImageView,
+                            ImageView = texture == null ? GraphicsDevice.dummyTexture.NativeImageView : texture.NativeImageView,
                             ImageLayout = ImageLayout.ShaderReadOnlyOptimal
                         };
                         write->ImageInfo = new IntPtr(descriptorData);
@@ -423,9 +423,6 @@ namespace Xenko.Graphics
 
                 // TODO VULKAN: Check for change
                 
-                // wait, are we ready to use this texture yet?
-                if (texture.ReadyForSampling == false) texture = GraphicsDevice.dummyTexture;
-
                 var oldLayout = texture.NativeLayout;
                 var oldAccessMask = texture.NativeAccessMask;
 
