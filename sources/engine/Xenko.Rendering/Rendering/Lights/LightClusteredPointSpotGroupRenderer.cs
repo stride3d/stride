@@ -486,10 +486,10 @@ namespace Xenko.Rendering.Lights
             }
 
             /// <inheritdoc/>
-            public override void ApplyViewParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters)
+            public override void ApplyViewParameters(FastListStruct<LightDynamicEntry>? lightList, RenderDrawContext context, int viewIndex, ParameterCollection parameters)
             {
                 // Note: no need to fill CurrentLights since we have no shadow maps
-                base.ApplyViewParameters(context, viewIndex, parameters);
+                base.ApplyViewParameters(lightList, context, viewIndex, parameters);
 
                 ref var renderViewInfo = ref renderViewInfos[viewIndex];
                 var viewSize = renderViewInfo.RenderView.ViewSize;

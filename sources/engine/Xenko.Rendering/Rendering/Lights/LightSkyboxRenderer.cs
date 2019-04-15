@@ -126,9 +126,9 @@ namespace Xenko.Rendering.Lights
                 renderEffect.EffectValidator.ValidateParameter(lightSpecularColorKey, lightSpecularColorShader);
             }
 
-            public override void ApplyViewParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters)
+            public override void ApplyViewParameters(FastListStruct<LightDynamicEntry>? lightList, RenderDrawContext context, int viewIndex, ParameterCollection parameters)
             {
-                base.ApplyViewParameters(context, viewIndex, parameters);
+                base.ApplyViewParameters(lightList, context, viewIndex, parameters);
 
                 var lightSkybox = ((LightSkybox)Light.Type);
                 var skybox = lightSkybox.Skybox;

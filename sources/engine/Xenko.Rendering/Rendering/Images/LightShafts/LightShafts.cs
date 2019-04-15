@@ -348,8 +348,8 @@ namespace Xenko.Rendering.Images
             // Update the effect here so the layout is correct
             lightShaftsEffectShader.EffectInstance.UpdateEffect(GraphicsDevice);
 
-            data.ShaderGroup.ApplyViewParameters(context, 0, lightParameterCollection);
-            data.ShaderGroup.ApplyDrawParameters(context, 0, lightParameterCollection, ref box);
+            data.ShaderGroup.ApplyViewParameters(null, context, 0, lightParameterCollection);
+            data.ShaderGroup.ApplyDrawParameters(null, context, 0, lightParameterCollection, ref box);
 
             data.UsageCounter = usageCounter;
         }

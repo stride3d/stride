@@ -26,8 +26,6 @@ namespace Xenko.Rendering.Lights
         {
             private ValueParameterKey<int> countKey;
             private ValueParameterKey<PointLightData> lightsKey;
-            private FastListStruct<PointLightData> lightsData = new FastListStruct<PointLightData>(8);
-            private readonly object applyLock = new object();
 
             public PointLightShaderGroup(RenderContext renderContext, ILightShadowMapShaderGroupData shadowGroupData)
                 : base(renderContext, shadowGroupData)
@@ -65,46 +63,43 @@ namespace Xenko.Rendering.Lights
                 return lightCount;
             }
 
-            public override void ApplyDrawParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters, ref BoundingBoxExt boundingBox)
+            public override void ApplyDrawParameters(FastListStruct<LightDynamicEntry>? lightList, RenderDrawContext context, int viewIndex, ParameterCollection parameters, ref BoundingBoxExt boundingBox)
             {
-                // TODO THREADING: Make CurrentLights and lightData (thread-) local
-                lock (applyLock)
+                FastListStruct<PointLightData> lightsData = new FastListStruct<PointLightData>(8);
+                if (lightList == null) lightList = new FastListStruct<LightDynamicEntry>(8);
+                FastListStruct<LightDynamicEntry> currentLights = lightList.Value;
+                var lightRange = lightRanges[viewIndex];
+                for (int i = lightRange.Start; i < lightRange.End; ++i)
+                    currentLights.Add(lights[i]);
+
+                base.ApplyDrawParameters(currentLights, context, viewIndex, parameters, ref boundingBox);
+
+                // TODO: Since we cull per object, we could maintain a higher number of allowed light than the shader support (i.e. 4 lights active per object even though the scene has many more of them)
+                // TODO: Octree structure to select best lights quicker
+                var boundingBox2 = (BoundingBox)boundingBox;
+                foreach (var lightEntry in currentLights)
                 {
-                    currentLights.Clear();
-                    var lightRange = lightRanges[viewIndex];
-                    for (int i = lightRange.Start; i < lightRange.End; ++i)
-                        currentLights.Add(lights[i]);
+                    var light = lightEntry.Light;
 
-                    base.ApplyDrawParameters(context, viewIndex, parameters, ref boundingBox);
-
-                    // TODO: Since we cull per object, we could maintain a higher number of allowed light than the shader support (i.e. 4 lights active per object even though the scene has many more of them)
-                    // TODO: Octree structure to select best lights quicker
-                    var boundingBox2 = (BoundingBox)boundingBox;
-                    foreach (var lightEntry in currentLights)
+                    if (light.BoundingBox.Intersects(ref boundingBox2))
                     {
-                        var light = lightEntry.Light;
-
-                        if (light.BoundingBox.Intersects(ref boundingBox2))
+                        var pointLight = (LightPoint)light.Type;
+                        lightsData.Add(new PointLightData
                         {
-                            var pointLight = (LightPoint)light.Type;
-                            lightsData.Add(new PointLightData
-                            {
-                                PositionWS = light.Position,
-                                InvSquareRadius = pointLight.InvSquareRadius,
-                                Color = light.Color,
-                            });
+                            PositionWS = light.Position,
+                            InvSquareRadius = pointLight.InvSquareRadius,
+                            Color = light.Color,
+                        });
 
-                            // Did we reach max number of simultaneous lights?
-                            // TODO: Still collect everything but sort by importance and remove the rest?
-                            if (lightsData.Count >= LightCurrentCount)
-                                break;
-                        }
+                        // Did we reach max number of simultaneous lights?
+                        // TODO: Still collect everything but sort by importance and remove the rest?
+                        if (lightsData.Count >= LightCurrentCount)
+                            break;
                     }
-
-                    parameters.Set(countKey, lightsData.Count);
-                    parameters.Set(lightsKey, lightsData.Count, ref lightsData.Items[0]);
-                    lightsData.Clear();
                 }
+
+                parameters.Set(countKey, lightsData.Count);
+                parameters.Set(lightsKey, lightsData.Count, ref lightsData.Items[0]);
             }
         }
     }

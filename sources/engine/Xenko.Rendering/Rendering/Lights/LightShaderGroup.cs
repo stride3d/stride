@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
+using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Rendering.Shadows;
@@ -56,7 +57,7 @@ namespace Xenko.Rendering.Lights
         /// <param name="context"></param>
         /// <param name="viewIndex"></param>
         /// <param name="parameters"></param>
-        public virtual void ApplyViewParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters)
+        public virtual void ApplyViewParameters(FastListStruct<LightDynamicEntry>? lightList, RenderDrawContext context, int viewIndex, ParameterCollection parameters)
         {
         }
 
@@ -67,7 +68,7 @@ namespace Xenko.Rendering.Lights
         /// <param name="viewIndex"></param>
         /// <param name="parameters"></param>
         /// <param name="boundingBox"></param>
-        public virtual void ApplyDrawParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters, ref BoundingBoxExt boundingBox)
+        public virtual void ApplyDrawParameters(FastListStruct<LightDynamicEntry>? lightList, RenderDrawContext context, int viewIndex, ParameterCollection parameters, ref BoundingBoxExt boundingBox)
         {
         }
 

@@ -89,9 +89,9 @@ namespace Xenko.Rendering.Lights
                 ambientLightKey = LightSimpleAmbientKeys.AmbientLight.ComposeWith(compositionName);
             }
 
-            public override void ApplyViewParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters)
+            public override void ApplyViewParameters(FastListStruct<LightDynamicEntry>? lightList, RenderDrawContext context, int viewIndex, ParameterCollection parameters)
             {
-                base.ApplyViewParameters(context, viewIndex, parameters);
+                base.ApplyViewParameters(lightList, context, viewIndex, parameters);
 
                 parameters.Set(ambientLightKey, AmbientColor[viewIndex]);
             }

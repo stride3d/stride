@@ -36,7 +36,6 @@ namespace Xenko.Rendering.Lights
         {
             private ValueParameterKey<int> countKey;
             private ValueParameterKey<DirectionalLightData> lightsKey;
-            private FastListStruct<DirectionalLightData> lightsData = new FastListStruct<DirectionalLightData>(8);
 
             public DirectionalLightShaderGroup(RenderContext renderContext, ILightShadowMapShaderGroupData shadowGroupData)
                 : base(renderContext, shadowGroupData)
@@ -64,14 +63,16 @@ namespace Xenko.Rendering.Lights
                 ShaderSource = mixin;
             }
 
-            public override void ApplyViewParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters)
+            public override void ApplyViewParameters(FastListStruct<LightDynamicEntry>? lightList, RenderDrawContext context, int viewIndex, ParameterCollection parameters)
             {
-                currentLights.Clear();
+                FastListStruct<DirectionalLightData> lightsData = new FastListStruct<DirectionalLightData>(8);
+                if (lightList == null) lightList = new FastListStruct<LightDynamicEntry>(8);
+                FastListStruct<LightDynamicEntry> currentLights = lightList.Value;
                 var lightRange = lightRanges[viewIndex];
                 for (int i = lightRange.Start; i < lightRange.End; ++i)
                     currentLights.Add(lights[i]);
 
-                base.ApplyViewParameters(context, viewIndex, parameters);
+                base.ApplyViewParameters(currentLights, context, viewIndex, parameters);
 
                 foreach (var lightEntry in currentLights)
                 {
@@ -85,7 +86,6 @@ namespace Xenko.Rendering.Lights
 
                 parameters.Set(countKey, lightsData.Count);
                 parameters.Set(lightsKey, lightsData.Count, ref lightsData.Items[0]);
-                lightsData.Clear();
             }
         }
     }

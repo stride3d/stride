@@ -348,8 +348,6 @@ namespace Xenko.Rendering.Lights
         {
             private ValueParameterKey<int> countKey;
             private ValueParameterKey<SpotLightData> lightsKey;
-            private FastListStruct<SpotLightData> lightsData = new FastListStruct<SpotLightData>(8);
-            private readonly object applyLock = new object();
 
             public ITextureProjectionShaderGroupData TextureProjectionShaderGroupData { get; }
 
@@ -394,48 +392,45 @@ namespace Xenko.Rendering.Lights
                 return lightCount;
             }
 
-            public override void ApplyDrawParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters, ref BoundingBoxExt boundingBox)
+            public override void ApplyDrawParameters(FastListStruct<LightDynamicEntry>? lightList, RenderDrawContext context, int viewIndex, ParameterCollection parameters, ref BoundingBoxExt boundingBox)
             {
-                // TODO THREADING: Make CurrentLights and lightData (thread-) local
-                lock (applyLock)
+                FastListStruct<SpotLightData> lightsData = new FastListStruct<SpotLightData>(8);
+                if (lightList == null) lightList = new FastListStruct<LightDynamicEntry>(8);
+                FastListStruct<LightDynamicEntry> currentLights = lightList.Value;
+                var lightRange = lightRanges[viewIndex];
+                for (int i = lightRange.Start; i < lightRange.End; ++i)
+                    currentLights.Add(lights[i]);
+
+                base.ApplyDrawParameters(currentLights, context, viewIndex, parameters, ref boundingBox);
+
+                // TODO: Octree structure to select best lights quicker
+                var boundingBox2 = (BoundingBox)boundingBox;
+                for (int i = 0; i < currentLights.Count; i++)
                 {
-                    currentLights.Clear();
-                    var lightRange = lightRanges[viewIndex];
-                    for (int i = lightRange.Start; i < lightRange.End; ++i)
-                        currentLights.Add(lights[i]);
+                    var light = currentLights[i].Light;
 
-                    base.ApplyDrawParameters(context, viewIndex, parameters, ref boundingBox);
-
-                    // TODO: Octree structure to select best lights quicker
-                    var boundingBox2 = (BoundingBox)boundingBox;
-                    for (int i = 0; i < currentLights.Count; i++)
+                    if (light.BoundingBox.Intersects(ref boundingBox2))
                     {
-                        var light = currentLights[i].Light;
-
-                        if (light.BoundingBox.Intersects(ref boundingBox2))
+                        var spotLight = (LightSpot)light.Type;
+                        lightsData.Add(new SpotLightData
                         {
-                            var spotLight = (LightSpot)light.Type;
-                            lightsData.Add(new SpotLightData
-                            {
-                                PositionWS = light.Position,
-                                DirectionWS = light.Direction,
-                                AngleOffsetAndInvSquareRadius = new Vector3(spotLight.LightAngleScale, spotLight.LightAngleOffset, spotLight.InvSquareRange),
-                                Color = light.Color,
-                            });
+                            PositionWS = light.Position,
+                            DirectionWS = light.Direction,
+                            AngleOffsetAndInvSquareRadius = new Vector3(spotLight.LightAngleScale, spotLight.LightAngleOffset, spotLight.InvSquareRange),
+                            Color = light.Color,
+                        });
 
-                            // Did we reach max number of simultaneous lights?
-                            // TODO: Still collect everything but sort by importance and remove the rest?
-                            if (lightsData.Count >= LightCurrentCount)
-                                break;
-                        }
+                        // Did we reach max number of simultaneous lights?
+                        // TODO: Still collect everything but sort by importance and remove the rest?
+                        if (lightsData.Count >= LightCurrentCount)
+                            break;
                     }
-
-                    parameters.Set(countKey, lightsData.Count);
-                    parameters.Set(lightsKey, lightsData.Count, ref lightsData.Items[0]);
-                    lightsData.Clear();
-
-                    TextureProjectionShaderGroupData?.ApplyDrawParameters(context, parameters, currentLights, ref boundingBox);
                 }
+
+                parameters.Set(countKey, lightsData.Count);
+                parameters.Set(lightsKey, lightsData.Count, ref lightsData.Items[0]);
+
+                TextureProjectionShaderGroupData?.ApplyDrawParameters(context, parameters, currentLights, ref boundingBox);
             }
         }
     }
