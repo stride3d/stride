@@ -14,7 +14,7 @@ Example of use:
     <BuildProperties Condition="'$(XenkoSign)' != ''">$(BuildProperties);XenkoSign=$(XenkoSign)</BuildProperties>
     <BuildProperties Condition="'$(XenkoOfficialBuild)' != ''">$(BuildProperties);XenkoOfficialBuild=$(XenkoOfficialBuild)</BuildProperties>
     <NuGetPath>$(MSBuildThisFileDirectory).nuget\NuGet.exe</NuGetPath>
-    <XunitRunnerConsoleVersion>2.3.1</XunitRunnerConsoleVersion>
+    <XunitRunnerConsoleVersion>2.4.1</XunitRunnerConsoleVersion>
     <XenkoStoreUrl Condition="'$(XenkoStoreUrl)' == ''">https://api.nuget.org/v3/index.json</XenkoStoreUrl>
     <AdvancedInstallerPath Condition="'$(AdvancedInstallerPath)' == '' And Exists('$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 15.5.1\bin\x86\advinst.exe')">$(MSBuildProgramFiles32)\Caphyon\Advanced Installer 15.5.1\bin\x86\advinst.exe</AdvancedInstallerPath>
   </PropertyGroup>
@@ -238,10 +238,11 @@ Example of use:
   <Target Name="DownloadXunitRunnerConsole">
     <MakeDir Directories="$(MSBuildThisFileDirectory)packages"/>
     <PropertyGroup>
-      <XunitRunnerConsolePath>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net452\xunit.console.exe</XunitRunnerConsolePath>
+      <XunitRunnerConsolePathDefault>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net461\xunit.console.exe</XunitRunnerConsolePathDefault>
+      <XunitRunnerConsolePathX86>$(MSBuildThisFileDirectory)packages\xunit.runner.console.$(XunitRunnerConsoleVersion)\tools\net461\xunit.console.x86.exe</XunitRunnerConsolePathX86>
     </PropertyGroup>
-    <Exec Command='"$(NuGetPath)" install xunit.runner.console -Version $(XunitRunnerConsoleVersion)' Condition="!Exists('$(XunitRunnerConsolePath)')" WorkingDirectory="$(MSBuildThisFileDirectory)packages" />
-    <Error Text="Could not find xunit.runner at expected location [$(XunitRunnerConsolePath)]" Condition="!Exists('$(XunitRunnerConsolePath)')"/>
+    <Exec Command='"$(NuGetPath)" install xunit.runner.console -Version $(XunitRunnerConsoleVersion)' Condition="!Exists('$(XunitRunnerConsolePathDefault)')" WorkingDirectory="$(MSBuildThisFileDirectory)packages" />
+    <Error Text="Could not find xunit.runner at expected location [$(XunitRunnerConsolePathDefault)]" Condition="!Exists('$(XunitRunnerConsolePathDefault)')"/>
   </Target>
   
   <Target Name="RunTestsWindows" DependsOnTargets="DownloadXunitRunnerConsole">
@@ -369,12 +370,17 @@ Example of use:
     <!-- Build unit tests -->
     <Message Importance="High" Text="Building unit test from solution %(Solution): @(UnitTest->'%(TargetName)')"/>
     <MSBuild Targets="@(UnitTest->'%(TargetName)');$(XenkoTestExtraTargets)" Projects="%(Solution)" Properties="$(BuildProperties);DeployExtension=true">
-        <Output TaskParameter="TargetOutputs" ItemName="AssembliesToTest" />
+      <Output TaskParameter="TargetOutputs" ItemName="AssembliesToTest" />
     </MSBuild>
-	
+
     <!-- Run unit tests -->
     <MakeDir Directories="$(MSBuildThisFileDirectory)TestResults"/>
-    <Exec Command="&quot;$(XunitRunnerConsolePath)&quot; @(AssembliesToTest->'%(Identity)', ' ')"/>
+    <ItemGroup>
+      <AssembliesToTestDefault Include="@(AssembliesToTest)" Condition="'%(AssembliesToTest.PlatformTarget)' != 'x86'"/>
+      <AssembliesToTestX86 Include="@(AssembliesToTest)" Condition="'%(AssembliesToTest.PlatformTarget)' == 'x86'"/>
+    </ItemGroup>
+    <Exec Condition="'@(AssembliesToTestDefault)' != ''" Command="&quot;$(XunitRunnerConsolePathDefault)&quot; @(AssembliesToTestDefault->'%(Identity)', ' ')"/>
+    <Exec Condition="'@(AssembliesToTestX86)' != ''" Command="&quot;$(XunitRunnerConsolePathX86)&quot; @(AssembliesToTestX86->'%(Identity)', ' ')"/>
   </Target>
   
   <ItemGroup>
