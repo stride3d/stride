@@ -54,4 +54,13 @@
       <XenkoCompileAssetOptions>$(XenkoCompileAssetOptions) --property:XenkoGraphicsApi=$(XenkoGraphicsApi)</XenkoCompileAssetOptions>
     </PropertyGroup>
   </Target>
+
+  <!-- Used by Xenko.build to detect if unit tests prefer to run in 32 or 64 bits -->
+  <Target Name="_XenkoAfterGetTargetPathWithTargetPlatformMoniker" AfterTargets="GetTargetPathWithTargetPlatformMoniker">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Update="$(TargetPath)">
+        <PlatformTarget>$(PlatformTarget)</PlatformTarget>
+      </TargetPathWithTargetPlatformMoniker>
+    </ItemGroup>
+  </Target>
 </Project>

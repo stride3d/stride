@@ -164,5 +164,13 @@
        Note: this target is redefined in References.targets for user projects -->
   <Target Name="CopyXenkoNativeLibraries" Condition=" '$(XenkoPlatform)' == 'iOS' and '$(OutputType)' == 'Exe'">
   </Target>
-  
+
+  <!-- Used by Xenko.build to detect if unit tests prefer to run in 32 or 64 bits (note: it's a copy of Xenko.UnitTests.targets one because some unit tests import Xenko.Core.PreSettings.targets rather than Xenko.UnitTests.targets) -->
+  <Target Name="_XenkoAfterGetTargetPathWithTargetPlatformMoniker" AfterTargets="GetTargetPathWithTargetPlatformMoniker">
+    <ItemGroup>
+      <TargetPathWithTargetPlatformMoniker Update="$(TargetPath)">
+        <PlatformTarget>$(PlatformTarget)</PlatformTarget>
+      </TargetPathWithTargetPlatformMoniker>
+    </ItemGroup>
+  </Target>
 </Project>

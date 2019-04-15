@@ -150,7 +150,9 @@
     <Delete Condition="'@(_XenkoDependencyToCopy)' == ''" Files="$(OutputPath)$(TargetName).ssdeps"/>
   </Target>
 
-  <!-- C# -->
+  <!-- Build -->
+  <Target Name="_XenkoGenerateDependenciesAfterBuild" Condition="'$(TargetFramework)' != '' Or '$(XenkoProjectType)' == 'Cpp'" DependsOnTargets="_XenkoGenerateDependencies" AfterTargets="Build"/>
+  <!-- Packaging -->
   <Target Name="_XenkoRegisterDependenciesOutputs" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_XenkoGenerateDependencies">
     <ItemGroup Condition="'@(_XenkoDependencyToCopy)' != ''">
       <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).ssdeps" Condition="'$(_XenkoAppendRuntimeIdentifier)' != 'true'" PackagePath="lib\$(TargetFramework)" />
@@ -158,6 +160,4 @@
       <TfmSpecificPackageFile Include="@(_XenkoDependencyToCopy)" />
     </ItemGroup>
   </Target>
-  <!-- C++/CLI -->
-  <Target Name="_XenkoGenerateDependenciesAfterBuild" DependsOnTargets="_XenkoGenerateDependencies" AfterTargets="Build" Condition="'$(XenkoProjectType)' == 'Cpp'"/>
 </Project>
