@@ -42,7 +42,9 @@ namespace Xenko.Core.Threading
             while(true)
             {
                 if (workItems.TryDequeue(out Action workItem)) {
-                    workItem.Invoke();
+                    try {
+                        workItem.Invoke();
+                    } catch(Exception e) { /* ignore exception */ }
                     PooledDelegateHelper.Release(workItem);
                 };
 
