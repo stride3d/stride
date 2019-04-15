@@ -159,5 +159,5 @@
     </ItemGroup>
   </Target>
   <!-- C++/CLI -->
-  <Target Name="_XenkoGenerateDependenciesAfterBuild" Condition="'$(TargetFramework)' != ''" DependsOnTargets="_XenkoGenerateDependencies" AfterTargets="Build"/>
+  <Target Name="_XenkoGenerateDependenciesAfterBuild" Condition="'$(TargetFramework)' != '' Or '$(XenkoProjectType)' == 'Cpp'" DependsOnTargets="_XenkoGenerateDependencies" AfterTargets="Build"/>
 </Project>
