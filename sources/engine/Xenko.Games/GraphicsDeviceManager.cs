@@ -592,7 +592,7 @@ namespace Xenko.Games
                 {
                     // Make sure that the Presenter is reverted to window before shuting down
                     // otherwise the Direct3D11.Device will generate an exception on Dispose()
-                    GraphicsDevice.Presenter.IsFullScreen = false;
+                    GraphicsDevice.Presenter.InternalFullscreen = false;
                     GraphicsDevice.Presenter.Dispose();
                     GraphicsDevice.Presenter = null;
                 }
@@ -1046,10 +1046,10 @@ namespace Xenko.Games
 
                                     GraphicsDevice.Presenter.Description.PreferredFullScreenOutputIndex = newOutputIndex;
                                     GraphicsDevice.Presenter.Description.RefreshRate = graphicsDeviceInformation.PresentationParameters.RefreshRate;
-                                    GraphicsDevice.Presenter.Resize(newWidth, newHeight, newFormat);
+                                    GraphicsDevice.Presenter.InternalResize(newWidth, newHeight, newFormat);
 
                                     // Change full screen if needed
-                                    GraphicsDevice.Presenter.IsFullScreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
+                                    GraphicsDevice.Presenter.InternalFullscreen = graphicsDeviceInformation.PresentationParameters.IsFullScreen;
 
                                     needToCreateNewDevice = false;
                                 }

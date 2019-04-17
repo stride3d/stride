@@ -120,11 +120,11 @@ namespace Xenko.Graphics
         public abstract object NativePresenter { get; }
 
         /// <summary>
-        /// Gets or sets fullscreen mode for this presenter.
+        /// Gets or sets fullscreen mode for this presenter. Use Game.Window.IsFullscreen publically to set fullscreen mode.
         /// </summary>
         /// <value><c>true</c> if this instance is full screen; otherwise, <c>false</c>.</value>
         /// <remarks>This method is only valid on Windows Desktop and has no effect on Windows Metro.</remarks>
-        public abstract bool IsFullScreen { get; set; }
+        public abstract bool InternalFullscreen { get; set; }
 
         /// <summary>
         /// Gets or sets the <see cref="PresentInterval"/>. Default is to wait for one vertical blanking.
@@ -151,11 +151,12 @@ namespace Xenko.Graphics
 
         /// <summary>
         /// Resizes the current presenter, by resizing the back buffer and the depth stencil buffer.
+        /// Use Game.Window publically to resize the game.
         /// </summary>
         /// <param name="width"></param>
         /// <param name="height"></param>
         /// <param name="format"></param>
-        public void Resize(int width, int height, PixelFormat format)
+        public void InternalResize(int width, int height, PixelFormat format)
         {
             GraphicsDevice.Begin();
 

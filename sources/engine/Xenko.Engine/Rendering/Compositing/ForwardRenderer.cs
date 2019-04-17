@@ -797,10 +797,6 @@ namespace Xenko.Rendering.Compositing
                 }
             }
 
-            // this appears unneccessary. setting depthstencil to null here doesn't seem to affect depthStencilROCache assignmnet,
-            // and then we set the depth stencil again the call after, making this call seem pointless
-            //context.CommandList.SetRenderTargets(null, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
-
             depthStencilROCached = context.Resolver.GetDepthStencilAsRenderTarget(depthStencil, depthStencilROCached);
             context.CommandList.SetRenderTargets(depthStencilROCached, context.CommandList.RenderTargetCount, context.CommandList.RenderTargets);
 

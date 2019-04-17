@@ -18,6 +18,9 @@ namespace Xenko.Graphics.SDL
 
         #region Initialization
 
+        private Size2? oldSize = null;
+        private Point? oldLocation = null;
+
         /// <summary>
         /// Initializes static members of the <see cref="Window"/> class.
         /// </summary>
@@ -181,7 +184,21 @@ namespace Xenko.Graphics.SDL
             }
             set
             {
+                if (IsFullScreen == value) return;
                 SDL.SDL_SetWindowFullscreen(SdlHandle, (uint)(value ? SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN : 0));
+                SDL.SDL_GetCurrentDisplayMode(SDL.SDL_GetWindowDisplayIndex(SdlHandle), out SDL.SDL_DisplayMode mode);
+                if (value) {
+                    oldSize = ClientSize;
+                    oldLocation = Location;
+                    Location = Point.Zero;
+                    if( oldSize.Value.Width != mode.w ||
+                        oldSize.Value.Height != mode.h ) ClientSize = new Size2(mode.w, mode.h);
+                } else {
+                    if( oldLocation.HasValue == false || oldLocation.Value == Point.Zero ) {
+                        Location = new Point((int)((mode.w - 1280) * 0.5f), (int)((mode.h - 720) * 0.5));
+                    } else Location = oldLocation.Value;
+                    ClientSize = oldSize ?? new Size2(1280, 720);
+                }
             }
         }
 
