@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using SharpVulkan;
+using System.Threading;
 using ImageLayout = SharpVulkan.ImageLayout;
 
 namespace Xenko.Graphics
@@ -58,50 +59,46 @@ namespace Xenko.Graphics
             }
         }
 
-        public override bool IsFullScreen
+        private bool _fullscreen;
+        public override bool InternalFullscreen
         {
             get
             {
-                return false;
+                return _fullscreen;
             }
 
             set
             {
-                // TODO
+                if( value == _fullscreen ) return;
+                _fullscreen = value;
+                CreateSwapChain();
             }
         }
-
 
         public override unsafe void Present()
         {
-            try
+            var swapChainCopy = swapChain;
+            var currentBufferIndexCopy = currentBufferIndex;
+            var presentInfo = new PresentInfo
             {
-                var swapChainCopy = swapChain;
-                var currentBufferIndexCopy = currentBufferIndex;
-                var presentInfo = new PresentInfo
-                {
-                    StructureType = StructureType.PresentInfo,
-                    SwapchainCount = 1,
-                    Swapchains = new IntPtr(&swapChainCopy),
-                    ImageIndices = new IntPtr(&currentBufferIndexCopy),
-                };
+                StructureType = StructureType.PresentInfo,
+                SwapchainCount = 1,
+                Swapchains = new IntPtr(&swapChainCopy),
+                ImageIndices = new IntPtr(&currentBufferIndexCopy),
+            };
 
-                // Present
-                GraphicsDevice.NativeCommandQueue.Present(ref presentInfo);
+            // Present
+            GraphicsDevice.NativeCommandQueue.Present(ref presentInfo);
 
-                // Get next image
-                GraphicsDevice.NativeDevice.AcquireNextImageWithResult(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null, out currentBufferIndex);
+            // Get next image
+            GraphicsDevice.NativeDevice.AcquireNextImageWithResult(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null, out currentBufferIndex);
 
-                // Flip render targets
-                backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
-            }
-            catch (SharpVulkanException e) when (e.Result == Result.ErrorOutOfDate)
-            {
-            }
+            // Flip render targets
+            backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
         }
 
         public override void BeginDraw(CommandList commandList)
-        {
+        {   
             // Backbuffer needs to be cleared
             backbuffer.IsInitialized = false;
         }
@@ -230,24 +227,10 @@ namespace Xenko.Graphics
             }
 
             // Find present mode
-            var presentModes = GraphicsDevice.NativePhysicalDevice.GetSurfacePresentModes(surface);
             var swapChainPresentMode = PresentMode.Fifo; // Always supported
-            foreach (var presentMode in presentModes)
-            {
-                // TODO VULKAN: Handle PresentInterval.Two
-                if (Description.PresentationInterval == PresentInterval.Immediate)
-                {
-                    // Prefer mailbox to immediate
-                    if (presentMode == PresentMode.Immediate)
-                    {
-                        swapChainPresentMode = PresentMode.Immediate;
-                    }
-                    else if (presentMode == PresentMode.Mailbox)
-                    {
-                        swapChainPresentMode = PresentMode.Mailbox;
-                        break;
-                    }
-                }
+            if (Description.PresentationInterval == PresentInterval.Immediate) {
+                var presentModes = GraphicsDevice.NativePhysicalDevice.GetSurfacePresentModes(surface);
+                if (presentModes.Contains(PresentMode.Mailbox)) swapChainPresentMode = PresentMode.Mailbox;
             }
 
             // Create swapchain
@@ -271,7 +254,6 @@ namespace Xenko.Graphics
             var newSwapChain = GraphicsDevice.NativeDevice.CreateSwapchain(ref swapchainCreateInfo);
 
             DestroySwapchain();
-
             swapChain = newSwapChain;
             CreateBackBuffers();
         }

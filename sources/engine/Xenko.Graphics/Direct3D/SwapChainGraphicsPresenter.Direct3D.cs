@@ -69,7 +69,7 @@ namespace Xenko.Graphics
 
         public override object NativePresenter => swapChain;
 
-        public override bool IsFullScreen
+        public override bool InternalFullscreen
         {
             get
             {
@@ -125,7 +125,7 @@ namespace Xenko.Graphics
                     swapChain.IsFullScreen = false;
 
                     // call 1) SwapChain.IsFullScreen 2) SwapChain.Resize
-                    Resize(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
+                    InternalResize(backBuffer.ViewWidth, backBuffer.ViewHeight, backBuffer.ViewFormat);
                 }
 
                 // If going to window mode: 

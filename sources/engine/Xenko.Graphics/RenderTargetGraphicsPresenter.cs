@@ -79,7 +79,7 @@ namespace Xenko.Graphics
             }
         }
 
-        public override bool IsFullScreen
+        public override bool InternalFullscreen
         {
             get
             {

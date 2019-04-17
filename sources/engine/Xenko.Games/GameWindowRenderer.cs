@@ -209,7 +209,7 @@ namespace Xenko.Games
                 {
                     PixelFormat resizeFormat;
                     var size = GetRequestedSize(out resizeFormat);
-                    Presenter.Resize((int)size.X, (int)size.Y, resizeFormat);
+                    Presenter.InternalResize((int)size.X, (int)size.Y, resizeFormat);
 
                     isBackBufferToResize = false;
                     windowUserResized = false;

@@ -24,10 +24,6 @@ namespace Xenko.Games
         private WindowHandle windowHandle;
 
         private bool isFullScreenMaximized;
-        private FormBorderStyle savedFormBorderStyle;
-        private bool oldVisible;
-        private bool deviceChangeChangedVisible;
-        private bool? deviceChangeWillBeFullScreen;
 
         private bool allowUserResizing;
         private bool isBorderLess;
@@ -46,72 +42,12 @@ namespace Xenko.Games
 
         public override void BeginScreenDeviceChange(bool willBeFullScreen)
         {
-            if (willBeFullScreen && !isFullScreenMaximized && window != null)
-            {
-                savedFormBorderStyle = window.FormBorderStyle;
-            }
-
-            if (willBeFullScreen != isFullScreenMaximized)
-            {
-                deviceChangeChangedVisible = true;
-                oldVisible = Visible;
-                Visible = false;
-
-                if (window != null)
-                {
-                    window.SendToBack();
-                }
-            }
-            else
-            {
-                deviceChangeChangedVisible = false;
-            }
-
-            if (!willBeFullScreen && isFullScreenMaximized && window != null)
-            {
-                window.TopMost = false;
-                window.FormBorderStyle = savedFormBorderStyle;
-            }
-
-            deviceChangeWillBeFullScreen = willBeFullScreen;
+            // fullscreen is handled by IsFullscreen
         }
 
         public override void EndScreenDeviceChange(int clientWidth, int clientHeight)
         {
-            if (!deviceChangeWillBeFullScreen.HasValue)
-                return;
-
-            if (deviceChangeWillBeFullScreen.Value)
-            {
-                isFullScreenMaximized = true;
-            }
-            else if (isFullScreenMaximized)
-            {
-                if (window != null)
-                {
-                    window.BringToFront();
-                }
-                isFullScreenMaximized = false;
-            }
-
-            UpdateFormBorder();
-
-            if (deviceChangeChangedVisible)
-                Visible = oldVisible;
-
-            if (window != null)
-            {
-                window.ClientSize = new Size2(clientWidth, clientHeight);
-            }
-
-            // Notifies the GameForm about the fullscreen state
-            var gameForm = window as GameFormSDL;
-            if (gameForm != null)
-            {
-                gameForm.IsFullScreen = isFullScreenMaximized;
-            }
-
-            deviceChangeWillBeFullScreen = null;
+            // fullscreen is handled by IsFullscreen
         }
 
         protected internal override void SetSupportedOrientations(DisplayOrientation orientations)
@@ -283,7 +219,14 @@ namespace Xenko.Games
                 return window == null ? false : window.IsFullScreen;
             }
             set {
-                if( window != null ) window.IsFullScreen = value;
+                if (window != null && window.IsFullScreen != value ) {
+                    Visible = false;
+                    isFullScreenMaximized = value;
+                    UpdateFormBorder();
+                    window.IsFullScreen = value;
+                    OnClientSizeChanged(this, new EventArgs());
+                    Visible = true;
+                }
             }
         }
 
