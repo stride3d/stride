@@ -236,6 +236,31 @@ namespace Xenko.Core.Reflection
                                         }
                                     }
                                 }
+
+                                // It seems .deps.json files don't contain library info if referencer is non-RID specific and dependency is RID specific
+                                // (i.e. compiling Game project without runtime identifier and a dependency needs runtime identifier)
+                                // TODO: Look for a proper way to query that properly, maybe using NuGet API? however some constraints are:
+                                // - limited info (only .deps.json available from path, no project info; we might need to reconstruct a proper NuGet restore request from .deps.json)
+                                // - need to be fast (make sure to use NuGet caching mechanism)
+                                if (library.RuntimeAssemblyGroups.Count == 0)
+                                {
+                                    var runtimeFolder = new[] { "win-d3d11", "win", "any" }
+                                        .Select(runtime => Path.Combine(globalPackagesFolder, library.Path, "runtimes", runtime))
+                                        .Where(Directory.Exists)
+                                        .SelectMany(folder => Directory.EnumerateDirectories(Path.Combine(folder, "lib")))
+                                        .FirstOrDefault(file => Path.GetFileName(file).StartsWith("net")); // Only consider framework netXX and netstandardX.X
+                                    if (runtimeFolder != null)
+                                    {
+                                        foreach (var runtimeFile in Directory.EnumerateFiles(runtimeFolder, "*.dll"))
+                                        {
+                                            var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile);
+
+                                            // TODO: Properly deal with file duplicates (same file in multiple package, or RID conflicts)
+                                            if (!dependenciesMapping.ContainsKey(assemblyName))
+                                                dependenciesMapping.Add(assemblyName, runtimeFile);
+                                        }
+                                    }
+                                }
                             }
                         }
 
