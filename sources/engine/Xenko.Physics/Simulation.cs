@@ -617,7 +617,7 @@ namespace Xenko.Physics
                 resultsList = results;
             }
 
-            public override float AddSingleResult(BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
+            public override float AddSingleResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
             {
                 Vector3 normal;
                 if (normalInWorldSpace)
@@ -646,7 +646,7 @@ namespace Xenko.Physics
                 resultsList = results;
             }
 
-            public override float AddSingleResult(BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
+            public override float AddSingleResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
             {
                 Vector3 normal;
                 if (normalInWorldSpace)
