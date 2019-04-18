@@ -59,7 +59,7 @@ namespace Xenko.Physics.Shapes
                 case HeightfieldTypes.Short:
                     ShortArray = dynamicFieldData as UnmanagedArray<short>;
 
-                    InternalShape = new BulletSharp.HeightfieldShape(HeightStickWidth, HeightStickLength, ShortArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, (int)BulletPhyScalarType.PhyShort, flipQuadEdges)
+                    InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, ShortArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Int16, flipQuadEdges)
                     {
                         LocalScaling = cachedScaling,
                     };
@@ -69,7 +69,7 @@ namespace Xenko.Physics.Shapes
                 case HeightfieldTypes.Byte:
                     ByteArray = dynamicFieldData as UnmanagedArray<byte>;
 
-                    InternalShape = new BulletSharp.HeightfieldShape(HeightStickWidth, HeightStickLength, ByteArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, (int)BulletPhyScalarType.PhyUchar, flipQuadEdges)
+                    InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, ByteArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Byte, flipQuadEdges)
                     {
                         LocalScaling = cachedScaling,
                     };
@@ -79,7 +79,7 @@ namespace Xenko.Physics.Shapes
                 case HeightfieldTypes.Float:
                     FloatArray = dynamicFieldData as UnmanagedArray<float>;
 
-                    InternalShape = new BulletSharp.HeightfieldShape(HeightStickWidth, HeightStickLength, FloatArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, (int)BulletPhyScalarType.PhyFloat, flipQuadEdges)
+                    InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, FloatArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Single, flipQuadEdges)
                     {
                         LocalScaling = cachedScaling,
                     };
