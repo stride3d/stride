@@ -22,19 +22,13 @@
     <XenkoNativeLib Include="..\..\..\deps\BulletPhysics\$(XenkoPlatform)\**\libbulletc.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </XenkoNativeLib>
-    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="..\..\..\deps\BulletPhysics\BulletSharp.dll.config">
+    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </XenkoContent>
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="BulletSharp">
-      <HintPath>..\..\..\deps\BulletPhysics\$(XenkoBulletPlatform)\$(XenkoBulletSignedDir)BulletSharp.dll</HintPath>
+      <HintPath>..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-    </When>
-  </Choose>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -51,7 +45,7 @@
   </PropertyGroup>
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)BulletSharp.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)BulletSharp.NetStandard.dll" />
     </ItemGroup>
   </Target>
 </Project>
