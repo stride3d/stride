@@ -144,16 +144,6 @@ namespace Xenko.Physics.Shapes
             FloatArray = null;
         }
 
-        private enum BulletPhyScalarType
-        {
-            PhyFloat = BulletSharp.PhyScalarType.Single,
-            PhyDouble = BulletSharp.PhyScalarType.Double,
-            PhyInteger = BulletSharp.PhyScalarType.Int32,
-            PhyShort = BulletSharp.PhyScalarType.Int16,
-            PhyFixedpoint88 = BulletSharp.PhyScalarType.FixedPoint88,
-            PhyUchar = BulletSharp.PhyScalarType.Byte,
-        }
-
         public class HeightfieldDebugPrimitive : IDebugPrimitive
         {
             private static readonly int MaxTileWidth = 64;
