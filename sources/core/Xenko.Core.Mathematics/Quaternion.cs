@@ -1420,27 +1420,5 @@ namespace Xenko.Core.Mathematics
             return new Quaternion(value.X, value.Y, value.Z, value.W);
         }
 #endif
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Vector3"/> to <see cref="BulletSharp.Math.Quaternion"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator BulletSharp.Math.Quaternion(Quaternion value)
-        {
-            unsafe { return *(BulletSharp.Math.Quaternion*)&value; }
-        }
-
-        /// <summary>
-        /// Performs an implicit conversion from <see cref="BulletSharp.Math.Quaternion"/> to <see cref="Xenko.Core.Mathematics.Quaternion"/>.
-        /// </summary>
-        /// <param name="value">The value.</param>
-        /// <returns>The result of the conversion.</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static implicit operator Quaternion(BulletSharp.Math.Quaternion value)
-        {
-            unsafe { return *(Quaternion*)&value; }
-        }
     }
 }
