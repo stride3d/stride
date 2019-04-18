@@ -1,7 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if !XENKO_RUNTIME_CORECLR && !XENKO_PLATFORM_UWP
 using System;
 using System.Collections.Generic;
 
@@ -26,4 +25,3 @@ namespace Xenko
         }
     }
 }
-#endif

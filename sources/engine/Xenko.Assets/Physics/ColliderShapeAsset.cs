@@ -9,21 +9,19 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using Xenko.Core.Annotations;
+using Xenko.Core.Yaml;
+using Xenko.Core.Yaml.Serialization;
 
 namespace Xenko.Assets.Physics
 {
     [DataContract("ColliderShapeAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(PhysicsColliderShape))]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "1.4.0-beta")]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.4.0-beta", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
+    [AssetUpgrader(XenkoConfig.PackageName, "2.0.0.0", "3.0.0.0", typeof(ConvexHullDecompositionParametersUpgrader))]
     public partial class ColliderShapeAsset : Asset
     {
-        private const string CurrentVersion = "2.0.0.0";
+        private const string CurrentVersion = "3.0.0.0";
 
         public const string FileExtension = ".xkphy;pdxphy";
 
@@ -34,5 +32,62 @@ namespace Xenko.Assets.Physics
         [Category]
         [MemberCollection(CanReorderItems = true, NotNullItems = true)]
         public List<IAssetColliderShapeDesc> ColliderShapes { get; } = new List<IAssetColliderShapeDesc>();
+
+        private class ConvexHullDecompositionParametersUpgrader : AssetUpgraderBase
+        {
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
+            {
+                foreach (dynamic item in asset.ColliderShapes)
+                {
+                    dynamic shape = item.Value;
+                    if (shape.Node.Tag == "!ConvexHullColliderShapeDesc")
+                    {
+                        dynamic decomposition = shape.Decomposition = new DynamicYamlMapping(new YamlMappingNode());
+
+                        if (shape.ContainsChild("SimpleWrap"))
+                        {
+                            decomposition.Enabled = shape.SimpleWrap.ToString().ToLowerInvariant().Equals("false");
+                        }
+                        if (shape.ContainsChild("Depth"))
+                        {
+                            decomposition.Depth = shape.Depth;
+                        }
+                        if (shape.ContainsChild("PosSampling"))
+                        {
+                            decomposition.PosSampling = shape.PosSampling;
+                        }
+                        if (shape.ContainsChild("AngleSampling"))
+                        {
+                            decomposition.AngleSampling = shape.AngleSampling;
+                        }
+                        if (shape.ContainsChild("PosRefine"))
+                        {
+                            decomposition.PosRefine = shape.PosRefine;
+                        }
+                        if (shape.ContainsChild("AngleRefine"))
+                        {
+                            decomposition.AngleRefine = shape.AngleRefine;
+                        }
+                        if (shape.ContainsChild("Alpha"))
+                        {
+                            decomposition.Alpha = shape.Alpha;
+                        }
+                        if (shape.ContainsChild("Threshold"))
+                        {
+                            decomposition.Threshold = shape.Threshold;
+                        }
+
+                        shape.RemoveChild("SimpleWrap");
+                        shape.RemoveChild("Depth");
+                        shape.RemoveChild("PosSampling");
+                        shape.RemoveChild("AngleSampling");
+                        shape.RemoveChild("PosRefine");
+                        shape.RemoveChild("AngleRefine");
+                        shape.RemoveChild("Alpha");
+                        shape.RemoveChild("Threshold");
+                    }
+                }
+            }
+        }
     }
 }

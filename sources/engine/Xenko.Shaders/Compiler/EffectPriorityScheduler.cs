@@ -1,7 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-#if !XENKO_PLATFORM_UWP
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -10,18 +9,6 @@ using Xenko.Core.Collections;
 
 namespace Xenko.Shaders.Compiler
 {
-
-#if XENKO_RUNTIME_CORECLR
-    public enum ThreadPriority
-    {
-        Lowest = 0,
-        BelowNormal = 1,
-        Normal = 2,
-        AboveNormal = 3,
-        Highest = 4,
-    }
-#endif
-
     /// <summary>
     /// A <see cref="TaskScheduler"/> with control over concurrency and priority, useful with <see cref="EffectCompilerCache"/>.
     /// </summary>
@@ -137,7 +124,6 @@ namespace Xenko.Shaders.Compiler
                                     if (t.Task != null)
                                     {
                                         // High priority task (<0) gets an above normal thread priority
-#if !XENKO_RUNTIME_CORECLR
                                         var priority = t.Scheduler?.Priority ?? 0;
                                         if (priority < 0)
                                             Thread.CurrentThread.Priority = ThreadPriority.AboveNormal;
@@ -149,7 +135,6 @@ namespace Xenko.Shaders.Compiler
 
                                         if (priority < 0)
                                             Thread.CurrentThread.Priority = ThreadPriority.Normal;
-#endif
                                     }
                                     else
                                     {
@@ -163,9 +148,7 @@ namespace Xenko.Shaders.Compiler
                             })
                             {
                                 Name = string.Format("PriorityScheduler: {0}", i),
-#if !XENKO_RUNTIME_CORECLR
                                 Priority = threadPriority,
-#endif
                                 IsBackground = true,
                             };
                             threads[i].Start();
@@ -255,4 +238,3 @@ namespace Xenko.Shaders.Compiler
         }
     }
 }
-#endif

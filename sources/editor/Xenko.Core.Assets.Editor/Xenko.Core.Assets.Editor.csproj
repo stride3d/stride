@@ -1,16 +1,17 @@
 ﻿<Project>
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
     <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
+    <XenkoLocalized>true</XenkoLocalized>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="3.4.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.4.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
     <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="System.Diagnostics.Tracing" Version="4.3.0" />
     <Reference Include="System.Management" />
@@ -35,239 +36,10 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Update="Components\AddAssets\View\ItemTemplatesWindow.xaml.cs">
-      <DependentUpon>ItemTemplatesWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Components\TemplateDescriptions\Views\AddItemWindow.xaml.cs">
-      <DependentUpon>AddItemWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Images.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Images.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\AssetViewOptions.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>AssetViewOptions.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Components\FixAssetReferences\Views\FixAssetReferencesWindow.xaml.cs">
-      <DependentUpon>FixAssetReferencesWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Components\TemplateDescriptions\Views\ProjectSelectionWindow.xaml.cs">
-      <DependentUpon>ProjectSelectionWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\AssetBrowser.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>AssetBrowser.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\EditorViewModel.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>EditorViewModel.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\EditorViewModel.ja-JP.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>EditorViewModel.ja-JP.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\KeyGestures.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>KeyGestures.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\PropertyTemplates.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>PropertyTemplates.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\SessionViewModel.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SessionViewModel.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\SessionViewModel.ja-JP.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SessionViewModel.ja-JP.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Settings.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Resources\Strings\WelcomeUserControl.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>WelcomeUserControl.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Components\TemplateDescriptions\Views\AddItemUserControl.xaml.cs">
-      <DependentUpon>AddItemUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\AssetPickerWindow.xaml.cs">
-      <DependentUpon>AssetPickerWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\AssetViewUserControl.xaml.cs">
-      <DependentUpon>AssetViewUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Components\DebugTools\UndoRedo\Views\DebugUndoRedoUserControl.xaml.cs">
-      <DependentUpon>DebugUndoRedoUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\DebugTools\DebugAssetNodesUserControl.xaml.cs">
-      <DependentUpon>DebugAssetNodesUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\DebugTools\DebugWindow.xaml.cs">
-      <DependentUpon>DebugWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\DebugTools\DebugLogUserControl.xaml.cs">
-      <DependentUpon>DebugLogUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Components\TemplateDescriptions\Views\ObjectBrowserUserControl.xaml.cs">
-      <DependentUpon>ObjectBrowserUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\PackagePickerWindow.xaml.cs">
-      <DependentUpon>PackagePickerWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\SettingsWindow.xaml.cs">
-      <DependentUpon>SettingsWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Components\TemplateDescriptions\Views\TemplateBrowserUserControl.xaml.cs">
-      <DependentUpon>TemplateBrowserUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="Components\TemplateDescriptions\Views\NewProjectWindow.xaml.cs">
-      <DependentUpon>NewProjectWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\NotificationWindow.xaml.cs">
-      <DependentUpon>NotificationWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Update="View\WorkProgressWindow.xaml.cs">
-      <DependentUpon>WorkProgressWindow.xaml</DependentUpon>
-    </Compile>
-    <Page Include="Components\AddAssets\View\ItemTemplatesWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Components\FixAssetReferences\Views\FixAssetReferencesWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Components\TemplateDescriptions\Views\AddItemWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Components\TemplateDescriptions\Views\ProjectSelectionWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\ExpressionDark\Resources\Common.Resources.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\ExpressionDark\Resources\ExpressionDark.normalcolor.Resources.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\ExpressionDark\Resources\TableView.ExpressionDark.normalcolor.Graphics.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\ExpressionDark\TableflowView.ExpressionDark.normalcolor.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\ExpressionDark\TableflowView.GridElementTemplates.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\ExpressionDark\TableViewScrollViewer.generic.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\generic.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Components\TemplateDescriptions\Views\AddItemUserControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\AssetPickerWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\AssetViewUserControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\CommonResources.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Components\DebugTools\UndoRedo\Views\DebugUndoRedoUserControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\DebugTools\DebugAssetNodesUserControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="View\DebugTools\DebugWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\DebugTools\DebugLogUserControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\DefaultPropertyTemplateProviders.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Components\TemplateDescriptions\Views\ObjectBrowserUserControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\PackagePickerWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\SettingsWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Components\TemplateDescriptions\Views\NewProjectWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\NotificationWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Components\TemplateDescriptions\Views\TemplateBrowserUserControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\WorkProgressWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="View\ImageDictionary.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
+    <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
+    <Compile Update="**\*.xaml.cs" SubType="Code" DependentUpon="%(Filename)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="Resources\Images.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <SubType>Designer</SubType>
-      <LastGenOutput>Images.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Resources\Strings\KeyGestures.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>KeyGestures.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
     <None Include="app.config" />
     <AppDesigner Include="Properties\" />
   </ItemGroup>
@@ -278,159 +50,35 @@
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
     <ProjectReference Include="..\..\presentation\Xenko.Core.Translation.Presentation\Xenko.Core.Translation.Presentation.csproj" />
   </ItemGroup>
+  <!-- Resources -->
   <ItemGroup>
-    <Resource Include="Resources\Icons\android.png" />
-    <Resource Include="Resources\Icons\application-blue.png" />
-    <Resource Include="Resources\Icons\application-icon-large.png" />
-    <Resource Include="Resources\Icons\application-table.png" />
-    <Resource Include="Resources\Icons\application-tree.png" />
-    <Resource Include="Resources\Icons\arrow-000-medium.png" />
-    <Resource Include="Resources\Icons\arrow-180-medium.png" />
-    <Resource Include="Resources\Icons\arrow-return-180-left.png" />
-    <Resource Include="Resources\Icons\arrow-return.png" />
-    <Resource Include="Resources\Icons\asterisk-small.png" />
-    <Resource Include="Resources\Icons\blue-document-number+arrow.png" />
-    <Resource Include="Resources\Icons\blue-document-number+new.png" />
-    <Resource Include="Resources\Icons\blue-document-number.png" />
-    <Resource Include="Resources\Icons\compile+white.png" />
-    <Resource Include="Resources\Icons\control+green.png" />
-    <Resource Include="Resources\Icons\control-270.png" />
-    <Resource Include="Resources\Icons\control-stop-square-small+red.png" />
-    <Resource Include="Resources\Icons\cross-script.png" />
-    <Resource Include="Resources\Icons\cross-small.png" />
-    <Resource Include="Resources\Icons\cross.png" />
-    <Resource Include="Resources\Icons\database+new.png" />
-    <Resource Include="Resources\Icons\database--arrow.png" />
-    <Resource Include="Resources\Icons\database-small.png" />
-    <Resource Include="Resources\Icons\database.png" />
-    <Resource Include="Resources\Icons\databases+new.png" />
-    <Resource Include="Resources\Icons\databases-relation+plus.png" />
-    <Resource Include="Resources\Icons\databases-relation.png" />
-    <Resource Include="Resources\Icons\databases.png" />
-    <Resource Include="Resources\Icons\disk-black.png" />
-    <Resource Include="Resources\Icons\disks-black.png" />
-    <Resource Include="Resources\Icons\eraser.png" />
-    <Resource Include="Resources\Icons\folder+new.png" />
-    <Resource Include="Resources\Icons\folder--arrow.png" />
-    <Resource Include="Resources\Icons\folder-horizontal-open.png" />
-    <Resource Include="Resources\Icons\folder-open+magnifier-small.png" />
-    <Resource Include="Resources\Icons\folder-stand.png" />
-    <Resource Include="Resources\Icons\folder-tree.png" />
-    <Resource Include="Resources\Icons\folder.png" />
-    <Resource Include="Resources\Icons\funnel.png" />
-    <Resource Include="Resources\Icons\gear--pencil.png" />
-    <Resource Include="Resources\Icons\hand-point-090.png" />
-    <Resource Include="Resources\Icons\hand-point.png" />
-    <Resource Include="Resources\Icons\ios-icon-16.png" />
-    <Resource Include="Resources\Icons\magnifier--arrow.png" />
-    <Resource Include="Resources\Icons\magnifier-zoom-in.png" />
-    <Resource Include="Resources\Icons\magnifier-zoom-out.png" />
-    <Resource Include="Resources\Icons\node-insert.png" />
-    <Resource Include="Resources\Icons\plus.png" />
-    <Resource Include="Resources\Icons\sort-alphabet-column.png" />
-    <Resource Include="Resources\Icons\tag-label.png" />
-    <Resource Include="Resources\Icons\tick-small.png" />
-    <Resource Include="Resources\Icons\ui-text-field.png" />
-    <Resource Include="Resources\Icons\visual-studio.png" />
-    <Resource Include="Resources\Icons\windows.png" />
+    <Resource Include="Resources\Icons\*.png" />
     <Resource Include="Resources\Images\default-template-icon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\gear.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\blue-documents-stack+number.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\cross-white.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\clipboard-paste.png" />
-    <Resource Include="Resources\Icons\document-copy.png" />
-    <Resource Include="Resources\Icons\scissors-blue.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\uwp.png" />
-    <Resource Include="Resources\Icons\application-image.png" />
-    <Resource Include="Resources\Icons\application-list.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\report--pencil.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\pencil-button.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\property.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\blue-document-number+reload.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\live-scripting.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\document-tree--collapse.png" />
-    <Resource Include="Resources\Icons\document-tree--expand.png" />
-    <Resource Include="Resources\Icons\folder-tree--expand.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\asset-root.png" />
-    <Resource Include="Resources\Icons\status.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\status-offline.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Resources\Images\folder_128.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\eye-24.png" />
-    <Resource Include="Resources\Icons\left_circular-24.png" />
-    <Resource Include="Resources\Icons\right_circular-24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\import-24.png" />
-    <Resource Include="Resources\Icons\reimport-24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\plus2_math-24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\teapot-24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\delete-24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\refresh-24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\edit-24.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\copy_link-32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\delete_link-32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\animal-penguin.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\Icons\magnifier-zoom-actual-equal.png" />
-    <Resource Include="Resources\Icons\mac-os.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Components\Transactions\Operations\" />
+    <Compile Update="Resources\Images.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Images.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Images.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Images.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <Compile Update="Resources\Strings\KeyGestures.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>KeyGestures.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Strings\KeyGestures.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>KeyGestures.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="..\..\editor\Xenko.Core.MostRecentlyUsedFiles\Xenko.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
-  <PropertyGroup>
-    <PostBuildEvent>Path=$(MSBuildBinPath)\Roslyn;$(Path)
-IF EXIST "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" $(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe --lib-dir $(SolutionDir)..\deps\Gettext.Net --resource $(TargetName) -d $(TargetDir) --locale ja "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" --verbose</PostBuildEvent>
-  </PropertyGroup>
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>

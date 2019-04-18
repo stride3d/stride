@@ -34,7 +34,7 @@ namespace Xenko.Assets.Media
             public DecodeSoundFileCommand(string url, SoundAsset parameters, IAssetFinder assetFinder)
                 : base(url, parameters, assetFinder)
             {
-                Version = 2;
+                Version = 3;
             }
 
             /// <inheritdoc />
@@ -81,6 +81,8 @@ namespace Xenko.Assets.Media
                     //make sure we don't compress celt data
                     commandContext.AddTag(new ObjectUrl(UrlType.Content, dataUrl), Builder.DoNotCompressTag);
 
+                    var delay = encoder.GetDecoderSampleDelay();
+
                     var frameSize = CompressedSoundSource.SamplesPerFrame * channels;
                     using (var reader = new BinaryReader(new FileStream(tempFile, FileMode.Open, FileAccess.Read)))
                     using (var outputStream = MicrothreadLocalDatabases.DatabaseFileProvider.OpenStream(dataUrl, VirtualFileMode.Create, VirtualFileAccess.Write, VirtualFileShare.Read, StreamFlags.Seekable))
@@ -90,8 +92,9 @@ namespace Xenko.Assets.Media
                         var outputBuffer = new byte[target];
                         var buffer = new float[frameSize];
                         var count = 0;
+                        var padding = sizeof(float) * channels * delay;
                         var length = reader.BaseStream.Length; // Cache the length, because this getter is expensive to use
-                        for (var position = 0; position < length; position += sizeof(float))
+                        for (var position = 0; position < length + padding; position += sizeof(float))
                         {
                             if (count == frameSize) //flush
                             {
@@ -107,8 +110,10 @@ namespace Xenko.Assets.Media
                                 Array.Clear(buffer, 0, frameSize);
                             }
 
-                            buffer[count] = reader.ReadSingle();
-                            count++;
+                            // Pad with 0 once we reach end of stream (this is needed because of encoding delay)
+                            buffer[count++] = (position < length)
+                                    ? reader.ReadSingle()
+                                    : 0.0f;
                         }
 
                         if (count > 0) //flush
@@ -122,6 +127,9 @@ namespace Xenko.Assets.Media
                             newSound.MaxPacketLength = Math.Max(newSound.MaxPacketLength, len);
                         }
                     }
+
+                    // Samples is the real sound sample count, remove the delay at the end
+                    newSound.Samples -= delay;
 
                     var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
                     assetManager.Save(Url, newSound);

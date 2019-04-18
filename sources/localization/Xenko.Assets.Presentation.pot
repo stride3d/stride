@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2017-10-23 17:15:51+0900\n"
-"PO-Revision-Date: 2017-10-23 17:15:51+0900\n"
+"POT-Creation-Date: 2019-02-25 13:25:05+0900\n"
+"PO-Revision-Date: 2019-02-25 13:25:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -36,9 +36,9 @@ msgstr ""
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
-#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:49
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:50
 #: ../editor/Xenko.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:60
-#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:69
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:70
 #: ../editor/Xenko.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:64
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
 #: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:127
@@ -220,32 +220,32 @@ msgctxt "Settings"
 msgid "Ask before deleting entities"
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:47
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:48
 msgctxt "Button"
 msgid "Create"
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:48
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:49
 msgctxt "Button"
 msgid "Select a source..."
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:52
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:53
 msgctxt "Message"
 msgid "Do you want to create this {0} without a source file?"
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:89
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:90
 msgctxt "Message"
 msgid "Select an orientation."
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:94
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:95
 msgctxt "Message"
 msgid "Select at least one platform."
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:101
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:102
 #: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:75
 msgctxt "Message"
 msgid "Type a valid namespace name. Error with {0}"
@@ -271,22 +271,22 @@ msgctxt "Message"
 msgid "You can't use scripts until you save them. Do you want to save now?"
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:60
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:61
 msgctxt "Message"
 msgid "You must select at least one platform."
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:68
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:69
 msgctxt "Button"
 msgid "Remove"
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:71
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:72
 msgctxt "Message"
 msgid "Are you sure you want to remove these {0} platform(s) from the package?"
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/ViewModel/CodeViewModel.cs:186
+#: ../editor/Xenko.Assets.Presentation/ViewModel/CodeViewModel.cs:209
 msgctxt "Message"
 msgid ""
 "Game Studio can't auto-reload the project file {0} because you have local "
@@ -295,7 +295,7 @@ msgid ""
 "Click OK to keep reloading or Cancel to keep the current version."
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/ViewModel/CodeViewModel.cs:233
+#: ../editor/Xenko.Assets.Presentation/ViewModel/CodeViewModel.cs:257
 msgctxt "Message"
 msgid ""
 "The following source files in the {0} project have been deleted externally, "
@@ -304,7 +304,7 @@ msgid ""
 "{1}"
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:349
+#: ../editor/Xenko.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:357
 msgctxt "Message"
 msgid ""
 "{0}\r\n"
@@ -655,17 +655,17 @@ msgctxt "Button"
 msgid "Right"
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:683
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
 msgctxt "ToolTip"
 msgid "Snap translations to this value"
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:692
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:710
 msgctxt "ToolTip"
 msgid "Snap rotations to this value"
 msgstr ""
 
-#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:719
 msgctxt "ToolTip"
 msgid "Snap scale to this factor"
 msgstr ""
@@ -1354,6 +1354,10 @@ msgstr ""
 #: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:27
 msgctxt "Button"
 msgid "Import textures"
+msgstr ""
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:31
+msgid "Skeleton"
 msgstr ""
 
 #: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:35

@@ -20,12 +20,10 @@ namespace Xenko.Core.Diagnostics
                 {
                     action();
                 }
-#if !XENKO_RUNTIME_CORECLR
                 catch (ThreadAbortException)
                 {
                     // Ignore this exception
                 }
-#endif
                 catch (Exception e)
                 {
                     Log.Fatal("Unexpected exception", e, CallerInfo.Get(sourceFilePath, memberName, sourceLineNumber));
@@ -43,12 +41,10 @@ namespace Xenko.Core.Diagnostics
                 {
                     action(obj);
                 }
-#if !XENKO_RUNTIME_CORECLR
                 catch (ThreadAbortException)
                 {
                     // Ignore this exception
                 }
-#endif
                 catch (Exception e)
                 {
                     Log.Fatal("Unexpected exception", e, CallerInfo.Get(sourceFilePath, memberName, sourceLineNumber));

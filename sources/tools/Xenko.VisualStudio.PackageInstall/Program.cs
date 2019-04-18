@@ -21,36 +21,31 @@ namespace Xenko.VisualStudio.PackageInstall
                 }
 
                 const string vsixFile = "Xenko.vsix";
+
+                // Locate VSIXInstaller.exe
+                // We now only deal with VS2017+ which has a unified installer. Still getting latest version of VS possible, in case there is some bugfixes or incompatible changes.
+                var visualStudioVersionByVsixVersion = VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller && x.VsixInstallerVersion == VSIXInstallerVersion.VS2017AndFutureVersions);
+                var visualStudioVersion = visualStudioVersionByVsixVersion.OrderByDescending(x => x.Version).FirstOrDefault(x => File.Exists(x.VsixInstallerPath));
+                if (visualStudioVersion == null)
+                {
+                    throw new InvalidOperationException($"Could not find a proper installation of Visual Studio 2017 or later");
+                }
+
                 switch (args[0])
                 {
                     case "/install":
                     case "/repair":
                     {
-                        // Run it once per VSIX installer version (VS2015 and VS2017+ are separate)
-                        foreach (var visualStudioVersionByVsixVersion in VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller).GroupBy(x => x.VsixInstallerVersion))
-                        {
-                            var visualStudioVersion = visualStudioVersionByVsixVersion.Last();
-                            if (File.Exists(visualStudioVersion.VsixInstallerPath))
-                            {
-                                var exitCode = RunVsixInstaller(visualStudioVersion.VsixInstallerPath, "\"" + vsixFile + "\"");
-                                if (exitCode != 0)
-                                    throw new InvalidOperationException($"VSIX Installer didn't run properly: exit code {exitCode}");
-                            }
-                        }
+                        // Install VSIX
+                        var exitCode = RunVsixInstaller(visualStudioVersion.VsixInstallerPath, "\"" + vsixFile + "\"");
+                        if (exitCode != 0)
+                            throw new InvalidOperationException($"VSIX Installer didn't run properly: exit code {exitCode}");
                         break;
                     }
                     case "/uninstall":
                     {
-                        // Run it once per VSIX installer version (VS2015 and VS2017+ are separate)
-                        foreach (var visualStudioVersionByVsixVersion in VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller).GroupBy(x => x.VsixInstallerVersion))
-                        {
-                            var visualStudioVersion = visualStudioVersionByVsixVersion.Last();
-                            if (File.Exists(visualStudioVersion.VsixInstallerPath))
-                            {
-                                // Note: we allow uninstall to fail (i.e. VSIX was not installed for that specific VIsual Studio version)
-                                RunVsixInstaller(visualStudioVersion.VsixInstallerPath, "/uninstall:b0b8feb1-7b83-43fc-9fc0-70065ddb80a1");
-                            }
-                        }
+                        // Note: we allow uninstall to fail (i.e. VSIX was not installed for that specific VIsual Studio version)
+                        RunVsixInstaller(visualStudioVersion.VsixInstallerPath, "/uninstall:b0b8feb1-7b83-43fc-9fc0-70065ddb80a1");
                         break;
                     }
                 }

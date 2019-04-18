@@ -14,12 +14,7 @@ namespace Xenko.Assets.Navigation
     [DataContract("NavigationMeshAsset")]
     [AssetDescription(FileExtension)]
     [AssetContentType(typeof(NavigationMesh))]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "0.0.0")]
-    [AssetUpgrader(XenkoConfig.PackageName, "0.0.0", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
     public partial class NavigationMeshAsset : Asset
     {
         private const string CurrentVersion = "2.0.0.0";

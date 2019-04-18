@@ -15,6 +15,7 @@ namespace Xenko.Engine
     [Display("Light shaft bounding volume", Expand = ExpandRule.Always)]
     [DataContract("LightShaftBoundingVolumeComponent")]
     [DefaultEntityComponentProcessor(typeof(LightShaftBoundingVolumeProcessor))]
+    [ComponentCategory("Lights")]
     public class LightShaftBoundingVolumeComponent : ActivableEntityComponent
     {
         private Model model;

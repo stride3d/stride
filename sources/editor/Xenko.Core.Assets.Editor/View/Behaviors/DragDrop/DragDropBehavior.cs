@@ -314,7 +314,7 @@ namespace Xenko.Core.Assets.Editor.View.Behaviors
             }
             object data = null;
             var container = GetContainer(originalSource);
-            var itemsToDrag = GetItemsToDrag(container).Where(x => !(x is IIsEditableViewModel) || ((IIsEditableViewModel)x).IsEditable).ToList();
+            var itemsToDrag = GetItemsToDrag(container).ToList();
             if (itemsToDrag.Count > 0)
             {
                 var dragContainer = new DragContainer(itemsToDrag);

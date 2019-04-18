@@ -3,6 +3,7 @@
 using System;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
+using Xenko.Engine;
 using Xenko.Graphics;
 using Xenko.Rendering;
 
@@ -65,7 +66,10 @@ namespace Xenko.SpriteStudio.Runtime
             foreach (var renderObject in RenderObjects)
             {
                 var renderSpriteStudio = (RenderSpriteStudio)renderObject;
-                var sprites = renderSpriteStudio.SpriteStudioComponent.Sheet.Sprites;
+                if (!renderObject.Enabled)
+                    continue;
+
+                var sprites = renderSpriteStudio.Sheet.Sprites;
                 if (sprites == null)
                     continue;
 
@@ -93,10 +97,9 @@ namespace Xenko.SpriteStudio.Runtime
 
                 var spriteState = (RenderSpriteStudio)renderNode.RenderObject;
 
-                var transfoComp = spriteState.TransformComponent;
                 var depthStencilState = DepthStencilStates.DepthRead;
 
-                foreach (var node in spriteState.SpriteStudioComponent.SortedNodes)
+                foreach (var node in spriteState.SortedNodes)
                 {
                     if (node.Sprite?.Texture == null || node.Sprite.Region.Width <= 0 || node.Sprite.Region.Height <= 0f || node.Hide != 0) continue;
 
@@ -124,7 +127,7 @@ namespace Xenko.SpriteStudio.Runtime
                     // TODO: this should probably be moved to Prepare()
                     // Project the position
                     // TODO: This could be done in a SIMD batch, but we need to figure-out how to plugin in with RenderMesh object
-                    var worldPosition = new Vector4(transfoComp.WorldMatrix.TranslationVector, 1.0f);
+                    var worldPosition = new Vector4(spriteState.WorldMatrix.TranslationVector, 1.0f);
 
                     Vector4 projectedPosition;
                     Vector4.Transform(ref worldPosition, ref renderView.ViewProjection, out projectedPosition);
@@ -160,7 +163,7 @@ namespace Xenko.SpriteStudio.Runtime
                     if (isPicking)
                     {
                         // TODO move this code corresponding to picking out of the runtime code.
-                        color4 = new Color4(RuntimeIdHelper.ToRuntimeId(spriteState.SpriteStudioComponent));
+                        color4 = new Color4(RuntimeIdHelper.ToRuntimeId(spriteState.Source));
                     }
                     else
                     {
@@ -190,7 +193,7 @@ namespace Xenko.SpriteStudio.Runtime
                         }
                     }
 
-                    var worldMatrix = node.ModelTransform*transfoComp.WorldMatrix;
+                    Matrix.Multiply(ref node.ModelTransform, ref spriteState.WorldMatrix, out var worldMatrix);
 
                     // calculate normalized position of the center of the sprite (takes into account the possible rotation of the image)
                     var normalizedCenter = new Vector2(node.Sprite.Center.X/sourceRegion.Width - 0.5f, 0.5f - node.Sprite.Center.Y/sourceRegion.Height);

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -137,7 +137,7 @@
     <value>Fork on GitHub</value>
     <comment>/!\ Text must be short</comment>
   </data>
-  <data name="ButtonGitter" xml:space="preserve">
+  <data name="ButtonDiscord" xml:space="preserve">
     <value>Chat with us</value>
     <comment>/!\ Text must be short</comment>
   </data>
@@ -417,5 +417,9 @@
   <data name="RemoveFromList" xml:space="preserve">
     <value>Remove From List</value>
     <comment>Menu item of recent files list</comment>
+  </data>
+  <data name="ToolTipOpenLink" xml:space="preserve">
+    <value>Open '{0}'</value>
+    <comment>The tooltip for website links.</comment>
   </data>
 </root>

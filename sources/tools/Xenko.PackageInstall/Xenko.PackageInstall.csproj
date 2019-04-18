@@ -38,5 +38,10 @@
       <Link>vs_buildtools.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="..\..\prerequisites\install-prerequisites.exe" Condition="Exists('..\..\prerequisites\install-prerequisites.exe')">
+      <Link>install-prerequisites.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
+  <Import Project="..\..\targets\Xenko.Core.Sign.targets" />
 </Project>

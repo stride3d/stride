@@ -86,7 +86,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 editor.ServiceProvider.TryGet<RenderDocManager>()?.StartCapture(game.GraphicsDevice, IntPtr.Zero);
 
                 // Reset lightprobes temporarily (if requested)
-                var runtimeData = game.SceneSystem.SceneInstance.GetProcessor<LightProbeProcessor>()?.RuntimeData;
+                // Note: we only process first LightProbeProcessor
+                var runtimeData = game.SceneSystem.SceneInstance.GetProcessor<LightProbeProcessor>()?.VisibilityGroup.Tags.Get(LightProbeRenderer.CurrentLightProbes);
                 if (runtimeData == null)
                     return new Dictionary<Guid, FastList<Color3>>();
 
@@ -97,7 +98,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     game.EditorSceneSystem.GraphicsCompositor.Game = null;
 
                     // Regenerate lightprobe coefficients (rendering)
-                    var lightProbes = LightProbeGenerator.GenerateCoefficients(game, runtimeData.LightProbes);
+                    var lightProbes = LightProbeGenerator.GenerateCoefficients(game);
 
                     // TODO: Use LightProbe Id instead of entity id once copy/paste and duplicate properly remap them
                     return lightProbes.ToDictionary(x => x.Key.Entity.Id, x => x.Value);
@@ -216,7 +217,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         {
             var lightProbeProcessor = game.SceneSystem.SceneInstance.GetProcessor<LightProbeProcessor>();
 
-            var lightProbeRuntimeData = lightProbeProcessor?.RuntimeData;
+            var lightProbeRuntimeData = lightProbeProcessor?.VisibilityGroup.Tags.Get(LightProbeRenderer.CurrentLightProbes);
             if (lightProbeRuntimeData == null)
             {
                 // Nothing, just remove existing wireframe and exit
@@ -240,7 +241,10 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 for (var lightProbeIndex = 0; lightProbeIndex < lightProbeRuntimeData.LightProbes.Length; lightProbeIndex++)
                 {
                     // check if lightprobe moved
-                    var lightProbe = lightProbeRuntimeData.LightProbes[lightProbeIndex];
+                    var lightProbe = lightProbeRuntimeData.LightProbes[lightProbeIndex] as LightProbeComponent;
+                    if (lightProbe == null)
+                        continue;
+
                     if (lightProbe.Entity.Transform.WorldMatrix.TranslationVector != lightProbeRuntimeData.Vertices[lightProbeIndex])
                     {
                         needPositionRefresh = true;
@@ -262,7 +266,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 if (needPositionRefresh)
                 {
                     lightProbeProcessor.UpdateLightProbePositions();
-                    lightProbeRuntimeData = lightProbeProcessor.RuntimeData;
+                    lightProbeRuntimeData = lightProbeProcessor.VisibilityGroup.Tags.Get(LightProbeRenderer.CurrentLightProbes);
                     if (lightProbeRuntimeData == null)
                     {
                         Cleanup();
@@ -384,7 +388,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 if (renderMesh != null)
                 {
                     // TODO: Avoid having to go through entity
-                    return renderMesh.RenderModel?.ModelComponent?.Entity?.Tags.Get(EditorGameComponentGizmoService.SelectedKey) ?? false;
+                    return (renderMesh.Source as ModelComponent)?.Entity?.Tags.Get(EditorGameComponentGizmoService.SelectedKey) ?? false;
                 }
 
                 return false;

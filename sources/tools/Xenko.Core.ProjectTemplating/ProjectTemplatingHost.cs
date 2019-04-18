@@ -32,6 +32,7 @@ namespace Xenko.Core.ProjectTemplating
 
             var assembliesToLoad = new List<string>()
                 {
+                    "netstandard",
                     "System.Core",
                     typeof(RuntimeBinderException).Assembly.FullName,
                     "Mono.TextTemplating",

@@ -6,10 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using SDL2;
-#if XENKO_UI_SDL
-using Control = Xenko.Graphics.SDL.Window;
-#endif
 using SharpVulkan;
 using ImageLayout = SharpVulkan.ImageLayout;
 
@@ -353,7 +349,11 @@ namespace Xenko.Graphics
                 throw new ArgumentException("DeviceWindowHandle cannot be null");
             }
             // Create surface
-#if XENKO_PLATFORM_WINDOWS
+#if XENKO_UI_SDL
+            var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
+            SDL2.SDL.SDL_Vulkan_CreateSurface(control.SdlHandle, GraphicsDevice.NativeInstance.NativeHandle, out IntPtr surfacePtr);
+            surface = new Surface(surfacePtr);
+#elif XENKO_PLATFORM_WINDOWS
             var controlHandle = Description.DeviceWindowHandle.Handle;
             if (controlHandle == IntPtr.Zero)
             {
@@ -363,48 +363,14 @@ namespace Xenko.Graphics
             var surfaceCreateInfo = new Win32SurfaceCreateInfo
             {
                 StructureType = StructureType.Win32SurfaceCreateInfo,
-#if !XENKO_RUNTIME_CORECLR
                 InstanceHandle = Process.GetCurrentProcess().Handle,
-#else
-                // To implement for CoreCLR, currently passing a NULL pointer seems to work
-                InstanceHandle = IntPtr.Zero,
-#endif
                 WindowHandle = controlHandle,
             };
             surface = GraphicsDevice.NativeInstance.CreateWin32Surface(surfaceCreateInfo);
 #elif XENKO_PLATFORM_ANDROID
             throw new NotImplementedException();
 #elif XENKO_PLATFORM_LINUX
-#if XENKO_UI_SDL
-            var control = Description.DeviceWindowHandle.NativeWindow as SDL.Window;
-            if (control == null)
-            {
-                throw new NotSupportedException("Non SDL Window used in SDL setup.");
-            }
-
-            if (GraphicsAdapterFactory.GetInstance(GraphicsDevice.IsDebugMode).HasXlibSurfaceSupport)
-            {
-                var createInfo = new XlibSurfaceCreateInfo
-                {
-                    StructureType = StructureType.XlibSurfaceCreateInfo,
-                    Window = checked((uint)control.Handle), // On Linux, a Window identifier is 32-bit
-                    Dpy = control.Display,
-                };
-                surface =GraphicsDevice.NativeInstance.CreateXlibSurface(ref createInfo);
-            }
-            else
-            {
-                var createInfo = new XcbSurfaceCreateInfo()
-                {
-                    StructureType = StructureType.XcbSurfaceCreateInfo,
-                    Window = checked((uint)control.Handle), // On Linux, a Window identifier is 32-bit
-                    Connection = control.XcbConnection,
-                };
-                surface = GraphicsDevice.NativeInstance.CreateXcbSurface(ref createInfo);
-            }
-#else
             throw new NotSupportedException("Only SDL is supported for the time being on Linux");
-#endif
 #else
             throw new NotSupportedException();
 #endif

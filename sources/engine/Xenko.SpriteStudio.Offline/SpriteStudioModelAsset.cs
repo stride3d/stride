@@ -15,12 +15,7 @@ namespace Xenko.SpriteStudio.Offline
     [AssetContentType(typeof(SpriteStudioSheet))]
     [AssetDescription(FileExtension)] // A description used to display in the asset editor
     [Display("SpriteStudio sheet")]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "0.0.0")]
-    [AssetUpgrader(XenkoConfig.PackageName, "0.0.0", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
     public class SpriteStudioModelAsset : Asset
     {
         public const string FileExtension = ".xkss4s";

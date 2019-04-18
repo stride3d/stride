@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Xenko.Core.Annotations;
@@ -16,16 +17,18 @@ namespace Xenko.Core.Threading
     /// </remarks>
     internal class ThreadPool
     {
+        private const long MaxIdleTimeInTicks = 5 * TimeSpan.TicksPerSecond;
+
         public static readonly ThreadPool Instance = new ThreadPool();
 
         private readonly int maxThreadCount = Environment.ProcessorCount + 2;
-        //private readonly int maxThreadCount = Environment.ProcessorCount * 2;
-        private readonly List<Task> workers = new List<Task>();
         private readonly Queue<Action> workItems = new Queue<Action>();
         private readonly ManualResetEvent workAvailable = new ManualResetEvent(false);
 
         private SpinLock spinLock = new SpinLock();
-        private int activeThreadCount;
+        private int workingCount;
+        /// <summary> Usage only within <see cref="spinLock"/> </summary>
+        private int aliveCount;
 
         public void QueueWorkItem([NotNull] [Pooled] Action workItem)
         {
@@ -36,15 +39,14 @@ namespace Xenko.Core.Threading
 
                 PooledDelegateHelper.AddReference(workItem);
                 workItems.Enqueue(workItem);
-
-                if (activeThreadCount + 1 >= workers.Count && workers.Count < maxThreadCount)
-                {
-                    var worker = Task.Factory.StartNew(ProcessWorkItems, workers.Count, TaskCreationOptions.LongRunning);
-                    workers.Add(worker);
-                    //Console.WriteLine($"Thread {workers.Count} added");
-                }
-
                 workAvailable.Set();
+
+                var curWorkingCount = Interlocked.CompareExchange(ref workingCount, 0, 0);
+                if (curWorkingCount + 1 >= aliveCount && aliveCount < maxThreadCount)
+                {
+                    aliveCount++;
+                    Task.Factory.StartNew(ProcessWorkItems, TaskCreationOptions.LongRunning);
+                }
             }
             finally
             {
@@ -55,73 +57,53 @@ namespace Xenko.Core.Threading
 
         private void ProcessWorkItems(object state)
         {
-            //var spinWait = new SpinWait();
-
-            while (true)
+            long lastWork = Stopwatch.GetTimestamp();
+            TimeSpan maxIdleTime = TimeSpan.FromTicks(MaxIdleTimeInTicks);
+            while(true)
             {
                 Action workItem = null;
-
-                //while (!spinWait.NextSpinWillYield)
+                var lockTaken = false;
+                bool idleForTooLong = Utilities.ConvertRawToTimestamp(Stopwatch.GetTimestamp() - lastWork) < maxIdleTime;
+                try
                 {
-                    var lockTaken = false;
+                    spinLock.Enter(ref lockTaken);
+
+                    if (workItems.Count > 0)
+                    {
+                        workItem = workItems.Dequeue();
+                        if (workItems.Count == 0)
+                            workAvailable.Reset();
+                    }
+                    else if (idleForTooLong)
+                    {
+                        aliveCount--;
+                        return;
+                    }
+                }
+                finally
+                {
+                    if (lockTaken)
+                        spinLock.Exit(true);
+                }
+
+                if (workItem != null)
+                {
+                    Interlocked.Increment(ref workingCount);
                     try
                     {
-                        spinLock.Enter(ref lockTaken);
-
-                        if (workItems.Count > 0)
-                        {
-                            try
-                            {
-                                workItem = workItems.Dequeue();
-                                //Interlocked.Increment(ref activeThreadCount);
-
-                                if (workItems.Count == 0)
-                                    workAvailable.Reset();
-                            }
-                            catch
-                            {
-                            }
-                        }
-
-                        //if (workItems.Count > 0)
-                        //{
-                        //    // If we didn't consume the last work item, kick off another worker
-                        //    workAvailable.Set();
-                        //}
+                        workItem.Invoke();
                     }
-                    finally
+                    catch (Exception)
                     {
-                        if (lockTaken)
-                            spinLock.Exit(true);
+                        // Ignoring Exception
                     }
-
-                    if (workItem != null)
-                    {
-                        try
-                        {
-                            Interlocked.Increment(ref activeThreadCount);
-                            workItem.Invoke();
-
-                            //spinWait.Reset();
-                        }
-                        catch (Exception)
-                        {
-                            // Ignoring Exception
-                        }
-                        finally
-                        {
-                            PooledDelegateHelper.Release(workItem);
-                            Interlocked.Decrement(ref activeThreadCount);
-                        }
-                    }
-                    else
-                    {
-                        //spinWait.SpinOnce();
-                    }
+                    Interlocked.Decrement(ref workingCount);
+                    PooledDelegateHelper.Release(workItem);
+                    lastWork = Stopwatch.GetTimestamp();
                 }
 
                 // Wait for another work item to be (potentially) available
-                workAvailable.WaitOne();
+                workAvailable.WaitOne(maxIdleTime);
             }
         }
     }

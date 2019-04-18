@@ -7,6 +7,10 @@ Xenko is a MIT-licensed opensource project, supported by generous [sponsors and 
 
 Thank you everybody for your generous contributions!
 
+## Gold Sponsor
+
+* [TurboPlay](http://www.turboplay.com/)
+
 ## Super Backers
 
 * Robert Campbell
@@ -14,12 +18,13 @@ Thank you everybody for your generous contributions!
 * Jason Kinzer
 * [Marshmallow Laser Feast](http://www.marshmallowlaserfeast.com/)
 * Jean-Baptiste Perrier
+* Cody Lee
+* Nicolas Musset
 
 ## Backers
 
 * Amin Delavar
 * Rasmus Søborg
-* Nicolas Musset
 * Ravn Ivarson
 * Guy Godin
 * Princess Peach
@@ -29,7 +34,6 @@ Thank you everybody for your generous contributions!
 * Nathan Warden
 * Empty Keys
 * Dmitry Terentev
-* Chris Beckwith
 * Harald Mühleder
 * Philippe Monteil
 * Cobalt
@@ -38,11 +42,24 @@ Thank you everybody for your generous contributions!
 * Antony K. Jones
 * Thomas Tang
 * Beliar
-* Robert Iadanza
 * SleepyMode
 * Marko Viitanen
-* David R Miller
 * Sven-Bertil Blom
+* Natan Sinigaglia
+* Jarmo
+* Eideren
+* Connie
+* Berwyn
+* Andrew Wilson
+* Boris Callens
+* Jarrett K Robertson
+* Daniel Keenan
+* David Conway
+* Jorn Theunissen
+* Robin Hübner
+* Ben Temple-Heald
+* Daniel Gilbert
+* Stefan Sailer
 
 ## Mini Backers
 

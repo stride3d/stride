@@ -11,6 +11,7 @@ namespace Xenko.Engine
     [Display("UI element link", Expand = ExpandRule.Once)]
     [DefaultEntityComponentProcessor(typeof(UIElementLinkProcessor))]
     [ComponentOrder(1600)]
+    [ComponentCategory("UI")]
     public sealed class UIElementLinkComponent : EntityComponent
     {
         /// <summary>

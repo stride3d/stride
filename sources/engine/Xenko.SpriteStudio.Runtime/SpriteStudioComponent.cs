@@ -5,6 +5,7 @@ using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Engine.Design;
 using Xenko.Core.Serialization;
+using Xenko.Rendering;
 using Xenko.SpriteStudio.Runtime;
 using Xenko.Updater;
 
@@ -16,6 +17,7 @@ namespace Xenko.Engine
     [DefaultEntityComponentRenderer(typeof(SpriteStudioRendererProcessor))]
     [DataSerializerGlobal(null, typeof(List<SpriteStudioNodeState>))]
     [ComponentOrder(9900)]
+    [ComponentCategory("Sprites")]
     public sealed class SpriteStudioComponent : ActivableEntityComponent
     {
         [DataMember(1)]
@@ -40,8 +42,5 @@ namespace Xenko.Engine
 
         [DataMemberIgnore, DataMemberUpdatable]
         public List<SpriteStudioNodeState> Nodes { get; } = new List<SpriteStudioNodeState>();
-
-        [DataMemberIgnore]
-        internal List<SpriteStudioNodeState> SortedNodes { get; } = new List<SpriteStudioNodeState>();
     }
 }

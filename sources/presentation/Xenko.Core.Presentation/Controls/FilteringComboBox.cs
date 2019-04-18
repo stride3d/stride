@@ -421,10 +421,28 @@ namespace Xenko.Core.Presentation.Controls
 
         private void EditableTextBoxPreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (listBox.Items.Count <= 0)
-                return;
-
             updatingSelection = true;
+
+            if (e.Key == Key.Escape)
+            {
+                if (IsDropDownOpen)
+                {
+                    IsDropDownOpen = false;
+                    if (RequireSelectedItemToValidate)
+                        editableTextBox.Cancel();
+                }
+                else
+                {
+                    editableTextBox.Cancel();
+                }
+            }
+
+            if (listBox.Items.Count <= 0)
+            {
+                updatingSelection = false;
+                return;
+            }
+
             var stackPanel = listBox.FindVisualChildOfType<VirtualizingStackPanel>();
             switch (e.Key)
             {

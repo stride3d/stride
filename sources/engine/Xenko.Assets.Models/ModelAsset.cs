@@ -16,12 +16,7 @@ namespace Xenko.Assets.Models
     [AssetDescription(FileExtension, AllowArchetype = true)]
     [AssetContentType(typeof(Model))]
     [Display((int)AssetDisplayPriority.Models + 80, "Model")]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "1.5.0-alpha02")]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.5.0-alpha02", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
     [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
     public sealed class ModelAsset : Asset, IAssetWithSource, IModelAsset
     {
         private const string CurrentVersion = "2.0.0.0";

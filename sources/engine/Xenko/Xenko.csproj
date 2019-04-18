@@ -3,10 +3,11 @@
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoRuntime>true</XenkoRuntime>
+    <XenkoRuntimeNetStandardNoRuntimeIdentifiers>true</XenkoRuntimeNetStandardNoRuntimeIdentifiers>
   </PropertyGroup>
 
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
 
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -21,36 +22,39 @@
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
 
-  <Choose>
-    <When Condition=" '$(XenkoPlatform)' == 'Windows' AND ($(XenkoUI.Contains('WINFORMS')) OR $(XenkoUI.Contains('WPF')))">
-      <ItemGroup>
-        <Reference Include="System.Windows.Forms" />
-      </ItemGroup>
-    </When>
-  </Choose>
   <Import Condition="$(XenkoUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
 
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <None Include="runtime.json" Pack="true" PackagePath="/" />
+    <None Include="runtime.json" Pack="true" PackagePath="/">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>runtime.tt</DependentUpon>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
     <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
     <!-- SharpDX is needed for WIC -->
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.0.1" Condition="'$(TargetFramework)' == 'uap10.0'" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="System.Drawing.Common" Version="4.5.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'" />
   </ItemGroup>
 
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
 
-  <ItemGroup />
+  <ItemGroup>
+    <None Update="runtime.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>runtime.json</LastGenOutput>
+    </None>
+  </ItemGroup>
 
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
 
 </Project>

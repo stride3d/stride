@@ -142,7 +142,6 @@ namespace Xenko.Rendering.Compositing
                 {
                     // Set render system
                     context.RenderContext.RenderSystem = RenderSystem;
-                    context.RenderContext.SceneInstance = sceneInstance;
                     context.RenderContext.VisibilityGroup = visibilityGroup;
 
                     // Set start states for viewports and output (it will be used during the Collect phase)

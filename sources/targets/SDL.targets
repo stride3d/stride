@@ -1,24 +1,8 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Choose>
-    <When Condition="$(XenkoUI.Contains('SDL'))">
-      <Choose>
-        <When Condition="('$(XenkoPlatform)' == 'Linux') or ('$(XenkoPlatform)' == 'macOS')">
-          <ItemGroup>
-            <Reference Include="SDL2-CS, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-              <SpecificVersion>False</SpecificVersion>
-              <HintPath>$(XenkoDependenciesDir)\SDL2-CS\$(XenkoPlatform)\SDL2-CS.dll</HintPath>
-            </Reference>
-          </ItemGroup>
-        </When>
-        <Otherwise>
-          <ItemGroup>
-            <Reference Include="SDL2-CS, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-              <SpecificVersion>False</SpecificVersion>
-              <HintPath>$(XenkoDependenciesDir)\SDL2-CS\SDL2-CS.dll</HintPath>
-            </Reference>
-          </ItemGroup>
-        </Otherwise>
-      </Choose>
-    </When>
-  </Choose>
+  <ItemGroup>
+    <Reference Include="SDL2-CS">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(XenkoDependenciesDir)\SDL2-CS\SDL2-CS.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>

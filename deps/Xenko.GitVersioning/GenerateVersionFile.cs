@@ -67,10 +67,13 @@ namespace Xenko.GitVersioning
             var versionFileData = File.ReadAllText(Path.Combine(RootDirectory.ItemSpec, VersionFile.ItemSpec));
 
             var publicVersionMatch = Regex.Match(versionFileData, "PublicVersion = \"(.*)\";");
+            var versionSuffixMatch = Regex.Match(versionFileData, "NuGetVersionSuffix = \"(.*)\";");
             var publicVersion = publicVersionMatch.Success ? publicVersionMatch.Groups[1].Value : "0.0.0.0";
+            var versionSuffix = versionSuffixMatch.Success ? versionSuffixMatch.Groups[1].Value : string.Empty;
 
             // Patch NuGetVersion
-            var versionSuffix = SpecialVersion ?? string.Empty;
+            if (SpecialVersion != null)
+                versionSuffix += SpecialVersion;
 
             EnsureLibGit2UnmanagedInPath(mainPlatformDirectory);
 
@@ -94,15 +97,11 @@ namespace Xenko.GitVersioning
                 {
                     // Compute version based on Git info
                     var height = Nerdbank.GitVersioning.GitExtensions.GetVersionHeight(repo, VersionFile.ItemSpec);
-                    versionSuffix += height.ToString("D5");
+                    versionSuffix += height.ToString("D4");
                 }
 
-                // Prefix with dash (if non empty)
-                if (versionSuffix.Length > 0 && !versionSuffix.StartsWith("+"))
-                    versionSuffix = "-" + versionSuffix;
-
                 // Replace NuGetVersionSuffix
-                versionFileData = Regex.Replace(versionFileData, "NuGetVersionSuffix = (.*);", $"NuGetVersionSuffix = \"{versionSuffix}\";");
+                versionFileData = Regex.Replace(versionFileData, "NuGetVersionSuffix = \"(.*)\";", $"NuGetVersionSuffix = \"{versionSuffix}\";");
 
                 // Always include git commit (even if not part of NuGetVersionSuffix)
                 if (SpecialVersionGitCommit && headCommitSha != null)

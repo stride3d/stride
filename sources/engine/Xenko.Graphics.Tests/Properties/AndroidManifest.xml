@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="Xenko.Graphics.Tests" android:versionCode="1" android:versionName="1.0">
-  <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="10" />
+  <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="26" />
   <application android:icon="@drawable/icon" android:label="Xenko.Graphics.Tests" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"></application>
   <uses-feature android:glEsVersion="0x00020000" android:required="true" />
   <supports-screens android:smallScreens="true" android:normalScreens="true" android:largeScreens="true" android:xlargeScreens="true" android:anyDensity="true" />

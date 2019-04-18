@@ -1,0 +1,926 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2019-02-25 11:53:42+0900\n"
+"PO-Revision-Date: 2019-03-09 00:04+0000\n"
+"Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
+"Language-Team: Russian <https://hosted.weblate.org/projects/xenko/gamestudio/"
+"ru/>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<="
+"4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 3.5.1-dev\n"
+
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
+msgctxt "Title"
+msgid "Output"
+msgstr "Лог действий"
+
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:189
+msgctxt "Message"
+msgid ""
+"Some game code files have been modified. Do you want to reload the "
+"assemblies?"
+msgstr "Некоторые файлы были изменены. Собрать заново ?"
+
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
+msgctxt "Button"
+msgid "Reload"
+msgstr "Перезапуск"
+
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
+msgctxt "Button"
+msgid "Don't reload"
+msgstr "Не перезапускать"
+
+#. Displayed when user tries to run a project that is not on a supported platform (for execution).
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:317
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:460
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:467
+msgctxt "Message"
+msgid "Platform {0} isn't supported for execution."
+msgstr "Платформа {0} не поддерживается."
+
+#. Displayed when user tries to run Android project without an Android device attached.
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:422
+msgctxt "Message"
+msgid "No Android device found for execution."
+msgstr "Исполняющее Android-устройство не найдено."
+
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:475
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:639
+msgctxt "Message"
+msgid "Unable to load and compile project {0}"
+msgstr "Невозможно загрузить и скомпилировать проект {0}"
+
+#. Log message displayed when the executable can't be found after building the project. {0}: the expected executable path
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:492
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:539
+msgctxt "Message"
+msgid "Unable to reach to output executable: {0}"
+msgstr "Не найден исполняемый файл: {0}"
+
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:509
+msgctxt "Message"
+msgid "Couldn't find Android package name for {0}."
+msgstr "Не найден пакет {0} для Android."
+
+#. Displayed when Android tools "adb" can't be found
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:519
+msgctxt "Message"
+msgid ""
+"Android tool \"\"adb\"\" couldn't found (no running process, in registry or "
+"on the PATH). Please add it to your PATH."
+msgstr ""
+"Утилита \"\"adb\"\" для Android не найдена. (либо её нет, либо она не "
+"запущена) Проверьте путь."
+
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:526
+msgctxt "Message"
+msgid "Can't run Android app with adb: {0}"
+msgstr "Не удалось запустить Android-приложение с adb: {0}"
+
+#. Displayed when starting a game on a platform requiring credentials but none were provided.
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:551
+msgctxt "Message"
+msgid "No credentials provided. To allow deployment, add your credentials."
+msgstr ""
+"Не введены учетные данные. Чтобы разрешить выполнение, укажите учетные "
+"данные."
+
+#. Message displayed when launching fails for some reason.
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:560
+msgctxt "Message"
+msgid "Unable to launch project {0}"
+msgstr "Не удается запустить проект {0}"
+
+#. Message displayed to inform user a deployment was succesful.
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:568
+msgctxt "Message"
+msgid "Deployment of {0} successful."
+msgstr "{0} успешно выполнено."
+
+#. Log message displayed when an exception occurs while building the project. {0}: The exception message
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:574
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:648
+msgctxt "Message"
+msgid "An exception occurred while compiling the project: {0}"
+msgstr "Ошибка при компиляции проекта: {0}"
+
+#. Message displayed when the user tries to build without having selected a current project
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:584
+msgctxt "Message"
+msgid ""
+"To process the build, set an executable project as the current project in "
+"the session explorer."
+msgstr "Для сборки проекта, задайте в обозревателе данный проект как текущий."
+
+#. Message displayed when the user cancels the saving of the current session when trying to build
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:592
+msgctxt "Message"
+msgid "To build, save the project first."
+msgstr "Перед сборкой, проект необходимо сохранить."
+
+#: ../editor/Xenko.GameStudio/GameStudioViewModel.cs:91
+msgctxt "Message"
+msgid "The file {0} does not exist."
+msgstr "Файл {0} не существует."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml.cs:78
+msgctxt "Message"
+msgid ""
+"To reset the layout, Game Studio needs to close and re-open all asset and "
+"document editors. You won't lose unsaved changes."
+msgstr ""
+"Чтобы сбросить макет, Game Studio необходимо закрыть и заново открыть все "
+"активы и редакторы документов. Изменения не будут утеряны."
+
+#. Generic error message when we are unable to launch a game on a remote host.
+#: ../editor/Xenko.GameStudio/RemoteFacilities.cs:128
+msgctxt "Message"
+msgid "Unable to launch {0} on host {1}"
+msgstr "Не удается запустить {0} на host {1}"
+
+#. Message displayed when the user tries to build without having selected a current project
+#: ../editor/Xenko.GameStudio/Debugging/XenkoDebugService.cs:41
+msgctxt "Message"
+msgid ""
+"An executable project must be set as current project in the session explorer "
+"in order to process build."
+msgstr ""
+"Для сборки, исполняемый проект должен быть установлен в обозревателе как "
+"текущий."
+
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:14
+msgctxt "Settings"
+msgid "Remote"
+msgstr "Удалённо"
+
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:22
+msgctxt "Settings"
+msgid "Default session to load"
+msgstr "Загружать по умолчанию"
+
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:26
+msgctxt "Settings"
+msgid "Host"
+msgstr "Host"
+
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:30
+msgctxt "Settings"
+msgid "Port"
+msgstr "Port"
+
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:34
+msgctxt "Settings"
+msgid "Username"
+msgstr "Имя пользователя"
+
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:38
+msgctxt "Settings"
+msgid "Password"
+msgstr "Пароль"
+
+#. Location where to deploy.
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:42
+msgctxt "Settings"
+msgid "Location"
+msgstr "Расположение"
+
+#. Ask if we should prompt user with the crendential dialogs if necessary.
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:46
+msgctxt "Settings"
+msgid "Ask for credentials when deploying game"
+msgstr "Запросить учетные данные при запуске игры"
+
+#. Name of X display where to launch game.
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:50
+msgctxt "Settings"
+msgid "X Display"
+msgstr "Определение дисплея, где будет запущена игра"
+
+#. Ask if we want to execute remotely using CoreCLR.
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:54
+msgctxt "Settings"
+msgid "Use CoreCLR"
+msgstr "Использовать CoreCLR"
+
+#. Confirmation message when everything is correct while testing credentials.
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:74
+msgctxt "Credentials"
+msgid "Your credentials are correct."
+msgstr "Данные введены верно."
+
+#. Display error message when host does not respond.
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:77
+msgctxt "Credentials"
+msgid "Couldn't reach the specified host."
+msgstr "Не удалось связаться с указанным узлом (host)."
+
+#. Display error message when credentials data is invalid.
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:80
+msgctxt "Credentials"
+msgid "Invalid credentials."
+msgstr "Неверные учетные данные."
+
+#. Display error message when location does not exist.
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:83
+msgctxt "Credentials"
+msgid "The location you specified doesn't exist."
+msgstr "Указанное расположение не существует."
+
+#. Whenever something not expected happens while checking for credentials.
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:86
+msgctxt "Credentials"
+msgid "An unknown error occurred."
+msgstr "Произошла неизвестная ошибка."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:63
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:245
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:515
+msgctxt "Menu"
+msgid "Asset"
+msgstr "Актив"
+
+#. Open the asset editor
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:64
+msgctxt "Menu"
+msgid "Edit asset..."
+msgstr "Редактировать актив..."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:65
+msgctxt "Menu"
+msgid "Don't include in build as root asset"
+msgstr "Не включать в сборку как корневой ресурс"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:65
+msgctxt "Menu"
+msgid "Include in build as root asset"
+msgstr "Включить в сборку как корневой ресурс"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:90
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:195
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:509
+msgctxt "Menu"
+msgid "Cut"
+msgstr "Вырезать"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:91
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:196
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:510
+msgctxt "Menu"
+msgid "Copy"
+msgstr "Копировать"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:92
+msgctxt "Menu"
+msgid "Copy with dependencies"
+msgstr "Копировать с зависимостями"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:93
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:197
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:511
+msgctxt "Menu"
+msgid "Paste"
+msgstr "Вставить"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:94
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:198
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:242
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:512
+msgctxt "Menu"
+msgid "Delete"
+msgstr "Удалить"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:96
+msgctxt "Menu"
+msgid "Copy asset URL"
+msgstr "Копировать путь актива"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:97
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:243
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:513
+msgctxt "Menu"
+msgid "Rename"
+msgstr "Переименовать"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:99
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:478
+msgctxt "Menu"
+msgid "Create folder"
+msgstr "Создать папку"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:100
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:246
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:516
+msgctxt "Menu"
+msgid "Add asset..."
+msgstr "Добавить актив.."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:101
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:247
+msgctxt "Menu"
+msgid "Update selected assets from their source"
+msgstr "Обновить выбранные активы из источника"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:102
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:248
+msgctxt "Menu"
+msgid "Update all assets with modified source"
+msgstr "Обновить все активы с измененным источником"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:104
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:249
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:518
+msgctxt "Menu"
+msgid "Explore"
+msgstr "Проводник"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:105
+msgctxt "Menu"
+msgid "Open with text editor"
+msgstr "Открыть в текстовом редакторе"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:106
+msgctxt "Menu"
+msgid "Open asset file"
+msgstr "Открыть актив"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:107
+msgctxt "Menu"
+msgid "Open source file"
+msgstr "Открыть исходный файл"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:108
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:250
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:519
+msgctxt "Menu"
+msgid "Show in Explorer"
+msgstr "Показать в проводнике"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:145
+msgctxt "Menu"
+msgid "File"
+msgstr "Файл"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:146
+msgctxt "Menu"
+msgid "New"
+msgstr "Новый"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:147
+msgctxt "Menu"
+msgid "Open"
+msgstr "Открыть"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:148
+msgctxt "Menu"
+msgid "Open recent"
+msgstr "Открыть недавние"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:178
+msgctxt "Menu"
+msgid "Clear list"
+msgstr "Очистить недавние"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:180
+msgctxt "Menu"
+msgid "Save"
+msgstr "Сохранить"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:182
+msgctxt "Menu"
+msgid "Reload project"
+msgstr "Перезапустить проект"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:184
+msgctxt "Menu"
+msgid "Quit"
+msgstr "Выход"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:191
+msgctxt "Menu"
+msgid "Edit"
+msgstr "Редактировать"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:192
+msgctxt "Menu"
+msgid "Undo"
+msgstr "Отменить"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:193
+msgctxt "Menu"
+msgid "Redo"
+msgstr "Вернуть"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:200
+msgctxt "Menu"
+msgid "Settings"
+msgstr "Настройки"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:203
+msgctxt "Menu"
+msgid "Project"
+msgstr "Проект"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:204
+msgctxt "Menu"
+msgid "Build project"
+msgstr "Собрать проект"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:205
+msgctxt "Menu"
+msgid "Start project"
+msgstr "Запустить проект"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:207
+msgctxt "Menu"
+msgid "Start live-scripting"
+msgstr "Запустить \"живой скрипт\""
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:208
+msgctxt "Menu"
+msgid "Cancel build"
+msgstr "Отменить сборку"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:209
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:477
+msgctxt "Menu"
+msgid "Folder"
+msgstr "Папка"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:212
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:480
+msgctxt "Menu"
+msgid "Package"
+msgstr "Пакет"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:213
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:481
+msgctxt "Menu"
+msgid "Update package"
+msgstr "Обновить пакет"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:231
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:499
+msgctxt "Menu"
+msgid "Add dependency..."
+msgstr "Добавить зависимости..."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:232
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:500
+msgctxt "Menu"
+msgid "Set as current project"
+msgstr "Выбрать как текущий проект"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:233
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:501
+msgctxt "Menu"
+msgid "Package properties"
+msgstr "Свойства пакета"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:235
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:503
+msgctxt "Menu"
+msgid "Solution"
+msgstr "Решение"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:236
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:504
+msgctxt "Menu"
+msgid "New project..."
+msgstr "Новый проект..."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:237
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:505
+msgctxt "Menu"
+msgid "Add existing project..."
+msgstr "Добавить существующий проект..."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:238
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:506
+msgctxt "Menu"
+msgid "Open in IDE"
+msgstr "Открыть в IDE"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:239
+msgctxt "Menu"
+msgid "Reload game assemblies"
+msgstr "Перезапустить сборку игры"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:241
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:508
+msgctxt "Menu"
+msgid "Actions"
+msgstr "Действие"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:253
+msgctxt "Menu"
+msgid "View"
+msgstr "Вид"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:254
+msgctxt "Menu"
+msgid "Solution explorer"
+msgstr "Обозреватель решений"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:255
+msgctxt "Menu"
+msgid "Asset view"
+msgstr "Обзор актива"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:256
+msgctxt "Menu"
+msgid "References"
+msgstr "Ссылки"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:258
+msgctxt "Menu"
+msgid "Asset preview"
+msgstr "Пред.просмотр активов"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:261
+msgctxt "Menu"
+msgid "Property grid"
+msgstr "Окно свойств"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:262
+msgctxt "Menu"
+msgid "Edit history"
+msgstr "История изменений"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:265
+msgctxt "Menu"
+msgid "Asset errors"
+msgstr "Ошибки активов"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:266
+msgctxt "Menu"
+msgid "Output"
+msgstr "Лог действий"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:270
+msgctxt "Menu"
+msgid "Help"
+msgstr "Помощь"
+
+#. Link to the documentation
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:271
+msgctxt "Menu"
+msgid "Online documentation"
+msgstr "Online документация"
+
+#. Link to the answer hub
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:273
+msgctxt "Menu"
+msgid "Questions and answers"
+msgstr "Вопросы и ответы"
+
+#. Link to GitHub issues
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:274
+msgctxt "Menu"
+msgid "Report an issue..."
+msgstr "Сообщить о проблеме..."
+
+#. Link to the forums
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:275
+msgctxt "Menu"
+msgid "Community forums"
+msgstr "Форум сообщества"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:277
+msgctxt "Menu"
+msgid "Show debug window"
+msgstr "Показать окно отладки"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:279
+msgctxt "Menu"
+msgid "About..."
+msgstr "О нас..."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:305
+msgctxt "ToolTip"
+msgid "Create a project"
+msgstr "Создать проект"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:309
+msgctxt "ToolTip"
+msgid "Open an existing project"
+msgstr "Открыть существующий проект"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:313
+msgctxt "ToolTip"
+msgid "Open recent"
+msgstr "Открыть недавние"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:339
+msgctxt "ToolTip"
+msgid "Save the project and all its documents"
+msgstr "Сохранить проект и все документы"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:344
+msgctxt "ToolTip"
+msgid "Reload current project (ask to save)"
+msgstr "Перезапуск текущего проекта (необходимо сохранить)"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:349
+msgctxt "ToolTip"
+msgid "Undo last action"
+msgstr "Отмена действия"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:353
+msgctxt "ToolTip"
+msgid "Redo last cancelled action"
+msgstr "Вернуть отменённое действие"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:359
+msgctxt "ToolTip"
+msgid "Open in IDE"
+msgstr "Открыть в IDE"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:363
+msgctxt "ToolTip"
+msgid "Open with..."
+msgstr "Открыть с..."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:374
+msgctxt "ToolTip"
+msgid "Reload game assemblies and update scripts"
+msgstr "Обновить скрипты и перезапустить сборку"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:395
+msgctxt "ToolTip"
+msgid "Build the project"
+msgstr "Собрать проект"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:399
+msgctxt "ToolTip"
+msgid "Build the project and start the game"
+msgstr "Собрать проект и запустить игру"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:405
+msgctxt "ToolTip"
+msgid "Start project in live-scripting mode"
+msgstr "Запуск проекта с \"живым скриптом\""
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:410
+msgctxt "ToolTip"
+msgid "Cancel the current build"
+msgstr "Отменить текущую сборку"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:426
+msgctxt "View"
+msgid "Solution explorer"
+msgstr "Обозреватель решений"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:433
+msgctxt "ToolTip"
+msgid "Create a project..."
+msgstr "Создать новый проект."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:437
+msgctxt "ToolTip"
+msgid "Create a folder"
+msgstr "Создать новую папку"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:442
+msgctxt "ToolTip"
+msgid "Display the properties of the selected package in the property grid"
+msgstr "Отображение свойств выбранного пакета в окне свойств"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:446
+msgctxt "ToolTip"
+msgid "Rename the selected folder or package"
+msgstr "Переименовать выбранную папку или пакет"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:450
+msgctxt "ToolTip"
+msgid "Delete the selected items"
+msgstr "Удалить выбранные элементы"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:455
+msgctxt "ToolTip"
+msgid "Expand all asset folders"
+msgstr "Развернуть все папки активов"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:459
+msgctxt "ToolTip"
+msgid "Expand all"
+msgstr "Развернуть всё"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:463
+msgctxt "ToolTip"
+msgid "Collapse all"
+msgstr "Свернуть всё"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:468
+msgctxt "ToolTip"
+msgid "Show in Explorer"
+msgstr "Показать в проводнике"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:560
+msgctxt "View"
+msgid "Asset view"
+msgstr "Обзор активов"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:581
+msgctxt "View"
+msgid "References"
+msgstr "Ссылки"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:598
+msgid "References"
+msgstr "Ссылки"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:599
+msgid "Referenced by"
+msgstr "Ссылка на"
+
+#. {0}: The number of errors
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:610
+msgctxt "View"
+msgid "Asset error ({0})"
+msgid_plural "Asset errors ({0})"
+msgstr[0] "Ошибка актива ({0})"
+msgstr[1] "Ошибки активов ({0})"
+msgstr[2] "Ошибок активов ({0})"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:624
+msgid "Build"
+msgstr "Собрать"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:638
+msgid "Live-scripting"
+msgstr "\"Живой скрипт\""
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:662
+msgctxt "View"
+msgid "Property grid"
+msgstr "Окно свойств"
+
+#. Translation must not be longer that the english words
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:677
+msgid "Add new tag"
+msgstr "Добавить новый тэг"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:687
+msgctxt "ToolTip"
+msgid "Previous selection"
+msgstr "Предыдущий"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:690
+msgctxt "ToolTip"
+msgid "Next selection"
+msgstr "Следующий"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:708
+msgctxt "ToolTip"
+msgid "Add tag to all"
+msgstr "Добавить тэг ко всем"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:725
+msgid "Open this asset in editor"
+msgstr "Редактировать"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:727
+msgid "Show this asset in editor"
+msgstr "Редактировать"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:734
+msgctxt "ToolTip"
+msgid "Display only overridden properties"
+msgstr "Отображать только изменённые свойства"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:737
+msgid "Search properties"
+msgstr "Настройки поиска"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:765
+msgctxt "Menu"
+msgid "Reset to base value"
+msgstr "Сброс к значению по умолчанию"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:879
+msgctxt "View"
+msgid "Asset preview"
+msgstr "Пред.просмотр активов"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:887
+msgctxt "View"
+msgid "Edit history"
+msgstr "История изменений"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:939
+msgctxt "StatusBar"
+msgid "{0} item"
+msgid_plural "{0} items"
+msgstr[0] "{0} предмет"
+msgstr[1] "{0} предмета"
+msgstr[2] "{0} предметов"
+
+#. Keep parenthesis - {0} is a number
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:940
+msgctxt "StatusBar"
+msgid "({0} selected)"
+msgid_plural "({0} selected)"
+msgstr[0] "(выбран {0})"
+msgstr[1] "(выбрано {0})"
+msgstr[2] "(выбраны {0})"
+
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:10
+msgctxt "About"
+msgid "About Xenko"
+msgstr "о Xenko"
+
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:45
+msgctxt "About"
+msgid "Xenko version"
+msgstr "Версия Xenko"
+
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:50
+msgctxt "About"
+msgid "MIT License"
+msgstr "Лицензия MIT"
+
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:56
+msgctxt "About"
+msgid "Xenko uses open-source software"
+msgstr "Xenko использует открытый исходный код"
+
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:58
+msgctxt "About"
+msgid "See the list"
+msgstr "Посмотреть список"
+
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:64
+msgctxt "About"
+msgid "Privacy policy"
+msgstr "Политика конфиденциальности"
+
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:73
+msgctxt "About"
+msgid "Close"
+msgstr "Закрыть"
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:9
+msgctxt "Credentials"
+msgid "Credentials"
+msgstr "Учетные данные"
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:13
+msgctxt "Credentials"
+msgid ""
+"Provide information about the host to connect to. Your password is encrypted "
+"on this machine."
+msgstr ""
+"Предоставьте информацию об узле(host), к которому необходимо подключиться. "
+"Ваш пароль на этой машине зашифрован."
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:15
+msgctxt "Credentials"
+msgid "Host"
+msgstr "Host"
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:18
+msgctxt "Credentials"
+msgid "Port"
+msgstr "Port"
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:21
+msgctxt "Credentials"
+msgid "Username"
+msgstr "Имя пользователя"
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:24
+msgctxt "Credentials"
+msgid "Password"
+msgstr "Пароль"
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:27
+msgctxt "Credentials"
+msgid "Location"
+msgstr "Расположение"
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:34
+msgctxt "Credentials"
+msgid "Don't ask again"
+msgstr "Не напоминать"
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:35
+msgctxt "Credentials"
+msgid "Test settings"
+msgstr "Тестовые настройки"
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:40
+msgctxt "Button"
+msgid "Save"
+msgstr "Сохранить"
+
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:45
+msgctxt "Button"
+msgid "Cancel"
+msgstr "Отмена"

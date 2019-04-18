@@ -8,6 +8,7 @@ using Xenko.Core.Annotations;
 using Xenko.Engine.Design;
 using Xenko.Engine.Processors;
 using Xenko.Graphics;
+using Xenko.Rendering;
 using Xenko.Rendering.Background;
 
 namespace Xenko.Engine

@@ -92,7 +92,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="green">The green component of the color.</param>
         /// <param name="blue">The blue component of the color.</param>
         /// <param name="alpha">The alpha component of the color.</param>
-        public Color4(float red, float green, float blue, float alpha)
+        public Color4(float red, float green, float blue, float alpha = 1f)
         {
             R = red;
             G = green;
@@ -117,7 +117,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="value">The red, green, and blue components of the color.</param>
         /// <param name="alpha">The alpha component of the color.</param>
-        public Color4(Vector3 value, float alpha)
+        public Color4(Vector3 value, float alpha = 1f)
         {
             R = value.X;
             G = value.Y;
@@ -159,13 +159,13 @@ namespace Xenko.Core.Mathematics
         {
             if (values == null)
                 throw new ArgumentNullException(nameof(values));
-            if (values.Length != 4)
-                throw new ArgumentOutOfRangeException(nameof(values), "There must be four and only four input values for Color4.");
+            if (values.Length != 3 && values.Length != 4)
+                throw new ArgumentOutOfRangeException(nameof(values), "There must be 3 or 4 float[] values for Color4.");
 
             R = values[0];
             G = values[1];
             B = values[2];
-            A = values[3];
+            A = values.Length >= 4 ? values[3] : 1f;
         }
 
         /// <summary>
@@ -209,7 +209,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="color"><see cref="Color3"/> used to initialize the color.</param>
         /// <param name="alpha">The alpha component of the color.</param>
-        public Color4(Color3 color, float alpha)
+        public Color4(Color3 color, float alpha = 1f)
         {
             R = color.R;
             G = color.G;

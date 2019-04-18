@@ -23,7 +23,7 @@ namespace Xenko.Core.Settings
 
         protected override void WriteDictionaryItem(ref ObjectContext objectContext, KeyValuePair<object, object> keyValue, KeyValuePair<Type, Type> keyValueTypes)
         {
-            var propertyKey = (UFile)keyValue.Key;
+            var propertyKey = (string)keyValue.Key;
             objectContext.SerializerContext.ObjectSerializerBackend.WriteDictionaryKey(ref objectContext, propertyKey, keyValueTypes.Key);
 
             // Deduce expected value type from PropertyKey
@@ -38,7 +38,10 @@ namespace Xenko.Core.Settings
         protected override KeyValuePair<object, object> ReadDictionaryItem(ref ObjectContext objectContext, KeyValuePair<Type, Type> keyValueTypes)
         {
             // Read PropertyKey
-            var keyResult = (UFile)objectContext.SerializerContext.ObjectSerializerBackend.ReadDictionaryKey(ref objectContext, keyValueTypes.Key);
+            var keyResult = objectContext.SerializerContext.ObjectSerializerBackend.ReadDictionaryKey(ref objectContext, keyValueTypes.Key);
+            // Temporary fix for launcher 3.0.x, which was serializing keys as UFile with !file prefix
+            if (keyResult is UFile keyResultFile)
+                keyResult = keyResultFile.FullPath;
 
             // Save the Yaml stream, in case loading fails we can keep this representation
             var parsingEvents = new List<ParsingEvent>();

@@ -1,11 +1,11 @@
 <Project>
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Xenko.UI.Tests</RootNamespace>
     <AssemblyName>Xenko.UI.Tests</AssemblyName>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>
@@ -154,6 +154,6 @@
   <ItemGroup>
     <None Include="Resources\UIDesigns.dds" />
   </ItemGroup>
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <Import Project="..\..\targets\Xenko.UnitTests.targets" />
 </Project>

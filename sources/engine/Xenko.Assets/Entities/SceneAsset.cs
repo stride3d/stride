@@ -17,16 +17,7 @@ namespace Xenko.Assets.Entities
     [DataContract("SceneAsset")]
     [AssetDescription(FileSceneExtension, AllowArchetype = false)]
     [AssetContentType(typeof(Scene))]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "1.9.0-beta06")]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.9.0-beta06", "1.10.0-beta01", typeof(RemoveSceneSettingsUpgrader))]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.10.0-beta01", "1.10.0-beta02", typeof(MoveRenderGroupInsideComponentUpgrader))]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.10.0-beta02", "1.10.0-beta03", typeof(FixPartReferenceUpgrader))]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.10.0-beta03", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
-    [AssetUpgrader(XenkoConfig.PackageName, "2.0.0.0", "2.1.0.1", typeof(RootPartIdsToRootPartsUpgrader))]
+    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.1.0.1")]
     [AssetUpgrader(XenkoConfig.PackageName, "2.1.0.1", "3.1.0.1", typeof(CharacterComponentGravityVector3Upgrader))]
     public partial class SceneAsset : EntityHierarchyAssetBase
     {

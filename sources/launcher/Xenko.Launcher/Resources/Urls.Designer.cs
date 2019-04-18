@@ -19,7 +19,7 @@ namespace Xenko.LauncherApp.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Urls {
@@ -61,11 +61,11 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to http://answers.xenko.com/.
+        ///   Looks up a localized string similar to https://discord.gg/f6aerfE.
         /// </summary>
-        public static string Answers {
+        public static string Discord {
             get {
-                return ResourceManager.GetString("Answers", resourceCulture);
+                return ResourceManager.GetString("Discord", resourceCulture);
             }
         }
         
@@ -115,20 +115,20 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://gitter.im/xenko3d/xenko.
-        /// </summary>
-        public static string Gitter {
-            get {
-                return ResourceManager.GetString("Gitter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to https://github.com/xenko3d/xenko/issues/.
         /// </summary>
         public static string Issues {
             get {
                 return ResourceManager.GetString("Issues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://www.patreon.com/xenko.
+        /// </summary>
+        public static string Patreon {
+            get {
+                return ResourceManager.GetString("Patreon", resourceCulture);
             }
         }
         
@@ -142,7 +142,7 @@ namespace Xenko.LauncherApp.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://trello.com/b/FwbjOjjB/xenko-roadmap.
+        ///   Looks up a localized string similar to https://github.com/xenko3d/xenko/projects/3.
         /// </summary>
         public static string Roadmap {
             get {

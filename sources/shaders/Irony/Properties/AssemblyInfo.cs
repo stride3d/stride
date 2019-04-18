@@ -15,7 +15,6 @@ using System.Reflection;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -27,8 +26,6 @@ using System.Security;
 [assembly: Guid("B83C8EBA-E4E5-4761-9C38-F662F56D63D7")]
 #endif
 [assembly: CLSCompliant(true)]
-//Make the code security-transparent. more info here: http://msdn.microsoft.com/en-us/library/bb397858.aspx
-[assembly: SecurityTransparent]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 

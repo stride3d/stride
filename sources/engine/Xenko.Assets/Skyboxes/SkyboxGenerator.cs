@@ -41,7 +41,7 @@ namespace Xenko.Assets.Skyboxes
             Services.AddService(graphicsContext);
 
             EffectSystem = new EffectSystem(Services);
-            EffectSystem.Compiler = EffectSystem.CreateEffectCompiler(Content.FileProvider, EffectSystem);
+            EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(Content.FileProvider, EffectSystem);
 
             Services.AddService(EffectSystem);
             EffectSystem.Initialize();

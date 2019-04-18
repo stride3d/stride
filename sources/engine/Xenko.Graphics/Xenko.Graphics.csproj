@@ -5,7 +5,7 @@
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -24,11 +24,11 @@
   <Choose>
     <When Condition=" '$(XenkoGraphicsApi)' == 'Vulkan' ">
       <Choose>
-        <When Condition=" '$(XenkoPlatform)' == 'Windows'">
+        <When Condition=" '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'macOS' ">
           <ItemGroup>
             <Reference Include="SharpVulkan">
               <SpecificVersion>False</SpecificVersion>
-              <HintPath>$(XenkoDependenciesDir)\SharpVulkan\Windows\SharpVulkan.dll</HintPath>
+              <HintPath>$(XenkoDependenciesDir)\SharpVulkan\$(XenkoPlatform)\SharpVulkan.dll</HintPath>
             </Reference>
           </ItemGroup>
         </When>
@@ -54,6 +54,13 @@
       </ItemGroup>
     </When>
   </Choose>
+  <ItemGroup Condition=" '$(XenkoPlatform)' == 'macOS' Or '$(XenkoGraphicsApi)' == 'Vulkan' ">
+    <XenkoNativeLib Include="$(XenkoDependenciesDir)\MoltenVK\$(XenkoPlatform)\**\*.*">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <RelativePath>%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </XenkoNativeLib>
+  </ItemGroup>
   <ItemGroup>
     <XenkoNativeLib Include="$(XenkoDependenciesDir)\freetype\$(XenkoPlatform)\**\*.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
@@ -192,10 +199,10 @@
     <ProjectReference Include="..\Xenko.Shaders\Xenko.Shaders.csproj" />
     <ProjectReference Include="..\Xenko\Xenko.csproj" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.1.1" />
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
-    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
-    <PackageReference Include="SharpDX.D3DCompiler" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'uap10.0'" />
-    <PackageReference Include="Xenko.OpenTK" Version="1.0.0" Condition="'$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'xamarinios10' Or '$(TargetFramework)' == 'monoandroid50' Or '$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="Xenko.OpenTK" Version="1.0.2" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'iOS' Or '$(XenkoPlatform)' == 'Android'" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
@@ -283,7 +290,7 @@
   </ItemGroup>
   <Import Project="..\Xenko.Shared\Refactor\Xenko.Refactor.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>

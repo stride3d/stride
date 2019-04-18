@@ -306,7 +306,9 @@ namespace Xenko.GameStudio
                 return;
             }
             // Open assets
-            foreach (var asset in assetIds.Select(x => Editor.Session.GetAssetById(x)).NotNull())
+            var assets = assetIds.Select(x => Editor.Session.GetAssetById(x)).NotNull().ToList();
+            Editor.Session.ActiveAssetView.SelectAssets(assets.Last().Yield());
+            foreach (var asset in assets)
             {
                 // HACK: temporary open and await asset editor sequentially
                 await assetEditorsManager.OpenAssetEditorWindow(asset, false);
@@ -358,6 +360,8 @@ namespace Xenko.GameStudio
             var asset = session.GetAssetById(defaultSceneReference.Id);
             if (asset == null)
                 return;
+
+            Editor.Session.ActiveAssetView.SelectAssets(asset.Yield());
 
             await assetEditorsManager.OpenAssetEditorWindow(asset);
         }

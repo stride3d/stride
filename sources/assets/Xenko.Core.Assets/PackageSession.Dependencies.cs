@@ -102,7 +102,7 @@ namespace Xenko.Core.Assets
                         package.Meta.Version = new PackageVersion(packageVersion);
 
                     project.TargetPath = msProject.GetPropertyValue("TargetPath");
-                    package.Meta.Name = msProject.GetPropertyValue("PackageId") ?? msProject.GetPropertyValue("AssemblyName") ?? package.Meta.Name;
+                    package.Meta.Name = (msProject.GetProperty("PackageId") ?? msProject.GetProperty("AssemblyName"))?.EvaluatedValue ?? package.Meta.Name;
 
                     var outputType = msProject.GetPropertyValue("OutputType");
                     project.Type = outputType.ToLowerInvariant() == "winexe" || outputType.ToLowerInvariant() == "exe"
@@ -159,6 +159,10 @@ namespace Xenko.Core.Assets
                 var packageUpgrader = AssetRegistry.GetPackageUpgrader(dependencyName);
                 if (packageUpgrader != null)
                 {
+                    // Check if this upgrader has already been added due to another package reference
+                    if (pendingPackageUpgrades.Any(pendingPackageUpgrade => pendingPackageUpgrade.PackageUpgrader == packageUpgrader))
+                        continue;
+
                     // Check if upgrade is necessary
                     if (dependencyVersion.MinVersion >= packageUpgrader.Attribute.UpdatedVersionRange.MinVersion)
                     {

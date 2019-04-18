@@ -28,8 +28,8 @@ namespace Xenko.Core.Presentation.Behaviors
         {
             if (!mouseDownOccurred)
             {
-                // Discard the event if the mouse down didn't occur on this control.
-                e.Handled = true;
+                // Stop capturing mouse so that a click somewhere else doesn't reopen the popup
+                AssociatedObject.ReleaseMouseCapture();
             }
             mouseDownOccurred = false;
         }

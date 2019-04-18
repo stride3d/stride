@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net45</TargetFramework>
@@ -28,7 +28,7 @@
     <AddSyntheticProjectReferencesForSolutionDependencies>false</AddSyntheticProjectReferencesForSolutionDependencies>
 	
 	<!-- Assembly version for the launcher, used to generate the appropriate nuget package -->
-    <InformationalVersion>3.0.2</InformationalVersion>
+    <InformationalVersion>3.0.6</InformationalVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -90,7 +90,7 @@
     </ItemGroup>
   </Target>
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="&#xD;&#xA;&#xD;&#xA;cd $(TargetDir)&#xD;&#xA;rem Ensure we are in the right place&#xD;&#xA;&#xD;&#xA;rem Delete all DLLs in the current directory and the immediate subdirectories&#xD;&#xA;del /q $(TargetDir)\*.dll&#xD;&#xA;for /d %25%25f in (&quot;$(TargetDir)\*&quot;) do del /q %25%25f\*.dll&#xD;&#xA;&#xD;&#xA;rem Delete empty directories at the first level&#xD;&#xA;rem See http://stackoverflow.com/questions/7831286/how-to-delete-empty-folders-using-windows-command-prompt for explanations&#xD;&#xA;rem Use %25SystemRoot%25 to use the right sort tool as people may have the unix sort in their path&#xD;&#xA;for /f &quot;usebackq delims=&quot; %25%25d in (`&quot;dir /ad/b $(TargetDir) | %25SystemRoot%25\System32\sort.exe /R&quot;`) do rd &quot;%25%25d&quot;" />
+    <Exec Command="&#xD;&#xA;&#xD;&#xA;cd &quot;$(TargetDir)&quot;&#xD;&#xA;rem Ensure we are in the right place&#xD;&#xA;&#xD;&#xA;rem Delete all DLLs in the current directory and the immediate subdirectories&#xD;&#xA;del /q &quot;$(TargetDir)\*.dll&quot;&#xD;&#xA;for /d %25%25f in (&quot;$(TargetDir)\*&quot;) do del /q %25%25f\*.dll&#xD;&#xA;&#xD;&#xA;rem Delete empty directories at the first level&#xD;&#xA;rem See http://stackoverflow.com/questions/7831286/how-to-delete-empty-folders-using-windows-command-prompt for explanations&#xD;&#xA;rem Use %25SystemRoot%25 to use the right sort tool as people may have the unix sort in their path&#xD;&#xA;for /f &quot;usebackq delims=&quot; %25%25d in (`&quot;dir /ad/b &quot;$(TargetDir)&quot; | %25SystemRoot%25\System32\sort.exe /R&quot;`) do rd &quot;%25%25d&quot;" />
   </Target>
   <Import Project="..\..\targets\Xenko.Core.Sign.targets" />
 </Project>

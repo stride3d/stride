@@ -16,7 +16,7 @@ namespace Xenko.Particles.Modules
         /// <summary>
         /// Direction and magnitude of the gravitational acceleration
         /// </summary>
-        [DataMember(10)]
+        [DataMember(9)]
         public Vector3 GravitationalAcceleration;
 
         public UpdaterGravity()

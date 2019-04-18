@@ -1,6 +1,6 @@
 !SceneAsset
 Id: 961e35a8-ba9a-47b4-82c6-2a2450282c00
-SerializedVersion: {Xenko: 2.1.0.1}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
 ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -2900,7 +2900,7 @@ Hierarchy:
                         FallSpeed: 10.0
                         MaxSlope: {Radians: 0.7853982}
                         JumpSpeed: 0.0
-                        Gravity: -40.0
+                        Gravity: {X: 0.0, Y: -40.0, Z: 0.0}
                         ColliderShapes:
                             56a5239435c0e54188f913fd5d2f5dee: !CapsuleColliderShapeDesc
                                 Length: 1.2

@@ -13,6 +13,7 @@ namespace Xenko.Engine
     /// </summary>
     [DataSerializer(typeof(Serializer))]
     [DataContract(Inherited = true)]
+    [ComponentCategory("Miscellaneous")]
     public abstract class EntityComponent : IIdentifiable
     {
         /// <summary>

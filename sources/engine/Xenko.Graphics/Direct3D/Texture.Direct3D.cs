@@ -702,15 +702,19 @@ namespace Xenko.Graphics
             // Determine TypeLess Format and ShaderResourceView Format
             switch (format)
             {
+                case PixelFormat.R16_Typeless:
                 case PixelFormat.D16_UNorm:
                     viewFormat = PixelFormat.R16_Float;
                     break;
+                case PixelFormat.R32_Typeless:
                 case PixelFormat.D32_Float:
                     viewFormat = PixelFormat.R32_Float;
                     break;
+                case PixelFormat.R24G8_Typeless:
                 case PixelFormat.D24_UNorm_S8_UInt:
                     viewFormat = PixelFormat.R24_UNorm_X8_Typeless;
                     break;
+                case PixelFormat.R32_Float_X8X24_Typeless:
                 case PixelFormat.D32_Float_S8X24_UInt:
                     viewFormat = PixelFormat.R32_Float_X8X24_Typeless;
                     break;

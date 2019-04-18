@@ -36,6 +36,8 @@ using Xenko.VisualStudio.Commands;
 
 using IOleServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 using VsShell = Microsoft.VisualStudio.Shell.VsShellUtilities;
+using EnvDTE;
+using Xenko.VisualStudio;
 
 namespace NShader
 {
@@ -267,7 +269,7 @@ namespace NShader
                             {
                                 try
                                 {
-                                    var result = XenkoCommandsProxy.GetProxy().AnalyzeAndGoToDefinition(text, new RawSourceSpan(sourcePath, 1, 1));
+                                    var result = AnalyzeAndGoToDefinition(text, new RawSourceSpan(sourcePath, 1, 1));
                                     OutputAnalysisMessages(result, source);
                                 }
                                 catch (Exception ex)
@@ -284,6 +286,19 @@ namespace NShader
             }
 
             base.OnIdle(periodic);
+        }
+
+        public RawShaderNavigationResult AnalyzeAndGoToDefinition(string text, RawSourceSpan span)
+        {
+            // Try to locate containing project
+            var dte = (DTE)GetService(typeof(DTE));
+            var projectItem = dte.Solution.FindProjectItem(span.File);
+            string projectFile = null;
+            if (projectItem != null && projectItem.ContainingProject != null && !string.IsNullOrEmpty(projectItem.ContainingProject.FileName))
+            {
+                projectFile = projectItem.ContainingProject.FileName;
+            }
+            return XenkoCommandsProxy.GetProxy()?.AnalyzeAndGoToDefinition(projectFile, text, span) ?? new RawShaderNavigationResult();
         }
 
         private NShaderSource GetCurrentNShaderSource()

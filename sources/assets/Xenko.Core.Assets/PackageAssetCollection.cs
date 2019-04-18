@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
 using Xenko.Core;
 using Xenko.Core.Diagnostics;
@@ -132,8 +133,12 @@ namespace Xenko.Core.Assets
             var asset = item.Asset;
             asset.IsIdLocked = true;
 
+            // Note: we ignore name collisions if asset is not referenceable
+            var referenceable = item.Asset.GetType().GetCustomAttribute<AssetDescriptionAttribute>()?.Referenceable ?? true;
+
             // Maintain all internal maps
-            mapPathToId.Add(item.Location, item.Id);
+            if (referenceable)
+                mapPathToId.Add(item.Location, item.Id);
             mapIdToPath.Add(item.Id, item.Location);
             mapIdToAsset.Add(item.Id, item);
             registeredItems.Add(item);
@@ -204,7 +209,11 @@ namespace Xenko.Core.Assets
                 registeredItems.Remove(item);
                 mapIdToAsset.Remove(item.Id);
                 mapIdToPath.Remove(item.Id);
-                mapPathToId.Remove(item.Location);
+
+                // Note: we ignore name collisions if asset is not referenceable
+                var referenceable = item.Asset.GetType().GetCustomAttribute<AssetDescriptionAttribute>()?.Referenceable ?? true;
+                if (referenceable)
+                    mapPathToId.Remove(item.Location);
 
                 RemoveInternal(item);
 
@@ -328,8 +337,11 @@ namespace Xenko.Core.Assets
                 throw new ArgumentException("Cannot add an asset that is already added to another package", "item");
             }
 
+            // Note: we ignore name collisions if asset is not referenceable
+            var referenceable = item.Asset.GetType().GetCustomAttribute<AssetDescriptionAttribute>()?.Referenceable ?? true;
+
             var location = item.Location;
-            if (mapPathToId.ContainsKey(location))
+            if (referenceable && mapPathToId.ContainsKey(location))
             {
                 throw new ArgumentException("An asset [{0}] with the same location [{1}] is already registered ".ToFormat(mapPathToId[location], location.GetDirectoryAndFileName()), "item");
             }

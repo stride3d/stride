@@ -190,6 +190,12 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         bool IAddChildViewModel.CanAddChildren(IReadOnlyCollection<object> children, AddChildModifiers modifiers, out string message)
         {
+            if (children.Any(x => (x is IIsEditableViewModel) && !((IIsEditableViewModel)x).IsEditable))
+            {
+                message = "Some source items are read-only";
+                return false;
+            }
+
             if (!Package.IsEditable)
             {
                 message = "Read-only package";

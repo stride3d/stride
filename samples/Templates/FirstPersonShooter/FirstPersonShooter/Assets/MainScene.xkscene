@@ -1,6 +1,6 @@
 !SceneAsset
 Id: bc8d83e5-a707-4213-b92c-d2e699e02d5f
-SerializedVersion: {Xenko: 2.1.0.1}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
 ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -4860,7 +4860,7 @@ Hierarchy:
                         FallSpeed: 10.0
                         MaxSlope: {Radians: 0.785398}
                         JumpSpeed: 0.0
-                        Gravity: -20.0
+                        Gravity: {X: 0.0, Y: -20.0, Z: 0.0}
                         ColliderShapes:
                             c7ab0c6b38a28147baf5c58b2eea7674: !CapsuleColliderShapeDesc
                                 Length: 1.2
@@ -4872,6 +4872,7 @@ Hierarchy:
                         MaxRunSpeed: 9.0
                     5cea3fc41b5e1c40865911bd77ee624c: !FirstPersonShooter.Player.PlayerInput,FirstPersonShooter.Game
                         Id: c43fea5c-5e1b-401c-8659-11bd77ee624c
+                        Priority: -1000
                         DeadZone: 0.25
                         Camera: ref!! 79c1cebd-d690-4e7f-b9d1-d3a9197c95a2
                         MouseSensitivity: 100.0

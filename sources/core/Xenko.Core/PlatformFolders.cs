@@ -138,24 +138,18 @@ namespace Xenko.Core
         {
 #if XENKO_PLATFORM_ANDROID
             var directory = Path.Combine(PlatformAndroid.Context.FilesDir.AbsolutePath, "cache");
-            Directory.CreateDirectory(directory);
-            return directory;
 #elif XENKO_PLATFORM_UWP
             var directory = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "cache");
-            IO.NativeFile.DirectoryCreate(directory);
-            return directory;
 #elif XENKO_PLATFORM_IOS
             var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "..", "Library", "Caches");
-            Directory.CreateDirectory(directory);
-            return directory;
 #else
             // TODO: Should we add "local" ?
             var directory = Path.Combine(GetApplicationBinaryDirectory(), "cache");
+#endif
             Directory.CreateDirectory(directory);
             return directory;
-#endif
         }
-        
+
         private static string GetApplicationExecutablePath()
         {
 #if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_MONO_MOBILE || XENKO_PLATFORM_UNIX

@@ -24,6 +24,7 @@ namespace Xenko.Video
     [DataContract(nameof(VideoComponent))]
     [DefaultEntityComponentProcessor(typeof(VideoProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentOrder(8000)]
+    [ComponentCategory("Video")]
     public class VideoComponent : EntityComponent
     {
         [DataMemberIgnore]

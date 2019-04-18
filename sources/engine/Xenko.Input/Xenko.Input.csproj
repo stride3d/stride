@@ -2,10 +2,11 @@
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoRuntime>true</XenkoRuntime>
+    <XenkoRuntimeWindowsDotNet>true</XenkoRuntimeWindowsDotNet>
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <XenkoPlatformDependent>true</XenkoPlatformDependent>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
@@ -32,11 +33,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
-    <PackageReference Include="SharpDX.RawInput" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
-    <PackageReference Include="SharpDX.DirectInput" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
-    <PackageReference Include="SharpDX.XInput" Version="4.0.1" Condition="'$(TargetFramework)' == 'net45'" />
+    <PackageReference Include="SharpDX.RawInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))" />
+    <PackageReference Include="SharpDX.DirectInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.XInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
 </Project>

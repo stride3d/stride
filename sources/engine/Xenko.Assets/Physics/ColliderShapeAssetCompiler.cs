@@ -51,11 +51,34 @@ namespace Xenko.Assets.Physics
             yield return typeof(TextureAsset);
         }
 
+        public override IEnumerable<ObjectUrl> GetInputFiles(AssetItem assetItem)
+        {
+            var asset = (ColliderShapeAsset)assetItem.Asset;
+            foreach (var desc in asset.ColliderShapes)
+            {
+                if (desc is ConvexHullColliderShapeDesc)
+                {
+                    var convexHullDesc = desc as ConvexHullColliderShapeDesc;
+
+                    if (convexHullDesc.Model != null)
+                    {
+                        var url = AttachedReferenceManager.GetUrl(convexHullDesc.Model);
+
+                        if (!string.IsNullOrEmpty(url))
+                        {
+                            yield return new ObjectUrl(UrlType.Content, url);
+                        }
+                    }
+                }
+            }
+        }
+
         protected override void Prepare(AssetCompilerContext context, AssetItem assetItem, string targetUrlInStorage, AssetCompilerResult result)
         {
             var asset = (ColliderShapeAsset)assetItem.Asset;
+
             result.BuildSteps = new AssetBuildStep(assetItem);
-            result.BuildSteps.Add(new ColliderShapeCombineCommand(targetUrlInStorage, asset, assetItem.Package));
+            result.BuildSteps.Add(new ColliderShapeCombineCommand(targetUrlInStorage, asset, assetItem.Package) { InputFilesGetter = () => GetInputFiles(assetItem) });
         }
 
         public class ColliderShapeCombineCommand : AssetCommand<ColliderShapeAsset>
@@ -86,13 +109,7 @@ namespace Xenko.Assets.Physics
                         Scaling = convexHullDesc.Scaling,
                         LocalOffset = convexHullDesc.LocalOffset,
                         LocalRotation = convexHullDesc.LocalRotation,
-                        Depth = convexHullDesc.Depth,
-                        PosSampling = convexHullDesc.PosSampling,
-                        AngleSampling = convexHullDesc.AngleSampling,
-                        PosRefine = convexHullDesc.PosRefine,
-                        AngleRefine = convexHullDesc.AngleRefine,
-                        Alpha = convexHullDesc.Alpha,
-                        Threshold = convexHullDesc.Threshold,
+                        Decomposition = convexHullDesc.Decomposition,
                     };
 
                     // Replace shape in final result with cloned description
@@ -247,14 +264,14 @@ namespace Xenko.Assets.Physics
                             IndicesCount = (uint)combinedIndices.Count,
                             Vertexes = combinedVerts.ToArray(),
                             Indices = combinedIndices.ToArray(),
-                            Depth = convexHullDesc.Depth,
-                            PosSampling = convexHullDesc.PosSampling,
-                            PosRefine = convexHullDesc.PosRefine,
-                            AngleSampling = convexHullDesc.AngleSampling,
-                            AngleRefine = convexHullDesc.AngleRefine,
-                            Alpha = convexHullDesc.Alpha,
-                            Threshold = convexHullDesc.Threshold,
-                            SimpleHull = convexHullDesc.SimpleWrap
+                            Depth = convexHullDesc.Decomposition.Depth,
+                            PosSampling = convexHullDesc.Decomposition.PosSampling,
+                            PosRefine = convexHullDesc.Decomposition.PosRefine,
+                            AngleSampling = convexHullDesc.Decomposition.AngleSampling,
+                            AngleRefine = convexHullDesc.Decomposition.AngleRefine,
+                            Alpha = convexHullDesc.Decomposition.Alpha,
+                            Threshold = convexHullDesc.Decomposition.Threshold,
+                            SimpleHull = !convexHullDesc.Decomposition.Enabled,
                         };
 
                         var convexHullMesh = new ConvexHullMesh();

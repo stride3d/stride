@@ -595,6 +595,7 @@ namespace Xenko.Core.Assets
                         AssetFolders = { new AssetFolder("Assets") },
                         ResourceFolders = { "Resources" },
                         FullPath = packagePath,
+                        IsDirty = false,
                     };
                 return new SolutionProject(package, Guid.NewGuid(), projectPath) { IsImplicitProject = !packageExists };
             }
@@ -604,7 +605,7 @@ namespace Xenko.Core.Assets
 
                 // Find the .csproj next to .xkpkg (if any)
                 // Note that we use package.FullPath since we must first perform package upgrade from 3.0 to 3.1+ (might move package in .csproj folder)
-                var projectPath = Path.ChangeExtension(package.FullPath, ".csproj");
+                var projectPath = Path.ChangeExtension(package.FullPath.ToWindowsPath(), ".csproj");
                 if (File.Exists(projectPath))
                 {
                     return new SolutionProject(package, Guid.NewGuid(), projectPath);
@@ -1263,24 +1264,33 @@ namespace Xenko.Core.Assets
 
                     foreach (var profile in profiles)
                     {
-                        if (profile.Platform == "Shared" && profile.ProjectReferences.Count == 1)
+                        if (profile.Platform == "Shared")
                         {
-                            var projectLocation = (UFile)(string)profile.ProjectReferences[0].Location;
-                            assetFile.FilePath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UFile)(projectLocation.GetFullPathWithoutExtension() + PackageFileExtension));
-                            asset.Meta.Name = projectLocation.GetFileNameWithoutExtension();
-
-                            for (int i = 0; i < profile.AssetFolders.Count; ++i)
+                            if (profile.ProjectReferences != null && profile.ProjectReferences.Count == 1)
                             {
-                                var assetPath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UDirectory)(string)profile.AssetFolders[i].Path);
-                                assetPath = assetPath.MakeRelative(assetFile.FilePath.GetFullDirectory());
-                                profile.AssetFolders[i].Path = (string)assetPath;
+                                var projectLocation = (UFile)(string)profile.ProjectReferences[0].Location;
+                                assetFile.FilePath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UFile)(projectLocation.GetFullPathWithoutExtension() + PackageFileExtension));
+                                asset.Meta.Name = projectLocation.GetFileNameWithoutExtension();
                             }
 
-                            for (int i = 0; i < profile.ResourceFolders.Count; ++i)
+                            if (profile.AssetFolders != null)
                             {
-                                var resourcePath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UDirectory)(string)profile.ResourceFolders[i]);
-                                resourcePath = resourcePath.MakeRelative(assetFile.FilePath.GetFullDirectory());
-                                profile.ResourceFolders[i] = (string)resourcePath;
+                                for (int i = 0; i < profile.AssetFolders.Count; ++i)
+                                {
+                                    var assetPath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UDirectory)(string)profile.AssetFolders[i].Path);
+                                    assetPath = assetPath.MakeRelative(assetFile.FilePath.GetFullDirectory());
+                                    profile.AssetFolders[i].Path = (string)assetPath;
+                                }
+                            }
+
+                            if (profile.ResourceFolders != null)
+                            {
+                                for (int i = 0; i < profile.ResourceFolders.Count; ++i)
+                                {
+                                    var resourcePath = UPath.Combine(assetFile.OriginalFilePath.GetFullDirectory(), (UDirectory)(string)profile.ResourceFolders[i]);
+                                    resourcePath = resourcePath.MakeRelative(assetFile.FilePath.GetFullDirectory());
+                                    profile.ResourceFolders[i] = (string)resourcePath;
+                                }
                             }
 
                             asset.AssetFolders = profile.AssetFolders;

@@ -929,7 +929,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Calculate the yaw/pitch/roll rotation equivalaten to the provided quaternion.
+        /// Calculate the yaw/pitch/roll rotation equivalent to the provided quaternion.
         /// </summary>
         /// <param name="rotation">The input quaternion</param>
         /// <param name="yaw">The yaw component</param>

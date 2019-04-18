@@ -6,7 +6,7 @@
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <TargetVsixContainerName>Xenko.vsix</TargetVsixContainerName>
     <TargetVsixContainer>bin\$(TargetVsixContainerName)</TargetVsixContainer>
@@ -16,6 +16,7 @@
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
     <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
+    <XenkoSkipAutoPack>true</XenkoSkipAutoPack>
     <VSSDKTargetPlatformRegRootSuffix>Xenko</VSSDKTargetPlatformRegRootSuffix>
   </PropertyGroup>
   <ItemGroup>
@@ -162,11 +163,11 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Note: we need to include those manually otherwise we run into this issue: https://stackoverflow.com/questions/41832161/missing-builtprojectoutputgroupdependencies-building-vsix-depending-on-new-sim -->
-    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
-    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" AdditionalProperties="TargetFramework=$(XenkoRuntimeTargetFramework)" />
+    <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\core\Xenko.Core.IO\Xenko.Core.IO.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
+    <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" AdditionalProperties="TargetFramework=netstandard2.0" />
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" AdditionalProperties="TargetFramework=$(TargetFramework)" />
   </ItemGroup>
   <ItemGroup>
@@ -184,6 +185,6 @@
   </Target>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <!-- Force NET Sdk to be included before VsSDK -->
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
 </Project>

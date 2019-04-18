@@ -41,11 +41,6 @@ namespace Xenko.Core.Packages
     /// </summary>
     public class NugetStore : INugetDownloadProgress
     {
-        private const string DefaultTargets = @"Targets\Xenko.Common.targets";
-        private const string DefaultTargetsOld = @"Targets\SiliconStudio.Common.targets";
-
-        public const string DefaultGamePackagesDirectory = "GamePackages";
-
         public const string MainExecutables = @"lib\net472\Xenko.GameStudio.exe,Bin\Windows\Xenko.GameStudio.exe,Bin\Windows-Direct3D11\Xenko.GameStudio.exe";
         public const string PrerequisitesInstaller = @"Bin\Prerequisites\install-prerequisites.exe";
 
@@ -55,23 +50,30 @@ namespace Xenko.Core.Packages
         private readonly ISettings settings, localSettings;
         private ProgressReport currentProgressReport;
 
+        private readonly string oldRootDirectory;
+
         private static Regex powerShellProgressRegex = new Regex(@".*\[ProgressReport:\s*(\d*)%\].*");
 
         /// <summary>
         /// Initialize a new instance of <see cref="NugetStore"/>.
         /// </summary>
-        /// <param name="rootDirectory">The location of the Nuget store.</param>
-        public NugetStore(string rootDirectory)
+        /// <param name="oldRootDirectory">The location of the Nuget store.</param>
+        public NugetStore(string oldRootDirectory)
         {
+            // Used only for versions before 3.0
+            this.oldRootDirectory = oldRootDirectory;
+
             settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
             // Add dev source
+            RemoveDeletedSources(settings, "Xenko");
             CheckPackageSource("Xenko", DefaultPackageSource);
+            settings.SaveToDisk();
 
             InstallPath = SettingsUtility.GetGlobalPackagesFolder(settings);
 
             var pathContext = NuGetPathContext.Create(settings);
-            InstalledPathResolver = new FallbackPackagePathResolver(pathContext);
+            InstalledPathResolver = new FallbackPackagePathResolver(pathContext.UserPackageFolder, oldRootDirectory != null ? pathContext.FallbackPackageFolders.Concat(new[] { oldRootDirectory }) : pathContext.FallbackPackageFolders);
             var packageSourceProvider = new PackageSourceProvider(settings);
 
             var availableSources = packageSourceProvider.LoadPackageSources().Where(source => source.IsEnabled);
@@ -83,10 +85,29 @@ namespace Xenko.Core.Packages
             sourceRepositoryProvider = new NugetSourceRepositoryProvider(packageSourceProvider, this);
         }
 
+        private static void RemoveDeletedSources(ISettings settings, string prefixName)
+        {
+            var packageSources = settings.GetSection("packageSources");
+            if (packageSources != null)
+            {
+                foreach (var packageSource in packageSources.Items.OfType<SourceItem>().ToList())
+                {
+                    var path = packageSource.GetValueAsPath();
+
+                    if (packageSource.Key.StartsWith(prefixName)
+                        && Uri.TryCreate(path, UriKind.Absolute, out var uri) && uri.IsFile // make sure it's a valid file URI
+                        && !Directory.Exists(path)) // detect if directory has been deleted
+                    {
+                        // Remove entry from packageSources
+                        settings.Remove("packageSources", packageSource);
+                    }
+                }
+            }
+        }
+
         private void CheckPackageSource(string name, string url)
         {
             settings.AddOrUpdate("packageSources", new SourceItem(name, url));
-            settings.SaveToDisk();
         }
 
         private readonly NugetSourceRepositoryProvider sourceRepositoryProvider;
@@ -189,11 +210,19 @@ namespace Xenko.Core.Packages
         {
             var res = new List<NugetLocalPackage>();
 
-            var localResource = new FindLocalPackagesResourceV3(InstallPath);
-            var packages = localResource.FindPackagesById(packageId, NativeLogger, CancellationToken.None);
-            foreach (var package in packages)
+            // We also scan rootDirectory for 1.x/2.x
+            foreach (var installPath in new[] { InstallPath, oldRootDirectory })
             {
-                res.Add(new NugetLocalPackage(package));
+                // oldRootDirectory might be null
+                if (installPath == null)
+                    continue;
+
+                var localResource = new FindLocalPackagesResourceV3(installPath);
+                var packages = localResource.FindPackagesById(packageId, NativeLogger, CancellationToken.None);
+                foreach (var package in packages)
+                {
+                    res.Add(new NugetLocalPackage(package));
+                }
             }
 
             return res;
@@ -289,11 +318,17 @@ namespace Xenko.Core.Packages
                     {
                         var installPath = SettingsUtility.GetGlobalPackagesFolder(settings);
 
-                        var specPath = Path.Combine("TestProject", "project.json");
+                        // Old version expects to be installed in GamePackages
+                        if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0) && oldRootDirectory != null)
+                        {
+                            installPath = oldRootDirectory;
+                        }
+
+                        var projectPath = Path.Combine("XenkoLauncher.json");
                         var spec = new PackageSpec()
                         {
-                            Name = "TestProject", // make sure this package never collides with a dependency
-                            FilePath = specPath,
+                            Name = Path.GetFileNameWithoutExtension(projectPath), // make sure this package never collides with a dependency
+                            FilePath = projectPath,
                             Dependencies = new List<LibraryDependency>()
                             {
                                 new LibraryDependency
@@ -308,37 +343,73 @@ namespace Xenko.Core.Packages
                                     FrameworkName = NuGetFramework.Parse("net472"),
                                 }
                             },
+                            RestoreMetadata = new ProjectRestoreMetadata
+                            {
+                                ProjectPath = projectPath,
+                                ProjectName = Path.GetFileNameWithoutExtension(projectPath),
+                                ProjectStyle = ProjectStyle.PackageReference,
+                                ProjectUniqueName = projectPath,
+                                OutputPath = Path.Combine(Path.GetTempPath(), $"XenkoLauncher-{packageId}-{version.ToString()}"),
+                                OriginalTargetFrameworks = new[] { "net472" },
+                                ConfigFilePaths = settings.GetConfigFilePaths(),
+                                PackagesPath = installPath,
+                                Sources = SettingsUtility.GetEnabledSources(settings).ToList(),
+                                FallbackFolders = SettingsUtility.GetFallbackPackageFolders(settings).ToList()
+                            },
                         };
 
-                        using (var context = new SourceCacheContext())
+                        using (var context = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })
                         {
                             context.IgnoreFailedSources = true;
 
-                            var provider = RestoreCommandProviders.Create(installPath, new List<string>(), sourceRepositoryProvider.GetRepositories(), context, new LocalPackageFileCache(), NativeLogger);
-                            var request = new RestoreRequest(spec, provider, context, null, NativeLogger)
+                            var dependencyGraphSpec = new DependencyGraphSpec();
+
+                            dependencyGraphSpec.AddProject(spec);
+
+                            dependencyGraphSpec.AddRestore(spec.RestoreMetadata.ProjectUniqueName);
+
+                            IPreLoadedRestoreRequestProvider requestProvider = new DependencyGraphSpecRequestProvider(new RestoreCommandProvidersCache(), dependencyGraphSpec);
+
+                            var restoreArgs = new RestoreArgs
                             {
-                                //RequestedRuntimes = { "win7-d3d11" },
-                                ProjectStyle = ProjectStyle.DotnetCliTool,
+                                AllowNoOp = true,
+                                CacheContext = context,
+                                CachingSourceProvider = new CachingSourceProvider(new PackageSourceProvider(settings)),
+                                Log = NativeLogger,
                             };
 
-                            var command = new RestoreCommand(request);
+                            // Create requests from the arguments
+                            var requests = requestProvider.CreateRequests(restoreArgs).Result;
 
-                            // Act
-                            var result = await command.ExecuteAsync();
+                            foreach (var request in requests)
+                            {
+                                // Limit concurrency to avoid timeout
+                                request.Request.MaxDegreeOfConcurrency = 4;
 
-                            if (!result.Success)
-                            {
-                                throw new InvalidOperationException($"Could not restore package {packageId}");
-                            }
-                            foreach (var install in result.RestoreGraphs.Last().Install)
-                            {
-                                var package = result.LockFile.Libraries.FirstOrDefault(x => x.Name == install.Library.Name && x.Version == install.Library.Version);
-                                if (package != null)
+                                var command = new RestoreCommand(request.Request);
+
+                                // Act
+                                var result = await command.ExecuteAsync();
+
+                                if (!result.Success)
                                 {
-                                    var packagePath = Path.Combine(installPath, package.Path);
-                                    OnPackageInstalled(this, new PackageOperationEventArgs(new PackageName(install.Library.Name, install.Library.Version.ToPackageVersion()), packagePath));
+                                    throw new InvalidOperationException($"Could not restore package {packageId}");
+                                }
+                                foreach (var install in result.RestoreGraphs.Last().Install)
+                                {
+                                    var package = result.LockFile.Libraries.FirstOrDefault(x => x.Name == install.Library.Name && x.Version == install.Library.Version);
+                                    if (package != null)
+                                    {
+                                        var packagePath = Path.Combine(installPath, package.Path);
+                                        OnPackageInstalled(this, new PackageOperationEventArgs(new PackageName(install.Library.Name, install.Library.Version.ToPackageVersion()), packagePath));
+                                    }
                                 }
                             }
+                        }
+
+                        if (packageId == "Xenko" && version < new PackageVersion(3, 0, 0, 0))
+                        {
+                            UpdateTargetsHelper();
                         }
                     }
 
@@ -397,6 +468,11 @@ namespace Xenko.Core.Packages
                     //{
                     //    currentProgressReport = null;
                     //}
+
+                    if (package.Id == "Xenko" && package.Version < new PackageVersion(3, 0, 0, 0))
+                    {
+                        UpdateTargetsHelper();
+                    }
                 }
                 finally
                 {
@@ -479,7 +555,7 @@ namespace Xenko.Core.Packages
             var res = new List<NugetServerPackage>();
             foreach (var packageId in packageIds)
             {
-                await FindSourcePacakgesByIdHelper(packageId, res, repositories, cancellationToken);
+                await FindSourcePackagesByIdHelper(packageId, res, repositories, cancellationToken);
             }
             return res;
         }
@@ -494,13 +570,13 @@ namespace Xenko.Core.Packages
         {
             var repositories = PackageSources.Select(sourceRepositoryProvider.CreateRepository).ToArray();
             var res = new List<NugetServerPackage>();
-            await FindSourcePacakgesByIdHelper(packageId, res, repositories, cancellationToken);
+            await FindSourcePackagesByIdHelper(packageId, res, repositories, cancellationToken);
             return res;
         }
 
-        private async Task FindSourcePacakgesByIdHelper(string packageId, List<NugetServerPackage> resultList, SourceRepository [] repositories, CancellationToken cancellationToken)
+        private async Task FindSourcePackagesByIdHelper(string packageId, List<NugetServerPackage> resultList, SourceRepository [] repositories, CancellationToken cancellationToken)
         {
-            using (var sourceCacheContext = new SourceCacheContext())
+            using (var sourceCacheContext = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })
             {
                 foreach (var repo in repositories)
                 {
@@ -510,7 +586,8 @@ namespace Xenko.Core.Packages
                         var metadataList = await metadataResource.GetMetadataAsync(packageId, true, true, sourceCacheContext, NativeLogger, cancellationToken);
                         foreach (var metadata in metadataList)
                         {
-                            resultList.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
+                            if (metadata.IsListed)
+                                resultList.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
                         }
                     }
                     catch (FatalProtocolException)
@@ -547,7 +624,8 @@ namespace Xenko.Core.Packages
 
                             foreach (var package in packages)
                             {
-                                res.Add(new NugetServerPackage(package, repo.PackageSource.Source));
+                                if (package.IsListed)
+                                    res.Add(new NugetServerPackage(package, repo.PackageSource.Source));
                             }
                         }
                     }
@@ -579,7 +657,7 @@ namespace Xenko.Core.Packages
             var repositories = PackageSources.Select(sourceRepositoryProvider.CreateRepository).ToArray();
 
             var res = new List<NugetPackage>();
-            using (var context = new SourceCacheContext())
+            using (var context = new SourceCacheContext { MaxAge = DateTimeOffset.UtcNow })
             {
                 foreach (var repo in repositories)
                 {
@@ -589,7 +667,8 @@ namespace Xenko.Core.Packages
                         var metadataList = await metadataResource.GetMetadataAsync(packageName.Id, includePrerelease, includeAllVersions, context, NativeLogger, cancellationToken);
                         foreach (var metadata in metadataList)
                         {
-                            res.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
+                            if (metadata.IsListed)
+                                res.Add(new NugetServerPackage(metadata, repo.PackageSource.Source));
                         }
                     }
                     catch (FatalProtocolException)
@@ -632,12 +711,12 @@ namespace Xenko.Core.Packages
         {
             return package.Version < new PackageVersion(3, 1, 0, 0)
                 ? File.Exists(GetRedirectFile(package))
-                : (package.Version.SpecialVersion?.StartsWith("dev") ?? false);
+                : (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev") && !package.Version.SpecialVersion.Contains('.'));
         }
 
         public bool IsDevRedirectPackage(NugetServerPackage package)
         {
-            return package.Version.SpecialVersion?.StartsWith("dev") ?? false;
+            return (package.Version.SpecialVersion != null && package.Version.SpecialVersion.StartsWith("dev") && !package.Version.SpecialVersion.Contains('.'));
         }
 
         private void OnPackageInstalled(object sender, PackageOperationEventArgs args)
@@ -699,14 +778,21 @@ namespace Xenko.Core.Packages
 
                 process.OutputDataReceived += (_, args) =>
                 {
-                    // Report progress
-                    if (progress != null && !string.IsNullOrEmpty(args.Data))
+                    if (!string.IsNullOrEmpty(args.Data))
                     {
                         var matches = powerShellProgressRegex.Match(args.Data);
                         int percentageResult;
                         if (matches.Success && int.TryParse(matches.Groups[1].Value, out percentageResult))
                         {
-                            progress.UpdateProgress(ProgressAction.Install, percentageResult);
+                            // Report progress
+                            progress?.UpdateProgress(ProgressAction.Install, percentageResult);
+                        }
+                        else
+                        {
+                            lock (process)
+                            {
+                                errorOutput.AppendLine(args.Data);
+                            }
                         }
                     }
                 };
@@ -734,6 +820,29 @@ namespace Xenko.Core.Packages
                     throw new InvalidOperationException($"Error code {exitCode} while running install package process [{packageInstall}]\n\n" + errorOutput);
                 }
             }
+        }
+
+        // Used only for Xenko 1.x and 2.x
+        private void UpdateTargetsHelper()
+        {
+            if (oldRootDirectory == null)
+                return;
+
+            // Get latest package only for each MainPackageIds (up to 2.x)
+            var xenkoOldPackages = GetLocalPackages("Xenko").Where(package => !((package.Tags != null) && package.Tags.Contains("internal"))).Where(x => x.Version.Version.Major < 3).ToList();
+
+            // Generate target file
+            var targetGenerator = new TargetGenerator(this, xenkoOldPackages, "SiliconStudioPackage");
+            var targetFileContent = targetGenerator.TransformText();
+            var targetFile = Path.Combine(oldRootDirectory, @"Targets\SiliconStudio.Common.targets");
+
+            var targetFilePath = Path.GetDirectoryName(targetFile);
+
+            // Make sure directory exists
+            if (targetFilePath != null && !Directory.Exists(targetFilePath))
+                Directory.CreateDirectory(targetFilePath);
+
+            File.WriteAllText(targetFile, targetFileContent, Encoding.UTF8);
         }
 
         private class PackagePathResolverV3 : PackagePathResolver

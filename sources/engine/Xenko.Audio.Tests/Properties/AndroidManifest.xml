@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="Xenko.Audio.Tests" android:versionCode="1" android:versionName="1.0">
-  <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="10" />
+  <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="26" />
   <application android:icon="@drawable/icon" android:label="Xenko Audio" android:theme="@android:style/Theme.NoTitleBar.Fullscreen"></application>  
   <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

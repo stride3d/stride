@@ -7,8 +7,9 @@ using Xenko.Rendering;
 namespace Xenko.Engine.Design
 {
     /// <summary>
-    /// Defines how <see cref="EffectSystem.CreateEffectCompiler"/> tries to create compiler.
+    /// Defines how <see cref="EffectCompilerFactory.CreateEffectCompiler"/> tries to create compiler.
     /// </summary>
+    [Flags]
     public enum EffectCompilationMode
     {
         /// <summary>

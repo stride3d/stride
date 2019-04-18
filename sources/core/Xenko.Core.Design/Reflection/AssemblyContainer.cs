@@ -2,10 +2,12 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.DependencyModel;
 using Xenko.Core.Annotations;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
@@ -14,13 +16,18 @@ namespace Xenko.Core.Reflection
 {
     public class LoadedAssembly
     {
+        public AssemblyContainer Container { get; }
         public string Path { get; }
         public Assembly Assembly { get; }
 
-        public LoadedAssembly([NotNull] string path, [NotNull] Assembly assembly)
+        public Dictionary<string, string> Dependencies { get; }
+
+        public LoadedAssembly([NotNull] AssemblyContainer container, [NotNull] string path, [NotNull] Assembly assembly, Dictionary<string, string> dependencies)
         {
+            Container = container;
             Path = path;
             Assembly = assembly;
+            Dependencies = dependencies;
         }
     }
     public class AssemblyContainer
@@ -30,13 +37,15 @@ namespace Xenko.Core.Reflection
         private readonly Dictionary<string, LoadedAssembly> loadedAssembliesByName = new Dictionary<string, LoadedAssembly>(StringComparer.InvariantCultureIgnoreCase);
         private static readonly string[] KnownAssemblyExtensions = { ".dll", ".exe" };
         [ThreadStatic]
-        private static AssemblyContainer loadingInstance;
+        private static AssemblyContainer currentContainer;
 
         [ThreadStatic]
         private static LoggerResult log;
 
         [ThreadStatic]
-        private static List<string> searchDirectoryList;
+        private static string currentSearchDirectory;
+
+        private static readonly ConditionalWeakTable<Assembly, LoadedAssembly> assemblyToContainers = new ConditionalWeakTable<Assembly, LoadedAssembly>();
 
         /// <summary>
         /// The default assembly container loader.
@@ -67,13 +76,12 @@ namespace Xenko.Core.Reflection
         }
 
         [CanBeNull]
-        public Assembly LoadAssemblyFromPath([NotNull] string assemblyFullPath, ILogger outputLog = null, List<string> lookupDirectoryList = null)
+        public Assembly LoadAssemblyFromPath([NotNull] string assemblyFullPath, ILogger outputLog = null)
         {
             if (assemblyFullPath == null) throw new ArgumentNullException(nameof(assemblyFullPath));
 
             log = new LoggerResult();
 
-            lookupDirectoryList = lookupDirectoryList ?? new List<string>();
             assemblyFullPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, assemblyFullPath));
             var assemblyDirectory = Path.GetDirectoryName(assemblyFullPath);
 
@@ -82,24 +90,12 @@ namespace Xenko.Core.Reflection
                 throw new ArgumentException("Invalid assembly path. Doesn't contain directory information");
             }
 
-            if (!lookupDirectoryList.Contains(assemblyDirectory, StringComparer.InvariantCultureIgnoreCase))
-            {
-                lookupDirectoryList.Add(assemblyDirectory);
-            }
-
-            var previousLookupList = searchDirectoryList;
             try
             {
-                loadingInstance = this;
-                searchDirectoryList = lookupDirectoryList;
-
                 return LoadAssemblyFromPathInternal(assemblyFullPath);
             }
             finally
             {
-                loadingInstance = null;
-                searchDirectoryList = previousLookupList;
-
                 if (outputLog != null)
                 {
                     log.CopyTo(outputLog);
@@ -117,29 +113,48 @@ namespace Xenko.Core.Reflection
 
                 loadedAssemblies.Remove(loadedAssembly);
                 loadedAssembliesByName.Remove(loadedAssembly.Path);
+                assemblyToContainers.Remove(assembly);
                 return true;
             }
         }
 
         [CanBeNull]
-        private Assembly LoadAssemblyByName([NotNull] string assemblyName)
+        private Assembly LoadAssemblyByName([NotNull] AssemblyName assemblyName, [NotNull] string searchDirectory)
         {
             if (assemblyName == null) throw new ArgumentNullException(nameof(assemblyName));
 
-            var assemblyPartialPathList = new List<string>();
-            assemblyPartialPathList.AddRange(KnownAssemblyExtensions.Select(knownExtension => assemblyName + knownExtension));
-
-            foreach (var directoryPath in searchDirectoryList)
+            // First, check the list of already loaded assemblies
             {
-                foreach (var assemblyPartialPath in assemblyPartialPathList)
+                var matchingAssembly = loadedAssemblies.FirstOrDefault(x => x.Assembly.FullName == assemblyName.FullName);
+                if (matchingAssembly != null)
+                    return matchingAssembly.Assembly;
+            }
+
+            // Look in search paths
+            var assemblyPartialPathList = new List<string>();
+            assemblyPartialPathList.AddRange(KnownAssemblyExtensions.Select(knownExtension => assemblyName.Name + knownExtension));
+            foreach (var assemblyPartialPath in assemblyPartialPathList)
+            {
+                var assemblyFullPath = Path.Combine(searchDirectory, assemblyPartialPath);
+                if (File.Exists(assemblyFullPath))
                 {
-                    var assemblyFullPath = Path.Combine(directoryPath, assemblyPartialPath);
-                    if (File.Exists(assemblyFullPath))
-                    {
-                        return LoadAssemblyFromPathInternal(assemblyFullPath);
-                    }
+                    return LoadAssemblyFromPathInternal(assemblyFullPath);
                 }
             }
+
+            // Use .deps.json files
+            foreach (var loadedAssembly in loadedAssemblies)
+            {
+                var dependencies = loadedAssembly.Dependencies;
+                if (dependencies == null)
+                    continue;
+
+                if (dependencies.TryGetValue(assemblyName.Name, out var fullPath))
+                {
+                    return LoadAssemblyFromPathInternal(fullPath);
+                }
+            }
+
             return null;
         }
 
@@ -182,24 +197,105 @@ namespace Xenko.Core.Reflection
                     }
                     else
                     {
+                        // Load .deps.json file (if any)
+                        var depsFile = Path.ChangeExtension(assemblyFullPath, ".deps.json");
+                        Dictionary<string, string> dependenciesMapping = null;
+                        if (File.Exists(depsFile))
+                        {
+                            // Read file
+                            var dependenciesReader = new DependencyContextJsonReader();
+                            DependencyContext dependencies = null;
+                            using (var dependenciesStream = File.OpenRead(depsFile))
+                            {
+                                dependencies = dependenciesReader.Read(dependenciesStream);
+                            }
+
+                            // Locate NuGet package folder
+                            var settings = NuGet.Configuration.Settings.LoadDefaultSettings(Path.GetDirectoryName(assemblyFullPath));
+                            var globalPackagesFolder = NuGet.Configuration.SettingsUtility.GetGlobalPackagesFolder(settings);
+
+                            // Build list of assemblies listed in .deps.json file
+                            dependenciesMapping = new Dictionary<string, string>();
+                            foreach (var library in dependencies.RuntimeLibraries)
+                            {
+                                if (library.Path == null)
+                                    continue;
+
+                                foreach (var runtimeAssemblyGroup in library.RuntimeAssemblyGroups)
+                                {
+                                    foreach (var runtimeFile in runtimeAssemblyGroup.RuntimeFiles)
+                                    {
+                                        var fullPath = Path.Combine(globalPackagesFolder, library.Path, runtimeFile.Path);
+                                        if (File.Exists(fullPath))
+                                        {
+                                            var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile.Path);
+
+                                            // TODO: Properly deal with file duplicates (same file in multiple package, or RID conflicts)
+                                            if (!dependenciesMapping.ContainsKey(assemblyName))
+                                                dependenciesMapping.Add(assemblyName, fullPath);
+                                        }
+                                    }
+                                }
+
+                                // It seems .deps.json files don't contain library info if referencer is non-RID specific and dependency is RID specific
+                                // (i.e. compiling Game project without runtime identifier and a dependency needs runtime identifier)
+                                // TODO: Look for a proper way to query that properly, maybe using NuGet API? however some constraints are:
+                                // - limited info (only .deps.json available from path, no project info; we might need to reconstruct a proper NuGet restore request from .deps.json)
+                                // - need to be fast (make sure to use NuGet caching mechanism)
+                                if (library.RuntimeAssemblyGroups.Count == 0)
+                                {
+                                    var runtimeFolder = new[] { "win-d3d11", "win", "any" }
+                                        .Select(runtime => Path.Combine(globalPackagesFolder, library.Path, "runtimes", runtime))
+                                        .Where(Directory.Exists)
+                                        .SelectMany(folder => Directory.EnumerateDirectories(Path.Combine(folder, "lib")))
+                                        .FirstOrDefault(file => Path.GetFileName(file).StartsWith("net")); // Only consider framework netXX and netstandardX.X
+                                    if (runtimeFolder != null)
+                                    {
+                                        foreach (var runtimeFile in Directory.EnumerateFiles(runtimeFolder, "*.dll"))
+                                        {
+                                            var assemblyName = Path.GetFileNameWithoutExtension(runtimeFile);
+
+                                            // TODO: Properly deal with file duplicates (same file in multiple package, or RID conflicts)
+                                            if (!dependenciesMapping.ContainsKey(assemblyName))
+                                                dependenciesMapping.Add(assemblyName, runtimeFile);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // TODO: Is using AppDomain would provide more opportunities for unloading?
                         assembly = pdbBytes != null ? Assembly.Load(assemblyBytes, pdbBytes) : Assembly.Load(assemblyBytes);
-                        loadedAssembly = new LoadedAssembly(assemblyFullPath, assembly);
+                        loadedAssembly = new LoadedAssembly(this, assemblyFullPath, assembly, dependenciesMapping);
                         loadedAssemblies.Add(loadedAssembly);
                         loadedAssembliesByName.Add(assemblyFullPath, loadedAssembly);
 
-                        // Force assembly resolve with proper name
-                        // (doing it here, because if done later, loadingInstance will be set to null and it won't work)
-                        Assembly.Load(assembly.FullName);
+                        // Force assembly resolve with proper name (with proper context)
+                        var previousSearchDirectory = currentSearchDirectory;
+                        var previousContainer = currentContainer;
+                        try
+                        {
+                            currentContainer = this;
+                            currentSearchDirectory = Path.GetDirectoryName(assemblyFullPath);
+
+                            Assembly.Load(assembly.FullName);
+                        }
+                        finally
+                        {
+                            currentContainer = previousContainer;
+                            currentSearchDirectory = previousSearchDirectory;
+                        }
                     }
 
+                    // Make sure there is no duplicate
+                    Debug.Assert(!assemblyToContainers.TryGetValue(assembly, out var _));
+                    // Add to mapping
+                    assemblyToContainers.GetValue(assembly, _ => loadedAssembly);
+
                     // Make sure that Module initializer are called
-                    if (assembly.GetTypes().Length > 0)
+                    foreach (var module in assembly.Modules)
                     {
-                        foreach (var module in assembly.Modules)
-                        {
-                            RuntimeHelpers.RunModuleConstructor(module.ModuleHandle);
-                        }
+                        RuntimeHelpers.RunModuleConstructor(module.ModuleHandle);
                     }
                     return assembly;
                 }
@@ -223,12 +319,24 @@ namespace Xenko.Core.Reflection
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             // If it is handled by current thread, then we can handle it here.
-            var container = loadingInstance;
+            var container = currentContainer;
+            string searchDirectory = currentSearchDirectory;
+
+            // If it's a dependent assembly loaded later, find container and path
+            if (container == null && args.RequestingAssembly != null && assemblyToContainers.TryGetValue(args.RequestingAssembly, out var loadedAssembly))
+            {
+                // Assembly reference requested after initial resolve, we need to setup context temporarily
+                container = loadedAssembly.Container;
+                searchDirectory = Path.GetDirectoryName(loadedAssembly.Path);
+            }
+
+            // Load assembly
             if (container != null)
             {
                 var assemblyName = new AssemblyName(args.Name);
-                return container.LoadAssemblyByName(assemblyName.Name);
+                return container.LoadAssemblyByName(assemblyName, searchDirectory);
             }
+
             return null;
         }
     }

@@ -542,7 +542,8 @@ namespace Xenko.Core.Assets
                                 {
                                     var packageUpgrader = (PackageUpgrader)Activator.CreateInstance(type);
                                     packageUpgrader.Attribute = packageUpgraderAttribute;
-                                    RegisteredPackageUpgraders[packageUpgraderAttribute.PackageName] = packageUpgrader;
+                                    foreach (var packageName in packageUpgraderAttribute.PackageNames)
+                                        RegisteredPackageUpgraders[packageName] = packageUpgrader;
                                 }
                                 catch (Exception ex)
                                 {

@@ -66,15 +66,21 @@ namespace Xenko.Assets.Templates
             // Setup the ProjectGameGuid to be accessible from exec (in order to be able to link to the game project.
             AddOption(parameters, "ProjectGameGuid", (package.Container as SolutionProject)?.Id ?? Guid.Empty);
             AddOption(parameters, "ProjectGameRelativePath", (package.Container as SolutionProject)?.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
+            AddOption(parameters, "PackageGameAssemblyName", package.Meta.Name);
 
-            AddOption(parameters, "PackageGameName", package.Meta.Name);
-            AddOption(parameters, "PackageGameDisplayName", package.Meta.Title ?? package.Meta.Name);
+            // Sample templates still have .Game in their name
+            var packageNameWithoutGame = package.Meta.Name;
+            if (packageNameWithoutGame.EndsWith(".Game"))
+                packageNameWithoutGame = packageNameWithoutGame.Substring(0, packageNameWithoutGame.Length - ".Game".Length);
+
+            AddOption(parameters, "PackageGameName", packageNameWithoutGame);
+            AddOption(parameters, "PackageGameDisplayName", package.Meta.Title ?? packageNameWithoutGame);
             // Escape illegal characters for the short name
-            AddOption(parameters, "PackageGameNameShort", Utilities.BuildValidClassName(package.Meta.Name.Replace(" ", string.Empty)));
+            AddOption(parameters, "PackageGameNameShort", Utilities.BuildValidClassName(packageNameWithoutGame.Replace(" ", string.Empty)));
             AddOption(parameters, "PackageGameRelativePath", package.FullPath.MakeRelative(parameters.OutputDirectory).ToWindowsPath());
 
             // Override namespace
-            AddOption(parameters, "Namespace", parameters.Namespace ?? Utilities.BuildValidNamespaceName(package.Meta.Name));
+            AddOption(parameters, "Namespace", parameters.Namespace ?? Utilities.BuildValidNamespaceName(packageNameWithoutGame));
 
             // Add projects
             var stepIndex = 0;
@@ -165,6 +171,10 @@ namespace Xenko.Assets.Templates
 
         public static UFile GeneratePlatformProjectLocation(string name, Package package, SolutionPlatform platform)
         {
+            // Remove .Game suffix
+            if (name.EndsWith(".Game"))
+                name = name.Substring(0, name.Length - ".Game".Length);
+
             var projectName = Utilities.BuildValidNamespaceName(name) + "." + platform.Name;
             return UPath.Combine(UPath.Combine(package.RootDirectory.GetParent(), (UDirectory)projectName), (UFile)(projectName + ".csproj"));
         }

@@ -47,6 +47,8 @@ namespace Xenko.Graphics.SDL
         {
 #if XENKO_GRAPHICS_API_OPENGL
             var flags = SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL.SDL_WindowFlags.SDL_WINDOW_OPENGL;
+#elif XENKO_GRAPHICS_API_VULKAN
+            var flags = SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN | SDL.SDL_WindowFlags.SDL_WINDOW_VULKAN;
 #else
             var flags = SDL.SDL_WindowFlags.SDL_WINDOW_HIDDEN;
 #endif

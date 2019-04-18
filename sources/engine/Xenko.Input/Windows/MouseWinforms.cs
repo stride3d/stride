@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Xenko.Core.Mathematics;
-using Xenko.Games;
 using Point = System.Drawing.Point;
 
 namespace Xenko.Input

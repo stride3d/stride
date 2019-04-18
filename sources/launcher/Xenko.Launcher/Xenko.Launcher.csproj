@@ -52,7 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
-    <PackageReference Include="Xenko.CrashReport" Version="1.0.0" />
+    <PackageReference Include="Xenko.CrashReport" Version="1.0.1" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Diagnostics.Debug" />
     <Reference Include="System.Management" />
@@ -134,19 +134,19 @@
     <Resource Include="Resources\switch-version.png" />
     <Resource Include="Resources\visual-studio.png" />
     <Resource Include="Resources\chat-16.png" />
-    <Resource Include="Resources\gitter.png" />
+    <Resource Include="Resources\discord.png" />
     <Resource Include="Resources\showcase.png" />
     <Resource Include="Resources\Robot.jpg" />
     <Resource Include="Resources\twitch.png" />
     <Resource Include="Resources\facebook_24.png" />
     <Resource Include="Resources\reddit_24.png" />
     <Resource Include="Resources\twitter_bird_24.png" />
-    <Resource Include="Resources\answerhub.png" />
     <Resource Include="Resources\github.png" />
     <Resource Include="Resources\issues.png" />
     <Resource Include="Resources\Logo.ico" />
     <Resource Include="Resources\delete-26-dark.png" />
     <Resource Include="Resources\download-26-dark.png" />
+    <Resource Include="Resources\patreon_mark_coral_24.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources\Strings.ja-JP.resx" />

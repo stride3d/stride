@@ -87,7 +87,7 @@ namespace Xenko.Assets
             {
                 Name = PlatformType.UWP.ToString(),
                 Type = PlatformType.UWP,
-                TargetFramework = "uap10.0",
+                TargetFramework = "uap10.0.16299",
                 Templates =
                 {
                     //new SolutionPlatformTemplate("ProjectExecutable.UWP/CoreWindow/ProjectExecutable.UWP.ttproj", "Core Window"),
@@ -131,40 +131,37 @@ namespace Xenko.Assets
             solutionPlatforms.Add(uwpPlatform);
 
             // Linux
-            // Note: Linux is using a target framework that will be used for other platforms. We will need to use multiple runtime identifiers later
             var linuxPlatform = new SolutionPlatform()
             {
                 Name = PlatformType.Linux.ToString(),
                 IsAvailable = true,
                 TargetFramework = "netcoreapp2.1",
-                RuntimeIdentifier = "linux",
+                RuntimeIdentifier = "linux-x64",
                 Type = PlatformType.Linux,
             };
             linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
             linuxPlatform.DefineConstants.Add("XENKO_PLATFORM_LINUX");
             solutionPlatforms.Add(linuxPlatform);
 
-#if FALSE   // Disabling macOS for time being
             // macOS
             var macOSPlatform = new SolutionPlatform()
             {
                 Name = PlatformType.macOS.ToString(),
                 IsAvailable = true,
-                TargetFramework = "net461",
+                TargetFramework = "netcoreapp2.1",
+                RuntimeIdentifier = "osx-x64",
                 Type = PlatformType.macOS,
             };
             macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_UNIX");
             macOSPlatform.DefineConstants.Add("XENKO_PLATFORM_MACOS");
-            macOSPlatform.Configurations.Add(coreClrRelease);
-            macOSPlatform.Configurations.Add(coreClrDebug);
             solutionPlatforms.Add(macOSPlatform);
-#endif
+
             // Android
             var androidPlatform = new SolutionPlatform()
             {
                 Name = PlatformType.Android.ToString(),
                 Type = PlatformType.Android,
-                TargetFramework = "monoandroid50",
+                TargetFramework = "monoandroid81",
                 IsAvailable = IsVSComponentAvailableAnyVersion(XamarinAndroidComponents)
             };
             androidPlatform.DefineConstants.Add("XENKO_PLATFORM_MONO_MOBILE");

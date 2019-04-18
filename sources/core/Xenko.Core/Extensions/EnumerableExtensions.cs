@@ -149,5 +149,22 @@ namespace Xenko.Core.Extensions
                 node = node.Next;
             }
         }
+
+        /// <summary>
+        /// Calculates a combined hash code for items of the enumerbale.
+        /// </summary>
+        /// <typeparam name="T">Generic type parameter.</typeparam>
+        /// <param name="source">Input enumerable to work on.</param>
+        /// <returns>A combined hash code or 0 if the source is empty.</returns>
+        [Pure]
+        public static int ToHashCode<T>(this IEnumerable<T> source) where T : class
+        {
+            if (source.IsNullOrEmpty()) return 0;
+
+            unchecked
+            {
+                return source.Aggregate(17, (hash, item) => hash * 23 + item.GetHashCode()); 
+            }
+        }
     }
 }

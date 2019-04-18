@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>GameMenu</RootNamespace>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Xenko" Version="3.0.0.1-dev">
-      <PrivateAssets>contentfiles;analyzers</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Xenko.Core" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Xenko.Engine" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Particles" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.UI" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
 </Project>

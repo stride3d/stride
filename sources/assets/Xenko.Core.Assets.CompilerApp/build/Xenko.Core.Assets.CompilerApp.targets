@@ -1,7 +1,7 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project InitialTargets="_XenkoCheckVisualCRuntime2013" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Check if Visual C++ Runtime 2013 is properly installed -->
   <!-- Should be moved to Xenko.Assets as soon as transitive build dependencies are enabled by default in VS2019 (https://github.com/NuGet/Home/issues/6091#issuecomment-438073285) -->
-  <Target Name="_XenkoCheckVisualCRuntime2013">
+  <Target Name="_XenkoCheckVisualCRuntime2013" Condition="'$(MSBuildRuntimeType)' == 'Full'">
     <ItemGroup>
       <_XenkoVisualCRuntime2013 Include="Visual C++ Redistributable for Visual Studio 2013 x86">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\12.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
@@ -37,7 +37,7 @@
     <XenkoIsExecutable Condition=" '$(AndroidApplication)' == 'true'">true</XenkoIsExecutable>
 
     <!--asset BuildPath for all platforms (same as package)-->
-    <XenkoCompileAssetBuildPath Condition="'$(XenkoCompileAssetBuildPath)' == ''">$(MSBuildProjectDirectory)\..\Cache\data</XenkoCompileAssetBuildPath>
+    <XenkoCompileAssetBuildPath Condition="'$(XenkoCompileAssetBuildPath)' == ''">$(ProjectDir)$(BaseIntermediateOutputPath)xenko\assetbuild\data</XenkoCompileAssetBuildPath>
 
     <!--asset OutputPath for Android.-->
     <XenkoCompileAssetOutputPath Condition="'$(XenkoCompileAssetOutputPath)' == '' and '$(XenkoPlatform)' == 'Android'">$(ProjectDir)$(IntermediateOutputPath)assets\data</XenkoCompileAssetOutputPath>
@@ -56,7 +56,7 @@
   <!--Compile assets for all XenkoPackage items and only for an executable-->
   <Target Name="XenkoCompileAsset" Condition="'$(XenkoIsExecutable)' == 'true'">
     <PropertyGroup>
-      <XenkoCompileAssetCommandProxy>$(XenkoCompileAssetCommandProxy) $(XenkoCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(XenkoPlatform) --project-configuration=$(Configuration) --output-path=&quot;$(XenkoCompileAssetOutputPath)&quot; --build-path=&quot;$(XenkoCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --log-pipe=&quot;$(XenkoBuildEngineLogPipeUrl)&quot;</XenkoCompileAssetCommandProxy>
+      <XenkoCompileAssetCommandProxy>$(XenkoCompileAssetCommandProxy) $(XenkoCompileAssetOptions) --disable-auto-compile --project-configuration &quot;$(Configuration)&quot; --platform=$(XenkoPlatform) --project-configuration=$(Configuration) --property:RuntimeIdentifier=$(RuntimeIdentifier) --output-path=&quot;$(XenkoCompileAssetOutputPath)&quot; --build-path=&quot;$(XenkoCompileAssetBuildPath)&quot; --package-file=&quot;$(MSBuildProjectFullPath)&quot; --log-pipe=&quot;$(XenkoBuildEngineLogPipeUrl)&quot;</XenkoCompileAssetCommandProxy>
       <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogVerbose)' != ''">$(XenkoCompileAssetCommandProxy) --verbose</XenkoCompileAssetCommandProxy>
       <XenkoCompileAssetCommandProxy Condition="'$(XenkoBuildEngineLogDebug)' != ''">$(XenkoCompileAssetCommandProxy) --debug</XenkoCompileAssetCommandProxy>
     </PropertyGroup>
@@ -105,6 +105,19 @@
       </Content>
     </ItemGroup>
   </Target>
+  
+  <!-- Publish: always deploy files as content -->
+  <Target Name="_XenkoDeployAssetsPublish" DependsOnTargets="XenkoCompileAsset" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <!-- Define the Assets to deploy -->
+      <AssetsToPublish Include="$(XenkoCompileAssetOutputPath)\**\*.*"/>
+
+      <!-- Define the Assets to deploy -->
+      <ResolvedFileToPublish Include="@(AssetsToPublish)">
+        <RelativePath>data\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 
   <!-- Android -->
   <Target Name="_XenkoDeployAssetsAndroid" BeforeTargets="XenkoCompileAsset" Condition="'$(XenkoPlatform)' == 'Android'">
@@ -112,5 +125,27 @@
     <PropertyGroup>
       <AndroidStoreUncompressedFileExtensions>$(AndroidStoreUncompressedFileExtensions);.bundle</AndroidStoreUncompressedFileExtensions>
     </PropertyGroup>
+  </Target>
+
+  <!-- Pack target -->
+  <!--<UsingTask TaskName="Xenko.Core.Tasks.PackAssets" AssemblyFile="$(XenkoCompileAssetCommand)" />-->
+  <Target Name="_XenkoPrepareAssetsForPack" BeforeTargets="_GetPackageFiles">
+    <!-- We use exec version rather than task version, otherwise file will be locked during rebuild -->
+    <!--<PackAssets ProjectFile="$(MSBuildProjectFile)" IntermediatePackagePath="$(IntermediateOutputPath)\xenko">
+      <Output TaskParameter="GeneratedItems" ItemName="None"/>
+    </PackAssets>-->
+    <Exec Command="&quot;$(XenkoCompileAssetCommand)&quot; --pack --package-file=&quot;$(MSBuildProjectFullPath)&quot; --build-path=&quot;$(ProjectDir)$(BaseIntermediateOutputPath)xenko\pack&quot;" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" ItemName="PackAssetsLine" />
+    </Exec>
+    <ItemGroup>
+      <PackAssetsLine Update="@(PackAssetsLine)">
+        <SourcePath>$([System.String]::new('%(Identity)').Split('|')[0])</SourcePath>
+        <PackagePath>$([System.String]::new('%(Identity)').Split('|')[1])</PackagePath>
+      </PackAssetsLine>
+      <None Include="%(PackAssetsLine.SourcePath)">
+        <Pack>true</Pack>
+        <PackagePath>%(PackAssetsLine.PackagePath)</PackagePath>
+      </None>
+    </ItemGroup>
   </Target>
 </Project>

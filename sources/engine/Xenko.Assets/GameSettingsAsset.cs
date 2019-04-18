@@ -30,18 +30,11 @@ namespace Xenko.Assets
     [AssetContentType(typeof(GameSettings))]
     [CategoryOrder(4050, "Splash screen")]
     [NonIdentifiableCollectionItems]
-#if XENKO_SUPPORT_BETA_UPGRADE
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "1.6.1-alpha01")]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.6.1-alpha01", "1.9.3-alpha01", typeof(UpgradeAddAudioSettings))]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.9.3-alpha01", "1.11.0.0", typeof(UpgradeAddNavigationSettings))]
-    [AssetUpgrader(XenkoConfig.PackageName, "1.11.0.0", "2.0.0.0", typeof(EmptyAssetUpgrader))]
-#else
-    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.0.0.0")]
-#endif
-    [AssetUpgrader(XenkoConfig.PackageName, "2.0.0.0", "2.1.0.3", typeof(UpgradeAddStreamingSettings))]
+    [AssetFormatVersion(XenkoConfig.PackageName, CurrentVersion, "2.1.0.3")]
+    [AssetUpgrader(XenkoConfig.PackageName, "2.1.0.3", "3.1.0.1", typeof(RenderingSplitUpgrader))]
     public partial class GameSettingsAsset : Asset
     {
-        private const string CurrentVersion = "2.1.0.3";
+        private const string CurrentVersion = "3.1.0.1";
 
         /// <summary>
         /// The default file extension used by the <see cref="GameSettingsAsset"/>.
@@ -166,52 +159,19 @@ namespace Xenko.Assets
             return GetOrCreate<T>();
         }
 
-        private class UpgradeAddAudioSettings : AssetUpgraderBase
+        // In 3.1, Xenko.Engine was splitted into a sub-assembly Xenko.Rendering
+        private class RenderingSplitUpgrader : AssetUpgraderBase
         {
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile,
-                OverrideUpgraderHint overrideHint)
+            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile, OverrideUpgraderHint overrideHint)
             {
-                dynamic setting = new DynamicYamlMapping(new YamlMappingNode { Tag = "!Xenko.Audio.AudioEngineSettings,Xenko.Audio" });
-                asset.Defaults.Add(setting);
-            }
-        }
-
-        private class UpgradeAddNavigationSettings : AssetUpgraderBase
-        {
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile,
-                OverrideUpgraderHint overrideHint)
-            {
-                dynamic settings = new DynamicYamlMapping(new YamlMappingNode { Tag = "!Xenko.Navigation.NavigationSettings,Xenko.Navigation" });
-
-                // Default build settings
-                dynamic buildSettings = new DynamicYamlMapping(new YamlMappingNode());
-                buildSettings.CellHeight = 0.2f;
-                buildSettings.CellSize = 0.3f;
-                buildSettings.TileSize = 32;
-                buildSettings.MinRegionArea = 2;
-                buildSettings.RegionMergeArea = 20;
-                buildSettings.MaxEdgeLen = 12.0f;
-                buildSettings.MaxEdgeError = 1.3f;
-                buildSettings.DetailSamplingDistance = 6.0f;
-                buildSettings.MaxDetailSamplingError = 1.0f;
-                settings.BuildSettings = buildSettings;
-
-                var groups = new DynamicYamlArray(new YamlSequenceNode());
-
-                // Agent settings array
-                settings.Groups = groups;
-
-                asset.Defaults.Add(settings);
-            }
-        }
-
-        private class UpgradeAddStreamingSettings : AssetUpgraderBase
-        {
-            protected override void UpgradeAsset(AssetMigrationContext context, PackageVersion currentVersion, PackageVersion targetVersion, dynamic asset, PackageLoadingAssetFile assetFile,
-                OverrideUpgraderHint overrideHint)
-            {
-                dynamic settings = new DynamicYamlMapping(new YamlMappingNode { Tag = "!Xenko.Streaming.StreamingSettings,Xenko.Engine" });
-                asset.Defaults.Add(settings);
+                YamlNode assetNode = asset.Node;
+                foreach (var node in assetNode.AllNodes)
+                {
+                    if (node.Tag == "!Xenko.Streaming.StreamingSettings,Xenko.Engine")
+                    {
+                        node.Tag = node.Tag.Replace(",Xenko.Engine", ",Xenko.Rendering");
+                    }
+                }
             }
         }
     }

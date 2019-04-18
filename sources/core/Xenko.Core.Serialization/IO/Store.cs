@@ -15,6 +15,9 @@ namespace Xenko.Core.IO
     /// <typeparam name="T">The type of elements in the store.</typeparam>
     public abstract class Store<T> : IDisposable where T : new()
     {
+        // macOS doesn't support Lock/Unlock (https://github.com/dotnet/corefx/issues/5964)
+        private static readonly bool LockEnabled = Platform.Type != PlatformType.macOS;
+
         protected Stream stream;
 
         protected int transaction;
@@ -130,7 +133,8 @@ namespace Xenko.Core.IO
 
                 // Acquire lock on end of file (for appending)
                 // This will prevent another thread from writing at the same time, or reading before it is flushed.
-                LockFile(indexStreamPosition, long.MaxValue - indexStreamPosition, true);
+                if (LockEnabled && stream is FileStream)
+                    NativeLockFile.LockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
 
                 try
                 {
@@ -158,7 +162,8 @@ namespace Xenko.Core.IO
                 }
                 finally
                 {
-                    UnlockFile(indexStreamPosition, long.MaxValue - indexStreamPosition);
+                    if (LockEnabled && stream is FileStream)
+                        NativeLockFile.UnlockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition);
                 }
             }
         }
@@ -174,7 +179,8 @@ namespace Xenko.Core.IO
 
                 // Acquire lock on end of file (for appending)
                 // This will prevent another thread from writing at the same time, or reading before it is flushed.
-                LockFile(indexStreamPosition, long.MaxValue - indexStreamPosition, true);
+                if (LockEnabled && stream is FileStream)
+                    NativeLockFile.LockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition, true);
 
                 try
                 {
@@ -196,7 +202,8 @@ namespace Xenko.Core.IO
                 }
                 finally
                 {
-                    UnlockFile(indexStreamPosition, long.MaxValue - indexStreamPosition);
+                    if (LockEnabled && stream is FileStream)
+                        NativeLockFile.UnlockFile((FileStream)stream, indexStreamPosition, long.MaxValue - indexStreamPosition);
                 }
             }
         }
@@ -268,7 +275,8 @@ namespace Xenko.Core.IO
                 // Note: Maybe we should release the lock quickly so that two threads can read at the same time?
                 // Or if the previously described case doesn't happen, maybe no lock at all is required?
                 // Otherwise, last possibility would be deterministic filesize (with size encoded at the beginning of each block).
-                LockFile(position, long.MaxValue - position, false);
+                if (LockEnabled && stream is FileStream)
+                    NativeLockFile.LockFile((FileStream)stream, position, long.MaxValue - position, false);
 
                 try
                 {
@@ -279,99 +287,12 @@ namespace Xenko.Core.IO
                 finally
                 {
                     // Release the lock
-                    UnlockFile(position, long.MaxValue - position);
+                    if (LockEnabled && stream is FileStream)
+                        NativeLockFile.UnlockFile((FileStream)stream, position, long.MaxValue - position);
                 }
 
                 return true;
             }
-        }
-
-        private void LockFile(long offset, long count, bool exclusive)
-        {
-#if !XENKO_PLATFORM_UWP
-            var fileStream = stream as FileStream;
-            if (fileStream == null)
-                return;
-
-#if XENKO_PLATFORM_ANDROID
-            // Android does not support large file and thus is limited to files
-            // whose sizes are less than 2GB.
-            // We substract the offset to not go beyond the 2GB limit.
-            count =  (count + offset > int.MaxValue) ? int.MaxValue - offset: count;
-#endif
-
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-            var countLow = (uint)count;
-            var countHigh = (uint)(count >> 32);
-
-            var overlapped = new NativeOverlapped()
-                {
-                    InternalLow = IntPtr.Zero,
-                    InternalHigh = IntPtr.Zero,
-                    OffsetLow = (int)(offset & 0x00000000FFFFFFFF),
-                    OffsetHigh = (int)(offset >> 32),
-                    EventHandle = IntPtr.Zero,
-                };
-
-            if (!NativeLockFile.LockFileEx(fileStream.SafeFileHandle, exclusive ? NativeLockFile.LOCKFILE_EXCLUSIVE_LOCK : 0, 0, countLow, countHigh, ref overlapped))
-            {
-                throw new IOException("Couldn't lock file.");
-            }
-#elif XENKO_RUNTIME_CORECLR
-            // There is no implementation of FileStream.Lock on CoreCLR
-#else
-            bool tryAgain;
-            do
-            {
-                tryAgain = false;
-                try
-                {
-                    fileStream.Lock(offset, count);
-                }
-                catch (IOException)
-                {
-                    tryAgain = true;
-                }
-            } while (tryAgain);
-#endif
-#endif
-        }
-
-        private void UnlockFile(long offset, long count)
-        {
-#if !XENKO_PLATFORM_UWP
-            var fileStream = stream as FileStream;
-            if (fileStream == null)
-                return;
-
-#if XENKO_PLATFORM_ANDROID
-            // See comment on `LockFile`.
-            count =  (count + offset > int.MaxValue) ? int.MaxValue - offset: count;
-#endif
-
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-            var countLow = (uint)count;
-            var countHigh = (uint)(count >> 32);
-
-            var overlapped = new NativeOverlapped()
-                {
-                    InternalLow = IntPtr.Zero,
-                    InternalHigh = IntPtr.Zero,
-                    OffsetLow = (int)(offset & 0x00000000FFFFFFFF),
-                    OffsetHigh = (int)(offset >> 32),
-                    EventHandle = IntPtr.Zero,
-                };
-
-            if (!NativeLockFile.UnlockFileEx(fileStream.SafeFileHandle, 0, countLow, countHigh, ref overlapped))
-            {
-                throw new IOException("Couldn't unlock file.");
-            }
-#elif XENKO_RUNTIME_CORECLR
-            // There is no implementation of FileStream.Unlock on CoreCLR
-#else
-            fileStream.Unlock(offset, count);
-#endif
-#endif
         }
 
         private void RefreshData(long fileSize)

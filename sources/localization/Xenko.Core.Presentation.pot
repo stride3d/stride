@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2017-10-23 17:15:49+0900\n"
-"PO-Revision-Date: 2017-10-23 17:15:49+0900\n"
+"POT-Creation-Date: 2019-02-25 13:25:04+0900\n"
+"PO-Revision-Date: 2019-02-25 13:25:04+0900\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -11,119 +11,119 @@ msgstr ""
 "X-Generator: MonoDevelop Gettext addin\n"
 
 
-#: ../common/presentation/Xenko.Core.Presentation/Windows/DialogHelper.cs:20
+#: ../presentation/Xenko.Core.Presentation/Windows/DialogHelper.cs:20
 msgid "Don't ask again"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Windows/MessageBox.cs:70
+#: ../presentation/Xenko.Core.Presentation/Windows/MessageBox.cs:70
 msgctxt "KeyGesture"
 msgid "N"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Windows/MessageBox.cs:99
+#: ../presentation/Xenko.Core.Presentation/Windows/MessageBox.cs:99
 msgctxt "KeyGesture"
 msgid "Y"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:344
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:613
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:399
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:623
 msgctxt "RGBA"
 msgid "R:"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:344
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:613
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:400
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:623
 msgctxt "ToolTip"
 msgid "Red"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:353
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:622
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:414
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:632
 msgctxt "RGBA"
 msgid "G:"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:353
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:622
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:415
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:632
 msgctxt "ToolTip"
 msgid "Green"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:362
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:631
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:429
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:641
 msgctxt "RGBA"
 msgid "B:"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:362
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:631
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:430
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:641
 msgctxt "ToolTip"
 msgid "Blue"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:371
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:640
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:444
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:650
 msgctxt "RGBA"
 msgid "A:"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:371
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:640
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:445
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:650
 msgctxt "ToolTip"
 msgid "Alpha"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:384
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:653
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:464
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:663
 msgctxt "HSB"
 msgid "H:"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:384
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:653
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:465
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:663
 msgctxt "ToolTip"
 msgid "Hue"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:393
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:662
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:479
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:672
 msgctxt "HSB"
 msgid "S:"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:393
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:662
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:480
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:672
 msgctxt "ToolTip"
 msgid "Saturation"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:402
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:671
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:494
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:681
 msgctxt "HSB"
 msgid "B:"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:402
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:671
+#: ../presentation/Xenko.Core.Presentation/Themes/generic.xaml:495
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:681
 msgctxt "ToolTip"
 msgid "Value"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:3861
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:3916
 msgctxt "ToolTip"
 msgid "Toggle editing mode"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4117
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4187
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4266
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4172
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4242
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4321
 msgctxt "ToolTip"
 msgid "Advanced options"
 msgstr ""
 
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4126
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4195
-#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4275
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4181
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4250
+#: ../presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4330
 msgid "All components:"
 msgstr ""
 

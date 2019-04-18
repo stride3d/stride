@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 using Xenko.Core.IO;
 using Xenko.Core.Serialization.Contents;
@@ -66,8 +67,11 @@ namespace Xenko.Core.Assets.Analysis
                     changed = true;
                 }
 
-                UFile newLocation;
-                if (assetResolver.RegisterLocation(item.Location, out newLocation))
+                // Note: we ignore name collisions if asset is not referenceable
+                var referenceable = item.Asset.GetType().GetCustomAttribute<AssetDescriptionAttribute>()?.Referenceable ?? true;
+
+                UFile newLocation = null;
+                if (referenceable && assetResolver.RegisterLocation(item.Location, out newLocation))
                 {
                     changed = true;
                 }

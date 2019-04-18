@@ -356,7 +356,6 @@ namespace Xenko.Rendering.Compositing
                         using (context.SaveViewportAndRestore())
                         {
                             context.RenderSystem.Views.Add(context.RenderView);
-                            context.RenderView.SceneInstance = commonView.SceneInstance;
                             context.RenderView.LightingView = commonView;
                             context.ViewportState.Viewport0 = new Viewport(0, 0, VRSettings.VRDevice.ActualRenderFrameSize.Width / 2.0f, VRSettings.VRDevice.ActualRenderFrameSize.Height);
 

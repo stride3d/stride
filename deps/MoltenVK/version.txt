@@ -1,0 +1,2 @@
+master@61fc7564a003884fc4990e587e35cd3119e8f844
+Custom SPIRV-Cross: 522c4eea978ef9a820f16146b7c8bcfd5ecbf86d + https://github.com/KhronosGroup/SPIRV-Cross/pull/831

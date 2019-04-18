@@ -1,9 +1,10 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
   <PropertyGroup>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <XenkoLocalized>true</XenkoLocalized>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -31,11 +32,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Update="Resources\DefaultThumbnails.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DefaultThumbnails.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets.CompilerApp\Xenko.Core.Assets.CompilerApp.csproj" />
@@ -57,38 +53,20 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
+  <!-- Resources -->
   <ItemGroup>
+    <None Include="Resources\*.png" />
+    <Compile Update="Resources\DefaultThumbnails.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DefaultThumbnails.resx</DependentUpon>
+    </Compile>
     <EmbeddedResource Update="Resources\DefaultThumbnails.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>DefaultThumbnails.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.checkmark.cross.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.resource.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.page.delete.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.box.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ThumbnailDependencyError.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ThumbnailDependencyWarning.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="EditorGame\Services\" />
-  </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.55" />
-  <PropertyGroup>
-    <PostBuildEvent>Path=$(MSBuildBinPath)\Roslyn;$(Path)
-IF EXIST "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" $(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe --lib-dir $(SolutionDir)..\deps\Gettext.Net --resource $(TargetName) -d $(TargetDir) --locale ja "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" --verbose</PostBuildEvent>
-  </PropertyGroup>
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
 </Project>

@@ -8,6 +8,7 @@ using Xenko.Core.Mathematics;
 using Xenko.Engine.Design;
 using Xenko.Engine;
 using Xenko.Particles.Rendering;
+using Xenko.Rendering;
 
 namespace Xenko.Particles.Components
 {
@@ -19,6 +20,7 @@ namespace Xenko.Particles.Components
     [DefaultEntityComponentProcessor(typeof(ParticleSystemSimulationProcessor))]
     [DefaultEntityComponentRenderer(typeof(ParticleSystemRenderProcessor))]
     [ComponentOrder(10200)]
+    [ComponentCategory("Particles")]
     public sealed class ParticleSystemComponent : ActivableEntityComponent
     {        
         private ParticleSystem particleSystem;
@@ -31,13 +33,7 @@ namespace Xenko.Particles.Components
         /// </userdoc>
         [DataMember(10)]
         [Display("Source")]
-        public ParticleSystem ParticleSystem
-        {
-            get
-            {
-                return particleSystem;
-            }
-        }
+        public ParticleSystem ParticleSystem => particleSystem;
 
         ~ParticleSystemComponent()
         {

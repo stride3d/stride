@@ -13,7 +13,7 @@
     </MSBuild>
   </Target>
   <!-- Check if Visual C++ Runtime 2015 is properly installed -->
-  <Target Name="_XenkoCheckVisualCRuntime2015">
+  <Target Name="_XenkoCheckVisualCRuntime2015" Condition="'$(MSBuildRuntimeType)' == 'Full'">
     <ItemGroup>
       <_XenkoVisualCRuntime2015 Include="Visual C++ Redistributable for Visual Studio 2015 x86">
         <Version>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum', 'Version', null, RegistryView.Registry32))</Version>
@@ -44,7 +44,15 @@
     <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetPlatformIdentifier)' == 'UAP'">UWP</XenkoPlatform>
     <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'MonoAndroid'">Android</XenkoPlatform>
     <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And '$(TargetFrameworkIdentifier)' == 'Xamarin.iOS'">iOS</XenkoPlatform>
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And $(RuntimeIdentifier.StartsWith('linux'))">Linux</XenkoPlatform>
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == '' And $(RuntimeIdentifier.StartsWith('osx'))">macOS</XenkoPlatform>
     <XenkoPlatform Condition="'$(XenkoPlatform)' == ''">Windows</XenkoPlatform>
+  </PropertyGroup>
+
+  <!-- If not set, Android executable doesn't work properly because ResolveNuGetPackageAssets has no NuGetRuntimeIdentifier and use only the ref assemblies -->
+  <PropertyGroup Condition="'$(XenkoPlatform)' == 'Android' And '$(AndroidApplication)' == 'true'">
+    <RuntimeIdentifier>win</RuntimeIdentifier>
+    <NuGetRuntimeIdentifier>win</NuGetRuntimeIdentifier>
   </PropertyGroup>
 
   <!-- 
@@ -62,7 +70,13 @@
   <Target Name="XenkoRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">
     <WriteLinesToFile File="$(IntermediateOutputPath)XenkoReferences.cache" Lines="@(ReferencePath)" Overwrite="true" />
     <ItemGroup>
-      <XenkoAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.ExternallyResolved)' == 'true' Or '%(ReferencePath.BuildReference)' == 'true'" />
+      <!-- We want list of references coming from direct and explicit PackageReference. We are using metadata to combine ReferencePath and PackageReference items https://stackoverflow.com/a/18032552 -->
+      <XenkoAddReference Include="@(ReferencePath)" Condition="'%(PackageReference.IsImplicitlyDefined)' != 'true'">
+        <NuGetPackageReference>%(PackageReference.Identity)</NuGetPackageReference>
+      </XenkoAddReference>
+      <XenkoAddReference Remove="@(XenkoAddReference)" Condition="'%(XenkoAddReference.NuGetPackageId)' != '%(XenkoAddReference.NuGetPackageReference)' Or ('%(XenkoAddReference.ExternallyResolved)' != 'true' And '%(XenkoAddReference.BuildReference)' != 'true')"/>
+      <!-- Also include non-nuget references (Reference and ProjectReference) -->
+      <XenkoAddReference Include="@(ReferencePath)" Condition="'%(ReferencePath.NuGetPackageId)' == ''"/>
     </ItemGroup>
     <PropertyGroup>
       <XenkoAssemblyProcessorOptions Condition="'$(XenkoAssemblyProcessorOptions)' == ''">--auto-notify-property --parameter-key --auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
@@ -91,6 +105,27 @@
 
   <!-- 
   *****************************************************************************************************************************
+  NuGet tweaks
+  *****************************************************************************************************************************
+  -->
+  <!-- Workaround to copy .xml and .pdb files for new csproj targeting (https://github.com/dotnet/sdk/issues/1458#issuecomment-401497095) -->
+  <Target Name="_XenkoResolveCopyLocalNuGetPackagePdbsAndXml"
+           Condition="$(CopyLocalLockFileAssemblies) == true"
+           AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths
+        Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).pdb')"
+        Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
+                    and Exists('%(RootDir)%(Directory)%(Filename).pdb')" />
+      <ReferenceCopyLocalPaths
+        Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')"
+        Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
+                    and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
+    </ItemGroup>
+  </Target>
+  
+  <!-- 
+  *****************************************************************************************************************************
   Dependencies reading (from .ssdeps)
   Important: Please keep in sync with Xenko.Core.PostSettings.Dependencies.Targets
   *****************************************************************************************************************************
@@ -98,7 +133,7 @@
   <!-- List dependency files from .ssdeps -->
   <PropertyGroup>
     <_XenkoListDepsFilesDependsOn>ResolveAssemblyReferences</_XenkoListDepsFilesDependsOn>
-    <_XenkoListDepsFilesDependsOn Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'">$(_XenkoListDepsFilesDependsOn);ResolvePackageAssets</_XenkoListDepsFilesDependsOn>
+    <_XenkoListDepsFilesDependsOn Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'macOS'">$(_XenkoListDepsFilesDependsOn);ResolvePackageAssets</_XenkoListDepsFilesDependsOn>
   </PropertyGroup>
   <Target Name="_XenkoListDepsFiles" DependsOnTargets="$(_XenkoListDepsFilesDependsOn)">
     <ItemGroup>
@@ -151,11 +186,19 @@
   </Target>
 
   <!-- Copy native libraries to output -->
-  <Target Name="_XenkoSetupNativeLibrariesWindows" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoPlatform)' == 'Windows'">
+  <Target Name="_XenkoSetupNativeLibrariesWindows" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="('$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'macOS' Or '$(XenkoPlatform)' == 'Linux') And '$(CopyLocalLockFileAssemblies)' != 'false'">
     <ItemGroup>
       <None Include="@(_XenkoDependencyNativeLib)">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+  </Target>
+  <!-- When publishing, copy native libraries (only needed if CopyLocalLockFileAssemblies is set to false since _XenkoSetupNativeLibrariesWindows won't run) -->
+  <Target Name="_XenkoSetupNativeLibrariesDotNetPublish" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ComputeFilesToPublish" Condition="'$(UsingMicrosoftNETSdk)' == 'true' And '$(CopyLocalLockFileAssemblies)' == 'false'">
+    <ItemGroup>
+      <ResolvedFileToPublish Include="@(_XenkoDependencyNativeLib)">
+        <RelativePath>%(_XenkoDependencyNativeLib.Link)</RelativePath>
+      </ResolvedFileToPublish>
     </ItemGroup>
   </Target>
   <Target Name="_XenkoSetupNativeLibrariesUWP" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoPlatform)' == 'UWP'">
@@ -186,5 +229,4 @@
       <MtouchExtraArgs>$(MtouchExtraArgs) --compiler=clang -cxx -gcc_flags '-lstdc++ $(MtouchExtraArgsLibs)'</MtouchExtraArgs>
     </PropertyGroup>
   </Target>
-  
 </Project>

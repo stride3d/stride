@@ -117,8 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Answers" xml:space="preserve">
-    <value>http://answers.xenko.com/</value>
+  <data name="Discord" xml:space="preserve">
+    <value>https://discord.gg/f6aerfE</value>
   </data>
   <data name="Documentation" xml:space="preserve">
     <value>http://doc.xenko.com/{0}/</value>
@@ -137,17 +137,17 @@
   <data name="Github" xml:space="preserve">
     <value>https://github.com/xenko3d/xenko/</value>
   </data>
-  <data name="Gitter" xml:space="preserve">
-    <value>https://gitter.im/xenko3d/xenko</value>
-  </data>
   <data name="Issues" xml:space="preserve">
     <value>https://github.com/xenko3d/xenko/issues/</value>
+  </data>
+  <data name="Patreon" xml:space="preserve">
+    <value>https://www.patreon.com/xenko</value>
   </data>
   <data name="Reddit" xml:space="preserve">
     <value>http://www.reddit.com/r/xenko</value>
   </data>
   <data name="Roadmap" xml:space="preserve">
-    <value>https://trello.com/b/FwbjOjjB/xenko-roadmap</value>
+    <value>https://github.com/xenko3d/xenko/projects/3</value>
   </data>
   <data name="RssFeed" xml:space="preserve">
     <value>http://xenko.com/feed.xml</value>

@@ -13,8 +13,8 @@
     <AssemblyName><#= Properties.PackageName #></AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
-    <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
-    <TargetPlatformMinVersion>10.0.10240.0</TargetPlatformMinVersion>
+    <TargetPlatformVersion Condition=" '$(TargetPlatformVersion)' == '' ">10.0.17134.0</TargetPlatformVersion>
+    <TargetPlatformMinVersion>10.0.16299.0</TargetPlatformMinVersion>
     <MinimumVisualStudioVersion>14</MinimumVisualStudioVersion>
     <EnableDotNetNativeCompatibleProfile>true</EnableDotNetNativeCompatibleProfile>
     <FileAlignment>512</FileAlignment>
@@ -34,8 +34,9 @@
   <ItemGroup>
     <ProjectReference Include="..\<#= Properties.ProjectGameRelativePath #>">
       <Project>{<#= Properties.ProjectGameGuid #>}</Project>
-      <Name><#= Properties.PackageGameName #></Name>
+      <Name><#= Properties.PackageGameAssemblyName #></Name>
     </ProjectReference>
+    <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform" Version="6.2.2" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App.xaml.cs">

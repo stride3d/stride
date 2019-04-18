@@ -31,6 +31,7 @@ namespace Xenko.Engine
     [DataContract("AudioEmitterComponent")]
     [DefaultEntityComponentProcessor(typeof(AudioEmitterProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentOrder(7000)]
+    [ComponentCategory("Audio")]
     public sealed class AudioEmitterComponent : ActivableEntityComponent
     {
         /// <summary>

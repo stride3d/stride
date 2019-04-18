@@ -989,7 +989,7 @@ namespace Xenko.Graphics
         {
             var flags = makeACopy ? DDSFlags.CopyMemory : DDSFlags.None;
 
-#if XENKO_GRAPHICS_API_OPENGLES
+#if XENKO_PLATFORM_ANDROID
             // Directly load image as RGBA instead of BGRA, because OpenGL ES devices don't support it out of the box (extension).
             flags |= DDSFlags.ForceRgb;
 #endif

@@ -401,15 +401,15 @@ namespace Xenko.Core.Assets
     /// </summary>
     public sealed partial class PackageSession : IDisposable, IAssetFinder
     {
-        internal static readonly string SolutionHeader = @"Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = {0}
-MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
-
         /// <summary>
         /// The visual studio version property used for newly created project solution files
         /// </summary>
         public static readonly Version DefaultVisualStudioVersion = new Version("14.0.23107.0");
+
+        internal static readonly string SolutionHeader = @"Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = {0}
+MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
 
         private Dictionary<Package, List<PendingPackageUpgrade>> pendingPackageUpgradesPerPackage = new Dictionary<Package, List<PendingPackageUpgrade>>();
         private readonly ConstraintProvider constraintProvider = new ConstraintProvider();
@@ -723,14 +723,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                     if ((packageProject as SolutionProject)?.FullPath == new UFile(filePath))
                     {
                         project = packageProject;
-
-                        // Remove solution folder
-                        foreach (var vsProject2 in VSSolution.Projects)
-                        {
-                            if (vsProject2.ParentGuid == vsPackage.Guid)
-                                vsProject2.ParentGuid = Guid.Empty;
-                        }
-                        VSSolution.Projects.Remove(vsPackage);
+                        PackageSessionHelper.RemovePackageSections(vsPackage);
                     }
                 }
             }

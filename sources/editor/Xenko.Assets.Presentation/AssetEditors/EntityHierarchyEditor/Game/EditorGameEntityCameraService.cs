@@ -14,6 +14,7 @@ using Xenko.Editor.Engine;
 using Xenko.Engine;
 using Xenko.Engine.Processors;
 using Xenko.Input;
+using static Xenko.Assets.Presentation.SceneEditor.SceneEditorSettings;
 
 namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 {
@@ -175,21 +176,20 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             return input;
         }
 
-        protected void UpdateCameraAsOrthographic(ref float yaw, ref float pitch, ref Vector3 position, Input input)
+        protected void UpdateCameraBase(ref float yaw, ref float pitch, ref Vector3 position, bool asOrthographic, Input input)
         {
             // Get clamped delta time (more stable during lags)
-            var dt = Math.Min((float)Game.UpdateTime.Elapsed.TotalSeconds, 1.0f);
+            float dt = Math.Min((float)Game.UpdateTime.Elapsed.TotalSeconds, 1.0f);
 
             // Compute translation speed according to framerate and modifiers
-            var translationSpeed = MoveSpeed * SceneUnit * dt * (input.isShiftDown ? 10 : 1);
+            float baseSpeed = MoveSpeed * SceneUnit * (input.isShiftDown ? 10 : 1) * (1f/60f);
 
-            // Compute base vectors for camera movement
-            var rotation = Matrix.RotationYawPitchRoll(yaw, pitch, 0);
-            var up = Vector3.TransformNormal(UpVector, rotation);
-            var right = Vector3.Cross(Vector3.TransformNormal(ForwardVector, rotation), up);
+            var rotation = Quaternion.RotationYawPitchRoll(yaw, pitch, 0);
+
+            float zoomDelta = 0f;
 
             // If scene has changed since last time
-            if (Game?.ContentScene?.Entities != null)
+            if (asOrthographic && Game?.ContentScene?.Entities != null)
             {
                 // Position the camera outside the bounding volume
                 var sceneBounds = BoundingSphere.Empty;
@@ -200,80 +200,118 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 }
                 revolutionRadius = Math.Max(10f, sceneBounds.Radius * 2f);
 
-                position = targetPos - Vector3.Normalize(Vector3.TransformNormal(ForwardVector, rotation)) * revolutionRadius;
+                position = targetPos - Vector3.Normalize(Vector3.Transform(ForwardVector, rotation)) * revolutionRadius;
             }
 
-            var forwardTranslation = 0f;
-            var movePosition = Vector3.Zero;
 
             // Dolly (WASD model/arrow keys)
             if (input.isPanning || input.isMoving || input.isRotating)
             {
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamLeft.GetValue()) || Game.Input.IsKeyDown(Keys.Left))
-                    movePosition += -right;
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamRight.GetValue()) || Game.Input.IsKeyDown(Keys.Right))
-                    movePosition += right;
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamBackward.GetValue()) || Game.Input.IsKeyDown(Keys.Down))
-                    movePosition -= up;
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamForward.GetValue()) || Game.Input.IsKeyDown(Keys.Up))
-                    movePosition += up;
+                var inputSystem = Game.Input;
+                float x, y, z;
+                x = y = z = 0f;
+                
+                if (inputSystem.IsKeyDown(MoveCamLeft.GetValue()) || inputSystem.IsKeyDown(Keys.Left))
+                    x -= 1f;
+                if (inputSystem.IsKeyDown(MoveCamRight.GetValue()) || inputSystem.IsKeyDown(Keys.Right))
+                    x += 1f;
+                if (inputSystem.IsKeyDown(MoveCamBackward.GetValue()) || inputSystem.IsKeyDown(Keys.Down))
+                    z -= 1f;
+                if (inputSystem.IsKeyDown(MoveCamForward.GetValue()) || inputSystem.IsKeyDown(Keys.Up))
+                    z += 1f;
+                if (inputSystem.IsKeyDown(MoveCamDownward.GetValue()) || inputSystem.IsKeyDown(Keys.PageDown))
+                    y -= 1f;
+                if (inputSystem.IsKeyDown(MoveCamUpward.GetValue()) || inputSystem.IsKeyDown(Keys.PageUp))
+                    y += 1f;
 
-                // Moving forward and backward results in zoom in/zoom out instead
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamDownward.GetValue()))
-                    forwardTranslation -= 1;
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamUpward.GetValue()))
-                    forwardTranslation += 1;
+                if (asOrthographic)
+                {
+                    zoomDelta += y;
+                    y = z;
+                    z = 0f;
+                }
+
+                var localDirection = Vector3.Normalize(new Vector3(x, y, -z));
+                position += Vector3.Transform(localDirection, rotation) * baseSpeed * dt * 60f;
             }
 
             // Pan
             if (input.isPanning)
             {
-                var panningSpeed = MouseMoveSpeedFactor * translationSpeed * Component.OrthographicSize * 0.35f;
-                movePosition -= right * Game.Input.MouseDelta.X * panningSpeed;
-                movePosition += up * Game.Input.MouseDelta.Y * panningSpeed;
+                float panningSpeed = asOrthographic ? Component.OrthographicSize : revolutionRadius;
+                panningSpeed *= MouseMoveSpeedFactor * baseSpeed;
+                if (InvertPanningAxis.GetValue())
+                    panningSpeed = -panningSpeed;
+
+                var localDirection = new Vector3(Game.Input.MouseDelta.X, -Game.Input.MouseDelta.Y, 0f);
+                position += Vector3.Transform(localDirection, rotation) * panningSpeed;
             }
 
             // Move
-            // Moving forward and backward results in zoom in/zoom out instead
             if (input.isMoving)
             {
-                forwardTranslation -= MouseMoveSpeedFactor * Game.Input.MouseDelta.Y;
-                yaw -= 1.333f * Game.Input.MouseDelta.X * RotationSpeed; // we want to rotate faster Horizontally and Vertically
-            }
-
-            // Rotate or orbit
-            if (input.isRotating || input.isOrbiting)
-            {
-                var rotationSpeed = RotationSpeed * (input.isOrbiting ? 2 : 1); // we want to rotate faster when rotating around an object.
-                yaw -= 1.333f * Game.Input.MouseDelta.X * rotationSpeed; // we want to rotate faster Horizontally and Vertically
-                pitch = MathUtil.Clamp(pitch - Game.Input.MouseDelta.Y * rotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
-            }
-
-            // Zoom in and out
-            // Moving forward and backward results in zoom in/zoom out instead
-            if (input.isZooming)
-            {
-                forwardTranslation += MouseWheelZoomSpeedFactor * Game.Input.MouseWheelDelta;
-                if (Game.Input.HasDownMouseButtons)
+                if(asOrthographic)
                 {
-                    forwardTranslation += MouseMoveSpeedFactor * (Game.Input.MouseDelta.X + Game.Input.MouseDelta.Y);
+                    zoomDelta -= MouseMoveSpeedFactor * Game.Input.MouseDelta.Y;
+                }
+                else
+                {
+                    var forward = Vector3.Transform(ForwardVector, rotation);
+                    var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // camera forward vector project on the XZ plane
+                    position -= projectedForward * baseSpeed * MouseMoveSpeedFactor * Game.Input.MouseDelta.Y;
                 }
             }
 
-            // Apply position translation
-            if (!movePosition.Equals(Vector3.Zero))
-                position += (Vector3.Normalize(movePosition) * translationSpeed);
-
-            // Moving forward and backward results in zoom in/zoom out instead
+            // Rotate
+            if (input.isMoving || input.isRotating || input.isOrbiting)
             {
-                var newOrthographicSize = Component.OrthographicSize - translationSpeed * forwardTranslation;
+                var rotationSpeed = RotationSpeed * (input.isOrbiting ? 2 : 1); // we want to rotate faster when rotating around an object.
+                yaw -= 1.333f * Game.Input.MouseDelta.X * rotationSpeed; // we want to rotate faster Horizontally and Vertically
+                if (input.isRotating || input.isOrbiting)
+                    pitch = MathUtil.Clamp(pitch - Game.Input.MouseDelta.Y * rotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
+            }
+
+            // Forward/backward
+            if (input.isZooming)
+            {
+                if (asOrthographic)
+                {
+                    zoomDelta += MouseWheelZoomSpeedFactor * Game.Input.MouseWheelDelta;
+                    if (Game.Input.HasDownMouseButtons)
+                    {
+                        zoomDelta += MouseMoveSpeedFactor * (Game.Input.MouseDelta.X + Game.Input.MouseDelta.Y);
+                    }
+                }
+                else
+                {
+                    // Perspective
+                    var forward = Vector3.Transform(ForwardVector, rotation);
+                    position += forward * MouseWheelZoomSpeedFactor * Game.Input.MouseWheelDelta * 0.1f;    // Multiply by 0.1f so it matches the zoom "speed" of the orthographic mode.
+                    if (Game.Input.HasDownMouseButtons)
+                    {
+                        position += forward * baseSpeed * MouseMoveSpeedFactor * (Game.Input.MouseDelta.X + Game.Input.MouseDelta.Y);
+                    }
+                    revolutionRadius = Vector3.Distance(targetPos, position);
+                }
+            }
+
+            // Apply zoom
+            if (asOrthographic)
+            {
+                var newOrthographicSize = Component.OrthographicSize - baseSpeed * zoomDelta;
                 if (newOrthographicSize > 0)
                     Component.OrthographicSize = newOrthographicSize;
             }
+            else
+            {
+                var newFov = Component.VerticalFieldOfView - baseSpeed * zoomDelta;
+                newFov = newFov > 120 ? 120 : newFov < 20 ? 20 : newFov;
+                Component.VerticalFieldOfView = newFov;
+            }
 
+            // Orbit
             // The connection between position and target is pretty straight-forward
-            rotation = Matrix.RotationYawPitchRoll(yaw, pitch, 0);
-            var direction = Vector3.Normalize(Vector3.TransformNormal(ForwardVector, rotation));
+            var direction = Vector3.Transform(ForwardVector, rotation);
             if (input.isOrbiting)
             {
                 position = targetPos - direction * revolutionRadius;
@@ -284,92 +322,14 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             }
         }
 
+        protected void UpdateCameraAsOrthographic(ref float yaw, ref float pitch, ref Vector3 position, Input input)
+        {
+            UpdateCameraBase(ref yaw, ref pitch, ref position, true, input);
+        }
+
         protected void UpdateCameraAsPerspective(ref float yaw, ref float pitch, ref Vector3 position, Input input)
         {
-            // Get clamped delta time (more stable during lags)
-            float dt = Math.Min((float)Game.UpdateTime.Elapsed.TotalSeconds, 1.0f);
-
-            // Compute translation speed according to framerate and modifiers
-            float translationSpeed = MoveSpeed * SceneUnit * dt * (input.isShiftDown ? 10 : 1);
-
-            // Compute base vectors for camera movement
-            var rotation = Matrix.RotationYawPitchRoll(yaw, pitch, 0);
-            var forward = Vector3.TransformNormal(ForwardVector, rotation);
-            var up = Vector3.TransformNormal(UpVector, rotation);
-            var right = Vector3.Cross(forward, up);
-
-            // Dolly (WADS model/arrow keys)
-            if (input.isPanning || input.isMoving || input.isRotating)
-            {
-                var movePosition = Vector3.Zero;
-
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamLeft.GetValue()) || Game.Input.IsKeyDown(Keys.Left))
-                    movePosition += -right;
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamRight.GetValue()) || Game.Input.IsKeyDown(Keys.Right))
-                    movePosition += right;
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamBackward.GetValue()) || Game.Input.IsKeyDown(Keys.Down))
-                    movePosition -= forward;
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamForward.GetValue()) || Game.Input.IsKeyDown(Keys.Up))
-                    movePosition += forward;                
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamDownward.GetValue()))
-                    movePosition -= up;
-                if (Game.Input.IsKeyDown(SceneEditorSettings.MoveCamUpward.GetValue()))
-                    movePosition += up;
-
-                if (!movePosition.Equals(Vector3.Zero))
-                    position += (Vector3.Normalize(movePosition) * translationSpeed);
-            }
-
-            // Pan
-            if (input.isPanning)
-            {
-                var panningSpeed = MouseMoveSpeedFactor * translationSpeed * revolutionRadius * 0.35f;
-                var panAxis = SceneEditorSettings.InvertPanningAxis.GetValue() ? -1.0f : 1.0f;
-                position -= right * Game.Input.MouseDelta.X * panAxis * panningSpeed;
-                position += up * Game.Input.MouseDelta.Y * panAxis* panningSpeed;
-            }
-
-            // Move
-            if (input.isMoving)
-            {
-                forward = Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(yaw, pitch, 0));
-                var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // camera forward vector project on the XZ plane
-                position -= projectedForward * translationSpeed * MouseMoveSpeedFactor * Game.Input.MouseDelta.Y;
-                yaw -= 1.333f * Game.Input.MouseDelta.X * RotationSpeed; // we want to rotate faster Horizontally and Vertically
-            }
-
-            // Rotate or orbit
-            if (input.isRotating || input.isOrbiting)
-            {
-                var rotationSpeed = RotationSpeed * (input.isOrbiting ? 2 : 1); // we want to rotate faster when rotating around an object.
-                yaw -= 1.333f * Game.Input.MouseDelta.X * rotationSpeed; // we want to rotate faster Horizontally and Vertically
-                pitch = MathUtil.Clamp(pitch - Game.Input.MouseDelta.Y * rotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
-            }
-
-            // Zoom in and out
-            if (input.isZooming)
-            {
-                // Perspective
-                forward = Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(yaw, pitch, 0));
-                position += forward * MouseWheelZoomSpeedFactor * Game.Input.MouseWheelDelta * 0.1f;    // Multiply by 0.1f so it matches the zoom "speed" of the orthographic mode.
-                if (Game.Input.HasDownMouseButtons)
-                {
-                    position = position + forward * translationSpeed * MouseMoveSpeedFactor * (Game.Input.MouseDelta.X + Game.Input.MouseDelta.Y);
-                }
-                revolutionRadius = Vector3.Distance(targetPos, position);
-            }
-
-            // The connection between position and target is pretty straight-forward
-            rotation = Matrix.RotationYawPitchRoll(yaw, pitch, 0);
-            var direction = Vector3.Normalize(Vector3.TransformNormal(ForwardVector, rotation));
-            if (input.isOrbiting)
-            {
-                position = targetPos - direction * revolutionRadius;
-            }
-            else
-            {
-                targetPos = position + direction * revolutionRadius;
-            }
+            UpdateCameraBase(ref yaw, ref pitch, ref position, false, input);
         }
     }
 }

@@ -132,7 +132,6 @@ namespace Xenko.Shaders.Parser.Mixins
                         }
 
                         // On Windows, Always try to load first from the original URL in order to get the latest version
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
                         if (Platform.IsWindowsDesktop)
                         {
                             // TODO: the "/path" is hardcoded, used in ImportStreamCommand and EffectSystem. Find a place to share this correctly.
@@ -175,7 +174,6 @@ namespace Xenko.Shaders.Parser.Mixins
                                 }
                             }
                         }
-#endif
 
                         if (shaderSource.Source == null)
                         {
