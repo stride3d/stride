@@ -1,0 +1,138 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Xenko.Engine;
+
+namespace Xenko.Toolkit.Engine
+{
+    public static partial class EntityExtensions
+    {
+<# foreach(var i in Enumerable.Range(2,15))  { 
+var genericArgs = Enumerable.Range(1, i).Select(t => $"TComponent{t}").ToList();
+
+#>
+        /// <summary>
+        /// Gets the <#= NumberToWords(i) #> specified components.
+        /// </summary>
+<# foreach(var targ in genericArgs)  { #>
+        /// <typeparam name="<#= targ #>">The type of the <#= NumberToOrdinalWords(Int32.Parse(targ.Replace("TComponent",""))) #> component the method returns.</typeparam>
+<#}#>
+        /// <param name="entity">The <see cref="Entity"/> to get the components from.</param>
+        /// <returns>The tuple of the <#= NumberToWords(i) #> components or <c>null</c> if component does not exist.</returns>
+        /// <exception cref="ArgumentNullException">The entity was <c>null</c>.</exception>
+        public static (<#= String.Join(", ", genericArgs) #>) Get<<#= String.Join(", ", genericArgs) #>>(this Entity entity)
+<# foreach(var targ in genericArgs)  { #>
+            where <#= targ #> : EntityComponent
+<#}#>
+        {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+
+            return (<#= String.Join(", ", genericArgs.Select(t => $"entity.Get<{t}>()")) #>);
+        }
+
+<#}#>
+    }
+}
+<#+
+private static string NumberToWords(int number)
+{
+    if (number == 0)
+        return "zero";
+
+    if (number < 0)
+        return "minus " + NumberToWords(Math.Abs(number));
+
+    string words = "";
+
+    if ((number / 1000000) > 0)
+    {
+        words += NumberToWords(number / 1000000) + " million ";
+        number %= 1000000;
+    }
+
+    if ((number / 1000) > 0)
+    {
+        words += NumberToWords(number / 1000) + " thousand ";
+        number %= 1000;
+    }
+
+    if ((number / 100) > 0)
+    {
+        words += NumberToWords(number / 100) + " hundred ";
+        number %= 100;
+    }
+
+    if (number > 0)
+    {
+        if (words != "")
+            words += "and ";
+
+        var unitsMap = new[] { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
+        var tensMap = new[] { "zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety" };
+
+        if (number < 20)
+            words += unitsMap[number];
+        else
+        {
+            words += tensMap[number / 10];
+            if ((number % 10) > 0)
+                words += "-" + unitsMap[number % 10];
+        }
+    }
+
+    return words;
+}
+
+private static string NumberToOrdinalWords(int number)
+{
+	var words = NumberToWords(number);
+	var lastWord = words.Split(' ').Last();
+
+	var specialCase = new Dictionary<string, string>()
+	{
+		{"one", "first"},
+        {"two", "second"},
+        {"three", "third"},
+        {"five", "fifth"},
+        {"eight", "eighth"},
+        {"twelve", "twelfth"},
+        {"nine", "ninth"},
+	};
+
+	if(specialCase.TryGetValue(lastWord, out var replacement))
+	{
+		return ReplaceLastOccurrence(words, lastWord, replacement);
+	}
+
+
+	replacement = lastWord;
+
+	if(replacement.EndsWith("y"))
+	{
+		replacement = ReplaceLastOccurrence(replacement, "y", "ie");
+	}
+
+	return ReplaceLastOccurrence(words, lastWord, replacement + "th");
+}
+
+private static string ReplaceLastOccurrence(string source, string oldValue, string newValue)
+{
+        int place = source.LastIndexOf(oldValue);
+
+        if(place == -1)
+           return source;
+
+        string result = source.Remove(place, oldValue.Length).Insert(place, newValue);
+        return result;
+}
+#>
