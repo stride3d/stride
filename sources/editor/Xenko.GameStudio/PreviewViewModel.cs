@@ -65,10 +65,14 @@ namespace Xenko.GameStudio
                 previewService.PreviewAssetUpdated -= PreviewAssetUpdated;
                 previewService.Dispose();
             }
+
+            session.ActiveAssetView.SelectedAssets.CollectionChanged -= SelectedAssetsCollectionChanged;
+            session.ActiveAssetsChanged -= ActiveAssetsChanged;
         }
 
         private void ActiveAssetsChanged(object sender, ActiveAssetsChangedArgs e)
         {
+            EnsureNotDestroyed(nameof(PreviewViewModel));
             PreviewService?.SetAssetToPreview(e.Assets.Count == 1 ? e.Assets.First() : null);
         }
 
@@ -79,6 +83,7 @@ namespace Xenko.GameStudio
 
         private void SelectedAssetsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            EnsureNotDestroyed(nameof(PreviewViewModel));
             if (PreviewService == null)
                 return;
 
