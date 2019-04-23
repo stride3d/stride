@@ -17,19 +17,23 @@ namespace Xenko.Physics
         private readonly IReadOnlyList<Vector3> pointsList;
         private readonly IReadOnlyList<uint> indicesList;
 
-        public StaticMeshColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<uint> indices, Vector3 scaling)
+        public StaticMeshColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<uint> indices, Vector3? scaling = null)
         {
             Type = ColliderShapeTypes.StaticMesh;
             Is2D = false;
 
-            cachedScaling = scaling;
+            cachedScaling = scaling ?? Vector3.One;
 
             pointsList = points;
             indicesList = indices;
 
             var meshData = new BulletSharp.TriangleIndexVertexArray(new UIntToInt(indices), new V3ToBullet(points));
             var baseCollider = new BulletSharp.BvhTriangleMeshShape(meshData, true);
-            InternalShape = new BulletSharp.ScaledBvhTriangleMeshShape(baseCollider, scaling);
+            if( scaling.HasValue == false || scaling.Value == Vector3.One ) {
+                InternalShape = baseCollider;
+            } else {
+                InternalShape = new BulletSharp.ScaledBvhTriangleMeshShape(baseCollider, scaling.Value);
+            }
 
             DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(1, 1, 1) * DebugScaling);
         }

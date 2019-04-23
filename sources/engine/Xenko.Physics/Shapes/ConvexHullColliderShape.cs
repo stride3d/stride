@@ -17,12 +17,12 @@ namespace Xenko.Physics
         private readonly IReadOnlyList<Vector3> pointsList;
         private readonly IReadOnlyList<uint> indicesList;
 
-        public ConvexHullColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<uint> indices, Vector3 scaling)
+        public ConvexHullColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<uint> indices, Vector3? scaling = null)
         {
             Type = ColliderShapeTypes.ConvexHull;
             Is2D = false;
 
-            cachedScaling = scaling;
+            cachedScaling = scaling ?? Vector3.One;
 
             pointsList = points;
             indicesList = indices;

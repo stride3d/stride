@@ -680,7 +680,7 @@ namespace Xenko.Physics
             BulletSharp.Math.Vector3 fromBullet = from, toBullet = to;
             using (var rcb = new BulletSharp.ClosestRayResultCallback(ref fromBullet, ref toBullet))
             {
-                collisionWorld.RayTest(fromBullet, toBullet, rcb);
+                collisionWorld.RayTestRef(ref fromBullet, ref toBullet, rcb);
 
                 if (rcb.CollisionObject == null) return result;
                 result.Succeeded = true;
@@ -712,7 +712,7 @@ namespace Xenko.Physics
                 CollisionFilterMask = (short)collisionFilterGroupFlags,
             })
             {
-                collisionWorld.RayTest(fromBullet, toBullet, rcb);
+                collisionWorld.RayTestRef(ref fromBullet, ref toBullet, rcb);
 
                 if (rcb.CollisionObject == null) return result;
                 result.Succeeded = true;
@@ -735,7 +735,8 @@ namespace Xenko.Physics
         {
             using (var rcb = new XenkoAllHitsRayResultCallback(ref from, ref to, resultsOutput))
             {
-                collisionWorld.RayTest(from, to, rcb);
+                BulletSharp.Math.Vector3 bsf = from, bst = to;
+                collisionWorld.RayTestRef(ref bsf, ref bst, rcb);
             }
         }
 
@@ -769,7 +770,8 @@ namespace Xenko.Physics
                 CollisionFilterMask = (short)collisionFilterGroupFlags,
             })
             {
-                collisionWorld.RayTest(from, to, rcb);
+                BulletSharp.Math.Vector3 bsf = from, bst = to;
+                collisionWorld.RayTestRef(ref bsf, ref bst, rcb);
             }
         }
 
