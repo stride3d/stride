@@ -698,18 +698,18 @@ namespace Xenko.Physics
         /// </summary>
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
+        /// <param name="rayGroup">The collision group of this ray</param>
+        /// <param name="collisionMask">The collision group that this shape sweep can collide with</param>
         /// <returns>The list with hit results.</returns>
-        public HitResult Raycast(Vector3 from, Vector3 to, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
+        public HitResult Raycast(Vector3 from, Vector3 to, CollisionFilterGroups rayGroup, CollisionFilterGroupFlags collisionMask)
         {
             var result = new HitResult(); //result.Succeeded is false by default
 
             BulletSharp.Math.Vector3 fromBullet = from, toBullet = to;
             using (var rcb = new BulletSharp.ClosestRayResultCallback(ref fromBullet, ref toBullet)
             {
-                CollisionFilterGroup = (short)collisionFilterGroups,
-                CollisionFilterMask = (short)collisionFilterGroupFlags,
+                CollisionFilterGroup = (short)rayGroup,
+                CollisionFilterMask = (short)collisionMask,
             })
             {
                 collisionWorld.RayTestRef(ref fromBullet, ref toBullet, rcb);
@@ -760,14 +760,14 @@ namespace Xenko.Physics
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
         /// <param name="resultsOutput">The list to fill with results.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
-        public void RaycastPenetrating(Vector3 from, Vector3 to, IList<HitResult> resultsOutput, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
+        /// <param name="rayGroup">The collision group of this shape sweep</param>
+        /// <param name="collisionMask">The collision group that this shape sweep can collide with</param>
+        public void RaycastPenetrating(Vector3 from, Vector3 to, IList<HitResult> resultsOutput, CollisionFilterGroups rayGroup, CollisionFilterGroupFlags collisionMask)
         {
             using (var rcb = new XenkoAllHitsRayResultCallback(ref from, ref to, resultsOutput)
             {
-                CollisionFilterGroup = (short)collisionFilterGroups,
-                CollisionFilterMask = (short)collisionFilterGroupFlags,
+                CollisionFilterGroup = (short)rayGroup,
+                CollisionFilterMask = (short)collisionMask,
             })
             {
                 BulletSharp.Math.Vector3 bsf = from, bst = to;
@@ -780,13 +780,13 @@ namespace Xenko.Physics
         /// </summary>
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
+        /// <param name="rayGroup">The collision group of this shape sweep</param>
+        /// <param name="collisionMask">The collision group that this shape sweep can collide with</param>
         /// <returns>The list with hit results.</returns>
-        public FastList<HitResult> RaycastPenetrating(Vector3 from, Vector3 to, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
+        public FastList<HitResult> RaycastPenetrating(Vector3 from, Vector3 to, CollisionFilterGroups rayGroup, CollisionFilterGroupFlags collisionMask)
         {
             var results = new FastList<HitResult>();
-            RaycastPenetrating(from, to, results, collisionFilterGroups, collisionFilterGroupFlags);
+            RaycastPenetrating(from, to, results, rayGroup, collisionMask);
             return results;
         }
 
@@ -827,11 +827,11 @@ namespace Xenko.Physics
         /// <param name="shape">The shape.</param>
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
+        /// <param name="shapeGroup">The collision group of this shape sweep</param>
+        /// <param name="collisionMask">The collision group that this shape sweep can collide with</param>
         /// <returns></returns>
         /// <exception cref="System.Exception">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public HitResult ShapeSweep(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
+        public HitResult ShapeSweep(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups shapeGroup, CollisionFilterGroupFlags collisionMask)
         {
             var sh = shape.InternalShape as BulletSharp.ConvexShape;
             if (sh == null) throw new Exception("This kind of shape cannot be used for a ShapeSweep.");
@@ -841,8 +841,8 @@ namespace Xenko.Physics
             BulletSharp.Math.Vector3 fromBullet = from.TranslationVector, toBullet = to.TranslationVector;
             using (var rcb = new BulletSharp.ClosestConvexResultCallback(ref fromBullet, ref toBullet)
             {
-                CollisionFilterGroup = (int)collisionFilterGroups,
-                CollisionFilterMask = (int)collisionFilterGroupFlags,
+                CollisionFilterGroup = (int)shapeGroup,
+                CollisionFilterMask = (int)collisionMask,
             })
             {
                 collisionWorld.ConvexSweepTest(sh, from, to, rcb);
@@ -899,18 +899,18 @@ namespace Xenko.Physics
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
         /// <param name="resultsOutput">The list to fill with results.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
+        /// <param name="shapeGroup">The collision group of this shape sweep</param>
+        /// <param name="collisionMask">The collision group that this shape sweep can collide with</param>
         /// <exception cref="System.Exception">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public void ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, IList<HitResult> resultsOutput, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
+        public void ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, IList<HitResult> resultsOutput, CollisionFilterGroups shapeGroup, CollisionFilterGroupFlags collisionMask)
         {
             var sh = shape.InternalShape as BulletSharp.ConvexShape;
             if (sh == null) throw new Exception("This kind of shape cannot be used for a ShapeSweep.");
 
             using (var rcb = new XenkoAllHitsConvexResultCallback(resultsOutput)
             {
-                CollisionFilterGroup = (int)collisionFilterGroups,
-                CollisionFilterMask = (int)collisionFilterGroupFlags,
+                CollisionFilterGroup = (int)shapeGroup,
+                CollisionFilterMask = (int)collisionMask,
             })
             {
                 collisionWorld.ConvexSweepTest(sh, from, to, rcb);
@@ -923,14 +923,14 @@ namespace Xenko.Physics
         /// <param name="shape">The shape.</param>
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
+        /// <param name="shapeGroup">The collision group of this shape sweep</param>
+        /// <param name="collisionMask">The collision group that this shape sweep can collide with</param>
         /// <returns>The list with hit results.</returns>
         /// <exception cref="System.Exception">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public FastList<HitResult> ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
+        public FastList<HitResult> ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups shapeGroup, CollisionFilterGroupFlags collisionMask)
         {
             var results = new FastList<HitResult>();
-            ShapeSweepPenetrating(shape, from, to, results, collisionFilterGroups, collisionFilterGroupFlags);
+            ShapeSweepPenetrating(shape, from, to, results, shapeGroup, collisionMask);
             return results;
         }
 
