@@ -26,9 +26,6 @@ namespace Xenko.Shaders.Compiler
                     OptimizationLevel = 0;
                     break;
                 case CompilationMode.Release:
-                    Debug = true;
-                    OptimizationLevel = 1;
-                    break;
                 case CompilationMode.AppStore:
                     Debug = false;
                     OptimizationLevel = 2;

@@ -119,6 +119,16 @@ namespace Xenko.Engine
         public VRDeviceSystem VRDeviceSystem { get; }
 
         /// <summary>
+        /// Forces effects to be build in "Release" mode, regardless of GameSettings. Good for performance, even if your app is in debug mode.
+        /// </summary>
+        public bool ForceReleaseEffects { get; set; } = true;
+
+        /// <summary>
+        /// Forces effects to be recorded in "Release" mode, regardless of GameSettings. Good for collecting shaders for distribution.
+        /// </summary>
+        public bool ForceCollectEffects { get; set; } = false;
+
+        /// <summary>
         /// Gets the font system.
         /// </summary>
         /// <value>The font system.</value>
@@ -370,13 +380,29 @@ namespace Xenko.Engine
             EffectSystem = new EffectSystem(Services);
             Services.AddService(EffectSystem);
 
+            // prepare effect compilation settings if we have a settings object
+            if (Settings != null) {
+                // align settings with what we may be forcing
+                if (ForceReleaseEffects) Settings.CompilationMode = CompilationMode.Release;
+                if (ForceCollectEffects) {
+                    // we want to collect effects. make sure they are release versions
+                    Settings.EffectCompilation = EffectCompilationMode.LocalOrRemote;
+                    Settings.CompilationMode = CompilationMode.Release;
+                    Settings.RecordUsedEffects = true;
+                } else if (Settings.CompilationMode == CompilationMode.Testing || Settings.CompilationMode == CompilationMode.Debug) {
+                    // don't collect debug shaders, we won't want to distribute them!
+                    Settings.EffectCompilation = EffectCompilationMode.Local;
+                    Settings.RecordUsedEffects = false;
+                }
+            }
+
             // If requested in game settings, compile effects remotely and/or notify new shader requests
-            EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(Content.FileProvider, EffectSystem, Settings?.PackageName, Settings?.EffectCompilation ?? EffectCompilationMode.Local, Settings?.RecordUsedEffects ?? false);
+            EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(Content.FileProvider, EffectSystem, Settings?.PackageName,
+                                                                               ForceCollectEffects ? EffectCompilationMode.LocalOrRemote : (Settings?.EffectCompilation ?? EffectCompilationMode.Local),
+                                                                               ForceCollectEffects ? true : (Settings?.RecordUsedEffects ?? false));
 
             // Setup shader compiler settings from a compilation mode. 
-            // TODO: We might want to provide overrides on the GameSettings to specify debug and/or optim level specifically.
-            if (Settings != null)
-                EffectSystem.SetCompilationMode(Settings.CompilationMode);
+            EffectSystem.SetCompilationMode(ForceReleaseEffects || ForceCollectEffects ? CompilationMode.Release : (Settings?.CompilationMode ?? CompilationMode.Release));
 
             GameSystems.Add(EffectSystem);
 

@@ -21,7 +21,7 @@ namespace Xenko
         /// </summary>
         /// <remarks>
         /// Impact on compilation on other components:
-        /// - Shaders are compiled in optimization level 1 with debug information.
+        /// - Shaders are compiled in optimization level 2 with <c>no debug</c> information.
         /// </remarks>
         Release,
 
