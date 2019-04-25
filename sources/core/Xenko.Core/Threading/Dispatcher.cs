@@ -226,7 +226,7 @@ namespace Xenko.Core.Threading
             if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < collection.Count)
             {
                 state.AddReference();
-                System.Threading.ThreadPool.QueueUserWorkItem(delegate { Fork(collection, batchSize, maxDegreeOfParallelism - 1, action, state); });
+                ThreadPool.Instance.QueueWorkItem(() => Fork(collection, batchSize, maxDegreeOfParallelism - 1, action, state));
             }
 
             try
@@ -268,7 +268,7 @@ namespace Xenko.Core.Threading
             if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < collection.Count)
             {
                 state.AddReference();
-                System.Threading.ThreadPool.QueueUserWorkItem(delegate { Fork(collection, batchSize, maxDegreeOfParallelism - 1, initializeLocal, action, finalizeLocal, state); });
+                ThreadPool.Instance.QueueWorkItem(() => Fork(collection, batchSize, maxDegreeOfParallelism - 1, initializeLocal, action, finalizeLocal, state));
             }
 
             try
@@ -339,7 +339,7 @@ namespace Xenko.Core.Threading
             if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < endExclusive)
             {
                 state.AddReference();
-                System.Threading.ThreadPool.QueueUserWorkItem(delegate { Fork(endExclusive, batchSize, maxDegreeOfParallelism - 1, action, state); });
+                ThreadPool.Instance.QueueWorkItem(() => Fork(endExclusive, batchSize, maxDegreeOfParallelism - 1, action, state));
             }
 
             try
@@ -379,7 +379,7 @@ namespace Xenko.Core.Threading
             if (maxDegreeOfParallelism > 1 && state.StartInclusive + batchSize < endExclusive)
             {
                 state.AddReference();
-                System.Threading.ThreadPool.QueueUserWorkItem(delegate { Fork(endExclusive, batchSize, maxDegreeOfParallelism - 1, initializeLocal, action, finalizeLocal, state); });
+                ThreadPool.Instance.QueueWorkItem(() => Fork(endExclusive, batchSize, maxDegreeOfParallelism - 1, initializeLocal, action, finalizeLocal, state));
             }
 
             try
@@ -550,7 +550,7 @@ namespace Xenko.Core.Threading
 
         private static void Fork<T>(T[] collection, int maxDegreeOfParallelism, IComparer<T> comparer, SortState state)
         {
-            System.Threading.ThreadPool.QueueUserWorkItem(delegate { Sort(collection, maxDegreeOfParallelism - 1, comparer, state); });
+            ThreadPool.Instance.QueueWorkItem(() => Sort(collection, maxDegreeOfParallelism - 1, comparer, state));
         }
 
         private static int Partition<T>([NotNull] T[] collection, int left, int right, [NotNull] IComparer<T> comparer)
