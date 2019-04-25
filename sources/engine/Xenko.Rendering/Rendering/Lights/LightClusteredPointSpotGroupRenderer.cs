@@ -621,10 +621,9 @@ namespace Xenko.Rendering.Lights
             private void AddLightToCluster(Dictionary<LightClusterLinkedNode, int> movedClusters, InternalLightType lightType, int lightIndex, int clusterIndex)
             {
                 var nextNode = -1;
-                if (lightNodes.Items[clusterIndex].LightIndex != -1)
+                var movedCluster = lightNodes.Items[clusterIndex];
+                if (movedCluster.LightIndex != -1)
                 {
-                    var movedCluster = lightNodes.Items[clusterIndex];
-                    
                     // Try to check if same linked-list doesn't already exist
                     if (!movedClusters.TryGetValue(movedCluster, out nextNode))
                     {
@@ -725,18 +724,14 @@ namespace Xenko.Rendering.Lights
 
                 public override bool Equals(object obj)
                 {
-                    if (ReferenceEquals(null, obj)) return false;
-                    return obj is LightClusterLinkedNode && Equals((LightClusterLinkedNode)obj);
+                    return obj != null && obj is LightClusterLinkedNode && Equals((LightClusterLinkedNode)obj);
                 }
 
                 public override int GetHashCode()
                 {
                     unchecked
                     {
-                        var hashCode = (int)LightType;
-                        hashCode = (hashCode * 397) ^ LightIndex;
-                        hashCode = (hashCode * 397) ^ NextNode;
-                        return hashCode;
+                        return (int)LightType ^ (LightIndex * 397) ^ (NextNode * 827);
                     }
                 }
             }
