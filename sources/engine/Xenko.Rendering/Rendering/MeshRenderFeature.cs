@@ -11,6 +11,7 @@ using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Threading;
 using Xenko.Graphics;
+using Xenko.Rendering.Rendering;
 using Buffer = Xenko.Graphics.Buffer;
 
 namespace Xenko.Rendering
@@ -255,6 +256,9 @@ namespace Xenko.Rendering
 
         private InputElementDescription[] PrepareInputElements(PipelineStateDescription pipelineState, MeshDraw drawData)
         {
+            // do we need to prepare the buffers with staged data first?
+            if (drawData.VertexBuffers == null && drawData is StagedMeshDraw) ((StagedMeshDraw)drawData).performStage(Context.GraphicsDevice);
+
             // Get the input elements already contained in the mesh's vertex buffers
             var availableInputElements = drawData.VertexBuffers.CreateInputElements();
             var inputElements = new List<InputElementDescription>(availableInputElements);
