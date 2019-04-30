@@ -91,7 +91,9 @@ namespace Xenko.Graphics
             CleanupRenderPass();
 
             // Close
-            currentCommandList.NativeCommandBuffer.End();
+            lock (GraphicsDevice.PresentLock) {
+                currentCommandList.NativeCommandBuffer.End();
+            }
 
             // Staging resources not updated anymore
             foreach (var stagingResource in currentCommandList.StagingResources)
@@ -333,7 +335,7 @@ namespace Xenko.Graphics
                 switch (mapping.DescriptorType)
                 {
                     case DescriptorType.SampledImage:
-                        var texture = (heapObject.Value as Texture)?.AwaitReady();
+                        var texture = (heapObject.Value as Texture)?.AwaitReady(int.MaxValue);
                         descriptorData->ImageInfo = new DescriptorImageInfo
                         {
                             ImageView = texture == null ? GraphicsDevice.dummyTexture.NativeImageView : texture.NativeImageView,

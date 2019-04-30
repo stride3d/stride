@@ -232,12 +232,13 @@ namespace Xenko.Graphics
                     CommandBuffers = new IntPtr(&commandBuffer),
                 };
 
-                lock (GraphicsDevice.QueueLock)
-                {
-                    GraphicsDevice.NativeCommandQueue.Submit(1, &submitInfo, Fence.Null);
-                    GraphicsDevice.NativeCommandQueue.WaitIdle();
-                    //commandBuffer.Reset(CommandBufferResetFlags.None);
-                    GraphicsDevice.NativeDevice.FreeCommandBuffers(GraphicsDevice.NativeCopyCommandPool, 1, &commandBuffer);
+                lock (GraphicsDevice.PresentLock) {
+                    lock (GraphicsDevice.QueueLock)
+                    {
+                        GraphicsDevice.NativeCommandQueue.Submit(1, &submitInfo, Fence.Null);
+                        GraphicsDevice.NativeCommandQueue.WaitIdle();
+                        GraphicsDevice.NativeDevice.FreeCommandBuffers(GraphicsDevice.NativeCopyCommandPool, 1, &commandBuffer);
+                    }
                 }
 
                 InitializeViews();

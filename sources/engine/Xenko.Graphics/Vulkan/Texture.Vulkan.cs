@@ -38,12 +38,12 @@ namespace Xenko.Graphics
             InitializeFromImpl(dataBoxes);
         }
 
-        public Texture AwaitReady() {
+        public Texture AwaitReady(int countLimit = 100) {
             int awaitCount = 0;
             while (NativeImageView == ImageView.Null) {
                 // this isn't ready, but will it ever be?
                 if (isNotOwningResources || 
-                    awaitCount++ > 100 ||
+                    awaitCount++ > countLimit ||
                     Description.Width == 0 && Description.Height == 0) return null;
                 // might still be loading, let's wait...
                 Thread.Sleep(1);                
