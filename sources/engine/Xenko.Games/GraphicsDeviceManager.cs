@@ -110,7 +110,7 @@ namespace Xenko.Games
             lockDeviceCreation = new object();
 
             // Defines all default values
-            SynchronizeWithVerticalRetrace = true;
+            SynchronizeWithVerticalRetrace = GraphicsDevice.Platform != GraphicsPlatform.Vulkan;
             PreferredColorSpace = ColorSpace.Linear;
             PreferredBackBufferFormat = PixelFormat.R8G8B8A8_UNorm;
             PreferredDepthStencilFormat = PixelFormat.D24_UNorm_S8_UInt;

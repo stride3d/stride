@@ -176,6 +176,14 @@ namespace Xenko.Graphics.SDL
         }
 
         /// <summary>
+        /// Get the current refresh rate of the window in Hz.
+        /// </summary>
+        public int GetRefreshRate() {
+            SDL.SDL_GetCurrentDisplayMode(SDL.SDL_GetWindowDisplayIndex(SdlHandle), out SDL.SDL_DisplayMode mode);
+            return mode.refresh_rate;
+        }
+
+        /// <summary>
         /// Are we showing the window in full screen mode?
         /// </summary>
         public bool IsFullScreen

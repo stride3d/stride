@@ -56,6 +56,7 @@ namespace Xenko.Games
         private bool suppressDraw;
         private bool beginDrawOk;
 
+        private TimeSpan defaultTimeSpan = TimeSpan.FromTicks(1);
         private TimeSpan totalUpdateTime;
         private TimeSpan totalDrawTime;
         private readonly TimeSpan maximumElapsedTime;
@@ -93,14 +94,13 @@ namespace Xenko.Games
             totalUpdateTime = new TimeSpan();
             timer = new TimerTick();
             IsFixedTimeStep = false;
-            IsDrawDesynchronized = true;
             maximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
-            TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
             lastUpdateCount = new int[4];
             nextLastUpdateCountIndex = 0;
-            
+            TargetElapsedTime = defaultTimeSpan; // default empty timespan, will be set on window create if not set elsewhere
+
             TreatNotFocusedLikeMinimized = true;
-            WindowMinimumUpdateRate      = new ThreadThrottler(TimeSpan.FromSeconds(0d));
+            WindowMinimumUpdateRate      = new ThreadThrottler(defaultTimeSpan); // will be set when window gets created with window's refresh rate
             MinimizedMinimumUpdateRate   = new ThreadThrottler(TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 15)); // by default 15 updates per second while minimized
 
             // Calculate the updateCountAverageSlowLimit (assuming moving average is >=3 )
@@ -583,8 +583,7 @@ namespace Xenko.Games
                 {
                     // If the rounded TargetElapsedTime is equivalent to current ElapsedAdjustedTime
                     // then make ElapsedAdjustedTime = TargetElapsedTime. We take the same internal rules as XNA
-                    if (Math.Abs(elapsedAdjustedTime.Ticks - TargetElapsedTime.Ticks) < (TargetElapsedTime.Ticks >> 6))
-                    {
+                    if (Math.Abs(elapsedAdjustedTime.Ticks - TargetElapsedTime.Ticks) < (TargetElapsedTime.Ticks >> 6)) {
                         elapsedAdjustedTime = TargetElapsedTime;
                     }
 
@@ -592,22 +591,16 @@ namespace Xenko.Games
                     accumulatedElapsedGameTime += elapsedAdjustedTime;
 
                     // Calculate the number of update to issue
-                    if (ForceOneUpdatePerDraw)
-                    {
+                    if (ForceOneUpdatePerDraw) {
                         updateCount = 1;
-                    }
-                    else
-                    {
+                    } else {
                         updateCount = (int)(accumulatedElapsedGameTime.Ticks / TargetElapsedTime.Ticks);
                     }
 
-                    if (IsDrawDesynchronized)
-                    {
+                    if (IsDrawDesynchronized) {
                         drawLag = accumulatedElapsedGameTime.Ticks % TargetElapsedTime.Ticks;
                         suppressNextDraw = false;
-                    }
-                    else if (updateCount == 0)
-                    {
+                    } else if (updateCount == 0) {
                         // If there is no need for update, then exit
                         return;
                     }
@@ -615,8 +608,7 @@ namespace Xenko.Games
                     // Calculate a moving average on updateCount
                     lastUpdateCount[nextLastUpdateCountIndex] = updateCount;
                     float updateCountMean = 0;
-                    for (int i = 0; i < lastUpdateCount.Length; i++)
-                    {
+                    for (int i = 0; i < lastUpdateCount.Length; i++) {
                         updateCountMean += lastUpdateCount[i];
                     }
 
@@ -902,9 +894,16 @@ namespace Xenko.Games
             Exiting?.Invoke(this, args);
         }
 
-        protected virtual void OnWindowCreated()
-        {
+        protected virtual void OnWindowCreated() {
             WindowCreated?.Invoke(this, EventArgs.Empty);
+
+            // If we still have default values, let's set these based on SDL refresh rate (if we can)
+            if (gamePlatform.MainWindow is GameWindowSDL) {
+                if (TargetElapsedTime == defaultTimeSpan) TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / ((GameWindowSDL)gamePlatform.MainWindow).GetRefreshRate());
+                if (WindowMinimumUpdateRate.MinimumElapsedTime == defaultTimeSpan) WindowMinimumUpdateRate.MinimumElapsedTime = TargetElapsedTime;
+            } else if (TargetElapsedTime == defaultTimeSpan) {
+                TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
+            }
         }
 
         private void GamePlatformOnWindowCreated(object sender, EventArgs eventArgs)

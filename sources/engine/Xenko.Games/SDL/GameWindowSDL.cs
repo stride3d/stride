@@ -188,6 +188,13 @@ namespace Xenko.Games
             }
         }
 
+        /// <summary>
+        /// Gets refresh rate of window in Hz.
+        /// </summary>
+        public int GetRefreshRate() {
+            return window.GetRefreshRate();
+        }
+
         public override Int2 Position
         {
             get

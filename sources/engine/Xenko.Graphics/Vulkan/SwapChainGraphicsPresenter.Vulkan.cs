@@ -254,7 +254,7 @@ namespace Xenko.Graphics
             }
 
             // Find present mode
-            var swapChainPresentMode = PresentMode.Fifo; // Always supported
+            var swapChainPresentMode = PresentMode.Fifo; // Always supported, but slow
             if (Description.PresentationInterval == PresentInterval.Immediate) {
                 var presentModes = GraphicsDevice.NativePhysicalDevice.GetSurfacePresentModes(surface);
                 if (presentModes.Contains(PresentMode.Mailbox)) swapChainPresentMode = PresentMode.Mailbox;
