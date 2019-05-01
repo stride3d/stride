@@ -142,7 +142,7 @@ postswitch:
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
                     if (Device is OpenVRHmd) refreshRate = ((OpenVRHmd)Device).RefreshRate();
 #endif
-                    Game.TargetElapsedTime = TimeSpan.FromSeconds(1.0 / refreshRate);
+                    Game.TargetElapsedTime = Utilities.FromSecondsPrecise(1.0 / refreshRate);
                     Game.WindowMinimumUpdateRate.MinimumElapsedTime = Game.TargetElapsedTime;
                     Game.MinimizedMinimumUpdateRate.MinimumElapsedTime = Game.TargetElapsedTime;
                 }

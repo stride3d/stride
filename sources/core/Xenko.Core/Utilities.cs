@@ -41,6 +41,24 @@ namespace Xenko.Core
     /// </summary>
     public static class Utilities
     {
+        /// <summary>
+        /// Creates a TimeSpan with precise tick count, normal "From" methods do weird rounding.
+        /// </summary>
+        public static TimeSpan FromMillisecondsPrecise(double milliSeconds)
+            => TimeSpan.FromTicks((long)(milliSeconds * TimeSpan.TicksPerMillisecond));
+
+        /// <summary>
+        /// Creates a TimeSpan with precise tick count, normal "From" methods do weird rounding.
+        /// </summary>
+        public static TimeSpan FromSecondsPrecise(double seconds)
+            => TimeSpan.FromTicks((long)(seconds * TimeSpan.TicksPerSecond));
+
+        /// <summary>
+        /// Creates a TimeSpan with precise tick count, normal "From" methods do weird rounding.
+        /// </summary>
+        public static TimeSpan FromMinutesPrecise(double minutes)
+            => TimeSpan.FromTicks((long)(minutes * TimeSpan.TicksPerMinute));
+
 #if XENKO_PLATFORM_UWP
         public static unsafe void CopyMemory(IntPtr dest, IntPtr src, int sizeInBytesToCopy)
         {
