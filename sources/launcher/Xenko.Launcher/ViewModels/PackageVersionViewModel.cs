@@ -247,7 +247,16 @@ namespace Xenko.LauncherApp.ViewModels
 
                     if (displayErrorMessage)
                     {
-                        var message = $"{InstallErrorMessage}{Environment.NewLine}{Environment.NewLine}{Launcher.LastErrorOrWarning?.Replace(Environment.NewLine, Environment.NewLine + Environment.NewLine) ?? string.Empty}{Environment.NewLine}{e.FormatSummary(true)}";
+                        var message = $@"**{InstallErrorMessage}**
+### Log
+```
+{Launcher.LogMessages}
+```
+
+### Exception
+```
+{e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
+```";
                         await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
