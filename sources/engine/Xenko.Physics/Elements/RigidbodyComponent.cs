@@ -50,7 +50,6 @@ namespace Xenko.Physics
         public RigidbodyComponent()
         {
             LinkedConstraints = new List<Constraint>();
-            ProcessCollisions = false;
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using Xenko.Core;
 using Xenko.Core.Annotations;
@@ -90,7 +91,7 @@ namespace Xenko.Engine
         public CollisionFilterGroupFlags CanCollideWith { get; set; } = CollisionFilterGroupFlags.AllFilter;
 
         /// <summary>
-        /// Gets or sets if this element will store collisions
+        /// Gets or sets if this element will use asyc methods to process collisions
         /// </summary>
         /// <value>
         /// true, false
@@ -101,6 +102,25 @@ namespace Xenko.Engine
         [Display("Record collision events")]
         [DataMemberIgnore]
         public bool ProcessCollisions { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets if this element will store collisions in CurrentPhysicalContacts. Uses less CPU than ProcessCollisions
+        /// </summary>
+        /// <value>
+        /// true, false
+        /// </value>
+        /// <userdoc>
+        /// Stores contact points in a simple CurrentPhysicalContacts list, instead of new/update/ended events. Uses less CPU than ProcessCollisions
+        /// </userdoc>
+        [Display("Simple collision storage")]
+        [DataMemberIgnore]
+        public bool ProcessCollisionsSlim { get; set; } = false;
+
+        /// <summary>
+        /// If we are using ProcessCollisionSlim, this list will maintain all current collisions
+        /// </summary>
+        [DataMemberIgnore]
+        public List<ContactPoint> CurrentPhysicalContacts;
 
         /// <summary>
         /// Gets or sets if this element is enabled in the physics engine

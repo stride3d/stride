@@ -1238,12 +1238,50 @@ namespace Xenko.Physics
 
         private DefaultContactResultCallback currentFrameContacts = new DefaultContactResultCallback();
         private DefaultContactResultCallback previousFrameContacts = new DefaultContactResultCallback();
+        private SimpleContactResultCallback simpleFrameContacts = new SimpleContactResultCallback();
+
+        class SimpleContactResultCallback : BulletSharp.ContactResultCallback {
+            public override float AddSingleResult(BulletSharp.ManifoldPointSlim contact, BulletSharp.CollisionObjectWrapper obj0, int partId0, int index0, BulletSharp.CollisionObjectWrapper obj1, int partId1, int index1) {
+                var component0 = (PhysicsComponent)obj0.CollisionObject.UserObject;
+                var component1 = (PhysicsComponent)obj1.CollisionObject.UserObject;
+
+                //disable static-static
+                if ((component0 is StaticColliderComponent && component1 is StaticColliderComponent) || !component0.Enabled || !component1.Enabled)
+                    return 0f;
+
+                if (component0.ProcessCollisionsSlim) {
+                    ContactPoint cp = new ContactPoint {
+                        ColliderA = component0,
+                        ColliderB = component1,
+                        Distance = contact.Distance,
+                        Normal = contact.NormalWorldOnB,
+                        PositionOnA = contact.PositionWorldOnA,
+                        PositionOnB = contact.PositionWorldOnB,
+                    };
+                    component0.CurrentPhysicalContacts.Add(cp);
+                }
+
+                if (component1.ProcessCollisionsSlim) {
+                    ContactPoint cp = new ContactPoint {
+                        ColliderA = component1,
+                        ColliderB = component0,
+                        Distance = contact.Distance,
+                        Normal = -contact.NormalWorldOnB,
+                        PositionOnA = contact.PositionWorldOnB,
+                        PositionOnB = contact.PositionWorldOnA,
+                    };
+                    component1.CurrentPhysicalContacts.Add(cp);
+                }
+
+                return 0f;
+            }
+        }
 
         class DefaultContactResultCallback : BulletSharp.ContactResultCallback
         {
             HashSet<ContactPoint> contacts = new HashSet<ContactPoint>(ContactPointEqualityComparer.Default);
 
-            public override float AddSingleResult(BulletSharp.ManifoldPoint contact, BulletSharp.CollisionObjectWrapper obj0, int partId0, int index0, BulletSharp.CollisionObjectWrapper obj1, int partId1, int index1)
+            public override float AddSingleResult(BulletSharp.ManifoldPointSlim contact, BulletSharp.CollisionObjectWrapper obj0, int partId0, int index0, BulletSharp.CollisionObjectWrapper obj1, int partId1, int index1)
             {
                 var component0 = (PhysicsComponent)obj0.CollisionObject.UserObject;
                 var component1 = (PhysicsComponent)obj1.CollisionObject.UserObject;
@@ -1272,9 +1310,18 @@ namespace Xenko.Physics
 
         internal unsafe void ContactTest(PhysicsComponent component)
         {
-            currentFrameContacts.CollisionFilterMask = (int)component.CanCollideWith;
-            currentFrameContacts.CollisionFilterGroup = (int)component.CollisionGroup;
-            collisionWorld.ContactTest( component.NativeCollisionObject, currentFrameContacts );
+            if( component.ProcessCollisionsSlim ) {
+                simpleFrameContacts.CollisionFilterMask = (int)component.CanCollideWith;
+                simpleFrameContacts.CollisionFilterGroup = (int)component.CollisionGroup;
+                if (component.CurrentPhysicalContacts == null) {
+                    component.CurrentPhysicalContacts = new List<ContactPoint>();
+                } else component.CurrentPhysicalContacts.Clear();
+                collisionWorld.ContactTest(component.NativeCollisionObject, simpleFrameContacts);
+            } else {
+                currentFrameContacts.CollisionFilterMask = (int)component.CanCollideWith;
+                currentFrameContacts.CollisionFilterGroup = (int)component.CollisionGroup;
+                collisionWorld.ContactTest(component.NativeCollisionObject, currentFrameContacts);
+            }
         }
 
         private readonly FastList<ContactPoint> currentToRemove = new FastList<ContactPoint>();
