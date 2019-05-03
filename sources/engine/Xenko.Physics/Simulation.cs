@@ -1261,18 +1261,6 @@ namespace Xenko.Physics
                     component0.CurrentPhysicalContacts.Add(cp);
                 }
 
-                if (component1.ProcessCollisionsSlim) {
-                    ContactPoint cp = new ContactPoint {
-                        ColliderA = component1,
-                        ColliderB = component0,
-                        Distance = contact.Distance,
-                        Normal = -contact.NormalWorldOnB,
-                        PositionOnA = contact.PositionWorldOnB,
-                        PositionOnB = contact.PositionWorldOnA,
-                    };
-                    component1.CurrentPhysicalContacts.Add(cp);
-                }
-
                 return 0f;
             }
         }
@@ -1313,9 +1301,7 @@ namespace Xenko.Physics
             if( component.ProcessCollisionsSlim ) {
                 simpleFrameContacts.CollisionFilterMask = (int)component.CanCollideWith;
                 simpleFrameContacts.CollisionFilterGroup = (int)component.CollisionGroup;
-                if (component.CurrentPhysicalContacts == null) {
-                    component.CurrentPhysicalContacts = new List<ContactPoint>();
-                } else component.CurrentPhysicalContacts.Clear();
+                component.CurrentPhysicalContacts.Clear();
                 collisionWorld.ContactTest(component.NativeCollisionObject, simpleFrameContacts);
             } else {
                 currentFrameContacts.CollisionFilterMask = (int)component.CanCollideWith;

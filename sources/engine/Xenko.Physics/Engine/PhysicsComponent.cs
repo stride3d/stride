@@ -91,7 +91,7 @@ namespace Xenko.Engine
         public CollisionFilterGroupFlags CanCollideWith { get; set; } = CollisionFilterGroupFlags.AllFilter;
 
         /// <summary>
-        /// Gets or sets if this element will use asyc methods to process collisions
+        /// Gets or sets if this element will use async methods to process collisions & populate Collisions
         /// </summary>
         /// <value>
         /// true, false
@@ -114,7 +114,16 @@ namespace Xenko.Engine
         /// </userdoc>
         [Display("Simple collision storage")]
         [DataMemberIgnore]
-        public bool ProcessCollisionsSlim { get; set; } = false;
+        public bool ProcessCollisionsSlim {
+            get {
+                return _ProcessCollisionsSlim;
+            }
+            set {
+                if (value && CurrentPhysicalContacts == null) CurrentPhysicalContacts = new List<ContactPoint>();
+                _ProcessCollisionsSlim = value;
+            }
+        }
+        private bool _ProcessCollisionsSlim = false;
 
         /// <summary>
         /// If we are using ProcessCollisionSlim, this list will maintain all current collisions
