@@ -46,10 +46,7 @@ namespace Xenko.LauncherApp.Services
                 catch (Exception e)
                 {
                     dispatcher.Invoke(() => selfUpdateWindow?.ForceClose());
-                    string message = $"An error occurred while updating the launcher. If the problem persists, please reinstall this application.{Environment.NewLine}{Environment.NewLine}Details:{Environment.NewLine}{e}";
-                    await services.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
-                    // We do not want our users to use the old launcher when a new one is available.
-                    Environment.Exit(1);
+                    throw;
                 }
             });
         }

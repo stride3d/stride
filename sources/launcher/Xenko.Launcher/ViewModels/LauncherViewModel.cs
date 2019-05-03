@@ -40,7 +40,7 @@ namespace Xenko.LauncherApp.ViewModels
         private bool isOffline;
         private bool isSynchronizing = true;
         private string currentToolTip;
-        private string lastErrorOrWarning;
+        private List<(DateTime Time, MessageLevel Level, string Message)> logMessages = new List<(DateTime, MessageLevel, string)>();
         private bool autoCloseLauncher = LauncherSettings.CloseLauncherAutomatically;
         private bool lastActiveVersionRestored;
         private AnnouncementViewModel announcement;
@@ -111,7 +111,18 @@ namespace Xenko.LauncherApp.ViewModels
 
         public string CurrentToolTip { get { return currentToolTip; } set { SetValue(ref currentToolTip, value); } }
 
-        public string LastErrorOrWarning { get { return lastErrorOrWarning; } set { SetValue(ref lastErrorOrWarning, value); } }
+        public string LogMessages
+        {
+            get
+            {
+                lock (logMessages)
+                {
+                    if (logMessages.Count == 0)
+                        return "Empty";
+                    return string.Join(Environment.NewLine, logMessages.Select(x => $"[{x.Time.ToString("HH:mm:ss")}] {x.Level}: {x.Message}"));
+                }
+            }
+        }
 
         public bool AutoCloseLauncher { get { return autoCloseLauncher; } set { SetValue(ref autoCloseLauncher, value, () => LauncherSettings.CloseLauncherAutomatically = value); } }
 
@@ -135,7 +146,29 @@ namespace Xenko.LauncherApp.ViewModels
             await Task.Run(async () =>
             {
                 await RetrieveLocalXenkoVersions();
-                await RunLockTask(() => SelfUpdater.SelfUpdate(ServiceProvider, store));
+                await RunLockTask(async () =>
+                {
+                    try
+                    {
+                        await SelfUpdater.SelfUpdate(ServiceProvider, store);
+                    }
+                    catch (Exception e)
+                    {
+                        var message = $@"**An error occurred while updating the launcher. If the problem persists, please reinstall this application.**
+### Log
+```
+{LogMessages}
+```
+
+### Exception
+```
+{e.FormatSummary(false).TrimEnd(Environment.NewLine.ToCharArray())}
+```";
+                        await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Error);
+                        // We do not want our users to use the old launcher when a new one is available.
+                        Environment.Exit(1);
+                    }
+                });
                 await RetrieveServerXenkoVersions();
                 await VsixPackage.UpdateFromStore();
                 await CheckForFirstInstall();
@@ -298,11 +331,11 @@ namespace Xenko.LauncherApp.ViewModels
                 // Inform the user if we just switched offline
                 if (IsOffline && !wasOffline)
                 {
-                    var message = Strings.ErrorOfflineMode;
-                    if (!string.IsNullOrEmpty(LastErrorOrWarning))
-                    {
-                        message += Environment.NewLine + Environment.NewLine + Strings.Details + Environment.NewLine + LastErrorOrWarning;
-                    }
+                    var message = $@"**{Strings.ErrorOfflineMode}**
+### Log
+```
+{LogMessages}
+```";
                     await ServiceProvider.Get<IDialogService>().MessageBox(message, MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
@@ -565,9 +598,9 @@ namespace Xenko.LauncherApp.ViewModels
 
         void IPackagesLogger.Log(MessageLevel level, string message)
         {
-            if (level == MessageLevel.Warning || level == MessageLevel.Error)
+            lock (logMessages)
             {
-                LastErrorOrWarning = string.Format(message);
+                logMessages.Add((DateTime.Now, level, message));
             }
         }
 
