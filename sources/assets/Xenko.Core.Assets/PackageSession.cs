@@ -404,10 +404,10 @@ namespace Xenko.Core.Assets
         /// <summary>
         /// The visual studio version property used for newly created project solution files
         /// </summary>
-        public static readonly Version DefaultVisualStudioVersion = new Version("14.0.23107.0");
+        public static readonly Version DefaultVisualStudioVersion = new Version("16.0.0.0");
 
         internal static readonly string SolutionHeader = @"Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
+# Visual Studio 16
 VisualStudioVersion = {0}
 MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
 
