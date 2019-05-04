@@ -23,12 +23,12 @@ namespace Xenko.VisualStudio.PackageInstall
                 const string vsixFile = "Xenko.vsix";
 
                 // Locate VSIXInstaller.exe
-                // We now only deal with VS2017+ which has a unified installer. Still getting latest version of VS possible, in case there is some bugfixes or incompatible changes.
-                var visualStudioVersionByVsixVersion = VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller && x.VsixInstallerVersion == VSIXInstallerVersion.VS2017AndFutureVersions);
+                // We now only deal with VS2019+ which has a unified installer. Still getting latest version of VS possible, in case there is some bugfixes or incompatible changes.
+                var visualStudioVersionByVsixVersion = VisualStudioVersions.AvailableVisualStudioInstances.Where(x => x.HasVsixInstaller && x.VsixInstallerVersion == VSIXInstallerVersion.VS2019AndFutureVersions);
                 var visualStudioVersion = visualStudioVersionByVsixVersion.OrderByDescending(x => x.Version).FirstOrDefault(x => File.Exists(x.VsixInstallerPath));
                 if (visualStudioVersion == null)
                 {
-                    throw new InvalidOperationException($"Could not find a proper installation of Visual Studio 2017 or later");
+                    throw new InvalidOperationException($"Could not find a proper installation of Visual Studio 2019 or later");
                 }
 
                 switch (args[0])

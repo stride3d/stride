@@ -18,6 +18,6 @@
     <PackageReference Include="Xenko.Particles" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" />
     <PackageReference Include="Xenko.UI" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" />
 
-    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" IncludeAssets="build;buildTransitive" />
   </ItemGroup>
 </Project>
