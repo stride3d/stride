@@ -33,7 +33,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
-    <PackageReference Include="NuGet.Configuration" Version="4.9.1" />
+    <PackageReference Include="NuGet.Configuration" Version="5.0.0" />
     <PackageReference Include="SharpDX" Version="4.0.1" />
     <PackageReference Include="System.Management" Version="4.5.0" />
     <Reference Include="System.Windows.Forms" />
