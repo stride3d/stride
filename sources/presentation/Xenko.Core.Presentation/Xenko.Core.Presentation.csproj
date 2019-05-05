@@ -1,7 +1,7 @@
 ﻿<Project>
 
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
 
   <PropertyGroup>
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
@@ -61,7 +61,7 @@
   </ItemGroup>
 
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>

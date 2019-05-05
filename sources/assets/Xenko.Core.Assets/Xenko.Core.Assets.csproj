@@ -1,6 +1,6 @@
 <Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -50,5 +50,5 @@
   <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="..\Xenko.Core.Assets.Yaml\Xenko.Core.Assets.Yaml.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
 </Project>
