@@ -238,7 +238,7 @@ namespace Xenko.Physics
             foreach (var dataPair in ComponentDatas)
             {
                 var data = dataPair.Value;
-                var shouldProcess = data.PhysicsComponent.ProcessCollisions || ((data.PhysicsComponent as PhysicsTriggerComponentBase)?.IsTrigger ?? false);
+                var shouldProcess = data.PhysicsComponent.ProcessCollisionsSlim || data.PhysicsComponent.ProcessCollisions || ((data.PhysicsComponent as PhysicsTriggerComponentBase)?.IsTrigger ?? false);
                 if (data.PhysicsComponent.Enabled && shouldProcess && data.PhysicsComponent.ColliderShape != null)
                 {
                     Simulation.ContactTest(data.PhysicsComponent);

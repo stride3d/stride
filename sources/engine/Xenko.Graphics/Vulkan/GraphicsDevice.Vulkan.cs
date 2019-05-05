@@ -225,7 +225,9 @@ namespace Xenko.Graphics
                 WaitSemaphores = new IntPtr(&presentSemaphoreCopy),
                 WaitDstStageMask = new IntPtr(&pipelineStageFlags),
             };
-            NativeCommandQueue.Submit(1, &submitInfo, fence);
+            lock (PresentLock) {
+                NativeCommandQueue.Submit(1, &submitInfo, fence);
+            }
 
             presentSemaphore = Semaphore.Null;
             nativeResourceCollector.Release();
@@ -526,7 +528,9 @@ namespace Xenko.Graphics
                 WaitSemaphores = new IntPtr(&presentSemaphoreCopy),
                 WaitDstStageMask = new IntPtr(&pipelineStageFlags),
             };
-            NativeCommandQueue.Submit(1, &submitInfo, fence);
+            lock (PresentLock) {
+                NativeCommandQueue.Submit(1, &submitInfo, fence);
+            }
 
             presentSemaphore = Semaphore.Null;
             nativeResourceCollector.Release();

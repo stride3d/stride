@@ -16,7 +16,6 @@ namespace Xenko.Physics
         public CharacterComponent()
         {
             StepHeight = 0.1f;
-            ProcessCollisions = false;
         }
         
         /// <summary>
