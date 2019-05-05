@@ -137,7 +137,6 @@ namespace Xenko.Shaders.Compiler
             shaderMixinSource.AddMacro("GRAPHICS_PROFILE_LEVEL_11_0", (int)GraphicsProfile.Level_11_0);
             shaderMixinSource.AddMacro("GRAPHICS_PROFILE_LEVEL_11_1", (int)GraphicsProfile.Level_11_1);
             shaderMixinSource.AddMacro("GRAPHICS_PROFILE_LEVEL_11_2", (int)GraphicsProfile.Level_11_2);
-            shaderMixinSource.AddMacro("GRAPHICS_PROFILE_LEVEL_12", (int)GraphicsProfile.Level_12);
 
             // In .xksl, class has been renamed to shader to avoid ambiguities with HLSL
             shaderMixinSource.AddMacro("class", "shader");

@@ -179,7 +179,6 @@ namespace Xenko.Assets.Textures
                 case GraphicsProfile.Level_11_0:
                 case GraphicsProfile.Level_11_1:
                 case GraphicsProfile.Level_11_2:
-                case GraphicsProfile.Level_12:
                     maxTextureSize = 16384;
                     break;
                 default:
@@ -233,7 +232,6 @@ namespace Xenko.Assets.Textures
                                     case GraphicsProfile.Level_11_0:
                                     case GraphicsProfile.Level_11_1:
                                     case GraphicsProfile.Level_11_2:
-                                    case GraphicsProfile.Level_12:
                                         // GLES3.0 starting from Level_10_0, this profile enables ETC2 compression on Android
                                         outputFormat = alphaMode == AlphaFormat.None && !parameters.IsSRgb ? PixelFormat.ETC1 : parameters.IsSRgb ? PixelFormat.ETC2_RGBA_SRgb : PixelFormat.ETC2_RGBA;
                                         break;
@@ -362,8 +360,6 @@ namespace Xenko.Assets.Textures
                                             case GraphicsProfile.Level_11_0:
                                             case GraphicsProfile.Level_11_1:
                                             case GraphicsProfile.Level_11_2:
-                                            case GraphicsProfile.Level_12:
-                                            
                                                 // GLES3.0 starting from Level_10_0, this profile enables ETC2 compression on Android
                                                 outputFormat = alphaMode == AlphaFormat.None ? PixelFormat.ETC1 : PixelFormat.ETC2_RGBA;
                                                 break;
