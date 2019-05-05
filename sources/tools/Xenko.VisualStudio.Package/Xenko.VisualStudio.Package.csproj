@@ -25,40 +25,14 @@
     <None Remove="NShader\Common\XenkoShaderKeywords.map" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EnvDTE" Version="8.0.1" />
-    <PackageReference Include="EnvDTE100" Version="10.0.1" />
-    <PackageReference Include="EnvDTE80" Version="8.0.1" />
-    <PackageReference Include="EnvDTE90" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="1.1.4322" />
+    <PackageReference Include="EnvDTE80" Version="8.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Designer.Interfaces" Version="1.1.4323" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" Version="7.10.6071" />
     <PackageReference Include="Microsoft.VisualStudio.Package.LanguageService.14.0" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.10.0" Version="10.0.30319" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.11.0" Version="11.0.50727" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.12.0" Version="12.0.21003" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.14.0" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="7.10.6071" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="10.0.30319" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="8.0.50727" />
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0" Version="9.0.30729" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop" Version="7.10.6070" />
-    <PackageReference Include="Microsoft.VisualStudio.TextManager.Interop.8.0" Version="8.0.50727" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="14.0.51107" />
-    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="14.0.23205" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="14.0.51103" />
-    <PackageReference Include="stdole" Version="7.0.3301" />
-    <PackageReference Include="VSLangProj" Version="7.0.3300" />
-	<PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.0.26201" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="14.0.25023" />
+    <PackageReference Include="VSLangProj" Version="7.0.3301" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="15.0.26201" />
 
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -70,17 +44,6 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsBase" />
     <Reference Include="System.Xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <COMReference Include="stdole">
-      <Guid>{00020430-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>2</VersionMajor>
-      <VersionMinor>0</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
-    </COMReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\assets\Xenko.Core.Assets\PackageSessionHelper.Solution.cs">
