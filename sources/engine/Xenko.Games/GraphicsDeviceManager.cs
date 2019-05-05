@@ -119,7 +119,7 @@ namespace Xenko.Games
             preferredRefreshRate = new Rational(60, 1);
             PreferredMultisampleCount = MultisampleCount.None;
             PreferredGraphicsProfile = new[]
-                {
+                {   
                     GraphicsProfile.Level_11_1, 
                     GraphicsProfile.Level_11_0, 
                     GraphicsProfile.Level_10_1, 
@@ -170,7 +170,8 @@ namespace Xenko.Games
         /// </summary>
         /// <value>The graphics profile.</value>
         /// <remarks>
-        /// By default, the PreferredGraphicsProfile is set to { <see cref="GraphicsProfile.Level_11_1"/>, 
+        /// By default, the PreferredGraphicsProfile is set to { <see cref="GraphicsProfile.Level_12"/>
+        /// <see cref="GraphicsProfile.Level_12"/>,
         /// <see cref="GraphicsProfile.Level_11_0"/>,
         /// <see cref="GraphicsProfile.Level_10_1"/>,
         /// <see cref="GraphicsProfile.Level_10_0"/>,

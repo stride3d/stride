@@ -40,16 +40,19 @@ namespace Xenko.Graphics
         /// <summary>
         /// Direct3D11.
         /// </summary>
+        [Display("Direct3D 11")]
         Direct3D11,
 
         /// <summary>
         /// Direct3D12.
         /// </summary>
+        [Display("Direct3D 12")]
         Direct3D12,
 
         /// <summary>
         /// OpenGL.
         /// </summary>
+        [Display("OpenGL")]
         OpenGL,
 
         /// <summary>
@@ -59,8 +62,9 @@ namespace Xenko.Graphics
         OpenGLES,
 
         /// <summary>
-        /// Vulkan
+        /// Vulkan.
         /// </summary>
+        [Display("Vulkan")]
         Vulkan,
     }
 

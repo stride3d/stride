@@ -57,5 +57,11 @@ namespace Xenko.Graphics
         /// </summary>
         [Display("Direct3D 11.2")]
         Level_11_2 = 0xB200,
+
+        /// <summary>
+        /// Vulkan support (Shader Level 6.0, Compute Shaders, Domain/Hull Shaders)
+        /// </summary>
+        [Display("Vulkan")]
+        Level_12 = 0xB210,
     }
 }

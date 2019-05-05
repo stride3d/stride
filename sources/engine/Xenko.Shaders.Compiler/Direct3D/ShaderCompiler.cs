@@ -504,6 +504,7 @@ namespace Xenko.Shaders.Compiler.Direct3D
                     return "4_1";
                 case GraphicsProfile.Level_11_0:
                 case GraphicsProfile.Level_11_1:
+                case GraphicsProfile.Level_12:
                     return "5_0";
             }
             throw new ArgumentException("graphicsProfile");
