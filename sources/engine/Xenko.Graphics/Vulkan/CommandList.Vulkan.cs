@@ -91,9 +91,7 @@ namespace Xenko.Graphics
             CleanupRenderPass();
 
             // Close
-            lock (GraphicsDevice.PresentLock) {
-                currentCommandList.NativeCommandBuffer.End();
-            }
+            currentCommandList.NativeCommandBuffer.End();
 
             // Staging resources not updated anymore
             foreach (var stagingResource in currentCommandList.StagingResources)
@@ -113,7 +111,11 @@ namespace Xenko.Graphics
         /// </summary>
         public void Flush()
         {
-            GraphicsDevice.ExecuteCommandList(Close());
+            CompiledCommandList ccl;
+            lock (GraphicsDevice.PresentLock) {
+                ccl = Close();
+            }
+            GraphicsDevice.ExecuteCommandList(ccl);
         }
 
         private unsafe void FlushInternal(bool wait)
