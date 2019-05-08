@@ -69,35 +69,33 @@ namespace Xenko.Graphics
 
             set
             {
-                if( value == _fullscreen ) return;
                 _fullscreen = value;
-                CreateSwapChain();
             }
         }
 
         AutoResetEvent presentWaiter = new AutoResetEvent(false);
         private volatile bool runPresenter;
         private Thread presenterThread;
+        private volatile uint presentingIndex;
 
         private unsafe void PresenterThread() {
+            Swapchain swapChainCopy = swapChain;
+            uint currentBufferIndexCopy;
+            PresentInfo presentInfo = new PresentInfo {
+                StructureType = StructureType.PresentInfo,
+                SwapchainCount = 1,
+                Swapchains = new IntPtr(&swapChainCopy),
+                ImageIndices = new IntPtr(&currentBufferIndexCopy),
+                WaitSemaphoreCount = 0
+            };
             while (runPresenter) {
-                // get the information of the next frame we will present with
-                var swapChainCopy = swapChain;
-                var currentBufferIndexCopy = currentBufferIndex;
-
                 // wait until we have a frame to present
                 presentWaiter.WaitOne();
 
                 // are we still OK to present?
                 if (runPresenter == false) return;
 
-                PresentInfo presentInfo = new PresentInfo {
-                    StructureType = StructureType.PresentInfo,
-                    SwapchainCount = 1,
-                    Swapchains = new IntPtr(&swapChainCopy),
-                    ImageIndices = new IntPtr(&currentBufferIndexCopy),
-                    WaitSemaphoreCount = 0
-                };
+                currentBufferIndex = presentingIndex;
 
                 // Present
                 lock (GraphicsDevice.PresentLock) {
@@ -108,13 +106,15 @@ namespace Xenko.Graphics
 
         public override unsafe void Present()
         {
+            // collect and let presenter thread know to present
+            presentingIndex = currentBufferIndex;
             presentWaiter.Set();
-
-            // Get next image
-            GraphicsDevice.NativeDevice.AcquireNextImageWithResult(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null, out currentBufferIndex);
 
             // Flip render targets
             backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
+
+            // Get next image
+            GraphicsDevice.NativeDevice.AcquireNextImageWithResult(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null, out currentBufferIndex);
         }
 
         public override void BeginDraw(CommandList commandList)
@@ -159,17 +159,8 @@ namespace Xenko.Graphics
 
         protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
         {
-            var newTextureDescription = DepthStencilBuffer.Description;
-            newTextureDescription.Width = width;
-            newTextureDescription.Height = height;
-
-            // Manually update the texture
-            DepthStencilBuffer.OnDestroyed();
-
-            // Put it in our back buffer texture
-            DepthStencilBuffer.InitializeFrom(newTextureDescription);
+            // handled by CreateSwapChain()
         }
-
 
         private unsafe void DestroySwapchain()
         {
@@ -282,6 +273,18 @@ namespace Xenko.Graphics
 
             DestroySwapchain();
             swapChain = newSwapChain;
+            CreateBackBuffers();
+
+            // resize/create stencil buffers
+            var newTextureDescription = DepthStencilBuffer.Description;
+            newTextureDescription.Width = Description.BackBufferWidth;
+            newTextureDescription.Height = Description.BackBufferHeight;
+
+            // Manually update the texture
+            DepthStencilBuffer.OnDestroyed();
+
+            // Put it in our back buffer texture
+            DepthStencilBuffer.InitializeFrom(newTextureDescription);
 
             // start new presentation thread
             runPresenter = true;
@@ -289,8 +292,6 @@ namespace Xenko.Graphics
             presenterThread.Name = "Vulkan Presentation Thread";
             presenterThread.Priority = ThreadPriority.AboveNormal;
             presenterThread.Start();
-
-            CreateBackBuffers();
         }
 
         private unsafe void CreateSurface()
@@ -330,6 +331,8 @@ namespace Xenko.Graphics
 
         private unsafe void CreateBackBuffers()
         {
+            backbuffer.OnDestroyed();
+
             // Create the texture object
             var backBufferDescription = new TextureDescription
             {
@@ -399,7 +402,6 @@ namespace Xenko.Graphics
             GraphicsDevice.NativeCommandQueue.WaitIdle();
             commandBuffer.Reset(CommandBufferResetFlags.None);
             
-            // Get next image
             currentBufferIndex = GraphicsDevice.NativeDevice.AcquireNextImage(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null);
 
             // Apply the first swap chain image to the texture

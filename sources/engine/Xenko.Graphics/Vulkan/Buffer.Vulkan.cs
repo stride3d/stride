@@ -210,7 +210,9 @@ namespace Xenko.Graphics
                             DestinationOffset = 0,
                             Size = (uint)sizeInBytes
                         };
-                        commandBuffer.CopyBuffer(uploadResource, NativeBuffer, 1, &bufferCopy);
+                        lock (GraphicsDevice.QueueLock) {
+                            commandBuffer.CopyBuffer(uploadResource, NativeBuffer, 1, &bufferCopy);
+                        }
                     }
                 }
                 else
