@@ -43,6 +43,24 @@ namespace Xenko.Graphics.SDL
         }
 
         /// <summary>
+        /// Get the current display information of the display (defaults to 0, the first display).
+        /// </summary>
+        static public void GetDisplayInformation(out int width, out int height, out int refresh_rate, int display = 0) {
+            SDL.SDL_GetCurrentDisplayMode(display, out SDL.SDL_DisplayMode mode);
+            width = mode.w;
+            height = mode.h;
+            refresh_rate = mode.refresh_rate;
+        }
+
+        /// <summary>
+        /// Gets which display index this window is on.
+        /// </summary>
+        /// <returns></returns>
+        public int GetWindowDisplay() {
+            return SDL.SDL_GetWindowDisplayIndex(SdlHandle);
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Window"/> class with <paramref name="title"/> as the title of the Window.
         /// </summary>
         /// <param name="title">Title of the window, see Text property.</param>
@@ -173,14 +191,6 @@ namespace Xenko.Graphics.SDL
         public void Show()
         {
             SDL.SDL_ShowWindow(SdlHandle);
-        }
-
-        /// <summary>
-        /// Get the current refresh rate of the window in Hz.
-        /// </summary>
-        public int GetRefreshRate() {
-            SDL.SDL_GetCurrentDisplayMode(SDL.SDL_GetWindowDisplayIndex(SdlHandle), out SDL.SDL_DisplayMode mode);
-            return mode.refresh_rate;
         }
 
         /// <summary>

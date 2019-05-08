@@ -42,7 +42,7 @@ namespace Xenko.Games
 
         public override void BeginScreenDeviceChange(bool willBeFullScreen)
         {
-            // fullscreen is handled by IsFullscreen
+            IsFullscreen = willBeFullScreen;
         }
 
         public override void EndScreenDeviceChange(int clientWidth, int clientHeight)
@@ -191,8 +191,8 @@ namespace Xenko.Games
         /// <summary>
         /// Gets refresh rate of window in Hz.
         /// </summary>
-        public int GetRefreshRate() {
-            return window.GetRefreshRate();
+        public void GetDisplayInformation(out int width, out int height, out int refresh_rate, int display = -1) {
+            Window.GetDisplayInformation(out width, out height, out refresh_rate, display == -1 ? window.GetWindowDisplay() : display);
         }
 
         public override Int2 Position
@@ -279,7 +279,8 @@ namespace Xenko.Games
             if (window != null)
             {
                 window.MaximizeBox = allowUserResizing;
-                window.FormBorderStyle = isFullScreenMaximized || isBorderLess ? FormBorderStyle.None : allowUserResizing ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle;
+                window.FormBorderStyle = isFullScreenMaximized || isBorderLess ? FormBorderStyle.None : 
+                                         GraphicsDevice.Platform != GraphicsPlatform.Vulkan && allowUserResizing ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle;
 
                 if (isFullScreenMaximized)
                 {

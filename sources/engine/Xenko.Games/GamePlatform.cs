@@ -342,12 +342,13 @@ namespace Xenko.Games
 
         public virtual void DeviceChanged(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
-            // Force to resize the gameWindow
-            gameWindow.Resize(deviceInformation.PresentationParameters.BackBufferWidth, deviceInformation.PresentationParameters.BackBufferHeight);
         }
 
         public virtual GraphicsDevice ChangeOrCreateDevice(GraphicsDevice currentDevice, GraphicsDeviceInformation deviceInformation)
         {
+            // Force to resize the gameWindow before the device is created, so it creates to our window
+            gameWindow.Resize(deviceInformation.PresentationParameters.BackBufferWidth, deviceInformation.PresentationParameters.BackBufferHeight);
+
             if (currentDevice == null)
             {
                 currentDevice = CreateDevice(deviceInformation);
@@ -356,8 +357,6 @@ namespace Xenko.Games
             {
                 RecreateDevice(currentDevice, deviceInformation);
             }
-
-            DeviceChanged(currentDevice, deviceInformation);
 
             return currentDevice;
         }

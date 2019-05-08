@@ -196,6 +196,44 @@ namespace Xenko.Engine
         public bool AutoLoadDefaultSettings { get; set; }
 
         /// <summary>
+        /// If AutoLoadDefaultSettings is true, these values will be set on game start.
+        /// </summary>
+        public bool SetDefaultSettings(int width, int height, bool fullscreen) {
+            try {
+                System.IO.File.WriteAllText("DefaultResolution.txt", width.ToString() + "\n" +
+                                                                     height.ToString() + "\n" +
+                                                                     (fullscreen ? "full" : "window"));
+                return true;
+            } catch(Exception e) {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Gets default settings that will be used on game startup, if AutoLoadDefaultSettings is true.
+        /// </summary>
+        public void GetDefaultSettings(out int width, out int height, out bool fullscreen) {
+            // do we have a default file?
+            if (File.Exists("DefaultResolution.txt")) {
+                try {
+                    string[] vals = File.ReadAllLines("DefaultResolution.txt");
+                    width = int.Parse(vals[0].Trim());
+                    height = int.Parse(vals[1].Trim());
+                    fullscreen = vals[2].Trim().ToLower() == "full";
+                    return;
+                } catch (Exception e) { }
+            }
+            try {
+                Graphics.SDL.Window.GetDisplayInformation(out width, out height, out int refresh_rate);
+                fullscreen = true;
+            } catch(Exception e) {
+                width = 1280;
+                height = 720;
+                fullscreen = false;
+            }
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Game"/> class.
         /// </summary>
         public Game()
@@ -292,6 +330,9 @@ namespace Xenko.Engine
                     {
                         deviceManager.PreferredGraphicsProfile = new[] { renderingSettings.DefaultGraphicsProfile };
                     }
+
+                    GetDefaultSettings(out renderingSettings.DefaultBackBufferWidth, out renderingSettings.DefaultBackBufferHeight, out bool fullScreen);
+                    deviceManager.IsFullScreen = fullScreen;
 
                     if (renderingSettings.DefaultBackBufferWidth > 0) deviceManager.PreferredBackBufferWidth = renderingSettings.DefaultBackBufferWidth;
                     if (renderingSettings.DefaultBackBufferHeight > 0) deviceManager.PreferredBackBufferHeight = renderingSettings.DefaultBackBufferHeight;
