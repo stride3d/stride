@@ -16,6 +16,12 @@ using Xenko.Rendering;
 
 namespace Xenko.Engine
 {
+    public enum CollisionState
+    {
+        Ignore,
+        Detect
+    }
+    
     [DataContract("PhysicsComponent", Inherited = true)]
     [Display("Physics", Expand = ExpandRule.Once)]
     [DefaultEntityComponentProcessor(typeof(PhysicsProcessor))]
@@ -778,6 +784,42 @@ namespace Xenko.Engine
             //read from ModelViewHierarchy
             var model = Data.ModelComponent;
             BoneWorldMatrix = model.Skeleton.NodeTransformations[BoneIndex].WorldMatrix;
+        }
+
+        public void IgnoreCollisionWith(PhysicsComponent other, CollisionState state)
+        {
+            var otherNative = other.NativeCollisionObject;
+            switch(state)
+            {
+                // Note that we're calling 'SetIgnoreCollisionCheck' on both objects as bullet doesn't
+                // do it itself ; One of the object in the pair will report that it doesn't ignore
+                // collision with the other even though you set the other as ignoring the former.
+                case CollisionState.Ignore:
+                {
+                    // Bullet uses an array per collision object to store all of the objects to ignore,
+                    // when calling this method it adds the referenced object without checking for duplicates,
+                    // so if a user where to call 'Ignore' of this function on this object n-times he'll have to call it
+                    // that same amount of time to re-detect them instead of just once.
+                    // We're calling false here to remove a previous ignore if there was any and re-ignoring
+                    // to force it to have only a single instance.
+                    otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, false);
+                    NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, false);
+                    otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, true);
+                    NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, true);
+                    break;
+                }
+                case CollisionState.Detect:
+                {
+                    otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, false);
+                    NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, false);
+                    break;
+                }
+            }
+        }
+
+        public bool IsIgnoringCollisionWith(PhysicsComponent other)
+        {
+            return ! NativeCollisionObject.CheckCollideWith(other.NativeCollisionObject);
         }
     }
 }
