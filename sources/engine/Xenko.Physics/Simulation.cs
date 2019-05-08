@@ -13,6 +13,9 @@ namespace Xenko.Physics
 {
     public class Simulation : IDisposable
     {
+        const CollisionFilterGroups DefaultGroup = (CollisionFilterGroups)BulletSharp.CollisionFilterGroups.DefaultFilter;
+        const CollisionFilterGroupFlags DefaultFlags = (CollisionFilterGroupFlags)BulletSharp.CollisionFilterGroups.AllFilter;
+
         private readonly PhysicsProcessor processor;
 
         private readonly BulletSharp.DiscreteDynamicsWorld discreteDynamicsWorld;
@@ -314,111 +317,9 @@ namespace Xenko.Physics
         /// </exception>
         public static Constraint CreateConstraint(ConstraintTypes type, RigidbodyComponent rigidBodyA, Matrix frameA, bool useReferenceFrameA = false)
         {
-            if (rigidBodyA == null) throw new Exception("Both RigidBodies must be valid");
-
-            var rbA = rigidBodyA.InternalRigidBody;
-
-            switch (type)
-            {
-                case ConstraintTypes.Point2Point:
-                    {
-                        var constraint = new Point2PointConstraint
-                        {
-                            InternalPoint2PointConstraint = new BulletSharp.Point2PointConstraint(rbA, frameA.TranslationVector),
-
-                            RigidBodyA = rigidBodyA,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalPoint2PointConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
-                case ConstraintTypes.Hinge:
-                    {
-                        var constraint = new HingeConstraint
-                        {
-                            InternalHingeConstraint = new BulletSharp.HingeConstraint(rbA, frameA, useReferenceFrameA),
-
-                            RigidBodyA = rigidBodyA,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalHingeConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
-                case ConstraintTypes.Slider:
-                    {
-                        var constraint = new SliderConstraint
-                        {
-                            InternalSliderConstraint = new BulletSharp.SliderConstraint(rbA, frameA, useReferenceFrameA),
-
-                            RigidBodyA = rigidBodyA,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalSliderConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
-                case ConstraintTypes.ConeTwist:
-                    {
-                        var constraint = new ConeTwistConstraint
-                        {
-                            InternalConeTwistConstraint = new BulletSharp.ConeTwistConstraint(rbA, frameA),
-
-                            RigidBodyA = rigidBodyA,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalConeTwistConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
-                case ConstraintTypes.Generic6DoF:
-                    {
-                        var constraint = new Generic6DoFConstraint
-                        {
-                            InternalGeneric6DofConstraint = new BulletSharp.Generic6DofConstraint(rbA, frameA, useReferenceFrameA),
-
-                            RigidBodyA = rigidBodyA,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalGeneric6DofConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
-                case ConstraintTypes.Generic6DoFSpring:
-                    {
-                        var constraint = new Generic6DoFSpringConstraint
-                        {
-                            InternalGeneric6DofSpringConstraint = new BulletSharp.Generic6DofSpringConstraint(rbA, frameA, useReferenceFrameA),
-
-                            RigidBodyA = rigidBodyA,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalGeneric6DofConstraint = constraint.InternalGeneric6DofSpringConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
-                case ConstraintTypes.Gear:
-                    {
-                        throw new Exception("A Gear constraint always needs two rigidbodies to be created.");
-                    }
-            }
-
-            return null;
+            return CreateConstraintInternal(type, rigidBodyA, frameA, useReferenceFrameA:useReferenceFrameA);
         }
-
+        
         /// <summary>
         /// Creates the constraint.
         /// </summary>
@@ -437,136 +338,132 @@ namespace Xenko.Physics
         public static Constraint CreateConstraint(ConstraintTypes type, RigidbodyComponent rigidBodyA, RigidbodyComponent rigidBodyB, Matrix frameA, Matrix frameB, bool useReferenceFrameA = false)
         {
             if (rigidBodyA == null || rigidBodyB == null) throw new Exception("Both RigidBodies must be valid");
-            //todo check if the 2 rbs are on the same engine instance!
+            return CreateConstraintInternal(type, rigidBodyA, frameA, rigidBodyB, frameB, useReferenceFrameA);
+        }
 
+
+        static Constraint CreateConstraintInternal(ConstraintTypes type, RigidbodyComponent rigidBodyA, Matrix frameA, RigidbodyComponent rigidBodyB = null, Matrix frameB = default, bool useReferenceFrameA = false)
+        {
+            if (rigidBodyA == null) throw new Exception($"{nameof(rigidBodyA)} must be valid");
+            if (rigidBodyB != null && rigidBodyB.Simulation != rigidBodyA.Simulation) throw new Exception("Both RigidBodies must be on the same simulation");
+
+            Constraint constraintBase;
             var rbA = rigidBodyA.InternalRigidBody;
-            var rbB = rigidBodyB.InternalRigidBody;
-
+            var rbB = rigidBodyB?.InternalRigidBody;
             switch (type)
             {
                 case ConstraintTypes.Point2Point:
+                {
+                    var constraint = new Point2PointConstraint
                     {
-                        var constraint = new Point2PointConstraint
-                        {
-                            InternalPoint2PointConstraint = new BulletSharp.Point2PointConstraint(rbA, rbB, frameA.TranslationVector, frameB.TranslationVector),
+                        InternalPoint2PointConstraint = 
+                            rigidBodyB == null ? 
+                            new BulletSharp.Point2PointConstraint(rbA, frameA.TranslationVector ) :
+                            new BulletSharp.Point2PointConstraint(rbA, rbB, frameA.TranslationVector, frameB.TranslationVector),
+                    };
+                    constraintBase = constraint;
 
-                            RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalPoint2PointConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-                        rigidBodyB.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
+                    constraint.InternalConstraint = constraint.InternalPoint2PointConstraint;
+                    break;
+                }
                 case ConstraintTypes.Hinge:
+                {
+                    var constraint = new HingeConstraint
                     {
-                        var constraint = new HingeConstraint
-                        {
-                            InternalHingeConstraint = new BulletSharp.HingeConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
+                        InternalHingeConstraint = 
+                            rigidBodyB == null ? 
+                                new BulletSharp.HingeConstraint(rbA, frameA ) :
+                                new BulletSharp.HingeConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
+                    };
+                    constraintBase = constraint;
 
-                            RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalHingeConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-                        rigidBodyB.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
+                    constraint.InternalConstraint = constraint.InternalHingeConstraint;
+                    break;
+                }
                 case ConstraintTypes.Slider:
+                {
+                    var constraint = new SliderConstraint
                     {
-                        var constraint = new SliderConstraint
-                        {
-                            InternalSliderConstraint = new BulletSharp.SliderConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
+                        InternalSliderConstraint = 
+                            rigidBodyB == null ? 
+                                new BulletSharp.SliderConstraint(rbA, frameA, useReferenceFrameA ) :
+                                new BulletSharp.SliderConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
+                    };
+                    constraintBase = constraint;
 
-                            RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalSliderConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-                        rigidBodyB.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
+                    constraint.InternalConstraint = constraint.InternalSliderConstraint;
+                    break;
+                }
                 case ConstraintTypes.ConeTwist:
+                {
+                    var constraint = new ConeTwistConstraint
                     {
-                        var constraint = new ConeTwistConstraint
-                        {
-                            InternalConeTwistConstraint = new BulletSharp.ConeTwistConstraint(rbA, rbB, frameA, frameB),
+                        InternalConeTwistConstraint =  
+                            rigidBodyB == null ? 
+                                new BulletSharp.ConeTwistConstraint(rbA, frameA) :
+                                new BulletSharp.ConeTwistConstraint(rbA, rbB, frameA, frameB),
+                    };
+                    constraintBase = constraint;
 
-                            RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalConeTwistConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-                        rigidBodyB.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
+                    constraint.InternalConstraint = constraint.InternalConeTwistConstraint;
+                    break;
+                }
                 case ConstraintTypes.Generic6DoF:
+                {
+                    var constraint = new Generic6DoFConstraint
                     {
-                        var constraint = new Generic6DoFConstraint
-                        {
-                            InternalGeneric6DofConstraint = new BulletSharp.Generic6DofConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
+                        InternalGeneric6DofConstraint =  
+                            rigidBodyB == null ? 
+                                new BulletSharp.Generic6DofConstraint(rbA, frameA, useReferenceFrameA) :
+                                new BulletSharp.Generic6DofConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
+                    };
+                    constraintBase = constraint;
 
-                            RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalGeneric6DofConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-                        rigidBodyB.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
+                    constraint.InternalConstraint = constraint.InternalGeneric6DofConstraint;
+                    break;
+                }
                 case ConstraintTypes.Generic6DoFSpring:
+                {
+                    var constraint = new Generic6DoFSpringConstraint
                     {
-                        var constraint = new Generic6DoFSpringConstraint
-                        {
-                            InternalGeneric6DofSpringConstraint = new BulletSharp.Generic6DofSpringConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
+                        InternalGeneric6DofSpringConstraint =  
+                            rigidBodyB == null ? 
+                                new BulletSharp.Generic6DofSpringConstraint(rbA, frameA, useReferenceFrameA) :
+                                new BulletSharp.Generic6DofSpringConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
+                    };
+                    constraintBase = constraint;
 
-                            RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalGeneric6DofConstraint = constraint.InternalGeneric6DofSpringConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-                        rigidBodyB.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
+                    constraint.InternalConstraint = constraint.InternalGeneric6DofConstraint = constraint.InternalGeneric6DofSpringConstraint;
+                    break;
+                }
                 case ConstraintTypes.Gear:
+                {
+                    var constraint = new GearConstraint
                     {
-                        var constraint = new GearConstraint
-                        {
-                            InternalGearConstraint = new BulletSharp.GearConstraint(rbA, rbB, frameA.TranslationVector, frameB.TranslationVector),
+                        InternalGearConstraint =  
+                            rigidBodyB == null ? 
+                                throw new Exception("A Gear constraint always needs two rigidbodies to be created.") :
+                                new BulletSharp.GearConstraint(rbA, rbB, frameA.TranslationVector, frameB.TranslationVector),
+                    };
+                    constraintBase = constraint;
 
-                            RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB,
-                        };
-
-                        constraint.InternalConstraint = constraint.InternalGearConstraint;
-
-                        rigidBodyA.LinkedConstraints.Add(constraint);
-                        rigidBodyB.LinkedConstraints.Add(constraint);
-
-                        return constraint;
-                    }
+                    constraint.InternalConstraint = constraint.InternalGearConstraint;
+                    break;
+                }
+                default:
+                    throw new ArgumentException(type.ToString());
             }
 
-            return null;
+            if(rigidBodyB != null)
+            {
+                constraintBase.RigidBodyB = rigidBodyB;
+                rigidBodyB.LinkedConstraints.Add(constraintBase);
+            }
+            rigidBodyA.LinkedConstraints.Add(constraintBase);
+
+            return constraintBase;
         }
+
 
         /// <summary>
         /// Adds the constraint to the engine processing pipeline.
@@ -608,134 +505,36 @@ namespace Xenko.Physics
             constraint.Simulation = null;
         }
 
-        private class XenkoAllHitsConvexResultCallback : BulletSharp.ConvexResultCallback
-        {
-            private IList<HitResult> resultsList;
-
-            public XenkoAllHitsConvexResultCallback(IList<HitResult> results)
-            {
-                resultsList = results;
-            }
-
-            public override float AddSingleResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
-            {
-                Vector3 normal;
-                if (normalInWorldSpace)
-                    normal = convexResult.HitNormalLocal;
-                else
-                    normal = Vector3.TransformNormal(convexResult.HitNormalLocal, convexResult.HitCollisionObject.WorldTransform.Basis);
-
-                resultsList.Add(new HitResult
-                {
-                    Succeeded = true,
-                    Collider = convexResult.HitCollisionObject.UserObject as PhysicsComponent,
-                    Point = Vector3.TransformCoordinate(convexResult.HitPointLocal, convexResult.HitCollisionObject.WorldTransform.Basis),
-                    Normal = normal,
-                    HitFraction = convexResult.HitFraction,
-                });
-                return convexResult.HitFraction;
-            }
-        }
-
-        private class XenkoAllHitsRayResultCallback : BulletSharp.AllHitsRayResultCallback
-        {
-            private IList<HitResult> resultsList;
-
-            public XenkoAllHitsRayResultCallback(ref Vector3 from, ref Vector3 to, IList<HitResult> results) : base(from, to)
-            {
-                resultsList = results;
-            }
-
-            public override float AddSingleResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
-            {
-                Vector3 normal;
-                if (normalInWorldSpace)
-                    normal = rayResult.HitNormalLocal;
-                else
-                    normal = Vector3.TransformNormal(rayResult.HitNormalLocal, rayResult.CollisionObject.WorldTransform.Basis);
-
-                resultsList.Add(new HitResult
-                {
-                    Succeeded = true,
-                    Collider = rayResult.CollisionObject.UserObject as PhysicsComponent,
-                    Point = Vector3.Lerp(this.RayFromWorld, this.RayToWorld, rayResult.HitFraction),
-                    Normal = normal,
-                    HitFraction = rayResult.HitFraction,
-                });
-                return rayResult.HitFraction;
-            }
-        }
-
         /// <summary>
-        /// Raycasts and stops at the first hit.
+        /// Raycasts and returns the closest hit
         /// </summary>
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
-        /// <returns></returns>
-        public HitResult Raycast(Vector3 from, Vector3 to)
-        {
-            var result = new HitResult(); //result.Succeeded is false by default
-
-            BulletSharp.Math.Vector3 fromBullet = from, toBullet = to;
-            using (var rcb = new BulletSharp.ClosestRayResultCallback(ref fromBullet, ref toBullet))
-            {
-                collisionWorld.RayTest(fromBullet, toBullet, rcb);
-
-                if (rcb.CollisionObject == null) return result;
-                result.Succeeded = true;
-                result.Collider = (PhysicsComponent)rcb.CollisionObject.UserObject;
-                result.Normal = rcb.HitNormalWorld;
-                result.Point = rcb.HitPointWorld;
-                result.HitFraction = rcb.ClosestHitFraction;
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Raycasts and stops at the first hit.
-        /// </summary>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
+        /// <param name="filterGroup">The collision group of this raycast</param>
+        /// <param name="filterFlags">The collision group that this raycast can collide with</param>
         /// <returns>The list with hit results.</returns>
-        public HitResult Raycast(Vector3 from, Vector3 to, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
+        public HitResult Raycast(Vector3 from, Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags)
         {
-            var result = new HitResult(); //result.Succeeded is false by default
-
-            BulletSharp.Math.Vector3 fromBullet = from, toBullet = to;
-            using (var rcb = new BulletSharp.ClosestRayResultCallback(ref fromBullet, ref toBullet)
-            {
-                CollisionFilterGroup = (short)collisionFilterGroups,
-                CollisionFilterMask = (short)collisionFilterGroupFlags,
-            })
-            {
-                collisionWorld.RayTest(fromBullet, toBullet, rcb);
-
-                if (rcb.CollisionObject == null) return result;
-                result.Succeeded = true;
-                result.Collider = (PhysicsComponent)rcb.CollisionObject.UserObject;
-                result.Normal = rcb.HitNormalWorld;
-                result.Point = rcb.HitPointWorld;
-                result.HitFraction = rcb.ClosestHitFraction;
-            }
-
-            return result;
+            var callback = XenkoClosestRayResultCallback.Shared(ref from, ref to, filterGroup, filterFlags);
+            collisionWorld.RayTest(from, to, callback);
+            return callback.Result;
         }
 
         /// <summary>
-        /// Raycasts penetrating any shape the ray encounters.
+        /// Raycasts, returns true when it hit something
         /// </summary>
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
-        /// <param name="resultsOutput">The list to fill with results.</param>
-        public void RaycastPenetrating(Vector3 from, Vector3 to, IList<HitResult> resultsOutput)
+        /// <param name="result">Raycast info</param>
+        /// <param name="filterGroup">The collision group of this raycast</param>
+        /// <param name="filterFlags">The collision group that this raycast can collide with</param>
+        /// <returns>The list with hit results.</returns>
+        public bool Raycast(Vector3 from, Vector3 to, out HitResult result, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags)
         {
-            using (var rcb = new XenkoAllHitsRayResultCallback(ref from, ref to, resultsOutput))
-            {
-                collisionWorld.RayTest(from, to, rcb);
-            }
+            var callback = XenkoClosestRayResultCallback.Shared(ref from, ref to, filterGroup, filterFlags);
+            collisionWorld.RayTest(from, to, callback);
+            result = callback.Result;
+            return result.Succeeded;
         }
 
         /// <summary>
@@ -758,101 +557,32 @@ namespace Xenko.Physics
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
         /// <param name="resultsOutput">The list to fill with results.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
-        public void RaycastPenetrating(Vector3 from, Vector3 to, IList<HitResult> resultsOutput, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
+        /// <param name="filterGroup">The collision group of this raycast</param>
+        /// <param name="filterFlags">The collision group that this raycast can collide with</param>
+        public void RaycastPenetrating(Vector3 from, Vector3 to, IList<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags)
         {
-            using (var rcb = new XenkoAllHitsRayResultCallback(ref from, ref to, resultsOutput)
-            {
-                CollisionFilterGroup = (short)collisionFilterGroups,
-                CollisionFilterMask = (short)collisionFilterGroupFlags,
-            })
-            {
-                collisionWorld.RayTest(from, to, rcb);
-            }
+            var callback = XenkoAllHitsRayResultCallback.Shared(ref from, ref to, resultsOutput, filterGroup, filterFlags);
+            collisionWorld.RayTest(from, to, callback);
         }
 
         /// <summary>
-        /// Raycasts penetrating any shape the ray encounters.
-        /// </summary>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
-        /// <returns>The list with hit results.</returns>
-        public FastList<HitResult> RaycastPenetrating(Vector3 from, Vector3 to, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
-        {
-            var results = new FastList<HitResult>();
-            RaycastPenetrating(from, to, results, collisionFilterGroups, collisionFilterGroupFlags);
-            return results;
-        }
-
-        /// <summary>
-        /// Performs a sweep test using a collider shape and stops at the first hit
+        /// Performs a sweep test using a collider shape and returns the closest hit
         /// </summary>
         /// <param name="shape">The shape.</param>
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
+        /// <param name="filterGroup">The collision group of this shape sweep</param>
+        /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
         /// <returns></returns>
         /// <exception cref="System.Exception">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public HitResult ShapeSweep(ColliderShape shape, Matrix from, Matrix to)
+        public HitResult ShapeSweep(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags)
         {
             var sh = shape.InternalShape as BulletSharp.ConvexShape;
             if (sh == null) throw new Exception("This kind of shape cannot be used for a ShapeSweep.");
 
-            var result = new HitResult(); //result.Succeeded is false by default
-
-            BulletSharp.Math.Vector3 fromBullet = from.TranslationVector, toBullet = to.TranslationVector;
-            using (var rcb = new BulletSharp.ClosestConvexResultCallback(ref fromBullet, ref toBullet))
-            {
-                collisionWorld.ConvexSweepTest(sh, from, to, rcb);
-
-                if (rcb.HitCollisionObject == null) return result;
-                result.Succeeded = true;
-                result.Collider = (PhysicsComponent)rcb.HitCollisionObject.UserObject;
-                result.Normal = rcb.HitNormalWorld;
-                result.Point = rcb.HitPointWorld;
-                result.HitFraction = rcb.ClosestHitFraction;
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Performs a sweep test using a collider shape and stops at the first hit
-        /// </summary>
-        /// <param name="shape">The shape.</param>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
-        /// <returns></returns>
-        /// <exception cref="System.Exception">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public HitResult ShapeSweep(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
-        {
-            var sh = shape.InternalShape as BulletSharp.ConvexShape;
-            if (sh == null) throw new Exception("This kind of shape cannot be used for a ShapeSweep.");
-
-            var result = new HitResult(); //result.Succeeded is false by default
-
-            BulletSharp.Math.Vector3 fromBullet = from.TranslationVector, toBullet = to.TranslationVector;
-            using (var rcb = new BulletSharp.ClosestConvexResultCallback(ref fromBullet, ref toBullet)
-            {
-                CollisionFilterGroup = (int)collisionFilterGroups,
-                CollisionFilterMask = (int)collisionFilterGroupFlags,
-            })
-            {
-                collisionWorld.ConvexSweepTest(sh, from, to, rcb);
-
-                if (rcb.HitCollisionObject == null) return result;
-                result.Succeeded = true;
-                result.Collider = (PhysicsComponent)rcb.HitCollisionObject.UserObject;
-                result.Normal = rcb.HitNormalWorld;
-                result.Point = rcb.HitPointWorld;
-                result.HitFraction = rcb.ClosestHitFraction;
-            }
-
-            return result;
+            var callback = XenkoClosestConvexResultCallback.Shared(filterGroup, filterFlags);
+            collisionWorld.ConvexSweepTest(sh, from, to, callback);
+            return callback.Result;
         }
 
         /// <summary>
@@ -861,31 +591,14 @@ namespace Xenko.Physics
         /// <param name="shape">The shape.</param>
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
-        /// <param name="resultsOutput">The list to fill with results.</param>
-        /// <exception cref="System.Exception">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public void ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, IList<HitResult> resultsOutput)
-        {
-            var sh = shape.InternalShape as BulletSharp.ConvexShape;
-            if (sh == null) throw new Exception("This kind of shape cannot be used for a ShapeSweep.");
-
-            using (var rcb = new XenkoAllHitsConvexResultCallback(resultsOutput))
-            {
-                collisionWorld.ConvexSweepTest(sh, from, to, rcb);
-            }
-        }
-
-        /// <summary>
-        /// Performs a sweep test using a collider shape and never stops until "to"
-        /// </summary>
-        /// <param name="shape">The shape.</param>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
+        /// <param name="filterGroup">The collision group of this shape sweep</param>
+        /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
         /// <returns>The list with hit results.</returns>
         /// <exception cref="System.Exception">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public FastList<HitResult> ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to)
+        public FastList<HitResult> ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags)
         {
             var results = new FastList<HitResult>();
-            ShapeSweepPenetrating(shape, from, to, results);
+            ShapeSweepPenetrating(shape, from, to, results, filterGroup, filterFlags);
             return results;
         }
 
@@ -896,39 +609,19 @@ namespace Xenko.Physics
         /// <param name="from">From.</param>
         /// <param name="to">To.</param>
         /// <param name="resultsOutput">The list to fill with results.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
+        /// <param name="filterGroup">The collision group of this shape sweep</param>
+        /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
         /// <exception cref="System.Exception">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public void ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, IList<HitResult> resultsOutput, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
+        public void ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, IList<HitResult> resultsOutput, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags)
         {
             var sh = shape.InternalShape as BulletSharp.ConvexShape;
-            if (sh == null) throw new Exception("This kind of shape cannot be used for a ShapeSweep.");
-
-            using (var rcb = new XenkoAllHitsConvexResultCallback(resultsOutput)
+            if (sh == null)
             {
-                CollisionFilterGroup = (int)collisionFilterGroups,
-                CollisionFilterMask = (int)collisionFilterGroupFlags,
-            })
-            {
-                collisionWorld.ConvexSweepTest(sh, from, to, rcb);
+                throw new Exception("This kind of shape cannot be used for a ShapeSweep.");
             }
-        }
-
-        /// <summary>
-        /// Performs a sweep test using a collider shape and never stops until "to"
-        /// </summary>
-        /// <param name="shape">The shape.</param>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
-        /// <param name="collisionFilterGroups">The collision group of this shape sweep</param>
-        /// <param name="collisionFilterGroupFlags">The collision group that this shape sweep can collide with</param>
-        /// <returns>The list with hit results.</returns>
-        /// <exception cref="System.Exception">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public FastList<HitResult> ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups collisionFilterGroups, CollisionFilterGroupFlags collisionFilterGroupFlags)
-        {
-            var results = new FastList<HitResult>();
-            ShapeSweepPenetrating(shape, from, to, results, collisionFilterGroups, collisionFilterGroupFlags);
-            return results;
+            
+            var rcb = XenkoAllHitsConvexResultCallback.Shared(resultsOutput, filterGroup, filterFlags);
+            collisionWorld.ConvexSweepTest(sh, from, to, rcb);
         }
 
         /// <summary>
@@ -1253,10 +946,10 @@ namespace Xenko.Physics
                 {
                     ColliderA = component0,
                     ColliderB = component1,
-                    Distance = contact.Distance,
-                    Normal = contact.NormalWorldOnB,
-                    PositionOnA = contact.PositionWorldOnA,
-                    PositionOnB = contact.PositionWorldOnB,
+                    Distance = contact.m_distance1,
+                    Normal = contact.m_normalWorldOnB,
+                    PositionOnA = contact.m_positionWorldOnA,
+                    PositionOnB = contact.m_positionWorldOnB,
                 });
                 return 0f;
             }
@@ -1294,6 +987,211 @@ namespace Xenko.Physics
             foreach (var contactPoint in currentToRemove)
             {
                 currentFrameContacts.Remove(contactPoint);
+            }
+        }
+
+        private class XenkoAllHitsConvexResultCallback : XenkoReusableConvexResultCallback
+        {
+            [ThreadStatic]
+            static XenkoAllHitsConvexResultCallback shared;
+
+            private IList<HitResult> resultsList;
+
+            public XenkoAllHitsConvexResultCallback(IList<HitResult> results)
+            {
+                resultsList = results;
+            }
+
+            public override float AddSingleResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
+            {
+                resultsList.Add(ComputeHitResult(ref convexResult, normalInWorldSpace));
+                return convexResult.m_hitFraction;
+            }
+
+            public static XenkoAllHitsConvexResultCallback Shared(IList<HitResult> buffer, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            {
+                if (shared == null)
+                {
+                    shared = new XenkoAllHitsConvexResultCallback(buffer);
+                }
+                shared.resultsList = buffer;
+                shared.Recycle(filterGroup, filterMask);
+                return shared;
+            }
+        }
+
+        private class XenkoClosestConvexResultCallback : XenkoReusableConvexResultCallback
+        {
+            [ThreadStatic]
+            static XenkoClosestConvexResultCallback shared;
+
+            BulletSharp.LocalConvexResult closestHit;
+            bool normalInWorldSpace;
+            float? closestFraction;
+            public HitResult Result => closestFraction != null ? ComputeHitResult(ref closestHit, normalInWorldSpace) : new HitResult() { Succeeded = false };
+
+            public override float AddSingleResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpaceParam)
+            {
+                float fraction = convexResult.m_hitFraction;
+                // First hit or closest hit yet
+                if (closestFraction == null || closestFraction > fraction)
+                {
+                    closestHit = convexResult;
+                    closestFraction = fraction;
+                    normalInWorldSpace = normalInWorldSpaceParam;
+                }
+                return fraction;
+            }
+
+            public static XenkoClosestConvexResultCallback Shared(CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            {
+                if (shared == null)
+                {
+                    shared = new XenkoClosestConvexResultCallback();
+                }
+                shared.closestFraction = null;
+                shared.Recycle(filterGroup, filterMask);
+                return shared;
+            }
+        }
+
+        private class XenkoAllHitsRayResultCallback : XenkoReusableRayResultCallback
+        {
+            [ThreadStatic]
+            static XenkoAllHitsRayResultCallback shared;
+
+            private IList<HitResult> resultsList;
+
+            public XenkoAllHitsRayResultCallback(ref Vector3 from, ref Vector3 to, IList<HitResult> results) : base(ref from, ref to)
+            {
+                resultsList = results;
+            }
+
+            public override float AddSingleResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
+            {
+                resultsList.Add(ComputeHitResult(ref rayResult, normalInWorldSpace));
+                return rayResult.m_hitFraction;
+            }
+
+            public static XenkoAllHitsRayResultCallback Shared(ref Vector3 from, ref Vector3 to, IList<HitResult> buffer, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            {
+                if (shared == null)
+                {
+                    shared = new XenkoAllHitsRayResultCallback(ref from, ref to, buffer);
+                }
+                shared.resultsList = buffer;
+                shared.Recycle(ref from, ref to, filterGroup, filterMask);
+                return shared;
+            }
+        }
+
+        private class XenkoClosestRayResultCallback : XenkoReusableRayResultCallback
+        {
+            [ThreadStatic]
+            static XenkoClosestRayResultCallback shared;
+
+            BulletSharp.LocalRayResult closestHit;
+            bool normalInWorldSpace;
+            float? closestFraction;
+            public HitResult Result => closestFraction != null ? ComputeHitResult(ref closestHit, normalInWorldSpace) : new HitResult() { Succeeded = false };
+
+            public XenkoClosestRayResultCallback(ref Vector3 from, ref Vector3 to) : base(ref from, ref to)
+            {
+            }
+
+            public override float AddSingleResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpaceParam)
+            {
+                float fraction = rayResult.m_hitFraction;
+                // First hit or closest hit yet
+                if (closestFraction == null || closestFraction > fraction)
+                {
+                    closestHit = rayResult;
+                    closestFraction = fraction;
+                    normalInWorldSpace = normalInWorldSpaceParam;
+                    CollisionObject = rayResult.CollisionObject;
+                    ClosestHitFraction = fraction;
+                }
+                return fraction;
+            }
+
+            public static XenkoClosestRayResultCallback Shared(ref Vector3 from, ref Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            {
+                if (shared == null)
+                {
+                    shared = new XenkoClosestRayResultCallback(ref from, ref to);
+                }
+                shared.closestFraction = null;
+                shared.Recycle(ref from, ref to, filterGroup, filterMask);
+                return shared;
+            }
+        }
+
+        private abstract class XenkoReusableRayResultCallback : BulletSharp.RayResultCallback
+        {
+            public Vector3 RayFromWorld { get; protected set; }
+            public Vector3 RayToWorld { get; protected set; }
+
+            public XenkoReusableRayResultCallback(ref Vector3 from, ref Vector3 to) : base()
+            {
+                RayFromWorld = from;
+                RayToWorld = to;
+            }
+
+            public HitResult ComputeHitResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
+            {
+                Vector3 normal;
+                if (normalInWorldSpace)
+                    normal = rayResult.m_hitNormalLocal;
+                else
+                    normal = Vector3.TransformNormal(rayResult.m_hitNormalLocal, rayResult.CollisionObject.WorldTransform.Basis);
+
+                return new HitResult
+                {
+                    Succeeded = true,
+                    Collider = rayResult.CollisionObject.UserObject as PhysicsComponent,
+                    Point = Vector3.Lerp(RayFromWorld, RayToWorld, rayResult.m_hitFraction),
+                    Normal = normal,
+                    HitFraction = rayResult.m_hitFraction,
+                };
+            }
+
+            protected void Recycle(ref Vector3 from, ref Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            {
+                RayFromWorld = from;
+                RayToWorld = to;
+                ClosestHitFraction = float.PositiveInfinity;
+                CollisionObject = null;
+                Flags = 0;
+                CollisionFilterGroup = (int)filterGroup;
+                CollisionFilterMask = (int)filterMask;
+            }
+        }
+
+        private abstract class XenkoReusableConvexResultCallback : BulletSharp.ConvexResultCallback
+        {
+            public HitResult ComputeHitResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
+            {
+                Vector3 normal;
+                if (normalInWorldSpace)
+                    normal = convexResult.m_hitNormalLocal;
+                else
+                    normal = Vector3.TransformNormal(convexResult.m_hitNormalLocal, convexResult.HitCollisionObject.WorldTransform.Basis);
+
+                return new HitResult
+                {
+                    Succeeded = true,
+                    Collider = convexResult.HitCollisionObject.UserObject as PhysicsComponent,
+                    Point = Vector3.TransformCoordinate(convexResult.m_hitPointLocal, convexResult.HitCollisionObject.WorldTransform.Basis),
+                    Normal = normal,
+                    HitFraction = convexResult.m_hitFraction,
+                };
+            }
+
+            protected void Recycle(CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            {
+                ClosestHitFraction = float.PositiveInfinity;
+                CollisionFilterGroup = (int)filterGroup;
+                CollisionFilterMask = (int)filterMask;
             }
         }
     }
