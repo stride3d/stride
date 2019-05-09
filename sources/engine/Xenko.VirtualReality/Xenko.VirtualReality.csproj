@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoRuntime>true</XenkoRuntime>
@@ -32,7 +32,7 @@
     </When>
   </Choose>
   <Choose>
-    <When Condition=" '$(XenkoGraphicsApi)' == 'Direct3D11' Or '$(XenkoGraphicsApi)' == 'Direct3D12' ">
+    <When Condition=" '$(XenkoGraphicsApi)' == 'Direct3D11' Or '$(XenkoGraphicsApi)' == 'Vulkan' ">
       <ItemGroup>
         <XenkoNativeLib Include="..\..\..\deps\OpenVR\$(XenkoPlatform)\**\openvr_api.*">
           <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
