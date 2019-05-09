@@ -17,8 +17,9 @@ namespace Xenko.Graphics
     /// </summary>
     public class SwapChainGraphicsPresenter : GraphicsPresenter
     {
-        private Swapchain swapChain;
+        private Swapchain swapChain = Swapchain.Null;
         private Surface surface;
+        private CommandList drawingWith;
 
         private Texture backbuffer;
         private SwapChainImageInfo[] swapchainImages;
@@ -59,19 +60,7 @@ namespace Xenko.Graphics
             }
         }
 
-        private bool _fullscreen;
-        public override bool InternalFullscreen
-        {
-            get
-            {
-                return _fullscreen;
-            }
-
-            set
-            {
-                _fullscreen = value;
-            }
-        }
+        public override bool InternalFullscreen { get; set; }
 
         AutoResetEvent presentWaiter = new AutoResetEvent(false);
         private volatile bool runPresenter;
@@ -80,7 +69,7 @@ namespace Xenko.Graphics
 
         private unsafe void PresenterThread() {
             Swapchain swapChainCopy = swapChain;
-            uint currentBufferIndexCopy;
+            uint currentBufferIndexCopy = 0;
             PresentInfo presentInfo = new PresentInfo {
                 StructureType = StructureType.PresentInfo,
                 SwapchainCount = 1,
@@ -95,7 +84,7 @@ namespace Xenko.Graphics
                 // are we still OK to present?
                 if (runPresenter == false) return;
 
-                currentBufferIndex = presentingIndex;
+                currentBufferIndexCopy = presentingIndex;
 
                 // Present
                 lock (GraphicsDevice.PresentLock) {
@@ -108,13 +97,24 @@ namespace Xenko.Graphics
         {
             // collect and let presenter thread know to present
             presentingIndex = currentBufferIndex;
+
+            // Get next image
+            Result r = GraphicsDevice.NativeDevice.AcquireNextImageWithResult(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null, out currentBufferIndex);
+
+            if (r == Result.ErrorOutOfDate) {
+                // re-create and do a "lite" re-present
+                // unfortunately this will likely crash, since recreating swapchains isn't stable
+                CreateSwapChain();
+                presentingIndex = currentBufferIndex;
+                presentWaiter.Set();
+                return;
+            }
+
+            // ok, ready to present
             presentWaiter.Set();
 
             // Flip render targets
             backbuffer.SetNativeHandles(swapchainImages[currentBufferIndex].NativeImage, swapchainImages[currentBufferIndex].NativeColorAttachmentView);
-
-            // Get next image
-            GraphicsDevice.NativeDevice.AcquireNextImageWithResult(swapChain, ulong.MaxValue, GraphicsDevice.GetNextPresentSemaphore(), Fence.Null, out currentBufferIndex);
         }
 
         public override void BeginDraw(CommandList commandList)
@@ -148,18 +148,17 @@ namespace Xenko.Graphics
         {
             base.OnRecreated();
 
-            // Recreate swap chain
-            CreateSwapChain();
+            // not supported
         }
 
         protected unsafe override void ResizeBackBuffer(int width, int height, PixelFormat format)
         {
-            CreateSwapChain();
+            // not supported
         }
 
         protected override void ResizeDepthStencilBuffer(int width, int height, PixelFormat format)
         {
-            // handled by CreateSwapChain()
+            // not supported
         }
 
         private unsafe void DestroySwapchain()
@@ -175,6 +174,7 @@ namespace Xenko.Graphics
             }
 
             GraphicsDevice.NativeDevice.WaitIdle();
+            CommandList.ResetAllPools();
 
             backbuffer.OnDestroyed();
 
@@ -190,6 +190,12 @@ namespace Xenko.Graphics
 
         private unsafe void CreateSwapChain()
         {
+            // we are destroying the swap chain now, because it causes lots of other things to be reset too (like all commandbufferpools)
+            // normally we pass the old swapchain to the create new swapchain Vulkan call... but I haven't figured out a stable way of
+            // preserving the old swap chain to be passed during the new swapchain creation, and then destroying just the old swapchain parts.
+            // might have to reset the command buffers and pipeline stuff after swapchain handoff... for another day e.g. TODO
+            DestroySwapchain();
+
             var formats = new[] { PixelFormat.B8G8R8A8_UNorm_SRgb, PixelFormat.R8G8B8A8_UNorm_SRgb, PixelFormat.B8G8R8A8_UNorm, PixelFormat.R8G8B8A8_UNorm };
 
             foreach (var format in formats)
@@ -266,13 +272,12 @@ namespace Xenko.Graphics
                 CompositeAlpha = CompositeAlphaFlags.Opaque,
                 MinImageCount = desiredImageCount,
                 PreTransform = preTransform,
-                OldSwapchain = swapChain,
+                OldSwapchain = Swapchain.Null,
                 Clipped = true
             };
-            var newSwapChain = GraphicsDevice.NativeDevice.CreateSwapchain(ref swapchainCreateInfo);
 
-            DestroySwapchain();
-            swapChain = newSwapChain;
+            swapChain = GraphicsDevice.NativeDevice.CreateSwapchain(ref swapchainCreateInfo);
+
             CreateBackBuffers();
 
             // resize/create stencil buffers

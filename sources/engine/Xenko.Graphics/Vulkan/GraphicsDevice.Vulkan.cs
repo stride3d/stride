@@ -689,13 +689,17 @@ namespace Xenko.Graphics
         {
         }
 
+        public void ResetAll() {
+            while(liveObjects.Count > 0) {
+                if (liveObjects.TryDequeue(out KeyValuePair<long, T> firstAllocator)) {
+                    DestroyObject(firstAllocator.Value);
+                }
+            }
+        }
+
         protected override void Destroy()
         {
-            foreach (var item in liveObjects)
-            {
-                DestroyObject(item.Value);
-            }
-
+            ResetAll();
             base.Destroy();
         }
     }
