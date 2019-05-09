@@ -209,10 +209,30 @@ namespace Xenko.Engine
             }
         }
 
+        private bool settingsOverride = false, settingsOverrideFS;
+        private int settingsOverrideW, settingsOverrideH;
+
+        /// <summary>
+        /// Temporarily uses different settings this run, without changing the saved default settings.
+        /// </summary>
+        public void OverrideDefaultSettings(int width, int height, bool fullscreen) {
+            settingsOverride = true;
+            settingsOverrideW = width;
+            settingsOverrideH = height;
+            settingsOverrideFS = fullscreen;
+        }
+
         /// <summary>
         /// Gets default settings that will be used on game startup, if AutoLoadDefaultSettings is true.
         /// </summary>
         public void GetDefaultSettings(out int width, out int height, out bool fullscreen) {
+            // wait, are we overriding settings?
+            if (settingsOverride) {
+                width = settingsOverrideW;
+                height = settingsOverrideH;
+                fullscreen = settingsOverrideFS;
+                return;
+            }
             // do we have a default file?
             if (File.Exists("DefaultResolution.txt")) {
                 try {
