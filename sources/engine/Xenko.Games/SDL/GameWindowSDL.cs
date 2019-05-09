@@ -82,8 +82,8 @@ namespace Xenko.Games
             var gameForm = window as GameFormSDL;
             if (gameForm != null)
             {
-                //gameForm.AppActivated += OnActivated;
-                //gameForm.AppDeactivated += OnDeactivated;
+                gameForm.AppActivated += OnActivated;
+                gameForm.AppDeactivated += OnDeactivated;
                 gameForm.UserResized += OnClientSizeChanged;
             }
             else
@@ -280,7 +280,7 @@ namespace Xenko.Games
             {
                 window.MaximizeBox = allowUserResizing;
                 window.FormBorderStyle = isFullScreenMaximized || isBorderLess ? FormBorderStyle.None : 
-                                         GraphicsDevice.Platform != GraphicsPlatform.Vulkan && allowUserResizing ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle;
+                                         allowUserResizing ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle;
 
                 if (isFullScreenMaximized)
                 {
