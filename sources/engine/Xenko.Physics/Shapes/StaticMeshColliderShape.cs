@@ -14,93 +14,46 @@ namespace Xenko.Physics
 {
     public class StaticMeshColliderShape : ColliderShape
     {
-        private readonly IReadOnlyList<Vector3> pointsList;
-        private readonly IReadOnlyList<uint> indicesList;
+        private readonly Vector3[] verticesList;
+        private readonly int[] indicesList;
 
-        public StaticMeshColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<uint> indices, Vector3 scaling)
+        public IReadOnlyList<Vector3> Vertices => verticesList;
+        public IReadOnlyList<int> Indices => indicesList;
+        Vector3 meshScaling;
+
+        public StaticMeshColliderShape(ICollection<Vector3> vertices, ICollection<int> indices, Vector3 scaling)
         {
             Type = ColliderShapeTypes.StaticMesh;
             Is2D = false;
 
-            cachedScaling = scaling;
-
-            pointsList = points;
-            indicesList = indices;
-
-            var meshData = new BulletSharp.TriangleIndexVertexArray(new UIntToInt(indices), new V3ToBullet(points));
+            // Enfore static data
+            verticesList = vertices.ToArray();
+            indicesList = indices.ToArray();
+            
+            var meshData = new BulletSharp.TriangleIndexVertexArray(indicesList, new XenkoToBulletWrapper(verticesList));
             var baseCollider = new BulletSharp.BvhTriangleMeshShape(meshData, true);
             InternalShape = new BulletSharp.ScaledBvhTriangleMeshShape(baseCollider, scaling);
-
-            DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(1, 1, 1) * DebugScaling);
-        }
-
-        public IReadOnlyList<Vector3> Points
-        {
-            get { return pointsList; }
-        }
-        public IReadOnlyList<uint> Indices
-        {
-            get { return indicesList; }
+            DebugPrimitiveMatrix = Matrix.Scaling(Vector3.One * DebugScaling);
+            meshScaling = scaling;
         }
 
         public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
         {
-            var verts = new VertexPositionNormalTexture[pointsList.Count];
-            for (var i = 0; i < pointsList.Count; i++)
+            var verts = new VertexPositionNormalTexture[verticesList.Length];
+            for(int i = 0; i < verticesList.Length; i++)
             {
-                verts[i].Position = pointsList[i];
-                verts[i].TextureCoordinate = Vector2.Zero;
-                verts[i].Normal = Vector3.Zero;
+                verts[i].Position = verticesList[i] * meshScaling;
             }
-
-            var intIndices = indicesList.Select(x => (int)x).ToArray();
-
-            ////calculate basic normals
-            ////todo verify, winding order might be wrong?
-            for (var i = 0; i < indicesList.Count; i += 3)
-            {
-                var i1 = intIndices[i];
-                var i2 = intIndices[i + 1];
-                var i3 = intIndices[i + 2];
-                var a = verts[i1];
-                var b = verts[i2];
-                var c = verts[i3];
-                var n = Vector3.Cross((b.Position - a.Position), (c.Position - a.Position));
-                n.Normalize();
-                verts[i1].Normal = verts[i2].Normal = verts[i3].Normal = n;
-            }
-
-            var meshData = new GeometricMeshData<VertexPositionNormalTexture>(verts, intIndices, false);
+            var meshData = new GeometricMeshData<VertexPositionNormalTexture>(verts, indicesList, false);
 
             return new GeometricPrimitive(device, meshData).ToMeshDraw();
         }
+        
 
-
-        class V3ToBullet : CollectionWrapper<Vector3, BulletSharp.Math.Vector3>
+        class XenkoToBulletWrapper : ICollection<BulletSharp.Math.Vector3>
         {
-            public V3ToBullet(IReadOnlyCollection<Vector3> collectionToConvert) : base(collectionToConvert)
-            {
-            }
-
-            protected override BulletSharp.Math.Vector3 Convert(Vector3 from) => from;
-
-            protected override Vector3 Convert(BulletSharp.Math.Vector3 from) => from;
-        }
-        class UIntToInt : CollectionWrapper<uint, int>
-        {
-            public UIntToInt(IReadOnlyCollection<uint> collectionToConvert) : base(collectionToConvert)
-            {
-            }
-
-            protected override int Convert(uint from) { checked { return (int)from; } }
-
-            protected override uint Convert(int from) { checked { return (uint)from; } }
-        }
-
-        abstract class CollectionWrapper<FromT, ToT> : ICollection<ToT>
-        {
-            IReadOnlyCollection<FromT> internalColl;
-            public CollectionWrapper(IReadOnlyCollection<FromT> collectionToConvert)
+            ICollection<Vector3> internalColl;
+            public XenkoToBulletWrapper(ICollection<Vector3> collectionToConvert)
             {
                 internalColl = collectionToConvert;
             }
@@ -109,34 +62,31 @@ namespace Xenko.Physics
 
             public bool IsReadOnly => true;
 
-            public void Add(ToT item) { throw new System.InvalidOperationException("Collection is read only"); }
+            public bool Contains(BulletSharp.Math.Vector3 item) => internalColl.Contains(item);
 
-            public bool Remove(ToT item) { throw new System.InvalidOperationException("Collection is read only"); }
-
-            public void Clear() { throw new System.InvalidOperationException("Collection is read only"); }
-
-            public bool Contains(ToT item) => internalColl.Contains(Convert(item));
-
-            public void CopyTo(ToT[] array, int arrayIndex)
+            public void CopyTo(BulletSharp.Math.Vector3[] array, int arrayIndex)
             {
                 foreach (var value in internalColl)
                 {
                     if (arrayIndex >= array.Length)
                         return;
-                    array[arrayIndex++] = Convert(value);
+                    array[arrayIndex++] = value;
                 }
             }
 
-            public IEnumerator<ToT> GetEnumerator()
+            public void Add(BulletSharp.Math.Vector3 item) { throw new System.InvalidOperationException("Collection is read only"); }
+
+            public bool Remove(BulletSharp.Math.Vector3 item) { throw new System.InvalidOperationException("Collection is read only"); }
+
+            public void Clear() { throw new System.InvalidOperationException("Collection is read only"); }
+
+            public IEnumerator<BulletSharp.Math.Vector3> GetEnumerator()
             {
                 foreach (var value in internalColl)
-                    yield return Convert(value);
+                    yield return value;
             }
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
-            protected abstract ToT Convert(FromT from);
-            protected abstract FromT Convert(ToT from);
         }
     }
 }
