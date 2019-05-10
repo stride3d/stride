@@ -43,6 +43,7 @@ namespace Xenko.Graphics
             while (NativeImageView == ImageView.Null) {
                 // this isn't ready, but will it ever be?
                 if (isNotOwningResources || 
+                    IsDisposed ||
                     awaitCount++ > countLimit ||
                     Description.Width == 0 && Description.Height == 0) return null;
                 // might still be loading, let's wait...
