@@ -112,7 +112,7 @@ namespace Xenko.Graphics
                 RasterizationSamples = SampleCountFlags.Sample1
             };
 
-            var tessellationState = new PipelineTessellationStateCreateInfo();
+            //var tessellationState = new PipelineTessellationStateCreateInfo();
 
             var rasterizationState = CreateRasterizationState(Description.RasterizerState);
 
@@ -184,7 +184,7 @@ namespace Xenko.Graphics
                     Layout = NativeLayout,
                     StageCount = (uint)stages.Length,
                     Stages = (IntPtr)stagesPointer,
-                    TessellationState = new IntPtr(&tessellationState),
+                    //TessellationState = new IntPtr(&tessellationState),
                     VertexInputState = new IntPtr(&vertexInputState),
                     InputAssemblyState = new IntPtr(&inputAssemblyState),
                     RasterizationState = new IntPtr(&rasterizationState),

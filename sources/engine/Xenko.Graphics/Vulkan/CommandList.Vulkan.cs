@@ -122,8 +122,10 @@ namespace Xenko.Graphics
         public void Flush()
         {
             CompiledCommandList ccl;
-            lock (GraphicsDevice.PresentLock) {
-                ccl = Close();
+            lock (GraphicsDevice.QueueLock) {
+                lock (GraphicsDevice.PresentLock) {
+                    ccl = Close();
+                }
             }
             GraphicsDevice.ExecuteCommandList(ccl);
         }
