@@ -321,10 +321,42 @@ namespace Xenko.Engine
         {
             if (recalculate) UpdateWorldMatrix();
             if (WorldMatrix.GetRotationQuaternion(out Quaternion q)) {
-                return q;
+                return q * Rotation;
             } else {
-                return Quaternion.Identity;
+                return Rotation;
             }
+        }
+
+        /// <summary>
+        /// Gets Forward vector for transform
+        /// </summary>
+        public Vector3 Forward(bool worldForward = false, bool recalculateWorld = false) {
+            return RotationMatrix(worldForward, recalculateWorld).Forward;
+        }
+
+        /// <summary>
+        /// Gets Left vector for transform
+        /// </summary>
+        public Vector3 Left(bool worldLeft = false, bool recalculateWorld = false) {
+            return RotationMatrix(worldLeft, recalculateWorld).Left;
+        }
+
+        /// <summary>
+        /// Gets Up vector for transform
+        /// </summary>
+        public Vector3 Up(bool worldUp = false, bool recalculateWorld = false) {
+            return RotationMatrix(worldUp, recalculateWorld).Up;
+        }
+
+        /// <summary>
+        /// Gets a rotation matrix for this transform.
+        /// </summary>
+        /// <param name="world">World rotation, or just local rotation?</param>
+        /// <param name="recalculate">Recalculate world (which is slow), or use last frame info?</param>
+        /// <returns>Rotation matrix</returns>
+        public Matrix RotationMatrix(bool world = false, bool recalculate = false) {
+            if (recalculate) UpdateWorldMatrix();
+            return Matrix.RotationQuaternion(world ? WorldRotation() : Rotation);
         }
 
         internal void UpdateWorldMatrixInternal(bool recursive)
