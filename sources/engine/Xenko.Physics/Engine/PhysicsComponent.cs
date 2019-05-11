@@ -646,13 +646,6 @@ namespace Xenko.Engine
                 }
 
                 ColliderShape = PhysicsColliderShape.CreateShape(ColliderShapes[0]);
-
-                if (ColliderShape != null)
-                {
-                    ColliderShape.Scaling = Vector3.One;
-                }
-
-                //ColliderShape?.UpdateLocalTransformations();
             }
             else if (ColliderShapes.Count > 1) //need a compound shape in this case
             {
@@ -673,10 +666,12 @@ namespace Xenko.Engine
                 }
 
                 ColliderShape = compound;
+            }
 
-                ColliderShape.Scaling = Vector3.One;
-
-                //ColliderShape.UpdateLocalTransformations();
+            if (ColliderShape != null)
+            {
+                // Force update internal shape and gizmo scaling
+                ColliderShape.Scaling = ColliderShape.Scaling;
             }
         }
 
