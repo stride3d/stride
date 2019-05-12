@@ -32,7 +32,7 @@ namespace Xenko.Physics
         internal XenkoMotionState MotionState;
 
         private float mass = 1.0f;
-        private RigidBodyTypes type;
+        private RigidBodyTypes type = RigidBodyTypes.Dynamic;
         private Vector3 gravity = Vector3.Zero;
         private float angularDamping;
         private float linearDamping;
@@ -231,17 +231,11 @@ namespace Xenko.Physics
         }
 
         /// <summary>
-        /// Used to set the Rigid Body Type (Static, Dynamic, Kinematic) when this gets attached. Useful for setting via the editor. Otherwise, just use RigidBodyType to set type directly at any time.
-        /// </summary>
-        public RigidBodyTypes InitialBodyType = RigidBodyTypes.Dynamic;
-
-        /// <summary>
         /// Gets or sets the type.
         /// </summary>
         /// <value>
         /// The type.
         /// </value>
-        [DataMemberIgnore]
         public RigidBodyTypes RigidBodyType
         {
             get
@@ -251,7 +245,6 @@ namespace Xenko.Physics
             set
             {
                 type = value;
-                InitialBodyType = value;
 
                 if (InternalRigidBody == null) return;
 
@@ -339,7 +332,7 @@ namespace Xenko.Physics
             AngularDamping = angularDamping;
             OverrideGravity = overrideGravity;
             Gravity = gravity;
-            RigidBodyType = InitialBodyType;
+            RigidBodyType = type;
 
             Simulation.AddRigidBody(this, (CollisionFilterGroupFlags)CollisionGroup, CanCollideWith);
         }
