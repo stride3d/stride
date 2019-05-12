@@ -196,7 +196,7 @@ namespace Xenko.Engine
         public bool AutoLoadDefaultSettings { get; set; }
 
         /// <summary>
-        /// If AutoLoadDefaultSettings is true, these values will be set on game start.
+        /// If AutoLoadDefaultSettings is true, these values will be set on game start. Set width & height to int.MaxValue to use highest native values.
         /// </summary>
         public bool SetDefaultSettings(int width, int height, bool fullscreen) {
             try {
@@ -213,7 +213,7 @@ namespace Xenko.Engine
         private int settingsOverrideW, settingsOverrideH;
 
         /// <summary>
-        /// Temporarily uses different settings this run, without changing the saved default settings.
+        /// Temporarily uses different settings this run, without changing the saved default settings. Set width & height to int.MaxValue to use highest native values.
         /// </summary>
         public void OverrideDefaultSettings(int width, int height, bool fullscreen) {
             settingsOverride = true;
@@ -223,30 +223,33 @@ namespace Xenko.Engine
         }
 
         /// <summary>
-        /// Gets default settings that will be used on game startup, if AutoLoadDefaultSettings is true.
+        /// Gets default settings that will be used on game startup, if AutoLoadDefaultSettings is true. Caps resolution to native display resolution.
         /// </summary>
         public void GetDefaultSettings(out int width, out int height, out bool fullscreen) {
+            // default settings are maximum native resolution
+            width = int.MaxValue;
+            height = int.MaxValue;
+            fullscreen = true;
             // wait, are we overriding settings?
             if (settingsOverride) {
                 width = settingsOverrideW;
                 height = settingsOverrideH;
                 fullscreen = settingsOverrideFS;
-                return;
-            }
-            // do we have a default file?
-            if (File.Exists("DefaultResolution.txt")) {
+            } else if (File.Exists("DefaultResolution.txt")) {
                 try {
                     string[] vals = File.ReadAllLines("DefaultResolution.txt");
                     width = int.Parse(vals[0].Trim());
                     height = int.Parse(vals[1].Trim());
                     fullscreen = vals[2].Trim().ToLower() == "full";
-                    return;
                 } catch (Exception e) { }
             }
             try {
-                Graphics.SDL.Window.GetDisplayInformation(out width, out height, out int refresh_rate);
-                fullscreen = true;
+                // cap values to native resolution
+                Graphics.SDL.Window.GetDisplayInformation(out int native_width, out int native_height, out int refresh_rate);
+                if (width > native_width) width = native_width;
+                if (height > native_height) height = native_height;
             } catch(Exception e) {
+                // something went wrong... just use a window
                 width = 1280;
                 height = 720;
                 fullscreen = false;
