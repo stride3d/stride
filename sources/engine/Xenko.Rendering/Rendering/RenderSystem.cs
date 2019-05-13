@@ -453,6 +453,28 @@ namespace Xenko.Rendering
         }
 
         /// <summary>
+        /// Wait for shaders to compile (true), or skip rendering until a shader compiles (false). Defaults to false. True can cause significant lockups.
+        /// </summary>
+        public static bool WaitForShaderCompilation = false;
+
+        /// <summary>
+        /// Returns how many shaders are currently compiling. Some geometry may be invisible while this is > 0.
+        /// </summary>
+        public static int CompilingShadersCount {
+            get {
+                if (WaitForShaderCompilation) return 0;
+                // status >= 5 means cancelled, faulted or rantocompletion
+                PossiblyCompilingEffects.RemoveWhere((RenderEffect re) => (re.PendingEffect == null || (int)re.PendingEffect.Status >= 5));
+                return PossiblyCompilingEffects.Count;
+            }
+        }
+
+        /// <summary>
+        /// Used to track compilation shaders for counting. Use CompilingShadersCount for proper determination. Set internally.
+        /// </summary>
+        public static HashSet<RenderEffect> PossiblyCompilingEffects { get; private set; } = new HashSet<RenderEffect>();
+
+        /// <summary>
         /// Reset render objects and features. Should be called at beginning of Extract phase.
         /// </summary>
         public void Reset()

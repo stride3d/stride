@@ -533,8 +533,9 @@ namespace Xenko.Rendering
             });
 
             // Step3: Uupdate reflection infos (offset, etc...)
-            foreach (var renderObject in RenderObjects)
+            for (int j = 0; j < RenderObjects.Count; j++)
             {
+                var renderObject = RenderObjects[j];
                 var staticObjectNode = renderObject.StaticObjectNode;
 
                 for (int i = 0; i < effectSlotCount; ++i)
@@ -549,8 +550,12 @@ namespace Xenko.Rendering
                     var effect = renderEffect.Effect;
                     if (effect == null && renderEffect.State == RenderEffectState.Compiling)
                     {
-                        // Need to wait for completion because we have nothing else
-                        renderEffect.PendingEffect.Wait();
+                        if (RenderSystem.WaitForShaderCompilation) {
+                            renderEffect.PendingEffect.Wait();
+                        } else if (renderEffect.PendingEffect.IsCompleted == false) {
+                            RenderSystem.PossiblyCompilingEffects.Add(renderEffect);
+                            continue; // still compiling... skip for now
+                        }
 
                         if (!renderEffect.PendingEffect.IsFaulted)
                         {
