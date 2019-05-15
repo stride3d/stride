@@ -114,7 +114,7 @@ namespace Xenko.Core.Assets
                         {
                             try
                             {
-                                File.Delete(file.FullPath);
+                                Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(file.FullPath, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
                             }
                             catch (Exception ex)
                             {
@@ -1037,7 +1037,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                                     {
                                         var generatedAbsolutePath = assetItem.GetGeneratedAbsolutePath().ToWindowsPath();
 
-                                        File.Delete(generatedAbsolutePath);
+                                        Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(generatedAbsolutePath, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
 
                                         var generatedInclude = assetItem.GetGeneratedInclude();
                                         var generatedItem = project.Items.FirstOrDefault(x => (x.ItemType == "Compile" || x.ItemType == "None") && x.EvaluatedInclude == generatedInclude);
@@ -1049,7 +1049,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                                 }
                             }
 
-                            File.Delete(assetPath);
+                            Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(assetPath, Microsoft.VisualBasic.FileIO.UIOption.OnlyErrorDialogs, Microsoft.VisualBasic.FileIO.RecycleOption.SendToRecycleBin);
                         }
                         catch (Exception ex)
                         {
