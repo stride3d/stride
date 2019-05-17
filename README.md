@@ -49,7 +49,7 @@ Ask for help or report issues:
 
 ### Build Xenko
 
-1. Clone Xenko: `git clone https://github.com/xenko3d/xenko.git`
+1. Clone Xenko: `git clone https://github.com/phr00t/xenko.git`
 2. Run `<XenkoDir>\build\Xenko.PCPlatforms.bat`, which starts Visual Studio 2019, and build.
 
 ### Contribution Guidelines
