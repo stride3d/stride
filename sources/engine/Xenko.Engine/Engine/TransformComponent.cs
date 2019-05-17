@@ -297,7 +297,7 @@ namespace Xenko.Engine
         public Vector3 WorldPosition(bool recalculate = false)
         {
             if (recalculate) UpdateWorldMatrix();
-            return WorldMatrix.TranslationVector;
+            return parent == null ? Position : WorldMatrix.TranslationVector;
         }
 
         /// <summary>
@@ -308,6 +308,7 @@ namespace Xenko.Engine
         public Vector3 WorldScale(bool recalculate = false)
         {
             if (recalculate) UpdateWorldMatrix();
+            if (parent == null) return Scale;
             WorldMatrix.GetScale(out Vector3 scale);
             return scale;
         }
@@ -320,7 +321,7 @@ namespace Xenko.Engine
         public Quaternion WorldRotation(bool recalculate = false)
         {
             if (recalculate) UpdateWorldMatrix();
-            if (WorldMatrix.GetRotationQuaternion(out Quaternion q)) {
+            if (parent != null && WorldMatrix.GetRotationQuaternion(out Quaternion q)) {
                 return q * Rotation;
             } else {
                 return Rotation;
