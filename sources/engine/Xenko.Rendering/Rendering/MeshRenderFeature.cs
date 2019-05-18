@@ -98,6 +98,9 @@ namespace Xenko.Rendering
                 var renderMesh = (RenderMesh)renderObject;
 
                 renderMesh.ActiveMeshDraw = renderMesh.Mesh.Draw;
+
+                // do we need to prepare the buffers with staged data first?
+                if (renderMesh.ActiveMeshDraw.VertexBuffers == null && renderMesh.ActiveMeshDraw is StagedMeshDraw) ((StagedMeshDraw)renderMesh.ActiveMeshDraw).performStage(Context.GraphicsDevice);
             });
 
             base.PrepareEffectPermutationsImpl(context);
@@ -256,9 +259,6 @@ namespace Xenko.Rendering
 
         private InputElementDescription[] PrepareInputElements(PipelineStateDescription pipelineState, MeshDraw drawData)
         {
-            // do we need to prepare the buffers with staged data first?
-            if (drawData.VertexBuffers == null && drawData is StagedMeshDraw) ((StagedMeshDraw)drawData).performStage(Context.GraphicsDevice);
-
             // Get the input elements already contained in the mesh's vertex buffers
             var availableInputElements = drawData.VertexBuffers.CreateInputElements();
             var inputElements = new List<InputElementDescription>(availableInputElements);

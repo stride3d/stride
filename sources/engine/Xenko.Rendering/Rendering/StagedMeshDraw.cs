@@ -10,8 +10,6 @@ namespace Xenko.Rendering.Rendering {
 
         private StagedMeshDraw() { }
 
-        private static object stageLock = new object();
-
         /// <summary>
         /// Gets a MeshDraw that will be prepared when needed with the given index buffer & vertex buffer.
         /// </summary>
@@ -25,17 +23,15 @@ namespace Xenko.Rendering.Rendering {
             smdt.DrawCount = indexBuffer.Length;
             smdt.performStage = (GraphicsDevice graphicsDevice) => {
                 Xenko.Graphics.Buffer vbo, ibo;
-                lock (stageLock) {
-                    vbo = Xenko.Graphics.Buffer.Vertex.New<T>(
-                        graphicsDevice,
-                        vertexBuffer,
-                        GraphicsResourceUsage.Immutable
-                    );
-                    ibo = Xenko.Graphics.Buffer.Index.New<uint>(
-                        graphicsDevice,
-                        indexBuffer
-                    );
-                }
+                vbo = Xenko.Graphics.Buffer.Vertex.New<T>(
+                    graphicsDevice,
+                    vertexBuffer,
+                    GraphicsResourceUsage.Immutable
+                );
+                ibo = Xenko.Graphics.Buffer.Index.New<uint>(
+                    graphicsDevice,
+                    indexBuffer
+                );
                 smdt.VertexBuffers = new[] {
                     new VertexBufferBinding(vbo, vertexBufferLayout, smdt.DrawCount)
                 };
