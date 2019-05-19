@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-02-27 13:19+0000\n"
-"Last-Translator: Tebjan Halm <tebjan@vvvv.org>\n"
+"PO-Revision-Date: 2019-05-20 16:49+0000\n"
+"Last-Translator: ssantos <ssantos@web.de>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "de/>\n"
 "Language: de\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.5-dev\n"
+"X-Generator: Weblate 3.7-dev\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
@@ -159,7 +159,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:14
 msgctxt "Settings"
 msgid "Remote"
-msgstr "Remote"
+msgstr "Extern"
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:22
 msgctxt "Settings"
@@ -202,7 +202,7 @@ msgstr "Zur Bereitstellung nach Anmeldedaten fragen"
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:50
 msgctxt "Settings"
 msgid "X Display"
-msgstr "X Display"
+msgstr "X-Display"
 
 #. Ask if we want to execute remotely using CoreCLR.
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:54
@@ -489,7 +489,7 @@ msgstr "Package Eigenschaften"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:503
 msgctxt "Menu"
 msgid "Solution"
-msgstr "Solution"
+msgstr "Lösung"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:236
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:504
