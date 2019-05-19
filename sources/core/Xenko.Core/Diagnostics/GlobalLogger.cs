@@ -15,9 +15,9 @@ namespace Xenko.Core.Diagnostics
         #region Constants and Fields
 
         /// <summary>
-        /// By default, the minimum level for a GlobalLogger is info.
+        /// By default, the minimum level for a GlobalLogger is Warning.
         /// </summary>
-        public const LogMessageType MinimumLevel = LogMessageType.Info;
+        public const LogMessageType MinimumLevel = LogMessageType.Warning;
 
         /// <summary>
         /// Map for all instantiated loggers. Map a module name to a logger.
