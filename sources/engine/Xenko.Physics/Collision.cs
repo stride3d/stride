@@ -88,8 +88,8 @@ namespace Xenko.Physics
         {
             unchecked
             {
-                var result = ColliderA.GetHashCode();
-                result = (result * 397) ^ ColliderB.GetHashCode();
+                var result = ColliderA?.GetHashCode() ?? 0;
+                result = (result * 397) ^ (ColliderB?.GetHashCode() ?? 0);
                 return result;
             }
         }
