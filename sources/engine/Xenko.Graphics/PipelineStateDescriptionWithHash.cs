@@ -17,13 +17,12 @@ namespace Xenko.Graphics
 
         public bool Equals(PipelineStateDescriptionWithHash other)
         {
-            return Hash == other.Hash && State.Equals(other.State);
+            return Hash == other.Hash && (State == null) == (other.State == null) && (State?.Equals(other.State) ?? true);
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            return obj is PipelineStateDescriptionWithHash && Equals((PipelineStateDescriptionWithHash)obj);
+            return obj is PipelineStateDescriptionWithHash other && Equals(other);
         }
 
         public override int GetHashCode()
