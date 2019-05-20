@@ -1,6 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Xenko.Core;
 
@@ -9,7 +10,7 @@ namespace Xenko.Graphics
     public class MutablePipelineState
     {
         private readonly GraphicsDevice graphicsDevice;
-        private readonly Dictionary<PipelineStateDescriptionWithHash, PipelineState> cache;
+        private readonly ConcurrentDictionary<PipelineStateDescriptionWithHash, PipelineState> cache;
         public PipelineStateDescription State;
 
         /// <summary>
@@ -38,16 +39,10 @@ namespace Xenko.Graphics
             // Find existing PipelineState object
             PipelineState pipelineState;
 
-            // TODO GRAPHICS REFACTOR We could avoid lock by adding them to a ThreadLocal (or RenderContext) and merge at end of frame
-            lock (cache)
+            if (!cache.TryGetValue(hashedState, out pipelineState))
             {
-                if (!cache.TryGetValue(hashedState, out pipelineState))
-                {
-                    // Otherwise, instantiate it
-                    // First, make an copy
-                    hashedState = new PipelineStateDescriptionWithHash(State.Clone());
-                    cache.Add(hashedState, pipelineState = PipelineState.New(graphicsDevice, ref State));
-                }
+                // Otherwise, instantiate it
+                cache.TryAdd(hashedState, pipelineState = PipelineState.New(graphicsDevice, ref State));
             }
 
             CurrentState = pipelineState;
@@ -55,7 +50,7 @@ namespace Xenko.Graphics
 
         private class MutablePipelineStateCache : IDisposable
         {
-            public readonly Dictionary<PipelineStateDescriptionWithHash, PipelineState> Cache = new Dictionary<PipelineStateDescriptionWithHash, PipelineState>();
+            public readonly ConcurrentDictionary<PipelineStateDescriptionWithHash, PipelineState> Cache = new ConcurrentDictionary<PipelineStateDescriptionWithHash, PipelineState>();
 
             public void Dispose()
             {

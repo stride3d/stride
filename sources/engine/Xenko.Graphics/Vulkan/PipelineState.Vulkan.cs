@@ -196,11 +196,7 @@ namespace Xenko.Graphics
                     RenderPass = NativeRenderPass,
                     Subpass = 0,
                 };
-                lock (GraphicsDevice.QueueLock) {
-                    lock (GraphicsDevice.PresentLock) {
-                        NativePipeline = GraphicsDevice.NativeDevice.CreateGraphicsPipelines(PipelineCache.Null, 1, &createInfo);
-                    }
-                }
+                NativePipeline = GraphicsDevice.NativeDevice.CreateGraphicsPipelines(PipelineCache.Null, 1, &createInfo);
             }
 
             // Cleanup shader modules

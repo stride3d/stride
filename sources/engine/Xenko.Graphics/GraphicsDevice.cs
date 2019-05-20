@@ -1,6 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Xenko.Core;
@@ -17,9 +18,9 @@ namespace Xenko.Graphics
     {
         public static readonly int ThreadCount = 1; //AppConfig.GetConfiguration<Config>("RenderSystem").ThreadCount;
 
-        internal readonly Dictionary<PipelineStateDescriptionWithHash, PipelineState> CachedPipelineStates = new Dictionary<PipelineStateDescriptionWithHash, PipelineState>();
+        internal readonly ConcurrentDictionary<PipelineStateDescriptionWithHash, PipelineState> CachedPipelineStates = new ConcurrentDictionary<PipelineStateDescriptionWithHash, PipelineState>();
 
-        internal readonly Dictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = new Dictionary<SamplerStateDescription, SamplerState>();
+        internal readonly ConcurrentDictionary<SamplerStateDescription, SamplerState> CachedSamplerStates = new ConcurrentDictionary<SamplerStateDescription, SamplerState>();
 
         /// <summary>
         ///     Gets the features supported by this graphics device.

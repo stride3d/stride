@@ -26,19 +26,26 @@ namespace Xenko.Graphics
         {
             // Store SamplerState in a cache (D3D seems to have quite bad concurrency when using CreateSampler while rendering)
             SamplerState samplerState;
-            lock (graphicsDevice.CachedSamplerStates)
-            {
-                if (graphicsDevice.CachedSamplerStates.TryGetValue(samplerStateDescription, out samplerState))
-                {
+
+            if (GraphicsDevice.Platform == GraphicsPlatform.Vulkan) {
+                if (graphicsDevice.CachedSamplerStates.TryGetValue(samplerStateDescription, out samplerState)) {
                     // TODO: Appropriate destroy
                     samplerState.AddReferenceInternal();
+                } else {
+                    graphicsDevice.CachedSamplerStates.TryAdd(samplerStateDescription, samplerState = new SamplerState(graphicsDevice, samplerStateDescription));
                 }
-                else
-                {
-                    samplerState = new SamplerState(graphicsDevice, samplerStateDescription);
-                    graphicsDevice.CachedSamplerStates.Add(samplerStateDescription, samplerState);
+            } else {
+                lock (graphicsDevice.CachedSamplerStates) {
+                    if (graphicsDevice.CachedSamplerStates.TryGetValue(samplerStateDescription, out samplerState)) {
+                        // TODO: Appropriate destroy
+                        samplerState.AddReferenceInternal();
+                    } else {
+                        samplerState = new SamplerState(graphicsDevice, samplerStateDescription);
+                        graphicsDevice.CachedSamplerStates.TryAdd(samplerStateDescription, samplerState);
+                    }
                 }
             }
+
             return samplerState;
         }
         
@@ -54,9 +61,12 @@ namespace Xenko.Graphics
 
         protected override void Destroy()
         {
-            lock (GraphicsDevice.CachedSamplerStates)
-            {
-                GraphicsDevice.CachedSamplerStates.Remove(Description);
+            if (GraphicsDevice.Platform == GraphicsPlatform.Vulkan) {
+                GraphicsDevice.CachedSamplerStates.TryRemove(Description, out SamplerState junk);
+            } else {
+                lock (GraphicsDevice.CachedSamplerStates) {
+                    GraphicsDevice.CachedSamplerStates.TryRemove(Description, out SamplerState junk);
+                }
             }
 
             base.Destroy();
