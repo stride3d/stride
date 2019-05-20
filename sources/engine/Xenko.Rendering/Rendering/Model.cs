@@ -106,7 +106,7 @@ namespace Xenko.Rendering
         /// <param name="model">The model view.</param>
         public void Add(Model model)
         {
-            children.Add(model);
+            if (model != null) children.Add(model);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Xenko.Rendering
         /// <param name="mesh">The mesh.</param>
         public void Add(Mesh mesh)
         {
-            Meshes.Add(mesh);
+            if (mesh != null) Meshes.Add(mesh);
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Xenko.Rendering
         /// <param name="material">The mesh.</param>
         public void Add(MaterialInstance material)
         {
-            Materials.Add(material);
+            if (material != null) Materials.Add(material);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
