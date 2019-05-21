@@ -142,6 +142,8 @@ namespace Xenko.Rendering.Materials
 
         public MaterialPass PushPass()
         {
+            ResetParameterKeys();
+
             var materialPass = new MaterialPass { PassIndex = PassIndex };
             Material.Passes.Add(materialPass);
 
