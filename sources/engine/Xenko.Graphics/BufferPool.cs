@@ -82,13 +82,16 @@ namespace Xenko.Graphics
 
         public void Reset()
         {
-            if (UseBufferOffsets)
-            {
-                // Release previous buffer
-                if (constantBuffer != null)
-                    allocator.ReleaseReference(constantBuffer);
+            if (UseBufferOffsets) {
+                if (GraphicsDevice.Platform == GraphicsPlatform.Vulkan) {
+                    if (constantBuffer == null) constantBuffer = allocator.GetTemporaryBuffer(new BufferDescription(Size, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic));
+                } else {
+                    // Release previous buffer
+                    if (constantBuffer != null)
+                        allocator.ReleaseReference(constantBuffer);
 
-                constantBuffer = allocator.GetTemporaryBuffer(new BufferDescription(Size, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic));
+                    constantBuffer = allocator.GetTemporaryBuffer(new BufferDescription(Size, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic));
+                }
             }
 
             bufferAllocationOffset = 0;

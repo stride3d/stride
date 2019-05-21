@@ -26,6 +26,8 @@ namespace Xenko.Shaders.Compiler
     [DataSerializerGlobal(null, typeof(KeyValuePair<HashSourceCollection, EffectBytecode>))]
     public class EffectCompilerCache : EffectCompilerChain
     {
+        public static CountdownEvent CompileSynchronization = new CountdownEvent(0);
+
         private static readonly Logger Log = GlobalLogger.GetLogger("EffectCompilerCache");
         private readonly Dictionary<ObjectId, KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>> bytecodes = new Dictionary<ObjectId, KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>>();
         private readonly HashSet<ObjectId> bytecodesByPassingStorage = new HashSet<ObjectId>();
@@ -154,6 +156,10 @@ namespace Xenko.Shaders.Compiler
             var log = new LoggerResult();
             var effectLog = GlobalLogger.GetLogger("EffectCompilerCache");
 
+            if (CompileSynchronization.IsSet) {
+                CompileSynchronization.Reset(1);
+            } else CompileSynchronization.AddCount();
+
             // Note: this compiler is expected to not be async and directly write stuff in localLogger
             var compiledShader = base.Compile(mixinTree, effectParameters, compilerParameters).WaitForResult();
             compiledShader.CompilationLog.CopyTo(log);
@@ -204,6 +210,8 @@ namespace Xenko.Shaders.Compiler
                     bytecodes[newBytecodeId] = new KeyValuePair<EffectBytecode, EffectBytecodeCacheLoadSource>(compiledShader.Bytecode, EffectBytecodeCacheLoadSource.JustCompiled);
                 }
             }
+
+            CompileSynchronization.Signal();
 
             lock (compilingShaders)
             {

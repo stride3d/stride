@@ -26,6 +26,7 @@ namespace Xenko.Graphics
         internal int[] ResourceGroupMapping;
         internal int ResourceGroupCount;
         internal PipelineStateDescription Description;
+        internal object PipeLock = new object();
 
         // State exposed by the CommandList
         private static readonly DynamicState[] dynamicStates =
@@ -38,8 +39,12 @@ namespace Xenko.Graphics
 
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
         {
-            Description = pipelineStateDescription.Clone();
-            Recreate();
+            Xenko.Shaders.Compiler.EffectCompilerCache.CompileSynchronization.Wait();
+
+            lock (PipeLock) {
+                Description = pipelineStateDescription.Clone();
+                Recreate();
+            }
         }
 
         private unsafe void Recreate()
@@ -196,6 +201,7 @@ namespace Xenko.Graphics
                     RenderPass = NativeRenderPass,
                     Subpass = 0,
                 };
+
                 NativePipeline = GraphicsDevice.NativeDevice.CreateGraphicsPipelines(PipelineCache.Null, 1, &createInfo);
             }
 
