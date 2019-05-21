@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-05-11 07:49+0000\n"
+"PO-Revision-Date: 2019-05-22 10:28+0000\n"
 "Last-Translator: WaldiS <admin@sto.ugu.pl>\n"
 "Language-Team: Polish <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "pl/>\n"
@@ -25,6 +25,8 @@ msgid ""
 "Some game code files have been modified. Do you want to reload the "
 "assemblies?"
 msgstr ""
+"Niektóre pliki kodu gry zostały zmodyfikowane. Czy chcesz przeładować "
+"zestawy?"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
@@ -48,13 +50,13 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:422
 msgctxt "Message"
 msgid "No Android device found for execution."
-msgstr ""
+msgstr "Nie znaleziono urządzenia z systemem Android do wykonania."
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:475
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:639
 msgctxt "Message"
 msgid "Unable to load and compile project {0}"
-msgstr ""
+msgstr "Nie można załadować i skompilować projektu {0}"
 
 #. Log message displayed when the executable can't be found after building the project. {0}: the expected executable path
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:492
