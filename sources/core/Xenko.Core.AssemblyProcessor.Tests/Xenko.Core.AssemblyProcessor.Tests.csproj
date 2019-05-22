@@ -20,9 +20,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mono.Cecil">
-      <HintPath>..\..\..\deps\Mono.Cecil\Mono.Cecil.dll</HintPath>
-    </Reference>
     <Reference Include="nunit.core.interfaces">
       <HintPath>..\..\..\deps\NUnit\addins\nunit.core.interfaces.dll</HintPath>
     </Reference>
