@@ -170,6 +170,12 @@ namespace Xenko.Rendering.Materials
             return GetSamplerKey(samplerStateDesc, graphicsDevice);
         }
 
+        protected void ResetParameterKeys()
+        {
+            parameterKeyIndices.Clear();
+            declaredSamplerStates.Clear();
+        }
+
         public void PushOverrides(MaterialOverrides overrides)
         {
             if (overrides == null) throw new ArgumentNullException("overrides");

@@ -53,7 +53,7 @@ namespace Xenko.Assets.Materials
             public MaterialCompileCommand(string url, AssetItem assetItem, MaterialAsset value, AssetCompilerContext context)
                 : base(url, value, assetItem.Package)
             {
-                Version = 3;
+                Version = 4;
                 this.assetItem = assetItem;
                 colorSpace = context.GetColorSpace();
                 assetUrl = new UFile(url);
