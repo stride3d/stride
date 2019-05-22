@@ -71,8 +71,6 @@ namespace Xenko.Engine.Processors
             {
                 InternalAddEntity(child.Entity);
             }
-
-            ((TrackingCollection<TransformComponent>)data.Children).CollectionChanged += Children_CollectionChanged;
         }
 
         /// <inheritdoc/>
@@ -93,8 +91,6 @@ namespace Xenko.Engine.Processors
             {
                 TransformationRoots.Remove(component);
             }
-
-            ((TrackingCollection<TransformComponent>)data.Children).CollectionChanged -= Children_CollectionChanged;
         }
 
         internal void UpdateTransformations(FastCollection<TransformComponent> transformationComponents)
@@ -172,43 +168,36 @@ namespace Xenko.Engine.Processors
                 UpdateTransfromationsRecursive(childScene);
             }
         }
-
-        private void Children_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        
+        internal void NotifyChildrenCollectionChanged(TransformComponent transformComponent, bool added)
         {
-            var transformComponent = (TransformComponent)e.Item;
-
             // Ignore if transform component is being moved inside the same root scene (no need to add/remove)
             if (transformComponent.IsMovingInsideRootScene)
             {
                 // Still need to update transformation roots
                 if (transformComponent.Parent == null)
                 {
-                    switch (e.Action)
+                    if(added)
                     {
-                        case NotifyCollectionChangedAction.Add:
-                            TransformationRoots.Add(transformComponent);
-                            break;
-                        case NotifyCollectionChangedAction.Remove:
-                            TransformationRoots.Remove(transformComponent);
-                            break;
-                        default:
-                            throw new NotSupportedException();
+                        TransformationRoots.Add(transformComponent);
+                    }
+                    else
+                    {
+                        TransformationRoots.Remove(transformComponent);
                     }
                 }
-                return;
             }
-
             // Added/removed children of entities in the entity manager have to be added/removed of the entity manager.
-            switch (e.Action)
+            else
             {
-                case NotifyCollectionChangedAction.Add:
+                if (added)
+                {
                     InternalAddEntity(transformComponent.Entity);
-                    break;
-                case NotifyCollectionChangedAction.Remove:
+                }
+                else
+                {
                     InternalRemoveEntity(transformComponent.Entity, false);
-                    break;
-                default:
-                    throw new NotSupportedException();
+                }
             }
         }
     }
