@@ -43,10 +43,7 @@
     <PackageReference Include="EnvDTE" Version="8.0.1" />
     <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
     <PackageReference Include="Xenko.CrashReport" Version="1.0.1" />
-    <Reference Include="Mono.Cecil">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(XenkoCommonDependenciesDir)Mono.Cecil\Mono.Cecil.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Mono.Cecil" Version="0.10.4" />
     <PackageReference Include="QuickGraph" Version="3.6.61119.7" />
     <Reference Include="Renci.SshNet, Version=2016.0.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
