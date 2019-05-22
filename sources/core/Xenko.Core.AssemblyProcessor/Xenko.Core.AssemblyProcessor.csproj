@@ -24,19 +24,8 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Mono.Cecil" Version="0.10.4" />
     <PackageReference Include="Mono.Options" Version="5.3.0.1" />
-    <Reference Include="Mono.Cecil">
-      <HintPath>..\..\..\deps\Mono.Cecil\Mono.Cecil.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Pdb">
-      <HintPath>..\..\..\deps\Mono.Cecil\Mono.Cecil.Pdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Mdb">
-      <HintPath>..\..\..\deps\Mono.Cecil\Mono.Cecil.Mdb.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Cecil.Rocks">
-      <HintPath>..\..\..\deps\Mono.Cecil\Mono.Cecil.Rocks.dll</HintPath>
-    </Reference>
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
   <ItemGroup>
@@ -84,7 +73,7 @@
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ILRepack" Version="2.0.15"/>
+    <PackageReference Include="ILRepack" Version="2.0.15" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
   </ItemGroup>
