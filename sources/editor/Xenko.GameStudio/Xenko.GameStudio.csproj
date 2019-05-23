@@ -5,7 +5,7 @@
   <Import Project="..\Xenko.Editor.CrashReport\Xenko.Editor.CrashReport.projitems" Label="Shared" />
   <Import Project="..\..\shared\Xenko.NuGetResolver\Xenko.NuGetResolver.projitems" Label="Shared" />
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -43,10 +43,7 @@
     <PackageReference Include="EnvDTE" Version="8.0.1" />
     <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
     <PackageReference Include="Xenko.CrashReport" Version="1.0.1" />
-    <Reference Include="Mono.Cecil">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(XenkoCommonDependenciesDir)Mono.Cecil\Mono.Cecil.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Mono.Cecil" Version="0.10.3" />
     <PackageReference Include="QuickGraph" Version="3.6.61119.7" />
     <Reference Include="Renci.SshNet, Version=2016.0.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -131,7 +128,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>

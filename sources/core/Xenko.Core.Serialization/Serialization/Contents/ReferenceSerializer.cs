@@ -2,11 +2,17 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using Xenko.Core.Assets;
 using Xenko.Core.Reflection;
 
 namespace Xenko.Core.Serialization.Contents
 {
+    public static class ReferenceSerializer
+    {
+        public static readonly PropertyKey<List<object>> CloneReferences = new PropertyKey<List<object>>("CloneReferences", typeof(SerializerExtensions), DefaultValueMetadata.Delegate(delegate { return new List<object>(); }));
+    }
+
     /// <summary>
     /// Serialize object with its underlying Id and Location, and use <see cref="ContentManager"/> to generate a separate chunk.
     /// </summary>
@@ -93,6 +99,19 @@ namespace Xenko.Core.Serialization.Contents
                     var url = stream.ReadString();
 
                     obj = (T)AttachedReferenceManager.CreateProxyObject(type, id, url);
+                }
+            }
+            else if (referenceSerialization == ContentSerializerContext.AttachedReferenceSerialization.Clone)
+            {
+                var cloneReferences = stream.Context.Get(ReferenceSerializer.CloneReferences);
+                if (mode == ArchiveMode.Serialize)
+                {
+                    stream.Write(cloneReferences.Count);
+                    cloneReferences.Add(obj);
+                }
+                else
+                {
+                    obj = (T)cloneReferences[stream.ReadInt32()];
                 }
             }
             else

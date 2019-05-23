@@ -34,7 +34,7 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\prerequisites\BuildTools2017\vs_buildtools.exe">
+    <None Include="..\..\prerequisites\BuildTools2019\vs_buildtools.exe">
       <Link>vs_buildtools.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
