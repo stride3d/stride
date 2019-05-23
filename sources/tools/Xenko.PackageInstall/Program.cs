@@ -16,8 +16,8 @@ namespace Xenko.PackageInstall
 {
     class Program
     {
-        private static readonly string[] NecessaryVS2017Workloads = new[] { "Microsoft.VisualStudio.Workload.ManagedDesktop", "Microsoft.NetCore.ComponentGroup.DevelopmentTools.2.1" };
-        private static readonly string[] NecessaryBuildTools2017Workloads = new[] { "Microsoft.VisualStudio.Workload.MSBuildTools", "Microsoft.VisualStudio.Workload.NetCoreBuildTools", "Microsoft.Net.Component.4.6.1.TargetingPack" };
+        private static readonly string[] NecessaryVS2019Workloads = new[] { "Microsoft.VisualStudio.Workload.ManagedDesktop", "Microsoft.NetCore.ComponentGroup.DevelopmentTools.2.1" };
+        private static readonly string[] NecessaryBuildTools2019Workloads = new[] { "Microsoft.VisualStudio.Workload.MSBuildTools", "Microsoft.VisualStudio.Workload.NetCoreBuildTools", "Microsoft.Net.Component.4.6.1.TargetingPack" };
         private const bool AllowVisualStudioOnly = true; // Somehow this doesn't work well yet, so disabled for now
 
         static int Main(string[] args)
@@ -41,7 +41,7 @@ namespace Xenko.PackageInstall
                             RunProgramAndAskUntilSuccess("prerequisites", prerequisitesInstallerPath, string.Empty);
                         }
 
-                        // Make sure we have the proper VS2017/BuildTools prerequisites
+                        // Make sure we have the proper VS2019/BuildTools prerequisites
                         CheckVisualStudioAndBuildTools();
 
                         break;
@@ -98,32 +98,32 @@ namespace Xenko.PackageInstall
 
         private static void CheckVisualStudioAndBuildTools()
         {
-            // Check if there is any VS2017 installed with necessary workloads
-            var matchingVisualStudioInstallation = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => NecessaryVS2017Workloads.All(workload => x.PackageVersions.ContainsKey(workload)));
+            // Check if there is any VS2019 installed with necessary workloads
+            var matchingVisualStudioInstallation = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => NecessaryVS2019Workloads.All(workload => x.PackageVersions.ContainsKey(workload)));
             if (AllowVisualStudioOnly && matchingVisualStudioInstallation != null)
             {
                 if (!matchingVisualStudioInstallation.Complete)
-                    MessageBox.Show("We detected Visual Studio 2017 was already installed but is not in a complete state.\r\nYou probably have to reboot, otherwise Xenko projects won't properly compile.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("We detected Visual Studio 2019 was already installed but is not in a complete state.\r\nYou probably have to reboot, otherwise Xenko projects won't properly compile.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
-                // Check if there is actually a VS2017+ installed
-                var existingVisualStudio2017Install = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => x.PackageVersions.ContainsKey("Microsoft.VisualStudio.Component.CoreEditor"));
+                // Check if there is actually a VS2019+ installed
+                var existingVisualStudio2019Install = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => x.PackageVersions.ContainsKey("Microsoft.VisualStudio.Component.CoreEditor"));
                 var vsInstallerPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Visual Studio\Installer\vs_installer.exe");
-                if (AllowVisualStudioOnly && existingVisualStudio2017Install != null && File.Exists(vsInstallerPath))
+                if (AllowVisualStudioOnly && existingVisualStudio2019Install != null && File.Exists(vsInstallerPath))
                 {
                     // First, check if a Visual Studio update is needed
-                    // VS2017: 15.8+ (for .NET Core 2.1)
-                    if (existingVisualStudio2017Install.Version.Major == 15 && existingVisualStudio2017Install.Version.Minor < 8)
+                    // Note: not necessary since VS2019, still keeping code for when we'll need a specific VS2019 version
+                    if (existingVisualStudio2019Install.Version.Major == 16 && existingVisualStudio2019Install.Version.Minor < 0)
                     {
                         // Not sure why, but it seems VS Update is sometimes sending Ctrl+C to our process...
                         try
                         {
                             Console.CancelKeyPress += Console_IgnoreControlC;
-                            var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --passive --norestart --installPath \"{existingVisualStudio2017Install.InstallationPath}\"");
+                            var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\"");
                             if (vsInstallerExitCode != 0)
                             {
-                                var errorMessage = $"Visual Studio 2017 update failed with error {vsInstallerExitCode}";
+                                var errorMessage = $"Visual Studio 2019 update failed with error {vsInstallerExitCode}";
                                 MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 throw new InvalidOperationException(errorMessage);
                             }
@@ -136,26 +136,26 @@ namespace Xenko.PackageInstall
 
                     // Check workloads
                     {
-                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --passive --norestart --installPath \"{existingVisualStudio2017Install.InstallationPath}\" {string.Join(" ", NecessaryVS2017Workloads.Select(x => $"--add {x}"))}");
+                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x}"))}");
                         if (vsInstallerExitCode != 0)
                         {
-                            var errorMessage = $"Visual Studio 2017 install failed with error {vsInstallerExitCode}";
+                            var errorMessage = $"Visual Studio 2019 install failed with error {vsInstallerExitCode}";
                             MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             throw new InvalidOperationException(errorMessage);
                         }
                     }
 
-                    // Refresh existingVisualStudio2017Install.Complete and check if restart is needed
+                    // Refresh existingVisualStudio2019Install.Complete and check if restart is needed
                     VisualStudioVersions.Refresh();
-                    existingVisualStudio2017Install = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => x.InstallationPath == existingVisualStudio2017Install.InstallationPath);
-                    if (existingVisualStudio2017Install != null && !existingVisualStudio2017Install.Complete)
-                        MessageBox.Show("Visual Studio 2017 install needs a computer restart.\r\nIf you don't restart, Xenko projects likely won't compile.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    existingVisualStudio2019Install = VisualStudioVersions.AvailableVisualStudioInstances.FirstOrDefault(x => x.InstallationPath == existingVisualStudio2019Install.InstallationPath);
+                    if (existingVisualStudio2019Install != null && !existingVisualStudio2019Install.Complete)
+                        MessageBox.Show("Visual Studio 2019 install needs a computer restart.\r\nIf you don't restart, Xenko projects likely won't compile.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
                     // Otherwise, fallback to vs_buildtools standalone detection and install
                     var buildTools = VisualStudioVersions.AvailableBuildTools.Where(x => x.PackageVersions.ContainsKey("Microsoft.VisualStudio.Workload.MSBuildTools")).ToList();
-                    var matchingBuildTool = buildTools.FirstOrDefault(x => NecessaryBuildTools2017Workloads.All(workload => x.PackageVersions.ContainsKey(workload)));
+                    var matchingBuildTool = buildTools.FirstOrDefault(x => NecessaryBuildTools2019Workloads.All(workload => x.PackageVersions.ContainsKey(workload)));
                     string buildToolsCommandLine = null;
 
                     if (matchingBuildTool == null)
@@ -163,12 +163,12 @@ namespace Xenko.PackageInstall
                         if (buildTools.Count > 0)
                         {
                             // Incomplete installation
-                            buildToolsCommandLine = $"modify --wait --passive --norestart --installPath \"{buildTools.First().InstallationPath}\" {string.Join(" ", NecessaryBuildTools2017Workloads.Select(x => $"--add {x}"))}";
+                            buildToolsCommandLine = $"modify --wait --passive --norestart --installPath \"{buildTools.First().InstallationPath}\" {string.Join(" ", NecessaryBuildTools2019Workloads.Select(x => $"--add {x}"))}";
                         }
                         else
                         {
                             // Not installed yet
-                            buildToolsCommandLine = $"--wait --passive --norestart {string.Join(" ", NecessaryBuildTools2017Workloads.Select(x => $"--add {x}"))}";
+                            buildToolsCommandLine = $"--wait --passive --norestart {string.Join(" ", NecessaryBuildTools2019Workloads.Select(x => $"--add {x}"))}";
                         }
                     }
 

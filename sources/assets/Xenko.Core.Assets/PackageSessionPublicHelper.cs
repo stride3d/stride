@@ -31,19 +31,17 @@ namespace Xenko.Core.Assets
             // Note: this should be called only once
             if (MSBuildInstance == null && Interlocked.Increment(ref MSBuildLocatorCount) == 1)
             {
+                MSBuildInstance = MSBuildLocator.QueryVisualStudioInstances().FirstOrDefault(x => x.Version.Major >= 16);
+
                 // Make sure it is not already loaded (otherwise MSBuildLocator.RegisterDefaults() throws an exception)
-                if (AppDomain.CurrentDomain.GetAssemblies().Any(IsMSBuildAssembly))
+                if (MSBuildInstance != null && !AppDomain.CurrentDomain.GetAssemblies().Any(IsMSBuildAssembly))
                 {
-                    MSBuildInstance = MSBuildLocator.QueryVisualStudioInstances().FirstOrDefault();
-                }
-                else
-                {
-                    MSBuildInstance = MSBuildLocator.RegisterDefaults();
+                    MSBuildLocator.RegisterInstance(MSBuildInstance);
                 }
             }
 
             if (MSBuildInstance == null)
-                throw new InvalidOperationException("Could not find MSBuild Instance");
+                throw new InvalidOperationException("Could not find a MSBuild installation (expected 16.0 or later)");
 
             CheckMSBuildToolset();
         }
@@ -63,10 +61,9 @@ namespace Xenko.Core.Assets
             // Check that we can create a project
             using (var projectCollection = new Microsoft.Build.Evaluation.ProjectCollection())
             {
-                if (projectCollection.GetToolset("15.0") == null // VS 2017
-                    && projectCollection.GetToolset("Current") == null) // VS 2019+ (https://github.com/Microsoft/msbuild/issues/3778)
+                if (projectCollection.GetToolset("Current") == null) // VS 2019+ (https://github.com/Microsoft/msbuild/issues/3778)
                 {
-                    throw new InvalidOperationException("Could not find a supported MSBuild toolset version (expected 15.0 or later)");
+                    throw new InvalidOperationException("Could not find a supported MSBuild toolset version (expected 16.0 or later)");
                 }
             }
         }

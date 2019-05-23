@@ -119,12 +119,6 @@
     </When>
   </Choose>
 
-  <PropertyGroup Condition="'$(MSBuildProjectExtension)' == '.vcxproj'">
-    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</WindowsTargetPlatformVersion>
-    <!-- If not there, it will ask user to install 8.1 if nothing is installed, so provide a better fallback -->
-    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">10.0.17763.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-
   <!-- Create empty project platform configuration so that MSBuild and Visual Studio Configuration Manager know about it -->
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Debug|iPhone' "/>
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'iOS' And '$(Configuration)|$(Platform)' == 'Release|iPhone' "/>

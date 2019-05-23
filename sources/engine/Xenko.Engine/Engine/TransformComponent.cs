@@ -17,7 +17,7 @@ namespace Xenko.Engine
     /// Defines Position, Rotation and Scale of its <see cref="Entity"/>.
     /// </summary>
     [DataContract("TransformComponent")]
-    [DataSerializerGlobal(null, typeof(TrackingCollection<TransformComponent>))]
+    [DataSerializerGlobal(null, typeof(FastCollection<TransformComponent>))]
     [DefaultEntityComponentProcessor(typeof(TransformProcessor))]
     [Display("Transform", Expand = ExpandRule.Once)]
     [ComponentOrder(0)]
@@ -89,8 +89,7 @@ namespace Xenko.Engine
         /// </summary>
         public TransformComponent()
         {
-            children = new TransformChildrenCollection();
-            children.CollectionChanged += ChildrenCollectionChanged;
+            children = new TransformChildrenCollection(this);
 
             UseTRS = true;
             Scale = Vector3.One;
@@ -316,38 +315,68 @@ namespace Xenko.Engine
             }
         }
 
-        private void AddItem(TransformComponent item)
+        [DataContract]
+        public class TransformChildrenCollection : FastCollection<TransformComponent>
         {
-            if (item.Parent != null)
-                throw new InvalidOperationException("This TransformComponent already has a Parent, detach it first.");
+            TransformComponent transform;
+            Entity Entity => transform.Entity;
 
-            item.parent = this;
-
-            Entity?.EntityManager?.OnHierarchyChanged(item.Entity);
-        }
-
-        private void RemoveItem(TransformComponent item)
-        {
-            if (item.Parent != this)
-                throw new InvalidOperationException("This TransformComponent's parent is not the expected value.");
-
-            item.parent = null;
-
-            Entity?.EntityManager?.OnHierarchyChanged(item.Entity);
-        }
-
-        private void ChildrenCollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
-        {
-            switch (e.Action)
+            public TransformChildrenCollection(TransformComponent transformParam)
             {
-                case NotifyCollectionChangedAction.Add:
-                    AddItem((TransformComponent)e.Item);
-                    break;
-                case NotifyCollectionChangedAction.Remove:
-                    RemoveItem((TransformComponent)e.Item);
-                    break;
-                default:
-                    throw new NotSupportedException();
+                transform = transformParam;
+            }
+
+            private void OnTransformAdded(TransformComponent item)
+            {
+                if (item.Parent != null)
+                    throw new InvalidOperationException("This TransformComponent already has a Parent, detach it first.");
+
+                item.parent = transform;
+
+                Entity?.EntityManager?.OnHierarchyChanged(item.Entity);
+                Entity?.EntityManager?.GetProcessor<TransformProcessor>().NotifyChildrenCollectionChanged(item, true);
+            }
+            private void OnTransformRemoved(TransformComponent item)
+            {
+                if (item.Parent != transform)
+                    throw new InvalidOperationException("This TransformComponent's parent is not the expected value.");
+
+                item.parent = null;
+
+                Entity?.EntityManager?.OnHierarchyChanged(item.Entity);
+                Entity?.EntityManager?.GetProcessor<TransformProcessor>().NotifyChildrenCollectionChanged(item, false);
+            }
+            
+            /// <inheritdoc/>
+            protected override void InsertItem(int index, TransformComponent item)
+            {
+                base.InsertItem(index, item);
+                OnTransformAdded(item);
+            }
+
+            /// <inheritdoc/>
+            protected override void RemoveItem(int index)
+            {
+                OnTransformRemoved(this[index]);
+                base.RemoveItem(index);
+            }
+
+            /// <inheritdoc/>
+            protected override void ClearItems()
+            {
+                for (var i = Count - 1; i >= 0; --i)
+                    OnTransformRemoved(this[i]);
+                base.ClearItems();
+            }
+
+            /// <inheritdoc/>
+            protected override void SetItem(int index, TransformComponent item)
+            {
+                OnTransformRemoved(this[index]);
+
+                base.SetItem(index, item);
+
+                OnTransformAdded(this[index]);
             }
         }
     }

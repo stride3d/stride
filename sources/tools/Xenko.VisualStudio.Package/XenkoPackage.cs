@@ -8,6 +8,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.Build.Evaluation;
@@ -16,10 +18,12 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Package;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Threading;
 using NShader;
 using Xenko.VisualStudio.BuildEngine;
 using Xenko.VisualStudio.Commands;
 using Xenko.VisualStudio.Shaders;
+using Task = System.Threading.Tasks.Task;
 
 namespace Xenko.VisualStudio
 {
@@ -38,7 +42,7 @@ namespace Xenko.VisualStudio
     /// </summary>
     // This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is
     // a package.
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     // This attribute is used to register the information needed to show this package
     // in the Help/About dialog of Visual Studio.
     [InstalledProductRegistration("#110", "#112", Version, IconResourceID = 400)]
@@ -48,7 +52,7 @@ namespace Xenko.VisualStudio
     //[ProvideToolWindow(typeof (MyToolWindow))]
     [Guid(GuidList.guidXenko_VisualStudio_PackagePkgString)]
     // Xenko Shader LanguageService
-    [ProvideService(typeof(NShaderLanguageService), ServiceName = "Xenko Shader Language Service")]
+    [ProvideService(typeof(NShaderLanguageService), ServiceName = "Xenko Shader Language Service", IsAsyncQueryable = true)]
     [ProvideLanguageServiceAttribute(typeof(NShaderLanguageService),
                              "Xenko Shader Language",
                              0,
@@ -69,8 +73,8 @@ namespace Xenko.VisualStudio
     [CodeGeneratorRegistration(typeof(ShaderKeyFileGenerator), ShaderKeyFileGenerator.DisplayName, GuidList.vsContextGuidVCSNewProject, GeneratorRegKeyName = ShaderKeyFileGenerator.InternalName, GeneratesDesignTimeSource = true, GeneratesSharedDesignTimeSource = true)]
     // Temporarily force load for easier debugging
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string)]
-    public sealed class XenkoPackage : Package, IOleComponent
+    [ProvideAutoLoad(VSConstants.UICONTEXT.SolutionExists_string, PackageAutoLoadFlags.BackgroundLoad)]
+    public sealed class XenkoPackage : AsyncPackage, IOleComponent
     {
         public const string Version = "2.0";
 
@@ -103,12 +107,16 @@ namespace Xenko.VisualStudio
         ///     Initialization of the package; this method is called right after the package is sited, so this is the place
         ///     where you can put all the initialization code that rely on services provided by VisualStudio.
         /// </summary>
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", ToString()));
-            base.Initialize();
+            Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering InitializeAsync() of: {0}", ToString()));
+            await base.InitializeAsync(cancellationToken, progress);
 
             IDEBuildLogger.UserRegistryRoot = UserRegistryRoot;
+
+            // Switching to main thread to use GetService RPC and cast to service interface (which may involve COM operations)
+            // Note: most of our work is not supposed to be heavy, mostly registration of services and callbacks
+            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             solutionEventsListener = new SolutionEventsListener(this);
             solutionEventsListener.BeforeSolutionClosed += solutionEventsListener_BeforeSolutionClosed;
@@ -131,7 +139,7 @@ namespace Xenko.VisualStudio
             serviceContainer.AddService(typeof(NShaderLanguageService), langService, true);
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            var mcs = GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
+            var mcs = await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (null != mcs)
             {
                 XenkoCommands.ServiceProvider = this;
@@ -154,6 +162,9 @@ namespace Xenko.VisualStudio
                 crinfo[0].uIdleTimeInterval = 1000;
                 int hr = mgr.FRegisterComponent(this, crinfo, out m_componentID);
             }
+
+            // Go back to async thread
+            await TaskScheduler.Default;
         }
 
         public static bool IsProjectExecutable(EnvDTE.Project project)

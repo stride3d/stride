@@ -10,15 +10,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Xenko.Engine" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Engine" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" />
 
-    <PackageReference Include="Xenko.Video" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Physics" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Navigation" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Particles" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.UI" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
-    <PackageReference Include="Xenko.Core" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" />
+    <PackageReference Include="Xenko.Video" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" />
+    <PackageReference Include="Xenko.Physics" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" />
+    <PackageReference Include="Xenko.Navigation" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" />
+    <PackageReference Include="Xenko.Particles" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" />
+    <PackageReference Include="Xenko.UI" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" />
 
-    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" PrivateAssets="contentfiles;analyzers" IncludeAssets="build" />
+    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="<#= Xenko.Assets.XenkoConfig.GetLatestPackageDependency().Version #>" IncludeAssets="build;buildTransitive" />
   </ItemGroup>
 </Project>
