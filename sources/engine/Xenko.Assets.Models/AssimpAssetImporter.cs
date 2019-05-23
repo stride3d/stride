@@ -15,11 +15,11 @@ namespace Xenko.Assets.Models
     {
         static AssimpAssetImporter()
         {
-            NativeLibrary.PreloadLibrary("assimp-vc120-mt.dll", typeof(AssimpAssetImporter));
+            NativeLibrary.PreloadLibrary("assimp-vc140-mt.dll", typeof(AssimpAssetImporter));
         }
 
         // Supported file extensions for this importer
-        private const string FileExtensions = ".dae;.3ds;.obj;.blend;.x;.md2;.md3;.dxf;.ply";
+        internal const string FileExtensions = ".dae;.3ds;.gltf;.glb;.obj;.blend;.x;.md2;.md3;.dxf;.ply;.stl;.stp";
 
         private static readonly Guid Uid = new Guid("30243FC0-CEC7-4433-977E-95DCA29D846E");
 

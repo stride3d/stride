@@ -3,7 +3,8 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2016, assimp team
+Copyright (c) 2006-2018, assimp team
+
 
 All rights reserved.
 
@@ -267,6 +268,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     "PP_FD_REMOVE"
 
 // ---------------------------------------------------------------------------
+/**
+ *  @brief  Configures the #aiProcess_FindDegenerates to check the area of a
+ *  trinagle to be greates than e-6. If this is not the case the triangle will
+ *  be removed if #AI_CONFIG_PP_FD_REMOVE is set to true.
+ */
+#define AI_CONFIG_PP_FD_CHECKAREA \
+    "PP_FD_CHECKAREA"
+
+// ---------------------------------------------------------------------------
 /** @brief Configures the #aiProcess_OptimizeGraph step to preserve nodes
  * matching a name in a given list.
  *
@@ -323,7 +333,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** @brief Set the maximum number of bones affecting a single vertex
  *
  * This is used by the #aiProcess_LimitBoneWeights PostProcess-Step.
- * @note The default value is AI_LBW_MAX_WEIGHTS
+ * @note The default value is AI_LMW_MAX_WEIGHTS
  * Property type: integer.*/
 #define AI_CONFIG_PP_LBW_MAX_WEIGHTS    \
     "PP_LBW_MAX_WEIGHTS"
@@ -632,8 +642,15 @@ enum aiComponent
 #define AI_CONFIG_IMPORT_FBX_OPTIMIZE_EMPTY_ANIMATION_CURVES \
     "IMPORT_FBX_OPTIMIZE_EMPTY_ANIMATION_CURVES"
 
-
-
+// ---------------------------------------------------------------------------
+/** @brief Set whether the fbx importer will use the legacy embedded texture naming.
+*
+* The default value is false (0)
+* Property type: bool
+*/
+#define AI_CONFIG_IMPORT_FBX_EMBEDDED_TEXTURES_LEGACY_NAMING \
+	"AI_CONFIG_IMPORT_FBX_EMBEDDED_TEXTURES_LEGACY_NAMING"
+	
 // ---------------------------------------------------------------------------
 /** @brief  Set the vertex animation keyframe to be imported
  *
@@ -844,14 +861,6 @@ enum aiComponent
 #define AI_CONFIG_IMPORT_OGRE_TEXTURETYPE_FROM_FILENAME \
     "IMPORT_OGRE_TEXTURETYPE_FROM_FILENAME"
 
-/** @brief Specifies whether the IFC loader skips over IfcSpace elements.
- *
- * IfcSpace elements (and their geometric representations) are used to
- * represent, well, free space in a building storey.<br>
- * Property type: Bool. Default value: true.
- */
-#define AI_CONFIG_IMPORT_IFC_SKIP_SPACE_REPRESENTATIONS "IMPORT_IFC_SKIP_SPACE_REPRESENTATIONS"
-
  /** @brief Specifies whether the Android JNI asset extraction is supported.
   *
   * Turn on this option if you want to manage assets in native
@@ -860,17 +869,14 @@ enum aiComponent
   */
  #define AI_CONFIG_ANDROID_JNI_ASSIMP_MANAGER_SUPPORT "AI_CONFIG_ANDROID_JNI_ASSIMP_MANAGER_SUPPORT"
 
-
 // ---------------------------------------------------------------------------
-/** @brief Specifies whether the IFC loader skips over
- *    shape representations of type 'Curve2D'.
+/** @brief Specifies whether the IFC loader skips over IfcSpace elements.
  *
- * A lot of files contain both a faceted mesh representation and a outline
- * with a presentation type of 'Curve2D'. Currently Assimp doesn't convert those,
- * so turning this option off just clutters the log with errors.<br>
+ * IfcSpace elements (and their geometric representations) are used to
+ * represent, well, free space in a building storey.<br>
  * Property type: Bool. Default value: true.
  */
-#define AI_CONFIG_IMPORT_IFC_SKIP_CURVE_REPRESENTATIONS "IMPORT_IFC_SKIP_CURVE_REPRESENTATIONS"
+#define AI_CONFIG_IMPORT_IFC_SKIP_SPACE_REPRESENTATIONS "IMPORT_IFC_SKIP_SPACE_REPRESENTATIONS"
 
 // ---------------------------------------------------------------------------
 /** @brief Specifies whether the IFC loader will use its own, custom triangulation
@@ -888,6 +894,38 @@ enum aiComponent
 #define AI_CONFIG_IMPORT_IFC_CUSTOM_TRIANGULATION "IMPORT_IFC_CUSTOM_TRIANGULATION"
 
 // ---------------------------------------------------------------------------
+/** @brief  Set the tessellation conic angle for IFC smoothing curves.
+ *
+ * This is used by the IFC importer to determine the tessellation parameter
+ * for smoothing curves.
+ * @note The default value is AI_IMPORT_IFC_DEFAULT_SMOOTHING_ANGLE and the
+ * accepted values are in range [5.0, 120.0].
+ * Property type: Float.
+ */
+#define AI_CONFIG_IMPORT_IFC_SMOOTHING_ANGLE "IMPORT_IFC_SMOOTHING_ANGLE"
+
+// default value for AI_CONFIG_IMPORT_IFC_SMOOTHING_ANGLE
+#if (!defined AI_IMPORT_IFC_DEFAULT_SMOOTHING_ANGLE)
+#   define AI_IMPORT_IFC_DEFAULT_SMOOTHING_ANGLE 10.0f
+#endif
+
+// ---------------------------------------------------------------------------
+/** @brief  Set the tessellation for IFC cylindrical shapes.
+ *
+ * This is used by the IFC importer to determine the tessellation parameter
+ * for cylindrical shapes, i.e. the number of segments used to approximate a circle.
+ * @note The default value is AI_IMPORT_IFC_DEFAULT_CYLINDRICAL_TESSELLATION and the
+ * accepted values are in range [3, 180].
+ * Property type: Integer.
+ */
+#define AI_CONFIG_IMPORT_IFC_CYLINDRICAL_TESSELLATION "IMPORT_IFC_CYLINDRICAL_TESSELLATION"
+
+// default value for AI_CONFIG_IMPORT_IFC_CYLINDRICAL_TESSELLATION
+#if (!defined AI_IMPORT_IFC_DEFAULT_CYLINDRICAL_TESSELLATION)
+#   define AI_IMPORT_IFC_DEFAULT_CYLINDRICAL_TESSELLATION 32
+#endif
+
+// ---------------------------------------------------------------------------
 /** @brief Specifies whether the Collada loader will ignore the provided up direction.
  *
  * If this property is set to true, the up direction provided in the file header will
@@ -895,6 +933,16 @@ enum aiComponent
  * Property type: Bool. Default value: false.
  */
 #define AI_CONFIG_IMPORT_COLLADA_IGNORE_UP_DIRECTION "IMPORT_COLLADA_IGNORE_UP_DIRECTION"
+
+// ---------------------------------------------------------------------------
+/** @brief Specifies whether the Collada loader should use Collada names as node names.
+ *
+ * If this property is set to true, the Collada names will be used as the
+ * node name. The default is to use the id tag (resp. sid tag, if no id tag is present)
+ * instead.
+ * Property type: Bool. Default value: false.
+ */
+#define AI_CONFIG_IMPORT_COLLADA_USE_COLLADA_NAMES "IMPORT_COLLADA_USE_COLLADA_NAMES"
 
 // ---------- All the Export defines ------------
 
@@ -905,6 +953,19 @@ enum aiComponent
 
 #define AI_CONFIG_EXPORT_XFILE_64BIT "EXPORT_XFILE_64BIT"
 
+/**
+ *
+ */
+#define AI_CONFIG_EXPORT_POINT_CLOUDS "EXPORT_POINT_CLOUDS"
+
+/**
+ *  @brief  Specifies a gobal key factor for scale, float value
+ */
+#define AI_CONFIG_GLOBAL_SCALE_FACTOR_KEY "GLOBAL_SCALE_FACTOR"
+
+#if (!defined AI_CONFIG_GLOBAL_SCALE_FACTOR_DEFAULT)
+#   define AI_CONFIG_GLOBAL_SCALE_FACTOR_DEFAULT  1.0f
+#endif // !! AI_DEBONE_THRESHOLD
 
 // ---------- All the Build/Compile-time defines ------------
 
