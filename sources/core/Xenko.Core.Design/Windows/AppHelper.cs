@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management;
 using System.Text;
-using System.Windows.Forms;
 using Xenko.Core.Annotations;
 using Xenko.Core.Extensions;
 
@@ -36,22 +35,6 @@ namespace Xenko.Core.Windows
             WriteVideoConfig(body);
             body.AppendLine($"Exception: {exception.FormatFull()}");
             return body.ToString();
-        }
-
-        [NotNull]
-        public static string BuildErrorToClipboard([NotNull] Exception exception, string header = null)
-        {
-            var errorMessage = BuildErrorMessage(exception, header);
-            try
-            {
-                Clipboard.SetText(errorMessage);
-            }
-            catch (Exception e)
-            {
-                e.Ignore();
-            }
-
-            return errorMessage;
         }
 
         internal static void WriteMemoryInfo(StringBuilder writer)
