@@ -31,6 +31,7 @@ namespace Xenko.Core.Assets
         private Dictionary<Guid, Guid> cloningIdRemapping;
         public static SerializerSelector ClonerSelector { get; internal set; }
         public static PropertyKey<List<object>> InvariantObjectListProperty = new PropertyKey<List<object>>("InvariantObjectList", typeof(AssetCloner));
+        private List<object> cloneReferences;
 
         static AssetCloner()
         {
@@ -62,11 +63,8 @@ namespace Xenko.Core.Assets
                 var stream = new MemoryStream();
                 var writer = new BinarySerializationWriter(stream);
                 writer.Context.SerializerSelector = ClonerSelector;
-                var refFlag = (flags & AssetClonerFlags.ReferenceAsNull) != 0
-                    ? ContentSerializerContext.AttachedReferenceSerialization.AsNull
-                    : ContentSerializerContext.AttachedReferenceSerialization.AsSerializableVersion;
                 writer.Context.Set(InvariantObjectListProperty, invariantObjects);
-                writer.Context.Set(ContentSerializerContext.SerializeAttachedReferenceProperty, refFlag);
+                writer.Context.Set(ContentSerializerContext.SerializeAttachedReferenceProperty, GenerateContentSerializerFlags(flags));
                 if (externalIdentifiables != null)
                 {
                     this.externalIdentifiables = new Dictionary<Guid, IIdentifiable>();
@@ -79,6 +77,9 @@ namespace Xenko.Core.Assets
                 }
                 writer.SerializeExtended(value, ArchiveMode.Serialize);
                 writer.Flush();
+
+                if ((flags & AssetClonerFlags.KeepReferences) != 0)
+                    cloneReferences = writer.Context.Get(ReferenceSerializer.CloneReferences);
 
                 // Retrieve back all object references that were discovered while serializing
                 // They will be used layer by OnObjectDeserialized when cloning ShadowObject datas
@@ -113,11 +114,8 @@ namespace Xenko.Core.Assets
                 stream.Position = 0;
                 var reader = new BinarySerializationReader(stream);
                 reader.Context.SerializerSelector = ClonerSelector;
-                var refFlag = (flags & AssetClonerFlags.ReferenceAsNull) != 0
-                    ? ContentSerializerContext.AttachedReferenceSerialization.AsNull
-                    : ContentSerializerContext.AttachedReferenceSerialization.AsSerializableVersion;
                 reader.Context.Set(InvariantObjectListProperty, invariantObjects);
-                reader.Context.Set(ContentSerializerContext.SerializeAttachedReferenceProperty, refFlag);
+                reader.Context.Set(ContentSerializerContext.SerializeAttachedReferenceProperty, GenerateContentSerializerFlags(flags));
                 if (externalIdentifiables != null)
                 {
                     if ((flags & AssetClonerFlags.ClearExternalReferences) != 0)
@@ -125,6 +123,8 @@ namespace Xenko.Core.Assets
 
                     reader.Context.Set(MemberSerializer.ExternalIdentifiables, externalIdentifiables);
                 }
+                if ((flags & AssetClonerFlags.KeepReferences) != 0)
+                    reader.Context.Set(ReferenceSerializer.CloneReferences, cloneReferences);
                 reader.Context.Set(MemberSerializer.ObjectDeserializeCallback, OnObjectDeserialized);
                 object newObject = null;
                 reader.SerializeExtended(ref newObject, ArchiveMode.Deserialize);
@@ -315,6 +315,18 @@ namespace Xenko.Core.Assets
             var cloner = new AssetCloner(asset, flags, null);
             var result = cloner.GetHashId();
             return result;
+        }
+
+        private static ContentSerializerContext.AttachedReferenceSerialization GenerateContentSerializerFlags(AssetClonerFlags flags)
+        {
+            ContentSerializerContext.AttachedReferenceSerialization refFlag;
+            if ((flags & AssetClonerFlags.ReferenceAsNull) != 0)
+                refFlag = ContentSerializerContext.AttachedReferenceSerialization.AsNull;
+            else if ((flags & AssetClonerFlags.KeepReferences) != 0)
+                refFlag = ContentSerializerContext.AttachedReferenceSerialization.Clone;
+            else
+                refFlag = ContentSerializerContext.AttachedReferenceSerialization.AsSerializableVersion;
+            return refFlag;
         }
 
         private class UnloadableCloneSerializer<T> : DataSerializer<T> where T : class, IUnloadable
