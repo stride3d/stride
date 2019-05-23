@@ -83,15 +83,6 @@ namespace Xenko.Shaders.Compiler
                     bytecode = LoadEffectBytecode(database, bytecodeId);
                 }
 
-                // On non Windows platform, we are expecting to have the bytecode stored directly
-                if (Compiler is NullEffectCompiler && bytecode.Key == null)
-                {
-                    var stringBuilder = new StringBuilder();
-                    stringBuilder.AppendFormat("Unable to find compiled shaders [{0}] for mixin [{1}] with parameters [{2}]", compiledUrl, mixin, usedParameters.ToStringPermutationsDetailed());
-                    Log.Error(stringBuilder.ToString());
-                    throw new InvalidOperationException(stringBuilder.ToString());
-                }
-
                 // ------------------------------------------------------------------------------------------------------------
                 // 2) Try to load from database cache
                 // ------------------------------------------------------------------------------------------------------------
@@ -119,6 +110,14 @@ namespace Xenko.Shaders.Compiler
             if (bytecode.Key != null)
             {
                 return new EffectBytecodeCompilerResult(bytecode.Key, bytecode.Value);
+            } 
+            else if (Platform.IsWindowsDesktop == false || Compiler is NullEffectCompiler)
+            {
+                // On non Windows platform, we are expecting to have the bytecode stored directly or in database cache
+                var stringBuilder = new StringBuilder();
+                stringBuilder.AppendFormat("Unable to find compiled shaders [{0}] for mixin [{1}] with parameters [{2}]", compiledUrl, mixin, usedParameters.ToStringPermutationsDetailed());
+                Log.Error(stringBuilder.ToString());
+                throw new InvalidOperationException(stringBuilder.ToString());
             }
 
             // ------------------------------------------------------------------------------------------------------------

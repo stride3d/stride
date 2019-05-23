@@ -23,6 +23,11 @@ namespace Xenko.Graphics
         internal int[] SrvBindCounts;
         internal int[] SamplerBindCounts;
 
+        public PIPELINE_STATE CurrentState() {
+            if (RootSignature != null) return PIPELINE_STATE.READY;
+            return PIPELINE_STATE.LOADING;
+        }
+
         internal unsafe PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
         {
             if (pipelineStateDescription.RootSignature != null)

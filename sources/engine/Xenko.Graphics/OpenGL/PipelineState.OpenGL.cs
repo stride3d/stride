@@ -29,6 +29,11 @@ namespace Xenko.Graphics
         internal readonly PrimitiveTypeGl PrimitiveType;
         internal readonly VertexAttrib[] VertexAttribs;
         internal ResourceBinder ResourceBinder;
+        internal bool ready;
+
+        public PIPELINE_STATE CurrentState() {
+            return ready ? PIPELINE_STATE.READY : PIPELINE_STATE.LOADING;
+        }
 
         private PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
         {
@@ -81,6 +86,8 @@ namespace Xenko.Graphics
 
                 VertexAttribs = pipelineStateCache.VertexAttribsCache.Instantiate(vertexAttribs.ToArray());
             }
+
+            ready = true;
         }
 
         internal void Apply(CommandList commandList, PipelineState previousPipeline)
