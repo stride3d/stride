@@ -122,10 +122,8 @@ namespace Xenko.Graphics
         public void Flush()
         {
             CompiledCommandList ccl;
-            lock (GraphicsDevice.QueueLock) {
-                lock (GraphicsDevice.PresentLock) {
-                    ccl = Close();
-                }
+            lock (GraphicsDevice.PresentLock) {
+                ccl = Close();
             }
             GraphicsDevice.ExecuteCommandList(ccl);
         }
@@ -539,6 +537,9 @@ namespace Xenko.Graphics
         /// <param name="startVertexLocation">Index of the first vertex, which is usually an offset in a vertex buffer; it could also be used as the first vertex id generated for a shader parameter marked with the <strong>SV_TargetId</strong> system-value semantic.</param>
         public void Draw(int vertexCount, int startVertexLocation = 0)
         {
+            // skip if this pipeline had an error
+            if (activePipeline.CurrentState() != PipelineState.PIPELINE_STATE.READY) return;
+
             PrepareDraw();
 
             currentCommandList.NativeCommandBuffer.Draw((uint)vertexCount, 1, (uint)startVertexLocation, 0);
@@ -552,6 +553,9 @@ namespace Xenko.Graphics
         /// </summary>
         public void DrawAuto()
         {
+            // skip if this pipeline had an error
+            if (activePipeline.CurrentState() != PipelineState.PIPELINE_STATE.READY) return;
+
             PrepareDraw();
 
             throw new NotImplementedException();
@@ -568,6 +572,9 @@ namespace Xenko.Graphics
         /// <param name="baseVertexLocation">A value added to each index before reading a vertex from the vertex buffer.</param>
         public void DrawIndexed(int indexCount, int startIndexLocation = 0, int baseVertexLocation = 0)
         {
+            // skip if this pipeline had an error
+            if (activePipeline.CurrentState() != PipelineState.PIPELINE_STATE.READY) return;
+
             PrepareDraw();
 
             currentCommandList.NativeCommandBuffer.DrawIndexed((uint)indexCount, 1, (uint)startIndexLocation, baseVertexLocation, 0);
@@ -586,6 +593,9 @@ namespace Xenko.Graphics
         /// <param name="startInstanceLocation">A value added to each index before reading per-instance data from a vertex buffer.</param>
         public void DrawIndexedInstanced(int indexCountPerInstance, int instanceCount, int startIndexLocation = 0, int baseVertexLocation = 0, int startInstanceLocation = 0)
         {
+            // skip if this pipeline had an error
+            if (activePipeline.CurrentState() != PipelineState.PIPELINE_STATE.READY) return;
+
             PrepareDraw();
 
             currentCommandList.NativeCommandBuffer.DrawIndexed((uint)indexCountPerInstance, (uint)instanceCount, (uint)startIndexLocation, baseVertexLocation, (uint)startInstanceLocation);
@@ -602,6 +612,9 @@ namespace Xenko.Graphics
         /// <param name="alignedByteOffsetForArgs">Offset in <em>pBufferForArgs</em> to the start of the GPU generated primitives.</param>
         public void DrawIndexedInstanced(Buffer argumentsBuffer, int alignedByteOffsetForArgs = 0)
         {
+            // skip if this pipeline had an error
+            if (activePipeline.CurrentState() != PipelineState.PIPELINE_STATE.READY) return;
+
             if (argumentsBuffer == null) throw new ArgumentNullException("argumentsBuffer");
 
             PrepareDraw();
@@ -622,6 +635,9 @@ namespace Xenko.Graphics
         /// <param name="startInstanceLocation">A value added to each index before reading per-instance data from a vertex buffer.</param>
         public void DrawInstanced(int vertexCountPerInstance, int instanceCount, int startVertexLocation = 0, int startInstanceLocation = 0)
         {
+            // skip if this pipeline had an error
+            if (activePipeline.CurrentState() != PipelineState.PIPELINE_STATE.READY) return;
+
             PrepareDraw();
 
             currentCommandList.NativeCommandBuffer.Draw((uint)vertexCountPerInstance, (uint)instanceCount, (uint)startVertexLocation, (uint)startVertexLocation);
@@ -638,6 +654,9 @@ namespace Xenko.Graphics
         /// <param name="alignedByteOffsetForArgs">Offset in <em>pBufferForArgs</em> to the start of the GPU generated primitives.</param>
         public void DrawInstanced(Buffer argumentsBuffer, int alignedByteOffsetForArgs = 0)
         {
+            // skip if this pipeline had an error
+            if (activePipeline.CurrentState() != PipelineState.PIPELINE_STATE.READY) return
+;
             if (argumentsBuffer == null) throw new ArgumentNullException("argumentsBuffer");
 
             PrepareDraw();

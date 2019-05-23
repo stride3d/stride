@@ -20,13 +20,17 @@ namespace Xenko.Graphics
         internal uint[] DescriptorTypeCounts;
         internal DescriptorSetLayout DescriptorSetLayout;
 
+        internal bool errorDuringCreate;
         internal PipelineLayout NativeLayout;
-        internal Pipeline NativePipeline;
+        internal Pipeline NativePipeline = Pipeline.Null;
         internal RenderPass NativeRenderPass;
         internal int[] ResourceGroupMapping;
         internal int ResourceGroupCount;
         internal PipelineStateDescription Description;
+
+        // threading synchronization
         internal object PipeLock = new object();
+        internal static object GlobalLock = new object();
 
         // State exposed by the CommandList
         private static readonly DynamicState[] dynamicStates =
@@ -36,6 +40,11 @@ namespace Xenko.Graphics
             DynamicState.BlendConstants,
             DynamicState.StencilReference,
         };
+
+        public PIPELINE_STATE CurrentState() {
+            if (errorDuringCreate) return PIPELINE_STATE.ERROR;
+            return NativePipeline != Pipeline.Null ? PIPELINE_STATE.READY : PIPELINE_STATE.LOADING;
+        }
 
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
         {
@@ -49,6 +58,8 @@ namespace Xenko.Graphics
 
         private unsafe void Recreate()
         {
+            errorDuringCreate = false;
+
             if (Description.RootSignature == null)
                 return;
 
@@ -201,8 +212,15 @@ namespace Xenko.Graphics
                     RenderPass = NativeRenderPass,
                     Subpass = 0,
                 };
-
-                NativePipeline = GraphicsDevice.NativeDevice.CreateGraphicsPipelines(PipelineCache.Null, 1, &createInfo);
+                
+                lock (GlobalLock) {
+                    try {
+                        NativePipeline = GraphicsDevice.NativeDevice.CreateGraphicsPipelines(PipelineCache.Null, 1, &createInfo);
+                    } catch (Exception e) {
+                        errorDuringCreate = true;
+                        NativePipeline = Pipeline.Null;
+                    }
+                }
             }
 
             // Cleanup shader modules
@@ -215,7 +233,10 @@ namespace Xenko.Graphics
         /// <inheritdoc/>
         protected internal override bool OnRecreate()
         {
-            Recreate();
+            lock (PipeLock) {
+                Recreate();
+            }
+
             return true;
         }
 
@@ -309,6 +330,8 @@ namespace Xenko.Graphics
                 GraphicsDevice.NativeDevice.DestroyPipelineLayout(NativeLayout);
 
                 GraphicsDevice.NativeDevice.DestroyDescriptorSetLayout(NativeDescriptorSetLayout);
+
+                NativePipeline = Pipeline.Null;
             }
 
             base.OnDestroyed();

@@ -10,7 +10,6 @@ namespace Xenko.Graphics
     public class MutablePipelineState
     {
         private readonly GraphicsDevice graphicsDevice;
-        private readonly ConcurrentDictionary<PipelineStateDescriptionWithHash, PipelineState> cache;
         public PipelineStateDescription State;
 
         /// <summary>
@@ -22,8 +21,6 @@ namespace Xenko.Graphics
         {
             this.graphicsDevice = graphicsDevice;
 
-            cache = graphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, typeof(MutablePipelineStateCache), device => new MutablePipelineStateCache()).Cache;
-
             State = new PipelineStateDescription();
             State.SetDefaults();
         }
@@ -33,34 +30,8 @@ namespace Xenko.Graphics
         /// </summary>
         public void Update()
         {
-            // Hash current state
-            var hashedState = new PipelineStateDescriptionWithHash(State);
-
-            // Find existing PipelineState object
-            PipelineState pipelineState;
-
-            if (!cache.TryGetValue(hashedState, out pipelineState))
-            {
-                // Otherwise, instantiate it
-                cache.TryAdd(hashedState, pipelineState = PipelineState.New(graphicsDevice, ref State));
-            }
-
-            CurrentState = pipelineState;
-        }
-
-        private class MutablePipelineStateCache : IDisposable
-        {
-            public readonly ConcurrentDictionary<PipelineStateDescriptionWithHash, PipelineState> Cache = new ConcurrentDictionary<PipelineStateDescriptionWithHash, PipelineState>();
-
-            public void Dispose()
-            {
-                foreach (var pipelineState in Cache)
-                {
-                    ((IReferencable)pipelineState.Value).Release();
-                }
-
-                Cache.Clear();
-            }
+            // we already do caching within pipeline state below
+            CurrentState = PipelineState.New(graphicsDevice, ref State);
         }
     }
 }

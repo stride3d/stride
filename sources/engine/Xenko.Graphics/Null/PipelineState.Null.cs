@@ -16,6 +16,10 @@ namespace Xenko.Graphics
         {
             NullHelper.ToImplement();
         }
+
+        public PIPELINE_STATE CurrentState() {
+            return PIPELINE_STATE.READY;
+        }
     }
 }
 

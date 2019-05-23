@@ -32,8 +32,13 @@ namespace Xenko.Graphics
 
         private SharpDX.Direct3D11.InputLayout inputLayout;
 
-        private readonly SharpDX.Direct3D.PrimitiveTopology primitiveTopology;
+        private readonly SharpDX.Direct3D.PrimitiveTopology primitiveTopology = SharpDX.Direct3D.PrimitiveTopology.Undefined;
         // Note: no need to store RTV/DSV formats
+
+        public PIPELINE_STATE CurrentState() {
+            if (primitiveTopology != SharpDX.Direct3D.PrimitiveTopology.Undefined) return PIPELINE_STATE.READY;
+            return PIPELINE_STATE.LOADING;
+        }
 
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
         {
