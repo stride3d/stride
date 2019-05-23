@@ -40,5 +40,10 @@ namespace Xenko.Core.Assets
         /// Clears any external references in the cloned object
         /// </summary>
         ClearExternalReferences = 16,
+
+        /// <summary>
+        /// Attached references will be kept as is
+        /// </summary>
+        KeepReferences = 32,
     }
 }
