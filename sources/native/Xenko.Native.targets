@@ -209,7 +209,6 @@
   
   <Target Name="CompileNativeClang_Android" Inputs="@(XenkoNativeCFile);@(XenkoNativeHFile)" Outputs="@(XenkoNativeOutput)" Condition="'$(XenkoPlatform)' == 'Android' And $(DesignTimeBuild) != true And $(BuildingProject) != false" BeforeTargets="CoreCompile" DependsOnTargets="_XenkoRegisterNativeOutputs">
     <Error Text="The AndroidNdkDirectory environment variable is not set!" Condition="'$(AndroidNdkDirectory)' == ''" />
-    <Error Text="The installed NDK version is outdated, please install a r10+! ($(AndroidNdkDirectory))" Condition="'$([System.Text.RegularExpressions.Regex]::Match(`$(AndroidNdkDirectory)`, `.*r\d\d[a-z]?$`).Success)' == 'false'" />
 
     <MakeDir Directories="$(XenkoNativeOutputPath)\armeabi-v7a"/>
     <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target armv7-none-android" />
