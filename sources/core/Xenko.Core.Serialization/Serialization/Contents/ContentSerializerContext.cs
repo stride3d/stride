@@ -22,6 +22,7 @@ namespace Xenko.Core.Serialization.Contents
             Unset,
             AsSerializableVersion,
             AsNull,
+            Clone,
         }
 
         public static PropertyKey<ContentSerializerContext> ContentSerializerContextProperty = new PropertyKey<ContentSerializerContext>("ContentSerializerContext", typeof(ContentSerializerContext));
