@@ -11,6 +11,15 @@ using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Core.Assets.Tests
 {
+    [DataContract, ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<TestContent>), Profile = "Content")]
+    public class TestContent { }
+
+    [DataContract("TestAssetClonerContent")]
+    public class TestAssetClonerContent
+    {
+        public TestContent Content;
+    }
+
     [DataContract("TestAssetClonerObject")]
     public class TestAssetClonerObject
     {
@@ -38,6 +47,14 @@ namespace Xenko.Core.Assets.Tests
 
     public class TestAssetCloner
     {
+        [Fact]
+        public void TestAssetClonerContent()
+        {
+            var obj1 = new TestAssetClonerContent { Content = new TestContent() };
+            var obj2 = AssetCloner.Clone(obj1, AssetClonerFlags.KeepReferences);
+            Assert.Equal(obj1.Content, obj2.Content);
+        }
+
         [Fact]
         public void TestHash()
         {
