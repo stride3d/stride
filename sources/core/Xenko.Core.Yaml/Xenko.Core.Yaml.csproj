@@ -7,7 +7,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
     <XenkoPlatformDependent>true</XenkoPlatformDependent>
-    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
   </PropertyGroup>
   <Choose>
