@@ -22,7 +22,7 @@ namespace Xenko.Core.BuildEngine
 
         public MicrothreadNotification() { }
 
-        internal MicrothreadNotification(int threadId, long microthreadId, long microthreadJobId, long time, NotificationType type)
+        public MicrothreadNotification(int threadId, long microthreadId, long microthreadJobId, long time, NotificationType type)
         {
             ThreadId = threadId;
             MicrothreadId = microthreadId;

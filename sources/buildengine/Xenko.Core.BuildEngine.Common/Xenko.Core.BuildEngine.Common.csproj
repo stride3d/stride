@@ -6,11 +6,12 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
-    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="8.0.1" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.5.3" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.ServiceModel" />
   </ItemGroup>

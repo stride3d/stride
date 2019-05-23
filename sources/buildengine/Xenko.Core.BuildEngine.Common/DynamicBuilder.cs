@@ -67,7 +67,7 @@ namespace Xenko.Core.BuildEngine
         {
             builder.Reset();
             builder.Root.Add(dynamicBuildStep);
-            builder.Run(Builder.Mode.Build, true, false);
+            builder.Run(Builder.Mode.Build, true);
         }
     }
 }
