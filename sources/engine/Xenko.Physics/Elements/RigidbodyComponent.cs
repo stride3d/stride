@@ -18,16 +18,6 @@ namespace Xenko.Physics
         [DataMemberIgnore]
         internal BulletSharp.RigidBody InternalRigidBody;
 
-        internal delegate void GetWorldTransformDelegate(out Matrix transform);
-
-        [DataMemberIgnore]
-        internal GetWorldTransformDelegate GetWorldTransformCallback;
-
-        internal delegate void SetWorldTransformDelegate(Matrix transform);
-
-        [DataMemberIgnore]
-        internal SetWorldTransformDelegate SetWorldTransformCallback;
-
         [DataMemberIgnore]
         internal XenkoMotionState MotionState;
 
@@ -321,8 +311,6 @@ namespace Xenko.Physics
 
             SetupBoneLink();
 
-            GetWorldTransformCallback = (out Matrix transform) => RigidBodyGetWorldTransform(out transform);
-            SetWorldTransformCallback = transform => RigidBodySetWorldTransform(ref transform);
             var rbci = new BulletSharp.RigidBodyConstructionInfo(0.0f, MotionState, ColliderShape.InternalShape, Vector3.Zero);
             InternalRigidBody = new BulletSharp.RigidBody(rbci)
             {
@@ -648,6 +636,33 @@ namespace Xenko.Physics
                 }
 
                 InternalRigidBody.LinearFactor = value;
+            }
+        }
+
+        internal class XenkoMotionState : BulletSharp.MotionState
+        {
+            private RigidbodyComponent rigidBody;
+
+            public XenkoMotionState(RigidbodyComponent rb)
+            {
+                rigidBody = rb;
+            }
+
+            public void Clear()
+            {
+                rigidBody = null;
+            }
+
+            public override void GetWorldTransform(out BulletSharp.Math.Matrix transform)
+            {
+                rigidBody.RigidBodyGetWorldTransform(out var xenkoMatrix);
+                transform = xenkoMatrix;
+            }
+
+            public override void SetWorldTransform(ref BulletSharp.Math.Matrix transform)
+            {
+                Matrix asXenkoMatrix = transform;
+                rigidBody.RigidBodySetWorldTransform(ref asXenkoMatrix);
             }
         }
     }
