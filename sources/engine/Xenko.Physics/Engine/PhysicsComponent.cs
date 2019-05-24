@@ -42,11 +42,7 @@ namespace Xenko.Engine
         {
             CanScaleShape = true;
 
-            ColliderShapes = new TrackingCollection<IInlineColliderShapeDesc>();
-            ColliderShapes.CollectionChanged += (sender, args) =>
-            {
-                ColliderShapeChanged = true;
-            };
+            ColliderShapes = new ColliderShapeCollection(this);
 
             NewPairChannel = new Channel<Collision> { Preference = ChannelPreference.PreferSender };
             PairEndedChannel = new Channel<Collision> { Preference = ChannelPreference.PreferSender };
@@ -61,7 +57,7 @@ namespace Xenko.Engine
         [DataMember(200)]
         [Category]
         [MemberCollection(NotNullItems = true)]
-        public TrackingCollection<IInlineColliderShapeDesc> ColliderShapes { get; }
+        public ColliderShapeCollection ColliderShapes { get; }
 
         /// <summary>
         /// Gets or sets the collision group.
@@ -815,6 +811,45 @@ namespace Xenko.Engine
         public bool IsIgnoringCollisionWith(PhysicsComponent other)
         {
             return ! NativeCollisionObject.CheckCollideWith(other.NativeCollisionObject);
+        }
+
+        [DataContract]
+        public class ColliderShapeCollection : FastCollection<IInlineColliderShapeDesc>
+        {
+            PhysicsComponent component;
+
+            public ColliderShapeCollection(PhysicsComponent componentParam)
+            {
+                component = componentParam;
+            }
+
+            /// <inheritdoc/>
+            protected override void InsertItem(int index, IInlineColliderShapeDesc item)
+            {
+                base.InsertItem(index, item);
+                component.ColliderShapeChanged = true;
+            }
+
+            /// <inheritdoc/>
+            protected override void RemoveItem(int index)
+            {
+                base.RemoveItem(index);
+                component.ColliderShapeChanged = true;
+            }
+
+            /// <inheritdoc/>
+            protected override void ClearItems()
+            {
+                base.ClearItems();
+                component.ColliderShapeChanged = true;
+            }
+
+            /// <inheritdoc/>
+            protected override void SetItem(int index, IInlineColliderShapeDesc item)
+            {
+                base.SetItem(index, item);
+                component.ColliderShapeChanged = true;
+            }
         }
     }
 }
