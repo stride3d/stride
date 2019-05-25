@@ -68,7 +68,7 @@ namespace Xenko.Physics
         /// </value>
         public Matrix NegativeCenterMatrix;
 
-        protected Vector3 cachedScaling;
+        protected Vector3 cachedScaling = Vector3.One;
 
         /// <summary>
         /// Gets or sets the scaling.

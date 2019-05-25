@@ -120,7 +120,7 @@ namespace Xenko.Toolkit.Physics
                 throw new ArgumentNullException(nameof(simulation));
             }
 
-            return simulation.RaycastPenetrating(raySegment.Start, raySegment.End, collisionFilterGroups, collisionFilterGroupFlags);
+            return simulation.RaycastPenetrating(raySegment, collisionFilterGroups, collisionFilterGroupFlags);
         }
     }
 }

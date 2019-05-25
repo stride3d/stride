@@ -7,6 +7,7 @@
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
     <XenkoAssemblyProcessorOptions>
     </XenkoAssemblyProcessorOptions>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
     <FbxSdkVersion>2019.0</FbxSdkVersion>
     <FbxSdkUrl>https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0</FbxSdkUrl>
     <FbxSdkDir>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Autodesk FBX SDK $(FbxSdkVersion)', 'Install_Dir', null, RegistryView.Registry32))</FbxSdkDir>
@@ -249,7 +250,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="BulletSharp">
-      <HintPath>..\..\..\deps\BulletPhysics\Windows\BulletSharp.dll</HintPath>
+      <HintPath>..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

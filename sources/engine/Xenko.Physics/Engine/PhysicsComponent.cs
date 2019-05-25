@@ -17,6 +17,12 @@ using Xenko.Rendering;
 
 namespace Xenko.Engine
 {
+    public enum CollisionState
+    {
+        Ignore,
+        Detect
+    }
+    
     [DataContract("PhysicsComponent", Inherited = true)]
     [Display("Physics", Expand = ExpandRule.Once)]
     [DefaultEntityComponentProcessor(typeof(PhysicsProcessor))]
@@ -35,11 +41,7 @@ namespace Xenko.Engine
         {
             CanScaleShape = true;
 
-            ColliderShapes = new TrackingCollection<IInlineColliderShapeDesc>();
-            ColliderShapes.CollectionChanged += (sender, args) =>
-            {
-                ColliderShapeChanged = true;
-            };
+            ColliderShapes = new ColliderShapeCollection(this);
 
             NewPairChannel = new Channel<Collision> { Preference = ChannelPreference.PreferSender };
             PairEndedChannel = new Channel<Collision> { Preference = ChannelPreference.PreferSender };
@@ -54,7 +56,7 @@ namespace Xenko.Engine
         [DataMember(200)]
         [Category]
         [MemberCollection(NotNullItems = true)]
-        public TrackingCollection<IInlineColliderShapeDesc> ColliderShapes { get; }
+        public ColliderShapeCollection ColliderShapes { get; }
 
         /// <summary>
         /// Gets or sets the collision group.
@@ -654,13 +656,6 @@ namespace Xenko.Engine
                 }
 
                 ColliderShape = PhysicsColliderShape.CreateShape(ColliderShapes[0]);
-
-                if (ColliderShape != null)
-                {
-                    ColliderShape.Scaling = Vector3.One;
-                }
-
-                //ColliderShape?.UpdateLocalTransformations();
             }
             else if (ColliderShapes.Count > 1) //need a compound shape in this case
             {
@@ -681,10 +676,12 @@ namespace Xenko.Engine
                 }
 
                 ColliderShape = compound;
+            }
 
-                ColliderShape.Scaling = Vector3.One;
-
-                //ColliderShape.UpdateLocalTransformations();
+            if (ColliderShape != null)
+            {
+                // Force update internal shape and gizmo scaling
+                ColliderShape.Scaling = ColliderShape.Scaling;
             }
         }
 
@@ -796,6 +793,81 @@ namespace Xenko.Engine
             //read from ModelViewHierarchy
             var model = Data.ModelComponent;
             BoneWorldMatrix = model.Skeleton.NodeTransformations[BoneIndex].WorldMatrix;
+        }
+
+        public void IgnoreCollisionWith(PhysicsComponent other, CollisionState state)
+        {
+            var otherNative = other.NativeCollisionObject;
+            switch(state)
+            {
+                // Note that we're calling 'SetIgnoreCollisionCheck' on both objects as bullet doesn't
+                // do it itself ; One of the object in the pair will report that it doesn't ignore
+                // collision with the other even though you set the other as ignoring the former.
+                case CollisionState.Ignore:
+                {
+                    // Bullet uses an array per collision object to store all of the objects to ignore,
+                    // when calling this method it adds the referenced object without checking for duplicates,
+                    // so if a user where to call 'Ignore' of this function on this object n-times he'll have to call it
+                    // that same amount of time to re-detect them instead of just once.
+                    // We're calling false here to remove a previous ignore if there was any and re-ignoring
+                    // to force it to have only a single instance.
+                    otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, false);
+                    NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, false);
+                    otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, true);
+                    NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, true);
+                    break;
+                }
+                case CollisionState.Detect:
+                {
+                    otherNative.SetIgnoreCollisionCheck(NativeCollisionObject, false);
+                    NativeCollisionObject.SetIgnoreCollisionCheck(otherNative, false);
+                    break;
+                }
+            }
+        }
+
+        public bool IsIgnoringCollisionWith(PhysicsComponent other)
+        {
+            return ! NativeCollisionObject.CheckCollideWith(other.NativeCollisionObject);
+        }
+
+        [DataContract]
+        public class ColliderShapeCollection : FastCollection<IInlineColliderShapeDesc>
+        {
+            PhysicsComponent component;
+
+            public ColliderShapeCollection(PhysicsComponent componentParam)
+            {
+                component = componentParam;
+            }
+
+            /// <inheritdoc/>
+            protected override void InsertItem(int index, IInlineColliderShapeDesc item)
+            {
+                base.InsertItem(index, item);
+                component.ColliderShapeChanged = true;
+            }
+
+            /// <inheritdoc/>
+            protected override void RemoveItem(int index)
+            {
+                base.RemoveItem(index);
+                component.ColliderShapeChanged = true;
+            }
+
+            /// <inheritdoc/>
+            protected override void ClearItems()
+            {
+                base.ClearItems();
+                component.ColliderShapeChanged = true;
+            }
+
+            /// <inheritdoc/>
+            protected override void SetItem(int index, IInlineColliderShapeDesc item)
+            {
+                base.SetItem(index, item);
+                component.ColliderShapeChanged = true;
+            }
         }
     }
 }

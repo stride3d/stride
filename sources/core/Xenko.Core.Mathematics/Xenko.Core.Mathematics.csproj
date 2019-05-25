@@ -28,11 +28,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="BulletSharp">
-      <HintPath>..\..\..\deps\BulletPhysics\Windows\BulletSharp.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 </Project>

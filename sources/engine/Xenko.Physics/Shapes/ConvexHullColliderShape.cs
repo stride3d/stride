@@ -15,9 +15,9 @@ namespace Xenko.Physics
     public class ConvexHullColliderShape : ColliderShape
     {
         private readonly IReadOnlyList<Vector3> pointsList;
-        private readonly IReadOnlyList<uint> indicesList;
+        private readonly IReadOnlyList<int> indicesList;
 
-        public ConvexHullColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<uint> indices, Vector3? scaling = null)
+        public ConvexHullColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<int> indices, Vector3? scaling = null)
         {
             Type = ColliderShapeTypes.ConvexHull;
             Is2D = false;
@@ -39,7 +39,7 @@ namespace Xenko.Physics
         {
             get { return pointsList; }
         }
-        public IReadOnlyList<uint> Indices
+        public IReadOnlyList<int> Indices
         {
             get { return indicesList; }
         }

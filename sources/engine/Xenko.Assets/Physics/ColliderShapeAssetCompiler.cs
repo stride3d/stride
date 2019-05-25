@@ -125,7 +125,7 @@ namespace Xenko.Assets.Physics
                     if (modelAsset == null) continue;
 
                     convexHullDescClone.ConvexHulls = new List<List<List<Vector3>>>();
-                    convexHullDescClone.ConvexHullsIndices = new List<List<List<uint>>>();
+                    convexHullDescClone.ConvexHullsIndices = new List<List<List<int>>>();
 
                     commandContext.Logger.Info("Processing convex hull generation, this might take a while!");
 
@@ -180,17 +180,17 @@ namespace Xenko.Assets.Physics
                         if (modelAsset.Meshes.All(x => x.NodeIndex != i1)) continue; // no geometry in the node
 
                         var combinedVerts = new List<float>();
-                        var combinedIndices = new List<uint>();
+                        var combinedIndices = new List<int>();
 
                         var hullsList = new List<List<Vector3>>();
                         convexHullDescClone.ConvexHulls.Add(hullsList);
 
-                        var indicesList = new List<List<uint>>();
+                        var indicesList = new List<List<int>>();
                         convexHullDescClone.ConvexHullsIndices.Add(indicesList);
 
                         foreach (var meshData in modelAsset.Meshes.Where(x => x.NodeIndex == i1))
                         {
-                            var indexOffset = (uint)combinedVerts.Count / 3;
+                            var indexOffset = combinedVerts.Count / 3;
 
                             var stride = meshData.Draw.VertexBuffers[0].Declaration.VertexStride;
 
@@ -247,12 +247,12 @@ namespace Xenko.Assets.Physics
                             {
                                 if (meshData.Draw.IndexBuffer.Is32Bit)
                                 {
-                                    combinedIndices.Add(BitConverter.ToUInt32(indexData, indexIndex) + indexOffset);
+                                    combinedIndices.Add(indexData[indexIndex] + indexOffset);
                                     indexIndex += 4;
                                 }
                                 else
                                 {
-                                    combinedIndices.Add(BitConverter.ToUInt16(indexData, indexIndex) + indexOffset);
+                                    combinedIndices.Add(indexData[indexIndex] + indexOffset);
                                     indexIndex += 2;
                                 }
                             }
@@ -263,7 +263,7 @@ namespace Xenko.Assets.Physics
                             VertexCount = (uint)combinedVerts.Count / 3,
                             IndicesCount = (uint)combinedIndices.Count,
                             Vertexes = combinedVerts.ToArray(),
-                            Indices = combinedIndices.ToArray(),
+                            Indices = (uint[])(object)combinedIndices.ToArray(),
                             Depth = convexHullDesc.Decomposition.Depth,
                             PosSampling = convexHullDesc.Decomposition.PosSampling,
                             PosRefine = convexHullDesc.Decomposition.PosRefine,
@@ -309,7 +309,7 @@ namespace Xenko.Assets.Physics
                                 Core.Utilities.Swap(ref indices[t], ref indices[t + 2]);
                             }
 
-                            var indexList = new List<uint>(indices);
+                            var indexList = new List<int>((int[])(object)indices);
 
                             indicesList.Add(indexList);
                         }

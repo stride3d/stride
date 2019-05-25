@@ -11,6 +11,7 @@ using Xenko.Physics.Engine;
 using Xenko.Graphics;
 using Xenko.Physics;
 using Xenko.Rendering;
+using Xenko.Core.Assets;
 
 namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
 {
@@ -107,7 +108,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
                         }
                         else
                         {
-                            var cloned = desc.DeepClone();
+                            var cloned = AssetCloner.Clone(desc, AssetClonerFlags.KeepReferences);
                             res.Add(cloned);
                         }
                     }

@@ -569,7 +569,7 @@ namespace Xenko.Navigation
                                 indices[i + 1] = (int)mesh.Indices[i + 2];
                             }
 
-                            entityNavigationMeshInputBuilder.AppendArrays(mesh.Points.ToArray(), indices, transform);
+                            entityNavigationMeshInputBuilder.AppendArrays(mesh.Vertices.ToArray(), indices, transform);
                         }
                         else if (shapeType == typeof(CompoundColliderShape))
                         {

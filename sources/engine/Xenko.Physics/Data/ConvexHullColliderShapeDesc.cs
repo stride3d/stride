@@ -23,7 +23,7 @@ namespace Xenko.Physics
 
         [Display(Browsable = false)]
         [DataMember(20)]
-        public List<List<List<uint>>> ConvexHullsIndices; // Multiple meshes -> Multiple Hulls -> Hull tris
+        public List<List<List<int>>> ConvexHullsIndices; // Multiple meshes -> Multiple Hulls -> Hull tris
 
         /// <userdoc>
         /// Model asset from where the engine will derive the convex hull.
