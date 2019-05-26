@@ -48,8 +48,6 @@ namespace Xenko.Graphics
 
         internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
         {
-            Xenko.Shaders.Compiler.EffectCompilerCache.CompileSynchronization.Wait();
-
             lock (PipeLock) {
                 Description = pipelineStateDescription.Clone();
                 Recreate();
@@ -62,6 +60,8 @@ namespace Xenko.Graphics
 
             if (Description.RootSignature == null)
                 return;
+
+            Xenko.Shaders.Compiler.EffectCompilerCache.CompileSynchronization.Wait();
 
             CreateRenderPass(Description);
 
