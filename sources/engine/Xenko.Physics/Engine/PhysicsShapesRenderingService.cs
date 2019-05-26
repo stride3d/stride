@@ -240,9 +240,6 @@ namespace Xenko.Physics.Engine
                         case RigidBodyTypes.Kinematic:
                             componentType = ComponentType.Kinematic;
                             break;
-                        case RigidBodyTypes.Static:
-                            componentType = ComponentType.Static;
-                            break;
                     }
                 }
             }

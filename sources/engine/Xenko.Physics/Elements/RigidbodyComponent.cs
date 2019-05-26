@@ -253,19 +253,6 @@ namespace Xenko.Physics
                         }
                         break;
 
-                    case RigidBodyTypes.Static:
-                        if (((int)InternalRigidBody.CollisionFlags & (int)BulletSharp.CollisionFlags.KinematicObject) != 0) InternalRigidBody.CollisionFlags ^= BulletSharp.CollisionFlags.KinematicObject;
-                        InternalRigidBody.CollisionFlags |= BulletSharp.CollisionFlags.StaticObject;
-                        if (InternalRigidBody != null && !OverrideGravity) InternalRigidBody.Gravity = Vector3.Zero;
-                        if (InternalRigidBody != null)
-                        {
-                            InternalRigidBody.InterpolationAngularVelocity = Vector3.Zero;
-                            InternalRigidBody.LinearVelocity = Vector3.Zero;
-                            InternalRigidBody.InterpolationAngularVelocity = Vector3.Zero;
-                            InternalRigidBody.AngularVelocity = Vector3.Zero;
-                        }
-                        break;
-
                     case RigidBodyTypes.Kinematic:
                         if (((int)InternalRigidBody.CollisionFlags & (int)BulletSharp.CollisionFlags.StaticObject) != 0) InternalRigidBody.CollisionFlags ^= BulletSharp.CollisionFlags.StaticObject;
                         InternalRigidBody.CollisionFlags |= BulletSharp.CollisionFlags.KinematicObject;
