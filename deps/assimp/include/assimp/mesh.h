@@ -3,7 +3,8 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2016, assimp team
+Copyright (c) 2006-2018, assimp team
+
 
 All rights reserved.
 
@@ -55,7 +56,7 @@ extern "C" {
 
 // ---------------------------------------------------------------------------
 // Limits. These values are required to match the settings Assimp was
-// compiled against. Therfore, do not redefine them unless you build the
+// compiled against. Therefore, do not redefine them unless you build the
 // library from source using the same definitions.
 // ---------------------------------------------------------------------------
 
@@ -199,8 +200,7 @@ struct aiFace
 // ---------------------------------------------------------------------------
 /** @brief A single influence of a bone on a vertex.
  */
-struct aiVertexWeight
-{
+struct aiVertexWeight {
     //! Index of the vertex which is influenced by the bone.
     unsigned int mVertexId;
 
@@ -211,14 +211,28 @@ struct aiVertexWeight
 #ifdef __cplusplus
 
     //! Default constructor
-    aiVertexWeight() { }
+    aiVertexWeight()
+    : mVertexId(0)
+    , mWeight(0.0f) {
+        // empty
+    }
 
     //! Initialisation from a given index and vertex weight factor
     //! \param pID ID
     //! \param pWeight Vertex weight factor
-    aiVertexWeight( unsigned int pID, float pWeight)
-        : mVertexId( pID), mWeight( pWeight)
-    { /* nothing to do here */ }
+    aiVertexWeight( unsigned int pID, float pWeight )
+    : mVertexId( pID )
+    , mWeight( pWeight ) {
+        // empty
+    }
+
+    bool operator == ( const aiVertexWeight &rhs ) const {
+        return ( mVertexId == rhs.mVertexId && mWeight == rhs.mWeight );
+    }
+
+    bool operator != ( const aiVertexWeight &rhs ) const {
+        return ( *this == rhs );
+    }
 
 #endif // __cplusplus
 };
@@ -229,31 +243,41 @@ struct aiVertexWeight
  *
  *  A bone has a name by which it can be found in the frame hierarchy and by
  *  which it can be addressed by animations. In addition it has a number of
- *  influences on vertices.
+ *  influences on vertices, and a matrix relating the mesh position to the
+ *  position of the bone at the time of binding.
  */
-struct aiBone
-{
+struct aiBone {
     //! The name of the bone.
     C_STRUCT aiString mName;
 
-    //! The number of vertices affected by this bone
+    //! The number of vertices affected by this bone.
     //! The maximum value for this member is #AI_MAX_BONE_WEIGHTS.
     unsigned int mNumWeights;
 
-    //! The vertices affected by this bone
+    //! The influence weights of this bone, by vertex index.
     C_STRUCT aiVertexWeight* mWeights;
 
-    //! Matrix that transforms from mesh space to bone space in bind pose
+    /** Matrix that transforms from bone space to mesh space in bind pose.
+     *
+     * This matrix describes the position of the mesh
+     * in the local space of this bone when the skeleton was bound.
+     * Thus it can be used directly to determine a desired vertex position,
+     * given the world-space transform of the bone when animated,
+     * and the position of the vertex in mesh space.
+     *
+     * It is sometimes called an inverse-bind matrix,
+     * or inverse bind pose matrix.
+     */
     C_STRUCT aiMatrix4x4 mOffsetMatrix;
 
 #ifdef __cplusplus
 
     //! Default constructor
     aiBone()
-        : mName()
-        , mNumWeights( 0 )
-      , mWeights( NULL )
-    {
+    : mName()
+    , mNumWeights( 0 )
+    , mWeights( nullptr ) {
+        // empty
     }
 
     //! Copy constructor
@@ -269,6 +293,44 @@ struct aiBone
         }
     }
 
+
+    //! Assignment operator
+    aiBone &operator=(const aiBone& other)
+    {
+        if (this == &other) {
+            return *this;
+        }
+
+        mName         = other.mName;
+        mNumWeights   = other.mNumWeights;
+        mOffsetMatrix = other.mOffsetMatrix;
+
+        if (other.mWeights && other.mNumWeights)
+        {
+            if (mWeights) {
+                delete[] mWeights;
+            }
+
+            mWeights = new aiVertexWeight[mNumWeights];
+            ::memcpy(mWeights,other.mWeights,mNumWeights * sizeof(aiVertexWeight));
+        }
+
+        return *this;
+    }
+
+    bool operator == ( const aiBone &rhs ) const {
+        if ( mName != rhs.mName || mNumWeights != rhs.mNumWeights ) {
+            return false;
+        }
+
+        for ( size_t i = 0; i < mNumWeights; ++i ) {
+            if ( mWeights[ i ] != rhs.mWeights[ i ] ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
     //! Destructor - deletes the array of vertex weights
     ~aiBone()
     {
@@ -377,6 +439,11 @@ struct aiAnimMesh
      * from language bindings.
      */
     unsigned int mNumVertices;
+    
+    /** 
+     * Weight of the AnimMesh. 
+     */
+    float mWeight;
 
 #ifdef __cplusplus
 
@@ -386,6 +453,7 @@ struct aiAnimMesh
         , mTangents( NULL )
         , mBitangents( NULL )
         , mNumVertices( 0 )
+        , mWeight( 0.0f )
     {
         // fixme consider moving this to the ctor initializer list as well
         for( unsigned int a = 0; a < AI_MAX_NUMBER_OF_TEXTURECOORDS; a++){
@@ -446,6 +514,27 @@ struct aiAnimMesh
 #endif
 };
 
+// ---------------------------------------------------------------------------
+/** @brief Enumerates the methods of mesh morphing supported by Assimp.
+ */
+enum aiMorphingMethod
+{
+    /** Interpolation between morph targets */
+    aiMorphingMethod_VERTEX_BLEND       = 0x1,
+
+    /** Normalized morphing between morph targets  */
+    aiMorphingMethod_MORPH_NORMALIZED   = 0x2,
+
+    /** Relative morphing between morph targets  */
+    aiMorphingMethod_MORPH_RELATIVE     = 0x3,
+
+    /** This value is not used. It is just here to force the
+     *  compiler to map this enum to a 32 Bit integer.
+     */
+#ifndef SWIG
+    _aiMorphingMethod_Force32Bit = INT_MAX
+#endif
+}; //! enum aiMorphingMethod
 
 // ---------------------------------------------------------------------------
 /** @brief A mesh represents a geometry or model with a single material.
@@ -600,15 +689,20 @@ struct aiMesh
     C_STRUCT aiString mName;
 
 
-    /** NOT CURRENTLY IN USE. The number of attachment meshes */
+    /** The number of attachment meshes. Note! Currently only works with Collada loader. */
     unsigned int mNumAnimMeshes;
 
-    /** NOT CURRENTLY IN USE. Attachment meshes for this mesh, for vertex-based animation.
+    /** Attachment meshes for this mesh, for vertex-based animation.
      *  Attachment meshes carry replacement data for some of the
-     *  mesh'es vertex components (usually positions, normals). */
+     *  mesh'es vertex components (usually positions, normals).
+     *  Note! Currently only works with Collada loader.*/
     C_STRUCT aiAnimMesh** mAnimMeshes;
 
-
+    /** 
+     *  Method of morphing when animeshes are specified. 
+     */
+    unsigned int mMethod;
+	
 #ifdef __cplusplus
 
     //! Default constructor. Initializes all members to 0
@@ -626,6 +720,7 @@ struct aiMesh
         , mMaterialIndex( 0 )
         , mNumAnimMeshes( 0 )
         , mAnimMeshes( NULL )
+        , mMethod( 0 )
     {
         for( unsigned int a = 0; a < AI_MAX_NUMBER_OF_TEXTURECOORDS; a++)
         {
@@ -732,7 +827,6 @@ struct aiMesh
 
 #endif // __cplusplus
 };
-
 
 #ifdef __cplusplus
 }
