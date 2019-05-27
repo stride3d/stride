@@ -129,7 +129,7 @@ namespace Xenko.Core.Serialization.Contents
                 else
                 {
                     // No real case yet
-                    //throw new NotSupportedException();
+                    throw new NotSupportedException();
                 }
             }
         }
