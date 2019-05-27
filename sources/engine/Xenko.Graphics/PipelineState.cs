@@ -16,6 +16,8 @@ namespace Xenko.Graphics
 
         public int InputBindingCount { get; private set; }
 
+        private PipelineStateDescription myDescription;
+
         public static PipelineState New(GraphicsDevice graphicsDevice, ref PipelineStateDescription pipelineStateDescription)
         {
             PipelineState pipelineState = null;
@@ -28,39 +30,31 @@ namespace Xenko.Graphics
 
             lock (graphicsDevice.CachedPipelineStates) {
                 foundInCache = graphicsDevice.CachedPipelineStates.TryGetValue(hashedState, out pipelineState);
-                if (!foundInCache) graphicsDevice.CachedPipelineStates[hashedState] = null; // mark we will work on this pipeline
+                if (!foundInCache) {
+                    pipelineState = new PipelineState(graphicsDevice); // mark we will work on this pipeline (which is just blank right now)
+                    graphicsDevice.CachedPipelineStates[hashedState] = pipelineState;
+                }
             }
 
             // if we have this cached, wait until it is ready to return
             if (foundInCache) {
-                while (pipelineState == null) {
+                while (pipelineState.CurrentState() == PIPELINE_STATE.LOADING) {
+                    // wait for pipeline state to finish loading...
                     Thread.Sleep(1);
-                    if (graphicsDevice.CachedPipelineStates.TryGetValue(hashedState, out pipelineState) == false) {
-                        // how did this happen?
-                        break;
-                    }
                 }
-                if (pipelineState != null) {
-                    while (pipelineState.CurrentState() == PIPELINE_STATE.LOADING) {
-                        Thread.Sleep(1);
-                    }
-                    pipelineState.AddReferenceInternal();
-                    return pipelineState;
-                }
+                pipelineState.AddReferenceInternal();
+                return pipelineState;
             }
 
             if (GraphicsDevice.Platform == GraphicsPlatform.Vulkan) {
                 // if we are using Vulkan, just make a new pipeline without locking
-                pipelineState = new PipelineState(graphicsDevice, pipelineStateDescription);
+                pipelineState.Prepare(pipelineStateDescription);
             } else {
                 // D3D seems to have quite bad concurrency when using CreateSampler while rendering
                 lock (graphicsDevice.CachedPipelineStates) {
-                    pipelineState = new PipelineState(graphicsDevice, pipelineStateDescription);
+                    pipelineState.Prepare(pipelineStateDescription);
                 }
             }
-
-            // put the completed pipeline in the cache
-            graphicsDevice.CachedPipelineStates[hashedState] = pipelineState;
 
             return pipelineState;
         }

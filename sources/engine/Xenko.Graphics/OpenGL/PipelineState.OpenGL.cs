@@ -19,15 +19,15 @@ namespace Xenko.Graphics
 {
     public partial class PipelineState
     {
-        internal readonly BlendState BlendState;
-        internal readonly DepthStencilState DepthStencilState;
+        internal BlendState BlendState;
+        internal DepthStencilState DepthStencilState;
 
-        internal readonly RasterizerState RasterizerState;
+        internal RasterizerState RasterizerState;
 
-        internal readonly EffectProgram EffectProgram;
+        internal EffectProgram EffectProgram;
 
-        internal readonly PrimitiveTypeGl PrimitiveType;
-        internal readonly VertexAttrib[] VertexAttribs;
+        internal PrimitiveTypeGl PrimitiveType;
+        internal VertexAttrib[] VertexAttribs;
         internal ResourceBinder ResourceBinder;
         internal bool ready;
 
@@ -35,15 +35,19 @@ namespace Xenko.Graphics
             return ready ? PIPELINE_STATE.READY : PIPELINE_STATE.LOADING;
         }
 
-        private PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
+        internal PipelineState(GraphicsDevice graphicsDevice) : base(graphicsDevice) {
+            // just return a memory address to Prepare later
+        }
+
+        internal void Prepare(PipelineStateDescription pipelineStateDescription) 
         {
             // First time, build caches
             var pipelineStateCache = GetPipelineStateCache();
 
-            var depthClampEmulation = !pipelineStateDescription.RasterizerState.DepthClipEnable && !graphicsDevice.HasDepthClamp;
+            var depthClampEmulation = !pipelineStateDescription.RasterizerState.DepthClipEnable && !GraphicsDevice.HasDepthClamp;
 #if XENKO_GRAPHICS_API_OPENGLES
             // Depth Clamp can't be emulated on OpenGL ES 2 (TODO: warning?)
-            if (graphicsDevice.IsOpenGLES2)
+            if (GraphicsDevice.IsOpenGLES2)
                 depthClampEmulation = false;
 #endif
 
@@ -60,7 +64,7 @@ namespace Xenko.Graphics
 
             var rootSignature = pipelineStateDescription.RootSignature;
             if (rootSignature != null && effectBytecode != null)
-                ResourceBinder.Compile(graphicsDevice, rootSignature.EffectDescriptorSetReflection, effectBytecode);
+                ResourceBinder.Compile(GraphicsDevice, rootSignature.EffectDescriptorSetReflection, effectBytecode);
 
             // Vertex attributes
             if (pipelineStateDescription.InputElements != null)

@@ -28,7 +28,11 @@ namespace Xenko.Graphics
             return PIPELINE_STATE.LOADING;
         }
 
-        internal unsafe PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
+        internal PipelineState(GraphicsDevice graphicsDevice) : base(graphicsDevice) {
+            // just return a memory address to Prepare later
+        }
+
+        internal void Prepare(PipelineStateDescription pipelineStateDescription)
         {
             if (pipelineStateDescription.RootSignature != null)
             {

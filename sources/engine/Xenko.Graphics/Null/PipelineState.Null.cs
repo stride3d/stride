@@ -7,12 +7,16 @@ namespace Xenko.Graphics
 {
     public partial class PipelineState
     {
+        internal PipelineState(GraphicsDevice device) : base(device) {
+            // just return a memory address to Prepare later
+        }
+
         /// <summary>
         /// Initializes new instance of <see cref="PipelineState"/> for <param name="device"/>
         /// </summary>
         /// <param name="device">The graphics device.</param>
         /// <param name="pipelineStateDescription">The pipeline state description.</param>
-        private PipelineState(GraphicsDevice device, PipelineStateDescription pipelineStateDescription) : base(device)
+        internal void Prepare(PipelineStateDescription pipelineStateDescription) : base(device)
         {
             NullHelper.ToImplement();
         }

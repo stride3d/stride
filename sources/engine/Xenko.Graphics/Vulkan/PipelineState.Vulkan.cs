@@ -46,7 +46,11 @@ namespace Xenko.Graphics
             return NativePipeline != Pipeline.Null ? PIPELINE_STATE.READY : PIPELINE_STATE.LOADING;
         }
 
-        internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
+        internal PipelineState(GraphicsDevice graphicsDevice) : base(graphicsDevice) {
+            // just return a memory address to Prepare later
+        }
+
+        internal void Prepare(PipelineStateDescription pipelineStateDescription)
         {
             lock (PipeLock) {
                 Description = pipelineStateDescription.Clone();

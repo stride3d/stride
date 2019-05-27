@@ -13,8 +13,8 @@ namespace Xenko.Graphics
     public partial class PipelineState
     {
         // Effect
-        private readonly RootSignature rootSignature;
-        private readonly EffectBytecode effectBytecode;
+        private RootSignature rootSignature;
+        private EffectBytecode effectBytecode;
         internal ResourceBinder ResourceBinder;
 
         private SharpDX.Direct3D11.VertexShader vertexShader;
@@ -25,14 +25,14 @@ namespace Xenko.Graphics
         private SharpDX.Direct3D11.ComputeShader computeShader;
         private byte[] inputSignature;
 
-        private readonly SharpDX.Direct3D11.BlendState blendState;
-        private readonly uint sampleMask;
-        private readonly SharpDX.Direct3D11.RasterizerState rasterizerState;
-        private readonly SharpDX.Direct3D11.DepthStencilState depthStencilState;
+        private SharpDX.Direct3D11.BlendState blendState;
+        private uint sampleMask;
+        private SharpDX.Direct3D11.RasterizerState rasterizerState;
+        private SharpDX.Direct3D11.DepthStencilState depthStencilState;
 
         private SharpDX.Direct3D11.InputLayout inputLayout;
 
-        private readonly SharpDX.Direct3D.PrimitiveTopology primitiveTopology = SharpDX.Direct3D.PrimitiveTopology.Undefined;
+        private SharpDX.Direct3D.PrimitiveTopology primitiveTopology = SharpDX.Direct3D.PrimitiveTopology.Undefined;
         // Note: no need to store RTV/DSV formats
 
         public PIPELINE_STATE CurrentState() {
@@ -40,7 +40,11 @@ namespace Xenko.Graphics
             return PIPELINE_STATE.LOADING;
         }
 
-        internal PipelineState(GraphicsDevice graphicsDevice, PipelineStateDescription pipelineStateDescription) : base(graphicsDevice)
+        internal PipelineState(GraphicsDevice graphicsDevice) : base(graphicsDevice) {
+            // just return a memory address to Prepare later
+        }
+
+        internal void Prepare(PipelineStateDescription pipelineStateDescription)
         {
             // First time, build caches
             var pipelineStateCache = GetPipelineStateCache();
@@ -50,7 +54,7 @@ namespace Xenko.Graphics
             this.effectBytecode = pipelineStateDescription.EffectBytecode;
             CreateShaders(pipelineStateCache);
             if (rootSignature != null && effectBytecode != null)
-                ResourceBinder.Compile(graphicsDevice, rootSignature.EffectDescriptorSetReflection, this.effectBytecode);
+                ResourceBinder.Compile(GraphicsDevice, rootSignature.EffectDescriptorSetReflection, this.effectBytecode);
 
             // TODO: Cache over Effect|RootSignature to create binding operations
 
