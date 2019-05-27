@@ -77,8 +77,10 @@ namespace Xenko.Rendering
                 var modelComponent = entity.Key;
                 var renderModel = entity.Value;
 
-                CheckMeshes(modelComponent, renderModel);
-                UpdateRenderModel(modelComponent, renderModel);
+                if (modelComponent != null && renderModel != null) {
+                    CheckMeshes(modelComponent, renderModel);
+                    UpdateRenderModel(modelComponent, renderModel);
+                }
             });
         }
 
