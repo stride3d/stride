@@ -23,8 +23,8 @@ namespace Xenko.Physics
 
 
         /// <summary>
-        /// Create a static collider from the vertices provided, ICollection will be duplicated before useage, 
-        /// your changes to the collection won't be reflected on the collision or <see cref="Vertices"/> and <see cref="Indices"/>.
+        /// Create a static collider from the vertices provided, ICollection will be duplicated before usage, 
+        /// changes to the collection provided won't be reflected on the collider or <see cref="Vertices"/> and <see cref="Indices"/>.
         /// </summary>
         public StaticMeshColliderShape(ICollection<Vector3> vertices, ICollection<int> indices, Vector3 scaling) : this(vertices.ToArray(), indices.ToArray(), scaling)
         {
@@ -32,14 +32,13 @@ namespace Xenko.Physics
         }
 
         /// <summary>
-        /// Internal constructor, the given arrays won't be 
+        /// Internal constructor, expects readonly array; any changes made to the vertices won't be reflected on the physics shape
         /// </summary>
         StaticMeshColliderShape(Vector3[] verticesParam, int[] indicesParam, Vector3 scaling)
         {
             Type = ColliderShapeTypes.StaticMesh;
             Is2D = false;
 
-            // Enfore static data
             vertices = verticesParam;
             indices = indicesParam;
             
