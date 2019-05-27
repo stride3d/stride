@@ -1,8 +1,7 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2026
-MinimumVisualStudioVersion = 10.0.40219.1
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.352
+MinimumVisualStudioVersion = 16.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.LauncherApp", "..\sources\launcher\Xenko.LauncherApp\Xenko.LauncherApp.csproj", "{055E8FDB-6C48-4ADB-B733-0CFCFDE76C0E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2} = {0F8BE30E-C41F-4747-B52B-D2D4E13EC6A2}

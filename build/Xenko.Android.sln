@@ -1,8 +1,7 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2024
-MinimumVisualStudioVersion = 14.0.23107.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.352
+MinimumVisualStudioVersion = 16.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "10-CoreRuntime", "10-CoreRuntime", "{2E93E2B5-4500-4E47-9B65-E705218AB578}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "20-XenkoRuntime", "20-XenkoRuntime", "{4C142567-C42B-40F5-B092-798882190209}"
