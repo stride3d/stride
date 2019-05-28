@@ -41,6 +41,31 @@ namespace Xenko.UI
         }
 
         /// <summary>
+        /// Generates a Dictionary with all UIElements of given type. Keys set to names of the UIElements.
+        /// </summary>
+        /// <typeparam name="T">Type of child to find.</typeparam>
+        /// <param name="source">Base node from where to start looking for children.</param>
+        /// <returns>Returns a dictionary of UIElements with names as keys.</returns>
+        public static Dictionary<string, T> GatherUIDictionary<T>(this UIElement source) where T : UIElement {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            Dictionary<string, T> dict = new Dictionary<string, T>();
+            GatherUIDictionary<T>(source, ref dict);
+            return dict;
+        }
+
+        /// <summary>
+        /// Adds to a Dictionary with all UIElements of given type. Keys set to names of the UIElements.
+        /// </summary>
+        /// <typeparam name="T">Type of child to find.</typeparam>
+        /// <param name="source">Base node from where to start looking for children.</param>
+        public static void GatherUIDictionary<T>(this UIElement source, ref Dictionary<string, T> dictionary) where T : UIElement {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            foreach (T e in FindChildrenOfType<T>(source, e => e.VisualChildrenCollection.Count, (e, i) => e.VisualChildrenCollection[i])) {
+                dictionary[e.Name] = e;
+            }
+        }
+
+        /// <summary>
         /// Find the first parent that match the given type, along the visual tree.
         /// </summary>
         /// <typeparam name="T">Type of parent to find.</typeparam>
