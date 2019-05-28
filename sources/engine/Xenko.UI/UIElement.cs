@@ -39,7 +39,7 @@ namespace Xenko.UI
         internal Matrix WorldMatrixPickingInternal;
         protected internal Thickness MarginInternal = Thickness.UniformCuboid(0f);
 
-        private string name;
+        private string name, emptyDefaultName;
         private Visibility visibility = Visibility.Visible;
         private float opacity = 1.0f;
         private bool isEnabled = true;
@@ -552,13 +552,21 @@ namespace Xenko.UI
         [DefaultValue(null)]
         public string Name
         {
-            get => name;
+            get {
+                if (name != null && name != "") return name;
+
+                if (emptyDefaultName == null)
+                    emptyDefaultName = "UIElement-" + Id.ToString().Substring(0, 6);
+
+                return emptyDefaultName;
+            }
             set
             {
                 if (name == value)
                     return;
 
                 name = value;
+
                 OnNameChanged();
             }
         }
