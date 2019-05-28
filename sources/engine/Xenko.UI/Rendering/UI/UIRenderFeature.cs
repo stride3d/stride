@@ -174,6 +174,7 @@ namespace Xenko.Rendering.UI
                 renderingContext.ViewProjectionMatrix = uiElementState.WorldViewProjectionMatrix;
                 renderingContext.DepthStencilBuffer = renderObject.IsFullScreen ? scopedDepthBuffer : context.CommandList.DepthStencilBuffer;
                 renderingContext.ShouldSnapText = renderObject.SnapText;
+                renderingContext.IsFullscreen = renderObject.IsFullScreen;
 
                 // calculate an estimate of the UI real size by projecting the element virtual resolution on the screen
                 var virtualOrigin = uiElementState.WorldViewProjectionMatrix.Row4;

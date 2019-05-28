@@ -58,5 +58,10 @@ namespace Xenko.UI.Renderers
         /// Gets the view projection matrix of the UI.
         /// </summary>
         public Matrix ViewProjectionMatrix;
+
+        /// <summary>
+        /// Is this UI being drawn fullscreen, or in the 3D scene?
+        /// </summary>
+        public bool IsFullscreen;
     }
 }

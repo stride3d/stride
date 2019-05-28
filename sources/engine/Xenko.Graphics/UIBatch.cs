@@ -439,10 +439,7 @@ namespace Xenko.Graphics
             drawCommand.Matrix.M43 -= drawCommand.Matrix.M13 * leftTopCornerOffset.X + drawCommand.Matrix.M23 * leftTopCornerOffset.Y;
 
             // do not snap static fonts when real/virtual resolution does not match.
-            if(drawCommand.Batch.viewProjectionMatrix.M12 != 0f ||
-               drawCommand.Batch.viewProjectionMatrix.M13 != 0f ||
-               drawCommand.Batch.viewProjectionMatrix.M14 != 0f )
-            {
+            if (!drawCommand.IsFullscreen) {
                 // we are drawing in 3D, don't snap or scale
                 drawCommand.SnapText = false;
                 drawCommand.RealVirtualResolutionRatio.X = 1f;
