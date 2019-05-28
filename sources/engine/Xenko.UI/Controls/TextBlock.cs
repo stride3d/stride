@@ -51,6 +51,7 @@ namespace Xenko.UI.Controls
             get { return text; }
             set
             {
+                if (text == value) return;
                 text = value;
                 OnTextChanged();
             }
@@ -92,7 +93,9 @@ namespace Xenko.UI.Controls
             get { return textSize; }
             set
             {
-                textSize = MathUtil.Clamp(value, 0.0f, float.MaxValue);
+                float clamped = MathUtil.Clamp(value, 0.0f, float.MaxValue);
+                if (textSize == clamped) return;
+                textSize = clamped;
                 InvalidateMeasure();
             }
         }
