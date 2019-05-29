@@ -36,6 +36,7 @@ namespace Xenko.UI.Renderers
                 SnapText = context.ShouldSnapText && !textBlock.DoNotSnapText,
                 Matrix = textBlock.WorldMatrixInternal,
                 Alignment = textBlock.TextAlignment,
+                VertAlignment = textBlock.TextVerticalAlignment,
                 TextBoxSize = new Vector2(textBlock.ActualWidth, textBlock.ActualHeight),
                 IsFullscreen = context.IsFullscreen
             };

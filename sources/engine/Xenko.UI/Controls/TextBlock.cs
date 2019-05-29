@@ -118,6 +118,15 @@ namespace Xenko.UI.Controls
         public TextAlignment TextAlignment { get; set; }
 
         /// <summary>
+        /// Gets or sets the vertical alignment of the text to display.
+        /// </summary>
+        /// <userdoc>Vertical alignment of the text.</userdoc>
+        [DataMember]
+        [Display(category: AppearanceCategory)]
+        [DefaultValue(default(TextVerticalAlignment))]
+        public TextVerticalAlignment TextVerticalAlignment { get; set; }
+
+        /// <summary>
         /// Gets or sets the value indicating if the <see cref="Text"/> of the <see cref="TextBlock"/> 
         /// should automatically return to the beginning of the line when it is too long for the line width.
         /// </summary>

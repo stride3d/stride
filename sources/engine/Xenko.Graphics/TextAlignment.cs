@@ -22,4 +22,21 @@ namespace Xenko.Graphics
         /// </summary>
         Right,
     }
+
+    public enum TextVerticalAlignment {
+        /// <summary>
+        /// Aligned at the top
+        /// </summary>
+        Top,
+
+        /// <summary>
+        /// Aligned in the center
+        /// </summary>
+        Center,
+
+        /// <summary>
+        /// Aligned at the bottom
+        /// </summary>
+        Bottom
+    }
 }

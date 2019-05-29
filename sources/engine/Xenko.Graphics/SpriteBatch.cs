@@ -478,7 +478,7 @@ namespace Xenko.Graphics
             DrawString(spriteFont, ref text, fontSize, ref position, ref color, rotation, ref origin, ref scale, effects, layerDepth, alignment);
         }
 
-        private void DrawString(SpriteFont spriteFont, ref SpriteFont.StringProxy text, float fontSize, ref Vector2 position, ref Color4 color, float rotation, ref Vector2 origin, ref Vector2 scale, SpriteEffects effects, float layerDepth, TextAlignment alignment)
+        private void DrawString(SpriteFont spriteFont, ref SpriteFont.StringProxy text, float fontSize, ref Vector2 position, ref Color4 color, float rotation, ref Vector2 origin, ref Vector2 scale, SpriteEffects effects, float layerDepth, TextAlignment alignment, TextVerticalAlignment vert_alignment = TextVerticalAlignment.Top)
         {
             if (spriteFont == null)
             {
@@ -509,7 +509,7 @@ namespace Xenko.Graphics
             drawCommand.Position.X /= resolutionRatio.X;
             drawCommand.Position.Y /= resolutionRatio.Y;
 
-            spriteFont.InternalDraw(commandList, ref text, ref drawCommand, alignment);
+            spriteFont.InternalDraw(commandList, ref text, ref drawCommand, alignment, vert_alignment);
         }
         
         internal unsafe void DrawSprite(Texture texture, ref RectangleF destination, bool scaleDestination, ref RectangleF? sourceRectangle, Color4 color, Color4 colorAdd,

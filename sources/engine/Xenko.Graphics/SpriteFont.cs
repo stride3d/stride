@@ -198,7 +198,7 @@ namespace Xenko.Graphics
             return GetExtraLineSpacing(fontSize) + GetFontDefaultLineSpacing(fontSize);
         }
         
-        internal void InternalDraw(CommandList commandList, ref StringProxy text, ref InternalDrawCommand drawCommand, TextAlignment alignment)
+        internal void InternalDraw(CommandList commandList, ref StringProxy text, ref InternalDrawCommand drawCommand, TextAlignment alignment, TextVerticalAlignment vert_alignment)
         {
             // If the text is mirrored, offset the start position accordingly.
             if (drawCommand.SpriteEffects != SpriteEffects.None)
@@ -207,7 +207,7 @@ namespace Xenko.Graphics
             }
 
             // Draw each character in turn.
-            ForEachGlyph(commandList, ref text, ref drawCommand.FontSize, internalDrawGlyphAction, ref drawCommand, alignment, true);
+            ForEachGlyph(commandList, ref text, ref drawCommand.FontSize, internalDrawGlyphAction, ref drawCommand, alignment, vert_alignment, true);
         }        
         
         /// <summary>
@@ -255,7 +255,7 @@ namespace Xenko.Graphics
             var requestedFontSize = new Vector2(drawCommand.RequestedFontSize * drawCommand.RealVirtualResolutionRatio.Y);
 
             var textBoxSize = drawCommand.TextBoxSize * drawCommand.RealVirtualResolutionRatio;
-            ForEachGlyph(commandList, ref text, ref requestedFontSize, internalUIDrawGlyphAction, ref drawCommand, drawCommand.Alignment, true, textBoxSize);
+            ForEachGlyph(commandList, ref text, ref requestedFontSize, internalUIDrawGlyphAction, ref drawCommand, drawCommand.Alignment, drawCommand.VertAlignment, true, textBoxSize);
         }
 
         internal void InternalUIDrawGlyph(ref InternalUIDrawCommand parameters, ref Vector2 requestedFontSize, ref Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
@@ -445,7 +445,7 @@ namespace Xenko.Graphics
         internal Vector2 MeasureString(ref StringProxy text, ref Vector2 size)
         {
             var result = Vector2.Zero;
-            ForEachGlyph(null, ref text, ref size, measureStringGlyphAction, ref result, TextAlignment.Left, false); // text size is independent from the text alignment
+            ForEachGlyph(null, ref text, ref size, measureStringGlyphAction, ref result, TextAlignment.Left, TextVerticalAlignment.Top, false); // text size is independent from the text alignment
             return result;
         }
 
@@ -500,12 +500,26 @@ namespace Xenko.Graphics
             return index;
         }
 
-        private void ForEachGlyph<T>(CommandList commandList, ref StringProxy text, ref Vector2 requestedFontSize, GlyphAction<T> action, ref T parameters, TextAlignment scanOrder, bool updateGpuResources, Vector2? textBoxSize = null)
+        private void ForEachGlyph<T>(CommandList commandList, ref StringProxy text, ref Vector2 requestedFontSize, GlyphAction<T> action, ref T parameters,
+                                     TextAlignment scanOrder, TextVerticalAlignment vertAlign, bool updateGpuResources, Vector2? textBoxSize = null)
         {
+            float yStart, ySpacing = GetTotalLineSpacing(requestedFontSize.Y);
+            if (textBoxSize.HasValue && vertAlign != TextVerticalAlignment.Top) {
+                switch (vertAlign) {
+                    default:
+                    case TextVerticalAlignment.Center:
+                        yStart = textBoxSize.Value.Y * 0.5f - (text.LineCount * ySpacing * 0.5f);
+                        break;
+                    case TextVerticalAlignment.Bottom:
+                        yStart = textBoxSize.Value.Y - (text.LineCount * ySpacing);
+                        break;
+                }
+            } else yStart = 0f;
+
             if (scanOrder == TextAlignment.Left)
             {
                 // scan the whole text only one time following the text letter order
-                ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, 0, text.Length, updateGpuResources);
+                ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, 0, text.Length, updateGpuResources, 0f, yStart, vertAlign);
             }
             else
             {
@@ -515,14 +529,13 @@ namespace Xenko.Graphics
                 var wholeSize = textBoxSize ?? MeasureString(ref text, ref requestedFontSize);
 
                 // scan the text line by line
-                var yStart = 0f;
                 var startIndex = 0;
                 var endIndex = FindCariageReturn(ref text, 0);
                 while (startIndex < text.Length)
                 {
                     // measure the size of the current line
                     var lineSize = Vector2.Zero;
-                    ForGlyph(commandList, ref text, ref requestedFontSize, MeasureStringGlyph, ref lineSize, startIndex, endIndex, updateGpuResources);
+                    ForGlyph(commandList, ref text, ref requestedFontSize, MeasureStringGlyph, ref lineSize, startIndex, endIndex, updateGpuResources, 0f, 0f, vertAlign);
 
                     // Determine the start position of the line along the x axis
                     // We round this value to the closest integer to force alignment of all characters to the same pixels
@@ -532,21 +545,23 @@ namespace Xenko.Graphics
                     xStart = (float)Math.Round(xStart); 
 
                     // scan the line
-                    ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, startIndex, endIndex, updateGpuResources, xStart, yStart);
+                    ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, startIndex, endIndex, updateGpuResources, xStart, yStart, vertAlign);
                     
                     // update variable before going to next line
-                    yStart += GetTotalLineSpacing(requestedFontSize.Y);
+                    yStart += ySpacing;
                     startIndex = endIndex + 1;
                     endIndex = FindCariageReturn(ref text, startIndex);
                 }
             }
         }
 
-        private void ForGlyph<T>(CommandList commandList, ref StringProxy text, ref Vector2 fontSize, GlyphAction<T> action, ref T parameters, int forStart, int forEnd, bool updateGpuResources, float startX = 0, float startY = 0)
+        private void ForGlyph<T>(CommandList commandList, ref StringProxy text, ref Vector2 fontSize, GlyphAction<T> action, 
+                                 ref T parameters, int forStart, int forEnd, bool updateGpuResources, float startX = 0, float startY = 0, TextVerticalAlignment vertAlign = TextVerticalAlignment.Top)
         {
             var key = 0;
             var x = startX;
             var y = startY;
+            float fontSizeY = GetTotalLineSpacing(fontSize.Y);
             for (var i = forStart; i < forEnd; i++)
             {
                 var character = text[i];
@@ -561,7 +576,7 @@ namespace Xenko.Graphics
                     case '\n':
                         // New line.
                         x = 0;
-                        y += GetTotalLineSpacing(fontSize.Y);
+                        y += fontSizeY;
                         key |= character;
                         break;
 
@@ -599,9 +614,18 @@ namespace Xenko.Graphics
             private readonly string textString;
             private readonly StringBuilder textBuilder;
             public readonly int Length;
+            private int linecount;
+
+            public int LineCount {
+                get {
+                    if (linecount == -1) linecount = textString.Split('\n').Length;
+                    return linecount;
+                }
+            }
 
             public StringProxy(string text)
             {
+                linecount = -1;
                 textString = text;
                 textBuilder = null;
                 Length = text.Length;
@@ -609,6 +633,7 @@ namespace Xenko.Graphics
 
             public StringProxy(StringBuilder text)
             {
+                linecount = -1;
                 textBuilder = text;
                 textString = null;
                 Length = text.Length;
@@ -616,6 +641,7 @@ namespace Xenko.Graphics
             
             public StringProxy(string text, int length)
             {
+                linecount = -1;
                 textString = text;
                 textBuilder = null;
                 Length = Math.Max(0, Math.Min(length, text.Length));
@@ -623,6 +649,7 @@ namespace Xenko.Graphics
 
             public StringProxy(StringBuilder text, int length)
             {
+                linecount = -1;
                 textBuilder = text;
                 textString = null;
                 Length = Math.Max(0, Math.Min(length, text.Length));
@@ -697,6 +724,8 @@ namespace Xenko.Graphics
             public Color Color;
 
             public TextAlignment Alignment;
+
+            public TextVerticalAlignment VertAlignment;
 
             public int DepthBias;
 
