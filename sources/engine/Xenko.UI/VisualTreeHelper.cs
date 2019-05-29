@@ -44,12 +44,13 @@ namespace Xenko.UI
         /// Generates a Dictionary with all UIElements of given type. Keys set to names of the UIElements.
         /// </summary>
         /// <typeparam name="T">Type of child to find.</typeparam>
+        /// <param name="ChildrenOnly">Only add children, not myself. Defaults to false.</param>
         /// <param name="source">Base node from where to start looking for children.</param>
         /// <returns>Returns a dictionary of UIElements with names as keys.</returns>
-        public static Dictionary<string, T> GatherUIDictionary<T>(this UIElement source) where T : UIElement {
+        public static Dictionary<string, T> GatherUIDictionary<T>(this UIElement source, bool ChildrenOnly = false) where T : UIElement {
             if (source == null) throw new ArgumentNullException(nameof(source));
             Dictionary<string, T> dict = new Dictionary<string, T>();
-            GatherUIDictionary<T>(source, ref dict);
+            GatherUIDictionary<T>(source, ref dict, ChildrenOnly);
             return dict;
         }
 
@@ -57,9 +58,11 @@ namespace Xenko.UI
         /// Adds to a Dictionary with all UIElements of given type. Keys set to names of the UIElements.
         /// </summary>
         /// <typeparam name="T">Type of child to find.</typeparam>
+        /// <param name="ChildrenOnly">Only add children, not myself. Defaults to false.</param>
         /// <param name="source">Base node from where to start looking for children.</param>
-        public static void GatherUIDictionary<T>(this UIElement source, ref Dictionary<string, T> dictionary) where T : UIElement {
+        public static void GatherUIDictionary<T>(this UIElement source, ref Dictionary<string, T> dictionary, bool ChildrenOnly = false) where T : UIElement {
             if (source == null) throw new ArgumentNullException(nameof(source));
+            if (ChildrenOnly == false && source is T) dictionary[source.Name] = (T)source;
             foreach (T e in FindChildrenOfType<T>(source, e => e.VisualChildrenCollection.Count, (e, i) => e.VisualChildrenCollection[i])) {
                 dictionary[e.Name] = e;
             }
