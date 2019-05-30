@@ -212,6 +212,18 @@ namespace Xenko.Core.Reflection
         }
 
         /// <summary>
+        /// clear the dictionary
+        /// </summary>
+        public bool Clear(object dictionary) {
+            if (dictionary == null) throw new ArgumentNullException(nameof(dictionary));
+            var simpleDictionary = dictionary as IDictionary;
+            if (simpleDictionary != null) {
+                simpleDictionary.Clear();
+                return true;
+            } else return false;
+        }
+
+        /// <summary>
         /// Indicate whether the dictionary contains the given key
         /// </summary>
         /// <param name="dictionary">The dictionary.</param>

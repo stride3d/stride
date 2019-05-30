@@ -9,7 +9,7 @@ using Xenko.Core.Quantum.References;
 
 namespace Xenko.Core.Assets.Quantum.Internal
 {
-    internal class AssetObjectNode : ObjectNode, IAssetObjectNodeInternal
+    public class AssetObjectNode : ObjectNode, IAssetObjectNodeInternal
     {
         private AssetObjectNodeExtended ex;
 

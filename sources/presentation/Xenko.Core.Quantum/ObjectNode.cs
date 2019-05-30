@@ -139,6 +139,16 @@ namespace Xenko.Core.Quantum
 
         }
 
+        public void Clear() {
+            var collectionDescriptor = Descriptor as CollectionDescriptor;
+            var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
+            if (collectionDescriptor != null) {
+                collectionDescriptor.Clear(value);
+            } else if (dictionaryDescriptor != null) {
+                dictionaryDescriptor.Clear(value);
+            }
+        }
+
         /// <inheritdoc/>
         public void Remove(object item, Index itemIndex)
         {

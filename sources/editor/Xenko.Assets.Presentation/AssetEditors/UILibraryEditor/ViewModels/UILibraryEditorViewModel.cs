@@ -19,6 +19,7 @@ using Xenko.Assets.Presentation.AssetEditors.UILibraryEditor.Services;
 using Xenko.Assets.Presentation.AssetEditors.UILibraryEditor.Views;
 using Xenko.Assets.Presentation.ViewModel;
 using Xenko.Assets.UI;
+using System.Collections.Generic;
 
 namespace Xenko.Assets.Presentation.AssetEditors.UILibraryEditor.ViewModels
 {
@@ -74,6 +75,13 @@ namespace Xenko.Assets.Presentation.AssetEditors.UILibraryEditor.ViewModels
             UILibrary.Children.CollectionChanged += RootElementsCollectionChanged;
 
             ActiveRoot = UILibrary.Children.FirstOrDefault();
+
+            // repair public list, if needed (sometimes they get broken during copy/paste operations)
+            ClearPublicUIElements();
+            foreach (UIElementViewModel root in UILibrary.RootElements) {
+                UpdatePublicUIElementsEntry(root.Id.ObjectId, root.Name);
+            }
+
             return true;
         }
 
@@ -114,6 +122,11 @@ namespace Xenko.Assets.Presentation.AssetEditors.UILibraryEditor.ViewModels
                 var viewModel = (UIElementViewModel)sender;
                 UpdatePublicUIElementsEntry(viewModel.Id.ObjectId, viewModel.Name);
             }
+        }
+
+        private void ClearPublicUIElements() {
+            var node = NodeContainer.GetNode((UILibraryAsset)Asset.Asset)[nameof(UILibraryAsset.PublicUIElements)].Target;
+            if (node is Xenko.Core.Assets.Quantum.Internal.AssetObjectNode) ((Xenko.Core.Assets.Quantum.Internal.AssetObjectNode)node).Clear();
         }
 
         private void UpdatePublicUIElementsEntry(Guid rootId, [CanBeNull] string name)
