@@ -50,7 +50,7 @@
   <ItemGroup>
     <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP' " Include="x86;x64"/>
     <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'UWP' " Include="ARM"/>
-    <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Android' " Include="arm64-v8a;armeabi;armeabi-v7a;x86;x86_64"/>
+    <XenkoNativeCPU Condition=" '$(XenkoPlatform)' == 'Android' " Include="arm64-v8a;armeabi-v7a;x86;x86_64"/>
   </ItemGroup>
   
   <!-- Define default dynamic library extensions -->
@@ -214,11 +214,6 @@
     <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target armv7-none-android" />
     <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi-v7a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target armv7-none-android" />
     <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\arm-linux-androideabi-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\arm-linux-androideabi-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\armeabi-v7a\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_armeabi-v7a.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-arm&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi-v7a\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi-v7a\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
-
-    <MakeDir Directories="$(XenkoNativeOutputPath)\armeabi"/>
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target arm-none-android" />
-    <Exec Condition="'%(XenkoNativeCFile.Extension)' == '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClangCPP) $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_armeabi.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target arm-none-android" />
-    <Exec Command="&quot;$(AndroidNdkDirectory)\toolchains\arm-linux-androideabi-4.9\prebuilt\windows$(XenkoNativeAndroidIs64Bit)\bin\arm-linux-androideabi-gcc.exe&quot; $(XenkoNativeToolingDebug) -shared -o &quot;$(XenkoNativeOutputPath)\armeabi\$(XenkoNativeOutputName)$(XenkoNativeLibraryTargetExt)&quot; @(XenkoNativeCFile->'&quot;$(OutputObjectPath)\%(Filename)_armeabi.o&quot;', ' ') --sysroot=&quot;$(AndroidNdkDirectory)\platforms\android-9\arch-arm&quot; @(XenkoNativePathLibs2->'&quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi\%(Filename).a&quot;', ' ') &quot;$(XenkoDependenciesDir)\NativePath\Android\armeabi\libNativePath.a&quot; $(XenkoNativeAndroidGCC)" />
 
     <MakeDir Directories="$(XenkoNativeOutputPath)\arm64-v8a"/>
     <Exec Condition="'%(XenkoNativeCFile.Extension)' != '.cpp'" Command="&quot;$(XenkoDependenciesDir)\LLVM\clang.exe&quot; $(XenkoNativeClang) -o &quot;$(OutputObjectPath)\%(XenkoNativeCFile.Filename)_arm64-v8a.o&quot; -c &quot;%(XenkoNativeCFile.FullPath)&quot; -DANDROID -target aarch64-none-android" />

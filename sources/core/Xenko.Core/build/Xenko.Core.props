@@ -14,7 +14,6 @@
     <TargetFramework>monoandroid81</TargetFramework>
     <TargetFrameworkIdentifier>MonoAndroid</TargetFrameworkIdentifier>
     <XenkoPlatformDefines>XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID;NET45</XenkoPlatformDefines>
-    <AndroidSupportedAbis>armeabi-v7a%3barmeabi%3bx86</AndroidSupportedAbis>
     <AndroidStoreUncompressedFileExtensions />
     <MandroidI18n />
     <LanguageTargets>$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets</LanguageTargets>
