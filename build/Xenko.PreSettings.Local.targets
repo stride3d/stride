@@ -3,7 +3,7 @@
   <PropertyGroup>
     <XenkoCommonPreSettingsName>Xenko</XenkoCommonPreSettingsName>
     <XenkoPlatforms Condition="'$(XenkoPlatforms)' == ''">Windows</XenkoPlatforms>
-    <XenkoGraphicsApis Condition="'$(XenkoGraphicsApis)' == ''">Direct3D11</XenkoGraphicsApis>
+    <XenkoGraphicsApis Condition="'$(XenkoGraphicsApis)' == ''">Direct3D11;Vulkan</XenkoGraphicsApis>
   </PropertyGroup>
 </Project>
 
