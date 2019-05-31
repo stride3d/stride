@@ -133,7 +133,6 @@
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Android' ">
     <XenkoExternalSuffix>.Android</XenkoExternalSuffix>
     <FrameworkShaderUseSharpDX>false</FrameworkShaderUseSharpDX>
-    <AndroidSupportedAbis>armeabi-v7a%3barmeabi%3bx86</AndroidSupportedAbis>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'iOS' ">
