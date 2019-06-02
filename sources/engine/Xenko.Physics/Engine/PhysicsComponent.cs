@@ -686,18 +686,19 @@ namespace Xenko.Engine
             //this is not optimal as UpdateWorldMatrix will end up being called twice this frame.. but we need to ensure that we have valid data.
             Entity.Transform.UpdateWorldMatrix();
 
-            if (ColliderShapes.Count == 0)
+            if (ColliderShapes.Count == 0 && ColliderShape == null)
             {
                 logger.Error($"Entity {Entity.Name} has a PhysicsComponent without any collider shape.");
                 return; //no shape no purpose
             }
-
-            if (ColliderShape == null) ComposeShape();
-
-            if (ColliderShape == null)
+            else if (ColliderShape == null)
             {
-                logger.Error($"Entity {Entity.Name} has a PhysicsComponent but it failed to compose the collider shape.");
-                return; //no shape no purpose
+                ComposeShape();
+                if (ColliderShape == null)
+                {
+                    logger.Error($"Entity {Entity.Name}'s PhysicsComponent failed to compose its collider shape.");
+                    return; //no shape no purpose
+                }
             }
 
             BoneIndex = -1;
