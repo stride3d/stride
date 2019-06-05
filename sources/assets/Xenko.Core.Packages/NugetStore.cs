@@ -60,6 +60,14 @@ namespace Xenko.Core.Packages
         /// <param name="oldRootDirectory">The location of the Nuget store.</param>
         public NugetStore(string oldRootDirectory)
         {
+            // Workaround for https://github.com/NuGet/Home/issues/8120
+            //  set timeout to something much higher than 100 sec
+            var defaultRequestTimeoutField = typeof(HttpSourceRequest).GetField(nameof(HttpSourceRequest.DefaultRequestTimeout), BindingFlags.Static | BindingFlags.Public);
+            if (defaultRequestTimeoutField != null)
+            {
+                defaultRequestTimeoutField.SetValue(null, TimeSpan.FromMinutes(60));
+            }
+
             // Used only for versions before 3.0
             this.oldRootDirectory = oldRootDirectory;
 
