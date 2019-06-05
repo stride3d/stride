@@ -184,9 +184,18 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             // Compute translation speed according to framerate and modifiers
             float baseSpeed = MoveSpeed * SceneUnit * (input.isShiftDown ? 10 : 1) * (1f/60f);
 
-            var rotation = Quaternion.RotationYawPitchRoll(yaw, pitch, 0);
-
             float zoomDelta = 0f;
+
+            // Update yaw and pitch first to keep dependencies on 'rotation' up to date with current frame changes
+            if (input.isMoving || input.isRotating || input.isOrbiting)
+            {
+                var rotationSpeed = RotationSpeed * (input.isOrbiting ? 2 : 1); // we want to rotate faster when rotating around an object.
+                yaw -= 1.333f * Game.Input.MouseDelta.X * rotationSpeed; // we want to rotate faster Horizontally and Vertically
+                if (input.isRotating || input.isOrbiting)
+                    pitch = MathUtil.Clamp(pitch - Game.Input.MouseDelta.Y * rotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
+            }
+
+            var rotation = Quaternion.RotationYawPitchRoll(yaw, pitch, 0);
 
             // If scene has changed since last time
             if (asOrthographic && Game?.ContentScene?.Entities != null)
@@ -260,17 +269,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // camera forward vector project on the XZ plane
                     position -= projectedForward * baseSpeed * MouseMoveSpeedFactor * Game.Input.MouseDelta.Y;
                 }
-            }
-
-            // Rotate
-            if (input.isMoving || input.isRotating || input.isOrbiting)
-            {
-                var rotationSpeed = RotationSpeed * (input.isOrbiting ? 2 : 1); // we want to rotate faster when rotating around an object.
-                yaw -= 1.333f * Game.Input.MouseDelta.X * rotationSpeed; // we want to rotate faster Horizontally and Vertically
-                if (input.isRotating || input.isOrbiting)
-                    pitch = MathUtil.Clamp(pitch - Game.Input.MouseDelta.Y * rotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
-                // Yaw & Pitch modified, update quaternion rotation
-                rotation = Quaternion.RotationYawPitchRoll(yaw, pitch, 0);
             }
 
             // Forward/backward
