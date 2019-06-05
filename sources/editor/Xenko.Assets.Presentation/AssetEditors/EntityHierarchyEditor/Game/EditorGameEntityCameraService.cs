@@ -269,6 +269,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 yaw -= 1.333f * Game.Input.MouseDelta.X * rotationSpeed; // we want to rotate faster Horizontally and Vertically
                 if (input.isRotating || input.isOrbiting)
                     pitch = MathUtil.Clamp(pitch - Game.Input.MouseDelta.Y * rotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
+                // Yaw & Pitch modified, update quaternion rotation
+                rotation = Quaternion.RotationYawPitchRoll(yaw, pitch, 0);
             }
 
             // Forward/backward
