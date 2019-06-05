@@ -78,6 +78,23 @@ namespace Xenko.Physics
                 vertices = new Vector3[totalVerts];
             }
 
+            // Allocate one byte array to push GPU data onto
+            byte[] gpuWindow;
+            {
+                int largestBuffer = 0;
+                foreach (var mesh in model.Meshes)
+                {
+                    largestBuffer = Math.Max(largestBuffer, mesh.Draw.IndexBuffer.Buffer.Description.SizeInBytes);
+                    foreach (var bufferBinding in mesh.Draw.VertexBuffers)
+                    {
+                        largestBuffer = Math.Max(largestBuffer, bufferBinding.Buffer.Description.SizeInBytes);
+                    }
+                }
+
+                gpuWindow = new byte[largestBuffer];
+            }
+
+
             int iCollOffset = 0;
             int vCollOffset = 0;
             foreach (var mesh in model.Meshes)
@@ -93,32 +110,34 @@ namespace Xenko.Physics
                     // Take care of the index buffer
                     unsafe
                     {
-                        var binding = mesh.Draw.IndexBuffer;
-                        var buffer = binding.Buffer;
-                        var elementCount = binding.Count;
-                        var sizeInBytes = buffer.Description.SizeInBytes;
-
-                        byte* window = stackalloc byte[sizeInBytes];
-                        FetchBufferData(buffer, commandList, new DataPointer(window, sizeInBytes));
-                        window += binding.Offset;
-
-                        if (binding.Is32Bit)
+                        fixed (byte* window = &gpuWindow[0])
                         {
-                            // For multiple meshes, indices have to be offset
-                            // since we're merging all the meshes together
-                            int* shortPtr = (int*)window;
-                            for (int i = 0; i < elementCount; i++)
+                            var binding = mesh.Draw.IndexBuffer;
+                            var buffer = binding.Buffer;
+                            var elementCount = binding.Count;
+                            var sizeInBytes = buffer.Description.SizeInBytes;
+
+                            FetchBufferData(buffer, commandList, new DataPointer(window, sizeInBytes));
+                            byte* start = window + binding.Offset;
+
+                            if (binding.Is32Bit)
                             {
-                                indices[iCollOffset++] = vCollOffset + shortPtr[i];
+                                // For multiple meshes, indices have to be offset
+                                // since we're merging all the meshes together
+                                int* shortPtr = (int*)start;
+                                for (int i = 0; i < elementCount; i++)
+                                {
+                                    indices[iCollOffset++] = vCollOffset + shortPtr[i];
+                                }
                             }
-                        }
-                        // convert ushort gpu representation to uint
-                        else
-                        {
-                            ushort* shortPtr = (ushort*)window;
-                            for (int i = 0; i < elementCount; i++)
+                            // convert ushort gpu representation to uint
+                            else
                             {
-                                indices[iCollOffset++] = vCollOffset + shortPtr[i];
+                                ushort* shortPtr = (ushort*)start;
+                                for (int i = 0; i < elementCount; i++)
+                                {
+                                    indices[iCollOffset++] = vCollOffset + shortPtr[i];
+                                }
                             }
                         }
                     }
@@ -158,21 +177,23 @@ namespace Xenko.Physics
                     // Fetch vertex position data from GPU
                     unsafe
                     {
-                        var sizeInBytes = bufferBinding.Buffer.Description.SizeInBytes;
-                        var elementCount = bufferBinding.Count;
-
-                        byte* window = stackalloc byte[sizeInBytes];
-                        FetchBufferData(bufferBinding.Buffer, commandList, new DataPointer(window, sizeInBytes));
-
-                        window += bufferBinding.Offset;
-
-                        if (posData.decl.Format != PixelFormat.R32G32B32_Float)
-                            throw new NotImplementedException(posData.decl.Format.ToString());
-
-                        for (int i = 0; i < elementCount; i++)
+                        fixed (byte* window = &gpuWindow[0])
                         {
-                            byte* vStart = &window[i * stride + posData.offset];
-                            vertices[vCollOffset++] = *(Vector3*)vStart;
+                            var sizeInBytes = bufferBinding.Buffer.Description.SizeInBytes;
+                            var elementCount = bufferBinding.Count;
+
+                            FetchBufferData(bufferBinding.Buffer, commandList, new DataPointer(window, sizeInBytes));
+
+                            byte* start = window + bufferBinding.Offset;
+
+                            if (posData.decl.Format != PixelFormat.R32G32B32_Float)
+                                throw new NotImplementedException(posData.decl.Format.ToString());
+
+                            for (int i = 0; i < elementCount; i++)
+                            {
+                                byte* vStart = &start[i * stride + posData.offset];
+                                vertices[vCollOffset++] = *(Vector3*)vStart;
+                            }
                         }
                     }
                 }
