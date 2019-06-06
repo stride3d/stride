@@ -22,6 +22,7 @@ namespace Xenko.Rendering
     public class EffectSystem : GameSystemBase
     {
         private static readonly Logger Log = GlobalLogger.GetLogger("EffectSystem");
+        public static HashSet<string> ShaderCompilerErrors = new HashSet<string>();
 
         private EffectCompilerParameters effectCompilerParameters = EffectCompilerParameters.Default;
 
@@ -173,14 +174,14 @@ namespace Xenko.Rendering
             }
         }
 
-        // TODO: THIS IS JUST A WORKAROUND, REMOVE THIS
-
         private static void CheckResult(LoggerResult compilerResult)
         {
             // Check errors
             if (compilerResult.HasErrors)
             {
-                throw new InvalidOperationException("Could not compile shader. See error messages." + compilerResult.ToText());
+                string compileOutput = "Could not compile shader: " + compilerResult.ToText();
+                ShaderCompilerErrors.Add(compileOutput);
+                throw new InvalidOperationException(compileOutput);
             }
         }
 

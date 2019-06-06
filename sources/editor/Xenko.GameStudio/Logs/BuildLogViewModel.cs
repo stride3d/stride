@@ -29,6 +29,14 @@ namespace Xenko.GameStudio.Logs
         {
             foreach (var logger in Loggers.Keys)
             {
+                // print out shader errors first
+                if (Xenko.Rendering.EffectSystem.ShaderCompilerErrors.Count > 0) {
+                    foreach (string err in Xenko.Rendering.EffectSystem.ShaderCompilerErrors) {
+                        logger.Error(err + "\n{{end of shader error history entry}}");
+                    }
+                    Xenko.Rendering.EffectSystem.ShaderCompilerErrors.Clear();
+                }
+
                 logger.Log(message);
             }
         }
