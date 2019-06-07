@@ -39,6 +39,28 @@ namespace Xenko.Rendering
         public MaterialDescriptor Descriptor { get; set; }
 
         /// <summary>
+        /// Returns a new clone of this material
+        /// </summary>
+        /// <returns></returns>
+        public Material Clone() {
+            Material clone = new Material();
+            clone.Descriptor = Descriptor;
+            for(int i=0;i<Passes.Count;i++) {
+                MaterialPass p = Passes[i];
+                MaterialPass newp = new MaterialPass();
+                newp.BlendState = p.BlendState;
+                newp.CullMode = p.CullMode;
+                newp.HasTransparency = p.HasTransparency;
+                newp.IsLightDependent = p.IsLightDependent;
+                newp.PassIndex = p.PassIndex;
+                newp.TessellationMethod = p.TessellationMethod;
+                newp.Parameters = new ParameterCollection(p.Parameters);
+                clone.Passes.Add(newp);
+            }
+            return clone;
+        }
+
+        /// <summary>
         /// Creates a new material from the specified descriptor.
         /// </summary>
         /// <param name="device"></param>
