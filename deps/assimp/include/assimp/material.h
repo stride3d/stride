@@ -3,9 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2018, assimp team
-
-
+Copyright (c) 2006-2016, assimp team
 
 All rights reserved.
 
@@ -492,7 +490,7 @@ struct aiUVTransform
     }
 #endif
 
-};
+} PACK_STRUCT;
 
 #include "./Compiler/poppack1.h"
 

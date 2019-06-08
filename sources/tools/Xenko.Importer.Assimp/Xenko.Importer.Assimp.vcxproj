@@ -73,14 +73,14 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp-vc140-mt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\deps\assimp\lib\x64\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp-vc120-mt.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutputDir);..\..\..\deps\assimp\lib\assimp_release-dll_$(Platform)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4049 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CustomBuildStep>
-      <Command>xcopy /D /Y "..\..\..\deps\assimp\bin\x64\assimp-vc140-mt.dll" "$(TargetDir)$(Platform)\"</Command>
-      <Outputs>$(TargetDir)$(Platform)\assimp-vc140-mt.dll;%(Outputs)</Outputs>
-      <Inputs>..\..\..\deps\assimp\bin\x64\assimp-vc140-mt.dll</Inputs>
+      <Command>xcopy /D /Y "..\..\..\deps\assimp\bin\assimp_release-dll_$(Platform)\assimp-vc120-mt.dll" "$(TargetDir)$(Platform)\"</Command>
+      <Outputs>$(TargetDir)$(Platform)\assimp-vc120-mt.dll;%(Outputs)</Outputs>
+      <Inputs>..\..\..\deps\assimp\bin\assimp_release-dll_$(Platform)\assimp-vc120-mt.dll</Inputs>
       <TreatOutputAsContent>true</TreatOutputAsContent>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -94,13 +94,13 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp-vc140-mt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\deps\assimp\lib\x64\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp-vc120-mt.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\deps\assimp\lib\assimp_release-dll_$(Platform)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>xcopy /D /Y "..\..\..\deps\assimp\bin\x64\assimp-vc140-mt.dll" "$(TargetDir)$(Platform)\"</Command>
-      <Outputs>$(TargetDir)$(Platform)\assimp-vc140-mt.dll;%(Outputs)</Outputs>
-      <Inputs>..\..\..\deps\assimp\bin\x64\assimp-vc140-mt.dll</Inputs>
+      <Command>xcopy /D /Y "..\..\..\deps\assimp\bin\assimp_release-dll_$(Platform)\assimp-vc120-mt.dll" "$(TargetDir)$(Platform)\"</Command>
+      <Outputs>$(TargetDir)$(Platform)\assimp-vc120-mt.dll;%(Outputs)</Outputs>
+      <Inputs>..\..\..\deps\assimp\bin\assimp_release-dll_$(Platform)\assimp-vc120-mt.dll</Inputs>
       <TreatOutputAsContent>true</TreatOutputAsContent>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -115,14 +115,14 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp-vc140-mt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\deps\assimp\lib\x64\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp-vc120-mt.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutputDir);..\..\..\deps\assimp\lib\assimp_release-dll_$(Platform)</AdditionalLibraryDirectories>
       <AdditionalOptions>/ignore:4049 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <CustomBuildStep>
-      <Command>xcopy /D /Y "..\..\..\deps\assimp\bin\x64\assimp-vc140-mt.dll" "$(TargetDir)$(Platform)\"</Command>
-      <Outputs>$(TargetDir)$(Platform)\assimp-vc140-mt.dll;%(Outputs)</Outputs>
-      <Inputs>..\..\..\deps\assimp\bin\x64\assimp-vc140-mt.dll</Inputs>
+      <Command>xcopy /D /Y "..\..\..\deps\assimp\bin\assimp_release-dll_$(Platform)\assimp-vc120-mt.dll" "$(TargetDir)$(Platform)\"</Command>
+      <Outputs>$(TargetDir)$(Platform)\assimp-vc120-mt.dll;%(Outputs)</Outputs>
+      <Inputs>..\..\..\deps\assimp\bin\assimp_release-dll_$(Platform)\assimp-vc120-mt.dll</Inputs>
       <TreatOutputAsContent>true</TreatOutputAsContent>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -136,13 +136,13 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>assimp-vc140-mt.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\..\deps\assimp\lib\x64\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>assimp-vc120-mt.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\deps\assimp\lib\assimp_release-dll_$(Platform)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>xcopy /D /Y "..\..\..\deps\assimp\bin\x64\assimp-vc140-mt.dll" "$(TargetDir)$(Platform)\"</Command>
-      <Outputs>$(TargetDir)$(Platform)\assimp-vc140-mt.dll;%(Outputs)</Outputs>
-      <Inputs>..\..\..\deps\assimp\bin\x64\assimp-vc140-mt.dll</Inputs>
+      <Command>xcopy /D /Y "..\..\..\deps\assimp\bin\assimp_release-dll_$(Platform)\assimp-vc120-mt.dll" "$(TargetDir)$(Platform)\"</Command>
+      <Outputs>$(TargetDir)$(Platform)\assimp-vc120-mt.dll;%(Outputs)</Outputs>
+      <Inputs>..\..\..\deps\assimp\bin\assimp_release-dll_$(Platform)\assimp-vc120-mt.dll</Inputs>
       <TreatOutputAsContent>true</TreatOutputAsContent>
     </CustomBuildStep>
   </ItemDefinitionGroup>
@@ -174,7 +174,7 @@
     <Image Include="app.ico" />
   </ItemGroup>
   <ItemGroup>
-    <XenkoNativeLib Include="..\..\..\deps\assimp\bin\x64\assimp-vc140-mt.dll">
+    <XenkoNativeLib Include="..\..\..\deps\assimp\bin\assimp_release-dll_x64\assimp-vc120-mt.dll">
       <Link>x64\%(Filename)%(Extension)</Link>
       <RelativePath>x64\%(Filename)%(Extension)</RelativePath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

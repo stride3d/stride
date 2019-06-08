@@ -3,9 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2018, assimp team
-
-
+Copyright (c) 2006-2016, assimp team
 
 All rights reserved.
 
@@ -61,11 +59,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
 #endif
 
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-#endif
-
 // -------------------------------------------------------------------------------
 /** 
  * A node in the imported hierarchy.
@@ -76,7 +69,7 @@ extern "C" {
  * the imported scene does consist of only a single root node without children.
  */
 // -------------------------------------------------------------------------------
-struct ASSIMP_API aiNode
+struct aiNode
 {
     /** The name of the node.
      *
@@ -131,13 +124,47 @@ struct ASSIMP_API aiNode
 
 #ifdef __cplusplus
     /** Constructor */
-    aiNode();
+    aiNode()
+        // set all members to zero by default
+        : mName("")
+        , mParent(NULL)
+        , mNumChildren(0)
+        , mChildren(NULL)
+        , mNumMeshes(0)
+        , mMeshes(NULL)
+        , mMetaData(NULL)
+    {
+    }
+
 
     /** Construction from a specific name */
-    explicit aiNode(const std::string& name);
+    explicit aiNode(const std::string& name)
+        // set all members to zero by default
+        : mName(name)
+        , mParent(NULL)
+        , mNumChildren(0)
+        , mChildren(NULL)
+        , mNumMeshes(0)
+        , mMeshes(NULL)
+        , mMetaData(NULL)
+    {
+    }
 
     /** Destructor */
-    ~aiNode();
+    ~aiNode()
+    {
+        // delete all children recursively
+        // to make sure we won't crash if the data is invalid ...
+        if (mChildren && mNumChildren)
+        {
+            for( unsigned int a = 0; a < mNumChildren; a++)
+                delete mChildren[a];
+        }
+        delete [] mChildren;
+        delete [] mMeshes;
+        delete mMetaData;
+    }
+
 
     /** Searches for a node with a specific name, beginning at this
      *  nodes. Normally you will call this method on the root node
@@ -146,32 +173,49 @@ struct ASSIMP_API aiNode
      *  @param name Name to search for
      *  @return NULL or a valid Node if the search was successful.
      */
-    inline 
-    const aiNode* FindNode(const aiString& name) const {
+    inline const aiNode* FindNode(const aiString& name) const
+    {
         return FindNode(name.data);
     }
 
-    inline 
-    aiNode* FindNode(const aiString& name) {
+
+    inline aiNode* FindNode(const aiString& name)
+    {
         return FindNode(name.data);
     }
 
-    const aiNode* FindNode(const char* name) const;
 
-    aiNode* FindNode(const char* name);
+    inline const aiNode* FindNode(const char* name) const
+    {
+        if (!::strcmp( mName.data,name))return this;
+        for (unsigned int i = 0; i < mNumChildren;++i)
+        {
+            const aiNode* const p = mChildren[i]->FindNode(name);
+            if (p) {
+                return p;
+            }
+        }
+        // there is definitely no sub-node with this name
+        return NULL;
+    }
 
-    /**
-     * @brief   Will add new children.
-     * @param   numChildren  Number of children to add.
-     * @param   children     The array with pointers showing to the children.
-     */
-    void addChildren(unsigned int numChildren, aiNode **children);
+    inline aiNode* FindNode(const char* name)
+    {
+        if (!::strcmp( mName.data,name))return this;
+        for (unsigned int i = 0; i < mNumChildren;++i)
+        {
+            aiNode* const p = mChildren[i]->FindNode(name);
+            if (p) {
+                return p;
+            }
+        }
+        // there is definitely no sub-node with this name
+        return NULL;
+    }
+
 #endif // __cplusplus
 };
 
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
 
 // -------------------------------------------------------------------------------
 /**
@@ -327,16 +371,6 @@ struct aiScene
     */
     C_STRUCT aiCamera** mCameras;
 
-    /**
-     *  @brief  The global metadata assigned to the scene itself.
-     *
-     *  This data contains global metadata which belongs to the scene like 
-     *  unit-conversions, versions, vendors or other model-specific data. This 
-     *  can be used to store format-specific metadata as well.
-     */
-    C_STRUCT aiMetadata* mMetaData;
-
-
 #ifdef __cplusplus
 
     //! Default constructor - set everything to 0/NULL
@@ -377,27 +411,6 @@ struct aiScene
         return mAnimations != NULL && mNumAnimations > 0; 
     }
 
-    //! Returns a short filename from a full path
-    static const char* GetShortFilename(const char* filename) {
-        const char* lastSlash = strrchr(filename, '/');
-        if (lastSlash == nullptr) {
-            lastSlash = strrchr(filename, '\\');
-        }
-        const char* shortFilename = lastSlash != nullptr ? lastSlash + 1 : filename;
-        return shortFilename;
-    }
-
-    //! Returns an embedded texture
-    const aiTexture* GetEmbeddedTexture(const char* filename) const {
-        const char* shortFilename = GetShortFilename(filename);
-        for (unsigned int i = 0; i < mNumTextures; i++) {
-            const char* shortTextureFilename = GetShortFilename(mTextures[i]->mFilename.C_Str());
-            if (strcmp(shortTextureFilename, shortFilename) == 0) {
-                return mTextures[i];
-            }
-        }
-        return nullptr;
-    }
 #endif // __cplusplus
 
     /**  Internal data, do not touch */

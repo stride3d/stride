@@ -3,9 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2018, assimp team
-
-
+Copyright (c) 2006-2016, assimp team
 
 All rights reserved.
 
@@ -47,6 +45,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef AI_COLOR4D_H_INC
 #define AI_COLOR4D_H_INC
 
+#include "./Compiler/pushpack1.h"
 #include "defs.h"
 
 #ifdef __cplusplus
@@ -90,7 +89,7 @@ public:
 
     // Red, green, blue and alpha color values
     TReal r, g, b, a;
-};  // !struct aiColor4D
+} PACK_STRUCT;  // !struct aiColor4D
 
 typedef aiColor4t<ai_real> aiColor4D;
 
@@ -98,8 +97,10 @@ typedef aiColor4t<ai_real> aiColor4D;
 
 struct aiColor4D {
     ai_real r, g, b, a;
-};
+} PACK_STRUCT;
 
 #endif // __cplusplus
+
+#include "./Compiler/poppack1.h"
 
 #endif // AI_COLOR4D_H_INC

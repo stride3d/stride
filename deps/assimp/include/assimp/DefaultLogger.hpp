@@ -2,9 +2,7 @@
 Open Asset Import Library (assimp)
 ----------------------------------------------------------------------
 
-Copyright (c) 2006-2018, assimp team
-
-
+Copyright (c) 2006-2016, assimp team
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms,
@@ -131,7 +129,9 @@ public:
     bool detatchStream(LogStream *pStream,
         unsigned int severity);
 
+
 private:
+
     // ----------------------------------------------------------------------
     /** @briefPrivate construction for internal use by create().
      *  @param severity Logging granularity  */
@@ -140,6 +140,8 @@ private:
     // ----------------------------------------------------------------------
     /** @briefDestructor    */
     ~DefaultLogger();
+
+private:
 
     /** @brief  Logs debug infos, only been written when severity level VERBOSE is set */
     void OnDebug(const char* message);

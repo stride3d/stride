@@ -3,9 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2018, assimp team
-
-
+Copyright (c) 2006-2016, assimp team
 
 All rights reserved.
 
@@ -78,32 +76,12 @@ AI_FORCE_INLINE const aiColor4t<TReal>& aiColor4t<TReal>::operator /= (TReal f) 
 // ------------------------------------------------------------------------------------------------
 template <typename TReal>
 AI_FORCE_INLINE TReal aiColor4t<TReal>::operator[](unsigned int i) const {
-    switch ( i ) {
-        case 0:
-            return r;
-        case 1:
-            return g;
-        case 2:
-            return b;
-        default:
-            break;
-    }
-    return r;
+    return *(&r + i);
 }
 // ------------------------------------------------------------------------------------------------
 template <typename TReal>
 AI_FORCE_INLINE TReal& aiColor4t<TReal>::operator[](unsigned int i) {
-    switch ( i ) {
-        case 0:
-            return r;
-        case 1:
-            return g;
-        case 2:
-            return b;
-        default:
-            break;
-    }
-    return r;
+    return *(&r + i);
 }
 // ------------------------------------------------------------------------------------------------
 template <typename TReal>

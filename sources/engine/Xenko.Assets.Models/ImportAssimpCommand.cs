@@ -1,4 +1,4 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -17,7 +17,7 @@ namespace Xenko.Assets.Models
     [Description("Import Assimp")]
     public class ImportAssimpCommand : ImportModelCommand
     {
-        private static string[] supportedExtensions = AssimpAssetImporter.FileExtensions.Split(';');
+        private static string[] supportedExtensions = { ".x", ".dae", ".dae", ".3ds", ".obj", ".blend", ".ply" };
 
         /// <inheritdoc/>
         public override string Title { get { string title = "Import Assimp "; try { title += Path.GetFileName(SourcePath) ?? "[File]"; } catch { title += "[INVALID PATH]"; } return title; } }

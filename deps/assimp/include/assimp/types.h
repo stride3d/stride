@@ -3,9 +3,7 @@
 Open Asset Import Library (assimp)
 ---------------------------------------------------------------------------
 
-Copyright (c) 2006-2018, assimp team
-
-
+Copyright (c) 2006-2016, assimp team
 
 All rights reserved.
 
@@ -111,10 +109,13 @@ extern "C" {
 
 /** Maximum dimension for strings, ASSIMP strings are zero terminated. */
 #ifdef __cplusplus
-    static const size_t MAXLEN = 1024;
+static 
+const size_t MAXLEN = 1024;
 #else
 #   define MAXLEN 1024
 #endif
+
+#include "./Compiler/pushpack1.h"
 
 // ----------------------------------------------------------------------------------
 /** Represents a plane in a three-dimensional, euclidean space
@@ -132,7 +133,7 @@ struct aiPlane
 
     //! Plane equation
     ai_real a,b,c,d;
-}; // !struct aiPlane
+} PACK_STRUCT; // !struct aiPlane
 
 // ----------------------------------------------------------------------------------
 /** Represents a ray
@@ -150,7 +151,7 @@ struct aiRay
 
     //! Position and direction of the ray
     C_STRUCT aiVector3D pos, dir;
-}; // !struct aiRay
+} PACK_STRUCT; // !struct aiRay
 
 // ----------------------------------------------------------------------------------
 /** Represents a color in Red-Green-Blue space.
@@ -226,7 +227,8 @@ struct aiColor3D
 
     //! Red, green and blue color values
     ai_real r, g, b;
-};  // !struct aiColor3D
+} /*PACK_STRUCT*/;  // !struct aiColor3D
+#include "./Compiler/poppack1.h"
 
 // ----------------------------------------------------------------------------------
 /** Represents an UTF-8 string, zero byte terminated.
@@ -303,20 +305,6 @@ struct aiString
         memcpy( data, sz, len);
         data[len] = 0;
     }
-
-
-    /** Assigment operator */
-    aiString& operator = (const aiString &rOther) {
-        if (this == &rOther) {
-            return *this;
-        }
-
-        length = rOther.length;;
-        memcpy( data, rOther.data, length);
-        data[length] = '\0';
-        return *this;
-    }
-
 
     /** Assign a const char* to the string */
     aiString& operator = (const char* sz) {
