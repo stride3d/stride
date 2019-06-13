@@ -689,7 +689,7 @@ namespace Xenko.Rendering
                     var renderEffect = renderEffects[staticEffectObjectNode];
 
                     // Not compiled yet?
-                    if (renderEffect.Effect == null)
+                    if (renderEffect.Effect == null || renderEffect.Reflection == null)
                     {
                         renderNode.RenderEffect = renderEffect;
                         renderNode.EffectObjectNode = EffectObjectNodeReference.Invalid;

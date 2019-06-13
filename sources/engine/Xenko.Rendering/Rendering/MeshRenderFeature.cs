@@ -177,7 +177,7 @@ namespace Xenko.Rendering
                 // Get effect
                 // TODO: Use real effect slot
                 var renderEffect = renderNode.RenderEffect;
-                if (renderEffect.Effect == null)
+                if (renderEffect.Effect == null || renderEffect.Reflection == null)
                     continue;
 
                 // Bind VB
