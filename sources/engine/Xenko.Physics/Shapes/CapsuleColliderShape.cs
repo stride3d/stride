@@ -13,9 +13,9 @@ namespace Xenko.Physics
 {
     public class CapsuleColliderShape : ColliderShape
     {
-        private readonly float capsuleLength;
-        private readonly float capsuleRadius;
-        private readonly ShapeOrientation shapeOrientation;
+        public readonly float capsuleLength;
+        public readonly float capsuleRadius;
+        public readonly ShapeOrientation shapeOrientation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CapsuleColliderShape"/> class.
