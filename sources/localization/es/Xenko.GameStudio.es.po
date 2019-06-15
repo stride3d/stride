@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
 "PO-Revision-Date: 2019-06-15 16:21+0000\n"
-"Last-Translator: Oscar Sanchez <trollainas@gmail.com>\n"
+"Last-Translator: Mario Guerra <mgg7007@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "es/>\n"
 "Language: es\n"
@@ -553,7 +553,7 @@ msgstr "Cuadrícula de propiedades"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:262
 msgctxt "Menu"
 msgid "Edit history"
-msgstr "Editar historial"
+msgstr "Historial de edición"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:265
 msgctxt "Menu"
