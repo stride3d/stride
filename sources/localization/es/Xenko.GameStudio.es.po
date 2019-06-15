@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-06-15 16:21+0000\n"
+"PO-Revision-Date: 2019-06-15 16:22+0000\n"
 "Last-Translator: Mario Guerra <mgg7007@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "es/>\n"
@@ -574,7 +574,7 @@ msgstr "Ayuda"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:271
 msgctxt "Menu"
 msgid "Online documentation"
-msgstr "Documentación online"
+msgstr "Documentación en línea"
 
 #. Link to the answer hub
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:273
