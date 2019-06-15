@@ -256,7 +256,7 @@ msgstr "Editar asset..."
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:65
 msgctxt "Menu"
 msgid "Don't include in build as root asset"
-msgstr "No debe incluirse en la compilación como asset raíz"
+msgstr "No incluir en la compilación como asset raíz"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:65
 msgctxt "Menu"
