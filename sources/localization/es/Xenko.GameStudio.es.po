@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-06-15 16:25+0000\n"
+"PO-Revision-Date: 2019-06-17 15:02+0000\n"
 "Last-Translator: Mario Guerra <mgg7007@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "es/>\n"
@@ -280,7 +280,7 @@ msgstr "Copiar"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:92
 msgctxt "Menu"
 msgid "Copy with dependencies"
-msgstr "Copiar con las siguientes dependencias"
+msgstr "Copiar con dependencias"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:93
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:197
@@ -327,13 +327,13 @@ msgstr "Añadir asset..."
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:247
 msgctxt "Menu"
 msgid "Update selected assets from their source"
-msgstr "Actualizar los siguientes assets desde su origen"
+msgstr "Actualizar los assets seleccionados desde su origen"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:102
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:248
 msgctxt "Menu"
 msgid "Update all assets with modified source"
-msgstr "Actualizar todos los assets con el origen modificado"
+msgstr "Actualizar todos los assets con origen modificado"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:104
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:249
@@ -471,7 +471,7 @@ msgstr "Actualizar paquete"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:499
 msgctxt "Menu"
 msgid "Add dependency..."
-msgstr "Añadir dependencias..."
+msgstr "Añadir dependencia..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:232
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:500
@@ -512,7 +512,7 @@ msgstr "Abrir en el IDE"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:239
 msgctxt "Menu"
 msgid "Reload game assemblies"
-msgstr "Recargar los ensamblajes del juego"
+msgstr "Recargar los ensamblados del juego"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:241
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:508
@@ -632,7 +632,7 @@ msgstr "Recargar proyecto actual (Preguntar antes de guardar)"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:349
 msgctxt "ToolTip"
 msgid "Undo last action"
-msgstr "Deshacer la anterior acción"
+msgstr "Deshacer la acción anterior"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:353
 msgctxt "ToolTip"
@@ -652,7 +652,7 @@ msgstr "Abrir con..."
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:374
 msgctxt "ToolTip"
 msgid "Reload game assemblies and update scripts"
-msgstr "Recargue los ensamblajes del juego y actualice los scripts"
+msgstr "Recargue los ensamblados del juego y actualice los scripts"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:395
 msgctxt "ToolTip"
