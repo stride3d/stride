@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
 "PO-Revision-Date: 2019-06-15 16:24+0000\n"
-"Last-Translator: Oscar Sanchez <trollainas@gmail.com>\n"
+"Last-Translator: Mario Guerra <mgg7007@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "es/>\n"
 "Language: es\n"
@@ -749,12 +749,12 @@ msgstr "Hace referencia a"
 msgctxt "View"
 msgid "Asset error ({0})"
 msgid_plural "Asset errors ({0})"
-msgstr[0] "Error de asset ({0})"
-msgstr[1] "Error de assets ({0})"
+msgstr[0] "Error en el asset ({0})"
+msgstr[1] "Error en los assets ({0})"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:624
 msgid "Build"
-msgstr "Construir"
+msgstr "Compilar"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:638
 msgid "Live-scripting"
@@ -773,12 +773,12 @@ msgstr "Añadir nueva etiqueta"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:687
 msgctxt "ToolTip"
 msgid "Previous selection"
-msgstr "Selección previa"
+msgstr "Selección anterior"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:690
 msgctxt "ToolTip"
 msgid "Next selection"
-msgstr "Selección próxima"
+msgstr "Selección siguiente"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:708
 msgctxt "ToolTip"
@@ -805,7 +805,7 @@ msgstr "Buscar propiedades"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:765
 msgctxt "Menu"
 msgid "Reset to base value"
-msgstr "Reiniciar al valor base"
+msgstr "Restablecer al valor base"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:879
 msgctxt "View"
@@ -815,7 +815,7 @@ msgstr "Vista previa del asset"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:887
 msgctxt "View"
 msgid "Edit history"
-msgstr "Editar historial"
+msgstr "Historial de edición"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:939
 msgctxt "StatusBar"
