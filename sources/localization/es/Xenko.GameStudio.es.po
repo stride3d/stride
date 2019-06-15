@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-06-15 16:13+0000\n"
-"Last-Translator: Mario Guerra <mgg7007@gmail.com>\n"
+"PO-Revision-Date: 2019-06-15 16:21+0000\n"
+"Last-Translator: Oscar Sanchez <trollainas@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "es/>\n"
 "Language: es\n"
@@ -442,7 +442,7 @@ msgstr "Iniciar proyecto"
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:207
 msgctxt "Menu"
 msgid "Start live-scripting"
-msgstr "Empezar live-scripting"
+msgstr "Iniciar live-scripting"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:208
 msgctxt "Menu"
@@ -501,7 +501,7 @@ msgstr "Nuevo proyecto..."
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:505
 msgctxt "Menu"
 msgid "Add existing project..."
-msgstr "Agregar proyecto existente..."
+msgstr "Añadir proyecto existente..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:238
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:506
