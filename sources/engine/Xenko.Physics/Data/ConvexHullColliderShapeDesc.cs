@@ -9,13 +9,11 @@ using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization.Contents;
 using Xenko.Rendering;
 
-namespace Xenko.Physics
-{
+namespace Xenko.Physics {
     [ContentSerializer(typeof(DataContentSerializer<ConvexHullColliderShapeDesc>))]
     [DataContract("ConvexHullColliderShapeDesc")]
     [Display(500, "Convex Hull")]
-    public class ConvexHullColliderShapeDesc : IAssetColliderShapeDesc
-    {
+    public class ConvexHullColliderShapeDesc : IAssetColliderShapeDesc {
 
         [Display(Browsable = false)]
         [DataMember(10)]
@@ -23,7 +21,7 @@ namespace Xenko.Physics
 
         [Display(Browsable = false)]
         [DataMember(20)]
-        public List<List<List<int>>> ConvexHullsIndices; // Multiple meshes -> Multiple Hulls -> Hull tris
+        public List<List<List<uint>>> ConvexHullsIndices; // Multiple meshes -> Multiple Hulls -> Hull tris
 
         /// <userdoc>
         /// Model asset from where the engine will derive the convex hull.
@@ -56,8 +54,7 @@ namespace Xenko.Physics
         [NotNull]
         public ConvexHullDecompositionParameters Decomposition { get; set; } = new ConvexHullDecompositionParameters();
 
-        public bool Match(object obj)
-        {
+        public bool Match(object obj) {
             var other = obj as ConvexHullColliderShapeDesc;
             if (other == null)
                 return false;
@@ -70,19 +67,15 @@ namespace Xenko.Physics
                    other.Decomposition.Match(Decomposition);
         }
 
-        public ColliderShape NewShapeFromDesc()
-        {
+        public ColliderShape NewShapeFromDesc() {
             if (ConvexHulls == null) return null;
             ColliderShape shape;
 
             //Optimize performance and focus on less shapes creation since this shape could be nested
 
-            if (ConvexHulls.Count == 1)
-            {
-                if (ConvexHulls[0].Count == 1 && ConvexHullsIndices[0][0].Count > 0)
-                {
-                    shape = new ConvexHullColliderShape(ConvexHulls[0][0], ConvexHullsIndices[0][0], Scaling)
-                    {
+            if (ConvexHulls.Count == 1) {
+                if (ConvexHulls[0].Count == 1 && ConvexHullsIndices[0][0].Count > 0) {
+                    shape = new ConvexHullColliderShape(ConvexHulls[0][0], ConvexHullsIndices[0][0], Scaling) {
                         NeedsCustomCollisionCallback = true,
                     };
 
@@ -94,13 +87,11 @@ namespace Xenko.Physics
 
                 if (ConvexHulls[0].Count <= 1) return null;
 
-                var subCompound = new CompoundColliderShape
-                {
+                var subCompound = new CompoundColliderShape {
                     NeedsCustomCollisionCallback = true,
                 };
 
-                for (var i = 0; i < ConvexHulls[0].Count; i++)
-                {
+                for (var i = 0; i < ConvexHulls[0].Count; i++) {
                     var verts = ConvexHulls[0][i];
                     var indices = ConvexHullsIndices[0][i];
 
@@ -119,30 +110,24 @@ namespace Xenko.Physics
 
             if (ConvexHulls.Count <= 1) return null;
 
-            var compound = new CompoundColliderShape
-            {
+            var compound = new CompoundColliderShape {
                 NeedsCustomCollisionCallback = true,
             };
 
-            for (var i = 0; i < ConvexHulls.Count; i++)
-            {
+            for (var i = 0; i < ConvexHulls.Count; i++) {
                 var verts = ConvexHulls[i];
                 var indices = ConvexHullsIndices[i];
 
-                if (verts.Count == 1)
-                {
+                if (verts.Count == 1) {
                     if (indices[0].Count == 0) continue;
 
                     var subHull = new ConvexHullColliderShape(verts[0], indices[0], Scaling);
                     //subHull.UpdateLocalTransformations();
                     compound.AddChildShape(subHull);
-                }
-                else if (verts.Count > 1)
-                {
+                } else if (verts.Count > 1) {
                     var subCompound = new CompoundColliderShape();
 
-                    for (var b = 0; b < verts.Count; b++)
-                    {
+                    for (var b = 0; b < verts.Count; b++) {
                         var subVerts = verts[b];
                         var subIndex = indices[b];
 

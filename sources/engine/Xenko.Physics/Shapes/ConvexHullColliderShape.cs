@@ -10,15 +10,16 @@ using Xenko.Graphics;
 using Xenko.Graphics.GeometricPrimitives;
 using Xenko.Rendering;
 
-namespace Xenko.Physics
-{
-    public class ConvexHullColliderShape : ColliderShape
-    {
+namespace Xenko.Physics {
+    public class ConvexHullColliderShape : ColliderShape {
         private readonly IReadOnlyList<Vector3> pointsList;
-        private readonly IReadOnlyList<int> indicesList;
+        private readonly IReadOnlyList<uint> indicesList;
 
-        public ConvexHullColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<int> indices, Vector3? scaling = null)
-        {
+        public ConvexHullColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<int> indices, Vector3? scaling) : this(points, (IReadOnlyList<uint>)(object)indices, scaling) {
+
+        }
+
+        public ConvexHullColliderShape(IReadOnlyList<Vector3> points, IReadOnlyList<uint> indices, Vector3? scaling = null) {
             Type = ColliderShapeTypes.ConvexHull;
             Is2D = false;
 
@@ -27,28 +28,23 @@ namespace Xenko.Physics
             pointsList = points;
             indicesList = indices;
 
-            InternalShape = new BulletSharp.ConvexHullShape(PointsAsBullet())
-            {
+            InternalShape = new BulletSharp.ConvexHullShape(PointsAsBullet()) {
                 LocalScaling = cachedScaling,
             };
 
             DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(1, 1, 1) * DebugScaling);
         }
 
-        public IReadOnlyList<Vector3> Points
-        {
+        public IReadOnlyList<Vector3> Points {
             get { return pointsList; }
         }
-        public IReadOnlyList<int> Indices
-        {
+        public IReadOnlyList<uint> Indices {
             get { return indicesList; }
         }
 
-        public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
-        {
+        public override MeshDraw CreateDebugPrimitive(GraphicsDevice device) {
             var verts = new VertexPositionNormalTexture[pointsList.Count];
-            for (var i = 0; i < pointsList.Count; i++)
-            {
+            for (var i = 0; i < pointsList.Count; i++) {
                 verts[i].Position = pointsList[i];
                 verts[i].TextureCoordinate = Vector2.Zero;
                 verts[i].Normal = Vector3.Zero;
@@ -58,8 +54,7 @@ namespace Xenko.Physics
 
             ////calculate basic normals
             ////todo verify, winding order might be wrong?
-            for (var i = 0; i < indicesList.Count; i += 3)
-            {
+            for (var i = 0; i < indicesList.Count; i += 3) {
                 var i1 = intIndices[i];
                 var i2 = intIndices[i + 1];
                 var i3 = intIndices[i + 2];
@@ -76,8 +71,7 @@ namespace Xenko.Physics
             return new GeometricPrimitive(device, meshData).ToMeshDraw();
         }
 
-        IEnumerable<BulletSharp.Math.Vector3> PointsAsBullet()
-        {
+        IEnumerable<BulletSharp.Math.Vector3> PointsAsBullet() {
             for (int i = 0; i < pointsList.Count; i++)
                 yield return pointsList[i];
         }
