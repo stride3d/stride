@@ -272,6 +272,8 @@ namespace Xenko.Engine
                         if (!deviceManager.ShaderProfile.HasValue)
                             deviceManager.ShaderProfile = renderingSettings.DefaultGraphicsProfile;
                     }
+
+                    Services.AddService(Settings);
                 }
 
                 // Load several default settings
