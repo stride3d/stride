@@ -44,7 +44,7 @@ namespace Xenko.Graphics
         private int nativeUploadBufferSize;
         private int nativeUploadBufferOffset;
 
-        private ConcurrentQueue<KeyValuePair<long, Fence>> nativeFences = new ConcurrentQueue<KeyValuePair<long, Fence>>();
+        private Queue<KeyValuePair<long, Fence>> nativeFences = new Queue<KeyValuePair<long, Fence>>();
         private long lastCompletedFence;
         internal long NextFenceValue = 1;
 
@@ -225,9 +225,8 @@ namespace Xenko.Graphics
                 WaitSemaphores = new IntPtr(&presentSemaphoreCopy),
                 WaitDstStageMask = new IntPtr(&pipelineStageFlags),
             };
-            lock (PresentLock) {
-                NativeCommandQueue.Submit(1, &submitInfo, fence);
-            }
+
+            NativeCommandQueue.Submit(1, &submitInfo, fence);
 
             presentSemaphore = Semaphore.Null;
             nativeResourceCollector.Release();
@@ -528,9 +527,7 @@ namespace Xenko.Graphics
                 WaitSemaphores = new IntPtr(&presentSemaphoreCopy),
                 WaitDstStageMask = new IntPtr(&pipelineStageFlags),
             };
-            lock (PresentLock) {
-                NativeCommandQueue.Submit(1, &submitInfo, fence);
-            }
+            NativeCommandQueue.Submit(1, &submitInfo, fence);
 
             presentSemaphore = Semaphore.Null;
             nativeResourceCollector.Release();
@@ -572,20 +569,29 @@ namespace Xenko.Graphics
             return fenceValue <= lastCompletedFence;
         }
 
+        private SpinLock spinLock = new SpinLock();
+
         internal unsafe long GetCompletedValue()
         {
-            while (nativeFences.TryDequeue(out KeyValuePair<long, Fence> fence)) {
-                if (NativeDevice.GetFenceStatus(fence.Value) == Result.Success) {
+            bool lockTaken = false;
+            try
+            {
+                spinLock.Enter(ref lockTaken);
+
+                while (nativeFences.Count > 0 && NativeDevice.GetFenceStatus(nativeFences.Peek().Value) == Result.Success)
+                {
+                    var fence = nativeFences.Dequeue();
                     NativeDevice.DestroyFence(fence.Value);
                     lastCompletedFence = Math.Max(lastCompletedFence, fence.Key);
-                } else {
-                    // not ready, put back
-                    nativeFences.Enqueue(fence);
-                    break;
                 }
-            }
 
-            return lastCompletedFence;
+                return lastCompletedFence;
+            }
+            finally
+            {
+                if (lockTaken)
+                    spinLock.Exit(false);
+            }
         }
 
         internal unsafe void WaitForFenceInternal(long fenceValue)
@@ -593,16 +599,16 @@ namespace Xenko.Graphics
             if (IsFenceCompleteInternal(fenceValue))
                 return;
 
-            while (nativeFences.TryDequeue(out KeyValuePair<long, Fence> fence)) {
-                if (fence.Key <= fenceValue) {
+            lock (nativeFences)
+            {
+                while (nativeFences.Count > 0 && nativeFences.Peek().Key <= fenceValue)
+                {
+                    var fence = nativeFences.Dequeue();
                     var fenceCopy = fence.Value;
+
                     NativeDevice.WaitForFences(1, &fenceCopy, true, ulong.MaxValue);
                     NativeDevice.DestroyFence(fence.Value);
                     lastCompletedFence = fenceValue;
-                } else {
-                    // not ready, put it back
-                    nativeFences.Enqueue(fence);
-                    break;
                 }
             }
         }
@@ -652,10 +658,10 @@ namespace Xenko.Graphics
         }
     }
 
-    internal abstract class ResourcePool<T> : ComponentBase
+   internal abstract class ResourcePool<T> : ComponentBase
     {
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly ConcurrentQueue<KeyValuePair<long, T>> liveObjects = new ConcurrentQueue<KeyValuePair<long, T>>();
+        private readonly Queue<KeyValuePair<long, T>> liveObjects = new Queue<KeyValuePair<long, T>>();
 
         protected ResourcePool(GraphicsDevice graphicsDevice)
         {
@@ -664,21 +670,30 @@ namespace Xenko.Graphics
 
         public T GetObject()
         {
-            // Check if first allocator is ready for reuse
-            if (liveObjects.TryDequeue(out KeyValuePair<long, T> firstAllocator)) {
-                if (firstAllocator.Key <= GraphicsDevice.GetCompletedValue()) {                    
-                    ResetObject(firstAllocator.Value);
-                    return firstAllocator.Value;
+            lock (liveObjects)
+            {
+                // Check if first allocator is ready for reuse
+                if (liveObjects.Count > 0)
+                {
+                    var firstAllocator = liveObjects.Peek();
+                    if (firstAllocator.Key <= GraphicsDevice.GetCompletedValue())
+                    {
+                        liveObjects.Dequeue();
+                        ResetObject(firstAllocator.Value);
+                        return firstAllocator.Value;
+                    }
                 }
-                // not ready yet, put it back
-                liveObjects.Enqueue(firstAllocator);
             }
+
             return CreateObject();
         }
 
         public void RecycleObject(long fenceValue, T obj)
         {
-            liveObjects.Enqueue(new KeyValuePair<long, T>(fenceValue, obj));
+            lock (liveObjects)
+            {
+                liveObjects.Enqueue(new KeyValuePair<long, T>(fenceValue, obj));
+            }
         }
 
         protected abstract T CreateObject();
@@ -690,9 +705,9 @@ namespace Xenko.Graphics
         }
 
         public void ResetAll() {
-            while(liveObjects.Count > 0) {
-                if (liveObjects.TryDequeue(out KeyValuePair<long, T> firstAllocator)) {
-                    DestroyObject(firstAllocator.Value);
+            lock (liveObjects) {
+                while(liveObjects.Count > 0) {
+                    DestroyObject(liveObjects.Dequeue().Value);
                 }
             }
         }
@@ -784,11 +799,24 @@ namespace Xenko.Graphics
         }
     }
 
-    internal struct NativeResource
+    internal struct NativeResource : IEquatable<NativeResource>
     {
         public DebugReportObjectType type;
 
         public ulong handle;
+
+        public bool Equals(NativeResource other) {
+            return handle == other.handle;
+        }
+
+        public override bool Equals(object other) {
+            if (other == null || other is NativeResource == false) return false;
+            return Equals((NativeResource)other);
+        }
+
+        public override int GetHashCode() {
+            return handle.GetHashCode();
+        }
 
         public NativeResource(DebugReportObjectType type, ulong handle)
         {
@@ -912,8 +940,28 @@ namespace Xenko.Graphics
     
     internal abstract class TemporaryResourceCollector<T> : IDisposable
     {
+        struct TempResource : IEquatable<TempResource> {
+            public T obj;
+            public int hash;
+            public long fence;
+
+            public bool Equals(TempResource other) {
+                return other.GetHashCode() == GetHashCode();
+            }
+
+            public override bool Equals(object other) {
+                if (other == null || other is TempResource == false) return false;
+                return Equals((TempResource)other);
+            }
+
+            public override int GetHashCode() {
+                if (hash == 0) hash = obj.GetHashCode();
+                return hash;
+            }
+        }
+
         protected readonly GraphicsDevice GraphicsDevice;
-        private readonly ConcurrentQueue<KeyValuePair<long, T>> items = new ConcurrentQueue<KeyValuePair<long, T>>();
+        private readonly HashSet<TempResource> items = new HashSet<TempResource>();
 
         protected TemporaryResourceCollector(GraphicsDevice graphicsDevice)
         {
@@ -922,31 +970,37 @@ namespace Xenko.Graphics
 
         public void Add(long fenceValue, T item)
         {
-            items.Enqueue(new KeyValuePair<long, T>(fenceValue, item));
+            TempResource tr = new TempResource();
+            tr.obj = item;
+            tr.fence = fenceValue;
+            lock (items) {
+                items.Add(tr);
+            }
         }
 
         public void Release()
         {
-            while (items.TryDequeue(out KeyValuePair<long, T> item))
-            {
-                if (GraphicsDevice.IsFenceCompleteInternal(item.Key)) {
-                    ReleaseObject(item.Value);
-                } else {
-                    // not ready, put it back
-                    items.Enqueue(item);
-                    break;
-                }
+            lock (items) {
+                items.RemoveWhere(RemoveDone);
             }
+        }
+
+        private bool RemoveDone(TempResource tr) {
+            if (GraphicsDevice.IsFenceCompleteInternal(tr.fence)) {
+                ReleaseObject(tr.obj);
+                return true;
+            }            
+            return false;
         }
 
         protected abstract void ReleaseObject(T item);
 
         public void Dispose()
         {
-            while (items.TryDequeue(out KeyValuePair<long, T> item))
-            {
-                ReleaseObject(item.Value);
+            foreach (TempResource tr in items) {
+                ReleaseObject(tr.obj);
             }
+            items.Clear();
         }
     }
 }

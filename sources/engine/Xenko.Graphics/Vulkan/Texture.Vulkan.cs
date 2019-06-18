@@ -365,7 +365,9 @@ namespace Xenko.Graphics
                 // Copy from upload buffer to image
                 fixed (BufferImageCopy* copiesPointer = &copies[0])
                 {
-                    commandBuffer.CopyBufferToImage(uploadResource, NativeImage, ImageLayout.TransferDestinationOptimal, (uint)copies.Length, copiesPointer);
+                    lock (GraphicsDevice.QueueLock) {
+                        commandBuffer.CopyBufferToImage(uploadResource, NativeImage, ImageLayout.TransferDestinationOptimal, (uint)copies.Length, copiesPointer);
+                    }
                 }
 
                 IsInitialized = true;
