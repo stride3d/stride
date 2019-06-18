@@ -20,7 +20,7 @@ namespace Xenko.Core.Threading {
 
         private readonly int maxThreadCount = Environment.ProcessorCount + 2;
         private readonly Queue<Action> workItems = new Queue<Action>();
-        private readonly ManualResetEventSlim workAvailable = new ManualResetEventSlim(false);
+        private readonly ManualResetEvent workAvailable = new ManualResetEvent(false);
 
         private SpinLock spinLock = new SpinLock();
         private int workingCount;
@@ -82,7 +82,7 @@ namespace Xenko.Core.Threading {
                 }
 
                 // Wait for another work item to be (potentially) available
-                if (workAvailable.Wait(maxIdleTime) == false) {
+                if (workAvailable.WaitOne(maxIdleTime) == false) {
                     aliveCount--;
                     return;
                 }
