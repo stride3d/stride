@@ -9,6 +9,7 @@ namespace <#= Properties.Namespace #>
         {
             using (var game = new Game())
             {
+				game.OverrideDefaultSettings(1280, 720, false);
                 game.Run();
             }
         }
