@@ -38,6 +38,8 @@ namespace Xenko.Graphics
     {
         private static readonly List<SharpDX.DXGI.Format> ObsoleteFormatToExcludes = new List<SharpDX.DXGI.Format>() { Format.R1_UNorm, Format.B5G6R5_UNorm, Format.B5G5R5A1_UNorm };
 
+        internal bool HasConstantBufferPartialUpdate;
+
         internal GraphicsDeviceFeatures(GraphicsDevice deviceRoot)
         {
             var nativeDevice = deviceRoot.NativeDevice;
@@ -55,6 +57,11 @@ namespace Xenko.Graphics
             HasComputeShaders = nativeDevice.CheckFeatureSupport(SharpDX.Direct3D11.Feature.ComputeShaders);
             HasDoublePrecision = nativeDevice.CheckFeatureSupport(SharpDX.Direct3D11.Feature.ShaderDoubles);
             nativeDevice.CheckThreadingSupport(out HasMultiThreadingConcurrentResources, out this.HasDriverCommandLists);
+
+            // When using constant buffer offsetting, we also require MapNoOverwriteOnDynamicConstantBuffer, since we are using WriteNoOverride to update them
+            var options = nativeDevice.CheckD3D11Feature();
+            HasConstantBufferPartialUpdate = options.ConstantBufferPartialUpdate;
+            HasConstantBufferOffsetting = options.ConstantBufferOffsetting && options.MapNoOverwriteOnDynamicConstantBuffer;
 
             HasDepthAsSRV = (CurrentProfile >= GraphicsProfile.Level_10_0);
             HasDepthAsReadOnlyRT = CurrentProfile >= GraphicsProfile.Level_11_0;

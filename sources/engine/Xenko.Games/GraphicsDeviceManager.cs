@@ -52,6 +52,8 @@ namespace Xenko.Games
 
         private bool deviceSettingsChanged;
 
+        private bool hasPendingChanges;
+
         private bool isFullScreen;
 
         private MultisampleCount preferredMultisampleCount;
@@ -447,10 +449,7 @@ namespace Xenko.Games
         /// </summary>
         public void ApplyChanges()
         {
-            if (GraphicsDevice != null && deviceSettingsChanged)
-            {
-                ChangeOrCreateDevice(false);
-            }
+            hasPendingChanges = true;
         }
 
         bool IGraphicsDeviceManager.BeginDraw()
@@ -467,19 +466,16 @@ namespace Xenko.Games
 
             GraphicsDevice.Begin();
 
-            // TODO GRAPHICS REFACTOR
-            //// Before drawing, we should clear the state to make sure that there is no unstable graphics device states (On some WP8 devices for example)
-            //// An application should not rely on previous state (last frame...etc.) after BeginDraw.
-            //GraphicsDevice.ClearState();
-            //
-            //// By default, we setup the render target to the back buffer, and the viewport as well.
-            //if (GraphicsDevice.BackBuffer != null)
-            //{
-            //    GraphicsDevice.SetDepthAndRenderTarget(GraphicsDevice.DepthStencilBuffer, GraphicsDevice.BackBuffer);
-            //}
-
             beginDrawOk = true;
             return beginDrawOk;
+        }
+
+        void IGraphicsDeviceManager.ApplyPendingChanges()
+        {
+            if (GraphicsDevice != null && hasPendingChanges && deviceSettingsChanged)
+            {
+                ChangeOrCreateDevice(false);
+            }
         }
 
         private bool CheckDeviceState()
@@ -902,11 +898,11 @@ namespace Xenko.Games
             {
                 resizedBackBufferWidth = game.Window.ClientBounds.Width;
                 resizedBackBufferHeight = game.Window.ClientBounds.Height;
+
                 isBackBufferToResize = true;
-                if (GraphicsDevice != null)
-                {
-                    ChangeOrCreateDevice(false);
-                }
+                deviceSettingsChanged = true;
+
+                ApplyChanges();
             }
         }
 
@@ -922,6 +918,7 @@ namespace Xenko.Games
                     var w = PreferredBackBufferWidth;
                     PreferredBackBufferWidth = PreferredBackBufferHeight;
                     PreferredBackBufferHeight = w;
+
                     ApplyChanges();
                 }
             }

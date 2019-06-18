@@ -65,9 +65,9 @@ namespace Xenko.Graphics
         /// <summary>
         /// Clears the state and restore the state of the device.
         /// </summary>
-        public void ClearState()
+        public void Reset()
         {
-            ClearStateImpl();
+            ResetImpl();
 
             // Setup empty viewports
             for (int i = 0; i < viewports.Length; i++)
@@ -77,11 +77,6 @@ namespace Xenko.Graphics
             scissorsDirty = true;
             for (int i = 0; i < viewports.Length; i++)
                 scissors[i] = new Rectangle();
-
-            // Setup the default render target
-            var deviceDepthStencilBuffer = GraphicsDevice.Presenter?.DepthStencilBuffer;
-            var deviceBackBuffer = GraphicsDevice.Presenter?.BackBuffer;
-            SetRenderTargetAndViewport(deviceDepthStencilBuffer, deviceBackBuffer);
         }
 
         /// <summary>

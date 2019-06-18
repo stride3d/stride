@@ -241,16 +241,13 @@ namespace Xenko.Particles.Rendering
         /// <param name="renderDrawContext"><see cref="RenderDrawContext"/> to access the command list and the graphics context</param>
         private void BuildParticleBuffers(RenderDrawContext renderDrawContext)
         {
-            // Build particle buffers
-            var commandList = renderDrawContext.CommandList;
-
             // Build the vertex buffer with particles data
             if (particleBufferContext.VertexBuffer == null || particleBufferContext.VertexBufferSize == 0)
                 return;
 
             var renderParticleNodeData = RenderData.GetData(renderParticleNodeKey);
 
-            var mappedVertices = commandList.MapSubresource(particleBufferContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, particleBufferContext.VertexBufferSize);
+            var mappedVertices = renderDrawContext.GraphicsDevice.MapSubresource(particleBufferContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, particleBufferContext.VertexBufferSize);
             var sharedBufferPtr = mappedVertices.DataBox.DataPointer;
 
             //for (int renderNodeIndex = 0; renderNodeIndex < RenderNodes.Count; renderNodeIndex++)
@@ -274,7 +271,7 @@ namespace Xenko.Particles.Rendering
                 renderParticleEmitter.ParticleEmitter.BuildVertexBuffer(sharedBufferPtr + nodeData.VertexBufferOffset, ref viewInverse, ref renderNode.RenderView.ViewProjection);
             });
 
-            commandList.UnmapSubresource(mappedVertices);
+            renderDrawContext.GraphicsDevice.UnmapSubresource(mappedVertices);
         }
 
         /// <inheritdoc/>
@@ -446,9 +443,7 @@ namespace Xenko.Particles.Rendering
                     var indexCount = IndexBufferSize / IndexStride;
                     indexCount = ((indexCount / 6) * 6);
                     {
-                        var commandList = renderDrawContext.CommandList;
-
-                        var mappedIndices = commandList.MapSubresource(IndexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, IndexBufferSize);
+                        var mappedIndices = renderDrawContext.GraphicsDevice.MapSubresource(IndexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, IndexBufferSize);
                         var indexPointer = mappedIndices.DataBox.DataPointer;
 
                         int indexStructSize = sizeof(short);
@@ -465,7 +460,7 @@ namespace Xenko.Particles.Rendering
                             *(short*)(indexPointer + indexStructSize * i++) = (short)(k + 3);
                         }
 
-                        commandList.UnmapSubresource(mappedIndices);
+                        renderDrawContext.GraphicsDevice.UnmapSubresource(mappedIndices);
                     }
                 }
             }

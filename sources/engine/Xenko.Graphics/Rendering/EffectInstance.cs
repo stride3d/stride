@@ -96,7 +96,7 @@ namespace Xenko.Rendering
         {
             var commandList = graphicsContext.CommandList;
 
-            parameterUpdater.Update(commandList.GraphicsDevice, graphicsContext.ResourceGroupAllocator, Parameters);
+            parameterUpdater.Update(commandList.GraphicsDevice, graphicsContext.ResourceGroupAllocator, Parameters, bufferUploader);
 
             // Flush resource groups and cbuffer
             graphicsContext.ResourceGroupAllocator.Flush();

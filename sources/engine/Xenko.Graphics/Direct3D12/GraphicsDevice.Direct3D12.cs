@@ -177,12 +177,16 @@ namespace Xenko.Graphics
 
             var fenceValue = NextFenceValue++;
 
-            // Recycle resources
             for (int index = 0; index < count; index++)
             {
+                // Recycle resources
                 var commandList = commandLists[index];
                 nativeCommandLists.Add(commandList.NativeCommandList);
                 RecycleCommandListResources(commandList, fenceValue);
+
+                // Record statistics
+                FrameTriangleCount += commandLists[index].VertexCount;
+                FrameDrawCalls += commandLists[index].DrawCallCount;
             }
 
             // Submit and signal fence
@@ -201,6 +205,7 @@ namespace Xenko.Graphics
 
         private void InitializePostFeatures()
         {
+            DefaultCommandList = CommandList.New(this);
         }
 
         private string GetRendererName()
@@ -336,6 +341,104 @@ namespace Xenko.Graphics
             // Fence for next frame and resource cleaning
             nativeFence = NativeDevice.CreateFence(0, FenceFlags.None);
             nativeCopyFence = NativeDevice.CreateFence(0, FenceFlags.None);
+        }
+
+        // TODO GRAPHICS REFACTOR what should we do with this?
+        /// <summary>
+        /// Maps a subresource.
+        /// </summary>
+        /// <param name="resource">The resource.</param>
+        /// <param name="subResourceIndex">Index of the sub resource.</param>
+        /// <param name="mapMode">The map mode.</param>
+        /// <param name="offsetInBytes">The offset information in bytes.</param>
+        /// <param name="lengthInBytes">The length information in bytes.</param>
+        /// <returns>Pointer to the sub resource to map.</returns>
+        public MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        {
+            return MapSubresourceInternal(null, resource, subResourceIndex, mapMode, doNotWait, offsetInBytes, lengthInBytes);
+        }
+
+        internal MappedResource MapSubresourceInternal(CommandList commandList, GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        {
+            if (resource == null) throw new ArgumentNullException(nameof(resource));
+
+            var rowPitch = 0;
+            var depthStride = 0;
+            var usage = GraphicsResourceUsage.Default;
+
+            var texture = resource as Texture;
+            if (texture != null)
+            {
+                usage = texture.Usage;
+                if (lengthInBytes == 0)
+                    lengthInBytes = texture.ComputeSubresourceSize(subResourceIndex);
+
+                rowPitch = texture.ComputeRowPitch(subResourceIndex % texture.MipLevels);
+                depthStride = texture.ComputeSlicePitch(subResourceIndex % texture.MipLevels);
+
+                if (texture.Usage == GraphicsResourceUsage.Staging)
+                {
+                    // Internally it's a buffer, so adapt resource index and offset
+                    offsetInBytes = texture.ComputeBufferOffset(subResourceIndex, 0);
+                    subResourceIndex = 0;
+                }
+            }
+            else
+            {
+                var buffer = resource as Buffer;
+                if (buffer != null)
+                {
+                    usage = buffer.Usage;
+                    if (lengthInBytes == 0)
+                        lengthInBytes = buffer.SizeInBytes;
+                }
+            }
+
+            if (mapMode == MapMode.Read || mapMode == MapMode.ReadWrite || mapMode == MapMode.Write)
+            {
+                // Is non-staging ever possible for Read/Write?
+                if (usage != GraphicsResourceUsage.Staging)
+                    throw new InvalidOperationException();
+
+                if (commandList != null && (mapMode == MapMode.Read || mapMode == MapMode.ReadWrite))
+                    throw new InvalidOperationException();
+            }
+
+            if (mapMode == MapMode.WriteDiscard)
+            {
+                throw new InvalidOperationException("Can't use WriteDiscard on Graphics API that don't support renaming");
+            }
+
+            if (mapMode != MapMode.WriteNoOverwrite)
+            {
+                // Need to wait?
+                if (!resource.StagingFenceValue.HasValue || !IsFenceCompleteInternal(resource.StagingFenceValue.Value))
+                {
+                    if (doNotWait)
+                    {
+                        return new MappedResource(resource, subResourceIndex, new DataBox(IntPtr.Zero, 0, 0));
+                    }
+
+                    // Need to flush (part of current command list)
+                    if (commandList != null && resource.StagingBuilder == commandList)
+                        commandList.FlushInternal(false);
+
+
+                    if (!resource.StagingFenceValue.HasValue)
+                        throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
+
+                    WaitForFenceInternal(resource.StagingFenceValue.Value);
+                }
+            }
+
+            var mappedMemory = resource.NativeResource.Map(subResourceIndex) + offsetInBytes;
+            return new MappedResource(resource, subResourceIndex, new DataBox(mappedMemory, rowPitch, depthStride), offsetInBytes, lengthInBytes);
+        }
+
+        // TODO GRAPHICS REFACTOR what should we do with this?
+        public void UnmapSubresource(MappedResource unmapped)
+        {
+            unmapped.Resource.NativeResource.Unmap(unmapped.SubResourceIndex);
         }
 
         internal IntPtr AllocateUploadBuffer(int size, out SharpDX.Direct3D12.Resource resource, out int offset, int alignment = 0)
@@ -475,6 +578,10 @@ namespace Xenko.Graphics
 
             // Recycle resources
             RecycleCommandListResources(commandList, fenceValue);
+
+            // Record statistics
+            FrameTriangleCount += commandList.VertexCount;
+            FrameDrawCalls += commandList.DrawCallCount;
 
             return fenceValue;
         }

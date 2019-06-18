@@ -198,12 +198,16 @@ namespace Xenko.Graphics
             var fence = nativeDevice.CreateFence(ref fenceCreateInfo);
             nativeFences.Enqueue(new KeyValuePair<long, Fence>(fenceValue, fence));
 
-            // Collect resources
             var commandBuffers = stackalloc CommandBuffer[count];
             for (int i = 0; i < count; i++)
             {
+                // Collect resources
                 commandBuffers[i] = commandLists[i].NativeCommandBuffer;
                 RecycleCommandListResources(commandLists[i], fenceValue);
+
+                // Record statistics
+                FrameTriangleCount += commandLists[i].VertexCount;
+                FrameDrawCalls += commandLists[i].DrawCallCount;
             }
 
             // Submit commands
@@ -227,6 +231,7 @@ namespace Xenko.Graphics
 
         private void InitializePostFeatures()
         {
+            DefaultCommandList = CommandList.New(this);
         }
 
         private string GetRendererName()
@@ -501,6 +506,10 @@ namespace Xenko.Graphics
             // Collect resources
             RecycleCommandListResources(commandList, fenceValue);
 
+            // Record statistics
+            FrameTriangleCount += commandList.VertexCount;
+            FrameDrawCalls += commandList.DrawCallCount;
+
             // Submit commands
             var nativeCommandBufferCopy = commandList.NativeCommandBuffer;
             var pipelineStageFlags = PipelineStageFlags.BottomOfPipe;
@@ -555,6 +564,95 @@ namespace Xenko.Graphics
             }
 
             return fenceValue <= lastCompletedFence;
+        }
+
+        public MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        {
+            return MapSubresourceInternal(null, resource, subResourceIndex, mapMode, doNotWait, offsetInBytes, lengthInBytes);
+        }
+
+        internal MappedResource MapSubresourceInternal(CommandList commandList, GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        {
+            if (resource == null) throw new ArgumentNullException(nameof(resource));
+
+            var rowPitch = 0;
+            var texture = resource as Texture;
+            var buffer = resource as Buffer;
+            var usage = GraphicsResourceUsage.Default;
+
+            if (texture != null)
+            {
+                usage = texture.Usage;
+                if (lengthInBytes == 0)
+                    lengthInBytes = texture.ViewWidth * texture.ViewHeight * texture.ViewDepth * texture.ViewFormat.SizeInBytes();
+                rowPitch = texture.RowStride;
+            }
+            else
+            {
+                if (buffer != null)
+                {
+                    usage = buffer.Usage;
+                    if (lengthInBytes == 0)
+                        lengthInBytes = buffer.SizeInBytes;
+                }
+            }
+
+            if (mapMode == MapMode.Read || mapMode == MapMode.ReadWrite || mapMode == MapMode.Write)
+            {
+                // Is non-staging ever possible for Read/Write?
+                if (usage != GraphicsResourceUsage.Staging)
+                    throw new InvalidOperationException();
+
+                if (commandList != null && (mapMode == MapMode.Read || mapMode == MapMode.ReadWrite))
+                    throw new InvalidOperationException();
+            }
+
+            if (mapMode == MapMode.WriteDiscard)
+            {
+                throw new InvalidOperationException("Can't use WriteDiscard on Graphics API that doesn't support renaming");
+            }
+
+            if (mapMode != MapMode.WriteNoOverwrite && mapMode != MapMode.Write)
+            {
+                // Need to wait?
+                if (!resource.StagingFenceValue.HasValue || !IsFenceCompleteInternal(resource.StagingFenceValue.Value))
+                {
+                    if (doNotWait)
+                    {
+                        return new MappedResource(resource, subResourceIndex, new DataBox(IntPtr.Zero, 0, 0));
+                    }
+
+                    // Need to flush (part of current command list)
+                    if (commandList != null && resource.StagingBuilder == commandList)
+                        commandList.FlushInternal(false);
+
+                    if (!resource.StagingFenceValue.HasValue)
+                        throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
+
+                    WaitForFenceInternal(resource.StagingFenceValue.Value);
+                }
+            }
+
+            if (texture != null)
+            {
+                var mipLevel = subResourceIndex % texture.MipLevels;
+                var arraySlice = subResourceIndex / texture.MipLevels;
+
+                for (int i = 0; i < texture.MipLevels; i++)
+                {
+                    var slices = i < mipLevel ? arraySlice + 1 : arraySlice;
+                    var mipmap = texture.GetMipMapDescription(i);
+                    offsetInBytes += mipmap.DepthStride * mipmap.Depth * arraySlice;
+                }
+            }
+
+            var mappedMemory = NativeDevice.MapMemory(resource.NativeMemory, (ulong)offsetInBytes, (ulong)lengthInBytes, MemoryMapFlags.None);
+            return new MappedResource(resource, subResourceIndex, new DataBox(mappedMemory, rowPitch, 0), offsetInBytes, lengthInBytes);
+        }
+
+        public void UnmapSubresource(MappedResource unmapped)
+        {
+            NativeDevice.UnmapMemory(unmapped.Resource.NativeMemory);
         }
 
         private SpinLock spinLock = new SpinLock();

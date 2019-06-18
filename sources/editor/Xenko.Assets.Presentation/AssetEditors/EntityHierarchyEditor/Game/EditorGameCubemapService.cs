@@ -53,7 +53,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     // Capture cubemap
                     using (var cubemap = CubemapSceneRenderer.GenerateCubemap(game, editorCameraPosition, 1024))
                     {
-                        return cubemap.GetDataAsImage(game.GraphicsContext.CommandList);
+                        return cubemap.GetDataAsImage();
                     }
                 }
                 finally

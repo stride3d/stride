@@ -6,12 +6,13 @@ using System;
 using System.Collections.Generic;
 using SharpDX;
 using SharpDX.Direct3D11;
+using Xenko.Core;
 
 namespace Xenko.Graphics
 {
     public partial class GraphicsDevice
     {
-        internal readonly int ConstantBufferDataPlacementAlignment = 16;
+        internal readonly int ConstantBufferDataPlacementAlignment = 256;
 
         private const GraphicsPlatform GraphicPlatform = GraphicsPlatform.Direct3D11;
 
@@ -85,25 +86,13 @@ namespace Xenko.Graphics
         ///     Gets the native device.
         /// </summary>
         /// <value>The native device.</value>
-        internal SharpDX.Direct3D11.Device NativeDevice
-        {
-            get
-            {
-                return nativeDevice;
-            }
-        }
+        internal SharpDX.Direct3D11.Device NativeDevice => nativeDevice;
 
         /// <summary>
         /// Gets the native device context.
         /// </summary>
         /// <value>The native device context.</value>
-        internal SharpDX.Direct3D11.DeviceContext NativeDeviceContext
-        {
-            get
-            {
-                return nativeDeviceContext;
-            }
-        }
+        internal SharpDX.Direct3D11.DeviceContext NativeDeviceContext => nativeDeviceContext;
 
         /// <summary>
         ///     Marks context as active on the current thread.
@@ -156,7 +145,15 @@ namespace Xenko.Graphics
         /// <param name="commandList">The deferred command list.</param>
         public void ExecuteCommandList(CompiledCommandList commandList)
         {
-            throw new NotImplementedException();
+            lock (nativeDeviceContext)
+            {
+                nativeDeviceContext.ExecuteCommandList(commandList.NativeCommandList, false);
+            }
+
+            commandList.NativeCommandList.Dispose();
+
+            FrameTriangleCount += commandList.VertexCount;
+            FrameDrawCalls += commandList.DrawCallCount;
         }
 
         /// <summary>
@@ -165,7 +162,49 @@ namespace Xenko.Graphics
         /// <param name="commandLists">The deferred command lists.</param>
         public void ExecuteCommandLists(int count, CompiledCommandList[] commandLists)
         {
-            throw new NotImplementedException();
+            for (int index = 0; index < count; index++)
+            {
+                ExecuteCommandList(commandLists[index]);
+            }
+        }
+
+        /// <summary>
+        /// Maps a subresource.
+        /// </summary>
+        /// <param name="resource">The resource.</param>
+        /// <param name="subResourceIndex">Index of the sub resource.</param>
+        /// <param name="mapMode">The map mode.</param>
+        /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
+        /// <param name="offsetInBytes">The offset information in bytes.</param>
+        /// <param name="lengthInBytes">The length information in bytes.</param>
+        /// <returns>Pointer to the sub resource to map.</returns>
+        public unsafe MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        {
+            lock (nativeDeviceContext)
+            {
+                if (resource == null) throw new ArgumentNullException("resource");
+
+                // This resource has just been recycled by the GraphicsResourceAllocator, we force a rename to avoid GPU=>GPU sync point
+                if (resource.DiscardNextMap && mapMode == MapMode.WriteNoOverwrite)
+                {
+                    mapMode = MapMode.WriteDiscard;
+                    resource.DiscardNextMap = false;
+                }
+
+                SharpDX.DataBox dataBox = NativeDeviceContext.MapSubresource(resource.NativeResource, subResourceIndex, (SharpDX.Direct3D11.MapMode)mapMode, doNotWait ? SharpDX.Direct3D11.MapFlags.DoNotWait : SharpDX.Direct3D11.MapFlags.None);
+                var databox = *(DataBox*)Interop.Cast(ref dataBox);
+                if (!dataBox.IsEmpty)
+                {
+                    databox.DataPointer = (IntPtr)((byte*)databox.DataPointer + offsetInBytes);
+                }
+                return new MappedResource(resource, subResourceIndex, databox);
+            }
+        }
+
+        public void UnmapSubresource(MappedResource unmapped)
+        {
+            lock (nativeDeviceContext)
+                NativeDeviceContext.UnmapSubresource(unmapped.Resource.NativeResource, unmapped.SubResourceIndex);
         }
 
         public void SimulateReset()
@@ -176,7 +215,7 @@ namespace Xenko.Graphics
         private void InitializePostFeatures()
         {
             // Create the main command list
-            InternalMainCommandList = new CommandList(this);
+            DefaultCommandList = new CommandList(this);
         }
 
         private string GetRendererName()
@@ -245,9 +284,10 @@ namespace Xenko.Graphics
                 }
             }
 
+            IsDeferred = true;
+
             nativeDeviceContext = nativeDevice.ImmediateContext;
             // We keep one reference so that it doesn't disappear with InternalMainCommandList
-            ((IUnknown)nativeDeviceContext).AddReference();
             if (IsDebugMode)
             {
                 GraphicsResourceBase.SetDebugName(this, nativeDeviceContext, "ImmediateContext");
@@ -275,8 +315,8 @@ namespace Xenko.Graphics
             disjointQueries.Clear();
 
             // Display D3D11 ref counting info
-            NativeDevice.ImmediateContext.ClearState();
-            NativeDevice.ImmediateContext.Flush();
+            nativeDeviceContext.ClearState();
+            nativeDeviceContext.Flush();
 
             if (IsDebugMode)
             {

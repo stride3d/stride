@@ -195,7 +195,8 @@ namespace Xenko.Editor.Thumbnails
                             GraphicsDevice.Presenter = new RenderTargetGraphicsPresenter(GraphicsDevice, renderTarget, depthStencil.ViewFormat);
 
                             // Always clear the state of the GraphicsDevice to make sure a scene doesn't start with a wrong setup 
-                            GraphicsCommandList.ClearState();
+                            GraphicsCommandList.Reset();
+                            GraphicsContext.CommandList.SetRenderTargetAndViewport(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsDevice.Presenter.BackBuffer);
 
                             // Setup the color space when rendering a thumbnail
                             GraphicsDevice.ColorSpace = request.ColorSpace;
@@ -217,8 +218,11 @@ namespace Xenko.Editor.Thumbnails
                             GraphicsContext.ResourceGroupAllocator.Reset(GraphicsContext.CommandList);
                             gameSystems.Draw(nullGameTime);
 
+                            // Flush command list
+                            GraphicsContext.CommandList.Flush();
+
                             // write the thumbnail to the file
-                            using (var thumbnailImage = renderTarget.GetDataAsImage(GraphicsCommandList))
+                            using (var thumbnailImage = renderTarget.GetDataAsImage())
                             using (var outputImageStream = request.FileProvider.OpenStream(request.Url, VirtualFileMode.Create, VirtualFileAccess.Write))
                             {
                                 request.PostProcessThumbnail?.Invoke(thumbnailImage);

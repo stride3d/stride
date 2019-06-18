@@ -21,7 +21,7 @@ namespace Xenko.Graphics
         {
             this.graphicsDevice = graphicsDevice;
 
-            cache = graphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, typeof(MutablePipelineStateCache), device => new MutablePipelineStateCache()).Cache;
+            cache = graphicsDevice.GetOrCreateSharedData(typeof(MutablePipelineStateCache), device => new MutablePipelineStateCache()).Cache;
 
             State = new PipelineStateDescription();
             State.SetDefaults();

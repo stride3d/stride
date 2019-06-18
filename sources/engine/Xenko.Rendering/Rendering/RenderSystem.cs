@@ -344,8 +344,9 @@ namespace Xenko.Rendering
             else
             {
                 // Create at most one batch per processor
+                // TODO: Calculate an appropriate minimum batch size automatically
                 int batchCount = Math.Min(Environment.ProcessorCount, renderNodeCount);
-                int batchSize = (renderNodeCount + (batchCount - 1)) / batchCount;
+                int batchSize = Math.Max(100, (renderNodeCount + (batchCount - 1)) / batchCount);
                 batchCount = (renderNodeCount + (batchSize - 1)) / batchSize;
 
                 // Remember state
@@ -368,7 +369,6 @@ namespace Xenko.Rendering
                 Dispatcher.For(0, batchCount, () => renderDrawContext.RenderContext.GetThreadContext(), (batchIndex, threadContext) =>
                 {
                     threadContext.CommandList.Reset();
-                    threadContext.CommandList.ClearState();
 
                     // Transfer state to all command lists
                     threadContext.CommandList.SetRenderTargets(depthStencilBuffer, renderTargetCount, renderTargets);
@@ -402,7 +402,6 @@ namespace Xenko.Rendering
                 GraphicsDevice.ExecuteCommandLists(batchCount + 1, commandLists);
 
                 renderDrawContext.CommandList.Reset();
-                renderDrawContext.CommandList.ClearState();
 
                 // Reapply previous state
                 renderDrawContext.CommandList.SetRenderTargets(depthStencilBuffer, renderTargetCount, renderTargets);

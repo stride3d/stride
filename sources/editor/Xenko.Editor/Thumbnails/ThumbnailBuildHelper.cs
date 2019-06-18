@@ -106,7 +106,7 @@ namespace Xenko.Editor.Thumbnails
                 }
 
                 // Read back result to image
-                thumbnailBuilderHelper.RenderTarget.GetData(thumbnailBuilderHelper.GraphicsContext.CommandList, thumbnailBuilderHelper.RenderTargetStaging, new DataPointer(thumbnailImage.PixelBuffer[0].DataPointer, thumbnailImage.PixelBuffer[0].BufferStride));
+                thumbnailBuilderHelper.RenderTarget.GetData(thumbnailBuilderHelper.RenderTargetStaging, new DataPointer(thumbnailImage.PixelBuffer[0].DataPointer, thumbnailImage.PixelBuffer[0].BufferStride));
                 thumbnailImage.Description.Format = thumbnailBuilderHelper.RenderTarget.Format; // In case channels are swapped
             }
         }
@@ -121,7 +121,7 @@ namespace Xenko.Editor.Thumbnails
                 }
 
                 // Read back result to image
-                RenderTarget.GetData(GraphicsContext.CommandList, RenderTargetStaging, new DataPointer(image.PixelBuffer[0].DataPointer, image.PixelBuffer[0].BufferStride));
+                RenderTarget.GetData(RenderTargetStaging, new DataPointer(image.PixelBuffer[0].DataPointer, image.PixelBuffer[0].BufferStride));
                 image.Description.Format = RenderTarget.Format; // In case channels are swapped
             }
         }

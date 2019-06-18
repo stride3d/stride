@@ -8,5 +8,7 @@ namespace Xenko.Graphics
     /// </summary>
     public partial struct CompiledCommandList
     {
+        internal uint DrawCallCount;
+        internal uint VertexCount;
     }
 }

@@ -130,7 +130,7 @@ namespace Xenko.Assets.Presentation.Thumbnails
                     thumbnailBuilderHelper.GraphicsDevice.ColorSpace = oldColorSpace;
 
                     // Read back result to image
-                    thumbnailBuilderHelper.RenderTarget.GetData(thumbnailBuilderHelper.GraphicsContext.CommandList, thumbnailBuilderHelper.RenderTargetStaging, new DataPointer(image.PixelBuffer[0].DataPointer, image.PixelBuffer[0].BufferStride));
+                    thumbnailBuilderHelper.RenderTarget.GetData(thumbnailBuilderHelper.RenderTargetStaging, new DataPointer(image.PixelBuffer[0].DataPointer, image.PixelBuffer[0].BufferStride));
                     image.Description.Format = thumbnailBuilderHelper.RenderTarget.Format; // In case channels are swapped
                 }
             }

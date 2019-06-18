@@ -723,7 +723,7 @@ namespace Xenko.Games
         {
             beginDrawOk = false;
 
-            if ((graphicsDeviceManager != null) && !graphicsDeviceManager.BeginDraw())
+            if (graphicsDeviceManager != null && !graphicsDeviceManager.BeginDraw())
             {
                 return false;
             }
@@ -731,7 +731,7 @@ namespace Xenko.Games
             // Setup default command list
             if (GraphicsContext == null)
             {
-                GraphicsContext = new GraphicsContext(GraphicsDevice);
+                GraphicsContext = new GraphicsContext(GraphicsDevice, null, GraphicsDevice.DefaultCommandList);
                 Services.AddService(GraphicsContext);
             }
             else
@@ -741,16 +741,17 @@ namespace Xenko.Games
                 GraphicsContext.CommandList.Reset();
             }
 
-            beginDrawOk = true;
+            // Apply changes caused by windowing events and user calls to Apply()
+            graphicsDeviceManager?.ApplyPendingChanges();
 
-            // Clear states
-            GraphicsContext.CommandList.ClearState();
+            beginDrawOk = true;
 
             // Perform begin of frame presenter operations
             if (GraphicsDevice.Presenter != null)
             {
                 GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsResourceState.DepthWrite);
                 GraphicsContext.CommandList.ResourceBarrierTransition(GraphicsDevice.Presenter.BackBuffer, GraphicsResourceState.RenderTarget);
+                GraphicsContext.CommandList.SetRenderTargetAndViewport(GraphicsDevice.Presenter.DepthStencilBuffer, GraphicsDevice.Presenter.BackBuffer);
 
                 GraphicsDevice.Presenter.BeginDraw(GraphicsContext.CommandList);
             }

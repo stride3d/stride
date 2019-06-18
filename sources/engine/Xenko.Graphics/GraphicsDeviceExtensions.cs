@@ -86,7 +86,7 @@ namespace Xenko.Graphics
 
         public static Texture GetSharedWhiteTexture(this GraphicsDevice device)
         {
-            return device.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, "WhiteTexture", CreateWhiteTexture);
+            return device.GetOrCreateSharedData("WhiteTexture", CreateWhiteTexture);
         }
 
         private static Texture CreateWhiteTexture(GraphicsDevice device)

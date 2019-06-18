@@ -29,14 +29,14 @@ namespace Xenko.Rendering
             parameters.UpdateLayout(updaterLayout.ParameterCollectionLayout);
         }
 
-        public unsafe void Update(GraphicsDevice graphicsDevice, ResourceGroupAllocator resourceGroupAllocator, ParameterCollection parameters)
+        public unsafe void Update(GraphicsDevice graphicsDevice, ResourceGroupAllocator resourceGroupAllocator, ParameterCollection parameters, ResourceGroupBufferUploader bufferUploader)
         {
             // Instantiate descriptor sets
             for (int i = 0; i < resourceGroups.Length; ++i)
             {
                 var resourceGroupLayout = updaterLayout.ResourceGroupLayouts[i];
                 if (resourceGroupLayout != null)
-                    resourceGroupAllocator.PrepareResourceGroup(resourceGroupLayout, BufferPoolAllocationType.UsedOnce, resourceGroups[i]);
+                    resourceGroupAllocator.PrepareResourceGroup(resourceGroupLayout, BufferPoolAllocationType.UsedOnce, resourceGroups[i], bufferUploader.GetPreallocatedConstantBuffer(i));
             }
 
             // Set resources
@@ -55,6 +55,10 @@ namespace Xenko.Rendering
                 {
                     for (int resourceSlot = 0; resourceSlot < layout.ElementCount; ++resourceSlot)
                     {
+                        // Constant buffers are handled be resource group preparation
+                        if (layout.Entries[resourceSlot].Type == EffectParameterType.ConstantBuffer)
+                            continue;
+
                         var value = parameters.ObjectValues[descriptorStartSlot + resourceSlot];
                         switch (layout.Entries[resourceSlot].Class)
                         {

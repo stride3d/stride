@@ -68,7 +68,7 @@ namespace Xenko.Graphics
                     {
                         case EffectParameterClass.ConstantBuffer:
                             {
-                                commandList.SetConstantBuffer(bindingOperation.Stage, bindingOperation.SlotStart, (Buffer)value.Value);
+                                commandList.SetConstantBuffer(bindingOperation.Stage, bindingOperation.SlotStart, (Buffer)value.Value, value.Offset, value.Size);
                                 break;
                             }
                         case EffectParameterClass.Sampler:

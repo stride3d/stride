@@ -158,8 +158,9 @@ namespace Xenko.Assets.Skyboxes
                 var cubeTexture = Texture.NewCube(context.GraphicsDevice, textureSize, true, filteringTextureFormat);
                 context.RenderDrawContext.CommandList.Copy(outputTexture, cubeTexture);
 
-                cubeTexture.SetSerializationData(cubeTexture.GetDataAsImage(context.RenderDrawContext.CommandList));
+                context.RenderDrawContext.CommandList.Flush();
 
+                cubeTexture.SetSerializationData(cubeTexture.GetDataAsImage());
                 skybox.SpecularLightingParameters.Set(SkyboxKeys.Shader, new ShaderClassSource("RoughnessCubeMapEnvironmentColor"));
                 skybox.SpecularLightingParameters.Set(SkyboxKeys.CubeMap, cubeTexture);
             }

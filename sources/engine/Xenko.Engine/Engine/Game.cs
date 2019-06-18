@@ -442,7 +442,7 @@ namespace Xenko.Engine
 
                     using (var stream = System.IO.File.Create(newFileName))
                     {
-                        GraphicsDevice.Presenter.BackBuffer.Save(GraphicsContext.CommandList, stream, ImageFileType.Png);
+                        GraphicsDevice.Presenter.BackBuffer.Save(stream, ImageFileType.Png);
                     }
                 }
             }

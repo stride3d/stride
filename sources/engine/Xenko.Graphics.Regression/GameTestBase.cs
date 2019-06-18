@@ -96,7 +96,8 @@ namespace Xenko.Graphics.Regression
                 return;
 
             TestGameLogger.Info(@"Saving image");
-            using (var image = textureToSave.GetDataAsImage(GraphicsContext.CommandList))
+            GraphicsContext.CommandList.Flush();
+            using (var image = textureToSave.GetDataAsImage())
             {
                 try
                 {
@@ -421,7 +422,8 @@ namespace Xenko.Graphics.Regression
         protected void SaveTexture(Texture texture, string filename)
         {
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
-            using (var image = texture.GetDataAsImage(GraphicsContext.CommandList))
+            GraphicsContext.CommandList.Flush();
+            using (var image = texture.GetDataAsImage())
             {
                 using (var resultFileStream = File.OpenWrite(filename))
                 {

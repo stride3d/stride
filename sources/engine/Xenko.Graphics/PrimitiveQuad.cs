@@ -33,7 +33,7 @@ namespace Xenko.Graphics
         public PrimitiveQuad(GraphicsDevice graphicsDevice)
         {
             GraphicsDevice = graphicsDevice;
-            sharedData = GraphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, "PrimitiveQuad::VertexBuffer", d => new SharedData(GraphicsDevice));
+            sharedData = GraphicsDevice.GetOrCreateSharedData("PrimitiveQuad::VertexBuffer", d => new SharedData(GraphicsDevice));
 
             simpleEffect = new EffectInstance(new Effect(GraphicsDevice, SpriteEffect.Bytecode));
             simpleEffect.Parameters.Set(SpriteBaseKeys.MatrixTransform, Matrix.Identity);

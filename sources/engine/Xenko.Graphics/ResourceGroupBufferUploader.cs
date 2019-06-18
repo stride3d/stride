@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Xenko.Core;
 using Xenko.Shaders;
 
@@ -48,6 +49,11 @@ namespace Xenko.Graphics
             }
         }
 
+        public Buffer GetPreallocatedConstantBuffer(int setIndex)
+        {
+            return resourceGroupBindings[setIndex].ConstantBufferPreallocated;
+        }
+
         public void Apply(CommandList commandList, ResourceGroup[] resourceGroups, int resourceGroupsOffset)
         {
             if (resourceGroupBindings.Length == 0)
@@ -61,30 +67,39 @@ namespace Xenko.Graphics
                 // Upload cbuffer (if not done yet)
                 if (resourceGroupBinding.ConstantBufferSlot != -1 && resourceGroup != null && resourceGroup.ConstantBuffer.Data != IntPtr.Zero)
                 {
-                    var preallocatedBuffer = resourceGroup.ConstantBuffer.Buffer;
-                    bool needUpdate = true;
-                    if (preallocatedBuffer == null)
-                        preallocatedBuffer = resourceGroupBinding.ConstantBufferPreallocated; // If it's preallocated buffer, we always upload
-                    else if (resourceGroup.ConstantBuffer.Uploaded)
-                        needUpdate = false; // If it's not preallocated and already uploaded, we can avoid uploading it again
-                    else
-                        resourceGroup.ConstantBuffer.Uploaded = true; // First time it is uploaded
+                    var buffer = resourceGroup.ConstantBuffer.Buffer;
 
-                    if (needUpdate)
+                    if (buffer == null)
                     {
+                        // If it's preallocated buffer, we always upload
+                        buffer = resourceGroupBinding.ConstantBufferPreallocated;
+
                         if (hasResourceRenaming)
                         {
-                            var mappedConstantBuffer = commandList.MapSubresource(preallocatedBuffer, 0, MapMode.WriteDiscard);
+                            var mappedConstantBuffer = commandList.MapSubresource(buffer, 0, MapMode.WriteDiscard);
                             Utilities.CopyMemory(mappedConstantBuffer.DataBox.DataPointer, resourceGroup.ConstantBuffer.Data, resourceGroup.ConstantBuffer.Size);
                             commandList.UnmapSubresource(mappedConstantBuffer);
                         }
                         else
                         {
-                            commandList.UpdateSubresource(preallocatedBuffer, 0, new DataBox(resourceGroup.ConstantBuffer.Data, resourceGroup.ConstantBuffer.Size, 0));
+                            commandList.UpdateSubresource(buffer, 0, new DataBox(resourceGroup.ConstantBuffer.Data, resourceGroup.ConstantBuffer.Size, 0));
                         }
                     }
-
-                    resourceGroup.DescriptorSet.SetConstantBuffer(resourceGroupBinding.ConstantBufferSlot, preallocatedBuffer, resourceGroup.ConstantBuffer.Offset, resourceGroup.ConstantBuffer.Size);
+                    else if (resourceGroup.ConstantBuffer.TrySetUploaded())
+                    {
+                        // If it's not preallocated and already uploaded, we can avoid uploading it again.
+                        // We need to upload it immediately, since might not be the first command list to be executed.
+                        if (hasResourceRenaming)
+                        {
+                            var mappedConstantBuffer = commandList.GraphicsDevice.MapSubresource(buffer, 0, MapMode.WriteDiscard);
+                            Utilities.CopyMemory(mappedConstantBuffer.DataBox.DataPointer, resourceGroup.ConstantBuffer.Data, resourceGroup.ConstantBuffer.Size);
+                            commandList.GraphicsDevice.UnmapSubresource(mappedConstantBuffer);
+                        }
+                        else
+                        {
+                            throw new NotSupportedException();
+                        }
+                    }
                 }
             }
         }

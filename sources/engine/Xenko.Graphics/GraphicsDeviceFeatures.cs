@@ -92,6 +92,11 @@ namespace Xenko.Graphics
         public readonly bool HasResourceRenaming;
 
         /// <summary>
+        /// Indicates if binding constant buffers with offsets is supported.
+        /// </summary>
+        public readonly bool HasConstantBufferOffsetting;
+
+        /// <summary>
         /// Gets the <see cref="FeaturesPerFormat" /> for the specified <see cref="SharpDX.DXGI.Format" />.
         /// </summary>
         /// <param name="dxgiFormat">The dxgi format.</param>

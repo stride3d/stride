@@ -34,7 +34,7 @@ namespace Xenko.Graphics
         private DepthStencilView depthStencilView;
         internal bool HasStencil;
 
-        private int TexturePixelSize => Format.SizeInBytes();
+        private int TexturePixelSize => Format.SizeInBytes(); // TODO: Broken for block compression?
         private const int TextureRowPitchAlignment = 1;
         private const int TextureSubresourceAlignment = 1;
 

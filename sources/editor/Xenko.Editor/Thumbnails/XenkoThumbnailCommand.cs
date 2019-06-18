@@ -116,7 +116,7 @@ namespace Xenko.Editor.Thumbnails
         protected sealed override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
         {
             PreloadAsset();
-            var graphicsCompositor = GraphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, GraphicsCompositorKey, CreateSharedGraphicsCompositor);
+            var graphicsCompositor = GraphicsDevice.GetOrCreateSharedData(GraphicsCompositorKey, CreateSharedGraphicsCompositor);
             var scene = CreateScene(graphicsCompositor);
             var result = Generator.BuildThumbnail(Url, scene, graphicsCompositor, MicrothreadLocalDatabases.DatabaseFileProvider, Parameters.ThumbnailSize, Parameters.ColorSpace, Parameters.RenderingMode, commandContext.Logger, DependencyBuildStatus, CustomizeThumbnail);
             DestroyScene(scene);

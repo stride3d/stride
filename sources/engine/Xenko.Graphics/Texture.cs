@@ -702,10 +702,10 @@ namespace Xenko.Graphics
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// This method creates internally a stagging resource, copies to it and map it to memory. Use method with explicit staging resource
         /// for optimal performances.</remarks>
-        public TData[] GetData<TData>(CommandList commandList, int arraySlice = 0, int mipSlice = 0) where TData : struct
+        public TData[] GetData<TData>(int arraySlice = 0, int mipSlice = 0) where TData : struct
         {
             var toData = new TData[this.CalculatePixelDataCount<TData>(mipSlice)];
-            GetData(commandList, toData, arraySlice, mipSlice);
+            GetData(toData, arraySlice, mipSlice);
             return toData;
         }
 
@@ -723,19 +723,19 @@ namespace Xenko.Graphics
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// This method creates internally a stagging resource if this texture is not already a stagging resouce, copies to it and map it to memory. Use method with explicit staging resource
         /// for optimal performances.</remarks>
-        public bool GetData<TData>(CommandList commandList, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : struct
+        public bool GetData<TData>(TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : struct
         {
             // Get data from this resource
             if (Usage == GraphicsResourceUsage.Staging)
             {
                 // Directly if this is a staging resource
-                return GetData(commandList, this, toData, arraySlice, mipSlice, doNotWait);
+                return GetData(this, toData, arraySlice, mipSlice, doNotWait);
             }
             else
             {
                 // Unefficient way to use the Copy method using dynamic staging texture
                 using (var throughStaging = this.ToStaging())
-                    return GetData(commandList, throughStaging, toData, arraySlice, mipSlice, doNotWait);
+                    return GetData(throughStaging, toData, arraySlice, mipSlice, doNotWait);
             }
         }
 
@@ -754,9 +754,9 @@ namespace Xenko.Graphics
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// </remarks>
-        public unsafe bool GetData<TData>(CommandList commandList, Texture stagingTexture, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : struct
+        public unsafe bool GetData<TData>(Texture stagingTexture, TData[] toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false) where TData : struct
         {
-            return GetData(commandList, stagingTexture, new DataPointer((IntPtr)Interop.Fixed(toData), toData.Length * Utilities.SizeOf<TData>()), arraySlice, mipSlice, doNotWait);
+            return GetData(stagingTexture, new DataPointer((IntPtr)Interop.Fixed(toData), toData.Length * Utilities.SizeOf<TData>()), arraySlice, mipSlice, doNotWait);
         }
 
         /// <summary>
@@ -772,9 +772,9 @@ namespace Xenko.Graphics
         /// <remarks>
         /// See unmanaged documentation for usage and restrictions.
         /// </remarks>
-        public unsafe void SetData<TData>(CommandList commandList, TData[] fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null) where TData : struct
+        public unsafe void SetData<TData>(TData[] fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null) where TData : struct
         {
-            SetData(commandList, new DataPointer((IntPtr)Interop.Fixed(fromData), fromData.Length * Utilities.SizeOf<TData>()), arraySlice, mipSlice, region);
+            SetData(new DataPointer((IntPtr)Interop.Fixed(fromData), fromData.Length * Utilities.SizeOf<TData>()), arraySlice, mipSlice, region);
         }
 
         /// <summary>
@@ -791,11 +791,9 @@ namespace Xenko.Graphics
         /// <remarks>
         /// This method is only working when called from the main thread that is accessing the main <see cref="GraphicsDevice"/>.
         /// </remarks>
-        public unsafe bool GetData(CommandList commandList, Texture stagingTexture, DataPointer toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false)
+        public unsafe bool GetData(Texture stagingTexture, DataPointer toData, int arraySlice = 0, int mipSlice = 0, bool doNotWait = false)
         {
-            if (stagingTexture == null) throw new ArgumentNullException("stagingTexture");
-            var device = GraphicsDevice;
-            //var deviceContext = device.NativeDeviceContext;
+            if (stagingTexture == null) throw new ArgumentNullException(nameof(stagingTexture));
 
             // Get mipmap description for the specified mipSlice
             var mipmap = this.GetMipMapDescription(mipSlice);
@@ -819,13 +817,16 @@ namespace Xenko.Graphics
 
             // Copy the actual content of the texture to the staging resource
             if (!ReferenceEquals(this, stagingTexture))
-                commandList.Copy(this, stagingTexture);
+            {
+                GraphicsDevice.DefaultCommandList.Copy(this, stagingTexture);
+                GraphicsDevice.DefaultCommandList.Flush();
+            }
 
             // Calculate the subResourceIndex for a Texture
             int subResourceIndex = this.GetSubResourceIndex(arraySlice, mipSlice);
 
             // Map the staging resource to a CPU accessible memory
-            var mappedResource = commandList.MapSubresource(stagingTexture, subResourceIndex, MapMode.Read, doNotWait);
+            var mappedResource = GraphicsDevice.MapSubresource(stagingTexture, subResourceIndex, MapMode.Read, doNotWait);
 
             // Box can be empty if DoNotWait is set to true, return false if empty
             var box = mappedResource.DataBox;
@@ -882,7 +883,7 @@ namespace Xenko.Graphics
             }
 
             // Make sure that we unmap the resource in case of an exception
-            commandList.UnmapSubresource(mappedResource);
+            GraphicsDevice.UnmapSubresource(mappedResource);
 
             return true;
         }
@@ -899,9 +900,8 @@ namespace Xenko.Graphics
         /// <remarks>
         /// See unmanaged documentation for usage and restrictions.
         /// </remarks>
-        public unsafe void SetData(CommandList commandList, DataPointer fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null)
+        public unsafe void SetData(DataPointer fromData, int arraySlice = 0, int mipSlice = 0, ResourceRegion? region = null)
         {
-            if (commandList == null) throw new ArgumentNullException("commandList");
             if (region.HasValue && this.Usage != GraphicsResourceUsage.Default)
                 throw new ArgumentException("Region is only supported for textures with ResourceUsage.Default");
 
@@ -919,9 +919,9 @@ namespace Xenko.Graphics
                 int newHeight = region.Value.Bottom - region.Value.Top;
                 int newDepth = region.Value.Back - region.Value.Front;
                 if (newWidth > width)
-                    throw new ArgumentException($"Region width [{newWidth}] cannot be greater than mipmap width [{width}]", "region");
+                    throw new ArgumentException($"Region width [{newWidth}] cannot be greater than mipmap width [{width}]", nameof(region));
                 if (newHeight > height)
-                    throw new ArgumentException($"Region height [{newHeight}] cannot be greater than mipmap height [{height}]", "region");
+                    throw new ArgumentException($"Region height [{newHeight}] cannot be greater than mipmap height [{height}]", nameof(region));
                 if (newDepth > depth)
                     throw new ArgumentException($"Region depth [{newDepth}] cannot be greater than mipmap depth [{depth}]", "region");
 
@@ -967,7 +967,7 @@ namespace Xenko.Graphics
 
                     // Workaround when using region with a deferred context and a device that does not support CommandList natively
                     // see http://blogs.msdn.com/b/chuckw/archive/2010/07/28/known-issue-direct3d-11-updatesubresource-and-deferred-contexts.aspx
-                    if (commandList.GraphicsDevice.NeedWorkAroundForUpdateSubResource)
+                    if (GraphicsDevice.NeedWorkAroundForUpdateSubResource)
                     {
                         if (IsBlockCompressed)
                         {
@@ -978,16 +978,18 @@ namespace Xenko.Graphics
                         }
                         sourceDataPtr = new IntPtr((byte*)sourceDataPtr - (regionValue.Front * textureDepthStride) - (regionValue.Top * rowStride) - (regionValue.Left * sizePerElement));
                     }
-                    commandList.UpdateSubresource(this, subResourceIndex, new DataBox(sourceDataPtr, rowStride, textureDepthStride), regionValue);
+                    GraphicsDevice.DefaultCommandList.UpdateSubresource(this, subResourceIndex, new DataBox(sourceDataPtr, rowStride, textureDepthStride), regionValue);
                 }
                 else
                 {
-                    commandList.UpdateSubresource(this, subResourceIndex, new DataBox(fromData.Pointer, rowStride, textureDepthStride));
+                    GraphicsDevice.DefaultCommandList.UpdateSubresource(this, subResourceIndex, new DataBox(fromData.Pointer, rowStride, textureDepthStride));
                 }
+
+                GraphicsDevice.DefaultCommandList.Flush();
             }
             else
             {
-                var mappedResource = commandList.MapSubresource(this, subResourceIndex, this.Usage == GraphicsResourceUsage.Dynamic ? MapMode.WriteDiscard : MapMode.Write);
+                var mappedResource = GraphicsDevice.MapSubresource(this, subResourceIndex, this.Usage == GraphicsResourceUsage.Dynamic ? MapMode.WriteDiscard : MapMode.Write);
                 var box = mappedResource.DataBox;
 
                 // If depth == 1 (Texture, Texture or TextureCube), then depthStride is not used
@@ -1018,7 +1020,7 @@ namespace Xenko.Graphics
                         destPerDepthPtr += box.SlicePitch;
                     }
                 }
-                commandList.UnmapSubresource(mappedResource);
+                GraphicsDevice.UnmapSubresource(mappedResource);
             }
         }
 
@@ -1129,23 +1131,23 @@ namespace Xenko.Graphics
         /// <param name="commandList">The command list.</param>
         /// <param name="stream">The stream.</param>
         /// <param name="fileType">Type of the image file.</param>
-        public void Save(CommandList commandList, Stream stream, ImageFileType fileType)
+        public void Save(Stream stream, ImageFileType fileType)
         {
             if (stream == null) throw new ArgumentNullException("stream");
             using (var staging = ToStaging())
-                Save(commandList, stream, staging, fileType);
+                Save(stream, staging, fileType);
         }
 
         /// <summary>
         /// Gets the GPU content of this texture as an <see cref="Image"/> on the CPU.
         /// </summary>
-        public Image GetDataAsImage(CommandList commandList)
+        public Image GetDataAsImage()
         {
             if (Usage == GraphicsResourceUsage.Staging)
-                return GetDataAsImage(commandList, this); // Directly if this is a staging resource
+                return GetDataAsImage(this); // Directly if this is a staging resource
 
             using (var stagingTexture = ToStaging())
-                return GetDataAsImage(commandList, stagingTexture);
+                return GetDataAsImage(stagingTexture);
         }
 
         /// <summary>
@@ -1154,7 +1156,7 @@ namespace Xenko.Graphics
         /// <param name="commandList">The command list.</param>
         /// <param name="stagingTexture">The staging texture used to temporary transfer the image from the GPU to CPU.</param>
         /// <exception cref="ArgumentException">If stagingTexture is not a staging texture.</exception>
-        public Image GetDataAsImage(CommandList commandList, Texture stagingTexture)
+        public Image GetDataAsImage(Texture stagingTexture)
         {
             if (stagingTexture == null) throw new ArgumentNullException("stagingTexture");
             if (stagingTexture.Usage != GraphicsResourceUsage.Staging)
@@ -1168,7 +1170,7 @@ namespace Xenko.Graphics
                     for (int mipLevel = 0; mipLevel < image.Description.MipLevels; mipLevel++)
                     {
                         var pixelBuffer = image.PixelBuffer[arrayIndex, mipLevel];
-                        GetData(commandList, stagingTexture, new DataPointer(pixelBuffer.DataPointer, pixelBuffer.BufferStride), arrayIndex, mipLevel);
+                        GetData(stagingTexture, new DataPointer(pixelBuffer.DataPointer, pixelBuffer.BufferStride), arrayIndex, mipLevel);
                     }
                 }
             }
@@ -1189,9 +1191,9 @@ namespace Xenko.Graphics
         /// <param name="stagingTexture">The staging texture used to temporary transfer the image from the GPU to CPU.</param>
         /// <param name="fileType">Type of the image file.</param>
         /// <exception cref="ArgumentException">If stagingTexture is not a staging texture.</exception>
-        public void Save(CommandList commandList, Stream stream, Texture stagingTexture, ImageFileType fileType)
+        public void Save(Stream stream, Texture stagingTexture, ImageFileType fileType)
         {
-            using (var image = GetDataAsImage(commandList, stagingTexture))
+            using (var image = GetDataAsImage(stagingTexture))
                 image.Save(stream, fileType);
         }
 

@@ -64,6 +64,7 @@ namespace Xenko.Graphics
             HasMultisampleDepthAsSRV = true;
 
             HasResourceRenaming = false;
+            HasConstantBufferOffsetting = true;
 
             HasMultiThreadingConcurrentResources = true;
             HasDriverCommandLists = true;

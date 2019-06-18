@@ -72,7 +72,9 @@ namespace Xenko.Graphics
         }
 
         // TODO: dispose vertex array when Effect is disposed
-        protected readonly DeviceResourceContext ResourceContext;
+        protected DeviceResourceContext ResourceContext;
+        private readonly ResourceBufferInfo resourceBufferInfo;
+        private readonly VertexDeclaration vertexDeclaration;
 
         protected MutablePipelineState mutablePipeline;
         protected GraphicsDevice graphicsDevice;
@@ -117,11 +119,14 @@ namespace Xenko.Graphics
         {
             if (defaultEffectByteCode == null) throw new ArgumentNullException(nameof(defaultEffectByteCode));
             if (defaultEffectByteCodeSRgb == null) throw new ArgumentNullException(nameof(defaultEffectByteCodeSRgb));
-            if (resourceBufferInfo == null) throw new ArgumentNullException("resourceBufferInfo");
-            if (vertexDeclaration == null) throw new ArgumentNullException("vertexDeclaration");
+            if (resourceBufferInfo == null) throw new ArgumentNullException(nameof(resourceBufferInfo));
+            if (vertexDeclaration == null) throw new ArgumentNullException(nameof(vertexDeclaration));
 
             graphicsDevice = device;
             mutablePipeline = new MutablePipelineState(device);
+            this.resourceBufferInfo = resourceBufferInfo;
+            this.vertexDeclaration = vertexDeclaration;
+
             // TODO GRAPHICS REFACTOR Should we initialize FX lazily?
             DefaultEffect = new EffectInstance(new Effect(device, defaultEffectByteCode) { Name = "BatchDefaultEffect" });
             DefaultEffectSRgb = new EffectInstance(new Effect(device, defaultEffectByteCodeSRgb) { Name = "BatchDefaultEffectSRgb" });
@@ -136,9 +141,6 @@ namespace Xenko.Graphics
             // set the vertex layout and size
             indexStructSize = indexSize;
             vertexStructSize = vertexDeclaration.CalculateSize();
-
-            // Creates the vertex buffer (shared by within a device context).
-            ResourceContext = graphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerContext, resourceBufferInfo.ResourceKey, d => new DeviceResourceContext(graphicsDevice, vertexDeclaration, resourceBufferInfo));
         }
 
         /// <summary>
@@ -191,6 +193,8 @@ namespace Xenko.Graphics
             if (Effect.Effect.HasParameter(TexturingKeys.Sampler))
                 samplerUpdater = Effect.Parameters.GetAccessor(TexturingKeys.Sampler);
 
+            ResourceContext = graphicsContext.GetOrCreateSharedData(resourceBufferInfo.ResourceKey, d => new DeviceResourceContext(graphicsDevice, vertexDeclaration, resourceBufferInfo));
+
             // Immediate mode, then prepare for rendering here instead of End()
             if (sessionSortMode == SpriteSortMode.Immediate)
             {
@@ -203,6 +207,11 @@ namespace Xenko.Graphics
 
                 ResourceContext.IsInImmediateMode = true;
             }
+
+            // Force buffer discarding for every batch, so deferred contexts get satisfied.
+            // TODO: Use either UpdateSubresource instead, or use MapSubresource on immediate context and don't recycle buffers the same frame on D3D11
+            ResourceContext.VertexBufferPosition = 0;
+            ResourceContext.IndexBufferPosition = 0;
 
             // Sets to true isBeginCalled
             isBeginCalled = true;
@@ -285,6 +294,8 @@ namespace Xenko.Graphics
 
             // We are with begin pair
             isBeginCalled = false;
+
+            ResourceContext = null;
         }
         
         private void SortSprites()
@@ -418,7 +429,7 @@ namespace Xenko.Graphics
                 {
                     var spriteIndex = offset + batchSize;
 
-                    // How many sprites does the D3D vertex buffer have room for?
+                    // How many sprites does the vertex buffer have room for?
                     var remainingVertexSpace = ResourceContext.VertexCount - ResourceContext.VertexBufferPosition - vertexCount;
                     var remainingIndexSpace = ResourceContext.IndexCount - ResourceContext.IndexBufferPosition - indexCount;
 
@@ -489,9 +500,9 @@ namespace Xenko.Graphics
                 //else
                 {
                     var mappedIndices = new MappedResource();
-                    var mappedVertices = GraphicsContext.CommandList.MapSubresource(ResourceContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetVertexInBytes, vertexCount * vertexStructSize);
+                    var mappedVertices = GraphicsContext.CommandList.MapSubresource(ResourceContext.VertexBuffer, 0, MapMode.WriteNoOverwrite, offsetVertexInBytes, vertexCount * vertexStructSize);
                     if (ResourceContext.IsIndexBufferDynamic)
-                        mappedIndices = GraphicsContext.CommandList.MapSubresource(ResourceContext.IndexBuffer, 0, MapMode.WriteNoOverwrite, false, offsetIndexInBytes, indexCount * indexStructSize);
+                        mappedIndices = GraphicsContext.CommandList.MapSubresource(ResourceContext.IndexBuffer, 0, MapMode.WriteNoOverwrite, offsetIndexInBytes, indexCount * indexStructSize);
 
                     var vertexPointer = mappedVertices.DataBox.DataPointer;
                     var indexPointer = mappedIndices.DataBox.DataPointer;

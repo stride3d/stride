@@ -11,6 +11,7 @@ namespace Xenko.Graphics
         public DescriptorSetLayoutBuilder DescriptorSetLayoutBuilder;
         public DescriptorSetLayout DescriptorSetLayout;
         public int ConstantBufferSize;
+        public int ConstantBufferSlot;
         public EffectConstantBufferDescription ConstantBufferReflection;
         public ObjectId Hash;
         public ObjectId ConstantBufferHash;
@@ -27,6 +28,7 @@ namespace Xenko.Graphics
                 DescriptorSetLayoutBuilder = resourceGroupDescription.DescriptorSetLayout,
                 DescriptorSetLayout = DescriptorSetLayout.New(graphicsDevice, resourceGroupDescription.DescriptorSetLayout),
                 ConstantBufferReflection = resourceGroupDescription.ConstantBufferReflection,
+                ConstantBufferSlot = resourceGroupDescription.DescriptorSetLayout.Entries.FindIndex(x => x.Class == EffectParameterClass.ConstantBuffer),
                 Hash = resourceGroupDescription.Hash,
             };
 

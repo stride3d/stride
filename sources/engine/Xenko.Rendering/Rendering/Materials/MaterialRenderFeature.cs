@@ -364,11 +364,15 @@ namespace Xenko.Rendering.Materials
             materialInfo.ParameterCollectionCopier.Copy();
 
             // Allocate resource groups
-            context.ResourceGroupAllocator.PrepareResourceGroup(materialInfo.PerMaterialLayout, BufferPoolAllocationType.UsedMultipleTime, materialInfo.Resources);
+            context.ResourceGroupAllocator.PrepareResourceGroup(materialInfo.PerMaterialLayout, BufferPoolAllocationType.UsedMultipleTime, materialInfo.Resources, renderEffect.Reflection.BufferUploader.GetPreallocatedConstantBuffer(materialSlotIndex));
 
             // Set resource bindings in PerMaterial resource set
             for (int resourceSlot = 0; resourceSlot < materialInfo.ResourceCount; ++resourceSlot)
             {
+                // Constant buffers are handled be resource group preparation
+                if (resourceSlot == materialInfo.PerMaterialLayout.ConstantBufferSlot)
+                    continue;
+
                 materialInfo.Resources.DescriptorSet.SetValue(resourceSlot, materialInfo.ParameterCollection.ObjectValues[resourceSlot]);
             }
 

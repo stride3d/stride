@@ -135,7 +135,9 @@ namespace Xenko.Rendering.Images
 
             if (ForceGetLatestBlocking)
             {
-                stagingTargets[currentStagingIndex].GetData(context.CommandList, result);
+                // Note: we assume there was no other command list to run before this one
+                context.CommandList.Flush();
+                stagingTargets[currentStagingIndex].GetData(result);
                 IsResultAvailable = true;
                 IsSlow = true;
             }
@@ -153,11 +155,13 @@ namespace Xenko.Rendering.Images
                         if (i == 0)
                         {
                             // Get data blocking (otherwise we would loop without getting any readback if StagingCount is not enough high)
-                            stagingTarget.GetData(context.CommandList, result);
+                            // Note: we assume there was no other command list to run before this one
+                            context.CommandList.Flush();
+                            stagingTarget.GetData(result);
                             IsSlow = true;
                             IsResultAvailable = true;
                         }
-                        else if (stagingTarget.GetData(context.CommandList, result, 0, 0, true)) // Get data non-blocking
+                        else if (stagingTarget.GetData(result, 0, 0, true)) // Get data non-blocking
                         {
                             IsResultAvailable = true;
                         }

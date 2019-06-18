@@ -24,9 +24,6 @@ namespace Xenko.Rendering
         private readonly ThreadLocal<RenderDrawContext> threadContext;
         private readonly object threadContextLock = new object();
 
-        // Used for API that don't support multiple command lists
-        internal CommandList SharedCommandList;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="RenderContext" /> class.
         /// </summary>
@@ -137,7 +134,7 @@ namespace Xenko.Rendering
 
             // Store RenderContext shared into the GraphicsDevice
             var graphicsDevice = services.GetSafeServiceAs<IGraphicsDeviceService>().GraphicsDevice;
-            return graphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, SharedImageEffectContextKey, d => new RenderContext(services));
+            return graphicsDevice.GetOrCreateSharedData(SharedImageEffectContextKey, d => new RenderContext(services));
         }
 
         /// <summary>

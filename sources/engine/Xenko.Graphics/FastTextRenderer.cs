@@ -97,7 +97,7 @@ namespace Xenko.Graphics
             // Map and build the indice buffer
             indexBuffer = graphicsContext.Allocator.GetTemporaryBuffer(new BufferDescription(indexBufferSize, BufferFlags.IndexBuffer, GraphicsResourceUsage.Dynamic));
 
-            var mappedIndices = graphicsContext.CommandList.MapSubresource(indexBuffer, 0, MapMode.WriteNoOverwrite, false, 0, indexBufferSize);
+            var mappedIndices = graphicsContext.CommandList.MapSubresource(indexBuffer, 0, MapMode.WriteNoOverwrite, 0, indexBufferSize);
             var indexPointer = mappedIndices.DataBox.DataPointer;
 
             var i = 0;

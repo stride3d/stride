@@ -100,7 +100,7 @@ namespace Xenko.Graphics
             return resourceGroup;
         }
 
-        public void PrepareResourceGroup(ResourceGroupLayout resourceGroupLayout, BufferPoolAllocationType constantBufferAllocationType, ResourceGroup resourceGroup)
+        public void PrepareResourceGroup(ResourceGroupLayout resourceGroupLayout, BufferPoolAllocationType constantBufferAllocationType, ResourceGroup resourceGroup, Buffer preallocatedConstantBuffer)
         {
             if (resourceGroup == null)
                 throw new InvalidOperationException();
@@ -120,6 +120,9 @@ namespace Xenko.Graphics
                 }
 
                 currentBufferPool.Allocate(graphicsDevice, resourceGroupLayout.ConstantBufferSize, constantBufferAllocationType, ref resourceGroup.ConstantBuffer);
+
+                // Update the descriptor set with the new constant buffer
+                resourceGroup.DescriptorSet.SetConstantBuffer(resourceGroupLayout.ConstantBufferSlot, resourceGroup.ConstantBuffer.Buffer ?? preallocatedConstantBuffer, resourceGroup.ConstantBuffer.Offset, resourceGroup.ConstantBuffer.Size);
             }
         }
 
@@ -137,7 +140,7 @@ namespace Xenko.Graphics
                 currentBufferPool = bufferPools[currentBufferPoolIndex];
             }
 
-            currentBufferPool.Map(commandList);
+            currentBufferPool.Map();
         }
 
         private void SetupNextDescriptorPool()

@@ -1,6 +1,8 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using Xenko.Core;
 
 namespace Xenko.Graphics
@@ -10,6 +12,11 @@ namespace Xenko.Graphics
     /// </summary>
     public class GraphicsContext
     {
+        private readonly GraphicsDevice graphicsDevice;
+        private readonly Dictionary<object, IDisposable> sharedData = new Dictionary<object, IDisposable>();
+
+        public delegate T CreateSharedData<out T>(GraphicsContext device) where T : class, IDisposable;
+
         /// <summary>
         /// Gets the current command list.
         /// </summary>
@@ -24,9 +31,30 @@ namespace Xenko.Graphics
 
         public GraphicsContext(GraphicsDevice graphicsDevice, GraphicsResourceAllocator allocator = null, CommandList commandList = null)
         {
-            CommandList = commandList ?? graphicsDevice.InternalMainCommandList ?? CommandList.New(graphicsDevice).DisposeBy(graphicsDevice);
+            this.graphicsDevice = graphicsDevice;
+            CommandList = commandList ?? (graphicsDevice.IsDeferred ? CommandList.New(graphicsDevice): graphicsDevice.DefaultCommandList);
             Allocator = allocator ?? new GraphicsResourceAllocator(graphicsDevice).DisposeBy(graphicsDevice);
             ResourceGroupAllocator = new ResourceGroupAllocator(Allocator, CommandList).DisposeBy(graphicsDevice);
+        }
+
+        public T GetOrCreateSharedData<T>(object key, CreateSharedData<T> sharedDataCreator) where T : class, IDisposable
+        {
+            lock (sharedData)
+            {
+                IDisposable localValue;
+                if (!sharedData.TryGetValue(key, out localValue))
+                {
+                    localValue = sharedDataCreator(this);
+                    if (localValue == null)
+                    {
+                        return null;
+                    }
+
+                    localValue.DisposeBy(graphicsDevice);
+                    sharedData.Add(key, localValue);
+                }
+                return (T)localValue;
+            }
         }
     }
 }

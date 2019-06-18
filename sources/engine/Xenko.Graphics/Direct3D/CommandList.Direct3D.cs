@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 #if XENKO_GRAPHICS_API_DIRECT3D11
 using System;
+using SharpDX.Direct3D11;
 using SharpDX.Mathematics.Interop;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
@@ -28,26 +29,30 @@ namespace Xenko.Graphics
         private readonly SharpDX.Direct3D11.RenderTargetView[] currentRenderTargetViews = new SharpDX.Direct3D11.RenderTargetView[SimultaneousRenderTargetCount];
         private readonly SharpDX.Direct3D11.CommonShaderStage[] shaderStages = new SharpDX.Direct3D11.CommonShaderStage[StageCount];
         private readonly Buffer[] constantBuffers = new Buffer[StageCount * ConstantBufferCount];
+        private readonly int[] constantBufferOffsets = new int[StageCount * ConstantBufferCount];
+        private readonly int[] constantBufferSizes = new int[StageCount * ConstantBufferCount];
         private readonly SamplerState[] samplerStates = new SamplerState[StageCount * SamplerStateCount];
         private readonly SharpDX.Direct3D11.UnorderedAccessView[] unorderedAccessViews = new SharpDX.Direct3D11.UnorderedAccessView[UnorderedAcccesViewCount]; // Only CS
 
         private PipelineState currentPipelineState;
 
+        private uint drawCallCount;
+        private uint vertexCount;
+
         public static CommandList New(GraphicsDevice device)
         {
-            throw new InvalidOperationException("Can't create multiple command lists with D3D11");
+            return new CommandList(device);
         }
 
         internal CommandList(GraphicsDevice device) : base(device)
         {
-            nativeDeviceContext = device.NativeDeviceContext;
-            NativeDeviceChild = nativeDeviceContext;
+            nativeDeviceContext = new DeviceContext(device.NativeDevice);
             nativeDeviceContext1 = new SharpDX.Direct3D11.DeviceContext1(nativeDeviceContext.NativePointer);
             nativeDeviceProfiler = device.IsDebugMode ? SharpDX.ComObject.QueryInterfaceOrNull<SharpDX.Direct3D11.UserDefinedAnnotation>(nativeDeviceContext.NativePointer) : null;
 
             InitializeStages();
 
-            ClearState();
+            Reset();
         }
 
         /// <summary>
@@ -61,30 +66,26 @@ namespace Xenko.Graphics
         {
             Utilities.Dispose(ref nativeDeviceProfiler);
 
+            Utilities.Dispose(ref nativeDeviceContext);
+
             base.OnDestroyed();
         }
 
-        public void Reset()
+        public void ResetImpl()
         {
-        }
-
-        public void Flush()
-        {
-        }
-
-        public CompiledCommandList Close()
-        {
-            return default(CompiledCommandList);
-        }
-
-        private void ClearStateImpl()
-        {
-            NativeDeviceContext.ClearState();
+            // Clear state by not restoring it
+            // TODO: We assume that this is unnecessary, because it's always called after Close(). When pooling command lists properly, we should track if any state changed.
+            //var nativeCommandList = nativeDeviceContext.FinishCommandList(false);
+            //nativeCommandList.Dispose();
 
             for (int i = 0; i < samplerStates.Length; ++i)
                 samplerStates[i] = null;
             for (int i = 0; i < constantBuffers.Length; ++i)
                 constantBuffers[i] = null;
+            for (int i = 0; i < constantBufferOffsets.Length; ++i)
+                constantBufferOffsets[i] = 0;
+            for (int i = 0; i < constantBufferSizes.Length; ++i)
+                constantBufferSizes[i] = 0;
             for (int i = 0; i < unorderedAccessViews.Length; ++i)
                 unorderedAccessViews[i] = null;
             for (int i = 0; i < currentRenderTargetViews.Length; i++)
@@ -92,6 +93,30 @@ namespace Xenko.Graphics
 
             // Since nothing can be drawn in default state, no need to set anything (another SetPipelineState should happen before)
             currentPipelineState = GraphicsDevice.DefaultPipelineState;
+        }
+
+        public void Flush()
+        {
+            GraphicsDevice.ExecuteCommandList(Close());
+
+            // Reset internal states
+            Reset();
+        }
+
+        public CompiledCommandList Close()
+        {
+            var result = new CompiledCommandList
+            {
+                DrawCallCount = drawCallCount,
+                VertexCount = vertexCount,
+            };
+
+            result.NativeCommandList = nativeDeviceContext.FinishCommandList(false);
+
+            drawCallCount = 0;
+            vertexCount = 0;
+
+            return result;
         }
 
         /// <summary>
@@ -183,7 +208,7 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
-        ///     Sets a constant buffer to the shader pipeline.
+        /// Sets a constant buffer to the shader pipeline.
         /// </summary>
         /// <param name="stage">The shader stage.</param>
         /// <param name="slot">The binding slot.</param>
@@ -199,28 +224,86 @@ namespace Xenko.Graphics
             if (constantBuffers[slotIndex] != buffer)
             {
                 constantBuffers[slotIndex] = buffer;
-                shaderStages[stageIndex].SetConstantBuffer(slot, buffer != null ? buffer.NativeBuffer : null);
+                shaderStages[stageIndex].SetConstantBuffer(slot, buffer?.NativeBuffer);
             }
         }
 
+        private readonly SharpDX.Direct3D11.Buffer[] constantBuffer = new SharpDX.Direct3D11.Buffer[1];
+        private readonly int[] constantBufferOffset = new int[1];
+        private readonly int[] constantBufferSize = new int[1];
+
         /// <summary>
-        ///     Sets a constant buffer to the shader pipeline.
+        /// Sets a constant buffer to the shader pipeline.
         /// </summary>
         /// <param name="stage">The shader stage.</param>
         /// <param name="slot">The binding slot.</param>
         /// <param name="buffer">The constant buffer to set.</param>
-        internal void SetConstantBuffer(ShaderStage stage, int slot, int offset, Buffer buffer)
+        /// <param name="offset">The starting offset of the buffer range.</param>
+        /// <param name="size">The size of the buffer range.</param>
+        internal void SetConstantBuffer(ShaderStage stage, int slot, Buffer buffer, int offset, int size)
         {
             if (stage == ShaderStage.None)
-                throw new ArgumentException("Cannot use Stage.None", "stage");
+                throw new ArgumentException("Cannot use Stage.None", nameof(stage));
 
             int stageIndex = (int)stage - 1;
 
             int slotIndex = stageIndex * ConstantBufferCount + slot;
-            if (constantBuffers[slotIndex] != buffer)
+            if (constantBuffers[slotIndex] != buffer || constantBufferOffsets[slotIndex] != offset || constantBufferSizes[slotIndex] != size)
             {
                 constantBuffers[slotIndex] = buffer;
-                shaderStages[stageIndex].SetConstantBuffer(slot, buffer != null ? buffer.NativeBuffer : null);
+                constantBufferOffsets[slotIndex] = offset;
+                constantBufferSizes[slotIndex] = size;
+
+                // Workaround for command list emulation issue
+                // https://msdn.microsoft.com/en-us/library/windows/desktop/hh446795(v=vs.85).aspx
+                if (!GraphicsDevice.Features.HasDriverCommandLists)
+                {
+                    shaderStages[stageIndex].SetConstantBuffer(slot, null);
+                }
+
+                if (offset > 0)
+                {
+                    // Offset and size is specified in 16-byte, and must be multiples of 16 (256 bytes).
+                    // We assume offset is already aligned and pad size if necessary.
+                    constantBuffer[0] = buffer?.NativeBuffer;
+                    constantBufferOffset[0] = offset / 16;
+                    constantBufferSize[0] = (size + 256 - 1) / 256 * 16;
+
+                    // Set constant buffer
+                    SetConstantBuffer(stage, slot);
+                }
+                else
+                {
+                    //shaderStages[stageIndex].SetConstantBuffer(slot, null);
+                    shaderStages[stageIndex].SetConstantBuffer(slot, buffer?.NativeBuffer);
+                }
+            }
+        }
+
+        private void SetConstantBuffer(ShaderStage stage, int slot)
+        {
+            switch (stage)
+            {
+                case ShaderStage.Vertex:
+                    nativeDeviceContext1.VSSetConstantBuffers1(slot, 1, constantBuffer, constantBufferOffset, constantBufferSize);
+                    break;
+                case ShaderStage.Pixel:
+                    nativeDeviceContext1.PSSetConstantBuffers1(slot, 1, constantBuffer, constantBufferOffset, constantBufferSize);
+                    break;
+                case ShaderStage.Geometry:
+                    nativeDeviceContext1.GSSetConstantBuffers1(slot, 1, constantBuffer, constantBufferOffset, constantBufferSize);
+                    break;
+                case ShaderStage.Compute:
+                    nativeDeviceContext1.CSSetConstantBuffers1(slot, 1, constantBuffer, constantBufferOffset, constantBufferSize);
+                    break;
+                case ShaderStage.Domain:
+                    nativeDeviceContext1.DSSetConstantBuffers1(slot, 1, constantBuffer, constantBufferOffset, constantBufferSize);
+                    break;
+                case ShaderStage.Hull:
+                    nativeDeviceContext1.HSSetConstantBuffers1(slot, 1, constantBuffer, constantBufferOffset, constantBufferSize);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(stage));
             }
         }
 
@@ -383,8 +466,8 @@ namespace Xenko.Graphics
 
             NativeDeviceContext.Draw(vertexCount, startVertexLocation);
 
-            GraphicsDevice.FrameTriangleCount += (uint)vertexCount;
-            GraphicsDevice.FrameDrawCalls++;
+            this.vertexCount += (uint)vertexCount;
+            drawCallCount++;
         }
 
         /// <summary>
@@ -396,7 +479,7 @@ namespace Xenko.Graphics
 
             NativeDeviceContext.DrawAuto();
 
-            GraphicsDevice.FrameDrawCalls++;
+            drawCallCount++;
         }
 
         /// <summary>
@@ -411,8 +494,8 @@ namespace Xenko.Graphics
 
             NativeDeviceContext.DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
 
-            GraphicsDevice.FrameDrawCalls++;
-            GraphicsDevice.FrameTriangleCount += (uint)indexCount;
+            drawCallCount++;
+            vertexCount += (uint)indexCount;
         }
 
         /// <summary>
@@ -429,8 +512,8 @@ namespace Xenko.Graphics
 
             NativeDeviceContext.DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
 
-            GraphicsDevice.FrameDrawCalls++;
-            GraphicsDevice.FrameTriangleCount += (uint)(indexCountPerInstance * instanceCount);
+            drawCallCount++;
+            vertexCount += (uint)(indexCountPerInstance * instanceCount);
         }
 
         /// <summary>
@@ -446,7 +529,7 @@ namespace Xenko.Graphics
 
             NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
 
-            GraphicsDevice.FrameDrawCalls++;
+            drawCallCount++;
         }
 
         /// <summary>
@@ -462,8 +545,8 @@ namespace Xenko.Graphics
 
             NativeDeviceContext.DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
 
-            GraphicsDevice.FrameDrawCalls++;
-            GraphicsDevice.FrameTriangleCount += (uint)(vertexCountPerInstance * instanceCount);
+            drawCallCount++;
+            vertexCount += (uint)(vertexCountPerInstance * instanceCount);
         }
 
         /// <summary>
@@ -479,7 +562,7 @@ namespace Xenko.Graphics
 
             NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
 
-            GraphicsDevice.FrameDrawCalls++;
+            drawCallCount++;
         }
 
         /// <summary>
@@ -687,7 +770,37 @@ namespace Xenko.Graphics
         internal unsafe void UpdateSubresource(GraphicsResource resource, int subResourceIndex, DataBox databox, ResourceRegion region)
         {
             if (resource == null) throw new ArgumentNullException("resource");
-            NativeDeviceContext.UpdateSubresource(*(SharpDX.DataBox*)Interop.Cast(ref databox), resource.NativeResource, subResourceIndex, *(SharpDX.Direct3D11.ResourceRegion*)Interop.Cast(ref region));
+
+            if (GraphicsDevice.Features.HasConstantBufferPartialUpdate)
+            {
+                nativeDeviceContext1.UpdateSubresource1(resource.NativeResource, subResourceIndex, *(SharpDX.Direct3D11.ResourceRegion*)Interop.Cast(ref region), databox.DataPointer, databox.RowPitch, databox.SlicePitch, 0);
+            }
+            else
+            {
+                // https://blogs.msdn.microsoft.com/chuckw/2010/07/28/known-issue-direct3d-11-updatesubresource-and-deferred-contexts/
+                if (!GraphicsDevice.Features.HasDriverCommandLists)
+                {
+                    var texture = resource as Texture;
+                    if (texture != null)
+                    {
+                        if (texture.IsBlockCompressed)
+                        {
+                            // TODO: Verify
+                            databox.DataPointer -= (region.Front / 4 * databox.SlicePitch) + (region.Top / 4 * databox.RowPitch) + (region.Left / 4 * texture.Format.SizeInBits() * 2);
+                        }
+                        else
+                        {
+                            databox.DataPointer -= region.Front * databox.SlicePitch + region.Top * databox.RowPitch + region.Left * texture.Format.SizeInBytes();
+                        }
+                    }
+                    else
+                    {
+                        databox.DataPointer -= region.Left;
+                    }
+                }
+
+                NativeDeviceContext.UpdateSubresource(*(SharpDX.DataBox*)Interop.Cast(ref databox), resource.NativeResource, subResourceIndex, *(SharpDX.Direct3D11.ResourceRegion*)Interop.Cast(ref region));
+            }
         }
 
         // TODO GRAPHICS REFACTOR what should we do with this?
@@ -701,21 +814,27 @@ namespace Xenko.Graphics
         /// <param name="offsetInBytes">The offset information in bytes.</param>
         /// <param name="lengthInBytes">The length information in bytes.</param>
         /// <returns>Pointer to the sub resource to map.</returns>
-        public unsafe MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        public unsafe MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, int offsetInBytes = 0, int lengthInBytes = 0)
         {
             if (resource == null) throw new ArgumentNullException("resource");
 
+            // Only discard/no overwrite on deferred contexts
+            if (mapMode != MapMode.WriteDiscard && mapMode != MapMode.WriteNoOverwrite)
+                throw new ArgumentOutOfRangeException(nameof(mapMode));
+
             // This resource has just been recycled by the GraphicsResourceAllocator, we force a rename to avoid GPU=>GPU sync point
             if (resource.DiscardNextMap && mapMode == MapMode.WriteNoOverwrite)
+            {
                 mapMode = MapMode.WriteDiscard;
+                resource.DiscardNextMap = false;
+            }
 
-            SharpDX.DataBox dataBox = NativeDeviceContext.MapSubresource(resource.NativeResource, subResourceIndex, (SharpDX.Direct3D11.MapMode)mapMode, doNotWait ? SharpDX.Direct3D11.MapFlags.DoNotWait : SharpDX.Direct3D11.MapFlags.None);
-            var databox = *(DataBox*)Interop.Cast(ref dataBox);
+            var dataBox = NativeDeviceContext.MapSubresource(resource.NativeResource, subResourceIndex, (SharpDX.Direct3D11.MapMode)mapMode, MapFlags.None);
             if (!dataBox.IsEmpty)
             {
-                databox.DataPointer = (IntPtr)((byte*)databox.DataPointer + offsetInBytes);
+                dataBox.DataPointer += offsetInBytes;
             }
-            return new MappedResource(resource, subResourceIndex, databox);
+            return new MappedResource(resource, subResourceIndex, *(DataBox*)&dataBox);
         }
 
         // TODO GRAPHICS REFACTOR what should we do with this?

@@ -45,5 +45,10 @@ namespace Xenko.Games
         /// Called by the game at the end of drawing; if requested, presents the final rendering.
         /// </summary>
         void EndDraw(bool present);
+
+        /// <summary>
+        /// Apply changes caused by asynchronous events and user input.
+        /// </summary>
+        void ApplyPendingChanges();
     }
 }

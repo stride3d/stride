@@ -22,7 +22,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
 
         protected override Entity Create()
         {
-            var gizmoTexture = GraphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, gizmoName, d => TextureExtensions.FromFileData(d, billboardData));
+            var gizmoTexture = GraphicsDevice.GetOrCreateSharedData(gizmoName, d => TextureExtensions.FromFileData(d, billboardData));
 
             // Create a root that will contains the billboard as a child, so that it is easier to add other elements with only the billboard set as a GizmoScalingEntity
             var root = new Entity(gizmoName);

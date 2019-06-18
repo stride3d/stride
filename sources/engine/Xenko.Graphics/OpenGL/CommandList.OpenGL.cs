@@ -74,7 +74,7 @@ namespace Xenko.Graphics
 
         public static CommandList New(GraphicsDevice device)
         {
-            if (device.InternalMainCommandList != null)
+            if (device.DefaultCommandList != null)
             {
                 throw new InvalidOperationException("Can't create multiple command lists with OpenGL");
             }
@@ -83,7 +83,7 @@ namespace Xenko.Graphics
 
         private CommandList(GraphicsDevice device) : base(device)
         {
-            device.InternalMainCommandList = this;
+            device.DefaultCommandList = this;
 
             // Default state
             DepthStencilBoundState.DepthBufferWriteEnable = true;
@@ -93,11 +93,7 @@ namespace Xenko.Graphics
             RasterizerBoundState.PolygonMode = PolygonMode.Fill;
 #endif
 
-            ClearState();
-        }
-
-        public void Reset()
-        {
+            Reset();
         }
 
         public void Flush()
@@ -299,7 +295,7 @@ namespace Xenko.Graphics
 #endif
         }
 
-        private void ClearStateImpl()
+        private void ResetImpl()
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
@@ -978,10 +974,15 @@ namespace Xenko.Graphics
         {
         }
 
-        public MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        public MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, int offsetInBytes = 0, int lengthInBytes = 0)
+        {
+            return MapSubresourceInternal(GraphicsDevice, resource, subResourceIndex, mapMode, false, offsetInBytes, lengthInBytes);
+        }
+
+        internal static MappedResource MapSubresourceInternal(GraphicsDevice graphicsDevice, GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
         {
 #if DEBUG
-            GraphicsDevice.EnsureContextActive();
+            graphicsDevice.EnsureContextActive();
 #endif
 
             // This resource has just been recycled by the GraphicsResourceAllocator, we force a rename to avoid GPU=>GPU sync point
@@ -1003,7 +1004,7 @@ namespace Xenko.Graphics
 
 #if XENKO_GRAPHICS_API_OPENGLES
                 // OpenGL ES 2 needs Staging Data
-                if (GraphicsDevice.IsOpenGLES2)
+                if (graphicsDevice.IsOpenGLES2)
                 {
                     Internal.Refactor.ThrowNotImplementedException();
                 }
@@ -1049,7 +1050,7 @@ namespace Xenko.Graphics
                     var mipLevel = subResourceIndex % texture.MipLevels;
 
 #if XENKO_GRAPHICS_API_OPENGLES
-                    if (GraphicsDevice.IsOpenGLES2 || texture.StagingData != IntPtr.Zero)
+                    if (graphicsDevice.IsOpenGLES2 || texture.StagingData != IntPtr.Zero)
                     {
                         return new MappedResource(resource, subResourceIndex, new DataBox { DataPointer = texture.StagingData + offsetInBytes + texture.ComputeBufferOffset(subResourceIndex, 0), SlicePitch = texture.ComputeSlicePitch(mipLevel), RowPitch = texture.ComputeRowPitch(mipLevel) }, offsetInBytes, lengthInBytes);
                     }
@@ -1059,7 +1060,7 @@ namespace Xenko.Graphics
                         if (doNotWait)
                         {
                             // Wait at least 2 frames after last operation
-                            if (GraphicsDevice.FrameCounter < texture.PixelBufferFrame + ReadbackFrameDelay)
+                            if (graphicsDevice.FrameCounter < texture.PixelBufferFrame + ReadbackFrameDelay)
                             {
                                 return new MappedResource(resource, subResourceIndex, new DataBox(), offsetInBytes, lengthInBytes);
                             }
@@ -1071,7 +1072,7 @@ namespace Xenko.Graphics
                 else if (mapMode == MapMode.WriteDiscard)
                 {
 #if XENKO_GRAPHICS_API_OPENGLES
-                    if (GraphicsDevice.IsOpenGLES2)
+                    if (graphicsDevice.IsOpenGLES2)
                     {
                         Internal.Refactor.ThrowNotImplementedException();
                     }
@@ -1092,8 +1093,13 @@ namespace Xenko.Graphics
 
         public void UnmapSubresource(MappedResource unmapped)
         {
+            UnmapSubresourceInternal(GraphicsDevice, this, unmapped);
+        }
+
+        internal static void UnmapSubresourceInternal(GraphicsDevice graphicsDevice, CommandList commandList, MappedResource unmapped)
+        {
 #if DEBUG
-            GraphicsDevice.EnsureContextActive();
+            graphicsDevice.EnsureContextActive();
 #endif
 
             var texture = unmapped.Resource as Texture;
@@ -1103,7 +1109,7 @@ namespace Xenko.Graphics
                 {
 #if XENKO_GRAPHICS_API_OPENGLES
                     // unmapping on OpenGL ES 2 means doing nothing since the buffer is on the CPU memory
-                    if (!GraphicsDevice.IsOpenGLES2)
+                    if (!graphicsDevice.IsOpenGLES2)
 #endif
                     {
                         GL.BindBuffer(BufferTarget.PixelPackBuffer, texture.PixelBufferObjectId);
@@ -1112,7 +1118,7 @@ namespace Xenko.Graphics
                     }
                 }
 #if XENKO_GRAPHICS_API_OPENGLES
-                else if (!GraphicsDevice.IsOpenGLES2 && texture.Description.Usage == GraphicsResourceUsage.Dynamic)
+                else if (!graphicsDevice.IsOpenGLES2 && texture.Description.Usage == GraphicsResourceUsage.Dynamic)
 #else
                 else if (texture.Description.Usage == GraphicsResourceUsage.Dynamic)
 #endif
@@ -1120,9 +1126,9 @@ namespace Xenko.Graphics
                     GL.BindBuffer(BufferTarget.PixelUnpackBuffer, unmapped.PixelBufferObjectId);
                     GL.UnmapBuffer(BufferTarget.PixelUnpackBuffer);
 
-                    if (activeTexture != 0)
+                    if (commandList != null && commandList.activeTexture != 0)
                     {
-                        activeTexture = 0;
+                        commandList.activeTexture = 0;
                         GL.ActiveTexture(TextureUnit.Texture0);
                     }
 
@@ -1155,7 +1161,8 @@ namespace Xenko.Graphics
                             throw new NotSupportedException("Invalid texture target: " + texture.TextureTarget);
                     }
                     GL.BindTexture(texture.TextureTarget, 0);
-                    boundShaderResourceViews[0] = null;
+                    if (commandList != null)
+                        commandList.boundShaderResourceViews[0] = null;
                     GL.BindBuffer(BufferTarget.PixelUnpackBuffer, 0);
                     GL.DeleteBuffer(unmapped.PixelBufferObjectId);
                 }
@@ -1170,7 +1177,7 @@ namespace Xenko.Graphics
                 if (buffer != null)
                 {
 #if XENKO_GRAPHICS_API_OPENGLES
-                    if (GraphicsDevice.IsOpenGLES2 || buffer.StagingData != IntPtr.Zero)
+                    if (graphicsDevice.IsOpenGLES2 || buffer.StagingData != IntPtr.Zero)
 #else
                     if (buffer.StagingData != IntPtr.Zero)
 #endif
@@ -1204,7 +1211,7 @@ namespace Xenko.Graphics
             }
         }
 
-        private MappedResource MapTexture(Texture texture, bool adjustOffsetForSubresource, BufferTarget bufferTarget, int pixelBufferObjectId, int subResourceIndex, MapMode mapMode, int offsetInBytes, int lengthInBytes)
+        private static MappedResource MapTexture(Texture texture, bool adjustOffsetForSubresource, BufferTarget bufferTarget, int pixelBufferObjectId, int subResourceIndex, MapMode mapMode, int offsetInBytes, int lengthInBytes)
         {
             int mipLevel = subResourceIndex % texture.MipLevels;
 
@@ -1449,11 +1456,16 @@ namespace Xenko.Graphics
         /// <param name="stage">The shader stage.</param>
         /// <param name="slot">The binding slot.</param>
         /// <param name="buffer">The constant buffer to set.</param>
-        internal void SetConstantBuffer(ShaderStage stage, int slot, Buffer buffer)
+        /// <param name="offset">The offset in bytes into the constant buffer</param>
+        /// <param name="size">The size in bytes of to bind.</param>
+        internal void SetConstantBuffer(ShaderStage stage, int slot, Buffer buffer, int offset, int size)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();
 #endif
+
+            if (offset != 0)
+                throw new InvalidOperationException();
 
             if (constantBuffers[slot] != buffer)
             {

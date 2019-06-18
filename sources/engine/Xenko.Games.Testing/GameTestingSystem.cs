@@ -119,7 +119,7 @@ namespace Xenko.Games.Testing
 
         private void SaveTexture(Texture texture, string filename)
         {
-            using (var image = texture.GetDataAsImage(Game.GraphicsContext.CommandList))
+            using (var image = texture.GetDataAsImage())
             {
                 //Send to server and store to disk
                 var imageData = new TestResultImage { Frame = "0", Image = image, TestName = "" };

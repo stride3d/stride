@@ -41,6 +41,7 @@ namespace Xenko.Graphics
             HasMultisampleDepthAsSRV = true;
 
             HasResourceRenaming = false;
+            HasConstantBufferOffsetting = true;
 
             // TODO D3D12
             for (int i = 0; i < mapFeaturesPerFormat.Length; i++)

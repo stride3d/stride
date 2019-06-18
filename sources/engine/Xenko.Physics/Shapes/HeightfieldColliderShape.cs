@@ -280,7 +280,7 @@ namespace Xenko.Physics.Shapes
 
                 foreach (var tile in Tiles)
                 {
-                    tile.MeshDraw.VertexBuffers[0].Buffer.SetData(commandList, tile.Vertices);
+                    tile.MeshDraw.VertexBuffers[0].Buffer.SetData(tile.Vertices);
                 }
             }
 

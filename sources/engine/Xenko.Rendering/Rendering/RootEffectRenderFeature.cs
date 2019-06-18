@@ -722,7 +722,7 @@ namespace Xenko.Rendering
 
                         if (viewLayout.Entries[view.Index].MarkAsUsed(RenderSystem))
                         {
-                            threadContext.ResourceGroupAllocator.PrepareResourceGroup(viewLayout, BufferPoolAllocationType.UsedMultipleTime, viewLayout.Entries[view.Index].Resources);
+                            threadContext.ResourceGroupAllocator.PrepareResourceGroup(viewLayout, BufferPoolAllocationType.UsedMultipleTime, viewLayout.Entries[view.Index].Resources, renderEffectReflection.BufferUploader.GetPreallocatedConstantBuffer(perViewDescriptorSetSlot.Index));
 
                             // Register it in list of view layouts to update for this frame
                             viewFeature.Layouts.Add(viewLayout);
@@ -733,7 +733,7 @@ namespace Xenko.Rendering
                     var frameLayout = renderEffect.Reflection.PerFrameLayout;
                     if (frameLayout != null && frameLayout.Entry.MarkAsUsed(RenderSystem))
                     {
-                        threadContext.ResourceGroupAllocator.PrepareResourceGroup(frameLayout, BufferPoolAllocationType.UsedMultipleTime, frameLayout.Entry.Resources);
+                        threadContext.ResourceGroupAllocator.PrepareResourceGroup(frameLayout, BufferPoolAllocationType.UsedMultipleTime, frameLayout.Entry.Resources, renderEffectReflection.BufferUploader.GetPreallocatedConstantBuffer(perFrameDescriptorSetSlot.Index));
 
                         // Register it in list of view layouts to update for this frame
                         FrameLayouts.Add(frameLayout);
@@ -747,7 +747,7 @@ namespace Xenko.Rendering
                     renderNode.Resources = threadContext.ResourceGroupAllocator.AllocateResourceGroup();
                     if (renderEffectReflection.PerDrawLayout != null)
                     {
-                        threadContext.ResourceGroupAllocator.PrepareResourceGroup(renderEffectReflection.PerDrawLayout, BufferPoolAllocationType.UsedOnce, renderNode.Resources);
+                        threadContext.ResourceGroupAllocator.PrepareResourceGroup(renderEffectReflection.PerDrawLayout, BufferPoolAllocationType.UsedOnce, renderNode.Resources, renderEffectReflection.BufferUploader.GetPreallocatedConstantBuffer(perDrawDescriptorSetSlot.Index));
                     }
 
                     // Create EffectObjectNode
@@ -774,7 +774,7 @@ namespace Xenko.Rendering
                             renderEffect.FallbackParameterUpdater = new EffectParameterUpdater(renderEffect.Reflection.FallbackUpdaterLayout, renderEffect.FallbackParameters);
                         }
 
-                        renderEffect.FallbackParameterUpdater.Update(RenderSystem.GraphicsDevice, threadContext.ResourceGroupAllocator, renderEffect.FallbackParameters);
+                        renderEffect.FallbackParameterUpdater.Update(RenderSystem.GraphicsDevice, threadContext.ResourceGroupAllocator, renderEffect.FallbackParameters, renderEffectReflection.BufferUploader);
 
                         var fallbackResourceGroupMapping = renderEffect.Reflection.FallbackResourceGroupMapping;
                         for (int i = 0; i < fallbackResourceGroupMapping.Length; ++i)

@@ -53,7 +53,7 @@ namespace Xenko.Games
 
             using (var device3 = game.GraphicsDevice.NativeDevice.QueryInterface<SharpDX.DXGI.Device3>())
             {
-                game.GraphicsContext.CommandList.ClearState();
+                game.GraphicsContext.CommandList.Reset();
                 device3.Trim();
             }
 

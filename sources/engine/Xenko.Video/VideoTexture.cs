@@ -109,7 +109,7 @@ namespace Xenko.Video
             // "videoComponent.Target" contains the mip mapped video texture at this point.
             // We now copy the new video frame directly into the video texture's first mip level:
             DataPointer dataPointer = new DataPointer(image.Buffer, image.BufferSize);
-            renderTargetMipMaps[0].SetData(context.CommandList, dataPointer, 0, 0);
+            renderTargetMipMaps[0].SetData(dataPointer, 0, 0);
         }
 
         public void CopyDecoderOutputToTopLevelMipmap(GraphicsContext context, Texture decoderOutputTexture)

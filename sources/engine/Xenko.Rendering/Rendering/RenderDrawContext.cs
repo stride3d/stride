@@ -56,18 +56,6 @@ namespace Xenko.Rendering
         public QueryManager QueryManager { get; }
 
         /// <summary>
-        /// Locks the command list until <see cref="IDisposable.Dispose()"/> is called on the returned value type.
-        /// </summary>
-        /// <returns></returns>
-        /// This is necessary only during Collect(), Extract() and Prepare() phases, not during Draw().
-        /// Some graphics API might not require actual locking, in which case this object might do nothing.
-        public DefaultCommandListLock LockCommandList()
-        {
-            // TODO: Temporary, for now we use the CommandList itself as a lock
-            return new DefaultCommandListLock(CommandList);
-        }
-
-        /// <summary>
         /// Pushes render targets and viewport state.
         /// </summary>
         public RenderTargetRestore PushRenderTargetsAndRestore()

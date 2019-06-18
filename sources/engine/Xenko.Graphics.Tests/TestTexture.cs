@@ -79,7 +79,7 @@ namespace Xenko.Graphics.Tests
                     // Get a render target on the mipmap 1 (128) with value 1 and get back the data
                     var renderTarget1 = texture.ToTextureView(ViewType.Single, 0, 1);
                     commandList.Clear(renderTarget1, new Color4(0xFF000001));
-                    var data1 = texture.GetData<byte>(commandList, 0, 1);
+                    var data1 = texture.GetData<byte>(0, 1);
                     Assert.Equal(128, data1.Length);
                     Assert.Equal(1, data1[0]);
                     renderTarget1.Dispose();
@@ -87,7 +87,7 @@ namespace Xenko.Graphics.Tests
                     // Get a render target on the mipmap 2 (128) with value 2 and get back the data
                     var renderTarget2 = texture.ToTextureView(ViewType.Single, 0, 2);
                     commandList.Clear(renderTarget2, new Color4(0xFF000002));
-                    var data2 = texture.GetData<byte>(commandList, 0, 2);
+                    var data2 = texture.GetData<byte>(0, 2);
                     Assert.Equal(64, data2.Length);
                     Assert.Equal(2, data2[0]);
                     renderTarget2.Dispose();
@@ -95,7 +95,7 @@ namespace Xenko.Graphics.Tests
                     // Get a render target on the mipmap 3 (128) with value 3 and get back the data
                     var renderTarget3 = texture.ToTextureView(ViewType.Single, 0, 3);
                     commandList.Clear(renderTarget3, new Color4(0xFF000003));
-                    var data3 = texture.GetData<byte>(commandList, 0, 3);
+                    var data3 = texture.GetData<byte>(0, 3);
                     Assert.Equal(32, data3.Length);
                     Assert.Equal(3, data3[0]);
                     renderTarget3.Dispose();
@@ -152,7 +152,7 @@ namespace Xenko.Graphics.Tests
                     Assert.Equal(256, renderTarget1.ViewHeight);
 
                     commandList.Clear(renderTarget1, new Color4(0xFF000001));
-                    var data1 = texture.GetData<byte>(commandList, 1);
+                    var data1 = texture.GetData<byte>(1);
                     Assert.Equal(data.Length, data1.Length);
                     Assert.Equal(1, data1[0]);
                     renderTarget1.Dispose();
@@ -160,7 +160,7 @@ namespace Xenko.Graphics.Tests
                     // Get a render target on the array 2 (128) with value 2 and get back the data
                     var renderTarget2 = texture.ToTextureView(ViewType.Single, 2, 0);
                     commandList.Clear(renderTarget2, new Color4(0xFF000002));
-                    var data2 = texture.GetData<byte>(commandList, 2);
+                    var data2 = texture.GetData<byte>(2);
                     Assert.Equal(data.Length, data2.Length);
                     Assert.Equal(2, data2[0]);
                     renderTarget2.Dispose();
@@ -168,7 +168,7 @@ namespace Xenko.Graphics.Tests
                     // Get a render target on the array 3 (128) with value 3 and get back the data
                     var renderTarget3 = texture.ToTextureView(ViewType.Single, 3, 0);
                     commandList.Clear(renderTarget3, new Color4(0xFF000003));
-                    var data3 = texture.GetData<byte>(commandList, 3);
+                    var data3 = texture.GetData<byte>(3);
                     Assert.Equal(data.Length, data3.Length);
                     Assert.Equal(3, data3[0]);
                     renderTarget3.Dispose();
@@ -203,7 +203,7 @@ namespace Xenko.Graphics.Tests
                     Assert.Equal(1, texture1.ViewDepth);
 
                     commandList.ClearReadWrite(texture1, new Int4(1));
-                    var data1 = texture.GetData<byte>(commandList, 1);
+                    var data1 = texture.GetData<byte>(1);
                     Assert.Equal(data.Length, data1.Length);
                     Assert.Equal(1, data1[0]);
                     texture1.Dispose();
@@ -211,7 +211,7 @@ namespace Xenko.Graphics.Tests
                     // Clear slice array[2] with value 2, read back data from texture and check validity
                     var texture2 = texture.ToTextureView(ViewType.Single, 2, 0);
                     commandList.ClearReadWrite(texture2, new Int4(2));
-                    var data2 = texture.GetData<byte>(commandList, 2);
+                    var data2 = texture.GetData<byte>(2);
                     Assert.Equal(data.Length, data2.Length);
                     Assert.Equal(2, data2[0]);
                     texture2.Dispose();
@@ -258,7 +258,7 @@ namespace Xenko.Graphics.Tests
                     // Get a render target on the 1st mipmap of this texture 3D
                     var renderTarget0 = texture.ToTextureView(ViewType.Single, 0, 0);
                     commandList.Clear(renderTarget0, new Color4(0xFF000001));
-                    var data1 = texture.GetData<byte>(commandList);
+                    var data1 = texture.GetData<byte>();
                     Assert.Equal(32 * 32 * 32, data1.Length);
                     Assert.Equal(1, data1[0]);
                     renderTarget0.Dispose();
@@ -271,7 +271,7 @@ namespace Xenko.Graphics.Tests
                     Assert.Equal(32 >> 1, renderTarget1.ViewHeight);
 
                     commandList.Clear(renderTarget1, new Color4(0xFF000001));
-                    var data2 = texture.GetData<byte>(commandList, 0, 1);
+                    var data2 = texture.GetData<byte>(0, 1);
                     Assert.Equal(16 * 16 * 16, data2.Length);
                     Assert.Equal(1, data2[0]);
                     renderTarget1.Dispose();
@@ -302,7 +302,7 @@ namespace Xenko.Graphics.Tests
                     // Clear the depth stencil buffer with a value of 0.5f
                     commandList.Clear(texture, DepthStencilClearOptions.DepthBuffer, 0.5f);
 
-                    var values = texture.GetData<float>(commandList);
+                    var values = texture.GetData<float>();
                     Assert.Equal(256*256, values.Length);
                     Assert.True(MathUtil.WithinEpsilon(values[0], 0.5f, 0.00001f));
 
@@ -311,7 +311,7 @@ namespace Xenko.Graphics.Tests
 
                     commandList.Copy(texture, textureCopy);
 
-                    values = textureCopy.GetData<float>(commandList);
+                    values = textureCopy.GetData<float>();
                     Assert.Equal(256 * 256, values.Length);
                     Assert.True(MathUtil.WithinEpsilon(values[0], 0.5f, 0.00001f));
 
@@ -343,7 +343,7 @@ namespace Xenko.Graphics.Tests
                     // Clear the depth stencil buffer with a value of 0.5f, but the depth buffer is readonly
                     commandList.Clear(texture, DepthStencilClearOptions.DepthBuffer, 0.5f);
 
-                    var values = texture.GetData<float>(commandList);
+                    var values = texture.GetData<float>();
                     Assert.Equal(256 * 256, values.Length);
                     Assert.Equal(0.0f, values[0]);
 
@@ -392,7 +392,7 @@ namespace Xenko.Graphics.Tests
                         texture = Texture.Load(device, inStream);
                             
                     var tempStream = new MemoryStream();
-                    texture.Save(game.GraphicsContext.CommandList, tempStream, intermediateFormat);
+                    texture.Save(tempStream, intermediateFormat);
                     tempStream.Position = 0;
                     texture.Dispose();
 
@@ -447,7 +447,7 @@ namespace Xenko.Graphics.Tests
         private void CheckTexture(GraphicsContext graphicsContext, Texture texture, byte[] data)
         {
             // Get back the data from the gpu
-            var data2 = texture.GetData<byte>(graphicsContext.CommandList);
+            var data2 = texture.GetData<byte>();
 
             // Assert that data are the same
             Assert.True(Utilities.Compare(data, data2));
@@ -455,10 +455,10 @@ namespace Xenko.Graphics.Tests
             // Sets new data on the gpu
             data[0] = 1;
             data[31] = 255;
-            texture.SetData(graphicsContext.CommandList, data);
+            texture.SetData(data);
 
             // Get back the data from the gpu
-            data2 = texture.GetData<byte>(graphicsContext.CommandList);
+            data2 = texture.GetData<byte>();
 
             // Assert that data are the same
             Assert.True(Utilities.Compare(data, data2));
@@ -538,6 +538,7 @@ namespace Xenko.Graphics.Tests
                                 using (var copyTexture = destinationStaged ? texture.ToStaging(): texture.Clone())
                                 {
                                     game.GraphicsContext.CommandList.Copy(texture, copyTexture);
+                                    game.GraphicsContext.CommandList.Flush();
 
                                     CheckDebugTextureData(game.GraphicsContext, copyTexture, width, height, mipmaps, arraySize, pixelFormat, flag, usageSource, computer);
                                 }
@@ -624,7 +625,7 @@ namespace Xenko.Graphics.Tests
                     var w = width >> mipSlice;
                     var h = height >> mipSlice;
 
-                    var readData = debugTexture.GetData<byte>(graphicsContext.CommandList, arraySlice, mipSlice);
+                    var readData = debugTexture.GetData<byte>(arraySlice, mipSlice);
 
                     for (int r = 0; r < h; r++)
                     {

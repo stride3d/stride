@@ -32,13 +32,12 @@ namespace Xenko.Graphics
         internal Effect CurrentEffect;
 
         private readonly List<IDisposable> sharedDataToDispose = new List<IDisposable>();
-        private readonly Dictionary<object, IDisposable> sharedDataPerDevice;
-        private readonly Dictionary<object, IDisposable> sharedDataPerDeviceContext = new Dictionary<object, IDisposable>();
+        private readonly Dictionary<object, IDisposable> sharedData;
         private GraphicsPresenter presenter;
 
         internal PipelineState DefaultPipelineState;
 
-        internal CommandList InternalMainCommandList;
+        internal CommandList DefaultCommandList;
 
         internal PrimitiveQuad PrimitiveQuad;
         private ColorSpace colorSpace;
@@ -75,7 +74,7 @@ namespace Xenko.Graphics
         protected GraphicsDevice(GraphicsAdapter adapter, GraphicsProfile[] profile, DeviceCreationFlags deviceCreationFlags, WindowHandle windowHandle)
         {
             // Create shared data
-            sharedDataPerDevice = new Dictionary<object, IDisposable>();
+            sharedData = new Dictionary<object, IDisposable>();
 
             Recreate(adapter, profile, deviceCreationFlags, windowHandle);
 
@@ -112,8 +111,7 @@ namespace Xenko.Graphics
             // Clear shared data
             for (int index = sharedDataToDispose.Count - 1; index >= 0; index--)
                 sharedDataToDispose[index].Dispose();
-            sharedDataPerDevice.Clear();
-            sharedDataPerDeviceContext.Clear();
+            sharedData.Clear();
 
             SamplerStates.Dispose();
             SamplerStates = null;
@@ -280,20 +278,17 @@ namespace Xenko.Graphics
         ///     Gets a shared data for this device context with a delegate to create the shared data if it is not present.
         /// </summary>
         /// <typeparam name="T">Type of the shared data to get/create.</typeparam>
-        /// <param name="type">Type of the data to share.</param>
         /// <param name="key">The key of the shared data.</param>
         /// <param name="sharedDataCreator">The shared data creator.</param>
         /// <returns>
         ///     An instance of the shared data. The shared data will be disposed by this <see cref="GraphicsDevice" /> instance.
         /// </returns>
-        public T GetOrCreateSharedData<T>(GraphicsDeviceSharedDataType type, object key, CreateSharedData<T> sharedDataCreator) where T : class, IDisposable
+        public T GetOrCreateSharedData<T>(object key, CreateSharedData<T> sharedDataCreator) where T : class, IDisposable
         {
-            Dictionary<object, IDisposable> dictionary = (type == GraphicsDeviceSharedDataType.PerDevice) ? sharedDataPerDevice : sharedDataPerDeviceContext;
-
-            lock (dictionary)
+            lock (sharedData)
             {
                 IDisposable localValue;
-                if (!dictionary.TryGetValue(key, out localValue))
+                if (!sharedData.TryGetValue(key, out localValue))
                 {
                     localValue = sharedDataCreator(this);
                     if (localValue == null)
@@ -302,7 +297,7 @@ namespace Xenko.Graphics
                     }
 
                     sharedDataToDispose.Add(localValue);
-                    dictionary.Add(key, localValue);
+                    sharedData.Add(key, localValue);
                 }
                 return (T)localValue;
             }

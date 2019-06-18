@@ -314,6 +314,32 @@ namespace Xenko.Graphics
             }
         }
 
+        /// <summary>
+        /// Maps a subresource.
+        /// </summary>
+        /// <param name="resource">The resource.</param>
+        /// <param name="subResourceIndex">Index of the sub resource.</param>
+        /// <param name="mapMode">The map mode.</param>
+        /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
+        /// <param name="offsetInBytes">The offset information in bytes.</param>
+        /// <param name="lengthInBytes">The length information in bytes.</param>
+        /// <returns>Pointer to the sub resource to map.</returns>
+        public MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        {
+            using (UseOpenGLCreationContext())
+            {
+                return CommandList.MapSubresourceInternal(this, resource, subResourceIndex, mapMode, doNotWait, offsetInBytes, lengthInBytes);
+            }
+        }
+
+        public void UnmapSubresource(MappedResource unmapped)
+        {
+            using (var openglContext = UseOpenGLCreationContext())
+            {
+                CommandList.UnmapSubresourceInternal(this, openglContext.CommandList, unmapped);
+            }
+        }
+
         internal Buffer GetSquareBuffer()
         {
             if (SquareBuffer == null)
@@ -978,7 +1004,7 @@ namespace Xenko.Graphics
 #endif
 
             // Create the main command list
-            InternalMainCommandList = CommandList.New(this);
+            DefaultCommandList = CommandList.New(this);
         }
 
         private void AdjustDefaultPipelineStateDescription(ref PipelineStateDescription pipelineStateDescription)

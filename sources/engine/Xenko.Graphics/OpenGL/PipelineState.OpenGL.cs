@@ -233,7 +233,7 @@ namespace Xenko.Graphics
 
         private DevicePipelineStateCache GetPipelineStateCache()
         {
-            return GraphicsDevice.GetOrCreateSharedData(GraphicsDeviceSharedDataType.PerDevice, typeof(DevicePipelineStateCache), device => new DevicePipelineStateCache(device));
+            return GraphicsDevice.GetOrCreateSharedData(typeof(DevicePipelineStateCache), device => new DevicePipelineStateCache(device));
         }
 
         // Caches

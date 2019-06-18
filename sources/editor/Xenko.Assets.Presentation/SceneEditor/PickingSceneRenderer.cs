@@ -107,7 +107,8 @@ namespace Xenko.Assets.Presentation.SceneEditor
 
             // Get data
             var data = new PickingObjectInfo[1];
-            pickingTexture.GetData(drawContext.CommandList, data);
+            drawContext.CommandList.Flush();
+            pickingTexture.GetData(data);
             pickingResult = data[0];
         }
 

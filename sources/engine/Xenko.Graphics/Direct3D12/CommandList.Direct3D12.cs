@@ -86,7 +86,7 @@ namespace Xenko.Graphics
             base.OnDestroyed();
         }
 
-        public void Reset()
+        public void ResetImpl()
         {
             if (currentCommandList.Builder != null)
                 return;
@@ -142,26 +142,25 @@ namespace Xenko.Graphics
         public void Flush()
         {
             GraphicsDevice.ExecuteCommandList(Close());
+
+            // Reset internal states
+            Reset();
         }
 
-        private void FlushInternal(bool wait)
+        internal void FlushInternal(bool wait)
         {
             var fenceValue = GraphicsDevice.ExecuteCommandListInternal(Close());
 
             if (wait)
                 GraphicsDevice.WaitForFenceInternal(fenceValue);
 
-            Reset();
+            ResetImpl();
 
             // Restore states
             if (boundPipelineState != null)
                 SetPipelineState(boundPipelineState);
             currentCommandList.NativeCommandList.SetDescriptorHeaps(2, descriptorHeaps);
             SetRenderTargetsImpl(depthStencilBuffer, renderTargetCount, renderTargets);
-        }
-
-        private void ClearStateImpl()
-        {
         }
 
         /// <summary>
@@ -475,8 +474,8 @@ namespace Xenko.Graphics
 
             currentCommandList.NativeCommandList.DrawInstanced(vertexCount, 1, startVertexLocation, 0);
 
-            GraphicsDevice.FrameTriangleCount += (uint)vertexCount;
-            GraphicsDevice.FrameDrawCalls++;
+            currentCommandList.VertexCount += (uint)vertexCount;
+            currentCommandList.DrawCallCount++;
         }
 
         /// <summary>
@@ -487,6 +486,7 @@ namespace Xenko.Graphics
             PrepareDraw();
             
             throw new NotImplementedException();
+            currentCommandList.DrawCallCount++;
         }
 
         /// <summary>
@@ -501,8 +501,8 @@ namespace Xenko.Graphics
 
             currentCommandList.NativeCommandList.DrawIndexedInstanced(indexCount, 1, startIndexLocation, baseVertexLocation, 0);
 
-            GraphicsDevice.FrameDrawCalls++;
-            GraphicsDevice.FrameTriangleCount += (uint)indexCount;
+            currentCommandList.DrawCallCount++;
+            currentCommandList.VertexCount += (uint)indexCount;
         }
 
         /// <summary>
@@ -519,8 +519,8 @@ namespace Xenko.Graphics
 
             currentCommandList.NativeCommandList.DrawIndexedInstanced(indexCountPerInstance, instanceCount, startIndexLocation, baseVertexLocation, startInstanceLocation);
 
-            GraphicsDevice.FrameDrawCalls++;
-            GraphicsDevice.FrameTriangleCount += (uint)(indexCountPerInstance * instanceCount);
+            currentCommandList.DrawCallCount++;
+            currentCommandList.VertexCount += (uint)(indexCountPerInstance * instanceCount);
         }
 
         /// <summary>
@@ -537,7 +537,7 @@ namespace Xenko.Graphics
             //NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
             throw new NotImplementedException();
 
-            GraphicsDevice.FrameDrawCalls++;
+            currentCommandList.DrawCallCount++;
         }
 
         /// <summary>
@@ -553,8 +553,8 @@ namespace Xenko.Graphics
 
             currentCommandList.NativeCommandList.DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation);
 
-            GraphicsDevice.FrameDrawCalls++;
-            GraphicsDevice.FrameTriangleCount += (uint)(vertexCountPerInstance * instanceCount);
+            currentCommandList.DrawCallCount++;
+            currentCommandList.VertexCount += (uint)(vertexCountPerInstance * instanceCount);
         }
 
         /// <summary>
@@ -571,7 +571,7 @@ namespace Xenko.Graphics
             //NativeDeviceContext.DrawIndexedInstancedIndirect(argumentsBuffer.NativeBuffer, alignedByteOffsetForArgs);
             throw new NotImplementedException();
 
-            GraphicsDevice.FrameDrawCalls++;
+            currentCommandList.DrawCallCount++;
         }
 
         /// <summary>
@@ -1009,81 +1009,12 @@ namespace Xenko.Graphics
         /// <param name="resource">The resource.</param>
         /// <param name="subResourceIndex">Index of the sub resource.</param>
         /// <param name="mapMode">The map mode.</param>
-        /// <param name="doNotWait">if set to <c>true</c> this method will return immediately if the resource is still being used by the GPU for writing. Default is false</param>
         /// <param name="offsetInBytes">The offset information in bytes.</param>
         /// <param name="lengthInBytes">The length information in bytes.</param>
         /// <returns>Pointer to the sub resource to map.</returns>
-        public MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, bool doNotWait = false, int offsetInBytes = 0, int lengthInBytes = 0)
+        public MappedResource MapSubresource(GraphicsResource resource, int subResourceIndex, MapMode mapMode, int offsetInBytes = 0, int lengthInBytes = 0)
         {
-            if (resource == null) throw new ArgumentNullException("resource");
-
-            var rowPitch = 0;
-            var depthStride = 0;
-            var usage = GraphicsResourceUsage.Default;
-
-            var texture = resource as Texture;
-            if (texture != null)
-            {
-                usage = texture.Usage;
-                if (lengthInBytes == 0)
-                    lengthInBytes = texture.ComputeSubresourceSize(subResourceIndex);
-
-                rowPitch = texture.ComputeRowPitch(subResourceIndex % texture.MipLevels);
-                depthStride = texture.ComputeSlicePitch(subResourceIndex % texture.MipLevels);
-
-                if (texture.Usage == GraphicsResourceUsage.Staging)
-                {
-                    // Internally it's a buffer, so adapt resource index and offset
-                    offsetInBytes = texture.ComputeBufferOffset(subResourceIndex, 0);
-                    subResourceIndex = 0;
-                }
-            }
-            else
-            {
-                var buffer = resource as Buffer;
-                if (buffer != null)
-                {
-                    usage = buffer.Usage;
-                    if (lengthInBytes == 0)
-                        lengthInBytes = buffer.SizeInBytes;
-                }
-            }
-
-            if (mapMode == MapMode.Read || mapMode == MapMode.ReadWrite || mapMode == MapMode.Write)
-            {
-                // Is non-staging ever possible for Read/Write?
-                if (usage != GraphicsResourceUsage.Staging)
-                    throw new InvalidOperationException();
-            }
-
-            if (mapMode == MapMode.WriteDiscard)
-            {
-                throw new InvalidOperationException("Can't use WriteDiscard on Graphics API that don't support renaming");
-            }
-
-            if (mapMode != MapMode.WriteNoOverwrite)
-            {
-                // Need to wait?
-                if (!resource.StagingFenceValue.HasValue || !GraphicsDevice.IsFenceCompleteInternal(resource.StagingFenceValue.Value))
-                {
-                    if (doNotWait)
-                    {
-                        return new MappedResource(resource, subResourceIndex, new DataBox(IntPtr.Zero, 0, 0));
-                    }
-
-                    // Need to flush? (i.e. part of)
-                    if (resource.StagingBuilder == this)
-                        FlushInternal(false);
-
-                    if (!resource.StagingFenceValue.HasValue)
-                        throw new InvalidOperationException("CommandList updating the staging resource has not been submitted");
-
-                    GraphicsDevice.WaitForFenceInternal(resource.StagingFenceValue.Value);
-                }
-            }
-
-            var mappedMemory = resource.NativeResource.Map(subResourceIndex) + offsetInBytes;
-            return new MappedResource(resource, subResourceIndex, new DataBox(mappedMemory, rowPitch, depthStride), offsetInBytes, lengthInBytes);
+            return GraphicsDevice.MapSubresourceInternal(this, resource, subResourceIndex, mapMode, false, offsetInBytes, lengthInBytes);
         }
 
         // TODO GRAPHICS REFACTOR what should we do with this?
