@@ -11,6 +11,7 @@ using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
 using Xenko.Engine;
 using Xenko.Graphics;
+using Xenko.Rendering.Images;
 
 namespace Xenko.Rendering.Compositing
 {
@@ -71,6 +72,36 @@ namespace Xenko.Rendering.Compositing
         /// The entry point for a compositor used by the scene editor.
         /// </summary>
         public ISceneRenderer Editor { get; set; }
+
+        /// <summary>
+        /// Shortcut to getting post processing effects
+        /// </summary>
+        [DataMemberIgnore]
+        public PostProcessingEffects PostProcessing {
+            get {
+                if (cachedProcessor == null && Game is SceneCameraRenderer) {
+                    // find it
+                    SceneCameraRenderer cgame = (SceneCameraRenderer)Game;
+                    if (cgame.Child is SceneRendererCollection) {
+                        SceneRendererCollection src = (SceneRendererCollection)cgame.Child;
+                        List<ISceneRenderer> renderers = src.Children;
+                        for (int i=0;i<renderers.Count;i++) {
+                            if (renderers[i] is ForwardRenderer) {
+                                IPostProcessingEffects check = ((ForwardRenderer)renderers[i]).PostEffects;
+                                if (check != null && check is PostProcessingEffects) {
+                                    cachedProcessor = (PostProcessingEffects)check;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                return cachedProcessor;
+            }
+        }
+
+        [DataMemberIgnore]
+        private PostProcessingEffects cachedProcessor;
 
         /// <inheritdoc/>
         protected override void InitializeCore()
