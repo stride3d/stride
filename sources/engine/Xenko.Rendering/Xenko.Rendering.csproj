@@ -4063,6 +4063,12 @@
     <None Update="Rendering\Editor\SpritePicking.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
     </None>
+    <None Update="Rendering\Images\FogEffect\FogEffect.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+    </None>
+    <None Update="Rendering\Images\Fog\FogEffect.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Native\Xenko.Native.csproj" />

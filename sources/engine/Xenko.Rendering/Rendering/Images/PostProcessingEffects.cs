@@ -39,6 +39,7 @@ namespace Xenko.Rendering.Images
         /// </summary>
         public PostProcessingEffects()
         {
+            FogEffect = new Fog();
             AmbientOcclusion = new AmbientOcclusion();
             LocalReflections = new LocalReflections();
             DepthOfField = new DepthOfField();
@@ -69,6 +70,13 @@ namespace Xenko.Rendering.Images
         public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
+        /// Gets the fog effect.
+        /// </summary>
+        [DataMember(7)]
+        [Category]
+        public Fog FogEffect { get; private set; }
+
+        /// <summary>
         /// Gets the ambient occlusion effect.
         /// </summary>
         /// <userdoc>
@@ -77,7 +85,7 @@ namespace Xenko.Rendering.Images
         [DataMember(8)]
         [Category]
         public AmbientOcclusion AmbientOcclusion { get; private set; }
-
+        
         /// <summary>
         /// Gets the local reflections effect.
         /// </summary>
@@ -156,6 +164,7 @@ namespace Xenko.Rendering.Images
         /// </summary>
         public void DisableAll()
         {
+            FogEffect.Enabled = false;
             AmbientOcclusion.Enabled = false;
             LocalReflections.Enabled = false;
             DepthOfField.Enabled = false;
@@ -180,7 +189,7 @@ namespace Xenko.Rendering.Images
         protected override void InitializeCore()
         {
             base.InitializeCore();
-
+            FogEffect = ToLoadAndUnload(FogEffect);
             AmbientOcclusion = ToLoadAndUnload(AmbientOcclusion);
             LocalReflections = ToLoadAndUnload(LocalReflections);
             DepthOfField = ToLoadAndUnload(DepthOfField);
@@ -371,6 +380,15 @@ namespace Xenko.Rendering.Images
                 DepthOfField.SetOutput(dofOutput);
                 DepthOfField.Draw(context);
                 currentInput = dofOutput;
+            }
+
+            if (FogEffect.Enabled && inputDepthTexture != null) {
+                // Fog
+                var fogOutput = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
+                FogEffect.SetColorDepthInput(currentInput, inputDepthTexture, context.RenderContext.RenderView.NearClipPlane, context.RenderContext.RenderView.FarClipPlane);
+                FogEffect.SetOutput(fogOutput);
+                FogEffect.Draw(context);
+                currentInput = fogOutput;
             }
 
             // Luminance pass (only if tone mapping is enabled)

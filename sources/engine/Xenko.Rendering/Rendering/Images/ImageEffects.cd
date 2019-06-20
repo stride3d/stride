@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="Xenko.Rendering.Images.ImageEffect" Collapsed="true">
     <Position X="9.25" Y="0.5" Width="1.5" />
@@ -47,6 +47,13 @@
       <Field Name="blur" />
       <Field Name="afterimage" />
     </ShowAsAssociation>
+  </Class>
+  <Class Name="Xenko.Rendering.Images.Fog" Collapsed="true">
+    <Position X="4.5" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAABBBAAAAAAAAAAAAAACAAAAAEAAggAAAAAA=</HashCode>
+      <FileName>Rendering\Images\Fog\Fog.cs</FileName>
+    </TypeIdentifier>
   </Class>
   <Class Name="Xenko.Rendering.Images.BrightFilter" Collapsed="true">
     <Position X="4.5" Y="6" Width="1.5" />
@@ -172,6 +179,7 @@
     <Members>
       <Field Name="bloom" Hidden="true" />
       <Field Name="brightFilter" Hidden="true" />
+      <Field Name="Fog" Hidden="true" />
       <Property Name="Camera" Hidden="true" />
       <Field Name="colorTransformsGroup" Hidden="true" />
       <Field Name="depthOfField" Hidden="true" />
@@ -197,6 +205,13 @@
         <Point X="2" Y="2.691" />
         <Point X="2" Y="11.596" />
         <Point X="4.5" Y="11.596" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="Fog" Type="Xenko.Rendering.Images.Fog" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="2.562" Y="2.691" />
+        <Point X="2.562" Y="6.346" />
+        <Point X="4.5" Y="6.346" />
       </Path>
     </AssociationLine>
     <AssociationLine Name="BrightFilter" Type="Xenko.Rendering.Images.BrightFilter" FixedFromPoint="true" FixedToPoint="true">
@@ -248,6 +263,7 @@
     <ShowAsAssociation>
       <Field Name="luminanceEffect" />
       <Property Name="DepthOfField" />
+      <Property Name="Fog" />
       <Property Name="BrightFilter" />
       <Property Name="Bloom" />
       <Property Name="LightStreak" />
