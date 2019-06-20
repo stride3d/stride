@@ -11,6 +11,8 @@ namespace Xenko.Physics
 {
     public class BoxColliderShape : ColliderShape
     {
+        public readonly Vector3 BoxSize;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BoxColliderShape"/> class.
         /// </summary>
@@ -20,6 +22,7 @@ namespace Xenko.Physics
         {
             Type = ColliderShapeTypes.Box;
             Is2D = is2D;
+            BoxSize = size;
 
             //Box is not working properly when in a convex2dshape, Z cannot be 0
 

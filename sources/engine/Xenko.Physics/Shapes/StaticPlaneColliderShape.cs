@@ -12,6 +12,9 @@ namespace Xenko.Physics
 {
     public class StaticPlaneColliderShape : ColliderShape
     {
+        public readonly Vector3 Normal;
+        public readonly float Offset;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="StaticPlaneColliderShape"/> class.
         /// A static plane that is solid to infinity on one side.
@@ -20,20 +23,22 @@ namespace Xenko.Physics
         /// </summary>
         /// <param name="normal">The normal.</param>
         /// <param name="offset">The offset.</param>
-        public StaticPlaneColliderShape(Vector3 normal, float offset)
+        public StaticPlaneColliderShape(Vector3 normalParam, float offsetParam)
         {
             Type = ColliderShapeTypes.StaticPlane;
             Is2D = false;
+            Normal = normalParam;
+            Offset = offsetParam;
 
             cachedScaling = Vector3.One;
 
-            InternalShape = new BulletSharp.StaticPlaneShape(normal, offset)
+            InternalShape = new BulletSharp.StaticPlaneShape(Normal, Offset)
             {
                 LocalScaling = cachedScaling,
             };
 
             Matrix rotationMatrix;
-            var oY = Vector3.Normalize(normal);
+            var oY = Vector3.Normalize(Normal);
             var oZ = Vector3.Cross(Vector3.UnitX, oY);
             if (oZ.Length() > MathUtil.ZeroTolerance)
             {
@@ -55,7 +60,7 @@ namespace Xenko.Physics
                     0, 0, 0, 1);
             }
 
-            DebugPrimitiveMatrix = Matrix.Translation(offset * Vector3.UnitY) * rotationMatrix;
+            DebugPrimitiveMatrix = Matrix.Translation(Offset * Vector3.UnitY) * rotationMatrix;
         }
 
         public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
