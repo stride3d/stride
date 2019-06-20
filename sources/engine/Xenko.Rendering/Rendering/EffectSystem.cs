@@ -157,8 +157,7 @@ namespace Xenko.Rendering
             // Only take the sub-effect
             var bytecode = compilerResult.Bytecode;
 
-            if (bytecode.Task != null && !bytecode.Task.IsCompleted)
-            {
+            if (bytecode.Task != null && !bytecode.Task.IsCompleted) {
                 // Result was async, keep it async
                 // NOTE: There was some hangs when doing ContinueWith() (note: it might switch from EffectPriorityScheduler to TaskScheduler.Default, maybe something doesn't work well in this case?)
                 //       it seems that TaskContinuationOptions.ExecuteSynchronously is helping in this case (also it will force continuation to execute right away on the thread pool, which is probably better)
@@ -167,9 +166,9 @@ namespace Xenko.Rendering
                     x => CreateEffect(effectName, x.Result, compilerResult),
                     TaskContinuationOptions.ExecuteSynchronously);
                 return result;
-            }
-            else
-            {
+            } else if (bytecode.Task != null && bytecode.Task.IsFaulted) {
+                throw new InvalidOperationException("faultedEffectCompilationTask");
+            } else {
                 return CreateEffect(effectName, bytecode.WaitForResult(), compilerResult);
             }
         }
