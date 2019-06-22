@@ -8,7 +8,7 @@ namespace Xenko.Physics
     public interface IColliderShapeDesc
     {
         bool Match(object obj);
-        ColliderShape NewShapeFromDesc();
+        ColliderShape CreateShape();
     }
 
     public interface IAssetColliderShapeDesc : IColliderShapeDesc

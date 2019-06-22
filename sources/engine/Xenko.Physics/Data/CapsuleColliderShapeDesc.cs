@@ -65,7 +65,7 @@ namespace Xenko.Physics
                    other.LocalRotation == LocalRotation;
         }
 
-        public ColliderShape NewShapeFromDesc()
+        public ColliderShape CreateShape()
         {
             return new CapsuleColliderShape(Is2D, Radius, Length, Orientation) { LocalOffset = LocalOffset, LocalRotation = LocalRotation };
         }
