@@ -245,6 +245,10 @@ namespace Xenko.Graphics
                     format = Format.R8G8B8A8UNorm;
                     pixelSize = 4;
                     break;
+                case PixelFormat.R11G11B10_Float:
+                    format = Format.B10G11R11UFloatPack32;
+                    pixelSize = 4;
+                    break;
                 case PixelFormat.R8G8B8A8_UInt:
                     format = Format.R8G8B8A8UInt;
                     pixelSize = 4;
