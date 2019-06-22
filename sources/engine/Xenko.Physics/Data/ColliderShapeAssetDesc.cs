@@ -40,7 +40,7 @@ namespace Xenko.Physics
             return other.Shape == Shape;
         }
 
-        public ColliderShape NewShapeFromDesc()
+        public ColliderShape CreateShape()
         {
             if (Shape == null)
             {

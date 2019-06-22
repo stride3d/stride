@@ -42,7 +42,7 @@ namespace Xenko.Physics
             return other?.Is2D == Is2D && other.Size == Size && other.LocalOffset == LocalOffset && other.LocalRotation == LocalRotation;
         }
 
-        public ColliderShape NewShapeFromDesc()
+        public ColliderShape CreateShape()
         {
             return new BoxColliderShape(Is2D, Size) { LocalOffset = LocalOffset, LocalRotation = LocalRotation };
         }

@@ -70,7 +70,7 @@ namespace Xenko.Physics
                    other.Decomposition.Match(Decomposition);
         }
 
-        public ColliderShape NewShapeFromDesc()
+        public ColliderShape CreateShape()
         {
             if (ConvexHulls == null) return null;
             ColliderShape shape;

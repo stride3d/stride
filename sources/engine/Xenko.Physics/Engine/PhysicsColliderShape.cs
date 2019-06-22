@@ -83,7 +83,7 @@ namespace Xenko.Physics
             if (desc == null)
                 return null;
 
-            ColliderShape shape = desc.NewShapeFromDesc();
+            ColliderShape shape = desc.CreateShape();
             
             if (shape == null) return null;
 
