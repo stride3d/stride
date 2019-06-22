@@ -1,6 +1,7 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Xenko.Graphics
@@ -26,7 +27,7 @@ namespace Xenko.Graphics
 
         private int bufferAllocationOffset;
 
-        internal BufferPool(GraphicsResourceAllocator allocator, GraphicsDevice graphicsDevice, int size)
+        internal BufferPool(GraphicsResourceAllocator allocator, GraphicsDevice graphicsDevice, int size, CommandList clist = null)
         {
             constantBufferAlignment = graphicsDevice.ConstantBufferDataPlacementAlignment;
             if (size % constantBufferAlignment != 0)
@@ -38,12 +39,17 @@ namespace Xenko.Graphics
             if (!UseBufferOffsets)
                 Data = Marshal.AllocHGlobal(size);
 
+            this.commandList = clist;
+
+#if XENKO_GRAPHICS_API_VULKAN
+            constantBuffer = allocator.GetTemporaryBuffer(new BufferDescription(Size, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic));
+#endif
             Reset();
         }
 
-        public static BufferPool New(GraphicsResourceAllocator allocator, GraphicsDevice graphicsDevice, int size)
+        public static BufferPool New(GraphicsResourceAllocator allocator, GraphicsDevice graphicsDevice, int size, CommandList clist = null)
         {
-            return new BufferPool(allocator, graphicsDevice, size);
+            return new BufferPool(allocator, graphicsDevice, size, clist);
         }
 
         public void Dispose()
@@ -82,18 +88,13 @@ namespace Xenko.Graphics
 
         public void Reset()
         {
-            if (UseBufferOffsets) {
-                if (GraphicsDevice.Platform == GraphicsPlatform.Vulkan) {
-                    if (constantBuffer == null) constantBuffer = allocator.GetTemporaryBuffer(new BufferDescription(Size, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic));
-                } else {
-                    // Release previous buffer
-                    if (constantBuffer != null)
-                        allocator.ReleaseReference(constantBuffer);
+#if !XENKO_GRAPHICS_API_VULKAN
+            // Release previous buffer
+            if (constantBuffer != null)
+                allocator.ReleaseReference(constantBuffer);
 
-                    constantBuffer = allocator.GetTemporaryBuffer(new BufferDescription(Size, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic));
-                }
-            }
-
+            constantBuffer = allocator.GetTemporaryBuffer(new BufferDescription(Size, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic));
+#endif
             bufferAllocationOffset = 0;
         }
 

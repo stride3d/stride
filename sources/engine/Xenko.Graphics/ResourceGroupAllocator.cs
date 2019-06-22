@@ -37,6 +37,14 @@ namespace Xenko.Graphics
             this.graphicsDevice = commandList.GraphicsDevice;
 
             SetupNextDescriptorPool();
+
+            // prepare some buffers now, so we don't need to worry about threading issues later
+            PreallocateBuffers(24);
+        }
+
+        private void PreallocateBuffers(int count) {
+            for (int i=0;i<count;i++)
+                bufferPools.Add(currentBufferPool = BufferPool.New(allocator, graphicsDevice, 1024 * 1024, commandList));
         }
 
         protected override void Destroy()
