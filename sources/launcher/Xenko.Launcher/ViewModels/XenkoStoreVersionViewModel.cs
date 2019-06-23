@@ -12,6 +12,8 @@ using Xenko.Core.Packages;
 using Xenko.Core.Presentation.Collections;
 using Xenko.Core.Presentation.Commands;
 using Xenko.Core.Presentation.Services;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Xenko.LauncherApp.ViewModels
 {
@@ -20,6 +22,7 @@ namespace Xenko.LauncherApp.ViewModels
     /// </summary>
     internal sealed class XenkoStoreVersionViewModel : XenkoVersionViewModel
     {
+        internal NugetServerPackage LatestServerPackage;
         private ReleaseNotesViewModel releaseNotes;
 
         /// <summary>
@@ -57,6 +60,8 @@ namespace Xenko.LauncherApp.ViewModels
         /// </summary>
         public string ServerVersionFullName => ServerPackage?.Version?.ToString() ?? "";
 
+        public ObservableList<XenkoStoreAlternateVersionViewModel> AlternateVersions { get; } = new ObservableList<XenkoStoreAlternateVersionViewModel>();
+
         /// <summary>
         /// Gets the release notes associated to this version.
         /// </summary>
@@ -77,22 +82,82 @@ namespace Xenko.LauncherApp.ViewModels
         /// Updates the local package of this version.
         /// </summary>
         /// <param name="package">The local package corresponding to this version.</param>
-        internal void UpdateLocalPackage(NugetLocalPackage package)
+        internal void UpdateLocalPackage(NugetLocalPackage package, IEnumerable<NugetLocalPackage> alternateVersions)
         {
             OnPropertyChanging(nameof(FullName), nameof(Version));
             LocalPackage = package;
             OnPropertyChanged(nameof(FullName), nameof(Version));
             Dispatcher.Invoke(UpdateStatus);
+            if (alternateVersions != null)
+            {
+                Dispatcher.Invoke(() =>
+                    UpdateAlternateVersions(alternateVersions, (alternateVersionViewModel, alternateVersion) =>
+                    {
+                        if (alternateVersion == null && alternateVersionViewModel.ServerPackage == null)
+                            AlternateVersions.Remove(alternateVersionViewModel);
+                        else
+                            alternateVersionViewModel.UpdateLocalPackage(alternateVersion);
+                    }));
+            }
         }
 
         /// <summary>
         /// Updates the server package of this version.
         /// </summary>
         /// <param name="package">The server package corresponding to this version.</param>
-        internal void UpdateServerPackage(NugetServerPackage package)
+        internal void UpdateServerPackage(NugetServerPackage package, IEnumerable<NugetServerPackage> alternateVersions)
         {
+            OnPropertyChanging(nameof(FullName), nameof(Version));
             ServerPackage = package;
+            OnPropertyChanged(nameof(FullName), nameof(Version));
+
+            // Always keep track of highest version
+            if (ServerPackage != null && (LatestServerPackage == null || LatestServerPackage.Version < ServerPackage.Version))
+                LatestServerPackage = ServerPackage;
+
             Dispatcher.Invoke(UpdateStatus);
+            if (alternateVersions != null)
+            {
+                Dispatcher.Invoke(() =>
+                    UpdateAlternateVersions(alternateVersions, (alternateVersionViewModel, alternateVersion) =>
+                    {
+                        if (alternateVersion == null && alternateVersionViewModel.LocalPackage == null)
+                            AlternateVersions.Remove(alternateVersionViewModel);
+                        else
+                            alternateVersionViewModel.UpdateServerPackage(alternateVersion);
+                    }));
+            }
+        }
+
+        private void UpdateAlternateVersions<T>(IEnumerable<T> alternateVersions, Action<XenkoStoreAlternateVersionViewModel, T> updateAction) where T : NugetPackage
+        {
+            var updatedViewModels = new HashSet<XenkoStoreAlternateVersionViewModel>();
+            foreach (var alternateVersion in alternateVersions)
+            {
+
+                int index = AlternateVersions.IndexOf(x => x.Version == alternateVersion.Version);
+                XenkoStoreAlternateVersionViewModel alternateVersionViewModel;
+                if (index < 0)
+                {
+                    // If not, add it
+                    alternateVersionViewModel = new XenkoStoreAlternateVersionViewModel(this);
+                    AlternateVersions.Add(alternateVersionViewModel);
+                }
+                else
+                {
+                    // If yes, update it and remove it from the list of old version
+                    alternateVersionViewModel = AlternateVersions[index];
+                }
+
+                updateAction(alternateVersionViewModel, alternateVersion);
+                updatedViewModels.Add(alternateVersionViewModel);
+            }
+
+            // Update versions that are not installed locally anymore
+            foreach (var alternateVersionViewModel in AlternateVersions.Where(x => !updatedViewModels.Contains(x)).ToList())
+            {
+                updateAction(alternateVersionViewModel, null);
+            }
         }
 
         internal async Task RunPrerequisitesInstaller()
@@ -183,6 +248,8 @@ namespace Xenko.LauncherApp.ViewModels
         {
             base.AfterDownload();
             RunPrerequisitesInstaller().Forget();
+
+            Launcher.ActiveVersion = this;
         }
 
         /// <summary>
