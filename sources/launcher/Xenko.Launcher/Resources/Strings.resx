@@ -422,4 +422,8 @@
     <value>Open '{0}'</value>
     <comment>The tooltip for website links.</comment>
   </data>
+  <data name="InstallVersion" xml:space="preserve">
+    <value>Install {0}</value>
+    <comment>{0}: long version name</comment>
+  </data>
 </root>

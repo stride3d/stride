@@ -12,6 +12,7 @@ namespace Xenko.LauncherApp.ViewModels
     internal abstract class XenkoVersionViewModel : PackageVersionViewModel, IComparable<XenkoVersionViewModel>, IComparable<Tuple<int, int>>
     {
         private bool isVisible;
+        private bool canStart;
 
         internal XenkoVersionViewModel(LauncherViewModel launcher, NugetStore store, NugetLocalPackage localPackage, int major, int minor)
             : base(launcher, store, localPackage)
@@ -59,6 +60,11 @@ namespace Xenko.LauncherApp.ViewModels
         public bool IsVisible { get { return isVisible; } private set { SetValue(ref isVisible, value); } }
 
         /// <summary>
+        /// Gets whether this version can be started.
+        /// </summary>
+        public bool CanStart { get { return canStart; } private set { SetValue(ref canStart, value); } }
+
+        /// <summary>
         /// Builds a string that represents the given version numbers.
         /// </summary>
         /// <param name="majorVersion">The major version number.</param>
@@ -92,6 +98,9 @@ namespace Xenko.LauncherApp.ViewModels
             IsVisible = Launcher.ShowBetaVersions || !IsBeta || CanDelete;
             SetAsActiveCommand.IsEnabled = CanDelete;
             DeleteCommand.IsEnabled = CanDelete;
+            CanStart = CanDelete;
+            if (Launcher.ActiveVersion == this)
+                Launcher.StartStudioCommand.IsEnabled = CanStart;
         }
 
         public int CompareTo(XenkoVersionViewModel other)

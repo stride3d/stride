@@ -93,7 +93,7 @@ namespace Xenko.LauncherApp.ViewModels
 
         public VsixVersionViewModel VsixPackage { get; }
 
-        public XenkoVersionViewModel ActiveVersion { get { return activeVersion; } set { SetValue(ref activeVersion, value, () => Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = (value != null))); } }
+        public XenkoVersionViewModel ActiveVersion { get { return activeVersion; } set { SetValue(ref activeVersion, value); Dispatcher.InvokeAsync(() => StartStudioCommand.IsEnabled = (value != null) && value.CanStart); } }
 
         public ObservableList<RecentProjectViewModel> RecentProjects { get; } = new ObservableList<RecentProjectViewModel>();
 
@@ -195,7 +195,6 @@ namespace Xenko.LauncherApp.ViewModels
             await RetrieveLocalXenkoVersions();
             await RetrieveServerXenkoVersions();
             Dispatcher.Invoke(() => IsSynchronizing = false);
-
         }
 
         public async Task RetrieveLocalXenkoVersions()
@@ -231,7 +230,7 @@ namespace Xenko.LauncherApp.ViewModels
                             {
                                 version = (XenkoStoreVersionViewModel)xenkoVersions[index];
                             }
-                            version.UpdateLocalPackage(localPackage);
+                            version.UpdateLocalPackage(localPackage, package);
                             updatedLocalPackages.Add(version);
                         }
                     }
@@ -240,7 +239,7 @@ namespace Xenko.LauncherApp.ViewModels
                     Dispatcher.Invoke(() =>
                     {
                         foreach (var xenkoUninstalledVersion in xenkoVersions.OfType<XenkoStoreVersionViewModel>().Where(x => !updatedLocalPackages.Contains(x)))
-                            xenkoUninstalledVersion.UpdateLocalPackage(null);
+                            xenkoUninstalledVersion.UpdateLocalPackage(null, new NugetLocalPackage[0]);
                     });
 
                     // Update the active version if it is now invalid.
@@ -368,7 +367,7 @@ namespace Xenko.LauncherApp.ViewModels
                                 // If yes, update it and remove it from the list of old version
                                 version = (XenkoStoreVersionViewModel)xenkoVersions[index];
                             }
-                            version.UpdateServerPackage(serverPackage);
+                            version.UpdateServerPackage(serverPackage, package);
                         }
                     }
                 }
@@ -516,7 +515,7 @@ namespace Xenko.LauncherApp.ViewModels
             await Task.Delay(5000);
             Dispatcher.Invoke(() =>
             {
-                StartStudioCommand.IsEnabled = ActiveVersion != null;
+                StartStudioCommand.IsEnabled = ActiveVersion != null && ActiveVersion.CanStart;
                 //Save settings because launcher maybe have not been closed
                 LauncherSettings.ActiveVersion = ActiveVersion != null ? ActiveVersion.Name : "";
                 LauncherSettings.Save();
