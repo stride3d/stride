@@ -16,7 +16,6 @@ namespace Xenko.Input
         private readonly Window uiControl;
 
         private bool isMousePositionLocked;
-        private bool wasMouseVisibleBeforeCapture;
         private Point relativeCapturedPosition;
 
         public MouseSDL(InputSourceSDL source, GameBase game, Window uiControl)
@@ -54,7 +53,6 @@ namespace Xenko.Input
         {
             if (!IsPositionLocked)
             {
-                wasMouseVisibleBeforeCapture = game.IsMouseVisible;
                 game.IsMouseVisible = false;
 
                 if (forceCenter)
@@ -78,7 +76,6 @@ namespace Xenko.Input
             {
                 isMousePositionLocked = false;
                 relativeCapturedPosition = Point.Zero;
-                game.IsMouseVisible = wasMouseVisibleBeforeCapture;
             }
         }
 
