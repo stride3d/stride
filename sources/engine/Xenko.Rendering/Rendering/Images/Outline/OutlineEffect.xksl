@@ -12,6 +12,7 @@ namespace Xenko.Rendering.Images
 
         stage float NormalWeight;
         stage float DepthWeight;
+        stage float NormalNearCutoff;
 
         stage Texture2D DepthTexture;
         
@@ -37,12 +38,13 @@ namespace Xenko.Rendering.Images
             // get depth
             float z_b = DepthTexture.SampleLevel(PointSampler, tc, 0.0).x;
             float z_n = 2.0 * z_b - 1.0;
+            float linearDepth = 2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear));
 
             // linear depth
-            nd.w = DepthWeight * (2.0 * zNear * zFar / (zFar + zNear - z_n * (zFar - zNear)));
+            nd.w = DepthWeight * linearDepth;
             
-            // normal
-            nd.xyz = normal_from_depth(z_b, tc) * NormalWeight;
+            // normal, but skip stuff really close
+            nd.xyz = step(NormalNearCutoff, linearDepth) * normal_from_depth(z_b, tc) * NormalWeight;
             
             return nd;
         }

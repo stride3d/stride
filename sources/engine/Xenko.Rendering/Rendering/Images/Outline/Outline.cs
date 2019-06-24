@@ -30,6 +30,9 @@ namespace Xenko.Rendering.Images {
         [DataMember(20)]
         public float DepthWeight { get; set; } = 0.2f;
 
+        [DataMember(30)]
+        public float NormalNearCutoff { get; set; } = 0.1f;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CartoonFilter"/> class.
         /// </summary>
@@ -59,6 +62,7 @@ namespace Xenko.Rendering.Images {
         protected override void SetDefaultParameters() {
             NormalWeight = 2f;
             DepthWeight = 0.2f;
+            NormalNearCutoff = 0.1f;
             base.SetDefaultParameters();
         }
 
@@ -76,6 +80,7 @@ namespace Xenko.Rendering.Images {
 
             outlineFilter.Parameters.Set(OutlineEffectKeys.NormalWeight, NormalWeight);
             outlineFilter.Parameters.Set(OutlineEffectKeys.DepthWeight, DepthWeight);
+            outlineFilter.Parameters.Set(OutlineEffectKeys.NormalNearCutoff, NormalNearCutoff);
 
             outlineFilter.SetInput(0, color);
             outlineFilter.SetOutput(output);

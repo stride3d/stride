@@ -23,6 +23,7 @@ namespace Xenko.Rendering
         public static readonly ValueParameterKey<float> zNear = ParameterKeys.NewValue<float>(0.1f);
         public static readonly ValueParameterKey<float> NormalWeight = ParameterKeys.NewValue<float>(2f);
         public static readonly ValueParameterKey<float> DepthWeight = ParameterKeys.NewValue<float>(0.2f);
+        public static readonly ValueParameterKey<float> NormalNearCutoff = ParameterKeys.NewValue<float>(0.1f);
         public static readonly ObjectParameterKey<Texture> DepthTexture = ParameterKeys.NewObject<Texture>();
     }
 }
