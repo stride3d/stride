@@ -48,6 +48,13 @@
       <Field Name="afterimage" />
     </ShowAsAssociation>
   </Class>
+  <Class Name="Xenko.Rendering.Images.Outline" Collapsed="true">
+    <Position X="4.5" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAACCCAAAAAAAAAAAAAACAAAAAEAAggAAAAAA=</HashCode>
+      <FileName>Rendering\Images\Outline\Outline.cs</FileName>
+    </TypeIdentifier>
+  </Class>
   <Class Name="Xenko.Rendering.Images.Fog" Collapsed="true">
     <Position X="4.5" Y="6" Width="1.5" />
     <TypeIdentifier>
@@ -179,6 +186,7 @@
     <Members>
       <Field Name="bloom" Hidden="true" />
       <Field Name="brightFilter" Hidden="true" />
+      <Field Name="Oultine" Hidden="true" />
       <Field Name="Fog" Hidden="true" />
       <Property Name="Camera" Hidden="true" />
       <Field Name="colorTransformsGroup" Hidden="true" />
@@ -208,6 +216,13 @@
       </Path>
     </AssociationLine>
     <AssociationLine Name="Fog" Type="Xenko.Rendering.Images.Fog" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="2.562" Y="2.691" />
+        <Point X="2.562" Y="6.346" />
+        <Point X="4.5" Y="6.346" />
+      </Path>
+    </AssociationLine>
+    <AssociationLine Name="Outline" Type="Xenko.Rendering.Images.Outline" FixedFromPoint="true" FixedToPoint="true">
       <Path>
         <Point X="2.562" Y="2.691" />
         <Point X="2.562" Y="6.346" />
@@ -263,6 +278,7 @@
     <ShowAsAssociation>
       <Field Name="luminanceEffect" />
       <Property Name="DepthOfField" />
+      <Property Name="Outline" />
       <Property Name="Fog" />
       <Property Name="BrightFilter" />
       <Property Name="Bloom" />

@@ -11,37 +11,37 @@ namespace Xenko.Rendering.Images {
     /// <summary>
     /// A fog filter.
     /// </summary>
-    [DataContract("Fog")]
-    public class Fog : ImageEffect {
-        private readonly ImageEffectShader fogFilter;
+    [DataContract("Outline")]
+    public class Outline : ImageEffect {
+        private readonly ImageEffectShader outlineFilter;
         private Texture depthTexture;
         private float zMin, zMax;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Fog"/> class.
+        /// Initializes a new instance of the <see cref="CartoonFilter"/> class.
         /// </summary>
-        public Fog()
-            : this("FogEffect") {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Fog"/> class.
-        /// </summary>
-        /// <param name="brightPassShaderName">Name of the bright pass shader.</param>
-        public Fog(string ShaderName) : base(ShaderName) {
-            if (ShaderName == null) throw new ArgumentNullException("fogFilterName");
-            fogFilter = new ImageEffectShader(ShaderName);
+        public Outline()
+            : this("OutlineEffect") {
         }
 
         [DataMember(10)]
-        public float Density { get; set; } = 0.1f;
+        public float NormalWeight { get; set; } = 2f;
 
         [DataMember(20)]
-        public Color4 Color { get; set; } = new Color4(1.0f);
+        public float DepthWeight { get; set; } = 0.2f;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CartoonFilter"/> class.
+        /// </summary>
+        /// <param name="brightPassShaderName">Name of the bright pass shader.</param>
+        public Outline(string ShaderName) : base(ShaderName) {
+            if (ShaderName == null) throw new ArgumentNullException("outlineFilterName");
+            outlineFilter = new ImageEffectShader(ShaderName);
+        }
 
         protected override void InitializeCore() {
             base.InitializeCore();
-            ToLoadAndUnload(fogFilter);
+            ToLoadAndUnload(outlineFilter);
         }
 
         /// <summary>
@@ -57,8 +57,8 @@ namespace Xenko.Rendering.Images {
         }
 
         protected override void SetDefaultParameters() {
-            Color = new Color4(1.0f);
-            Density = 0.1f;
+            NormalWeight = 2f;
+            DepthWeight = 0.2f;
             base.SetDefaultParameters();
         }
 
@@ -69,15 +69,17 @@ namespace Xenko.Rendering.Images {
                 return;
             }
 
-            fogFilter.Parameters.Set(FogEffectKeys.FogColor, Color);
-            fogFilter.Parameters.Set(FogEffectKeys.Density, Density);
-            fogFilter.Parameters.Set(FogEffectKeys.DepthTexture, depthTexture);
-            fogFilter.Parameters.Set(FogEffectKeys.zFar, zMax);
-            fogFilter.Parameters.Set(FogEffectKeys.zNear, zMin);
+            outlineFilter.Parameters.Set(OutlineEffectKeys.ScreenDiffs, new Vector2(0.5f / color.Width, 0.5f / color.Height));
+            outlineFilter.Parameters.Set(OutlineEffectKeys.DepthTexture, depthTexture);
+            outlineFilter.Parameters.Set(OutlineEffectKeys.zFar, zMax);
+            outlineFilter.Parameters.Set(OutlineEffectKeys.zNear, zMin);
 
-            fogFilter.SetInput(0, color);
-            fogFilter.SetOutput(output);
-            ((RendererBase)fogFilter).Draw(context);
+            outlineFilter.Parameters.Set(OutlineEffectKeys.NormalWeight, NormalWeight);
+            outlineFilter.Parameters.Set(OutlineEffectKeys.DepthWeight, DepthWeight);
+
+            outlineFilter.SetInput(0, color);
+            outlineFilter.SetOutput(output);
+            ((RendererBase)outlineFilter).Draw(context);
         }
     }
 }

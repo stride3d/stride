@@ -39,6 +39,7 @@ namespace Xenko.Rendering.Images
         /// </summary>
         public PostProcessingEffects()
         {
+            OutlineEffect = new Outline();
             FogEffect = new Fog();
             AmbientOcclusion = new AmbientOcclusion();
             LocalReflections = new LocalReflections();
@@ -68,6 +69,13 @@ namespace Xenko.Rendering.Images
         [DataMember(-100), Display(Browsable = false)]
         [NonOverridable]
         public Guid Id { get; set; } = Guid.NewGuid();
+
+        /// <summary>
+        /// Gets the outline effect.
+        /// </summary>
+        [DataMember(6)]
+        [Category]
+        public Outline OutlineEffect { get; private set; }
 
         /// <summary>
         /// Gets the fog effect.
@@ -164,6 +172,7 @@ namespace Xenko.Rendering.Images
         /// </summary>
         public void DisableAll()
         {
+            OutlineEffect.Enabled = false;
             FogEffect.Enabled = false;
             AmbientOcclusion.Enabled = false;
             LocalReflections.Enabled = false;
@@ -189,6 +198,7 @@ namespace Xenko.Rendering.Images
         protected override void InitializeCore()
         {
             base.InitializeCore();
+            OutlineEffect = ToLoadAndUnload(OutlineEffect);
             FogEffect = ToLoadAndUnload(FogEffect);
             AmbientOcclusion = ToLoadAndUnload(AmbientOcclusion);
             LocalReflections = ToLoadAndUnload(LocalReflections);
@@ -292,6 +302,15 @@ namespace Xenko.Rendering.Images
             var fxaa = Antialiasing as FXAAEffect;
             bool aaFirst = Bloom != null && Bloom.StableConvolution;
             bool needAA = Antialiasing != null && Antialiasing.Enabled;
+
+            if (OutlineEffect.Enabled && inputDepthTexture != null) {
+                // Outline
+                var outlineOutput = NewScopedRenderTarget2D(input.Width, input.Height, input.Format);
+                OutlineEffect.SetColorDepthInput(currentInput, inputDepthTexture, context.RenderContext.RenderView.NearClipPlane, context.RenderContext.RenderView.FarClipPlane);
+                OutlineEffect.SetOutput(outlineOutput);
+                OutlineEffect.Draw(context);
+                currentInput = outlineOutput;
+            }
 
             // do AA here, first. (hybrid method from Karis2013)
             if (aaFirst && needAA)

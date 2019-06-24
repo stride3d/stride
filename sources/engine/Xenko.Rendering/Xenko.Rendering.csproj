@@ -4063,6 +4063,9 @@
     <None Update="Rendering\Editor\SpritePicking.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
     </None>
+    <None Update="Rendering\Images\Outline\OutlineEffect.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+    </None>
     <None Update="Rendering\Images\FogEffect\FogEffect.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
     </None>
