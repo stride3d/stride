@@ -1074,7 +1074,7 @@ namespace Xenko.Physics
             BulletSharp.LocalConvexResult closestHit;
             bool normalInWorldSpace;
             float? closestFraction;
-            public HitResult Result => closestFraction != null ? ComputeHitResult(ref closestHit, normalInWorldSpace) : new HitResult() { Succeeded = false };
+            public HitResult Result => ComputeHitResult(ref closestHit, normalInWorldSpace);
 
             public override float AddSingleResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpaceParam)
             {
@@ -1139,7 +1139,7 @@ namespace Xenko.Physics
             BulletSharp.LocalRayResult closestHit;
             bool normalInWorldSpace;
             float? closestFraction;
-            public HitResult Result => closestFraction != null ? ComputeHitResult(ref closestHit, normalInWorldSpace) : new HitResult() { Succeeded = false };
+            public HitResult Result => ComputeHitResult(ref closestHit, normalInWorldSpace);
 
             public XenkoClosestRayResultCallback(ref Vector3 from, ref Vector3 to) : base(ref from, ref to)
             {
@@ -1185,16 +1185,22 @@ namespace Xenko.Physics
 
             public HitResult ComputeHitResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
             {
-                Vector3 normal;
-                if (normalInWorldSpace)
-                    normal = rayResult.m_hitNormalLocal;
-                else
-                    normal = Vector3.TransformNormal(rayResult.m_hitNormalLocal, rayResult.CollisionObject.WorldTransform.Basis);
+                var obj = rayResult.CollisionObject;
+                if (obj == null)
+                {
+                    return new HitResult() { Succeeded = false };
+                }
+
+                Vector3 normal = rayResult.m_hitNormalLocal;
+                if (!normalInWorldSpace)
+                {
+                    normal = Vector3.TransformNormal(normal, obj.WorldTransform.Basis);
+                }
 
                 return new HitResult
                 {
                     Succeeded = true,
-                    Collider = rayResult.CollisionObject.UserObject as PhysicsComponent,
+                    Collider = obj.UserObject as PhysicsComponent,
                     Point = Vector3.Lerp(RayFromWorld, RayToWorld, rayResult.m_hitFraction),
                     Normal = normal,
                     HitFraction = rayResult.m_hitFraction,
@@ -1217,17 +1223,23 @@ namespace Xenko.Physics
         {
             public HitResult ComputeHitResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
             {
-                Vector3 normal;
-                if (normalInWorldSpace)
-                    normal = convexResult.m_hitNormalLocal;
-                else
-                    normal = Vector3.TransformNormal(convexResult.m_hitNormalLocal, convexResult.HitCollisionObject.WorldTransform.Basis);
+                var obj = convexResult.HitCollisionObject;
+                if ( obj == null )
+                {
+                    return new HitResult() { Succeeded = false };
+                }
+
+                Vector3 normal = convexResult.m_hitNormalLocal;
+                if (!normalInWorldSpace)
+                {
+                    normal = Vector3.TransformNormal(normal, obj.WorldTransform.Basis);
+                }
 
                 return new HitResult
                 {
                     Succeeded = true,
-                    Collider = convexResult.HitCollisionObject.UserObject as PhysicsComponent,
-                    Point = Vector3.TransformCoordinate(convexResult.m_hitPointLocal, convexResult.HitCollisionObject.WorldTransform.Basis),
+                    Collider = obj.UserObject as PhysicsComponent,
+                    Point = convexResult.m_hitPointLocal,
                     Normal = normal,
                     HitFraction = convexResult.m_hitFraction,
                 };
