@@ -43,6 +43,7 @@ namespace Xenko.Rendering.UI
                     renderUIElement.WorldMatrix = uiComponent.Entity.Transform.WorldMatrix;
 
                     renderUIElement.RenderGroup = uiComponent.RenderGroup;
+                    renderUIElement.DistanceSortFudge = uiComponent.DistanceSortFudge;
 
                     renderUIElement.Page = uiComponent.Page;
                     renderUIElement.IsFullScreen = uiComponent.IsFullScreen;

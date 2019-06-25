@@ -111,6 +111,7 @@ namespace Xenko.Rendering
                         var mesh = renderModel.Model.Meshes[sourceMeshIndex];
                         var meshInfo = modelComponent.MeshInfos[sourceMeshIndex];
                         var nodeIndex = mesh.NodeIndex;
+                        renderMesh.DistanceSortFudge = modelComponent.DistanceSortFudge;
                         renderMesh.World = nodeTransformations[nodeIndex].WorldMatrix;
                         renderMesh.IsScalingNegative = nodeTransformations[nodeIndex].IsScalingNegative;
                         renderMesh.BoundingBox = new BoundingBoxExt(meshInfo.BoundingBox);

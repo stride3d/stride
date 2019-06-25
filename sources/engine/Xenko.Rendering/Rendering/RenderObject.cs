@@ -29,6 +29,7 @@ namespace Xenko.Rendering
         public ActiveRenderStage[] ActiveRenderStages;
         public uint StateSortKey;
         public readonly int Index = Interlocked.Increment(ref currentIndex);
+        public float DistanceSortFudge = 0f;
 
         // TODO: Switch to a "StaticPropertyContainer" that will be optimized by assembly processor
         //public PropertyContainer Tags;

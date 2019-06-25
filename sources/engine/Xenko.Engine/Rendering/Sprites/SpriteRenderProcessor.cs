@@ -38,6 +38,7 @@ namespace Xenko.Rendering.Sprites
                     renderSprite.RotationEulerZ = spriteComponent.Entity.Transform.RotationEulerXYZ.Z;
 
                     renderSprite.RenderGroup = spriteComponent.RenderGroup;
+                    renderSprite.DistanceSortFudge = spriteComponent.DistanceSortFudge;
 
                     renderSprite.Sprite = currentSprite;
                     renderSprite.SpriteType = spriteComponent.SpriteType;

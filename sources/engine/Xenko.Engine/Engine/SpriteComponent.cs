@@ -128,6 +128,14 @@ namespace Xenko.Engine
         [DefaultValue(RenderGroup.Group0)]
         public RenderGroup RenderGroup { get; set; }
 
+        /// <summary>
+        /// Tweak the sorting distance. Can help with transparent sorting.
+        /// </summary>
+        [DataMember(100)]
+        [Display("Distance Sort Fudge")]
+        [DefaultValue(0f)]
+        public float DistanceSortFudge { get; set; }
+
         [DataMemberIgnore]
         internal double ElapsedTime;
 

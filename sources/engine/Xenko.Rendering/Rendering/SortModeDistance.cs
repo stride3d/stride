@@ -52,7 +52,7 @@ namespace Xenko.Rendering
                 var renderNode = renderNodes[i];
 
                 var renderObject = renderNode.RenderObject;
-                var distance = CollisionHelper.DistancePlanePoint(ref plane, ref renderObject.BoundingBox.Center);
+                var distance = renderObject.DistanceSortFudge + CollisionHelper.DistancePlanePoint(ref plane, ref renderObject.BoundingBox.Center);
                 var distanceI = ComputeDistance(distance);
                 if (reverseDistance)
                     distanceI = ~distanceI;

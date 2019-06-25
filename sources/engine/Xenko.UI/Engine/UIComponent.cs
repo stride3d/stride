@@ -112,6 +112,14 @@ namespace Xenko.Engine
         public RenderGroup RenderGroup { get; set; }
 
         /// <summary>
+        /// Tweak the sorting distance. Can help with transparent sorting.
+        /// </summary>
+        [DataMember(90)]
+        [Display("Distance Sort Fudge")]
+        [DefaultValue(0f)]
+        public float DistanceSortFudge { get; set; }
+
+        /// <summary>
         /// A fixed size UI component with height of 1 will be this much of the vertical resolution on screen
         /// </summary>
         [DataMemberIgnore]

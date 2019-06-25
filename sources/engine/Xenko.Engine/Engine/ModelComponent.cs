@@ -150,6 +150,14 @@ namespace Xenko.Engine
         public RenderGroup RenderGroup { get; set; }
 
         /// <summary>
+        /// Tweak the sorting distance. Can help with transparent sorting.
+        /// </summary>
+        [DataMember(30)]
+        [Display("Distance Sort Fudge")]
+        [DefaultValue(0f)]
+        public float DistanceSortFudge { get; set; }
+
+        /// <summary>
         /// Gets the bounding box in world space.
         /// </summary>
         /// <value>The bounding box.</value>
