@@ -77,10 +77,11 @@ namespace Xenko.Rendering.Compositing
         /// Shortcut to getting post processing effects
         /// </summary>
         [DataMemberIgnore]
-        public PostProcessingEffects PostProcessing {
+        public List<PostProcessingEffects> PostProcessing {
             get {
                 if (cachedProcessor == null && Game is SceneCameraRenderer) {
-                    // find it
+                    // find them
+                    cachedProcessor = new List<PostProcessingEffects>();
                     SceneCameraRenderer cgame = (SceneCameraRenderer)Game;
                     if (cgame.Child is SceneRendererCollection) {
                         SceneRendererCollection src = (SceneRendererCollection)cgame.Child;
@@ -89,8 +90,7 @@ namespace Xenko.Rendering.Compositing
                             if (renderers[i] is ForwardRenderer) {
                                 IPostProcessingEffects check = ((ForwardRenderer)renderers[i]).PostEffects;
                                 if (check != null && check is PostProcessingEffects) {
-                                    cachedProcessor = (PostProcessingEffects)check;
-                                    break;
+                                    cachedProcessor.Add((PostProcessingEffects)check);
                                 }
                             }
                         }
@@ -101,7 +101,7 @@ namespace Xenko.Rendering.Compositing
         }
 
         [DataMemberIgnore]
-        private PostProcessingEffects cachedProcessor;
+        private List<PostProcessingEffects> cachedProcessor;
 
         /// <inheritdoc/>
         protected override void InitializeCore()
