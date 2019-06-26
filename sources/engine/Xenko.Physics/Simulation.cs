@@ -1096,6 +1096,7 @@ namespace Xenko.Physics
                     shared = new XenkoClosestConvexResultCallback();
                 }
                 shared.closestFraction = null;
+                shared.closestHit = new BulletSharp.LocalConvexResult(); // this can't be recycled, needs to be reset. fortunately it is a struct
                 shared.Recycle(filterGroup, filterMask);
                 return shared;
             }
@@ -1167,6 +1168,7 @@ namespace Xenko.Physics
                     shared = new XenkoClosestRayResultCallback(ref from, ref to);
                 }
                 shared.closestFraction = null;
+                shared.closestHit = new LocalRayResult(); // this can't be recycled, needs to be reset. fortunately it is a struct
                 shared.Recycle(ref from, ref to, filterGroup, filterMask);
                 return shared;
             }
