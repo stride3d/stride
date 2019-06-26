@@ -1041,16 +1041,16 @@ namespace Xenko.Physics
             [ThreadStatic]
             static XenkoAllHitsConvexResultCallback shared;
 
-            private IList<HitResult> resultsList;
+            public IList<HitResult> ResultsList { get; set; }
 
             public XenkoAllHitsConvexResultCallback(IList<HitResult> results)
             {
-                resultsList = results;
+                ResultsList = results;
             }
 
             public override float AddSingleResult(ref BulletSharp.LocalConvexResult convexResult, bool normalInWorldSpace)
             {
-                resultsList.Add(ComputeHitResult(ref convexResult, normalInWorldSpace));
+                ResultsList.Add(ComputeHitResult(ref convexResult, normalInWorldSpace));
                 return convexResult.m_hitFraction;
             }
 
@@ -1060,7 +1060,7 @@ namespace Xenko.Physics
                 {
                     shared = new XenkoAllHitsConvexResultCallback(buffer);
                 }
-                shared.resultsList = buffer;
+                shared.ResultsList = buffer;
                 shared.Recycle(filterGroup, filterMask);
                 return shared;
             }
@@ -1089,14 +1089,19 @@ namespace Xenko.Physics
                 return fraction;
             }
 
+            public override void Recycle(CollisionFilterGroups filterGroup = CollisionFilterGroups.DefaultFilter, CollisionFilterGroupFlags filterMask = (CollisionFilterGroupFlags)(-1))
+            {
+                base.Recycle(filterGroup, filterMask);
+                closestFraction = null;
+                closestHit = default;
+            }
+
             public static XenkoClosestConvexResultCallback Shared(CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
                 if (shared == null)
                 {
                     shared = new XenkoClosestConvexResultCallback();
                 }
-                shared.closestFraction = null;
-                shared.closestHit = new BulletSharp.LocalConvexResult(); // this can't be recycled, needs to be reset. fortunately it is a struct
                 shared.Recycle(filterGroup, filterMask);
                 return shared;
             }
@@ -1107,16 +1112,16 @@ namespace Xenko.Physics
             [ThreadStatic]
             static XenkoAllHitsRayResultCallback shared;
 
-            private IList<HitResult> resultsList;
+            public IList<HitResult> ResultsList { get; set; }
 
             public XenkoAllHitsRayResultCallback(ref Vector3 from, ref Vector3 to, IList<HitResult> results) : base(ref from, ref to)
             {
-                resultsList = results;
+                ResultsList = results;
             }
 
             public override float AddSingleResult(ref BulletSharp.LocalRayResult rayResult, bool normalInWorldSpace)
             {
-                resultsList.Add(ComputeHitResult(ref rayResult, normalInWorldSpace));
+                ResultsList.Add(ComputeHitResult(ref rayResult, normalInWorldSpace));
                 return rayResult.m_hitFraction;
             }
 
@@ -1126,7 +1131,7 @@ namespace Xenko.Physics
                 {
                     shared = new XenkoAllHitsRayResultCallback(ref from, ref to, buffer);
                 }
-                shared.resultsList = buffer;
+                shared.ResultsList = buffer;
                 shared.Recycle(ref from, ref to, filterGroup, filterMask);
                 return shared;
             }
@@ -1161,14 +1166,19 @@ namespace Xenko.Physics
                 return fraction;
             }
 
+            public override void Recycle(ref Vector3 from, ref Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            {
+                base.Recycle(ref from, ref to, filterGroup, filterMask);
+                closestFraction = null;
+                closestHit = default;
+            }
+
             public static XenkoClosestRayResultCallback Shared(ref Vector3 from, ref Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
                 if (shared == null)
                 {
                     shared = new XenkoClosestRayResultCallback(ref from, ref to);
                 }
-                shared.closestFraction = null;
-                shared.closestHit = new LocalRayResult(); // this can't be recycled, needs to be reset. fortunately it is a struct
                 shared.Recycle(ref from, ref to, filterGroup, filterMask);
                 return shared;
             }
@@ -1209,7 +1219,7 @@ namespace Xenko.Physics
                 };
             }
 
-            protected void Recycle(ref Vector3 from, ref Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            public virtual void Recycle(ref Vector3 from, ref Vector3 to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
                 RayFromWorld = from;
                 RayToWorld = to;
@@ -1247,7 +1257,7 @@ namespace Xenko.Physics
                 };
             }
 
-            protected void Recycle(CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
+            public virtual void Recycle(CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterMask = DefaultFlags)
             {
                 ClosestHitFraction = float.PositiveInfinity;
                 CollisionFilterGroup = (int)filterGroup;
