@@ -217,11 +217,7 @@ namespace Xenko.Rendering.UI
                 updatableRootElement.UpdateElementState(0);
                 uiElementState.RenderObject.LastRootMatrix = rootMatrix;
 
-                // clear and set the Depth buffer as required
-                if (renderObject.IsFullScreen)
-                {
-                    context.CommandList.Clear(renderingContext.DepthStencilBuffer, DepthStencilClearOptions.DepthBuffer | DepthStencilClearOptions.Stencil);
-                }
+                // set the depth buffer, although we are probably not writing to it
                 context.CommandList.SetRenderTarget(renderingContext.DepthStencilBuffer, renderingContext.RenderTarget);
 
                 // start the image draw session

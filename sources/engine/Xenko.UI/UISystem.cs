@@ -69,7 +69,7 @@ namespace Xenko.UI
             Batch = new UIBatch(GraphicsDevice);
 
             // create depth stencil states
-            var depthStencilDescription = new DepthStencilStateDescription(true, true)
+            var depthStencilDescription = new DepthStencilStateDescription(true, false)
             {
                 StencilEnable = true,
                 FrontFace = new DepthStencilStencilOpDescription
