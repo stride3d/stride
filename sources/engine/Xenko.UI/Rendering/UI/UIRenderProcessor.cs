@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.Collections.Generic;
+using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Rendering;
 
@@ -12,8 +13,6 @@ namespace Xenko.Rendering.UI
     /// </summary>
     public class UIRenderProcessor : EntityProcessor<UIComponent, RenderUIElement>, IEntityComponentRenderProcessor
     {
-        public List<RenderUIElement> UIRoots { get; private set; }
-
         public VisibilityGroup VisibilityGroup { get; set; }
 
         /// <summary>
@@ -22,12 +21,10 @@ namespace Xenko.Rendering.UI
         public UIRenderProcessor()
             : base(typeof(TransformComponent))
         {
-            UIRoots = new List<RenderUIElement>();
         }
         
         public override void Draw(RenderContext gameTime)
         {
-            UIRoots.Clear();
             foreach (var spriteStateKeyPair in ComponentDatas)
             {
                 var uiComponent = spriteStateKeyPair.Key;
@@ -36,8 +33,12 @@ namespace Xenko.Rendering.UI
 
                 if (renderUIElement.Enabled)
                 {
-                    // TODO GRAPHICS REFACTOR: Proper bounding box.
-                    //renderSprite.BoundingBox = new BoundingBoxExt(new Vector3(float.NegativeInfinity), new Vector3(float.PositiveInfinity));
+                    if (uiComponent.IsFullScreen == false) {
+                        renderUIElement.BoundingBox.Center = uiComponent.Entity.Transform.WorldPosition();
+                        renderUIElement.BoundingBox.Extent = uiComponent.Size * 0.5f;
+                    } else {
+                        renderUIElement.BoundingBox.Extent = Vector3.Zero; // always draw this
+                    }
 
                     // Copy values from ECS to render object
                     renderUIElement.WorldMatrix = uiComponent.Entity.Transform.WorldMatrix;
@@ -53,8 +54,6 @@ namespace Xenko.Rendering.UI
                     renderUIElement.IsBillboard = uiComponent.IsBillboard;
                     renderUIElement.SnapText = uiComponent.SnapText;
                     renderUIElement.IsFixedSize = uiComponent.IsFixedSize;
-
-                    UIRoots.Add(renderUIElement);
                 }
             }
         }
