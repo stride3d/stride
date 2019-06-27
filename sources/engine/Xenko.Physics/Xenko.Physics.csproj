@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
@@ -13,7 +13,7 @@
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
     <XenkoAssemblyProcessorOptions>--serialization --parameter-key</XenkoAssemblyProcessorOptions>
     <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoBulletPlatform>Windows</XenkoBulletPlatform>
+    <XenkoBulletPlatform></XenkoBulletPlatform> <!--Empty by default, only iOS needs special care-->
     <XenkoBulletPlatform Condition="'$(XenkoPlatform)' == 'iOS'">iOS</XenkoBulletPlatform>
     <XenkoBulletSignedDir Condition="'$(XenkoSign)' == 'true'">Signed\</XenkoBulletSignedDir>
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
@@ -22,19 +22,13 @@
     <XenkoNativeLib Include="..\..\..\deps\BulletPhysics\$(XenkoPlatform)\**\libbulletc.*">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </XenkoNativeLib>
-    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="..\..\..\deps\BulletPhysics\BulletSharp.dll.config">
+    <XenkoContent Condition="'$(XenkoPlatform)' == 'Linux'" Include="..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </XenkoContent>
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="BulletSharp">
-      <HintPath>..\..\..\deps\BulletPhysics\$(XenkoBulletPlatform)\$(XenkoBulletSignedDir)BulletSharp.dll</HintPath>
+      <HintPath>..\..\..\deps\BulletPhysics\$(XenkoBulletPlatform)\$(XenkoBulletSignedDir)BulletSharp.NetStandard.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <Choose>
-    <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">
-    </When>
-  </Choose>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
@@ -43,7 +37,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(XenkoPostSettingsTargets)" />
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
 
@@ -52,7 +45,7 @@
   </PropertyGroup>
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
-      <BuildOutputInPackage Include="$(OutputPath)BulletSharp.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)BulletSharp.NetStandard.dll" />
     </ItemGroup>
   </Target>
 </Project>

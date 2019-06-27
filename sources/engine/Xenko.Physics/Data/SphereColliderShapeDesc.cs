@@ -38,5 +38,10 @@ namespace Xenko.Physics
             var other = obj as SphereColliderShapeDesc;
             return other?.Is2D == Is2D && Math.Abs(other.Radius - Radius) < float.Epsilon && other.LocalOffset == LocalOffset;
         }
+
+        public ColliderShape CreateShape()
+        {
+            return new SphereColliderShape(Is2D, Radius) { LocalOffset = LocalOffset };
+        }
     }
 }

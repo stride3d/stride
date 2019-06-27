@@ -58,5 +58,10 @@ namespace Xenko.Physics
                    other.LocalOffset == LocalOffset &&
                    other.LocalRotation == LocalRotation;
         }
+
+        public ColliderShape CreateShape()
+        {
+            return new ConeColliderShape(Height, Radius, Orientation) { LocalOffset = LocalOffset, LocalRotation = LocalRotation };
+        }
     }
 }

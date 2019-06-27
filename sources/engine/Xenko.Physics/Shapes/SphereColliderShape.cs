@@ -11,19 +11,22 @@ namespace Xenko.Physics
 {
     public class SphereColliderShape : ColliderShape
     {
+        public readonly float Radius;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SphereColliderShape"/> class.
         /// </summary>
         /// <param name="is2D">if set to <c>true</c> [is2 d].</param>
         /// <param name="radius">The radius.</param>
-        public SphereColliderShape(bool is2D, float radius)
+        public SphereColliderShape(bool is2D, float radiusParam)
         {
             Type = ColliderShapeTypes.Sphere;
             Is2D = is2D;
+            Radius = radiusParam;
 
             cachedScaling = Is2D ? new Vector3(1, 1, 0) : Vector3.One;
 
-            var shape = new BulletSharp.SphereShape(radius)
+            var shape = new BulletSharp.SphereShape(Radius)
             {
                 LocalScaling = cachedScaling,
             };
@@ -37,7 +40,7 @@ namespace Xenko.Physics
                 InternalShape = shape;
             }
 
-            DebugPrimitiveMatrix = Matrix.Scaling(2 * radius * DebugScaling);
+            DebugPrimitiveMatrix = Matrix.Scaling(2 * Radius * DebugScaling);
             if (Is2D)
             {
                 DebugPrimitiveMatrix.M33 = 0f;

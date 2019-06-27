@@ -59,7 +59,7 @@ namespace Xenko.Physics.Shapes
                 case HeightfieldTypes.Short:
                     ShortArray = dynamicFieldData as UnmanagedArray<short>;
 
-                    InternalShape = new BulletSharp.HeightfieldShape(HeightStickWidth, HeightStickLength, ShortArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, (int)BulletPhyScalarType.PhyShort, flipQuadEdges)
+                    InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, ShortArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Int16, flipQuadEdges)
                     {
                         LocalScaling = cachedScaling,
                     };
@@ -69,7 +69,7 @@ namespace Xenko.Physics.Shapes
                 case HeightfieldTypes.Byte:
                     ByteArray = dynamicFieldData as UnmanagedArray<byte>;
 
-                    InternalShape = new BulletSharp.HeightfieldShape(HeightStickWidth, HeightStickLength, ByteArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, (int)BulletPhyScalarType.PhyUchar, flipQuadEdges)
+                    InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, ByteArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Byte, flipQuadEdges)
                     {
                         LocalScaling = cachedScaling,
                     };
@@ -79,7 +79,7 @@ namespace Xenko.Physics.Shapes
                 case HeightfieldTypes.Float:
                     FloatArray = dynamicFieldData as UnmanagedArray<float>;
 
-                    InternalShape = new BulletSharp.HeightfieldShape(HeightStickWidth, HeightStickLength, FloatArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, (int)BulletPhyScalarType.PhyFloat, flipQuadEdges)
+                    InternalShape = new BulletSharp.HeightfieldTerrainShape(HeightStickWidth, HeightStickLength, FloatArray.Pointer, HeightScale, MinHeight, MaxHeight, 1, BulletSharp.PhyScalarType.Single, flipQuadEdges)
                     {
                         LocalScaling = cachedScaling,
                     };
@@ -94,12 +94,12 @@ namespace Xenko.Physics.Shapes
 
         public bool UseDiamondSubdivision
         {
-            set { ((BulletSharp.HeightfieldShape)InternalShape).SetUseDiamondSubdivision(value); }
+            set { ((BulletSharp.HeightfieldTerrainShape)InternalShape).SetUseDiamondSubdivision(value); }
         }
 
         public bool UseZigzagSubdivision
         {
-            set { ((BulletSharp.HeightfieldShape)InternalShape).SetUseZigzagSubdivision(value); }
+            set { ((BulletSharp.HeightfieldTerrainShape)InternalShape).SetUseZigzagSubdivision(value); }
         }
 
         public UnmanagedArray<short> ShortArray { get; private set; }
@@ -142,16 +142,6 @@ namespace Xenko.Physics.Shapes
             ByteArray = null;
             FloatArray?.Dispose();
             FloatArray = null;
-        }
-
-        private enum BulletPhyScalarType
-        {
-            PhyFloat,
-            PhyDouble,
-            PhyInteger,
-            PhyShort,
-            PhyFixedpoint88,
-            PhyUchar,
         }
 
         public class HeightfieldDebugPrimitive : IDebugPrimitive

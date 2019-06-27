@@ -18,20 +18,9 @@ namespace Xenko.Physics
         [DataMemberIgnore]
         internal BulletSharp.RigidBody InternalRigidBody;
 
-        internal delegate void GetWorldTransformDelegate(out Matrix transform);
-
-        [DataMemberIgnore]
-        internal GetWorldTransformDelegate GetWorldTransformCallback;
-
-        internal delegate void SetWorldTransformDelegate(Matrix transform);
-
-        [DataMemberIgnore]
-        internal SetWorldTransformDelegate SetWorldTransformCallback;
-
         [DataMemberIgnore]
         internal XenkoMotionState MotionState;
 
-        private bool isKinematic;
         private float mass = 1.0f;
         private RigidBodyTypes type;
         private Vector3 gravity = Vector3.Zero;
@@ -64,12 +53,9 @@ namespace Xenko.Physics
         [DataMember(75)]
         public bool IsKinematic
         {
-            get { return isKinematic; }
+            get { return RigidBodyType == RigidBodyTypes.Kinematic; }
             set
             {
-                isKinematic = value;
-
-                if (InternalRigidBody == null) return;
                 RigidBodyType = value ? RigidBodyTypes.Kinematic : RigidBodyTypes.Dynamic;
             }
         }
@@ -212,13 +198,13 @@ namespace Xenko.Physics
 
                 if (value)
                 {
-                    if (((int)InternalRigidBody.Flags & (int)BulletSharp.RigidBodyFlags.DisableWorldGravity) != 0) return;
+                    if ((InternalRigidBody.Flags & BulletSharp.RigidBodyFlags.DisableWorldGravity) != 0) return;
                     // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
                     InternalRigidBody.Flags |= BulletSharp.RigidBodyFlags.DisableWorldGravity;
                 }
                 else
                 {
-                    if (((int)InternalRigidBody.Flags & (int)BulletSharp.RigidBodyFlags.DisableWorldGravity) == 0) return;
+                    if ((InternalRigidBody.Flags & BulletSharp.RigidBodyFlags.DisableWorldGravity) == 0) return;
                     // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
                     InternalRigidBody.Flags ^= BulletSharp.RigidBodyFlags.DisableWorldGravity;
                 }
@@ -269,49 +255,45 @@ namespace Xenko.Physics
             {
                 type = value;
 
-                if (InternalRigidBody == null) return;
+                if (InternalRigidBody == null)
+                {
+                    return;
+                }
 
                 switch (value)
                 {
                     case RigidBodyTypes.Dynamic:
-                        if (((int)InternalRigidBody.CollisionFlags & (int)BulletSharp.CollisionFlags.StaticObject) != 0) InternalRigidBody.CollisionFlags ^= BulletSharp.CollisionFlags.StaticObject;
-                        if (((int)InternalRigidBody.CollisionFlags & (int)BulletSharp.CollisionFlags.KinematicObject) != 0) InternalRigidBody.CollisionFlags ^= BulletSharp.CollisionFlags.KinematicObject;
-                        if (InternalRigidBody != null && Simulation != null && !OverrideGravity) InternalRigidBody.Gravity = Simulation.Gravity;
-                        if (InternalRigidBody != null)
-                        {
-                            InternalRigidBody.InterpolationAngularVelocity = Vector3.Zero;
-                            InternalRigidBody.LinearVelocity = Vector3.Zero;
-                            InternalRigidBody.InterpolationAngularVelocity = Vector3.Zero;
-                            InternalRigidBody.AngularVelocity = Vector3.Zero;
-                        }
+                        InternalRigidBody.CollisionFlags &= ~(BulletSharp.CollisionFlags.StaticObject | BulletSharp.CollisionFlags.KinematicObject);
                         break;
 
                     case RigidBodyTypes.Static:
-                        if (((int)InternalRigidBody.CollisionFlags & (int)BulletSharp.CollisionFlags.KinematicObject) != 0) InternalRigidBody.CollisionFlags ^= BulletSharp.CollisionFlags.KinematicObject;
+                        InternalRigidBody.CollisionFlags &= ~BulletSharp.CollisionFlags.KinematicObject;
                         InternalRigidBody.CollisionFlags |= BulletSharp.CollisionFlags.StaticObject;
-                        if (InternalRigidBody != null && !OverrideGravity) InternalRigidBody.Gravity = Vector3.Zero;
-                        if (InternalRigidBody != null)
-                        {
-                            InternalRigidBody.InterpolationAngularVelocity = Vector3.Zero;
-                            InternalRigidBody.LinearVelocity = Vector3.Zero;
-                            InternalRigidBody.InterpolationAngularVelocity = Vector3.Zero;
-                            InternalRigidBody.AngularVelocity = Vector3.Zero;
-                        }
                         break;
 
                     case RigidBodyTypes.Kinematic:
-                        if (((int)InternalRigidBody.CollisionFlags & (int)BulletSharp.CollisionFlags.StaticObject) != 0) InternalRigidBody.CollisionFlags ^= BulletSharp.CollisionFlags.StaticObject;
+                        InternalRigidBody.CollisionFlags &= ~BulletSharp.CollisionFlags.StaticObject;
                         InternalRigidBody.CollisionFlags |= BulletSharp.CollisionFlags.KinematicObject;
-                        if (InternalRigidBody != null && !OverrideGravity) InternalRigidBody.Gravity = Vector3.Zero;
-                        if (InternalRigidBody != null)
-                        {
-                            InternalRigidBody.InterpolationAngularVelocity = Vector3.Zero;
-                            InternalRigidBody.LinearVelocity = Vector3.Zero;
-                            InternalRigidBody.InterpolationAngularVelocity = Vector3.Zero;
-                            InternalRigidBody.AngularVelocity = Vector3.Zero;
-                        }
                         break;
+
+                    default:
+                        throw new NotSupportedException(nameof(value));
                 }
+                if (!OverrideGravity)
+                {
+                    if (value == RigidBodyTypes.Dynamic)
+                    {
+                        InternalRigidBody.Gravity = Simulation.Gravity;
+                    }
+                    else
+                    {
+                        InternalRigidBody.Gravity = Vector3.Zero;
+                    }
+                }
+                InternalRigidBody.InterpolationAngularVelocity = Vector3.Zero;
+                InternalRigidBody.LinearVelocity = Vector3.Zero;
+                InternalRigidBody.InterpolationAngularVelocity = Vector3.Zero;
+                InternalRigidBody.AngularVelocity = Vector3.Zero;
             }
         }
 
@@ -321,10 +303,8 @@ namespace Xenko.Physics
 
             SetupBoneLink();
 
-            GetWorldTransformCallback = (out Matrix transform) => RigidBodyGetWorldTransform(out transform);
-            SetWorldTransformCallback = transform => RigidBodySetWorldTransform(ref transform);
-
-            InternalRigidBody = new BulletSharp.RigidBody(0.0f, MotionState, ColliderShape.InternalShape, Vector3.Zero)
+            var rbci = new BulletSharp.RigidBodyConstructionInfo(0.0f, MotionState, ColliderShape.InternalShape, Vector3.Zero);
+            InternalRigidBody = new BulletSharp.RigidBody(rbci)
             {
                 UserObject = this,
             };
@@ -648,6 +628,33 @@ namespace Xenko.Physics
                 }
 
                 InternalRigidBody.LinearFactor = value;
+            }
+        }
+
+        internal class XenkoMotionState : BulletSharp.MotionState
+        {
+            private RigidbodyComponent rigidBody;
+
+            public XenkoMotionState(RigidbodyComponent rb)
+            {
+                rigidBody = rb;
+            }
+
+            public void Clear()
+            {
+                rigidBody = null;
+            }
+
+            public override void GetWorldTransform(out BulletSharp.Math.Matrix transform)
+            {
+                rigidBody.RigidBodyGetWorldTransform(out var xenkoMatrix);
+                transform = xenkoMatrix;
+            }
+
+            public override void SetWorldTransform(ref BulletSharp.Math.Matrix transform)
+            {
+                Matrix asXenkoMatrix = transform;
+                rigidBody.RigidBodySetWorldTransform(ref asXenkoMatrix);
             }
         }
     }

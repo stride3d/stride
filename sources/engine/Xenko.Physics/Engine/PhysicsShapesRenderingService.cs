@@ -156,6 +156,7 @@ namespace Xenko.Physics.Engine
                 case ColliderShapeTypes.Sphere:
                 case ColliderShapeTypes.Cone:
                 case ColliderShapeTypes.StaticPlane:
+                case ColliderShapeTypes.StaticMesh:
                 case ColliderShapeTypes.Heightfield:
                     {
                         IDebugPrimitive debugPrimitive;
@@ -172,7 +173,7 @@ namespace Xenko.Physics.Engine
                                 updatableDebugMeshes.Add(shape, debugPrimitive);
                             }
                         }
-                        else if (type == typeof(CapsuleColliderShape) || type == typeof(ConvexHullColliderShape))
+                        else if (type == typeof(CapsuleColliderShape) || type == typeof(ConvexHullColliderShape) || type == typeof(StaticMeshColliderShape))
                         {
                             if (!debugMeshCache2.TryGetValue(shape, out debugPrimitive))
                             {

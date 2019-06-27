@@ -6,5 +6,5 @@ IF NOT ERRORLEVEL 0 (
   ECHO "Could not find git.exe"
   EXIT /B %ERRORLEVEL%
 ) 
-%GIT_CMD% clone git@github.com:xenko3d/bullet2-sharp-mobile.git ../../externals/bullet2-sharp-mobile
+%GIT_CMD% clone git@github.com:Eideren/BulletSharpPInvoke.git ../../externals/BulletSharpPInvoke
 if NOT ERRORLEVEL 0 pause

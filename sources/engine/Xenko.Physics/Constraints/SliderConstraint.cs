@@ -170,7 +170,7 @@ namespace Xenko.Physics
         /// </value>
         public float LinearPosition
         {
-            get { return InternalSliderConstraint.LinearPos; }
+            get { return InternalSliderConstraint.LinearPosition; }
         }
 
         /// <summary>

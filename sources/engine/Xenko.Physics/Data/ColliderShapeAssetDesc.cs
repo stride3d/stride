@@ -39,5 +39,20 @@ namespace Xenko.Physics
             // TODO: shouldn't we return true here?
             return other.Shape == Shape;
         }
+
+        public ColliderShape CreateShape()
+        {
+            if (Shape == null)
+            {
+                return null;
+            }
+
+            if (Shape.Shape == null)
+            {
+                Shape.Shape = PhysicsColliderShape.Compose(Shape.Descriptions);
+            }
+
+            return this.Shape.Shape;
+        }
     }
 }
