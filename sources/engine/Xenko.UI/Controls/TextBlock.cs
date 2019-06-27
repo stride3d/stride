@@ -127,6 +127,15 @@ namespace Xenko.UI.Controls
         public TextVerticalAlignment TextVerticalAlignment { get; set; }
 
         /// <summary>
+        /// Line spacing adjustment
+        /// </summary>
+        /// <userdoc>Line spacing adjustment</userdoc>
+        [DataMember]
+        [Display(category: AppearanceCategory)]
+        [DefaultValue(0.0f)]
+        public float LineSpacingAdjustment { get; set; }
+
+        /// <summary>
         /// Gets or sets the value indicating if the <see cref="Text"/> of the <see cref="TextBlock"/> 
         /// should automatically return to the beginning of the line when it is too long for the line width.
         /// </summary>

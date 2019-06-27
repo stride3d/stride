@@ -37,6 +37,7 @@ namespace Xenko.UI.Renderers
                 Matrix = textBlock.WorldMatrixInternal,
                 Alignment = textBlock.TextAlignment,
                 VertAlignment = textBlock.TextVerticalAlignment,
+                LineSpacingAdjustment = textBlock.LineSpacingAdjustment,
                 TextBoxSize = new Vector2(textBlock.ActualWidth, textBlock.ActualHeight),
                 IsFullscreen = context.IsFullscreen
             };

@@ -198,16 +198,16 @@ namespace Xenko.Graphics
             return GetExtraLineSpacing(fontSize) + GetFontDefaultLineSpacing(fontSize);
         }
         
-        internal void InternalDraw(CommandList commandList, ref StringProxy text, ref InternalDrawCommand drawCommand, TextAlignment alignment, TextVerticalAlignment vert_alignment)
+        internal void InternalDraw(CommandList commandList, ref StringProxy text, ref InternalDrawCommand drawCommand, TextAlignment alignment, TextVerticalAlignment vert_alignment, float lineAdjustment)
         {
             // If the text is mirrored, offset the start position accordingly.
             if (drawCommand.SpriteEffects != SpriteEffects.None)
             {
-                drawCommand.Origin -= MeasureString(ref text, ref drawCommand.FontSize) * AxisIsMirroredTable[(int)drawCommand.SpriteEffects & 3];
+                drawCommand.Origin -= MeasureString(ref text, ref drawCommand.FontSize, lineAdjustment) * AxisIsMirroredTable[(int)drawCommand.SpriteEffects & 3];
             }
 
             // Draw each character in turn.
-            ForEachGlyph(commandList, ref text, ref drawCommand.FontSize, internalDrawGlyphAction, ref drawCommand, alignment, vert_alignment, true);
+            ForEachGlyph(commandList, ref text, ref drawCommand.FontSize, internalDrawGlyphAction, ref drawCommand, alignment, vert_alignment, true, null, lineAdjustment);
         }        
         
         /// <summary>
@@ -255,7 +255,8 @@ namespace Xenko.Graphics
             var requestedFontSize = new Vector2(drawCommand.RequestedFontSize * drawCommand.RealVirtualResolutionRatio.Y);
 
             var textBoxSize = drawCommand.TextBoxSize * drawCommand.RealVirtualResolutionRatio;
-            ForEachGlyph(commandList, ref text, ref requestedFontSize, internalUIDrawGlyphAction, ref drawCommand, drawCommand.Alignment, drawCommand.VertAlignment, true, textBoxSize);
+            ForEachGlyph(commandList, ref text, ref requestedFontSize, internalUIDrawGlyphAction,
+                         ref drawCommand, drawCommand.Alignment, drawCommand.VertAlignment, true, textBoxSize, drawCommand.LineSpacingAdjustment);
         }
 
         internal void InternalUIDrawGlyph(ref InternalUIDrawCommand parameters, ref Vector2 requestedFontSize, ref Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
@@ -442,10 +443,10 @@ namespace Xenko.Graphics
             return MeasureString(ref proxy, ref fontSize);
         }
 
-        internal Vector2 MeasureString(ref StringProxy text, ref Vector2 size)
+        internal Vector2 MeasureString(ref StringProxy text, ref Vector2 size, float lineSpaceAdjustment = 0f)
         {
             var result = Vector2.Zero;
-            ForEachGlyph(null, ref text, ref size, measureStringGlyphAction, ref result, TextAlignment.Left, TextVerticalAlignment.Top, false); // text size is independent from the text alignment
+            ForEachGlyph(null, ref text, ref size, measureStringGlyphAction, ref result, TextAlignment.Left, TextVerticalAlignment.Top, false, null, GetTotalLineSpacing(size.Y) + lineSpaceAdjustment); // text size is independent from the text alignment
             return result;
         }
 
@@ -501,17 +502,20 @@ namespace Xenko.Graphics
         }
 
         private void ForEachGlyph<T>(CommandList commandList, ref StringProxy text, ref Vector2 requestedFontSize, GlyphAction<T> action, ref T parameters,
-                                     TextAlignment scanOrder, TextVerticalAlignment vertAlign, bool updateGpuResources, Vector2? textBoxSize = null)
+                                     TextAlignment scanOrder, TextVerticalAlignment vertAlign, bool updateGpuResources, Vector2? textBoxSize = null, float lineSpaceAdjustment = 0f)
         {
-            float yStart, ySpacing = GetTotalLineSpacing(requestedFontSize.Y);
+            float rawYSpacing = GetTotalLineSpacing(requestedFontSize.Y);
+            float yStart, ySpacing = rawYSpacing + lineSpaceAdjustment;
             if (textBoxSize.HasValue && vertAlign != TextVerticalAlignment.Top) {
+                int extraLines = text.LineCount - 1;
+                float lineHeight = rawYSpacing + extraLines * ySpacing;
                 switch (vertAlign) {
                     default:
                     case TextVerticalAlignment.Center:
-                        yStart = textBoxSize.Value.Y * 0.5f - (text.LineCount * ySpacing * 0.5f);
+                        yStart = textBoxSize.Value.Y * 0.5f - (lineHeight * 0.5f);
                         break;
                     case TextVerticalAlignment.Bottom:
-                        yStart = textBoxSize.Value.Y - (text.LineCount * ySpacing);
+                        yStart = textBoxSize.Value.Y - lineHeight;
                         break;
                 }
             } else yStart = 0f;
@@ -519,7 +523,7 @@ namespace Xenko.Graphics
             if (scanOrder == TextAlignment.Left)
             {
                 // scan the whole text only one time following the text letter order
-                ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, 0, text.Length, updateGpuResources, 0f, yStart, vertAlign);
+                ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, 0, text.Length, updateGpuResources, 0f, yStart, vertAlign, ySpacing);
             }
             else
             {
@@ -535,17 +539,17 @@ namespace Xenko.Graphics
                 {
                     // measure the size of the current line
                     var lineSize = Vector2.Zero;
-                    ForGlyph(commandList, ref text, ref requestedFontSize, MeasureStringGlyph, ref lineSize, startIndex, endIndex, updateGpuResources, 0f, 0f, vertAlign);
+                    ForGlyph(commandList, ref text, ref requestedFontSize, MeasureStringGlyph, ref lineSize, startIndex, endIndex, updateGpuResources, 0f, 0f, vertAlign, ySpacing);
 
                     // Determine the start position of the line along the x axis
                     // We round this value to the closest integer to force alignment of all characters to the same pixels
                     // Otherwise the starting offset can fall just in between two pixels and due to float imprecision 
                     // some characters can be aligned to the pixel before and others to the pixel after, resulting in gaps and character overlapping
                     var xStart = (scanOrder == TextAlignment.Center) ? (wholeSize.X - lineSize.X) / 2 : wholeSize.X - lineSize.X;
-                    xStart = (float)Math.Round(xStart); 
+                    xStart = (float)Math.Round(xStart);
 
                     // scan the line
-                    ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, startIndex, endIndex, updateGpuResources, xStart, yStart, vertAlign);
+                    ForGlyph(commandList, ref text, ref requestedFontSize, action, ref parameters, startIndex, endIndex, updateGpuResources, xStart, yStart, vertAlign, ySpacing);
                     
                     // update variable before going to next line
                     yStart += ySpacing;
@@ -556,12 +560,12 @@ namespace Xenko.Graphics
         }
 
         private void ForGlyph<T>(CommandList commandList, ref StringProxy text, ref Vector2 fontSize, GlyphAction<T> action, 
-                                 ref T parameters, int forStart, int forEnd, bool updateGpuResources, float startX = 0, float startY = 0, TextVerticalAlignment vertAlign = TextVerticalAlignment.Top)
+                                 ref T parameters, int forStart, int forEnd, bool updateGpuResources, float startX = 0, float startY = 0,
+                                 TextVerticalAlignment vertAlign = TextVerticalAlignment.Top, float fontSizeY = 0f)
         {
             var key = 0;
             var x = startX;
             var y = startY;
-            float fontSizeY = GetTotalLineSpacing(fontSize.Y);
             for (var i = forStart; i < forEnd; i++)
             {
                 var character = text[i];
@@ -720,6 +724,8 @@ namespace Xenko.Graphics
             /// The size of the rectangle containing the text
             /// </summary>
             public Vector2 TextBoxSize;
+
+            public float LineSpacingAdjustment;
 
             public Color Color;
 
