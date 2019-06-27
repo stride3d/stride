@@ -35,7 +35,7 @@ namespace Xenko.Rendering.UI
                 {
                     if (uiComponent.IsFullScreen == false) {
                         renderUIElement.BoundingBox.Center = uiComponent.Entity.Transform.WorldPosition();
-                        renderUIElement.BoundingBox.Extent = uiComponent.Size * 0.5f;
+                        renderUIElement.BoundingBox.Extent = uiComponent.Size * uiComponent.Entity.Transform.WorldScale() * 0.5f;
                     } else {
                         renderUIElement.BoundingBox.Extent = Vector3.Zero; // always draw this
                     }
