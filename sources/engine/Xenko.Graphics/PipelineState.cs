@@ -18,7 +18,7 @@ namespace Xenko.Graphics
 
         private PipelineStateDescription myDescription;
 
-        public static PipelineState New(GraphicsDevice graphicsDevice, ref PipelineStateDescription pipelineStateDescription)
+        public static PipelineState New(GraphicsDevice graphicsDevice, ref PipelineStateDescription pipelineStateDescription, bool mustWait = false)
         {
             PipelineState pipelineState = null;
 
@@ -38,7 +38,7 @@ namespace Xenko.Graphics
 
             // if we have this cached, wait until it is ready to return
             if (foundInCache) {
-                while (pipelineState.CurrentState() == PIPELINE_STATE.LOADING) {
+                while (mustWait && pipelineState.CurrentState() == PIPELINE_STATE.LOADING) {
                     // wait for pipeline state to finish loading...
                     Thread.Sleep(1);
                 }
