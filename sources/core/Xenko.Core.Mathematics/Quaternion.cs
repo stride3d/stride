@@ -882,6 +882,27 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
+        /// Creates a quaternion that rotates around the x-axis.
+        /// </summary>
+        /// <param name="angle">Angle of rotation in degrees.</param>
+        /// <returns>The created rotation quaternion.</returns>
+        public static Quaternion RotationXDeg(float angle) {
+            Quaternion result;
+            RotationX(MathUtil.DegreesToRadians(angle), out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a quaternion that rotates around the x-axis.
+        /// </summary>
+        /// <param name="angle">Angle of rotation in degrees.</param>
+        /// <returns>The created rotation quaternion.</returns>
+        public static Quaternion RotationXDeg(float angle, out Quaternion result) {
+            RotationX(MathUtil.DegreesToRadians(angle), out result);
+            return result;
+        }
+
+        /// <summary>
         /// Creates a quaternion that rotates around the y-axis.
         /// </summary>
         /// <param name="angle">Angle of rotation in radians.</param>
@@ -901,6 +922,27 @@ namespace Xenko.Core.Mathematics
         {
             Quaternion result;
             RotationY(angle, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a quaternion that rotates around the y-axis.
+        /// </summary>
+        /// <param name="angle">Angle of rotation in degrees.</param>
+        /// <returns>The created rotation quaternion.</returns>
+        public static Quaternion RotationYDeg(float angle) {
+            Quaternion result;
+            RotationY(MathUtil.DegreesToRadians(angle), out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a quaternion that rotates around the y-axis.
+        /// </summary>
+        /// <param name="angle">Angle of rotation in degrees.</param>
+        /// <returns>The created rotation quaternion.</returns>
+        public static Quaternion RotationYDeg(float angle, out Quaternion result) {
+            RotationY(MathUtil.DegreesToRadians(angle), out result);
             return result;
         }
 
@@ -927,6 +969,27 @@ namespace Xenko.Core.Mathematics
             return result;
         }
 
+        /// <summary>
+        /// Creates a quaternion that rotates around the z-axis.
+        /// </summary>
+        /// <param name="angle">Angle of rotation in degrees.</param>
+        /// <returns>The created rotation quaternion.</returns>
+        public static Quaternion RotationZDeg(float angle) {
+            Quaternion result;
+            RotationZ(MathUtil.DegreesToRadians(angle), out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a quaternion that rotates around the z-axis.
+        /// </summary>
+        /// <param name="angle">Angle of rotation in degrees.</param>
+        /// <returns>The created rotation quaternion.</returns>
+        public static Quaternion RotationZDeg(float angle, out Quaternion result) {
+            RotationZ(MathUtil.DegreesToRadians(angle), out result);
+            return result;
+        }
+        
         /// <summary>
         /// Calculate the yaw/pitch/roll rotation equivalent to the provided quaternion.
         /// </summary>
@@ -1005,6 +1068,35 @@ namespace Xenko.Core.Mathematics
         {
             Quaternion result;
             RotationYawPitchRoll(yaw, pitch, roll, out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a quaternion given a yaw, pitch, and roll value.
+        /// </summary>
+        /// <param name="yaw">The yaw of rotation.</param>
+        /// <param name="pitch">The pitch of rotation.</param>
+        /// <param name="roll">The roll of rotation.</param>
+        /// <returns>The newly created quaternion.</returns>
+        public static Quaternion RotationYawPitchRollDeg(float yaw, float pitch, float roll) {
+            Quaternion result;
+            RotationYawPitchRoll(MathUtil.DegreesToRadians(yaw),
+                                 MathUtil.DegreesToRadians(pitch),
+                                 MathUtil.DegreesToRadians(roll), out result);
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a quaternion given a yaw, pitch, and roll value.
+        /// </summary>
+        /// <param name="yaw">The yaw of rotation.</param>
+        /// <param name="pitch">The pitch of rotation.</param>
+        /// <param name="roll">The roll of rotation.</param>
+        /// <returns>The newly created quaternion.</returns>
+        public static Quaternion RotationYawPitchRollDeg(float yaw, float pitch, float roll, out Quaternion result) {
+            RotationYawPitchRoll(MathUtil.DegreesToRadians(yaw),
+                                 MathUtil.DegreesToRadians(pitch),
+                                 MathUtil.DegreesToRadians(roll), out result);
             return result;
         }
 

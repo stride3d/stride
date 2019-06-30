@@ -107,6 +107,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="a">The floating value.</param>
         /// <returns><c>true</c> if the specified value is close to zero (0.0f); otherwise, <c>false</c>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsZero(float a)
         {
             return Math.Abs(a) < ZeroTolerance;
@@ -117,6 +118,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="a">The floating value.</param>
         /// <returns><c>true</c> if the specified value is close to zero (0.0f); otherwise, <c>false</c>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsZero(double a)
         {
             return Math.Abs(a) < ZeroToleranceDouble;
@@ -127,6 +129,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="a">The floating value.</param>
         /// <returns><c>true</c> if the specified value is close to one (1.0f); otherwise, <c>false</c>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsOne(float a)
         {
             return IsZero(a - 1.0f);
@@ -166,6 +169,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="revolution">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float RevolutionsToDegrees(float revolution)
         {
             return revolution * 360.0f;
@@ -176,6 +180,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="revolution">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float RevolutionsToRadians(float revolution)
         {
             return revolution * TwoPi;
@@ -186,6 +191,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="revolution">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float RevolutionsToGradians(float revolution)
         {
             return revolution * 400.0f;
@@ -196,6 +202,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="degree">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DegreesToRevolutions(float degree)
         {
             return degree / 360.0f;
@@ -206,6 +213,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="degree">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float DegreesToRadians(float degree)
         {
             return degree * (Pi / 180.0f);
@@ -216,6 +224,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="radian">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float RadiansToRevolutions(float radian)
         {
             return radian / TwoPi;
@@ -226,6 +235,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="radian">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float RadiansToGradians(float radian)
         {
             return radian * (200.0f / Pi);
@@ -236,6 +246,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="gradian">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GradiansToRevolutions(float gradian)
         {
             return gradian / 400.0f;
@@ -246,6 +257,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="gradian">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GradiansToDegrees(float gradian)
         {
             return gradian * (9.0f / 10.0f);
@@ -256,6 +268,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="gradian">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float GradiansToRadians(float gradian)
         {
             return gradian * (Pi / 200.0f);
@@ -266,6 +279,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="radian">The value to convert.</param>
         /// <returns>The converted value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float RadiansToDegrees(float radian)
         {
             return radian * (180.0f / Pi);
@@ -278,6 +292,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="min">The min.</param>
         /// <param name="max">The max.</param>
         /// <returns>The result of clamping a value between min and max</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Clamp(float value, float min, float max)
         {
             return value < min ? min : value > max ? max : value;
@@ -290,6 +305,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="min">The min.</param>
         /// <param name="max">The max.</param>
         /// <returns>The result of clamping a value between min and max</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Clamp(double value, double min, double max)
         {
             return value < min ? min : value > max ? max : value;
@@ -302,6 +318,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="min">The min.</param>
         /// <param name="max">The max.</param>
         /// <returns>The result of clamping a value between min and max</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Clamp(int value, int min, int max)
         {
             return value < min ? min : value > max ? max : value;
@@ -314,6 +331,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="max">Maximum value that takes place in inverse-interpolation.</param>
         /// <param name="value">Value to get inverse interpolation.</param>
         /// <returns>Returns an inverse-linearly interpolated coeficient.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float InverseLerp(float min, float max, float value)
         {
             if (IsZero(Math.Abs(max - min)))
@@ -328,6 +346,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="max">Maximum value that takes place in inverse-interpolation.</param>
         /// <param name="value">Value to get inverse interpolation.</param>
         /// <returns>Returns an inverse-linearly interpolated coeficient.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double InverseLerp(double min, double max, double value)
         {
             if (IsZero(Math.Abs(max - min)))
@@ -346,6 +365,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="to">Value to interpolate to.</param>
         /// <param name="amount">Interpolation amount.</param>
         /// <returns>The result of linear interpolation of values based on the amount.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static double Lerp(double from, double to, double amount)
         {
             return (1 - amount) * from + amount * to;
@@ -362,6 +382,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="to">Value to interpolate to.</param>
         /// <param name="amount">Interpolation amount.</param>
         /// <returns>The result of linear interpolation of values based on the amount.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Lerp(float from, float to, float amount)
         {
             return (1 - amount) * from + amount * to;
@@ -378,6 +399,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="to">Value to interpolate to.</param>
         /// <param name="amount">Interpolation amount.</param>
         /// <returns>The result of linear interpolation of values based on the amount.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte Lerp(byte from, byte to, float amount)
         {
             return (byte)Lerp((float)from, (float)to, amount);
@@ -390,6 +412,7 @@ namespace Xenko.Core.Mathematics
         /// See https://en.wikipedia.org/wiki/Smoothstep
         /// </remarks>
         /// <param name="amount">Value between 0 and 1 indicating interpolation amount.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SmoothStep(float amount)
         {
             return (amount <= 0) ? 0
@@ -404,6 +427,7 @@ namespace Xenko.Core.Mathematics
         /// See https://en.wikipedia.org/wiki/Smoothstep
         /// </remarks>
         /// <param name="amount">Value between 0 and 1 indicating interpolation amount.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SmootherStep(float amount)
         {
             return (amount <= 0) ? 0
@@ -418,6 +442,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="min">The minimum value of the range.</param>
         /// <param name="max">The maximum value of the range.</param>
         /// <returns><c>true</c> if value is inside the specified range; otherwise, <c>false</c>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsInRange(float value, float min, float max)
         {
             return min <= value && value <= max;
@@ -430,6 +455,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="min">The minimum value of the range.</param>
         /// <param name="max">The maximum value of the range.</param>
         /// <returns><c>true</c> if value is inside the specified range; otherwise, <c>false</c>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsInRange(int value, int min, int max)
         {
             return min <= value && value <= max;
@@ -440,6 +466,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="x">The x.</param>
         /// <returns><c>true</c> if the specified x is pow2; otherwise, <c>false</c>.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsPow2(int x)
         {
             return ((x != 0) && (x & (x - 1)) == 0);
@@ -450,6 +477,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="sRgbValue">The sRGB value.</param>
         /// <returns>A linear value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float SRgbToLinear(float sRgbValue)
         {
             if (sRgbValue < 0.04045f) return sRgbValue / 12.92f;
@@ -461,6 +489,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="linearValue">The linear value.</param>
         /// <returns>The encoded sRGB value.</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float LinearToSRgb(float linearValue)
         {
             if (linearValue < 0.0031308f) return linearValue * 12.92f;
@@ -472,6 +501,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="x">The input float</param>
         /// <returns><value>Log2(x)</value></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float Log2(float x)
         {
             return (float)Math.Log(x) / 0.6931471805599453f;
