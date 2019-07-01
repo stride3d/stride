@@ -2,7 +2,6 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Collections.Specialized;
 using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Collections;
@@ -28,11 +27,9 @@ namespace Xenko.Engine
         public Scene()
         {
             Id = Guid.NewGuid();
-            Entities = new TrackingCollection<Entity>();
-            Entities.CollectionChanged += Entities_CollectionChanged;
+            Entities = new EntityCollection(this);
 
-            Children = new TrackingCollection<Scene>();
-            Children.CollectionChanged += Children_CollectionChanged;
+            Children = new SceneCollection(this);
         }
 
         [DataMember(-10)]
@@ -112,67 +109,69 @@ namespace Xenko.Engine
             return $"Scene {Name}";
         }
 
-        private void Children_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
+        [DataContract]
+        public class EntityCollection : TrackingCollection<Entity>
         {
-            switch (e.Action)
+            Scene scene;
+
+            public EntityCollection(Scene sceneParam)
             {
-                case NotifyCollectionChangedAction.Add:
-                    AddItem((Scene)e.Item);
-                    break;
-                case NotifyCollectionChangedAction.Remove:
-                    RemoveItem((Scene)e.Item);
-                    break;
-                default:
-                    throw new NotSupportedException();
+                scene = sceneParam;
+            }
+
+            /// <inheritdoc/>
+            protected override void InsertItem(int index, Entity item)
+            {
+                // Root entity in another scene, or child of another entity
+                if (item.Scene != null)
+                    throw new InvalidOperationException("This entity already has a scene. Detach it first.");
+
+                item.SceneValue = scene;
+                base.InsertItem(index, item);
+            }
+
+            /// <inheritdoc/>
+            protected override void RemoveItem(int index)
+            {
+                var item = this[index];
+                if (item.SceneValue != scene)
+                    throw new InvalidOperationException("This entity's scene is not the expected value.");
+
+                item.SceneValue = null;
+                base.RemoveItem(index);
             }
         }
 
-        private void AddItem(Scene item)
+        [DataContract]
+        public class SceneCollection : TrackingCollection<Scene>
         {
-            if (item.Parent != null)
-                throw new InvalidOperationException("This scene already has a Parent. Detach it first.");
+            Scene scene;
 
-            item.parent = this;
-        }
-
-        private void RemoveItem(Scene item)
-        {
-            if (item.Parent != this)
-                throw new InvalidOperationException("This scene's parent is not the expected value.");
-
-            item.parent = null;
-        }
-
-        private void Entities_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
-        {
-            switch (e.Action)
+            public SceneCollection(Scene sceneParam)
             {
-                case NotifyCollectionChangedAction.Add:
-                    AddItem((Entity)e.Item);
-                    break;
-                case NotifyCollectionChangedAction.Remove:
-                    RemoveItem((Entity)e.Item);
-                    break;
-                default:
-                    throw new NotSupportedException();
+                scene = sceneParam;
             }
-        }
 
-        private void AddItem(Entity item)
-        {
-            // Root entity in another scene, or child of another entity
-            if (item.Scene != null)
-                throw new InvalidOperationException("This entity already has a scene. Detach it first.");
+            /// <inheritdoc/>
+            protected override void InsertItem(int index, Scene item)
+            {
+                if (item.Parent != null)
+                    throw new InvalidOperationException("This scene already has a Parent. Detach it first.");
 
-            item.SceneValue = this;
-        }
+                item.parent = scene;
+                base.InsertItem(index, item);
+            }
 
-        private void RemoveItem(Entity item)
-        {
-            if (item.SceneValue != this)
-                throw new InvalidOperationException("This entity's scene is not the expected value.");
+            /// <inheritdoc/>
+            protected override void RemoveItem(int index)
+            {
+                var item = this[index];
+                if (item.Parent != scene)
+                    throw new InvalidOperationException("This scene's parent is not the expected value.");
 
-            item.SceneValue = null;
+                item.parent = null;
+                base.RemoveItem(index);
+            }
         }
     }
 }
