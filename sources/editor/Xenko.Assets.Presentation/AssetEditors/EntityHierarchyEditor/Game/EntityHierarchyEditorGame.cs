@@ -56,6 +56,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             this.TreatNotFocusedLikeMinimized = false;
             this.GraphicsDeviceManager.SynchronizeWithVerticalRetrace = true;
             this.WindowMinimumUpdateRate.MinimumElapsedTime = TimeSpan.Zero;
+            this.MinimizedMinimumUpdateRate.MinimumElapsedTime = TimeSpan.FromSeconds(1.0);
             CreateScenePipeline();
         }
 
