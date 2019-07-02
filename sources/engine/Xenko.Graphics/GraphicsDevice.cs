@@ -101,7 +101,7 @@ namespace Xenko.Graphics
             var defaultPipelineStateDescription = new PipelineStateDescription();
             defaultPipelineStateDescription.SetDefaults();
             AdjustDefaultPipelineStateDescription(ref defaultPipelineStateDescription);
-            DefaultPipelineState = PipelineState.New(this, ref defaultPipelineStateDescription, true);
+            DefaultPipelineState = PipelineState.New(this, ref defaultPipelineStateDescription);
 
             InitializePostFeatures();
         }
