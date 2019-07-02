@@ -47,6 +47,7 @@ namespace Xenko.Engine.Processors
             // The compositor, or at least the list of slots, has changed. Let's detach everything
             if (cameraSlotsDirty)
             {
+                cameraSlotsDirty = false;
                 if (currentCompositor != null)
                 {
                     // If we have a current compositor, let's clear all camera that are attached to it.
