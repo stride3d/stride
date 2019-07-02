@@ -2,10 +2,10 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using Xenko.Core;
 using Xenko.Core.Collections;
 using Xenko.Engine;
+using Xenko.Engine.Design;
 using Xenko.Games;
 
 namespace Xenko.Audio
@@ -54,7 +54,7 @@ namespace Xenko.Audio
             {
                 if (audioEngineSingleton == null)
                 {
-                    var settings = ((Game)Game)?.Settings?.Configurations?.Get<AudioEngineSettings>();
+                    var settings = Services.GetService<IGameSettingsService>()?.Settings?.Configurations?.Get<AudioEngineSettings>();
                     audioEngineSingleton = AudioEngineFactory.NewAudioEngine(RequestedAudioDevice, settings != null && settings.HrtfSupport ? AudioLayer.DeviceFlags.Hrtf : AudioLayer.DeviceFlags.None);
                 }
                 else
