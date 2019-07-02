@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using Xenko.Core;
 
 namespace Xenko.Physics
 {
@@ -18,6 +19,8 @@ namespace Xenko.Physics
 
         UseHardwareWhenPossible = 0x8,
 
-        ContinuosCollisionDetection = 0x10,
+        // Typo before 3.1 (https://github.com/xenko3d/xenko/issues/152)
+        [DataAlias("ContinuosCollisionDetection")]
+        ContinuousCollisionDetection = 0x10,
     }
 }
