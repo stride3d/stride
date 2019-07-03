@@ -148,10 +148,14 @@ namespace Xenko.Engine
             scene.Entities.CollectionChanged -= Entities_CollectionChanged;
             scene.Children.CollectionChanged -= Children_CollectionChanged;
 
-            foreach (var childScene in scene.Children)
+            var scenesToRemove = new Scene[scene.Children.Count];
+            scene.Children.CopyTo(scenesToRemove, 0);
+            foreach (var childScene in scenesToRemove)
                 Remove(childScene);
 
-            foreach (var entity in scene.Entities)
+            var entitiesToRemove = new Entity[scene.Entities.Count];
+            scene.Entities.CopyTo(entitiesToRemove, 0);
+            foreach (var entity in entitiesToRemove)
                 Remove(entity);
         }
 
