@@ -60,6 +60,8 @@
     <!-- On Android, everything is library (even Exe) -->
     <OutputType Condition=" '$(XenkoPlatform)' == 'Android' ">Library</OutputType>
 
+    <OutputPath Condition="'$(XenkoProjectType)' == 'Cpp'">$(OutDir)</OutputPath>
+    <IntermediateOutputPath Condition="'$(XenkoProjectType)' == 'Cpp'">$(IntDir)</IntermediateOutputPath>
   </PropertyGroup>
 
   <!-- User Documentation (.usrdoc) -->
