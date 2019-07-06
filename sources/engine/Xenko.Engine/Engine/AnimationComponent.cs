@@ -23,6 +23,7 @@ namespace Xenko.Engine
     [DefaultEntityComponentProcessor(typeof(AnimationProcessor), ExecutionMode = ExecutionMode.Runtime | ExecutionMode.Thumbnail | ExecutionMode.Preview)]
     [Display("Animations", Expand = ExpandRule.Once)]
     [ComponentOrder(2000)]
+    [ComponentCategory("Animation")]
     public sealed class AnimationComponent : EntityComponent
     {
         private readonly Dictionary<string, AnimationClip> animations;

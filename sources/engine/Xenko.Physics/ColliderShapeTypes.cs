@@ -31,6 +31,10 @@ namespace Xenko.Physics
 
         StaticPlane,
 
+        StaticMesh,
+
         Cone,
+
+        Heightfield,
     }
 }

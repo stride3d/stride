@@ -11,7 +11,7 @@
     <FbxSdkVersion>2019.0</FbxSdkVersion>
     <FbxSdkUrl>https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0</FbxSdkUrl>
     <FbxSdkDir>$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\SOFTWARE\Autodesk FBX SDK $(FbxSdkVersion)', 'Install_Dir', null, RegistryView.Registry32))</FbxSdkDir>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <FbxLibVersionDir>vs2015\</FbxLibVersionDir>
   </PropertyGroup>
   <ItemGroup Label="ProjectConfigurations">
@@ -36,6 +36,7 @@
     <ProjectGuid>{0467D515-FD66-4B8A-A128-CB642C2ED03F}</ProjectGuid>
     <Keyword>ManagedCProj</Keyword>
     <RootNamespace>Xenko.Importer.FBX</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -248,6 +249,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="BulletSharp">
+      <HintPath>..\..\..\deps\BulletPhysics\BulletSharp.NetStandard.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>

@@ -55,10 +55,11 @@ namespace Xenko.Rendering.Sprites
                 }
 
                 // TODO Should we allow adding RenderSprite without a CurrentSprite instead? (if yes, need some improvement in RenderSystem)
-                if (spriteStateKeyPair.Value.Active != (currentSprite != null))
+                var isActive = (currentSprite != null) && renderSprite.Enabled;
+                if (spriteStateKeyPair.Value.Active != isActive)
                 {
-                    spriteStateKeyPair.Value.Active = (currentSprite != null);
-                    if (spriteStateKeyPair.Value.Active)
+                    spriteStateKeyPair.Value.Active = isActive;
+                    if (isActive)
                         VisibilityGroup.RenderObjects.Add(renderSprite);
                     else
                         VisibilityGroup.RenderObjects.Remove(renderSprite);

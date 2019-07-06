@@ -1,6 +1,6 @@
 <Project>
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -8,7 +8,7 @@
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
     <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
     <XenkoPlatformDependent>true</XenkoPlatformDependent>
-    <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <XenkoBuildTags>WindowsTools</XenkoBuildTags>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\build\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -33,13 +33,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.16.30" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
-    <PackageReference Include="NuGet.Configuration" Version="4.9.1" />
+    <PackageReference Include="NuGet.Configuration" Version="5.0.0" />
     <PackageReference Include="SharpDX" Version="4.0.1" />
     <PackageReference Include="System.Management" Version="4.5.0" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
 
 </Project>

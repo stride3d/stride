@@ -37,7 +37,7 @@ namespace Xenko.Assets.Presentation.Quantum
         /// <inheritdoc/>
         public override bool IsChildPartReference(IGraphNode node, Index index)
         {
-            return (node as IObjectNode)?.Type == typeof(TransformChildrenCollection);
+            return (node as IObjectNode)?.Type == typeof(TransformComponent.TransformChildrenCollection);
         }
 
         /// <inheritdoc/>

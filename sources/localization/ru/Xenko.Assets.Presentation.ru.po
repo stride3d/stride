@@ -1,0 +1,1583 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2019-01-11 23:17:07+0900\n"
+"PO-Revision-Date: 2019-03-09 00:04+0000\n"
+"Last-Translator: Scorp121 <kurkinsn@gmail.com>\n"
+"Language-Team: Russian <https://hosted.weblate.org/projects/xenko/"
+"assetspresentation/ru/>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<="
+"4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Weblate 3.5.1-dev\n"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
+msgctxt "Message"
+msgid ""
+"Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
+"already exists."
+msgstr ""
+"Не удается переименовать папку '{0}' в '{1}'. Папка с таким именем уже "
+"существует."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:495
+msgctxt "Message"
+msgid "Are you sure you want to delete this entity?"
+msgstr "Вы уверены, что хотите удалить этот объект?"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} entities?"
+msgstr "Вы уверены, что хотите удалить {0} сущность(и/ей)?"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
+msgctxt "Button"
+msgid "Delete"
+msgstr "Удалить"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:50
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:60
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:70
+#: ../editor/Xenko.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:64
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:127
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:52
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:28
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml:21
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:55
+msgctxt "Button"
+msgid "Cancel"
+msgstr "Отмена"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:16
+msgid "Use translation gizmo"
+msgstr "Перемещение"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:22
+msgid "Use rotation gizmo"
+msgstr "Вращение"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:28
+msgid "Use scale gizmo"
+msgstr "Масштаб"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:16
+msgid "Use world coordinates for transformations"
+msgstr "Использование мировых координат для преобразований"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:22
+msgid "Use local coordinates for transformations"
+msgstr "Использовать локальные координаты для преобразований"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:28
+msgid "Use current camera projection coordinates for transformations"
+msgstr "Использовать текущие координаты проекции камеры для преобразований"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:11
+msgctxt "Settings"
+msgid "Script editor"
+msgstr "Редактор сценариев"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:18
+msgctxt "Settings"
+msgid "Font size"
+msgstr "Размер шрифта"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:162
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:185
+msgctxt "Message"
+msgid "Couldn't find the file"
+msgstr "Файл не найден"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:172
+msgctxt "Message"
+msgid "There was a problem while editing the image.{0}"
+msgstr "Возникла проблема при редактировании изображения.{0}"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:195
+msgctxt "Message"
+msgid "There was a problem opening Explorer.{0}"
+msgstr "Возникла проблема с открытием проводника.{0}"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:11
+msgctxt "Settings"
+msgid "UI editor"
+msgstr "Редактор пользовательского интерфейса"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:18
+msgctxt "Settings"
+msgid "Ask before deleting UI elements"
+msgstr "Спрашивать перед удалением элементов пользовательского интерфейса"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:426
+msgctxt "Message"
+msgid "Are you sure you want to delete this UI element?"
+msgstr ""
+"Вы уверены, что хотите удалить этот элемент пользовательского интерфейса?"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:428
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} UI elements?"
+msgstr ""
+"Вы уверены, что хотите удалить это кол-во элементов {0} пользовательского "
+"интерфейса?"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:12
+msgctxt "Settings"
+msgid "Key bindings"
+msgstr "Назначение клавиш"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:13
+msgctxt "Settings"
+msgid "Scene editor"
+msgstr "Редактор сцен"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:14
+msgctxt "Settings"
+msgid "Viewport settings"
+msgstr "Настройки окна просмотра"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:21
+msgctxt "Settings"
+msgid "Move camera forward"
+msgstr "Перемещение камеры вперед"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:25
+msgctxt "Settings"
+msgid "Move camera backward"
+msgstr "Перемещение камеры назад"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:29
+msgctxt "Settings"
+msgid "Move camera left"
+msgstr "Перемещение камеры влево"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:33
+msgctxt "Settings"
+msgid "Move camera right"
+msgstr "Перемещение камеры вправо"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:37
+msgctxt "Settings"
+msgid "Move camera up"
+msgstr "Перемещение камеры вверх"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:41
+msgctxt "Settings"
+msgid "Move camera down"
+msgstr "Перемещение камеры вниз"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:45
+msgctxt "Settings"
+msgid "Invert mouse panning axis"
+msgstr "Инвертировать ось мышки"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:49
+msgctxt "Settings"
+msgid "Center view on selection"
+msgstr "Вид по центру выделенного элемента"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:53
+msgctxt "Settings"
+msgid "Snap selection to the grid"
+msgstr "Выбор привязки к сетке"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:57
+msgctxt "Settings"
+msgid "Switch to translation mode"
+msgstr "Переключиться в режим перемещения"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:61
+msgctxt "Settings"
+msgid "Switch to rotation mode"
+msgstr "Переключиться в режим вращения"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:65
+msgctxt "Settings"
+msgid "Switch to scale mode"
+msgstr "Переключиться в режим масштабирования"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:69
+msgctxt "Settings"
+msgid "Switch to next gizmo mode"
+msgstr "Переключиться в следующий режим"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:73
+msgctxt "Settings"
+msgid "Default snap distance for translation"
+msgstr "Шаг перемещений по умолчанию"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:77
+msgctxt "Settings"
+msgid "Default snap angle for rotation"
+msgstr "Шаг угла поворота по умолчанию"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:81
+msgctxt "Settings"
+msgid "Default snap factor for scale"
+msgstr "Шаг масштаба по умолчанию"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:85
+msgctxt "Settings"
+msgid "Ask before deleting entities"
+msgstr "Подтверждение для удаления объектов"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:48
+msgctxt "Button"
+msgid "Create"
+msgstr "Создать"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:49
+msgctxt "Button"
+msgid "Select a source..."
+msgstr "Выбрать источник..."
+
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:53
+msgctxt "Message"
+msgid "Do you want to create this {0} without a source file?"
+msgstr "Вы хотите создать этот {0} без исходного файла?"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:90
+msgctxt "Message"
+msgid "Select an orientation."
+msgstr "Выберите направление."
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:95
+msgctxt "Message"
+msgid "Select at least one platform."
+msgstr "Выберите хотя бы одну платформу."
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:102
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:75
+msgctxt "Message"
+msgid "Type a valid namespace name. Error with {0}"
+msgstr "Введите допустимое имя из пространства имен. Ошибка {0}"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:69
+msgctxt "Message"
+msgid "Type a valid library name. Error with {0}"
+msgstr "Введите допустимое имя библиотеки. Ошибка {0}"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml.cs:62
+msgctxt "Message"
+msgid "The names you entered are invalid or empty."
+msgstr "Введенное имя недопустимо или отсутствует."
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:59
+msgctxt "Button"
+msgid "Save"
+msgstr "Сохранить"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:62
+msgctxt "Message"
+msgid "You can't use scripts until you save them. Do you want to save now?"
+msgstr ""
+"Вы не можете использовать сценарии, пока их не сохраните. Сохранить сейчас?"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:61
+msgctxt "Message"
+msgid "You must select at least one platform."
+msgstr "Необходимо выбрать хотя бы одну платформу."
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:69
+msgctxt "Button"
+msgid "Remove"
+msgstr "Удалить"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:72
+msgctxt "Message"
+msgid "Are you sure you want to remove these {0} platform(s) from the package?"
+msgstr "Вы уверены, что хотите удалить эти платформы из пакета?"
+
+#: ../editor/Xenko.Assets.Presentation/ViewModel/CodeViewModel.cs:209
+msgctxt "Message"
+msgid ""
+"Game Studio can't auto-reload the project file {0} because you have local "
+"changes such as new or deleted scripts.\r\n"
+"\r\n"
+"Click OK to keep reloading or Cancel to keep the current version."
+msgstr ""
+"Game Studio не может автоматически перезагрузить файл проекта {0}, так как у "
+"вас есть локальные изменения, такие как новые или удаленные "
+"сценарии(скрипты).\n"
+"\n"
+"Нажмите OK, чтобы продолжить перезагрузку, или отмена, чтобы сохранить "
+"текущую версию."
+
+#: ../editor/Xenko.Assets.Presentation/ViewModel/CodeViewModel.cs:257
+msgctxt "Message"
+msgid ""
+"The following source files in the {0} project have been deleted externally, "
+"but have unsaved changes in Game Studio. Do you want to delete these files?\r\n"
+"\r\n"
+"{1}"
+msgstr ""
+"Следующие исходные файлы в проекте {0} были удалены извне, но имеют "
+"несохраненные изменения в Game Studio. Вы хотите удалить эти файлы?\n"
+"\n"
+"{1}"
+
+#: ../editor/Xenko.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:357
+msgctxt "Message"
+msgid ""
+"{0}\r\n"
+"\r\n"
+"This file has been changed externally and has unsaved changes inside the "
+"editor.\r\n"
+"Do you want to reload it and lose your changes?"
+msgstr ""
+"{0}\n"
+"\n"
+"Этот файл был изменен извне и имеет не сохраненные изменения в Редакторе.\n"
+"Вы хотите перезагрузить его и потерять свои изменения?"
+
+#: ../editor/Xenko.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:47
+msgctxt "Message"
+msgid ""
+"**Only static fonts can be precompiled.**\r\n"
+"\r\n"
+"Clear the _Is Dynamic_ property on this font and try again."
+msgstr ""
+"**Только статические шрифты могут быть предварительно скомпилированы.**\n"
+"\n"
+"Очистите _Is Dynamic_property этого шрифта и повторите попытку."
+
+#: ../editor/Xenko.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:65
+msgctxt "Message"
+msgid "Which color space do you want to use?"
+msgstr "Какое цветовое пространство использовать?"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:64
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:108
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:187
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:787
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:33
+msgctxt "Menu"
+msgid "Create"
+msgstr "Создать"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:65
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:109
+msgctxt "Menu"
+msgid "Folder"
+msgstr "Папка"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:66
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:110
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:191
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:788
+msgctxt "Menu"
+msgid "Empty entity"
+msgstr "Пустой объект"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:92
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:136
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:814
+msgctxt "Menu"
+msgid "Actions"
+msgstr "Действие"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:93
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:139
+msgctxt "Menu"
+msgid "Open prefab in editor"
+msgstr "Редактировать префаб"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:94
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:140
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:816
+msgctxt "Menu"
+msgid "Select prefab in asset view"
+msgstr "Выберите префаб в окне активов"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:95
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:141
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:817
+msgctxt "Menu"
+msgid "Break link to prefab"
+msgstr "Сделать независимым от префаба"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:96
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:142
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:818
+msgctxt "Menu"
+msgid "Create prefab from selection"
+msgstr "Создать префаб из выбранного"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:98
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:144
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:820
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:137
+msgctxt "Menu"
+msgid "Duplicate"
+msgstr "Дублировать"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:137
+msgctxt "Menu"
+msgid "Set as active scene"
+msgstr "Установить сцену в качестве активной"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:150
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:825
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:143
+msgctxt "Menu"
+msgid "Rename"
+msgstr "Переименовать"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:167
+msgid "Loading scene..."
+msgstr "Загрузка сцены..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:168
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:212
+msgid "This might take a few minutes the first time."
+msgstr "В первый раз это может занять несколько минут."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:182
+msgctxt "ToolTip"
+msgid "Create a new entity"
+msgstr "Создать новую сущность(объект)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:189
+msgctxt "Menu"
+msgid "New folder"
+msgstr "Новая папка"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:222
+msgctxt "ToolTip"
+msgid "Filter entities by name"
+msgstr "Фильтровать сущности(объекты) по имени"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:230
+msgctxt "ToolTip"
+msgid "Expand all entities"
+msgstr "Развернуть все сущности(объекты)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:234
+msgctxt "ToolTip"
+msgid "Collapse all entities"
+msgstr "Схлопнуть все сущности(объекты)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:258
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:211
+msgid "Loading..."
+msgstr "Загрузка..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:262
+msgid "Unloading..."
+msgstr "Выгрузка..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:330
+msgctxt "ToolTip"
+msgid "Focus on this entity (F)"
+msgstr "Сфокусировать на этой сущности(объекте) (F)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:337
+msgctxt "ToolTip"
+msgid "Lock/unlock this entity"
+msgstr "Заблокировать/разблокировать эту сущность(объект)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:338
+msgctxt "ToolTip"
+msgid "(Hold Ctrl to apply to child entities recursively)"
+msgstr ""
+"(Удерживайте Ctrl для рекурсивного применения к дочерним сущностям(объектам)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:376
+msgctxt "ToolTip"
+msgid "Lock/unlock all entities"
+msgstr "Заблокировать/разблокировать все сущности(объекты)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:377
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:386
+msgctxt "ToolTip"
+msgid "(Hold Ctrl to apply to child scenes recursively)"
+msgstr "(Удерживайте Ctrl для рекурсивного применения к дочерним сценам)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:385
+msgctxt "ToolTip"
+msgid "Load/unload all entities"
+msgstr "Загрузка/выгрузка всех сущностей(объектов)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:406
+msgid "(Unloaded)"
+msgstr "(Выгружен)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:473
+msgctxt "ToolTip"
+msgid "Light probes and cubemaps..."
+msgstr "Световые зонды и кубические карты..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:483
+msgid "Light probes"
+msgstr "Световые зонды"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:488
+msgid "Bounces:"
+msgstr "Отражения:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:492
+msgctxt "ToolTip"
+msgid "Compute lighting using light probes"
+msgstr "Вычисление освещения с помощью световых зондов"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:500
+msgctxt "ToolTip"
+msgid "Reset light probes"
+msgstr "Сбросить световые зонды"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:504
+msgid "Reset"
+msgstr "Сброс"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:510
+msgid "Cubemap"
+msgstr "Кубические карты"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:514
+msgctxt "ToolTip"
+msgid "Generate a cubemap from the scene view and save as a texture"
+msgstr "Создание кубической карты из вида сцены и сохранение в виде текстуры"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:518
+msgid "Capture"
+msgstr "Захват"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:527
+msgctxt "ToolTip"
+msgid "Navigation visibility..."
+msgstr "Визуализировать навигацию..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:537
+msgid "Show navigation meshes:"
+msgstr "Показать навигационные сетки:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:539
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:596
+#: ../editor/Xenko.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:25
+msgctxt "Button"
+msgid "All"
+msgstr "Все"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:540
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:597
+#: ../editor/Xenko.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:27
+msgctxt "Button"
+msgid "None"
+msgstr "Нет"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:566
+msgctxt "ToolTip"
+msgid "Grid and gizmo options..."
+msgstr "Параметры сетки и указателя осей..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:576
+msgid "Transformation gizmo size:"
+msgstr "Размер указателя осей:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:581
+msgid "Component gizmo size:"
+msgstr "Размер компонентных указателей:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:582
+msgctxt "Button"
+msgid "Fixed"
+msgstr "Фиксировано"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:590
+msgctxt "Button"
+msgid "Camera preview"
+msgstr "Пред.просмотр камеры"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:591
+msgctxt "Button"
+msgid "Light probe volumes"
+msgstr "Световой зонд"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:608
+msgctxt "Button"
+msgid "Other entities"
+msgstr "Другие сущности(объекты)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:616
+msgctxt "ToolTip"
+msgid "Editor camera options..."
+msgstr "Редактор параметров камеры..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:626
+msgid "Projection"
+msgstr "Проекция"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:629
+msgctxt "Button"
+msgid "Perspective"
+msgstr "Перспектива"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:630
+msgctxt "Button"
+msgid "Orthographic"
+msgstr "Ортогонально"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:632
+msgid "Near plane:"
+msgstr "Ближняя плоскость:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:634
+msgid "Far plane:"
+msgstr "Дальняя плоскость:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:636
+msgid "Field of view:"
+msgstr "Угол обзора:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:642
+msgid "Orthographic size:"
+msgstr "Ортогональный размер:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:648
+msgid "Movement"
+msgstr "Перемещение"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:652
+msgid "Speed:"
+msgstr "Скорость:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:657
+msgid "Orientation"
+msgstr "Направление"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
+msgctxt "Button"
+msgid "Front"
+msgstr "Спереди"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:662
+msgctxt "Button"
+msgid "Back"
+msgstr "Сзади"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:664
+msgctxt "Button"
+msgid "Top"
+msgstr "Сверху"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:666
+msgctxt "Button"
+msgid "Bottom"
+msgstr "Снизу"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:668
+msgctxt "Button"
+msgid "Left"
+msgstr "Слева"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:670
+msgctxt "Button"
+msgid "Right"
+msgstr "Справа"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
+msgctxt "ToolTip"
+msgid "Snap translations to this value"
+msgstr "Задать значение для перемещения"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:710
+msgctxt "ToolTip"
+msgid "Snap rotations to this value"
+msgstr "Задать значение для вращения"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:719
+msgctxt "ToolTip"
+msgid "Snap scale to this factor"
+msgstr "Задать значение для масштаба"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:743
+msgctxt "ToolTip"
+msgid ""
+"Toggle material selection (click a selected asset to select its material)"
+msgstr ""
+"Переключить на выбор материала (щелкните выбранный актив, чтобы выбрать его "
+"материал)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:746
+msgctxt "ToolTip"
+msgid "Show or hide selection mask"
+msgstr "Показать или скрыть маску выделения"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:748
+msgid "Loading assets..."
+msgstr "Загрузка активов..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:815
+msgctxt "Menu"
+msgid "Open in prefab editor"
+msgstr "Редактировать префаб"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:857
+msgid ""
+"Before you resume, fix the failing asset (likely a graphics compositor or "
+"scene)."
+msgstr ""
+"Перед возобновлением исправьте неисправный ресурс (скорее всего, графический "
+"композитор или сцену)."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:859
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:516
+msgctxt "Button"
+msgid "Resume"
+msgstr "Возобновить"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:861
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:518
+msgctxt "Button"
+msgid "Copy error to clipboard"
+msgstr "Скопировать ошибку в буфер обмена"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:13
+msgid "Select an entity"
+msgstr "Выберите сущность(объект)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:23
+msgctxt "ToolTip"
+msgid "Select the selected assets"
+msgstr "Выбрать отмеченные активы"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
+#: ../editor/Xenko.Assets.Presentation/View/DebuggerPickerWindow.xaml:26
+msgctxt "ToolTip"
+msgid "Cancel (Esc)"
+msgstr "Отмена (Esc)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:37
+msgid "Select an entity:"
+msgstr "Выберите сущность(объект):"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:66
+msgid "(Index: {0})"
+msgstr "(Индекс: {0})"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:49
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:129
+msgctxt "Menu"
+msgid "Action"
+msgstr "Действие"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:50
+msgctxt "Menu"
+msgid "Delete selection"
+msgstr "Удалить выбранное"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:202
+msgid "Render stages:"
+msgstr "Этап рендеринга:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:254
+msgid "Render features:"
+msgstr "Особенности рендеринга:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:278
+msgid "Camera slots:"
+msgstr "Слоты камеры:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:107
+msgctxt "ToolTip"
+msgid "Toggle between find and replace modes"
+msgstr "Переключение между режимами поиска и замены"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:167
+msgctxt "ToolTip"
+msgid "Replace next (Alt+R)"
+msgstr "Заменить следующий (Alt+R)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:177
+msgctxt "ToolTip"
+msgid "Replace all (Alt+A)"
+msgstr "Заменить все (Alt+A)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:253
+msgid "No suggestions"
+msgstr "Нет вариантов"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:53
+msgctxt "Button"
+msgid "Sprite sheet properties"
+msgstr "Свойства спрайт-листа"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:56
+msgid "Sheet type:"
+msgstr "Тип листа:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:89
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:301
+msgctxt "Button"
+msgid "Use color key"
+msgstr "Использовать цветовой ключ"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:90
+msgctxt "ToolTip"
+msgid "If enabled, the sprite uses the given color as transparency"
+msgstr ""
+"Если этот параметр включен, спрайт использует заданный цвет в качестве "
+"прозрачности"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:118
+msgctxt "ToolTip"
+msgid "To select the color key,  select a pixel color from the image"
+msgstr "Чтобы выбрать ключ цвета,  выберите цвет пикселя на изображении"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:127
+msgctxt "ToolTip"
+msgid "Add a new empty sprite"
+msgstr "Добавить новый пустой спрайт"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:130
+msgctxt "ToolTip"
+msgid "Duplicate selected sprites"
+msgstr "Дублировать выбранный спрайт"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:133
+msgctxt "ToolTip"
+msgid "Delete selected sprites"
+msgstr "Удалить выбранный спрайт"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:136
+msgctxt "ToolTip"
+msgid "Move selected sprites up"
+msgstr "Переместить выбранные спрайты вверх"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:140
+msgctxt "ToolTip"
+msgid "Move selected sprites down"
+msgstr "Переместить выбранные спрайты вниз"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:143
+msgid "Sprites:"
+msgstr "Спрайты:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:165
+msgctxt "Menu"
+msgid "Add new sprite"
+msgstr "Добавить новый спрайт"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:166
+msgctxt "Menu"
+msgid "Duplicate sprite"
+msgstr "Дублировать спрайт"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:167
+msgctxt "Menu"
+msgid "Edit image"
+msgstr "Редактировать изображение"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:168
+msgctxt "Menu"
+msgid "Show image in explorer"
+msgstr "Показать изображение в проводнике"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:217
+msgid "Select a single image from the left panel"
+msgstr "Выберите одно изображение на левой панели"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:224
+msgctxt "ToolTip"
+msgid "Select previous sprite"
+msgstr "Выбрать предыдущий спрайт"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:228
+msgctxt "ToolTip"
+msgid "Select next sprite"
+msgstr "Выбрать следующий спрайт"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:233
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:382
+msgctxt "ToolTip"
+msgid "Zoom out"
+msgstr "Уменьшить"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:237
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:386
+msgctxt "ToolTip"
+msgid "Zoom in"
+msgstr "Увеличить"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:241
+msgctxt "ToolTip"
+msgid "Scale to real pixel size"
+msgstr "Масштаб до реального размера пикселя"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:245
+msgctxt "ToolTip"
+msgid "Fit image to screen"
+msgstr "Подогнать размер изображения под экран"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:249
+msgctxt "ToolTip"
+msgid "Center view on current sprite region"
+msgstr "Центральный вид текущей области спрайта"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:255
+msgctxt "ToolTip"
+msgid "Change selection rectangle color"
+msgstr "Изменить цвет прямоугольника выделения"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:272
+msgctxt "ToolTip"
+msgid "Highlight the current selection"
+msgstr "Подсветить текущее выделение"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:275
+msgctxt "ToolTip"
+msgid "Select entire image"
+msgstr "Выбрать всё изображение"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:283
+msgctxt "ToolTip"
+msgid "Select the sprite region using the magic wand"
+msgstr "Выберите область спрайта с помощью волшебной палочки"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:300
+msgctxt "Button"
+msgid "Use transparency"
+msgstr "Использовать прозрачность"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:311
+msgctxt "ToolTip"
+msgid "Move the sprite center"
+msgstr "Перемещение центра спрайта"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:319
+msgctxt "ToolTip"
+msgid "Resize the sprite borders"
+msgstr "Изменение размера границ спрайта"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:330
+msgctxt "ToolTip"
+msgid "Unlock the sprite borders"
+msgstr "Разблокировать границы спрайта"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:334
+msgctxt "ToolTip"
+msgid "Lock the sprite borders"
+msgstr "Блокировка границ спрайта"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:37
+msgctxt "Menu"
+msgid "Layout"
+msgstr "Макет"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:38
+msgctxt "Menu"
+msgid "Group into"
+msgstr "Сгруппировать"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:49
+msgctxt "Menu"
+msgid "Ungroup"
+msgstr "Разгруппировать"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:53
+msgctxt "Menu"
+msgid "Change layout type"
+msgstr "Изменить тип макета"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:69
+msgctxt "Menu"
+msgid "Pin origin"
+msgstr "Начало координат"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:83
+msgctxt "Menu"
+msgid "Top left"
+msgstr "Верхний левый угол"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:84
+msgctxt "Menu"
+msgid "Top"
+msgstr "Вверху"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:85
+msgctxt "Menu"
+msgid "Top right"
+msgstr "Вверху справа"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:86
+msgctxt "Menu"
+msgid "Left"
+msgstr "Слева"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:87
+msgctxt "Menu"
+msgid "Center"
+msgstr "По центру"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:88
+msgctxt "Menu"
+msgid "Right"
+msgstr "Справа"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:89
+msgctxt "Menu"
+msgid "Bottom left"
+msgstr "Слева внизу"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:90
+msgctxt "Menu"
+msgid "Bottom"
+msgstr "Снизу"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:91
+msgctxt "Menu"
+msgid "Bottom right"
+msgstr "Справа внизу"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:92
+msgctxt "Menu"
+msgid "Front"
+msgstr "Спереди"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:93
+msgctxt "Menu"
+msgid "Middle"
+msgstr "Посредине"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:94
+msgctxt "Menu"
+msgid "Back"
+msgstr "Сзади"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:101
+msgctxt "Menu"
+msgid "Row"
+msgstr "В ряд"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:103
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:121
+msgctxt "Menu"
+msgid "Move up"
+msgstr "Сместить вверх"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:104
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:124
+msgctxt "Menu"
+msgid "Move down"
+msgstr "Сместить вниз"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:106
+msgctxt "Menu"
+msgid "Column"
+msgstr "Колонка"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:108
+msgctxt "Menu"
+msgid "Move left"
+msgstr "Сместить влево"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:109
+msgctxt "Menu"
+msgid "Move right"
+msgstr "Сместить вправо"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:111
+msgctxt "Menu"
+msgid "Layer"
+msgstr "Слой"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:113
+msgctxt "Menu"
+msgid "Move back"
+msgstr "Сместить назад"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:114
+msgctxt "Menu"
+msgid "Move front"
+msgstr "Сместить вперёд"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:130
+msgctxt "Menu"
+msgid "Open library in editor"
+msgstr "Редактировать библиотеку"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:131
+msgctxt "Menu"
+msgid "Select library in asset view"
+msgstr "Выбрать библиотеку в окне активов"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:132
+msgctxt "Menu"
+msgid "Break link to library"
+msgstr "Разорвать связь с библиотекой"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:134
+msgctxt "Menu"
+msgid "Create page from selection"
+msgstr "Создать страницу из выбранного"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:135
+msgctxt "Menu"
+msgid "Create library from selection"
+msgstr "Создать библиотеку из выбранного"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:187
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:177
+msgctxt "Menu"
+msgid "View"
+msgstr "Вид"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:188
+msgctxt "Menu"
+msgid "Zoom in"
+msgstr "Увеличить"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:189
+msgctxt "Menu"
+msgid "Zoom out"
+msgstr "Уменьшить"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:190
+msgctxt "Menu"
+msgid "Reset camera"
+msgstr "Сброс камеры"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:226
+msgctxt "Button"
+msgid "UI properties"
+msgstr "Свойства пользовательского интерфейса"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:237
+msgid "UI library"
+msgstr "Библиотека пользовательского интерфейса"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:284
+msgctxt "ToolTip"
+msgid "Expand all elements"
+msgstr "Развернуть все элементы"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:288
+msgctxt "ToolTip"
+msgid "Collapse all elements"
+msgstr "Свернуть все элементы"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:378
+msgctxt "ToolTip"
+msgid "Reset zoom"
+msgstr "Сброс масштаба"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:389
+msgctxt "ToolTip"
+msgid "Snaps to this value (0 to disable)"
+msgstr "Привязка к этому значению (0 для отключения)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:401
+msgid "Colors"
+msgstr "Цвета"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:417
+msgid "Guideline"
+msgstr "Директива"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:433
+msgid "Highlight"
+msgstr "Выделить"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:449
+msgid "Selection"
+msgstr "Выбор"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:465
+msgid "Sizing"
+msgstr "Калибровка"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:514
+msgid ""
+"Before you resume, fix the failing asset (likely a UI page or UI library)."
+msgstr ""
+"Прежде чем возобновить, нужно исправить сбой активов (скорее всего, страница "
+"пользовательского интерфейса или UI библиотеки)."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:213
+msgctxt "Menu"
+msgid "Get"
+msgstr "Взять"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:214
+msgctxt "Menu"
+msgid "Set"
+msgstr "Установить"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:253
+msgid "Variables:"
+msgstr "Переменные:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:302
+msgid "Functions:"
+msgstr "Функция:"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:346
+msgctxt "Button"
+msgid "Static method"
+msgstr "Статический метод"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:347
+msgid "Return type..."
+msgstr "Возвращаемый тип..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:354
+msgid "Function parameters:"
+msgstr "Параметр функции:"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:41
+msgctxt "ToolTip"
+msgid "Remove the selected curve"
+msgstr "Удалить выбранную кривую"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:43
+msgid "Curves:"
+msgstr "Кривые:"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:73
+msgctxt "ToolTip"
+msgid "Show or hide the tracker"
+msgstr "Показать или скрыть шкалу"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:79
+msgctxt "ToolTip"
+msgid "Fit view to curve"
+msgstr "Подогнать вид к кривой"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:82
+msgctxt "ToolTip"
+msgid "Fit view to curve height"
+msgstr "Подгонка вида по высоте кривой"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:85
+msgctxt "ToolTip"
+msgid "Fit view to curve width"
+msgstr "Подгонка вида по ширине кривой"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:92
+msgctxt "ToolTip"
+msgid "Delete selected points"
+msgstr "Удалить выбранные точки"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:101
+msgctxt "ToolTip"
+msgid "First key"
+msgstr "Первый ключ"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:104
+msgctxt "ToolTip"
+msgid "Previous key"
+msgstr "Предыдущий ключ"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:107
+msgctxt "ToolTip"
+msgid "Next key"
+msgstr "Следующий ключ"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:110
+msgctxt "ToolTip"
+msgid "Last key"
+msgstr "Последний ключ"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:117
+msgid "Key"
+msgstr "Ключ"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:120
+msgid "Value"
+msgstr "Значение"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:167
+msgctxt "Menu"
+msgid "Curve"
+msgstr "Кривая"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:169
+msgctxt "Menu"
+msgid "Add point"
+msgstr "Добавить точку"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:172
+msgctxt "Menu"
+msgid "Delete selected points"
+msgstr "Удалить выбранные точки"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:174
+msgctxt "Menu"
+msgid "Clear whole curve"
+msgstr "Очистить всю кривую"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:178
+msgctxt "Menu"
+msgid "Fit to curve"
+msgstr "Вписать в кривую"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:180
+msgctxt "Menu"
+msgid "Fit to curve height"
+msgstr "По высоте кривой"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:182
+msgctxt "Menu"
+msgid "Fit to curve width"
+msgstr "Подгонка по ширине кривой"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:10
+msgid "Create a game..."
+msgstr "Создать игру..."
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:21
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml:28
+msgid "Namespace:"
+msgstr "Пространство имен:"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:26
+msgid "Platforms"
+msgstr "Платформы"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:48
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
+msgid "This machine doesn't meet the requirements to build for this platform."
+msgstr "Эта машина не отвечает требованиям для сборки на этой платформе."
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:58
+msgid "Asset packs"
+msgstr "Пакеты активов"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:78
+msgid "Rendering"
+msgstr "Визуализация"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:90
+msgctxt "Button"
+msgid "High dynamic range (HDR)"
+msgstr "Графика высоко (HDR)"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:92
+msgctxt "Button"
+msgid "Low dynamic range (LDR)"
+msgstr "Графика низко (LDR)"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:126
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:51
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
+msgctxt "Button"
+msgid "OK"
+msgstr "Ок"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:10
+msgid "Import from model"
+msgstr "Импорт из модели"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:22
+msgid "Materials and textures"
+msgstr "Материалы и текстуры"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:26
+msgctxt "Button"
+msgid "Import materials"
+msgstr "Импортировать материалы"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:27
+msgctxt "Button"
+msgid "Import textures"
+msgstr "Импортировать текстуры"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:31
+msgid "Skeleton"
+msgstr "Скелет"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:35
+msgctxt "Button"
+msgid "Import skeleton"
+msgstr "Импортировать скелет"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:36
+msgctxt "Button"
+msgid "No skeleton"
+msgstr "Нет скелета"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:37
+msgctxt "Button"
+msgid "Use another skeleton for this model:"
+msgstr "Использовать другой скелет:"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
+msgid "New code library"
+msgstr "Новая библиотека скриптов"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:21
+msgid "Library name:"
+msgstr "Имя библиотеки:"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml:9
+msgid "New script"
+msgstr "Новый скрипт"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml:20
+msgctxt "Button"
+msgid "Create script"
+msgstr "Создать скрипт"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml:25
+msgid "Class:"
+msgstr "Класс:"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:9
+msgid "Select platforms"
+msgstr "Выбор платформы"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:31
+msgid "(This will remove the project from the package and disk.)"
+msgstr "(Это приведет к удалению проекта из пакета и диска.)"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:52
+msgctxt "Button"
+msgid "Force regeneration of all platform projects"
+msgstr "Принудительная регенерация всех проектов для данной платформы"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:28
+msgctxt "ToolTip"
+msgid "Play the animation"
+msgstr "Воспроизведение анимации"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:31
+msgctxt "ToolTip"
+msgid "Pause the animation"
+msgstr "Приостановить анимацию"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:43
+msgid "Time scale:"
+msgstr "Шкала времени:"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:117
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:136
+msgctxt "ToolTip"
+msgid "Reset the camera"
+msgstr "Сброс камеры"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:187
+msgid ""
+"Scenes can't be previewed. To see the scene, open it in the scene editor."
+msgstr ""
+"Сцены не могут быть просмотрены. Чтобы увидеть сцену, откройте ее в "
+"Редакторе сцен."
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:201
+msgctxt "ToolTip"
+msgid "Play the sound"
+msgstr "Воспроизвести звук"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:204
+msgctxt "ToolTip"
+msgid "Pause the sound"
+msgstr "Приостановить звук"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:240
+msgid "Building preview sound asset..."
+msgstr "Пред.просмотр собранного звука..."
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:278
+msgctxt "ToolTip"
+msgid "Previous sprite"
+msgstr "Предыдущий спрайт"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:280
+msgid "Sprite:"
+msgstr "Спрайт:"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:283
+msgctxt "ToolTip"
+msgid "Next sprite"
+msgstr "Следующий спрайт"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:311
+msgid "Preview text"
+msgstr "Предварительный просмотр текста"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:353
+msgctxt "ToolTip"
+msgid "Previous slice"
+msgstr "Предыдущий фрагмент"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:357
+msgctxt "ToolTip"
+msgid "Next slice"
+msgstr "Следующий фрагмент"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:380
+msgid "W: {0}"
+msgstr "Длина: {0}"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:381
+msgid "H: {0}"
+msgstr "Высота: {0}"
+
+#: ../editor/Xenko.Assets.Presentation/View/AnimationPropertyTemplates.xaml:18
+msgctxt "ToolTip"
+msgid "Edit curve"
+msgstr "Изменить кривую"
+
+#: ../editor/Xenko.Assets.Presentation/View/AnimationPropertyTemplates.xaml:70
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:71
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:111
+#: ../editor/Xenko.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:64
+msgid "(Different values)"
+msgstr "(Разные значения)"
+
+#: ../editor/Xenko.Assets.Presentation/View/DebugEntityHierarchyEditorUserControl.xaml:13
+msgctxt "Button"
+msgid "Refresh"
+msgstr "Обновить"
+
+#: ../editor/Xenko.Assets.Presentation/View/DebuggerPickerWindow.xaml:11
+msgid "Live scripting debugger"
+msgstr "Отладчик \"живой скрипт\""
+
+#: ../editor/Xenko.Assets.Presentation/View/DebuggerPickerWindow.xaml:21
+msgctxt "ToolTip"
+msgid "Select these assets"
+msgstr "Выбрать эти активы"
+
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:44
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:84
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:235
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:262
+msgctxt "ToolTip"
+msgid "Select an asset"
+msgstr "Выбрать актив"
+
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:50
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:90
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:267
+msgctxt "ToolTip"
+msgid "Clear the reference"
+msgstr "Очистить ссылку"
+
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:56
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:96
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:221
+msgctxt "ToolTip"
+msgid "Select the referenced asset"
+msgstr "Выберите референсный актив"
+
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:133
+msgid "Add component"
+msgstr "Добавить компонент"
+
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:258
+msgctxt "ToolTip"
+msgid "Highlight this material in the scene editor"
+msgstr "Выделить этот материал в редакторе сцен"
+
+#: ../editor/Xenko.Assets.Presentation/View/MaterialPropertyTemplates.xaml:13
+msgid "Select shader..."
+msgstr "Выберите шейдер..."

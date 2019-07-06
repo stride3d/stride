@@ -184,13 +184,18 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
             // Compute translation speed according to framerate and modifiers
             float baseSpeed = MoveSpeed * SceneUnit * (input.isShiftDown ? 10 : 1) * (1f/60f);
 
-            var matrix = Component.Entity.Transform.LocalMatrix;
-            var rotation = Matrix.RotationYawPitchRoll(yaw, pitch, 0);
-            var forward = new Vector3(matrix.M31, matrix.M32, matrix.M33); //Vector3.TransformNormal(ForwardVector, rotation);
-            var up = new Vector3(matrix.M21, matrix.M22, matrix.M23); //Vector3.TransformNormal(UpVector, rotation);
-            var right = Vector3.Cross(forward, up);
-
             float zoomDelta = 0f;
+
+            // Update yaw and pitch first to keep dependencies on 'rotation' up to date with current frame changes
+            if (input.isMoving || input.isRotating || input.isOrbiting)
+            {
+                var rotationSpeed = RotationSpeed * (input.isOrbiting ? 2 : 1); // we want to rotate faster when rotating around an object.
+                yaw -= 1.333f * Game.Input.MouseDelta.X * rotationSpeed; // we want to rotate faster Horizontally and Vertically
+                if (input.isRotating || input.isOrbiting)
+                    pitch = MathUtil.Clamp(pitch - Game.Input.MouseDelta.Y * rotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
+            }
+
+            var rotation = Quaternion.RotationYawPitchRoll(yaw, pitch, 0);
 
             // If scene has changed since last time
             if (asOrthographic && Game?.ContentScene?.Entities != null)
@@ -204,7 +209,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 }
                 revolutionRadius = Math.Max(10f, sceneBounds.Radius * 2f);
 
-                position = targetPos - Vector3.Normalize(Vector3.TransformNormal(ForwardVector, rotation)) * revolutionRadius;
+                position = targetPos - Vector3.Normalize(Vector3.Transform(ForwardVector, rotation)) * revolutionRadius;
             }
 
 
@@ -236,7 +241,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 }
 
                 var localDirection = Vector3.Normalize(new Vector3(x, y, -z));
-                position += Vector3.TransformNormal(localDirection, rotation) * baseSpeed * dt * 60f;
+                position += Vector3.Transform(localDirection, rotation) * baseSpeed * dt * 60f;
             }
 
             // Pan
@@ -246,8 +251,9 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 panningSpeed *= MouseMoveSpeedFactor * baseSpeed;
                 if (InvertPanningAxis.GetValue())
                     panningSpeed = -panningSpeed;
-                position -= right * Game.Input.MouseDelta.X * panningSpeed;
-                position -= up * Game.Input.MouseDelta.Y * panningSpeed;
+
+                var localDirection = new Vector3(Game.Input.MouseDelta.X, -Game.Input.MouseDelta.Y, 0f);
+                position += Vector3.Transform(localDirection, rotation) * panningSpeed;
             }
 
             // Move
@@ -259,19 +265,10 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 }
                 else
                 {
-                    forward = Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(yaw, pitch, 0));
+                    var forward = Vector3.Transform(ForwardVector, rotation);
                     var projectedForward = Vector3.Normalize(new Vector3(forward.X, 0, forward.Z)); // camera forward vector project on the XZ plane
                     position -= projectedForward * baseSpeed * MouseMoveSpeedFactor * Game.Input.MouseDelta.Y;
                 }
-            }
-
-            // Rotate
-            if (input.isMoving || input.isRotating || input.isOrbiting)
-            {
-                var rotationSpeed = RotationSpeed * (input.isOrbiting ? 2 : 1); // we want to rotate faster when rotating around an object.
-                yaw -= 1.333f * Game.Input.MouseDelta.X * rotationSpeed; // we want to rotate faster Horizontally and Vertically
-                if (input.isRotating || input.isOrbiting)
-                    pitch = MathUtil.Clamp(pitch - Game.Input.MouseDelta.Y * rotationSpeed, -MathUtil.PiOverTwo, MathUtil.PiOverTwo);
             }
 
             // Forward/backward
@@ -288,7 +285,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                 else
                 {
                     // Perspective
-                    forward = Vector3.Transform(ForwardVector, Quaternion.RotationYawPitchRoll(yaw, pitch, 0));
+                    var forward = Vector3.Transform(ForwardVector, rotation);
                     position += forward * MouseWheelZoomSpeedFactor * Game.Input.MouseWheelDelta * 0.1f;    // Multiply by 0.1f so it matches the zoom "speed" of the orthographic mode.
                     if (Game.Input.HasDownMouseButtons)
                     {
@@ -314,8 +311,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
 
             // Orbit
             // The connection between position and target is pretty straight-forward
-            rotation = Matrix.RotationYawPitchRoll(yaw, pitch, 0);
-            var direction = Vector3.Normalize(Vector3.TransformNormal(ForwardVector, rotation));
+            var direction = Vector3.Transform(ForwardVector, rotation);
             if (input.isOrbiting)
             {
                 position = targetPos - direction * revolutionRadius;

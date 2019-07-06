@@ -27,6 +27,7 @@ namespace Xenko.VisualStudio
     {
         static class ProjectItemKind
         {
+            public static string SolutionFolder = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
             public static string PhysicalFile = "{6BB5F8EE-4483-11D3-8BCF-00C04F8EC28C}";
             public static string PhysicalFolder = "{6BB5F8EF-4483-11D3-8BCF-00C04F8EC28C}";
             public static string VirtualFolder = "{6BB5F8F0-4483-11D3-8BCF-00C04F8EC28C}";
@@ -113,7 +114,7 @@ namespace Xenko.VisualStudio
                 if (project == null)
                     continue;
 
-                if (project.Kind == ProjectKinds.vsProjectKindSolutionFolder)
+                if (project.Kind == ProjectItemKind.SolutionFolder)
                 {
                     // Solution folder: recursive call
                     projects.AddRange(GetSolutionFolderProjects(project));
@@ -138,7 +139,7 @@ namespace Xenko.VisualStudio
                 if (subProject == null)
                     continue;
 
-                if (subProject.Kind == ProjectKinds.vsProjectKindSolutionFolder)
+                if (subProject.Kind == ProjectItemKind.SolutionFolder)
                 {
                     // Solution folder: recursive call
                     projects.AddRange(GetSolutionFolderProjects(subProject));

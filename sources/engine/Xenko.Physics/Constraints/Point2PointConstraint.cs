@@ -16,7 +16,7 @@ namespace Xenko.Physics
         public Vector3 PivotInA 
         {
             get { return InternalPoint2PointConstraint.PivotInA; }
-            set { InternalPoint2PointConstraint.SetPivotA(value); } 
+            set { InternalPoint2PointConstraint.PivotInA = value; } 
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Xenko.Physics
         public Vector3 PivotInB
         {
             get { return InternalPoint2PointConstraint.PivotInB; }
-            set { InternalPoint2PointConstraint.SetPivotB(value); }
+            set { InternalPoint2PointConstraint.PivotInB = value; }
         }
 
         /// <summary>

@@ -498,37 +498,33 @@ namespace Xenko.Editor.EditorGame.ContentLoader
                 // We wait for a lock of the database. The lock we retrieve is synchronous, do not await in this using block!
                 using ((await database.ReserveSyncLock()).Lock())
                 {
-                    // Use fast reload if supported and the asset is currently loaded
-                    if (FastReloadTypes.Contains(assetToProcess.AssetType) && IsCurrentlyLoaded(assetToProcess.Id))
+                    // There is two patterns:
+                    // - Object is a fast-reloadable & already loaded object: we can replace its content internally without loading a new object and recreating any of its referencers
+                    //   Note that we still need to process referencers in case it is used as a compile-time dependency (i.e. Material layer)
+                    // - Object is not a fast-reloadable object: we need to find its referencers (recursively) until we find node directly referenced by the scene (part of modifiedAssetReferencers) and reload this one
+                    var isFastReloadCurrentlyLoaded = FastReloadTypes.Contains(assetToProcess.AssetType) && IsCurrentlyLoaded(assetToProcess.Id);
+                    if (modifiedAssetReferencers.Contains(assetToProcess.Id) || isFastReloadCurrentlyLoaded)
                     {
-                        // Allow fast-reload only if the has not been added as non-fast-reloadable.
                         allAssetsToRebuild.Add(assetToProcess);
+                    }
 
-                        // Find dependent assets
-                        foreach (var referencer in assetToProcess.Dependencies.ReferencerAssets)
+                    // Find dependent assets
+                    foreach (var referencer in assetToProcess.Dependencies.ReferencerAssets)
+                    {
+                        var node = database.AssetDependenciesCompiler.BuildDependencyManager.FindOrCreateNode(referencer.AssetItem, typeof(AssetCompilationContext));
+                        node.Analyze(database.CompilerContext);
+                        foreach (var reference in node.References)
                         {
-                            var node = database.AssetDependenciesCompiler.BuildDependencyManager.FindOrCreateNode(referencer.AssetItem, typeof(AssetCompilationContext));
-                            node.Analyze(database.CompilerContext);
-                            foreach (var reference in node.References)
+                            // Check if this reference is actually a compile-time dependency
+                            // Or if it's not a fast reloadable type (in which case we also need to process its references)
+                            if (reference.Target.AssetItem.Id == assetToProcess.Id && (reference.HasOne(BuildDependencyType.CompileContent | BuildDependencyType.CompileAsset) || !isFastReloadCurrentlyLoaded))
                             {
-                                // Check if this reference is actually a compile-time dependency
-                                if (reference.Target.AssetItem.Id == assetToProcess.Id && reference.HasOne(BuildDependencyType.CompileContent | BuildDependencyType.Runtime))
+                                // If yes, process this asset later
+                                if (processedAssets.Add(referencer))
                                 {
-                                    // If yes, process this asset later
-                                    if (processedAssets.Add(referencer))
-                                    {
-                                        assetsToProcess.Enqueue(referencer);
-                                    }
+                                    assetsToProcess.Enqueue(referencer);
                                 }
                             }
-                        }
-                    }
-                    else
-                    {
-                        // Otherwise, rebuild the objects that are referenced by entities from the scene and that references this asset
-                        foreach (var assetViewModel in modifiedAssetReferencers.Select(x => Session.GetAssetById(x)).NotNull())
-                        {
-                            allAssetsToRebuild.Add(assetViewModel);
                         }
                     }
                 }

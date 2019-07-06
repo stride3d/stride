@@ -1,9 +1,10 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
   <PropertyGroup>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <XenkoLocalized>true</XenkoLocalized>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -16,8 +17,8 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System.ComponentModel.Composition" />
-    <PackageReference Include="Microsoft.Build" Version="15.7.179" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="15.7.179" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="System.Runtime" Version="4.3.0" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <Reference Include="System.ServiceModel" />
@@ -30,11 +31,6 @@
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Update="Resources\DefaultThumbnails.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DefaultThumbnails.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -57,39 +53,20 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
+  <!-- Resources -->
   <ItemGroup>
+    <None Include="Resources\*.png" />
+    <Compile Update="Resources\DefaultThumbnails.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DefaultThumbnails.resx</DependentUpon>
+    </Compile>
     <EmbeddedResource Update="Resources\DefaultThumbnails.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>DefaultThumbnails.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.checkmark.cross.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.resource.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.page.delete.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\appbar.box.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ThumbnailDependencyError.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ThumbnailDependencyWarning.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="EditorGame\Services\" />
-  </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="1.6.65" />
-  <PropertyGroup>
-    <PostBuildEvent>Path=$(MSBuildBinPath)\Roslyn;$(Path)
-IF EXIST "$(SolutionDir)..\sources\localization\fr\$(TargetName).fr.po" "$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe" --lib-dir "$(SolutionDir)..\deps\Gettext.Net" --resource $(TargetName) -d "$(TargetDir)." --locale fr "$(SolutionDir)..\sources\localization\ja\$(TargetName).fr.po" --verbose
-IF EXIST "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" "$(SolutionDir)..\deps\Gettext.Net\GNU.Gettext.Msgfmt.exe" --lib-dir "$(SolutionDir)..\deps\Gettext.Net" --resource $(TargetName) -d "$(TargetDir)." --locale ja "$(SolutionDir)..\sources\localization\ja\$(TargetName).ja.po" --verbose</PostBuildEvent>
-  </PropertyGroup>
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
 </Project>

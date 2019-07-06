@@ -17,6 +17,7 @@ namespace Xenko.Engine
     [DefaultEntityComponentRenderer(typeof(SpriteStudioRendererProcessor))]
     [DataSerializerGlobal(null, typeof(List<SpriteStudioNodeState>))]
     [ComponentOrder(9900)]
+    [ComponentCategory("Sprites")]
     public sealed class SpriteStudioComponent : ActivableEntityComponent
     {
         [DataMember(1)]

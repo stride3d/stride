@@ -20,6 +20,7 @@ namespace Xenko.Engine
     //[DefaultEntityComponentRenderer(typeof(LightComponentRenderer), -10)]
     [DefaultEntityComponentRenderer(typeof(LightProcessor))]
     [ComponentOrder(12000)]
+    [ComponentCategory("Lights")]
     public sealed class LightComponent : ActivableEntityComponent
     {
         /// <summary>

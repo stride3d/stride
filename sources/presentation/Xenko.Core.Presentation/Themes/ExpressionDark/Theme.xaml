@@ -2202,6 +2202,13 @@
     <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
     <Setter Property="BorderBrush" Value="{DynamicResource NormalBorderBrush}" />
     <Setter Property="SnapsToDevicePixels" Value="True" />
+    <Setter Property="ItemsPanel">
+      <Setter.Value>
+        <ItemsPanelTemplate>
+          <StackPanel Background="{Binding Background, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Menu}}}" IsItemsHost="True" ClipToBounds="True" Orientation="Horizontal" />
+        </ItemsPanelTemplate>
+      </Setter.Value>
+    </Setter>
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="{x:Type Menu}">
@@ -2213,7 +2220,7 @@
           </ControlTemplate.Resources>
           <Grid>
             <Border Margin="1" x:Name="Border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
-            <StackPanel Background="{TemplateBinding Background}" IsItemsHost="True" ClipToBounds="True" Orientation="Horizontal" />
+            <ItemsPresenter/>
           </Grid>
           <ControlTemplate.Triggers>
             <Trigger Property="IsEnabled" Value="False">

@@ -465,7 +465,7 @@ namespace Xenko.Core.AssemblyProcessor
                     {
                         // Generating: System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(<#=type.Value.SerializerType.ConvertCSharp()#>).TypeHandle);
                         initializeMethodIL.Append(Instruction.Create(OpCodes.Ldtoken, type.Value.SerializerType));
-                        initializeMethodIL.Append(Instruction.Create(OpCodes.Call, getTypeFromHandleMethod));
+                        initializeMethodIL.Append(Instruction.Create(OpCodes.Call, assembly.MainModule.ImportReference(getTypeFromHandleMethod)));
                         initializeMethodIL.Append(Instruction.Create(OpCodes.Callvirt, getTypeHandleMethodRef));
                         initializeMethodIL.Append(Instruction.Create(OpCodes.Call, runClassConstructorMethod));
                     }

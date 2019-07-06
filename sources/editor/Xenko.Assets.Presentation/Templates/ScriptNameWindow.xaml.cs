@@ -13,6 +13,7 @@ using MessageBoxImage = Xenko.Core.Presentation.Services.MessageBoxImage;
 using MessageBoxButton = Xenko.Core.Presentation.Services.MessageBoxButton;
 using Xenko.Core.Extensions;
 using Xenko.Core.Translation;
+using Xenko.Core.Assets.Templates;
 
 namespace Xenko.Assets.Presentation.Templates
 {
@@ -23,6 +24,8 @@ namespace Xenko.Assets.Presentation.Templates
     {
         private readonly ViewModelServiceProvider services;
         private static readonly List<string> ReservedNames = new List<string>();
+        private readonly bool enableTemplateSelect;
+        private readonly TemplateAssetDescription defaultScriptTemplate;
 
         static ScriptNameWindow()
         {
@@ -39,23 +42,36 @@ namespace Xenko.Assets.Presentation.Templates
             }
         }
 
-        public ScriptNameWindow(string defaultClassName, string defaultNamespace)
+        public ScriptNameWindow(string defaultClassName, string defaultNamespace, TemplateAssetDescription defaultScriptTemplate, bool enableTemplateSelect, IEnumerable<TemplateAssetDescription> scriptTemplates)
         {
             var dispatcher = new DispatcherService(Dispatcher);
             services = new ViewModelServiceProvider(new object[] { dispatcher, new DialogService(dispatcher, EditorViewModel.Instance.EditorName) });
             InitializeComponent();
             ClassNameTextBox.Text = defaultClassName;
             NamespaceTextBox.Text = defaultNamespace;
+
+            TemplateComboBox.Visibility = enableTemplateSelect ? Visibility.Visible : Visibility.Collapsed;
+            if (enableTemplateSelect)
+            {
+                TemplateComboBox.ItemsSource = scriptTemplates;
+                TemplateComboBox.SelectedValue = defaultScriptTemplate; 
+            }
+
+            this.enableTemplateSelect = enableTemplateSelect;
+            this.defaultScriptTemplate = defaultScriptTemplate;
         }
 
         public string ClassName { get; private set; }
 
         public string Namespace { get; private set; }
 
+        public TemplateAssetDescription ScriptTemplate { get; private set; }
+
         private async void Validate()
         {
             ClassName = Utilities.BuildValidClassName(ClassNameTextBox.Text, ReservedNames);
             Namespace = Utilities.BuildValidNamespaceName(NamespaceTextBox.Text, ReservedNames);
+            ScriptTemplate = enableTemplateSelect ? TemplateComboBox.SelectedValue as TemplateAssetDescription : defaultScriptTemplate;
 
             if (string.IsNullOrWhiteSpace(ClassName) || string.IsNullOrWhiteSpace(Namespace))
             {
@@ -71,6 +87,7 @@ namespace Xenko.Assets.Presentation.Templates
         {
             ClassName = null;
             Namespace = null;
+            ScriptTemplate = null;
             Result = Xenko.Core.Presentation.Services.DialogResult.Cancel;
             Close();
         }

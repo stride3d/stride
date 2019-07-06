@@ -68,6 +68,8 @@ namespace Xenko.Assets.Models
             var rawAssetReferences = new List<AssetItem>(); // the asset references without subdirectory path
 
             var entityInfo = GetEntityInfo(localPath, importParameters.Logger, importParameters);
+            if (entityInfo == null)
+                return rawAssetReferences;
 
             //var isImportingEntity = importParameters.IsTypeSelectedForOutput<PrefabAsset>();
 

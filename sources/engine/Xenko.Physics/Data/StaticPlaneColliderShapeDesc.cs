@@ -31,5 +31,10 @@ namespace Xenko.Physics
             if (other == null) return false;
             return other.Normal == Normal && Math.Abs(other.Offset - Offset) < float.Epsilon;
         }
+
+        public ColliderShape CreateShape()
+        {
+            return new StaticPlaneColliderShape(Normal, Offset);
+        }
     }
 }

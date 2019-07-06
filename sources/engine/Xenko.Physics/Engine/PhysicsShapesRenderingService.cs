@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
+using Xenko.Games;
 using Xenko.Graphics;
+using Xenko.Physics.Shapes;
 using Xenko.Rendering;
 
 namespace Xenko.Physics.Engine
@@ -35,9 +37,13 @@ namespace Xenko.Physics.Engine
 
         private readonly Dictionary<ComponentType, Material> componentTypeDefaultMaterial = new Dictionary<ComponentType, Material>();
         private readonly Dictionary<ComponentType, Material> componentTypeStaticPlaneMaterial = new Dictionary<ComponentType, Material>();
+        private readonly Dictionary<ComponentType, Material> componentTypeHeightfieldMaterial = new Dictionary<ComponentType, Material>();
 
-        private readonly Dictionary<Type, MeshDraw> debugMeshCache = new Dictionary<Type, MeshDraw>();
-        private readonly Dictionary<ColliderShape, MeshDraw> debugMeshCache2 = new Dictionary<ColliderShape, MeshDraw>();
+        private readonly Dictionary<Type, IDebugPrimitive> debugMeshCache = new Dictionary<Type, IDebugPrimitive>();
+        private readonly Dictionary<ColliderShape, IDebugPrimitive> debugMeshCache2 = new Dictionary<ColliderShape, IDebugPrimitive>();
+        private readonly Dictionary<ColliderShape, IDebugPrimitive> updatableDebugMeshCache = new Dictionary<ColliderShape, IDebugPrimitive>();
+
+        private readonly Dictionary<ColliderShape, IDebugPrimitive> updatableDebugMeshes = new Dictionary<ColliderShape, IDebugPrimitive>();
 
         public override void Initialize()
         {
@@ -48,8 +54,29 @@ namespace Xenko.Physics.Engine
                 var type = (ComponentType)typeObject;
                 componentTypeDefaultMaterial[type] = PhysicsDebugShapeMaterial.CreateDefault(graphicsDevice, Color.AdjustSaturation(componentTypeColor[type], 0.77f), 1);
                 componentTypeStaticPlaneMaterial[type] = componentTypeDefaultMaterial[type];
+                componentTypeHeightfieldMaterial[type] = PhysicsDebugShapeMaterial.CreateHeightfieldMaterial(graphicsDevice, Color.AdjustSaturation(componentTypeColor[type], 0.77f), 1);
                 // TODO enable this once material is implemented.
                 // ComponentTypeStaticPlaneMaterial[type] = PhysicsDebugShapeMaterial.CreateStaticPlane(graphicsDevice, Color.AdjustSaturation(ComponentTypeColor[type], 0.77f), 1); 
+            }
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            var unusedShapes = new List<ColliderShape>();
+            foreach (var keyValuePair in updatableDebugMeshes)
+            {
+                if (keyValuePair.Value != null && keyValuePair.Key.DebugEntity?.Scene != null)
+                {
+                    keyValuePair.Key.UpdateDebugPrimitive(Game.GraphicsContext.CommandList, keyValuePair.Value);
+                }
+                else
+                {
+                    unusedShapes.Add(keyValuePair.Key);
+                }
+            }
+            foreach (var shape in unusedShapes)
+            {
+                updatableDebugMeshes.Remove(shape);
             }
         }
 
@@ -129,38 +156,54 @@ namespace Xenko.Physics.Engine
                 case ColliderShapeTypes.Sphere:
                 case ColliderShapeTypes.Cone:
                 case ColliderShapeTypes.StaticPlane:
+                case ColliderShapeTypes.StaticMesh:
+                case ColliderShapeTypes.Heightfield:
                     {
-                        MeshDraw draw;
+                        IDebugPrimitive debugPrimitive;
                         var type = shape.GetType();
-                        if (type == typeof(CapsuleColliderShape) || type == typeof(ConvexHullColliderShape))
+                        if (type == typeof(HeightfieldColliderShape))
                         {
-                            if (!debugMeshCache2.TryGetValue(shape, out draw))
+                            if (!updatableDebugMeshCache.TryGetValue(shape, out debugPrimitive))
                             {
-                                draw = shape.CreateDebugPrimitive(graphicsDevice);
-                                debugMeshCache2[shape] = draw;
+                                debugPrimitive = shape.CreateUpdatableDebugPrimitive(graphicsDevice);
+                                updatableDebugMeshCache[shape] = debugPrimitive;
+                            }
+                            if (!updatableDebugMeshes.ContainsKey(shape))
+                            {
+                                updatableDebugMeshes.Add(shape, debugPrimitive);
+                            }
+                        }
+                        else if (type == typeof(CapsuleColliderShape) || type == typeof(ConvexHullColliderShape) || type == typeof(StaticMeshColliderShape))
+                        {
+                            if (!debugMeshCache2.TryGetValue(shape, out debugPrimitive))
+                            {
+                                debugPrimitive = new DebugPrimitive { shape.CreateDebugPrimitive(graphicsDevice) };
+                                debugMeshCache2[shape] = debugPrimitive;
                             }
                         }
                         else
                         {
-                            if (!debugMeshCache.TryGetValue(shape.GetType(), out draw))
+                            if (!debugMeshCache.TryGetValue(shape.GetType(), out debugPrimitive))
                             {
-                                draw = shape.CreateDebugPrimitive(graphicsDevice);
-                                debugMeshCache[shape.GetType()] = draw;
+                                debugPrimitive = new DebugPrimitive { shape.CreateDebugPrimitive(graphicsDevice) };
+                                debugMeshCache[shape.GetType()] = debugPrimitive;
                             }
+                        }
+
+                        var model = new Model
+                        {
+                            GetMaterial(component, shape),
+                        };
+                        foreach (var meshDraw in debugPrimitive.GetMeshDraws())
+                        {
+                            model.Add(new Mesh { Draw = meshDraw });
                         }
 
                         var entity = new Entity
                         {
                             new ModelComponent
                             {
-                                Model = new Model
-                                {
-                                    GetMaterial(component, shape),
-                                    new Mesh
-                                    {
-                                        Draw = draw,
-                                    },
-                                },
+                                Model = model,
                                 RenderGroup = renderGroup,
                             },
                         };
@@ -200,9 +243,18 @@ namespace Xenko.Physics.Engine
                 componentType = staticCollider.IsTrigger ? ComponentType.Trigger : ComponentType.Static;
             }
 
-            return shape is StaticPlaneColliderShape
-                ? componentTypeStaticPlaneMaterial[componentType]
-                : componentTypeDefaultMaterial[componentType];
+            if (shape is StaticPlaneColliderShape)
+            {
+                return componentTypeStaticPlaneMaterial[componentType];
+            }
+            else if (shape is HeightfieldColliderShape)
+            {
+                return componentTypeHeightfieldMaterial[componentType];
+            }
+            else
+            {
+                return componentTypeDefaultMaterial[componentType];
+            }
         }
     }
 }

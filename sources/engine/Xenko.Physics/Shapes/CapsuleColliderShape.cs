@@ -13,9 +13,9 @@ namespace Xenko.Physics
 {
     public class CapsuleColliderShape : ColliderShape
     {
-        private readonly float capsuleLength;
-        private readonly float capsuleRadius;
-        private readonly ShapeOrientation shapeOrientation;
+        public readonly float Length;
+        public readonly float Radius;
+        public readonly ShapeOrientation Orientation;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CapsuleColliderShape"/> class.
@@ -29,9 +29,9 @@ namespace Xenko.Physics
             Type = ColliderShapeTypes.Capsule;
             Is2D = is2D;
 
-            capsuleLength = length;
-            capsuleRadius = radius;
-            shapeOrientation = orientation;
+            Length = length;
+            Radius = radius;
+            Orientation = orientation;
 
             Matrix rotation;
             CapsuleShape shape;
@@ -75,7 +75,7 @@ namespace Xenko.Physics
 
         public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)
         {
-            return GeometricPrimitive.Capsule.New(device, capsuleLength, capsuleRadius).ToMeshDraw();
+            return GeometricPrimitive.Capsule.New(device, Length, Radius).ToMeshDraw();
         }
 
         public override Vector3 Scaling
@@ -84,7 +84,7 @@ namespace Xenko.Physics
             set
             {
                 Vector3 newScaling;
-                switch (shapeOrientation)
+                switch (Orientation)
                 {
                     case ShapeOrientation.UpX:
                         {

@@ -39,11 +39,11 @@ Ask for help or report issues:
 ### Prerequisites
 
 1. [Git](https://git-scm.com/downloads) (recent version that includes LFS, or install [Git LFS](https://git-lfs.github.com/) separately).
-2. [Visual Studio 2017](https://www.visualstudio.com/downloads/) with the following workloads:
+2. [Visual Studio 2019](https://www.visualstudio.com/downloads/) with the following workloads:
   * `.NET desktop development` with `.NET Framework 4.7.2 targeting pack`
-  * `Desktop development with C++` with `Windows 10 SDK (10.0.16299)` or later and `VC++ 2017 version 15.9 v14.16 latest v141 tools` or later (both should be enabled by default)
+  * `Desktop development with C++` with `Windows 10 SDK (10.0.17763.0)` or later, and `VC++ 2017 version 15.9 v14.16 latest v141 tools` or later (both should be enabled by default)
   * `.NET Core cross-platform development`
-  * Optional (to target UWP): `Universal Windows Platform development` with `Windows 10 SDK (10.0.16299.0)` and `Windows 10 SDK (10.0.17134.0)`
+  * Optional (to target UWP): `Universal Windows Platform development` with `Windows 10 SDK (10.0.17763.0)`
   * Optional (to target iOS/Android): `Mobile development with .NET` and `Android NDK R13B+` individual component
 3. [FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)
 
@@ -69,7 +69,7 @@ Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
 |Windows OpenGL ES|<a href="https://teamcity.xenko.com/viewType.html?buildTypeId=Engine_BuildWindowsOpenGLES&branch=master&guest=1"><img src="https://teamcity.xenko.com/app/rest/builds/buildType:(id:Engine_BuildWindowsOpenGLES),branch:master/statusIcon"/></a>
 |UWP|<a href="https://teamcity.xenko.com/viewType.html?buildTypeId=Engine_BuildWindowsUWP&branch=master&guest=1"><img src="https://teamcity.xenko.com/app/rest/builds/buildType:(id:Engine_BuildWindowsUWP),branch:master/statusIcon"/></a>
 |iOS|<a href="https://teamcity.xenko.com/viewType.html?buildTypeId=Engine_BuildiOS&branch=master&guest=1"><img src="https://teamcity.xenko.com/app/rest/builds/buildType:(id:Engine_BuildiOS),branch:master/statusIcon"/></a>
-|Android|<a href="https://teamcity.xenko.com/viewType.html?buildTypeId=Engine_BuildWindowsAndroid&branch=master&guest=1"><img src="https://teamcity.xenko.com/app/rest/builds/buildType:(id:Engine_BuildAndroid),branch:master/statusIcon"/></a>
+|Android|<a href="https://teamcity.xenko.com/viewType.html?buildTypeId=Engine_BuildAndroid&branch=master&guest=1"><img src="https://teamcity.xenko.com/app/rest/builds/buildType:(id:Engine_BuildAndroid),branch:master/statusIcon"/></a>
 |Linux Vulkan|<a href="https://teamcity.xenko.com/viewType.html?buildTypeId=Engine_BuildLinuxVulkan&branch=master&guest=1"><img src="https://teamcity.xenko.com/app/rest/builds/buildType:(id:Engine_BuildLinuxVulkan),branch:master/statusIcon"/></a>
 |Linux OpenGL|<a href="https://teamcity.xenko.com/viewType.html?buildTypeId=Engine_BuildLinuxOpenGL&branch=master&guest=1"><img src="https://teamcity.xenko.com/app/rest/builds/buildType:(id:Engine_BuildLinuxOpenGL),branch:master/statusIcon"/></a>
 |Tests Windows Simple| <a href="https://teamcity.xenko.com/viewType.html?buildTypeId=Engine_Tests_WindowsSimple&branch=master&guest=1"><img src="https://teamcity.xenko.com/app/rest/builds/buildType:(id:Engine_Tests_WindowsSimple),branch:master/statusIcon"/></a>

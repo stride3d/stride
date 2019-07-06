@@ -12,7 +12,9 @@ namespace Xenko.Physics
 {
     public class CylinderColliderShape : ColliderShape
     {
-        private readonly ShapeOrientation shapeOrientation;
+        public readonly ShapeOrientation Orientation;
+        public readonly float Height;
+        public readonly float Radius;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CylinderColliderShape"/> class.
@@ -20,44 +22,46 @@ namespace Xenko.Physics
         /// <param name="orientation">Up axis.</param>
         /// <param name="radius">The radius of the cylinder</param>
         /// <param name="height">The height of the cylinder</param>
-        public CylinderColliderShape(float height, float radius, ShapeOrientation orientation)
+        public CylinderColliderShape(float heightParam, float radiusParam, ShapeOrientation orientationParam)
         {
             Type = ColliderShapeTypes.Cylinder;
             Is2D = false; //always false for cylinders
+            Height = heightParam;
+            Radius = radiusParam;
 
             Matrix rotation;
 
             cachedScaling = Vector3.One;
-            shapeOrientation = orientation;
+            Orientation = orientationParam;
 
-            switch (orientation)
+            switch (Orientation)
             {
                 case ShapeOrientation.UpX:
-                    InternalShape = new BulletSharp.CylinderShapeX(new Vector3(height / 2, radius, radius))
+                    InternalShape = new BulletSharp.CylinderShapeX(new Vector3(Height / 2, Radius, Radius))
                     {
                         LocalScaling = cachedScaling,
                     };
                     rotation = Matrix.RotationZ((float)Math.PI / 2.0f);
                     break;
                 case ShapeOrientation.UpY:
-                    InternalShape = new BulletSharp.CylinderShape(new Vector3(radius, height / 2, radius))
+                    InternalShape = new BulletSharp.CylinderShape(new Vector3(Radius, Height / 2, Radius))
                     {
                         LocalScaling = cachedScaling,
                     };
                     rotation = Matrix.Identity;
                     break;
                 case ShapeOrientation.UpZ:
-                    InternalShape = new BulletSharp.CylinderShapeZ(new Vector3(radius, radius, height / 2))
+                    InternalShape = new BulletSharp.CylinderShapeZ(new Vector3(Radius, Radius, Height / 2))
                     {
                         LocalScaling = cachedScaling,
                     };
                     rotation = Matrix.RotationX((float)Math.PI / 2.0f);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(orientation));
+                    throw new ArgumentOutOfRangeException(nameof(Orientation));
             }
 
-            DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(radius * 2, height, radius * 2) * DebugScaling) * rotation;
+            DebugPrimitiveMatrix = Matrix.Scaling(new Vector3(Radius * 2, Height, Radius * 2) * DebugScaling) * rotation;
         }
 
         public override MeshDraw CreateDebugPrimitive(GraphicsDevice device)

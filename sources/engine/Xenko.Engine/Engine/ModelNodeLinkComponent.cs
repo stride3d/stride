@@ -12,6 +12,7 @@ namespace Xenko.Engine
     [Display("Bone link", Expand = ExpandRule.Once)]
     [DefaultEntityComponentProcessor(typeof(ModelNodeLinkProcessor))]
     [ComponentOrder(1500)]
+    [ComponentCategory("Model")]
     public sealed class ModelNodeLinkComponent : EntityComponent
     {
         private ModelComponent target;

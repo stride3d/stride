@@ -399,6 +399,7 @@ namespace Xenko.Graphics
                 StructureType = StructureType.ImageViewCreateInfo,
                 SubresourceRange = new ImageSubresourceRange(ImageAspectFlags.Color, 0, 1, 0, 1),
                 Format = backbuffer.NativeFormat,
+                ViewType = ImageViewType.Image2D,
             };
 
             // We initialize swapchain images to PresentSource, since we swap them out while in this layout.

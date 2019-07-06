@@ -21,6 +21,7 @@ namespace Xenko.Engine
     [Display("Sprite", Expand = ExpandRule.Once)]
     [DefaultEntityComponentRenderer(typeof(SpriteRenderProcessor))]
     [ComponentOrder(10000)]
+    [ComponentCategory("Sprites")]
     public sealed class SpriteComponent : ActivableEntityComponent
     {
         /// <summary>

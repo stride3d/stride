@@ -49,10 +49,11 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Announcements\Release30.md" />
+    <None Remove="Resources\list-26.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
-    <PackageReference Include="Xenko.CrashReport" Version="1.0.0" />
+    <PackageReference Include="Xenko.CrashReport" Version="1.0.1" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Diagnostics.Debug" />
     <Reference Include="System.Management" />
@@ -125,6 +126,7 @@
   <ItemGroup>
     <EmbeddedResource Update="Announcements\Release30.md" />
     <Resource Include="Resources\EditorIcon.png" />
+    <Resource Include="Resources\list-26.png" />
     <Resource Include="Resources\update.png" />
     <Resource Include="Resources\roadmap.png" />
     <Resource Include="Resources\survey.png" />
@@ -199,7 +201,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\editor\Xenko.PrivacyPolicy\Xenko.PrivacyPolicy.projitems" Label="Shared" Condition="Exists('..\..\editor\Xenko.PrivacyPolicy\Xenko.PrivacyPolicy.projitems')" />
   <Import Project="..\..\editor\Xenko.Core.MostRecentlyUsedFiles\Xenko.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
   <Import Project="..\..\assets\Xenko.Core.Assets.Yaml\Xenko.Core.Assets.Yaml.projitems" Label="Shared" />

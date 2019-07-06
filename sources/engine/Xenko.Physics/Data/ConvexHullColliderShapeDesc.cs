@@ -69,5 +69,100 @@ namespace Xenko.Physics
                    other.Scaling == Scaling &&
                    other.Decomposition.Match(Decomposition);
         }
+
+        public ColliderShape CreateShape()
+        {
+            if (ConvexHulls == null) return null;
+            ColliderShape shape;
+
+            //Optimize performance and focus on less shapes creation since this shape could be nested
+
+            if (ConvexHulls.Count == 1)
+            {
+                if (ConvexHulls[0].Count == 1 && ConvexHullsIndices[0][0].Count > 0)
+                {
+                    shape = new ConvexHullColliderShape(ConvexHulls[0][0], ConvexHullsIndices[0][0], Scaling)
+                    {
+                        NeedsCustomCollisionCallback = true,
+                    };
+
+                    //shape.UpdateLocalTransformations();
+                    shape.Description = this;
+
+                    return shape;
+                }
+
+                if (ConvexHulls[0].Count <= 1) return null;
+
+                var subCompound = new CompoundColliderShape
+                {
+                    NeedsCustomCollisionCallback = true,
+                };
+
+                for (var i = 0; i < ConvexHulls[0].Count; i++)
+                {
+                    var verts = ConvexHulls[0][i];
+                    var indices = ConvexHullsIndices[0][i];
+
+                    if (indices.Count == 0) continue;
+
+                    var subHull = new ConvexHullColliderShape(verts, indices, Scaling);
+                    //subHull.UpdateLocalTransformations();
+                    subCompound.AddChildShape(subHull);
+                }
+
+                //subCompound.UpdateLocalTransformations();
+                subCompound.Description = this;
+
+                return subCompound;
+            }
+
+            if (ConvexHulls.Count <= 1) return null;
+
+            var compound = new CompoundColliderShape
+            {
+                NeedsCustomCollisionCallback = true,
+            };
+
+            for (var i = 0; i < ConvexHulls.Count; i++)
+            {
+                var verts = ConvexHulls[i];
+                var indices = ConvexHullsIndices[i];
+
+                if (verts.Count == 1)
+                {
+                    if (indices[0].Count == 0) continue;
+
+                    var subHull = new ConvexHullColliderShape(verts[0], indices[0], Scaling);
+                    //subHull.UpdateLocalTransformations();
+                    compound.AddChildShape(subHull);
+                }
+                else if (verts.Count > 1)
+                {
+                    var subCompound = new CompoundColliderShape();
+
+                    for (var b = 0; b < verts.Count; b++)
+                    {
+                        var subVerts = verts[b];
+                        var subIndex = indices[b];
+
+                        if (subIndex.Count == 0) continue;
+
+                        var subHull = new ConvexHullColliderShape(subVerts, subIndex, Scaling);
+                        //subHull.UpdateLocalTransformations();
+                        subCompound.AddChildShape(subHull);
+                    }
+
+                    //subCompound.UpdateLocalTransformations();
+
+                    compound.AddChildShape(subCompound);
+                }
+            }
+
+            //compound.UpdateLocalTransformations();
+            compound.Description = this;
+
+            return compound;
+        }
     }
 }

@@ -1,7 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
-MinimumVisualStudioVersion = 14.0.23107.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.352
+MinimumVisualStudioVersion = 16.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xenko.Core.AssemblyProcessor", "..\sources\core\Xenko.Core.AssemblyProcessor\Xenko.Core.AssemblyProcessor.csproj", "{5D778003-7C87-47AC-A6C2-358CCCD8416E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xenko.Core.AssemblyProcessor.Tests", "..\sources\core\Xenko.Core.AssemblyProcessor.Tests\Xenko.Core.AssemblyProcessor.Tests.csproj", "{F69132EA-484B-48D5-9FEC-B4B3C7361C68}"

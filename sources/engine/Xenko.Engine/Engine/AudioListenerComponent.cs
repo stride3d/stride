@@ -20,6 +20,7 @@ namespace Xenko.Engine
     [DataContract("AudioListenerComponent")]
     [DefaultEntityComponentProcessor(typeof(AudioListenerProcessor), ExecutionMode = ExecutionMode.Runtime)]
     [ComponentOrder(6000)]
+    [ComponentCategory("Audio")]
     public sealed class AudioListenerComponent : ActivableEntityComponent
     {
         [DataMemberIgnore]

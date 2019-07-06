@@ -68,7 +68,7 @@ namespace Xenko.Physics
         /// </value>
         public Matrix NegativeCenterMatrix;
 
-        protected Vector3 cachedScaling;
+        protected Vector3 cachedScaling = Vector3.One;
 
         /// <summary>
         /// Gets or sets the scaling.
@@ -127,6 +127,15 @@ namespace Xenko.Physics
         public virtual MeshDraw CreateDebugPrimitive(GraphicsDevice device)
         {
             return null;
+        }
+
+        public virtual IDebugPrimitive CreateUpdatableDebugPrimitive(GraphicsDevice device)
+        {
+            return null;
+        }
+
+        public virtual void UpdateDebugPrimitive(CommandList commandList, IDebugPrimitive debugPrimitive)
+        {
         }
 
         public Matrix DebugPrimitiveMatrix;
