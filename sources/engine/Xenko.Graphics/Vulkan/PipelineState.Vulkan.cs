@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using SharpVulkan;
+using System.Runtime.ExceptionServices;
+using System.Security;
 using Xenko.Core;
 using Xenko.Core.Collections;
 using Xenko.Core.Serialization;
@@ -56,6 +58,7 @@ namespace Xenko.Graphics
             Recreate();
         }
 
+        [HandleProcessCorruptedStateExceptionsAttribute, SecurityCriticalAttribute]
         private unsafe void Recreate()
         {
             errorDuringCreate = false;
@@ -64,6 +67,9 @@ namespace Xenko.Graphics
                 return;
 
             PipelineShaderStageCreateInfo[] stages;
+
+            // try to recover from a rare failure?
+            bool retry = false;
 
             // it appears pipeline creation is just not thread safe :(
             lock (PipeLock) {
@@ -221,6 +227,9 @@ namespace Xenko.Graphics
                 
                     try {
                         NativePipeline = GraphicsDevice.NativeDevice.CreateGraphicsPipelines(PipelineCache.Null, 1, &createInfo);
+                    } catch (AccessViolationException ae) {
+                        // this happens extremely rarely and might be recoverable by reattempting the recreate
+                        retry = true;
                     } catch (Exception e) {
                         errorDuringCreate = true;
                         NativePipeline = Pipeline.Null;
@@ -233,6 +242,8 @@ namespace Xenko.Graphics
             {
                 GraphicsDevice.NativeDevice.DestroyShaderModule(stages[i].Module);
             }
+
+            if (retry) Recreate();
         }
 
         /// <inheritdoc/>
