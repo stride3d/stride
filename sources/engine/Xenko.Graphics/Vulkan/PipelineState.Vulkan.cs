@@ -226,7 +226,9 @@ namespace Xenko.Graphics
                     };
                 
                     try {
-                        NativePipeline = GraphicsDevice.NativeDevice.CreateGraphicsPipelines(PipelineCache.Null, 1, &createInfo);
+                        lock (GraphicsDevice.QueueLock) {
+                            NativePipeline = GraphicsDevice.NativeDevice.CreateGraphicsPipelines(PipelineCache.Null, 1, &createInfo);
+                        }
                     } catch (AccessViolationException ae) {
                         // this happens extremely rarely and might be recoverable by reattempting the recreate
                         retry = true;
