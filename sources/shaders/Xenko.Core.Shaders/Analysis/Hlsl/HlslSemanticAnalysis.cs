@@ -754,6 +754,7 @@ namespace Xenko.Core.Shaders.Analysis.Hlsl
 	        {
 		        // Missing5: dst EvaluateAttribute
 		        //           Interlocked*
+		        Template1("InterlockedAdd", AllTargets, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0), Param("original_value", 0, outParam: true)),
 		        Template1("abs", AllTargets, NumericTargets, Param(0), Param("x", 0)),
 		        Template1("acos", AllTargets, FloatTargets, Param(0), Param("x", 0)),
 		        Template1("all", AllTargets, NumericAndBoolTargets, Param((f, p) => ScalarType.Bool), Param("x", 0)),
