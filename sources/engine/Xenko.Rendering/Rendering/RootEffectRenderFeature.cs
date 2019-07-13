@@ -701,7 +701,7 @@ namespace Xenko.Rendering
                     var renderEffectReflection = renderEffect.Reflection;
 
                     // PerView resources/cbuffer
-                    var viewLayout = renderEffectReflection.PerViewLayout;
+                    var viewLayout = renderEffectReflection?.PerViewLayout;
                     if (viewLayout != null)
                     {
                         var viewCount = RenderSystem.Views.Count;
@@ -735,7 +735,7 @@ namespace Xenko.Rendering
                     }
 
                     // PerFrame resources/cbuffer
-                    var frameLayout = renderEffect.Reflection.PerFrameLayout;
+                    var frameLayout = renderEffect.Reflection?.PerFrameLayout;
                     if (frameLayout != null && frameLayout.Entry.MarkAsUsed(RenderSystem))
                     {
                         threadContext.ResourceGroupAllocator.PrepareResourceGroup(frameLayout, BufferPoolAllocationType.UsedMultipleTime, frameLayout.Entry.Resources);

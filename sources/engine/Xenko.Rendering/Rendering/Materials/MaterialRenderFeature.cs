@@ -325,7 +325,7 @@ namespace Xenko.Rendering.Materials
 
         public static unsafe bool UpdateMaterial(RenderSystem renderSystem, RenderDrawContext context, MaterialInfoBase materialInfo, int materialSlotIndex, RenderEffect renderEffect, ParameterCollection materialParameters)
         {
-            var resourceGroupDescription = renderEffect.Reflection.ResourceGroupDescriptions[materialSlotIndex];
+            var resourceGroupDescription = renderEffect.Reflection?.ResourceGroupDescriptions[materialSlotIndex];
             if (resourceGroupDescription.DescriptorSetLayout == null)
                 return false;
 
