@@ -129,6 +129,7 @@ namespace Xenko.Rendering.Compositing
             camera.Update(aspectRatio);
 
             // Copy camera data
+            renderView.Camera = camera;
             renderView.View = camera.ViewMatrix;
             renderView.Projection = camera.ProjectionMatrix;
             renderView.NearClipPlane = camera.NearClipPlane;

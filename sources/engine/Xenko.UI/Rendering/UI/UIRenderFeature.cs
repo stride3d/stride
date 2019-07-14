@@ -146,9 +146,9 @@ namespace Xenko.Rendering.UI
                 }
                 else
                 {
-                    var cameraComponent = context.RenderContext.Tags.Get(CameraComponentRendererExtensions.Current);
+                    var cameraComponent = renderView.Camera;
                     if (cameraComponent != null)
-                        uiElementState.Update(renderObject, cameraComponent);
+                        uiElementState.Update(renderObject, (CameraComponent)cameraComponent);
                 }
 
                 // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)

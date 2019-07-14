@@ -35,6 +35,11 @@ namespace Xenko.Rendering
         /// </summary>
         public int Index = -1;
 
+        /// <summary>
+        /// CameraComponent used for this renderview
+        /// </summary>
+        public object Camera;
+
         internal int LastFrameCollected;
 
         internal float MinimumDistance;
