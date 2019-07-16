@@ -38,10 +38,6 @@ namespace Xenko.Graphics
 
             // if we have this cached, wait until it is ready to return
             if (foundInCache) {
-                while (pipelineState.CurrentState() == PIPELINE_STATE.LOADING) {
-                    // wait for pipeline state to finish loading...
-                    Thread.Sleep(1);
-                }
                 pipelineState.AddReferenceInternal();
                 return pipelineState;
             }

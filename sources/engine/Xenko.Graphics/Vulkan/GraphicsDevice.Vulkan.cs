@@ -226,7 +226,9 @@ namespace Xenko.Graphics
                 WaitDstStageMask = new IntPtr(&pipelineStageFlags),
             };
 
-            NativeCommandQueue.Submit(1, &submitInfo, fence);
+            lock (QueueLock) {
+                NativeCommandQueue.Submit(1, &submitInfo, fence);
+            }
 
             presentSemaphore = Semaphore.Null;
             nativeResourceCollector.Release();
