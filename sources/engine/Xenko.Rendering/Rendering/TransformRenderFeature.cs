@@ -157,8 +157,8 @@ namespace Xenko.Rendering
             // TODO: Have a PerObject cbuffer?
             Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
             {
-                var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
-                if (perDrawLayout == null)
+                var perDrawLayout = renderNode.RenderEffect?.Reflection?.PerDrawLayout;
+                if (perDrawLayout == null || renderNode.Resources == null)
                     return;
 
                 var worldOffset = perDrawLayout.GetConstantBufferOffset(this.world);
