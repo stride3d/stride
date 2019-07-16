@@ -8,6 +8,8 @@ namespace Xenko.Graphics
 {
     public class BufferPool : IDisposable
     {
+        public static int BUFFERS_PER_POOL = 8;
+
 #if XENKO_GRAPHICS_API_DIRECT3D12
         private const bool UseBufferOffsets = true;
 #elif XENKO_GRAPHICS_API_VULKAN
@@ -44,8 +46,8 @@ namespace Xenko.Graphics
             this.commandList = clist;
 
 #if XENKO_GRAPHICS_API_VULKAN
-            constantBuffer = new Buffer[8];
-            for (int i=0;i<8;i++)
+            constantBuffer = new Buffer[BUFFERS_PER_POOL];
+            for (int i=0;i<constantBuffer.Length;i++)
                 constantBuffer[i] = allocator.GetTemporaryBuffer(new BufferDescription(Size, BufferFlags.ConstantBuffer, GraphicsResourceUsage.Dynamic));
 #else
             constantBuffer = new Buffer[1];
