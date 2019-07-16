@@ -11,8 +11,28 @@ using Xenko.Graphics;
 using Xenko.Rendering;
 using Buffer = Xenko.Graphics.Buffer;
 
-namespace Xenko.Physics.Shapes
+namespace Xenko.Physics
 {
+    namespace Shapes
+    {
+        [Obsolete("This class will be deprecated. Use 'Xenko.Physics.HeightfieldColliderShape'.", false)]
+        public class HeightfieldColliderShape : Xenko.Physics.HeightfieldColliderShape
+        {
+            public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+                : base(heightStickWidth, heightStickLength, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+            {
+            }
+            public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<byte> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+                : base(heightStickWidth, heightStickLength, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+            {
+            }
+            public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<float> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
+                : base(heightStickWidth, heightStickLength, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
+            {
+            }
+        }
+    }
+
     public class HeightfieldColliderShape : ColliderShape
     {
         public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
