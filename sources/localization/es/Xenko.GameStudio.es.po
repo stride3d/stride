@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-06-17 15:02+0000\n"
-"Last-Translator: Mario Guerra <mgg7007@gmail.com>\n"
+"PO-Revision-Date: 2019-07-19 13:12+0000\n"
+"Last-Translator: Oscar Sanchez <trollainas@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/xenko/gamestudio/"
 "es/>\n"
 "Language: es\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.7-dev\n"
+"X-Generator: Weblate 3.8-dev\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
@@ -202,7 +202,7 @@ msgstr "Solicitar las credenciales cuando se despliega el juego"
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:50
 msgctxt "Settings"
 msgid "X Display"
-msgstr "X Display"
+msgstr "Display X"
 
 #. Ask if we want to execute remotely using CoreCLR.
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:54
