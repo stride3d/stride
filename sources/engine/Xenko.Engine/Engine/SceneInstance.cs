@@ -148,15 +148,21 @@ namespace Xenko.Engine
             scene.Entities.CollectionChanged -= Entities_CollectionChanged;
             scene.Children.CollectionChanged -= Children_CollectionChanged;
 
-            var scenesToRemove = new Scene[scene.Children.Count];
-            scene.Children.CopyTo(scenesToRemove, 0);
-            foreach (var childScene in scenesToRemove)
-                Remove(childScene);
+            if (scene.Children.Count > 0)
+            {
+                var scenesToRemove = new Scene[scene.Children.Count];
+                scene.Children.CopyTo(scenesToRemove, 0);
+                foreach (var childScene in scenesToRemove)
+                    Remove(childScene);
+            }
 
-            var entitiesToRemove = new Entity[scene.Entities.Count];
-            scene.Entities.CopyTo(entitiesToRemove, 0);
-            foreach (var entity in entitiesToRemove)
-                Remove(entity);
+            if (scene.Entities.Count > 0)
+            {
+                var entitiesToRemove = new Entity[scene.Entities.Count];
+                scene.Entities.CopyTo(entitiesToRemove, 0);
+                foreach (var entity in entitiesToRemove)
+                    Remove(entity);
+            }
         }
 
         private void Entities_CollectionChanged(object sender, TrackingCollectionChangedEventArgs e)
