@@ -131,12 +131,67 @@ namespace Xenko.Engine
 
         private void Add(Scene scene)
         {
-            foreach (var entity in scene.Entities)
-                Add(entity);
+            if (scene.Entities.Count > 0)
+            {
+                var entitiesToAdd = new FastList<Entity>();
+                // Reverse order, we're adding and removing from the tail to 
+                // avoid forcing the list to move all items when removing at [0]
+                for (int i = scene.Entities.Count -1; i >= 0; i-- )
+                    entitiesToAdd.Add(scene.Entities[i]);
 
-            // Listen to future changes in Scene.Entities
-            foreach (var childScene in scene.Children)
-                Add(childScene);
+                scene.Entities.CollectionChanged += DealWithTempChanges;
+                while (entitiesToAdd.Count > 0)
+                {
+                    int i = entitiesToAdd.Count - 1;
+                    var entity = entitiesToAdd[i];
+                    entitiesToAdd.RemoveAt(i);
+                    Add(entity);
+                }
+                scene.Entities.CollectionChanged -= DealWithTempChanges;
+
+                void DealWithTempChanges(object sender, TrackingCollectionChangedEventArgs e)
+                {
+                    Entity entity = (Entity)e.Item;
+                    if (e.Action == NotifyCollectionChangedAction.Remove)
+                    {
+                        if (entitiesToAdd.Remove(entity) == false)
+                            Remove(entity);
+                    }
+                    else if (e.Action == NotifyCollectionChangedAction.Add)
+                        entitiesToAdd.Add(entity);
+                }
+            }
+
+            if (scene.Children.Count > 0)
+            {
+                var scenesToAdd = new FastList<Scene>();
+                // Reverse order, we're adding and removing from the tail to 
+                // avoid forcing the list to move all items when removing at [0]
+                for (int i = scene.Entities.Count - 1; i >= 0; i--)
+                    scenesToAdd.Add(scene.Children[i]);
+
+                scene.Children.CollectionChanged += DealWithTempChanges;
+                while (scenesToAdd.Count > 0)
+                {
+                    int i = scenesToAdd.Count - 1;
+                    var entity = scenesToAdd[i];
+                    scenesToAdd.RemoveAt(i);
+                    Add(entity);
+                }
+                scene.Children.CollectionChanged -= DealWithTempChanges;
+
+                void DealWithTempChanges(object sender, TrackingCollectionChangedEventArgs e)
+                {
+                    Scene subScene = (Scene)e.Item;
+                    if (e.Action == NotifyCollectionChangedAction.Remove)
+                    {
+                        if (scenesToAdd.Remove(subScene) == false)
+                            Remove(subScene);
+                    }
+                    else if (e.Action == NotifyCollectionChangedAction.Add)
+                        scenesToAdd.Add(subScene);
+                }
+            }
 
             // Listen to future changes in entities and child scenes
             scene.Children.CollectionChanged += Children_CollectionChanged;
