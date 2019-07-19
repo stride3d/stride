@@ -170,7 +170,8 @@ namespace Xenko.Input
                 map[SDL.SDL_Keycode.SDLK_INSERT] = Keys.Insert;
                 map[SDL.SDL_Keycode.SDLK_DELETE] = Keys.Delete;
                 map[SDL.SDL_Keycode.SDLK_HELP] = Keys.Help;
-                map[SDL.SDL_Keycode.SDLK_1] = Keys.D0;
+                map[SDL.SDL_Keycode.SDLK_0] = Keys.D0;
+                map[SDL.SDL_Keycode.SDLK_1] = Keys.D1;
                 map[SDL.SDL_Keycode.SDLK_2] = Keys.D2;
                 map[SDL.SDL_Keycode.SDLK_3] = Keys.D3;
                 map[SDL.SDL_Keycode.SDLK_4] = Keys.D4;
