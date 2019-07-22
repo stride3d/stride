@@ -54,7 +54,7 @@
 
   <Target Name="_XenkoCopyContent" DependsOnTargets="_XenkoBuildDependencies" AfterTargets="ResolveAssemblyReferences" Condition="'$(XenkoDependenciesCopy)' != 'false'">
     <ItemGroup>
-      <Content Include="@(_XenkoDependencyContent)"/>
+      <Content Include="@(_XenkoDependencyContent)" Pack="False"/>
     </ItemGroup>
   </Target>
 
