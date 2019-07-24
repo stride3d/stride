@@ -15,6 +15,10 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.Services
         /// Gets or sets the currently transformation space.
         /// </summary>
         TransformationSpace TransformationSpace { get; set; }
+        /// <summary>
+        /// Gets or sets the origin position.
+        /// </summary>
+        OriginMode OriginMode { get; set; }
 
         /// <summary>
         /// Updates the snapping parameters for the given transformation.

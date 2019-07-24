@@ -36,6 +36,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         private EntityHierarchyEditorGame game;
         private Transformation activeTransformation;
         private TransformationSpace space;
+        private OriginMode originMode;
         private double gizmoSize = 1.0f;
 
         public EditorGameEntityTransformService([NotNull] EntityHierarchyEditorViewModel editor, [NotNull] IEditorGameController controller)
@@ -129,6 +130,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
         }
 
         TransformationSpace IEditorGameTransformViewModelService.TransformationSpace { get { return space; } set { space = value; controller.InvokeAsync(() => transformationGizmos.ForEach(x => x.Space = value)); } }
+
+        OriginMode IEditorGameTransformViewModelService.OriginMode { get { return originMode; } set { originMode = value; controller.InvokeAsync(() => transformationGizmos.ForEach(x => x.OriginMode = value)); } }
 
         double IEditorGameEntityTransformViewModelService.GizmoSize { get { return gizmoSize; } set { gizmoSize = value; controller.InvokeAsync(() => transformationGizmos.ForEach(x => x.SizeFactor = SmoothGizmoSize((float)value))); } }
 

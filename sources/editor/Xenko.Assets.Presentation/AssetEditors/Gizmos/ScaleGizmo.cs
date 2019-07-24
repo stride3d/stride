@@ -105,7 +105,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
         protected override InitialTransformation CalculateTransformation()
         {
             var transform = base.CalculateTransformation();
-
+            
             if (TransformationAxes == GizmoTransformationAxes.XYZ) // special transformation mode
             {
                 var mouseDrag = Input.MousePosition - StartMousePosition;
@@ -125,13 +125,13 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
         {
             const float MaxScaleValue = 1f / MathUtil.ZeroTolerance;
 
-            // snap the value if needed BEFORE the exp function
+            // snap the value if needed BEFORE the scale function
             if (UseSnap)
                 translation = MathUtil.Snap(translation, SnapValue);
 
-            var scaleValue = translation > 0 ? (float)Math.Exp(translation) : 1 / ((float)Math.Exp(-translation));
+            //var scaleValue = translation > 0 ? (float)Math.Exp(translation) : 1 / ((float)Math.Exp(-translation));
 
-            return Math.Max(MathUtil.ZeroTolerance, Math.Min(MaxScaleValue, scaleValue));
+            return Math.Max(MathUtil.ZeroTolerance, Math.Min(MaxScaleValue, translation));
         }
 
         protected override void UpdateColors()

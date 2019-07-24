@@ -738,6 +738,9 @@
                 </ListBox.ItemContainerStyle>
               </ListBox>
               <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
+              <ListBox Style="{StaticResource EnumListBox}" SelectedItem="{Binding Transform.OriginMode, Mode=TwoWay}"
+                       ItemsSource="{Binding Source={x:Type gameEditor:OriginMode}, Converter={xk:EnumValues}}"/>
+              <Separator Background="{StaticResource ToggleButtonNormalBackground}"/>
               <ToggleButton IsChecked="{Binding MaterialSelectionMode}" Background="Transparent"
                             Content="{xk:Image {StaticResource ImageToggleMaterialMode}, 16, 16, NearestNeighbor}" Width="28" Height="28"
                             ToolTip="{xk:Localize Toggle material selection (click a selected asset to select its material), Context=ToolTip}" xk:ToolTipHelper.Status="{Binding Session.Editor.Status}" ToolTipService.ShowOnDisabled="True" />
