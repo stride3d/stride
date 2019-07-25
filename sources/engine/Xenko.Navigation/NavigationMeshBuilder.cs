@@ -571,6 +571,43 @@ namespace Xenko.Navigation
 
                             entityNavigationMeshInputBuilder.AppendArrays(mesh.Vertices.ToArray(), indices, transform);
                         }
+                        else if (shapeType == typeof(HeightfieldColliderShape))
+                        {
+                            var heightfield = (HeightfieldColliderShape)shape;
+
+                            var halfRange = (heightfield.MaxHeight - heightfield.MinHeight) * 0.5f;
+                            var offset = -(heightfield.MinHeight + halfRange);
+                            Matrix transform = Matrix.Translation(new Vector3(0, offset, 0)) * heightfield.PositiveCenterMatrix * entityWorldMatrix;
+
+                            var width = heightfield.HeightStickWidth - 1;
+                            var length = heightfield.HeightStickLength - 1;
+                            var mesh = GeometricPrimitive.Plane.New(width, length, width, length, normalDirection: NormalDirection.UpY, toLeftHanded: true);
+
+                            var arrayLength = heightfield.HeightStickWidth * heightfield.HeightStickLength;
+                            switch (heightfield.HeightType)
+                            {
+                                case HeightfieldTypes.Short:
+                                    for (int i = 0; i < arrayLength; ++i)
+                                    {
+                                        mesh.Vertices[i].Position.Y = heightfield.ShortArray[i] * heightfield.HeightScale;
+                                    }
+                                    break;
+                                case HeightfieldTypes.Byte:
+                                    for (int i = 0; i < arrayLength; ++i)
+                                    {
+                                        mesh.Vertices[i].Position.Y = heightfield.ByteArray[i] * heightfield.HeightScale;
+                                    }
+                                    break;
+                                case HeightfieldTypes.Float:
+                                    for (int i = 0; i < arrayLength; ++i)
+                                    {
+                                        mesh.Vertices[i].Position.Y = heightfield.FloatArray[i];
+                                    }
+                                    break;
+                            }
+
+                            entityNavigationMeshInputBuilder.AppendMeshData(mesh, transform);
+                        }
                         else if (shapeType == typeof(CompoundColliderShape))
                         {
                             // Unroll compound collider shapes
