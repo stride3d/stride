@@ -52,6 +52,7 @@ TemplateFolders:
         - !file Templates/Assets/Physics/ColliderShapePlane.xktpl
         - !file Templates/Assets/Physics/ColliderShapeSphere.xktpl
         - !file Templates/Assets/Physics/ColliderShapeCone.xktpl
+        - !file Templates/Assets/Physics/Heightmap.xktpl
         - !file Templates/Assets/Scenes/DefaultPrefab.xktpl
         - !file Templates/Assets/Scenes/DefaultNavigationMesh.xktpl
         - !file Templates/Assets/Scenes/DefaultScene.xktpl
