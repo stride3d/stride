@@ -125,13 +125,10 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
         {
             const float MaxScaleValue = 1f / MathUtil.ZeroTolerance;
 
-            // snap the value if needed BEFORE the scale function
             if (UseSnap)
                 translation = MathUtil.Snap(translation, SnapValue);
 
-            //var scaleValue = translation > 0 ? (float)Math.Exp(translation) : 1 / ((float)Math.Exp(-translation));
-
-            return Math.Max(MathUtil.ZeroTolerance, Math.Min(MaxScaleValue, translation));
+            return Math.Max(-MaxScaleValue, Math.Min(MaxScaleValue, translation));
         }
 
         protected override void UpdateColors()
