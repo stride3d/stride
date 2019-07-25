@@ -465,6 +465,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
                 if (transformation.Scale != Vector3.One)
                 {
                     entityTransfo.Scale = initialTransfo.Scale + scaledScale;
+                    if (UseSnap)
+                        entityTransfo.Scale = MathUtil.Snap(entityTransfo.Scale, SnapValue);
                     var scaleLocation = ScaleOrigin ?? (OriginMode == OriginMode.LastSelected
                         ? AnchorEntity.Transform.Position
                         : SelectionCenter);
