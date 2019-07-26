@@ -1184,7 +1184,7 @@ namespace Xenko.Graphics
                 var subresourceRange = new ImageSubresourceRange(ImageAspectFlags.Color, (uint)arraySlice, 1, (uint)mipSlice, 1);
 
                 var memoryBarrier = new ImageMemoryBarrier(texture.NativeImage, texture.NativeLayout, ImageLayout.TransferDestinationOptimal, texture.NativeAccessMask, AccessFlags.TransferWrite, subresourceRange);
-                currentCommandList.NativeCommandBuffer.PipelineBarrier(texture.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 1, &uploadBufferMemoryBarrier, 1, &memoryBarrier);
+                currentCommandList.NativeCommandBuffer.PipelineBarrier(texture.NativePipelineStageMask | PipelineStageFlags.Host, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 1, &uploadBufferMemoryBarrier, 1, &memoryBarrier);
 
                 // TODO VULKAN: Handle depth-stencil (NOTE: only supported on graphics queue)
                 // TODO VULKAN: Handle non-packed pitches
@@ -1218,7 +1218,7 @@ namespace Xenko.Graphics
 
                     memoryBarriers[0] = uploadBufferMemoryBarrier;
                     memoryBarriers[1] = new BufferMemoryBarrier(buffer.NativeBuffer, buffer.NativeAccessMask, AccessFlags.TransferWrite, bufferCopy.DestinationOffset, bufferCopy.Size);
-                    currentCommandList.NativeCommandBuffer.PipelineBarrier(buffer.NativePipelineStageMask, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 2, memoryBarriers, 0, null);
+                    currentCommandList.NativeCommandBuffer.PipelineBarrier(buffer.NativePipelineStageMask | PipelineStageFlags.Host, PipelineStageFlags.Transfer, DependencyFlags.None, 0, null, 2, memoryBarriers, 0, null);
 
                     currentCommandList.NativeCommandBuffer.CopyBuffer(uploadResource, buffer.NativeBuffer, 1, &bufferCopy);
 
