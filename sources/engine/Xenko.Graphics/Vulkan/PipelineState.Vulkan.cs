@@ -107,7 +107,7 @@ namespace Xenko.Graphics
             {
                 StructureType = StructureType.PipelineInputAssemblyStateCreateInfo,
                 Topology = VulkanConvertExtensions.ConvertPrimitiveType(Description.PrimitiveType),
-                PrimitiveRestartEnable = true,
+                PrimitiveRestartEnable = VulkanConvertExtensions.ConvertPrimitiveRestart(Description.PrimitiveType),
             };
 
             // TODO VULKAN: Tessellation and multisampling
