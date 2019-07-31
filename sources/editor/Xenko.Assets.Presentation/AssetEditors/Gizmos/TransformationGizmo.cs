@@ -515,10 +515,10 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
 
         protected float GetScaledAxis(float position, float scaleOrigin, float scale)
         {
-            return (scaleOrigin + (position - scaleOrigin) * scale);
+            return scaleOrigin + (position - scaleOrigin) * scale;
         }
 
-        public static Vector3 Transform(Vector3 vector, Matrix transform)
+        protected Vector3 Transform(Vector3 vector, Matrix transform)
         {
             Vector3 result;
             Vector3.Transform(ref vector, ref transform, out result);
