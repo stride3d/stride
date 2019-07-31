@@ -481,10 +481,11 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
                     Vector3 one = Vector3.One;
                     Matrix.Transformation(ref one, ref AnchorEntity.Transform.Rotation, ref scaleLocation, out var scaleSpace);
 
-                    var position = Transform(initialTranslation, Matrix.Invert(scaleSpace));
-                    var scaleOrigin = Transform(scaleLocation, Matrix.Invert(scaleSpace));
+                    var invertedScaleSpace = Matrix.Invert(scaleSpace);
+                    Vector3.Transform(ref initialTranslation, ref invertedScaleSpace, out Vector3 position);
+                    Vector3.Transform(ref scaleLocation, ref invertedScaleSpace, out Vector3 scaleOrigin);
                     var offset = GetScaledLocation(position, scaleOrigin, entityTransfo.Scale / initialTransfo.Scale);
-                    initialTranslation = Transform(offset, scaleSpace);
+                    Vector3.Transform(ref offset, ref scaleSpace, out initialTranslation);
                 }
 
                 // translation (transform the translation from gizmo space to the selected root's parent space)
@@ -516,13 +517,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
         protected float GetScaledAxis(float position, float scaleOrigin, float scale)
         {
             return scaleOrigin + (position - scaleOrigin) * scale;
-        }
-
-        protected Vector3 Transform(Vector3 vector, Matrix transform)
-        {
-            Vector3 result;
-            Vector3.Transform(ref vector, ref transform, out result);
-            return result;
         }
 
         public virtual async Task Update()
