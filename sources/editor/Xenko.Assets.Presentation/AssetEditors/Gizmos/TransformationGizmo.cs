@@ -85,7 +85,12 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
         /// The value of the gizmo world matrix at the beginning of the transformation.
         /// </summary>
         protected Matrix StartWorldMatrix = Matrix.Identity;
-        
+
+        /// <summary>
+        /// The position of the selection center at the beginning of the transformation.
+        /// </summary>
+        protected Vector3 StartSelectionCenter = Vector3.Zero;
+
         /// <summary>
         /// The projection plane of the transformation.
         /// </summary>
@@ -316,6 +321,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
             // calculate the un-projection plane for 2D transformations
             var planeNormal = Vector3.Zero;
             StartWorldMatrix = WorldMatrix;
+            RecalculateCenter();
+            StartSelectionCenter = SelectionCenter;
             var gizmoViewInverse = Matrix.Invert(StartWorldMatrix * cameraService.ViewMatrix);
             if (EditorGameComponentGizmoService.PlaneToIndex.ContainsKey(TransformationAxes))
             {
@@ -428,7 +435,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
 
                 OnTransformationStarted(mouseDragPixel);
             }
-            
+
             // determine the transformation to apply
             var transformation = CalculateTransformation();
 
@@ -469,8 +476,15 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
                         entityTransfo.Scale = MathUtil.Snap(entityTransfo.Scale, SnapValue);
                     var scaleLocation = ScaleOrigin ?? (OriginMode == OriginMode.LastSelected
                         ? AnchorEntity.Transform.Position
-                        : SelectionCenter);
-                    initialTranslation = GetScaledLocation(initialTransfo.Translation, scaleLocation, entityTransfo.Scale / initialTransfo.Scale);
+                        : StartSelectionCenter);
+
+                    Vector3 one = Vector3.One;
+                    Matrix.Transformation(ref one, ref AnchorEntity.Transform.Rotation, ref scaleLocation, out var scaleSpace);
+
+                    var position = Transform(initialTranslation, Matrix.Invert(scaleSpace));
+                    var scaleOrigin = Transform(scaleLocation, Matrix.Invert(scaleSpace));
+                    var offset = GetScaledLocation(position, scaleOrigin, entityTransfo.Scale / initialTransfo.Scale);
+                    initialTranslation = Transform(offset, scaleSpace);
                 }
 
                 // translation (transform the translation from gizmo space to the selected root's parent space)
@@ -501,7 +515,14 @@ namespace Xenko.Assets.Presentation.AssetEditors.Gizmos
 
         protected float GetScaledAxis(float position, float scaleOrigin, float scale)
         {
-            return scaleOrigin + (position - scaleOrigin) * scale;
+            return (scaleOrigin + (position - scaleOrigin) * scale);
+        }
+
+        public static Vector3 Transform(Vector3 vector, Matrix transform)
+        {
+            Vector3 result;
+            Vector3.Transform(ref vector, ref transform, out result);
+            return result;
         }
 
         public virtual async Task Update()

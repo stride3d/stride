@@ -19,7 +19,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor
         /// <summary>
         /// Places the origin in the center of the last selected entity.
         /// </summary>
-        [Translation("Last selected")]
+        [Translation("Switch to last selected scaling")]
         LastSelected,
     }
 }
