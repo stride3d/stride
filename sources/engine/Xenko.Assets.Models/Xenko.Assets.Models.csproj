@@ -35,6 +35,8 @@
   </PropertyGroup>
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)Xenko.Assimp.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Xenko.Assimp.Translation.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Xenko.Importer.Assimp.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Xenko.Importer.Assimp.ssdeps" />
       <BuildOutputInPackage Include="$(OutputPath)Xenko.Importer.FBX.dll" />
