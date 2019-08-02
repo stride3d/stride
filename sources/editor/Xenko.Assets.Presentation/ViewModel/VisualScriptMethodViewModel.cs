@@ -85,7 +85,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             // TODO: Cleanup references to this parameter
 
             // Remove
-            var itemIndex = new Index(index);
+            var itemIndex = new NodeIndex(index);
             parametersContent.Remove(parameter, itemIndex);
         }
 
@@ -102,7 +102,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             {
                 if (link.Source.Owner == block || link.Target.Owner == block)
                 {
-                    var linkItemIndex = new Index(i);
+                    var linkItemIndex = new NodeIndex(i);
                     linksContent.Remove(link, linkItemIndex);
 
                     // Since we removed an item, fix index of next check
@@ -111,7 +111,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             }
 
             // Remove
-            var itemIndex = new Index(block.Id);
+            var itemIndex = new NodeIndex(block.Id);
             blocksContent.Remove(block, itemIndex);
         }
 
@@ -123,7 +123,7 @@ namespace Xenko.Assets.Presentation.ViewModel
         public void RemoveLink(Link link)
         {
             // Remove
-            var itemIndex = new Index(link.Id);
+            var itemIndex = new NodeIndex(link.Id);
             linksContent.Remove(link, itemIndex);
         }
 
@@ -297,7 +297,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                 // TODO: we could use diff to minimize changes, but probably not worth the effort
                 // Note that we can't simply overwrite slots, since the Slot.Owner would become invalid if added before it is removed at another index
                 for (int i = block.Slots.Count - 1; i >= 0; --i)
-                    blockSlots.Remove(block.Slots[i], new Index(i));
+                    blockSlots.Remove(block.Slots[i], new NodeIndex(i));
 
                 // Add new slots (and try to reduce changes)
                 foreach (var slot in newSlots)

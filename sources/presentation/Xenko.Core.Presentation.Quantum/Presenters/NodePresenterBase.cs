@@ -59,7 +59,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
 
         public int? Order { get; set; }
 
-        public abstract Index Index { get; }
+        public abstract NodeIndex Index { get; }
 
         public abstract ITypeDescriptor Descriptor { get; }
 
@@ -80,9 +80,9 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
 
         public abstract void AddItem(object value);
 
-        public abstract void AddItem(object value, Index index);
+        public abstract void AddItem(object value, NodeIndex index);
 
-        public abstract void RemoveItem(object value, Index index);
+        public abstract void RemoveItem(object value, NodeIndex index);
 
         public abstract NodeAccessor GetNodeAccessor();
 

@@ -18,7 +18,7 @@ namespace Xenko.Core.Quantum
         /// <param name="changeType">The type of change that occurred.</param>
         /// <param name="oldValue">The old value of the item that has changed.</param>
         /// <param name="newValue">The new value of the item that has changed.</param>
-        public ItemChangeEventArgs([NotNull] IObjectNode node, Index index, ContentChangeType changeType, object oldValue, object newValue)
+        public ItemChangeEventArgs([NotNull] IObjectNode node, NodeIndex index, ContentChangeType changeType, object oldValue, object newValue)
         {
             Collection = node;
             Index = index;
@@ -36,7 +36,7 @@ namespace Xenko.Core.Quantum
         /// <summary>
         /// Gets the index where the change occurred.
         /// </summary>
-        public Index Index { get; }
+        public NodeIndex Index { get; }
 
         /// <summary>
         /// The type of change.

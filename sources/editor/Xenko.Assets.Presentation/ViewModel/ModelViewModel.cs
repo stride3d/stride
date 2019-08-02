@@ -60,7 +60,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             var materialsNode = AssetRootNode[nameof(ModelAsset.Materials)].Target;
             while (Asset.Materials.Count > 0)
             {
-                materialsNode.Remove(Asset.Materials[0], new Index(0));
+                materialsNode.Remove(Asset.Materials[0], new NodeIndex(0));
             }
 
             // Repopulate the list of materials
@@ -72,7 +72,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                     id = ItemId.New();
 
                 // Use Restore to allow to set manually the id.
-                materialsNode.Restore(dictionary[assetToMerge.Materials[i].Name], new Index(i), id);
+                materialsNode.Restore(dictionary[assetToMerge.Materials[i].Name], new NodeIndex(i), id);
             }
         }
 

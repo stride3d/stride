@@ -28,7 +28,7 @@ namespace Xenko.Core.Presentation.Quantum.ViewModels
         internal class DifferentValuesObject { public readonly string Name = "DifferentValues"; };
 
         protected static readonly HashSet<string> ReservedNames = new HashSet<string>();
-        private readonly AutoUpdatingSortedObservableCollection<NodeViewModel> children = new AutoUpdatingSortedObservableCollection<NodeViewModel>(new AnonymousComparer<NodeViewModel>(CompareChildren), nameof(Name), nameof(Index), nameof(Order));
+        private readonly AutoUpdatingSortedObservableCollection<NodeViewModel> children = new AutoUpdatingSortedObservableCollection<NodeViewModel>(new AnonymousComparer<NodeViewModel>(CompareChildren), nameof(Name), nameof(NodeIndex), nameof(Order));
         private readonly ObservableCollection<NodePresenterCommandWrapper> commands = new ObservableCollection<NodePresenterCommandWrapper>();
         private readonly Dictionary<string, object> associatedData = new Dictionary<string, object>();
         private readonly List<string> changingProperties = new List<string>();

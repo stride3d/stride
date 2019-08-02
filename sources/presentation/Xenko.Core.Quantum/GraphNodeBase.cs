@@ -45,10 +45,10 @@ namespace Xenko.Core.Quantum
         protected bool IsSealed { get; private set; }
 
         /// <inheritdoc/>
-        public object Retrieve() => Retrieve(Index.Empty);
+        public object Retrieve() => Retrieve(NodeIndex.Empty);
 
         /// <inheritdoc/>
-        public virtual object Retrieve(Index index)
+        public virtual object Retrieve(NodeIndex index)
         {
             return Content.Retrieve(Value, index, Descriptor);
         }
@@ -62,16 +62,16 @@ namespace Xenko.Core.Quantum
         /// This method is intended to update a boxed content when one of its member changes.
         /// It allows to properly update boxed structs.
         /// </remarks>
-        protected internal abstract void UpdateFromMember(object newValue, Index index);
+        protected internal abstract void UpdateFromMember(object newValue, NodeIndex index);
 
-        public static IEnumerable<Index> GetIndices([NotNull] IGraphNode node)
+        public static IEnumerable<NodeIndex> GetIndices([NotNull] IGraphNode node)
         {
             if (node.Descriptor is CollectionDescriptor collectionDescriptor)
             {
-                return Enumerable.Range(0, collectionDescriptor.GetCollectionCount(node.Retrieve())).Select(x => new Index(x));
+                return Enumerable.Range(0, collectionDescriptor.GetCollectionCount(node.Retrieve())).Select(x => new NodeIndex(x));
             }
             var dictionaryDescriptor = node.Descriptor as DictionaryDescriptor;
-            return dictionaryDescriptor?.GetKeys(node.Retrieve()).Cast<object>().Select(x => new Index(x));
+            return dictionaryDescriptor?.GetKeys(node.Retrieve()).Cast<object>().Select(x => new NodeIndex(x));
         }
 
         /// <summary>

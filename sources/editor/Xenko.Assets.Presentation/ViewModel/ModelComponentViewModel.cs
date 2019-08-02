@@ -74,7 +74,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                     {
                         var modelMaterial = model.Materials.Count > i ? model.Materials[i] : null;
                         var materialName = modelMaterial?.Name ?? $"(Material {i + 1})";
-                        var index = new Index(i);
+                        var index = new NodeIndex(i);
                         var virtualMaterial = factory.CreateVirtualNodePresenter(node, material.Name + "___Virtual", typeof(Material), i,
                                                    () => GetMaterial(materialsNode, index),
                                                    x => SetMaterial(materialsNode, index, (Material)x),
@@ -106,13 +106,13 @@ namespace Xenko.Assets.Presentation.ViewModel
             }
         }
 
-        private Task FetchMaterial(IObjectNode materialsNode, Index index)
+        private Task FetchMaterial(IObjectNode materialsNode, NodeIndex index)
         {
             var material = GetMaterial(materialsNode, index);
             return FetchAssetCommand.Fetch(entity.Editor.Session, material);
         }
 
-        private static void SetMaterial(IObjectNode materialNode, Index index, Material value)
+        private static void SetMaterial(IObjectNode materialNode, NodeIndex index, Material value)
         {
             if (materialNode.Indices.Contains(index))
             {
@@ -124,7 +124,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             }
         }
 
-        private object GetMaterial(IObjectNode materialNode, Index index)
+        private object GetMaterial(IObjectNode materialNode, NodeIndex index)
         {
             if (materialNode.Indices.Contains(index))
             {
@@ -143,7 +143,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             return model?.Materials[index.Int].MaterialInstance.Material;
         }
 
-        private void SetMaterialEnabled(IObjectNode materialNode, Index index, bool value)
+        private void SetMaterialEnabled(IObjectNode materialNode, NodeIndex index, bool value)
         {
             if (value)
             {
@@ -157,7 +157,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             }
         }
 
-        private static object IsMaterialEnabled(IObjectNode materialNode, Index index)
+        private static object IsMaterialEnabled(IObjectNode materialNode, NodeIndex index)
         {
             return materialNode.Indices.Contains(index);
         }

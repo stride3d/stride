@@ -8,12 +8,12 @@ namespace Xenko.Core.Quantum
     /// <summary>
     /// A container structure to represent indices in Quantum nodes.
     /// </summary>
-    public struct Index : IEquatable<Index>, IComparable<Index>, IComparable
+    public struct NodeIndex : IEquatable<NodeIndex>, IComparable<NodeIndex>, IComparable
     {
         /// <summary>
         /// An index that is null.
         /// </summary>
-        public static readonly Index Empty = new Index();
+        public static readonly NodeIndex Empty = new NodeIndex();
 
         /// <summary>
         /// The value of the index.
@@ -21,13 +21,13 @@ namespace Xenko.Core.Quantum
         public readonly object Value;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Index"/> structure.
+        /// Initializes a new instance of the <see cref="NodeIndex"/> structure.
         /// </summary>
         /// <param name="value">The value of the index.</param>
-        public Index(object value) : this()
+        public NodeIndex(object value) : this()
         {
             // Sanity check, to avoid boxing index into index
-            if (value is Index) throw new ArgumentException($"A {nameof(Index)} instance cannot be passed as the value of another {nameof(Index)} instance.");
+            if (value is NodeIndex) throw new ArgumentException($"A {nameof(NodeIndex)} instance cannot be passed as the value of another {nameof(NodeIndex)} instance.");
             Value = value;
         }
 
@@ -54,13 +54,13 @@ namespace Xenko.Core.Quantum
         }
 
         /// <inheritdoc/>
-        public bool Equals(Index other)
+        public bool Equals(NodeIndex other)
         {
             return Equals(Value, other.Value);
         }
 
         /// <inheritdoc/>
-        public int CompareTo(Index other)
+        public int CompareTo(NodeIndex other)
         {
             if (other.IsEmpty)
                 return IsEmpty ? 0 : 1;
@@ -78,7 +78,7 @@ namespace Xenko.Core.Quantum
         {
             if (ReferenceEquals(null, obj))
                 return false;
-            return obj is Index && Equals((Index)obj);
+            return obj is NodeIndex && Equals((NodeIndex)obj);
         }
 
         /// <inheritdoc/>
@@ -92,17 +92,17 @@ namespace Xenko.Core.Quantum
             if (obj == null || obj.GetType() != GetType())
                 throw new ArgumentException(@"obj is not the same type as this instance.", nameof(obj));
 
-            var other = (Index)obj;
+            var other = (NodeIndex)obj;
             return CompareTo(other);
         }
 
-        public static bool operator==(Index a, Index b)
+        public static bool operator==(NodeIndex a, NodeIndex b)
         {
             return Equals(a.Value, b.Value);
         }
 
         /// <inheritdoc/>
-        public static bool operator!=(Index a, Index b)
+        public static bool operator!=(NodeIndex a, NodeIndex b)
         {
             return !Equals(a.Value, b.Value);
         }

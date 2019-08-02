@@ -238,12 +238,12 @@ namespace Xenko.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
 
         internal void InsertImage(SpriteInfo spriteinfo, int index)
         {
-            spritesNode.Add(spriteinfo, new Index(index));
+            spritesNode.Add(spriteinfo, new NodeIndex(index));
         }
 
         internal void RemoveImage(SpriteInfo spriteInfo, int imageIndex)
         {
-            spritesNode.Remove(spriteInfo, new Index(imageIndex));
+            spritesNode.Remove(spriteInfo, new NodeIndex(imageIndex));
         }
 
         /// <inheritdoc />

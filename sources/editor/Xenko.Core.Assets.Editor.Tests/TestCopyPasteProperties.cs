@@ -42,7 +42,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { Float = 5.0f };
             var target = new MyClass { Float = 2.0f };
             var copiedText = Copy(source, source.Float);
-            Paste(target, copiedText, typeof(float), typeof(float), x => x[nameof(MyClass.Float)], Index.Empty, false);
+            Paste(target, copiedText, typeof(float), typeof(float), x => x[nameof(MyClass.Float)], NodeIndex.Empty, false);
             Assert.Equal(5.0f, target.Float);
         }
 
@@ -50,7 +50,7 @@ namespace Xenko.Core.Assets.Editor.Tests
         public void TestPasteStringAsFloatProperty()
         {
             var target = new MyClass { Float = 2.0f };
-            Paste(target, "5", typeof(float), typeof(float), x => x[nameof(MyClass.Float)], Index.Empty, false);
+            Paste(target, "5", typeof(float), typeof(float), x => x[nameof(MyClass.Float)], NodeIndex.Empty, false);
             Assert.Equal(5.0f, target.Float);
         }
 
@@ -60,7 +60,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { Struct = new MyStruct { Integer = 5 } };
             var target = new MyClass { Struct = new MyStruct { Integer = 2 } };
             var copiedText = Copy(source, source.Struct.Integer);
-            Paste(target, copiedText, typeof(int), typeof(int), x => x[nameof(MyClass.Struct)].Target[nameof(MyStruct.Integer)], Index.Empty, false);
+            Paste(target, copiedText, typeof(int), typeof(int), x => x[nameof(MyClass.Struct)].Target[nameof(MyStruct.Integer)], NodeIndex.Empty, false);
             Assert.Equal(5, target.Struct.Integer);
         }
 
@@ -70,7 +70,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { Struct = new MyStruct { Integer = 5 } };
             var target = new MyClass { Struct = new MyStruct { Integer = 2 } };
             var copiedText = Copy(source, source.Struct);
-            Paste(target, copiedText, typeof(MyStruct), typeof(MyStruct), x => x[nameof(MyClass.Struct)], Index.Empty, false);
+            Paste(target, copiedText, typeof(MyStruct), typeof(MyStruct), x => x[nameof(MyClass.Struct)], NodeIndex.Empty, false);
             Assert.Equal(5, target.Struct.Integer);
         }
 
@@ -80,7 +80,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { Sub = new MyClass { Float = 5 } };
             var target = new MyClass { Sub = new MyClass { Float = 2 } };
             var copiedText = Copy(source, source.Sub.Float);
-            Paste(target, copiedText, typeof(int), typeof(int), x => x[nameof(MyClass.Sub)].Target[nameof(MyClass.Float)], Index.Empty, false);
+            Paste(target, copiedText, typeof(int), typeof(int), x => x[nameof(MyClass.Sub)].Target[nameof(MyClass.Float)], NodeIndex.Empty, false);
             Assert.Equal(5, target.Sub.Float);
         }
 
@@ -90,7 +90,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { Sub = new MyClass { Float = 5 } };
             var target = new MyClass { Sub = new MyClass { Float = 2 } };
             var copiedText = Copy(source, source.Sub);
-            Paste(target, copiedText, typeof(MyClass), typeof(MyClass), x => x[nameof(MyClass.Sub)], Index.Empty, false);
+            Paste(target, copiedText, typeof(MyClass), typeof(MyClass), x => x[nameof(MyClass.Sub)], NodeIndex.Empty, false);
             Assert.Equal(5, target.Sub.Float);
         }
 
@@ -100,7 +100,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList);
-            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, false);
+            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], NodeIndex.Empty, false);
             Assert.Equal(6, target.DoubleList.Count);
             Assert.Equal(4.0, target.DoubleList[0]);
             Assert.Equal(5.0, target.DoubleList[1]);
@@ -116,7 +116,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList);
-            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, true);
+            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], NodeIndex.Empty, true);
             Assert.Equal(3, target.DoubleList.Count);
             Assert.Equal(1.0, target.DoubleList[0]);
             Assert.Equal(2.0, target.DoubleList[1]);
@@ -129,7 +129,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList);
-            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)], Index.Empty, false);
+            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)], NodeIndex.Empty, false);
             Assert.Equal(6, target.StructList.Count);
             Assert.Equal(4.0, target.StructList[0].Integer);
             Assert.Equal(5.0, target.StructList[1].Integer);
@@ -145,7 +145,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList);
-            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)], Index.Empty, true);
+            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)], NodeIndex.Empty, true);
             Assert.Equal(3, target.StructList.Count);
             Assert.Equal(1.0, target.StructList[0].Integer);
             Assert.Equal(2.0, target.StructList[1].Integer);
@@ -158,7 +158,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList);
-            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)], Index.Empty, false);
+            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)], NodeIndex.Empty, false);
             Assert.Equal(6, target.SubList.Count);
             Assert.Equal(4.0, target.SubList[0].Float);
             Assert.Equal(5.0, target.SubList[1].Float);
@@ -174,7 +174,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList);
-            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)], Index.Empty, true);
+            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)], NodeIndex.Empty, true);
             Assert.Equal(3, target.SubList.Count);
             Assert.Equal(1.0, target.SubList[0].Float);
             Assert.Equal(2.0, target.SubList[1].Float);
@@ -187,7 +187,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList);
-            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), false);
+            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new NodeIndex(1), false);
             Assert.Equal(6, target.DoubleList.Count);
             Assert.Equal(4.0, target.DoubleList[0]);
             Assert.Equal(1.0, target.DoubleList[1]);
@@ -203,7 +203,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList);
-            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), true);
+            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new NodeIndex(1), true);
             Assert.Equal(5, target.DoubleList.Count);
             Assert.Equal(4.0, target.DoubleList[0]);
             Assert.Equal(1.0, target.DoubleList[1]);
@@ -218,7 +218,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList);
-            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new Index(1), false);
+            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new NodeIndex(1), false);
             Assert.Equal(6, target.StructList.Count);
             Assert.Equal(4.0, target.StructList[0].Integer);
             Assert.Equal(1.0, target.StructList[1].Integer);
@@ -234,7 +234,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList);
-            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new Index(1), true);
+            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new NodeIndex(1), true);
             Assert.Equal(5, target.StructList.Count);
             Assert.Equal(4.0, target.StructList[0].Integer);
             Assert.Equal(1.0, target.StructList[1].Integer);
@@ -249,7 +249,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList);
-            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new Index(1), false);
+            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new NodeIndex(1), false);
             Assert.Equal(6, target.SubList.Count);
             Assert.Equal(4.0, target.SubList[0].Float);
             Assert.Equal(1.0, target.SubList[1].Float);
@@ -265,7 +265,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList);
-            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new Index(1), true);
+            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new NodeIndex(1), true);
             Assert.Equal(5, target.SubList.Count);
             Assert.Equal(4.0, target.SubList[0].Float);
             Assert.Equal(1.0, target.SubList[1].Float);
@@ -280,7 +280,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList[2]);
-            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), false);
+            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new NodeIndex(1), false);
             Assert.Equal(4, target.DoubleList.Count);
             Assert.Equal(4.0, target.DoubleList[0]);
             Assert.Equal(3.0, target.DoubleList[1]);
@@ -288,7 +288,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             Assert.Equal(6.0, target.DoubleList[3]);
 
             target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
-            Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), false);
+            Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new NodeIndex(1), false);
             Assert.Equal(4, target.DoubleList.Count);
             Assert.Equal(4.0, target.DoubleList[0]);
             Assert.Equal(2.0, target.DoubleList[1]);
@@ -302,14 +302,14 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
             var copiedText = Copy(source, source.DoubleList[2]);
-            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), true);
+            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new NodeIndex(1), true);
             Assert.Equal(3, target.DoubleList.Count);
             Assert.Equal(4.0, target.DoubleList[0]);
             Assert.Equal(3.0, target.DoubleList[1]);
             Assert.Equal(6.0, target.DoubleList[2]);
 
             target = new MyClass { DoubleList = new List<double> { 4, 5, 6 } };
-            Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new Index(1), true);
+            Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)].Target, new NodeIndex(1), true);
             Assert.Equal(3, target.DoubleList.Count);
             Assert.Equal(4.0, target.DoubleList[0]);
             Assert.Equal(2.0, target.DoubleList[1]);
@@ -322,7 +322,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList[2]);
-            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new Index(1), false);
+            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new NodeIndex(1), false);
             Assert.Equal(4, target.StructList.Count);
             Assert.Equal(4.0, target.StructList[0].Integer);
             Assert.Equal(3.0, target.StructList[1].Integer);
@@ -336,7 +336,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 1 }, new MyStruct { Integer = 2 }, new MyStruct { Integer = 3 } } };
             var target = new MyClass { StructList = new List<MyStruct> { new MyStruct { Integer = 4 }, new MyStruct { Integer = 5 }, new MyStruct { Integer = 6 } } };
             var copiedText = Copy(source, source.StructList[2]);
-            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new Index(1), true);
+            Paste(target, copiedText, typeof(List<MyStruct>), typeof(List<MyStruct>), x => x[nameof(MyClass.StructList)].Target, new NodeIndex(1), true);
             Assert.Equal(3, target.StructList.Count);
             Assert.Equal(4.0, target.StructList[0].Integer);
             Assert.Equal(3.0, target.StructList[1].Integer);
@@ -349,7 +349,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList[2]);
-            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new Index(1), false);
+            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new NodeIndex(1), false);
             Assert.Equal(4, target.SubList.Count);
             Assert.Equal(4.0, target.SubList[0].Float);
             Assert.Equal(3.0, target.SubList[1].Float);
@@ -363,7 +363,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 1 }, new MyClass { Float = 2 }, new MyClass { Float = 3 } } };
             var target = new MyClass { SubList = new List<MyClass> { new MyClass { Float = 4 }, new MyClass { Float = 5 }, new MyClass { Float = 6 } } };
             var copiedText = Copy(source, source.SubList[2]);
-            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new Index(1), true);
+            Paste(target, copiedText, typeof(List<MyClass>), typeof(List<MyClass>), x => x[nameof(MyClass.SubList)].Target, new NodeIndex(1), true);
             Assert.Equal(3, target.SubList.Count);
             Assert.Equal(4.0, target.SubList[0].Float);
             Assert.Equal(3.0, target.SubList[1].Float);
@@ -376,14 +376,14 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             var target = new MyClass { DoubleList = null };
             var copiedText = Copy(source, source.DoubleList);
-            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, false);
+            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], NodeIndex.Empty, false);
             Assert.Equal(3, target.DoubleList.Count);
             Assert.Equal(1.0, target.DoubleList[0]);
             Assert.Equal(2.0, target.DoubleList[1]);
             Assert.Equal(3.0, target.DoubleList[2]);
 
             target = new MyClass { DoubleList = null };
-            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, true);
+            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], NodeIndex.Empty, true);
             Assert.Equal(3, target.DoubleList.Count);
             Assert.Equal(1.0, target.DoubleList[0]);
             Assert.Equal(2.0, target.DoubleList[1]);
@@ -392,22 +392,22 @@ namespace Xenko.Core.Assets.Editor.Tests
             source = new MyClass { DoubleList = new List<double> { 1, 2, 3 } };
             target = new MyClass { DoubleList = null };
             copiedText = Copy(source, source.DoubleList[2]);
-            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, false);
+            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], NodeIndex.Empty, false);
             Assert.Single(target.DoubleList);
             Assert.Equal(3.0, target.DoubleList[0]);
 
             target = new MyClass { DoubleList = null };
-            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, true);
+            Paste(target, copiedText, typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], NodeIndex.Empty, true);
             Assert.Single(target.DoubleList);
             Assert.Equal(3.0, target.DoubleList[0]);
 
             target = new MyClass { DoubleList = null };
-            Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, false);
+            Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], NodeIndex.Empty, false);
             Assert.Single(target.DoubleList);
             Assert.Equal(2.0, target.DoubleList[0]);
 
             target = new MyClass { DoubleList = null };
-            Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], Index.Empty, true);
+            Paste(target, "2", typeof(List<double>), typeof(List<double>), x => x[nameof(MyClass.DoubleList)], NodeIndex.Empty, true);
             Assert.Single(target.DoubleList);
             Assert.Equal(2.0, target.DoubleList[0]);
         }
@@ -418,7 +418,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, false);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], NodeIndex.Empty, false);
             Assert.Equal(6, target.DoubleDictionary.Count);
             Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
             Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
@@ -434,7 +434,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, true);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], NodeIndex.Empty, true);
             Assert.Equal(3, target.DoubleDictionary.Count);
             Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
             Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
@@ -447,7 +447,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)], Index.Empty, false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)], NodeIndex.Empty, false);
             Assert.Equal(6, target.StructDictionary.Count);
             Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
             Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
@@ -463,7 +463,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)], Index.Empty, true);
+            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)], NodeIndex.Empty, true);
             Assert.Equal(3, target.StructDictionary.Count);
             Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
             Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
@@ -476,7 +476,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)], Index.Empty, false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)], NodeIndex.Empty, false);
             Assert.Equal(6, target.SubDictionary.Count);
             Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
             Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
@@ -492,7 +492,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)], Index.Empty, true);
+            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)], NodeIndex.Empty, true);
             Assert.Equal(3, target.SubDictionary.Count);
             Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
             Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
@@ -505,7 +505,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(6, target.DoubleDictionary.Count);
             Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
             Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
@@ -521,7 +521,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), true);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new NodeIndex("eee"), true);
             Assert.Equal(5, target.DoubleDictionary.Count);
             Assert.Equal(4.0, target.DoubleDictionary["ddd"]);
             Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
@@ -536,7 +536,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(6, target.StructDictionary.Count);
             Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
             Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
@@ -552,7 +552,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), true);
+            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new NodeIndex("eee"), true);
             Assert.Equal(5, target.StructDictionary.Count);
             Assert.Equal(4.0, target.StructDictionary["ddd"].Integer);
             Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
@@ -567,7 +567,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(6, target.SubDictionary.Count);
             Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
             Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
@@ -583,7 +583,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), true);
+            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new NodeIndex("eee"), true);
             Assert.Equal(5, target.SubDictionary.Count);
             Assert.Equal(4.0, target.SubDictionary["ddd"].Float);
             Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
@@ -598,7 +598,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary.Single(x => x.Key == "ccc"));
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(4, target.DoubleDictionary.Count);
             Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
             Assert.Equal(4.0, target.DoubleDictionary["ddd"]);
@@ -612,7 +612,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ddd", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary.Single(x => x.Key == "ccc"));
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), true);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new NodeIndex("eee"), true);
             Assert.Equal(3, target.DoubleDictionary.Count);
             Assert.Equal(4.0, target.DoubleDictionary["ddd"]);
             Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
@@ -625,7 +625,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary.Single(x => x.Key == "ccc"));
-            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(4, target.StructDictionary.Count);
             Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
             Assert.Equal(4.0, target.StructDictionary["ddd"].Integer);
@@ -639,7 +639,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ddd", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary.Single(x => x.Key == "ccc"));
-            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), true);
+            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new NodeIndex("eee"), true);
             Assert.Equal(3, target.StructDictionary.Count);
             Assert.Equal(4.0, target.StructDictionary["ddd"].Integer);
             Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
@@ -652,7 +652,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary.Single(x => x.Key == "ccc"));
-            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(4, target.SubDictionary.Count);
             Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
             Assert.Equal(4.0, target.SubDictionary["ddd"].Float);
@@ -666,7 +666,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ddd", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary.Single(x => x.Key == "ccc"));
-            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), true);
+            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new NodeIndex("eee"), true);
             Assert.Equal(3, target.SubDictionary.Count);
             Assert.Equal(4.0, target.SubDictionary["ddd"].Float);
             Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
@@ -679,7 +679,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ccc", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, false);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], NodeIndex.Empty, false);
             Assert.Equal(5, target.DoubleDictionary.Count);
             Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
             Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
@@ -694,7 +694,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ccc", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)], Index.Empty, false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)], NodeIndex.Empty, false);
             Assert.Equal(5, target.StructDictionary.Count);
             Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
             Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
@@ -709,7 +709,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ccc", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)], Index.Empty, false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)], NodeIndex.Empty, false);
             Assert.Equal(5, target.SubDictionary.Count);
             Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
             Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
@@ -724,7 +724,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ccc", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(5, target.DoubleDictionary.Count);
             Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
             Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
@@ -739,7 +739,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ccc", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(5, target.StructDictionary.Count);
             Assert.Equal(1.0, target.StructDictionary["aaa"].Integer);
             Assert.Equal(2.0, target.StructDictionary["bbb"].Integer);
@@ -754,7 +754,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ccc", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(5, target.SubDictionary.Count);
             Assert.Equal(1.0, target.SubDictionary["aaa"].Float);
             Assert.Equal(2.0, target.SubDictionary["bbb"].Float);
@@ -769,7 +769,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "ccc", 4 }, { "eee", 5 }, { "fff", 6 } } };
             var copiedText = Copy(source, source.DoubleDictionary.Single(x => x.Key == "ccc"));
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(3, target.DoubleDictionary.Count);
             Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
             Assert.Equal(5.0, target.DoubleDictionary["eee"]);
@@ -782,7 +782,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "aaa", new MyStruct { Integer = 1 } }, { "bbb", new MyStruct { Integer = 2 } }, { "ccc", new MyStruct { Integer = 3 } } } };
             var target = new MyClass { StructDictionary = new Dictionary<string, MyStruct> { { "ccc", new MyStruct { Integer = 4 } }, { "eee", new MyStruct { Integer = 5 } }, { "fff", new MyStruct { Integer = 6 } } } };
             var copiedText = Copy(source, source.StructDictionary.Single(x => x.Key == "ccc"));
-            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyStruct>), typeof(Dictionary<string, MyStruct>), x => x[nameof(MyClass.StructDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(3, target.StructDictionary.Count);
             Assert.Equal(3.0, target.StructDictionary["ccc"].Integer);
             Assert.Equal(5.0, target.StructDictionary["eee"].Integer);
@@ -795,7 +795,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "aaa", new MyClass { Float = 1 } }, { "bbb", new MyClass { Float = 2 } }, { "ccc", new MyClass { Float = 3 } } } };
             var target = new MyClass { SubDictionary = new Dictionary<string, MyClass> { { "ccc", new MyClass { Float = 4 } }, { "eee", new MyClass { Float = 5 } }, { "fff", new MyClass { Float = 6 } } } };
             var copiedText = Copy(source, source.SubDictionary.Single(x => x.Key == "ccc"));
-            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new Index("eee"), false);
+            Paste(target, copiedText, typeof(Dictionary<string, MyClass>), typeof(Dictionary<string, MyClass>), x => x[nameof(MyClass.SubDictionary)].Target, new NodeIndex("eee"), false);
             Assert.Equal(3, target.SubDictionary.Count);
             Assert.Equal(3.0, target.SubDictionary["ccc"].Float);
             Assert.Equal(5.0, target.SubDictionary["eee"].Float);
@@ -808,14 +808,14 @@ namespace Xenko.Core.Assets.Editor.Tests
             var source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             var target = new MyClass { DoubleDictionary = null };
             var copiedText = Copy(source, source.DoubleDictionary);
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, false);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], NodeIndex.Empty, false);
             Assert.Equal(3, target.DoubleDictionary.Count);
             Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
             Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
             Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
 
             target = new MyClass { DoubleDictionary = null };
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, true);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], NodeIndex.Empty, true);
             Assert.Equal(3, target.DoubleDictionary.Count);
             Assert.Equal(1.0, target.DoubleDictionary["aaa"]);
             Assert.Equal(2.0, target.DoubleDictionary["bbb"]);
@@ -824,12 +824,12 @@ namespace Xenko.Core.Assets.Editor.Tests
             source = new MyClass { DoubleDictionary = new Dictionary<string, double> { { "aaa", 1 }, { "bbb", 2 }, { "ccc", 3 } } };
             target = new MyClass { DoubleDictionary = null };
             copiedText = Copy(source, source.DoubleDictionary.Single(x => x.Key == "ccc"));
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, false);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], NodeIndex.Empty, false);
             Assert.Single(target.DoubleDictionary);
             Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
 
             target = new MyClass { DoubleDictionary = null };
-            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], Index.Empty, true);
+            Paste(target, copiedText, typeof(Dictionary<string, double>), typeof(Dictionary<string, double>), x => x[nameof(MyClass.DoubleDictionary)], NodeIndex.Empty, true);
             Assert.Single(target.DoubleDictionary);
             Assert.Equal(3.0, target.DoubleDictionary["ccc"]);
         }
@@ -873,7 +873,7 @@ namespace Xenko.Core.Assets.Editor.Tests
             return copiedText;
         }
 
-        private void Paste([NotNull] Asset asset, string copiedText, Type deserializedType, [NotNull] Type expectedType, [NotNull] Func<IObjectNode, IGraphNode> targetNodeResolver, Index index, bool replace)
+        private void Paste([NotNull] Asset asset, string copiedText, Type deserializedType, [NotNull] Type expectedType, [NotNull] Func<IObjectNode, IGraphNode> targetNodeResolver, NodeIndex index, bool replace)
         {
             var propertyGraph = ConstructPropertyGraph(asset);
             Assert.True(service.CanPaste(copiedText, asset.GetType(), expectedType));

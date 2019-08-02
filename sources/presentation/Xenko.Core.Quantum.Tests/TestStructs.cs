@@ -131,7 +131,7 @@ namespace Xenko.Core.Quantum.Tests
             Helper.TestNonNullObjectReference(memberNode.TargetReference, container.Struct, false);
             Helper.TestMemberNode(targetNode, structMemberNode, container.Struct, container.Struct.Strings, nameof(StructWithCollection.Strings), true);
 
-            structMemberNode.Target.Update("ddd", new Index(1));
+            structMemberNode.Target.Update("ddd", new NodeIndex(1));
             Assert.Equal("ddd", container.Struct.Strings[1]);
             Assert.Equal(targetNode, memberNode.Target);
             Assert.Equal(structMemberNode, targetNode[nameof(StructWithCollection.Strings)]);

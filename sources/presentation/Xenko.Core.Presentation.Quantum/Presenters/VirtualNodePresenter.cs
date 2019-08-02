@@ -38,7 +38,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
 
         public override bool IsEnumerable => false;
 
-        public override Index Index => AssociatedNode.Node != null ? AssociatedNode.Index : Index.Empty;
+        public override NodeIndex Index => AssociatedNode.Node != null ? AssociatedNode.Index : NodeIndex.Empty;
 
         public override ITypeDescriptor Descriptor { get; }
 
@@ -98,7 +98,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
             try
             {
                 var oldValue = getter();
-                var changeType = Index == Index.Empty ? ContentChangeType.ValueChange : ContentChangeType.CollectionUpdate;
+                var changeType = Index == NodeIndex.Empty ? ContentChangeType.ValueChange : ContentChangeType.CollectionUpdate;
                 RaiseNodeChanging(newValue, changeType, Index);
                 updatingValue = true;
                 setter(newValue);
@@ -123,13 +123,13 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
         }
 
         /// <inheritdoc/>
-        public override void AddItem(object value, Index index)
+        public override void AddItem(object value, NodeIndex index)
         {
             throw new NodePresenterException($"{nameof(AddItem)} cannot be used on a {nameof(VirtualNodePresenter)}.");
         }
 
         /// <inheritdoc/>
-        public override void RemoveItem(object value, Index index)
+        public override void RemoveItem(object value, NodeIndex index)
         {
             throw new NodePresenterException($"{nameof(RemoveItem)} cannot be used on a {nameof(VirtualNodePresenter)}.");
         }
@@ -142,15 +142,15 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
 
         private void AssociatedNodeChanging(object sender, [NotNull] INodeChangeEventArgs e)
         {
-            RaiseNodeChanging(e.NewValue, e.ChangeType, (e as ItemChangeEventArgs)?.Index ?? Index.Empty);
+            RaiseNodeChanging(e.NewValue, e.ChangeType, (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty);
         }
 
         private void AssociatedNodeChanged(object sender, [NotNull] INodeChangeEventArgs e)
         {
-            RaiseNodeChanged(e.OldValue, e.ChangeType, (e as ItemChangeEventArgs)?.Index ?? Index.Empty);
+            RaiseNodeChanged(e.OldValue, e.ChangeType, (e as ItemChangeEventArgs)?.Index ?? NodeIndex.Empty);
         }
 
-        private void RaiseNodeChanging(object newValue, ContentChangeType changeType, Index index)
+        private void RaiseNodeChanging(object newValue, ContentChangeType changeType, NodeIndex index)
         {
             if (ShouldRaiseEvent(changeType, index))
             {
@@ -158,7 +158,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
             }
         }
 
-        private void RaiseNodeChanged(object oldValue, ContentChangeType changeType, Index index)
+        private void RaiseNodeChanged(object oldValue, ContentChangeType changeType, NodeIndex index)
         {
             if (ShouldRaiseEvent(changeType, index))
             {
@@ -166,15 +166,15 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
             }
         }
 
-        private bool ShouldRaiseEvent(ContentChangeType changeType, Index index)
+        private bool ShouldRaiseEvent(ContentChangeType changeType, NodeIndex index)
         {
             if (updatingValue)
                 return false;
 
-            if (AssociatedNode.Node == null || AssociatedNode.Index == Index.Empty)
+            if (AssociatedNode.Node == null || AssociatedNode.Index == NodeIndex.Empty)
                 return true;
 
-            return index != Index.Empty && ItemNodePresenter.IsValidChange(changeType, index, Index);
+            return index != NodeIndex.Empty && ItemNodePresenter.IsValidChange(changeType, index, Index);
         }
     }
 }

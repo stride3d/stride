@@ -143,7 +143,7 @@ namespace Xenko.GameStudio.Tests
             Assert.NotNull(item.Processor);
 
             var targetNode = target != null ? assetGraph.Container.NodeContainer.GetNode(target.Entity) : assetGraph.RootNode;
-            var nodeAccessor = new NodeAccessor(targetNode, Index.Empty);
+            var nodeAccessor = new NodeAccessor(targetNode, NodeIndex.Empty);
             var propertyContainer = new PropertyContainer { { EntityHierarchyPasteProcessor.TargetFolderKey, folderName } };
             item.Processor.Paste(item, assetGraph, ref nodeAccessor, ref propertyContainer);
         }

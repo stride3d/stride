@@ -46,8 +46,8 @@ namespace Xenko.Assets.Presentation.ViewModel.Commands
             var itemNode = (ItemNodePresenter)nodePresenter;
             var collectionNode = itemNode.OwnerCollection;
             var indices = (Tuple<int, int>)parameter;
-            var sourceIndex = new Index(indices.Item1);
-            var targetIndex = new Index(indices.Item2);
+            var sourceIndex = new NodeIndex(indices.Item1);
+            var targetIndex = new NodeIndex(indices.Item2);
             var value = itemNode.Value;
             collectionNode.RemoveItem(value, sourceIndex);
             collectionNode.AddItem(value, targetIndex);

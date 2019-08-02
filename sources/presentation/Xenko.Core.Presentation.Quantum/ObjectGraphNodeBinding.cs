@@ -42,7 +42,7 @@ namespace Xenko.Core.Presentation.Quantum
         {
             using (var transaction = ActionService?.CreateTransaction())
             {
-                Node.Update(Converter(value), Index.Empty);
+                Node.Update(Converter(value), NodeIndex.Empty);
                 ActionService?.SetName(transaction, $"Update property {PropertyName}");
             }
         }

@@ -17,9 +17,9 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels
         {
             public readonly AssetId ContentId;
             public readonly IGraphNode Node;
-            public readonly Index Index;
+            public readonly NodeIndex Index;
 
-            public ContentReferenceAccessor(AssetId contentId, IGraphNode node, Index index)
+            public ContentReferenceAccessor(AssetId contentId, IGraphNode node, NodeIndex index)
             {
                 ContentId = contentId;
                 Node = node;
@@ -41,9 +41,9 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels
             ContentReferences.Clear();
         }
 
-        public void Visit([NotNull] IAssetNode node, Index index)
+        public void Visit([NotNull] IAssetNode node, NodeIndex index)
         {
-            if (index == Index.Empty)
+            if (index == NodeIndex.Empty)
             {
                 // Normal case, no index
                 Visit(node);
@@ -79,7 +79,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels
                     if (AssetRegistry.IsContentType(memberContent.Type))
                     {
                         var id = AttachedReferenceManager.GetAttachedReference(memberContent.Retrieve())?.Id ?? AssetId.Empty;
-                        CollectContentReference(id, gameContent, Index.Empty);
+                        CollectContentReference(id, gameContent, NodeIndex.Empty);
                     }
                 }
                 var objectNode = node as IObjectNode;
@@ -98,7 +98,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GameEditor.ViewModels
             base.VisitNode(node);
         }
 
-        protected virtual void CollectContentReference(AssetId contentId, IGraphNode content, Index index)
+        protected virtual void CollectContentReference(AssetId contentId, IGraphNode content, NodeIndex index)
         {
             if (contentId == AssetId.Empty)
                 return;

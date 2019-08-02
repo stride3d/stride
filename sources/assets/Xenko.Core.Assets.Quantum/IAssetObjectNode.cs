@@ -12,11 +12,11 @@ namespace Xenko.Core.Assets.Quantum
         [NotNull]
         new IAssetMemberNode this[string name] { get; }
 
-        new IAssetObjectNode IndexedTarget(Index index);
+        new IAssetObjectNode IndexedTarget(NodeIndex index);
 
-        void OverrideItem(bool isOverridden, Index index);
+        void OverrideItem(bool isOverridden, NodeIndex index);
 
-        void OverrideKey(bool isOverridden, Index index);
+        void OverrideKey(bool isOverridden, NodeIndex index);
 
         void OverrideDeletedItem(bool isOverridden, ItemId deletedId);
 
@@ -24,38 +24,38 @@ namespace Xenko.Core.Assets.Quantum
 
         void Restore(object restoredItem, ItemId id);
 
-        void Restore(object restoredItem, Index index, ItemId id);
+        void Restore(object restoredItem, NodeIndex index, ItemId id);
 
-        void RemoveAndDiscard(object item, Index itemIndex, ItemId id);
+        void RemoveAndDiscard(object item, NodeIndex itemIndex, ItemId id);
 
-        bool IsItemInherited(Index index);
+        bool IsItemInherited(NodeIndex index);
 
-        bool IsKeyInherited(Index index);
+        bool IsKeyInherited(NodeIndex index);
 
-        bool IsItemOverridden(Index index);
+        bool IsItemOverridden(NodeIndex index);
 
         bool IsItemOverriddenDeleted(ItemId id);
 
-        bool IsKeyOverridden(Index index);
+        bool IsKeyOverridden(NodeIndex index);
 
-        ItemId IndexToId(Index index);
+        ItemId IndexToId(NodeIndex index);
 
-        bool TryIndexToId(Index index, out ItemId id);
+        bool TryIndexToId(NodeIndex index, out ItemId id);
 
         bool HasId(ItemId id);
 
-        Index IdToIndex(ItemId id);
+        NodeIndex IdToIndex(ItemId id);
 
-        bool TryIdToIndex(ItemId id, out Index index);
+        bool TryIdToIndex(ItemId id, out NodeIndex index);
 
         /// <summary>
         /// Resets the overrides attached to this node at a specific index and to its descendants, recursively.
         /// </summary>
         /// <param name="indexToReset">The index of the override to reset in this node.</param>
-        void ResetOverrideRecursively(Index indexToReset);
+        void ResetOverrideRecursively(NodeIndex indexToReset);
 
-        IEnumerable<Index> GetOverriddenItemIndices();
+        IEnumerable<NodeIndex> GetOverriddenItemIndices();
 
-        IEnumerable<Index> GetOverriddenKeyIndices();
+        IEnumerable<NodeIndex> GetOverriddenKeyIndices();
     }
 }

@@ -14,7 +14,7 @@ namespace Xenko.Core.Assets.Quantum.Visitors
     public class ClearObjectReferenceVisitor : IdentifiableObjectVisitorBase
     {
         private readonly HashSet<Guid> targetIds;
-        private readonly Func<IGraphNode, Index, bool> shouldClearReference;
+        private readonly Func<IGraphNode, NodeIndex, bool> shouldClearReference;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ClearObjectReferenceVisitor"/> class.
@@ -22,7 +22,7 @@ namespace Xenko.Core.Assets.Quantum.Visitors
         /// <param name="propertyGraphDefinition">The <see cref="AssetPropertyGraphDefinition"/> used to analyze object references.</param>
         /// <param name="targetIds">The identifiers of the objects for which to clear references.</param>
         /// <param name="shouldClearReference">A method allowing to select which object reference to clear. If null, all object references to the given id will be cleared.</param>
-        public ClearObjectReferenceVisitor([NotNull] AssetPropertyGraphDefinition propertyGraphDefinition, [NotNull] IEnumerable<Guid> targetIds, [CanBeNull] Func<IGraphNode, Index, bool> shouldClearReference = null)
+        public ClearObjectReferenceVisitor([NotNull] AssetPropertyGraphDefinition propertyGraphDefinition, [NotNull] IEnumerable<Guid> targetIds, [CanBeNull] Func<IGraphNode, NodeIndex, bool> shouldClearReference = null)
             : base(propertyGraphDefinition)
         {
             if (propertyGraphDefinition == null) throw new ArgumentNullException(nameof(propertyGraphDefinition));
@@ -39,7 +39,7 @@ namespace Xenko.Core.Assets.Quantum.Visitors
 
             if (PropertyGraphDefinition.IsMemberTargetObjectReference(member, identifiable))
             {
-                if (shouldClearReference?.Invoke(member, Index.Empty) ?? true)
+                if (shouldClearReference?.Invoke(member, NodeIndex.Empty) ?? true)
                 {
                     member.Update(null);
                 }
@@ -48,7 +48,7 @@ namespace Xenko.Core.Assets.Quantum.Visitors
         }
 
         /// <inheritdoc/>
-        protected override void ProcessIdentifiableItems(IIdentifiable identifiable, IObjectNode collection, Index index)
+        protected override void ProcessIdentifiableItems(IIdentifiable identifiable, IObjectNode collection, NodeIndex index)
         {
             if (!targetIds.Contains(identifiable.Id))
                 return;

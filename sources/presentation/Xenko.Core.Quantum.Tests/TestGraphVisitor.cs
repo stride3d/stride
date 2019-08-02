@@ -234,12 +234,12 @@ namespace Xenko.Core.Quantum.Tests
                 rootNode[nameof(ObjectListClass.Member1)],
                 rootNode[nameof(ObjectListClass.Member2)],
                 rootNode[nameof(ObjectListClass.Member2)].Target,
-                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new Index(0)),
-                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(ObjectListClass.Member1)],
-                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(ObjectListClass.Member2)],
-                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new Index(2)),
-                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new Index(2))[nameof(ObjectListClass.Member1)],
-                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new Index(2))[nameof(ObjectListClass.Member2)],
+                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(0)),
+                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(ObjectListClass.Member1)],
+                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(ObjectListClass.Member2)],
+                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(2)),
+                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(ObjectListClass.Member1)],
+                rootNode[nameof(ObjectListClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(ObjectListClass.Member2)],
             };
             var expectedPaths = new GraphNodePath[10];
             expectedPaths[0] = new GraphNodePath(rootNode);
@@ -250,13 +250,13 @@ namespace Xenko.Core.Quantum.Tests
             expectedPaths[3] = expectedPaths[2].Clone();
             expectedPaths[3].PushTarget();
             expectedPaths[4] = expectedPaths[3].Clone();
-            expectedPaths[4].PushIndex(new Index(0));
+            expectedPaths[4].PushIndex(new NodeIndex(0));
             expectedPaths[5] = expectedPaths[4].Clone();
             expectedPaths[5].PushMember(nameof(ObjectListClass.Member1));
             expectedPaths[6] = expectedPaths[4].Clone();
             expectedPaths[6].PushMember(nameof(ObjectListClass.Member2));
             expectedPaths[7] = expectedPaths[3].Clone();
-            expectedPaths[7].PushIndex(new Index(2));
+            expectedPaths[7].PushIndex(new NodeIndex(2));
             expectedPaths[8] = expectedPaths[7].Clone();
             expectedPaths[8].PushMember(nameof(ObjectListClass.Member1));
             expectedPaths[9] = expectedPaths[7].Clone();
@@ -279,12 +279,12 @@ namespace Xenko.Core.Quantum.Tests
                 rootNode[nameof(StructListClass.Member1)],
                 rootNode[nameof(StructListClass.Member2)],
                 rootNode[nameof(StructListClass.Member2)].Target,
-                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new Index(0)),
-                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(StructListClass.Member1)],
-                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(StructListClass.Member2)],
-                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new Index(1)),
-                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new Index(1))[nameof(StructListClass.Member1)],
-                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new Index(1))[nameof(StructListClass.Member2)],
+                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(0)),
+                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(StructListClass.Member1)],
+                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(StructListClass.Member2)],
+                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(1)),
+                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(StructListClass.Member1)],
+                rootNode[nameof(StructListClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(StructListClass.Member2)],
             };
             var expectedPaths = new GraphNodePath[10];
             expectedPaths[0] = new GraphNodePath(rootNode);
@@ -295,13 +295,13 @@ namespace Xenko.Core.Quantum.Tests
             expectedPaths[3] = expectedPaths[2].Clone();
             expectedPaths[3].PushTarget();
             expectedPaths[4] = expectedPaths[3].Clone();
-            expectedPaths[4].PushIndex(new Index(0));
+            expectedPaths[4].PushIndex(new NodeIndex(0));
             expectedPaths[5] = expectedPaths[4].Clone();
             expectedPaths[5].PushMember(nameof(StructListClass.Member1));
             expectedPaths[6] = expectedPaths[4].Clone();
             expectedPaths[6].PushMember(nameof(StructListClass.Member2));
             expectedPaths[7] = expectedPaths[3].Clone();
-            expectedPaths[7].PushIndex(new Index(1));
+            expectedPaths[7].PushIndex(new NodeIndex(1));
             expectedPaths[8] = expectedPaths[7].Clone();
             expectedPaths[8].PushMember(nameof(StructListClass.Member1));
             expectedPaths[9] = expectedPaths[7].Clone();

@@ -171,7 +171,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             }
             foreach (var index in invalidIndices)
             {
-                childrenNode.Remove(Asset.ChildrenIds[index], new Index(index));
+                childrenNode.Remove(Asset.ChildrenIds[index], new NodeIndex(index));
             }
 
             if (Parent?.isInitialized == true)
@@ -251,7 +251,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                             foreach (var scene in e.OldItems.Cast<SceneViewModel>())
                             {
                                 scene.Parent = null;
-                                childrenNode.Remove(scene.Id, new Index(e.OldStartingIndex));
+                                childrenNode.Remove(scene.Id, new NodeIndex(e.OldStartingIndex));
                             }
                         }
                         if (e.NewItems?.Count > 0)
@@ -265,7 +265,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                                     scene.Parent?.Children.Remove(scene);
                                     scene.Parent = this;
                                 }
-                                childrenNode.Add(scene.Id, new Index(index++));
+                                childrenNode.Add(scene.Id, new NodeIndex(index++));
                             }
                         }
                         break;

@@ -149,7 +149,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModel
             path.PushTarget();
             path.PushMember(nameof(EntityHierarchy.Hierarchy.Parts));
             path.PushTarget();
-            path.PushIndex(new Index(Id.ObjectId));
+            path.PushIndex(new NodeIndex(Id.ObjectId));
             path.PushMember(nameof(EntityDesign.Entity));
             path.PushTarget();
             return path;
@@ -436,7 +436,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModel
                         }
                         else
                         {
-                            componentsNode.Update(component, new Index(replaceIndex));
+                            componentsNode.Update(component, new NodeIndex(replaceIndex));
                             Editor.UndoRedoService.SetName(transaction, $"Replace component {component.GetType().Name}");
                         }
                     }

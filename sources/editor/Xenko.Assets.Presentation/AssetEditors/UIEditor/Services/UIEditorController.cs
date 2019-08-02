@@ -271,7 +271,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.UIEditor.Services
                     if (panel != null)
                     {
                         var i = panel.Children.IndexOf(part);
-                        GameSideNodeContainer.GetNode(panel.Children).Remove(part, new Index(i));
+                        GameSideNodeContainer.GetNode(panel.Children).Remove(part, new NodeIndex(i));
                     }
                     else if (contentControl != null)
                     {

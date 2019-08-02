@@ -36,7 +36,7 @@ namespace Xenko.Assets.Presentation.ViewModel
             var skeletonNodes = AssetRootNode[nameof(SkeletonAsset.Nodes)].Target;
             while (Asset.Nodes.Count > 0)
             {
-                skeletonNodes.Remove(Asset.Nodes[0], new Index(0));
+                skeletonNodes.Remove(Asset.Nodes[0], new NodeIndex(0));
             }
 
             // Repopulate the list of nodes
@@ -52,7 +52,7 @@ namespace Xenko.Assets.Presentation.ViewModel
                 if (!ids.TryGetValue(assetToMerge.Nodes[i].Name, out id))
                     id = ItemId.New();
 
-                skeletonNodes.Restore(newNode, new Index(i), id);
+                skeletonNodes.Restore(newNode, new NodeIndex(i), id);
             }
         }
     }

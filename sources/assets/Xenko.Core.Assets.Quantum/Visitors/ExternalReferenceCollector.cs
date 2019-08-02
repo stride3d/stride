@@ -74,7 +74,7 @@ namespace Xenko.Core.Assets.Quantum.Visitors
                 internalReferences.Add(identifiable);
         }
 
-        protected override void ProcessIdentifiableItems(IIdentifiable identifiable, IObjectNode collection, Index index)
+        protected override void ProcessIdentifiableItems(IIdentifiable identifiable, IObjectNode collection, NodeIndex index)
         {
             if (propertyGraphDefinition.IsTargetItemObjectReference(collection, index, identifiable))
             {

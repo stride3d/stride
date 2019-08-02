@@ -38,7 +38,7 @@ namespace Xenko.Assets.Presentation.Quantum
         }
 
         /// <inheritdoc/>
-        public override bool IsChildPartReference(IGraphNode node, Index index)
+        public override bool IsChildPartReference(IGraphNode node, NodeIndex index)
         {
             if (node is IMemberNode memberContent)
             {
@@ -72,7 +72,7 @@ namespace Xenko.Assets.Presentation.Quantum
                 if (index < 0)
                     node.Add(childPart);
                 else
-                    node.Add(childPart, new Index(index));
+                    node.Add(childPart, new NodeIndex(index));
                 return;
             }
             throw new NotSupportedException();
@@ -99,7 +99,7 @@ namespace Xenko.Assets.Presentation.Quantum
                     throw new InvalidOperationException($"The given {childPart.GetType().Name} (Name={childPart.Name}) is not a child of {nameof(Panel)} (Name={panel.Name}).");
 
                 var node = Container.NodeContainer.GetOrCreateNode(panel)[nameof(Panel.Children)].Target;
-                node.Remove(childPart, new Index(index));
+                node.Remove(childPart, new NodeIndex(index));
                 return;
             }
             throw new NotSupportedException();

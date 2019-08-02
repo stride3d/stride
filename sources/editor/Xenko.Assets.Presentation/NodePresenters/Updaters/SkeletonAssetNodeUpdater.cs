@@ -28,7 +28,7 @@ namespace Xenko.Assets.Presentation.NodePresenters.Updaters
                 // Set the display name to be the name of the node, indented using space.
                 node.DisplayName = $"{"".PadLeft(2 * depth)}{name}";
                 // Set the order to be the index, we don't want to sort alphabetically
-                var index = (node as AssetItemNodePresenter)?.Index ?? Index.Empty;
+                var index = (node as AssetItemNodePresenter)?.Index ?? NodeIndex.Empty;
                 if (index.IsInt)
                 {
                     node.Order = index.Int;

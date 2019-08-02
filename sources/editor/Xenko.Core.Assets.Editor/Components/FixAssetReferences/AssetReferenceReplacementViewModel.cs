@@ -11,9 +11,9 @@ namespace Xenko.Core.Assets.Editor.Components.FixAssetReferences
     public class AssetReferenceReplacementViewModel : ReferenceReplacementViewModel<AssetViewModel>
     {
         private readonly IGraphNode node;
-        private readonly Index index;
+        private readonly NodeIndex index;
 
-        public AssetReferenceReplacementViewModel(FixAssetReferencesViewModel fixReferences, AssetViewModel objectToFix, AssetViewModel referencer, object referencedMember, IGraphNode node, Index index)
+        public AssetReferenceReplacementViewModel(FixAssetReferencesViewModel fixReferences, AssetViewModel objectToFix, AssetViewModel referencer, object referencedMember, IGraphNode node, NodeIndex index)
             : base(fixReferences, objectToFix, referencer, referencedMember)
         {
             this.node = node;

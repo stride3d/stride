@@ -51,13 +51,13 @@ namespace Xenko.Core.Assets.Quantum.Internal
         }
 
         /// <inheritdoc/>
-        public void ResetOverrideRecursively(Index indexToReset)
+        public void ResetOverrideRecursively(NodeIndex indexToReset)
         {
             OverrideItem(false, indexToReset);
             PropertyGraph.ResetAllOverridesRecursively(node, indexToReset);
         }
 
-        public void OverrideItem(bool isOverridden, Index index)
+        public void OverrideItem(bool isOverridden, NodeIndex index)
         {
             node.NotifyOverrideChanging();
             var id = IndexToId(index);
@@ -65,7 +65,7 @@ namespace Xenko.Core.Assets.Quantum.Internal
             node.NotifyOverrideChanged();
         }
 
-        public void OverrideKey(bool isOverridden, Index index)
+        public void OverrideKey(bool isOverridden, NodeIndex index)
         {
             node.NotifyOverrideChanging();
             var id = IndexToId(index);
@@ -136,7 +136,7 @@ namespace Xenko.Core.Assets.Quantum.Internal
             node.Add(restoredItem);
         }
 
-        public void Restore(object restoredItem, Index index, ItemId id)
+        public void Restore(object restoredItem, NodeIndex index, ItemId id)
         {
             restoringId = id;
             node.Add(restoredItem, index);
@@ -149,7 +149,7 @@ namespace Xenko.Core.Assets.Quantum.Internal
             }
         }
 
-        public void RemoveAndDiscard(object item, Index itemIndex, ItemId id)
+        public void RemoveAndDiscard(object item, NodeIndex itemIndex, ItemId id)
         {
             node.Remove(item, itemIndex);
             CollectionItemIdentifiers ids;
@@ -160,7 +160,7 @@ namespace Xenko.Core.Assets.Quantum.Internal
             }
         }
 
-        public OverrideType GetItemOverride(Index index)
+        public OverrideType GetItemOverride(NodeIndex index)
         {
             var result = OverrideType.Base;
             ItemId id;
@@ -169,7 +169,7 @@ namespace Xenko.Core.Assets.Quantum.Internal
             return itemOverrides.TryGetValue(id, out result) ? result : OverrideType.Base;
         }
 
-        public OverrideType GetKeyOverride(Index index)
+        public OverrideType GetKeyOverride(NodeIndex index)
         {
             var result = OverrideType.Base;
             ItemId id;
@@ -178,17 +178,17 @@ namespace Xenko.Core.Assets.Quantum.Internal
             return keyOverrides.TryGetValue(id, out result) ? result : OverrideType.Base;
         }
 
-        public bool IsItemInherited(Index index)
+        public bool IsItemInherited(NodeIndex index)
         {
             return BaseNode != null && !IsItemOverridden(index);
         }
 
-        public bool IsKeyInherited(Index index)
+        public bool IsKeyInherited(NodeIndex index)
         {
             return BaseNode != null && !IsKeyOverridden(index);
         }
 
-        public bool IsItemOverridden(Index index)
+        public bool IsItemOverridden(NodeIndex index)
         {
             OverrideType result;
             ItemId id;
@@ -203,7 +203,7 @@ namespace Xenko.Core.Assets.Quantum.Internal
             return IsItemDeleted(id) && itemOverrides.TryGetValue(id, out result) && (result & OverrideType.New) == OverrideType.New;
         }
 
-        public bool IsKeyOverridden(Index index)
+        public bool IsKeyOverridden(NodeIndex index)
         {
             OverrideType result;
             ItemId id;
@@ -212,7 +212,7 @@ namespace Xenko.Core.Assets.Quantum.Internal
             return keyOverrides.TryGetValue(id, out result) && (result & OverrideType.New) == OverrideType.New;
         }
 
-        public IEnumerable<Index> GetOverriddenItemIndices()
+        public IEnumerable<NodeIndex> GetOverriddenItemIndices()
         {
             if (BaseNode == null)
                 yield break;
@@ -235,7 +235,7 @@ namespace Xenko.Core.Assets.Quantum.Internal
             }
         }
 
-        public IEnumerable<Index> GetOverriddenKeyIndices()
+        public IEnumerable<NodeIndex> GetOverriddenKeyIndices()
         {
             if (BaseNode == null)
                 yield break;
@@ -260,22 +260,22 @@ namespace Xenko.Core.Assets.Quantum.Internal
 
         public bool HasId(ItemId id)
         {
-            Index index;
+            NodeIndex index;
             return TryIdToIndex(id, out index);
         }
 
-        public Index IdToIndex(ItemId id)
+        public NodeIndex IdToIndex(ItemId id)
         {
-            Index index;
+            NodeIndex index;
             if (!TryIdToIndex(id, out index)) throw new InvalidOperationException("No Collection item identifier associated to the given collection.");
             return index;
         }
 
-        public bool TryIdToIndex(ItemId id, out Index index)
+        public bool TryIdToIndex(ItemId id, out NodeIndex index)
         {
             if (id == ItemId.Empty)
             {
-                index = Index.Empty;
+                index = NodeIndex.Empty;
                 return true;
             }
 
@@ -283,24 +283,24 @@ namespace Xenko.Core.Assets.Quantum.Internal
             CollectionItemIdentifiers ids;
             if (TryGetCollectionItemIds(collection, out ids))
             {
-                index = new Index(ids.GetKey(id));
+                index = new NodeIndex(ids.GetKey(id));
                 return !index.IsEmpty;
             }
-            index = Index.Empty;
+            index = NodeIndex.Empty;
             return false;
 
         }
 
-        public ItemId IndexToId(Index index)
+        public ItemId IndexToId(NodeIndex index)
         {
             ItemId id;
             if (!TryIndexToId(index, out id)) throw new InvalidOperationException("No Collection item identifier associated to the given collection.");
             return id;
         }
 
-        public bool TryIndexToId(Index index, out ItemId id)
+        public bool TryIndexToId(NodeIndex index, out ItemId id)
         {
-            if (index == Index.Empty)
+            if (index == NodeIndex.Empty)
             {
                 id = ItemId.Empty;
                 return true;
@@ -346,7 +346,7 @@ namespace Xenko.Core.Assets.Quantum.Internal
                     // Add the id to the proper location (insert or add)
                     if (collectionDescriptor != null)
                     {
-                        if (e.Index == Index.Empty)
+                        if (e.Index == NodeIndex.Empty)
                             throw new InvalidOperationException("An item has been added to a collection that does not have a predictable Add. Consider using NonIdentifiableCollectionItemsAttribute on this collection.");
 
                         itemIds.Insert(e.Index.Int, itemId);

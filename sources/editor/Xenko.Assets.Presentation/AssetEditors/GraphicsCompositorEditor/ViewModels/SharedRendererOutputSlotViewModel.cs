@@ -16,7 +16,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
         {
             this.slotKey = slotKey;
             Accessor = slotKey.Path.GetAccessor();
-            if (Accessor.Index != Index.Empty)
+            if (Accessor.Index != NodeIndex.Empty)
             {
                 ((IObjectNode)Accessor.Node).ItemChanged += ItemChanged;
             }
@@ -34,7 +34,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
         public override void Destroy()
         {
             base.Destroy();
-            if (Accessor.Index != Index.Empty)
+            if (Accessor.Index != NodeIndex.Empty)
             {
                 ((IObjectNode)Accessor.Node).ItemChanged -= ItemChanged;
             }

@@ -59,12 +59,12 @@ namespace Xenko.Core.Assets.Quantum.Tests
             Assert.True(context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.NonReference)].IsReference);
             Assert.Equal(obj, context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.NonReference)].Target.Retrieve());
             Assert.True(context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.References)].IsReference);
-            Assert.Equal(obj, context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.References)].Target.Retrieve(new Index(0)));
-            Assert.Equal(context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.NonReference)].Target, context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.References)].Target.IndexedTarget(new Index(0)));
+            Assert.Equal(obj, context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.References)].Target.Retrieve(new NodeIndex(0)));
+            Assert.Equal(context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.NonReference)].Target, context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.References)].Target.IndexedTarget(new NodeIndex(0)));
 
             Assert.Equal(context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.References)], context.DerivedGraph.RootNode[nameof(Types.MyAssetWithRef2.References)].BaseNode);
             Assert.Equal(context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.References)].Target, context.DerivedGraph.RootNode[nameof(Types.MyAssetWithRef2.References)].Target.BaseNode);
-            Assert.Equal(context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.NonReference)].Target, context.DerivedGraph.RootNode[nameof(Types.MyAssetWithRef2.References)].Target.IndexedTarget(new Index(0)).BaseNode);
+            Assert.Equal(context.BaseGraph.RootNode[nameof(Types.MyAssetWithRef2.NonReference)].Target, context.DerivedGraph.RootNode[nameof(Types.MyAssetWithRef2.References)].Target.IndexedTarget(new NodeIndex(0)).BaseNode);
         }
     }
 }

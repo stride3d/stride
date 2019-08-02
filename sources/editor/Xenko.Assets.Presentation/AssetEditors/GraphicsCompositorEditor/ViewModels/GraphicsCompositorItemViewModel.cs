@@ -38,7 +38,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
         public virtual bool ShouldConstructMember(IMemberNode member) => ((IPropertyProviderViewModel)Editor.Asset).ShouldConstructMember(member);
 
         /// <inheritdoc/>
-        public bool ShouldConstructItem(IObjectNode collection, Index index) => ((IPropertyProviderViewModel)Editor.Asset).ShouldConstructItem(collection, index);
+        public bool ShouldConstructItem(IObjectNode collection, NodeIndex index) => ((IPropertyProviderViewModel)Editor.Asset).ShouldConstructItem(collection, index);
 
         #endregion
 

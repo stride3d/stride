@@ -55,7 +55,7 @@ namespace Xenko.Assets.Presentation.CurveEditor.ViewModels
             var kfcp = point as KeyFrameControlPointViewModel<TValue>;
             if (kfcp == null)
                 return false;
-            var index = new Index(controlPoints.IndexOf(kfcp));
+            var index = new NodeIndex(controlPoints.IndexOf(kfcp));
             if (index.Int == -1)
                 return false;
 
@@ -74,11 +74,11 @@ namespace Xenko.Assets.Presentation.CurveEditor.ViewModels
 
         protected abstract KeyFrameControlPointViewModel<TValue> CreateKeyFrameControlPoint([NotNull] IMemberNode keyNode, [NotNull] IMemberNode valueNode, [NotNull] IMemberNode tangentTypeNode);
 
-        protected Index GetInsertIndex(Vector2 point)
+        protected NodeIndex GetInsertIndex(Vector2 point)
         {
             // Assuming the key frames are ordered
             var index = controlPoints.FindIndex(kf => (kf.IsSynchronized ? kf.ActualKey : kf.Key) > point.X);
-            return new Index(index >= 0 ? index : controlPoints.Count);
+            return new NodeIndex(index >= 0 ? index : controlPoints.Count);
         }
 
         protected sealed override void InitializeOverride()

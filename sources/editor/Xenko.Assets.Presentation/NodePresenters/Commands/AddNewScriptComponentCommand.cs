@@ -82,7 +82,7 @@ namespace Xenko.Assets.Presentation.NodePresenters.Commands
                 using (var transaction = session.UndoRedoService.CreateTransaction())
                 {
                     object component = Activator.CreateInstance(componentType);
-                    var index = new Index(nodePresenter.Children.Count);
+                    var index = new NodeIndex(nodePresenter.Children.Count);
                     nodePresenter.AddItem(component);
                     session.UndoRedoService.PushOperation(
                         new AnonymousDirtyingOperation(

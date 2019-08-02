@@ -155,12 +155,12 @@ namespace Xenko.Core.Quantum.Tests
                 { source[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member1)] },
                 { source[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)] },
                 { source[nameof(SimpleClass.Member2)].Target, target[nameof(SimpleClass.Member2)].Target },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0)) },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(SimpleClass.Member1)] },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(SimpleClass.Member2)] },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(1)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(1)) },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(1))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(1))[nameof(SimpleClass.Member1)] },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(1))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(1))[nameof(SimpleClass.Member2)] },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0)) },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member1)] },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member2)] },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1)) },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member1)] },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member2)] },
             };
             VerifyLinks(expectedLinks, linker);
         }
@@ -276,15 +276,15 @@ namespace Xenko.Core.Quantum.Tests
                 { source[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member1)] },
                 { source[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)] },
                 { source[nameof(SimpleClass.Member2)].Target, target[nameof(SimpleClass.Member2)].Target },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(2)) },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(2))[nameof(SimpleClass.Member1)] },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(2))[nameof(SimpleClass.Member2)] },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(1)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0)) },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(1))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(SimpleClass.Member1)] },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(1))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(0))[nameof(SimpleClass.Member2)] },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(2)), null },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(2))[nameof(SimpleClass.Member1)], null },
-                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new Index(2))[nameof(SimpleClass.Member2)], null },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2)) },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(SimpleClass.Member1)] },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(SimpleClass.Member2)] },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1)), target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0)) },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member1)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member1)] },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(1))[nameof(SimpleClass.Member2)], target[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(0))[nameof(SimpleClass.Member2)] },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2)), null },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(SimpleClass.Member1)], null },
+                { source[nameof(SimpleClass.Member2)].Target.IndexedTarget(new NodeIndex(2))[nameof(SimpleClass.Member2)], null },
             };
             VerifyLinks(expectedLinks, linker);
         }

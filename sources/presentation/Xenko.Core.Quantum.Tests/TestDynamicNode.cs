@@ -183,7 +183,7 @@ namespace Xenko.Core.Quantum.Tests
             dynNode.Member5[0] = obj[1];
             Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
             Assert.Equal(obj[1], (string)dynNode.Member5[0]);
-            rootNode[nameof(ComplexClass.Member5)].Target.Update(obj[2], new Index(0));
+            rootNode[nameof(ComplexClass.Member5)].Target.Update(obj[2], new NodeIndex(0));
             Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
             Assert.Equal(obj[2], (string)dynNode.Member5[0]);
         }
@@ -201,7 +201,7 @@ namespace Xenko.Core.Quantum.Tests
             dynNode.Member5.Add(obj[1]);
             Assert.Equal(instance.Member5[1], (string)dynNode.Member5[1]);
             Assert.Equal(obj[1], (string)dynNode.Member5[1]);
-            rootNode[nameof(ComplexClass.Member5)].Target.Add(obj[2], new Index(2));
+            rootNode[nameof(ComplexClass.Member5)].Target.Add(obj[2], new NodeIndex(2));
             Assert.Equal(instance.Member5[2], (string)dynNode.Member5[2]);
             Assert.Equal(obj[2], (string)dynNode.Member5[2]);
         }
@@ -216,12 +216,12 @@ namespace Xenko.Core.Quantum.Tests
             var dynNode = DynamicNode.FromNode(rootNode);
             Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
             Assert.Equal(obj[0], (string)dynNode.Member5[0]);
-            dynNode.Member5.Insert(obj[1], new Index(0));
+            dynNode.Member5.Insert(obj[1], new NodeIndex(0));
             Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
             Assert.Equal(instance.Member5[1], (string)dynNode.Member5[1]);
             Assert.Equal(obj[1], (string)dynNode.Member5[0]);
             Assert.Equal(obj[0], (string)dynNode.Member5[1]);
-            rootNode[nameof(ComplexClass.Member5)].Target.Add(obj[2], new Index(1));
+            rootNode[nameof(ComplexClass.Member5)].Target.Add(obj[2], new NodeIndex(1));
             Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
             Assert.Equal(instance.Member5[1], (string)dynNode.Member5[1]);
             Assert.Equal(instance.Member5[2], (string)dynNode.Member5[2]);
@@ -244,12 +244,12 @@ namespace Xenko.Core.Quantum.Tests
             Assert.Equal(obj[0], (string)dynNode.Member5[0]);
             Assert.Equal(obj[1], (string)dynNode.Member5[1]);
             Assert.Equal(obj[2], (string)dynNode.Member5[2]);
-            dynNode.Member5.Remove(obj[1], new Index(1));
+            dynNode.Member5.Remove(obj[1], new NodeIndex(1));
             Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
             Assert.Equal(instance.Member5[1], (string)dynNode.Member5[1]);
             Assert.Equal(obj[0], (string)dynNode.Member5[0]);
             Assert.Equal(obj[2], (string)dynNode.Member5[1]);
-            rootNode[nameof(ComplexClass.Member5)].Target.Remove(obj[2], new Index(1));
+            rootNode[nameof(ComplexClass.Member5)].Target.Remove(obj[2], new NodeIndex(1));
             Assert.Equal(instance.Member5[0], (string)dynNode.Member5[0]);
             Assert.Equal(obj[0], (string)dynNode.Member5[0]);
         }
@@ -285,7 +285,7 @@ namespace Xenko.Core.Quantum.Tests
             dynNode.Member6[0] = obj[1];
             Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
             Assert.Equal(obj[1], (SimpleClass)dynNode.Member6[0]);
-            rootNode[nameof(ComplexClass.Member6)].Target.Update(obj[2], new Index(0));
+            rootNode[nameof(ComplexClass.Member6)].Target.Update(obj[2], new NodeIndex(0));
             Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
             Assert.Equal(obj[2], (SimpleClass)dynNode.Member6[0]);
         }
@@ -303,7 +303,7 @@ namespace Xenko.Core.Quantum.Tests
             dynNode.Member6.Add(obj[1]);
             Assert.Equal(instance.Member6[1], (SimpleClass)dynNode.Member6[1]);
             Assert.Equal(obj[1], (SimpleClass)dynNode.Member6[1]);
-            rootNode[nameof(ComplexClass.Member6)].Target.Add(obj[2], new Index(2));
+            rootNode[nameof(ComplexClass.Member6)].Target.Add(obj[2], new NodeIndex(2));
             Assert.Equal(instance.Member6[2], (SimpleClass)dynNode.Member6[2]);
             Assert.Equal(obj[2], (SimpleClass)dynNode.Member6[2]);
         }
@@ -318,12 +318,12 @@ namespace Xenko.Core.Quantum.Tests
             var dynNode = DynamicNode.FromNode(rootNode);
             Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
             Assert.Equal(obj[0], (SimpleClass)dynNode.Member6[0]);
-            dynNode.Member6.Insert(obj[1], new Index(0));
+            dynNode.Member6.Insert(obj[1], new NodeIndex(0));
             Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
             Assert.Equal(instance.Member6[1], (SimpleClass)dynNode.Member6[1]);
             Assert.Equal(obj[1], (SimpleClass)dynNode.Member6[0]);
             Assert.Equal(obj[0], (SimpleClass)dynNode.Member6[1]);
-            rootNode[nameof(ComplexClass.Member6)].Target.Add(obj[2], new Index(1));
+            rootNode[nameof(ComplexClass.Member6)].Target.Add(obj[2], new NodeIndex(1));
             Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
             Assert.Equal(instance.Member6[1], (SimpleClass)dynNode.Member6[1]);
             Assert.Equal(instance.Member6[2], (SimpleClass)dynNode.Member6[2]);
@@ -346,12 +346,12 @@ namespace Xenko.Core.Quantum.Tests
             Assert.Equal(obj[0], (SimpleClass)dynNode.Member6[0]);
             Assert.Equal(obj[1], (SimpleClass)dynNode.Member6[1]);
             Assert.Equal(obj[2], (SimpleClass)dynNode.Member6[2]);
-            dynNode.Member6.Remove(obj[1], new Index(1));
+            dynNode.Member6.Remove(obj[1], new NodeIndex(1));
             Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
             Assert.Equal(instance.Member6[1], (SimpleClass)dynNode.Member6[1]);
             Assert.Equal(obj[0], (SimpleClass)dynNode.Member6[0]);
             Assert.Equal(obj[2], (SimpleClass)dynNode.Member6[1]);
-            rootNode[nameof(ComplexClass.Member6)].Target.Remove(obj[2], new Index(1));
+            rootNode[nameof(ComplexClass.Member6)].Target.Remove(obj[2], new NodeIndex(1));
             Assert.Equal(instance.Member6[0], (SimpleClass)dynNode.Member6[0]);
             Assert.Equal(obj[0], (SimpleClass)dynNode.Member6[0]);
         }
@@ -369,7 +369,7 @@ namespace Xenko.Core.Quantum.Tests
             dynNode.Member6[1].Member1 = obj[1];
             Assert.Equal(obj[1], (int)dynNode.Member6[1].Member1);
             Assert.Equal(instance.Member6[1].Member1, (int)dynNode.Member6[1].Member1);
-            Index index = new Index(1);
+            NodeIndex index = new NodeIndex(1);
             rootNode[nameof(ComplexClass.Member6)].Target.IndexedTarget(index)[nameof(SimpleClass.Member1)].Update(obj[2]);
             Assert.Equal(obj[2], (int)dynNode.Member6[1].Member1);
             Assert.Equal(instance.Member6[1].Member1, (int)dynNode.Member6[1].Member1);
@@ -406,7 +406,7 @@ namespace Xenko.Core.Quantum.Tests
             dynNode.Member7[0] = obj[1];
             Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
             Assert.Equal(obj[1], (Struct)dynNode.Member7[0]);
-            rootNode[nameof(ComplexClass.Member7)].Target.Update(obj[2], new Index(0));
+            rootNode[nameof(ComplexClass.Member7)].Target.Update(obj[2], new NodeIndex(0));
             Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
             Assert.Equal(obj[2], (Struct)dynNode.Member7[0]);
         }
@@ -424,7 +424,7 @@ namespace Xenko.Core.Quantum.Tests
             dynNode.Member7.Add(obj[1]);
             Assert.Equal(instance.Member7[1], (Struct)dynNode.Member7[1]);
             Assert.Equal(obj[1], (Struct)dynNode.Member7[1]);
-            rootNode[nameof(ComplexClass.Member7)].Target.Add(obj[2], new Index(2));
+            rootNode[nameof(ComplexClass.Member7)].Target.Add(obj[2], new NodeIndex(2));
             Assert.Equal(instance.Member7[2], (Struct)dynNode.Member7[2]);
             Assert.Equal(obj[2], (Struct)dynNode.Member7[2]);
         }
@@ -439,12 +439,12 @@ namespace Xenko.Core.Quantum.Tests
             var dynNode = DynamicNode.FromNode(rootNode);
             Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
             Assert.Equal(obj[0], (Struct)dynNode.Member7[0]);
-            dynNode.Member7.Insert(obj[1], new Index(0));
+            dynNode.Member7.Insert(obj[1], new NodeIndex(0));
             Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
             Assert.Equal(instance.Member7[1], (Struct)dynNode.Member7[1]);
             Assert.Equal(obj[1], (Struct)dynNode.Member7[0]);
             Assert.Equal(obj[0], (Struct)dynNode.Member7[1]);
-            rootNode[nameof(ComplexClass.Member7)].Target.Add(obj[2], new Index(1));
+            rootNode[nameof(ComplexClass.Member7)].Target.Add(obj[2], new NodeIndex(1));
             Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
             Assert.Equal(instance.Member7[1], (Struct)dynNode.Member7[1]);
             Assert.Equal(instance.Member7[2], (Struct)dynNode.Member7[2]);
@@ -467,12 +467,12 @@ namespace Xenko.Core.Quantum.Tests
             Assert.Equal(obj[0], (Struct)dynNode.Member7[0]);
             Assert.Equal(obj[1], (Struct)dynNode.Member7[1]);
             Assert.Equal(obj[2], (Struct)dynNode.Member7[2]);
-            dynNode.Member7.Remove(obj[1], new Index(1));
+            dynNode.Member7.Remove(obj[1], new NodeIndex(1));
             Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
             Assert.Equal(instance.Member7[1], (Struct)dynNode.Member7[1]);
             Assert.Equal(obj[0], (Struct)dynNode.Member7[0]);
             Assert.Equal(obj[2], (Struct)dynNode.Member7[1]);
-            rootNode[nameof(ComplexClass.Member7)].Target.Remove(obj[2], new Index(1));
+            rootNode[nameof(ComplexClass.Member7)].Target.Remove(obj[2], new NodeIndex(1));
             Assert.Equal(instance.Member7[0], (Struct)dynNode.Member7[0]);
             Assert.Equal(obj[0], (Struct)dynNode.Member7[0]);
         }
@@ -490,7 +490,7 @@ namespace Xenko.Core.Quantum.Tests
             dynNode.Member7[1].Member1 = obj[1];
             Assert.Equal(obj[1], (string)dynNode.Member7[1].Member1);
             Assert.Equal(instance.Member7[1].Member1, (string)dynNode.Member7[1].Member1);
-            Index index = new Index(1);
+            NodeIndex index = new NodeIndex(1);
             rootNode[nameof(ComplexClass.Member7)].Target.IndexedTarget(index)[nameof(SimpleClass.Member1)].Update(obj[2]);
             Assert.Equal(obj[2], (string)dynNode.Member7[1].Member1);
             Assert.Equal(instance.Member7[1].Member1, (string)dynNode.Member7[1].Member1);

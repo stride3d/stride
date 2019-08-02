@@ -74,14 +74,14 @@ namespace Xenko.Core.Assets.Editor.ViewModel
                 return false;
 
             // Don't construct properties for member referencing child parts.
-            if (AssetHierarchyPropertyGraph.IsChildPartReference(member, Index.Empty))
+            if (AssetHierarchyPropertyGraph.IsChildPartReference(member, NodeIndex.Empty))
                 return false;
 
             return base.ShouldConstructPropertyMember(member);
         }
 
         /// <inheritdoc />
-        protected override bool ShouldConstructPropertyItem(IObjectNode collection, Index index)
+        protected override bool ShouldConstructPropertyItem(IObjectNode collection, NodeIndex index)
         {
             // Don't construct properties for item referencing child parts.
             if (AssetHierarchyPropertyGraph.IsChildPartReference(collection, index))

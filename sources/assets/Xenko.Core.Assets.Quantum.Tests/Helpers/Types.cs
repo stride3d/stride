@@ -165,14 +165,14 @@ namespace Xenko.Core.Assets.Quantum.Tests.Helpers
         [AssetPropertyGraphDefinition(typeof(MyAssetWithRef))]
         public class AssetWithRefPropertyGraphDefinition : AssetPropertyGraphDefinition
         {
-            public static Func<IGraphNode, Index, bool> IsObjectReferenceFunc { get; set; }
+            public static Func<IGraphNode, NodeIndex, bool> IsObjectReferenceFunc { get; set; }
 
             public override bool IsMemberTargetObjectReference(IMemberNode member, object value)
             {
-                return IsObjectReferenceFunc?.Invoke(member, Index.Empty) ?? base.IsMemberTargetObjectReference(member, value);
+                return IsObjectReferenceFunc?.Invoke(member, NodeIndex.Empty) ?? base.IsMemberTargetObjectReference(member, value);
             }
 
-            public override bool IsTargetItemObjectReference(IObjectNode collection, Index itemIndex, object value)
+            public override bool IsTargetItemObjectReference(IObjectNode collection, NodeIndex itemIndex, object value)
             {
                 return IsObjectReferenceFunc?.Invoke(collection, itemIndex) ?? base.IsTargetItemObjectReference(collection, itemIndex, value);
             }
@@ -186,7 +186,7 @@ namespace Xenko.Core.Assets.Quantum.Tests.Helpers
                 return member.Name == nameof(MyAssetWithRef2.Reference);
             }
 
-            public override bool IsTargetItemObjectReference(IObjectNode collection, Index itemIndex, object value)
+            public override bool IsTargetItemObjectReference(IObjectNode collection, NodeIndex itemIndex, object value)
             {
                 return collection.Retrieve() is List<MyReferenceable>;
             }
@@ -244,16 +244,16 @@ namespace Xenko.Core.Assets.Quantum.Tests.Helpers
         public class MyAssetHierarchyPropertyGraph : AssetCompositeHierarchyPropertyGraph<MyPartDesign, MyPart>
         {
             public MyAssetHierarchyPropertyGraph(AssetPropertyGraphContainer container, AssetItem assetItem, ILogger logger) : base(container, assetItem, logger) { }
-            public override bool IsChildPartReference(IGraphNode node, Index index) => node.Type == typeof(ChildrenList);
+            public override bool IsChildPartReference(IGraphNode node, NodeIndex index) => node.Type == typeof(ChildrenList);
             protected override void AddChildPartToParentPart(MyPart parentPart, MyPart childPart, int index)
             {
-                Container.NodeContainer.GetNode(parentPart)[nameof(MyPart.Children)].Target.Add(childPart, new Index(index));
+                Container.NodeContainer.GetNode(parentPart)[nameof(MyPart.Children)].Target.Add(childPart, new NodeIndex(index));
                 Container.NodeContainer.GetNode(childPart)[nameof(MyPart.Parent)].Update(parentPart);
             }
 
             protected override void RemoveChildPartFromParentPart(MyPart parentPart, MyPart childPart)
             {
-                Container.NodeContainer.GetNode(parentPart)[nameof(MyPart.Children)].Target.Remove(childPart, new Index(parentPart.Children.IndexOf(childPart)));
+                Container.NodeContainer.GetNode(parentPart)[nameof(MyPart.Children)].Target.Remove(childPart, new NodeIndex(parentPart.Children.IndexOf(childPart)));
                 Container.NodeContainer.GetNode(childPart)[nameof(MyPart.Parent)].Update(null);
             }
 

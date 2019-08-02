@@ -135,7 +135,7 @@ namespace Xenko.Assets.Presentation.NodePresenters.Updaters
         private AssetVirtualNodePresenter CreateDependencyPropertyNode(IAssetNodePresenter propertyNodeParent, [NotNull] IAssetNodePresenter node, [NotNull] PropertyKey property, int? order)
         {
             var propertyType = property.PropertyType;
-            var propertyIndex = new Index(property);
+            var propertyIndex = new NodeIndex(property);
             var accessor = node.GetNodeAccessor();
 
             var propertyContainerNode = ((IObjectNode)accessor.Node)[nameof(UIElement.DependencyProperties)].Target;
@@ -154,7 +154,7 @@ namespace Xenko.Assets.Presentation.NodePresenters.Updaters
         /// <param name="propertyContainerNode">The node containing the property.</param>
         /// <param name="propertyIndex">The index of the property in the node.</param>
         /// <returns></returns>
-        private static object Getter([NotNull] IObjectNode propertyContainerNode, Index propertyIndex)
+        private static object Getter([NotNull] IObjectNode propertyContainerNode, NodeIndex propertyIndex)
         {
             return propertyContainerNode.Retrieve(propertyIndex);
         }
@@ -166,7 +166,7 @@ namespace Xenko.Assets.Presentation.NodePresenters.Updaters
         /// <param name="propertyContainerNode">The node containing the property.</param>
         /// <param name="propertyIndex">The index of the property in the node.</param>
         /// <param name="value">The value to set.</param>
-        private static void Setter(IUndoRedoService undoRedoService, [NotNull] IObjectNode propertyContainerNode, Index propertyIndex, object value)
+        private static void Setter(IUndoRedoService undoRedoService, [NotNull] IObjectNode propertyContainerNode, NodeIndex propertyIndex, object value)
         {
             using (undoRedoService?.CreateTransaction())
             {
