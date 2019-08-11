@@ -50,7 +50,7 @@ Ask for help or report issues:
 ### Build Xenko
 
 1. Clone Xenko: `git clone https://github.com/xenko3d/xenko.git`
-2. Open `<XenkoDir>\build\Xenko.sln` with Visual Studio 2017, and build.
+2. Open `<XenkoDir>\build\Xenko.sln` with Visual Studio 2019, and build.
 3. Open `<XenkoDir>\samples\XenkoSamples.sln` and play with the samples.
 4. Optionally, open and build `Xenko.Android.sln`, `Xenko.iOS.sln`, etc...
 
