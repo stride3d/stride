@@ -23,8 +23,6 @@
 
 using System;
 
-using Xenko.Core;
-
 namespace Xenko.Games
 {
     /// <summary>
@@ -57,20 +55,6 @@ namespace Xenko.Games
             accumulatedElapsedTime = TimeSpan.Zero;
         }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GameTime" /> class.
-        /// </summary>
-        /// <param name="totalTime">The total game time since the start of the game.</param>
-        /// <param name="elapsedTime">The elapsed game time since the last update.</param>
-        /// <param name="isRunningSlowly">True if the game is running unexpectedly slowly.</param>
-        public GameTime(TimeSpan totalTime, TimeSpan elapsedTime, bool isRunningSlowly)
-        {
-            Total = totalTime;
-            Elapsed = elapsedTime;
-            IsRunningSlowly = isRunningSlowly;
-            accumulatedElapsedTime = TimeSpan.Zero;
-        }
-
         #endregion
 
         #region Public Properties
@@ -80,12 +64,6 @@ namespace Xenko.Games
         /// </summary>
         /// <value>The elapsed game time.</value>
         public TimeSpan Elapsed { get; private set; }
-
-        /// <summary>
-        /// Gets a value indicating whether the game is running slowly than its TargetElapsedTime. This can be used for example to render less details...etc.
-        /// </summary>
-        /// <value><c>true</c> if this instance is running slowly; otherwise, <c>false</c>.</value>
-        public bool IsRunningSlowly { get; private set; }
 
         /// <summary>
         /// Gets the amount of game time since the start of the game.
@@ -116,11 +94,10 @@ namespace Xenko.Games
         /// <value><c>true</c> if the <see cref="FramePerSecond"/> and <see cref="TimePerFrame"/> were updated for this frame; otherwise, <c>false</c>.</value>
         public bool FramePerSecondUpdated { get; private set; }
 
-        internal void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, TimeSpan elapsedUpdateTime, bool isRunningSlowly, bool incrementFrameCount)
+        internal void Update(TimeSpan totalGameTime, TimeSpan elapsedGameTime, bool incrementFrameCount)
         {
             Total = totalGameTime;
             Elapsed = elapsedGameTime;
-            IsRunningSlowly = isRunningSlowly;
             FramePerSecondUpdated = false;
 
             if (incrementFrameCount)
@@ -143,7 +120,7 @@ namespace Xenko.Games
 
         internal void Reset(TimeSpan totalGameTime)
         {
-            Update(totalGameTime, TimeSpan.Zero, TimeSpan.Zero, false, false);
+            Update(totalGameTime, TimeSpan.Zero, false);
             accumulatedElapsedTime = TimeSpan.Zero;
             accumulatedFrameCountPerSecond = 0;
             FrameCount = 0;
