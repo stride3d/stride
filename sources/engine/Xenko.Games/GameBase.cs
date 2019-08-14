@@ -140,12 +140,12 @@ namespace Xenko.Games
         #region Public Properties
 
         /// <summary>
-        /// The current time from the start of the game, this one should be used for any logic running within the update loop.
+        /// The total and delta time to be used for logic running in the update loop.
         /// </summary>
         public GameTime UpdateTime { get; }
 
         /// <summary>
-        /// The current time from the start of the game, this one should be used for any logic running within the draw loop.
+        /// The total and delta time to be used for logic running in the draw loop.
         /// </summary>
         public GameTime DrawTime { get; }
 
@@ -231,14 +231,15 @@ namespace Xenko.Games
         {
             get
             {
-                return Window == null ? isMouseVisible : Window.IsMouseVisible;
+                return Window?.IsMouseVisible ?? isMouseVisible;
             }
             set
             {
                 isMouseVisible = value;
-                if (Window != null)
+                var window = Window;
+                if (window != null)
                 {
-                    Window.IsMouseVisible = value;
+                    window.IsMouseVisible = value;
                 }
             }
         }
