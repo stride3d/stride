@@ -270,7 +270,7 @@ namespace Xenko.Graphics
         /// <param name="shaderResourceView">The shader resource view.</param>
         /// <param name="view">The native unordered access view.</param>
         /// <param name="uavInitialOffset">The Append/Consume buffer offset. See SetUnorderedAccessView for more details.</param>
-        internal void OMSetSingleUnorderedAccssView(int slot, SharpDX.Direct3D11.UnorderedAccessView view, int uavInitialOffset)
+        internal void OMSetSingleUnorderedAccessView(int slot, SharpDX.Direct3D11.UnorderedAccessView view, int uavInitialOffset)
         {
             currentUARenderTargetViews[slot] = view;
 
@@ -316,7 +316,7 @@ namespace Xenko.Graphics
             {
                 if (currentUARenderTargetViews[slot] != view)
                 {
-                    OMSetSingleUnorderedAccssView(slot, view, uavInitialOffset);
+                    OMSetSingleUnorderedAccessView(slot, view, uavInitialOffset);
                 }
             }
         }
@@ -343,7 +343,7 @@ namespace Xenko.Graphics
             {
                 if (currentUARenderTargetViews[slot] == view)
                 {
-                    OMSetSingleUnorderedAccssView(slot, null, -1);
+                    OMSetSingleUnorderedAccessView(slot, null, -1);
                 }
             }
         }
