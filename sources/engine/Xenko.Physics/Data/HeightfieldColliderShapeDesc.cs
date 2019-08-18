@@ -185,7 +185,7 @@ namespace Xenko.Physics
             {
                 case HeightfieldTypes.Short:
 
-                    heightScale = max / 0x8000;
+                    heightScale = max / short.MaxValue;
                     break;
 
                 case HeightfieldTypes.Byte:
