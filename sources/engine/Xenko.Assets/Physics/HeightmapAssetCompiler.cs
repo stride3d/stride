@@ -61,7 +61,7 @@ namespace Xenko.Assets.Physics
                     if (!string.IsNullOrEmpty(source))
                     {
                         using (var textureTool = new TextureTool())
-                        using (var texImage = textureTool.Load(source, false))
+                        using (var texImage = textureTool.Load(source, Parameters.IsSRgb))
                         {
                             var size = Parameters.Size.Enabled && Parameters.Size.Size.X > 1 && Parameters.Size.Size.Y > 1 ?
                                 Parameters.Size.Size :
@@ -100,6 +100,13 @@ namespace Xenko.Assets.Physics
                                             textureTool.Convert(texImage, PixelFormat.R32_Float);
                                             break;
 
+                                        case PixelFormat.B8G8R8A8_UNorm_SRgb:
+                                        case PixelFormat.B8G8R8X8_UNorm_SRgb:
+                                        case PixelFormat.R8G8B8A8_UNorm_SRgb:
+                                            textureTool.Convert(texImage, PixelFormat.R8_SNorm);
+                                            textureTool.Convert(texImage, PixelFormat.R32_Float);
+                                            break;
+
                                         default:
                                             continue;
                                     }
@@ -125,6 +132,13 @@ namespace Xenko.Assets.Physics
                                             textureTool.Convert(texImage, PixelFormat.R16_SNorm);
                                             break;
 
+                                        case PixelFormat.B8G8R8A8_UNorm_SRgb:
+                                        case PixelFormat.B8G8R8X8_UNorm_SRgb:
+                                        case PixelFormat.R8G8B8A8_UNorm_SRgb:
+                                            textureTool.Convert(texImage, PixelFormat.R8_SNorm);
+                                            textureTool.Convert(texImage, PixelFormat.R16_SNorm);
+                                            break;
+
                                         default:
                                             continue;
                                     }
@@ -139,6 +153,12 @@ namespace Xenko.Assets.Physics
                                         case PixelFormat.R8G8B8A8_SNorm:
                                         case PixelFormat.B8G8R8A8_UNorm:
                                         case PixelFormat.R8G8B8A8_UNorm:
+                                            textureTool.Convert(texImage, PixelFormat.R8_UNorm);
+                                            break;
+
+                                        case PixelFormat.B8G8R8A8_UNorm_SRgb:
+                                        case PixelFormat.B8G8R8X8_UNorm_SRgb:
+                                        case PixelFormat.R8G8B8A8_UNorm_SRgb:
                                             textureTool.Convert(texImage, PixelFormat.R8_UNorm);
                                             break;
 

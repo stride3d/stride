@@ -34,6 +34,10 @@ namespace Xenko.Assets.Physics
         [NotNull]
         public HeightmapSize Size { get; set; } = new HeightmapSize();
 
+        [DataMember(50, "sRGB sampling")]
+        [Display(category: "Convert")]
+        public bool IsSRgb { get; set; } = true;
+
         #region "HeightmapSize"
         [DataContract]
         public class HeightmapSize
