@@ -5,7 +5,7 @@
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.41" />
   <PropertyGroup>
     <XenkoPlatformFilter>Windows;Android;iOS;Linux;macOS;UWP</XenkoPlatformFilter>
     <DefineConstants>$(DefineConstants);XAMCORE_2_0</DefineConstants>
@@ -51,6 +51,6 @@
   </ItemGroup>
 
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.41" />
 
 </Project>
