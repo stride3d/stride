@@ -274,6 +274,23 @@ namespace Xenko.Core.Assets
         [DataMemberIgnore]
         public string RootNamespace { get; private set; }
 
+        [DataMemberIgnore]
+        public bool IsImplicitProject
+        {
+            get
+            {
+                // To keep in sync with LoadProject() .csproj
+                // Note: Meta is ignored since it is supposedly "read-only" from csproj
+                return (AssetFolders.Count == 1 && AssetFolders.First().Path == "Assets"
+                    && ResourceFolders.Count == 1 && ResourceFolders.First() == "Resources"
+                    && OutputGroupDirectories.Count == 0
+                    && ExplicitFolders.Count == 0
+                    && Bundles.Count == 0
+                    && RootAssets.Count == 0
+                    && TemplateFolders.Count == 0);
+            }
+        }
+
         /// <summary>
         /// Adds an existing project to this package.
         /// </summary>
