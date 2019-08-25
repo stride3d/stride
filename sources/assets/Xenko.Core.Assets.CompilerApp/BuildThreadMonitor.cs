@@ -9,10 +9,11 @@ using System.Threading;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.MicroThreading;
 using System.ServiceModel;
+using Xenko.Core.BuildEngine;
 
-namespace Xenko.Core.BuildEngine
+namespace Xenko.Core.Assets.CompilerApp
 {
-    internal class BuildThreadMonitor
+    internal class BuildThreadMonitor : IBuildThreadMonitor
     {
         /// <summary>
         /// This class stores informations relative to a build step, used to build data to send to the clients. It is immutable.
@@ -69,7 +70,7 @@ namespace Xenko.Core.BuildEngine
 
         private Thread monitorThread;
 
-        internal BuildThreadMonitor(Scheduler scheduler, Guid builderId, string monitorPipeName = Builder.MonitorPipeName)
+        public BuildThreadMonitor(Scheduler scheduler, Guid builderId, string monitorPipeName = Builder.MonitorPipeName)
         {
             this.monitorPipeName = monitorPipeName;
             this.builderId = builderId;
@@ -81,7 +82,7 @@ namespace Xenko.Core.BuildEngine
             stopWatch.Start();
         }
 
-        internal void RegisterThread(int threadId)
+        public void RegisterThread(int threadId)
         {
             lock (threadExecutionIntervals)
             {
@@ -89,7 +90,7 @@ namespace Xenko.Core.BuildEngine
             }
         }
 
-        internal void RegisterBuildStep(BuildStep buildStep, TimestampLocalLogger logger)
+        public void RegisterBuildStep(BuildStep buildStep, TimestampLocalLogger logger)
         {
             lock (buildStepInfosToSend)
             {

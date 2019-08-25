@@ -124,6 +124,7 @@
   <Target Name="_XenkoIncludeRefAssemblies" Condition="'$(RuntimeIdentifiers)' != '' And '$(RuntimeIdentifier)' == $(RuntimeIdentifiers.Split(';')[0])">
     <ItemGroup>
       <TfmSpecificPackageFile Include="@(IntermediateAssembly)" PackagePath="ref/$(TargetFramework)" />
+      <TfmSpecificPackageFile Include="@(DocFileItem)" PackagePath="ref/$(TargetFramework)" />
     </ItemGroup>
   </Target>
 

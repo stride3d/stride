@@ -35,12 +35,14 @@
   </PropertyGroup>
   <Target Name="IncludeExtraAssemblies">
     <ItemGroup>
+      <BuildOutputInPackage Include="$(OutputPath)Xenko.Assimp.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Xenko.Assimp.Translation.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Xenko.Importer.Assimp.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Xenko.Importer.Assimp.ssdeps" />
       <BuildOutputInPackage Include="$(OutputPath)Xenko.Importer.FBX.dll" />
       <BuildOutputInPackage Include="$(OutputPath)Xenko.Importer.FBX.ssdeps" />
       <BuildOutputInPackage Include="$(OutputPath)Xenko.Importer.Common.dll" />
-      <TfmSpecificPackageFile Include="$(OutputPath)x64\assimp-vc120-mt.dll" PackagePath="lib\$(TargetFramework)\x64" />
+      <TfmSpecificPackageFile Include="$(OutputPath)x64\assimp-vc140-mt.dll" PackagePath="lib\$(TargetFramework)\x64" />
       <TfmSpecificPackageFile Include="$(OutputPath)x64\libfbxsdk.dll" PackagePath="lib\$(TargetFramework)\x64" />
     </ItemGroup>
   </Target>

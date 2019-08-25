@@ -57,7 +57,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
 
         public override bool IsEnumerable => Member.Target?.IsEnumerable ?? false;
 
-        public override Index Index => Index.Empty;
+        public override NodeIndex Index => NodeIndex.Empty;
 
         [NotNull]
         public override ITypeDescriptor Descriptor => Member.Descriptor;
@@ -98,7 +98,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
             }
         }
 
-        public override void AddItem(object value, Index index)
+        public override void AddItem(object value, NodeIndex index)
         {
             if (Member.Target == null || !Member.Target.IsEnumerable)
                 throw new NodePresenterException($"{nameof(MemberNodePresenter)}.{nameof(AddItem)} cannot be invoked on members that are not collection.");
@@ -113,7 +113,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
             }
         }
 
-        public override void RemoveItem(object value, Index index)
+        public override void RemoveItem(object value, NodeIndex index)
         {
             if (Member.Target == null || !Member.Target.IsEnumerable)
                 throw new NodePresenterException($"{nameof(MemberNodePresenter)}.{nameof(RemoveItem)} cannot be invoked on members that are not collection.");
@@ -130,7 +130,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
 
         public override NodeAccessor GetNodeAccessor()
         {
-            return new NodeAccessor(Member, Index.Empty);
+            return new NodeAccessor(Member, NodeIndex.Empty);
         }
 
         private void OnMemberChanging(object sender, MemberNodeChangeEventArgs e)

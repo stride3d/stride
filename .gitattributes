@@ -1,3 +1,21 @@
+# Set the default behavior, in case people don't have core.autocrlf set.
+* text=auto
+
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout.
+*.c       text
+*.cpp     text
+*.cs      text
+*.h       text
+
+# Declare files that will always have CRLF line endings on checkout.
+*.bat     text eol=crlf
+*.csproj  text eol=crlf
+*.sln     text eol=crlf
+
+# Declare files that will always have LF line endings on checkout.
+*.sh      text eol=lf
+
 # binaries
 *.dll filter=lfs diff=lfs merge=lfs -text
 *.exe filter=lfs diff=lfs merge=lfs -text

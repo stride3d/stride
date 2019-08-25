@@ -83,6 +83,8 @@ namespace Xenko.Graphics
                 return false;
             if (InputElements != null)
             {
+                if (InputElements.Length != other.InputElements.Length)
+                    return false;
                 for (int i = 0; i < InputElements.Length; ++i)
                 {
                     if (!InputElements[i].Equals(other.InputElements[i]))

@@ -51,7 +51,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.GraphicsCompositorEditor.ViewMo
             var path = new GraphNodePath(Editor.Session.AssetNodeContainer.GetNode(Editor.Asset.Asset));
             path.PushMember(nameof(GraphicsCompositorAsset.Cameras));
             path.PushTarget();
-            path.PushIndex(new Index(Editor.Asset.Asset.Cameras.IndexOf(CameraSlot)));
+            path.PushIndex(new NodeIndex(Editor.Asset.Asset.Cameras.IndexOf(CameraSlot)));
             return path;
         }
     }

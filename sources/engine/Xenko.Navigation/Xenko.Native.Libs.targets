@@ -10,7 +10,6 @@
   <ItemGroup>
     <XenkoNativePathLibs2 Condition="'$(XenkoPlatform)' == 'iOS' or '$(XenkoPlatform)' == 'macOS'" 
                           Include="$(XenkoDependenciesDir)\NativePath\iOS\libDetour.a;$(XenkoDependenciesDir)\NativePath\iOS\libRecast.a" />
-    <XenkoNativePathLibs2 Condition="'$(XenkoPlatform)' == 'Android'" Include="libDetour.a;libRecast.a;libc++abi.a" />
-    <XenkoNativePathLibs2 Condition="'$(XenkoPlatform)' == 'Linux'" Include="libDetour.a;libRecast.a" />
+    <XenkoNativePathLibs2 Condition="'$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'Android'" Include="libDetour.a;libRecast.a" />
   </ItemGroup>
 </Project>

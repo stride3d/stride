@@ -79,7 +79,7 @@ namespace Xenko.Core.Assets.Editor.Components.FixAssetReferences
                             if (target == CurrentObjectToReplace)
                             {
                                 // If so, prepare a replacement for it.
-                                var viewModel = new AssetReferenceReplacementViewModel(this, CurrentObjectToReplace, referencer, referencedMember, memberNode, Index.Empty);
+                                var viewModel = new AssetReferenceReplacementViewModel(this, CurrentObjectToReplace, referencer, referencedMember, memberNode, NodeIndex.Empty);
                                 result.Add(viewModel);
                             }
                         }

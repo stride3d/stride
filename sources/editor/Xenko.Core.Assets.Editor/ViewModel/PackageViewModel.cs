@@ -738,7 +738,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel
 
         bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => true;
 
-        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, Index index) => true;
+        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => true;
 
         private static int ComparePackageContent(DirtiableEditableViewModel x, DirtiableEditableViewModel y)
         {

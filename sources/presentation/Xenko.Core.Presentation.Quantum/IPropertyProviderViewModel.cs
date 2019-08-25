@@ -37,6 +37,6 @@ namespace Xenko.Core.Presentation.Quantum
         /// <param name="collection">The collection to evaluate.</param>
         /// <param name="index">The index of the item to evaluate.</param>
         /// <returns><c>True</c> if the member node should be constructed, <c>False</c> otherwise.</returns>
-        bool ShouldConstructItem([NotNull] IObjectNode collection, Index index);
+        bool ShouldConstructItem([NotNull] IObjectNode collection, NodeIndex index);
     }
 }

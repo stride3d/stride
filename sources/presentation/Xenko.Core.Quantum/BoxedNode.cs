@@ -10,30 +10,30 @@ namespace Xenko.Core.Quantum
     public class BoxedNode : ObjectNode
     {
         private GraphNodeBase boxedStructureOwner;
-        private Index boxedStructureOwnerIndex;
+        private NodeIndex boxedStructureOwnerIndex;
 
         public BoxedNode([NotNull] INodeBuilder nodeBuilder, object value, Guid guid, [NotNull] ITypeDescriptor descriptor)
             : base(nodeBuilder, value, guid, descriptor, null)
         {
         }
 
-        protected internal override void UpdateFromMember(object newValue, Index index)
+        protected internal override void UpdateFromMember(object newValue, NodeIndex index)
         {
             Update(newValue, index, true);
         }
 
         internal void UpdateFromOwner(object newValue)
         {
-            Update(newValue, Index.Empty, false);
+            Update(newValue, NodeIndex.Empty, false);
         }
 
-        internal void SetOwnerContent(IGraphNode ownerNode, Index index)
+        internal void SetOwnerContent(IGraphNode ownerNode, NodeIndex index)
         {
             boxedStructureOwner = (GraphNodeBase)ownerNode;
             boxedStructureOwnerIndex = index;
         }
 
-        private void Update(object newValue, Index index, bool updateStructureOwner)
+        private void Update(object newValue, NodeIndex index, bool updateStructureOwner)
         {
             if (!index.IsEmpty)
             {

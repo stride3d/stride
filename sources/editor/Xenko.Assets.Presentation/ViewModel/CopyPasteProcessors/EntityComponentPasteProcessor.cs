@@ -21,7 +21,7 @@ namespace Xenko.Assets.Presentation.ViewModel.CopyPasteProcessors
         }
 
         /// <inheritdoc/>
-        protected override bool CanRemoveItem(IObjectNode collection, Index index)
+        protected override bool CanRemoveItem(IObjectNode collection, NodeIndex index)
         {
             if (collection.Type != typeof(EntityComponentCollection))
                 return base.CanRemoveItem(collection, index);
@@ -34,7 +34,7 @@ namespace Xenko.Assets.Presentation.ViewModel.CopyPasteProcessors
         }
 
         /// <inheritdoc/>
-        protected override bool CanInsertItem(IObjectNode collection, Index index, object newItem)
+        protected override bool CanInsertItem(IObjectNode collection, NodeIndex index, object newItem)
         {
             if (collection.Type != typeof(EntityComponentCollection))
                 return base.CanInsertItem(collection, index, newItem);
@@ -54,7 +54,7 @@ namespace Xenko.Assets.Presentation.ViewModel.CopyPasteProcessors
         }
 
         /// <inheritdoc/>
-        protected override bool CanReplaceItem(IObjectNode collection, Index index, object newItem)
+        protected override bool CanReplaceItem(IObjectNode collection, NodeIndex index, object newItem)
         {
             if (collection.Type != typeof(EntityComponentCollection))
                 return base.CanReplaceItem(collection, index, newItem);
@@ -78,7 +78,7 @@ namespace Xenko.Assets.Presentation.ViewModel.CopyPasteProcessors
         }
 
         /// <inheritdoc/>
-        protected override void ReplaceItem(IObjectNode collection, Index index, object newItem)
+        protected override void ReplaceItem(IObjectNode collection, NodeIndex index, object newItem)
         {
             // If we're replacing the transform component, only manually copy allowed properties to the existing one.
             if (collection.Type == typeof(EntityComponentCollection) && newItem is TransformComponent newTransform)

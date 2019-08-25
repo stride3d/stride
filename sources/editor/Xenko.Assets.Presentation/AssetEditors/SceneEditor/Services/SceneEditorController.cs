@@ -90,7 +90,7 @@ namespace Xenko.Assets.Presentation.AssetEditors.SceneEditor.Services
                         throw new InvalidOperationException($"The given {nameof(parent.Id)} does not correspond to any existing part.");
 
                     var i = parentEntity.Transform.Children.IndexOf(part.Transform);
-                    GameSideNodeContainer.GetNode(parentEntity.Transform.Children).Remove(part.Transform, new Index(i));
+                    GameSideNodeContainer.GetNode(parentEntity.Transform.Children).Remove(part.Transform, new NodeIndex(i));
                 }
             });
         }

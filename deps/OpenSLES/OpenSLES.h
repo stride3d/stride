@@ -237,7 +237,7 @@ typedef const struct SLObjectItf_ * const * SLObjectItf;
 
 /** NULL Interface */
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_NULL;
+extern SL_API const SLInterfaceID SL_IID_NULL;
 
 /*---------------------------------------------------------------------------*/
 /* Data Source and Data Sink Structures                                      */
@@ -383,12 +383,12 @@ typedef struct SLDataSink_ {
 /* Standard Object Interface                                                 */
 /*---------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_OBJECT;
+extern SL_API const SLInterfaceID SL_IID_OBJECT;
 
 /** Object callback */
 
 
-typedef void (/*SLAPIENTRY*/ *slObjectCallback) (
+typedef void (SLAPIENTRY *slObjectCallback) (
 	SLObjectItf caller,
 	const void * pContext,
 	SLuint32 event,
@@ -508,13 +508,13 @@ typedef struct SLAudioOutputDescriptor_ {
 
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_AUDIOIODEVICECAPABILITIES;
+extern SL_API const SLInterfaceID SL_IID_AUDIOIODEVICECAPABILITIES;
 
 struct SLAudioIODeviceCapabilitiesItf_;
 typedef const struct SLAudioIODeviceCapabilitiesItf_ * const * SLAudioIODeviceCapabilitiesItf;
 
 
-typedef void (/*SLAPIENTRY*/ *slAvailableAudioInputsChangedCallback) (
+typedef void (SLAPIENTRY *slAvailableAudioInputsChangedCallback) (
 	SLAudioIODeviceCapabilitiesItf caller,
 	void *pContext,
 	SLuint32 deviceID,
@@ -523,7 +523,7 @@ typedef void (/*SLAPIENTRY*/ *slAvailableAudioInputsChangedCallback) (
 );
 
 
-typedef void (/*SLAPIENTRY*/ *slAvailableAudioOutputsChangedCallback) (
+typedef void (SLAPIENTRY *slAvailableAudioOutputsChangedCallback) (
 	SLAudioIODeviceCapabilitiesItf caller,
 	void *pContext,
 	SLuint32 deviceID,
@@ -531,7 +531,7 @@ typedef void (/*SLAPIENTRY*/ *slAvailableAudioOutputsChangedCallback) (
 	SLboolean isNew
 );
 
-typedef void (/*SLAPIENTRY*/ *slDefaultDeviceIDMapChangedCallback) (
+typedef void (SLAPIENTRY *slDefaultDeviceIDMapChangedCallback) (
 	SLAudioIODeviceCapabilitiesItf caller,
 	void *pContext,
 	SLboolean isOutput,
@@ -626,7 +626,7 @@ typedef struct SLHSL_ {
 } SLHSL;
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_LED;
+extern SL_API const SLInterfaceID SL_IID_LED;
 
 struct SLLEDArrayItf_;
 typedef const struct SLLEDArrayItf_ * const * SLLEDArrayItf;
@@ -670,7 +670,7 @@ typedef struct SLVibraDescriptor_ {
 /*---------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_VIBRA;
+extern SL_API const SLInterfaceID SL_IID_VIBRA;
 
 
 struct SLVibraItf_;
@@ -756,7 +756,7 @@ typedef struct SLMetadataInfo_ {
     SLuint8      data[1];
 } SLMetadataInfo;
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_METADATAEXTRACTION;
+extern SL_API const SLInterfaceID SL_IID_METADATAEXTRACTION;
 
 struct SLMetadataExtractionItf_;
 typedef const struct SLMetadataExtractionItf_ * const * SLMetadataExtractionItf;
@@ -819,7 +819,7 @@ struct SLMetadataExtractionItf_ {
 
 #define SL_NODE_PARENT 0xFFFFFFFF
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_METADATATRAVERSAL;
+extern SL_API const SLInterfaceID SL_IID_METADATATRAVERSAL;
 
 struct SLMetadataTraversalItf_;
 typedef const struct SLMetadataTraversalItf_ * const * SLMetadataTraversalItf;
@@ -856,7 +856,7 @@ struct SLMetadataTraversalItf_ {
 /* Dynamic Source types and interface                                        */
 /*---------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_DYNAMICSOURCE;
+extern SL_API const SLInterfaceID SL_IID_DYNAMICSOURCE;
 
 struct SLDynamicSourceItf_;
 typedef const struct SLDynamicSourceItf_ * const * SLDynamicSourceItf;
@@ -872,12 +872,12 @@ struct SLDynamicSourceItf_ {
 /* Output Mix interface                                                      */
 /*---------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_OUTPUTMIX;
+extern SL_API const SLInterfaceID SL_IID_OUTPUTMIX;
 
 struct SLOutputMixItf_;
 typedef const struct SLOutputMixItf_ * const * SLOutputMixItf;
 
-typedef void (/*SLAPIENTRY*/ *slMixDeviceChangeCallback) (
+typedef void (SLAPIENTRY *slMixDeviceChangeCallback) (
 	SLOutputMixItf caller,
     void *pContext
 );
@@ -921,14 +921,14 @@ struct SLOutputMixItf_ {
 #define SL_TIME_UNKNOWN	((SLuint32) 0xFFFFFFFF)
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_PLAY;
+extern SL_API const SLInterfaceID SL_IID_PLAY;
 
 /** Playback interface methods */
 
 struct SLPlayItf_;
 typedef const struct SLPlayItf_ * const * SLPlayItf;
 
-typedef void (/*SLAPIENTRY*/ *slPlayCallback) (
+typedef void (SLAPIENTRY *slPlayCallback) (
 	SLPlayItf caller,
 	void *pContext,
 	SLuint32 event
@@ -997,7 +997,7 @@ struct SLPlayItf_ {
 #define SL_PREFETCHSTATUS_OVERFLOW		((SLuint32) 0x00000003)
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_PREFETCHSTATUS;
+extern SL_API const SLInterfaceID SL_IID_PREFETCHSTATUS;
 
 
 /** Prefetch status interface methods */
@@ -1005,7 +1005,7 @@ extern SLAPIENTRY const SLInterfaceID SL_IID_PREFETCHSTATUS;
 struct SLPrefetchStatusItf_;
 typedef const struct SLPrefetchStatusItf_ * const * SLPrefetchStatusItf;
 
-typedef void (/*SLAPIENTRY*/ *slPrefetchCallback) (
+typedef void (SLAPIENTRY *slPrefetchCallback) (
 	SLPrefetchStatusItf caller,
 	void *pContext,
 	SLuint32 event
@@ -1055,7 +1055,7 @@ struct SLPrefetchStatusItf_ {
 #define SL_RATEPROP_PITCHCORAUDIO	((SLuint32) 0x00000800)
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_PLAYBACKRATE;
+extern SL_API const SLInterfaceID SL_IID_PLAYBACKRATE;
 
 struct SLPlaybackRateItf_;
 typedef const struct SLPlaybackRateItf_ * const * SLPlaybackRateItf;
@@ -1099,7 +1099,7 @@ struct SLPlaybackRateItf_ {
 #define SL_SEEKMODE_FAST		((SLuint32) 0x0001)
 #define SL_SEEKMODE_ACCURATE	((SLuint32) 0x0002)
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_SEEK;
+extern SL_API const SLInterfaceID SL_IID_SEEK;
 
 struct SLSeekItf_;
 typedef const struct SLSeekItf_ * const * SLSeekItf;
@@ -1145,12 +1145,12 @@ struct SLSeekItf_ {
 #define SL_RECORDEVENT_BUFFER_FULL	((SLuint32) 0x00000020)
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_RECORD;
+extern SL_API const SLInterfaceID SL_IID_RECORD;
 
 struct SLRecordItf_;
 typedef const struct SLRecordItf_ * const * SLRecordItf;
 
-typedef void (/*SLAPIENTRY*/ *slRecordCallback) (
+typedef void (SLAPIENTRY *slRecordCallback) (
 	SLRecordItf caller,
 	void *pContext,
 	SLuint32 event
@@ -1214,7 +1214,7 @@ struct SLRecordItf_ {
 
 #define SL_EQUALIZER_UNDEFINED				((SLuint16) 0xFFFF)
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_EQUALIZER;
+extern SL_API const SLInterfaceID SL_IID_EQUALIZER;
 
 struct SLEqualizerItf_;
 typedef const struct SLEqualizerItf_ * const * SLEqualizerItf;
@@ -1286,7 +1286,7 @@ struct SLEqualizerItf_ {
 /* Volume Interface                                                           */
 /* --------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_VOLUME;
+extern SL_API const SLInterfaceID SL_IID_VOLUME;
 
 struct SLVolumeItf_;
 typedef const struct SLVolumeItf_ * const * SLVolumeItf;
@@ -1335,7 +1335,7 @@ struct SLVolumeItf_ {
 /* Device Volume Interface                                                   */
 /* --------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_DEVICEVOLUME;
+extern SL_API const SLInterfaceID SL_IID_DEVICEVOLUME;
 
 struct SLDeviceVolumeItf_;
 typedef const struct SLDeviceVolumeItf_ * const * SLDeviceVolumeItf;
@@ -1365,12 +1365,12 @@ struct SLDeviceVolumeItf_ {
 /* Buffer Queue Interface                                                    */
 /*---------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_BUFFERQUEUE;
+extern SL_API const SLInterfaceID SL_IID_BUFFERQUEUE;
 
 struct SLBufferQueueItf_;
 typedef const struct SLBufferQueueItf_ * const * SLBufferQueueItf;
 
-typedef void (/*SLAPIENTRY*/ *slBufferQueueCallback)(
+typedef void (SLAPIENTRY *slBufferQueueCallback)(
 	SLBufferQueueItf caller,
 	void *pContext
 );
@@ -1417,7 +1417,7 @@ struct SLBufferQueueItf_ {
 #define SL_REVERBPRESET_PLATE 		((SLuint16) 0x0006)
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_PRESETREVERB;
+extern SL_API const SLInterfaceID SL_IID_PRESETREVERB;
 
 struct SLPresetReverbItf_;
 typedef const struct SLPresetReverbItf_ * const * SLPresetReverbItf;
@@ -1516,7 +1516,7 @@ typedef struct SLEnvironmentalReverbSettings_ {
 
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_ENVIRONMENTALREVERB;
+extern SL_API const SLInterfaceID SL_IID_ENVIRONMENTALREVERB;
 
 
 struct SLEnvironmentalReverbItf_;
@@ -1618,7 +1618,7 @@ struct SLEnvironmentalReverbItf_ {
 /*---------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_EFFECTSEND;
+extern SL_API const SLInterfaceID SL_IID_EFFECTSEND;
 
 struct SLEffectSendItf_;
 typedef const struct SLEffectSendItf_ * const * SLEffectSendItf;
@@ -1661,7 +1661,7 @@ struct SLEffectSendItf_ {
 /*---------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_3DGROUPING;
+extern SL_API const SLInterfaceID SL_IID_3DGROUPING;
 
 
 struct SL3DGroupingItf_ ;
@@ -1684,7 +1684,7 @@ struct SL3DGroupingItf_ {
 /*---------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_3DCOMMIT;
+extern SL_API const SLInterfaceID SL_IID_3DCOMMIT;
 
 struct SL3DCommitItf_;
 typedef const struct SL3DCommitItf_* const * SL3DCommitItf;
@@ -1710,7 +1710,7 @@ typedef struct SLVec3D_ {
 	SLint32	z;
 } SLVec3D;
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_3DLOCATION;
+extern SL_API const SLInterfaceID SL_IID_3DLOCATION;
 
 struct SL3DLocationItf_;
 typedef const struct SL3DLocationItf_ * const * SL3DLocationItf;
@@ -1763,7 +1763,7 @@ struct SL3DLocationItf_ {
 /*---------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_3DDOPPLER;
+extern SL_API const SLInterfaceID SL_IID_3DDOPPLER;
 
 struct SL3DDopplerItf_;
 typedef const struct SL3DDopplerItf_ * const * SL3DDopplerItf;
@@ -1801,7 +1801,7 @@ struct SL3DDopplerItf_ {
 #define SL_ROLLOFFMODEL_LINEAR		((SLuint32) 0x00000001)
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_3DSOURCE;
+extern SL_API const SLInterfaceID SL_IID_3DSOURCE;
 
 struct SL3DSourceItf_;
 typedef const struct SL3DSourceItf_ * const * SL3DSourceItf;
@@ -1875,7 +1875,7 @@ struct SL3DSourceItf_ {
 /* 3D Macroscopic Interface                                                  */
 /* --------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_3DMACROSCOPIC;
+extern SL_API const SLInterfaceID SL_IID_3DMACROSCOPIC;
 
 struct SL3DMacroscopicItf_;
 typedef const struct SL3DMacroscopicItf_ * const * SL3DMacroscopicItf;
@@ -1921,7 +1921,7 @@ struct SL3DMacroscopicItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_MUTESOLO;
+extern SL_API const SLInterfaceID SL_IID_MUTESOLO;
 
 struct SLMuteSoloItf_;
 typedef const struct SLMuteSoloItf_ * const * SLMuteSoloItf;
@@ -1967,12 +1967,12 @@ struct SLMuteSoloItf_ {
 
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_DYNAMICINTERFACEMANAGEMENT;
+extern SL_API const SLInterfaceID SL_IID_DYNAMICINTERFACEMANAGEMENT;
 
 struct SLDynamicInterfaceManagementItf_;
 typedef const struct SLDynamicInterfaceManagementItf_ * const * SLDynamicInterfaceManagementItf;
 
-typedef void (/*SLAPIENTRY*/ *slDynamicInterfaceManagementCallback) (
+typedef void (SLAPIENTRY *slDynamicInterfaceManagementCallback) (
 	SLDynamicInterfaceManagementItf caller,
 	void * pContext,
 	SLuint32 event,
@@ -2016,12 +2016,12 @@ struct SLDynamicInterfaceManagementItf_ {
 #define SL_MIDIMESSAGETYPE_SYSTEM_MESSAGE	((SLuint32) 0x00000007)
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_MIDIMESSAGE;
+extern SL_API const SLInterfaceID SL_IID_MIDIMESSAGE;
 
 struct SLMIDIMessageItf_;
 typedef const struct SLMIDIMessageItf_ * const * SLMIDIMessageItf;
 
-typedef void (/*SLAPIENTRY*/ *slMetaEventCallback) (
+typedef void (SLAPIENTRY *slMetaEventCallback) (
 	SLMIDIMessageItf caller,
 	void *pContext,
 	SLuint8 type,
@@ -2031,7 +2031,7 @@ typedef void (/*SLAPIENTRY*/ *slMetaEventCallback) (
 	SLuint16 track
 );
 
-typedef void (/*SLAPIENTRY*/ *slMIDIMessageCallback) (
+typedef void (SLAPIENTRY *slMIDIMessageCallback) (
 	SLMIDIMessageItf caller,
 	void *pContext,
 	SLuint8 statusByte,
@@ -2072,7 +2072,7 @@ struct SLMIDIMessageItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_MIDIMUTESOLO;
+extern SL_API const SLInterfaceID SL_IID_MIDIMUTESOLO;
 
 struct SLMIDIMuteSoloItf_;
 typedef const struct SLMIDIMuteSoloItf_ * const * SLMIDIMuteSoloItf;
@@ -2130,7 +2130,7 @@ struct SLMIDIMuteSoloItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_MIDITEMPO;
+extern SL_API const SLInterfaceID SL_IID_MIDITEMPO;
 
 struct SLMIDITempoItf_;
 typedef const struct SLMIDITempoItf_ * const * SLMIDITempoItf;
@@ -2160,7 +2160,7 @@ struct SLMIDITempoItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_MIDITIME;
+extern SL_API const SLInterfaceID SL_IID_MIDITIME;
 
 struct SLMIDITimeItf_;
 typedef const struct SLMIDITimeItf_ * const * SLMIDITimeItf;
@@ -2300,7 +2300,7 @@ typedef struct SLAudioCodecProfileMode_ {
     SLuint32 modeSetting;
 } SLAudioCodecProfileMode;
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_AUDIODECODERCAPABILITIES;
+extern SL_API const SLInterfaceID SL_IID_AUDIODECODERCAPABILITIES;
 
 struct SLAudioDecoderCapabilitiesItf_;
 typedef const struct SLAudioDecoderCapabilitiesItf_ * const * SLAudioDecoderCapabilitiesItf;
@@ -2344,7 +2344,7 @@ typedef struct SLAudioEncoderSettings_ {
     SLuint32 blockAlignment;
 } SLAudioEncoderSettings;
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_AUDIOENCODERCAPABILITIES;
+extern SL_API const SLInterfaceID SL_IID_AUDIOENCODERCAPABILITIES;
 
 struct SLAudioEncoderCapabilitiesItf_;
 typedef const struct SLAudioEncoderCapabilitiesItf_ * const * SLAudioEncoderCapabilitiesItf;
@@ -2369,7 +2369,7 @@ struct SLAudioEncoderCapabilitiesItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_AUDIOENCODER;
+extern SL_API const SLInterfaceID SL_IID_AUDIOENCODER;
 
 struct SLAudioEncoderItf_;
 typedef const struct SLAudioEncoderItf_ * const * SLAudioEncoderItf;
@@ -2391,7 +2391,7 @@ struct SLAudioEncoderItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_BASSBOOST;
+extern SL_API const SLInterfaceID SL_IID_BASSBOOST;
 
 struct SLBassBoostItf_;
 typedef const struct SLBassBoostItf_ * const * SLBassBoostItf;
@@ -2424,7 +2424,7 @@ struct SLBassBoostItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_PITCH;
+extern SL_API const SLInterfaceID SL_IID_PITCH;
 
 struct SLPitchItf_;
 typedef const struct SLPitchItf_ * const * SLPitchItf;
@@ -2453,7 +2453,7 @@ struct SLPitchItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_RATEPITCH;
+extern SL_API const SLInterfaceID SL_IID_RATEPITCH;
 
 struct SLRatePitchItf_;
 typedef const struct SLRatePitchItf_ * const * SLRatePitchItf;
@@ -2480,7 +2480,7 @@ struct SLRatePitchItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_VIRTUALIZER;
+extern SL_API const SLInterfaceID SL_IID_VIRTUALIZER;
 
 struct SLVirtualizerItf_;
 typedef const struct SLVirtualizerItf_ * const * SLVirtualizerItf;
@@ -2513,12 +2513,12 @@ struct SLVirtualizerItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_VISUALIZATION;
+extern SL_API const SLInterfaceID SL_IID_VISUALIZATION;
 
 struct SLVisualizationItf_;
 typedef const struct SLVisualizationItf_ * const * SLVisualizationItf;
 
-typedef void (/*SLAPIENTRY*/ *slVisualizationCallback) (
+typedef void (SLAPIENTRY *slVisualizationCallback) (
 	void *pContext,
 	const SLuint8 waveform[],
 	const SLuint8 fft[],
@@ -2544,7 +2544,7 @@ struct SLVisualizationItf_{
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_ENGINE;
+extern SL_API const SLInterfaceID SL_IID_ENGINE;
 
 struct SLEngineItf_;
 typedef const struct SLEngineItf_ * const * SLEngineItf;
@@ -2670,7 +2670,7 @@ struct SLEngineItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_ENGINECAPABILITIES;
+extern SL_API const SLInterfaceID SL_IID_ENGINECAPABILITIES;
 
 struct SLEngineCapabilitiesItf_;
 typedef const struct SLEngineCapabilitiesItf_ * const * SLEngineCapabilitiesItf;
@@ -2720,7 +2720,7 @@ struct SLEngineCapabilitiesItf_ {
 /* --------------------------------------------------------------------------*/
 
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_THREADSYNC;
+extern SL_API const SLInterfaceID SL_IID_THREADSYNC;
 
 struct SLThreadSyncItf_;
 typedef const struct SLThreadSyncItf_ * const * SLThreadSyncItf;
@@ -2749,7 +2749,7 @@ typedef struct SLEngineOption_ {
 } SLEngineOption;
 
 
-SLresult SLAPIENTRY slCreateEngine(
+SL_API SLresult SLAPIENTRY slCreateEngine(
 	SLObjectItf             *pEngine,
 	SLuint32                numOptions,
 	const SLEngineOption    *pEngineOptions,
@@ -2758,11 +2758,11 @@ SLresult SLAPIENTRY slCreateEngine(
 	const SLboolean         * pInterfaceRequired
 );
 
-SLresult SLAPIENTRY slQueryNumSupportedEngineInterfaces(
+SL_API SLresult SLAPIENTRY slQueryNumSupportedEngineInterfaces(
 	SLuint32 * pNumSupportedInterfaces
 );
 
-SLresult SLAPIENTRY slQuerySupportedEngineInterfaces(
+SL_API SLresult SLAPIENTRY slQuerySupportedEngineInterfaces(
 	SLuint32 index,
 	SLInterfaceID * pInterfaceId
 );

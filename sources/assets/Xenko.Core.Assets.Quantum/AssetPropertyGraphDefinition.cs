@@ -29,7 +29,7 @@ namespace Xenko.Core.Assets.Quantum
             return false;
         }
 
-        public virtual bool IsTargetItemObjectReference(IObjectNode collection, Index itemIndex, object value)
+        public virtual bool IsTargetItemObjectReference(IObjectNode collection, NodeIndex itemIndex, object value)
         {
             return false;
         }

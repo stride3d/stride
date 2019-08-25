@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <XenkoNativePathLibs2 Condition="'$(XenkoPlatform)' == 'iOS' or '$(XenkoPlatform)' == 'macOS'" Include="$(XenkoDependenciesDir)\NativePath\iOS\libCelt.a" />
-    <XenkoNativePathLibs2 Condition="'$(XenkoPlatform)' == 'Android'" Include="libCelt.a;libCompilerRt.a;libc++abi.a" />
-    <XenkoNativePathLibs2 Condition="'$(XenkoPlatform)' == 'Linux'" Include="libCelt.a;libCompilerRt.a" />
+    <XenkoNativePathLibs2 Condition="'$(XenkoPlatform)' == 'Linux' Or '$(XenkoPlatform)' == 'Android'" Include="libCelt.a;libCompilerRt.a" />
   </ItemGroup>
 </Project>

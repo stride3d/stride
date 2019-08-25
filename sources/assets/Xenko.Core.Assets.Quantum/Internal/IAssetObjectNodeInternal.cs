@@ -11,9 +11,9 @@ namespace Xenko.Core.Assets.Quantum.Internal
     /// </summary>
     internal interface IAssetObjectNodeInternal : IAssetObjectNode, IAssetNodeInternal
     {
-        OverrideType GetItemOverride(Index index);
+        OverrideType GetItemOverride(NodeIndex index);
 
-        OverrideType GetKeyOverride(Index index);
+        OverrideType GetKeyOverride(NodeIndex index);
 
         /// <summary>
         /// Removes the given <see cref="ItemId"/> from the list of overridden deleted items in the underlying <see cref="CollectionItemIdentifiers"/>, but keep

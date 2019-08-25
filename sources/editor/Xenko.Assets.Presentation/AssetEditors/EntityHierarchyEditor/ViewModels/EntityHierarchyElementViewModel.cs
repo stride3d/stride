@@ -204,6 +204,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.ViewModel
         bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => ((IPropertyProviderViewModel)Asset).ShouldConstructMember(member);
 
         /// <inheritdoc/>
-        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, Index index) => ((IPropertyProviderViewModel)Asset).ShouldConstructItem(collection, index);
+        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => ((IPropertyProviderViewModel)Asset).ShouldConstructItem(collection, index);
     }
 }

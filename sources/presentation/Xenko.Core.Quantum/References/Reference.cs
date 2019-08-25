@@ -12,7 +12,7 @@ namespace Xenko.Core.Quantum.References
         private static readonly ThreadLocal<int> CreatingReference = new ThreadLocal<int>();
 
         [Obsolete("This method will be rewritten to handle separately the different types of references")]
-        internal static IReference CreateReference(object objectValue, Type objectType, Index index, bool isMember)
+        internal static IReference CreateReference(object objectValue, Type objectType, NodeIndex index, bool isMember)
         {
             if (objectValue != null && !objectType.IsInstanceOfType(objectValue)) throw new ArgumentException(@"objectValue type does not match objectType", nameof(objectValue));
 

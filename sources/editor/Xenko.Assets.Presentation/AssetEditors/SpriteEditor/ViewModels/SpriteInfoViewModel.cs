@@ -306,13 +306,13 @@ namespace Xenko.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels
         {
             var path = new GraphNodePath(Editor.Session.AssetNodeContainer.GetNode(Editor.Asset.Asset));
             path.PushMember(nameof(SpriteSheetAsset.Sprites));
-            path.PushIndex(new Index(Index));
+            path.PushIndex(new NodeIndex(Index));
             path.PushTarget();
             return path;
         }
 
         bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => ((IPropertyProviderViewModel)Editor.Asset).ShouldConstructMember(member);
 
-        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, Index index) => ((IPropertyProviderViewModel)Editor.Asset).ShouldConstructItem(collection, index);
+        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => ((IPropertyProviderViewModel)Editor.Asset).ShouldConstructItem(collection, index);
     }
 }

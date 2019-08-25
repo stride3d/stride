@@ -64,6 +64,13 @@
     <IntermediateOutputPath Condition="'$(XenkoProjectType)' == 'Cpp'">$(IntDir)</IntermediateOutputPath>
   </PropertyGroup>
 
+  <!-- Workaround for https://github.com/onovotny/MSBuildSdkExtras/issues/174 -->
+  <Target Name="_XenkoRemoveNonExistingResgenFile" BeforeTargets="CoreCompile" Condition="'$(_SdkSetAndroidResgenFile)' == 'true' And '$(AndroidResgenFile)' != '' And !Exists('$(AndroidResgenFile)')">
+    <ItemGroup>
+      <Compile Remove="$(AndroidResgenFile)"/>
+    </ItemGroup>
+  </Target>
+
   <!-- User Documentation (.usrdoc) -->
   <PropertyGroup Condition="'$(XenkoPublicApi)' == 'true'">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

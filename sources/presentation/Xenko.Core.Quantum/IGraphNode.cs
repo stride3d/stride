@@ -44,6 +44,6 @@ namespace Xenko.Core.Quantum
         /// Retrieves the value of one of the item of this node, if it holds a collection.
         /// </summary>
         /// <param name="index">The index to use to retrieve the value.</param>
-        object Retrieve(Index index);
+        object Retrieve(NodeIndex index);
     }
 }

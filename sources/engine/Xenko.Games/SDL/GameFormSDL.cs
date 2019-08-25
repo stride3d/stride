@@ -101,12 +101,12 @@ namespace Xenko.Games
             previousWindowState = FormWindowState.Normal;
         }
 
-        private void GameForm_DeActivateActions(SDL.SDL_WindowEvent e)
+        private void GameForm_ActivateActions(SDL.SDL_WindowEvent e)
         {
             AppActivated?.Invoke(this, EventArgs.Empty);
         }
 
-        private void GameForm_ActivateActions(SDL.SDL_WindowEvent e)
+        private void GameForm_DeActivateActions(SDL.SDL_WindowEvent e)
         {
             AppDeactivated?.Invoke(this, EventArgs.Empty);
         }

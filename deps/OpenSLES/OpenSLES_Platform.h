@@ -37,16 +37,21 @@ typedef unsigned char               sl_uint8_t;
 typedef signed char                 sl_int8_t;
 typedef unsigned short              sl_uint16_t;
 typedef signed short                sl_int16_t;
-typedef unsigned long               sl_uint32_t;
-typedef signed long                 sl_int32_t;
+typedef unsigned int /*long*/       sl_uint32_t;
+typedef signed int /*long*/         sl_int32_t;
 typedef long long                   sl_int64_t;
+typedef unsigned long long          sl_uint64_t;
+
+#ifndef SL_API
+#ifdef __GNUC__
+#define SL_API                 /* override per-platform */
+#else
+#define SL_API __declspec(dllimport)
+#endif
+#endif
 
 #ifndef SLAPIENTRY
-#ifdef __GNUC__
-#define SLAPIENTRY                 /* override per-platform */
-#else
-#define SLAPIENTRY __declspec(dllimport)
-#endif
+#define SLAPIENTRY
 #endif
 
 #endif /* _OPENSLES_PLATFORM_H_ */

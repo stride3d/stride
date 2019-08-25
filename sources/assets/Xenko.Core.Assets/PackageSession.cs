@@ -385,6 +385,11 @@ namespace Xenko.Core.Assets
 
         protected override void SavePackage()
         {
+            // Check if our project is still implicit one
+            // Note: we only allow transition from implicit to explicit (otherwise we would have to delete file, etc.)
+            if (IsImplicitProject && Package.IsDirty && !Package.IsImplicitProject)
+                IsImplicitProject = false;
+
             if (!IsImplicitProject)
                 base.SavePackage();
         }

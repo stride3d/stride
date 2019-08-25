@@ -134,7 +134,7 @@ namespace Xenko.Assets.Presentation.AssemblyReloading
                     if (itemToReload.Overrides != null)
                     {
                         var extendedPath = itemToReload.GraphPath.Clone();
-                        if (itemToReload.GraphPathIndex != Index.Empty)
+                        if (itemToReload.GraphPathIndex != NodeIndex.Empty)
                             extendedPath.PushIndex(itemToReload.GraphPathIndex);
 
                         var pathToPrepend = AssetNodeMetadataCollectorBase.ConvertPath(extendedPath);
@@ -165,7 +165,7 @@ namespace Xenko.Assets.Presentation.AssemblyReloading
             // TODO: Share this code with ContentValueChangeOperation?
             // TODO: How to better detect CollectionAdd vs ValueChange?
             ContentChangeType operationType;
-            if (index != Index.Empty)
+            if (index != NodeIndex.Empty)
             {
                 CollectionItemIdentifiers ids;
                 if (CollectionItemIdHelper.TryGetCollectionItemIds(node.Retrieve(), out ids))
@@ -199,7 +199,7 @@ namespace Xenko.Assets.Presentation.AssemblyReloading
             // TODO: Share this code with ContentValueChangeOperation?
             // TODO: How to better detect CollectionAdd vs ValueChange?
             ContentChangeType operationType;
-            if (index != Index.Empty)
+            if (index != NodeIndex.Empty)
             {
                 operationType = ContentChangeType.CollectionAdd;
                 ((IAssetObjectNode)node).Restore(itemToReload.UpdatedObject, index, itemToReload.ItemId);
@@ -292,7 +292,7 @@ namespace Xenko.Assets.Presentation.AssemblyReloading
                 // TODO: More advanced checks if IUnloadable is supposed to be a type from the unloaded assembly (this would avoid processing unecessary IUnloadable)
                 if (obj != null && (UnloadedAssemblies.Contains(obj.GetType().Assembly) || obj is IUnloadable))
                 {
-                    Index index;
+                    NodeIndex index;
                     var settings = new SerializerContextSettings(Log);
                     var path = GraphNodePath.From(propertyGraph.RootNode, CurrentPath, out index);
 
@@ -321,12 +321,12 @@ namespace Xenko.Assets.Presentation.AssemblyReloading
                 return false;
             }
 
-            private static YamlAssetMetadata<T> RemoveFirstIndexInYamlPath<T>([CanBeNull] YamlAssetMetadata<T> metadata, Index index)
+            private static YamlAssetMetadata<T> RemoveFirstIndexInYamlPath<T>([CanBeNull] YamlAssetMetadata<T> metadata, NodeIndex index)
             {
                 if (metadata != null)
                 {
                     // If we had an index we need to remove it from our override paths
-                    if (index != Index.Empty)
+                    if (index != NodeIndex.Empty)
                     {
                         var fixedMetadata = new YamlAssetMetadata<T>();
                         foreach (var entry in metadata)
@@ -390,7 +390,7 @@ namespace Xenko.Assets.Presentation.AssemblyReloading
                             foreach (var reference in references)
                             {
                                 var basePathWithIndex = basePath.Clone();
-                                if (unloadedObject.GraphPathIndex != Index.Empty)
+                                if (unloadedObject.GraphPathIndex != NodeIndex.Empty)
                                 {
                                     if (unloadedObject.ItemId == ItemId.Empty)
                                         basePathWithIndex.PushIndex(unloadedObject.GraphPathIndex.Value);
@@ -440,7 +440,7 @@ namespace Xenko.Assets.Presentation.AssemblyReloading
             /// <summary>
             /// The additional index to apply on the graph path to reach the item.
             /// </summary>
-            public Index GraphPathIndex;
+            public NodeIndex GraphPathIndex;
 
             /// <summary>
             /// The identifier of the item to reload, if relevant.

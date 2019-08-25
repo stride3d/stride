@@ -48,7 +48,7 @@ namespace Xenko.Core.Assets.Quantum.Visitors
         /// <param name="identifiable">The identifiable instance to process.</param>
         /// <param name="collection">The object node representing the collection referencing the identifiable instance.</param>
         /// <param name="index">The index at which the identifiable instance is referenced.</param>
-        protected abstract void ProcessIdentifiableItems([NotNull] IIdentifiable identifiable, IObjectNode collection, Index index);
+        protected abstract void ProcessIdentifiableItems([NotNull] IIdentifiable identifiable, IObjectNode collection, NodeIndex index);
 
         private void CheckAndProcessIdentifiableMember([NotNull] IMemberNode member)
         {
@@ -59,7 +59,7 @@ namespace Xenko.Core.Assets.Quantum.Visitors
             ProcessIdentifiableMembers(identifiable, member);
         }
 
-        private void CheckAndProcessIdentifiableItem([NotNull] IObjectNode collection, Index index)
+        private void CheckAndProcessIdentifiableItem([NotNull] IObjectNode collection, NodeIndex index)
         {
             var identifiable = collection.Retrieve(index) as IIdentifiable;
             if (identifiable == null)

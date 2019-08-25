@@ -17,24 +17,74 @@
 #ifndef OPENSL_ES_ANDROID_H_
 #define OPENSL_ES_ANDROID_H_
 
+#include "OpenSLES.h"
+#include "OpenSLES_AndroidConfiguration.h"
+#include "OpenSLES_AndroidMetadata.h"
+// Xenko: change from original file
+//#include <jni.h>
+typedef void* jobject;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "OpenSLES.h"
 
 /*---------------------------------------------------------------------------*/
 /* Android common types                                                      */
 /*---------------------------------------------------------------------------*/
 
-typedef sl_int64_t             SLAint64;           /* 64 bit signed integer */
+typedef sl_int64_t             SLAint64;          /* 64 bit signed integer   */
 
+typedef sl_uint64_t            SLAuint64;         /* 64 bit unsigned integer */
+
+/*---------------------------------------------------------------------------*/
+/* Android PCM Data Format                                                   */
+/*---------------------------------------------------------------------------*/
+
+/* The following pcm representations and data formats map to those in OpenSLES 1.1 */
+#define SL_ANDROID_PCM_REPRESENTATION_SIGNED_INT       ((SLuint32) 0x00000001)
+#define SL_ANDROID_PCM_REPRESENTATION_UNSIGNED_INT     ((SLuint32) 0x00000002)
+#define SL_ANDROID_PCM_REPRESENTATION_FLOAT            ((SLuint32) 0x00000003)
+
+#define SL_ANDROID_DATAFORMAT_PCM_EX    ((SLuint32) 0x00000004)
+
+typedef struct SLAndroidDataFormat_PCM_EX_ {
+    SLuint32         formatType;
+    SLuint32         numChannels;
+    SLuint32         sampleRate;
+    SLuint32         bitsPerSample;
+    SLuint32         containerSize;
+    SLuint32         channelMask;
+    SLuint32         endianness;
+    SLuint32         representation;
+} SLAndroidDataFormat_PCM_EX;
+
+#define SL_ANDROID_SPEAKER_NON_POSITIONAL       ((SLuint32) 0x80000000)
+
+// Make an indexed channel mask from a bitfield.
+//
+// Each bit in the bitfield corresponds to a channel index,
+// from least-significant bit (channel 0) up to the bit
+// corresponding to the maximum channel count (currently FCC_8).
+// A '1' in the bitfield indicates that the channel should be
+// included in the stream, while a '0' indicates that it
+// should be excluded. For instance, a bitfield of 0x0A (binary 00001010)
+// would define a stream that contains channels 1 and 3. (The corresponding
+// indexed mask, after setting the SL_ANDROID_NON_POSITIONAL bit,
+// would be 0x8000000A.)
+#define SL_ANDROID_MAKE_INDEXED_CHANNEL_MASK(bitfield) \
+        ((bitfield) | SL_ANDROID_SPEAKER_NON_POSITIONAL)
+
+// Specifying SL_ANDROID_SPEAKER_USE_DEFAULT as a channel mask in
+// SLAndroidDataFormat_PCM_EX causes OpenSL ES to assign a default
+// channel mask based on the number of channels requested. This
+// value cannot be combined with SL_ANDROID_SPEAKER_NON_POSITIONAL.
+#define SL_ANDROID_SPEAKER_USE_DEFAULT ((SLuint32)0)
 
 /*---------------------------------------------------------------------------*/
 /* Android Effect interface                                                  */
 /*---------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_ANDROIDEFFECT;
+extern SL_API const SLInterfaceID SL_IID_ANDROIDEFFECT;
 
 /** Android Effect interface methods */
 
@@ -71,7 +121,7 @@ struct SLAndroidEffectItf_ {
 /* Android Effect Send interface                                             */
 /*---------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_ANDROIDEFFECTSEND;
+extern SL_API const SLInterfaceID SL_IID_ANDROIDEFFECTSEND;
 
 /** Android Effect Send interface methods */
 
@@ -115,7 +165,7 @@ struct SLAndroidEffectSendItf_ {
 /* Android Effect Capabilities interface                                     */
 /*---------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_ANDROIDEFFECTCAPABILITIES;
+extern SL_API const SLInterfaceID SL_IID_ANDROIDEFFECTCAPABILITIES;
 
 /** Android Effect Capabilities interface methods */
 
@@ -140,12 +190,17 @@ struct SLAndroidEffectCapabilitiesItf_ {
 /*---------------------------------------------------------------------------*/
 /* Android Configuration interface                                           */
 /*---------------------------------------------------------------------------*/
-extern SLAPIENTRY const SLInterfaceID SL_IID_ANDROIDCONFIGURATION;
+extern SL_API const SLInterfaceID SL_IID_ANDROIDCONFIGURATION;
 
 /** Android Configuration interface methods */
 
 struct SLAndroidConfigurationItf_;
 typedef const struct SLAndroidConfigurationItf_ * const * SLAndroidConfigurationItf;
+
+/*
+ * Java Proxy Type IDs
+ */
+#define SL_ANDROID_JAVA_PROXY_ROUTING   0x0001
 
 struct SLAndroidConfigurationItf_ {
 
@@ -159,6 +214,13 @@ struct SLAndroidConfigurationItf_ {
            SLuint32 *pValueSize,
            void *pConfigValue
        );
+
+    SLresult (*AcquireJavaProxy) (SLAndroidConfigurationItf self,
+            SLuint32 proxyType,
+            jobject *pProxyObj);
+
+    SLresult (*ReleaseJavaProxy) (SLAndroidConfigurationItf self,
+            SLuint32 proxyType);
 };
 
 
@@ -166,12 +228,12 @@ struct SLAndroidConfigurationItf_ {
 /* Android Simple Buffer Queue Interface                                     */
 /*---------------------------------------------------------------------------*/
 
-extern SLAPIENTRY const SLInterfaceID SL_IID_ANDROIDSIMPLEBUFFERQUEUE;
+extern SL_API const SLInterfaceID SL_IID_ANDROIDSIMPLEBUFFERQUEUE;
 
 struct SLAndroidSimpleBufferQueueItf_;
 typedef const struct SLAndroidSimpleBufferQueueItf_ * const * SLAndroidSimpleBufferQueueItf;
 
-typedef void (/*SLAPIENTRY*/ *slAndroidSimpleBufferQueueCallback)(
+typedef void (SLAPIENTRY *slAndroidSimpleBufferQueueCallback)(
 	SLAndroidSimpleBufferQueueItf caller,
 	void *pContext
 );
@@ -206,6 +268,90 @@ struct SLAndroidSimpleBufferQueueItf_ {
 
 
 /*---------------------------------------------------------------------------*/
+/* Android Buffer Queue Interface                                            */
+/*---------------------------------------------------------------------------*/
+
+extern SL_API const SLInterfaceID SL_IID_ANDROIDBUFFERQUEUESOURCE;
+
+struct SLAndroidBufferQueueItf_;
+typedef const struct SLAndroidBufferQueueItf_ * const * SLAndroidBufferQueueItf;
+
+#define SL_ANDROID_ITEMKEY_NONE             ((SLuint32) 0x00000000)
+#define SL_ANDROID_ITEMKEY_EOS              ((SLuint32) 0x00000001)
+#define SL_ANDROID_ITEMKEY_DISCONTINUITY    ((SLuint32) 0x00000002)
+#define SL_ANDROID_ITEMKEY_BUFFERQUEUEEVENT ((SLuint32) 0x00000003)
+#define SL_ANDROID_ITEMKEY_FORMAT_CHANGE    ((SLuint32) 0x00000004)
+
+#define SL_ANDROIDBUFFERQUEUEEVENT_NONE        ((SLuint32) 0x00000000)
+#define SL_ANDROIDBUFFERQUEUEEVENT_PROCESSED   ((SLuint32) 0x00000001)
+#if 0   // reserved for future use
+#define SL_ANDROIDBUFFERQUEUEEVENT_UNREALIZED  ((SLuint32) 0x00000002)
+#define SL_ANDROIDBUFFERQUEUEEVENT_CLEARED     ((SLuint32) 0x00000004)
+#define SL_ANDROIDBUFFERQUEUEEVENT_STOPPED     ((SLuint32) 0x00000008)
+#define SL_ANDROIDBUFFERQUEUEEVENT_ERROR       ((SLuint32) 0x00000010)
+#define SL_ANDROIDBUFFERQUEUEEVENT_CONTENT_END ((SLuint32) 0x00000020)
+#endif
+
+typedef struct SLAndroidBufferItem_ {
+    SLuint32 itemKey;  // identifies the item
+    SLuint32 itemSize;
+    SLuint8  itemData[0];
+} SLAndroidBufferItem;
+
+typedef SLresult (SLAPIENTRY *slAndroidBufferQueueCallback)(
+    SLAndroidBufferQueueItf caller,/* input */
+    void *pCallbackContext,        /* input */
+    void *pBufferContext,          /* input */
+    void *pBufferData,             /* input */
+    SLuint32 dataSize,             /* input */
+    SLuint32 dataUsed,             /* input */
+    const SLAndroidBufferItem *pItems,/* input */
+    SLuint32 itemsLength           /* input */
+);
+
+typedef struct SLAndroidBufferQueueState_ {
+    SLuint32    count;
+    SLuint32    index;
+} SLAndroidBufferQueueState;
+
+struct SLAndroidBufferQueueItf_ {
+    SLresult (*RegisterCallback) (
+        SLAndroidBufferQueueItf self,
+        slAndroidBufferQueueCallback callback,
+        void* pCallbackContext
+    );
+
+    SLresult (*Clear) (
+        SLAndroidBufferQueueItf self
+    );
+
+    SLresult (*Enqueue) (
+        SLAndroidBufferQueueItf self,
+        void *pBufferContext,
+        void *pData,
+        SLuint32 dataLength,
+        const SLAndroidBufferItem *pItems,
+        SLuint32 itemsLength
+    );
+
+    SLresult (*GetState) (
+        SLAndroidBufferQueueItf self,
+        SLAndroidBufferQueueState *pState
+    );
+
+    SLresult (*SetCallbackEventsMask) (
+            SLAndroidBufferQueueItf self,
+            SLuint32 eventFlags
+    );
+
+    SLresult (*GetCallbackEventsMask) (
+            SLAndroidBufferQueueItf self,
+            SLuint32 *pEventFlags
+    );
+};
+
+
+/*---------------------------------------------------------------------------*/
 /* Android File Descriptor Data Locator                                      */
 /*---------------------------------------------------------------------------*/
 
@@ -230,12 +376,91 @@ typedef struct SLDataLocator_AndroidFD_ {
 /** Addendum to Data locator macros  */
 #define SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE ((SLuint32) 0x800007BD)
 
-/** BufferQueue-based data locator definition where locatorType must be SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE*/
+/** BufferQueue-based data locator definition where locatorType must
+ *  be SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE
+ */
 typedef struct SLDataLocator_AndroidSimpleBufferQueue {
 	SLuint32	locatorType;
 	SLuint32	numBuffers;
 } SLDataLocator_AndroidSimpleBufferQueue;
 
+
+/*---------------------------------------------------------------------------*/
+/* Android Buffer Queue Data Locator                                         */
+/*---------------------------------------------------------------------------*/
+
+/** Addendum to Data locator macros  */
+#define SL_DATALOCATOR_ANDROIDBUFFERQUEUE       ((SLuint32) 0x800007BE)
+
+/** Android Buffer Queue-based data locator definition,
+ *  locatorType must be SL_DATALOCATOR_ANDROIDBUFFERQUEUE */
+typedef struct SLDataLocator_AndroidBufferQueue_ {
+    SLuint32    locatorType;
+    SLuint32    numBuffers;
+} SLDataLocator_AndroidBufferQueue;
+
+/**
+ * MIME types required for data in Android Buffer Queues
+ */
+#define SL_ANDROID_MIME_AACADTS            ((SLchar *) "audio/vnd.android.aac-adts")
+
+/*---------------------------------------------------------------------------*/
+/* Acoustic Echo Cancellation (AEC) Interface                                */
+/* --------------------------------------------------------------------------*/
+extern SL_API const SLInterfaceID SL_IID_ANDROIDACOUSTICECHOCANCELLATION;
+
+struct SLAndroidAcousticEchoCancellationItf_;
+typedef const struct SLAndroidAcousticEchoCancellationItf_ * const *
+        SLAndroidAcousticEchoCancellationItf;
+
+struct SLAndroidAcousticEchoCancellationItf_ {
+    SLresult (*SetEnabled)(
+        SLAndroidAcousticEchoCancellationItf self,
+        SLboolean enabled
+    );
+    SLresult (*IsEnabled)(
+        SLAndroidAcousticEchoCancellationItf self,
+        SLboolean *pEnabled
+    );
+};
+
+/*---------------------------------------------------------------------------*/
+/* Automatic Gain Control (ACC) Interface                                    */
+/* --------------------------------------------------------------------------*/
+extern SL_API const SLInterfaceID SL_IID_ANDROIDAUTOMATICGAINCONTROL;
+
+struct SLAndroidAutomaticGainControlItf_;
+typedef const struct SLAndroidAutomaticGainControlItf_ * const * SLAndroidAutomaticGainControlItf;
+
+struct SLAndroidAutomaticGainControlItf_ {
+    SLresult (*SetEnabled)(
+        SLAndroidAutomaticGainControlItf self,
+        SLboolean enabled
+    );
+    SLresult (*IsEnabled)(
+        SLAndroidAutomaticGainControlItf self,
+        SLboolean *pEnabled
+    );
+};
+
+/*---------------------------------------------------------------------------*/
+/* Noise Suppression Interface                                               */
+/* --------------------------------------------------------------------------*/
+extern SL_API const SLInterfaceID SL_IID_ANDROIDNOISESUPPRESSION;
+
+struct SLAndroidNoiseSuppressionItf_;
+typedef const struct SLAndroidNoiseSuppressionItf_ * const * SLAndroidNoiseSuppressionItf;
+
+struct SLAndroidNoiseSuppressionItf_ {
+    SLresult (*SetEnabled)(
+        SLAndroidNoiseSuppressionItf self,
+        SLboolean enabled
+    );
+    SLresult (*IsEnabled)(
+        SLAndroidNoiseSuppressionItf self,
+        SLboolean *pEnabled
+    );
+};
 
 #ifdef __cplusplus
 }

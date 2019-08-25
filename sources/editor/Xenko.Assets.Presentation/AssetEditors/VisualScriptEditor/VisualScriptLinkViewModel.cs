@@ -55,10 +55,10 @@ namespace Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor
             var path = new GraphNodePath(Method.Editor.Session.AssetNodeContainer.GetNode(asset));
             path.PushMember(nameof(VisualScriptAsset.Methods));
             path.PushTarget();
-            path.PushIndex(new Index(asset.Methods.IndexOf(Method.Method.Method)));
+            path.PushIndex(new NodeIndex(asset.Methods.IndexOf(Method.Method.Method)));
             path.PushMember(nameof(Scripts.Method.Links));
             path.PushTarget();
-            path.PushIndex(new Index(link.Id));
+            path.PushIndex(new NodeIndex(link.Id));
             path.PushTarget();
             return path;
         }
@@ -66,6 +66,6 @@ namespace Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor
         IObjectNode IPropertyProviderViewModel.GetRootNode() => Editor.Session.AssetNodeContainer.GetNode(link);
 
         bool IPropertyProviderViewModel.ShouldConstructMember(IMemberNode member) => true;
-        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, Index index) => true;
+        bool IPropertyProviderViewModel.ShouldConstructItem(IObjectNode collection, NodeIndex index) => true;
     }
 }

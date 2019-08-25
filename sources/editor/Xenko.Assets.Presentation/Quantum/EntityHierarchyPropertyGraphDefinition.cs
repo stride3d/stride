@@ -13,7 +13,7 @@ namespace Xenko.Assets.Presentation.Quantum
             return value is EntityComponent || base.IsMemberTargetObjectReference(member, value);
         }
 
-        public override bool IsTargetItemObjectReference(IObjectNode collection, Index itemIndex, object value)
+        public override bool IsTargetItemObjectReference(IObjectNode collection, NodeIndex itemIndex, object value)
         {
             if (value is EntityComponent)
             {

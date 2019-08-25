@@ -13,7 +13,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
     {
         protected readonly IObjectNode Container;
 
-        public ItemNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, [NotNull] IObjectNode container, Index index)
+        public ItemNodePresenter([NotNull] INodePresenterFactoryInternal factory, IPropertyProviderViewModel propertyProvider, [NotNull] INodePresenter parent, [NotNull] IObjectNode container, NodeIndex index)
             : base(factory, propertyProvider, parent)
         {
             if (factory == null) throw new ArgumentNullException(nameof(factory));
@@ -42,7 +42,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
 
         public INodePresenter OwnerCollection { get; }
 
-        public sealed override Index Index { get; }
+        public sealed override NodeIndex Index { get; }
 
         public override Type Type { get; }
 
@@ -81,7 +81,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
             }
         }
 
-        public override void AddItem(object value, Index index)
+        public override void AddItem(object value, NodeIndex index)
         {
             if (Container.IndexedTarget(Index) == null || !Container.IndexedTarget(Index).IsEnumerable)
                 throw new NodePresenterException($"{nameof(MemberNodePresenter)}.{nameof(AddItem)} cannot be invoked on members that are not collection.");
@@ -96,7 +96,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
             }
         }
 
-        public override void RemoveItem(object value, Index index)
+        public override void RemoveItem(object value, NodeIndex index)
         {
             if (Container.IndexedTarget(Index) == null || !Container.IndexedTarget(Index).IsEnumerable)
                 throw new NodePresenterException($"{nameof(MemberNodePresenter)}.{nameof(AddItem)} cannot be invoked on members that are not collection.");
@@ -136,7 +136,7 @@ namespace Xenko.Core.Presentation.Quantum.Presenters
             return IsValidChange(e.ChangeType, e.Index, Index);
         }
 
-        public static bool IsValidChange(ContentChangeType changeType, Index changeIndex, Index presenterIndex)
+        public static bool IsValidChange(ContentChangeType changeType, NodeIndex changeIndex, NodeIndex presenterIndex)
         {
             // We should care only if the change is an update at the same index.
             // Other scenarios (add, remove) are handled by the parent node.

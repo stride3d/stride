@@ -15,7 +15,7 @@ namespace Xenko.Core.Quantum.References
     /// </summary>
     public sealed class ReferenceEnumerable : IReferenceInternal, IEnumerable<ObjectReference>
     {
-        private HybridDictionary<Index, ObjectReference> items;
+        private HybridDictionary<NodeIndex, ObjectReference> items;
 
         internal ReferenceEnumerable(IEnumerable enumerable, [NotNull] Type enumerableType)
         {
@@ -46,10 +46,10 @@ namespace Xenko.Core.Quantum.References
         /// <summary>
         /// Gets the indices of each reference in this instance.
         /// </summary>
-        internal IReadOnlyCollection<Index> Indices { get; private set; }
+        internal IReadOnlyCollection<NodeIndex> Indices { get; private set; }
 
         /// <inheritdoc/>
-        public ObjectReference this[Index index] => items[index];
+        public ObjectReference this[NodeIndex index] => items[index];
 
         /// <summary>
         /// Indicates whether the reference contains the given index.
@@ -57,7 +57,7 @@ namespace Xenko.Core.Quantum.References
         /// <param name="index">The index to check.</param>
         /// <returns><c>True</c> if the reference contains the given index, <c>False</c> otherwise.</returns>
         /// <remarks>If it is an <see cref="ObjectReference"/> it will return true only for <c>null</c>.</remarks>
-        public bool HasIndex(Index index)
+        public bool HasIndex(NodeIndex index)
         {
             return items?.ContainsKey(index) ?? false;
         }
@@ -69,7 +69,7 @@ namespace Xenko.Core.Quantum.References
 
             ObjectValue = newObjectValue;
 
-            var newReferences = new HybridDictionary<Index, ObjectReference>();
+            var newReferences = new HybridDictionary<NodeIndex, ObjectReference>();
             if (IsDictionary)
             {
                 foreach (var item in (IEnumerable)ObjectValue)
@@ -84,7 +84,7 @@ namespace Xenko.Core.Quantum.References
                 var i = 0;
                 foreach (var item in (IEnumerable)ObjectValue)
                 {
-                    var key = new Index(i);
+                    var key = new NodeIndex(i);
                     var value = (ObjectReference)Reference.CreateReference(item, ElementType, key, true);
                     newReferences.Add(key, value);
                     ++i;
@@ -148,7 +148,7 @@ namespace Xenko.Core.Quantum.References
                 }
                 items = newReferences;
                 // Remark: this works because both KeyCollection and List implements IReadOnlyCollection. Any internal change to HybridDictionary might break this!
-                Indices = (IReadOnlyCollection<Index>)newReferences.Keys;
+                Indices = (IReadOnlyCollection<NodeIndex>)newReferences.Keys;
             }
         }
 
@@ -174,7 +174,7 @@ namespace Xenko.Core.Quantum.References
             return ReferenceEquals(this, otherEnumerable) || AreItemsEqual(items, otherEnumerable.items);
         }
 
-        private static bool AreItemsEqual(HybridDictionary<Index, ObjectReference> items1, HybridDictionary<Index, ObjectReference> items2)
+        private static bool AreItemsEqual(HybridDictionary<NodeIndex, ObjectReference> items1, HybridDictionary<NodeIndex, ObjectReference> items2)
         {
             if (ReferenceEquals(items1, items2))
                 return true;
@@ -218,12 +218,12 @@ namespace Xenko.Core.Quantum.References
             return text;
         }
 
-        private static Index GetKey([NotNull] object keyValuePair)
+        private static NodeIndex GetKey([NotNull] object keyValuePair)
         {
             var type = keyValuePair.GetType();
             if (!type.IsGenericType || type.GetGenericTypeDefinition() != typeof(KeyValuePair<,>)) throw new ArgumentException("The given object is not a KeyValuePair.");
             var keyProperty = type.GetProperty(nameof(KeyValuePair<object, object>.Key));
-            return new Index(keyProperty.GetValue(keyValuePair));
+            return new NodeIndex(keyProperty.GetValue(keyValuePair));
         }
 
         private static object GetValue([NotNull] object keyValuePair)
@@ -239,7 +239,7 @@ namespace Xenko.Core.Quantum.References
         /// </summary>
         private class ReferenceEnumerator : IEnumerator<ObjectReference>
         {
-            private readonly IEnumerator<Index> indexEnumerator;
+            private readonly IEnumerator<NodeIndex> indexEnumerator;
             private ReferenceEnumerable obj;
 
             public ReferenceEnumerator([NotNull] ReferenceEnumerable obj)

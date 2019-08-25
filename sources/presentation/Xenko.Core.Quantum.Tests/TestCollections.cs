@@ -34,14 +34,14 @@ namespace Xenko.Core.Quantum.Tests
             var container = new ListContainer { List = { new SimpleObject(), new SimpleObject() } };
             var containerNode = nodeContainer.GetOrCreateNode(container);
             var oldList = container.List;
-            var oldItem1Node = containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new Index(0));
-            var oldItem2Node = containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new Index(1));
+            var oldItem1Node = containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(0));
+            var oldItem2Node = containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(1));
             containerNode[nameof(ListContainer.List)].Update(new List<SimpleObject> { new SimpleObject(), new SimpleObject() });
             Assert.NotEqual(oldList, containerNode[nameof(ListContainer.List)].Retrieve());
-            Assert.NotEqual(oldItem1Node, containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new Index(0)));
-            Assert.NotEqual(oldItem1Node.Retrieve(), containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new Index(0)).Retrieve());
-            Assert.NotEqual(oldItem2Node, containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new Index(1)));
-            Assert.NotEqual(oldItem2Node.Retrieve(), containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new Index(1)).Retrieve());
+            Assert.NotEqual(oldItem1Node, containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(0)));
+            Assert.NotEqual(oldItem1Node.Retrieve(), containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(0)).Retrieve());
+            Assert.NotEqual(oldItem2Node, containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(1)));
+            Assert.NotEqual(oldItem2Node.Retrieve(), containerNode[nameof(ListContainer.List)].Target.IndexedTarget(new NodeIndex(1)).Retrieve());
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyItem(memberNode, 3, items[1], false);
             VerifyItem(memberNode, 4, items[0], false);
 
-            memberNode.Target.Update(items[1], new Index(2));
+            memberNode.Target.Update(items[1], new NodeIndex(2));
             VerifyItem(memberNode, 0, items[0], false);
             VerifyItem(memberNode, 1, items[1], false);
             VerifyItem(memberNode, 2, items[1], false);
@@ -91,7 +91,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyItem(memberNode, 2, items[2], false);
 
             // Update existing item (with a different type here)
-            memberNode.Target.Update(items[3], new Index(2));
+            memberNode.Target.Update(items[3], new NodeIndex(2));
             VerifyItem(memberNode, 0, items[0], false);
             VerifyItem(memberNode, 1, items[1], false);
             VerifyItem(memberNode, 2, items[3], false);
@@ -117,7 +117,7 @@ namespace Xenko.Core.Quantum.Tests
             VerifyItem(memberNode, 2, 3.0f, true);
 
             // Update existing item (with a different type here)
-            memberNode.Target.Update(4.0, new Index(2));
+            memberNode.Target.Update(4.0, new NodeIndex(2));
             VerifyItem(memberNode, 0, 1.0f, true);
             VerifyItem(memberNode, 1, 2.0f, true);
             VerifyItem(memberNode, 2, 4.0, true);
@@ -137,11 +137,11 @@ namespace Xenko.Core.Quantum.Tests
             Assert.True(containerNode[nameof(ListContainer.ObjectMember)].IsReference);
             Assert.NotNull(containerNode[nameof(ListContainer.ObjectMember)].Target.Indices);
             Assert.Equal(2, containerNode[nameof(ListContainer.ObjectMember)].Target.Indices.Count());
-            Assert.Equal(new Index(0), containerNode[nameof(ListContainer.ObjectMember)].Target.Indices.ToList()[0]);
-            Assert.Equal(new Index(1), containerNode[nameof(ListContainer.ObjectMember)].Target.Indices.ToList()[1]);
+            Assert.Equal(new NodeIndex(0), containerNode[nameof(ListContainer.ObjectMember)].Target.Indices.ToList()[0]);
+            Assert.Equal(new NodeIndex(1), containerNode[nameof(ListContainer.ObjectMember)].Target.Indices.ToList()[1]);
             Assert.Equal(TypeDescriptorFactory.Default.Find(typeof(object)), containerNode[nameof(ListContainer.ObjectMember)].Descriptor);
-            Assert.Equal(((IList)values[1])[0], containerNode[nameof(ListContainer.ObjectMember)].Target.IndexedTarget(new Index(0)));
-            Assert.Equal(((IList)values[1])[1], containerNode[nameof(ListContainer.ObjectMember)].Target.IndexedTarget(new Index(1)));
+            Assert.Equal(((IList)values[1])[0], containerNode[nameof(ListContainer.ObjectMember)].Target.IndexedTarget(new NodeIndex(0)));
+            Assert.Equal(((IList)values[1])[1], containerNode[nameof(ListContainer.ObjectMember)].Target.IndexedTarget(new NodeIndex(1)));
             Assert.Equal(typeof(object), containerNode[nameof(ListContainer.ObjectMember)].Type);
             // TODO: more things could be checked!
             containerNode[nameof(ListContainer.ObjectMember)].Update(values[2]);
@@ -153,7 +153,7 @@ namespace Xenko.Core.Quantum.Tests
         {
             var targetNode = listMemberNode.Target;
             var enumRef = targetNode.ItemReferences;
-            var indexValue = new Index(index);
+            var indexValue = new NodeIndex(index);
 
             Assert.NotNull(enumRef);
             Assert.NotNull(targetNode.Indices);

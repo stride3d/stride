@@ -79,6 +79,8 @@
     <XenkoPlatformDefines>XENKO_PLATFORM_MONO_MOBILE;XENKO_PLATFORM_ANDROID;NET45</XenkoPlatformDefines>
     <AndroidStoreUncompressedFileExtensions />
     <MandroidI18n />
+    <!-- Avoid Xamarin.Android.Common.targets(519,3): error MSB4044: The "FilterAssemblies" task was not given a value for the required parameter "DesignTimeBuild". -->
+    <DesignTimeBuild Condition="'$(DesignTimeBuild)' == ''">False</DesignTimeBuild>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Android' And '$(OutputType)' == 'Exe' ">
     <AndroidApplication>true</AndroidApplication>

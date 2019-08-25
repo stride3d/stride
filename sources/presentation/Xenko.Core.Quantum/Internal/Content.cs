@@ -11,13 +11,13 @@ namespace Xenko.Core.Quantum
     internal static class Content
     {
         /// <summary>
-        /// Retrieves the value itself or the value of one of its item, depending on the given <see cref="Index"/>.
+        /// Retrieves the value itself or the value of one of its item, depending on the given <see cref="NodeIndex"/>.
         /// </summary>
         /// <param name="value">The value on which this method applies.</param>
-        /// <param name="index">The index of the item to retrieve. If <see cref="Index.Empty"/> is passed, this method will return the value itself.</param>
+        /// <param name="index">The index of the item to retrieve. If <see cref="NodeIndex.Empty"/> is passed, this method will return the value itself.</param>
         /// <param name="descriptor">The descriptor of the type of <paramref name="value"/>.</param>
         /// <returns>The value itself or the value of one of its item.</returns>
-        public static object Retrieve(object value, Index index, ITypeDescriptor descriptor)
+        public static object Retrieve(object value, NodeIndex index, ITypeDescriptor descriptor)
         {
             if (index.IsEmpty)
                 return value;

@@ -19,14 +19,14 @@ namespace Xenko.Core.Quantum
         /// <summary>
         /// The index of the accessor.
         /// </summary>
-        public readonly Index Index;
+        public readonly NodeIndex Index;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NodeAccessor"/> structure.
         /// </summary>
         /// <param name="node">The target node of this accessor.</param>
-        /// <param name="index">The index of the target item if this accessor target an item. <see cref="Quantum.Index.Empty"/> otherwise.</param>
-        public NodeAccessor([NotNull] IGraphNode node, Index index)
+        /// <param name="index">The index of the target item if this accessor target an item. <see cref="Quantum.NodeIndex.Empty"/> otherwise.</param>
+        public NodeAccessor([NotNull] IGraphNode node, NodeIndex index)
         {
             if (node == null) throw new ArgumentNullException(nameof(node));
             if (node is IMemberNode && !index.IsEmpty) throw new ArgumentException($"Cannot create an accessor for an {nameof(IMemberNode)} that use a non-empty index.");
@@ -57,7 +57,7 @@ namespace Xenko.Core.Quantum
         /// <param name="value">The new value to set.</param>
         public void UpdateValue(object value)
         {
-            if (Index != Index.Empty)
+            if (Index != NodeIndex.Empty)
             {
                 ((IObjectNode)Node).Update(value, Index);
             }

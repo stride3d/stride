@@ -138,7 +138,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
         }
 
         // TODO: replace targetNode & index arguments by a NodeAccessor
-        private void Paste([NotNull] IPasteItem pasteResultItem, IGraphNode targetNode, Index index, bool replace)
+        private void Paste([NotNull] IPasteItem pasteResultItem, IGraphNode targetNode, NodeIndex index, bool replace)
         {
             if (pasteResultItem?.Data == null) throw new ArgumentNullException(nameof(pasteResultItem));
             if (targetNode == null) throw new ArgumentNullException(nameof(targetNode));
@@ -187,7 +187,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
                         // If this operation is a replace of the whole dictionary, let's first clear it
                         foreach (var key in keys)
                         {
-                            var itemIndex = new Index(key);
+                            var itemIndex = new NodeIndex(key);
                             if (CanRemoveItem(collectionNode, itemIndex))
                             {
                                 var itemToRemove = targetNode.Retrieve(itemIndex);
@@ -207,7 +207,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
                 }
                 foreach (var kv in copiedDataDictionaryDescriptor.GetEnumerator(copiedData))
                 {
-                    var itemIndex = new Index(kv.Key);
+                    var itemIndex = new NodeIndex(kv.Key);
                     if (existingKeys.Contains(itemIndex))
                     {
                         // Replace if the key already exists
@@ -238,7 +238,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
                         var count = targetCollectionDescriptor.GetCollectionCount(targetNode.Retrieve());
                         for (var j = count - 1; j >= 0; j--)
                         {
-                            var itemIndex = new Index(j);
+                            var itemIndex = new NodeIndex(j);
                             if (CanRemoveItem(collectionNode, itemIndex))
                             {
                                 var itemToRemove = targetNode.Retrieve(itemIndex);
@@ -250,7 +250,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
                         var i = 0;
                         foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
                         {
-                            var itemIndex = new Index(i);
+                            var itemIndex = new NodeIndex(i);
                             if (CanInsertItem(collectionNode, itemIndex, item))
                             {
                                 InsertItem(collectionNode, itemIndex, item);
@@ -266,7 +266,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
                         bool firstItemReplaced = false;
                         foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
                         {
-                            var itemIndex = new Index(startIndex + i);
+                            var itemIndex = new NodeIndex(startIndex + i);
                             if (!firstItemReplaced)
                             {
                                 // We replace the first item.
@@ -295,7 +295,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
                         var i = targetCollectionDescriptor.GetCollectionCount(targetNode.Retrieve());
                         foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
                         {
-                            var itemIndex = new Index(i);
+                            var itemIndex = new NodeIndex(i);
                             if (CanInsertItem(collectionNode, itemIndex, item))
                             {
                                 InsertItem(collectionNode, itemIndex, item);
@@ -310,7 +310,7 @@ namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
                         foreach (var item in EnumerateItems(copiedData, copiedDataDescriptor))
                         {
                             // We're pasting a collection into the collection, let's add all items at the given index if provided or at the end of the collection.
-                            var itemIndex = new Index(i);
+                            var itemIndex = new NodeIndex(i);
                             if (CanInsertItem(collectionNode, itemIndex, item))
                             {
                                 InsertItem(collectionNode, itemIndex, item);
@@ -327,17 +327,17 @@ namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
             return member != null && member.MemberDescriptor.HasSet;
         }
 
-        protected virtual bool CanRemoveItem(IObjectNode collection, Index index)
+        protected virtual bool CanRemoveItem(IObjectNode collection, NodeIndex index)
         {
             return true;
         }
 
-        protected virtual bool CanReplaceItem(IObjectNode collection, Index index, object newItem)
+        protected virtual bool CanReplaceItem(IObjectNode collection, NodeIndex index, object newItem)
         {
             return true;
         }
 
-        protected virtual bool CanInsertItem(IObjectNode collection, Index index, object newItem)
+        protected virtual bool CanInsertItem(IObjectNode collection, NodeIndex index, object newItem)
         {
             return true;
         }
@@ -347,12 +347,12 @@ namespace Xenko.Core.Assets.Editor.ViewModel.CopyPasteProcessors
             member.Update(newValue);
         }
 
-        protected virtual void ReplaceItem(IObjectNode collection, Index index, object newItem)
+        protected virtual void ReplaceItem(IObjectNode collection, NodeIndex index, object newItem)
         {
             collection.Update(newItem, index);
         }
 
-        protected virtual void InsertItem(IObjectNode collection, Index index, object newItem)
+        protected virtual void InsertItem(IObjectNode collection, NodeIndex index, object newItem)
         {
             collection.Add(newItem, index);
         }
