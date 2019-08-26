@@ -11,7 +11,7 @@
     <PackageReference Include="Xenko.UI" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Effects\ComputeColorWave.xksl">
+    <None Update="Effects\ComputeColorWave.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ComputeColorWave.cs</LastGenOutput>
     </None>
@@ -21,7 +21,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>ComputeColorWave.xksl</DependentUpon>
     </Compile>
-    <None Include="Effects\ComputeColorWaveNormal.xksl">
+    <None Update="Effects\ComputeColorWaveNormal.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ComputeColorWaveNormal.cs</LastGenOutput>
     </None>

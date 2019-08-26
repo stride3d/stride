@@ -11,7 +11,7 @@
     <PackageReference Include="Xenko.UI" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Effects\Effect.xksl">
+    <None Update="Effects\Effect.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>Effect.cs</LastGenOutput>
     </None>

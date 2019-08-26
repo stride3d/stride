@@ -55,7 +55,7 @@
     <ProjectReference Include="..\..\editor\Xenko.Assets.Presentation\Xenko.Assets.Presentation.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="TestGenerator.xksl">
+    <None Update="TestGenerator.xksl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

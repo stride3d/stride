@@ -134,7 +134,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>%(Filename).xkfx</DependentUpon>
     </Compile>
-    <None Include="Shaders\*.xkfx">
+    <None Update="Shaders\*.xkfx">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>%(Filename).cs</LastGenOutput>
     </None>

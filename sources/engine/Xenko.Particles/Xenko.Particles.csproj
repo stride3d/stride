@@ -76,35 +76,35 @@
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\ComputeColorWhite.xksl">
+    <None Update="Shaders\ComputeColorWhite.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ComputeColorWhite.cs</LastGenOutput>
     </None>
-    <None Include="Shaders\ParticleBase.xksl">
+    <None Update="Shaders\ParticleBase.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ParticleBase.cs</LastGenOutput>
     </None>
-    <None Include="Shaders\ParticleBaseEffect.xkfx">
+    <None Update="Shaders\ParticleBaseEffect.xkfx">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ParticleBaseEffect.cs</LastGenOutput>
     </None>
-    <None Include="Shaders\ParticleColor.xksl">
+    <None Update="Shaders\ParticleColor.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ParticleColor.cs</LastGenOutput>
     </None>
-    <None Include="Shaders\ParticleColorStream.xksl">
+    <None Update="Shaders\ParticleColorStream.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ParticleColorStream.cs</LastGenOutput>
     </None>
-    <None Include="Shaders\ParticleComputeColorShader.xksl">
+    <None Update="Shaders\ParticleComputeColorShader.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ParticleComputeColorShader.cs</LastGenOutput>
     </None>
-    <None Include="Shaders\ParticleEffect.xkfx">
+    <None Update="Shaders\ParticleEffect.xkfx">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ParticleEffect.cs</LastGenOutput>
     </None>
-    <None Include="Shaders\ParticleUtilities.xksl">
+    <None Update="Shaders\ParticleUtilities.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ParticleUtilities.cs</LastGenOutput>
     </None>

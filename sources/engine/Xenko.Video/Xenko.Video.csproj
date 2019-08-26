@@ -56,7 +56,7 @@
     </When>
   </Choose>
   <ItemGroup>
-    <None Include="Shaders\VideoShader.xksl">
+    <None Update="Shaders\VideoShader.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>VideoShader.cs</LastGenOutput>
     </None>

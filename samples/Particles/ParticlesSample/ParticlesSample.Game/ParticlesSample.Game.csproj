@@ -12,7 +12,7 @@
     <PackageReference Include="Xenko.UI" Version="3.1.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Effects\ComputeColorRadial.xksl">
+    <None Update="Effects\ComputeColorRadial.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ComputeColorRadial.cs</LastGenOutput>
     </None>
@@ -22,7 +22,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>ComputeColorRadial.xksl</DependentUpon>
     </Compile>
-    <None Include="Effects\ComputeColorRed.xksl">
+    <None Update="Effects\ComputeColorRed.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ComputeColorRed.cs</LastGenOutput>
     </None>
@@ -32,7 +32,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>ComputeColorRed.xksl</DependentUpon>
     </Compile>
-    <None Include="Effects\ComputeColorTextureScroll.xksl">
+    <None Update="Effects\ComputeColorTextureScroll.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ComputeColorTextureScroll.cs</LastGenOutput>
     </None>
@@ -42,7 +42,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>ComputeColorTextureScroll.xksl</DependentUpon>
     </Compile>
-    <None Include="Effects\ParticleCustomEffect.xkfx">
+    <None Update="Effects\ParticleCustomEffect.xkfx">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ParticleCustomEffect.cs</LastGenOutput>
     </None>
@@ -52,7 +52,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>ParticleCustomEffect.xkfx</DependentUpon>
     </Compile>
-    <None Include="Effects\ParticleCustomShader.xksl">
+    <None Update="Effects\ParticleCustomShader.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>ParticleCustomShader.cs</LastGenOutput>
     </None>
