@@ -127,16 +127,20 @@ namespace Xenko.VisualStudio
             dte2 = GetGlobalService(typeof(SDTE)) as DTE2;
 
             // Register the C# language service
-            var serviceContainer = this as IServiceContainer;
-            errorListProvider = new ErrorListProvider(this)
-            {
-                ProviderGuid = new Guid("ad1083c5-32ad-403d-af3d-32fee7abbdf1"),
-                ProviderName = "Xenko Shading Language"
-            };
-            var langService = new NShaderLanguageService(errorListProvider);
-            langService.SetSite(this);
-            langService.InitializeColors(); // Make sure to initialize colors before registering!
-            serviceContainer.AddService(typeof(NShaderLanguageService), langService, true);
+            // inspiration & credits: https://github.com/IInspectable/Nav.Language.Extensions/commit/08af3d897afac5a54975660fa03f4b629da405e1#diff-b73c0f368f242625f60cfad9cc11f2d5R88
+            AddService(typeof(NShaderLanguageService), async (container, ct, type) =>
+                {
+                   await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
+                   errorListProvider = new ErrorListProvider(this)
+                   {
+                       ProviderGuid = new Guid("ad1083c5-32ad-403d-af3d-32fee7abbdf1"),
+                       ProviderName = "Xenko Shading Language"
+                   };
+                   var langService = new NShaderLanguageService(errorListProvider);
+                   langService.SetSite(this);
+                   langService.InitializeColors(); // Make sure to initialize colors before registering!
+                   return langService;
+               }, true);
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
             var mcs = await GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
@@ -392,7 +396,7 @@ namespace Xenko.VisualStudio
                     {
                         generalOutputPane.OutputStringThreadSafe($"Error Initializing Xenko Language Service: {ex.InnerException ?? ex}\r\n");
                         generalOutputPane.Activate();
-                        errorListProvider.Tasks.Add(new ErrorTask(ex.InnerException ?? ex));
+                        errorListProvider?.Tasks.Add(new ErrorTask(ex.InnerException ?? ex));
                     }
                 });
             thread.Start();
