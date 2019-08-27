@@ -575,9 +575,13 @@ namespace Xenko.Games
 
                 var window = gamePlatform.MainWindow;
                 if (window.IsMinimized || window.Visible == false || (window.Focused == false && TreatNotFocusedLikeMinimized))
+                {
                     MinimizedMinimumUpdateRate.Throttle(out _);
+                }
                 else
+                {
                     WindowMinimumUpdateRate.Throttle(out _);
+                }
             }
             catch (Exception ex)
             {
@@ -687,7 +691,9 @@ namespace Xenko.Games
             lock (this)
             {
                 if (Window != null && Window.IsActivated) // force the window to be in an correct state during destroy (Deactivated events are sometimes dropped on windows)
+                {
                     Window.OnPause();
+                }
 
                 var array = new IGameSystemBase[GameSystems.Count];
                 GameSystems.CopyTo(array, 0);
