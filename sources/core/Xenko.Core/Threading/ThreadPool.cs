@@ -42,11 +42,10 @@ namespace Xenko.Core.Threading
         {
             bool lockTaken = false;
             bool startNewTask = false;
+            PooledDelegateHelper.AddReference(workItem);
             try
             {
                 spinLock.Enter(ref lockTaken);
-
-                PooledDelegateHelper.AddReference(workItem);
                 workItems.Enqueue(workItem);
                 workAvailable.Set();
 
@@ -130,6 +129,7 @@ namespace Xenko.Core.Threading
                         {
                             Interlocked.Decrement(ref busyCount);
                         }
+                        PooledDelegateHelper.Release(workItem);
                         lastWorkTS = Stopwatch.GetTimestamp();
                     }
                 }
