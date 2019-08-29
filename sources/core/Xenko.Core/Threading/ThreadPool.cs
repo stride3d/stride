@@ -72,7 +72,7 @@ namespace Xenko.Core.Threading
             // No point in wasting spins on the lock while creating the task
             if (startNewTask)
             {
-                Task.Factory.StartNew(cachedTaskLoop, null, TaskCreationOptions.LongRunning);
+                new Task(cachedTaskLoop, null, TaskCreationOptions.LongRunning).Start();
             }
         }
 
