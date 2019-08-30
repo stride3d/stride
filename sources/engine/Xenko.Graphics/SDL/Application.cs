@@ -123,6 +123,9 @@ namespace Xenko.Graphics.SDL
             }
         }
 
+        // Used for FINGER* events that do not provide their own windowID
+        static Window lastCtrl = null;
+        
         /// <summary>
         /// Process a single event and dispatch it to the right window.
         /// </summary>
@@ -160,6 +163,12 @@ namespace Xenko.Graphics.SDL
                     ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.text.windowID));
                     break;
 
+                case SDL.SDL_EventType.SDL_FINGERMOTION:
+                case SDL.SDL_EventType.SDL_FINGERDOWN:
+                case SDL.SDL_EventType.SDL_FINGERUP:
+                    ctrl = lastCtrl;
+                    break;
+
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:
                 {
                     ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.window.windowID));
@@ -182,6 +191,9 @@ namespace Xenko.Graphics.SDL
                     break;
             }
             ctrl?.ProcessEvent(e);
+
+            // TODO this is a bit of a mess but FINGER* events do not provide a proper windowID - how to handle?
+            if (ctrl != null) lastCtrl = ctrl;
         }
 
         /// <summary>
