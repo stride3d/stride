@@ -3,7 +3,9 @@
 
 #if XENKO_UI_SDL
 using System;
+using System.Collections.Generic;
 using SDL2;
+using Xenko.Core.Extensions;
 using Xenko.Core.Mathematics;
 using Xenko.Games;
 using Xenko.Graphics.SDL;
@@ -14,6 +16,8 @@ namespace Xenko.Input
     internal class FingerSDL : PointerDeviceBase, IDisposable
     {
         private readonly Window uiControl;
+        private readonly Dictionary<long, int> touchFingerIndexMap = new Dictionary<long, int>();
+        private int touchCounter;
 
         public FingerSDL(InputSourceSDL source, Window uiControl)
         {
@@ -48,13 +52,42 @@ namespace Xenko.Input
             SetSurfaceSize(new Vector2(uiControl.ClientSize.Width, uiControl.ClientSize.Height));
         }
 
+        // TODO Code from PointeriOS with slight modifications, consider creating and referencing a utility class
+        private int GetFingerId(long touchId, PointerEventType type)
+        {
+            // Assign finger index (starting at 0) to touch ID
+            int touchFingerIndex = 0;
+            if (type == PointerEventType.Pressed)
+            {
+                touchFingerIndex = touchCounter++;
+                touchFingerIndexMap.Add(touchId, touchFingerIndex);
+            }
+            else
+            {
+                touchFingerIndex = touchFingerIndexMap[touchId];
+            }
+
+            // Remove index
+            if (type == PointerEventType.Released)
+            {
+                touchFingerIndexMap.Remove(touchId);
+                touchCounter = 0; // Reset touch counter
+
+                // Recalculate next finger index
+                if (touchFingerIndexMap.Count > 0)
+                {
+                    touchFingerIndexMap.ForEach(pair => touchCounter = Math.Max(touchCounter, pair.Value));
+                    touchCounter++; // next
+                }
+            }
+
+            return touchFingerIndex;
+        }
+
         private void HandleFingerEvent(SDL.SDL_TouchFingerEvent e, PointerEventType type)
         {
             var newPosition = new Vector2(e.x, e.y);
-
-            // TODO own ID counter ala iOS/Android implementations
-            var id = (int)e.fingerId;
-
+            var id = GetFingerId(e.fingerId, type);
             PointerState.PointerInputEvents.Add(new PointerDeviceState.InputEvent { Type = type, Position = newPosition, Id = id });
         }
 
