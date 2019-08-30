@@ -21,6 +21,7 @@ namespace Xenko.Input
         private Window uiControl;
         private MouseSDL mouse;
         private KeyboardSDL keyboard;
+        private FingerSDL finger;
         private InputManager inputManager;
 
         public override void Initialize(InputManager inputManager)
@@ -33,9 +34,11 @@ namespace Xenko.Input
 
             mouse = new MouseSDL(this, inputManager.Game, uiControl);
             keyboard = new KeyboardSDL(this, uiControl);
+            finger = new FingerSDL(this, uiControl);
 
             RegisterDevice(mouse);
             RegisterDevice(keyboard);
+            RegisterDevice(finger);
 
             // Scan for gamepads
             Scan();
