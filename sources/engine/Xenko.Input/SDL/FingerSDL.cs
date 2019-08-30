@@ -30,8 +30,7 @@ namespace Xenko.Input
 
         public override string Name => "SDL Finger";
 
-        // TODO Should there be another Guid for this Input device? (This one is copied from MouseSDL + 1)
-        public override Guid Id => new Guid("0ccaf48e-e371-4b34-b6bb-a3720f6742a9");
+        public override Guid Id => new Guid("f64482a9-dac9-4806-959f-eea7cbb4c609");
 
         public override IInputSource Source { get; }
 
