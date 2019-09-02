@@ -12,14 +12,16 @@ using Xenko.Graphics.SDL;
 
 namespace Xenko.Input
 {
-    // TODO FingerSDL or Touch(screen)SDL?
-    internal class FingerSDL : PointerDeviceBase, IDisposable
+    /// <summary>
+    /// Class handling finger touch inputs using the SDL backend
+    /// </summary>
+    internal class PointerSDL : PointerDeviceBase, IDisposable
     {
         private readonly Window uiControl;
         private readonly Dictionary<long, int> touchFingerIndexMap = new Dictionary<long, int>();
         private int touchCounter;
 
-        public FingerSDL(InputSourceSDL source, Window uiControl)
+        public PointerSDL(InputSourceSDL source, Window uiControl)
         {
             Source = source;
             this.uiControl = uiControl;
@@ -32,7 +34,7 @@ namespace Xenko.Input
             OnSizeChanged(new SDL.SDL_WindowEvent());
         }
 
-        public override string Name => "SDL Finger";
+        public override string Name => "SDL Pointer";
 
         public override Guid Id => new Guid("f64482a9-dac9-4806-959f-eea7cbb4c609");
 
