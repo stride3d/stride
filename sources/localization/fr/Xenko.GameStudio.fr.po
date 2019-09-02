@@ -2,15 +2,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 11:53:42+0900\n"
-"PO-Revision-Date: 2019-01-13 10:52+0900\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"PO-Revision-Date: 2019-09-03 01:25+0000\n"
+"Last-Translator: Swann Martinet <swann.ranskassa@laposte.net>\n"
+"Language-Team: French <https://hosted.weblate.org/projects/xenko/gamestudio/"
+"fr/>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 3.9-dev\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
@@ -23,6 +24,8 @@ msgid ""
 "Some game code files have been modified. Do you want to reload the "
 "assemblies?"
 msgstr ""
+"Certains fichiers de code du jeu ont été modifiés. Voulez-vous recharger les "
+"ensembles ?"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
@@ -52,19 +55,19 @@ msgstr "Aucun appareil Android trouvé pour l'exécution."
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:639
 msgctxt "Message"
 msgid "Unable to load and compile project {0}"
-msgstr ""
+msgstr "Impossible de charger et compiler le projet {0}"
 
 #. Log message displayed when the executable can't be found after building the project. {0}: the expected executable path
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:492
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:539
 msgctxt "Message"
 msgid "Unable to reach to output executable: {0}"
-msgstr ""
+msgstr "Impossible d’atteindre la sortie exécutable : {0}"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:509
 msgctxt "Message"
 msgid "Couldn't find Android package name for {0}."
-msgstr ""
+msgstr "Impossible de trouver le nom du paquet Android pour {0}."
 
 #. Displayed when Android tools "adb" can't be found
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:519
@@ -73,6 +76,9 @@ msgid ""
 "Android tool \"\"adb\"\" couldn't found (no running process, in registry or "
 "on the PATH). Please add it to your PATH."
 msgstr ""
+"L’outil Android « \"adb\" » n’a pas pu être trouvé (pas de processus en "
+"cours d’exécution, dans le registre ou sur le CHEMIN). Veuillez l’ajouter à "
+"votre CHEMIN."
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:526
 msgctxt "Message"
