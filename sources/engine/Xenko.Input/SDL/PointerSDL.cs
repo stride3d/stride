@@ -26,6 +26,9 @@ namespace Xenko.Input
             Source = source;
             this.uiControl = uiControl;
 
+            // Disable Touch-Mouse synthesis
+            SDL.SDL_SetHint(SDL.SDL_HINT_TOUCH_MOUSE_EVENTS, "false");
+
             uiControl.FingerMoveActions += OnFingerMoveEvent;
             uiControl.FingerPressActions += OnFingerPressEvent;
             uiControl.FingerReleaseActions += OnFingerReleaseEvent;
