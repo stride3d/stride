@@ -36,17 +36,23 @@ We have 3 places with versions:
 During package build, if `XenkoOfficialBuild` is not set to true, NuGet package suffix will be automatically generated with `-beta<commits_count_since_last_version_change>-g<git_hash>`
 Also, `AssemblyInformationalVersion` will also contain the same information (or at least the git hash for official builds).
 
+### Testing with custom versions
+
+When building the editor or the runtime packages for testing purposes, it is recommended to replace the `NuGetVersionSuffix` property in `SharedAssemblyInfo.cs` to something else (ex: `-test123`). Doing this, you won't replace the latest version of the editor on your machine. That version will then appear in the Xenko Launcher following compilation, at the top of the list of available beta versions of the current public version you just built.
+
+Locally-compiled nuget packages will also be available in a package source called "Xenko test" by default, following compilation.
+
 ## Assembly processor
 
 Assembly processor is run by both Game and Xenko targets.
 
 It performs various transforms to the compiled assemblies:
-* Generate [DataSerializer](../sources/common/core/Xenko.Core/Serialization/DataSerializer.cs) serialization code (and merge it back in assembly using IL-Repack)
+* Generate [DataSerializer](../sources/core/Xenko.Core/Serialization/DataSerializer.cs) serialization code (and merge it back in assembly using IL-Repack)
 * Generate [UpdateEngine](../sources/engine/Xenko.Engine/Updater/UpdateEngine.cs) code
 * Scan for types or attributes with `[ScanAssembly]` to quickly enumerate them without needing `Assembly.GetTypes()`
-* Optimize calls to [Xenko.Core.Utilities](../sources/common/core/Xenko.Core/Utilities.cs)
-* Automatically call methods tagged with [ModuleInitializer](../sources/common/core/Xenko.Core/ModuleInitializerAttribute.cs)
-* Cache lambdas and various other code generation related to [Dispatcher](../sources/common/core/Xenko.Core/Threading/Dispatcher.cs)
+* Optimize calls to [Xenko.Core.Utilities](../sources/core/Xenko.Core/Utilities.cs)
+* Automatically call methods tagged with [ModuleInitializer](../sources/core/Xenko.Core/ModuleInitializerAttribute.cs)
+* Cache lambdas and various other code generation related to [Dispatcher](../sources/core/Xenko.Core/Threading/Dispatcher.cs)
 * A few other internal tasks
 
 For performance reasons, it is run as a MSBuild Task (avoid reload/JIT-ing). If you wish to make it run the executable directly, set `XenkoAssemblyProcessorDev` to `true`.
