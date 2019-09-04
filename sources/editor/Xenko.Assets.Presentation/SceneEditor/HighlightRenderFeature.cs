@@ -62,7 +62,7 @@ namespace Xenko.Assets.Presentation.SceneEditor
 
             foreach (var renderNode in ((RootEffectRenderFeature)RootRenderFeature).RenderNodes)
             {
-                var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
+                var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                 if (perDrawLayout == null)
                     continue;
 
@@ -83,7 +83,7 @@ namespace Xenko.Assets.Presentation.SceneEditor
             base.ProcessPipelineState(context, renderNodeReference, ref renderNode, renderObject, pipelineState);
 
             // Check if this is a highlight rendering
-            var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
+            var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
             if (perDrawLayout == null)
                 return;
 

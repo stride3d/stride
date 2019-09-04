@@ -185,7 +185,7 @@ namespace Xenko.Rendering.Materials
             //Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>   // TODO: PERFORMANCE: Use this instead?
             foreach (RenderNode renderNode in ((RootEffectRenderFeature)RootRenderFeature).RenderNodes)
             {
-                var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
+                var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                 if (perDrawLayout == null)
                 { 
                     continue;
