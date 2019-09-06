@@ -327,8 +327,14 @@ namespace Xenko.Games
             {
                 lock (updateableGameSystems)
                 {
-                    var key = new KeyValuePair<IUpdateable, ProfilingKey>(updateableSystem, null);
-                    updateableGameSystems.Remove(key);
+                    for(int i = 0; i < updateableGameSystems.Count; i++)
+                    {
+                        if(ReferenceEquals(updateableGameSystems[i].Key, updateableSystem))
+                        {
+                            updateableGameSystems.RemoveAt(i);
+                            break;
+                        }
+                    }
                 }
 
                 updateableSystem.UpdateOrderChanged -= UpdateableGameSystem_UpdateOrderChanged;
@@ -339,8 +345,14 @@ namespace Xenko.Games
             {
                 lock (drawableGameSystems)
                 {
-                    var key = new KeyValuePair<IDrawable, ProfilingKey>(drawableSystem, null);
-                    drawableGameSystems.Remove(key);
+                    for (int i = 0; i < drawableGameSystems.Count; i++)
+                    {
+                        if (ReferenceEquals(drawableGameSystems[i].Key, drawableSystem))
+                        {
+                            drawableGameSystems.RemoveAt(i);
+                            break;
+                        }
+                    }
                 }
 
                 drawableSystem.DrawOrderChanged -= DrawableGameSystem_DrawOrderChanged;
