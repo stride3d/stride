@@ -1,0 +1,19 @@
+namespace Xenko.DebugRendering
+{
+
+    shader LinePrimitiveShader : ShaderBase, ColorBase {
+
+        float4x4 ViewProjection;
+        stream float3 Position : POSITION;
+
+        override stage void VSMain() {
+            streams.ShadingPosition = mul(float4(streams.Position, 1), ViewProjection);
+        }
+
+        override stage void PSMain() {
+            streams.ColorTarget = streams.Color;
+        }
+
+    };
+
+}

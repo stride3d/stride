@@ -1,0 +1,63 @@
+namespace Xenko.DebugRendering
+{
+
+    shader PrimitiveShader : ShaderBase, ColorBase
+    {
+
+        struct TransformData {
+            float4x4 Matrix;
+        };
+
+        struct ColorData {
+            float Color;
+        };
+
+        float4x4 ViewProjection;
+        StructuredBuffer<TransformData> Transforms;
+        StructuredBuffer<ColorData> Colors;
+        int InstanceOffset;
+
+        float LineWidthMultiplier = 1.0f;
+
+        stream float3 Position : POSITION;
+        stream float2 Uv : TEXCOORD0;
+
+        override stage void VSMain()
+        {
+            int offsetInstanceId = streams.InstanceID + InstanceOffset;
+            streams.ShadingPosition = mul(mul(float4(streams.Position, 1), Transforms[offsetInstanceId].Matrix), ViewProjection);
+            streams.Color = BitsToColor(Colors[offsetInstanceId].Color);
+        }
+
+        override stage void PSMain()
+        {
+
+            float lineWidth = (0.001f * LineWidthMultiplier);
+
+            float2 uv = streams.Uv;
+            float lx = step(lineWidth, uv.x);
+            float ly = step(lineWidth, uv.y);
+            float hx = step(uv.x, 1.0f - lineWidth);
+            float hy = step(uv.y, 1.0f - lineWidth);
+
+            streams.ColorTarget = lerp(streams.Color, float4(streams.Color.rgb, 0.0f), lx*ly*hx*hy);
+            if (streams.ColorTarget.a <= 0.1f) discard;
+
+        }
+
+        float4 BitsToColor(float f)
+        {
+            uint u = asuint(f);
+            float4 c; // it has to be split up like this, don't change it..
+            c = float4(
+                (u >> 0) % 256,
+                (u >> 8) % 256,
+                (u >> 16) % 256,
+                (u >> 24) % 256
+            ) / 255.0;
+            return c;
+        }
+
+    };
+
+}

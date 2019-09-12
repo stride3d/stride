@@ -1,0 +1,60 @@
+﻿<Project>
+
+  <PropertyGroup>
+    <XenkoAssemblySign>true</XenkoAssemblySign>
+    <XenkoRuntime>true</XenkoRuntime>
+    <XenkoRuntimeNetStandard>true</XenkoRuntimeNetStandard>
+  </PropertyGroup>
+  
+  <Import Project="..\..\targets\Xenko.PreSettings.targets" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
+    <XenkoPackAssets>true</XenkoPackAssets>
+    <XenkoBuildTags>*</XenkoBuildTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
+    <ProjectReference Include="..\Xenko.Graphics\Xenko.Graphics.csproj" />
+    <ProjectReference Include="..\Xenko.Rendering\Xenko.Rendering.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Update="Shaders\LinePrimitiveShader.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LinePrimitiveShader.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Shaders\PrimitiveShader.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>PrimitiveShader.xksl</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Shaders\LinePrimitiveShader.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>LinePrimitiveShader.cs</LastGenOutput>
+    </None>
+    <None Update="Shaders\PrimitiveShader.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>PrimitiveShader.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <Import Project="$(XenkoPostSettingsTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+
+</Project>
