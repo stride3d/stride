@@ -33,6 +33,7 @@ Ask for help or report issues:
 * [Discuss topics on our forums](http://forums.xenko.com/)
 * [Report engine issues](https://github.com/xenko3d/xenko/issues)
 * [Donate to support the project](https://www.patreon.com/xenko)
+* [List of Projects made by users](https://github.com/xenko3d/xenko-community-projects)
 
 ## Building from source
 
