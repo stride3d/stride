@@ -2,19 +2,21 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-02-25 13:25:06+0900\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2019-09-17 09:24+0000\n"
+"Last-Translator: Andrea Aruta <andrea.aruta41@gmail.com>\n"
+"Language-Team: Italian <https://hosted.weblate.org/projects/xenko/gamestudio/"
+"it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: MonoDevelop Gettext addin\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.9-dev\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
 msgid "Output"
-msgstr ""
+msgstr "Output"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:189
 msgctxt "Message"
@@ -26,12 +28,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
 msgid "Reload"
-msgstr ""
+msgstr "Aggiorna"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
 msgid "Don't reload"
-msgstr ""
+msgstr "Non aggiornare"
 
 #. Displayed when user tries to run a project that is not on a supported platform (for execution).
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:317
@@ -39,19 +41,19 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:467
 msgctxt "Message"
 msgid "Platform {0} isn't supported for execution."
-msgstr ""
+msgstr "La piattaforma {0} non è supportata per l'esecuzione."
 
 #. Displayed when user tries to run Android project without an Android device attached.
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:422
 msgctxt "Message"
 msgid "No Android device found for execution."
-msgstr ""
+msgstr "Nessun dispositivo Android è stato trovato."
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:475
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:639
 msgctxt "Message"
 msgid "Unable to load and compile project {0}"
-msgstr ""
+msgstr "Impossibile caricare e compilare il progetto {0}"
 
 #. Log message displayed when the executable can't be found after building the project. {0}: the expected executable path
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:492
@@ -83,12 +85,14 @@ msgstr ""
 msgctxt "Message"
 msgid "No credentials provided. To allow deployment, add your credentials."
 msgstr ""
+"Credenziali non fornite. Aggiungere le tue credenziali per continuare con lo "
+"sviluppo."
 
 #. Message displayed when launching fails for some reason.
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:560
 msgctxt "Message"
 msgid "Unable to launch project {0}"
-msgstr ""
+msgstr "Impossibile lanciare il progetto {0}"
 
 #. Message displayed to inform user a deployment was succesful.
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:568
@@ -115,12 +119,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:592
 msgctxt "Message"
 msgid "To build, save the project first."
-msgstr ""
+msgstr "Per effettuare la build salvare prima il progetto."
 
 #: ../editor/Xenko.GameStudio/GameStudioViewModel.cs:91
 msgctxt "Message"
 msgid "The file {0} does not exist."
-msgstr ""
+msgstr "Il file {0} non esiste."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml.cs:78
 msgctxt "Message"
@@ -146,7 +150,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:14
 msgctxt "Settings"
 msgid "Remote"
-msgstr ""
+msgstr "Remoto"
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:22
 msgctxt "Settings"
@@ -156,22 +160,22 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:26
 msgctxt "Settings"
 msgid "Host"
-msgstr ""
+msgstr "Host"
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:30
 msgctxt "Settings"
 msgid "Port"
-msgstr ""
+msgstr "Porta"
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:34
 msgctxt "Settings"
 msgid "Username"
-msgstr ""
+msgstr "Username"
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:38
 msgctxt "Settings"
 msgid "Password"
-msgstr ""
+msgstr "Password"
 
 #. Location where to deploy.
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:42
@@ -189,7 +193,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:50
 msgctxt "Settings"
 msgid "X Display"
-msgstr ""
+msgstr "X Monitor"
 
 #. Ask if we want to execute remotely using CoreCLR.
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:54
@@ -201,19 +205,19 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:74
 msgctxt "Credentials"
 msgid "Your credentials are correct."
-msgstr ""
+msgstr "Le tue credenziali sono corrette."
 
 #. Display error message when host does not respond.
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:77
 msgctxt "Credentials"
 msgid "Couldn't reach the specified host."
-msgstr ""
+msgstr "Impossibile raggiungere l'host specificato."
 
 #. Display error message when credentials data is invalid.
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:80
 msgctxt "Credentials"
 msgid "Invalid credentials."
-msgstr ""
+msgstr "Credenziali non valide."
 
 #. Display error message when location does not exist.
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:83
@@ -232,7 +236,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:515
 msgctxt "Menu"
 msgid "Asset"
-msgstr ""
+msgstr "Asset"
 
 #. Open the asset editor
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:64
@@ -255,14 +259,14 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:509
 msgctxt "Menu"
 msgid "Cut"
-msgstr ""
+msgstr "Taglia"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:91
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:196
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:510
 msgctxt "Menu"
 msgid "Copy"
-msgstr ""
+msgstr "Copia"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:92
 msgctxt "Menu"
@@ -274,7 +278,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:511
 msgctxt "Menu"
 msgid "Paste"
-msgstr ""
+msgstr "Incolla"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:94
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:198
@@ -282,26 +286,26 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:512
 msgctxt "Menu"
 msgid "Delete"
-msgstr ""
+msgstr "Cancella"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:96
 msgctxt "Menu"
 msgid "Copy asset URL"
-msgstr ""
+msgstr "Copia l'URL dell'asset"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:97
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:243
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:513
 msgctxt "Menu"
 msgid "Rename"
-msgstr ""
+msgstr "Rinomina"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:99
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:478
 msgctxt "Menu"
 msgid "Create folder"
-msgstr ""
+msgstr "Crea cartella"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:100
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:246
@@ -327,12 +331,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:518
 msgctxt "Menu"
 msgid "Explore"
-msgstr ""
+msgstr "Esplora"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:105
 msgctxt "Menu"
 msgid "Open with text editor"
-msgstr ""
+msgstr "Apri con editor di testo"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:106
 msgctxt "Menu"
@@ -354,22 +358,22 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:145
 msgctxt "Menu"
 msgid "File"
-msgstr ""
+msgstr "File"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:146
 msgctxt "Menu"
 msgid "New"
-msgstr ""
+msgstr "Nuovo"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:147
 msgctxt "Menu"
 msgid "Open"
-msgstr ""
+msgstr "Apri"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:148
 msgctxt "Menu"
 msgid "Open recent"
-msgstr ""
+msgstr "Apri recente"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:178
 msgctxt "Menu"
@@ -379,7 +383,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:180
 msgctxt "Menu"
 msgid "Save"
-msgstr ""
+msgstr "Salva"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:182
 msgctxt "Menu"
@@ -389,32 +393,32 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:184
 msgctxt "Menu"
 msgid "Quit"
-msgstr ""
+msgstr "Esci"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:191
 msgctxt "Menu"
 msgid "Edit"
-msgstr ""
+msgstr "Edita"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:192
 msgctxt "Menu"
 msgid "Undo"
-msgstr ""
+msgstr "Annulla"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:193
 msgctxt "Menu"
 msgid "Redo"
-msgstr ""
+msgstr "Riesegui"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:200
 msgctxt "Menu"
 msgid "Settings"
-msgstr ""
+msgstr "Impostazioni"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:203
 msgctxt "Menu"
 msgid "Project"
-msgstr ""
+msgstr "Progetto"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:204
 msgctxt "Menu"
@@ -440,7 +444,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:477
 msgctxt "Menu"
 msgid "Folder"
-msgstr ""
+msgstr "Cartella"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:212
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:480
@@ -464,7 +468,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:500
 msgctxt "Menu"
 msgid "Set as current project"
-msgstr ""
+msgstr "Imposta come progetto corrente"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:233
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:501
@@ -476,19 +480,19 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:503
 msgctxt "Menu"
 msgid "Solution"
-msgstr ""
+msgstr "Soluzione"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:236
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:504
 msgctxt "Menu"
 msgid "New project..."
-msgstr ""
+msgstr "Nuovo progetto..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:237
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:505
 msgctxt "Menu"
 msgid "Add existing project..."
-msgstr ""
+msgstr "Aggiungi progetto esistente..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:238
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:506
@@ -505,12 +509,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:508
 msgctxt "Menu"
 msgid "Actions"
-msgstr ""
+msgstr "Azioni"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:253
 msgctxt "Menu"
 msgid "View"
-msgstr ""
+msgstr "Vedi"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:254
 msgctxt "Menu"
@@ -550,41 +554,41 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:266
 msgctxt "Menu"
 msgid "Output"
-msgstr ""
+msgstr "Output"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:270
 msgctxt "Menu"
 msgid "Help"
-msgstr ""
+msgstr "Aiuto"
 
 #. Link to the documentation
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:271
 msgctxt "Menu"
 msgid "Online documentation"
-msgstr ""
+msgstr "Documentazione online"
 
 #. Link to the answer hub
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:273
 msgctxt "Menu"
 msgid "Questions and answers"
-msgstr ""
+msgstr "Domande e risposte"
 
 #. Link to GitHub issues
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:274
 msgctxt "Menu"
 msgid "Report an issue..."
-msgstr ""
+msgstr "Segnala un problema..."
 
 #. Link to the forums
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:275
 msgctxt "Menu"
 msgid "Community forums"
-msgstr ""
+msgstr "Forum della comunità"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:277
 msgctxt "Menu"
 msgid "Show debug window"
-msgstr ""
+msgstr "Mostra finestra di debug"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:279
 msgctxt "Menu"
@@ -594,22 +598,22 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:305
 msgctxt "ToolTip"
 msgid "Create a project"
-msgstr ""
+msgstr "Crea un progetto"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:309
 msgctxt "ToolTip"
 msgid "Open an existing project"
-msgstr ""
+msgstr "Apri un progetto esistente"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:313
 msgctxt "ToolTip"
 msgid "Open recent"
-msgstr ""
+msgstr "Apri recente"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:339
 msgctxt "ToolTip"
 msgid "Save the project and all its documents"
-msgstr ""
+msgstr "Salva il progetto e tutti i suoi documenti"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:344
 msgctxt "ToolTip"
@@ -619,12 +623,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:349
 msgctxt "ToolTip"
 msgid "Undo last action"
-msgstr ""
+msgstr "Annulla l'ultima azione"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:353
 msgctxt "ToolTip"
 msgid "Redo last cancelled action"
-msgstr ""
+msgstr "Ripristina l'ultima azione"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:359
 msgctxt "ToolTip"
@@ -634,7 +638,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:363
 msgctxt "ToolTip"
 msgid "Open with..."
-msgstr ""
+msgstr "Apri con..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:374
 msgctxt "ToolTip"
@@ -669,12 +673,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:433
 msgctxt "ToolTip"
 msgid "Create a project..."
-msgstr ""
+msgstr "Crea un progetto..."
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:437
 msgctxt "ToolTip"
 msgid "Create a folder"
-msgstr ""
+msgstr "Crea una cartella"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:442
 msgctxt "ToolTip"
@@ -699,12 +703,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:459
 msgctxt "ToolTip"
 msgid "Expand all"
-msgstr ""
+msgstr "Espandi tutto"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:463
 msgctxt "ToolTip"
 msgid "Collapse all"
-msgstr ""
+msgstr "Riduci tutto"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:468
 msgctxt "ToolTip"
@@ -734,8 +738,8 @@ msgstr ""
 msgctxt "View"
 msgid "Asset error ({0})"
 msgid_plural "Asset errors ({0})"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Errore asset: ({0})"
+msgstr[1] "Errori asset: ({0})"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:624
 msgid "Build"
@@ -758,12 +762,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:687
 msgctxt "ToolTip"
 msgid "Previous selection"
-msgstr ""
+msgstr "Selezioni precedenti"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:690
 msgctxt "ToolTip"
 msgid "Next selection"
-msgstr ""
+msgstr "Selezioni successive"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:708
 msgctxt "ToolTip"
@@ -820,42 +824,42 @@ msgstr[1] ""
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:10
 msgctxt "About"
 msgid "About Xenko"
-msgstr ""
+msgstr "Su Xenko"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:45
 msgctxt "About"
 msgid "Xenko version"
-msgstr ""
+msgstr "Versione Xenko"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:50
 msgctxt "About"
 msgid "MIT License"
-msgstr ""
+msgstr "Licenza MIT"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:56
 msgctxt "About"
 msgid "Xenko uses open-source software"
-msgstr ""
+msgstr "Xenko usa software open-source"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:58
 msgctxt "About"
 msgid "See the list"
-msgstr ""
+msgstr "Vedi la lista"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:64
 msgctxt "About"
 msgid "Privacy policy"
-msgstr ""
+msgstr "Polizza sulla privacy"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:73
 msgctxt "About"
 msgid "Close"
-msgstr ""
+msgstr "Chiudi"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:9
 msgctxt "Credentials"
 msgid "Credentials"
-msgstr ""
+msgstr "Credenziali"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:13
 msgctxt "Credentials"
@@ -867,12 +871,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:15
 msgctxt "Credentials"
 msgid "Host"
-msgstr ""
+msgstr "Host"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:18
 msgctxt "Credentials"
 msgid "Port"
-msgstr ""
+msgstr "Porta"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:21
 msgctxt "Credentials"
@@ -907,4 +911,4 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:45
 msgctxt "Button"
 msgid "Cancel"
-msgstr ""
+msgstr "Annulla"
