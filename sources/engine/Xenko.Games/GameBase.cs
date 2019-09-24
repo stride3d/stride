@@ -967,9 +967,6 @@ namespace Xenko.Games
 
         private void GraphicsDeviceService_DeviceDisposing(object sender, EventArgs e)
         {
-            // TODO: Unload all assets
-            //Content.UnloadAll();
-
             if (GameSystems.State == GameSystemState.ContentLoaded)
             {
                 UnloadContent();
@@ -982,16 +979,12 @@ namespace Xenko.Games
 
         private void GraphicsDeviceService_DeviceReset(object sender, EventArgs e)
         {
-            // TODO: ResumeManager?
-            //throw new NotImplementedException();
             resumeManager.OnReload();
             resumeManager.OnRecreate();
         }
 
         private void GraphicsDeviceService_DeviceResetting(object sender, EventArgs e)
         {
-            // TODO: ResumeManager?
-            //throw new NotImplementedException();
             resumeManager.OnDestroyed();
         }
 
