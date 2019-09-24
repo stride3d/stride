@@ -117,6 +117,7 @@ namespace Xenko.Shaders.Compiler.Direct3D
                 string linkKeyName = null;
                 string resourceGroup = null;
                 string logicalGroup = null;
+                var elementType = default(EffectTypeDescription);
                 foreach (var linkResource in effectReflection.ResourceBindings)
                 {
                     if (linkResource.RawName == boundResourceDesc.Name && linkResource.Stage == ShaderStage.None)
@@ -124,6 +125,7 @@ namespace Xenko.Shaders.Compiler.Direct3D
                         linkKeyName = linkResource.KeyInfo.KeyName;
                         resourceGroup = linkResource.ResourceGroup;
                         logicalGroup = linkResource.LogicalGroup;
+                        elementType = linkResource.ElementType;
                         break;
                     }
 
@@ -140,6 +142,7 @@ namespace Xenko.Shaders.Compiler.Direct3D
                     binding.Stage = shaderBytecode.Stage;
                     binding.ResourceGroup = resourceGroup;
                     binding.LogicalGroup = logicalGroup;
+                    binding.ElementType = elementType;
 
                     effectReflection.ResourceBindings.Add(binding);
                 }
