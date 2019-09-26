@@ -68,7 +68,7 @@ msgstr "Usar el gizmo de escala"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:16
 msgid "Use world coordinates for transformations"
-msgstr "Utilizar las coordenadas del mundo para las transformaciones"
+msgstr "Utilizar las coordenadas del mundo para la traslación"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:22
 msgid "Use local coordinates for transformations"
