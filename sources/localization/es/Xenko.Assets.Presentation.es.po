@@ -685,12 +685,12 @@ msgstr "Derecha"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
 msgctxt "ToolTip"
 msgid "Snap translations to this value"
-msgstr "Ajustar las transformaciones a este valor"
+msgstr "Ajustar la traslación a este valor"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:710
 msgctxt "ToolTip"
 msgid "Snap rotations to this value"
-msgstr "Ajustar las rotaciones a este valor"
+msgstr "Ajustar la rotación a este valor"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:719
 msgctxt "ToolTip"
