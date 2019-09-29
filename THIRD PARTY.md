@@ -1,10 +1,10 @@
-# Third Party Software
+# 第三方软件
 
-Xenko uses the following open-source products.
+Xenko使用以下开源产品。
 
-## Runtime
+## 运行
 
-### All platforms
+### 所有平台
 * [.Net Foundation.CLI](https://github.com/dotnet/cli) (MIT License)
 * [Bullet](http://bulletphysics.org/) (zlib License)
 * [DirectXTex](http://directxtex.codeplex.com) (Ms-PL)
@@ -34,14 +34,14 @@ Xenko uses the following open-source products.
 ### Android
 * [Android.Play.ExpansionLibrary](https://github.com/mattleibow/Android.Play.ExpansionLibrary) (Apache License 2.0)
 
-## Editor & Build
+## 编辑和构建
 
-### License gift to Xenko
+### 许可礼物给Xenko
 
-* [Advanced Installer](https://www.advancedinstaller.com/) graciously offered us an Enterprise license. Thanks!
-* [NDepend](https://www.ndepend.com/) for static code analysis. Thanks for providing us an Open Source license!
+* [Advanced Installer](https://www.advancedinstaller.com/) 慷慨地为我们提供了企业许可证。 谢谢！
+* [NDepend](https://www.ndepend.com/) 用于静态代码分析。 感谢您向我们提供开放源代码许可证！
 
-### Opensource
+### 开源
 
 * [Assimp](http://assimp.sourceforge.net/) (BSD 3-clause License)
 * [AsyncEx](https://github.com/StephenCleary/AsyncEx) (MIT License)
@@ -62,73 +62,65 @@ Xenko uses the following open-source products.
 * [WPFToolKit](http://wpftoolkit.codeplex.com/) (Ms-PL)
 * [XamlMarkdown](https://github.com/Kryptos-FR/XamlMarkdown/) (MIT License)
 
-### Fugue Icons
+### 赋格图标
 
-(C) 2013 Yusuke Kamiyamane. All rights reserved.
+(C) 2013 上宫佑介（Yusuke Kamiyamane） 版权所有。
 
-These icons are licensed under a Creative Commons
-Attribution 3.0 License.
+这些图标已获得知识共享许可署名3.0许可。
 <http://creativecommons.org/licenses/by/3.0/>
 
-If you can't or don't want to provide attribution, please
-purchase a royalty-free license.
+如果您不能或不想提供出处，请购买免版税的许可证。
 <http://p.yusukekamiyamane.com/>
 
-I'm unavailable for custom icon design work. But your
-suggestions are always welcome!
+我无法进行自定义图标设计工作。 但是你随时欢迎提出建议！
 <mailto:p@yusukekamiyamane.com>
 
 ------------------------------------------------------------
 
-All logos and trademarks in some icons are property of their
-respective owners.
+某些图标中的所有徽标和商标均为其财产。
+各自的所有者。
 
 ------------------------------------------------------------
 
-- geotag
+- 地理标记
 
-  (C) Geotag Icon Project. All rights reserved.
+  (C) 地理标记图标项目。 版权所有
   <http://www.geotagicons.com/>
 
-  Geotag icon is licensed under a Creative Commons
-  Attribution-Share Alike 3.0 License or LGPL.
+  Geotag图标已获知识共享许可相同的Attribution-Share Alike 3.0许可或LGPL。
   <http://creativecommons.org/licenses/by-sa/3.0/>
   <http://opensource.org/licenses/lgpl-license.php>
 
-- language
+- 语言
 
-  (C) Language Icon Project. All rights reserved.
+  (C) 语言图标项目. 版权所有
   <http://www.languageicon.org/>
 
-  Language icon is licensed under a Creative Commons
-  Attribution-Share Alike 3.0 License.
+  语言图标已根据知识共享许可相同的署名共享3.0许可。
   <http://creativecommons.org/licenses/by-sa/3.0/>
 
-- open-share
+- 打开共享
 
-  (C) Open Share Icon Project. All rights reserved.
+  (C) 打开共享图标项目。 版权所有
   <http://www.openshareicons.com/>
 
-  Open Share icon is licensed under a Creative Commons
-  Attribution-Share Alike 3.0 License.
+  Open Share已获知识共享许可相同的Attribution-Share Alike 3.0许可或LGPL。
   <http://creativecommons.org/licenses/by-sa/3.0/>
 
 - opml
 
-  (C) OPML Icon Project. All rights reserved.
+  (C) OPML 图标项目. 版权所有
   <http://opmlicons.com/>
 
-  OPML icon is licensed under a Creative Commons
-  Attribution-Share Alike 2.5 License.
+  OPML图标已获得知识共享许可相同的署名共享2.5许可。
   <http://creativecommons.org/licenses/by-sa/2.5/>
 
 - share
 
-  (C) Share Icon Project. All rights reserved.
+  (C) Share 图标项目. 版权所有
   <http://shareicons.com/>
 
-  Share icon is licensed under a GPL or LGPL or BSD or
-  Creative Commons Attribution 2.5 License.
+  共享图标根据GPL或LGPL或BSD许可，或知识共享署名2.5许可。
   <http://opensource.org/licenses/gpl-license.php>
   <http://opensource.org/licenses/lgpl-license.php>
   <http://opensource.org/licenses/bsd-license.php>
@@ -136,33 +128,29 @@ respective owners.
 
 - xfn
 
-  (C) Wolfgang Bartelme. All rights reserved.
+  (C) Wolfgang Bartelme. 版权所有
   <http://www.bartelme.at/>
 
-  XFN icon is licensed under a Creative Commons
-  Attribution-Share Alike 2.5 License.
+  XFN图标已通过知识共享许可相同的署名共享2.5许可。
   <http://creativecommons.org/licenses/by-sa/2.5/>
   
 ### ModernUIIcons.com
 
-Please carefully understand the license and download the latest icons at ModernUIIcons.com.
+请仔细了解许可并在ModernUIIcons.com下载最新的图标。
 
-#### Understand Your Rights
-No Attribution and No Derived Works
+#### 了解您的权利
+没有署名也没有衍生作品
 http://creativecommons.org/licenses/by-nd/3.0/ *
 
-- If your project is open source include this license file in the source.
-- Nothing is needed in the front facing project (UNLESS you
-  are using any of the icons listed below in the attribution section).
-- Commercial use is not only allowed but encouraged. If it is an icon
-  in the attribution list below, you still need to attribute those!
-- Do not distribute the entire package (I've allowed this dozens of
-  times for open source projects, but email me first).
+- 如果您的项目是开源的，请在源代码中包含此许可证文件。
+- 前置项目不需要任何内容（除非您正在使用以下归因部分中列出的任何图标）。
+- 商业用途不仅被允许而且被鼓励。 如果是图标在下面的归因列表中，您仍然需要为这些归因！
+- 不要散布整个包裹（我已经允许这几十个包裹时间开放源代码项目，但请先给我发送电子邮件）。
 
-#### Creator
-- Austin Andrews (@templarian)
+#### 创造者
+- Austin Andrews（@templarian）
 
-#### Contributor**
+#### 贡献者**
 - Jay Zawrotny (@JayZawrotny)
   - A Bunch
 - Oren Nachman
@@ -171,11 +159,11 @@ http://creativecommons.org/licenses/by-nd/3.0/ *
   - appbar.chevron.left
   - appbar.chevron.right
 
-#### Derived Works
+#### 衍生作品
 - Alex Peattie
   - Social: http://www.alexpeattie.com/projects/justvector_icons/
 
-#### Attribution***
+#### 归因***
 - Kris Vandermotten (@kvandermotten)
   - appbar.medical.pulse
 - Constantin Kichinsky (@kichinsky)
@@ -192,20 +180,20 @@ http://creativecommons.org/licenses/by-nd/3.0/ *
 Andrew Forrester, from The Noun Project
   - appbar.fingerprint
 
-* The license is for attribution, but this is not required.
-** Developers and designers that emailed Templarian the source .design icons to be added into the package. PNGs also accepted, but may take longer to be added.
-*** Icons I've copied so closely you want to attribute them and are also under the CC license.
+* 许可证用于署名，但这不是必需的。
+** 通过电子邮件向Templarian发送要添加到软件包中的.design图标的开发人员和设计师。 PNG也被接受，但是可能需要更长的时间才能添加。
+*** 我复制得非常紧密的图标，您想将它们归为一类，并且也受CC许可。
 
-Contact
+联系
 - http://templarian.com/
 - admin[@]templarian[.]com
 
-* Does not apply to copyrighted logos
+* 不适用于受版权保护的徽标
 - Skype
 - Facebook
 - Twitter
 - etc...
 
-### Folders 2 Bold
-The folder icon in the asset view is licensed under creative commons and derived from:
+### 文件夹2加粗
+素材资源视图中的文件夹图标已获得知识共享的许可，并衍生自：
 - Alfredo Hernandez: https://www.alfredocreates.com
