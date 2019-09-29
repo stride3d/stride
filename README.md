@@ -1,68 +1,67 @@
 ![Xenko](https://xenko.com/images/external/xenko-logo-side.png)
 =======
 
-Welcome to the Xenko source code repository!
+欢迎来到Xenko源代码存储库!
 
-Xenko is an open-source C# game engine for realistic rendering and VR. 
-The engine is highly modular and aims at giving game makers more flexibility in their development.
-Xenko comes with an editor that allows you create and manage the content of your games or applications in a visual and intuitive way.
+Xenko是用于逼真的渲染和VR的开源C#游戏引擎。
+该引擎是高度模块化的，旨在为游戏制造商提供更大的开发灵活性。
+Xenko带有一个编辑器，可让您以直观的方式创建和管理游戏或应用程序的内容。
 
-![Xenko Editor](https://xenko.com/images/external/script-editor.png)
+![Xenko编辑器](https://xenko.com/images/external/script-editor.png)
 
-To learn more about Xenko, visit [xenko.com](https://xenko.com/).
+要了解有关Xenko的更多信息，请访问[xenko.com](https://xenko.com/)。
 
-## License
+## 执照
 
-Xenko is covered by [MIT](LICENSE.md), unless stated otherwise (i.e. for some files that are copied from other projects).
+除非另有说明(例如，对于从其他项目复制的某些文件)，[enko](LICENSE.md)涵盖Xenko。
 
-You can find the list of third party projects [here](THIRD%20PARTY.md).
+您可以在[此处](THIRD％20PARTY.md)找到第三方项目的列表。
 
-Contributors need to sign the following [Contribution License Agreement](docs/ContributorLicenseAgreement.md).
+投稿人需要签署以下[投稿许可协议](docs/ContributorLicenseAgreement.md)。
 
-## Documentation
+## 文档
 
-Find explanations and information about Xenko:
-* [Xenko Manual](https://doc.xenko.com/latest/manual/index.html)
-* [API Reference](https://doc.xenko.com/latest/api/index.html)
-* [Release Notes](https://doc.xenko.com/latest/ReleaseNotes/index.html)
+查找有关Xenko的说明和信息：
+* [Xenko手册](https://doc.xenko.com/latest/manual/index.html)
+* [API参考](https://doc.xenko.com/latest/api/index.html)
+* [发行说明](https://doc.xenko.com/latest/ReleaseNotes/index.html)
 
-## Community
+## 社区
 
-Ask for help or report issues:
-* Chat with the community [![Join the chat at https://gitter.im/xenko3d/xenko](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/xenko3d/xenko?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-* [Discuss topics on our forums](http://forums.xenko.com/)
-* [Report engine issues](https://github.com/xenko3d/xenko/issues)
-* [Donate to support the project](https://www.patreon.com/xenko)
+寻求帮助或报告问题：
+* 与社区聊天[![在https://gitter.im/xenko3d/xenko中加入聊天](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/xenko3d/xenko?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+* [在我们的论坛上讨论主题](http://forums.xenko.com/)
+* [报告引擎问题](https://github.com/xenko3d/xenko/issues)
+* [捐赠以支持该项目](https://www.patreon.com/xenko)
 
-## Building from source
+## 从源头建造
 
-### Prerequisites
+### 先决条件
 
-1. [Git](https://git-scm.com/downloads) (recent version that includes LFS, or install [Git LFS](https://git-lfs.github.com/) separately).
-2. [Visual Studio 2017](https://www.visualstudio.com/downloads/) with the following workloads:
-  * `.NET desktop development`
-    * If your OS is Windows 10: add `.NET Framework 4.6.2 development tools` in optional components of `.NET desktop development`
-    * If your OS is Windows 7: [.NET 4.6.2 Developer Pack](https://www.microsoft.com/net/download/thank-you/net462-developer-pack))
-  * `Desktop development with C++`
-  * `.NET Core cross-platform development`
-  * Optional (to target UWP): `Universal Windows Platform development`
-  * Optional (to target iOS/Android): `Mobile development with .NET` and `Android NDK R13B+` individual component
+1. [Git](https://git-scm.com/downloads)(包括LFS的最新版本，或单独安装[Git LFS](https://git-lfs.github.com/))。
+2. [Visual Studio 2017](https://www.visualstudio.com/downloads/)，具有以下工作负载：
+  * `.NET桌面开发`
+    * 如果您的操作系统是`Windows 10`，请在`.NET桌面开发`的可选组件中添加`.NET Framework 4.6.2 SDK`。
+    * 如果您的操作系统是`Windows 7`: [.NET 4.6.2 开发工具](https://www.microsoft.com/net/download/thank-you/net462-developer-pack))
+  * `使用C ++进行桌面开发`
+  * `.NET Core跨平台开发`
+  * 可选(针对UWP)：`通用Windows平台开发`
+  * 可选(针对iOS/Android)：使用 `Mobile development with .NET` 和 `Android NDK R13B+` 单独组件
 3. [FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)
 
-### Build Xenko
+### 建立Xenko
 
-1. Clone Xenko: `git clone https://github.com/xenko3d/xenko.git`
-2. Set *XenkoDir* environment variable to point to your `<XenkoDir>`
-3. Open `<XenkoDir>\build\Xenko.sln` with Visual Studio 2017, and build.
-4. Open `<XenkoDir>\samples\XenkoSamples.sln` and play with the samples.
-5. Optionally, open and build `Xenko.Android.sln`, `Xenko.iOS.sln`, etc...
+1. 克隆Xenko：`git clone https：// github.com/xenko3d/xenko.git`
+2. 将`<XenkoDir>`环境变量设置为指向您的`<XenkoDir>`
+3. 使用Visual Studio 2017打开`<XenkoDir>\build\Xenko.sln`并进行构建。
+4. 打开`<XenkoDir>\samples\XenkoSamples.sln`，然后播放示例。
+5. (可选)打开并构建`Xenko.Android.sln`，`Xenko.iOS.sln`等。
 
-### Contribution Guidelines
+### 贡献准则
 
-Please check our [Contributing Guidelines](docs/CONTRIBUTING.md).
+请查看我们的[贡献准则](docs/CONTRIBUTING.md)。
 
-### Build Status
-
+### 构建状态
 |Branch| **master** |
 |:--:|:--:|
 |Windows D3D11|<a href="https://teamcity.xenko.com/viewType.html?buildTypeId=Engine_BuildWindowsD3d11&branch=master&guest=1"><img src="https://teamcity.xenko.com/app/rest/builds/buildType:(id:Engine_BuildWindowsD3d11),branch:master/statusIcon"/></a>
