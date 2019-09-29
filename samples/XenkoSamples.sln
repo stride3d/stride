@@ -217,10 +217,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Windows", "G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Game", "Graphics\MaterialShader\MaterialShader.Game\MaterialShader.Game.csproj", "{CBDAF756-3F4A-4CAC-975D-A76A2B196A01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Windows", "Graphics\MaterialShader\MaterialShader.Windows\MaterialShader.Windows.csproj", "{F4F74EB3-D2B6-405B-B483-1835E81A3A40}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaterialShader.Game", "Graphics\MaterialShader\MaterialShader.Game\MaterialShader.Game.csproj", "{B77B0B3F-C7FC-401E-A289-73BE6AEBB49E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		AppStore|Any CPU = AppStore|Any CPU
