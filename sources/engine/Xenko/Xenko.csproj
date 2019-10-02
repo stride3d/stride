@@ -28,6 +28,10 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.props" PackagePath="build\" Pack="true" />
+    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
+    <None Include="build\**\*.props" PackagePath="buildTransitive\" Pack="true" />
     <None Include="runtime.json" Pack="true" PackagePath="/">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
