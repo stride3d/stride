@@ -22,29 +22,97 @@ namespace Xenko.Core.Assets
 {
     static class RestoreHelper
     {
+        static List<string> SupportedRuntimes = new List<string>
+        {
+            "win-d3d11",
+            "win",
+            "any",
+            "none",
+        };
+        static List<string> SupportedTfms = new List<string>
+        {
+            "net472",
+            "net471",
+            "net47",
+            "net462",
+            "net461",
+            "net46",
+            "net452",
+            "net451",
+            "net45",
+            "net40",
+            "net35",
+            "net20",
+            "net11",
+            "net10",
+            "netstandard2.0",
+            "netstandard1.6",
+            "netstandard1.5",
+            "netstandard1.4",
+            "netstandard1.3",
+            "netstandard1.2",
+            "netstandard1.1",
+            "netstandard1.0",
+        };
+        struct SortedFile
+        {
+            public string Filename;
+            public int Order;
+        }
         public static List<string> ListAssemblies(RestoreRequest request, RestoreResult result)
         {
             var assemblies = new List<string>();
             foreach (var library in result.LockFile.Libraries)
             {
-                // Try several known path (note: order matters)
-                // TODO: Create a real sort
-                foreach (var startPattern in new[] { "runtimes/win-d3d11/lib/net4", "runtimes/win/lib/net4", "runtimes/any/lib/net4", "lib/net4", "lib/net35", "runtimes/win-d3d11/lib/netstandard2.", "runtimes/win/lib/netstandard2.", "runtimes/any/lib/netstandard2.", "lib/netstandard2.", "lib/netstandard1.", "lib/net10" })
-                {
-                    foreach (var file in library.Files)
-                    {
-                        var extension = Path.GetExtension(file).ToLowerInvariant();
-                        // Try several known path (note: order matters)
-                        if (file.StartsWith(startPattern, StringComparison.InvariantCultureIgnoreCase)
-                            && (extension == ".dll" || extension == ".exe"))
+                var libraryFiles = library.Files
+                    .Select(x =>
+                        new SortedFile
                         {
-                            assemblies.Add(Path.Combine(request.DependencyProviders.GlobalPackages.RepositoryRoot, library.Path, file));
-                        }
+                            Filename = x,
+                            Order = ComputeFilePriority(x),
+                        })
+                    .Where(x => x.Order != -1)
+                    .OrderBy(x => x.Order)
+                    .ToList();
+                foreach (var file in libraryFiles)
+                {
+                    var extension = Path.GetExtension(file.Filename).ToLowerInvariant();
+                    // Try several known path (note: order matters)
+                    if (extension == ".dll" || extension == ".exe")
+                    {
+                        assemblies.Add(Path.Combine(request.DependencyProviders.GlobalPackages.RepositoryRoot, library.Path, file.Filename));
                     }
                 }
             }
 
             return assemblies;
+        }
+
+        static int ComputeFilePriority(string filename)
+        {
+            var libPosition = 0;
+            var runtime = "none";
+
+            var pathParts = filename.Split('/');
+            if (pathParts.Length >= 2 && pathParts[0].ToLowerInvariant() == "runtimes")
+            {
+                libPosition = 2;
+                runtime = pathParts[1].ToLowerInvariant();
+            }
+            var runtimeIndex = SupportedRuntimes.IndexOf(runtime);
+            if (runtimeIndex == -1)
+                return -1;
+
+            if (!(libPosition + 1 < pathParts.Length // also includes TFM
+                && pathParts[libPosition].ToLowerInvariant() == "lib"))
+                return -1;
+
+            var tfm = pathParts[libPosition + 1].ToLowerInvariant();
+            var tfmIndex = SupportedTfms.IndexOf(tfm);
+            if (tfmIndex == -1)
+                return -1;
+
+            return tfmIndex * 1000 + runtimeIndex;
         }
 
         public static async Task<(RestoreRequest, RestoreResult)> Restore(ILogger logger, string packageName, VersionRange versionRange)
