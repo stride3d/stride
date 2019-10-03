@@ -57,6 +57,7 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="..\Xenko.Samples.Templates\ThisPackageVersion.cs" Link="ThisPackageVersion.cs" />
     <None Include="app.config" />
     <None Include="*.cd" />
     <Page Include="**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
