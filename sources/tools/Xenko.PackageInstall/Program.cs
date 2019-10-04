@@ -93,22 +93,6 @@ namespace Xenko.PackageInstall
             }
         }
 
-        private static bool DialogBoxTryAgainVisualStudioInstaller(string programName, Process process)
-        {
-            if (process.ExitCode == 1)
-            {
-                var resultUpdate = MessageBox.Show($"The installation of {programName} returned with code {process.ExitCode}.\r\n\r\nThis is likely due to Visual Studio Installer needs a self-update.\r\n\r\nPlease click Yes to start the self-update process.", "Visual Studio Installer udpate needed", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                if (RunProgramAndAskUntilSuccess("Visual Studio Installer", "vs_Setup.exe", "--update --wait --passive", DialogBoxTryAgain) == 0)
-                {
-                    // Then allow update
-                    return true;
-                }
-            }
-
-            return DialogBoxTryAgain(programName, process);
-        }
-
-
         private static bool DialogBoxTryAgain(string programName, Process process)
         {
             var result = MessageBox.Show($"The installation of {programName} returned with code {process.ExitCode}.\r\nDo you want to try it again?", "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -131,7 +115,18 @@ namespace Xenko.PackageInstall
                 var vsInstallerPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Visual Studio\Installer\vs_installer.exe");
                 if (AllowVisualStudioOnly && existingVisualStudio2019Install != null && File.Exists(vsInstallerPath))
                 {
-                    // First, check if a Visual Studio update is needed
+                    // First, make sure installer is up to date
+                    {
+                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio Installer", "vs_Setup.exe", "--update --wait --passive", DialogBoxTryAgain);
+                        if (vsInstallerExitCode != 0)
+                        {
+                            var errorMessage = $"Visual Studio Installer update failed with error {vsInstallerExitCode}";
+                            MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            throw new InvalidOperationException(errorMessage);
+                        }
+                    }
+
+                    // Second, check if a Visual Studio update is needed
                     // Note: not necessary since VS2019, still keeping code for when we'll need a specific VS2019 version
                     if (existingVisualStudio2019Install.Version.Major == 16 && existingVisualStudio2019Install.Version.Minor < 0)
                     {
@@ -139,7 +134,7 @@ namespace Xenko.PackageInstall
                         try
                         {
                             Console.CancelKeyPress += Console_IgnoreControlC;
-                            var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\"", DialogBoxTryAgainVisualStudioInstaller);
+                            var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\"", DialogBoxTryAgain);
                             if (vsInstallerExitCode != 0)
                             {
                                 var errorMessage = $"Visual Studio 2019 update failed with error {vsInstallerExitCode}";
@@ -153,9 +148,9 @@ namespace Xenko.PackageInstall
                         }
                     }
 
-                    // Check workloads
+                    // Third, check workloads
                     {
-                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x}"))}", DialogBoxTryAgainVisualStudioInstaller);
+                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x}"))}", DialogBoxTryAgain);
                         if (vsInstallerExitCode != 0)
                         {
                             var errorMessage = $"Visual Studio 2019 install failed with error {vsInstallerExitCode}";
