@@ -81,6 +81,8 @@
     <MandroidI18n />
     <!-- Avoid Xamarin.Android.Common.targets(519,3): error MSB4044: The "FilterAssemblies" task was not given a value for the required parameter "DesignTimeBuild". -->
     <DesignTimeBuild Condition="'$(DesignTimeBuild)' == ''">False</DesignTimeBuild>
+    <!-- Use AssemblyName rather than RootNamespace for Resource class otherwise it might clash between some assemblies (i.e. Xenko and Xenko.Engine) -->
+    <AndroidResgenNamespace>$(AssemblyName)</AndroidResgenNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(XenkoPlatform)' == 'Android' And '$(OutputType)' == 'Exe' ">
     <AndroidApplication>true</AndroidApplication>
