@@ -1,6 +1,6 @@
 ﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <XenkoAssemblyProcessor>false</XenkoAssemblyProcessor>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
@@ -64,7 +64,7 @@
   </ItemGroup>
   <Import Project="..\Xenko.Core.VisualStudio\Xenko.Core.VisualStudio.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <Target Name="LocateDevenv" AfterTargets="PrepareForBuild">
     <!-- Compute and save VisualStudio path to a file so that it can be used when running the test. Note: ideally we should use a Task, but Visual Studio lock the files -->
     <Exec Command="&quot;..\..\core\Xenko.Core.Tasks\bin\$(Configuration)\$(TargetFrameworkTool)\Xenko.Core.Tasks.exe&quot; locate-devenv &quot;$(MSBuildBinPath)&quot;" ConsoleToMsBuild="true">
