@@ -151,6 +151,7 @@ namespace Xenko.Input
                 {
                     RegisterFromType(typeof(Keyboard));
                     RegisterFromType(typeof(GamePad));
+                    RegisterFromType(typeof(Mouse));
                     registeredReadOnly = registered;
                 }
             }

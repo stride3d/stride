@@ -398,6 +398,9 @@ namespace Xenko.GameStudio
                 case SupportedLanguage.ChineseSimplified:
                     TranslationManager.Instance.CurrentLanguage = new CultureInfo("zh-Hans");
                     break;
+                case SupportedLanguage.Italian:
+                    TranslationManager.Instance.CurrentLanguage = new CultureInfo("it-IT");
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

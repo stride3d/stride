@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:05+0900\n"
-"PO-Revision-Date: 2019-08-02 13:38+0000\n"
+"PO-Revision-Date: 2019-08-16 12:24+0000\n"
 "Last-Translator: meriaizen86 <shinkitsunemaru@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/xenko/"
 "assetspresentation/es/>\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.8-dev\n"
+"X-Generator: Weblate 3.8\n"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
 msgctxt "Message"
@@ -685,7 +685,7 @@ msgstr "Derecha"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
 msgctxt "ToolTip"
 msgid "Snap translations to this value"
-msgstr "Ajustar las traducciones a este valor"
+msgstr "Ajustar las transformaciones a este valor"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:710
 msgctxt "ToolTip"

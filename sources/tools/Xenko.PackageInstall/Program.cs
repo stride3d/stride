@@ -38,7 +38,7 @@ namespace Xenko.PackageInstall
                         var prerequisitesInstallerPath = @"install-prerequisites.exe";
                         if (File.Exists(prerequisitesInstallerPath))
                         {
-                            RunProgramAndAskUntilSuccess("prerequisites", prerequisitesInstallerPath, string.Empty);
+                            RunProgramAndAskUntilSuccess("prerequisites", prerequisitesInstallerPath, string.Empty, DialogBoxTryAgain);
                         }
 
                         // Make sure we have the proper VS2019/BuildTools prerequisites
@@ -57,7 +57,7 @@ namespace Xenko.PackageInstall
             }
         }
 
-        private static int RunProgramAndAskUntilSuccess(string programName, string fileName, string arguments)
+        private static int RunProgramAndAskUntilSuccess(string programName, string fileName, string arguments, Func<string, Process, bool> processError)
         {
         TryAgain:
             try
@@ -71,10 +71,7 @@ namespace Xenko.PackageInstall
                 prerequisitesInstallerProcess.WaitForExit();
                 if (prerequisitesInstallerProcess.ExitCode != 0)
                 {
-                    // We'll enter this if UAC has been declined, but also if it timed out (which is a frequent case)
-                    // if you don't stay in front of your computer during the installation.
-                    var result = MessageBox.Show($"The installation of {programName} returned with code {prerequisitesInstallerProcess.ExitCode}.\r\nDo you want to try it again?", "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                    if (result != DialogResult.Yes)
+                    if (!processError(programName, prerequisitesInstallerProcess))
                         return prerequisitesInstallerProcess.ExitCode;
                     goto TryAgain;
                 }
@@ -96,6 +93,12 @@ namespace Xenko.PackageInstall
             }
         }
 
+        private static bool DialogBoxTryAgain(string programName, Process process)
+        {
+            var result = MessageBox.Show($"The installation of {programName} returned with code {process.ExitCode}.\r\nDo you want to try it again?", "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            return result == DialogResult.Yes;
+        }
+
         private static void CheckVisualStudioAndBuildTools()
         {
             // Check if there is any VS2019 installed with necessary workloads
@@ -112,7 +115,18 @@ namespace Xenko.PackageInstall
                 var vsInstallerPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Visual Studio\Installer\vs_installer.exe");
                 if (AllowVisualStudioOnly && existingVisualStudio2019Install != null && File.Exists(vsInstallerPath))
                 {
-                    // First, check if a Visual Studio update is needed
+                    // First, make sure installer is up to date
+                    {
+                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio Installer", "vs_Setup.exe", "--update --wait --passive", DialogBoxTryAgain);
+                        if (vsInstallerExitCode != 0)
+                        {
+                            var errorMessage = $"Visual Studio Installer update failed with error {vsInstallerExitCode}";
+                            MessageBox.Show(errorMessage, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            throw new InvalidOperationException(errorMessage);
+                        }
+                    }
+
+                    // Second, check if a Visual Studio update is needed
                     // Note: not necessary since VS2019, still keeping code for when we'll need a specific VS2019 version
                     if (existingVisualStudio2019Install.Version.Major == 16 && existingVisualStudio2019Install.Version.Minor < 0)
                     {
@@ -120,7 +134,7 @@ namespace Xenko.PackageInstall
                         try
                         {
                             Console.CancelKeyPress += Console_IgnoreControlC;
-                            var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\"");
+                            var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\"", DialogBoxTryAgain);
                             if (vsInstallerExitCode != 0)
                             {
                                 var errorMessage = $"Visual Studio 2019 update failed with error {vsInstallerExitCode}";
@@ -134,9 +148,9 @@ namespace Xenko.PackageInstall
                         }
                     }
 
-                    // Check workloads
+                    // Third, check workloads
                     {
-                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x}"))}");
+                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x}"))}", DialogBoxTryAgain);
                         if (vsInstallerExitCode != 0)
                         {
                             var errorMessage = $"Visual Studio 2019 install failed with error {vsInstallerExitCode}";
@@ -175,7 +189,7 @@ namespace Xenko.PackageInstall
                     if (buildToolsCommandLine != null)
                     {
                         // Run vs_buildtools again
-                        RunProgramAndAskUntilSuccess("Build Tools", "vs_buildtools.exe", buildToolsCommandLine);
+                        RunProgramAndAskUntilSuccess("Build Tools", "vs_buildtools.exe", buildToolsCommandLine, DialogBoxTryAgain);
                     }
                 }
             }
