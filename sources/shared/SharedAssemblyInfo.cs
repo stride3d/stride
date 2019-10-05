@@ -49,7 +49,7 @@ namespace Xenko
         /// - -betaXX: development version (XX should corespond to development asset versioning)
         /// - -betaXX-YYYY: beta release (YYYY is the git height since current version has been bumped)
         /// </summary>
-        public const string NuGetVersionSuffix = "";
+        public const string NuGetVersionSuffix = "-beta02";
 
         /// <summary>
         /// The build metadata, usually +g[git_hash] during package. Automatically set by Xenko.GitVersioning.GenerateVersionFile.
