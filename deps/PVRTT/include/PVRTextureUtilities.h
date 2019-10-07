@@ -175,6 +175,6 @@ namespace pvrtexture
 	 @return		True if the method succeeds.					
 	*************************************************************************/
 	bool PVR_DLL Transcode(CPVRTexture& sTexture, const PixelType ptFormat, const EPVRTVariableType eChannelType, const EPVRTColourSpace eColourspace, const ECompressorQuality eQuality=ePVRTCNormal, const bool bDoDither=false);
-};
+}
 #endif //_PVRTEXTURE_UTILTIES_H
 

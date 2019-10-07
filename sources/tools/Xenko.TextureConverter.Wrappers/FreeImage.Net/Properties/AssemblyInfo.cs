@@ -7,7 +7,6 @@ using System.Resources;
 //
 [assembly: AssemblyDelaySign(false)]
 [assembly: AssemblyKeyFile("")]
-[assembly: AssemblyFileVersionAttribute("3.15.1.0")]
 [assembly: ComVisibleAttribute(false)]
 [assembly: NeutralResourcesLanguageAttribute("")]
 [assembly: GuidAttribute("64a4c935-b757-499c-ab8c-6110316a9e51")]

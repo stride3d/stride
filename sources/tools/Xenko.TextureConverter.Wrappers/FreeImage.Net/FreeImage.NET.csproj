@@ -1,34 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <ProductVersion>9.0.21022</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <StartupObject>
-    </StartupObject>
-    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <OldToolsVersion>3.5</OldToolsVersion>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
     <TargetFramework>net40</TargetFramework>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>publish\</PublishUrl>
-    <Install>true</Install>
-    <InstallFrom>Disk</InstallFrom>
-    <UpdateEnabled>false</UpdateEnabled>
-    <UpdateMode>Foreground</UpdateMode>
-    <UpdateInterval>7</UpdateInterval>
-    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-    <UpdatePeriodically>false</UpdatePeriodically>
-    <UpdateRequired>false</UpdateRequired>
-    <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <UseApplicationTrust>false</UseApplicationTrust>
-    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AssemblyName>FreeImageNET</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>..\..\..\..\deps\FreeImage\%24%28Configuration%29\%24%28Platform%29\</OutputPath>
+    <OutputPath>..\..\..\..\deps\FreeImage\$(Configuration)\$(Platform)\</OutputPath>
     <DefineConstants>DEBUG</DefineConstants>
     <ErrorReport>none</ErrorReport>
     <BaseAddress>4194304</BaseAddress>
@@ -43,7 +20,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\deps\FreeImage\%24%28Configuration%29\%24%28Platform%29\</OutputPath>
+    <OutputPath>..\..\..\..\deps\FreeImage\$(Configuration)\$(Platform)\</OutputPath>
     <DefineConstants>
     </DefineConstants>
     <ErrorReport>none</ErrorReport>
@@ -55,7 +32,7 @@
     </DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <OutputPath>..\..\..\..\deps\FreeImage\Debug\x86\</OutputPath>
+    <OutputPath>..\..\..\..\deps\FreeImage\$(Configuration)\$(Platform)\</OutputPath>
     <DefineConstants>DEBUG</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>
@@ -66,7 +43,7 @@
     <ErrorReport>none</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <OutputPath>..\..\..\..\deps\FreeImage\Release\x86\</OutputPath>
+    <OutputPath>..\..\..\..\deps\FreeImage\$(Configuration)\$(Platform)\</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DocumentationFile>
     </DocumentationFile>
@@ -102,10 +79,6 @@
     <ErrorReport>none</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Update="Classes\MemoryArray.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -115,10 +88,7 @@
     <Compile Update="Classes\Scanline.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Properties\AssemblyInfo.cs">
-      <SubType>
-      </SubType>
-    </Compile>
+    <Compile Update="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

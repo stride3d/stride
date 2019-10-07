@@ -77,6 +77,11 @@ namespace pvrtexture
 							bool				bPreMultiplied=false);
 
 		/*!***********************************************************************
+		@brief      	Deconstructor for CPVRTextureHeader.
+		*************************************************************************/
+		~CPVRTextureHeader();
+
+		/*!***********************************************************************
 		 @brief      	Will copy the contents and information of another header into this one.
 		 @param[in]		rhs     Header to copy.
 		 @return		This header.
@@ -241,6 +246,14 @@ namespace pvrtexture
 		void getOGLESFormat(uint32& internalformat, uint32& format, uint32& type) const;
 
 		/*!***********************************************************************
+		@brief      	Gets the Vulkan equivalent values for this texture.
+						This will return any supported Vulkan texture formats, it is up to
+						the user to decide if these are valid for their current platform.
+		@return			VkFormat, represented by a uint32.
+		*************************************************************************/
+		uint32 getVulkanFormat() const;
+
+		/*!***********************************************************************
 		 @brief      	Gets the D3DFormat (up to DirectX 9 and Direct 3D Mobile)
 						equivalent values for this texture. This will return any 
 						supported D3D texture formats, it is up to the user to
@@ -254,7 +267,7 @@ namespace pvrtexture
 						for this texture. This will return any supported DX texture
 						formats, it is up to the user to decide if this is valid 
 						for their current platform.
-		 @return		GXGIFormat, represented by a uint32. 
+		 @return		DXGIFormat, represented by a uint32. 
 		*************************************************************************/
 		uint32 getDXGIFormat() const;
 
@@ -534,6 +547,6 @@ namespace pvrtexture
 		*************************************************************************/
 		void removeMetaData(const uint32& DevFOURCC, const uint32& u32Key);
 	};
-};
+}
 
 #endif
