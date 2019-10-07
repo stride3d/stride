@@ -64,7 +64,7 @@ namespace Xenko.Shaders.Compiler.OpenGL
                     break;
                 case GraphicsPlatform.OpenGLES:
                     shaderPlatform = GlslShaderPlatform.OpenGLES;
-                    shaderVersion = effectParameters.Profile >= GraphicsProfile.Level_10_0 ? 300 : 100;
+                    shaderVersion = 300;
                     break;
                 case GraphicsPlatform.Vulkan:
                     shaderPlatform = GlslShaderPlatform.Vulkan;
@@ -92,27 +92,7 @@ namespace Xenko.Shaders.Compiler.OpenGL
                 }
             }
 
-            if (effectParameters.Platform == GraphicsPlatform.OpenGLES)
-            {
-                // store both ES 2 and ES 3 on OpenGL ES platforms
-                var shaderBytecodes = new ShaderLevelBytecode();
-                if (effectParameters.Profile >= GraphicsProfile.Level_10_0)
-                {
-                    shaderBytecodes.DataES3 = shader;
-                    shaderBytecodes.DataES2 = null;
-                }
-                else
-                {
-                    shaderBytecodes.DataES2 = shader;
-                    shaderBytecodes.DataES3 = Compile(shaderSource, entryPoint, stage, GlslShaderPlatform.OpenGLES, 300, shaderBytecodeResult, reflection, inputAttributeNames, resourceBindings, sourceFilename);
-                }
-                using (var stream = new MemoryStream())
-                {
-                    BinarySerialization.Write(stream, shaderBytecodes);
-                    rawData = stream.GetBuffer();
-                }
-            }
-            else if (effectParameters.Platform == GraphicsPlatform.Vulkan)
+            if (effectParameters.Platform == GraphicsPlatform.Vulkan)
             {
                 string inputFileExtension;
                 switch (stage)

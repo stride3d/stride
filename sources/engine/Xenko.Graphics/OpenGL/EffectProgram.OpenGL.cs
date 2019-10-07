@@ -144,12 +144,8 @@ void main()
                             throw new Exception("Unsupported shader stage");
                     }
 
-#if XENKO_GRAPHICS_API_OPENGLES
-                    var shaderSources = BinarySerialization.Read<ShaderLevelBytecode>(shader.Data);
-                    var shaderSource = shaderSources.DataES3;
-#else
                     var shaderSource = shader.GetDataAsString();
-#endif
+
                     //edit the source a little to emulateDepthClamp
                     if (emulateDepthClamp)
                     {
