@@ -97,8 +97,6 @@ namespace Xenko.Graphics
         internal Texture WindowProvidedRenderTexture;
         internal int WindowProvidedFrameBuffer;
 
-        internal bool HasVAO;
-
         internal bool HasDXT;
 
         internal bool HasDepthClamp;
@@ -111,14 +109,7 @@ namespace Xenko.Graphics
 
 #if XENKO_GRAPHICS_API_OPENGLES
         internal bool HasKhronosDebugKHR;
-        internal bool HasDepth24;
-        internal bool HasPackedDepthStencilExtension;
         internal bool HasExtTextureFormatBGRA8888;
-        internal bool HasTextureFloat;
-        internal bool HasTextureHalf;
-        internal bool HasRenderTargetFloat;
-        internal bool HasRenderTargetHalf;
-        internal bool HasTextureRG;
 #endif
 
         private bool isFramebufferSRGB;
@@ -170,8 +161,6 @@ namespace Xenko.Graphics
 #endif
 
 #if XENKO_GRAPHICS_API_OPENGLES
-        public bool IsOpenGLES2 { get; private set; }
-
         // Need to change sampler state depending on if texture has mipmap or not during PreDraw
         private bool[] hasMipmaps = new bool[64];
 #endif
@@ -286,8 +275,6 @@ namespace Xenko.Graphics
             --contextBeginCounter;
             if (contextBeginCounter == 0)
             {
-                //UnbindVertexArrayObject();
-
 #if XENKO_PLATFORM_ANDROID
                 if (Workaround_Context_Tegra2_Tegra3)
                 {
@@ -350,41 +337,17 @@ namespace Xenko.Graphics
 
         private int CreateCopyProgram(bool srgb, out int offsetLocation, out int scaleLocation)
         {
-            string shaderVersion, inAttribute, outAttribute, varyingFragment, fragColorDeclaration, fragColorVariable, textureAPI;
 #if XENKO_GRAPHICS_API_OPENGLES
             // We aim at OpenGLES 3.0 or greater.
-            shaderVersion = "#version 300 es";
+            var shaderVersion = "#version 300 es";
 #else
-            shaderVersion = "#version 410";
+            var shaderVersion = "#version 410";
 #endif
-
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (currentVersion < 300)
-            {
-                // Override the version
-                shaderVersion = "#version 100";
-                inAttribute = "attribute";
-                outAttribute = "varying";
-                varyingFragment = "varying";
-                fragColorDeclaration = "";
-                fragColorVariable = "gl_FragColor";
-                textureAPI = "texture2D";
-            }
-            else
-#endif
-            {
-                inAttribute = "in";
-                outAttribute = "out";
-                varyingFragment = "in";
-                fragColorDeclaration = "out vec4 gFragColor;\n";
-                fragColorVariable = "gFragColor";
-                textureAPI = "texture";
-            }
 
             string copyVertexShaderSource =
                 shaderVersion + "\n" +
-                inAttribute + " vec2 aPosition;   \n" +
-                outAttribute + " vec2 vTexCoord;  \n" +
+                "in vec2 aPosition;   \n" +
+                "out vec2 vTexCoord;  \n" +
                 "uniform vec4 uScale;     \n" +
                 "uniform vec4 uOffset;     \n" +
                 "void main()                 \n" +
@@ -397,24 +360,24 @@ namespace Xenko.Graphics
             string copyFragmentShaderSource =
                 shaderVersion + "\n" +
                 "precision mediump float;                            \n" +
-                varyingFragment + " vec2 vTexCoord;                  \n" +
-                fragColorDeclaration +
+                "in vec2 vTexCoord;                  \n" +
+                "out vec4 gFragColor;\n" +
                 "uniform sampler2D s_texture;                        \n" +
                 "void main()                                         \n" +
                 "{                                                   \n" +
-                "    " + fragColorVariable + " = " + textureAPI + "(s_texture, vTexCoord); \n" +
+                "    gFragColor = texture(s_texture, vTexCoord); \n" +
                 "}                                                   \n";
 
             string copyFragmentShaderSourceSRgb =
                 shaderVersion + "\n" +
                 "precision mediump float;                            \n" +
-                varyingFragment + " vec2 vTexCoord;                  \n" +
-                fragColorDeclaration +
+                "in vec2 vTexCoord;                  \n" +
+                "out vec4 gFragColor;\n" +
                 "uniform sampler2D s_texture;                        \n" +
                 "void main()                                         \n" +
                 "{                                                   \n" +
-                "    vec4 color = " + textureAPI + "(s_texture, vTexCoord);   \n" +
-                "    " + fragColorVariable + " = vec4(sqrt(color.rgb), color.a); \n" +  // approximation of linear to SRgb
+                "    vec4 color = texture(s_texture, vTexCoord);   \n" +
+                "    gFragColor = vec4(sqrt(color.rgb), color.a); \n" +  // approximation of linear to SRgb
                 "}                                                   \n";
 
             // First initialization of shader program
@@ -592,24 +555,19 @@ namespace Xenko.Graphics
                 UpdateFBOColorAttachment(framebufferTarget, i, renderTargets[i]);
             }
 
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (!IsOpenGLES2)
+#if !XENKO_GRAPHICS_API_OPENGLES
+            if (renderTargetCount <= 1)
+            {
+                GL.DrawBuffer(renderTargetCount != 0 ? DrawBufferMode.ColorAttachment0 : DrawBufferMode.None);
+            }
+            else
 #endif
             {
-#if !XENKO_GRAPHICS_API_OPENGLES
-                if (renderTargetCount <= 1)
-                {
-                    GL.DrawBuffer(renderTargetCount != 0 ? DrawBufferMode.ColorAttachment0 : DrawBufferMode.None);
-                }
-                else
-#endif
-                {
-                    // Specify which attachments to render to (all of them in our case):
-                    var drawBuffers = new DrawBuffersEnum[renderTargetCount];
-                    for (var i = 0; i < renderTargetCount; ++i)
-                        drawBuffers[i] = DrawBuffersEnum.ColorAttachment0 + i;
-                    GL.DrawBuffers(renderTargetCount, drawBuffers);
-                }
+                // Specify which attachments to render to (all of them in our case):
+                var drawBuffers = new DrawBuffersEnum[renderTargetCount];
+                for (var i = 0; i < renderTargetCount; ++i)
+                    drawBuffers[i] = DrawBuffersEnum.ColorAttachment0 + i;
+                GL.DrawBuffers(renderTargetCount, drawBuffers);
             }
 
             if (depthStencilBuffer.Texture != null)
@@ -646,11 +604,6 @@ namespace Xenko.Graphics
 
         internal void UpdateFBOColorAttachment(FramebufferTarget framebufferTarget, int i, FBOTexture renderTarget)
         {
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (IsOpenGLES2 && renderTarget.MipLevel != 0)
-                throw new PlatformNotSupportedException("Can't read from mipmap level other than 0 on OpenGL ES 2");
-#endif
-
             switch (renderTarget.Texture.TextureTarget)
             {
 #if !XENKO_GRAPHICS_API_OPENGLES
@@ -668,10 +621,6 @@ namespace Xenko.Graphics
                     break;
                 case TextureTarget.Texture2DArray:
                 case TextureTarget.Texture3D:
-#if XENKO_GRAPHICS_API_OPENGLES
-                    if (IsOpenGLES2)
-                        throw new PlatformNotSupportedException($"Can't bind FBO with target [{renderTarget.Texture.TextureTarget}]. Reason: 3D textures are not supported on OpenGL ES 2.");   // TODO: If not supported on OpenGL ES, why is the texture even allocated? This should be catched earlier.
-#endif
                     GL.FramebufferTextureLayer(framebufferTarget, FramebufferAttachment.ColorAttachment0 + i, renderTarget.Texture.TextureId, renderTarget.MipLevel, renderTarget.ArraySlice);
                     break;
                 default:
@@ -681,16 +630,7 @@ namespace Xenko.Graphics
 
         internal FramebufferAttachment UpdateFBODepthStencilAttachment(FramebufferTarget framebufferTarget, FBOTexture depthStencilBuffer)
         {
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (IsOpenGLES2 && depthStencilBuffer.MipLevel != 0)
-                throw new PlatformNotSupportedException("Can't read from mipmap level other than 0 on OpenGL ES 2");
-#endif
-
             bool useSharedAttachment = depthStencilBuffer.Texture.StencilId == depthStencilBuffer.Texture.TextureId;
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (IsOpenGLES2)  // FramebufferAttachment.DepthStencilAttachment is not supported in ES 2  // TODO: Wouldn't it make more sense to check the value of "depthStencilBuffer.Texture.StencilId" instead?
-                useSharedAttachment = false;
-#endif
             var attachmentType = useSharedAttachment ? FramebufferAttachment.DepthStencilAttachment : FramebufferAttachment.DepthAttachment;
 
             if (depthStencilBuffer.Texture.IsRenderbuffer)
@@ -823,7 +763,6 @@ namespace Xenko.Graphics
             }
 
 #if XENKO_GRAPHICS_API_OPENGLES
-            IsOpenGLES2 = version < 300;
             creationFlags |= GraphicsContextFlags.Embedded;
 #endif
 
@@ -839,7 +778,7 @@ namespace Xenko.Graphics
             gameWindow = (AndroidGameView)windowHandle.NativeWindow;
 #elif XENKO_PLATFORM_IOS
             gameWindow = (iPhoneOSGameView)windowHandle.NativeWindow;
-            ThreadLocalContext = new ThreadLocal<OpenGLES.EAGLContext>(() => new OpenGLES.EAGLContext(IsOpenGLES2 ? OpenGLES.EAGLRenderingAPI.OpenGLES2 : OpenGLES.EAGLRenderingAPI.OpenGLES3, gameWindow.EAGLContext.ShareGroup));
+            ThreadLocalContext = new ThreadLocal<OpenGLES.EAGLContext>(() => new OpenGLES.EAGLContext(OpenGLES.EAGLRenderingAPI.OpenGLES3, gameWindow.EAGLContext.ShareGroup));
 #endif
 
             windowInfo = gameWindow.WindowInfo;
@@ -885,7 +824,7 @@ namespace Xenko.Graphics
             gameWindow.Load += OnApplicationResumed;
             gameWindow.Unload += OnApplicationPaused;
 
-            var asyncContext = new OpenGLES.EAGLContext(IsOpenGLES2 ? OpenGLES.EAGLRenderingAPI.OpenGLES2 : OpenGLES.EAGLRenderingAPI.OpenGLES3, gameWindow.EAGLContext.ShareGroup);
+            var asyncContext = new OpenGLES.EAGLContext(OpenGLES.EAGLRenderingAPI.OpenGLES3, gameWindow.EAGLContext.ShareGroup);
             OpenGLES.EAGLContext.SetCurrentContext(asyncContext);
             deviceCreationContext = new OpenTK.Graphics.GraphicsContext(new OpenTK.ContextHandle(asyncContext.Handle), null, graphicsContext, version / 100, (version % 100) / 10, creationFlags);
             deviceCreationWindowInfo = windowInfo;
@@ -913,16 +852,8 @@ namespace Xenko.Graphics
         private void InitializePostFeatures()
         {
             // Create and bind default VAO
-            if (HasVAO)
-            {
-#if XENKO_GRAPHICS_API_OPENGLES
-                if (!IsOpenGLES2)
-#endif
-                {
-                    GL.GenVertexArrays(1, out defaultVAO);
-                    GL.BindVertexArray(defaultVAO);
-                }
-            }
+            GL.GenVertexArrays(1, out defaultVAO);
+            GL.BindVertexArray(defaultVAO);
 
             // Save current FBO aside
             int boundFBO;

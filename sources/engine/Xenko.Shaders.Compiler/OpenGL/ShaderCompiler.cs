@@ -179,9 +179,6 @@ namespace Xenko.Shaders.Compiler.OpenGL
 
         private string Compile(string shaderSource, string entryPoint, ShaderStage stage, GlslShaderPlatform shaderPlatform, int shaderVersion, ShaderBytecodeResult shaderBytecodeResult, EffectReflection reflection, IDictionary<int, string> inputAttributeNames, Dictionary<string, int> resourceBindings, string sourceFilename = null)
         {
-            if (shaderPlatform == GlslShaderPlatform.OpenGLES && shaderVersion < 300 && renderTargetCount > 1)
-                shaderBytecodeResult.Error("OpenGL ES 2 does not support multiple render targets.");
-
             PipelineStage pipelineStage = PipelineStage.None;
             switch (stage)
             {
