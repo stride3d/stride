@@ -110,16 +110,6 @@ namespace Xenko.Assets.Textures
         }
 
         /// <summary>
-        /// Returns true if the PVRTC can be used for the provided texture size.
-        /// </summary>
-        /// <param name="textureSize">the size of the texture</param>
-        /// <returns>true if PVRTC is supported</returns>
-        public static bool SupportPVRTC(Size2 textureSize)
-        {
-            return textureSize.Width == textureSize.Height && MathUtil.IsPow2(textureSize.Width);
-        }
-
-        /// <summary>
         /// Utility function to check that the texture size is supported on the graphics platform for the provided graphics profile.
         /// </summary>
         /// <param name="parameters">The import parameters</param>
@@ -214,6 +204,7 @@ namespace Xenko.Assets.Textures
                     switch (parameters.Platform)
                     {
                         case PlatformType.Android:
+                        case PlatformType.iOS:
                             if (inputImageFormat.IsHDR())
                             {
                                 outputFormat = inputImageFormat;
@@ -233,44 +224,29 @@ namespace Xenko.Assets.Textures
                                     case GraphicsProfile.Level_11_1:
                                     case GraphicsProfile.Level_11_2:
                                         // GLES3.0 starting from Level_10_0, this profile enables ETC2 compression on Android
-                                        outputFormat = alphaMode == AlphaFormat.None && !parameters.IsSRgb ? PixelFormat.ETC1 : parameters.IsSRgb ? PixelFormat.ETC2_RGBA_SRgb : PixelFormat.ETC2_RGBA;
+                                        switch (alphaMode)
+                                        {
+                                            case AlphaFormat.None:
+                                                outputFormat = parameters.IsSRgb ? PixelFormat.ETC2_RGB_SRgb : PixelFormat.ETC2_RGB;
+                                                break;
+                                            case AlphaFormat.Mask:
+                                                // DXT1 handles 1-bit alpha channel
+                                                // TODO: Not sure about the equivalent here?
+                                                outputFormat = parameters.IsSRgb ? PixelFormat.ETC2_RGBA_SRgb : PixelFormat.ETC2_RGB_A1;
+                                                break;
+                                            case AlphaFormat.Explicit:
+                                            case AlphaFormat.Interpolated:
+                                                // DXT3 is good at sharp alpha transitions
+                                                // TODO: Not sure about the equivalent here?
+                                                outputFormat = parameters.IsSRgb ? PixelFormat.ETC2_RGBA_SRgb : PixelFormat.ETC2_RGBA;
+                                                break;
+                                            default:
+                                                throw new ArgumentOutOfRangeException();
+                                        }
                                         break;
                                     default:
                                         throw new ArgumentOutOfRangeException("GraphicsProfile");
                                 }
-                            }
-                            break;
-                        case PlatformType.iOS:
-                            // PVRTC works only for square POT textures
-                            if (inputImageFormat.IsHDR())
-                            {
-                                outputFormat = inputImageFormat;
-                            }
-                            else if (SupportPVRTC(imageSize))
-                            {
-                                switch (alphaMode)
-                                {
-                                    case AlphaFormat.None:
-                                        outputFormat = parameters.IsSRgb ? PixelFormat.PVRTC_4bpp_RGB_SRgb : PixelFormat.PVRTC_4bpp_RGB;
-                                        break;
-                                    case AlphaFormat.Mask:
-                                        // DXT1 handles 1-bit alpha channel
-                                        // TODO: Not sure about the equivalent here?
-                                        outputFormat = parameters.IsSRgb ? PixelFormat.PVRTC_4bpp_RGBA_SRgb : PixelFormat.PVRTC_4bpp_RGBA;
-                                        break;
-                                    case AlphaFormat.Explicit:
-                                    case AlphaFormat.Interpolated:
-                                        // DXT3 is good at sharp alpha transitions
-                                        // TODO: Not sure about the equivalent here?
-                                        outputFormat = parameters.IsSRgb ? PixelFormat.PVRTC_4bpp_RGBA_SRgb : PixelFormat.PVRTC_4bpp_RGBA;
-                                        break;
-                                    default:
-                                        throw new ArgumentOutOfRangeException();
-                                }
-                            }
-                            else
-                            {
-                                outputFormat = parameters.IsSRgb ? PixelFormat.R8G8B8A8_UNorm_SRgb : PixelFormat.R8G8B8A8_UNorm;
                             }
                             break;
                         case PlatformType.Windows:

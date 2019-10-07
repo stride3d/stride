@@ -544,18 +544,6 @@ namespace Xenko.TextureConverter.PvrttWrapper
 
             switch (format)
             {
-                case 0:
-                    return Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGB;
-                case 1:
-                    return Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGBA;
-                case 2:
-                    return Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGB;
-                case 3:
-                    return Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGBA;
-                case 4:
-                    return Xenko.Graphics.PixelFormat.PVRTC_II_2bpp;
-                case 5:
-                    return Xenko.Graphics.PixelFormat.PVRTC_II_4bpp;
                 case 6:
                     return Xenko.Graphics.PixelFormat.ETC1;
                 case 22:

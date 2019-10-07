@@ -214,18 +214,6 @@ namespace Xenko.Graphics
             {
                 switch (inputFormat)
                 {
-                    case PixelFormat.PVRTC_2bpp_RGB_SRgb:
-                        inputFormat = PixelFormat.PVRTC_2bpp_RGB;
-                        break;
-                    case PixelFormat.PVRTC_2bpp_RGBA_SRgb:
-                        inputFormat = PixelFormat.PVRTC_2bpp_RGBA;
-                        break;
-                    case PixelFormat.PVRTC_4bpp_RGB_SRgb:
-                        inputFormat = PixelFormat.PVRTC_4bpp_RGB;
-                        break;
-                    case PixelFormat.PVRTC_4bpp_RGBA_SRgb:
-                        inputFormat = PixelFormat.PVRTC_4bpp_RGBA;
-                        break;
                     case PixelFormat.ETC2_RGB_SRgb:
                         inputFormat = PixelFormat.ETC2_RGB;
                         break;
