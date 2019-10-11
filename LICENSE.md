@@ -1,24 +1,24 @@
-﻿The MIT License (MIT)
+﻿MIT许可证（MIT）
 
-Copyright (c) 2018 Xenko contributors (https://xenko.com)  
-Copyright (c) 2011-2018 Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+版权所有（c）2018 Xenko贡献者（https://xenko.com）
+版权所有（c）2011-2018 Silicon Studio Corp.（https://www.siliconstudio.co.jp）
 
-All rights reserved.
+版权所有。
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+特此授予获得副本的任何人免费的许可
+软件和相关文档文件（以下简称“软件”）的交易
+在软件中不受限制，包括但不限于权利
+使用，复制，修改，合并，发布，分发，再许可和/或出售
+本软件的副本，并允许本软件所针对的人
+具备以下条件：
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+上述版权声明和此许可声明应包含在所有
+复制本软件或本软件的实质部分。
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+本软件按“原样”提供，不提供任何形式的明示或明示保证。
+暗示（包括但不限于适销性的保证），
+适用于特定目的和非侵权。在任何情况下都不会
+作者或版权持有人对任何索赔，损害或其他责任
+无论是由于合同，侵权或其他原因而引起的责任，
+与软件或软件的使用或其他交易无关或与之有关
+软件。
