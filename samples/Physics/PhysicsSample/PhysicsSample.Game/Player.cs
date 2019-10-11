@@ -16,7 +16,7 @@ namespace PhysicsSample
         public override void Start()
         {
             character = Entity.Get<CharacterComponent>();
-            character.Gravity = -10.0f;
+            character.Gravity = new Vector3(0, 0, -10.0f);
             var rigidBodyComponent = Entity.Get<RigidbodyComponent>();
             if (rigidBodyComponent != null)
             {

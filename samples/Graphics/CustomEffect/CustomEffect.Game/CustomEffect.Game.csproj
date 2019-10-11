@@ -4,7 +4,7 @@
     <RootNamespace>CustomEffect</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Xenko" Version="3.0.0.1-dev">
+    <PackageReference Include="Xenko" Version="3.0.0.9-dev">
       <PrivateAssets>contentfiles;analyzers</PrivateAssets>
     </PackageReference>
   </ItemGroup>

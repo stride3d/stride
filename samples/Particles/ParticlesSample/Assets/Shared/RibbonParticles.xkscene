@@ -1,6 +1,6 @@
 !SceneAsset
 Id: 6736d805-6194-40bf-8056-7c52758e2e4b
-SerializedVersion: {Xenko: 2.1.0.1}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
 ChildrenIds: []
 Offset: {X: 0.0, Y: 0.0, Z: 0.0}
@@ -239,6 +239,12 @@ Hierarchy:
                         Children: {}
                     ce46f1f5897ac34d8d524db6cc951774: !ParticlesSample.GameProfiler,ParticlesSample.Game
                         Id: f5f146ce-7a89-4dc3-8d52-4db6cc951774
+                        Enabled: false
+                        TextColor: {R: 144, G: 238, B: 144, A: 255}
+                        RefreshTime: 500.0
+                        SortingMode: ByTime
+                        FilteringMode: Fps
+                        ResultPage: 1
         -   Entity:
                 Id: 278801fc-1b49-4cd5-9bfc-7e80e3be571a
                 Name: 7Ribbons

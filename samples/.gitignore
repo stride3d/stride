@@ -49,3 +49,4 @@ routerlog.txt
 *.pri
 *.lib
 !Others/NativeLinking/NativeLibs/**/*
+/.vs

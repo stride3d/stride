@@ -91,6 +91,7 @@ SharedRenderers:
             Enabled: false
             RequiredApis: {}
             Overlays: {}
+        SubsurfaceScatteringBlurEffect: null
         MSAALevel: None
         MSAAResolver: {}
     b83eea5d6052fff4db0c8d7efa7568f6: !Xenko.Rendering.Compositing.DebugRenderer,Xenko.Engine
