@@ -1,4 +1,4 @@
-﻿MIT许可证（MIT）
+MIT许可证（MIT）
 
 版权所有（c）2018 Xenko贡献者（https://xenko.com）
 版权所有（c）2011-2018 Silicon Studio Corp.（https://www.siliconstudio.co.jp）
