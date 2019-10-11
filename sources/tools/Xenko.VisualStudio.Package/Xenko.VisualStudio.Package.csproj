@@ -183,4 +183,7 @@
   <!-- Force NET Sdk to be included before VsSDK -->
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="Exists('$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets')" />
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="XCOPY /y $(OutDir)*.vsix $(SolutionDir)..\Bin\VSIX\" />
+  </Target>
 </Project>

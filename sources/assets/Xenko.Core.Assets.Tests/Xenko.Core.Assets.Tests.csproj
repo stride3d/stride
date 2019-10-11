@@ -21,6 +21,11 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Projects\**" />
+    <EmbeddedResource Remove="Projects\**" />
+    <None Remove="Projects\**" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
@@ -70,15 +75,6 @@
     <None Include="data\TestBasicPackageCreateSaveLoad\TestPackage_TestBasicPackageCreateSaveLoad_Reference.xkpkg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Projects\CircularDeps\" />
-    <Folder Include="Projects\ComplexDeps\entity\texture\" />
-    <Folder Include="Projects\ComplexDeps\material\" />
-    <Folder Include="Projects\ComplexDeps\model\animation\" />
-    <Folder Include="Projects\EntityDeps\subfolder\" />
-    <Folder Include="Projects\MaterialDeps\subfolder\" />
-    <Folder Include="Projects\TextureDeps\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />

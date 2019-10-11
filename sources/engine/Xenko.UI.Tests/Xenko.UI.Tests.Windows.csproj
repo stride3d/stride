@@ -39,10 +39,6 @@
       <Project>{1320F627-EE43-4115-8E89-19D1753E51F2}</Project>
       <Name>Xenko.Core.MicroThreading</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\core\Xenko.Core\Xenko.Core.csproj">
-      <Project>{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}</Project>
-      <Name>Xenko.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
       <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
       <Name>Xenko.Core.Serialization</Name>

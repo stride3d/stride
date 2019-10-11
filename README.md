@@ -45,12 +45,14 @@ Xenko带有一个编辑器，可让您以直观的方式创建和管理游戏或
     * 如果您的操作系统是`Windows 7`: [.NET 4.6.2 开发工具](https://www.microsoft.com/net/download/thank-you/net462-developer-pack))
   * `使用C ++进行桌面开发`
   * `.NET Core跨平台开发`
+  * `Visual Studio 扩展开发`
   * 可选(针对UWP)：`通用Windows平台开发`
   * 可选(针对iOS/Android)：使用 `Mobile development with .NET` 和 `Android NDK R13B+` 单独组件
 3. [FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)
 
 ### 建立Xenko
 
+0. 设置系统变量 VS2017 D:\Program Files (x86)\Microsoft Visual Studio\2017\Community
 1. 克隆Xenko：`git clone https：// github.com/xenko3d/xenko.git`
 2. 将`<XenkoDir>`环境变量设置为指向您的`<XenkoDir>`
 3. 使用Visual Studio 2017打开`<XenkoDir>\build\Xenko.sln`并进行构建。

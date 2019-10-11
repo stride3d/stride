@@ -1,4 +1,4 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>
@@ -40,10 +40,6 @@
     <ProjectReference Include="..\..\core\Xenko.Core.MicroThreading\Xenko.Core.MicroThreading.csproj">
       <Project>{1320F627-EE43-4115-8E89-19D1753E51F2}</Project>
       <Name>Xenko.Core.MicroThreading</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\sources\core\Xenko.Core\Xenko.Core.csproj">
-      <Project>{0E916AB7-5A6C-4820-8AB1-AA492FE66D68}</Project>
-      <Name>Xenko.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
       <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
@@ -161,28 +157,35 @@
     <Compile Include="TestSoundMusic.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AudioAssets\a.xksnd" />
-    <None Include="AudioAssets\ae.xksnd" />
-    <None Include="AudioAssets\a_Music.xksnd" />
-    <None Include="AudioAssets\wave1HeaderCorrupted_Music.xksnd" />
-    <None Include="AudioAssets\wave1_4Channels_Music.xksnd" />
-    <None Include="AudioAssets\fiveptone_Music.xksnd" />
-    <None Include="AudioAssets\stereo_Music.xksnd" />
-    <None Include="AudioAssets\wave1_Music.xksnd" />
-    <None Include="AudioAssets\wave1MP3.xksnd" />
-    <None Include="AudioAssets\bizet.xksnd" />
-    <None Include="AudioAssets\sayuriWAV.xksnd" />
-    <None Include="AudioAssets\stereoOGG.xksnd" />
-    <None Include="AudioAssets\InvalidAudioFile.xksnd" />
-    <None Include="AudioAssets\fiveptone.xksnd" />
-    <None Include="AudioAssets\sayuri.xksnd" />
-    <None Include="AudioAssets\sayuriPart.xksnd" />
-    <None Include="AudioAssets\stereo.xksnd" />
-    <None Include="AudioAssets\wave1.xksnd" />
-    <None Include="AudioAssets\wave1HeaderCorrupted.xksnd" />
-    <None Include="AudioAssets\wave1_24bits.xksnd" />
-    <None Include="AudioAssets\wave1_4Channels.xksnd" />
-    <None Include="AudioAssets\wave2.xksnd" />
+    <None Include="AudioAssets\Effect11025Hz.xksnd" />
+    <None Include="AudioAssets\Effect11025HzStereo.xksnd" />
+    <None Include="AudioAssets\Effect22050Hz.xksnd" />
+    <None Include="AudioAssets\Effect22050HzStereo.xksnd" />
+    <None Include="AudioAssets\Effect24bits.xksnd" />
+    <None Include="AudioAssets\Effect44100Hz.xksnd" />
+    <None Include="AudioAssets\Effect48000Hz.xksnd" />
+    <None Include="AudioAssets\Effect4Channels.xksnd" />
+    <None Include="AudioAssets\EffectBip.xksnd" />
+    <None Include="AudioAssets\EffectFishLamp.xksnd" />
+    <None Include="AudioAssets\EffectHeaderCorrupted.xksnd" />
+    <None Include="AudioAssets\EffectStereo.xksnd" />
+    <None Include="AudioAssets\EffectStereoOgg.xksnd" />
+    <None Include="AudioAssets\EffectSurround5Dot1.xksnd" />
+    <None Include="AudioAssets\EffectToneA.xksnd" />
+    <None Include="AudioAssets\EffectToneAE.xksnd" />
+    <None Include="AudioAssets\EffectToneE.xksnd" />
+    <None Include="AudioAssets\GameSettings.xkgamesettings" />
+    <None Include="AudioAssets\GraphicsCompositor.xkgfxcomp" />
+    <None Include="AudioAssets\MainScene.xkscene" />
+    <None Include="AudioAssets\Music4Channels.xksnd" />
+    <None Include="AudioAssets\MusicBip.xksnd" />
+    <None Include="AudioAssets\MusicBipMp3.xksnd" />
+    <None Include="AudioAssets\MusicFishLampMp3.xksnd" />
+    <None Include="AudioAssets\MusicHeaderCorrupted.xksnd" />
+    <None Include="AudioAssets\MusicInvalidFile.xksnd" />
+    <None Include="AudioAssets\MusicStereo.xksnd" />
+    <None Include="AudioAssets\MusicSurround5Dot1.xksnd" />
+    <None Include="AudioAssets\MusicToneA.xksnd" />
     <None Include="Xenko.Audio.Tests.xkpkg" />
   </ItemGroup>
   <ItemGroup>

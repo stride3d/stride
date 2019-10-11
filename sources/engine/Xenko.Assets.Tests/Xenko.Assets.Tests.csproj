@@ -132,12 +132,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeAnalysis, Version=2.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\build\packages\Microsoft.CodeAnalysis.Common.2.4.0\lib\netstandard1.3\Microsoft.CodeAnalysis.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=2.4.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\..\build\packages\Microsoft.CodeAnalysis.CSharp.2.4.0\lib\netstandard1.3\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Xml" />
@@ -218,18 +212,6 @@
     <Content Include="sourceimages\dices.png" />
     <Content Include="sourceimages\earth.png" />
     <Content Include="sourceimages\starMask.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Xenko.Assets.Tests\GameAssets\Cube\" />
-    <Folder Include="Xenko.Assets.Tests\GameAssets\factory2\" />
-    <Folder Include="Xenko.Assets.Tests\GameAssets\factory\" />
-    <Folder Include="Xenko.Assets.Tests\Projects\CircularDeps\" />
-    <Folder Include="Xenko.Assets.Tests\Projects\ComplexDeps\entity\texture\" />
-    <Folder Include="Xenko.Assets.Tests\Projects\ComplexDeps\material\" />
-    <Folder Include="Xenko.Assets.Tests\Projects\ComplexDeps\model\animation\" />
-    <Folder Include="Xenko.Assets.Tests\Projects\EntityDeps\subfolder\" />
-    <Folder Include="Xenko.Assets.Tests\Projects\MaterialDeps\subfolder\" />
-    <Folder Include="Xenko.Assets.Tests\Projects\TextureDeps\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
