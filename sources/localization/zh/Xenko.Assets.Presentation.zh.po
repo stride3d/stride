@@ -294,7 +294,7 @@ msgid ""
 "changes such as new or deleted scripts.\r\n"
 "\r\n"
 "Click OK to keep reloading or Cancel to keep the current version."
-msgstr "Game Studio无法自动重新加载项目文件{0}因为您具有本地更改，例如新的或已删除的脚本。\ r \ n \ r \ n单击“确定”以继续重新加载，或者单击“取消”以保留当前版本。"
+msgstr "Game Studio无法自动重新加载项目文件{0}因为您具有本地更改，例如新的或已删除的脚本。\r\n\r\n单击“确定”以继续重新加载，或者单击“取消”以保留当前版本。"
 
 #: ../editor/Xenko.Assets.Presentation/ViewModel/CodeViewModel.cs:233
 msgctxt "Message"
@@ -303,7 +303,7 @@ msgid ""
 "but have unsaved changes in Game Studio. Do you want to delete these files?\r\n"
 "\r\n"
 "{1}"
-msgstr "{0}项目中的以下源文件已从外部删除，但在Game Studio中有未保存的更改。您要删除这些文件吗？\ r \ n \ r \ n {1}"
+msgstr "{0}项目中的以下源文件已从外部删除，但在Game Studio中有未保存的更改。您要删除这些文件吗？\r\n\r\n{1}"
 
 #: ../editor/Xenko.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:349
 msgctxt "Message"
@@ -313,7 +313,7 @@ msgid ""
 "This file has been changed externally and has unsaved changes inside the "
 "editor.\r\n"
 "Do you want to reload it and lose your changes?"
-msgstr "{0} \ r \ n \ r \ n此文件已在外部进行了更改，并且在编辑器中尚未保存。\ r \ n是否要重新加载并丢失更改？"
+msgstr "{0} \r\n\r\n此文件已在外部进行了更改，并且在编辑器中尚未保存。\r\n是否要重新加载并丢失更改？"
 
 #: ../editor/Xenko.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:47
 msgctxt "Message"
