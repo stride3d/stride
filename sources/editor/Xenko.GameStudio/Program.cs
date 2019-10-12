@@ -385,12 +385,19 @@ namespace Xenko.GameStudio
                 case SupportedLanguage.MachineDefault:
                     TranslationManager.Instance.CurrentLanguage = CultureInfo.InstalledUICulture;
                     break;
+
                 case SupportedLanguage.English:
                     TranslationManager.Instance.CurrentLanguage = new CultureInfo("en-US");
                     break;
+
+                case SupportedLanguage.Chinese:
+                    TranslationManager.Instance.CurrentLanguage = new CultureInfo("zh-CN");
+                    break;
+
                 case SupportedLanguage.Japanese:
                     TranslationManager.Instance.CurrentLanguage = new CultureInfo("ja-JP");
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }

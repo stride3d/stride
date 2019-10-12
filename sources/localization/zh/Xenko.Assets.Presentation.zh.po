@@ -1,0 +1,1544 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2017-10-23 17:15:53+0900\n"
+"PO-Revision-Date: 2017-10-25 12:09+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.4\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
+msgctxt "Message"
+msgid ""
+"Unable to rename the folder '{0}' to '{1}'. A folder with the same name "
+"already exists."
+msgstr "无法将文件夹'{0}'重命名为'{1}'。具有相同名称的文件夹已存在。"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:495
+msgctxt "Message"
+msgid "Are you sure you want to delete this entity?"
+msgstr "您确定要删除此实体吗？"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:498
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} entities?"
+msgstr "您确定要删除这些{0}实体吗？"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
+msgctxt "Button"
+msgid "Delete"
+msgstr "删除"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityHierarchyEditorViewModel.cs:500
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:429
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:49
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:60
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:69
+#: ../editor/Xenko.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:64
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:127
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:52
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:28
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml:21
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:55
+msgctxt "Button"
+msgid "Cancel"
+msgstr "取消"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:16
+msgid "Use translation gizmo"
+msgstr "使用翻译Gizmo"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:22
+msgid "Use rotation gizmo"
+msgstr "使用旋转Gizmo"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/Transformation.cs:28
+msgid "Use scale gizmo"
+msgstr "使用比例小物件"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:16
+msgid "Use world coordinates for transformations"
+msgstr "使用世界坐标进行变换"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:22
+msgid "Use local coordinates for transformations"
+msgstr "使用本地坐标进行转换"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GameEditor/TransformationSpace.cs:28
+msgid "Use current camera projection coordinates for transformations"
+msgstr "使用当前的相机投影坐标进行变换"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:11
+msgctxt "Settings"
+msgid "Script editor"
+msgstr "脚本编辑器"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/ScriptEditorSettings.cs:18
+msgctxt "Settings"
+msgid "Font size"
+msgstr "字体大小"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:162
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:185
+msgctxt "Message"
+msgid "Couldn't find the file"
+msgstr "找不到文件"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:172
+msgctxt "Message"
+msgid "There was a problem while editing the image.{0}"
+msgstr "编辑图像时出现问题。 {0}"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/ViewModels/SpriteInfoViewModel.cs:195
+msgctxt "Message"
+msgid "There was a problem opening Explorer.{0}"
+msgstr "打开资源管理器时出现问题。 {0}"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:11
+msgctxt "Settings"
+msgid "UI editor"
+msgstr "UI编辑器"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/UIEditorSettings.cs:18
+msgctxt "Settings"
+msgid "Ask before deleting UI elements"
+msgstr "删除UI元素之前询问"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:426
+msgctxt "Message"
+msgid "Are you sure you want to delete this UI element?"
+msgstr "您确定要删除此UI元素吗？"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/ViewModels/UIEditorBaseViewModel.cs:428
+msgctxt "Message"
+msgid "Are you sure you want to delete these {0} UI elements?"
+msgstr "您确定要删除这些{0} UI元素吗？"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:12
+msgctxt "Settings"
+msgid "Key bindings"
+msgstr "按键绑定"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:13
+msgctxt "Settings"
+msgid "Scene editor"
+msgstr "场景编辑器"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:14
+msgctxt "Settings"
+msgid "Viewport settings"
+msgstr "视口设置"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:21
+msgctxt "Settings"
+msgid "Move camera forward"
+msgstr "向前移动相机"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:25
+msgctxt "Settings"
+msgid "Move camera backward"
+msgstr "向后移动相机"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:29
+msgctxt "Settings"
+msgid "Move camera left"
+msgstr "向左移动相机"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:33
+msgctxt "Settings"
+msgid "Move camera right"
+msgstr "向右移动相机"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:37
+msgctxt "Settings"
+msgid "Move camera up"
+msgstr "向上移动相机"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:41
+msgctxt "Settings"
+msgid "Move camera down"
+msgstr "向下移动相机"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:45
+msgctxt "Settings"
+msgid "Invert mouse panning axis"
+msgstr "反转鼠标平移轴"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:49
+msgctxt "Settings"
+msgid "Center view on selection"
+msgstr "选择中心视图"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:53
+msgctxt "Settings"
+msgid "Snap selection to the grid"
+msgstr "将选择对齐到网格"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:57
+msgctxt "Settings"
+msgid "Switch to translation mode"
+msgstr "切换到翻译模式"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:61
+msgctxt "Settings"
+msgid "Switch to rotation mode"
+msgstr "切换到旋转模式"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:65
+msgctxt "Settings"
+msgid "Switch to scale mode"
+msgstr "切换至比例模式"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:69
+msgctxt "Settings"
+msgid "Switch to next gizmo mode"
+msgstr "切换到下一个Gizmo模式"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:73
+msgctxt "Settings"
+msgid "Default snap distance for translation"
+msgstr "默认平移距离"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:77
+msgctxt "Settings"
+msgid "Default snap angle for rotation"
+msgstr "默认旋转捕捉角"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:81
+msgctxt "Settings"
+msgid "Default snap factor for scale"
+msgstr "默认比例缩放因子"
+
+#: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:85
+msgctxt "Settings"
+msgid "Ask before deleting entities"
+msgstr "删除实体前先询问"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:47
+msgctxt "Button"
+msgid "Create"
+msgstr "创造"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:48
+msgctxt "Button"
+msgid "Select a source..."
+msgstr "选择一个来源..."
+
+#: ../editor/Xenko.Assets.Presentation/Templates/AssetFromFileTemplateGenerator.cs:52
+msgctxt "Message"
+msgid "Do you want to create this {0} without a source file?"
+msgstr "是否要创建没有源文件的{0} ？"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:89
+msgctxt "Message"
+msgid "Select an orientation."
+msgstr "选择方向。"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:94
+msgctxt "Message"
+msgid "Select at least one platform."
+msgstr "选择至少一个平台。"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml.cs:101
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:75
+msgctxt "Message"
+msgid "Type a valid namespace name. Error with {0}"
+msgstr "输入有效的名称空间名称。 {0}错误"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml.cs:69
+msgctxt "Message"
+msgid "Type a valid library name. Error with {0}"
+msgstr "输入有效的库名称。 {0}错误"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml.cs:62
+msgctxt "Message"
+msgid "The names you entered are invalid or empty."
+msgstr "您输入的名称无效或为空。"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:59
+msgctxt "Button"
+msgid "Save"
+msgstr "救"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptTemplateGenerator.cs:62
+msgctxt "Message"
+msgid "You can't use scripts until you save them. Do you want to save now?"
+msgstr "保存脚本之前，不能使用脚本。您要现在保存吗？"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:60
+msgctxt "Message"
+msgid "You must select at least one platform."
+msgstr "您必须至少选择一个平台。"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:68
+msgctxt "Button"
+msgid "Remove"
+msgstr "移除"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml.cs:71
+msgctxt "Message"
+msgid "Are you sure you want to remove these {0} platform(s) from the package?"
+msgstr "您确定要从软件包中删除这些{0}平台吗？"
+
+#: ../editor/Xenko.Assets.Presentation/ViewModel/CodeViewModel.cs:186
+msgctxt "Message"
+msgid ""
+"Game Studio can't auto-reload the project file {0} because you have local "
+"changes such as new or deleted scripts.\r\n"
+"\r\n"
+"Click OK to keep reloading or Cancel to keep the current version."
+msgstr "Game Studio无法自动重新加载项目文件{0}因为您具有本地更改，例如新的或已删除的脚本。\ r \ n \ r \ n单击“确定”以继续重新加载，或者单击“取消”以保留当前版本。"
+
+#: ../editor/Xenko.Assets.Presentation/ViewModel/CodeViewModel.cs:233
+msgctxt "Message"
+msgid ""
+"The following source files in the {0} project have been deleted externally, "
+"but have unsaved changes in Game Studio. Do you want to delete these files?\r\n"
+"\r\n"
+"{1}"
+msgstr "{0}项目中的以下源文件已从外部删除，但在Game Studio中有未保存的更改。您要删除这些文件吗？\ r \ n \ r \ n {1}"
+
+#: ../editor/Xenko.Assets.Presentation/ViewModel/ScriptSourceFileAssetViewModel.cs:349
+msgctxt "Message"
+msgid ""
+"{0}\r\n"
+"\r\n"
+"This file has been changed externally and has unsaved changes inside the "
+"editor.\r\n"
+"Do you want to reload it and lose your changes?"
+msgstr "{0} \ r \ n \ r \ n此文件已在外部进行了更改，并且在编辑器中尚未保存。\ r \ n是否要重新加载并丢失更改？"
+
+#: ../editor/Xenko.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:47
+msgctxt "Message"
+msgid ""
+"**Only static fonts can be precompiled.**\r\n"
+"\r\n"
+"Clear the _Is Dynamic_ property on this font and try again."
+msgstr "**只能预编译静态字体。**\r\n\r\n清除此字体的_Is Dynamic_属性，然后重试。"
+
+#: ../editor/Xenko.Assets.Presentation/ViewModel/SpriteFontViewModel.cs:65
+msgctxt "Message"
+msgid "Which color space do you want to use?"
+msgstr "您要使用哪个色彩空间？"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:64
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:108
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:187
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:787
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:33
+msgctxt "Menu"
+msgid "Create"
+msgstr "新建"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:65
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:109
+msgctxt "Menu"
+msgid "Folder"
+msgstr "文件夹"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:66
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:110
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:191
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:788
+msgctxt "Menu"
+msgid "Empty entity"
+msgstr "空实体"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:92
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:136
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:814
+msgctxt "Menu"
+msgid "Actions"
+msgstr "动作"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:93
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:139
+msgctxt "Menu"
+msgid "Open prefab in editor"
+msgstr "在编辑器中打开预制件"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:94
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:140
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:816
+msgctxt "Menu"
+msgid "Select prefab in asset view"
+msgstr "在资源视图中选择预制"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:95
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:141
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:817
+msgctxt "Menu"
+msgid "Break link to prefab"
+msgstr "断开与预制件的链接"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:96
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:142
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:818
+msgctxt "Menu"
+msgid "Create prefab from selection"
+msgstr "通过选择创建预制件"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:98
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:144
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:820
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:137
+msgctxt "Menu"
+msgid "Duplicate"
+msgstr "重复"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:137
+msgctxt "Menu"
+msgid "Set as active scene"
+msgstr "设置为活动场景"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:150
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:825
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:143
+msgctxt "Menu"
+msgid "Rename"
+msgstr "重命名"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:167
+msgid "Loading scene..."
+msgstr "正在加载场景..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:168
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:212
+msgid "This might take a few minutes the first time."
+msgstr "第一次可能需要几分钟。"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:182
+msgctxt "ToolTip"
+msgid "Create a new entity"
+msgstr "创建一个新实体"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:189
+msgctxt "Menu"
+msgid "New folder"
+msgstr "新建文件夹"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:222
+msgctxt "ToolTip"
+msgid "Filter entities by name"
+msgstr "按名称过滤实体"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:230
+msgctxt "ToolTip"
+msgid "Expand all entities"
+msgstr "展开所有实体"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:234
+msgctxt "ToolTip"
+msgid "Collapse all entities"
+msgstr "收合所有实体"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:258
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:211
+msgid "Loading..."
+msgstr "载入中..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:262
+msgid "Unloading..."
+msgstr "正在卸载..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:330
+msgctxt "ToolTip"
+msgid "Focus on this entity (F)"
+msgstr "专注于这个实体(F)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:337
+msgctxt "ToolTip"
+msgid "Lock/unlock this entity"
+msgstr "锁定/解锁该实体"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:338
+msgctxt "ToolTip"
+msgid "(Hold Ctrl to apply to child entities recursively)"
+msgstr "(按住Ctrl可以递归地应用于子实体)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:376
+msgctxt "ToolTip"
+msgid "Lock/unlock all entities"
+msgstr "锁定/解锁所有实体"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:377
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:386
+msgctxt "ToolTip"
+msgid "(Hold Ctrl to apply to child scenes recursively)"
+msgstr "(按住Ctrl可以递归地应用于子场景)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:385
+msgctxt "ToolTip"
+msgid "Load/unload all entities"
+msgstr "加载/卸载所有实体"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:406
+msgid "(Unloaded)"
+msgstr "(已卸载)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:473
+msgctxt "ToolTip"
+msgid "Light probes and cubemaps..."
+msgstr "灯光探测器和立方体贴图..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:483
+msgid "Light probes"
+msgstr "灯光探测器"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:488
+msgid "Bounces:"
+msgstr "弹跳："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:492
+msgctxt "ToolTip"
+msgid "Compute lighting using light probes"
+msgstr "使用灯光探测器计算照明"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:500
+msgctxt "ToolTip"
+msgid "Reset light probes"
+msgstr "重置灯光探测器"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:504
+msgid "Reset"
+msgstr "重启"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:510
+msgid "Cubemap"
+msgstr "立方体贴图"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:514
+msgctxt "ToolTip"
+msgid "Generate a cubemap from the scene view and save as a texture"
+msgstr "从场景视图生成立方体贴图并另存为纹理"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:518
+msgid "Capture"
+msgstr "捕获"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:527
+msgctxt "ToolTip"
+msgid "Navigation visibility..."
+msgstr "导航可见性..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:537
+msgid "Show navigation meshes:"
+msgstr "显示导航网格物体："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:539
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:596
+#: ../editor/Xenko.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:25
+msgctxt "Button"
+msgid "All"
+msgstr "所有"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:540
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:597
+#: ../editor/Xenko.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:27
+msgctxt "Button"
+msgid "None"
+msgstr "没有"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:566
+msgctxt "ToolTip"
+msgid "Grid and gizmo options..."
+msgstr "网格和Gizmo选项..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:576
+msgid "Transformation gizmo size:"
+msgstr "转换Gizmo大小："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:581
+msgid "Component gizmo size:"
+msgstr "组件Gizmo大小："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:582
+msgctxt "Button"
+msgid "Fixed"
+msgstr "固定"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:590
+msgctxt "Button"
+msgid "Camera preview"
+msgstr "相机预览"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:591
+msgctxt "Button"
+msgid "Light probe volumes"
+msgstr "灯光探测器体积"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:608
+msgctxt "Button"
+msgid "Other entities"
+msgstr "其他实体"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:616
+msgctxt "ToolTip"
+msgid "Editor camera options..."
+msgstr "编辑器相机选项..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:626
+msgid "Projection"
+msgstr "投影"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:629
+msgctxt "Button"
+msgid "Perspective"
+msgstr "透视"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:630
+msgctxt "Button"
+msgid "Orthographic"
+msgstr "正字法"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:632
+msgid "Near plane:"
+msgstr "近景："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:634
+msgid "Far plane:"
+msgstr "远景："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:636
+msgid "Field of view:"
+msgstr "视场："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:642
+msgid "Orthographic size:"
+msgstr "正字大小："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:648
+msgid "Movement"
+msgstr "移动"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:652
+msgid "Speed:"
+msgstr "速度："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:657
+msgid "Orientation"
+msgstr "取向"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:660
+msgctxt "Button"
+msgid "Front"
+msgstr "面前"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:662
+msgctxt "Button"
+msgid "Back"
+msgstr "背部"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:664
+msgctxt "Button"
+msgid "Top"
+msgstr "最佳"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:666
+msgctxt "Button"
+msgid "Bottom"
+msgstr "底部"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:668
+msgctxt "Button"
+msgid "Left"
+msgstr "左边"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:670
+msgctxt "Button"
+msgid "Right"
+msgstr "右边"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:683
+msgctxt "ToolTip"
+msgid "Snap translations to this value"
+msgstr "将翻译捕捉到此值"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:692
+msgctxt "ToolTip"
+msgid "Snap rotations to this value"
+msgstr "将旋转捕捉到此值"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
+msgctxt "ToolTip"
+msgid "Snap scale to this factor"
+msgstr "将比例调整到此因子"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:743
+msgctxt "ToolTip"
+msgid ""
+"Toggle material selection (click a selected asset to select its material)"
+msgstr "切换物料选择(单击选定的资源以选择其物料)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:746
+msgctxt "ToolTip"
+msgid "Show or hide selection mask"
+msgstr "显示或隐藏选择蒙版"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:748
+msgid "Loading assets..."
+msgstr "正在加载资源..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:815
+msgctxt "Menu"
+msgid "Open in prefab editor"
+msgstr "在预制编辑器中打开"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:857
+msgid ""
+"Before you resume, fix the failing asset (likely a graphics compositor or "
+"scene)."
+msgstr "在继续操作之前，请修复发生故障的资源(可能是图形合成器或场景)。"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:859
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:516
+msgctxt "Button"
+msgid "Resume"
+msgstr "恢复"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:861
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:518
+msgctxt "Button"
+msgid "Copy error to clipboard"
+msgstr "将错误复制到剪贴板"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:13
+msgid "Select an entity"
+msgstr "选择一个实体"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:23
+msgctxt "ToolTip"
+msgid "Select the selected assets"
+msgstr "选择选定的资源"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:28
+#: ../editor/Xenko.Assets.Presentation/View/DebuggerPickerWindow.xaml:26
+msgctxt "ToolTip"
+msgid "Cancel (Esc)"
+msgstr "取消(Esc)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:37
+msgid "Select an entity:"
+msgstr "选择一个实体："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityPickerWindow.xaml:66
+msgid "(Index: {0})"
+msgstr "(索引： {0} )"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:49
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:129
+msgctxt "Menu"
+msgid "Action"
+msgstr "动作"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:50
+msgctxt "Menu"
+msgid "Delete selection"
+msgstr "删除选择"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:202
+msgid "Render stages:"
+msgstr "渲染阶段："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:254
+msgid "Render features:"
+msgstr "渲染功能："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/GraphicsCompositorEditor/Views/GraphicsCompositorEditorView.xaml:278
+msgid "Camera slots:"
+msgstr "相机插槽："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:107
+msgctxt "ToolTip"
+msgid "Toggle between find and replace modes"
+msgstr "在查找和替换模式之间切换"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:167
+msgctxt "ToolTip"
+msgid "Replace next (Alt+R)"
+msgstr "替换下一个(Alt + R)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:177
+msgctxt "ToolTip"
+msgid "Replace all (Alt+A)"
+msgstr "全部替换(Alt + A)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/ScriptEditor/Resources/ThemeScriptEditor.xaml:253
+msgid "No suggestions"
+msgstr "没有建议"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:53
+msgctxt "Button"
+msgid "Sprite sheet properties"
+msgstr "精灵表属性"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:56
+msgid "Sheet type:"
+msgstr "工作表类型："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:89
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:301
+msgctxt "Button"
+msgid "Use color key"
+msgstr "使用颜色键"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:90
+msgctxt "ToolTip"
+msgid "If enabled, the sprite uses the given color as transparency"
+msgstr "如果启用，则精灵将使用给定的颜色作为透明度"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:118
+msgctxt "ToolTip"
+msgid "To select the color key,  select a pixel color from the image"
+msgstr "要选择颜色键，请从图像中选择像素颜色"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:127
+msgctxt "ToolTip"
+msgid "Add a new empty sprite"
+msgstr "添加一个新的空精灵"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:130
+msgctxt "ToolTip"
+msgid "Duplicate selected sprites"
+msgstr "重复的选定精灵"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:133
+msgctxt "ToolTip"
+msgid "Delete selected sprites"
+msgstr "删除选定的精灵"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:136
+msgctxt "ToolTip"
+msgid "Move selected sprites up"
+msgstr "向上移动选定的精灵"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:140
+msgctxt "ToolTip"
+msgid "Move selected sprites down"
+msgstr "向下移动选定的精灵"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:143
+msgid "Sprites:"
+msgstr "精灵："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:165
+msgctxt "Menu"
+msgid "Add new sprite"
+msgstr "添加新的精灵"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:166
+msgctxt "Menu"
+msgid "Duplicate sprite"
+msgstr "精灵重复"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:167
+msgctxt "Menu"
+msgid "Edit image"
+msgstr "编辑图片"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:168
+msgctxt "Menu"
+msgid "Show image in explorer"
+msgstr "在资源管理器中显示图像"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:217
+msgid "Select a single image from the left panel"
+msgstr "从左侧面板中选择一个图像"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:224
+msgctxt "ToolTip"
+msgid "Select previous sprite"
+msgstr "选择上一个精灵"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:228
+msgctxt "ToolTip"
+msgid "Select next sprite"
+msgstr "选择下一个精灵"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:233
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:382
+msgctxt "ToolTip"
+msgid "Zoom out"
+msgstr "缩小"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:237
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:386
+msgctxt "ToolTip"
+msgid "Zoom in"
+msgstr "放大"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:241
+msgctxt "ToolTip"
+msgid "Scale to real pixel size"
+msgstr "缩放为实际像素大小"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:245
+msgctxt "ToolTip"
+msgid "Fit image to screen"
+msgstr "使图像适合屏幕"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:249
+msgctxt "ToolTip"
+msgid "Center view on current sprite region"
+msgstr "当前精灵区域的中心视图"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:255
+msgctxt "ToolTip"
+msgid "Change selection rectangle color"
+msgstr "更改选择矩形颜色"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:272
+msgctxt "ToolTip"
+msgid "Highlight the current selection"
+msgstr "突出显示当前选择"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:275
+msgctxt "ToolTip"
+msgid "Select entire image"
+msgstr "选择整个图像"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:283
+msgctxt "ToolTip"
+msgid "Select the sprite region using the magic wand"
+msgstr "使用魔术棒选择精灵区域"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:300
+msgctxt "Button"
+msgid "Use transparency"
+msgstr "使用透明度"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:311
+msgctxt "ToolTip"
+msgid "Move the sprite center"
+msgstr "移动精灵中心"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:319
+msgctxt "ToolTip"
+msgid "Resize the sprite borders"
+msgstr "调整精灵边框的大小"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:330
+msgctxt "ToolTip"
+msgid "Unlock the sprite borders"
+msgstr "解锁精灵边框"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/SpriteEditor/Views/SpriteEditorView.xaml:334
+msgctxt "ToolTip"
+msgid "Lock the sprite borders"
+msgstr "锁定精灵边框"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:37
+msgctxt "Menu"
+msgid "Layout"
+msgstr "布局"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:38
+msgctxt "Menu"
+msgid "Group into"
+msgstr "分组为"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:49
+msgctxt "Menu"
+msgid "Ungroup"
+msgstr "取消分组"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:53
+msgctxt "Menu"
+msgid "Change layout type"
+msgstr "变更版面类型"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:69
+msgctxt "Menu"
+msgid "Pin origin"
+msgstr "引脚来源"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:83
+msgctxt "Menu"
+msgid "Top left"
+msgstr "左上方"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:84
+msgctxt "Menu"
+msgid "Top"
+msgstr "最佳"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:85
+msgctxt "Menu"
+msgid "Top right"
+msgstr "右上"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:86
+msgctxt "Menu"
+msgid "Left"
+msgstr "剩下"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:87
+msgctxt "Menu"
+msgid "Center"
+msgstr "中央"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:88
+msgctxt "Menu"
+msgid "Right"
+msgstr "右边"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:89
+msgctxt "Menu"
+msgid "Bottom left"
+msgstr "左下"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:90
+msgctxt "Menu"
+msgid "Bottom"
+msgstr "底部"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:91
+msgctxt "Menu"
+msgid "Bottom right"
+msgstr "右下"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:92
+msgctxt "Menu"
+msgid "Front"
+msgstr "面前"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:93
+msgctxt "Menu"
+msgid "Middle"
+msgstr "中间"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:94
+msgctxt "Menu"
+msgid "Back"
+msgstr "背部"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:101
+msgctxt "Menu"
+msgid "Row"
+msgstr "行"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:103
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:121
+msgctxt "Menu"
+msgid "Move up"
+msgstr "提升"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:104
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:124
+msgctxt "Menu"
+msgid "Move down"
+msgstr "下移"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:106
+msgctxt "Menu"
+msgid "Column"
+msgstr "列"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:108
+msgctxt "Menu"
+msgid "Move left"
+msgstr "向左移动"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:109
+msgctxt "Menu"
+msgid "Move right"
+msgstr "向右移动"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:111
+msgctxt "Menu"
+msgid "Layer"
+msgstr "层"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:113
+msgctxt "Menu"
+msgid "Move back"
+msgstr "向后移动"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:114
+msgctxt "Menu"
+msgid "Move front"
+msgstr "向前移动"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:130
+msgctxt "Menu"
+msgid "Open library in editor"
+msgstr "在编辑器中打开库"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:131
+msgctxt "Menu"
+msgid "Select library in asset view"
+msgstr "在资源视图中选择库"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:132
+msgctxt "Menu"
+msgid "Break link to library"
+msgstr "断开库链接"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:134
+msgctxt "Menu"
+msgid "Create page from selection"
+msgstr "通过选择创建页面"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:135
+msgctxt "Menu"
+msgid "Create library from selection"
+msgstr "通过选择创建库"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:187
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:177
+msgctxt "Menu"
+msgid "View"
+msgstr "视图"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:188
+msgctxt "Menu"
+msgid "Zoom in"
+msgstr "放大"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:189
+msgctxt "Menu"
+msgid "Zoom out"
+msgstr "缩小"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:190
+msgctxt "Menu"
+msgid "Reset camera"
+msgstr "重置相机"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:226
+msgctxt "Button"
+msgid "UI properties"
+msgstr "UI属性"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:237
+msgid "UI library"
+msgstr "UI库"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:284
+msgctxt "ToolTip"
+msgid "Expand all elements"
+msgstr "展开所有元素"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:288
+msgctxt "ToolTip"
+msgid "Collapse all elements"
+msgstr "折叠所有元素"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:378
+msgctxt "ToolTip"
+msgid "Reset zoom"
+msgstr "重置缩放"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:389
+msgctxt "ToolTip"
+msgid "Snaps to this value (0 to disable)"
+msgstr "捕捉到此值(0禁用)"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:401
+msgid "Colors"
+msgstr "色彩"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:417
+msgid "Guideline"
+msgstr "指南"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:433
+msgid "Highlight"
+msgstr "高亮"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:449
+msgid "Selection"
+msgstr "选择"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:465
+msgid "Sizing"
+msgstr "尺寸"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:514
+msgid ""
+"Before you resume, fix the failing asset (likely a UI page or UI library)."
+msgstr "在继续操作之前，请修复出现故障的资源(可能是UI页面或UI库)。"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:213
+msgctxt "Menu"
+msgid "Get"
+msgstr "得到"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:214
+msgctxt "Menu"
+msgid "Set"
+msgstr "组"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:253
+msgid "Variables:"
+msgstr "变量："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:302
+msgid "Functions:"
+msgstr "功能："
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:346
+msgctxt "Button"
+msgid "Static method"
+msgstr "静态方法"
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:347
+msgid "Return type..."
+msgstr "返回类型..."
+
+#: ../editor/Xenko.Assets.Presentation/AssetEditors/VisualScriptEditor/Views/VisualScriptEditorView.xaml:354
+msgid "Function parameters:"
+msgstr "功能参数："
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:41
+msgctxt "ToolTip"
+msgid "Remove the selected curve"
+msgstr "删除所选曲线"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:43
+msgid "Curves:"
+msgstr "曲线："
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:73
+msgctxt "ToolTip"
+msgid "Show or hide the tracker"
+msgstr "显示或隐藏跟踪器"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:79
+msgctxt "ToolTip"
+msgid "Fit view to curve"
+msgstr "使视图适合曲线"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:82
+msgctxt "ToolTip"
+msgid "Fit view to curve height"
+msgstr "使视图适合曲线高度"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:85
+msgctxt "ToolTip"
+msgid "Fit view to curve width"
+msgstr "使视图适合曲线宽度"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:92
+msgctxt "ToolTip"
+msgid "Delete selected points"
+msgstr "删除所选点"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:101
+msgctxt "ToolTip"
+msgid "First key"
+msgstr "第一把钥匙"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:104
+msgctxt "ToolTip"
+msgid "Previous key"
+msgstr "上一个键"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:107
+msgctxt "ToolTip"
+msgid "Next key"
+msgstr "下一个键"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:110
+msgctxt "ToolTip"
+msgid "Last key"
+msgstr "最后一个关键"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:117
+msgid "Key"
+msgstr "键"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:120
+msgid "Value"
+msgstr "值"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:167
+msgctxt "Menu"
+msgid "Curve"
+msgstr "曲线"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:169
+msgctxt "Menu"
+msgid "Add point"
+msgstr "加点"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:172
+msgctxt "Menu"
+msgid "Delete selected points"
+msgstr "删除所选点"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:174
+msgctxt "Menu"
+msgid "Clear whole curve"
+msgstr "清除整个曲线"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:178
+msgctxt "Menu"
+msgid "Fit to curve"
+msgstr "拟合曲线"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:180
+msgctxt "Menu"
+msgid "Fit to curve height"
+msgstr "拟合曲线高度"
+
+#: ../editor/Xenko.Assets.Presentation/CurveEditor/Views/CurveEditorView.xaml:182
+msgctxt "Menu"
+msgid "Fit to curve width"
+msgstr "拟合曲线宽度"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:10
+msgid "Create a game..."
+msgstr "创建游戏..."
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:21
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:23
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml:28
+msgid "Namespace:"
+msgstr "命名空间："
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:26
+msgid "Platforms"
+msgstr "平台类"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:48
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:45
+msgid "This machine doesn't meet the requirements to build for this platform."
+msgstr "该机器不满足为此平台构建的要求。"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:58
+msgid "Asset packs"
+msgstr "资源包"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:78
+msgid "Rendering"
+msgstr "渲染图"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:90
+msgctxt "Button"
+msgid "High dynamic range (HDR)"
+msgstr "高动态范围(HDR)"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:92
+msgctxt "Button"
+msgid "Low dynamic range (LDR)"
+msgstr "低动态范围(LDR)"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/GameTemplateWindow.xaml:126
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:51
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:27
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:54
+msgctxt "Button"
+msgid "OK"
+msgstr "确定"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:10
+msgid "Import from model"
+msgstr "从模型导入"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:22
+msgid "Materials and textures"
+msgstr "材质和纹理"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:26
+msgctxt "Button"
+msgid "Import materials"
+msgstr "导入材质"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:27
+msgctxt "Button"
+msgid "Import textures"
+msgstr "导入纹理"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:35
+msgctxt "Button"
+msgid "Import skeleton"
+msgstr "导入骨架"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:36
+msgctxt "Button"
+msgid "No skeleton"
+msgstr "无骨架"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ModelAssetTemplateWindow.xaml:37
+msgctxt "Button"
+msgid "Use another skeleton for this model:"
+msgstr "为此模型使用另一个骨架："
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:10
+msgid "New code library"
+msgstr "新代码库"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ProjectLibraryWindow.xaml:21
+msgid "Library name:"
+msgstr "库名称："
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml:9
+msgid "New script"
+msgstr "新脚本"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml:20
+msgctxt "Button"
+msgid "Create script"
+msgstr "创建脚本"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/ScriptNameWindow.xaml:25
+msgid "Class:"
+msgstr "类："
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:9
+msgid "Select platforms"
+msgstr "选择平台"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:31
+msgid "(This will remove the project from the package and disk.)"
+msgstr "(这将从包和磁盘中删除该项目。)"
+
+#: ../editor/Xenko.Assets.Presentation/Templates/UpdatePlatformsWindows.xaml:52
+msgctxt "Button"
+msgid "Force regeneration of all platform projects"
+msgstr "强制更新所有平台项目"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:28
+msgctxt "ToolTip"
+msgid "Play the animation"
+msgstr "播放动画"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:31
+msgctxt "ToolTip"
+msgid "Pause the animation"
+msgstr "暂停动画"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:43
+msgid "Time scale:"
+msgstr "时间范围："
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:117
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:136
+msgctxt "ToolTip"
+msgid "Reset the camera"
+msgstr "重置相机"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:187
+msgid ""
+"Scenes can't be previewed. To see the scene, open it in the scene editor."
+msgstr "场景无法预览。要查看场景，请在场景编辑器中将其打开。"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:201
+msgctxt "ToolTip"
+msgid "Play the sound"
+msgstr "播放声音"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:204
+msgctxt "ToolTip"
+msgid "Pause the sound"
+msgstr "暂停声音"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:240
+msgid "Building preview sound asset..."
+msgstr "正在建立预览声音资源..."
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:278
+msgctxt "ToolTip"
+msgid "Previous sprite"
+msgstr "上一个精灵"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:280
+msgid "Sprite:"
+msgstr "精灵："
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:283
+msgctxt "ToolTip"
+msgid "Next sprite"
+msgstr "下一个精灵"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:311
+msgid "Preview text"
+msgstr "预览文字"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:353
+msgctxt "ToolTip"
+msgid "Previous slice"
+msgstr "上一个切片"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:357
+msgctxt "ToolTip"
+msgid "Next slice"
+msgstr "下一个切片"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:380
+msgid "W: {0}"
+msgstr "宽： {0}"
+
+#: ../editor/Xenko.Assets.Presentation/Themes/Generic.xaml:381
+msgid "H: {0}"
+msgstr "高： {0}"
+
+#: ../editor/Xenko.Assets.Presentation/View/AnimationPropertyTemplates.xaml:18
+msgctxt "ToolTip"
+msgid "Edit curve"
+msgstr "编辑曲线"
+
+#: ../editor/Xenko.Assets.Presentation/View/AnimationPropertyTemplates.xaml:70
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:71
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:111
+#: ../editor/Xenko.Assets.Presentation/View/SkeletonPropertyTemplates.xaml:64
+msgid "(Different values)"
+msgstr "(不同的值)"
+
+#: ../editor/Xenko.Assets.Presentation/View/DebugEntityHierarchyEditorUserControl.xaml:13
+msgctxt "Button"
+msgid "Refresh"
+msgstr "刷新"
+
+#: ../editor/Xenko.Assets.Presentation/View/DebuggerPickerWindow.xaml:11
+msgid "Live scripting debugger"
+msgstr "实时脚本调试器"
+
+#: ../editor/Xenko.Assets.Presentation/View/DebuggerPickerWindow.xaml:21
+msgctxt "ToolTip"
+msgid "Select these assets"
+msgstr "选择这些资源"
+
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:44
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:84
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:235
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:262
+msgctxt "ToolTip"
+msgid "Select an asset"
+msgstr "选择资源"
+
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:50
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:90
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:267
+msgctxt "ToolTip"
+msgid "Clear the reference"
+msgstr "清除引用"
+
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:56
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:96
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:221
+msgctxt "ToolTip"
+msgid "Select the referenced asset"
+msgstr "选择引用资源"
+
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:133
+msgid "Add component"
+msgstr "添加组件"
+
+#: ../editor/Xenko.Assets.Presentation/View/EntityPropertyTemplates.xaml:258
+msgctxt "ToolTip"
+msgid "Highlight this material in the scene editor"
+msgstr "在场景编辑器中突出显示此材质"
+
+#: ../editor/Xenko.Assets.Presentation/View/MaterialPropertyTemplates.xaml:13
+msgid "Select shader..."
+msgstr "选择着色器..."
+

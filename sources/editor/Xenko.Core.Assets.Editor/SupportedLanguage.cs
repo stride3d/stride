@@ -4,8 +4,24 @@ namespace Xenko.Core.Assets.Editor
 {
     public enum SupportedLanguage
     {
+        /// <summary>
+        /// 默认
+        /// </summary>
         MachineDefault,
+
+        /// <summary>
+        /// 英语
+        /// </summary>
         English,
-        Japanese,
+
+        /// <summary>
+        /// 中文
+        /// </summary>
+        Chinese,
+
+        /// <summary>
+        /// 日语
+        /// </summary>
+        Japanese
     }
 }

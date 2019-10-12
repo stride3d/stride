@@ -454,6 +454,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Xenko.Samples.Tests", "..\s
 		{50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698} = {50D1A3BB-4B41-4EF5-8D2F-3618A3B6C698}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "zh", "zh", "{9C5C4561-E8E1-433D-BDCB-F5F6C3F13ADA}"
+	ProjectSection(SolutionItems) = preProject
+		..\sources\localization\zh\Xenko.Assets.Presentation.zh.po = ..\sources\localization\zh\Xenko.Assets.Presentation.zh.po
+		..\sources\localization\zh\Xenko.Core.Assets.Editor.zh.po = ..\sources\localization\zh\Xenko.Core.Assets.Editor.zh.po
+		..\sources\localization\zh\Xenko.Core.Presentation.zh.po = ..\sources\localization\zh\Xenko.Core.Presentation.zh.po
+		..\sources\localization\zh\Xenko.GameStudio.zh.po = ..\sources\localization\zh\Xenko.GameStudio.zh.po
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		..\sources\assets\Xenko.Core.Assets.Yaml\Xenko.Core.Assets.Yaml.projitems*{0bd41add-2704-4a77-a9ab-15460a2abdc6}*SharedItemsImports = 4
@@ -3982,6 +3990,7 @@ Global
 		{DA355C86-866F-4843-9B4D-63A173C750FB} = {4C142567-C42B-40F5-B092-798882190209}
 		{AB574F65-1402-4476-9314-74DCDAF19097} = {5D2D3BE8-9910-45CA-8E45-95660DA4C563}
 		{2FC40214-A4AA-45DC-9C93-72ED800C40B0} = {75608B5C-1C03-4B38-810E-14EED5165E59}
+		{9C5C4561-E8E1-433D-BDCB-F5F6C3F13ADA} = {FC791F56-C1F1-4C41-A193-868D8197F8E2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FF877973-604D-4EA7-B5F5-A129961F9EF2}

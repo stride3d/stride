@@ -1,0 +1,130 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2017-10-23 17:15:53+0900\n"
+"PO-Revision-Date: 2017-10-25 12:09+0900\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.0.4\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: ../common/presentation/Xenko.Core.Presentation/Windows/DialogHelper.cs:20
+msgid "Don't ask again"
+msgstr "不要再问了"
+
+#: ../common/presentation/Xenko.Core.Presentation/Windows/MessageBox.cs:70
+msgctxt "KeyGesture"
+msgid "N"
+msgstr "否"
+
+#: ../common/presentation/Xenko.Core.Presentation/Windows/MessageBox.cs:99
+msgctxt "KeyGesture"
+msgid "Y"
+msgstr "是"
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:344
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:613
+msgctxt "RGBA"
+msgid "R:"
+msgstr "R："
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:344
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:613
+msgctxt "ToolTip"
+msgid "Red"
+msgstr "红色"
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:353
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:622
+msgctxt "RGBA"
+msgid "G:"
+msgstr "G："
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:353
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:622
+msgctxt "ToolTip"
+msgid "Green"
+msgstr "绿色"
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:362
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:631
+msgctxt "RGBA"
+msgid "B:"
+msgstr "B："
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:362
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:631
+msgctxt "ToolTip"
+msgid "Blue"
+msgstr "蓝色"
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:371
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:640
+msgctxt "RGBA"
+msgid "A:"
+msgstr "A："
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:371
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:640
+msgctxt "ToolTip"
+msgid "Alpha"
+msgstr "透明度"
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:384
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:653
+msgctxt "HSB"
+msgid "H:"
+msgstr "H："
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:384
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:653
+msgctxt "ToolTip"
+msgid "Hue"
+msgstr "色调"
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:393
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:662
+msgctxt "HSB"
+msgid "S:"
+msgstr "S："
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:393
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:662
+msgctxt "ToolTip"
+msgid "Saturation"
+msgstr "饱和"
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:402
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:671
+msgctxt "HSB"
+msgid "B:"
+msgstr "B："
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/generic.xaml:402
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:671
+msgctxt "ToolTip"
+msgid "Value"
+msgstr "值"
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:3861
+msgctxt "ToolTip"
+msgid "Toggle editing mode"
+msgstr "切换编辑模式"
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4117
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4187
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4266
+msgctxt "ToolTip"
+msgid "Advanced options"
+msgstr "高级选项"
+
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4126
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4195
+#: ../common/presentation/Xenko.Core.Presentation/Themes/ExpressionDark/Theme.xaml:4275
+msgid "All components:"
+msgstr "所有组件："
+
