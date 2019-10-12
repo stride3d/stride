@@ -1,23 +1,23 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2017-10-23 17:15:53+0900\n"
-"PO-Revision-Date: 2017-10-25 12:09+0900\n"
+"POT-Creation-Date: 2019-10-12 23:30:21+0800\n"
+"PO-Revision-Date: 2019-10-13 00:27+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.4\n"
+"X-Generator: Poedit 2.2.4\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../editor/Xenko.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:144
+#: ../editor/Xenko.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:138
 msgctxt "Properties"
 msgid "Loading properties..."
 msgstr "正在载入属性..."
 
-#: ../editor/Xenko.Core.Assets.Editor/Components/Properties/SessionObjectPropertiesViewModel.cs:131
+#: ../editor/Xenko.Core.Assets.Editor/Components/Properties/SessionObjectPropertiesViewModel.cs:129
 msgctxt "Properties"
 msgid "There was a problem loading properties of the selection."
 msgstr "加载所选内容的属性时出现问题。"
@@ -30,7 +30,7 @@ msgstr "操作已取消。"
 
 #. Message displayed when an exception occurs while generating a template
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:41
-#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:60
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/TemplateGeneratorHelper.cs:59
 msgctxt "Log"
 msgid "An exception occurred while generating the template."
 msgstr "生成模板时发生异常。"
@@ -40,12 +40,12 @@ msgctxt "Title"
 msgid "Project selection - {0}"
 msgstr "项目选择- {0}"
 
-#: ../editor/Xenko.Core.Assets.Editor/Services/VisualStudioService.cs:92
+#: ../editor/Xenko.Core.Assets.Editor/Services/VisualStudioService.cs:90
 msgctxt "Message"
 msgid "An error occurred while starting Visual Studio."
 msgstr "启动Visual Studio时发生错误。"
 
-#: ../editor/Xenko.Core.Assets.Editor/Services/VisualStudioService.cs:101
+#: ../editor/Xenko.Core.Assets.Editor/Services/VisualStudioService.cs:99
 msgctxt "Message"
 msgid "The session currently open is not a Visual Studio session."
 msgstr "当前打开的会话不是Visual Studio会话。"
@@ -97,76 +97,70 @@ msgid "Default IDE"
 msgstr "默认IDE"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:52
-#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:53
 msgctxt "Settings"
 msgid "Ask before deleting assets"
 msgstr "删除资源前先询问"
 
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:56
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:57
-#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:58
 msgctxt "Settings"
 msgid "Ask before reloading assemblies"
 msgstr "重新装配件前先询问"
 
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:61
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:62
-#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:63
 msgctxt "Settings"
 msgid "Automatically reload assemblies"
 msgstr "自动重新加载组件"
 
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:66
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:67
-#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:68
 msgctxt "Settings"
 msgid "Ask before saving new scripts"
 msgstr "保存新脚本之前询问"
 
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:70
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:72
-#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:73
 msgctxt "Settings"
 msgid "Crash report e-mail"
 msgstr "崩溃后发送电子邮件"
 
-#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:77
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:75
 msgctxt "Settings"
 msgid "Language"
 msgstr "语言"
 
-#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:81
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:79
 msgctxt "Settings"
 msgid "Reset"
 msgstr "重启"
 
-#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:82
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:81
 msgctxt "Settings"
 msgid "Reset Game Studio layout"
 msgstr "重置Game Studio布局"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:86
 msgctxt "Settings"
-msgid "Build cache directory"
-msgstr "构建缓存目录"
-
-#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:90
-msgctxt "Settings"
 msgid "Use effect compiler server for mobile platforms"
 msgstr "将效果编译器服务器用于移动平台"
 
-#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:94
+#: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:90
 msgctxt "Settings"
 msgid "Automatically reload last session at startup"
 msgstr "启动时自动重新加载上一个会话"
 
-#: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:117
+#: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:115
 msgctxt "Message"
 msgid "Some changes will be applied after you restart Game Studio."
 msgstr "重新启动Game Studio后，将应用某些更改。"
 
-#: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:128
+#: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:125
 msgctxt "Properties"
 msgid "Select a settings category."
 msgstr "选择一个设置类别。"
 
-#: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:138
+#: ../editor/Xenko.Core.Assets.Editor/Settings/ViewModels/SettingsViewModel.cs:136
 msgctxt "Properties"
 msgid "There was a problem loading the Settings page."
 msgstr "加载'设置'页面时出现问题。"
@@ -194,17 +188,17 @@ msgstr "不能放在这里"
 msgid "(Different values)"
 msgstr "(不同的值)"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:490
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:478
 msgctxt "Message"
 msgid ""
 "Unable to use the selected template because it is not an asset template."
 msgstr "无法使用所选模板，因为它不是资源模板。"
 
 #. Error message when the template generator of the selected template is unreachable
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:544
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/PackageViewModel.cs:536
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:283
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1149
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:543
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/PackageViewModel.cs:526
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:277
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1127
 msgctxt "Message"
 msgid ""
 "Unable to retrieve template generator for the selected template. Aborting."
@@ -214,125 +208,131 @@ msgstr "无法为所选模板检索模板生成器。中止。"
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:550
 msgctxt "Title"
 msgid "Add asset…"
-msgstr "添加资源..."
+msgstr "添加资源…"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:678
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:671
 msgctxt "Message"
 msgid ""
 "Game Studio can't create assets in multiple locations. In the solution "
 "explorer, select a single directory or package to create the asset in."
-msgstr "Game Studio无法在多个位置创建资源。在解决方案资源管理器中，选择一个目录或包以在其中创建资源。"
+msgstr ""
+"Game Studio无法在多个位置创建资源。在解决方案资源管理器中，选择一个目录或包以"
+"在其中创建资源。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:683
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:684
 msgctxt "Message"
 msgid ""
 "Game Studio can't create an asset here. In the solution explorer, select a "
 "directory or package to create the asset in."
-msgstr "Game Studio无法在此处创建资源。在解决方案资源管理器中，选择目录或包以在其中创建资源。"
+msgstr ""
+"Game Studio无法在此处创建资源。在解决方案资源管理器中，选择目录或包以在其中创"
+"建资源。"
 
 #: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:690
 msgctxt "Message"
 msgid ""
 "Game Studio can't create an asset here because the selected directory or "
-"package can't be edited. In the solution explorer, select a directory or package "
-"to create the asset in."
-msgstr "Game Studio无法在此处创建资源，因为无法编辑所选目录或程序包。在解决方案资源管理器中，选择目录或包以在其中创建资源。"
+"package can't be edited. In the solution explorer, select a directory or "
+"package to create the asset in."
+msgstr ""
+"Game Studio无法在此处创建资源，因为无法编辑所选目录或程序包。在解决方案资源管"
+"理器中，选择目录或包以在其中创建资源。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:763
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:757
 msgctxt "Message"
 msgid "Read-only folders can't be cut."
 msgstr "只读文件夹无法剪切。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:778
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:773
 msgctxt "Message"
 msgid "The asset {0} can't be deleted. {1}{2}"
 msgstr "资源{0}无法删除。 {1} {2}"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:808
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:805
 msgctxt "Message"
 msgid "{0} can't be deleted. {1}{2}"
 msgstr "{0}无法删除。 {1} {2}"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:855
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:849
 msgctxt "Message"
 msgid ""
 "Unable to cut or copy a selection that contains a folder and one of its "
 "subfolders."
 msgstr "无法剪切或复制包含一个文件夹及其子文件夹之一的选区。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:931
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:918
 msgctxt "Message"
 msgid "Select a valid asset folder to paste the selection to."
 msgstr "选择一个有效的资源文件夹以将选择内容粘贴到其中。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:939
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:932
 msgctxt "Message"
 msgid "This package or directory can't be modified."
 msgstr "此软件包或目录无法修改。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1403
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1384
 msgctxt "Message"
 msgid ""
 "This location is invalid. Please select a package folder in the Solution "
 "explorer."
 msgstr "该位置无效。请在解决方案资源管理器中选择一个软件包文件夹。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1409
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1390
 msgctxt "Message"
 msgid "Drop files"
 msgstr "删除文件"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1477
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetCollectionViewModel.cs:1452
 msgctxt "Message"
 msgid "These files aren't supported."
 msgstr "不支持这些文件。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:593
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:582
 msgctxt "Message"
 msgid ""
-"Unable to rename asset to '{0}' because an asset with the same name exists in "
-"the same directory"
+"Unable to rename asset to '{0}' because an asset with the same name exists "
+"in the same directory"
 msgstr "无法将资源重命名为' {0} '，因为同一目录中存在具有相同名称的资源"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:598
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/AssetViewModel.cs:589
 msgctxt "Message"
 msgid "Unable to rename asset with an empty name"
 msgstr "无法使用空名称重命名资源"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:113
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:104
 msgctxt "Message"
 msgid "This package that contains this folder can't be edited."
 msgstr "包含此文件夹的软件包无法编辑。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:150
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:142
 msgctxt "Message"
 msgid "Unable to rename folder. {0}"
 msgstr "无法重命名文件夹。 {0}"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:175
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:167
 msgctxt "Message"
 msgid "A folder with the same name already exists in the parent folder."
 msgstr "父文件夹中已经存在一个具有相同名称的文件夹。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:197
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/DirectoryViewModel.cs:188
 msgctxt "Message"
 msgid "Path is a device name"
 msgstr "路径是设备名称"
 
 #. Message displayed when the previous attempt to load the startup project failed. {0} is a file name
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:121
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:134
 msgctxt "Button"
 msgid "Try again"
 msgstr "再试一次"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:122
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:704
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:743
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1020
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1519
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1607
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1638
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1692
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:135
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:688
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:728
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:985
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1498
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1578
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1609
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1650
 #: ../editor/Xenko.Core.Assets.Editor/Components/FixAssetReferences/Views/FixAssetReferencesWindow.xaml:83
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/NewPackageWindow.xaml:31
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:35
@@ -344,54 +344,57 @@ msgctxt "Button"
 msgid "Cancel"
 msgstr "取消"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:124
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:138
 msgctxt "Message"
 msgid ""
 "The last attempt to load the project **{0}** failed. \r\n"
 "\r\n"
 "Do you want to try to load it again?"
-msgstr "上次加载项目**{0}**的尝试失败。 \r\n\r\n是否要尝试再次加载？"
+msgstr ""
+"上次加载项目**{0}**的尝试失败。\r\n"
+"\r\n"
+"是否要尝试再次加载？"
 
 #. Message displayed when the solution file to open does not exist. {0} is a file path
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:155
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:169
 msgctxt "Message"
 msgid "The file '{0}' does not exist."
 msgstr "文件' {0} '不存在。"
 
 #. Message displayed when trying to open an unsaved file with the text editor
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:184
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:720
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:199
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:706
 msgctxt "Message"
 msgid "You need to save the file before you can open it."
 msgstr "您需要先保存文件，然后才能打开它。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:197
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:215
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:209
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/EditorViewModel.cs:228
 msgctxt "Message"
 msgid "An error occurred while opening the file."
 msgstr "打开文件时发生错误。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/PackageViewModel.cs:737
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/PackageViewModel.cs:714
 msgctxt "Message"
 msgid "This package couldn't be renamed. {0}"
 msgstr "该软件包无法重命名。 {0}"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/PackageViewModel.cs:768
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/PackageViewModel.cs:752
 msgctxt "Message"
 msgid "A package with the same name already exists in the session."
 msgstr "会话中已经存在具有相同名称的软件包。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:102
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:100
 msgctxt "Message"
 msgid "The name is too long."
 msgstr "名称太长。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:108
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:106
 msgctxt "Message"
 msgid "The name contains invalid characters."
 msgstr "名称中包含无效字符。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:114
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionObjectViewModel.cs:112
 msgctxt "Message"
 msgid "The name is empty."
 msgstr "名称为空。"
@@ -405,40 +408,40 @@ msgid "Local packages"
 msgstr "本地套餐"
 
 #. {0} is a file name
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:568
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:554
 msgid "Solution '{0}'"
 msgstr "解决方案' {0} '"
 
 #. Title for the progress window of the session creation
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:256
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:251
 msgctxt "Title"
 msgid "Creating session..."
 msgstr "正在建立工作阶段..."
 
 #. Title for the progress window of the session loading
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:368
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:362
 msgctxt "Title"
 msgid "Opening session..."
 msgstr "开幕式..."
 
 #. Log message displayed when an exception occurs while opening a session.
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:401
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:393
 msgctxt "Log"
 msgid "There was a problem opening the solution."
 msgstr "打开解决方案时出现问题。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:449
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:440
 msgctxt "Message"
 msgid "The following dependencies in the **{0}** package need to be upgraded:"
 msgstr "**{0}**包中的以下依赖项需要升级："
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:454
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:448
 msgctxt "Message"
 msgid ""
 "- Dependency to **{0}** must be upgraded from version **{1}** to **{2}**"
 msgstr "-对**{0}**的依赖性必须从**{1}**版本升级到**{2}**"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:458
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:454
 msgctxt "Message"
 msgid ""
 "Upgrading assets might break them. We recommend you make a manual backup of "
@@ -446,31 +449,31 @@ msgid ""
 msgstr "升级资源可能会破坏它们。我们建议您在升级之前对项目进行手动备份。"
 
 #. Displayed in a button (must be short)
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:462
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:454
 msgctxt "Button"
 msgid "Upgrade"
 msgstr "升级"
 
 #. Displayed in a button (must be short)
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:463
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:458
 msgctxt "Button"
 msgid "Skip"
 msgstr "跳跃"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:465
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:458
 msgctxt "Message"
 msgid "Do this for every package in the solution"
 msgstr "对解决方案中的每个包装都这样做"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:703
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:742
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1018
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:686
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:726
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:976
 msgctxt "Button"
 msgid "Save"
 msgstr "救"
 
 #. Message displayed when trying to open a modified asset with the text editor
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:706
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:690
 msgctxt "Message"
 msgid ""
 "This asset has unsaved changes. To open it, you need to save the session "
@@ -478,143 +481,145 @@ msgid ""
 msgstr "该资源有未保存的更改。要打开它，您需要先保存会话。您要现在保存吗？"
 
 #. Message displayed when an exception occurs while trying to open a file with the text editor
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:728
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:714
 msgctxt "Message"
 msgid ""
 "There was a problem starting the text editor. Make sure the path to the text "
 "editor in Settings is correct."
 msgstr "启动文本编辑器时出现问题。确保'设置'中文本编辑器的路径正确。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:745
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:728
 msgctxt "Message"
 msgid ""
-"This asset has unsaved changes. To open it, you need to save it first. Do you "
-"want to save the session now?"
+"This asset has unsaved changes. To open it, you need to save it first. Do "
+"you want to save the session now?"
 msgstr "该资源有未保存的更改。要打开它，您需要先保存它。您要立即保存会话吗？"
 
 #. Error displayed when trying to open the source file of an asset that has no source file
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:764
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:745
 msgctxt "Message"
 msgid "This asset doesn't have a source file to open."
 msgstr "该资源没有要打开的源文件。"
 
 #. Message displayed when trying to explore an unsaved asset
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:838
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:815
 msgctxt "Message"
 msgid "You need to save the asset before you can explore it."
 msgstr "您需要先保存资源，然后才能对其进行浏览。"
 
 #. Message displayed when an exception occurs while trying to explore an asset
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:849
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:835
 msgctxt "Message"
 msgid "There was a problem starting the file explorer."
 msgstr "启动文件资源管理器时出现问题。"
 
 #. Title for the progress window of the session saving
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:873
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:849
 msgctxt "Title"
 msgid "Saving session..."
 msgstr "正在保存会话..."
 
 #. Log message displayed when an exception occurs while saving a session.
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:896
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:874
 msgctxt "Log"
 msgid "There was a problem saving the solution. {0}"
 msgstr "保存解决方案时出现问题。 {0}"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1019
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:981
 msgctxt "Button"
 msgid "Don't save"
 msgstr "不要保存"
 
 #. Message displayed when closing an unsaved project
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1022
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:988
 msgctxt "Message"
 msgid "The project has unsaved changes. Do you want to save it?"
 msgstr "该项目有未保存的更改。您要保存吗？"
 
 #. Message displayed when a session managed to save some files while some others have failed.
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1035
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1014
 msgctxt "Message"
 msgid "Some assets couldn't be saved. Check the assets and try again."
 msgstr "有些资源无法保存。检查资源，然后重试。"
 
 #. Title for the progress window of the package creation
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1127
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1103
 msgctxt "Title"
 msgid "Creating package..."
 msgstr "正在建立包..."
 
 #. Title for the progress window of the package import
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1191
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1166
 msgctxt "Title"
 msgid "Importing package..."
 msgstr "正在导入包..."
 
 #. Log message displayed when an exception occurs while importing a package.
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1211
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1187
 msgctxt "Log"
 msgid "There was a problem importing the package."
 msgstr "导入软件包时出现问题。"
 
 #. Message displayed when the selection contains zero or multiple packages but a single one is required
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1251
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1227
 msgctxt "Message"
 msgid "Please select a single package."
 msgstr "请选择一个包。"
 
 #. Message displayed when the user try to add dependencies to a package but no acceptable package is available
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1302
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1270
 msgctxt "Message"
 msgid ""
 "There are no packages that can be added as dependencies to this package."
 msgstr "没有可以作为依赖项添加到此程序包的程序包。"
 
 #. Message displayed when a single location is selected but invalid for directory creation
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1361
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1333
 msgctxt "Message"
 msgid "Folders can only be created in the Assets hierarchy of a package."
 msgstr "只能在包的'资源'层次结构中创建文件夹。"
 
 #. Message displayed when some of the multiple selected locations are invalid for directory creation
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1362
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1335
 msgctxt "Message"
 msgid ""
 "Game Studio can't create a folder in some of the locations you selected. "
 "Folders can only be created in the Assets hierarchy of a package."
-msgstr "Game Studio无法在您选择的某些位置创建文件夹。只能在包的'资源'层次结构中创建文件夹。"
+msgstr ""
+"Game Studio无法在您选择的某些位置创建文件夹。只能在包的'资源'层次结构中创建文"
+"件夹。"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1518
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1495
 msgctxt "Settings"
 msgid "Always delete without asking"
 msgstr "始终删除而不询问"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1519
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1606
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1637
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1691
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1498
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1577
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1607
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1647
 msgctxt "Button"
 msgid "Delete"
 msgstr "删除"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1541
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1514
 msgctxt "Message"
 msgid "Xenko can't delete the {0} asset. {1}{2}"
 msgstr "Xenko无法删除{0}资源。 {1} {2}"
 
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1551
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1520
 msgctxt "Message"
 msgid "Xenko can't delete the {0} folder. {1}{2}"
 msgstr "Xenko无法删除{0}文件夹。 {1} {2}"
 
 #. Message displayed when the user tries to delete a system package
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1597
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1571
 msgctxt "Message"
 msgid "Xenko can't delete the system package."
 msgstr "Xenko无法删除系统软件包。"
 
 #. Message displayed when the user is about to delete a package from the session
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1609
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1580
 msgctxt "Message"
 msgid ""
 "Are you sure you want to delete this package? The package files will remain "
@@ -622,19 +627,19 @@ msgid ""
 msgstr "您确定要删除此软件包吗？软件包文件将保留在磁盘上。"
 
 #. Message displayed when the user is about to delete a dependency from the package
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1640
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1609
 msgctxt "Message"
 msgid "Are you sure you want to delete this dependency?"
 msgstr "您确定要删除此依赖项吗？"
 
 #. Message displayed when the user tries to delete the root asset directory of a package
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1681
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1640
 msgctxt "Message"
 msgid "Asset root folders can't be deleted."
 msgstr "资源根文件夹无法删除。"
 
 #. Message displayed when the user is about to delete a project from the package
-#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1694
+#: ../editor/Xenko.Core.Assets.Editor/ViewModel/SessionViewModel.cs:1653
 msgctxt "Message"
 msgid "Are you sure you want to delete these projects?"
 msgstr "您确定要删除这些项目吗？"
@@ -804,6 +809,16 @@ msgstr "解决方案位置："
 #: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/ProjectSelectionWindow.xaml:94
 msgid "(Same location)"
 msgstr "(相同的位置)"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:31
+msgctxt "Menu"
+msgid "Show in Explorer"
+msgstr "在资源管理器里显示"
+
+#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:32
+msgctxt "Menu"
+msgid "Remove From List"
+msgstr "从列表中移除"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/AssetPickerWindow.xaml:25
 msgctxt "Menu"
@@ -992,26 +1007,26 @@ msgctxt "Menu"
 msgid "Tiles"
 msgstr "瓷砖"
 
-#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:417
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:418
 msgid "Add a filter..."
 msgstr "添加过滤器..."
 
-#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:421
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:422
 msgid "Filter assets by name, type or tag"
 msgstr "按名称，类型或标签过滤资源"
 
-#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:447
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:448
 msgctxt "ToolTip"
 msgid "Clear filters"
 msgstr "清除筛选器"
 
-#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:489
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:490
 msgid ""
 "No asset to display in this folder or no folder selected. Check your active "
 "filters."
 msgstr "没有资源可显示在此文件夹中或未选择文件夹。检查您的活动过滤器。"
 
-#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:492
+#: ../editor/Xenko.Core.Assets.Editor/View/AssetViewUserControl.xaml:493
 msgid "You can also drop files here to import assets."
 msgstr "您也可以将文件拖放到此处以导入资源。"
 
@@ -1041,7 +1056,6 @@ msgstr "清单"
 msgid "{0} item"
 msgid_plural "{0} items"
 msgstr[0] "{0}项"
-msgstr[1] "{0}项"
 
 #: ../editor/Xenko.Core.Assets.Editor/View/DefaultPropertyTemplateProviders.xaml:450
 msgid "Add to {0}"
@@ -1213,3 +1227,6 @@ msgctxt "Button"
 msgid "Close"
 msgstr "关闭"
 
+#~ msgctxt "Settings"
+#~ msgid "Build cache directory"
+#~ msgstr "构建缓存目录"

@@ -1,137 +1,141 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2017-10-23 17:15:54+0900\n"
-"PO-Revision-Date: 2017-10-25 12:11+0900\n"
+"POT-Creation-Date: 2019-10-12 23:30:22+0800\n"
+"PO-Revision-Date: 2019-10-13 00:18+0800\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: zh\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.0.4\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 2.2.4\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
 msgid "Output"
 msgstr "输出"
 
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:189
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:184
 msgctxt "Message"
 msgid ""
 "Some game code files have been modified. Do you want to reload the "
 "assemblies?"
 msgstr "某些游戏代码文件已被修改。是否要重新加载程序集？"
 
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:190
 msgctxt "Button"
 msgid "Reload"
-msgstr "重装"
+msgstr "重载"
 
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:190
 msgctxt "Button"
 msgid "Don't reload"
 msgstr "不要重新加载"
 
 #. Displayed when user tries to run a project that is not on a supported platform (for execution).
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:317
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:460
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:467
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:310
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:452
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:457
 msgctxt "Message"
 msgid "Platform {0} isn't supported for execution."
 msgstr "不支持执行平台{0} 。"
 
 #. Displayed when user tries to run Android project without an Android device attached.
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:422
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:416
 msgctxt "Message"
 msgid "No Android device found for execution."
 msgstr "找不到要执行的Android设备。"
 
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:475
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:639
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:467
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:629
 msgctxt "Message"
 msgid "Unable to load and compile project {0}"
 msgstr "无法加载和编译项目{0}"
 
 #. Log message displayed when the executable can't be found after building the project. {0}: the expected executable path
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:492
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:539
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:485
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:531
 msgctxt "Message"
 msgid "Unable to reach to output executable: {0}"
 msgstr "无法到达输出可执行文件：{0}"
 
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:509
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:500
 msgctxt "Message"
 msgid "Couldn't find Android package name for {0}."
 msgstr "找不到{0} Android软件包名称。"
 
 #. Displayed when Android tools "adb" can't be found
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:519
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:509
 msgctxt "Message"
 msgid ""
 "Android tool \"\"adb\"\" couldn't found (no running process, in registry or "
 "on the PATH). Please add it to your PATH."
-msgstr "找不到Android工具\"\"adb\"\"(在注册表或PATH中没有正在运行的进程)。请将其添加到您的PATH中。"
+msgstr ""
+"找不到Android工具\"\"adb\"\"(在注册表或PATH中没有正在运行的进程)。请将其添加"
+"到您的PATH中。"
 
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:526
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:519
 msgctxt "Message"
 msgid "Can't run Android app with adb: {0}"
 msgstr "无法使用adb：{0}运行Android应用"
 
 #. Displayed when starting a game on a platform requiring credentials but none were provided.
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:551
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:544
 msgctxt "Message"
 msgid "No credentials provided. To allow deployment, add your credentials."
 msgstr "没有提供凭据。要允许部署，请添加您的凭据。"
 
 #. Message displayed when launching fails for some reason.
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:560
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:551
 msgctxt "Message"
 msgid "Unable to launch project {0}"
 msgstr "无法启动项目{0}"
 
 #. Message displayed to inform user a deployment was succesful.
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:568
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:557
 msgctxt "Message"
 msgid "Deployment of {0} successful."
 msgstr "部署{0}成功。"
 
 #. Log message displayed when an exception occurs while building the project. {0}: The exception message
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:574
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:648
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:561
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:636
 msgctxt "Message"
 msgid "An exception occurred while compiling the project: {0}"
 msgstr "编译项目时发生异常：{0}"
 
 #. Message displayed when the user tries to build without having selected a current project
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:584
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:573
 msgctxt "Message"
 msgid ""
-"To process the build, set an executable project as the current project in the "
-"session explorer."
+"To process the build, set an executable project as the current project in "
+"the session explorer."
 msgstr "要处理构建，请在会话资源管理器中将可执行项目设置为当前项目。"
 
 #. Message displayed when the user cancels the saving of the current session when trying to build
-#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:592
+#: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:580
 msgctxt "Message"
 msgid "To build, save the project first."
 msgstr "若要进行构建，请先保存项目。"
 
-#: ../editor/Xenko.GameStudio/GameStudioViewModel.cs:92
+#: ../editor/Xenko.GameStudio/GameStudioViewModel.cs:90
 msgctxt "Message"
 msgid "The file {0} does not exist."
 msgstr "文件{0}不存在。"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml.cs:78
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml.cs:76
 msgctxt "Message"
 msgid ""
 "To reset the layout, Game Studio needs to close and re-open all asset and "
 "document editors. You won't lose unsaved changes."
-msgstr "若要重置布局，Game Studio需要关闭并重新打开所有资源和文档编辑器。您将不会丢失未保存的更改。"
+msgstr ""
+"若要重置布局，Game Studio需要关闭并重新打开所有资源和文档编辑器。您将不会丢失"
+"未保存的更改。"
 
 #. Generic error message when we are unable to launch a game on a remote host.
-#: ../editor/Xenko.GameStudio/RemoteFacilities.cs:128
+#: ../editor/Xenko.GameStudio/RemoteFacilities.cs:125
 msgctxt "Message"
 msgid "Unable to launch {0} on host {1}"
 msgstr "无法在主机{1}上启动{0} {1}"
@@ -157,12 +161,12 @@ msgstr "默认会话加载"
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:26
 msgctxt "Settings"
 msgid "Host"
-msgstr "主办"
+msgstr "主机"
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:30
 msgctxt "Settings"
 msgid "Port"
-msgstr "港口"
+msgstr "端口"
 
 #: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:34
 msgctxt "Settings"
@@ -193,586 +197,583 @@ msgid "X Display"
 msgstr "X显示"
 
 #. Ask if we want to execute remotely using CoreCLR.
-#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:54
+#: ../editor/Xenko.GameStudio/Settings/XenkoEditorSettings.cs:53
 msgctxt "Settings"
 msgid "Use CoreCLR"
 msgstr "使用CoreCLR"
 
 #. Confirmation message when everything is correct while testing credentials.
-#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:74
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:73
 msgctxt "Credentials"
 msgid "Your credentials are correct."
 msgstr "您的凭据是正确的。"
 
-#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:77
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:76
 msgctxt "Credentials"
 msgid "Couldn't reach the specified host."
 msgstr "无法到达指定的主机。"
 
 #. Display error message when credentials data is invalid.
-#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:80
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:79
 msgctxt "Credentials"
 msgid "Invalid credentials."
 msgstr "无效证件。"
 
 #. Display error message when location does not exist.
-#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:83
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:82
 msgctxt "Credentials"
 msgid "The location you specified doesn't exist."
 msgstr "您指定的位置不存在。"
 
 #. Whenever something not expected happens while checking for credentials.
-#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:86
+#: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml.cs:84
 msgctxt "Credentials"
 msgid "An unknown error occurred."
 msgstr "出现未知错误。"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:40
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:223
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:505
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:63
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:246
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:528
 msgctxt "Menu"
 msgid "Asset"
 msgstr "资源"
 
 #. Open the asset editor
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:41
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:64
 msgctxt "Menu"
 msgid "Edit asset..."
 msgstr "编辑资源..."
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:42
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:65
 msgctxt "Menu"
 msgid "Don't include in build as root asset"
 msgstr "不要包括在构建中作为根资源"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:42
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:65
 msgctxt "Menu"
 msgid "Include in build as root asset"
 msgstr "包含在构建中作为根资源"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:69
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:92
 msgctxt "Menu"
 msgid "Copy with dependencies"
 msgstr "复制依赖项"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:73
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:96
 msgctxt "Menu"
 msgid "Copy asset URL"
 msgstr "复制资源网址"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:74
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:221
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:503
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:97
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:244
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:526
 msgctxt "Menu"
 msgid "Rename"
 msgstr "改名"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:76
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:187
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:467
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:99
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:490
 msgctxt "Menu"
 msgid "Create folder"
 msgstr "创建文件夹"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:77
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:224
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:506
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:100
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:247
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:529
 msgctxt "Menu"
 msgid "Add asset..."
 msgstr "添加资源..."
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:78
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:225
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:101
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:248
 msgctxt "Menu"
 msgid "Update selected assets from their source"
 msgstr "从来源更新所选资源"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:79
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:226
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:102
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:249
 msgctxt "Menu"
 msgid "Update all assets with modified source"
 msgstr "使用修改后的源更新所有资源"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:81
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:227
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:508
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:104
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:250
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:531
 msgctxt "Menu"
 msgid "Explore"
 msgstr "探索"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:82
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:105
 msgctxt "Menu"
 msgid "Open with text editor"
 msgstr "用文本编辑器打开"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:83
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:106
 msgctxt "Menu"
 msgid "Open asset file"
 msgstr "打开资源文件"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:84
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:107
 msgctxt "Menu"
 msgid "Open source file"
 msgstr "开源文件"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:85
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:228
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:509
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:108
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:251
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:532
 msgctxt "Menu"
 msgid "Show in Explorer"
 msgstr "在资源管理器里显示"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:122
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:145
 msgctxt "Menu"
 msgid "File"
 msgstr "文件"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:125
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:148
 msgctxt "Menu"
 msgid "Open recent"
-msgstr "最近开放"
+msgstr "最近打开"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:155
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:178
 msgctxt "Menu"
 msgid "Clear list"
-msgstr "清晰的列表"
+msgstr "清除列表"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:159
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:182
 msgctxt "Menu"
 msgid "Reload project"
-msgstr "重新载入专案"
+msgstr "重新载入项目"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:161
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:184
 msgctxt "Menu"
 msgid "Quit"
-msgstr "放弃"
+msgstr "退出"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:168
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:191
 msgctxt "Menu"
 msgid "Edit"
 msgstr "编辑"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:177
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:200
 msgctxt "Menu"
 msgid "Settings"
 msgstr "设定值"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:180
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:203
 msgctxt "Menu"
 msgid "Project"
 msgstr "项目"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:181
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:204
 msgctxt "Menu"
 msgid "Build project"
-msgstr "建立项目"
+msgstr "编译项目"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:182
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:205
 msgctxt "Menu"
 msgid "Start project"
 msgstr "开始项目"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:184
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:207
 msgctxt "Menu"
 msgid "Start live-scripting"
 msgstr "开始实时脚本"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:185
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:208
 msgctxt "Menu"
 msgid "Cancel build"
-msgstr "取消建立"
-
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:186
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:466
-msgctxt "Menu"
-msgid "Folder"
-msgstr "夹"
-
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:189
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:469
-msgctxt "Menu"
-msgid "Package"
-msgstr "包"
-
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:190
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:470
-msgctxt "Menu"
-msgid "Update package"
-msgstr "更新包"
-
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:208
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:488
-msgctxt "Menu"
-msgid "Add existing project..."
-msgstr "添加现有项目..."
+msgstr "取消编译"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:209
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:489
 msgctxt "Menu"
-msgid "Add dependency..."
-msgstr "添加依赖项..."
+msgid "Folder"
+msgstr "文件夹"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:490
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:212
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:492
 msgctxt "Menu"
-msgid "Set as current package"
-msgstr "设为当前包"
-
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:211
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:491
-msgctxt "Menu"
-msgid "Package properties"
-msgstr "包属性"
+msgid "Package"
+msgstr "包"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:213
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:493
 msgctxt "Menu"
-msgid "Solution"
-msgstr "解"
+msgid "Update package"
+msgstr "更新包"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:214
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:494
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:231
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:511
+msgctxt "Menu"
+msgid "Add existing project..."
+msgstr "添加现有项目..."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:232
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:512
+msgctxt "Menu"
+msgid "Add dependency..."
+msgstr "添加依赖项..."
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:233
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:513
+msgctxt "Menu"
+msgid "Set as current package"
+msgstr "设为当前包"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:234
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:514
+msgctxt "Menu"
+msgid "Package properties"
+msgstr "包属性"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:236
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:516
+msgctxt "Menu"
+msgid "Solution"
+msgstr "解决方案"
+
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:237
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:517
 msgctxt "Menu"
 msgid "New package..."
-msgstr "新包装..."
+msgstr "创建包..."
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:215
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:495
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:238
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:518
 msgctxt "Menu"
 msgid "Add existing package..."
 msgstr "添加现有包..."
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:216
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:496
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:239
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:519
 msgctxt "Menu"
 msgid "Open in IDE"
 msgstr "在IDE中打开"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:217
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:240
 msgctxt "Menu"
 msgid "Reload game assemblies"
 msgstr "重新加载游戏程序集"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:219
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:498
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:242
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:521
 msgctxt "Menu"
 msgid "Actions"
 msgstr "动作"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:220
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:243
 msgctxt "Menu"
 msgid "Delete"
 msgstr "删除"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:231
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:254
 msgctxt "Menu"
 msgid "View"
 msgstr "视图"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:232
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:255
 msgctxt "Menu"
 msgid "Solution explorer"
 msgstr "解决方案资源管理器"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:233
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:256
 msgctxt "Menu"
 msgid "Asset view"
 msgstr "资源视图"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:234
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:257
 msgctxt "Menu"
 msgid "References"
 msgstr "参考文献"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:236
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:259
 msgctxt "Menu"
 msgid "Asset preview"
 msgstr "资源预览"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:239
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:262
 msgctxt "Menu"
 msgid "Property grid"
 msgstr "物业网格"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:240
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:263
 msgctxt "Menu"
 msgid "Edit history"
 msgstr "编辑历史"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:243
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:266
 msgctxt "Menu"
 msgid "Asset errors"
 msgstr "资源错误"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:244
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:267
 msgctxt "Menu"
 msgid "Output"
 msgstr "输出量"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:248
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:271
 msgctxt "Menu"
 msgid "Help"
-msgstr "救命"
+msgstr "帮助"
 
 #. Link to the documentation
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:249
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:272
 msgctxt "Menu"
 msgid "Online documentation"
-msgstr "在线文件"
+msgstr "在线文档"
 
 #. Link to the answer hub
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:251
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:274
 msgctxt "Menu"
 msgid "Questions and answers"
 msgstr "问题与解答"
 
 #. Link to GitHub issues
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:252
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:275
 msgctxt "Menu"
 msgid "Report an issue..."
 msgstr "报告问题..."
 
 #. Link to the forums
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:253
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:276
 msgctxt "Menu"
 msgid "Community forums"
 msgstr "社区论坛"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:255
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:278
 msgctxt "Menu"
 msgid "Show debug window"
 msgstr "显示调试窗口"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:257
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:280
 msgctxt "Menu"
 msgid "About..."
 msgstr "关于..."
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:283
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:306
 msgctxt "ToolTip"
 msgid "Create a project"
-msgstr "建立专案"
+msgstr "新建项目"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:287
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:310
 msgctxt "ToolTip"
 msgid "Open an existing project"
 msgstr "打开一个现有项目"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:291
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:314
 msgctxt "ToolTip"
 msgid "Open recent"
-msgstr "最近开放"
+msgstr "最近打开的项目"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:317
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:340
 msgctxt "ToolTip"
 msgid "Save the project and all its documents"
 msgstr "保存项目及其所有文档"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:322
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:345
 msgctxt "ToolTip"
 msgid "Reload current project (ask to save)"
 msgstr "重新加载当前项目(要求保存)"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:327
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:350
 msgctxt "ToolTip"
 msgid "Undo last action"
 msgstr "撤消上一个动作"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:331
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:354
 msgctxt "ToolTip"
 msgid "Redo last cancelled action"
 msgstr "重做上次取消的操作"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:337
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:360
 msgctxt "ToolTip"
 msgid "Open in IDE"
 msgstr "在IDE中打开"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:341
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:364
 msgctxt "ToolTip"
 msgid "Open with..."
 msgstr "打开用..."
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:352
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:375
 msgctxt "ToolTip"
 msgid "Reload game assemblies and update scripts"
 msgstr "重新加载游戏程序集并更新脚本"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:373
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:396
 msgctxt "ToolTip"
 msgid "Build the project"
-msgstr "建立项目"
+msgstr "编译项目"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:377
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:400
 msgctxt "ToolTip"
 msgid "Build the project and start the game"
 msgstr "生成项目并开始游戏"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:383
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:406
 msgctxt "ToolTip"
 msgid "Start project in live-scripting mode"
 msgstr "以实时脚本模式启动项目"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:388
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:411
 msgctxt "ToolTip"
 msgid "Cancel the current build"
-msgstr "取消当前版本"
+msgstr "取消当前编译"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:415
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:438
 msgctxt "View"
 msgid "Solution explorer"
 msgstr "解决方案资源管理器"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:422
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:445
 msgctxt "ToolTip"
 msgid "Create a package..."
 msgstr "创建一个包..."
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:426
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:449
 msgctxt "ToolTip"
 msgid "Create a folder"
-msgstr "建立资料夹"
+msgstr "新建文件夹"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:431
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:454
 msgctxt "ToolTip"
 msgid "Display the properties of the selected package in the property grid"
 msgstr "在属性网格中显示所选包的属性"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:435
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:458
 msgctxt "ToolTip"
 msgid "Rename the selected folder or package"
 msgstr "重命名所选的文件夹或程序包"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:439
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:462
 msgctxt "ToolTip"
 msgid "Delete the selected items"
 msgstr "删除所选项目"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:444
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:467
 msgctxt "ToolTip"
 msgid "Expand all asset folders"
 msgstr "展开所有资源文件夹"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:448
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:471
 msgctxt "ToolTip"
 msgid "Expand all"
 msgstr "展开全部"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:452
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:475
 msgctxt "ToolTip"
 msgid "Collapse all"
 msgstr "全部收缩"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:457
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:480
 msgctxt "ToolTip"
 msgid "Show in Explorer"
 msgstr "在资源管理器里显示"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:550
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:573
 msgctxt "View"
 msgid "Asset view"
 msgstr "资源视图"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:571
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:594
 msgctxt "View"
 msgid "References"
 msgstr "参考文献"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:588
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:611
 msgid "References"
 msgstr "参考文献"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:589
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:612
 msgid "Referenced by"
 msgstr "被引用"
 
 #. {0}: The number of errors
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:600
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:623
 msgctxt "View"
 msgid "Asset error ({0})"
 msgid_plural "Asset errors ({0})"
 msgstr[0] "资源错误( {0})"
-msgstr[1] "资源错误( {0})"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:614
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:637
 msgid "Build"
-msgstr "建立"
+msgstr "编译"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:628
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:651
 msgid "Live-scripting"
 msgstr "实时脚本"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:652
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:675
 msgctxt "View"
 msgid "Property grid"
 msgstr "物业网格"
 
 #. Translation must not be longer that the english words
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:667
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:690
 msgid "Add new tag"
 msgstr "新增标签"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:677
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:700
 msgctxt "ToolTip"
 msgid "Previous selection"
 msgstr "上一个选择"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:680
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:703
 msgctxt "ToolTip"
 msgid "Next selection"
 msgstr "下一个选择"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:698
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:721
 msgctxt "ToolTip"
 msgid "Add tag to all"
 msgstr "将标签添加到全部"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:715
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:738
 msgid "Open this asset in editor"
 msgstr "在编辑器中打开此资源"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:717
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:740
 msgid "Show this asset in editor"
 msgstr "在编辑器中显示此资源"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:724
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:747
 msgctxt "ToolTip"
 msgid "Display only overridden properties"
 msgstr "仅显示覆盖的属性"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:727
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:750
 msgid "Search properties"
 msgstr "搜索属性"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:755
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:778
 msgctxt "Menu"
 msgid "Reset to base value"
 msgstr "重置为基本值"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:869
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:892
 msgctxt "View"
 msgid "Asset preview"
 msgstr "资源预览"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:877
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:900
 msgctxt "View"
 msgid "Edit history"
 msgstr "编辑历史"
 
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:929
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:952
 msgctxt "StatusBar"
 msgid "{0} item"
 msgid_plural "{0} items"
 msgstr[0] "{0}项"
-msgstr[1] "{0}项"
 
 #. Keep parenthesis - {0} is a number
-#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:930
+#: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:953
 msgctxt "StatusBar"
 msgid "({0} selected)"
 msgid_plural "({0} selected)"
 msgstr[0] "(已选择{0})"
-msgstr[1] "(已选择{0})"
 
 #: ../editor/Xenko.GameStudio/View/AboutPage.xaml:10
 msgctxt "About"
@@ -784,27 +785,22 @@ msgctxt "About"
 msgid "Xenko version"
 msgstr "Xenko版本"
 
-#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:47
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:50
 msgctxt "About"
-msgid "All rights reserved."
-msgstr "版权所有。"
+msgid "MIT License"
+msgstr "许可证"
 
-#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:52
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:56
 msgctxt "About"
-msgid "Xenko uses open-source software."
-msgstr "Xenko使用开源软件。"
+msgid "Xenko uses open-source software"
+msgstr "Xenko使用开源软件"
 
-#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:55
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:58
 msgctxt "About"
 msgid "See the list"
 msgstr "查看清单"
 
-#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:62
-msgctxt "About"
-msgid "End user license agreement"
-msgstr "终止用户许可协议"
-
-#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:67
+#: ../editor/Xenko.GameStudio/View/AboutPage.xaml:64
 msgctxt "About"
 msgid "Privacy policy"
 msgstr "隐私政策"
@@ -864,19 +860,21 @@ msgstr "测试设定"
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:40
 msgctxt "Button"
 msgid "Save"
-msgstr "救"
+msgstr "保存"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:45
 msgctxt "Button"
 msgid "Cancel"
 msgstr "取消"
 
-#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:31
-msgctxt "Menu"
-msgid "Show in Explorer"
-msgstr "在资源管理器里显示"
+#~ msgctxt "About"
+#~ msgid "All rights reserved."
+#~ msgstr "版权所有。"
 
-#: ../editor/Xenko.Core.Assets.Editor/Components/TemplateDescriptions/Views/TemplateBrowserUserControl.xaml:32
-msgctxt "Menu"
-msgid "Remove From List"
-msgstr "从列表中删除"
+#~ msgctxt "About"
+#~ msgid "End user license agreement"
+#~ msgstr "终止用户许可协议"
+
+#~ msgctxt "Menu"
+#~ msgid "Remove From List"
+#~ msgstr "从列表中删除"
