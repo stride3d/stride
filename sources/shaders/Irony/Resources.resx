@@ -118,325 +118,429 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ConsoleNoChars" xml:space="preserve">
-    <value>Nn</value>
+    <value>是</value>
+    <comment>Nn</comment>
   </data>
   <data name="ConsoleYesChars" xml:space="preserve">
-    <value>Yy</value>
+    <value>否</value>
+    <comment>Yy</comment>
   </data>
   <data name="ErrArgListNotFound" xml:space="preserve">
-    <value>Argument list not found in the stack. Expected: ValueList, found: {0}.</value>
+    <value>在堆栈中找不到参数列表。 预期：ValueList，找到：{0}。</value>
+    <comment>Argument list not found in the stack. Expected: ValueList, found: {0}.</comment>
   </data>
   <data name="ErrCannotConvertValue" xml:space="preserve">
-    <value>Cannot convert value from type {0} to type {1}, type converter not defined.</value>
+    <value>无法将值从类型{0}转换为类型{1}，类型转换器未定义。</value>
+    <comment>Cannot convert value from type {0} to type {1}, type converter not defined.</comment>
   </data>
   <data name="ErrConsoleFatalError" xml:space="preserve">
-    <value>Fatal error:</value>
+    <value>致命错误：</value>
+    <comment>Fatal error:</comment>
   </data>
   <data name="ErrConstructNotSupported" xml:space="preserve">
-    <value>Construct '{0}' is not supported (yet) by language implementation.</value>
+    <value>语言实现尚不支持构造'{0}'。</value>
+    <comment>Construct '{0}' is not supported (yet) by language implementation.</comment>
   </data>
   <data name="ErrInternalErrDataPopFailed" xml:space="preserve">
-    <value>Interpreter error, DataStack.Pop() operation failed - stack is empty.</value>
+    <value>解释器错误，datastack.pop()操作失败-堆栈为空。</value>
+    <comment>Interpreter error, DataStack.Pop() operation failed - stack is empty.</comment>
   </data>
   <data name="ErrInterpreterIsBusy" xml:space="preserve">
-    <value>Interpreter is busy.</value>
+    <value>翻译很忙。</value>
+    <comment>Interpreter is busy.</comment>
   </data>
   <data name="ErrInvalidAstMode" xml:space="preserve">
-    <value>Invalid AstMode value in call to Evaluate method. Node: {0}, mode: {1}.</value>
+    <value>调用Evaluate方法时无效的AstMode值。 节点：{0}，方式：{1}。</value>
+    <comment>Invalid AstMode value in call to Evaluate method. Node: {0}, mode: {1}.</comment>
   </data>
   <data name="ErrInvalidChar" xml:space="preserve">
-    <value>Invalid character: '{0}'.</value>
+    <value>无效字符： '{0}'。</value>
+    <comment>Invalid character: '{0}'.</comment>
   </data>
   <data name="ErrNoImplForUnaryOp" xml:space="preserve">
-    <value>UnExprNode: no implementation for unary operator '{0}'.</value>
+    <value>UnExprNode：一元运算符'{0}'没有实现。</value>
+    <comment>UnExprNode: no implementation for unary operator '{0}'.</comment>
   </data>
   <data name="ErrNullNodeEval" xml:space="preserve">
-    <value>Attempt to evaluate NULL AST node. The AST node for term '{0}' was not created during parsing.</value>
+    <value>尝试评估NULL AST节点。 解析期间未创建术语“ {0}”的AST节点。</value>
+    <comment>Attempt to evaluate NULL AST node. The AST node for term '{0}' was not created during parsing.</comment>
   </data>
   <data name="ErrOpNotDefinedForTypes" xml:space="preserve">
-    <value>Operator '{0}' is not defined for types {1} and {2}.</value>
+    <value>没有为类型{1}和{2}定义运算符'{0}'。</value>
+    <comment>Operator '{0}' is not defined for types {1} and {2}.</comment>
   </data>
   <data name="ErrOpNotImplemented" xml:space="preserve">
-    <value>Operator '{0} not imlemented.</value>
+    <value>未实现运算符'{0}。</value>
+    <comment>Operator '{0} not imlemented.</comment>
   </data>
   <data name="ErrOutErrorPrintFormat" xml:space="preserve">
     <value>{0}: {1}</value>
     <comment>Location: ErrorMessage</comment>
   </data>
   <data name="ErrParseTreeNull" xml:space="preserve">
-    <value>Parsed tree is null, cannot evaluate.</value>
+    <value>解析树为空，无法求值。</value>
+    <comment>Parsed tree is null, cannot evaluate.</comment>
   </data>
   <data name="ErrParseTreeRootNull" xml:space="preserve">
-    <value>Parse tree root is null, cannot evaluate.</value>
+    <value>解析树根节点为空，无法求值。</value>
+    <comment>Parse tree root is null, cannot evaluate.</comment>
   </data>
   <data name="ErrRootAstNodeNull" xml:space="preserve">
-    <value>Root AST node is null, cannot evaluate.</value>
+    <value>根AST节点为空，无法评估。</value>
+    <comment>Root AST node is null, cannot evaluate.</comment>
   </data>
   <data name="ErrRootAstNoInterface" xml:space="preserve">
-    <value>Root AST node does not implement IInterpretedAstNode interface, cannot evaluate.</value>
+    <value>根AST节点未实现IInterpretedAstNode接口，无法评估。</value>
+    <comment>Root AST node does not implement IInterpretedAstNode interface, cannot evaluate.</comment>
   </data>
   <data name="ErrVarIsNotCallable" xml:space="preserve">
-    <value>Variable {0} is not a callable function.</value>
+    <value>变量{0}不是可调用函数。</value>
+    <comment>Variable {0} is not a callable function.</comment>
   </data>
   <data name="ErrVarNotDefined" xml:space="preserve">
-    <value>Variable {0} not defined.</value>
+    <value>变量{0}未定义。</value>
+    <comment>Variable {0} not defined.</comment>
   </data>
   <data name="ErrWrongArgCount" xml:space="preserve">
-    <value>Invalid number of arguments. Expected {0}, found {1}.</value>
+    <value>参数数量无效。 预期为{0}，找到为{1}。</value>
+    <comment>Invalid number of arguments. Expected {0}, found {1}.</comment>
   </data>
   <data name="FmtRowCol" xml:space="preserve">
     <value>{0}({1}:{2})</value>
   </data>
   <data name="LabelLocation" xml:space="preserve">
-    <value>Location:</value>
+    <value>位置：</value>
+    <comment>Location:</comment>
   </data>
   <data name="LabelUnassigned" xml:space="preserve">
-    <value>(unassigned)</value>
+    <value>(未分配)</value>
+    <comment>(unassigned)</comment>
   </data>
   <data name="MsgAbortScriptYN" xml:space="preserve">
-    <value>Abort script(y/n)?</value>
+    <value>中止脚本(是/否)?</value>
+    <comment>Abort script(y/n)?</comment>
   </data>
   <data name="MsgExitConsoleYN" xml:space="preserve">
-    <value>Exit console (y/n)?</value>
+    <value>退出控制台(是/否)?</value>
+    <comment>Exit console (y/n)?</comment>
   </data>
   <data name="MsgPressAnyKeyToExit" xml:space="preserve">
-    <value>Press any key to end the program.</value>
+    <value>按任意键结束程序。</value>
+    <comment>Press any key to end the program.</comment>
   </data>
   <data name="ErrAmbigGrammarRR" xml:space="preserve">
-    <value>Ambiguous grammar, unresolvable reduce-reduce conflicts. State {0}, lookaheads [{1}]</value>
+    <value>语法不明确，无法解决的归约冲突。 状态{0}，前瞻[{1}]</value>
+    <comment>Ambiguous grammar, unresolvable reduce-reduce conflicts. State {0}, lookaheads [{1}]</comment>
   </data>
   <data name="ErrAmbigGrammarSR" xml:space="preserve">
-    <value>Ambiguous grammar, unresolvable shift-reduce conflicts. State {0}, lookaheads [{1}]</value>
+    <value>语法模棱两可，无法解决的移位减少冲突。 状态{0}，前瞻[{1}]</value>
+    <comment>Ambiguous grammar, unresolvable shift-reduce conflicts. State {0}, lookaheads [{1}]</comment>
   </data>
   <data name="ErrConflictMsgTemplate" xml:space="preserve">
-    <value>{0} State {1} on inputs: {2}</value>
+    <value>{0}输入的状态{1}：{2}</value>
+    <comment>{0} State {1} on inputs: {2}</comment>
   </data>
   <data name="ErrNLALRhang" xml:space="preserve">
-    <value>NLALR process is in indefinite loop, number of states exceeded 3000.</value>
+    <value>NLALR进程处于不确定循环中，状态数超过3000。</value>
+    <comment>NLALR process is in indefinite loop, number of states exceeded 3000.</comment>
   </data>
   <data name="ErrNodeTypeNotSetOn" xml:space="preserve">
-    <value>Warning: AstNodeType or AstNodeCreator is not set on non-terminals: {0}.</value>
+    <value>警告：未在非终端{0}上设置AstNodeType或AstNodeCreator。</value>
+    <comment>Warning: AstNodeType or AstNodeCreator is not set on non-terminals: {0}.</comment>
   </data>
   <data name="ErrNoLkhds" xml:space="preserve">
-    <value>ParserDataBuilder error: inadequate state {0}, reduce item '{1}' has no lookaheads.</value>
+    <value>ParserDataBuilder错误：状态{0}不充分，减少项'{1}'没有提前。</value>
+    <comment>ParserDataBuilder error: inadequate state {0}, reduce item '{1}' has no lookaheads.</comment>
   </data>
   <data name="ErrNtRuleIsNull" xml:space="preserve">
-    <value>Non-terminal {0} has uninitialized Rule property.</value>
+    <value>非终结符{0}具有未初始化的Rule属性。</value>
+    <comment>Non-terminal {0} has uninitialized Rule property.</comment>
   </data>
   <data name="ErrRootNotSet" xml:space="preserve">
-    <value>Root property of the grammar is not set.</value>
+    <value>语法的根属性未设置。</value>
+    <comment>Root property of the grammar is not set.</comment>
   </data>
   <data name="ErrRRConflict" xml:space="preserve">
-    <value>Reduce-reduce conflict. State {0}, lookaheads: {1}. Selected reduce on first production in conflict set.</value>
+    <value>减少冲突。 状态{0}，前瞻性：{1}。 在冲突集中选择第一个生产的减少。</value>
+    <comment>Reduce-reduce conflict. State {0}, lookaheads: {1}. Selected reduce on first production in conflict set.</comment>
   </data>
   <data name="ErrRuleContainsNull" xml:space="preserve">
-    <value>Rule for NonTerminal {0} contains null as an operand in position {1} in one of productions.</value>
+    <value>非终端{0}的规则在生产之一中的位置{1}处包含null作为操作数。</value>
+    <comment>Rule for NonTerminal {0} contains null as an operand in position {1} in one of productions.</comment>
   </data>
   <data name="ErrSRConflict" xml:space="preserve">
-    <value>Shift-reduce conflict. State {0}, lookaheads [{1}]. Selected shift as preferred action.</value>
+    <value>Shift减少冲突。 状态{0}，前瞻[{1}]。 选择班次作为首选操作。</value>
+    <comment>Shift-reduce conflict. State {0}, lookaheads [{1}]. Selected shift as preferred action.</comment>
   </data>
   <data name="MsgNLALRAdvice" xml:space="preserve">
-    <value>NLALR transform: Add WrapTail() in '.' position to [{0}].</value>
+    <value>NLALR转换：在‘.’中添加WrapTail()  [{0}]的位置。</value>
+    <comment>NLALR transform: Add WrapTail() in '.' position to [{0}].</comment>
   </data>
   <data name="ErrParserUnexpInput" xml:space="preserve">
-    <value>Syntax error, expected: {0}</value>
+    <value>语法错误，预期为：{0}</value>
+    <comment>Syntax error, expected: {0}</comment>
   </data>
   <data name="LabelEosLabel" xml:space="preserve">
-    <value>[end-of-statement]</value>
+    <value>[声明结尾]</value>
+    <comment>[end-of-statement]</comment>
   </data>
   <data name="LabelUnnamed" xml:space="preserve">
-    <value>(unnamed)</value>
+    <value>(未命名)</value>
+    <comment>(unnamed)</comment>
   </data>
   <data name="MsgDefaultConsoleGreeting" xml:space="preserve">
-    <value>{0} Console.\r\nPress Ctrl-C to exit the program.\r\n</value>
+    <value>{0}控制台。\r\n按Ctrl-C退出程序。\r\n</value>
+    <comment>{0} Console.\r\nPress Ctrl-C to exit the program.\r\n</comment>
   </data>
   <data name="MsgDefaultConsoleTitle" xml:space="preserve">
-    <value>Console</value>
+    <value>控制台</value>
+    <comment>Console</comment>
   </data>
   <data name="ErrFailedCreateNode" xml:space="preserve">
-    <value>Failed to create AST node for non-terminal [{0}], error: {1}</value>
+    <value>无法为非终端[{0}创建ast节点，错误：{1}</value>
+    <comment>Failed to create AST node for non-terminal [{0}], error: {1}</comment>
   </data>
   <data name="ErrSyntaxErrorNoInfo" xml:space="preserve">
-    <value>Syntax error.</value>
+    <value>语法错误。</value>
+    <comment>Syntax error.</comment>
   </data>
   <data name="ErrUnexpEof" xml:space="preserve">
-    <value>Unexpected end of file.</value>
+    <value>意外的文件结尾。</value>
+    <comment>Unexpected end of file.</comment>
   </data>
   <data name="ErrUnexpIndent" xml:space="preserve">
-    <value>Unexpected indentation.</value>
+    <value>意外缩进。</value>
+    <comment>Unexpected indentation.</comment>
   </data>
   <data name="ErrUnmatchedCloseBrace" xml:space="preserve">
-    <value>Unmatched closing brace '{0}'.</value>
+    <value>右大括号{0}不匹配。</value>
+    <comment>Unmatched closing brace '{0}'.</comment>
   </data>
   <data name="LabelActionAccept" xml:space="preserve">
-    <value>Accept</value>
+    <value>接受</value>
+    <comment>Accept</comment>
   </data>
   <data name="LabelActionOp" xml:space="preserve">
-    <value>Operator, shift to {0}/reduce on {1}.</value>
+    <value>运算符，移至{0} /在{1}上减小。</value>
+    <comment>Operator, shift to {0}/reduce on {1}.</comment>
   </data>
   <data name="LabelActionReduce" xml:space="preserve">
-    <value>Reduce on {0}</value>
+    <value>减少{0}</value>
+    <comment>Reduce on {0}</comment>
   </data>
   <data name="LabelActionShift" xml:space="preserve">
-    <value>Shift to {0}</value>
+    <value>移至{0}</value>
+    <comment>Shift to {0}</comment>
   </data>
   <data name="LabelActionUnknown" xml:space="preserve">
-    <value>(Unknown action type)</value>
+    <value>(未知动作类型)</value>
+    <comment>(Unknown action type)</comment>
   </data>
   <data name="LabelInitialState" xml:space="preserve">
-    <value>(INITIAL STATE)</value>
+    <value>(初始状态)</value>
+    <comment>(INITIAL STATE)</comment>
   </data>
   <data name="MsgTraceConflictResolved" xml:space="preserve">
-    <value>Parsing conflict resolved in code.</value>
+    <value>解析冲突已在代码中解决。</value>
+    <comment>Parsing conflict resolved in code.</comment>
   </data>
   <data name="MsgTraceOpResolved" xml:space="preserve">
-    <value>Operator - resolved to {0}</value>
+    <value>运算符-解析为{0}</value>
+    <comment>Operator - resolved to {0}</comment>
   </data>
   <data name="MsgTracePoppedState" xml:space="preserve">
-    <value>Popped state from stack, pushing {0}</value>
+    <value>从堆栈弹出状态，推入{0}</value>
+    <comment>Popped state from stack, pushing {0}</comment>
   </data>
   <data name="MsgTraceRecoverFailed" xml:space="preserve">
-    <value>FAILED TO RECOVER</value>
+    <value>无法恢复</value>
+    <comment>FAILED TO RECOVER</comment>
   </data>
   <data name="MsgTraceRecovering" xml:space="preserve">
-    <value>RECOVERING: popping stack, looking for state with error shift</value>
+    <value>恢复：弹出堆栈，查找有错误移位的状态</value>
+    <comment>RECOVERING: popping stack, looking for state with error shift</comment>
   </data>
   <data name="MsgTraceRecoverSuccess" xml:space="preserve">
-    <value>RECOVERED</value>
+    <value>已恢复</value>
+    <comment>RECOVERED</comment>
   </data>
   <data name="LabelEofMark" xml:space="preserve">
-    <value>(EOF)</value>
+    <value>(读取结束)</value>
+    <comment>(EOF)</comment>
   </data>
   <data name="LabelSrcHaveMore" xml:space="preserve">
     <value>...</value>
   </data>
   <data name="MsgSrcPosToString" xml:space="preserve">
-    <value>"[{0}], at {1}</value>
+    <value>"[{0}], 在 {1}</value>
+    <comment>"[{0}], at {1}</comment>
   </data>
   <data name="ErrBadChar" xml:space="preserve">
-    <value>Invalid length of char literal - should be a single character.</value>
+    <value>字符文字的长度无效-应该为单个字符。</value>
+    <comment>Invalid length of char literal - should be a single character.</comment>
   </data>
   <data name="ErrBadStrLiteral" xml:space="preserve">
-    <value>Mal-formed  string literal - cannot find termination symbol.</value>
+    <value>格式不正确的字符串文字-无法找到终止符号。</value>
+    <comment>Mal-formed  string literal - cannot find termination symbol.</comment>
   </data>
   <data name="ErrBadUnEscape" xml:space="preserve">
-    <value>Invalid unicode escape ({0}), expected {1} hex digits.</value>
+    <value>无效的unicode转义({0})，应为{1}十六进制数字。</value>
+    <comment>Invalid unicode escape ({0}), expected {1} hex digits.</comment>
   </data>
   <data name="ErrBadXEscape" xml:space="preserve">
-    <value>Invalid \x escape, at least one digit expected.</value>
+    <value>\x转义无效，至少应为一位数字。</value>
+    <comment>Invalid \x escape, at least one digit expected.</comment>
   </data>
   <data name="ErrDupRegexSwitch" xml:space="preserve">
-    <value>Duplicate switch '{0}' for regular expression.</value>
+    <value>正则表达式的开关{0}重复。</value>
+    <comment>Duplicate switch '{0}' for regular expression.</comment>
   </data>
   <data name="ErrCannotConvertValueToType" xml:space="preserve">
-    <value>Cannot convert literal {0} to type {1}.</value>
+    <value>无法将文字{0}转换为类型{1}。</value>
+    <comment>Cannot convert literal {0} to type {1}.</comment>
   </data>
   <data name="ErrInvEscape" xml:space="preserve">
-    <value>Invalid escape sequence: \{0}.</value>
+    <value>无效的转义序列：\{0}。</value>
+    <comment>Invalid escape sequence: \{0}.</comment>
   </data>
   <data name="ErrInvEscSeq" xml:space="preserve">
-    <value>Invalid escape sequence.</value>
+    <value>无效的转义序列。</value>
+    <comment>Invalid escape sequence.</comment>
   </data>
   <data name="ErrInvEscSymbol" xml:space="preserve">
-    <value>Invalid escape symbol, expected 'u' or 'U' only.</value>
+    <value>无效的转义符号，仅应为'u'或'U'。</value>
+    <comment>Invalid escape symbol, expected 'u' or 'U' only.</comment>
   </data>
   <data name="ErrInvNumber" xml:space="preserve">
-    <value>Invalid number.</value>
+    <value>无效号码。</value>
+    <comment>Invalid number.</comment>
   </data>
   <data name="ErrInvRegexSwitch" xml:space="preserve">
-    <value>Invalid switch '{0}' for regular expression</value>
+    <value>常规表达式无效的选项'{0}'</value>
+    <comment>Invalid switch '{0}' for regular expression</comment>
   </data>
   <data name="ErrInvStrDef" xml:space="preserve">
-    <value>Error in string literal [{0}]: No start/end symbols specified.</value>
+    <value>字符串文字[{0}]中的错误：未指定开始/结束符号。</value>
+    <comment>Error in string literal [{0}]: No start/end symbols specified.</comment>
   </data>
   <data name="ErrNoEndForRegex" xml:space="preserve">
-    <value>No end symbol for regex literal.</value>
+    <value>正则表达式文字没有结束符号。</value>
+    <comment>No end symbol for regex literal.</comment>
   </data>
   <data name="ErrNoLetterAfterNum" xml:space="preserve">
-    <value>Number cannot be followed by a letter.</value>
+    <value>数字后不能跟字母。</value>
+    <comment>Number cannot be followed by a letter.</comment>
   </data>
   <data name="ErrUnclosedComment" xml:space="preserve">
-    <value>Unclosed comment block</value>
+    <value>未关闭的注释块</value>
+    <comment>Unclosed comment block</comment>
   </data>
   <data name="LabelKeySymbol" xml:space="preserve">
-    <value>(Key symbol)</value>
+    <value>(关键符号)</value>
+    <comment>(Key symbol)</comment>
   </data>
   <data name="LabelKeyword" xml:space="preserve">
-    <value>(Keyword)</value>
+    <value>(关键词)</value>
+    <comment>(Keyword)</comment>
   </data>
   <data name="LabelLineBreak" xml:space="preserve">
-    <value>[line break]</value>
+    <value>[越线]</value>
+    <comment>[line break]</comment>
   </data>
   <data name="ErrInvDedent" xml:space="preserve">
-    <value>Invalid dedent level, no previous matching indent found.</value>
+    <value>无效的dedent级别，找不到以前匹配的缩进。</value>
+    <comment>Invalid dedent level, no previous matching indent found.</comment>
   </data>
   <data name="ErrOutlineFilterContSymbol" xml:space="preserve">
-    <value>CodeOutlineFilter: line continuation symbol '{0}' should be added to Grammar.NonGrammarTerminals list.</value>
+    <value>CodeOutlineFilter：行继续符号'{0}'应该添加到Grammar.NonGrammarTerminals列表中。</value>
+    <comment>CodeOutlineFilter: line continuation symbol '{0}' should be added to Grammar.NonGrammarTerminals list.</comment>
   </data>
   <data name="MsgTraceRecoverAction" xml:space="preserve">
-    <value>RECOVERING: {0}</value>
+    <value>正在恢复：{0}</value>
+    <comment>RECOVERING: {0}</comment>
   </data>
   <data name="MsgTraceRecoverFoundState" xml:space="preserve">
-    <value>RECOVERING: Found state with shift on error : {0}</value>
+    <value>正在恢复：发现状态，发生错误时转移：{0}</value>
+    <comment>RECOVERING: Found state with shift on error : {0}</comment>
   </data>
   <data name="MsgTraceRecoverReducing" xml:space="preserve">
-    <value>RECOVERING: Reached end of error production, reducing.</value>
+    <value>恢复：减少错误产生的时间。</value>
+    <comment>RECOVERING: Reached end of error production, reducing.</comment>
   </data>
   <data name="MsgTraceRecoverShiftError" xml:space="preserve">
-    <value>RECOVERING: Shifting Error term, {0}</value>
+    <value>恢复：移位误差项，{0}</value>
+    <comment>RECOVERING: Shifting Error term, {0}</comment>
   </data>
   <data name="MsgTraceRecoverShiftTillEnd" xml:space="preserve">
-    <value>RECOVERING: shifting until the end of error production.</value>
+    <value>恢复：转移到错误产生结束为止。</value>
+    <comment>RECOVERING: shifting until the end of error production.</comment>
   </data>
   <data name="ErrDsvNoClosingQuote" xml:space="preserve">
-    <value>Could not find a closing quote for quoted value.</value>
+    <value>找不到引用值的右引号。</value>
+    <comment>Could not find a closing quote for quoted value.</comment>
   </data>
   <data name="ErrInvalidArgsForIncDec" xml:space="preserve">
-    <value>Invalid arguments for IncDecNode AST node: either first or second argument should be '--' or '++'.</value>
+    <value>IncDecNode AST节点的参数无效：第一个或第二个参数应为“--”或“ ++”。</value>
+    <comment>Invalid arguments for IncDecNode AST node: either first or second argument should be '--' or '++'.</comment>
   </data>
   <data name="ErrAssignLiteralValue" xml:space="preserve">
-    <value>Invalide operation, attempt to assign constant or literal value.</value>
+    <value>无效的操作，尝试分配常量或文字值。</value>
+    <comment>Invalide operation, attempt to assign constant or literal value.</comment>
   </data>
   <data name="ErrTemplNoSettings" xml:space="preserve">
-    <value>Error in string literal [{0}]: IsTemplate flag is set, but TemplateSettings is not provided in AstNodeConfig property.</value>
+    <value>字符串文字[{0}]中的错误：设置了IsTemplate标志，但AstNodeConfig属性中未提供TemplateSettings。</value>
+    <comment>Error in string literal [{0}]: IsTemplate flag is set, but TemplateSettings is not provided in AstNodeConfig property.</comment>
   </data>
   <data name="ErrDupStartSymbolStr" xml:space="preserve">
-    <value>Duplicate start symbol {0} in string literal [{1}].</value>
+    <value>字符串文本[{1}中的起始符号{0}重复。</value>
+    <comment>Duplicate start symbol {0} in string literal [{1}].</comment>
   </data>
   <data name="ErrInvalidEmbeddedPrefix" xml:space="preserve">
-    <value>Invalid embedded expression. </value>
+    <value>无效的嵌入式表达式。</value>
+    <comment>Invalid embedded expression.</comment>
   </data>
   <data name="ErrNoEndTagInEmbExpr" xml:space="preserve">
-    <value>No ending tag '{0}' found in embedded expression.</value>
+    <value>在嵌入式表达式中找不到结尾标记'{0}'。</value>
+    <comment>No ending tag '{0}' found in embedded expression.</comment>
   </data>
   <data name="ErrTemplExprNotRoot" xml:space="preserve">
-    <value>Expression root non-terminal in template settings (AstNodeConfig property) in templated string literal [{0}] is not added to Roots set. Add it to SnippetRoots in grammar constructor.</value>
+    <value>模板字符串文字[{0}]中模板设置(AstNodeConfig属性)中的表达式根非终结符未添加到根集。 将其添加到语法构造函数中的SnippetRoots中。</value>
+    <comment>Expression root non-terminal in template settings (AstNodeConfig property) in templated string literal [{0}] is not added to Roots set. Add it to SnippetRoots in grammar constructor.</comment>
   </data>
   <data name="ErrTemplMissingExprRoot" xml:space="preserve">
-    <value>Expression root is not specified in template settings (AstNodeConfig property) in templated string literal [{0}]. </value>
+    <value>未在模板字符串文字[{0}]的模板设置(AstNode Config属性)中指定表达式根。</value>
+    <comment>Expression root is not specified in template settings (AstNodeConfig property) in templated string literal [{0}].</comment>
   </data>
   <data name="ErrRootNotRegistered" xml:space="preserve">
-    <value>({0}) term passed as 'root' paramater to parserr is not Root or snippet root of the grammar. Add it to SnippetRoots set in grammar constructor.</value>
+    <value>作为“路由”参数传递给解析器的({0})术语不是语法的根或代码根。 将其添加到语法构造函数中设置的SnippetRoots中。</value>
+    <comment>({0}) term passed as 'root' paramater to parserr is not Root or snippet root of the grammar. Add it to SnippetRoots set in grammar constructor.</comment>
   </data>
   <data name="ErrImpliedOpUseParserLink" xml:space="preserve">
-    <value>ImpliedSymbolTerminal cannot be used in grammar with DisableScannerParserLink flag set</value>
+    <value>ImpliedSymbolTerminal不能用于设置了DisableScannerParserLink标志的语法中</value>
+    <comment>ImpliedSymbolTerminal cannot be used in grammar with DisableScannerParserLink flag set</comment>
   </data>
   <data name="ErrListCannotBeTransient" xml:space="preserve">
-    <value>List non-terminals cannot be marked transient; list: ({0})</value>
+    <value>列出非终端不能标记为瞬态； 清单：({0})</value>
+    <comment>List non-terminals cannot be marked transient; list: ({0})</comment>
   </data>
   <data name="ErrTransientNtMustHaveOneTerm" xml:space="preserve">
-    <value>Transient non-terminal must have zero or one non-punctuation child nodes; non-terminals: {0}.</value>
+    <value>临时非终端必须有零个或一个非标点子节点；非终端：{0}。</value>
+    <comment>Transient non-terminal must have zero or one non-punctuation child nodes; non-terminals: {0}.</comment>
   </data>
   <data name="ErrLastTermOfErrorProd" xml:space="preserve">
-    <value>The last term of production containing SyntaxError must be a terminal. NonTerminal: {0}</value>
+    <value>包含SyntaxError的生产的最后一项必须是终端。 非终端：{0}</value>
+    <comment>The last term of production containing SyntaxError must be a terminal. NonTerminal: {0}</comment>
   </data>
   <data name="ErrTerminalHasEmptyPrefix" xml:space="preserve">
-    <value>A terminal {0} has empty prefix.</value>
+    <value>终端{0}的前缀为空。</value>
+    <comment>A terminal {0} has empty prefix.</comment>
   </data>
   <data name="ErrNoClosingBrace" xml:space="preserve">
-    <value>No closing pair for opening symbol {0}</value>
+    <value>没有用于打开符号{0}的闭合对</value>
+    <comment>No closing pair for opening symbol {0}</comment>
   </data>
   <data name="ErrNewLineExpected" xml:space="preserve">
-    <value>NewLine expected.</value>
+    <value>预期换行。</value>
+    <comment>NewLine expected.</comment>
   </data>
 </root>

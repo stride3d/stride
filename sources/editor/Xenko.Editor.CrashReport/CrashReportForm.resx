@@ -173,9 +173,12 @@
 </value>
   </data>
   <data name="labelMainContent.Text" xml:space="preserve">
-    <value>Unfortunately, Game Studio has crashed. Please help us improve Xenko by sending information about this crash.
+    <value>不幸的是，Game Studio崩溃了。 请通过发送有关此崩溃的信息来帮助我们改善Xenko。
 
-If you'd like to allow us to ask some questions about the crash, please enter your email (optional, we will never send you an email for any other reason)</value>
+如果您想让我们询问有关崩溃的一些问题，请输入您的电子邮件（可选，我们绝不会以任何其他原因向您发送电子邮件）</value>
+    <comment>Unfortunately, Game Studio has crashed. Please help us improve Xenko by sending information about this crash.
+
+If you'd like to allow us to ask some questions about the crash, please enter your email (optional, we will never send you an email for any other reason)</comment>
   </data>
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>

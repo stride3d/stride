@@ -303,11 +303,6 @@
     <Compile Update="Templates\GameTemplateWindow.xaml.cs">
       <DependentUpon>GameTemplateWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Update="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
@@ -319,10 +314,6 @@
     <Compile Update="AssetEditors\SpriteEditor\Views\SpriteEditorView.xaml.cs">
       <DependentUpon>SpriteEditorView.xaml</DependentUpon>
     </Compile>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Update="Resources\Strings\GameTemplateWindow.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>GameTemplateWindow.Designer.cs</LastGenOutput>

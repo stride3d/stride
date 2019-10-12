@@ -118,9 +118,11 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AddReferenceError" xml:space="preserve">
-    <value>Cannot add a reference for an object already released. AddReference/Release pair must match.</value>
+    <value>无法为已经发布的对象添加引用。 添加引用/发布必须配对匹配。</value>
+    <comment>Cannot add a reference for an object already released. AddReference/Release pair must match.</comment>
   </data>
   <data name="ReleaseReferenceError" xml:space="preserve">
-    <value>Cannot release an object that doesn't have active reference. AddReference/Release pair must match.</value>
+    <value>无法释放没有活动引用的对象。 添加引用/发布必须配对匹配。</value>
+    <comment>Cannot release an object that doesn't have active reference. AddReference/Release pair must match.</comment>
   </data>
 </root>

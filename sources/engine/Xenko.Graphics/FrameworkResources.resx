@@ -118,27 +118,35 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CannotCreateDefaultRenderTarget" xml:space="preserve">
-    <value>DefaultRenderTarget is already created</value>
+    <value>默认渲染目标已创建</value>
+    <comment>DefaultRenderTarget is already created</comment>
   </data>
   <data name="CurrentDisplayModeNotFound" xml:space="preserve">
-    <value>Unable to determine current display mode</value>
+    <value>无法确定当前的显示模式</value>
+    <comment>Unable to determine current display mode</comment>
   </data>
   <data name="GraphicsResourceAlreadySet" xml:space="preserve">
-    <value>[{0}] GraphicsResource is already set</value>
+    <value>[{0}]图形资源已设置</value>
+    <comment>[{0}] Graphics Resource is already set</comment>
   </data>
   <data name="GraphicsResourceStateBound" xml:space="preserve">
-    <value>Cannot set a property on an already bound [{0}] GraphicsResource</value>
+    <value>无法在已绑定的[{0}]图形资源上设置属性</value>
+    <comment>Cannot set a property on an already bound [{0}] GraphicsResource</comment>
   </data>
   <data name="NoDefaultRenterTarget" xml:space="preserve">
-    <value>No default render target is available. Use GraphicsDevice.InitDefaultRenderTarget().</value>
+    <value>没有默认的渲染目标。 使用GraphicsDevice.InitDefaultRenderTarget()。</value>
+    <comment>No default render target is available. Use GraphicsDevice.InitDefaultRenderTarget().</comment>
   </data>
   <data name="NoDepthStencilBufferBound" xml:space="preserve">
-    <value>No Depth/Stencil buffer is currently setup on this GraphicsDevice.</value>
+    <value>当前在此GraphicsDevice上没有设置深度/模板缓冲区。</value>
+    <comment>No Depth/Stencil buffer is currently setup on this GraphicsDevice.</comment>
   </data>
   <data name="NoGraphicsDeviceAvailable" xml:space="preserve">
-    <value>No GraphicsDevice are currently available. Check GraphicsDevice.Current should not be null</value>
+    <value>当前没有可用的GraphicsDevice。 检查GraphicsDevice.Current不应该为null</value>
+    <comment>No GraphicsDevice are currently available. Check GraphicsDevice.Current should not be null</comment>
   </data>
   <data name="NoStencilBufferForDepthFormat" xml:space="preserve">
-    <value>Cannot clear a stencil buffer without a Stencil Buffer format [{0}]</value>
+    <value>没有模板缓冲区格式[{0}]的情况下无法清除模板缓冲区</value>
+    <comment>Cannot clear a stencil buffer without a Stencil Buffer format [{0}]</comment>
   </data>
 </root>

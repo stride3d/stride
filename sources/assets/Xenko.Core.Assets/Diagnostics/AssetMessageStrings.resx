@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -118,93 +118,122 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AssetCannotDelete" xml:space="preserve">
-    <value>Cannot delete asset from path [{0}]</value>
+    <value>无法从路径[{0}]删除资源</value>
+    <comment>Cannot delete asset from path [{0}]</comment>
   </data>
   <data name="AssetCannotSave" xml:space="preserve">
-    <value>The asset cannot be saved to path [{0}]</value>
+    <value>资源无法保存到路径[{0}]</value>
+    <comment>The asset cannot be saved to path [{0}]</comment>
   </data>
   <data name="AssetLoadingFailed" xml:space="preserve">
-    <value>Failed to load asset from path [{0}]. Reason: {1}</value>
+    <value>无法从路径[{0}]加载资源。 原因：{1}</value>
+    <comment>Failed to load asset from path [{0}]. Reason: {1}</comment>
   </data>
   <data name="AssetForPackageNotFound" xml:space="preserve">
-    <value>Asset [{0}] not found. Required for package [{1}]</value>
+    <value>找不到资源[{0}]。 软件包[{1}]必需</value>
+    <comment>Asset [{0}] not found. Required for package [{1}]</comment>
   </data>
   <data name="AssetFoundInDifferentPackage" xml:space="preserve">
-    <value>Asset [{0}] was found in package [{1}]. Perhaps a package dependency is missing?</value>
+    <value>在包[{1}]中找到资源[{0}]。 也许缺少软件包依赖项？</value>
+    <comment>Asset [{0}] was found in package [{1}]. Perhaps a package dependency is missing?</comment>
   </data>
   <data name="AssetReferenceChanged" xml:space="preserve">
-    <value>The asset reference [{0}] id has changed to a new asset [{1}]</value>
+    <value>资源引用[{0}] id已更改为新资源[{1}]</value>
+    <comment>The asset reference [{0}] id has changed to a new asset [{1}]</comment>
   </data>
   <data name="AssetUpToDate" xml:space="preserve">
-    <value>Asset [{0}] already up-to-date</value>
+    <value>资源[{0}]已经是最新的</value>
+    <comment>Asset [{0}] already up-to-date</comment>
   </data>
   <data name="BaseChanged" xml:space="preserve">
-    <value>Original asset not found. A new asset with the same location was found [{0}]</value>
+    <value>找不到原始资源。 找到具有相同位置的新资源[{0}]</value>
+    <comment>Original asset not found. A new asset with the same location was found [{0}]</comment>
   </data>
   <data name="BaseInvalidType" xml:space="preserve">
-    <value>Invalid base type. Base type [{0}] is not of the same type as current asset [{1}]</value>
+    <value>无效的基本类型。 基本类型[{0}]与流动资源[{1}]的类型不同</value>
+    <comment>Invalid base type. Base type [{0}] is not of the same type as current asset [{1}]</comment>
   </data>
   <data name="BaseNotFound" xml:space="preserve">
-    <value>The base of the asset was not found</value>
+    <value>找不到资源</value>
+    <comment>The base of the asset was not found</comment>
   </data>
   <data name="BuildProfileCannotBeNull" xml:space="preserve">
-    <value>The build profile [{0}] cannot be null</value>
+    <value>构建配置文件[{0}]不能为null</value>
+    <comment>The build profile [{0}] cannot be null</comment>
   </data>
   <data name="BuildProfileFileExtensionCannotBeNull" xml:space="preserve">
-    <value>The file extension for build profile [{0}] cannot be null</value>
+    <value>构建配置文件[{0}]的文件扩展名不能为null</value>
+    <comment>The file extension for build profile [{0}] cannot be null</comment>
   </data>
   <data name="CompilationCancelled" xml:space="preserve">
-    <value>Compilation of asset [{0}] cancelled</value>
+    <value>资源[{0}]的编译已取消</value>
+    <comment>Compilation of asset [{0}] cancelled</comment>
   </data>
   <data name="CompilationError" xml:space="preserve">
-    <value>Error while compiling asset [{0}]: {1}</value>
+    <value>编译资源[{0}]时出错：{1}</value>
+    <comment>Error while compiling asset [{0}]: {1}</comment>
   </data>
   <data name="CompilationFailed" xml:space="preserve">
-    <value>Asset [{0}] failed to compile</value>
+    <value>资源[{0}]编译失败</value>
+    <comment>Asset [{0}] failed to compile</comment>
   </data>
   <data name="CompilationFatal" xml:space="preserve">
-    <value>Fatal error while compiling asset [{0}]: {1}</value>
+    <value>编译资源[{0}]时发生致命错误：{1}</value>
+    <comment>Fatal error while compiling asset [{0}]: {1}</comment>
   </data>
   <data name="CompilationSucceeded" xml:space="preserve">
-    <value>Asset [{0}] successfully compiled</value>
+    <value>资源[{0}]已成功编译</value>
+    <comment>Asset [{0}] successfully compiled</comment>
   </data>
   <data name="CompilationWarning" xml:space="preserve">
-    <value>Warning while compiling asset [{0}]: {1}</value>
+    <value>编译资源[{0}]时发出警告：{1}</value>
+    <comment>Warning while compiling asset [{0}]: {1}</comment>
   </data>
   <data name="InternalCompilerError" xml:space="preserve">
-    <value>Unexpected internal error while compiling [{0}]</value>
+    <value>编译[{0}]时发生意外的内部错误</value>
+    <comment>Unexpected internal error while compiling [{0}]</comment>
   </data>
   <data name="InvalidCircularReferences" xml:space="preserve">
-    <value>Invalid circular references in the asset</value>
+    <value>资源中的无效循环引用</value>
+    <comment>Invalid circular references in the asset</comment>
   </data>
   <data name="PrerequisiteFailed" xml:space="preserve">
-    <value>Asset [{0}] not compiled, prerequisites failed</value>
+    <value>资源[{0}]未编译，先决条件失败</value>
+    <comment>Asset [{0}] not compiled, prerequisites failed</comment>
   </data>
   <data name="PackageCannotSave" xml:space="preserve">
-    <value>The package cannot be saved to path [{0}]</value>
+    <value>包无法保存到路径[{0}]</value>
+    <comment>The package cannot be saved to path [{0}]</comment>
   </data>
   <data name="PackageFilePathNotSet" xml:space="preserve">
-    <value>Package filepath is not set</value>
+    <value>包文件路径未设置</value>
+    <comment>Package filepath is not set</comment>
   </data>
   <data name="PackageLocationChanged" xml:space="preserve">
-    <value>The reference package has been moved to a new location [{0}]. Reference has been updated.</value>
+    <value>参考包已移至新位置[{0}]。 参考已更新。</value>
+    <comment>The reference package has been moved to a new location [{0}]. Reference has been updated.</comment>
   </data>
   <data name="PackageNotFound" xml:space="preserve">
-    <value>Package [{0}] not found</value>
+    <value>找不到软件包[{0}]</value>
+    <comment>Package [{0}] not found</comment>
   </data>
   <data name="RawAssetNotFound" xml:space="preserve">
-    <value>The raw asset [{0}] was not found on disk</value>
+    <value>在磁盘上找不到原始资源[{0}]</value>
+    <comment>The raw asset [{0}] was not found on disk</comment>
   </data>
   <data name="PackageDependencyModified" xml:space="preserve">
-    <value>The package dependency [{0}] is modified to [{1}]</value>
+    <value>程序包依赖项[{0}]修改为[{1}]</value>
+    <comment>The package dependency [{0}] is modified to [{1}]</comment>
   </data>
   <data name="CompilationMessage" xml:space="preserve">
     <value>{1}</value>
   </data>
   <data name="DefaultSceneNotFound" xml:space="preserve">
-    <value>A default scene was not found in the package</value>
+    <value>在包中找不到默认场景</value>
+    <comment>A default scene was not found in the package</comment>
   </data>
   <data name="InvalidBasePartInstance" xml:space="preserve">
-    <value>Invalid state for the Entity [{0}] referencing the same base instance ({1}). We will apply a fix that can cause a change to this entity and the referencer links. </value>
+    <value>引用同一基本实例({1})的实体[{0}]的无效状态。 我们将应用可能导致此实体和引用链接更改的修复程序。</value>
+    <comment>Invalid state for the Entity [{0}] referencing the same base instance ({1}). We will apply a fix that can cause a change to this entity and the referencer links.</comment>
   </data>
 </root>
