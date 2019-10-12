@@ -382,23 +382,12 @@ namespace Xenko.Graphics
                         throw new NotSupportedException("ReadPixels from staging texture to staging texture only support full copy of subresource");
                     }
 
-#if XENKO_GRAPHICS_API_OPENGLES
-                    if (GraphicsDevice.IsOpenGLES2)
-                    {
-                        Utilities.CopyMemory(destTexture.StagingData + destTexture.ComputeBufferOffset(destinationSubResource, 0),
-                            sourceTexture.StagingData + sourceTexture.ComputeBufferOffset(sourceSubresource, 0),
-                            destTexture.ComputeSubresourceSize(destinationSubResource));
-                    }
-                    else
-#endif
-                    {
-                        GL.BindBuffer(BufferTarget.CopyReadBuffer, sourceTexture.PixelBufferObjectId);
-                        GL.BindBuffer(BufferTarget.CopyWriteBuffer, destTexture.PixelBufferObjectId);
-                        GL.CopyBufferSubData(BufferTarget.CopyReadBuffer, BufferTarget.CopyWriteBuffer,
-                            (IntPtr)sourceTexture.ComputeBufferOffset(sourceSubresource, 0),
-                            (IntPtr)destTexture.ComputeBufferOffset(destinationSubResource, 0),
-                            (IntPtr)destTexture.ComputeSubresourceSize(destinationSubResource));
-                    }
+                    GL.BindBuffer(BufferTarget.CopyReadBuffer, sourceTexture.PixelBufferObjectId);
+                    GL.BindBuffer(BufferTarget.CopyWriteBuffer, destTexture.PixelBufferObjectId);
+                    GL.CopyBufferSubData(BufferTarget.CopyReadBuffer, BufferTarget.CopyWriteBuffer,
+                        (IntPtr)sourceTexture.ComputeBufferOffset(sourceSubresource, 0),
+                        (IntPtr)destTexture.ComputeBufferOffset(destinationSubResource, 0),
+                        (IntPtr)destTexture.ComputeSubresourceSize(destinationSubResource));
                 }
                 else
                 {
@@ -417,32 +406,11 @@ namespace Xenko.Graphics
                     {
                         attachmentType = GraphicsDevice.UpdateFBO(FramebufferTarget.Framebuffer, new GraphicsDevice.FBOTexture(sourceTexture, sourceSubresource / sourceTexture.MipLevels + depthSlice, sourceSubresource % sourceTexture.MipLevels));
 
-#if XENKO_GRAPHICS_API_OPENGLES
-                        if (GraphicsDevice.IsOpenGLES2)
-                        {
-                            var format = destTexture.TextureFormat;
-                            var type = destTexture.TextureType;
+                        GL.BindBuffer(BufferTarget.PixelPackBuffer, destTexture.PixelBufferObjectId);
+                        GL.ReadPixels(sourceRectangle.Left, sourceRectangle.Top, sourceRectangle.Width, sourceRectangle.Height, destTexture.TextureFormat, destTexture.TextureType, (IntPtr)destTexture.ComputeBufferOffset(destinationSubResource, depthSlice));
+                        GL.BindBuffer(BufferTarget.PixelPackBuffer, 0);
 
-                            var srcFormat = sourceTexture.Description.Format;
-                            var destFormat = destTexture.Description.Format;
-
-                            if (srcFormat == destFormat && destFormat.SizeInBytes() == 4)   // in this case we just want to copy the data we don't care about format conversion. 
-                            {                                                               // RGBA/Unsigned-byte is always a working combination whatever is the internal format (sRGB, etc...)
-                                format = PixelFormatGl.Rgba;
-                                type = PixelType.UnsignedByte;
-                            }
-
-                            GL.ReadPixels(sourceRectangle.Left, sourceRectangle.Top, sourceRectangle.Width, sourceRectangle.Height, format, type, destTexture.StagingData + destTexture.ComputeBufferOffset(destinationSubResource, depthSlice));
-                        }
-                        else
-#endif
-                        {
-                            GL.BindBuffer(BufferTarget.PixelPackBuffer, destTexture.PixelBufferObjectId);
-                            GL.ReadPixels(sourceRectangle.Left, sourceRectangle.Top, sourceRectangle.Width, sourceRectangle.Height, destTexture.TextureFormat, destTexture.TextureType, (IntPtr)destTexture.ComputeBufferOffset(destinationSubResource, depthSlice));
-                            GL.BindBuffer(BufferTarget.PixelPackBuffer, 0);
-
-                            destTexture.PixelBufferFrame = GraphicsDevice.FrameCounter;
-                        }
+                        destTexture.PixelBufferFrame = GraphicsDevice.FrameCounter;
                     }
 
                     // Unbind attachment
@@ -823,9 +791,9 @@ namespace Xenko.Graphics
 #if XENKO_GRAPHICS_API_OPENGLES
             if (baseVertexLocation != 0)
                 throw new NotSupportedException("DrawIndexed with no null baseVertexLocation is not supported on OpenGL ES.");
-            GL.DrawElements(newPipelineState.PrimitiveType, indexCount, indexBuffer.Type, indexBuffer.Buffer.StagingData + indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)); // conversion to IntPtr required on Android
+            GL.DrawElements(newPipelineState.PrimitiveType, indexCount, indexBuffer.Type, IntPtr.Zero + indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)); // conversion to IntPtr required on Android
 #else
-            GL.DrawElementsBaseVertex(newPipelineState.PrimitiveType, indexCount, indexBuffer.Type, indexBuffer.Buffer.StagingData + indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize), baseVertexLocation);
+            GL.DrawElementsBaseVertex(newPipelineState.PrimitiveType, indexCount, indexBuffer.Type, IntPtr.Zero + indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize), baseVertexLocation);
 #endif
 
             GraphicsDevice.FrameDrawCalls++;
@@ -849,7 +817,7 @@ namespace Xenko.Graphics
 #if XENKO_GRAPHICS_API_OPENGLES
             Internal.Refactor.ThrowNotImplementedException();
 #else
-            GL.DrawElementsInstancedBaseVertex(newPipelineState.PrimitiveType, indexCountPerInstance, indexBuffer.Type, indexBuffer.Buffer.StagingData + indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize), instanceCount, baseVertexLocation);
+            GL.DrawElementsInstancedBaseVertex(newPipelineState.PrimitiveType, indexCountPerInstance, indexBuffer.Type, indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize), instanceCount, baseVertexLocation);
 #endif
 
             GraphicsDevice.FrameDrawCalls++;
@@ -890,10 +858,6 @@ namespace Xenko.Graphics
 #endif
             PreDraw();
 
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (GraphicsDevice.IsOpenGLES2)
-                throw new NotSupportedException("DrawArraysInstanced is not supported on OpenGL ES 2");
-#endif
             GL.DrawArraysInstanced(newPipelineState.PrimitiveType, startVertexLocation, vertexCountPerInstance, instanceCount);
 
             GraphicsDevice.FrameDrawCalls++;
@@ -995,23 +959,8 @@ namespace Xenko.Graphics
                 if (lengthInBytes == 0)
                     lengthInBytes = buffer.Description.SizeInBytes;
 
-                if (buffer.StagingData != IntPtr.Zero)
-                {
-                    // Specific case for constant buffers
-                    return new MappedResource(resource, subResourceIndex, new DataBox { DataPointer = buffer.StagingData + offsetInBytes, SlicePitch = 0, RowPitch = 0 }, offsetInBytes, lengthInBytes);
-                }
-
-#if XENKO_GRAPHICS_API_OPENGLES
-                // OpenGL ES 2 needs Staging Data
-                if (GraphicsDevice.IsOpenGLES2)
-                {
-                    Internal.Refactor.ThrowNotImplementedException();
-                }
-#endif
-
                 IntPtr mapResult = IntPtr.Zero;
 
-                //UnbindVertexArrayObject();
                 GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
 
 #if !XENKO_GRAPHICS_API_OPENGLES
@@ -1048,34 +997,19 @@ namespace Xenko.Graphics
 
                     var mipLevel = subResourceIndex % texture.MipLevels;
 
-#if XENKO_GRAPHICS_API_OPENGLES
-                    if (GraphicsDevice.IsOpenGLES2 || texture.StagingData != IntPtr.Zero)
+                    if (doNotWait)
                     {
-                        return new MappedResource(resource, subResourceIndex, new DataBox { DataPointer = texture.StagingData + offsetInBytes + texture.ComputeBufferOffset(subResourceIndex, 0), SlicePitch = texture.ComputeSlicePitch(mipLevel), RowPitch = texture.ComputeRowPitch(mipLevel) }, offsetInBytes, lengthInBytes);
-                    }
-                    else
-#endif
-                    {
-                        if (doNotWait)
+                        // Wait at least 2 frames after last operation
+                        if (GraphicsDevice.FrameCounter < texture.PixelBufferFrame + ReadbackFrameDelay)
                         {
-                            // Wait at least 2 frames after last operation
-                            if (GraphicsDevice.FrameCounter < texture.PixelBufferFrame + ReadbackFrameDelay)
-                            {
-                                return new MappedResource(resource, subResourceIndex, new DataBox(), offsetInBytes, lengthInBytes);
-                            }
+                            return new MappedResource(resource, subResourceIndex, new DataBox(), offsetInBytes, lengthInBytes);
                         }
-
-                        return MapTexture(texture, true, BufferTarget.PixelPackBuffer, texture.PixelBufferObjectId, subResourceIndex, mapMode, offsetInBytes, lengthInBytes);
                     }
+
+                    return MapTexture(texture, true, BufferTarget.PixelPackBuffer, texture.PixelBufferObjectId, subResourceIndex, mapMode, offsetInBytes, lengthInBytes);
                 }
                 else if (mapMode == MapMode.WriteDiscard)
                 {
-#if XENKO_GRAPHICS_API_OPENGLES
-                    if (GraphicsDevice.IsOpenGLES2)
-                    {
-                        Internal.Refactor.ThrowNotImplementedException();
-                    }
-#endif
                     if (texture.Description.Usage != GraphicsResourceUsage.Dynamic)
                         throw new NotSupportedException("Only dynamic texture can be mapped.");
 
@@ -1101,21 +1035,11 @@ namespace Xenko.Graphics
             {
                 if (texture.Description.Usage == GraphicsResourceUsage.Staging)
                 {
-#if XENKO_GRAPHICS_API_OPENGLES
-                    // unmapping on OpenGL ES 2 means doing nothing since the buffer is on the CPU memory
-                    if (!GraphicsDevice.IsOpenGLES2)
-#endif
-                    {
-                        GL.BindBuffer(BufferTarget.PixelPackBuffer, texture.PixelBufferObjectId);
-                        GL.UnmapBuffer(BufferTarget.PixelPackBuffer);
-                        GL.BindBuffer(BufferTarget.PixelPackBuffer, 0);
-                    }
+                    GL.BindBuffer(BufferTarget.PixelPackBuffer, texture.PixelBufferObjectId);
+                    GL.UnmapBuffer(BufferTarget.PixelPackBuffer);
+                    GL.BindBuffer(BufferTarget.PixelPackBuffer, 0);
                 }
-#if XENKO_GRAPHICS_API_OPENGLES
-                else if (!GraphicsDevice.IsOpenGLES2 && texture.Description.Usage == GraphicsResourceUsage.Dynamic)
-#else
                 else if (texture.Description.Usage == GraphicsResourceUsage.Dynamic)
-#endif
                 {
                     GL.BindBuffer(BufferTarget.PixelUnpackBuffer, unmapped.PixelBufferObjectId);
                     GL.UnmapBuffer(BufferTarget.PixelUnpackBuffer);
@@ -1169,33 +1093,8 @@ namespace Xenko.Graphics
                 var buffer = unmapped.Resource as Buffer;
                 if (buffer != null)
                 {
-#if XENKO_GRAPHICS_API_OPENGLES
-                    if (GraphicsDevice.IsOpenGLES2 || buffer.StagingData != IntPtr.Zero)
-#else
-                    if (buffer.StagingData != IntPtr.Zero)
-#endif
-                    {
-                        // Only buffer with StagingData (fake cbuffer) could be mapped
-                        if (buffer.StagingData == IntPtr.Zero)
-                            throw new InvalidOperationException();
-
-                        // Is it a real buffer? (fake cbuffer have no real GPU counter-part in OpenGL ES 2.0
-                        if (buffer.BufferId != 0)
-                        {
-                            //UnbindVertexArrayObject();
-                            GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
-                            if (unmapped.OffsetInBytes == 0 && unmapped.SizeInBytes == buffer.SizeInBytes)
-                                GL.BufferData(buffer.BufferTarget, unmapped.SizeInBytes, unmapped.DataBox.DataPointer, buffer.BufferUsageHint);
-                            else
-                                GL.BufferSubData(buffer.BufferTarget, (IntPtr)unmapped.OffsetInBytes, (IntPtr)unmapped.SizeInBytes, unmapped.DataBox.DataPointer);
-                        }
-                    }
-                    else
-                    {
-                        //UnbindVertexArrayObject();
-                        GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
-                        GL.UnmapBuffer(buffer.BufferTarget);
-                    }
+                    GL.BindBuffer(buffer.BufferTarget, buffer.BufferId);
+                    GL.UnmapBuffer(buffer.BufferTarget);
                 }
                 else // neither texture nor buffer
                 {
@@ -1236,7 +1135,6 @@ namespace Xenko.Graphics
             int vertexBufferSlot = -1;
             var vertexBufferView = default(VertexBufferView);
             Buffer vertexBuffer = null;
-            var vertexBufferBase = IntPtr.Zero;
 
             // TODO OPENGL compare newPipelineState.VertexAttribs directly
             if (newPipelineState.VertexAttribs != currentPipelineState.VertexAttribs)
@@ -1258,8 +1156,6 @@ namespace Xenko.Graphics
                         {
                             var vertexBufferResource = vertexBufferView.Buffer.BufferId;
                             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferResource);
-
-                            vertexBufferBase = vertexBufferView.Buffer.StagingData;
                         }
                     }
 
@@ -1286,10 +1182,10 @@ namespace Xenko.Graphics
 
 #if !XENKO_GRAPHICS_API_OPENGLES
                     if (vertexAttrib.IsInteger && !vertexAttrib.Normalized)
-                        GL.VertexAttribIPointer(vertexAttrib.AttributeIndex, vertexAttrib.Size, (VertexAttribIntegerType)vertexAttrib.Type, vertexBufferView.Stride, vertexBufferBase + vertexBufferView.Offset + vertexAttrib.Offset);
+                        GL.VertexAttribIPointer(vertexAttrib.AttributeIndex, vertexAttrib.Size, (VertexAttribIntegerType)vertexAttrib.Type, vertexBufferView.Stride, vertexBufferView.Offset + vertexAttrib.Offset);
                     else
 #endif
-                        GL.VertexAttribPointer(vertexAttrib.AttributeIndex, vertexAttrib.Size, vertexAttrib.Type, vertexAttrib.Normalized, vertexBufferView.Stride, vertexBufferBase + vertexBufferView.Offset + vertexAttrib.Offset);
+                        GL.VertexAttribPointer(vertexAttrib.AttributeIndex, vertexAttrib.Size, vertexAttrib.Type, vertexAttrib.Normalized, vertexBufferView.Stride, vertexBufferView.Offset + vertexAttrib.Offset);
                 }
 
                 vboDirty = false;
@@ -1344,101 +1240,6 @@ namespace Xenko.Graphics
 
             // Update viewports
             SetViewportImpl();
-
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (GraphicsDevice.IsOpenGLES2)
-            {
-                fixed(byte* boundUniforms = newPipelineState.EffectProgram.BoundUniforms)
-                {
-                    foreach (var uniform in newPipelineState.EffectProgram.Uniforms)
-                    {
-                        var constantBuffer = constantBuffers[uniform.ConstantBufferSlot];
-                        if (constantBuffer == null)
-                            continue;
-
-                        var constantBufferOffsetStart = newPipelineState.EffectProgram.ConstantBufferOffsets[uniform.ConstantBufferSlot];
-
-                        var constantBufferData = constantBuffer.StagingData;
-                        var firstUniformIndex = uniform.UniformIndex;
-                        var lastUniformIndex = firstUniformIndex + uniform.Count;
-                        var offset = uniform.Offset;
-                        var boundData = (IntPtr)boundUniforms + offset + constantBufferOffsetStart;
-                        var currentData = constantBufferData + offset;
-
-                        // Already updated? Early exit.
-                        // TODO: Not optimal for float1/float2 arrays (rare?)
-                        // Better to do "sparse" comparison, not sure if C# code would behave well though
-                        if (Xenko.Core.Utilities.CompareMemory(boundData, currentData, uniform.CompareSize))
-                            continue;
-
-                        // Update bound cache for early exit
-                        Xenko.Core.Utilities.CopyMemory(boundData, currentData, uniform.CompareSize);
-
-                        switch (uniform.Type)
-                        {
-                            case ActiveUniformType.Float:
-                                for (int uniformIndex = firstUniformIndex; uniformIndex < lastUniformIndex; ++uniformIndex)
-                                {
-                                    GL.Uniform1(uniformIndex, 1, (float*)currentData);
-                                    currentData += 16; // Each array element is spaced by 16 bytes
-                                }
-                                break;
-                            case ActiveUniformType.FloatVec2:
-                                for (int uniformIndex = firstUniformIndex; uniformIndex < lastUniformIndex; ++uniformIndex)
-                                {
-                                    GL.Uniform2(uniformIndex, 1, (float*)currentData);
-                                    currentData += 16; // Each array element is spaced by 16 bytes
-                                }
-                                break;
-                            case ActiveUniformType.FloatVec3:
-                                for (int uniformIndex = firstUniformIndex; uniformIndex < lastUniformIndex; ++uniformIndex)
-                                {
-                                    GL.Uniform3(uniformIndex, 1, (float*)currentData);
-                                    currentData += 16; // Each array element is spaced by 16 bytes
-                                }
-                                break;
-                            case ActiveUniformType.FloatVec4:
-                                GL.Uniform4(firstUniformIndex, uniform.Count, (float*)currentData);
-                                break;
-                            case ActiveUniformType.FloatMat4:
-                                GL.UniformMatrix4(uniform.UniformIndex, uniform.Count, false, (float*)currentData);
-                                break;
-                            case ActiveUniformType.Bool:
-                            case ActiveUniformType.Int:
-                                for (int uniformIndex = firstUniformIndex; uniformIndex < lastUniformIndex; ++uniformIndex)
-                                {
-                                    GL.Uniform1(uniformIndex, 1, (int*)currentData);
-                                    currentData += 16; // Each array element is spaced by 16 bytes
-                                }
-                                break;
-                            case ActiveUniformType.BoolVec2:
-                            case ActiveUniformType.IntVec2:
-                                for (int uniformIndex = firstUniformIndex; uniformIndex < lastUniformIndex; ++uniformIndex)
-                                {
-                                    GL.Uniform2(uniformIndex, 1, (int*)currentData);
-                                    currentData += 16; // Each array element is spaced by 16 bytes
-                                }
-                                break;
-                            case ActiveUniformType.BoolVec3:
-                            case ActiveUniformType.IntVec3:
-                                for (int uniformIndex = firstUniformIndex; uniformIndex < lastUniformIndex; ++uniformIndex)
-                                {
-                                    GL.Uniform3(uniformIndex, 1, (int*)currentData);
-                                    currentData += 16; // Each array element is spaced by 16 bytes
-                                }
-                                break;
-                            case ActiveUniformType.BoolVec4:
-                            case ActiveUniformType.IntVec4:
-                                GL.Uniform4(firstUniformIndex, uniform.Count, (int*)currentData);
-                                break;
-                            default:
-                                Internal.Refactor.ThrowNotImplementedException();
-                                break;
-                        }
-                    }
-                }                
-            }
-#endif
 
             currentPipelineState = newPipelineState;
         }
@@ -1731,17 +1532,6 @@ namespace Xenko.Graphics
             var buffer = resource as Buffer;
             if (buffer != null)
             {
-#if XENKO_GRAPHICS_API_OPENGLES
-                if (buffer.StagingData != IntPtr.Zero)
-                {
-                    // Specific case for constant buffers
-                    Xenko.Core.Utilities.CopyMemory(buffer.StagingData, databox.DataPointer, buffer.Description.SizeInBytes);
-                    return;
-                }
-#endif
-
-                //UnbindVertexArrayObject();
-
                 if (!GraphicsDevice.HasTextureBuffers && buffer.BufferId == 0)
                 {
                     if (activeTexture != 0)

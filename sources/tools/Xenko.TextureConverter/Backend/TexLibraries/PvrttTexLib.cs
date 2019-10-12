@@ -756,16 +756,6 @@ namespace Xenko.TextureConverter.TexLibraries
                 case Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm_SRgb:
                 case Xenko.Graphics.PixelFormat.B8G8R8A8_UNorm:
 
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGB:
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGBA:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGB:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGBA:
-                case Xenko.Graphics.PixelFormat.PVRTC_II_2bpp:
-                case Xenko.Graphics.PixelFormat.PVRTC_II_4bpp:
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGB_SRgb:
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGBA_SRgb:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGB_SRgb:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGBA_SRgb:
                 case Xenko.Graphics.PixelFormat.ETC1:
                 case Xenko.Graphics.PixelFormat.ETC2_RGB:
                 case Xenko.Graphics.PixelFormat.ETC2_RGB_SRgb:
@@ -792,22 +782,6 @@ namespace Xenko.TextureConverter.TexLibraries
         {
             switch (format)
             {
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGB:
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGB_SRgb:
-                    return 0;
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGBA:
-                case Xenko.Graphics.PixelFormat.PVRTC_2bpp_RGBA_SRgb:
-                    return 1;
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGB:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGB_SRgb:
-                    return 2;
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGBA:
-                case Xenko.Graphics.PixelFormat.PVRTC_4bpp_RGBA_SRgb:
-                    return 3;
-                case Xenko.Graphics.PixelFormat.PVRTC_II_2bpp:
-                    return 4;
-                case Xenko.Graphics.PixelFormat.PVRTC_II_4bpp:
-                    return 5;
                 case Xenko.Graphics.PixelFormat.ETC1:
                     return 6;
                 case Xenko.Graphics.PixelFormat.ETC2_RGB:

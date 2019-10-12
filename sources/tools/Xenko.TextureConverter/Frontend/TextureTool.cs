@@ -37,7 +37,6 @@ namespace Xenko.TextureConverter
         static TextureTool()
         {
             var type = typeof(TextureTool);
-            NativeLibrary.PreloadLibrary("AtitcWrapper.dll", type);
             NativeLibrary.PreloadLibrary("DxtWrapper.dll", type);
             NativeLibrary.PreloadLibrary("PVRTexLib.dll", type);
             NativeLibrary.PreloadLibrary("PvrttWrapper.dll", type);
@@ -55,7 +54,6 @@ namespace Xenko.TextureConverter
         {
             textureLibraries = new List<ITexLibrary>
             {
-                new AtitcTexLibrary(), // used to compress/decompress texture with ATI compression format (ATITC)
                 new DxtTexLib(), // used to compress/decompress texture to DXT1-5 and load/save *.dds compressed texture files.
                 new FITexLib(), // used to open/save common bitmap image formats.
                 new XenkoTexLibrary(), // used to save/load xenko texture format.

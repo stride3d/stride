@@ -21,20 +21,7 @@ namespace Xenko.Graphics.OpenGL
 #if XENKO_GRAPHICS_API_OPENGLES
         public static IEnumerable<int> GetGLVersions(GraphicsProfile[] graphicsProfiles)
         {
-            if (graphicsProfiles != null && graphicsProfiles.Length > 0)
-            {
-                foreach (var profile in graphicsProfiles)
-                {
-                    if (profile >= GraphicsProfile.Level_10_0)
-                        yield return 3;
-                    else
-                        yield return 2;
-                }
-            }
-            else
-            {
-                yield return 2;
-            }
+            yield return 3;
         }
 
         public static void GetGLVersion(GraphicsProfile graphicsProfile, out int version)
@@ -44,8 +31,6 @@ namespace Xenko.Graphics.OpenGL
                 case GraphicsProfile.Level_9_1:
                 case GraphicsProfile.Level_9_2:
                 case GraphicsProfile.Level_9_3:
-                    version = 200;
-                    return;
                 case GraphicsProfile.Level_10_0:
                 case GraphicsProfile.Level_10_1:
                     version = 300;
@@ -62,13 +47,9 @@ namespace Xenko.Graphics.OpenGL
 
         public static GraphicsProfile GetFeatureLevel(int version)
         {
-            if (version >= 300)
-            {
-                if (version >= 310)
-                    return GraphicsProfile.Level_11_0; // missing tessellation and geometry shaders
-                return GraphicsProfile.Level_10_0;
-            }
-            return GraphicsProfile.Level_9_3;
+            if (version >= 310)
+                return GraphicsProfile.Level_11_0; // missing tessellation and geometry shaders
+            return GraphicsProfile.Level_10_0;
         }
 #else
         public static void GetGLVersion(GraphicsProfile graphicsProfile, out int version)

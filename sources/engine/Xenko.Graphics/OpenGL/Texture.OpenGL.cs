@@ -64,10 +64,6 @@ namespace Xenko.Graphics
             get { return stencilId; }
         }
 
-#if XENKO_GRAPHICS_API_OPENGLES
-        internal IntPtr StagingData { get; set; }
-#endif
-
         public static bool IsDepthStencilReadOnlySupported(GraphicsDevice device)
         {
             // always true on OpenGL
@@ -95,11 +91,6 @@ namespace Xenko.Graphics
             tmp2 = IsRenderbuffer;
             HasStencil = other.IsRenderbuffer;
             other.IsRenderbuffer = tmp2;
-#if XENKO_GRAPHICS_API_OPENGLES
-            var tmp3 = StagingData;
-            StagingData = other.StagingData;
-            other.StagingData = tmp3;
-#endif
             //
             Utilities.Swap(ref BoundSamplerState, ref other.BoundSamplerState);
             Utilities.Swap(ref PixelBufferFrame, ref other.PixelBufferFrame);
@@ -330,15 +321,11 @@ namespace Xenko.Graphics
             {
                 RenderbufferStorage depthRenderbufferFormat;
                 RenderbufferStorage stencilRenderbufferFormat;
-                ConvertDepthFormat(GraphicsDevice, Description.Format, out depthRenderbufferFormat, out stencilRenderbufferFormat);
+                ConvertDepthFormat(GraphicsDevice, Description.Format, out depthRenderbufferFormat);
 
                 CreateRenderbuffer(Width, Height, (int)Description.MultisampleCount, depthRenderbufferFormat, out TextureId);
 
-                if (stencilRenderbufferFormat != 0)   // If we have a separate stencil attachment:
-                {
-                    CreateRenderbuffer(Width, Height, (int)Description.MultisampleCount, stencilRenderbufferFormat, out stencilId);
-                }
-                else if (HasStencil)    // If depth and stencil are stored inside the same renderbuffer:
+                if (HasStencil)    // If depth and stencil are stored inside the same renderbuffer:
                 {
                     stencilId = TextureId;
                 }
@@ -380,13 +367,8 @@ namespace Xenko.Graphics
             }
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (!GraphicsDevice.IsOpenGLES2)
-#endif
-            {
-                GL.TexParameter(TextureTarget, TextureParameterName.TextureBaseLevel, 0);
-                GL.TexParameter(TextureTarget, TextureParameterName.TextureMaxLevel, Description.MipLevels - 1);
-            }
+            GL.TexParameter(TextureTarget, TextureParameterName.TextureBaseLevel, 0);
+            GL.TexParameter(TextureTarget, TextureParameterName.TextureMaxLevel, Description.MipLevels - 1);
         }
 
         private void CreateRenderbuffer(int width, int height, int multisampleCount, RenderbufferStorage internalFormat, out int textureID)
@@ -502,13 +484,6 @@ namespace Xenko.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (StagingData != IntPtr.Zero)
-            {
-                Marshal.FreeHGlobal(StagingData);
-                StagingData = IntPtr.Zero;
-            }
-#endif
             using (GraphicsDevice.UseOpenGLCreationContext())
             {
                 if (TextureId != 0 && ParentTexture == null)
@@ -518,7 +493,7 @@ namespace Xenko.Graphics
                     else
                         GL.DeleteTextures(1, ref TextureId);
 
-                GraphicsDevice.RegisterTextureMemoryUsage(-SizeInBytes);
+                    GraphicsDevice.RegisterTextureMemoryUsage(-SizeInBytes);
                 }
 
                 if (stencilId != 0)
@@ -536,11 +511,8 @@ namespace Xenko.Graphics
             base.OnDestroyed();
         }
 
-        private static void ConvertDepthFormat(GraphicsDevice graphicsDevice, PixelFormat requestedFormat, out RenderbufferStorage depthFormat, out RenderbufferStorage stencilFormat)
+        private static void ConvertDepthFormat(GraphicsDevice graphicsDevice, PixelFormat requestedFormat, out RenderbufferStorage depthFormat)
         {
-            // Default: non-separate depth/stencil
-            stencilFormat = 0;
-
             switch (requestedFormat)
             {
                 case PixelFormat.D16_UNorm:
@@ -558,25 +530,12 @@ namespace Xenko.Graphics
                     break;
 #else
                 case PixelFormat.D24_UNorm_S8_UInt:
-                    if (graphicsDevice.HasPackedDepthStencilExtension)
-                    {
-                        depthFormat = RenderbufferStorage.Depth24Stencil8;
-                    }
-                    else
-                    {
-                        depthFormat = graphicsDevice.HasDepth24 ? RenderbufferStorage.DepthComponent24 : RenderbufferStorage.DepthComponent16;
-                        stencilFormat = RenderbufferStorage.StencilIndex8;
-                    }
+                    depthFormat = RenderbufferStorage.Depth24Stencil8;
                     break;
                 case PixelFormat.D32_Float:
-                    if (graphicsDevice.IsOpenGLES2)
-                        throw new NotSupportedException("Only 16 bits depth buffer or 24-8 bits depth-stencil buffer is supported on OpenGLES2");
                     depthFormat = RenderbufferInternalFormat.DepthComponent32f;
                     break;
                 case PixelFormat.D32_Float_S8X24_UInt:
-                    if (graphicsDevice.IsOpenGLES2)
-                        throw new NotSupportedException("Only 16 bits depth buffer or 24-8 bits depth-stencil buffer is supported on OpenGLES2");
-                    // no need to check graphicsDevice.HasPackedDepthStencilExtension since supported 32F depth means OpenGL ES 3, so packing is available.
                     depthFormat = RenderbufferInternalFormat.Depth32fStencil8;
                     break;
 #endif
@@ -663,16 +622,7 @@ namespace Xenko.Graphics
 
         private void InitializeStagingPixelBufferObject(DataBox[] dataBoxes)
         {
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (GraphicsDevice.IsOpenGLES2)
-            {
-                StagingData = Marshal.AllocHGlobal(TextureTotalSize);
-            }
-            else
-#endif
-            {
-                pixelBufferObjectId = GeneratePixelBufferObject(BufferTarget.PixelPackBuffer, PixelStoreParameter.PackAlignment, BufferUsageHint.StreamRead, TextureTotalSize);
-            }
+            pixelBufferObjectId = GeneratePixelBufferObject(BufferTarget.PixelPackBuffer, PixelStoreParameter.PackAlignment, BufferUsageHint.StreamRead, TextureTotalSize);
             UploadInitialData(BufferTarget.PixelPackBuffer, dataBoxes);
         }
 
@@ -681,9 +631,6 @@ namespace Xenko.Graphics
             // Upload initial data
             int offset = 0;
             var bufferData = IntPtr.Zero;
-#if XENKO_GRAPHICS_API_OPENGLES
-            bufferData = StagingData;
-#endif
 
             if (PixelBufferObjectId != 0)
             {

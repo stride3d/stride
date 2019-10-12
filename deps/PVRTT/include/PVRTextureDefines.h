@@ -80,7 +80,14 @@ namespace pvrtexture
 		eETCFastPerceptual,     //!< ETC fast perceptual
 		eETCSlow,               //!< ETC slow
 		eETCSlowPerceptual,     //!< ETC slow perceptual
-		eNumETCModes            //!< Number of ETC modes
+		eNumETCModes,           //!< Number of ETC modes
+
+		eASTCVeryFast=0,        //!< ASTC very fast
+		eASTCFast,              //!< ASTC fast
+		eASTCMedium,            //!< ASTC medium
+		eASTCThorough,          //!< ASTC thorough
+		eASTCExhaustive,        //!< ASTC exhaustive
+		eNumASTCModes           //!< Number of ASTC modes
 	};
     
     /*!***********************************************************************
@@ -129,5 +136,5 @@ namespace pvrtexture
      @brief         Useful typedef for generating maps of MetaData blocks.
 	*****************************************************************************/
 	typedef CPVRTMap<uint32, CPVRTMap<uint32,MetaDataBlock> > MetaDataMap;
-};
+}
 #endif //_PVRTEXTURE_DEFINES_H

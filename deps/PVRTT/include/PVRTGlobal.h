@@ -2,7 +2,7 @@
 
  @file         PVRTGlobal.h
  @copyright    Copyright (c) Imagination Technologies Limited.
- @brief        Global defines and typedefs for PVRTools
+ @brief        Global defines and typedefs for PVRTools.
 
 ******************************************************************************/
 #ifndef _PVRTGLOBAL_H_
@@ -56,8 +56,8 @@
 
 #else
 #if defined(__linux__) || defined(__APPLE__)
-#include <assert.h>
 #ifdef _DEBUG
+#include <signal.h>
 #ifndef _RPT0
 #define _RPT0(a,b) printf(b)
 #endif
@@ -65,10 +65,10 @@
 #define _RPT1(a,b,c) printf(b,c)
 #endif
 #ifndef _ASSERT
-#define _ASSERT(a) assert(a)
+#define _ASSERT(a) if (!(a)) ::raise(SIGTRAP)
 #endif
 #ifndef _ASSERTE
-#define _ASSERTE(a) assert(a)
+#define _ASSERTE(a) if (!(a)) ::raise(SIGTRAP)
 #endif
 #else
 #ifndef _RPT0
@@ -93,33 +93,6 @@
 #ifndef _RPT4
 #define _RPT4(a,b,c,d,e,f)((void)0)
 #endif
-#include <stdlib.h>
-#include <string.h>
-#ifndef BYTE
-#define BYTE unsigned char
-#endif
-#ifndef WORD
-#define WORD unsigned short
-#endif
-#ifndef DWORD
-#define DWORD unsigned int
-#endif
-#if !defined(BOOL) && !defined(OBJC_BOOL_DEFINED)
-#define BOOL	int
-#endif
-typedef struct tagRGBQUAD
-{
-	BYTE    rgbBlue;
-	BYTE    rgbGreen;
-	BYTE    rgbRed;
-	BYTE    rgbReserved;
-} RGBQUAD;
-#if !defined(TRUE)
-#define TRUE 1
-#endif
-#if !defined(FALSE)
-#define FALSE 0
-#endif
 #else
 #define _CRT_WARN 0
 #define _RPT0(a,b)
@@ -134,6 +107,7 @@ typedef struct tagRGBQUAD
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define FREE(X)		{ if(X) { free(X); (X) = 0; } }
 
@@ -188,12 +162,13 @@ PVRTSIZEASSERT(PVRTfloat32, 4);
 
 /*!**************************************************************************
  @enum   ETextureFilter
- @brief  Enum values for defining texture filtering
+ @brief  Enum values for defining texture filtering.
 ****************************************************************************/
 enum ETextureFilter
 {
   eFilter_Nearest,
   eFilter_Linear,
+	eFilter_Cubic,
   eFilter_None,
 
   eFilter_Size,
@@ -203,7 +178,7 @@ enum ETextureFilter
 
 /*!**************************************************************************
  @enum   ETextureWrap
- @brief  Enum values for defining texture wrapping
+ @brief  Enum values for defining texture wrapping.
 ****************************************************************************/
 enum ETextureWrap
 {
@@ -218,7 +193,7 @@ enum ETextureWrap
 ** swap template function
 ****************************************************************************/
 /*!***************************************************************************
- @brief      	A swap template function that swaps a and b
+ @brief      	A swap template function that swaps a and b.
  @param[in]		a   Type a
  @param[in]		b   Type b
 *****************************************************************************/
@@ -248,7 +223,7 @@ inline T PVRTClamp(const T& val, const T& min, const T& max)
 }
 
 /*!***************************************************************************
- @brief      	Swaps the endianness of pBytes in place
+ @brief      	Swaps the endianness of pBytes in place.
  @param[in]		pBytes      A number
  @param[in]		i32ByteNo   Number of bytes in pBytes
 *****************************************************************************/
@@ -261,7 +236,7 @@ inline void PVRTByteSwap(unsigned char* pBytes, int i32ByteNo)
 }
 
 /*!***************************************************************************
- @brief      	Converts the endianness of an unsigned int
+ @brief      	Converts the endianness of an unsigned int.
  @param[in]		ui32Long    A number
  @return		ui32Long with its endianness changed
 *****************************************************************************/
@@ -271,7 +246,7 @@ inline unsigned int PVRTByteSwap32(unsigned int ui32Long)
 }
 
 /*!***************************************************************************
- @brief      	Converts the endianness of a unsigned short
+ @brief      	Converts the endianness of a unsigned short.
  @param[in]		ui16Short   A number
  @return		ui16Short with its endianness changed
 *****************************************************************************/
@@ -281,7 +256,7 @@ inline unsigned short PVRTByteSwap16(unsigned short ui16Short)
 }
 
 /*!***************************************************************************
- @brief      	Returns true if the platform the code is ran on is little endian
+ @brief      	Returns true if the platform the code is ran on is little endian.
  @return		True if the platform the code is ran on is little endian
 *****************************************************************************/
 inline bool PVRTIsLittleEndian()
@@ -302,7 +277,7 @@ inline bool PVRTIsLittleEndian()
 
 
 /*!***************************************************************************
- @brief      	Minimum of a, b. In case of tie, a is returned
+ @brief      	Minimum of a, b. In case of tie, a is returned.
  @return		Returns b if a > b, otherwise a
 *****************************************************************************/
 template<typename T>
@@ -312,7 +287,7 @@ inline const T& PVRTMin(const T& a, const T& b)
 }
 
 /*!***************************************************************************
- @brief      	Maximum of a, b. In case of tie, a is returned
+ @brief      	Maximum of a, b. In case of tie, a is returned.
  @return		Returns b if a < b. otherwise a
 *****************************************************************************/
 template<typename T>
