@@ -115,8 +115,6 @@ namespace Xenko.TextureConverter.Tests
 
         [Theory(Skip = "Need check")]
         [InlineData("stones.png", PixelFormat.BC3_UNorm)]
-        [InlineData("stones.png", PixelFormat.PVRTC_II_4bpp)]
-        [InlineData("TextureArray_WMipMaps_BC3.dds", PixelFormat.PVRTC_II_4bpp)]
         [InlineData("TextureArray_WMipMaps_BC3.dds", PixelFormat.BC3_UNorm)]
         public void CompressTest(string filename, PixelFormat format)
         {
@@ -297,7 +295,6 @@ namespace Xenko.TextureConverter.Tests
         [InlineData("TextureArray_WMipMaps_PVRTC2_4bpp.pvr", ".dds", Filter.Rescaling.Nearest, PixelFormat.BC3_UNorm)]
         [InlineData("TextureCube_WMipMaps_ATC_RGBA_Explicit.xk", ".dds", Filter.Rescaling.Lanczos3, PixelFormat.BC3_UNorm)]
         [InlineData("duck.jpg", ".dds", Filter.Rescaling.Box, PixelFormat.BC3_UNorm)]
-        [InlineData("duck.jpg", ".pvr", Filter.Rescaling.BSpline, PixelFormat.PVRTC_II_4bpp)]
         public void ProcessingTest(string source, string extension, Filter.Rescaling rescaleFiler, PixelFormat format)
         {
             var image = texTool.Load(Module.PathToInputImages + source);
