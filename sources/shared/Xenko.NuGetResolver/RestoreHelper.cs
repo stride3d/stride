@@ -24,7 +24,6 @@ namespace Xenko.Core.Assets
     {
         static List<string> SupportedRuntimes = new List<string>
         {
-            "win-d3d11",
             "win",
             "any",
             "none",

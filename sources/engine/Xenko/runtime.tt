@@ -6,19 +6,6 @@
 <#@ output extension=".json" #>
 {
   "runtimes": {
-<# // Redefine defaults #>
-    "win": {
-      "#import": [
-        "win-d3d11",
-        "any"
-      ]
-    },
-    "linux": {
-      "#import": [
-        "linux-opengl",
-        "unix"
-      ]
-    },
 <# foreach (var platform in new[] { "win", "win7", "win10", "linux" })
    {
      foreach (var graphicsPlatform in platform.StartsWith("win") ? new[] { "d3d11", "d3d12", "opengl", "opengles", "vulkan" } : new[] { "opengl", "vulkan" })
