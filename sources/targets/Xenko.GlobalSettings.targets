@@ -26,7 +26,7 @@
   <!-- Include platform dependent assembly when specified -->
   <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' == 'true'">
     <!-- Build list of Graphics API -->
-    <XenkoGraphicsApis Condition="'$(XenkoGraphicsApis)' == '' And '$(XenkoGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</XenkoGraphicsApis>
+    <XenkoGraphicsApis Condition="'$(XenkoGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</XenkoGraphicsApis>
     <XenkoGraphicsApis Condition="'$(XenkoGraphicsApis)' == '' And '$(XenkoGraphicsApiDependentBuildAll)' != 'true'">$(XenkoGraphicsApiOriginal)</XenkoGraphicsApis>
     
     <_XenkoGraphicsApis Condition="'$(XenkoGraphicsApis)' != ''">;$(XenkoGraphicsApis);</_XenkoGraphicsApis>
