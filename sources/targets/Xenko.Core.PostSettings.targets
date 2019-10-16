@@ -173,6 +173,9 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
+  <!-- Auto NuGet build packages and deploy them -->
+  <Import Project="$(MSBuildThisFileDirectory)Xenko.AutoPack.targets"/>
+
   <!-- Generate localization satellite assemblies -->
   <Target Name="XenkoGenerateLocalizationSatelliteDlls" BeforeTargets="SatelliteDllsProjectOutputGroup" Returns="@(SatelliteDllsProjectOutputGroupOutput)" Condition="'$(XenkoLocalized)' == 'true' And '$(Configuration)' == 'Release'">
     <ItemGroup>
