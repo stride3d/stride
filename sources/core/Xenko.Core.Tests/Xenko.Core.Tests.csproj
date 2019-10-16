@@ -1,61 +1,23 @@
 ﻿<Project>
-  <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <AssemblyName>Xenko.Core.Tests</AssemblyName>
-    <RootNamespace>Xenko.Core.Tests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <EnableDefaultItems>false</EnableDefaultItems>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
     <XenkoAssemblyProcessorOptions>--auto-module-initializer --serialization</XenkoAssemblyProcessorOptions>
     <XenkoBuildTags>Windows;Android;iOS</XenkoBuildTags>
-    <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoPackageBuild)' == 'true'">false</XenkoCompilerTargetsEnable>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoSkipUnitTests)' == 'true'">false</XenkoCompilerTargetsEnable>
-    <XenkoCompilerTargetsEnable Condition="'$(XenkoNETRuntime)' == 'CoreCLR'">false</XenkoCompilerTargetsEnable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="XunitAttributes.cs" />
-    <Compile Include="NonParallelCollectionDefinition.cs" />
-    <Compile Include="TestObjectIdBuilder.cs" />
-    <Compile Include="TestPriorityLinkedQueue.cs" />
-    <Compile Include="MemoryFileProvider.cs" />
-    <Compile Include="TestPriorityQueue.cs" />
-    <Compile Include="TestProfiler.cs" />
-    <Compile Include="TestSerialization.StructLayout.cs" />
-    <Compile Include="TestContentManager.cs" />
-    <Compile Include="TestLogger.cs" />
-    <Compile Include="TestMicroThread.cs" />
-    <Compile Include="TestStore.cs" />
-    <Compile Include="TestSerialization.cs" />
-    <Compile Include="TestUnmanagedArray.cs" />
-    <Compile Include="TestUtilities.cs" />
-    <Compile Include="TestWatcher.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj">
-      <Project>{5210FB81-B807-49BB-AF0D-31FB6A83A572}</Project>
-      <Name>Xenko.Core.Serialization</Name>
-    </ProjectReference>
-    <XenkoEmbeddedNativeLibrary Include="$(XenkoPackageXenkoPlatformBin)\libcore">
-      <Visible>false</Visible>
-    </XenkoEmbeddedNativeLibrary>
+    <ProjectReference Include="..\..\tests\xunit.runner.xenko\xunit.runner.xenko.csproj" />
+    <ProjectReference Include="..\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+  <Import Project="..\..\targets\Xenko.UnitTests.targets" />
 </Project>
