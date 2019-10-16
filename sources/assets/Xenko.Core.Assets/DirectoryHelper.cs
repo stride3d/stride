@@ -78,7 +78,7 @@ namespace Xenko.Core.Assets
                 // we have a dev distribution
                 return packageDirectory;
             }
-            return null;
+            return packageDirectory;
         }
 
         /// <summary>

@@ -46,7 +46,7 @@ namespace Xenko
         /// <summary>
         /// The NuGet package suffix (i.e. -beta01). Note: might be replaced during package build.
         /// </summary>
-        public const string NuGetVersionSuffix = "-dev";
+        public const string NuGetVersionSuffix = "-alpha01";
 
         /// <summary>
         /// The informational assembly version, containing -dev or -g[git_hash] during package.
@@ -56,7 +56,7 @@ namespace Xenko
         /// <summary>
         /// The assembly suffix. Note: replaced by git commit during package build.
         /// </summary>
-        private const string AssemblyInformationalSuffix = "-dev";
+        private const string AssemblyInformationalSuffix = "-alpha";
     }
 
     /// <summary>
