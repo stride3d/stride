@@ -8,5 +8,16 @@
     <XenkoBuildDirectory>$(XenkoPlatformFullName)</XenkoBuildDirectory>
     <XenkoOutputCommonDir>$(MSBuildThisFileDirectory)..\Bin\$(XenkoBuildDirectory)\</XenkoOutputCommonDir>
     <XenkoOutputCommonDir>$([System.IO.Path]::GetFullPath('$(XenkoOutputCommonDir)'))</XenkoOutputCommonDir>
+
+    <Version>3.0.0.9-alpha.1</Version>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseUrl>https://github.com/DogGodGit/xenko/blob/master-3.0_zn/README.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/DogGodGit/xenko</PackageProjectUrl>
+    <PackageIconUrl>https://xenko.com/images/svg/logo.svg</PackageIconUrl>
+    <RepositoryUrl>https://github.com/DogGodGit/xenko.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RestorePackages>true</RestorePackages>
+    <PackageTags>Xenko</PackageTags>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 </Project>

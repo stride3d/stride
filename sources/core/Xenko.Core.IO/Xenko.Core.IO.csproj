@@ -1,11 +1,10 @@
-<Project>
+﻿<Project>
 
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   
   <PropertyGroup>
     <Description>Xenko Core IO assembly.</Description>
-    <Version>0.1.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>

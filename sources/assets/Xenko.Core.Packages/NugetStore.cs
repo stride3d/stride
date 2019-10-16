@@ -127,7 +127,7 @@ namespace Xenko.Core.Packages
 
         private readonly NugetSourceRepositoryProvider sourceRepositoryProvider;
 
-        public string DevSource { get; } = @"%LocalAppData%\Xenko\NugetDev";
+        public string DevSource { get; } = @"%XenkoDir%\NugetDev";
 
         /// <summary>
         /// Path under which all packages will be installed or cached.

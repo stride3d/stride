@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 Build file used to build Xenko and package it from the command line.
 Example of use: 
@@ -32,13 +32,16 @@ Example of use:
   <!--
   Package Xenko to a nupkg
   -->
-  <Target Name="Package">
+  <Target Name="Package" DependsOnTargets="BuildWindows">
     <ItemGroup>
-        <FilesToDeletePackage Include="$(MSBuildThisFileDirectory)Xenko.?.*.nupkg"/>
+	    <FilesToDeletePdb Include="$(XenkoRootBin)*.pdb"/>
+        <FilesToDeletePackage Include="$(XenkoRootBin)*.nupkg"/>
     </ItemGroup>
-    
+
+    <Copy SourceFiles="@(FilesToDeletePackage)" DestinationFolder="$(XenkoRootBin)NugetDev"/>
     <Delete Files="@(FilesToDeletePackage)"/>
-    <PackageArchiveTask File="$(XenkoPackage)"/>
+	<Delete Files="@(FilesToDeletePdb)"/>
+
   </Target>
 
   <!--

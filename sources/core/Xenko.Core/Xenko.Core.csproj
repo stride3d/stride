@@ -5,12 +5,11 @@
   
   <PropertyGroup>
     <Description>Core assembly for all Xenko assemblies.</Description>
-    <Version>0.1.0.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>$(TargetFramework)</TargetFramework>
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
   </PropertyGroup>
-  
+
   <PropertyGroup>
     <XenkoAssemblySign>true</XenkoAssemblySign>
     <XenkoNativeOutputName>libcore</XenkoNativeOutputName>
