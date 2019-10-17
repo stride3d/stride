@@ -417,9 +417,51 @@ namespace Xenko.Engine.Tests
             Assert.Equal(0, test.TestClassList[0].IntField);
         }
 
-        internal static unsafe void RunUpdateEngine(object test, List<UpdateMemberInfo> updateMemberInfo, TestData[] blittableData, UpdateObjectData[] objectData)
+        [Fact]
+        public void TestInterfaceProperty()
         {
-            var compiledUpdate = UpdateEngine.Compile(test.GetType(), updateMemberInfo);
+            var test = new TestClass();
+
+            var updateMemberInfo = new List<UpdateMemberInfo>
+            {
+                new UpdateMemberInfo("TestInterface.InterfaceMember", 0),
+            };
+
+            var blittableData = new TestData[] { 123 };
+            var objectData = new UpdateObjectData[0];
+
+            RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
+
+            Assert.Equal(123, test.TestInterface.InterfaceMember);
+        }
+
+        [Fact]
+        public void TestAbstractProperty()
+        {
+            var test = new TestClass();
+
+            var updateMemberInfo = new List<UpdateMemberInfo>
+            {
+                new UpdateMemberInfo("IntPropertyAbstract", 0),
+            };
+
+            var blittableData = new TestData[] { 123 };
+            var objectData = new UpdateObjectData[0];
+
+            RunUpdateEngine(test, updateMemberInfo, blittableData, objectData);
+
+            Assert.Equal(123, test.IntPropertyAbstract);
+
+            // Test again with using TestClassBase type
+            test.IntPropertyAbstract = 0;
+            RunUpdateEngine(test, updateMemberInfo, blittableData, objectData, typeof(TestClassBase));
+
+            Assert.Equal(123, test.IntPropertyAbstract);
+        }
+
+        internal static unsafe void RunUpdateEngine(object test, List<UpdateMemberInfo> updateMemberInfo, TestData[] blittableData, UpdateObjectData[] objectData, Type typeOverride = null)
+        {
+            var compiledUpdate = UpdateEngine.Compile(typeOverride ?? test.GetType(), updateMemberInfo);
 
             fixed (TestData* dataPtr = blittableData)
             {
@@ -453,8 +495,25 @@ namespace Xenko.Engine.Tests
         public int IntProperty { get; set; }
     }
 
+    public interface ITestInterface
+    {
+        int InterfaceMember { get; set; }
+    }
+
     [DataContract]
-    public class TestClass
+    public class TestInterfaceImpl : ITestInterface
+    {
+        public int InterfaceMember { get; set; }
+    }
+
+    [DataContract]
+    public abstract class TestClassBase
+    {
+        public abstract int IntPropertyAbstract { get; set; }
+    }
+
+    [DataContract]
+    public class TestClass : TestClassBase
     {
         public int IntField;
         public int IntProperty { get; set; }
@@ -474,6 +533,10 @@ namespace Xenko.Engine.Tests
 
         public IList<int> IntList;
         public IList<TestClass> TestClassList;
+
+        public ITestInterface TestInterface = new TestInterfaceImpl();
+
+        public override int IntPropertyAbstract { get; set; }
 
         public TestClass()
         {
