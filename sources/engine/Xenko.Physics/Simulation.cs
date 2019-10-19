@@ -539,19 +539,6 @@ namespace Xenko.Physics
 
         /// <summary>
         /// Raycasts penetrating any shape the ray encounters.
-        /// </summary>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
-        /// <returns>The list with hit results.</returns>
-        public FastList<HitResult> RaycastPenetrating(Vector3 from, Vector3 to)
-        {
-            var results = new FastList<HitResult>();
-            RaycastPenetrating(from, to, results);
-            return results;
-        }
-
-        /// <summary>
-        /// Raycasts penetrating any shape the ray encounters.
         /// Filtering by CollisionGroup
         /// </summary>
         /// <param name="from">From.</param>
@@ -583,23 +570,6 @@ namespace Xenko.Physics
             var callback = XenkoClosestConvexResultCallback.Shared(filterGroup, filterFlags);
             collisionWorld.ConvexSweepTest(sh, from, to, callback);
             return callback.Result;
-        }
-
-        /// <summary>
-        /// Performs a sweep test using a collider shape and never stops until "to"
-        /// </summary>
-        /// <param name="shape">The shape.</param>
-        /// <param name="from">From.</param>
-        /// <param name="to">To.</param>
-        /// <param name="filterGroup">The collision group of this shape sweep</param>
-        /// <param name="filterFlags">The collision group that this shape sweep can collide with</param>
-        /// <returns>The list with hit results.</returns>
-        /// <exception cref="System.Exception">This kind of shape cannot be used for a ShapeSweep.</exception>
-        public FastList<HitResult> ShapeSweepPenetrating(ColliderShape shape, Matrix from, Matrix to, CollisionFilterGroups filterGroup = DefaultGroup, CollisionFilterGroupFlags filterFlags = DefaultFlags)
-        {
-            var results = new FastList<HitResult>();
-            ShapeSweepPenetrating(shape, from, to, results, filterGroup, filterFlags);
-            return results;
         }
 
         /// <summary>

@@ -161,7 +161,8 @@ namespace TopDownRPG.Core
 
             var minDistance = float.PositiveInfinity;
 
-            var result = simulation.RaycastPenetrating(vectorNear.XYZ(), vectorFar.XYZ());
+            var result = new FastList<HitResult>();
+            simulation.RaycastPenetrating(vectorNear.XYZ(), vectorFar.XYZ(), result);
             foreach (var hitResult in result)
             {
                 ClickType type = ClickType.Empty;
