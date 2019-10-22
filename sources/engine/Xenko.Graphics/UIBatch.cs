@@ -442,19 +442,27 @@ namespace Xenko.Graphics
             // transform the world matrix into the world view project matrix
             Matrix.MultiplyTo(ref worldMatrix, ref viewProjectionMatrix, out drawCommand.Matrix);
 
-            // do not snap static fonts when real/virtual resolution does not match.
             if (font.FontType == SpriteFontType.SDF)
             {
                 drawCommand.SnapText = false;
                 float scaling = drawCommand.RequestedFontSize / font.Size;
                 drawCommand.RealVirtualResolutionRatio = 1 / new Vector2(scaling, scaling);
             }
-            else if ((font.FontType == SpriteFontType.Static)) 
+            if (font.FontType == SpriteFontType.Static)
             {
-                if ((drawCommand.RealVirtualResolutionRatio.X != 1 || drawCommand.RealVirtualResolutionRatio.Y != 1))
-                    drawCommand.SnapText = false;   // we don't want snapping of the resolution of the screen does not match virtual resolution. (character alignment problems)
-
                 drawCommand.RealVirtualResolutionRatio = Vector2.One; // ensure that static font are not scaled internally
+            }
+            if (font.FontType == SpriteFontType.Dynamic || font.FontType == SpriteFontType.Static)
+            {
+                // do not snap static fonts when real/virtual resolution does not match.
+                if (drawCommand.RealVirtualResolutionRatio.X != 1 || drawCommand.RealVirtualResolutionRatio.Y != 1)
+                    drawCommand.SnapText = false;   // we don't want snapping of the resolution of the screen does not match virtual resolution. (character alignment problems)
+            }
+            if (font.FontType == SpriteFontType.Dynamic)
+            {
+                // Dynamic: use virtual resolution (otherwise requested size might change on every camera move, esp. if UI is in 3D)
+                // TODO: some step function to have LOD without regenerating on every small change?
+                drawCommand.RealVirtualResolutionRatio = Vector2.One;
             }
 
             // snap draw start position to prevent characters to be drawn in between two pixels
