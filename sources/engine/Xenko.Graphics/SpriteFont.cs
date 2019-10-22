@@ -263,10 +263,12 @@ namespace Xenko.Graphics
             if (char.IsWhiteSpace((char)glyph.Character))
                 return;
 
+            var realVirtualResolutionRatio = requestedFontSize / parameters.RequestedFontSize;
+
             // Skip items with null size
             var elementSize = new Vector2(
-                auxiliaryScaling.X * glyph.Subrect.Width / parameters.RealVirtualResolutionRatio.X,
-                auxiliaryScaling.Y * glyph.Subrect.Height / parameters.RealVirtualResolutionRatio.Y);
+                auxiliaryScaling.X * glyph.Subrect.Width / realVirtualResolutionRatio.X,
+                auxiliaryScaling.Y * glyph.Subrect.Height / realVirtualResolutionRatio.Y);
             if (elementSize.Length() < MathUtil.ZeroTolerance) 
                 return;
 
@@ -277,20 +279,24 @@ namespace Xenko.Graphics
                 xShift = (float)Math.Round(xShift);
                 yShift = (float)Math.Round(yShift);
             }
-            var xScaledShift = xShift / parameters.RealVirtualResolutionRatio.X;
-            var yScaledShift = yShift / parameters.RealVirtualResolutionRatio.Y;
+            var xScaledShift = xShift / realVirtualResolutionRatio.X;
+            var yScaledShift = yShift / realVirtualResolutionRatio.Y;
 
             var worldMatrix = parameters.Matrix;
+
             worldMatrix.M41 += worldMatrix.M11 * xScaledShift + worldMatrix.M21 * yScaledShift;
             worldMatrix.M42 += worldMatrix.M12 * xScaledShift + worldMatrix.M22 * yScaledShift;
             worldMatrix.M43 += worldMatrix.M13 * xScaledShift + worldMatrix.M23 * yScaledShift;
-
+            worldMatrix.M44 += worldMatrix.M14 * xScaledShift + worldMatrix.M24 * yScaledShift;
+            
             worldMatrix.M11 *= elementSize.X;
             worldMatrix.M12 *= elementSize.X;
             worldMatrix.M13 *= elementSize.X;
+            worldMatrix.M14 *= elementSize.X;
             worldMatrix.M21 *= elementSize.Y;
             worldMatrix.M22 *= elementSize.Y;
             worldMatrix.M23 *= elementSize.Y;
+            worldMatrix.M24 *= elementSize.Y;
 
             RectangleF sourceRectangle = glyph.Subrect;
             parameters.Batch.DrawCharacter(Textures[glyph.BitmapIndex], ref worldMatrix, ref sourceRectangle, ref parameters.Color, parameters.DepthBias, swizzle);
