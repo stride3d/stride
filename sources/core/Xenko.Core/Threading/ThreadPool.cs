@@ -44,13 +44,15 @@ namespace Xenko.Core.Threading
             bool taken = false;
             try
             {
-                spinLock.Enter( ref taken );
-                workItems.Enqueue( workItem );
+                spinLock.Enter(ref taken);
+                workItems.Enqueue(workItem);
             }
             finally
             {
                 if( taken )
+                {
                     spinLock.Exit();
+                }
             }
             workAvailable.Release(1);
 
@@ -91,14 +93,16 @@ namespace Xenko.Core.Threading
                     Action workItem;
                     try
                     {
-                        spinLock.Enter( ref taken );
+                        spinLock.Enter(ref taken);
                         // Semaphore and logic guarantees that at least one item is dequeue-able
                         workItem = workItems.Dequeue();
                     }
                     finally
                     {
-                        if( taken )
+                        if(taken)
+                        {
                             spinLock.Exit();
+                        }
                     }
                     
                     Interlocked.Increment(ref busyCount);
