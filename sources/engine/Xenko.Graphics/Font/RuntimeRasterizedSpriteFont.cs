@@ -100,11 +100,12 @@ namespace Xenko.Graphics.Font
         protected override Glyph GetGlyph(CommandList commandList, char character, ref Vector2 fontSize, bool uploadGpuResources, out Vector2 fixScaling)
         {
             // Add a safe guard to prevent the system to generate characters too big for the dynamic font cache texture
-            fontSize.X = Math.Min(fontSize.X, 256);
-            fontSize.Y = Math.Min(fontSize.Y, 256);
+            var realFontSize = fontSize;
+            realFontSize.X = Math.Min(realFontSize.X, 256);
+            realFontSize.Y = Math.Min(realFontSize.Y, 256);
 
             // get the character data associated to the provided character and size
-            var characterData = GetOrCreateCharacterData(fontSize, character);
+            var characterData = GetOrCreateCharacterData(realFontSize, character);
 
             // generate the bitmap if it does not exist
             if (characterData.Bitmap == null)
