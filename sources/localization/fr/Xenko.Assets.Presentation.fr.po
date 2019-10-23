@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:05+0900\n"
-"PO-Revision-Date: 2019-10-12 15:53+0000\n"
+"PO-Revision-Date: 2019-10-24 08:59+0000\n"
 "Last-Translator: Nathan <bonnemainsnathan@gmail.com>\n"
 "Language-Team: French <https://hosted.weblate.org/projects/xenko/"
 "assetspresentation/fr/>\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 3.9-dev\n"
+"X-Generator: Weblate 3.9.1-dev\n"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/ViewModels/EntityFolderViewModel.cs:158
 msgctxt "Message"
@@ -182,7 +182,6 @@ msgid "Center view on selection"
 msgstr "Centrer la vue sur la sélection"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:53
-#, fuzzy
 msgctxt "Settings"
 msgid "Snap selection to the grid"
 msgstr "Aligner la sélection sur la grille"
@@ -692,19 +691,16 @@ msgid "Right"
 msgstr "Droite"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:701
-#, fuzzy
 msgctxt "ToolTip"
 msgid "Snap translations to this value"
 msgstr "Aligner les translations sur cette valeur"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:710
-#, fuzzy
 msgctxt "ToolTip"
 msgid "Snap rotations to this value"
 msgstr "Aligner les rotations sur cette valeur"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:719
-#, fuzzy
 msgctxt "ToolTip"
 msgid "Snap scale to this factor"
 msgstr "Aligner la mise à l'échelle à ce facteur"
@@ -1181,7 +1177,6 @@ msgid "Reset zoom"
 msgstr "Réinitialiser le niveau de zoom"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/UIEditor/Views/UIEditorView.xaml:389
-#, fuzzy
 msgctxt "ToolTip"
 msgid "Snaps to this value (0 to disable)"
 msgstr "Aligner à cette valeur (0 pour désactiver)"
