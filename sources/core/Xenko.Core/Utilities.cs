@@ -51,7 +51,7 @@ namespace Xenko.Core
         {
             unsafe
             {
-                Buffer.MemoryCopy((void*)dest, (void*)src, sizeInBytesToCopy, sizeInBytesToCopy);
+                Buffer.MemoryCopy((void*)src, (void*)dest, sizeInBytesToCopy, sizeInBytesToCopy);
             }
         }
 
