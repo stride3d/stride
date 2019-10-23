@@ -68,7 +68,8 @@ namespace Xenko.Core.Threading
                 Interlocked.Increment(ref aliveCount);
                 new Thread(cachedTaskLoop)
                 {
-                    Name = $"{GetType().FullName} thread"
+                    Name = $"{GetType().FullName} thread",
+                    IsBackground = true,
                 }.Start();
             }
         }
