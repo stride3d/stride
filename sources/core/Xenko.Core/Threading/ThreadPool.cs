@@ -82,7 +82,7 @@ namespace Xenko.Core.Threading
                 while (true)
                 {
                     bool idleForTooLong = Stopwatch.GetTimestamp() - lastWorkTS > MaxIdleTimeTS;
-                    // Wait for another work item to be (potentially) available
+                    // Wait for another work item to be available
                     if (idleForTooLong || workAvailable.Wait(MaxIdleTimeInMS) == false)
                     {
                         // No work given in the last MaxIdleTimeTS, close this task
