@@ -131,16 +131,16 @@ namespace Xenko.Core
 #endif
         }
 
-        static void NormalizeLibName(ref string libName)
-        {
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
+        private static void NormalizeLibName(ref string libName)
+        {
             libName = libName.ToLowerInvariant();
             if (libName.EndsWith(".dll") == false)
             {
                 libName += ".dll";
             }
-#endif
         }
+#endif
 
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
         private const string SYSINFO_FILE = "kernel32.dll";
