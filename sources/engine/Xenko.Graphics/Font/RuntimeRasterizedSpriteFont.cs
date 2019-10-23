@@ -97,7 +97,7 @@ namespace Xenko.Graphics.Font
             return FontManager.DoesFontContains(FontName, Style, c);
         }
 
-        protected override Glyph GetGlyph(CommandList commandList, char character, ref Vector2 fontSize, bool uploadGpuResources, out Vector2 fixScaling)
+        protected override Glyph GetGlyph(CommandList commandList, char character, in Vector2 fontSize, bool uploadGpuResources, out Vector2 fixScaling)
         {
             // Add a safe guard to prevent the system to generate characters too big for the dynamic font cache texture
             var realFontSize = fontSize;

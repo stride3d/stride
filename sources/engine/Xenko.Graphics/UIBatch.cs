@@ -244,9 +244,9 @@ namespace Xenko.Graphics
             drawInfo.UnitZWorld = worldViewProjection.Row3;
             Vector4.Transform(ref vector4LeftTop, ref worldViewProjection, out drawInfo.LeftTopCornerWorld);
 
-            var elementInfo = new ElementInfo(4, 6, ref drawInfo, depthBias);
+            var elementInfo = new ElementInfo(4, 6, in drawInfo, depthBias);
 
-            Draw(whiteTexture, ref elementInfo);
+            Draw(whiteTexture, in elementInfo);
         }
 
         /// <summary>
@@ -306,9 +306,9 @@ namespace Xenko.Graphics
             drawInfo.UnitZWorld = worldViewProjection.Row3;
             Vector4.Transform(ref vector4LeftTop, ref worldViewProjection, out drawInfo.LeftTopCornerWorld);
 
-            var elementInfo = new ElementInfo(8, 6 * 6, ref drawInfo, depthBias);
+            var elementInfo = new ElementInfo(8, 6 * 6, in drawInfo, depthBias);
 
-            Draw(whiteTexture, ref elementInfo);
+            Draw(whiteTexture, in elementInfo);
         }
 
         /// <summary>
@@ -390,12 +390,12 @@ namespace Xenko.Graphics
                 indicesPerElement = 54;
             }
 
-            var elementInfo = new ElementInfo(verticesPerElement, indicesPerElement, ref drawInfo, depthBias);
+            var elementInfo = new ElementInfo(verticesPerElement, indicesPerElement, in drawInfo, depthBias);
 
-            Draw(texture, ref elementInfo);
+            Draw(texture, in elementInfo);
         }
 
-        internal void DrawCharacter(Texture texture, ref Matrix worldViewProjectionMatrix, ref RectangleF sourceRectangle, ref Color color, int depthBias, SwizzleMode swizzle)
+        internal void DrawCharacter(Texture texture, in Matrix worldViewProjectionMatrix, in RectangleF sourceRectangle, in Color color, int depthBias, SwizzleMode swizzle)
         {
             if (texture == null) throw new ArgumentNullException(nameof(texture));
 
@@ -420,9 +420,9 @@ namespace Xenko.Graphics
                 LeftTopCornerWorld = worldViewProjectionMatrix.Row4,
             };
 
-            var elementInfo = new ElementInfo(4, 6, ref drawInfo, depthBias);
+            var elementInfo = new ElementInfo(4, 6, in drawInfo, depthBias);
 
-            Draw(texture, ref elementInfo);
+            Draw(texture, in elementInfo);
         }
 
         internal void DrawString(SpriteFont font, string text, ref SpriteFont.InternalUIDrawCommand drawCommand)
