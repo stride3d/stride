@@ -133,11 +133,13 @@ namespace Xenko.Core
 
         static void NormalizeLibName(ref string libName)
         {
+#if XENKO_PLATFORM_WINDOWS_DESKTOP
             libName = libName.ToLowerInvariant();
             if (libName.EndsWith(".dll") == false)
             {
                 libName += ".dll";
             }
+#endif
         }
 
 #if XENKO_PLATFORM_WINDOWS_DESKTOP
