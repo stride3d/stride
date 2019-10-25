@@ -80,6 +80,6 @@
   <PropertyGroup>
     <PostBuildEvent>xcopy /d /y $(TargetDir)*.* $(SolutionDir)..\deps\AssemblyProcessor
 cd $(SolutionDir)..\deps\AssemblyProcessor
-$(ILRepack) Xenko.Core.AssemblyProcessor.exe Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll System.ValueTuple.dll /out:Xenko.Core.AssemblyProcessor.Packed.exe</PostBuildEvent>
+$(ILRepack) Xenko.Core.AssemblyProcessor.exe Mono.Cecil.dll Mono.Cecil.Mdb.dll Mono.Cecil.Pdb.dll Mono.Cecil.Rocks.dll Mono.Options.dll System.ValueTuple.dll /out:Xenko.Core.AssemblyProcessor.Packed2.exe</PostBuildEvent>
   </PropertyGroup>
 </Project>

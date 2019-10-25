@@ -22,7 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Shaders.Parser\Xenko.Shaders.Parser.csproj" />
-    <PackageReference Include="SharpDX.D3DCompiler" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
   </ItemGroup>
   <ItemGroup Condition="'$(XenkoPlatform)' == 'Windows'">
     <XenkoNativeLib Include="$(WindowsSdkDir_10)\Redist\D3D\**\d3dcompiler_47.dll">

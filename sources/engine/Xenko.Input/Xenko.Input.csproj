@@ -33,9 +33,9 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Games\Xenko.Games.csproj" />
-    <PackageReference Include="SharpDX.RawInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))" />
-    <PackageReference Include="SharpDX.DirectInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
-    <PackageReference Include="SharpDX.XInput" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))" />
+    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows'" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(XenkoPostSettingsTargets)" />

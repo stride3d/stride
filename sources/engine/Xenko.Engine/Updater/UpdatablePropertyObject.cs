@@ -10,7 +10,7 @@ namespace Xenko.Updater
     /// <typeparam name="T">The property type.</typeparam>
     public class UpdatablePropertyObject<T> : UpdatableProperty
     {
-        public UpdatablePropertyObject(IntPtr getter, IntPtr setter) : base(getter, setter)
+        public UpdatablePropertyObject(IntPtr getter, bool virtualDispatchGetter, IntPtr setter, bool virtualDispatchSetter) : base(getter, virtualDispatchGetter, setter, virtualDispatchSetter)
         {
         }
 

@@ -28,10 +28,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <None Include="build\**\*.targets" PackagePath="build\" Pack="true" />
-    <None Include="build\**\*.props" PackagePath="build\" Pack="true" />
-    <None Include="build\**\*.targets" PackagePath="buildTransitive\" Pack="true" />
-    <None Include="build\**\*.props" PackagePath="buildTransitive\" Pack="true" />
     <None Include="runtime.json" Pack="true" PackagePath="/">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -43,7 +39,7 @@
     <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
     <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
     <!-- SharpDX is needed for WIC -->
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'UWP'" />
     <PackageReference Include="System.Drawing.Common" Version="4.5.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'" />
   </ItemGroup>
 

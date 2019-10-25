@@ -123,6 +123,14 @@ namespace Xenko.Assets.Sprite
                 Version = 2;
             }
 
+            protected override void ComputeAssemblyHash(BinarySerializationWriter writer)
+            {
+                base.ComputeAssemblyHash(writer);
+
+                // If texture format changes, we want to compile again
+                writer.Write(TextureSerializationData.Version);
+            }
+
             protected override Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);

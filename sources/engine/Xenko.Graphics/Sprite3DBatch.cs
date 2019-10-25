@@ -124,9 +124,9 @@ namespace Xenko.Graphics
                 depthSprite = projectedPosition.Z / projectedPosition.W;
             }
 
-            var elementInfo = new ElementInfo(StaticQuadBufferInfo.VertexByElement, StaticQuadBufferInfo.IndicesByElement, ref drawInfo, depthSprite);
+            var elementInfo = new ElementInfo(StaticQuadBufferInfo.VertexByElement, StaticQuadBufferInfo.IndicesByElement, in drawInfo, depthSprite);
 
-            Draw(texture, ref elementInfo);
+            Draw(texture, in elementInfo);
         }
 
         protected override void PrepareForRendering()

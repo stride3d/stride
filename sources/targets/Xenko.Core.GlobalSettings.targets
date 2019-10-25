@@ -23,7 +23,7 @@
     <Copyright>Copyright © Xenko contributors and Silicon Studio Corp.</Copyright>
     <Authors>Xenko contributors;Silicon Studio Corp.</Authors>
     <PackageTags>Xenko;3D;gamedev;Game Engine;engine;games;D3D;OpenGL;Vulkan</PackageTags>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\bin\packages</PackageOutputPath>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\bin\packages\</PackageOutputPath>
 
     <!-- If we don't set it, default targets will add PlatformName in some cases -->
     <BaseOutputPath>bin\</BaseOutputPath>
