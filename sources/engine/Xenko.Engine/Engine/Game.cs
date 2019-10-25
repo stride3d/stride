@@ -418,7 +418,7 @@ namespace Xenko.Engine
         {
             if (databaseFileProvider != null)
             {
-                if(Services.GetService<IDatabaseFileProviderService>() is DatabaseFileProviderService dbfp)
+                if (Services.GetService<IDatabaseFileProviderService>() is DatabaseFileProviderService dbfp)
                     dbfp.FileProvider = null;
                 databaseFileProvider.Dispose();
                 databaseFileProvider = null;
