@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:05+0900\n"
-"PO-Revision-Date: 2019-10-24 08:59+0000\n"
+"PO-Revision-Date: 2019-10-25 10:42+0000\n"
 "Last-Translator: Nathan <bonnemainsnathan@gmail.com>\n"
 "Language-Team: French <https://hosted.weblate.org/projects/xenko/"
 "assetspresentation/fr/>\n"
@@ -207,19 +207,16 @@ msgid "Switch to next gizmo mode"
 msgstr "Passer au prochain mode"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:73
-#, fuzzy
 msgctxt "Settings"
 msgid "Default snap distance for translation"
 msgstr "Distance de capture par défaut pour la translation"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:77
-#, fuzzy
 msgctxt "Settings"
 msgid "Default snap angle for rotation"
 msgstr "Angle de capture par défaut pour la rotation"
 
 #: ../editor/Xenko.Assets.Presentation/SceneEditor/SceneEditorSettings.cs:81
-#, fuzzy
 msgctxt "Settings"
 msgid "Default snap factor for scale"
 msgstr "Facteur de capture par défaut pour la mise à l'échelle"
@@ -518,11 +515,11 @@ msgstr "(Déchargé)"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:473
 msgctxt "ToolTip"
 msgid "Light probes and cubemaps..."
-msgstr ""
+msgstr "Sources de lumière et patrons…"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:483
 msgid "Light probes"
-msgstr ""
+msgstr "Sources de lumière"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:488
 msgid "Bounces:"
@@ -531,12 +528,12 @@ msgstr "Rebonds :"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:492
 msgctxt "ToolTip"
 msgid "Compute lighting using light probes"
-msgstr ""
+msgstr "Calculer l'éclairage à l'aide des sources lumineuses"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:500
 msgctxt "ToolTip"
 msgid "Reset light probes"
-msgstr ""
+msgstr "Réinitialiser les sources de lumière"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:504
 msgid "Reset"
@@ -544,12 +541,12 @@ msgstr "Réinitialiser"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:510
 msgid "Cubemap"
-msgstr ""
+msgstr "Patron"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:514
 msgctxt "ToolTip"
 msgid "Generate a cubemap from the scene view and save as a texture"
-msgstr ""
+msgstr "Génère un patron à partir de la scène et l'enregistre comme texture"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:518
 msgid "Capture"
@@ -562,7 +559,7 @@ msgstr "Visibilité de la navigation…"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:537
 msgid "Show navigation meshes:"
-msgstr ""
+msgstr "Afficher les maillages de navigation :"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:539
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:596
@@ -604,7 +601,7 @@ msgstr "Aperçu de la caméra"
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:591
 msgctxt "Button"
 msgid "Light probe volumes"
-msgstr ""
+msgstr "Volumes de source lumineuse"
 
 #: ../editor/Xenko.Assets.Presentation/AssetEditors/EntityHierarchyEditor/Views/EntityHierarchyEditorView.xaml:608
 msgctxt "Button"
