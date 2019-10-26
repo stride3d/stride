@@ -19,10 +19,10 @@
     <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
-    <PackageReference Include="System.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Runtime" Version="4.3.1" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <Reference Include="System.ServiceModel" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.7.0" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.10.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
