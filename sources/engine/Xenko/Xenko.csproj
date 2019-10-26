@@ -40,7 +40,7 @@
     <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
     <!-- SharpDX is needed for WIC -->
     <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'UWP'" />
-    <PackageReference Include="System.Drawing.Common" Version="4.5.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'" />
+    <PackageReference Include="System.Drawing.Common" Version="4.6.0" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'" />
   </ItemGroup>
 
   <ItemGroup>

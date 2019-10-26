@@ -20,7 +20,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="AvalonEdit" Version="5.0.4" />
-    <PackageReference Include="System.Reactive.Linq" Version="4.1.2" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.2.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="2.10.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.10.0" />
     <Reference Include="QuickGraph">
