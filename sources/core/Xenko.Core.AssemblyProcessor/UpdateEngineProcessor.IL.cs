@@ -153,6 +153,8 @@ namespace Xenko.Core.AssemblyProcessor
         {
             private readonly FieldDefinition updatablePropertyGetter;
             private readonly FieldDefinition updatablePropertySetter;
+            private readonly FieldDefinition updatablePropertyVirtualDispatchGetter;
+            private readonly FieldDefinition updatablePropertyVirtualDispatchSetter;
             protected TypeDefinition declaringTypeForObjectMethods;
 
             public UpdatablePropertyCodeGenerator(AssemblyDefinition assembly) : base(assembly)
@@ -163,6 +165,8 @@ namespace Xenko.Core.AssemblyProcessor
 
                 updatablePropertyGetter = declaringTypeForObjectMethods.Fields.First(x => x.Name == "Getter");
                 updatablePropertySetter = declaringTypeForObjectMethods.Fields.First(x => x.Name == "Setter");
+                updatablePropertyVirtualDispatchGetter = declaringTypeForObjectMethods.Fields.First(x => x.Name == "VirtualDispatchGetter");
+                updatablePropertyVirtualDispatchSetter = declaringTypeForObjectMethods.Fields.First(x => x.Name == "VirtualDispatchSetter");
             }
 
             public override void GenerateUpdatablePropertyCode()
@@ -188,16 +192,42 @@ namespace Xenko.Core.AssemblyProcessor
 
             public override void EmitGetCode(ILProcessor il, TypeReference type)
             {
+                var calliInstance = Instruction.Create(OpCodes.Calli, new CallSite(type) { HasThis = true });
+                var calliVirtualDispatch = Instruction.Create(OpCodes.Calli, new CallSite(type) { HasThis = false, Parameters = { new ParameterDefinition(assembly.MainModule.TypeSystem.Object) } });
+                var postCalli = Instruction.Create(OpCodes.Nop);
+
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, updatablePropertyGetter);
-                il.Emit(OpCodes.Calli, new CallSite(type) { HasThis = true });
+                il.Emit(OpCodes.Ldarg_0);
+                // For normal calls, we use ldftn and an instance calls
+                // For virtual and interface calls, we generate a dispatch function that calls ldvirtftn on the actual object, then call the method on the object
+                // this dispatcher method is static, so the calli has a different signature
+                // Note: we could later optimize the bool check by having two variant of Get/SetObject
+                // and two different implementations of both UpdatableProperty<T> and UpdatablePropertyObject<T>
+                // (not sure if worth it)
+                il.Emit(OpCodes.Ldfld, updatablePropertyVirtualDispatchGetter);
+                il.Emit(OpCodes.Brfalse, calliInstance);
+                il.Append(calliVirtualDispatch);
+                il.Emit(OpCodes.Br, postCalli);
+                il.Append(calliInstance);
+                il.Append(postCalli);
             }
 
             public override void EmitSetCodeAfterValue(ILProcessor il, TypeReference type)
             {
+                var calliInstance = Instruction.Create(OpCodes.Calli, new CallSite(assembly.MainModule.TypeSystem.Void) { HasThis = true, Parameters = { new ParameterDefinition(type) } });
+                var calliVirtualDispatch = Instruction.Create(OpCodes.Calli, new CallSite(assembly.MainModule.TypeSystem.Void) { HasThis = false, Parameters = { new ParameterDefinition(assembly.MainModule.TypeSystem.Object), new ParameterDefinition(type) } });
+                var postCalli = Instruction.Create(OpCodes.Nop);
+
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, updatablePropertySetter);
-                il.Emit(OpCodes.Calli, new CallSite(assembly.MainModule.TypeSystem.Void) { HasThis = true, Parameters = { new ParameterDefinition(type) } });
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldfld, updatablePropertyVirtualDispatchSetter);
+                il.Emit(OpCodes.Brfalse, calliInstance);
+                il.Append(calliVirtualDispatch);
+                il.Emit(OpCodes.Br, postCalli);
+                il.Append(calliInstance);
+                il.Append(postCalli);
             }
         }
 

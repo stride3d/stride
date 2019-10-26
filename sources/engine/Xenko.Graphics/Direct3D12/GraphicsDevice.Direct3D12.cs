@@ -452,7 +452,7 @@ namespace Xenko.Graphics
                 var debugDevice = NativeDevice.QueryInterfaceOrNull<SharpDX.Direct3D12.DebugDevice>();
                 if (debugDevice != null)
                 {
-                    debugDevice.ReportLiveDeviceObjects(SharpDX.Direct3D12.RldoFlags.Detail);
+                    debugDevice.ReportLiveDeviceObjects(SharpDX.Direct3D12.ReportingLevel.Detail);
                     debugDevice.Dispose();
                 }
             }

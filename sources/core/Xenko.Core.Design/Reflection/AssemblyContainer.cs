@@ -244,7 +244,7 @@ namespace Xenko.Core.Reflection
                                 // - need to be fast (make sure to use NuGet caching mechanism)
                                 if (library.RuntimeAssemblyGroups.Count == 0)
                                 {
-                                    var runtimeFolder = new[] { "win-d3d11", "win", "any" }
+                                    var runtimeFolder = new[] { "win", "any" }
                                         .Select(runtime => Path.Combine(globalPackagesFolder, library.Path, "runtimes", runtime))
                                         .Where(Directory.Exists)
                                         .SelectMany(folder => Directory.EnumerateDirectories(Path.Combine(folder, "lib")))

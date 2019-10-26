@@ -29,7 +29,8 @@ namespace Xenko.Physics.Tests
             var vectorFar = Vector3.Transform(sPos, invViewProj);
             vectorFar /= vectorFar.W;
 
-            var result = simulation.RaycastPenetrating(vectorNear.XYZ(), vectorFar.XYZ());
+            var result = new FastList<HitResult>();
+            simulation.RaycastPenetrating(vectorNear.XYZ(), vectorFar.XYZ(), result);
             foreach (var hitResult in result)
             {
                 if (hitResult.Succeeded)

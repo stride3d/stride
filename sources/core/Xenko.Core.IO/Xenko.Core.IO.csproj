@@ -34,7 +34,7 @@
     <ProjectReference Include="..\Xenko.Core\Xenko.Core.csproj">
 	  <PrivateAssets>contentfiles;analyzers</PrivateAssets>
 	</ProjectReference>
-    <PackageReference Include="SharpDX" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="SharpDX" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'UWP'" />
   </ItemGroup>
   
   <Import Project="$(XenkoPostSettingsTargets)" />

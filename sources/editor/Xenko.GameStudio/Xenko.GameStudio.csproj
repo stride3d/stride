@@ -39,7 +39,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="SharpDX" Version="4.0.1" />
+    <PackageReference Include="SharpDX" Version="4.2.0" />
     <PackageReference Include="EnvDTE" Version="8.0.1" />
     <PackageReference Include="Xenko.Metrics" Version="1.0.0" />
     <PackageReference Include="Xenko.CrashReport" Version="1.0.1" />

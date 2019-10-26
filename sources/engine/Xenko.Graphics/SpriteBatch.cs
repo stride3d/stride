@@ -500,7 +500,7 @@ namespace Xenko.Graphics
             scale.Y = scale.Y / resolutionRatio.Y;
 
             var fontSize2 = fontSize * ((spriteFont.FontType == SpriteFontType.Dynamic) ? resolutionRatio : Vector2.One);
-            var drawCommand = new SpriteFont.InternalDrawCommand(this, ref fontSize2, ref position, ref color, rotation, ref origin, ref scale, effects, layerDepth);
+            var drawCommand = new SpriteFont.InternalDrawCommand(this, in fontSize2, in position, in color, rotation, in origin, in scale, effects, layerDepth);
 
             // snap the position the closest 'real' pixel
             Vector2.Modulate(ref drawCommand.Position, ref resolutionRatio, out drawCommand.Position);
@@ -585,7 +585,7 @@ namespace Xenko.Graphics
             elementInfo.IndexCount = StaticQuadBufferInfo.IndicesByElement;
             elementInfo.Depth = depth;
 
-            Draw(texture, ref elementInfo);
+            Draw(texture, in elementInfo);
         }
 
         protected override unsafe void UpdateBufferValuesFromElementInfo(ref ElementInfo elementInfo, IntPtr vertexPtr, IntPtr indexPtr, int vertexOffset)

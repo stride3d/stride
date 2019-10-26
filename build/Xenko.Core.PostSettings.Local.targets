@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- Override XenkoBuildDirectory only now so that Xenko common projects still get build in obj without XenkoGraphicsApi -->
     <XenkoAssemblyProcessorGlobal>true</XenkoAssemblyProcessorGlobal>
-    <XenkoAssemblyProcessorPath>$(XenkoPackageXenko)\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe</XenkoAssemblyProcessorPath>
+    <XenkoAssemblyProcessorPath>$(XenkoPackageXenko)\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed2.exe</XenkoAssemblyProcessorPath>
 
     <XenkoDependenciesDir Condition="'$(XenkoDependenciesDir)' == ''">$(XenkoPackageXenko)\deps\</XenkoDependenciesDir>
     <XenkoDependenciesDir Condition="'$(XenkoDependenciesDir)' != '' and !HasTrailingSlash('$(XenkoDependenciesDir)')">$(XenkoDependenciesDir)\</XenkoDependenciesDir>

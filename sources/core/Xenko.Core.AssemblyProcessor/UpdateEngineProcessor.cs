@@ -34,6 +34,54 @@ namespace Xenko.Core.AssemblyProcessor
 
         private MethodReference getTypeFromHandleMethod;
 
+        int prepareMethodCount = 0;
+
+        private MethodDefinition CreateUpdateMethod(AssemblyDefinition assembly)
+        {
+            // Get or create method
+            var updateEngineType = GetOrCreateUpdateType(assembly, true);
+            var mainPrepareMethod = new MethodDefinition($"UpdateMain{prepareMethodCount++}", MethodAttributes.HideBySig | MethodAttributes.Assembly | MethodAttributes.Static, assembly.MainModule.TypeSystem.Void);
+            updateEngineType.Methods.Add(mainPrepareMethod);
+
+            // Make sure it is called at module startup
+            var xenkoCoreModule = assembly.GetXenkoCoreModule();
+            var moduleInitializerAttribute = xenkoCoreModule.GetType("Xenko.Core.ModuleInitializerAttribute");
+            var ctorMethod = moduleInitializerAttribute.GetConstructors().Single(x => !x.IsStatic && !x.HasParameters);
+            mainPrepareMethod.CustomAttributes.Add(new CustomAttribute(assembly.MainModule.ImportReference(ctorMethod)));
+
+            return mainPrepareMethod;
+        }
+
+        private MethodReference CreateDispatcher(AssemblyDefinition assembly, MethodReference method)
+        {
+            var updateEngineType = GetOrCreateUpdateType(assembly, true);
+
+            var dispatcherMethod = new MethodDefinition($"Dispatcher_{method.Name}", MethodAttributes.HideBySig | MethodAttributes.Assembly | MethodAttributes.Static, assembly.MainModule.ImportReference(method.ReturnType));
+            updateEngineType.Methods.Add(dispatcherMethod);
+
+            dispatcherMethod.Parameters.Add(new ParameterDefinition("this", Mono.Cecil.ParameterAttributes.None, method.DeclaringType));
+            foreach (var param in method.Parameters)
+            {
+                dispatcherMethod.Parameters.Add(new ParameterDefinition(param.Name, param.Attributes, param.ParameterType));
+            }
+
+            var il = dispatcherMethod.Body.GetILProcessor();
+            il.Emit(OpCodes.Ldarg_0);
+            foreach (var param in dispatcherMethod.Parameters.Skip(1)) // first parameter is "this"
+            {
+                il.Emit(OpCodes.Ldarg, param);
+            }
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldvirtftn, method);
+            var callsite = new Mono.Cecil.CallSite(method.ReturnType) { HasThis = true };
+            foreach (var param in method.Parameters)
+                callsite.Parameters.Add(param);
+            il.Emit(OpCodes.Calli, callsite);
+            il.Emit(OpCodes.Ret);
+
+            return dispatcherMethod;
+        }
+
         public void ProcessSerializers(CecilSerializerContext context)
         {
             var references = new HashSet<AssemblyDefinition>();
@@ -62,13 +110,7 @@ namespace Xenko.Core.AssemblyProcessor
                 return;
             }
 
-            // Get or create method
-            var updateEngineType = GetOrCreateUpdateType(context.Assembly, true);
-            var mainPrepareMethod = new MethodDefinition("UpdateMain", MethodAttributes.HideBySig | MethodAttributes.Assembly | MethodAttributes.Static, context.Assembly.MainModule.TypeSystem.Void);
-            updateEngineType.Methods.Add(mainPrepareMethod);
 
-            // Get some useful Cecil objects from Xenko.Core
-            var xenkoCoreModule = context.Assembly.GetXenkoCoreModule();
 
             var xenkoEngineAssembly = context.Assembly.Name.Name == "Xenko.Engine"
                     ? context.Assembly
@@ -109,10 +151,7 @@ namespace Xenko.Core.AssemblyProcessor
             var typeType = coreAssembly.MainModule.GetTypeResolved(typeof(Type).FullName);
             getTypeFromHandleMethod = context.Assembly.MainModule.ImportReference(typeType.Methods.First(x => x.Name == "GetTypeFromHandle"));
 
-            // Make sure it is called at module startup
-            var moduleInitializerAttribute = xenkoCoreModule.GetType("Xenko.Core.ModuleInitializerAttribute");
-            var ctorMethod = moduleInitializerAttribute.GetConstructors().Single(x => !x.IsStatic && !x.HasParameters);
-            mainPrepareMethod.CustomAttributes.Add(new CustomAttribute(context.Assembly.MainModule.ImportReference(ctorMethod)));
+            var mainPrepareMethod = CreateUpdateMethod(context.Assembly);
 
             // Emit serialization code for all the types we care about
             var processedTypes = new HashSet<TypeDefinition>(TypeReferenceEqualityComparer.Default);
@@ -245,7 +284,9 @@ namespace Xenko.Core.AssemblyProcessor
             }
 
             var il = updateCurrentMethod.Body.GetILProcessor();
-            var emptyObjectField = updateMainMethod.DeclaringType.Fields.FirstOrDefault(x => x.Name == "emptyObject");
+            var typeIsValueType = type.IsResolvedValueType();
+            var emptyObjectField = typeIsValueType ? null : updateMainMethod.DeclaringType.Fields.FirstOrDefault(x => x.Name == "emptyObject");
+            VariableDefinition emptyStruct = null;
 
             // Note: forcing fields and properties to be processed in all cases
             foreach (var serializableItem in ComplexSerializerRegistry.GetSerializableItems(type, true, ComplexTypeSerializerFlags.SerializePublicFields | ComplexTypeSerializerFlags.SerializePublicProperties | ComplexTypeSerializerFlags.Updatable))
@@ -254,32 +295,50 @@ namespace Xenko.Core.AssemblyProcessor
                 {
                     var field = fieldReference.Resolve();
 
-                    // First time it is needed, let's create empty object: var emptyObject = new object();
-                    if (emptyObjectField == null)
+                    // First time it is needed, let's create empty object in the class (var emptyObject = new object()) or empty local struct in the method
+                    if (typeIsValueType)
                     {
-                        emptyObjectField = new FieldDefinition("emptyObject", FieldAttributes.Static | FieldAttributes.Private, context.Assembly.MainModule.TypeSystem.Object);
-
-                        // Create static ctor that will initialize this object
-                        var staticConstructor = new MethodDefinition(".cctor",
-                                                MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-                                                context.Assembly.MainModule.TypeSystem.Void);
-                        var staticConstructorIL = staticConstructor.Body.GetILProcessor();
-                        staticConstructorIL.Emit(OpCodes.Newobj, context.Assembly.MainModule.ImportReference(emptyObjectField.FieldType.Resolve().GetConstructors().Single(x => !x.IsStatic && !x.HasParameters)));
-                        staticConstructorIL.Emit(OpCodes.Stsfld, emptyObjectField);
-                        staticConstructorIL.Emit(OpCodes.Ret);
-
-                        updateMainMethod.DeclaringType.Fields.Add(emptyObjectField);
-                        updateMainMethod.DeclaringType.Methods.Add(staticConstructor);
+                        if (emptyStruct == null)
+                        {
+                            emptyStruct = new VariableDefinition(type);
+                            updateMainMethod.Body.Variables.Add(emptyStruct);
+                        }
                     }
+                    else
+                    {
+                        if (emptyObjectField == null)
+                        {
+                            emptyObjectField = new FieldDefinition("emptyObject", FieldAttributes.Static | FieldAttributes.Private, context.Assembly.MainModule.TypeSystem.Object);
+
+                            // Create static ctor that will initialize this object
+                            var staticConstructor = new MethodDefinition(".cctor",
+                                                    MethodAttributes.Private | MethodAttributes.HideBySig | MethodAttributes.Static | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
+                                                    context.Assembly.MainModule.TypeSystem.Void);
+                            var staticConstructorIL = staticConstructor.Body.GetILProcessor();
+                            staticConstructorIL.Emit(OpCodes.Newobj, context.Assembly.MainModule.ImportReference(emptyObjectField.FieldType.Resolve().GetConstructors().Single(x => !x.IsStatic && !x.HasParameters)));
+                            staticConstructorIL.Emit(OpCodes.Stsfld, emptyObjectField);
+                            staticConstructorIL.Emit(OpCodes.Ret);
+
+                            updateMainMethod.DeclaringType.Fields.Add(emptyObjectField);
+                            updateMainMethod.DeclaringType.Methods.Add(staticConstructor);
+                        }
+                    }
+
 
                     il.Emit(OpCodes.Ldtoken, type);
                     il.Emit(OpCodes.Call, getTypeFromHandleMethod);
                     il.Emit(OpCodes.Ldstr, field.Name);
 
-                    il.Emit(OpCodes.Ldsfld, emptyObjectField);
+                    if (typeIsValueType)
+                        il.Emit(OpCodes.Ldloca, emptyStruct);
+                    else
+                        il.Emit(OpCodes.Ldsfld, emptyObjectField);
                     il.Emit(OpCodes.Ldflda, context.Assembly.MainModule.ImportReference(fieldReference));
                     il.Emit(OpCodes.Conv_I);
-                    il.Emit(OpCodes.Ldsfld, emptyObjectField);
+                    if (typeIsValueType)
+                        il.Emit(OpCodes.Ldloca, emptyStruct);
+                    else
+                        il.Emit(OpCodes.Ldsfld, emptyObjectField);
                     il.Emit(OpCodes.Conv_I);
                     il.Emit(OpCodes.Sub);
                     il.Emit(OpCodes.Conv_I4);
@@ -300,12 +359,21 @@ namespace Xenko.Core.AssemblyProcessor
                     il.Emit(OpCodes.Call, getTypeFromHandleMethod);
                     il.Emit(OpCodes.Ldstr, property.Name);
 
+                    // If it's a virtual or interface call, we need to create a dispatcher using ldvirtftn
+                    if (property.GetMethod.IsVirtual)
+                        propertyGetMethod = CreateDispatcher(context.Assembly, propertyGetMethod);
+
                     il.Emit(OpCodes.Ldftn, propertyGetMethod);
 
-                    // Only get setter if it exists and it's public
+                    // Set whether getter method uses a VirtualDispatch (static call) or instance call
+                    il.Emit(property.GetMethod.IsVirtual ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+
+                    // Only uses setter if it exists and it's public
                     if (property.SetMethod != null && property.SetMethod.IsPublic)
                     {
                         var propertySetMethod = context.Assembly.MainModule.ImportReference(property.SetMethod).MakeGeneric(updateCurrentMethod.GenericParameters.ToArray());
+                        if (property.SetMethod.IsVirtual)
+                            propertySetMethod = CreateDispatcher(context.Assembly, propertySetMethod);
                         il.Emit(OpCodes.Ldftn, propertySetMethod);
                     }
                     else
@@ -314,6 +382,9 @@ namespace Xenko.Core.AssemblyProcessor
                         il.Emit(OpCodes.Ldc_I4_0);
                         il.Emit(OpCodes.Conv_I);
                     }
+
+                    // Set whether setter method uses a VirtualDispatch (static call) or instance call
+                    il.Emit((property.SetMethod?.IsVirtual ?? false) ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
 
                     var propertyType = context.Assembly.MainModule.ImportReference(replaceGenericsVisitor != null ? replaceGenericsVisitor.VisitDynamic(property.PropertyType) : property.PropertyType);
 
@@ -337,7 +408,6 @@ namespace Xenko.Core.AssemblyProcessor
                 }
             }
         }
-
 
         private static string ComputeUpdateMethodName(TypeDefinition typeDefinition)
         {
