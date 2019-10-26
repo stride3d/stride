@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
+using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Games;
