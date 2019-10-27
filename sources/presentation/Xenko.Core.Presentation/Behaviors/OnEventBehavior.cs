@@ -3,7 +3,7 @@
 using System;
 using System.Linq;
 using System.Windows;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Annotations;
 using Xenko.Core.Presentation.Core;
 using Xenko.Core.Presentation.Internal;

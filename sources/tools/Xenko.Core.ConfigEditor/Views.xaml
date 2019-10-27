@@ -2,7 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:Xenko.ConfigEditor"
                     xmlns:vm="clr-namespace:Xenko.ConfigEditor.ViewModels"
-                    xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:bhv="clr-namespace:Xenko.Presentation.Behaviors;assembly=Xenko.Presentation">
 
   <DataTemplate x:Key="PropertyView" DataType="vm:PropertyViewModel">

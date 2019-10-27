@@ -12,9 +12,6 @@
     <Reference Include="QuickGraph">
       <HintPath>$(XenkoDependenciesDir)QuickGraph\QuickGraph.dll</HintPath>
     </Reference>
-    <Reference Include="System.Windows.Interactivity">
-      <HintPath>$(XenkoCommonDependenciesDir)ExpressionBlendSDK\System.Windows.Interactivity.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xaml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data.DataSetExtensions" />

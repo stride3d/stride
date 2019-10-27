@@ -7,11 +7,11 @@ namespace Xenko.Core.Presentation.Interactivity
 {
     /// <summary>
     /// A container for an attached dependency property that contains a collection of behavior.
-    /// The purpose of this class is to be used in place of System.Windows.Interactivity.Interaction.
+    /// The purpose of this class is to be used in place of Microsoft.Xaml.Behaviors.Interaction.
     /// This class allows to set behaviors in styles because <see cref="BehaviorCollection"/>
     /// has a public parameterless constructor and the Behaviors attached property has a public setter.
     /// When the collection is modified or set, it automatically synchronize the attached property
-    /// System.Windows.Interactivity.Interaction.Behaviors.
+    /// Microsoft.Xaml.Behaviors.Interaction.Behaviors.
     /// </summary>
     public static class Interaction
     {

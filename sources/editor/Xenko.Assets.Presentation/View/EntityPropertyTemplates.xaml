@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:tp="clr-namespace:Xenko.Assets.Presentation.TemplateProviders"
-                    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:view="clr-namespace:Xenko.Core.Presentation.Quantum.View;assembly=Xenko.Core.Presentation.Quantum"
                     xmlns:system="clr-namespace:System;assembly=mscorlib"
                     xmlns:behaviors="clr-namespace:Xenko.Core.Assets.Editor.View.Behaviors;assembly=Xenko.Core.Assets.Editor"

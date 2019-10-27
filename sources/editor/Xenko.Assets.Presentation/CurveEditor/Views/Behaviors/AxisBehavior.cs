@@ -3,7 +3,7 @@
 
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Presentation.Drawing;
 
 namespace Xenko.Assets.Presentation.CurveEditor.Views.Behaviors

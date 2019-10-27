@@ -3,7 +3,7 @@
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Assets.Presentation.AssetEditors.SpriteEditor.ViewModels;
 using Xenko.Assets.Presentation.ViewModel;
 
