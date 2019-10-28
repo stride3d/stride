@@ -141,7 +141,10 @@ namespace Xenko.Core.Assets
         public bool Remove(Package item)
         {
             if (item == null) throw new ArgumentNullException("item");
-            return packages.Remove(item);
+            var success = packages.Remove(item);
+            if (success)
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
+            return success;
         }
 
         private void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
