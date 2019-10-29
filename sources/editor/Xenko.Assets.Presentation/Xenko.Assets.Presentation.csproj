@@ -23,15 +23,6 @@
     <PackageReference Include="System.Reactive.Linq" Version="4.2.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.1.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.1.0" />
-    <Reference Include="QuickGraph">
-      <HintPath>$(XenkoCommonDependenciesDir)GraphX\QuickGraph.dll</HintPath>
-    </Reference>
-    <Reference Include="GraphX.PCL.Common">
-      <HintPath>$(XenkoCommonDependenciesDir)GraphX\GraphX.PCL.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="GraphX.WPF.Controls">
-      <HintPath>$(XenkoCommonDependenciesDir)GraphX\GraphX.WPF.Controls.dll</HintPath>
-    </Reference>
     <Reference Include="RoslynPad.Editor.Windows">
       <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\net462\RoslynPad.Editor.Windows.dll</HintPath>
     </Reference>
