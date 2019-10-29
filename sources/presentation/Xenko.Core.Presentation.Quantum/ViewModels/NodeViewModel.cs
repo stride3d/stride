@@ -534,9 +534,20 @@ namespace Xenko.Core.Presentation.Quantum.ViewModels
             if (value == null)
                 return null;
             object convertedValue;
-            if (!TypeConverterHelper.TryConvert(value, Type, out convertedValue))
-                throw new InvalidOperationException("Can not convert value to the required type");
-            return convertedValue;
+            try
+            {
+                if (!TypeConverterHelper.TryConvert(value, Type, out convertedValue))
+                {
+                    throw new InvalidOperationException("Can not convert value to the required type");
+                }
+                return convertedValue;
+            }
+            catch (InvalidOperationException e)
+            {
+                Console.WriteLine(e);
+                return null;
+
+            }
         }
 
         private void AddChild([NotNull] NodeViewModel child) => ChangeAndNotify(() => { child.Parent = this; ((ICollection<NodeViewModel>)initializingChildren ?? children).Add(child); }, $"{GraphViewModel.HasChildPrefix}{child.Name}", child.Name);
