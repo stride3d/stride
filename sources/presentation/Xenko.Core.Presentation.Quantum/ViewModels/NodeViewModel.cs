@@ -537,16 +537,13 @@ namespace Xenko.Core.Presentation.Quantum.ViewModels
             try
             {
                 if (!TypeConverterHelper.TryConvert(value, Type, out convertedValue))
-                {
                     throw new InvalidOperationException("Can not convert value to the required type");
-                }
                 return convertedValue;
             }
             catch (InvalidOperationException e)
             {
                 Console.WriteLine(e);
-                return null;
-
+                return NodeValue;
             }
         }
 
