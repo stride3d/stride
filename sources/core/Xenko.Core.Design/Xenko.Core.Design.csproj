@@ -35,7 +35,7 @@
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Include="NuGet.Configuration" Version="5.0.0" />
     <PackageReference Include="SharpDX" Version="4.2.0" />
-    <PackageReference Include="System.Management" Version="4.5.0" />
+    <PackageReference Include="System.Management" Version="4.6.0" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   

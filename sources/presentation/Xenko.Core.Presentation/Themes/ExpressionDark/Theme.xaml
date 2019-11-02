@@ -13,7 +13,7 @@
                     xmlns:cvt="clr-namespace:Xenko.Core.Presentation.ValueConverters"
                     xmlns:me="clr-namespace:Xenko.Core.Presentation.MarkupExtensions"
                     xmlns:behaviors="clr-namespace:Xenko.Core.Presentation.Behaviors"
-                    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:interactivity="clr-namespace:Xenko.Core.Presentation.Interactivity"
                     xmlns:commands="clr-namespace:Xenko.Core.Presentation.Controls.Commands"
                     xmlns:wnd="clr-namespace:Xenko.Core.Presentation.Windows"

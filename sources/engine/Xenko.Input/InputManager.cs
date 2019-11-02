@@ -230,7 +230,7 @@ namespace Xenko.Input
         /// </summary>
         public bool UseRawInput
         {
-#if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
+#if XENKO_INPUT_RAWINPUT
             get
             {
                 return rawInputEnabled;
@@ -604,16 +604,18 @@ namespace Xenko.Input
                     Sources.Add(new InputSourceUWP());
                     break;
 #endif
-#if XENKO_PLATFORM_WINDOWS && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
                 case AppContextType.Desktop:
+#if XENKO_PLATFORM_WINDOWS && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
                     Sources.Add(new InputSourceWinforms());
                     Sources.Add(new InputSourceWindowsDirectInput());
                     if (InputSourceWindowsXInput.IsSupported())
                         Sources.Add(new InputSourceWindowsXInput());
+#endif
+#if XENKO_INPUT_RAWINPUT
                     if (rawInputEnabled)
                         Sources.Add(new InputSourceWindowsRawInput());
-                    break;
 #endif
+                    break;
                 default:
                     throw new InvalidOperationException("GameContext type is not supported by the InputManager");
             }

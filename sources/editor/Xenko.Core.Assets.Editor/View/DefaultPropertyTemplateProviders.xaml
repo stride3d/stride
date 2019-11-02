@@ -5,7 +5,7 @@
                     xmlns:view="clr-namespace:Xenko.Core.Presentation.Quantum.View;assembly=Xenko.Core.Presentation.Quantum"
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:s="clr-namespace:System;assembly=mscorlib"
-                    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:math="clr-namespace:Xenko.Core.Mathematics;assembly=Xenko.Core.Mathematics"
                     xmlns:pvdr="clr-namespace:Xenko.Core.Assets.Editor.View.TemplateProviders"
                     xmlns:cvt="clr-namespace:Xenko.Core.Assets.Editor.View.ValueConverters"

@@ -4,7 +4,7 @@
     xmlns:xk="http://schemas.xenko.com/xaml/presentation"
     xmlns:views="clr-namespace:Xenko.Assets.Presentation.Preview.Views"
     xmlns:valueConverters="clr-namespace:Xenko.Core.Assets.Editor.View.ValueConverters;assembly=Xenko.Core.Assets.Editor"
-    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:behaviors="clr-namespace:Xenko.Assets.Presentation.View.Behaviors"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"

@@ -2,7 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Linq;
 using System.Windows.Controls;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Assets.Editor.View.Controls;
 using Xenko.Core.Presentation.Controls;
 using Xenko.Core.Presentation.Extensions;

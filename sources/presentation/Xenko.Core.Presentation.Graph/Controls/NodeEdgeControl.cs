@@ -49,8 +49,8 @@ namespace Xenko.Core.Presentation.Graph.Controls
         /// <param name="edge"></param>
         /// <param name="showLabels"></param>
         /// <param name="showArrows"></param>
-        public NodeEdgeControl(VertexControl source, VertexControl target, object edge, bool showLabels = false, bool showArrows = true)
-            : base(source, target, edge, showLabels, showArrows)
+        public NodeEdgeControl(VertexControl source, VertexControl target, object edge, bool showArrows = true)
+            : base(source, target, edge, showArrows)
         {
             this.Loaded += OnLoaded;
         }

@@ -13,6 +13,7 @@
     <XenkoProjectPlatformDependentWindows>true</XenkoProjectPlatformDependentWindows>
     <XenkoBuildTags>*</XenkoBuildTags>
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
+    <DefineConstants Condition="'$(XenkoPlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))">$(DefineConstants);XENKO_INPUT_RAWINPUT</DefineConstants>
   </PropertyGroup>
   <Choose>
     <When Condition=" '$(AutoIncludeSystemAssembly)' != 'true'">

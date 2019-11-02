@@ -3,7 +3,7 @@
                     xmlns:controls="clr-namespace:Xenko.Core.Assets.Editor.View.Controls"
                     xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                     xmlns:xcdg="http://schemas.xceed.com/wpf/xaml/datagrid"
-                    xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                     xmlns:behaviors="clr-namespace:Xenko.Core.Assets.Editor.View.Behaviors"
                     xmlns:diagnostics="clr-namespace:Xenko.Core.Assets.Diagnostics;assembly=Xenko.Core.Assets">
 
