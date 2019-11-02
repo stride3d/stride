@@ -13,38 +13,57 @@ namespace Xenko.Core.Threading
     {
         public static readonly ThreadPool Instance = new ThreadPool();
         
+        /// <summary>
+        /// The amount of threads sharing the same semaphore and work collection.
+        /// Decreasing this value provides better performances for very frequent short work
+        /// but might create workload imbalance.
+        /// Anything above 4 leads to very high amount of contention when enqueueing and de-queueing work.
+        /// </summary>
+        private const int ThreadPerGroup = 4;
         private const int MaxIdleTimeInMS = 5000;
-        private readonly ThreadStart cachedTaskLoop;
         
-        // Inconsistent performances when more threads are trying to be woken up than there is processors
-        private readonly int maxThreadCount = Environment.ProcessorCount < 2 ? 1 : Environment.ProcessorCount - 1;
-        private int aliveCount;
+        // Cache delegate to avoid pointless allocation
+        private static readonly ParameterizedThreadStart cachedTaskLoop = ProcessWorkItems;
         
-        private readonly SemaphoreSlim semaphore = new SemaphoreSlim(0, int.MaxValue);
-        
-        private WorkNode workCollection = null;
+        private readonly ThreadGroup[] groups;
+        private int nextBucket;
         
         public ThreadPool()
         {
-            // Cache delegate to avoid pointless allocation
-            cachedTaskLoop = ProcessWorkItems;
+            // Inconsistent performances when more threads are trying to be woken up than there is processors
+            int maxTotalThreads = Environment.ProcessorCount <= 1 ? 1 : Environment.ProcessorCount - 1;
+            groups = new ThreadGroup[maxTotalThreads / ThreadPerGroup + (maxTotalThreads % ThreadPerGroup > 0 ? 1 : 0)];
+            int allocatedThreads = maxTotalThreads;
+            for( int i = 0; i < groups.Length; i++ )
+            {
+                groups[i] = new ThreadGroup(allocatedThreads < ThreadPerGroup ? allocatedThreads : ThreadPerGroup);
+                allocatedThreads -= ThreadPerGroup;
+            }
         }
 
         public void QueueWorkItem([NotNull] [Pooled] Action workItem)
         {
             PooledDelegateHelper.AddReference(workItem);
             
+            // Select next bucket to push work to, this is unbiased which might lead to
+            // some work completing later than others, expected when doing any kind of
+            // multi-threaded logic.
+            // This design is far faster when the workload is properly distributed.
+            // See 'ThreadPerGroup' for more info.
+            ThreadGroup group = groups[Interlocked.Increment(ref nextBucket) % groups.Length];
+            
             var node = new WorkNode(workItem);
-            var previousNode = Interlocked.Exchange(ref workCollection, node);
+            var previousNode = Interlocked.Exchange(ref group.WorkCollection, node);
             Interlocked.Exchange(ref node.previous, previousNode);
             Interlocked.Exchange(ref node.previousIsValid, 1);
             
-            semaphore.Release(1);
+            // Wake up / let one thread through
+            group.Semaphore.Release(1);
             
             int alive;
-            while((alive = Volatile.Read(ref aliveCount)) < maxThreadCount)
+            while((alive = Volatile.Read(ref group.AliveCount)) < group.MaxCount)
             {
-                if(Interlocked.CompareExchange(ref aliveCount, alive + 1, alive) != alive)
+                if(Interlocked.CompareExchange(ref group.AliveCount, alive + 1, alive) != alive)
                 {
                     continue; // Compare increment failed, try again
                 }
@@ -54,20 +73,21 @@ namespace Xenko.Core.Threading
                     Name = $"{GetType().FullName} thread",
                     IsBackground = true,
                     Priority = ThreadPriority.Highest
-                }.Start();
+                }.Start(group);
                 break;
             }
         }
 
-        private void ProcessWorkItems()
+        private static void ProcessWorkItems(object groupObj)
         {
+            ThreadGroup group = (ThreadGroup)groupObj;
             try
             {
                 SpinWait sw = new SpinWait();
                 while (true)
                 {
                     WorkNode n;
-                    while((n = Volatile.Read(ref workCollection)) != null)
+                    while((n = Volatile.Read(ref group.WorkCollection)) != null)
                     {
                         // Fetch latest (existing) enqueued work
                         
@@ -75,8 +95,8 @@ namespace Xenko.Core.Threading
                         {
                             // wait for 'n.previous' to be set to a valid ref
                         }
-                        
-                        if(Interlocked.CompareExchange(ref workCollection, n.previous, n) != n)
+
+                        if(Interlocked.CompareExchange(ref group.WorkCollection, n.previous, n) != n)
                         {
                             continue; // Failed to remove this work from the collection as it wasn't the latest, try again
                         }
@@ -96,13 +116,15 @@ namespace Xenko.Core.Threading
 
                     if(sw.NextSpinWillYield)
                     {
-                        // Go back to system once we spun for long enough and wait for another work item to be (potentially) available
-                        if (semaphore.Wait(MaxIdleTimeInMS) == false)
+                        // Go back to system once we spun for long enough
+                        
+                        // Wait for another work item to be (potentially) available
+                        if (group.Semaphore.Wait(MaxIdleTimeInMS) == false)
                         {
-                            // No work given in the last MaxIdleTimeTS, close this thread
+                            // No work given in the given time, close this thread
                             return;
                         }
-                        // We received work, loop back and reset amount of spins required before yielding
+                        // We received work, loop back and reset amount of spins required before returning to system
                         sw = new SpinWait();
                     }
                     else
@@ -114,7 +136,7 @@ namespace Xenko.Core.Threading
             }
             finally
             {
-                Interlocked.Decrement(ref aliveCount);
+                Interlocked.Decrement(ref group.AliveCount);
             }
         }
         
@@ -124,9 +146,21 @@ namespace Xenko.Core.Threading
             public WorkNode previous;
             public int previousIsValid;
             
-            public WorkNode( Action workParam )
+            public WorkNode(Action workParam)
             {
                 work = workParam;
+            }
+        }
+        
+        class ThreadGroup
+        {
+            public readonly int MaxCount;
+            public int AliveCount;
+            public readonly SemaphoreSlim Semaphore = new SemaphoreSlim(0, int.MaxValue);
+            public WorkNode WorkCollection = null;
+            public ThreadGroup(int maxCountParameter)
+            {
+                MaxCount = maxCountParameter;
             }
         }
     }
