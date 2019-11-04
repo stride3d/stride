@@ -50,7 +50,7 @@ namespace Xenko.Core.Threading
             // multi-threaded logic.
             // This design is far faster when the workload is properly distributed.
             // See 'ThreadPerGroup' for more info.
-            ThreadGroup group = groups[Interlocked.Increment(ref nextBucket) % groups.Length];
+            ThreadGroup group = groups[unchecked((uint)Interlocked.Increment(ref nextBucket)) % groups.Length];
             
             var node = new WorkNode(workItem);
             var previousNode = Interlocked.Exchange(ref group.WorkCollection, node);
