@@ -310,16 +310,16 @@ namespace Xenko.Assets.Navigation
                                             if (desc.GetType() == typeof(HeightfieldColliderShapeDesc))
                                             {
                                                 var heightfieldDesc = ((HeightfieldColliderShapeDesc)desc);
-                                                if (heightfieldDesc.InitialHeights?.GetSource() != null)
+                                                if (heightfieldDesc.InitialHeights != null)
                                                 {
-                                                    var assetReference = AttachedReferenceManager.GetAttachedReference(heightfieldDesc.InitialHeights.GetSource());
+                                                    var assetReference = AttachedReferenceManager.GetAttachedReference(heightfieldDesc.InitialHeights);
                                                     object loadedHeightfieldInitialData;
                                                     if (!loadedHeightfieldInitialDatas.TryGetValue(assetReference.Url, out loadedHeightfieldInitialData))
                                                     {
-                                                        loadedHeightfieldInitialData = contentManager.Load(heightfieldDesc.InitialHeights.GetSourceType(), assetReference.Url);
+                                                        loadedHeightfieldInitialData = contentManager.Load(typeof(Heightmap), assetReference.Url);
                                                         loadedHeightfieldInitialDatas.Add(assetReference.Url, loadedHeightfieldInitialData);
                                                     }
-                                                    heightfieldDesc.InitialHeights.SetSource(loadedHeightfieldInitialData);
+                                                    heightfieldDesc.InitialHeights = loadedHeightfieldInitialData as Heightmap;
                                                 }
                                             }
                                         }

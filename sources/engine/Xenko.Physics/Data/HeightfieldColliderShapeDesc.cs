@@ -17,7 +17,7 @@ namespace Xenko.Physics
     {
         [DataMember(10)]
         [NotNull]
-        public IHeightfieldInitialHeights InitialHeights { get; set; }
+        public Heightmap InitialHeights { get; set; }
 
         [DataMember(30)]
         public HeightfieldTypes HeightfieldType;
@@ -43,7 +43,7 @@ namespace Xenko.Physics
 
         public HeightfieldColliderShapeDesc()
         {
-            InitialHeights = new HeightfieldSourceHeightmap();
+            InitialHeights = new Heightmap();
             HeightfieldType = HeightfieldTypes.Float;
             HeightStickSize = new Int2(64, 64);
             HeightRange = new Vector2(-10, 10);
@@ -69,10 +69,7 @@ namespace Xenko.Physics
 
             var heightScaleComparison = (other.HeightScale.Enabled && HeightScale.Enabled) ? Math.Abs(other.HeightScale.Scale - HeightScale.Scale) < float.Epsilon : other.HeightScale.Enabled == HeightScale.Enabled;
 
-            var initialHeightsComparison = (other.InitialHeights == InitialHeights) ||
-                ((other.InitialHeights != null && InitialHeights != null) &&
-                other.InitialHeights.GetType() == InitialHeights.GetType() &&
-                other.InitialHeights.GetSource() == InitialHeights.GetSource());
+            var initialHeightsComparison = (other.InitialHeights == InitialHeights);
 
             return initialHeightsComparison &&
                 other.HeightfieldType == HeightfieldType &&
@@ -133,17 +130,17 @@ namespace Xenko.Physics
                 {
                     case HeightfieldTypes.Float:
                     {
-                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.GetHeights<float>());
+                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Floats?.ToArray());
                         break;
                     }
                     case HeightfieldTypes.Short:
                     {
-                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.GetHeights<short>());
+                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Shorts?.ToArray());
                         break;
                     }
                     case HeightfieldTypes.Byte:
                     {
-                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.GetHeights<byte>());
+                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Bytes?.ToArray());
                         break;
                     }
 
