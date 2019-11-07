@@ -466,7 +466,10 @@ namespace Xenko.Navigation
                 }
 
                 // Make sure shape is up to date
-                colliderData.Component.ComposeShape();
+                if (!NavigationMeshBuildUtils.HasLatestColliderShape(colliderData.Component))
+                {
+                    colliderData.Component.ComposeShape();
+                }
 
                 // Interate through all the colliders shapes while queueing all shapes in compound shapes to process those as well
                 Queue<ColliderShape> shapesToProcess = new Queue<ColliderShape>();

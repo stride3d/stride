@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Xenko.Core.Mathematics;
+using Xenko.Engine;
 using Xenko.Physics;
 
 namespace Xenko.Navigation
@@ -162,6 +163,50 @@ namespace Xenko.Navigation
                 hash = (hash * 397) ^ shape.GetHashCode();
             }
             return hash;
+        }
+
+        /// <summary>
+        /// Checks if a static collider has latest collider shape
+        /// </summary>
+        /// <param name="collider">The collider to check</param>
+        /// <returns><c>true</c> if the collider has latest collider shape, <c>false</c> otherwise</returns>
+        public static bool HasLatestColliderShape(StaticColliderComponent collider)
+        {
+            if (collider.ColliderShape == null)
+            {
+                return false;
+            }
+            else
+            {
+                if (collider.ColliderShapes.Count == 1)
+                {
+                    if (!collider.ColliderShapes[0].Match(collider.ColliderShape.Description))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    var compound = collider.ColliderShape as CompoundColliderShape;
+                    var descriptions = collider.ColliderShape?.Description as PhysicsComponent.ColliderShapeCollection;
+                    if ((compound == null) || (descriptions == null) || (descriptions.Count != collider.ColliderShapes.Count))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < compound.Count; ++i)
+                        {
+                            if (!compound[i].Description.Match(collider.ColliderShapes[i]))
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }
