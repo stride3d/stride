@@ -33,11 +33,9 @@ namespace Xenko.Core.Assets.Editor.View.ValueConverters
             if (asset == null)
                 return null;
 
-            //Using the generic type so it works in both situtations.
-            var contentType = AssetRegistry.GetContentType(asset.AssetType);
-            var urlReferenceType = contentType == null ? typeof(UrlReference) : typeof(UrlReference<>).MakeGenericType(contentType);
+            var urlReferenceType = UrlReferenceHelper.CreateReferenceType(asset.AssetType);            
 
-            return Activator.CreateInstance(urlReferenceType, asset.Id, url);
+            return UrlReferenceHelper.CreateReference(asset, urlReferenceType);
         }
     }
 }

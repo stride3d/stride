@@ -24,7 +24,7 @@ namespace Xenko.Core.Assets.Serializers
         {
             if (!TryParse(fromScalar.Value, context.Descriptor.Type, out UrlReference urlReference))
             {
-                throw new YamlException(fromScalar.Start, fromScalar.End, "Unable to decode url reference [{0}]. Expecting format GUID:LOCATION".ToFormat(fromScalar.Value));
+                throw new YamlException(fromScalar.Start, fromScalar.End, "Unable to decode url reference [{0}]. Expecting format LOCATION".ToFormat(fromScalar.Value));
             }
             return urlReference;
         }
@@ -95,15 +95,8 @@ namespace Xenko.Core.Assets.Serializers
             {
                 throw new ArgumentException("Not a UrlReference type.", nameof(urlReferenceType));
             }
-
-            urlReference = null;
-            AssetId assetId;
-            string url;
-            if (!TryParse(urlReferenceText, out assetId, out url))
-            {
-                return false;
-            }
-            urlReference = (UrlReference)Activator.CreateInstance(urlReferenceType, assetId, url);
+            
+            urlReference = (UrlReference)Activator.CreateInstance(urlReferenceType, urlReferenceText);
             return true;
         }
     }

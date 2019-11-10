@@ -16,15 +16,13 @@ namespace Xenko.Core.Serialization.Serialization.Serializers
         {
             if (mode == ArchiveMode.Serialize)
             {
-                stream.Write(urlReference.Id);
                 stream.Write(urlReference.Url);
             }
             else
             {
-                var id = stream.Read<AssetId>();
                 var url = stream.ReadString();
 
-                urlReference = new UrlReference(id, url);
+                urlReference = new UrlReference(url);
             }
         }
     }
@@ -41,15 +39,13 @@ namespace Xenko.Core.Serialization.Serialization.Serializers
         {
             if (mode == ArchiveMode.Serialize)
             {
-                stream.Write(urlReference.Id);
                 stream.Write(urlReference.Url);
             }
             else
             {
-                var id = stream.Read<AssetId>();
                 var url = stream.ReadString();
 
-                urlReference = new UrlReference<T>(id, url);
+                urlReference = new UrlReference<T>(url);
             }
         }
     }

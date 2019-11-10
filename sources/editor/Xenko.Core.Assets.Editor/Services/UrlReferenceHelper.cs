@@ -25,6 +25,26 @@ namespace Xenko.Core.Assets.Editor.Services
         }
 
         /// <summary>
+        /// Creates a url reference type to the given asset that matches the given asset type.
+        /// </summary>
+        /// <param name="assetType">The type of asset.</param>
+        /// <returns>A <see cref="Type"/> of a <see cref="UrlReference"/>.</returns>
+        /// <remarks>A reference type is either an <see cref="UrlReference"/> or a <see cref="UrlReference{T}"/>.</remarks>
+        public static Type CreateReferenceType(Type assetType)
+        {
+            if (assetType is null)
+            {
+                throw new ArgumentNullException(nameof(assetType));
+            }
+
+            //Using the generic type so it works in both situtations.
+            var contentType = AssetRegistry.GetContentType(assetType);
+            var urlReferenceType = contentType == null ? typeof(UrlReference) : GenericType.MakeGenericType(contentType);
+
+            return urlReferenceType;
+        }
+
+        /// <summary>
         /// Creates a url reference to the given asset that matches the given reference type.
         /// </summary>
         /// <param name="asset">The target asset of the reference url to create.</param>
@@ -35,7 +55,14 @@ namespace Xenko.Core.Assets.Editor.Services
         {
             if (asset != null && IsUrlReferenceType(referenceType))
             {
-                return Activator.CreateInstance(referenceType, asset.Id, asset.Url);
+                var urlReference = Activator.CreateInstance(referenceType, asset.Url);
+
+                var attachedReference = AttachedReferenceManager.GetOrCreateAttachedReference(urlReference);
+                attachedReference.Id = asset.Id;
+                attachedReference.Url = asset.Url;
+                attachedReference.IsProxy = true;
+
+                return urlReference;
             }
 
             return null;
@@ -85,7 +112,11 @@ namespace Xenko.Core.Assets.Editor.Services
         {
             if (source is UrlReference urlReference)
             {
-                return session.GetAssetById(urlReference.Id);
+                var attachedReference = AttachedReferenceManager.GetAttachedReference(source);
+                if( attachedReference != null)
+                {
+                    return session.GetAssetById(attachedReference.Id);
+                }
             }
 
             return null;

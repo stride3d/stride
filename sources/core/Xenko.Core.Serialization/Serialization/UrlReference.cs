@@ -22,28 +22,24 @@ namespace Xenko.Core.Serialization
         /// Create a new <see cref="UrlReference"/> instance.
         /// </summary>
         /// <param name="url"></param>
-        public UrlReference(AssetId id, string url)
+        public UrlReference(string url)
         {
             if (string.IsNullOrWhiteSpace(url))
             {
                 throw new ArgumentException($"{nameof(url)} cannot be null or empty.", nameof(url));
             }
 
-            Id = id;
             Url = url;
         }
 
         [DataMember(10)]
-        public AssetId Id { get; }
-
-        [DataMember(20)]
         public string Url { get; }
 
         /// <inheritdoc/>
         public override string ToString()
         {
             // WARNING: This should not be modified as it is used for serializing
-            return $"{Id}:{Url}";
+            return $"{Url}";
         }
 
       
@@ -62,7 +58,7 @@ namespace Xenko.Core.Serialization
         /// Create a new <see cref="UrlReference{T}"/> instance.
         /// </summary>
         /// <param name="url"></param>
-        public UrlReference(AssetId id, string url) : base(id, url)
+        public UrlReference(string url) : base(url)
         {
         }
 
