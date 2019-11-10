@@ -12,156 +12,199 @@ namespace Xenko.Core.Threading
     internal class ThreadPool
     {
         public static readonly ThreadPool Instance = new ThreadPool();
+		private readonly ParameterizedThreadStart cachedTaskLoop;
         
-        /// <summary>
-        /// The amount of threads sharing the same semaphore and work collection.
-        /// Decreasing this value provides better performances for very frequent short work
-        /// but might create workload imbalance.
-        /// Anything above 4 leads to very high amount of contention when enqueueing and de-queueing work.
-        /// </summary>
-        private const int ThreadPerGroup = 4;
-        private const int MaxIdleTimeInMS = 5000;
-        
-        // Cache delegate to avoid pointless allocation
-        private static readonly ParameterizedThreadStart cachedTaskLoop = ProcessWorkItems;
-        
-        private readonly ThreadGroup[] groups;
-        private int nextBucket;
-        
-        public ThreadPool()
-        {
-            // Inconsistent performances when more threads are trying to be woken up than there is processors
-            int maxTotalThreads = Environment.ProcessorCount <= 1 ? 1 : Environment.ProcessorCount - 1;
-            groups = new ThreadGroup[maxTotalThreads / ThreadPerGroup + (maxTotalThreads % ThreadPerGroup > 0 ? 1 : 0)];
-            int allocatedThreads = maxTotalThreads;
-            for( int i = 0; i < groups.Length; i++ )
-            {
-                groups[i] = new ThreadGroup(allocatedThreads < ThreadPerGroup ? allocatedThreads : ThreadPerGroup);
-                allocatedThreads -= ThreadPerGroup;
-            }
-        }
+		/// <summary>
+		/// Linked-list like collection of threads that are waiting for work.
+		/// Low contention for pool threads.
+		/// </summary>
+		private volatile LinkedIdleThread idleThreads;
+		/// <summary>
+		/// Linked-list like collection of work that can be
+		/// de-queued from any thread when they are done working.
+		/// High contention for pool threads.
+		/// </summary>
+		private volatile LinkedWork sharedWorkStack;
+		
+		public ThreadPool()
+		{
+			// Cache delegate to avoid pointless allocation
+			cachedTaskLoop = ProcessWorkItems;
+			// Inconsistent performances when more threads are trying to be woken up than there is processors
+			int maxThreads = (Environment.ProcessorCount < 2) ? 1 : (Environment.ProcessorCount - 1);
+			for( int i = 0; i < maxThreads; i++ )
+			{
+				NewThread(null);
+			}
+		}
+		
+		void NewThread(LinkedIdleThread node)
+		{
+			new Thread(cachedTaskLoop)
+			{
+				Name = $"{GetType().FullName} thread",
+				IsBackground = true,
+				Priority = ThreadPriority.Highest
+			}.Start(node);
+		}
+		
+		public void QueueWorkItem([NotNull, Pooled] Action workItem)
+		{
+			// Throw right here to help debugging
+			if(workItem == null)
+			{
+				throw new NullReferenceException(nameof(workItem));
+			}
+			
+			PooledDelegateHelper.AddReference(workItem);
 
-        public void QueueWorkItem([NotNull] [Pooled] Action workItem)
-        {
-            PooledDelegateHelper.AddReference(workItem);
-            
-            // Select next bucket to push work to, this is unbiased which might lead to
-            // some work completing later than others, expected when doing any kind of
-            // multi-threaded logic.
-            // This design is far faster when the workload is properly distributed.
-            // See 'ThreadPerGroup' for more info.
-            ThreadGroup group = groups[unchecked((uint)Interlocked.Increment(ref nextBucket)) % groups.Length];
-            
-            var node = new WorkNode(workItem);
-            var previousNode = Interlocked.Exchange(ref group.WorkCollection, node);
-            Interlocked.Exchange(ref node.previous, previousNode);
-            Interlocked.Exchange(ref node.previousIsValid, 1);
-            
-            // Wake up / let one thread through
-            group.Semaphore.Release(1);
-            
-            int alive;
-            while((alive = Volatile.Read(ref group.AliveCount)) < group.MaxCount)
-            {
-                if(Interlocked.CompareExchange(ref group.AliveCount, alive + 1, alive) != alive)
-                {
-                    continue; // Compare increment failed, try again
-                }
-                // Spawn/re-spawn one thread per job until we reach max
-                new Thread(cachedTaskLoop)
-                {
-                    Name = $"{GetType().FullName} thread",
-                    IsBackground = true,
-                    Priority = ThreadPriority.Highest
-                }.Start(group);
-                break;
-            }
-        }
+			LinkedWork newSharedNode = null;
+			while(true)
+			{
+				// Are all threads busy ?
+				LinkedIdleThread node = idleThreads;
+				if(node == null)
+				{
+					if(newSharedNode == null)
+					{
+						newSharedNode = new LinkedWork(workItem);
+						if(idleThreads != null)
+							continue;
+					}
 
-        private static void ProcessWorkItems(object groupObj)
-        {
-            ThreadGroup group = (ThreadGroup)groupObj;
-            try
-            {
-                SpinWait sw = new SpinWait();
-                while (true)
-                {
-                    WorkNode n;
-                    while((n = Volatile.Read(ref group.WorkCollection)) != null)
-                    {
-                        // Fetch latest (existing) enqueued work
-                        
-                        while(Volatile.Read(ref n.previousIsValid) != 1)
-                        {
-                            // wait for 'n.previous' to be set to a valid ref
-                        }
+					// Schedule it on the shared stack
+					newSharedNode.Previous = Interlocked.Exchange(ref sharedWorkStack, newSharedNode);
+					newSharedNode.PreviousIsValid = true;
+					break;
+				}
+				// Schedule this work item on latest idle thread
+				
+				while(node.PreviousIsValid == false)
+				{
+					// Spin while invalid, should be extremely short
+				}
 
-                        if(Interlocked.CompareExchange(ref group.WorkCollection, n.previous, n) != n)
-                        {
-                            continue; // Failed to remove this work from the collection as it wasn't the latest, try again
-                        }
-                        
-                        // Work removed from the collection, process it
-                        try
-                        {
-                            n.work();
-                        }
-                        // Let exceptions fall into unhandled as we don't have any
-                        // good mechanisms to pass it elegantly over to user-land yet
-                        finally
-                        {
-                            PooledDelegateHelper.Release(n.work);
-                        }
-                    }
+				// Try take this thread
+				if(Interlocked.CompareExchange(ref idleThreads, node.Previous, node) != node)
+					continue; // Latest idle threads changed, try again
+				
+				// Wakeup thread and schedule work
+				// The order those two lines are laid out in is essential !
+				Interlocked.Exchange(ref node.Work, workItem);
+				node.MRE.Set();
+				break;
+			}
+		}
 
-                    if(sw.NextSpinWillYield)
-                    {
-                        // Go back to system once we spun for long enough
-                        
-                        // Wait for another work item to be (potentially) available
-                        if (group.Semaphore.Wait(MaxIdleTimeInMS) == false)
-                        {
-                            // No work given in the given time, close this thread
-                            return;
-                        }
-                        // We received work, loop back and reset amount of spins required before returning to system
-                        sw = new SpinWait();
-                    }
-                    else
-                    {
-                        // Spin a bunch to catch potential incoming work
-                        sw.SpinOnce();
-                    }
-                }
-            }
-            finally
-            {
-                Interlocked.Decrement(ref group.AliveCount);
-            }
-        }
-        
-        class WorkNode
-        {
-            public Action work;
-            public WorkNode previous;
-            public int previousIsValid;
-            
-            public WorkNode(Action workParam)
-            {
-                work = workParam;
-            }
-        }
-        
-        class ThreadGroup
-        {
-            public readonly int MaxCount;
-            public int AliveCount;
-            public readonly SemaphoreSlim Semaphore = new SemaphoreSlim(0, int.MaxValue);
-            public WorkNode WorkCollection = null;
-            public ThreadGroup(int maxCountParameter)
-            {
-                MaxCount = maxCountParameter;
-            }
-        }
+		private void ProcessWorkItems(object nodeObj)
+		{
+			// nodeObj is non-null when a thread caught an exception and had to throw,
+			// the thread created another one and passed its node obj to us.
+			LinkedIdleThread node = nodeObj == null ? new LinkedIdleThread(new ManualResetEventSlim(true)) : (LinkedIdleThread)nodeObj;
+			try
+			{
+				while(true)
+				{
+					// Should we notify system that this thread is ready to work?
+					// This has to also work for when a thread takes the place of another one when restoring
+					// from an exception for example.
+					// If the mre was set and we took the work, this node definitely is dequeued, re-queue it 
+					if(node.MRE.IsSet && Volatile.Read(ref node.Work) == null)
+					{
+						// Notify that we're waiting for work
+						node.MRE.Reset();
+						node.PreviousIsValid = false;
+						node.Previous = Interlocked.Exchange(ref idleThreads, node);
+						node.PreviousIsValid = true;
+					}
+					
+					// Wait for work
+					SpinWait sw = new SpinWait();
+					Action action;
+					while (true)
+					{
+						if(node.MRE.IsSet)
+						{
+							// Work has been scheduled for this thread specifically, take it
+							action = Interlocked.Exchange(ref node.Work, null);
+							break;
+						}
+						else if(sharedWorkStack != null)
+						{
+							// Take from the shared stack as there are items queued-up
+							LinkedWork nodeToProcess;
+							while((nodeToProcess = sharedWorkStack) != null)
+							{
+								while(nodeToProcess.PreviousIsValid == false)
+								{
+									// Spin while invalid, should be extremely short
+								}
+
+								if(Interlocked.CompareExchange(ref sharedWorkStack, nodeToProcess.Previous, nodeToProcess) != nodeToProcess)
+								{
+									nodeToProcess = null;
+									break; // Shared queue state changed, try again
+								}
+
+								break; // We successfully dequeued this node from the shared stack, continue below
+							}
+
+							if(nodeToProcess != null)
+							{
+								// Process this shared work
+								action = nodeToProcess.Work;
+								break;
+							}
+						}
+						
+						// Wait for work
+						if (sw.NextSpinWillYield)
+							node.MRE.Wait();
+						else
+							sw.SpinOnce();
+					}
+					
+					try
+					{
+						action();
+					}
+					finally
+					{
+						PooledDelegateHelper.Release(action);
+					}
+				}
+			}
+			finally
+			{
+				// We must keep up the amount of threads that the system handles.
+				// Spawn a new one as this one is about to abort because of an exception. 
+				NewThread(node);
+			}
+		}
+
+		private class LinkedIdleThread
+		{
+			public Action Work;
+			public readonly ManualResetEventSlim MRE;
+			public volatile LinkedIdleThread Previous;
+			public volatile bool PreviousIsValid;
+			
+			public LinkedIdleThread(ManualResetEventSlim MREParam)
+			{
+				MRE = MREParam;
+			}
+		}
+		
+		private class LinkedWork
+		{
+			public readonly Action Work;
+			public volatile LinkedWork Previous;
+			public volatile bool PreviousIsValid;
+			
+			public LinkedWork(Action workParam)
+			{
+				Work = workParam;
+			}
+		}
     }
 }
