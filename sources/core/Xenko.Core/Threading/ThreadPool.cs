@@ -105,63 +105,62 @@ namespace Xenko.Core.Threading
 			{
 				while(true)
 				{
-					// Should we notify system that this thread is ready to work?
-					// This has to also work for when a thread takes the place of another one when restoring
-					// from an exception for example.
-					// If the mre was set and we took the work, this node definitely is dequeued, re-queue it 
-					if(node.MRE.IsSet && Volatile.Read(ref node.Work) == null)
-					{
-						// Notify that we're waiting for work
-						node.MRE.Reset();
-						node.PreviousIsValid = false;
-						node.Previous = Interlocked.Exchange(ref idleThreads, node);
-						node.PreviousIsValid = true;
-					}
-					
-					// Wait for work
-					SpinWait sw = new SpinWait();
 					Action action;
-					while (true)
+					LinkedWork workNode = sharedWorkStack;
+					if(workNode != null)
 					{
-						if(node.MRE.IsSet)
+						if(TryTakeFromSharedNonBlocking(out var tempAction, workNode))
 						{
-							// Work has been scheduled for this thread specifically, take it
-							action = Interlocked.Exchange(ref node.Work, null);
-							break;
+							action = tempAction;
 						}
-						else if(sharedWorkStack != null)
+						else
 						{
-							// Take from the shared stack as there are items queued-up
-							LinkedWork nodeToProcess;
-							while((nodeToProcess = sharedWorkStack) != null)
+							// We have shared work to do but failed to retrieve it, try again
+							continue;
+						}
+					}
+					else
+					{
+						// Should we notify system that this thread is ready to work?
+						// This has to also work for when a thread takes the place of another one when restoring
+						// from an exception for example.
+						// If the mre was set and we took the work, this node definitely is dequeued, re-queue it 
+						if(node.MRE.IsSet && Volatile.Read(ref node.Work) == null)
+						{
+							// Notify that we're waiting for work
+							node.MRE.Reset();
+							node.PreviousIsValid = false;
+							node.Previous = Interlocked.Exchange(ref idleThreads, node);
+							node.PreviousIsValid = true;
+						}
+					
+						// Wait for work
+						SpinWait sw = new SpinWait();
+						while (true)
+						{
+							if(node.MRE.IsSet)
 							{
-								while(nodeToProcess.PreviousIsValid == false)
-								{
-									// Spin while invalid, should be extremely short
-								}
-
-								if(Interlocked.CompareExchange(ref sharedWorkStack, nodeToProcess.Previous, nodeToProcess) != nodeToProcess)
-								{
-									nodeToProcess = null;
-									break; // Shared queue state changed, try again
-								}
-
-								break; // We successfully dequeued this node from the shared stack, continue below
-							}
-
-							if(nodeToProcess != null)
-							{
-								// Process this shared work
-								action = nodeToProcess.Work;
+								// Work has been scheduled for this thread specifically, take it
+								action = Interlocked.Exchange(ref node.Work, null);
 								break;
 							}
-						}
+							if(TryTakeFromSharedNonBlocking(out var tempAction, sharedWorkStack))
+							{
+								action = tempAction; 
+								break; // We successfully dequeued this node from the shared stack, quit loop and process action
+							}
 						
-						// Wait for work
-						if (sw.NextSpinWillYield)
-							node.MRE.Wait();
-						else
+							// Wait for work
+							if (sw.NextSpinWillYield)
+							{
+								// Wait for work to be scheduled specifically to this thread
+								node.MRE.Wait();
+								action = Interlocked.Exchange(ref node.Work, null);
+								break;
+							}
+						
 							sw.SpinOnce();
+						}
 					}
 					
 					try
@@ -180,6 +179,31 @@ namespace Xenko.Core.Threading
 				// Spawn a new one as this one is about to abort because of an exception. 
 				NewThread(node);
 			}
+		}
+		
+		/// <summary>
+		/// Attempt to remove the latest action scheduled on the shared stack,
+		/// returns work only if there was any work AND the item was successfully
+		/// removed from the stack without having to block.
+		/// </summary>
+		bool TryTakeFromSharedNonBlocking(out Action a, LinkedWork nodeToProcess)
+		{
+			if(nodeToProcess != null)
+			{
+				while(nodeToProcess.PreviousIsValid == false)
+				{
+					// Spin while invalid, should be extremely short
+				}
+
+				if(Interlocked.CompareExchange(ref sharedWorkStack, nodeToProcess.Previous, nodeToProcess) == nodeToProcess)
+				{
+					a = nodeToProcess.Work;
+					return true;
+				}
+			}
+
+			a = null;
+			return false;
 		}
 
 		private class LinkedIdleThread
