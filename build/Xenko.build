@@ -110,10 +110,10 @@ Example of use:
     <MSBuild Targets="Build" Projects="$(XenkoRoot)deps\Xenko.GitVersioning\Xenko.GitVersioning.csproj"/>
     
     <!-- Create SharedAssemblyInfo.NuGet.cs with Git information (different between official build and internal builds) -->
-    <GenerateVersionFile Condition="'$(XenkoOfficialBuild)' == 'true'" RootDirectory="$(XenkoRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersionGitCommit="true">
+    <GenerateVersionFile Condition="'$(XenkoOfficialBuild)' == 'true'" RootDirectory="$(XenkoRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" NuGetVersionSuffixOverride="" SpecialVersionGitCommit="true">
       <Output TaskParameter="NuGetVersion" PropertyName="XenkoPackageVersion"/>
     </GenerateVersionFile>
-    <GenerateVersionFile Condition="'$(XenkoOfficialBuild)' != 'true'" RootDirectory="$(XenkoRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersion="-" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true">
+    <GenerateVersionFile Condition="'$(XenkoOfficialBuild)' != 'true'" RootDirectory="$(XenkoRoot)" VersionFile="sources\shared\SharedAssemblyInfo.cs" GeneratedVersionFile="sources\shared\SharedAssemblyInfo.NuGet.cs" SpecialVersionGitHeight="true" SpecialVersionGitCommit="true">
       <Output TaskParameter="NuGetVersion" PropertyName="XenkoPackageVersion"/>
     </GenerateVersionFile>
 
