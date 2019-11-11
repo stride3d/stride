@@ -67,6 +67,10 @@
 
     <TargetFrameworks>$(XenkoRuntimeTargetFrameworks)</TargetFrameworks>
     <RuntimeIdentifiers Condition="'$(XenkoRuntimeIdentifiers)' != ''">$(XenkoRuntimeIdentifiers)</RuntimeIdentifiers>
+	
+    <!-- docfx doesn't like if there is no TargetFramework/RuntimeIdentifier set by default -->
+    <TargetFramework Condition="'$(XenkoBuildDoc)' == 'true' And '$(TargetFramework)' == ''">$(TargetFrameworks.Split(';', StringSplitOptions.RemoveEmptyEntries)[0])</TargetFramework>
+    <RuntimeIdentifier Condition="'$(XenkoBuildDoc)' == 'true' And '$(RuntimeIdentifier)' == ''">$(XenkoRuntimeIdentifier)</RuntimeIdentifier>
 
     <ExtrasBuildEachRuntimeIdentifier Condition="'$(RuntimeIdentifiers)' != ''">true</ExtrasBuildEachRuntimeIdentifier>
 
