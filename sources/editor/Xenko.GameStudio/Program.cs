@@ -401,6 +401,9 @@ namespace Xenko.GameStudio
                 case SupportedLanguage.Italian:
                     TranslationManager.Instance.CurrentLanguage = new CultureInfo("it-IT");
                     break;
+                case SupportedLanguage.Korean:
+                    TranslationManager.Instance.CurrentLanguage = new CultureInfo("ko-KO");
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
