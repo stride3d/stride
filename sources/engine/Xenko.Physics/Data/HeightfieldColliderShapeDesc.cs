@@ -43,7 +43,7 @@ namespace Xenko.Physics
 
         public HeightfieldColliderShapeDesc()
         {
-            InitialHeights = new Heightmap();
+            InitialHeights = null;
             HeightfieldType = HeightfieldTypes.Float;
             HeightStickSize = new Int2(64, 64);
             HeightRange = new Vector2(-10, 10);
