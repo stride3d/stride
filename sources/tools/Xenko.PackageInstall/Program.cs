@@ -99,6 +99,16 @@ namespace Xenko.PackageInstall
             return result == DialogResult.Yes;
         }
 
+        private static bool DialogBoxTryAgainVS(string programName, Process process)
+        {
+            var additionalErrors = string.Join(Environment.NewLine, FindVisualStudioInstallerErrors());
+            if (additionalErrors.Length > 0)
+                additionalErrors = "\r\n\r\nAdditional details from log files:\r\n\r\n" + additionalErrors;
+
+            var result = MessageBox.Show($"The installation of {programName} returned with code {process.ExitCode}.\r\nDo you want to try it again?{additionalErrors}", "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            return result == DialogResult.Yes;
+        }
+
         private static void CheckVisualStudioAndBuildTools()
         {
             // Check if there is any VS2019 installed with necessary workloads
@@ -117,7 +127,7 @@ namespace Xenko.PackageInstall
                 {
                     // First, make sure installer is up to date
                     {
-                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio Installer", "vs_Setup.exe", "--update --wait --passive", DialogBoxTryAgain);
+                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio Installer", "vs_Setup.exe", "--update --wait --passive", DialogBoxTryAgainVS);
                         if (vsInstallerExitCode != 0)
                         {
                             var errorMessage = $"Visual Studio Installer update failed with error {vsInstallerExitCode}";
@@ -134,7 +144,7 @@ namespace Xenko.PackageInstall
                         try
                         {
                             Console.CancelKeyPress += Console_IgnoreControlC;
-                            var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\"", DialogBoxTryAgain);
+                            var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"update --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\"", DialogBoxTryAgainVS);
                             if (vsInstallerExitCode != 0)
                             {
                                 var errorMessage = $"Visual Studio 2019 update failed with error {vsInstallerExitCode}";
@@ -150,7 +160,7 @@ namespace Xenko.PackageInstall
 
                     // Third, check workloads
                     {
-                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x}"))}", DialogBoxTryAgain);
+                        var vsInstallerExitCode = RunProgramAndAskUntilSuccess("Visual Studio", vsInstallerPath, $"modify --passive --norestart --installPath \"{existingVisualStudio2019Install.InstallationPath}\" {string.Join(" ", NecessaryVS2019Workloads.Select(x => $"--add {x}"))}", DialogBoxTryAgainVS);
                         if (vsInstallerExitCode != 0)
                         {
                             var errorMessage = $"Visual Studio 2019 install failed with error {vsInstallerExitCode}";
@@ -189,10 +199,43 @@ namespace Xenko.PackageInstall
                     if (buildToolsCommandLine != null)
                     {
                         // Run vs_buildtools again
-                        RunProgramAndAskUntilSuccess("Build Tools", "vs_buildtools.exe", buildToolsCommandLine, DialogBoxTryAgain);
+                        RunProgramAndAskUntilSuccess("Build Tools", "vs_buildtools.exe", buildToolsCommandLine, DialogBoxTryAgainVS);
                     }
                 }
             }
+        }
+
+        private static string[] FindVisualStudioInstallerErrors()
+        {
+            var results = new List<string>();
+            var processStartTime = Process.GetCurrentProcess().StartTime;
+
+            // Find all the %TEMP%\dd_*.log files created after this program started
+            var tempFiles = Directory.GetFiles(Path.GetTempPath(), "dd_*.log");
+            foreach (var tempFile in tempFiles)
+            {
+                try
+                {
+                    var fi = new FileInfo(tempFile);
+                    if (fi.LastWriteTime >= processStartTime)
+                    {
+                        var tempFileLines = File.ReadAllLines(tempFile);
+                        foreach (var tempFileLine in tempFileLines)
+                        {
+                            if ((fi.Name.StartsWith("dd_client_") && tempFileLine.Contains(": Error :")) // dd_client
+                                || (fi.Name.StartsWith("dd_setup_") && fi.Name.EndsWith("_errors.log"))) // dd_setup_*_errors
+                            {
+                                results.Add(tempFileLine);
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // Ignore errors
+                }
+            }
+            return results.ToArray();
         }
 
         private static void Console_IgnoreControlC(object sender, ConsoleCancelEventArgs e)
