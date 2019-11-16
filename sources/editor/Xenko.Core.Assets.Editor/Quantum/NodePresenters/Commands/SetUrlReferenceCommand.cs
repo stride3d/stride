@@ -40,7 +40,7 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc />
         public override bool CanAttach(INodePresenter nodePresenter)
         {
-            return UrlReferenceHelper.ContainsUrlReferenceType(nodePresenter.Descriptor);
+            return UrlReferenceEditorHelper.ContainsUrlReferenceType(nodePresenter.Descriptor);
         }
 
         /// <inheritdoc />
@@ -63,7 +63,7 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <returns>A content reference corresponding to the given asset.</returns>
         protected virtual object CreateReference(AssetViewModel asset, Type referenceType)
         {
-            return UrlReferenceHelper.CreateReference(asset, referenceType);
+            return UrlReferenceEditorHelper.CreateReference(asset, referenceType);
         }
     }
 }

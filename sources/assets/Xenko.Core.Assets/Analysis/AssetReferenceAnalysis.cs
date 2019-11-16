@@ -118,7 +118,7 @@ namespace Xenko.Core.Assets.Analysis
                     AddLink(attachedReference,
                         (guid, location) =>
                         {
-                            object newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ElementType, guid.Value, location) : null;
+                            object newValue = CreateUrlReferenceOrProxyObject(guid, location, descriptor.ElementType);
                             array.SetValue(newValue, index);
                             return newValue;
                         });
@@ -168,7 +168,7 @@ namespace Xenko.Core.Assets.Analysis
                 {
                     AddLink(attachedReference, (guid, location) =>
                     {
-                        var link = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ElementType, guid.Value, location) : null;
+                        var link = CreateUrlReferenceOrProxyObject(guid, location, descriptor.ElementType);
                         descriptor.SetValue(collection, index, link);
                         return link;
                     });
@@ -213,7 +213,7 @@ namespace Xenko.Core.Assets.Analysis
                     AddLink(attachedReference,
                         (guid, location) =>
                         {
-                            object newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(descriptor.ValueType, guid.Value, location) : null;
+                            object newValue = CreateUrlReferenceOrProxyObject(guid, location, descriptor.ValueType);
                             descriptor.SetValue(dictionaryObj, key, newValue);
                             return newValue;
                         });
@@ -260,7 +260,7 @@ namespace Xenko.Core.Assets.Analysis
                     AddLink(attachedReference,
                         (guid, location) =>
                         {
-                            object newValue = guid.HasValue && guid.Value != AssetId.Empty ? AttachedReferenceManager.CreateProxyObject(member.Type, guid.Value, location) : null;
+                            object newValue = CreateUrlReferenceOrProxyObject(guid, location, member.Type);
                             member.Set(container, newValue);
                             return newValue;
                         });
@@ -284,6 +284,20 @@ namespace Xenko.Core.Assets.Analysis
                             member.Set(container, newValue);
                             return newValue;
                         });
+                }
+            }
+
+            private static object CreateUrlReferenceOrProxyObject(AssetId? guid, string location, Type type)
+            {
+                if(guid.HasValue && guid.Value != AssetId.Empty)
+                {
+                    return UrlReferenceHelper.IsUrlReferenceType(type) ?
+                        UrlReferenceHelper.CreateReference(guid.Value, location, type) :
+                        AttachedReferenceManager.CreateProxyObject(type, guid.Value, location);
+                }
+                else
+                {
+                    return null;
                 }
             }
 

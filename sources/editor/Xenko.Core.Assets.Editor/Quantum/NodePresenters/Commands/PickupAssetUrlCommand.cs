@@ -23,13 +23,13 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc />
         public override bool CanAttach(INodePresenter nodePresenter)
         {
-            return UrlReferenceHelper.ContainsUrlReferenceType(nodePresenter.Descriptor);
+            return UrlReferenceEditorHelper.ContainsUrlReferenceType(nodePresenter.Descriptor);
         }
 
         /// <inheritdoc />
         protected override bool FilterAsset(AssetViewModel asset, Type referenceType)
         {
-            var targetType = UrlReferenceHelper.GetTargetContentType(referenceType);
+            var targetType = UrlReferenceEditorHelper.GetTargetContentType(referenceType);
 
             if (targetType == null) return true;
 
@@ -41,13 +41,13 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc />
         protected override AssetViewModel GetCurrentTarget(object currentValue)
         {
-            return UrlReferenceHelper.GetReferenceTarget(Session, currentValue);
+            return UrlReferenceEditorHelper.GetReferenceTarget(Session, currentValue);
         }
 
         /// <inheritdoc />
         protected override IEnumerable<Type> GetAssetTypes(Type contentType)
         {
-            var targetType = UrlReferenceHelper.GetTargetContentType(contentType);
+            var targetType = UrlReferenceEditorHelper.GetTargetContentType(contentType);
 
             if (targetType == null) return AssetRegistry.GetPublicTypes();
 
@@ -57,7 +57,7 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc />
         protected override object CreateReference(AssetViewModel asset, Type referenceType)
         {
-            return UrlReferenceHelper.CreateReference(asset, referenceType);
+            return UrlReferenceEditorHelper.CreateReference(asset, referenceType);
         }
     }
 }

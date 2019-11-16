@@ -10,7 +10,7 @@ using Xenko.Core.Serialization;
 
 namespace Xenko.Core.Assets.Editor.Services
 {
-    public static class UrlReferenceHelper
+    public static class UrlReferenceEditorHelper
     {
         /// <summary>
         /// Indicates if the given type descriptor represents a reference type, or a collection of reference types.
@@ -21,7 +21,7 @@ namespace Xenko.Core.Assets.Editor.Services
         public static bool ContainsUrlReferenceType(ITypeDescriptor typeDescriptor)
         {
             var type = typeDescriptor.GetInnerCollectionType();
-            return IsUrlReferenceType(type);
+            return UrlReferenceHelper.IsUrlReferenceType(type);
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Xenko.Core.Assets.Editor.Services
 
             //Using the generic type so it works in both situtations.
             var contentType = AssetRegistry.GetContentType(assetType);
-            var urlReferenceType = contentType == null ? typeof(UrlReference) : GenericType.MakeGenericType(contentType);
+            var urlReferenceType = contentType == null ? typeof(UrlReference) : UrlReferenceHelper.MakeGenericType(contentType);
 
             return urlReferenceType;
         }
@@ -52,37 +52,7 @@ namespace Xenko.Core.Assets.Editor.Services
         /// <returns>A url reference to the given asset if it's not null and <paramref name="referenceType"/> is a valid reference url type, null otherwise.</returns>
         /// <remarks>A reference type is either an <see cref="UrlReference"/> or a <see cref="UrlReference{T}"/>.</remarks>
         public static object CreateReference(AssetViewModel asset, Type referenceType)
-        {
-            if (asset != null && IsUrlReferenceType(referenceType))
-            {
-                var urlReference = Activator.CreateInstance(referenceType, asset.Url);
-
-                var attachedReference = AttachedReferenceManager.GetOrCreateAttachedReference(urlReference);
-                attachedReference.Id = asset.Id;
-                attachedReference.Url = asset.Url;
-                attachedReference.IsProxy = true;
-
-                return urlReference;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Checks if the given type is either an <see cref="UrlReference"/> or a <see cref="UrlReference{T}"/>
-        /// </summary>
-        /// <param name="type">The type to test.</param>
-        /// <returns></returns>
-        public static bool IsUrlReferenceType(Type type)
-            => type != null && typeof(UrlReference).IsAssignableFrom(type);
-
-        /// <summary>
-        /// Checks if the given type is a <see cref="UrlReference{T}"/>
-        /// </summary>
-        /// <param name="type">The type to test.</param>
-        /// <returns></returns>
-        public static bool IsGenericUrlReferenceType(Type type)
-            => type != null && IsSubclassOfRawGeneric(GenericType,type);
+            => UrlReferenceHelper.CreateReference(asset.Id, asset.Url, referenceType);
 
         /// <summary>
         /// Gets the asset content type for a given url reference type.
@@ -90,16 +60,7 @@ namespace Xenko.Core.Assets.Editor.Services
         /// <param name="type">The type is an url reference type, either an <see cref="UrlReference"/> or a <see cref="UrlReference{T}"/></param>
         /// <returns>The target content type or null.</returns>
         public static Type GetTargetContentType(Type type)
-        {
-            if (!IsUrlReferenceType(type)) return null;
-
-            if (IsSubclassOfRawGeneric(GenericType, type))
-            {
-                return type.GetGenericArguments()[0];
-            }
-
-            return null;
-        }
+            => UrlReferenceHelper.GetTargetContentType(type);
 
         /// <summary>
         /// Retrieves the view model corresponding to the asset referenced by the <paramref name="source"/> parameter.
@@ -121,22 +82,6 @@ namespace Xenko.Core.Assets.Editor.Services
 
             return null;
         }
-
-        private static readonly Type GenericType = typeof(UrlReference<>);
-
-        //TODO: this should probably be put in one of the Reflection helper classes.
-        static bool IsSubclassOfRawGeneric(Type type, Type c)
-        {
-            while (c != null && c != typeof(object))
-            {
-                var cur = c.IsGenericType ? c.GetGenericTypeDefinition() : c;
-                if (type == cur)
-                {
-                    return true;
-                }
-                c = c.BaseType;
-            }
-            return false;
-        }
+        
     }
 }

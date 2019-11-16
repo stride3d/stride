@@ -6,6 +6,8 @@ using Xenko.Core.Assets;
 
 namespace Xenko.Core.Serialization.Serialization.Serializers
 {
+    //TODO: Can we make it so AssetId is not serialized and not create AttachedReference at runtime.
+
     /// <summary>
     /// Serializer for <see cref="UrlReference"/>.
     /// </summary>
@@ -16,13 +18,18 @@ namespace Xenko.Core.Serialization.Serialization.Serializers
         {
             if (mode == ArchiveMode.Serialize)
             {
+                var id = AttachedReferenceManager.GetAttachedReference(urlReference)?.Id ?? throw new Exception("OH NOES, no Id");
+                stream.Write(id);
+
                 stream.Write(urlReference.Url);
             }
             else
             {
+                var id = stream.Read<AssetId>();
+
                 var url = stream.ReadString();
 
-                urlReference = new UrlReference(url);
+                urlReference = (UrlReference)UrlReferenceHelper.CreateReference(id, url, typeof(UrlReference));
             }
         }
     }
@@ -39,13 +46,16 @@ namespace Xenko.Core.Serialization.Serialization.Serializers
         {
             if (mode == ArchiveMode.Serialize)
             {
+                var id = AttachedReferenceManager.GetAttachedReference(urlReference)?.Id ?? throw new Exception("OH NOES, no Id");
+                stream.Write(id);
                 stream.Write(urlReference.Url);
             }
             else
             {
+                var id = stream.Read<AssetId>();
                 var url = stream.ReadString();
 
-                urlReference = new UrlReference<T>(url);
+                urlReference = (UrlReference<T>)UrlReferenceHelper.CreateReference(id, url, typeof(UrlReference<T>));
             }
         }
     }

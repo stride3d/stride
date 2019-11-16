@@ -38,7 +38,6 @@ namespace Xenko.Core.Serialization
         /// <inheritdoc/>
         public override string ToString()
         {
-            // WARNING: This should not be modified as it is used for serializing
             return $"{Url}";
         }
 

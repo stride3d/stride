@@ -32,10 +32,10 @@ namespace Xenko.Core.Assets.Editor.View.ValueConverters
             var asset = SessionViewModel.Instance.AllAssets.FirstOrDefault(x => x.Url == url);
             if (asset == null)
                 return null;
+            
+            var urlReferenceType = UrlReferenceEditorHelper.CreateReferenceType(asset.AssetType);            
 
-            var urlReferenceType = UrlReferenceHelper.CreateReferenceType(asset.AssetType);            
-
-            return UrlReferenceHelper.CreateReference(asset, urlReferenceType);
+            return UrlReferenceEditorHelper.CreateReference(asset, urlReferenceType);
         }
     }
 }

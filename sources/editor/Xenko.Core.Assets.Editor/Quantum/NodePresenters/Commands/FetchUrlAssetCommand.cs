@@ -22,13 +22,13 @@ namespace Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands
         /// <inheritdoc />
         public override bool CanAttach(INodePresenter nodePresenter)
         {
-            return UrlReferenceHelper.ContainsUrlReferenceType(nodePresenter.Descriptor);
+            return UrlReferenceEditorHelper.ContainsUrlReferenceType(nodePresenter.Descriptor);
         }
 
         /// <inheritdoc />
         public override async Task Execute(INodePresenter nodePresenter, object parameter, object preExecuteResult)
         {
-            var asset = UrlReferenceHelper.GetReferenceTarget(Session, nodePresenter.Value);
+            var asset = UrlReferenceEditorHelper.GetReferenceTarget(Session, nodePresenter.Value);
             if (asset != null)
             {
                 await Session.Dispatcher.InvokeAsync(() => Session.ActiveAssetView.SelectAssetCommand.Execute(asset));
