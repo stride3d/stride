@@ -12,31 +12,31 @@ namespace CSharpBeginner.Code
         string name = string.Empty;
         string parentName = string.Empty;
 
-        //Executes only once, at the start of the game
+        // Executes only once, at the start of the game
         public override void Start()
         {
-            //We store the name of the Entity that we are attached to
+            // We store the name of the Entity that we are attached to
             name = Entity.Name;
 
-            //We retrieve the parent entity by using the GetParent() command.
+            // We retrieve the parent entity by using the GetParent() command.
             Entity parentEntity = Entity.GetParent();
 
-            //It is possible that our entity does not have a parent. We therefor check if the parent is not null.
+            // It is possible that our entity does not have a parent. We therefore check if the parent is not null.
             if (parentEntity != null)
             {
-                //We store the name of our Parent entity
+                // We store the name of our Parent entity
                 parentName = parentEntity.Name;
             }
 
-            //The above code can be shortened to 1 line by using the '?' operator  
+            // The above code can be shortened to 1 line by using the '?' operator  
             parentName = Entity.GetParent()?.Name ?? string.Empty;
         }
 
-        //Updates every frame
+        // Updates every frame
         public override void Update()
         {
-            //Using the 'DebugText.Print' command, we can quickly print information to the screen
-            //NOTE: DebugText only works when debugging the game. During release it is automatically disabled
+            // Using the 'DebugText.Print' command, we can quickly print information to the screen
+            // NOTE: DebugText only works when debugging the game. During release it is automatically disabled
             DebugText.Print(parentName, new Int2(580, 580));
             DebugText.Print(name, new Int2(800, 580));
         }

@@ -14,7 +14,7 @@ namespace CSharpBeginner.Code
         {
         }
 
-        //This method return the total amount of ammo
+        // This method return the total amount of ammo
         public int GetTotalAmmo()
         {
             return bullets * clips;

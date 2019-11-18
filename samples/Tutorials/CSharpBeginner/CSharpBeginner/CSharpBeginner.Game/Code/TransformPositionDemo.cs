@@ -12,11 +12,11 @@ namespace CSharpBeginner.Code
 
         public override void Update()
         {
-            //We store the local and world position of our entity's tranform in a Vector3 variable
+            // We store the local and world position of our entity's tranform in a Vector3 variable
             Vector3 localPosition = Entity.Transform.Position;
             Vector3 worldPosition = Entity.Transform.WorldMatrix.TranslationVector;
 
-            //We disaply the entity's name and its local and world position on screen
+            // We disaply the entity's name and its local and world position on screen
             DebugText.Print(Entity.Name + " - local position: " + localPosition, new Int2(400, 450));
             DebugText.Print(Entity.Name + " - world position: " + worldPosition, new Int2(400, 470));
         }

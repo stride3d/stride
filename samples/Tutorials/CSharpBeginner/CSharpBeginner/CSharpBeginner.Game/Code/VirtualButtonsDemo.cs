@@ -16,24 +16,24 @@ namespace CSharpBeginner.Code
             // Create a new VirtualButtonConfigSet if none exists. 
             Input.VirtualButtonConfigSet = Input.VirtualButtonConfigSet ?? new VirtualButtonConfigSet();
 
-            //Bind the "W" key and "Up arrow" a virtual button called "Forward".
+            // Bind the "W" key and "Up arrow" a virtual button called "Forward".
             var forwardW = new VirtualButtonBinding("Forward", VirtualButton.Keyboard.W);
             var forwardUpArrow = new VirtualButtonBinding("Forward", VirtualButton.Keyboard.Up);
             var forwardLeftMouse = new VirtualButtonBinding("Forward", VirtualButton.Mouse.Left);
 
-            //Create a new virtual button configuration and add the virtual button bindings
+            // Create a new virtual button configuration and add the virtual button bindings
             var virtualButtonForward = new VirtualButtonConfig();
             virtualButtonForward.Add(forwardW);
             virtualButtonForward.Add(forwardUpArrow);
             virtualButtonForward.Add(forwardLeftMouse);
 
-            //Add the virtual button binding to the virtual button configuration
+            // Add the virtual button binding to the virtual button configuration
             Input.VirtualButtonConfigSet.Add(virtualButtonForward);
         }
 
         public override void Update()
         {
-            //We retrieve a float value from the virtual button. When the value is higher than 0, we now that we have at least of keys or mouse pressed
+            // We retrieve a float value from the virtual button. When the value is higher than 0, we now that we have at least of keys or mouse pressed
             var movingForward = Input.GetVirtualButton(0, "Forward");
 
             if (movingForward > 0)
