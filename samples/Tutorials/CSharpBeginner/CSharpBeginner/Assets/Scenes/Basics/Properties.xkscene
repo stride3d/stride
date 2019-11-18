@@ -31,14 +31,14 @@ Hierarchy:
                         SomeVector2: {X: 1.0, Y: 2.0}
                         SomeVector3: {X: 1.0, Y: 2.0, Z: 3.0}
                         SomeVector4: {X: 1.0, Y: 2.0, Z: 3.0, W: 4.0}
-                        Entity: ref!! 636e4147-1c07-48ee-84a9-8eada7a402ea
+                        SomeEntity: ref!! 636e4147-1c07-48ee-84a9-8eada7a402ea
                         StringList:
                             d66098c323c01599e678936dc192de01: Xenko
                             dc275836a690f9a8597d790971eb7cba: C#
                             15c0b66dc450cc05d7c4b00e0f877a47: Beginner
                         EntityList:
-                            b6444d59f1bbf1938a7b92fec2d5f622: ref!! 4c059b4f-75ee-4b2a-ade1-550c457d8778
-                            f6a55668f0d169b3c12737267c43227b: null
+                            b6444d59f1bbf1938a7b92fec2d5f622: ref!! 557b8f7d-38c7-426d-8ce1-801203b646dc
+                            f6a55668f0d169b3c12737267c43227b: ref!! 636e4147-1c07-48ee-84a9-8eada7a402ea
         -   Entity:
                 Id: 557b8f7d-38c7-426d-8ce1-801203b646dc
                 Name: Camera

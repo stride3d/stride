@@ -21,14 +21,14 @@ namespace CSharpBeginner.Code
         public Vector3 SomeVector3 = new Vector3(1, 2, 3);
         public Vector4 SomeVector4 = new Vector4(1, 2, 3, 4);
 
-        //We can reference other entities to our script by using the Entity class
-        public Entity Entity;
+        // We can reference other entities to our script by using the Entity class
+        public Entity SomeEntity;
 
-        //If we want a list of ojects like strings, integers or even Entities, we have to create the new List right away
+        // If we want a list of ojects like strings, integers or even Entities, we have to create the new List right away
         public List<string> StringList = new List<string>();
         public List<Entity> EntityList = new List<Entity>();
 
-        //If we dont want a public property to be visible in the editor we can use '[DataMemberIgnore]'
+        // If we dont want a public property to be visible in the editor we can use '[DataMemberIgnore]'
         [DataMemberIgnore]
         public string SomeHiddenProperty = "HiddenInEditor";
 
@@ -43,7 +43,7 @@ namespace CSharpBeginner.Code
             DebugText.Print("Vector3: " + SomeVector3, new Int2(x, 300));
             DebugText.Print("Vector4: " + SomeVector4, new Int2(x, 320));
             DebugText.Print("Color: " + SomeColor, new Int2(x, 340));
-            DebugText.Print("Entity: " + Entity.Name, new Int2(x, 360));
+            DebugText.Print("Entity: " + SomeEntity.Name, new Int2(x, 360));
             DebugText.Print("String list count: " + StringList.Count, new Int2(x, 380));
             DebugText.Print("Entity list count: " + EntityList.Count, new Int2(x, 400));
         }

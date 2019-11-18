@@ -15,20 +15,20 @@ namespace CSharpBeginner.Code
 
         public override void Start()
         {
-            //We can add a new component to an entity using the 'Add' method.
+            // We can add a new component to an entity using the 'Add' method.
             ammoComponent1 = new AmmoComponent();
             Entity.Add(ammoComponent1);
 
-            //We can even add the component a second time
+            // We can even add the component a second time
             ammoComponent2 = new AmmoComponent();
             Entity.Add(ammoComponent2);
 
-            //Lets remove all components of type AmmoComponent
+            // Lets remove all components of type AmmoComponent
             Entity.RemoveAll<AmmoComponent>();
 
 
-            //When there is no component of this type attached, but we like there to be one, we can create it automatically
-            //NOTE: when a component is created like this, the 'Start' method will be called after this script's Update method has executed
+            // When there is no component of this type attached, but we like there to be one, we can create it automatically
+            // NOTE: when a component is created like this, the 'Start' method will be called after this script's Update method has executed
             ammoComponent3 = Entity.GetOrCreate<AmmoComponent>();
         }
 
