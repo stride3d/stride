@@ -76,6 +76,14 @@ namespace Xenko.Navigation
             }
         }
 
+        public StaticColliderCacheSettings GetStaticColliderCacheSettings(StaticColliderComponent staticCollider)
+        {
+            lock (colliders)
+            {
+                return colliders.Where(c => ReferenceEquals(c.Component, staticCollider)).FirstOrDefault()?.CacheSettings;
+            }
+        }
+
         /// <summary>
         /// Performs the build of a navigation mesh
         /// </summary>
@@ -438,7 +446,8 @@ namespace Xenko.Navigation
                 colliderData.Previous = null;
                 if (lastCache?.Objects.TryGetValue(colliderData.Component.Id, out colliderData.Previous) ?? false)
                 {
-                    if (colliderData.Previous.ParameterHash == colliderData.ParameterHash)
+                    if ((!NavigationMeshBuildUtils.IsDynamicShape(colliderData.Component.ColliderShape) || !colliderData.CacheSettings.EnableAlwaysUpdateDynamicShape) &&
+                        (colliderData.Previous.ParameterHash == colliderData.ParameterHash))
                     {
                         // In this case, we don't need to recalculate the geometry for this shape, since it wasn't changed
                         // here we take the triangle mesh from the previous build as the current

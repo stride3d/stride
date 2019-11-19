@@ -211,29 +211,6 @@ namespace Xenko.Physics
             return heightScale;
         }
 
-        // TODO: Should provide better way that updates the NavigationMeshCacheObject of the heightfield at rebuilding NavigationMesh.
-        #region "HACK: Before rebuilding NavigationMesh, use Refresh() to update the NavigationMeshCacheObject of the heightfield."
-
-        [DataMemberIgnore]
-        [DefaultValue(0)]
-        public int RefreshCounter;
-
-        /// <summary>
-        /// HACK: Before rebuilding NavigationMesh, use Refresh() to update the NavigationMeshCacheObject of the heightfield.
-        /// </summary>
-        /// <remarks>GetHashCode() returns different value after calling this method.</remarks>
-        public void Refresh()
-        {
-            RefreshCounter = (RefreshCounter + 1) % ushort.MaxValue;
-        }
-
-        public override int GetHashCode()
-        {
-            return (base.GetHashCode() * 397) ^ RefreshCounter;
-        }
-
-        #endregion
-
         [DataContract]
         public class CustomHeightScale
         {

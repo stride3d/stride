@@ -13,6 +13,7 @@ namespace Xenko.Navigation
     public class StaticColliderData
     {
         public StaticColliderComponent Component;
+        public readonly StaticColliderCacheSettings CacheSettings = new StaticColliderCacheSettings();
         internal int ParameterHash = 0;
         internal bool Processed = false;
         internal NavigationMeshInputBuilder InputBuilder;

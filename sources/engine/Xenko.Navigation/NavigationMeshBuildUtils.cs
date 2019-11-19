@@ -208,5 +208,37 @@ namespace Xenko.Navigation
 
             return true;
         }
+
+        /// <summary>
+        /// Checks if a static collider is dynamic shape
+        /// </summary>
+        /// <param name="collider">The collider to check</param>
+        /// <returns><c>true</c> if the collider is dynamic shape, <c>false</c> otherwise</returns>
+        public static bool IsDynamicShape(ColliderShape colliderShape)
+        {
+            if (colliderShape == null)
+            {
+                return false;
+            }
+
+            if (colliderShape is HeightfieldColliderShape)
+            {
+                return true;
+            }
+            else
+            {
+                if (colliderShape is CompoundColliderShape compound)
+                {
+                    for (int i = 0; i < compound.Count; ++i)
+                    {
+                        if (IsDynamicShape(compound[i]))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+        }
     }
 }
