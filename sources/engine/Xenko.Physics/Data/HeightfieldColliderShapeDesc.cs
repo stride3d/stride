@@ -29,7 +29,7 @@ namespace Xenko.Physics
 
         [DataMember(60)]
         [NotNull]
-        public HeightScaleSetting HeightScale { get; set; }
+        public CustomHeightScale HeightScale { get; set; }
 
         [DataMember(70)]
         public bool FlipQuadEdges;
@@ -46,7 +46,7 @@ namespace Xenko.Physics
             HeightfieldType = HeightfieldTypes.Float;
             HeightStickSize = new Int2(64, 64);
             HeightRange = new Vector2(-10, 10);
-            HeightScale = new HeightScaleSetting();
+            HeightScale = new CustomHeightScale();
             FlipQuadEdges = false;
             LocalOffset = new Vector3(0, 0, 0);
             LocalRotation = Quaternion.Identity;
@@ -235,7 +235,7 @@ namespace Xenko.Physics
         #endregion
 
         [DataContract]
-        public class HeightScaleSetting
+        public class CustomHeightScale
         {
             [DataMember(0)]
             [DefaultValue(false)]
@@ -245,12 +245,12 @@ namespace Xenko.Physics
             [InlineProperty]
             public float Scale { get; set; }
 
-            public HeightScaleSetting()
+            public CustomHeightScale()
                 : this(1f)
             {
             }
 
-            public HeightScaleSetting(float value)
+            public CustomHeightScale(float value)
             {
                 Scale = value;
             }
