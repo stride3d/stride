@@ -25,22 +25,26 @@
 
   <!-- Include platform dependent assembly when specified -->
   <PropertyGroup Condition="'$(XenkoGraphicsApiDependent)' == 'true'">
-    <!-- Build list of Graphics API -->
-    <XenkoGraphicsApis Condition="'$(XenkoGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</XenkoGraphicsApis>
-    <XenkoGraphicsApis Condition="'$(XenkoGraphicsApis)' == '' And '$(XenkoGraphicsApiDependentBuildAll)' != 'true'">$(XenkoGraphicsApiOriginal)</XenkoGraphicsApis>
+    <!-- Build list of Graphics API for platform that supports multiple -->
+    <XenkoGraphicsApisWindows Condition="'$(XenkoGraphicsApiDependentBuildAll)' == 'true'">Direct3D11;Direct3D12;OpenGL;OpenGLES;Vulkan</XenkoGraphicsApisWindows>
+    <XenkoGraphicsApisWindows Condition="'$(XenkoGraphicsApisWindows)' == ''">Direct3D11</XenkoGraphicsApisWindows>
+    <_XenkoGraphicsApisWindows>;$(XenkoGraphicsApisWindows);</_XenkoGraphicsApisWindows>
     
-    <_XenkoGraphicsApis Condition="'$(XenkoGraphicsApis)' != ''">;$(XenkoGraphicsApis);</_XenkoGraphicsApis>
-    
+    <XenkoGraphicsApisLinux Condition="'$(XenkoGraphicsApiDependentBuildAll)' == 'true'">OpenGL;Vulkan</XenkoGraphicsApisLinux>
+    <XenkoGraphicsApisLinux Condition="'$(XenkoGraphicsApisLinux)' == ''">OpenGL</XenkoGraphicsApisLinux>
+    <_XenkoGraphicsApisLinux>;$(XenkoGraphicsApisLinux);</_XenkoGraphicsApisLinux>
+
+
     <!-- Compute list of runtime identifiers based on platforms and graphics platforms -->
     <RuntimeIdentifiers></RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Windows;')) And ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And ($(_XenkoGraphicsApis.Contains(';Direct3D11;')) Or '$(_XenkoGraphicsApis)' == '')">$(RuntimeIdentifiers);win</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Windows;')) And ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(_XenkoGraphicsApis.Contains(';Direct3D12;'))">$(RuntimeIdentifiers);win-d3d12</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Windows;')) And ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(_XenkoGraphicsApis.Contains(';OpenGL;'))">$(RuntimeIdentifiers);win-opengl</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Windows;')) And ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(_XenkoGraphicsApis.Contains(';OpenGLES;'))">$(RuntimeIdentifiers);win-opengles</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Windows;')) And ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(_XenkoGraphicsApis.Contains(';Vulkan;'))">$(RuntimeIdentifiers);win-vulkan</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Linux;')) And '$(TargetFramework)' == 'netstandard2.0' And ($(_XenkoGraphicsApis.Contains(';OpenGL;')) Or '$(_XenkoGraphicsApis)' == '')">$(RuntimeIdentifiers);linux</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Linux;')) And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoGraphicsApis.Contains(';Vulkan;'))">$(RuntimeIdentifiers);linux-vulkan</RuntimeIdentifiers>
-    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';macOS;')) And '$(TargetFramework)' == 'netstandard2.0' And ($(_XenkoGraphicsApis.Contains(';Vulkan;')) Or '$(_XenkoGraphicsApis)' == '')">$(RuntimeIdentifiers);osx</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Windows;')) And ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(_XenkoGraphicsApisWindows.Contains(';Direct3D11;'))">$(RuntimeIdentifiers);win</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Windows;')) And ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(_XenkoGraphicsApisWindows.Contains(';Direct3D12;'))">$(RuntimeIdentifiers);win-d3d12</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Windows;')) And ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(_XenkoGraphicsApisWindows.Contains(';OpenGL;'))">$(RuntimeIdentifiers);win-opengl</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Windows;')) And ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(_XenkoGraphicsApisWindows.Contains(';OpenGLES;'))">$(RuntimeIdentifiers);win-opengles</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Windows;')) And ($(TargetFramework.StartsWith('net4')) Or '$(TargetFramework)' == 'netstandard2.0') And $(_XenkoGraphicsApisWindows.Contains(';Vulkan;'))">$(RuntimeIdentifiers);win-vulkan</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Linux;')) And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoGraphicsApisLinux.Contains(';OpenGL;'))">$(RuntimeIdentifiers);linux</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';Linux;')) And '$(TargetFramework)' == 'netstandard2.0' And $(_XenkoGraphicsApisLinux.Contains(';Vulkan;'))">$(RuntimeIdentifiers);linux-vulkan</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="$(_XenkoPlatforms.Contains(';macOS;')) And '$(TargetFramework)' == 'netstandard2.0'">$(RuntimeIdentifiers);osx</RuntimeIdentifiers>
     
     <RuntimeIdentifiers>$([MSBuild]::Unescape($(RuntimeIdentifiers.Trim(';'))))</RuntimeIdentifiers>
     <!-- Default fallbacks -->

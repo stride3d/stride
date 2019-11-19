@@ -24,3 +24,4 @@ TemplateFolders:
         - !file ../../../samples/Templates/ThirdPersonPlatformer/ThirdPersonPlatformer/ThirdPersonPlatformer.xktpl
         - !file ../../../samples/Templates/TopDownRPG/TopDownRPG/TopDownRPG.xktpl
         - !file ../../../samples/Templates/VRSandbox/VRSandbox/VRSandbox.xktpl
+        - !file ../../../samples/Tutorials/CSharpBeginner/CSharpBeginner/CSharpBeginner.xktpl
