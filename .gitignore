@@ -43,10 +43,9 @@ bin/
 Bin/
 ipch/
 obj/
+.vs/
 Cache/
 /doc/xenko_doc_output/
-/.vs
-/build/.vs
 /build/Xenko.version
 /build/Xenko.*VC.db
 /tools
@@ -154,8 +153,3 @@ fastlane/report.xml
 fastlane/screenshots
 *.user
 project.lock.json
-/samples/.vs/XenkoSamples/
-/samples/.vs/XenkoSamples/DesignTimeBuild/.dtbcache
-/samples/.vs/XenkoSamples/DesignTimeBuild/.dtbcache
-/samples/Templates/FirstPersonShooter/.vs/
-/samples/Tutorials/C# Basics/.vs/
