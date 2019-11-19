@@ -16,7 +16,6 @@ namespace Xenko.Physics
     public class HeightfieldColliderShapeDesc : IInlineColliderShapeDesc
     {
         [DataMember(10)]
-        [NotNull]
         public Heightmap InitialHeights { get; set; }
 
         [DataMember(30)]
