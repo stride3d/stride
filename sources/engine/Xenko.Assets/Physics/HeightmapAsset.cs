@@ -32,7 +32,7 @@ namespace Xenko.Assets.Physics
         [DataMember(40, "Resize")]
         [Display(category: "Convert", Expand = ExpandRule.Always)]
         [NotNull]
-        public HeightmapSize Size { get; set; } = new HeightmapSize();
+        public CustomHeightmapSize Size { get; set; } = new CustomHeightmapSize();
 
         [DataMember(50, "sRGB sampling")]
         [Display(category: "Convert")]
@@ -40,7 +40,7 @@ namespace Xenko.Assets.Physics
 
         #region "HeightmapSize"
         [DataContract]
-        public class HeightmapSize
+        public class CustomHeightmapSize
         {
             [DataMember(0)]
             [DefaultValue(false)]
