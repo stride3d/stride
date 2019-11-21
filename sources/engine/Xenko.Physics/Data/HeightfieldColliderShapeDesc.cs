@@ -168,47 +168,20 @@ namespace Xenko.Physics
 
         public float CalculateHeightScale()
         {
-            if (HeightfieldType == HeightfieldTypes.Float)
-            {
-                return 1f;
-            }
-
-            float heightScale = 1f;
-
-            var max = Math.Max(Math.Abs(HeightRange.X), Math.Abs(HeightRange.Y));
-
             switch (HeightfieldType)
             {
-                case HeightfieldTypes.Short:
+                case HeightfieldTypes.Float:
+                    return 1f;
 
-                    heightScale = max / short.MaxValue;
-                    break;
+                case HeightfieldTypes.Short:
+                    return Math.Max(Math.Abs(HeightRange.X), Math.Abs(HeightRange.Y)) / short.MaxValue;
 
                 case HeightfieldTypes.Byte:
+                    return HeightRange.Y / byte.MaxValue;
 
-                    var minSign = Math.Sign(HeightRange.X);
-                    var maxSign = Math.Sign(HeightRange.Y);
-
-                    // min < 0 < max
-                    if (minSign == -1 && maxSign == 1)
-                    {
-                        // Byte can't handle both positive and negative together.
-                        heightScale = HeightRange.Y / byte.MaxValue;
-                    }
-                    // 0 <= min < max
-                    else if (0 <= minSign && maxSign == 1)
-                    {
-                        heightScale = max / byte.MaxValue;
-                    }
-                    // min < max <= 0
-                    else if (minSign == -1 && maxSign <= 0)
-                    {
-                        heightScale = -(max / byte.MaxValue);
-                    }
-                    break;
+                default:
+                    return 0f;
             }
-
-            return heightScale;
         }
 
         [DataContract]
