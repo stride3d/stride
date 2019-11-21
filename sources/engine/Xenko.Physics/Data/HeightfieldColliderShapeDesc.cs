@@ -66,7 +66,9 @@ namespace Xenko.Physics
                 return false;
             }
 
-            var heightScaleComparison = (other.HeightScale.Enabled && HeightScale.Enabled) ? Math.Abs(other.HeightScale.Scale - HeightScale.Scale) < float.Epsilon : other.HeightScale.Enabled == HeightScale.Enabled;
+            var heightScaleComparison = (other.HeightScale.Enabled && HeightScale.Enabled) ?
+                Math.Abs(other.HeightScale.Scale - HeightScale.Scale) < float.Epsilon :
+                other.HeightScale.Enabled == HeightScale.Enabled;
 
             var initialHeightsComparison = (other.InitialHeights == InitialHeights);
 

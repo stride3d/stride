@@ -67,12 +67,12 @@ namespace Xenko.Assets.Physics
                                 Parameters.Size.Size :
                                 new Int2(texImage.Width, texImage.Height);
 
-                            var heightfieldType = Parameters.Type;
-
                             if (texImage.Width != size.X || texImage.Height != size.Y)
                             {
                                 textureTool.Resize(texImage, size.X, size.Y, Filter.Rescaling.Nearest);
                             }
+
+                            var heightfieldType = Parameters.Type;
 
                             switch (heightfieldType)
                             {
