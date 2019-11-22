@@ -2,14 +2,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-02-25 13:25:06+0900\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2019-11-23 13:04+0000\n"
+"Last-Translator: hyeonzii <guswl9_9@naver.com>\n"
+"Language-Team: Korean <https://hosted.weblate.org/projects/xenko/gamestudio/"
+"ko/>\n"
 "Language: ko\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: MonoDevelop Gettext addin\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 3.10-dev\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
@@ -294,7 +296,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:513
 msgctxt "Menu"
 msgid "Rename"
-msgstr ""
+msgstr "이름 바꾸기"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:99
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:210
@@ -440,7 +442,7 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:477
 msgctxt "Menu"
 msgid "Folder"
-msgstr ""
+msgstr "폴더"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:212
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:480
@@ -505,12 +507,12 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:508
 msgctxt "Menu"
 msgid "Actions"
-msgstr ""
+msgstr "동작"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:253
 msgctxt "Menu"
 msgid "View"
-msgstr ""
+msgstr "뷰"
 
 #: ../editor/Xenko.GameStudio/GameStudioWindow.xaml:254
 msgctxt "Menu"
@@ -899,9 +901,9 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:40
 msgctxt "Button"
 msgid "Save"
-msgstr ""
+msgstr "저장"
 
 #: ../editor/Xenko.GameStudio/View/CredentialsDialog.xaml:45
 msgctxt "Button"
 msgid "Cancel"
-msgstr ""
+msgstr "취소"
