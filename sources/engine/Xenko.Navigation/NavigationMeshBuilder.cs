@@ -76,6 +76,11 @@ namespace Xenko.Navigation
             }
         }
 
+        /// <summary>
+        /// Get specific collider cache settings from the builder
+        /// </summary>
+        /// <param name="staticCollider">Collider component related to the collider cache settings</param>
+        /// <returns>The collider cache settings if there is, null otherwise</returns>
         public StaticColliderCacheSettings GetStaticColliderCacheSettings(StaticColliderComponent staticCollider)
         {
             lock (colliders)

@@ -63,6 +63,8 @@ namespace Xenko.Assets.Physics
                         using (var textureTool = new TextureTool())
                         using (var texImage = textureTool.Load(source, Parameters.IsSRgb))
                         {
+                            // Resize the image if need
+
                             var size = Parameters.Size.Enabled && Parameters.Size.Size.X > 1 && Parameters.Size.Size.Y > 1 ?
                                 Parameters.Size.Size :
                                 new Int2(texImage.Width, texImage.Height);
@@ -71,6 +73,8 @@ namespace Xenko.Assets.Physics
                             {
                                 textureTool.Resize(texImage, size.X, size.Y, Filter.Rescaling.Nearest);
                             }
+
+                            // Convert pixel format of the image
 
                             var heightfieldType = Parameters.Type;
 
@@ -171,6 +175,8 @@ namespace Xenko.Assets.Physics
                                     continue;
                             }
 
+                            // Read, scale and set heights
+
                             using (var image = textureTool.ConvertToXenkoImage(texImage))
                             {
                                 var pixelBuffer = image.PixelBuffer[0];
@@ -205,6 +211,8 @@ namespace Xenko.Assets.Physics
                                     default:
                                         continue;
                                 }
+
+                                // Set rest of properties
 
                                 heightmap.HeightfieldType = heightfieldType;
                                 heightmap.Width = size.X;
