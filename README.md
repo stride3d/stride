@@ -43,9 +43,15 @@ Ask for help or report issues:
 1. [Git](https://git-scm.com/downloads) (recent version that includes LFS, or install [Git LFS](https://git-lfs.github.com/) separately).
 2. [Visual Studio 2019](https://www.visualstudio.com/downloads/) with the following workloads:
   * `.NET desktop development` with `.NET Framework 4.7.2 targeting pack`
-  * `Desktop development with C++` with `Windows 10 SDK (10.0.17763.0)` or later, and `VC++ 2017 version 15.9 v14.16 latest v141 tools` or later (both should be enabled by default)
+  * `Desktop development with C++` with
+    * `Windows 10 SDK (10.0.17763.0)` or later version (should be enabled by default)
+    * `MSVC v142 - VS2019 C++ x64/x86 build tools (v14.23)` or later version (should be enabled by default)
+    * `MSVC v142 - VS2019 C++ x64/x86 Spectre-mitigated libs (v14.23)` or later version (should be enabled by default)
   * `.NET Core cross-platform development`
-  * Optional (to target UWP): `Universal Windows Platform development` with `Windows 10 SDK (10.0.17763.0)`
+  * Optional (to target UWP): `Universal Windows Platform development` with
+    * `Windows 10 SDK (10.0.17763.0)` or later version
+    * `MSVC v142 - VS2019 C++ ARM build tools (v14.23)` or later version (should be enabled by default)
+    * `MSVC v142 - VS2019 C++ ARM Spectre-mitigated libs (v14.23)` or later version (should be enabled by default)
   * Optional (to target iOS/Android): `Mobile development with .NET` and `Android SDK setup (API level 27)` individual component, then in Visual Studio go to `Tools > Android > Android SDK Manager` and install `NDK` (version 19+) from `Tools` tab.
 3. [FBX SDK 2019.0 VS2015](https://www.autodesk.com/developer-network/platform-technologies/fbx-sdk-2019-0)
 
