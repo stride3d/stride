@@ -36,7 +36,7 @@ namespace Xenko.Assets.Physics
 
         [DataMember(50, "sRGB sampling")]
         [Display(category: "Convert")]
-        public bool IsSRgb { get; set; } = true;
+        public bool IsSRgb { get; set; } = false;
 
         #region "HeightmapSize"
         [DataContract]
