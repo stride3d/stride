@@ -64,7 +64,7 @@ namespace Xenko.Physics.Engine
             var unusedShapes = new List<ColliderShape>();
             foreach (var keyValuePair in updatableDebugMeshes)
             {
-                if (keyValuePair.Value != null && keyValuePair.Key.DebugEntity?.Scene != null)
+                if (keyValuePair.Value != null && keyValuePair.Key.DebugEntity?.Scene != null && keyValuePair.Key.InternalShape != null)
                 {
                     keyValuePair.Key.UpdateDebugPrimitive(Game.GraphicsContext.CommandList, keyValuePair.Value);
                 }
