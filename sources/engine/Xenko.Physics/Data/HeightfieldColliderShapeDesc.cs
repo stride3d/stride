@@ -44,7 +44,7 @@ namespace Xenko.Physics
         {
             InitialHeights = null;
             HeightfieldType = HeightfieldTypes.Float;
-            HeightStickSize = new Int2(64, 64);
+            HeightStickSize = new Int2(65, 65);
             HeightRange = new Vector2(-10, 10);
             HeightScale = new CustomHeightScale();
             FlipQuadEdges = false;
