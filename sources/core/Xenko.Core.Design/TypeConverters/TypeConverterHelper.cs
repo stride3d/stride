@@ -20,12 +20,13 @@ namespace Xenko.Core.TypeConverters
             if (sourceType == null) throw new ArgumentNullException(nameof(sourceType));
             if (destinationType == null) throw new ArgumentNullException(nameof(destinationType));
 
+            var context = new DestinationTypeDescriptorContext(destinationType);
             // already same type or inherited (also works with interface), or
             // implements IConvertible, or
             // can convert from source type to target type
             return destinationType.IsAssignableFrom(sourceType) ||
                    (typeof(IConvertible).IsAssignableFrom(sourceType) && Type.GetTypeCode(destinationType) != TypeCode.Object) ||
-                   TypeDescriptor.GetConverter(sourceType).CanConvertTo(destinationType) || TypeDescriptor.GetConverter(destinationType).CanConvertFrom(sourceType);
+                   TypeDescriptor.GetConverter(sourceType).CanConvertTo(destinationType) || TypeDescriptor.GetConverter(destinationType).CanConvertFrom(context, sourceType);
         }
 
         /// <summary>
@@ -69,10 +70,11 @@ namespace Xenko.Core.TypeConverters
                         return true;
                     }
                     // Try to convert using the target type converter
+                    var context = new DestinationTypeDescriptorContext(destinationType);
                     converter = TypeDescriptor.GetConverter(destinationType);
-                    if (converter.CanConvertFrom(sourceType))
+                    if (converter.CanConvertFrom(context, sourceType))
                     {
-                        target = converter.ConvertFrom(source);
+                        target = converter.ConvertFrom(context, System.Globalization.CultureInfo.CurrentCulture, source);
                         return true;
                     }
                 }
@@ -91,6 +93,44 @@ namespace Xenko.Core.TypeConverters
             // Incompatible type and no conversion available
             target = null;
             return false;
+        }
+
+        public static Type GetDestinationType(ITypeDescriptorContext context)
+        {
+            if (context is DestinationTypeDescriptorContext c) return c.DestinationType;
+
+            return null;
+        }
+
+        private class DestinationTypeDescriptorContext : ITypeDescriptorContext
+        {
+            public DestinationTypeDescriptorContext(Type destinationType)
+            {
+                DestinationType = destinationType;
+            }
+
+            public Type DestinationType { get; }
+
+            public IContainer Container => null;
+
+            public object Instance => null;
+
+            public PropertyDescriptor PropertyDescriptor => null;
+
+            public object GetService(Type serviceType)
+            {
+                return null;
+            }
+
+            public void OnComponentChanged()
+            {
+                
+            }
+
+            public bool OnComponentChanging()
+            {
+                return true;
+            }
         }
     }
 }
