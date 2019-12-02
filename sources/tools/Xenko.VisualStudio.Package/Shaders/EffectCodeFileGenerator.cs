@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Shell;
-using Xenko.Core;
 using Xenko.VisualStudio.CodeGenerator;
 using Xenko.VisualStudio.Commands;
 
@@ -16,27 +15,21 @@ namespace Xenko.VisualStudio.Shaders
 {
     [ComVisible(true)]
     [ClassInterface(ClassInterfaceType.None)]
-    [Guid(GuidList.guidXenko_VisualStudio_ShaderKeyFileGenerator)]
-    [ProvideObject(typeof(ShaderKeyFileGenerator), RegisterUsing = RegistrationMethod.CodeBase)]
-    public class ShaderKeyFileGenerator : BaseCodeGeneratorWithSite
+    [Guid(GuidList.guidXenko_VisualStudio_EffectCodeFileGenerator)]
+    [ProvideObject(typeof(EffectCodeFileGenerator), RegisterUsing = RegistrationMethod.CodeBase)]
+    public class EffectCodeFileGenerator : BaseCodeGeneratorWithSite
     {
-        public const string DisplayName = "Xenko Shader C# Key Generator";
-        public const string InternalName = "XenkoShaderKeyGenerator";
+        public const string DisplayName = "Xenko Effect C# Code Generator";
+        public const string InternalName = "XenkoEffectCodeGenerator";
 
         protected override string GetDefaultExtension()
         {
-            // Figure out extension (different in case of versions before 3.1.0.2-beta01)
-            if (XenkoCommandsProxy.CurrentPackageInfo.ExpectedVersion != null
-                && XenkoCommandsProxy.CurrentPackageInfo.ExpectedVersion < new PackageVersion("3.2.0.1-beta02"))
-            {
-                return ".cs";
-            }
-
-            return ".xksl.cs";
+            return ".xkfx.cs";
         }
 
         protected override byte[] GenerateCode(string inputFileName, string inputFileContent)
         {
+
             try
             {
                 return System.Threading.Tasks.Task.Run(() =>
