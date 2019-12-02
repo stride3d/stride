@@ -68,7 +68,7 @@ namespace Xenko.Physics
             HeightStickWidth = heightStickWidth;
             HeightStickLength = heightStickLength;
             HeightType = heightType;
-            HeightScale = (HeightType == HeightfieldTypes.Float) ? 1f : heightScale;
+            HeightScale = heightScale;
             MinHeight = minHeight;
             MaxHeight = maxHeight;
 
