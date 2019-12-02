@@ -120,7 +120,7 @@ namespace Xenko.VisualStudio
 
             solutionEventsListener = new SolutionEventsListener(this);
             solutionEventsListener.BeforeSolutionClosed += solutionEventsListener_BeforeSolutionClosed;
-            solutionEventsListener.AfterSolutionBackgroundLoadComplete += solutionEventsListener_AfterSolutionBackgroundLoadComplete;
+            solutionEventsListener.AfterSolutionOpened += solutionEventsListener_AfterSolutionOpened;
             solutionEventsListener.AfterActiveConfigurationChange += SolutionEventsListener_AfterActiveConfigurationChange;
             solutionEventsListener.StartupProjectChanged += SolutionEventsListener_OnStartupProjectChanged;
 
@@ -166,6 +166,11 @@ namespace Xenko.VisualStudio
                 crinfo[0].uIdleTimeInterval = 1000;
                 int hr = mgr.FRegisterComponent(this, crinfo, out m_componentID);
             }
+
+            // If there's already a solution loaded, process it
+            var dte = (DTE)GetService(typeof(DTE));
+            if (dte.Solution.IsOpen)
+                await InitializeCommandProxy();
 
             // Go back to async thread
             await TaskScheduler.Default;
@@ -305,7 +310,7 @@ namespace Xenko.VisualStudio
             }
         }
 
-        private async void solutionEventsListener_AfterSolutionBackgroundLoadComplete()
+        private async void solutionEventsListener_AfterSolutionOpened()
         {
             await InitializeCommandProxy();
         }
