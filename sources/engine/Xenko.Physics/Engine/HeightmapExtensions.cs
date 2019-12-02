@@ -27,13 +27,13 @@ namespace Xenko.Physics
             switch (heightmap.HeightfieldType)
             {
                 case HeightfieldTypes.Float:
-                    return Texture.New2D(device, heightmap.Width, heightmap.Length, PixelFormat.R32_Float, heightmap.Floats?.ToArray());
+                    return Texture.New2D(device, heightmap.Width, heightmap.Length, PixelFormat.R32_Float, heightmap.Floats);
 
                 case HeightfieldTypes.Short:
-                    return Texture.New2D(device, heightmap.Width, heightmap.Length, PixelFormat.R16_SNorm, heightmap.Shorts?.ToArray());
+                    return Texture.New2D(device, heightmap.Width, heightmap.Length, PixelFormat.R16_SNorm, heightmap.Shorts);
 
                 case HeightfieldTypes.Byte:
-                    return Texture.New2D(device, heightmap.Width, heightmap.Length, PixelFormat.R8_UNorm, heightmap.Bytes?.ToArray());
+                    return Texture.New2D(device, heightmap.Width, heightmap.Length, PixelFormat.R8_UNorm, heightmap.Bytes);
 
                 default:
                     return null;

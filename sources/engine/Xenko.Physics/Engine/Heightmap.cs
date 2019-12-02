@@ -16,15 +16,15 @@ namespace Xenko.Physics
     {
         [DataMember(10)]
         [Display(Browsable = false)]
-        public List<float> Floats;
+        public float[] Floats;
 
         [DataMember(20)]
         [Display(Browsable = false)]
-        public List<short> Shorts;
+        public short[] Shorts;
 
         [DataMember(30)]
         [Display(Browsable = false)]
-        public List<byte> Bytes;
+        public byte[] Bytes;
 
         [DataMember(40)]
         [Display(Browsable = false)]
@@ -52,7 +52,7 @@ namespace Xenko.Physics
                     HeightfieldType = HeightfieldTypes.Float,
                     Width = width,
                     Length = length,
-                    Floats = new List<float>(data as float[]),
+                    Floats = data as float[],
                 };
             }
             else if (type == typeof(short[]))
@@ -62,7 +62,7 @@ namespace Xenko.Physics
                     HeightfieldType = HeightfieldTypes.Short,
                     Width = width,
                     Length = length,
-                    Shorts = new List<short>(data as short[]),
+                    Shorts = data as short[],
                 };
             }
             else if (type == typeof(byte[]))
@@ -72,7 +72,7 @@ namespace Xenko.Physics
                     HeightfieldType = HeightfieldTypes.Byte,
                     Width = width,
                     Length = length,
-                    Bytes = new List<byte>(data as byte[]),
+                    Bytes = data as byte[],
                 };
             }
 

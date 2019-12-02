@@ -185,24 +185,24 @@ namespace Xenko.Assets.Physics
                                 switch (heightfieldType)
                                 {
                                     case HeightfieldTypes.Float:
-                                        heightmap.Floats = pixelBuffer.GetPixels<float>().ToList();
-                                        for (int i = 0; i < heightmap.Floats.Count; ++i)
+                                        heightmap.Floats = pixelBuffer.GetPixels<float>();
+                                        for (int i = 0; i < heightmap.Floats.Length; ++i)
                                         {
                                             heightmap.Floats[i] *= scale;
                                         }
                                         break;
 
                                     case HeightfieldTypes.Short:
-                                        heightmap.Shorts = pixelBuffer.GetPixels<short>().ToList();
-                                        for (int i = 0; i < heightmap.Shorts.Count; ++i)
+                                        heightmap.Shorts = pixelBuffer.GetPixels<short>();
+                                        for (int i = 0; i < heightmap.Shorts.Length; ++i)
                                         {
                                             heightmap.Shorts[i] = (short)MathUtil.Clamp(heightmap.Shorts[i] * scale, short.MinValue, short.MaxValue);
                                         }
                                         break;
 
                                     case HeightfieldTypes.Byte:
-                                        heightmap.Bytes = pixelBuffer.GetPixels<byte>().ToList();
-                                        for (int i = 0; i < heightmap.Bytes.Count; ++i)
+                                        heightmap.Bytes = pixelBuffer.GetPixels<byte>();
+                                        for (int i = 0; i < heightmap.Bytes.Length; ++i)
                                         {
                                             heightmap.Bytes[i] = (byte)MathUtil.Clamp(heightmap.Bytes[i] * scale, byte.MinValue, byte.MaxValue);
                                         }

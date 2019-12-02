@@ -131,17 +131,17 @@ namespace Xenko.Physics
                 {
                     case HeightfieldTypes.Float:
                     {
-                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Floats?.ToArray());
+                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Floats);
                         break;
                     }
                     case HeightfieldTypes.Short:
                     {
-                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Shorts?.ToArray());
+                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Shorts);
                         break;
                     }
                     case HeightfieldTypes.Byte:
                     {
-                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Bytes?.ToArray());
+                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Bytes);
                         break;
                     }
 
