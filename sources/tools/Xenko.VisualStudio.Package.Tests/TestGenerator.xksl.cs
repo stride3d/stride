@@ -8,16 +8,17 @@
 
 using System;
 using Xenko.Core;
-using Xenko.Effects;
+using Xenko.Rendering;
 using Xenko.Graphics;
 using Xenko.Shaders;
 using Xenko.Core.Mathematics;
 using Buffer = Xenko.Graphics.Buffer;
 
-namespace Xenko.Effects
+namespace Xenko.Rendering
 {
-    public static partial class MacroTestKeys
+    public static partial class TestGeneratorKeys
     {
-        public static readonly ParameterKey<float> u = ParameterKeys.New<float>();
+        public static readonly ValueParameterKey<float> TestFloat = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<Color3> TestColor = ParameterKeys.NewValue<Color3>();
     }
 }

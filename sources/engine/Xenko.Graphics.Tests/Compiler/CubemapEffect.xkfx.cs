@@ -14,8 +14,6 @@ using Xenko.Shaders;
 using Xenko.Core.Mathematics;
 using Buffer = Xenko.Graphics.Buffer;
 
-using Xenko.Effects.Data;
-using Xenko.Effects;
 namespace Test
 {
     internal static partial class ShaderMixins
