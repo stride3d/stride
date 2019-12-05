@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+
 using System;
 using System.Threading;
 using Xenko.Core.Annotations;
@@ -9,226 +10,178 @@ namespace Xenko.Core.Threading
     /// <summary>
     /// Thread pool for scheduling actions.
     /// </summary>
+    /// <remarks>
+    /// When more than <see cref="PoolSize"/> jobs have been scheduled,
+    /// new threads will have to be spawned to avoid user-side deadlocks.
+    /// </remarks>
     internal class ThreadPool
     {
+        /// <summary> Instance shared across the program </summary>
         public static readonly ThreadPool Instance = new ThreadPool();
-		private readonly ParameterizedThreadStart cachedTaskLoop;
         
-		/// <summary>
-		/// Linked-list like collection of threads that are waiting for work.
-		/// Low contention for pool threads.
-		/// </summary>
-		private volatile LinkedIdleThread idleThreads;
-		/// <summary>
-		/// Linked-list like collection of work that can be
-		/// de-queued from any thread when they are done working.
-		/// High contention for pool threads.
-		/// </summary>
-		private volatile LinkedWork sharedWorkStack;
-		
-		public ThreadPool()
-		{
-			// Cache delegate to avoid pointless allocation
-			cachedTaskLoop = ProcessWorkItems;
-			// Inconsistent performances when more threads are trying to be woken up than there is processors
-			int maxThreads = (Environment.ProcessorCount < 2) ? 1 : (Environment.ProcessorCount - 1);
-			for( int i = 0; i < maxThreads; i++ )
-			{
-				NewThread(null);
-			}
-		}
-		
-		void NewThread(LinkedIdleThread node)
-		{
-			new Thread(cachedTaskLoop)
-			{
-				Name = $"{GetType().FullName} thread",
-				IsBackground = true,
-				Priority = ThreadPriority.Highest
-			}.Start(node);
-		}
-		
-		public void QueueWorkItem([NotNull, Pooled] Action workItem)
-		{
-			// Throw right here to help debugging
-			if(workItem == null)
-			{
-				throw new NullReferenceException(nameof(workItem));
-			}
-			
-			PooledDelegateHelper.AddReference(workItem);
+        /// <summary> Maximum amount of idle threads waiting for work. </summary>
+        public readonly int PoolSize;
 
-			LinkedWork newSharedNode = null;
-			while(true)
-			{
-				// Are all threads busy ?
-				LinkedIdleThread node = idleThreads;
-				if(node == null)
-				{
-					if(newSharedNode == null)
-					{
-						newSharedNode = new LinkedWork(workItem);
-						if(idleThreads != null)
-							continue;
-					}
+        private readonly ConcurrentFixedPool<PooledThread> pool;
 
-					// Schedule it on the shared stack
-					newSharedNode.Previous = Interlocked.Exchange(ref sharedWorkStack, newSharedNode);
-					newSharedNode.PreviousIsValid = true;
-					break;
-				}
-				// Schedule this work item on latest idle thread
-				
-				while(node.PreviousIsValid == false)
-				{
-					// Spin while invalid, should be extremely short
-				}
+        public ThreadPool()
+        {
+            int nextPow2 = Environment.ProcessorCount * 4;
+            if (nextPow2 >= 1073741824)
+            {
+                nextPow2 = 1073741824;
+            }
+            else if (nextPow2 <= 0)
+            {
+                nextPow2 = 1;
+            }
+            else
+            {
+                nextPow2--;
+                nextPow2 |= nextPow2 >> 1;
+                nextPow2 |= nextPow2 >> 2;
+                nextPow2 |= nextPow2 >> 4;
+                nextPow2 |= nextPow2 >> 8;
+                nextPow2 |= nextPow2 >> 16;
+                nextPow2++;
+            }
 
-				// Try take this thread
-				if(Interlocked.CompareExchange(ref idleThreads, node.Previous, node) != node)
-					continue; // Latest idle threads changed, try again
-				
-				// Wakeup thread and schedule work
-				// The order those two lines are laid out in is essential !
-				Interlocked.Exchange(ref node.Work, workItem);
-				node.MRE.Set();
-				break;
-			}
-		}
+            PoolSize = nextPow2;
+            pool = new ConcurrentFixedPool<PooledThread>(PoolSize);
+        }
 
-		private void ProcessWorkItems(object nodeObj)
-		{
-			// nodeObj is non-null when a thread caught an exception and had to throw,
-			// the thread created another one and passed its node obj to us.
-			LinkedIdleThread node = nodeObj == null ? new LinkedIdleThread(new ManualResetEventSlim(true)) : (LinkedIdleThread)nodeObj;
-			try
-			{
-				while(true)
-				{
-					Action action;
-					LinkedWork workNode = sharedWorkStack;
-					if(workNode != null)
-					{
-						if(TryTakeFromSharedNonBlocking(out var tempAction, workNode))
-						{
-							action = tempAction;
-						}
-						else
-						{
-							// We have shared work to do but failed to retrieve it, try again
-							continue;
-						}
-					}
-					else
-					{
-						// Should we notify system that this thread is ready to work?
-						// This has to also work for when a thread takes the place of another one when restoring
-						// from an exception for example.
-						// If the mre was set and we took the work, this node definitely is dequeued, re-queue it 
-						if(node.MRE.IsSet && Volatile.Read(ref node.Work) == null)
-						{
-							// Notify that we're waiting for work
-							node.MRE.Reset();
-							node.PreviousIsValid = false;
-							node.Previous = Interlocked.Exchange(ref idleThreads, node);
-							node.PreviousIsValid = true;
-						}
-					
-						// Wait for work
-						SpinWait sw = new SpinWait();
-						while (true)
-						{
-							if(node.MRE.IsSet)
-							{
-								// Work has been scheduled for this thread specifically, take it
-								action = Interlocked.Exchange(ref node.Work, null);
-								break;
-							}
-							if(TryTakeFromSharedNonBlocking(out var tempAction, sharedWorkStack))
-							{
-								action = tempAction; 
-								break; // We successfully dequeued this node from the shared stack, quit loop and process action
-							}
-						
-							// Wait for work
-							if (sw.NextSpinWillYield)
-							{
-								// Wait for work to be scheduled specifically to this thread
-								node.MRE.Wait();
-								action = Interlocked.Exchange(ref node.Work, null);
-								break;
-							}
-						
-							sw.SpinOnce();
-						}
-					}
-					
-					try
-					{
-						action();
-					}
-					finally
-					{
-						PooledDelegateHelper.Release(action);
-					}
-				}
-			}
-			finally
-			{
-				// We must keep up the amount of threads that the system handles.
-				// Spawn a new one as this one is about to abort because of an exception. 
-				NewThread(node);
-			}
-		}
-		
-		/// <summary>
-		/// Attempt to remove the latest action scheduled on the shared stack,
-		/// returns work only if there was any work AND the item was successfully
-		/// removed from the stack without having to block.
-		/// </summary>
-		bool TryTakeFromSharedNonBlocking(out Action a, LinkedWork nodeToProcess)
-		{
-			if(nodeToProcess != null)
-			{
-				while(nodeToProcess.PreviousIsValid == false)
-				{
-					// Spin while invalid, should be extremely short
-				}
+        /// <summary> Schedule an action to be run on one of the <see cref="ThreadPool"/>'s threads </summary>
+        /// <exception cref="ArgumentNullException"><see cref="workItem"/> is null</exception>
+        public void QueueWorkItem([NotNull, Pooled] Action workItem)
+        {
+            if (workItem == null)
+            {
+                throw new ArgumentNullException(nameof(workItem));
+            }
+            
+            pool.Pop().Signal(workItem, pool);
+        }
 
-				if(Interlocked.CompareExchange(ref sharedWorkStack, nodeToProcess.Previous, nodeToProcess) == nodeToProcess)
-				{
-					a = nodeToProcess.Work;
-					return true;
-				}
-			}
+        /// <summary> Schedule a job to be run on one of or multiple <see cref="ThreadPool"/>'s threads </summary>
+        /// <exception cref="ArgumentNullException"><see cref="jobParam"/> is null</exception>
+        public void DispatchJob([NotNull] IConcurrentJob jobParam)
+        {
+            if (jobParam == null)
+            {
+                throw new ArgumentNullException(nameof(jobParam));
+            }
+            
+            pool.Pop().Signal(jobParam, pool);
+        }
 
-			a = null;
-			return false;
-		}
+        private class PooledThread
+        {
+            private const int SIGNAL_IDLE = 0;
+            private const int SIGNAL_WORK = 1;
+            private const int SIGNAL_SLEEPING = 2;
+            
+            private static int nextThreadId;
+            
+            private readonly Thread thread;
+            private readonly ManualResetEventSlim mre = new ManualResetEventSlim(true);
+            private ConcurrentFixedPool<PooledThread> pool;
+            private object job;
+            private bool init;
+            private int currentSignal;
 
-		private class LinkedIdleThread
-		{
-			public Action Work;
-			public readonly ManualResetEventSlim MRE;
-			public volatile LinkedIdleThread Previous;
-			public volatile bool PreviousIsValid;
-			
-			public LinkedIdleThread(ManualResetEventSlim MREParam)
-			{
-				MRE = MREParam;
-			}
-		}
-		
-		private class LinkedWork
-		{
-			public readonly Action Work;
-			public volatile LinkedWork Previous;
-			public volatile bool PreviousIsValid;
-			
-			public LinkedWork(Action workParam)
-			{
-				Work = workParam;
-			}
-		}
+            public PooledThread()
+            {
+                thread = new Thread(Loop)
+                {
+                    Name = $"{GetType().Name} thread #{Interlocked.Increment(ref nextThreadId)}",
+                    IsBackground = true,
+                    Priority = ThreadPriority.Highest,
+                };
+            }
+
+            public void Signal(object newJob, ConcurrentFixedPool<PooledThread> poolParam)
+            {
+                Interlocked.Exchange(ref job, newJob);
+                if (Interlocked.Exchange(ref currentSignal, SIGNAL_WORK) == SIGNAL_SLEEPING)
+                {
+                    mre.Set();
+                }
+
+                if (init == false)
+                {
+                    init = true;
+                    pool = poolParam;
+                    thread.Start();
+                }
+            }
+
+            private void Loop()
+            {
+                do
+                {
+                    var scheduledOp = Interlocked.Exchange(ref job, null);
+                    if (scheduledOp is IConcurrentJob pooledJob)
+                    {
+                        pooledJob.Work();
+                    }
+                    else if (scheduledOp is Action action)
+                    {
+                        try
+                        {
+                            action.Invoke();
+                        }
+                        finally
+                        {
+                            PooledDelegateHelper.Release(action);
+                        }
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Invalid job type: {scheduledOp}");
+                    }
+
+                    Interlocked.Exchange(ref currentSignal, SIGNAL_IDLE);
+                    // We're idle, push this thread onto the stack to wait for signal
+                    pool.Push(this);
+                    
+                    SpinWait sw = new SpinWait();
+                    do
+                    {
+                        if (Volatile.Read(ref currentSignal) == SIGNAL_WORK)
+                        {
+                            break;
+                        }
+
+                        if (sw.NextSpinWillYield)
+                        {
+                            mre.Reset();
+                            // Check for last-minute signal to work, otherwise sleep
+                            int previousSignal = Interlocked.CompareExchange(ref currentSignal, SIGNAL_SLEEPING, SIGNAL_IDLE);
+                            if (previousSignal == SIGNAL_WORK)
+                            {
+                                break;
+                            }
+
+                            mre.Wait();
+                            break;
+                        }
+                        else
+                        {
+                            sw.SpinOnce();
+                        }
+                    } while (true);
+                } while (true);
+            }
+        }
+        
+        /// <summary>
+        /// Simple interface to run on <see cref="ThreadPool"/>'s threads,
+        /// mostly used to store data to pass to delegate invoked within <see cref="Work()"/>.
+        /// </summary>
+        internal interface IConcurrentJob
+        {
+            /// <summary> Called once from any thread to perform work </summary>
+            void Work();
+        }
     }
 }
