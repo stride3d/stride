@@ -112,11 +112,11 @@ namespace Xenko.Rendering.Materials
             {
                 var staticObjectNode = renderObject.StaticObjectNode;
 
-                var renderMesh = (RenderMesh)renderObject;
-                bool resetPipelineState = false;
+                    var renderMesh = (RenderMesh)renderObject;
+                    bool resetPipelineState = false;
 
-                var material = renderMesh.MaterialPass;
-                var materialInfo = renderMesh.MaterialInfo;
+                    var material = renderMesh.MaterialPass;
+                    var materialInfo = renderMesh.MaterialInfo;
 
                 // Material use first 16 bits
                 var materialHashCode = material != null ? ((uint)material.GetHashCode() & 0x0FFF) | ((uint)material.PassIndex << 12) : 0;
@@ -133,15 +133,15 @@ namespace Xenko.Rendering.Materials
                     {
                         tessellationState.Method = material.TessellationMethod;
 
-                        var oldMeshDraw = renderMesh.ActiveMeshDraw;
-                        tessellationMeshDraw = new MeshDraw
-                        {
-                            VertexBuffers = oldMeshDraw.VertexBuffers,
-                            IndexBuffer = oldMeshDraw.IndexBuffer,
-                            DrawCount = oldMeshDraw.DrawCount,
-                            StartLocation = oldMeshDraw.StartLocation,
-                            PrimitiveType = tessellationState.Method.GetPrimitiveType(),
-                        };
+                            var oldMeshDraw = renderMesh.ActiveMeshDraw;
+                            tessellationMeshDraw = new MeshDraw
+                            {
+                                VertexBuffers = oldMeshDraw.VertexBuffers,
+                                IndexBuffer = oldMeshDraw.IndexBuffer,
+                                DrawCount = oldMeshDraw.DrawCount,
+                                StartLocation = oldMeshDraw.StartLocation,
+                                PrimitiveType = tessellationState.Method.GetPrimitiveType(),
+                            };
 
                         // adapt the primitive type and index buffer to the tessellation used
                         if (tessellationState.Method.PerformsAdjacentEdgeAverage())
@@ -155,9 +155,9 @@ namespace Xenko.Rendering.Materials
                         }
                         tessellationState.MeshDraw = tessellationMeshDraw;
 
-                        // Reset pipeline states
-                        resetPipelineState = true;
-                    }
+                            // Reset pipeline states
+                            resetPipelineState = true;
+                        }
 
                     renderMesh.ActiveMeshDraw = tessellationState.MeshDraw;
                 }
@@ -227,12 +227,12 @@ namespace Xenko.Rendering.Materials
                                 materialInfo.HasNormalMap = material.Parameters.Get(MaterialKeys.HasNormalMap);
                                 materialInfo.UsePixelShaderWithDepthPass = material.Parameters.Get(MaterialKeys.UsePixelShaderWithDepthPass);
 
-                                materialInfo.MaterialParameters = material.Parameters;
-                                materialInfo.ParametersChanged = isMaterialParametersChanged;
-                                materialInfo.PermutationCounter = material.Parameters.PermutationCounter;
+                                    materialInfo.MaterialParameters = material.Parameters;
+                                    materialInfo.ParametersChanged = isMaterialParametersChanged;
+                                    materialInfo.PermutationCounter = material.Parameters.PermutationCounter;
+                                }
                             }
                         }
-                    }
 
                     // VS
                     if (materialInfo.VertexStageSurfaceShaders != null)
@@ -281,12 +281,12 @@ namespace Xenko.Rendering.Materials
                 if (renderNode.RenderEffect.State != RenderEffectState.Normal)
                     return;
 
-                // Collect materials and create associated MaterialInfo (includes reflection) first time
-                // TODO: We assume same material will generate same ResourceGroup (i.e. same resources declared in same order)
-                // Need to offer some protection if this invariant is violated (or support it if it can actually happen in real scenario)
-                var material = renderMesh.MaterialPass;
-                var materialInfo = renderMesh.MaterialInfo;
-                var materialParameters = material.Parameters;
+                    // Collect materials and create associated MaterialInfo (includes reflection) first time
+                    // TODO: We assume same material will generate same ResourceGroup (i.e. same resources declared in same order)
+                    // Need to offer some protection if this invariant is violated (or support it if it can actually happen in real scenario)
+                    var material = renderMesh.MaterialPass;
+                    var materialInfo = renderMesh.MaterialInfo;
+                    var materialParameters = material.Parameters;
 
                 // Register resources usage
                 Context.StreamingManager?.StreamResources(materialParameters);

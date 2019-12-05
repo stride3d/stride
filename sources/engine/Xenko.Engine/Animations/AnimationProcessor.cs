@@ -60,131 +60,134 @@ namespace Xenko.Animations
             var time = context.Time;
 
             //foreach (var entity in ComponentDatas.Values)
-            Dispatcher.ForEach(ComponentDatas, () => animationOperationPool.Acquire(), (entity, animationOperations) =>
-            {
-                var associatedData = entity.Value;
-
-                var animationUpdater = associatedData.AnimationUpdater;
-                var animationComponent = associatedData.AnimationComponent;
-
-                if (animationComponent.BlendTreeBuilder != null)
+            Dispatcher.ForEachKVP(ComponentDatas, (this, time),
+                delegate (ref (AnimationProcessor @this, Games.GameTime time) p, ref KeyValuePair<AnimationComponent, AssociatedData> entity, FastList<AnimationOperation> animationOperations)
                 {
-                    animationComponent.BlendTreeBuilder.BuildBlendTree(animationOperations);
-                }
-                else
-                {
-                    // Advance time for all playing animations with AutoPlay set to on
-                    foreach (var playingAnimation in animationComponent.PlayingAnimations)
+                    var associatedData = entity.Value;
+
+                    var animationUpdater = associatedData.AnimationUpdater;
+                    var animationComponent = associatedData.AnimationComponent;
+
+                    if (animationComponent.BlendTreeBuilder != null)
                     {
-                        if (!playingAnimation.Enabled || playingAnimation.Clip == null)
-                            continue;
-
-                        switch (playingAnimation.RepeatMode)
-                        {
-                            case AnimationRepeatMode.PlayOnceHold:
-                            case AnimationRepeatMode.PlayOnce:
-                                playingAnimation.CurrentTime = TimeSpan.FromTicks(playingAnimation.CurrentTime.Ticks + (long)(time.Elapsed.Ticks * (double)playingAnimation.TimeFactor));
-                                if (playingAnimation.CurrentTime > playingAnimation.Clip.Duration)
-                                    playingAnimation.CurrentTime = playingAnimation.Clip.Duration;
-                                else if (playingAnimation.CurrentTime < TimeSpan.Zero)
-                                    playingAnimation.CurrentTime = TimeSpan.Zero;
-                                break;
-                            case AnimationRepeatMode.LoopInfinite:
-                                playingAnimation.CurrentTime = playingAnimation.Clip.Duration == TimeSpan.Zero
-                                    ? TimeSpan.Zero
-                                    : TimeSpan.FromTicks((playingAnimation.CurrentTime.Ticks + playingAnimation.Clip.Duration.Ticks
-                                        + (long)(time.Elapsed.Ticks * (double)playingAnimation.TimeFactor)) % playingAnimation.Clip.Duration.Ticks);
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
-                        }
+                        animationComponent.BlendTreeBuilder.BuildBlendTree(animationOperations);
                     }
-
-                    // Regenerate animation operations
-                    float totalWeight = 0.0f;
-
-                    for (int index = 0; index < animationComponent.PlayingAnimations.Count; index++)
+                    else
                     {
-                        var playingAnimation = animationComponent.PlayingAnimations[index];
-                        var animationWeight = playingAnimation.Weight;
-
-                        // Skip animation with 0.0f weight
-                        if (animationWeight == 0.0f || playingAnimation.Clip == null)
-                            continue;
-
-                        // Default behavior for linea blending (it will properly accumulate multiple blending with their cumulative weight)
-                        totalWeight += animationWeight;
-                        float currentBlend = animationWeight / totalWeight;
-
-                        if (playingAnimation.BlendOperation == AnimationBlendOperation.Add)
+                        // Advance time for all playing animations with AutoPlay set to on
+                        foreach (var playingAnimation in animationComponent.PlayingAnimations)
                         {
-                            // Additive or substractive blending will use the weight as is (and reset total weight with it)
-                            currentBlend = animationWeight;
-                            totalWeight = animationWeight;
-                        }
+                            if (!playingAnimation.Enabled || playingAnimation.Clip == null)
+                                continue;
 
-                        // Create evaluator
-                        var evaluator = playingAnimation.Evaluator;
-                        if (evaluator == null)
-                        {
-                            evaluator = animationComponent.Blender.CreateEvaluator(playingAnimation.Clip);
-                            playingAnimation.Evaluator = evaluator;
-                        }
-
-                        animationOperations.Add(CreatePushOperation(playingAnimation));
-
-                        if (animationOperations.Count >= 2)
-                            animationOperations.Add(AnimationOperation.NewBlend((CoreAnimationOperation)playingAnimation.BlendOperation, currentBlend));
-                    }
-                }
-
-                if (animationOperations.Count > 0)
-                {
-                    // Animation blending
-                    animationComponent.Blender.Compute(animationOperations, ref associatedData.AnimationClipResult);
-
-                    // Update animation data if we have a model component
-                    animationUpdater.Update(animationComponent.Entity, associatedData.AnimationClipResult);
-                }
-
-                if (animationComponent.BlendTreeBuilder == null)
-                {
-                    // Update weight animation
-                    for (int index = 0; index < animationComponent.PlayingAnimations.Count; index++)
-                    {
-                        var playingAnimation = animationComponent.PlayingAnimations[index];
-                        bool removeAnimation = false;
-                        if (playingAnimation.CrossfadeRemainingTime > TimeSpan.Zero)
-                        {
-                            playingAnimation.Weight += (playingAnimation.WeightTarget - playingAnimation.Weight)
-                                                       * ((float)time.Elapsed.Ticks / playingAnimation.CrossfadeRemainingTime.Ticks);
-                            playingAnimation.CrossfadeRemainingTime -= time.Elapsed;
-                            if (playingAnimation.CrossfadeRemainingTime <= TimeSpan.Zero)
+                            var tick = playingAnimation.CurrentTime.Ticks + (long)(p.time.Elapsed.Ticks * (double)playingAnimation.TimeFactor);
+                            switch (playingAnimation.RepeatMode)
                             {
-                                playingAnimation.Weight = playingAnimation.WeightTarget;
-
-                                // If weight target was 0, removes the animation
-                                if (playingAnimation.Weight <= 0.0f)
-                                    removeAnimation = true;
+                                case AnimationRepeatMode.PlayOnceHold:
+                                case AnimationRepeatMode.PlayOnce:
+                                    playingAnimation.CurrentTime = TimeSpan.FromTicks(tick);
+                                    if (playingAnimation.CurrentTime > playingAnimation.Clip.Duration)
+                                        playingAnimation.CurrentTime = playingAnimation.Clip.Duration;
+                                    else if (playingAnimation.CurrentTime < TimeSpan.Zero)
+                                        playingAnimation.CurrentTime = TimeSpan.Zero;
+                                    break;
+                                case AnimationRepeatMode.LoopInfinite:
+                                    playingAnimation.CurrentTime = playingAnimation.Clip.Duration == TimeSpan.Zero
+                                        ? TimeSpan.Zero
+                                        : TimeSpan.FromTicks((tick + playingAnimation.Clip.Duration.Ticks) % playingAnimation.Clip.Duration.Ticks);
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
                             }
                         }
 
-                        if (playingAnimation.RepeatMode == AnimationRepeatMode.PlayOnce)
-                        {
-                             if ((playingAnimation.TimeFactor > 0 && playingAnimation.CurrentTime == playingAnimation.Clip.Duration) ||
-                                 (playingAnimation.TimeFactor < 0 && playingAnimation.CurrentTime == TimeSpan.Zero))
-                            removeAnimation = true;
-                        }
+                        // Regenerate animation operations
+                        float totalWeight = 0.0f;
 
-                        if (removeAnimation)
+                        for (int index = 0; index < animationComponent.PlayingAnimations.Count; index++)
                         {
-                            animationComponent.PlayingAnimations.RemoveAt(index--); // Will also release its evaluator
+                            var playingAnimation = animationComponent.PlayingAnimations[index];
+                            var animationWeight = playingAnimation.Weight;
+
+                            // Skip animation with 0.0f weight
+                            if (animationWeight == 0.0f || playingAnimation.Clip == null)
+                                continue;
+
+                            // Default behavior for linea blending (it will properly accumulate multiple blending with their cumulative weight)
+                            totalWeight += animationWeight;
+                            float currentBlend = animationWeight / totalWeight;
+
+                            if (playingAnimation.BlendOperation == AnimationBlendOperation.Add)
+                            {
+                                // Additive or substractive blending will use the weight as is (and reset total weight with it)
+                                currentBlend = animationWeight;
+                                totalWeight = animationWeight;
+                            }
+
+                            // Create evaluator
+                            var evaluator = playingAnimation.Evaluator;
+                            if (evaluator == null)
+                            {
+                                evaluator = animationComponent.Blender.CreateEvaluator(playingAnimation.Clip);
+                                playingAnimation.Evaluator = evaluator;
+                            }
+
+                            animationOperations.Add(p.@this.CreatePushOperation(playingAnimation));
+
+                            if (animationOperations.Count >= 2)
+                                animationOperations.Add(AnimationOperation.NewBlend((CoreAnimationOperation)playingAnimation.BlendOperation, currentBlend));
                         }
                     }
-                }
 
-                animationOperations.Clear();
-            }, animationOperations => animationOperationPool.Release(animationOperations));
+                    if (animationOperations.Count > 0)
+                    {
+                        // Animation blending
+                        animationComponent.Blender.Compute(animationOperations, ref associatedData.AnimationClipResult);
+
+                        // Update animation data if we have a model component
+                        animationUpdater.Update(animationComponent.Entity, associatedData.AnimationClipResult);
+                    }
+
+                    if (animationComponent.BlendTreeBuilder == null)
+                    {
+                        // Update weight animation
+                        for (int index = 0; index < animationComponent.PlayingAnimations.Count; index++)
+                        {
+                            var playingAnimation = animationComponent.PlayingAnimations[index];
+                            bool removeAnimation = false;
+                            if (playingAnimation.CrossfadeRemainingTime > TimeSpan.Zero)
+                            {
+                                playingAnimation.Weight += (playingAnimation.WeightTarget - playingAnimation.Weight)
+                                                           * ((float)p.time.Elapsed.Ticks / playingAnimation.CrossfadeRemainingTime.Ticks);
+                                playingAnimation.CrossfadeRemainingTime -= p.time.Elapsed;
+                                if (playingAnimation.CrossfadeRemainingTime <= TimeSpan.Zero)
+                                {
+                                    playingAnimation.Weight = playingAnimation.WeightTarget;
+
+                                    // If weight target was 0, removes the animation
+                                    if (playingAnimation.Weight <= 0.0f)
+                                        removeAnimation = true;
+                                }
+                            }
+
+                            if (playingAnimation.RepeatMode == AnimationRepeatMode.PlayOnce)
+                            {
+                                if ((playingAnimation.TimeFactor > 0 && playingAnimation.CurrentTime == playingAnimation.Clip.Duration) ||
+                                    (playingAnimation.TimeFactor < 0 && playingAnimation.CurrentTime == TimeSpan.Zero))
+                                    removeAnimation = true;
+                            }
+
+                            if (removeAnimation)
+                            {
+                                animationComponent.PlayingAnimations.RemoveAt(index--); // Will also release its evaluator
+                            }
+                        }
+                    }
+
+                    animationOperations.Clear();
+                },
+                (ref (AnimationProcessor @this, Games.GameTime time) p) => p.@this.animationOperationPool.Acquire(),
+                (ref (AnimationProcessor @this, Games.GameTime time) p, FastList<AnimationOperation> animationOperations) => p.@this.animationOperationPool.Release(animationOperations));
         }
 
         private AnimationOperation CreatePushOperation(PlayingAnimation playingAnimation)

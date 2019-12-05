@@ -29,7 +29,7 @@ namespace Xenko.Navigation
         public Logger Logger;
 
         private NavigationMesh oldNavigationMesh;
-        
+
         private List<StaticColliderData> colliders = new List<StaticColliderData>();
         private HashSet<Guid> registeredGuids = new HashSet<Guid>();
 
@@ -156,7 +156,7 @@ namespace Xenko.Navigation
                     sceneNavigationMeshInputBuilder.AppendOther(BuildPlaneGeometry(plane, globalBoundingBox));
                 }
             }
-            
+
             // TODO: Generate tile local mesh input data
             var inputVertices = sceneNavigationMeshInputBuilder.Points.ToArray();
             var inputIndices = sceneNavigationMeshInputBuilder.Indices.ToArray();
@@ -235,19 +235,20 @@ namespace Xenko.Navigation
                     long buildTimeStamp = DateTime.UtcNow.Ticks;
 
                     ConcurrentCollector<Tuple<Point, NavigationMeshTile>> builtTiles = new ConcurrentCollector<Tuple<Point, NavigationMeshTile>>(tilesToBuild.Count);
-                    Dispatcher.ForEach(tilesToBuild.ToArray(), tileCoordinate =>
-                    {
-                        // Allow cancellation while building tiles
-                        if (cancellationToken.IsCancellationRequested)
-                            return;
+                    Dispatcher.ForEach(tilesToBuild.ToArray(), (this, buildSettings, boundingBoxes, cancellationToken, inputVertices, inputIndices, currentAgentSettings, buildTimeStamp, builtTiles),
+                        delegate (ref (NavigationMeshBuilder @this, NavigationMeshBuildSettings buildSettings, ICollection<BoundingBox> boundingBoxes, CancellationToken cancellationToken, Vector3[] inputVertices, int[] inputIndices, NavigationAgentSettings currentAgentSettings, long buildTimeStamp, ConcurrentCollector<Tuple<Point, NavigationMeshTile>> builtTiles) p, Point tileCoordinate)
+                        {
+                            // Allow cancellation while building tiles
+                            if (p.cancellationToken.IsCancellationRequested)
+                                return;
 
-                        // Builds the tile, or returns null when there is nothing generated for this tile (empty tile)
-                        NavigationMeshTile meshTile = BuildTile(tileCoordinate, buildSettings, currentAgentSettings, boundingBoxes,
-                            inputVertices, inputIndices, buildTimeStamp);
+                            // Builds the tile, or returns null when there is nothing generated for this tile (empty tile)
+                            NavigationMeshTile meshTile = p.@this.BuildTile(tileCoordinate, p.buildSettings, p.currentAgentSettings, p.boundingBoxes,
+                                p.inputVertices, p.inputIndices, p.buildTimeStamp);
 
-                        // Add the result to the list of built tiles
-                        builtTiles.Add(new Tuple<Point, NavigationMeshTile>(tileCoordinate, meshTile));
-                    });
+                            // Add the result to the list of built tiles
+                            p.builtTiles.Add(new Tuple<Point, NavigationMeshTile>(tileCoordinate, meshTile));
+                        });
 
                     if (cancellationToken.IsCancellationRequested)
                     {
@@ -266,7 +267,7 @@ namespace Xenko.Navigation
                         foreach (var sourceTile in sourceLayer.Tiles)
                             layer.TilesInternal.Add(sourceTile.Key, sourceTile.Value);
                     }
-                    
+
                     foreach (var p in builtTiles)
                     {
                         if (p.Item2 == null)
@@ -319,7 +320,7 @@ namespace Xenko.Navigation
 
             // Update navigation mesh
             oldNavigationMesh = result.NavigationMesh;
-            
+
             result.Success = true;
             return result;
         }
@@ -416,182 +417,188 @@ namespace Xenko.Navigation
             return meshTile;
         }
 
+        class OperationOutput
+        {
+            public int clearCache = 0;
+        }
+
         /// <summary>
         /// Rebuilds outdated triangle data for colliders and recalculates hashes storing everything in StaticColliderData
         /// </summary>
         private void BuildInput(StaticColliderData[] collidersLocal, CollisionFilterGroupFlags includedCollisionGroups)
         {
             NavigationMeshCache lastCache = oldNavigationMesh?.Cache;
-            
-            bool clearCache = false;
-            
-            Dispatcher.ForEach(collidersLocal, colliderData =>
-            {
-                var entity = colliderData.Component.Entity;
-                TransformComponent entityTransform = entity.Transform;
-                Matrix entityWorldMatrix = entityTransform.WorldMatrix;
 
-                NavigationMeshInputBuilder entityNavigationMeshInputBuilder = colliderData.InputBuilder = new NavigationMeshInputBuilder();
+            var operationOutput = new OperationOutput();
 
-                // Compute hash of collider and compare it with the previous build if there is one
-                colliderData.ParameterHash = NavigationMeshBuildUtils.HashEntityCollider(colliderData.Component, includedCollisionGroups);
-                colliderData.Previous = null;
-                if (lastCache?.Objects.TryGetValue(colliderData.Component.Id, out colliderData.Previous) ?? false)
+            Dispatcher.ForEach(collidersLocal, (includedCollisionGroups, lastCache, operationOutput),
+                delegate(ref (CollisionFilterGroupFlags includedCollisionGroups, NavigationMeshCache lastCache, OperationOutput operationOutput) p, StaticColliderData colliderData)
                 {
-                    if (colliderData.Previous.ParameterHash == colliderData.ParameterHash)
+                    var entity = colliderData.Component.Entity;
+                    TransformComponent entityTransform = entity.Transform;
+                    Matrix entityWorldMatrix = entityTransform.WorldMatrix;
+
+                    NavigationMeshInputBuilder entityNavigationMeshInputBuilder = colliderData.InputBuilder = new NavigationMeshInputBuilder();
+
+                    // Compute hash of collider and compare it with the previous build if there is one
+                    colliderData.ParameterHash = NavigationMeshBuildUtils.HashEntityCollider(colliderData.Component, p.includedCollisionGroups);
+                    colliderData.Previous = null;
+                    if (p.lastCache?.Objects.TryGetValue(colliderData.Component.Id, out colliderData.Previous) ?? false)
                     {
-                        // In this case, we don't need to recalculate the geometry for this shape, since it wasn't changed
-                        // here we take the triangle mesh from the previous build as the current
-                        colliderData.InputBuilder = colliderData.Previous.InputBuilder;
-                        colliderData.Planes.Clear();
-                        colliderData.Planes.AddRange(colliderData.Previous.Planes);
-                        colliderData.Processed = false;
+                        if (colliderData.Previous.ParameterHash == colliderData.ParameterHash)
+                        {
+                            // In this case, we don't need to recalculate the geometry for this shape, since it wasn't changed
+                            // here we take the triangle mesh from the previous build as the current
+                            colliderData.InputBuilder = colliderData.Previous.InputBuilder;
+                            colliderData.Planes.Clear();
+                            colliderData.Planes.AddRange(colliderData.Previous.Planes);
+                            colliderData.Processed = false;
+                            return;
+                        }
+                    }
+
+                    // Clear cache on removal of infinite planes
+                    if (colliderData.Planes.Count > 0)
+                        Interlocked.Exchange(ref p.operationOutput.clearCache, 1);
+
+                    // Clear planes
+                    colliderData.Planes.Clear();
+
+                    // Return empty data for disabled colliders, filtered out colliders or trigger colliders 
+                    if (!colliderData.Component.Enabled || colliderData.Component.IsTrigger ||
+                        !NavigationMeshBuildUtils.CheckColliderFilter(colliderData.Component, p.includedCollisionGroups))
+                    {
+                        colliderData.Processed = true;
                         return;
                     }
-                }
 
-                // Clear cache on removal of infinite planes
-                if (colliderData.Planes.Count > 0)
-                    clearCache = true;
+                    // Make sure shape is up to date
+                    colliderData.Component.ComposeShape();
 
-                // Clear planes
-                colliderData.Planes.Clear();
-
-                // Return empty data for disabled colliders, filtered out colliders or trigger colliders 
-                if (!colliderData.Component.Enabled || colliderData.Component.IsTrigger ||
-                    !NavigationMeshBuildUtils.CheckColliderFilter(colliderData.Component, includedCollisionGroups))
-                {
-                    colliderData.Processed = true;
-                    return;
-                }
-
-                // Make sure shape is up to date
-                colliderData.Component.ComposeShape();
-
-                // Interate through all the colliders shapes while queueing all shapes in compound shapes to process those as well
-                Queue<ColliderShape> shapesToProcess = new Queue<ColliderShape>();
-                if (colliderData.Component.ColliderShape != null)
-                {
-                    shapesToProcess.Enqueue(colliderData.Component.ColliderShape);
-                    while (shapesToProcess.Count > 0)
+                    // Interate through all the colliders shapes while queueing all shapes in compound shapes to process those as well
+                    Queue<ColliderShape> shapesToProcess = new Queue<ColliderShape>();
+                    if (colliderData.Component.ColliderShape != null)
                     {
-                        var shape = shapesToProcess.Dequeue();
-                        var shapeType = shape.GetType();
-                        if (shapeType == typeof(BoxColliderShape))
+                        shapesToProcess.Enqueue(colliderData.Component.ColliderShape);
+                        while (shapesToProcess.Count > 0)
                         {
-                            var box = (BoxColliderShape)shape;
-                            var boxDesc = GetColliderShapeDesc<BoxColliderShapeDesc>(box.Description);
-                            Matrix transform = box.PositiveCenterMatrix * entityWorldMatrix;
-
-                            var meshData = GeometricPrimitive.Cube.New(boxDesc.Size, toLeftHanded: true);
-                            entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
-                        }
-                        else if (shapeType == typeof(SphereColliderShape))
-                        {
-                            var sphere = (SphereColliderShape)shape;
-                            var sphereDesc = GetColliderShapeDesc<SphereColliderShapeDesc>(sphere.Description);
-                            Matrix transform = sphere.PositiveCenterMatrix * entityWorldMatrix;
-
-                            var meshData = GeometricPrimitive.Sphere.New(sphereDesc.Radius, toLeftHanded: true);
-                            entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
-                        }
-                        else if (shapeType == typeof(CylinderColliderShape))
-                        {
-                            var cylinder = (CylinderColliderShape)shape;
-                            var cylinderDesc = GetColliderShapeDesc<CylinderColliderShapeDesc>(cylinder.Description);
-                            Matrix transform = cylinder.PositiveCenterMatrix * entityWorldMatrix;
-
-                            var meshData = GeometricPrimitive.Cylinder.New(cylinderDesc.Height, cylinderDesc.Radius, toLeftHanded: true);
-                            entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
-                        }
-                        else if (shapeType == typeof(CapsuleColliderShape))
-                        {
-                            var capsule = (CapsuleColliderShape)shape;
-                            var capsuleDesc = GetColliderShapeDesc<CapsuleColliderShapeDesc>(capsule.Description);
-                            Matrix transform = capsule.PositiveCenterMatrix * entityWorldMatrix;
-
-                            var meshData = GeometricPrimitive.Capsule.New(capsuleDesc.Length, capsuleDesc.Radius, toLeftHanded: true);
-                            entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
-                        }
-                        else if (shapeType == typeof(ConeColliderShape))
-                        {
-                            var cone = (ConeColliderShape)shape;
-                            var coneDesc = GetColliderShapeDesc<ConeColliderShapeDesc>(cone.Description);
-                            Matrix transform = cone.PositiveCenterMatrix * entityWorldMatrix;
-
-                            var meshData = GeometricPrimitive.Cone.New(coneDesc.Radius, coneDesc.Height, toLeftHanded: true);
-                            entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
-                        }
-                        else if (shapeType == typeof(StaticPlaneColliderShape))
-                        {
-                            var planeShape = (StaticPlaneColliderShape)shape;
-                            var planeDesc = GetColliderShapeDesc<StaticPlaneColliderShapeDesc>(planeShape.Description);
-                            Matrix transform = entityWorldMatrix;
-
-                            Plane plane = new Plane(planeDesc.Normal, planeDesc.Offset);
-
-                            // Pre-Transform plane parameters
-                            plane.Normal = Vector3.TransformNormal(planeDesc.Normal, transform);
-                            plane.Normal.Normalize();
-                            plane.D += Vector3.Dot(transform.TranslationVector, plane.Normal);
-
-                            colliderData.Planes.Add(plane);
-                        }
-                        else if (shapeType == typeof(ConvexHullColliderShape))
-                        {
-                            var hull = (ConvexHullColliderShape)shape;
-                            Matrix transform = hull.PositiveCenterMatrix * entityWorldMatrix;
-
-                            // Convert hull indices to int
-                            int[] indices = new int[hull.Indices.Count];
-                            if (hull.Indices.Count % 3 != 0) throw new InvalidOperationException($"{shapeType} does not consist of triangles");
-                            for (int i = 0; i < hull.Indices.Count; i += 3)
+                            var shape = shapesToProcess.Dequeue();
+                            var shapeType = shape.GetType();
+                            if (shapeType == typeof(BoxColliderShape))
                             {
-                                indices[i] = (int)hull.Indices[i];
-                                indices[i + 2] = (int)hull.Indices[i + 1]; // NOTE: Reversed winding to create left handed input
-                                indices[i + 1] = (int)hull.Indices[i + 2];
+                                var box = (BoxColliderShape)shape;
+                                var boxDesc = GetColliderShapeDesc<BoxColliderShapeDesc>(box.Description);
+                                Matrix transform = box.PositiveCenterMatrix * entityWorldMatrix;
+
+                                var meshData = GeometricPrimitive.Cube.New(boxDesc.Size, toLeftHanded: true);
+                                entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
                             }
-
-                            entityNavigationMeshInputBuilder.AppendArrays(hull.Points.ToArray(), indices, transform);
-                        }
-                        else if (shapeType == typeof(StaticMeshColliderShape))
-                        {
-                            var mesh = (StaticMeshColliderShape)shape;
-                            Matrix transform = mesh.PositiveCenterMatrix * entityWorldMatrix;
-
-                            // Convert hull indices to int
-                            int[] indices = new int[mesh.Indices.Count];
-                            if (mesh.Indices.Count % 3 != 0) throw new InvalidOperationException($"{shapeType} does not consist of triangles");
-                            for (int i = 0; i < mesh.Indices.Count; i += 3)
+                            else if (shapeType == typeof(SphereColliderShape))
                             {
-                                indices[i] = (int)mesh.Indices[i];
-                                indices[i + 2] = (int)mesh.Indices[i + 1]; // NOTE: Reversed winding to create left handed input
-                                indices[i + 1] = (int)mesh.Indices[i + 2];
+                                var sphere = (SphereColliderShape)shape;
+                                var sphereDesc = GetColliderShapeDesc<SphereColliderShapeDesc>(sphere.Description);
+                                Matrix transform = sphere.PositiveCenterMatrix * entityWorldMatrix;
+
+                                var meshData = GeometricPrimitive.Sphere.New(sphereDesc.Radius, toLeftHanded: true);
+                                entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
                             }
-
-                            entityNavigationMeshInputBuilder.AppendArrays(mesh.Vertices.ToArray(), indices, transform);
-                        }
-                        else if (shapeType == typeof(CompoundColliderShape))
-                        {
-                            // Unroll compound collider shapes
-                            var compound = (CompoundColliderShape)shape;
-                            for (int i = 0; i < compound.Count; i++)
+                            else if (shapeType == typeof(CylinderColliderShape))
                             {
-                                shapesToProcess.Enqueue(compound[i]);
+                                var cylinder = (CylinderColliderShape)shape;
+                                var cylinderDesc = GetColliderShapeDesc<CylinderColliderShapeDesc>(cylinder.Description);
+                                Matrix transform = cylinder.PositiveCenterMatrix * entityWorldMatrix;
+
+                                var meshData = GeometricPrimitive.Cylinder.New(cylinderDesc.Height, cylinderDesc.Radius, toLeftHanded: true);
+                                entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
+                            }
+                            else if (shapeType == typeof(CapsuleColliderShape))
+                            {
+                                var capsule = (CapsuleColliderShape)shape;
+                                var capsuleDesc = GetColliderShapeDesc<CapsuleColliderShapeDesc>(capsule.Description);
+                                Matrix transform = capsule.PositiveCenterMatrix * entityWorldMatrix;
+
+                                var meshData = GeometricPrimitive.Capsule.New(capsuleDesc.Length, capsuleDesc.Radius, toLeftHanded: true);
+                                entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
+                            }
+                            else if (shapeType == typeof(ConeColliderShape))
+                            {
+                                var cone = (ConeColliderShape)shape;
+                                var coneDesc = GetColliderShapeDesc<ConeColliderShapeDesc>(cone.Description);
+                                Matrix transform = cone.PositiveCenterMatrix * entityWorldMatrix;
+
+                                var meshData = GeometricPrimitive.Cone.New(coneDesc.Radius, coneDesc.Height, toLeftHanded: true);
+                                entityNavigationMeshInputBuilder.AppendMeshData(meshData, transform);
+                            }
+                            else if (shapeType == typeof(StaticPlaneColliderShape))
+                            {
+                                var planeShape = (StaticPlaneColliderShape)shape;
+                                var planeDesc = GetColliderShapeDesc<StaticPlaneColliderShapeDesc>(planeShape.Description);
+                                Matrix transform = entityWorldMatrix;
+
+                                Plane plane = new Plane(planeDesc.Normal, planeDesc.Offset);
+
+                                // Pre-Transform plane parameters
+                                plane.Normal = Vector3.TransformNormal(planeDesc.Normal, transform);
+                                plane.Normal.Normalize();
+                                plane.D += Vector3.Dot(transform.TranslationVector, plane.Normal);
+
+                                colliderData.Planes.Add(plane);
+                            }
+                            else if (shapeType == typeof(ConvexHullColliderShape))
+                            {
+                                var hull = (ConvexHullColliderShape)shape;
+                                Matrix transform = hull.PositiveCenterMatrix * entityWorldMatrix;
+
+                                // Convert hull indices to int
+                                int[] indices = new int[hull.Indices.Count];
+                                if (hull.Indices.Count % 3 != 0) throw new InvalidOperationException($"{shapeType} does not consist of triangles");
+                                for (int i = 0; i < hull.Indices.Count; i += 3)
+                                {
+                                    indices[i] = (int)hull.Indices[i];
+                                    indices[i + 2] = (int)hull.Indices[i + 1]; // NOTE: Reversed winding to create left handed input
+                                    indices[i + 1] = (int)hull.Indices[i + 2];
+                                }
+
+                                entityNavigationMeshInputBuilder.AppendArrays(hull.Points.ToArray(), indices, transform);
+                            }
+                            else if (shapeType == typeof(StaticMeshColliderShape))
+                            {
+                                var mesh = (StaticMeshColliderShape)shape;
+                                Matrix transform = mesh.PositiveCenterMatrix * entityWorldMatrix;
+
+                                // Convert hull indices to int
+                                int[] indices = new int[mesh.Indices.Count];
+                                if (mesh.Indices.Count % 3 != 0) throw new InvalidOperationException($"{shapeType} does not consist of triangles");
+                                for (int i = 0; i < mesh.Indices.Count; i += 3)
+                                {
+                                    indices[i] = (int)mesh.Indices[i];
+                                    indices[i + 2] = (int)mesh.Indices[i + 1]; // NOTE: Reversed winding to create left handed input
+                                    indices[i + 1] = (int)mesh.Indices[i + 2];
+                                }
+
+                                entityNavigationMeshInputBuilder.AppendArrays(mesh.Vertices.ToArray(), indices, transform);
+                            }
+                            else if (shapeType == typeof(CompoundColliderShape))
+                            {
+                                // Unroll compound collider shapes
+                                var compound = (CompoundColliderShape)shape;
+                                for (int i = 0; i < compound.Count; i++)
+                                {
+                                    shapesToProcess.Enqueue(compound[i]);
+                                }
                             }
                         }
                     }
-                }
 
-                // Clear cache on addition of infinite planes
-                if (colliderData.Planes.Count > 0)
-                    clearCache = true;
+                    // Clear cache on addition of infinite planes
+                    if (colliderData.Planes.Count > 0)
+                        Interlocked.Exchange(ref p.operationOutput.clearCache, 1);
 
-                // Mark collider as processed
-                colliderData.Processed = true;
-            });
+                    // Mark collider as processed
+                    colliderData.Processed = true;
+                });
 
-            if (clearCache && oldNavigationMesh != null)
+            if (Volatile.Read(ref operationOutput.clearCache) == 1 && oldNavigationMesh != null)
             {
                 oldNavigationMesh = null;
             }
@@ -605,7 +612,7 @@ namespace Xenko.Navigation
             // Extend bounding box for agent size
             BoundingBox boundingBoxToCheck = inputBuilder.BoundingBox;
             NavigationMeshBuildUtils.ExtendBoundingBox(ref boundingBoxToCheck, new Vector3(agentSettings.Radius));
-            
+
             List<Point> newTileList = NavigationMeshBuildUtils.GetOverlappingTiles(buildSettings, boundingBoxToCheck);
             foreach (Point p in newTileList)
             {
@@ -648,7 +655,7 @@ namespace Xenko.Navigation
         /// <summary>
         /// Extract the collider shape description in the case of it being either an inline shape or an asset as shape
         /// </summary>
-        private TColliderType GetColliderShapeDesc<TColliderType>(IColliderShapeDesc desc) where TColliderType : class, IColliderShapeDesc
+        private static TColliderType GetColliderShapeDesc<TColliderType>(IColliderShapeDesc desc) where TColliderType : class, IColliderShapeDesc
         {
             var direct = desc as TColliderType;
             if (direct != null)

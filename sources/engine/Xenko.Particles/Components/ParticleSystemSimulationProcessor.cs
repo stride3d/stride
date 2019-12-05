@@ -110,7 +110,7 @@ namespace Xenko.Particles.Components
                 }
             }
 
-            Dispatcher.ForEach(ParticleSystems, state => UpdateParticleSystem(state, deltaTime));
+            Dispatcher.ForEach(ParticleSystems, (@this: this, deltaTime), (ref (ParticleSystemSimulationProcessor @this, float deltaTime) p, ParticleSystemComponentState state) => p.@this.UpdateParticleSystem(state, p.deltaTime));
         }
 
         /// <inheritdoc />

@@ -95,7 +95,7 @@ namespace Xenko.Engine.Processors
 
         internal void UpdateTransformations(FastCollection<TransformComponent> transformationComponents)
         {
-            Dispatcher.ForEach(transformationComponents, UpdateTransformationAndChildren);
+            Dispatcher.ForEach(transformationComponents, i => UpdateTransformationAndChildren(i));
 
             // Re-update model node links to avoid one frame delay compared reference model (ideally entity should be sorted to avoid this in future).
             if (ModelNodeLinkProcessor != null)
@@ -105,7 +105,7 @@ namespace Xenko.Engine.Processors
                 {
                     modelNodeLinkComponents.Add(modelNodeLink.Entity.Transform);
                 }
-                Dispatcher.ForEach(modelNodeLinkComponents, UpdateTransformationAndChildren);
+                Dispatcher.ForEach(modelNodeLinkComponents, i => UpdateTransformationAndChildren(i));
             }
         }
 
@@ -168,7 +168,7 @@ namespace Xenko.Engine.Processors
                 UpdateTransfromationsRecursive(childScene);
             }
         }
-        
+
         internal void NotifyChildrenCollectionChanged(TransformComponent transformComponent, bool added)
         {
             // Ignore if transform component is being moved inside the same root scene (no need to add/remove)
@@ -177,7 +177,7 @@ namespace Xenko.Engine.Processors
                 // Still need to update transformation roots
                 if (transformComponent.Parent == null)
                 {
-                    if(added)
+                    if (added)
                     {
                         TransformationRoots.Add(transformComponent);
                     }

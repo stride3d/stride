@@ -56,29 +56,31 @@ namespace Xenko.Rendering
             var rootEffectRenderFeature = ((RootEffectRenderFeature)RootRenderFeature);
             var renderEffects = RootRenderFeature.RenderData.GetData(((RootEffectRenderFeature)RootRenderFeature).RenderEffectKey);
             int effectSlotCount = ((RootEffectRenderFeature)RootRenderFeature).EffectPermutationSlotCount;
-            
-            Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, objectNodeReference =>
-            {
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
-                var renderMesh = (RenderMesh)objectNode.RenderObject;
-                var staticObjectNode = renderMesh.StaticObjectNode;
 
-                renderMesh.ActiveMeshDraw = renderMesh.Mesh.Draw;
-
-                foreach (var stage in RenderSystem.RenderStages)
+            Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, (RootRenderFeature, RenderSystem, rootEffectRenderFeature, renderEffects, effectSlotCount),
+                delegate (ref (RootRenderFeature rootRenderFeature, RenderSystem RenderSystem, RootEffectRenderFeature rootEffectRenderFeature, StaticObjectPropertyData<RenderEffect> renderEffects, int effectSlotCount) p, ObjectNodeReference objectNodeReference)
                 {
-                    if (stage == null)
-                        continue;
-                    var effectSlot = rootEffectRenderFeature.GetEffectPermutationSlot(stage);
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlot.Index;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
+                    var (rootRenderFeature, renderSystem1, rootEffectRenderFeature1, staticObjectPropertyData, effectSlotCount1) = p;
+                    var objectNode = rootRenderFeature.GetObjectNode(objectNodeReference);
+                    var renderMesh = (RenderMesh)objectNode.RenderObject;
+                    var staticObjectNode = renderMesh.StaticObjectNode;
 
-                    if (renderEffect != null)
+                    renderMesh.ActiveMeshDraw = renderMesh.Mesh.Draw;
+
+                    foreach (var stage in renderSystem1.RenderStages)
                     {
-                        renderEffect.EffectValidator.ValidateParameter(XenkoEffectBaseKeys.ComputeVelocityShader, new ShaderClassSource("MeshVelocity"));
+                        if (stage == null)
+                            continue;
+                        var effectSlot = rootEffectRenderFeature1.GetEffectPermutationSlot(stage);
+                        var staticEffectObjectNode = staticObjectNode * effectSlotCount1 + effectSlot.Index;
+                        var renderEffect = staticObjectPropertyData[staticEffectObjectNode];
+
+                        if (renderEffect != null)
+                        {
+                            renderEffect.EffectValidator.ValidateParameter(XenkoEffectBaseKeys.ComputeVelocityShader, new ShaderClassSource("MeshVelocity"));
+                        }
                     }
-                }
-            });
+                });
         }
 
         public override unsafe void Prepare(RenderDrawContext context)
@@ -86,7 +88,7 @@ namespace Xenko.Rendering
             var previousTransformationInfoData = RootRenderFeature.RenderData.GetData(previousTransformationInfoKey);
             var previousTransformationViewInfoData = RootRenderFeature.RenderData.GetData(previousTransformationViewInfoKey);
             var renderModelObjectInfoData = RootRenderFeature.RenderData.GetData(renderModelObjectInfoKey);
-            
+
             // Calculate previous WVP matrix per view and object
             usageCounter++;
             for (int index = 0; index < RenderSystem.Views.Count; index++)
@@ -108,7 +110,7 @@ namespace Xenko.Rendering
                 }
                 if (!useView)
                     continue;
-                
+
                 // Cache per-view data locally
                 RenderViewData viewData;
                 if (!renderViewDatas.TryGetValue(view, out viewData))
@@ -117,28 +119,29 @@ namespace Xenko.Rendering
                     renderViewDatas.Add(view, viewData);
                 }
 
-                Dispatcher.ForEach(viewFeature.ViewObjectNodes, renderPerViewNodeReference =>
-                {
-                    var renderPerViewNode = RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
-                    var renderModelFrameInfo = renderModelObjectInfoData[renderPerViewNode.ObjectNode];
-                    
-                    Matrix previousViewProjection = viewData.PreviousViewProjection;
-
-                    Matrix previousWorldViewProjection;
-                    Matrix.Multiply(ref renderModelFrameInfo.World, ref previousViewProjection, out previousWorldViewProjection);
-
-                    previousTransformationViewInfoData[renderPerViewNodeReference] = new PreviousObjectViewInfo
+                Dispatcher.ForEach(viewFeature.ViewObjectNodes, (viewFeature.ViewObjectNodes, RootRenderFeature, previousTransformationViewInfoData, renderModelObjectInfoData, viewData),
+                    delegate (ref (ConcurrentCollector<ViewObjectNodeReference> ViewObjectNodes, RootRenderFeature RootRenderFeature, ViewObjectPropertyData<PreviousObjectViewInfo> previousTransformationViewInfoData, ObjectPropertyData<TransformRenderFeature.RenderModelFrameInfo> renderModelObjectInfoData, RenderViewData viewData) p, ViewObjectNodeReference renderPerViewNodeReference)
                     {
-                        WorldViewProjection = previousWorldViewProjection,
-                    };
-                });
+                        var renderPerViewNode = p.RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
+                        var renderModelFrameInfo = p.renderModelObjectInfoData[renderPerViewNode.ObjectNode];
+
+                        Matrix previousViewProjection = p.viewData.PreviousViewProjection;
+
+                        Matrix previousWorldViewProjection;
+                        Matrix.Multiply(ref renderModelFrameInfo.World, ref previousViewProjection, out previousWorldViewProjection);
+
+                        p.previousTransformationViewInfoData[renderPerViewNodeReference] = new PreviousObjectViewInfo
+                        {
+                            WorldViewProjection = previousWorldViewProjection,
+                        };
+                    });
 
                 // Shift current view projection transform into previous
                 viewData.PreviousViewProjection = view.ViewProjection;
                 viewData.UsageCounter = usageCounter;
                 updatedViews.Add(view);
             }
-            
+
             foreach (var view in renderViewDatas.Keys.ToArray())
             {
                 if (!updatedViews.Contains(view))
@@ -147,28 +150,31 @@ namespace Xenko.Rendering
             updatedViews.Clear();
 
             // Update cbuffer for previous WVP matrix
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
+            var nodes = ((RootEffectRenderFeature)RootRenderFeature).RenderNodes;
+            Dispatcher.ForEach(nodes, (@this: this, previousTransformationInfoData, previousTransformationViewInfoData, renderModelObjectInfoData),
+                delegate (ref (MeshVelocityRenderFeature @this, StaticObjectPropertyData<StaticObjectInfo> previousTransformationInfoData, ViewObjectPropertyData<PreviousObjectViewInfo> previousTransformationViewInfoData, ObjectPropertyData<TransformRenderFeature.RenderModelFrameInfo> renderModelObjectInfoData) p, RenderNode renderNode)
             {
+                var (meshVelocityRenderFeature, staticObjectPropertyData, viewObjectPropertyData, objectPropertyData) = p;
                 var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                 if (perDrawLayout == null)
                     return;
 
-                var previousWvpOffset = perDrawLayout.GetConstantBufferOffset(previousWorldViewProjection);
+                var previousWvpOffset = perDrawLayout.GetConstantBufferOffset(meshVelocityRenderFeature.previousWorldViewProjection);
                 if (previousWvpOffset == -1)
                     return;
-                
+
                 var mappedCB = renderNode.Resources.ConstantBuffer.Data;
                 var previousPerDraw = (PreviousPerDraw*)((byte*)mappedCB + previousWvpOffset);
 
-                var renderModelFrameInfo = renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
-                var renderModelPreviousFrameInfo = previousTransformationViewInfoData[renderNode.ViewObjectNode];
-                
+                var renderModelFrameInfo = objectPropertyData[renderNode.RenderObject.ObjectNode];
+                var renderModelPreviousFrameInfo = viewObjectPropertyData[renderNode.ViewObjectNode];
+
                 // Shift current world transform into previous transform
-                previousTransformationInfoData[renderNode.RenderObject.StaticObjectNode] = new StaticObjectInfo
+                staticObjectPropertyData[renderNode.RenderObject.StaticObjectNode] = new StaticObjectInfo
                 {
                     World = renderModelFrameInfo.World,
                 };
-                
+
                 previousPerDraw->PreviousWorldViewProjection = renderModelPreviousFrameInfo.WorldViewProjection;
             });
         }

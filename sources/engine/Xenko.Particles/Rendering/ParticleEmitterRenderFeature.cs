@@ -254,25 +254,26 @@ namespace Xenko.Particles.Rendering
             var sharedBufferPtr = mappedVertices.DataBox.DataPointer;
 
             //for (int renderNodeIndex = 0; renderNodeIndex < RenderNodes.Count; renderNodeIndex++)
-            Dispatcher.For(0, RenderNodes.Count, (renderNodeIndex) =>
-            {
-                var renderNode = RenderNodes[renderNodeIndex];
-                var renderParticleEmitter = (RenderParticleEmitter)renderNode.RenderObject;
+            Dispatcher.For(0, RenderNodes.Count, (@this: this, renderParticleNodeData, sharedBufferPtr),
+                delegate (ref (ParticleEmitterRenderFeature @this, RenderPropertyData<RenderAttributesPerNode> renderParticleNodeData, IntPtr sharedBufferPtr) p, int renderNodeIndex)
+                {
+                    var renderNode = p.@this.RenderNodes[renderNodeIndex];
+                    var renderParticleEmitter = (RenderParticleEmitter)renderNode.RenderObject;
 
-                var renderNodeReference = new RenderNodeReference(renderNodeIndex);
-                var nodeData = renderParticleNodeData[renderNodeReference];
-                if (nodeData.IndexCount <= 0)
-                    return; // Nothing to draw, nothing to build
+                    var renderNodeReference = new RenderNodeReference(renderNodeIndex);
+                    var nodeData = p.renderParticleNodeData[renderNodeReference];
+                    if (nodeData.IndexCount <= 0)
+                        return; // Nothing to draw, nothing to build
 
-                nodeData.VertexBuffer = particleBufferContext.VertexBuffer;
-                nodeData.IndexBuffer = particleBufferContext.IndexBuffer;
+                    nodeData.VertexBuffer = p.@this.particleBufferContext.VertexBuffer;
+                    nodeData.IndexBuffer = p.@this.particleBufferContext.IndexBuffer;
 
-                renderParticleNodeData[renderNodeReference] = nodeData;
+                    p.renderParticleNodeData[renderNodeReference] = nodeData;
 
-                Matrix viewInverse; // TODO Build this per view, not per node!!!
-                Matrix.Invert(ref renderNode.RenderView.View, out viewInverse);
-                renderParticleEmitter.ParticleEmitter.BuildVertexBuffer(sharedBufferPtr + nodeData.VertexBufferOffset, ref viewInverse, ref renderNode.RenderView.ViewProjection);
-            });
+                    Matrix viewInverse; // TODO Build this per view, not per node!!!
+                    Matrix.Invert(ref renderNode.RenderView.View, out viewInverse);
+                    renderParticleEmitter.ParticleEmitter.BuildVertexBuffer(p.sharedBufferPtr + nodeData.VertexBufferOffset, ref viewInverse, ref renderNode.RenderView.ViewProjection);
+                });
 
             commandList.UnmapSubresource(mappedVertices);
         }

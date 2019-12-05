@@ -253,13 +253,13 @@ namespace Xenko.Physics.Shapes
 
             public void Update(CommandList commandList)
             {
-                Dispatcher.ForEach(Tiles, (tile) =>
+                Dispatcher.ForEach(Tiles, this, (ref HeightfieldDebugPrimitive @this, Tile tile) =>
                 {
                     for (int j = 0; j <= tile.Height; ++j)
                     {
                         for (int i = 0; i <= tile.Width; ++i)
                         {
-                            GetHeightStickHeightAndColor(tile.Point.X + i, tile.Point.Y + j, out var heightStickHeight, out var color);
+                            @this.GetHeightStickHeightAndColor(tile.Point.X + i, tile.Point.Y + j, out var heightStickHeight, out var color);
 
                             var index = j * (tile.Width + 1) + i;
                             tile.Vertices[index].Position.Y = heightStickHeight;

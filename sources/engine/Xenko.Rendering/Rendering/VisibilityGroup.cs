@@ -133,60 +133,61 @@ namespace Xenko.Rendering
             // Process objects
             //foreach (var renderObject in RenderObjects)
             //Dispatcher.ForEach(RenderObjects, renderObject =>
-            Dispatcher.For(0, RenderObjects.Count, () => collectorCache.Value, (index, cache) =>
-            {
-                var renderObject = RenderObjects[index];
-
-                // Skip not enabled objects
-                if (!renderObject.Enabled || ((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & cullingMask) == 0)
-                    return;
-
-                var renderStageMask = RenderData.GetData(RenderStageMaskKey);
-                var renderStageMaskNode = renderObject.VisibilityObjectNode * stageMaskMultiplier;
-
-                // Determine if this render object belongs to this view
-                bool renderStageMatch = false;
-                unsafe
+            Dispatcher.ForEach(RenderObjects, (this, view, plane, frustum, cullingMode, cullingMask),
+                delegate (ref (VisibilityGroup @this, RenderView view, Plane plane, BoundingFrustum frustum, CameraCullingMode cullingMode, RenderGroupMask cullingMask) p, RenderObject renderObject, ConcurrentCollectorCache<RenderObject> cache)
                 {
-                    fixed (uint* viewRenderStageMaskStart = viewRenderStageMask)
-                    fixed (uint* objectRenderStageMaskStart = renderStageMask.Data)
+                    // Skip not enabled objects
+                    if (!renderObject.Enabled || ((RenderGroupMask)(1U << (int)renderObject.RenderGroup) & p.cullingMask) == 0)
+                        return;
+
+                    var renderStageMask = p.@this.RenderData.GetData(p.@this.RenderStageMaskKey);
+                    var renderStageMaskNode = renderObject.VisibilityObjectNode * p.@this.stageMaskMultiplier;
+
+                    // Determine if this render object belongs to this view
+                    bool renderStageMatch = false;
+                    unsafe
                     {
-                        var viewRenderStageMaskPtr = viewRenderStageMaskStart;
-                        var objectRenderStageMaskPtr = objectRenderStageMaskStart + renderStageMaskNode.Index;
-                        for (int i = 0; i < viewRenderStageMask.Length; ++i)
+                        fixed (uint* viewRenderStageMaskStart = p.@this.viewRenderStageMask)
+                        fixed (uint* objectRenderStageMaskStart = renderStageMask.Data)
                         {
-                            if ((*viewRenderStageMaskPtr++ & *objectRenderStageMaskPtr++) != 0)
+                            var viewRenderStageMaskPtr = viewRenderStageMaskStart;
+                            var objectRenderStageMaskPtr = objectRenderStageMaskStart + renderStageMaskNode.Index;
+                            for (int i = 0; i < p.@this.viewRenderStageMask.Length; ++i)
                             {
-                                renderStageMatch = true;
-                                break;
+                                if ((*viewRenderStageMaskPtr++ & *objectRenderStageMaskPtr++) != 0)
+                                {
+                                    renderStageMatch = true;
+                                    break;
+                                }
                             }
                         }
                     }
-                }
 
-                // Object not part of this view because no render stages in this objects are visible in this view
-                if (!renderStageMatch)
-                    return;
+                    // Object not part of this view because no render stages in this objects are visible in this view
+                    if (!renderStageMatch)
+                        return;
 
-                // Fast AABB transform: http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
-                // Compute transformed AABB (by world)
-                if (cullingMode == CameraCullingMode.Frustum
-                    && renderObject.BoundingBox.Extent != Vector3.Zero
-                    && !FrustumContainsBox(ref frustum, ref renderObject.BoundingBox, view.VisiblityIgnoreDepthPlanes))
-                {
-                    return;
-                }
+                    // Fast AABB transform: http://zeuxcg.org/2010/10/17/aabb-from-obb-with-component-wise-abs/
+                    // Compute transformed AABB (by world)
+                    if (p.cullingMode == CameraCullingMode.Frustum
+                        && renderObject.BoundingBox.Extent != Vector3.Zero
+                        && !FrustumContainsBox(ref p.frustum, ref renderObject.BoundingBox, p.view.VisiblityIgnoreDepthPlanes))
+                    {
+                        return;
+                    }
 
-                // Add object to list of visible objects
-                // TODO GRAPHICS REFACTOR we should be able to push multiple elements with future VisibilityObject
-                view.RenderObjects.Add(renderObject, cache);
+                    // Add object to list of visible objects
+                    // TODO GRAPHICS REFACTOR we should be able to push multiple elements with future VisibilityObject
+                    p.view.RenderObjects.Add(renderObject, cache);
 
-                // Calculate bounding box of all render objects in the view
-                if (renderObject.BoundingBox.Extent != Vector3.Zero)
-                {
-                    CalculateMinMaxDistance(ref plane, ref renderObject.BoundingBox, ref view.MinimumDistance, ref view.MaximumDistance);
-                }
-            }, cache => cache.Flush());
+                    // Calculate bounding box of all render objects in the view
+                    if (renderObject.BoundingBox.Extent != Vector3.Zero)
+                    {
+                        CalculateMinMaxDistance(ref p.plane, ref renderObject.BoundingBox, ref p.view.MinimumDistance, ref p.view.MaximumDistance);
+                    }
+                }, 
+                (ref (VisibilityGroup @this, RenderView, Plane, BoundingFrustum, CameraCullingMode, RenderGroupMask) p) => p.@this.collectorCache.Value,
+                (ref (VisibilityGroup, RenderView, Plane, BoundingFrustum, CameraCullingMode, RenderGroupMask) p, ConcurrentCollectorCache<RenderObject> cache) => cache.Flush());
 
             view.RenderObjects.Close();
         }
@@ -237,7 +238,7 @@ namespace Xenko.Rendering
         {
             var nearCorner = boundingBox.Minimum;
             var farCorner = boundingBox.Maximum;
-            
+
             if (plane.Normal.X < 0)
                 Utilities.Swap(ref nearCorner.X, ref farCorner.X);
 
@@ -257,7 +258,7 @@ namespace Xenko.Rendering
             distance = CollisionHelper.DistancePlanePoint(ref plane, ref farCorner);
             while ((oldDistance = maxDistance) < distance && Interlocked.CompareExchange(ref maxDistance, distance, oldDistance) != oldDistance) { }
         }
-        
+
         internal void AddRenderObject(List<RenderObject> renderObjects, RenderObject renderObject)
         {
             if (renderObject.VisibilityObjectNode != StaticObjectNodeReference.Invalid)

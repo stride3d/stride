@@ -56,15 +56,16 @@ namespace Xenko.Rendering
             var renderModelObjectInfo = RootRenderFeature.RenderData.GetData(RenderModelObjectInfoKey);
 
             //for (int index = 0; index < RootRenderFeature.ObjectNodeReferences.Count; index++)
-            Dispatcher.For(0, RootRenderFeature.ObjectNodeReferences.Count, index =>
-            {
-                var objectNodeReference = RootRenderFeature.ObjectNodeReferences[index];
-                var objectNode = RootRenderFeature.GetObjectNode(objectNodeReference);
-                var renderMesh = objectNode.RenderObject as RenderMesh;
+            Dispatcher.ForEach(RootRenderFeature.ObjectNodeReferences, (renderModelObjectInfo, this),
+                delegate (ref (ObjectPropertyData<RenderModelFrameInfo> renderModelObjectInfo, TransformRenderFeature) arg, ObjectNodeReference objectNodeReference)
+                {
+                    var @this = arg.Item2;
+                    var objectNode = @this.RootRenderFeature.GetObjectNode(objectNodeReference);
+                    var renderMesh = objectNode.RenderObject as RenderMesh;
 
-                // TODO: Extract world
-                renderModelObjectInfo[objectNodeReference].World = renderMesh != null ? renderMesh.World : Matrix.Identity;
-            });
+                    // TODO: Extract world
+                    arg.renderModelObjectInfo[objectNodeReference].World = renderMesh != null ? renderMesh.World : Matrix.Identity;
+                });
         }
 
         /// <param name="context"></param>
@@ -98,15 +99,16 @@ namespace Xenko.Rendering
                 var viewFeature = view.Features[RootRenderFeature.Index];
 
                 // Compute WorldView and WorldViewProjection
-                Dispatcher.ForEach(viewFeature.ViewObjectNodes, renderPerViewNodeReference =>
-                {
-                    var renderPerViewNode = RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
-                    ref var renderModelFrameInfo = ref renderModelObjectInfoData[renderPerViewNode.ObjectNode];
-                    ref var renderModelViewInfo = ref renderModelViewInfoData[renderPerViewNodeReference];
+                Dispatcher.ForEach(viewFeature.ViewObjectNodes, (@this: this, renderModelObjectInfoData, renderModelViewInfoData, view),
+                    delegate (ref (TransformRenderFeature @this, ObjectPropertyData<RenderModelFrameInfo> renderModelObjectInfoData, ViewObjectPropertyData<RenderModelViewInfo> renderModelViewInfoData, RenderView view) p, ViewObjectNodeReference renderPerViewNodeReference)
+                    {
+                        var renderPerViewNode = p.@this.RootRenderFeature.GetViewObjectNode(renderPerViewNodeReference);
+                        ref var renderModelFrameInfo = ref p.renderModelObjectInfoData[renderPerViewNode.ObjectNode];
+                        ref var renderModelViewInfo = ref p.renderModelViewInfoData[renderPerViewNodeReference];
 
-                    Matrix.Multiply(ref renderModelFrameInfo.World, ref view.View, out renderModelViewInfo.WorldView);
-                    Matrix.Multiply(ref renderModelFrameInfo.World, ref view.ViewProjection, out renderModelViewInfo.WorldViewProjection);
-                });
+                        Matrix.Multiply(ref renderModelFrameInfo.World, ref p.view.View, out renderModelViewInfo.WorldView);
+                        Matrix.Multiply(ref renderModelFrameInfo.World, ref p.view.ViewProjection, out renderModelViewInfo.WorldViewProjection);
+                    });
 
                 // Copy ViewProjection to PerView cbuffer
                 foreach (var viewLayout in viewFeature.Layouts)
@@ -155,53 +157,55 @@ namespace Xenko.Rendering
             // Update PerDraw (World, WorldViewProj, etc...)
             // Copy Entity.World to PerDraw cbuffer
             // TODO: Have a PerObject cbuffer?
-            Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
-            {
-                var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
-                if (perDrawLayout == null)
-                    return;
-
-                var worldOffset = perDrawLayout.GetConstantBufferOffset(this.world);
-                var worldInverseOffset = perDrawLayout.GetConstantBufferOffset(this.worldInverse);
-
-                if (worldOffset == -1 && worldInverseOffset == -1)
-                    return;
-
-                ref var renderModelObjectInfo = ref renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
-                ref var renderModelViewInfo = ref renderModelViewInfoData[renderNode.ViewObjectNode];
-
-                var mappedCB = renderNode.Resources.ConstantBuffer.Data;
-                if (worldOffset != -1)
+            var renderNodes = ((RootEffectRenderFeature)RootRenderFeature).RenderNodes;
+            Dispatcher.ForEach(renderNodes, (@this: this, renderNodes, renderModelObjectInfoData, renderModelViewInfoData),
+                delegate (ref (TransformRenderFeature @this, ConcurrentCollector<RenderNode> renderNodes, ObjectPropertyData<RenderModelFrameInfo> renderModelObjectInfoData, ViewObjectPropertyData<RenderModelViewInfo> renderModelViewInfoData) p, RenderNode renderNode)
                 {
-                    var world = (Matrix*)((byte*)mappedCB + worldOffset);
-                    *world = renderModelObjectInfo.World;
-                }
+                    var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
+                    if (perDrawLayout == null)
+                        return;
 
-                if (worldInverseOffset != -1)
-                {
-                    var perDraw = (PerDrawExtra*)((byte*)mappedCB + worldInverseOffset);
+                    var worldOffset = perDrawLayout.GetConstantBufferOffset(p.@this.world);
+                    var worldInverseOffset = perDrawLayout.GetConstantBufferOffset(p.@this.worldInverse);
 
-                    // Fill PerDraw
-                    var perDrawData = new PerDrawExtra
+                    if (worldOffset == -1 && worldInverseOffset == -1)
+                        return;
+
+                    ref var renderModelObjectInfo = ref p.renderModelObjectInfoData[renderNode.RenderObject.ObjectNode];
+                    ref var renderModelViewInfo = ref p.renderModelViewInfoData[renderNode.ViewObjectNode];
+
+                    var mappedCB = renderNode.Resources.ConstantBuffer.Data;
+                    if (worldOffset != -1)
                     {
-                        WorldView = renderModelViewInfo.WorldView,
-                        WorldViewProjection = renderModelViewInfo.WorldViewProjection,
-                    };
+                        var world = (Matrix*)((byte*)mappedCB + worldOffset);
+                        *world = renderModelObjectInfo.World;
+                    }
 
-                    Matrix.Invert(ref renderModelObjectInfo.World, out perDrawData.WorldInverse);
-                    Matrix.Transpose(ref perDrawData.WorldInverse, out perDrawData.WorldInverseTranspose);
-                    Matrix.Invert(ref renderModelViewInfo.WorldView, out perDrawData.WorldViewInverse);
+                    if (worldInverseOffset != -1)
+                    {
+                        var perDraw = (PerDrawExtra*)((byte*)mappedCB + worldInverseOffset);
 
-                    perDrawData.WorldScale = new Vector3(
-                        ((Vector3)renderModelObjectInfo.World.Row1).Length(),
-                        ((Vector3)renderModelObjectInfo.World.Row2).Length(),
-                        ((Vector3)renderModelObjectInfo.World.Row3).Length());
+                        // Fill PerDraw
+                        var perDrawData = new PerDrawExtra
+                        {
+                            WorldView = renderModelViewInfo.WorldView,
+                            WorldViewProjection = renderModelViewInfo.WorldViewProjection,
+                        };
 
-                    perDrawData.EyeMS = new Vector4(perDrawData.WorldInverse.M41, perDrawData.WorldInverse.M42, perDrawData.WorldInverse.M43, 1.0f);
+                        Matrix.Invert(ref renderModelObjectInfo.World, out perDrawData.WorldInverse);
+                        Matrix.Transpose(ref perDrawData.WorldInverse, out perDrawData.WorldInverseTranspose);
+                        Matrix.Invert(ref renderModelViewInfo.WorldView, out perDrawData.WorldViewInverse);
 
-                    *perDraw = perDrawData;
-                }
-            });
+                        perDrawData.WorldScale = new Vector3(
+                            ((Vector3)renderModelObjectInfo.World.Row1).Length(),
+                            ((Vector3)renderModelObjectInfo.World.Row2).Length(),
+                            ((Vector3)renderModelObjectInfo.World.Row3).Length());
+
+                        perDrawData.EyeMS = new Vector4(perDrawData.WorldInverse.M41, perDrawData.WorldInverse.M42, perDrawData.WorldInverse.M43, 1.0f);
+
+                        *perDraw = perDrawData;
+                    }
+                });
         }
 
         [StructLayout(LayoutKind.Sequential)]

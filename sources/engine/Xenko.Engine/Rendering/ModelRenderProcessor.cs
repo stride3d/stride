@@ -72,13 +72,13 @@ namespace Xenko.Rendering
             // Note: we are rebuilding RenderMeshes every frame
             // TODO: check if it wouldn't be better to add/remove directly in CheckMeshes()?
             //foreach (var entity in ComponentDatas)
-            Dispatcher.ForEach(ComponentDatas, entity =>
+            Dispatcher.ForEachKVP(ComponentDatas, this, delegate (ref ModelRenderProcessor @this, ref KeyValuePair<ModelComponent, RenderModel> entity)
             {
                 var modelComponent = entity.Key;
                 var renderModel = entity.Value;
 
-                CheckMeshes(modelComponent, renderModel);
-                UpdateRenderModel(modelComponent, renderModel);
+                @this.CheckMeshes(modelComponent, renderModel);
+                @this.UpdateRenderModel(modelComponent, renderModel);
             });
         }
 

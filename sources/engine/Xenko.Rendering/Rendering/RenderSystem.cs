@@ -8,6 +8,7 @@ using System.Threading;
 using Xenko.Core;
 using Xenko.Core.Collections;
 using Xenko.Core.Threading;
+using Xenko.Core.Mathematics;
 using Xenko.Graphics;
 
 namespace Xenko.Rendering
@@ -125,40 +126,42 @@ namespace Xenko.Rendering
             }
 
             // Create nodes for objects to render
-            Dispatcher.ForEach(Views, view =>
+            Dispatcher.ForEach(Views, this, delegate (ref RenderSystem @this, RenderView view)
             {
                 // Sort per render feature (used for later sorting)
                 // We'll be able to process data more efficiently for the next steps
                 Dispatcher.Sort(view.RenderObjects, RenderObjectFeatureComparer.Default);
 
-                Dispatcher.ForEach(view.RenderObjects, () => extractThreadLocals.Value, (renderObject, batch) =>
+                Dispatcher.ForEach(view.RenderObjects, (@this, view),
+                    delegate (ref (RenderSystem @this, RenderView view) p, RenderObject renderObject, ExtractThreadLocals batch)
                 {
+                    (RenderSystem renderSystem, RenderView renderView) = p;
                     var renderFeature = renderObject.RenderFeature;
-                    var viewFeature = view.Features[renderFeature.Index];
+                    var viewFeature = renderView.Features[renderFeature.Index];
 
                     // Create object node
                     renderFeature.GetOrCreateObjectNode(renderObject);
 
                     // Let's create the view object node
-                    var renderViewNode = renderFeature.CreateViewObjectNode(view, renderObject);
+                    var renderViewNode = renderFeature.CreateViewObjectNode(renderView, renderObject);
                     viewFeature.ViewObjectNodes.Add(renderViewNode, batch.ViewFeatureObjectNodeCache);
 
                     // Collect object
                     // TODO: Check which stage it belongs to (and skip everything if it doesn't belong to any stage)
                     // TODO: For now, we build list and then copy. Another way would be to count and then fill (might be worse, need to check)
                     var activeRenderStages = renderObject.ActiveRenderStages;
-                    foreach (var renderViewStage in view.RenderStages)
+                    foreach (var renderViewStage in renderView.RenderStages)
                     {
                         // Check if this RenderObject wants to be rendered for this render stage
                         var renderStageIndex = renderViewStage.Index;
                         if (!activeRenderStages[renderStageIndex].Active)
                             continue;
 
-                        var renderStage = RenderStages[renderStageIndex];
-                        if (renderStage.Filter != null && !renderStage.Filter.IsVisible(renderObject, view, renderViewStage))
+                        var renderStage = renderSystem.RenderStages[renderStageIndex];
+                        if (renderStage.Filter != null && !renderStage.Filter.IsVisible(renderObject, renderView, renderViewStage))
                             continue;
 
-                        var renderNode = renderFeature.CreateRenderNode(renderObject, view, renderViewNode, renderStage);
+                        var renderNode = renderFeature.CreateRenderNode(renderObject, renderView, renderViewNode, renderStage);
 
                         // Note: Used mostly during updating
                         viewFeature.RenderNodes.Add(renderNode, batch.ViewFeatureRenderNodeCache);
@@ -166,7 +169,9 @@ namespace Xenko.Rendering
                         // Note: Used mostly during rendering
                         renderViewStage.RenderNodes.Add(new RenderNodeFeatureReference(renderFeature, renderNode, renderObject), batch.ViewStageRenderNodeCache);
                     }
-                }, batch => batch.Flush());
+                }, 
+                    (ref (RenderSystem @this, RenderView view) p) => p.@this.extractThreadLocals.Value, 
+                    (ref (RenderSystem @this, RenderView view) p, ExtractThreadLocals batch) => batch.Flush());
 
                 // Finish collectin of view feature nodes
                 foreach (var viewFeature in view.Features)
@@ -242,17 +247,16 @@ namespace Xenko.Rendering
             }
 
             // Sort
-            Dispatcher.ForEach(Views, view =>
+            Dispatcher.ForEach(Views, this, (ref RenderSystem @this, RenderView view) =>
             {
-                Dispatcher.For(0, view.RenderStages.Count, () => prepareThreadLocals.Acquire(), (index, local) =>
+                Dispatcher.ForEach(view.RenderStages, (@this, view),
+                    delegate (ref (RenderSystem @this, RenderView view) p, RenderViewStage renderViewStage, PrepareThreadLocals local)
                 {
-                    var renderViewStage = view.RenderStages[index];
-
                     var renderNodes = renderViewStage.RenderNodes;
                     if (renderNodes.Count == 0)
                         return;
 
-                    var renderStage = RenderStages[renderViewStage.Index];
+                    var renderStage = p.@this.RenderStages[renderViewStage.Index];
                     var sortedRenderNodes = renderViewStage.SortedRenderNodes;
 
                     // Fast clear, since it's cleared properly in Reset()
@@ -266,7 +270,7 @@ namespace Xenko.Rendering
 
                         // renderNodes[start..end] belongs to the same render feature
                         fixed (SortKey* sortKeysPtr = local.SortKeys)
-                            renderStage.SortMode.GenerateSortKey(view, renderViewStage, sortKeysPtr);
+                            renderStage.SortMode.GenerateSortKey(p.view, renderViewStage, sortKeysPtr);
 
                         Dispatcher.Sort(local.SortKeys, 0, renderNodes.Count, Comparer<SortKey>.Default);
 
@@ -284,7 +288,9 @@ namespace Xenko.Rendering
                             sortedRenderNodes[i] = renderNodes[i];
                         }
                     }
-                }, state => prepareThreadLocals.Release(state));
+                }, 
+                    (ref (RenderSystem @this, RenderView view) p) => p.@this.prepareThreadLocals.Acquire(), 
+                    (ref (RenderSystem @this, RenderView view) p, PrepareThreadLocals state) => p.@this.prepareThreadLocals.Release(state));
             });
 
             // Flush the resources uploaded during Prepare
@@ -365,39 +371,41 @@ namespace Xenko.Rendering
                 }
                 commandLists[0] = renderDrawContext.CommandList.Close();
 
-                Dispatcher.For(0, batchCount, () => renderDrawContext.RenderContext.GetThreadContext(), (batchIndex, threadContext) =>
-                {
-                    threadContext.CommandList.Reset();
-                    threadContext.CommandList.ClearState();
-
-                    // Transfer state to all command lists
-                    threadContext.CommandList.SetRenderTargets(depthStencilBuffer, renderTargetCount, renderTargets);
-                    threadContext.CommandList.SetViewport(viewport);
-                    threadContext.CommandList.SetScissorRectangle(scissor);
-
-                    var currentStart = batchSize * batchIndex;
-                    int currentEnd;
-
-                    var endExclusive = Math.Min(renderNodeCount, currentStart + batchSize);
-
-                    if (endExclusive <= currentStart)
-                        return;
-
-                    for (; currentStart < endExclusive; currentStart = currentEnd)
+                Dispatcher.For(0, batchCount, (this, renderDrawContext, renderView, renderViewStage, renderNodes, renderNodeCount, renderTargetCount, batchSize, depthStencilBuffer, viewport, scissor),
+                    delegate (ref (RenderSystem @this, RenderDrawContext, RenderView renderView, RenderViewStage renderViewStage, FastList<RenderNodeFeatureReference> renderNodes, int renderNodeCount, int renderTargetCount, int batchSize, Texture depthStencilBuffer, Viewport viewport, Rectangle scissor) p, int batchIndex, RenderDrawContext threadContext)
                     {
-                        var currentRenderFeature = renderNodes[currentStart].RootRenderFeature;
-                        currentEnd = currentStart + 1;
-                        while (currentEnd < endExclusive && renderNodes[currentEnd].RootRenderFeature == currentRenderFeature)
+                        threadContext.CommandList.Reset();
+                        threadContext.CommandList.ClearState();
+
+                        // Transfer state to all command lists
+                        threadContext.CommandList.SetRenderTargets(p.depthStencilBuffer, p.renderTargetCount, p.@this.renderTargets);
+                        threadContext.CommandList.SetViewport(p.viewport);
+                        threadContext.CommandList.SetScissorRectangle(p.scissor);
+
+                        var currentStart = p.batchSize * batchIndex;
+                        int currentEnd;
+
+                        var endExclusive = Math.Min(p.renderNodeCount, currentStart + p.batchSize);
+
+                        if (endExclusive <= currentStart)
+                            return;
+
+                        for (; currentStart < endExclusive; currentStart = currentEnd)
                         {
-                            currentEnd++;
+                            var currentRenderFeature = p.renderNodes[currentStart].RootRenderFeature;
+                            currentEnd = currentStart + 1;
+                            while (currentEnd < endExclusive && p.renderNodes[currentEnd].RootRenderFeature == currentRenderFeature)
+                            {
+                                currentEnd++;
+                            }
+
+                            // Divide into task chunks for parallelism
+                            currentRenderFeature.Draw(threadContext, p.renderView, p.renderViewStage, currentStart, currentEnd);
                         }
 
-                        // Divide into task chunks for parallelism
-                        currentRenderFeature.Draw(threadContext, renderView, renderViewStage, currentStart, currentEnd);
-                    }
-
-                    commandLists[batchIndex + 1] = threadContext.CommandList.Close();
-                });
+                        p.@this.commandLists[batchIndex + 1] = threadContext.CommandList.Close();
+                    }, 
+                    (ref (RenderSystem, RenderDrawContext renderDrawContext, RenderView, RenderViewStage, FastList<RenderNodeFeatureReference>, int, int, int, Texture, Viewport, Rectangle) p) => p.renderDrawContext.RenderContext.GetThreadContext());
 
                 GraphicsDevice.ExecuteCommandLists(batchCount + 1, commandLists);
 
@@ -558,36 +566,36 @@ namespace Xenko.Rendering
             switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
-                {
-                    renderFeature.Index = e.Index;
-                    renderFeature.RenderSystem = this;
-
-                    if (RenderContextOld != null)
-                        renderFeature.Initialize(RenderContextOld);
-
-                    renderFeature.RenderStageSelectors.CollectionChanged += RenderStageSelectors_CollectionChanged;
-
-                    List<RootRenderFeature> renderFeatures;
-                    if (!renderFeaturesByType.TryGetValue(renderFeature.SupportedRenderObjectType, out renderFeatures))
-                        renderFeaturesByType.Add(renderFeature.SupportedRenderObjectType, renderFeatures = new List<RootRenderFeature>());
-
-                    renderFeatures.Add(renderFeature);
-                    break;
-                }
-                case NotifyCollectionChangedAction.Remove:
-                {
-                    renderFeature.RenderStageSelectors.CollectionChanged -= RenderStageSelectors_CollectionChanged;
-
-                    List<RootRenderFeature> renderFeatures;
-                    if (renderFeaturesByType.TryGetValue(renderFeature.SupportedRenderObjectType, out renderFeatures))
                     {
-                        renderFeatures.Remove(renderFeature);
-                        if (renderFeatures.Count == 0)
-                            renderFeaturesByType.Remove(renderFeature.SupportedRenderObjectType);
+                        renderFeature.Index = e.Index;
+                        renderFeature.RenderSystem = this;
+
+                        if (RenderContextOld != null)
+                            renderFeature.Initialize(RenderContextOld);
+
+                        renderFeature.RenderStageSelectors.CollectionChanged += RenderStageSelectors_CollectionChanged;
+
+                        List<RootRenderFeature> renderFeatures;
+                        if (!renderFeaturesByType.TryGetValue(renderFeature.SupportedRenderObjectType, out renderFeatures))
+                            renderFeaturesByType.Add(renderFeature.SupportedRenderObjectType, renderFeatures = new List<RootRenderFeature>());
+
+                        renderFeatures.Add(renderFeature);
+                        break;
                     }
-                    renderFeature.Unload();
-                    break;
-                }
+                case NotifyCollectionChangedAction.Remove:
+                    {
+                        renderFeature.RenderStageSelectors.CollectionChanged -= RenderStageSelectors_CollectionChanged;
+
+                        List<RootRenderFeature> renderFeatures;
+                        if (renderFeaturesByType.TryGetValue(renderFeature.SupportedRenderObjectType, out renderFeatures))
+                        {
+                            renderFeatures.Remove(renderFeature);
+                            if (renderFeatures.Count == 0)
+                                renderFeaturesByType.Remove(renderFeature.SupportedRenderObjectType);
+                        }
+                        renderFeature.Unload();
+                        break;
+                    }
             }
         }
 

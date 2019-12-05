@@ -398,35 +398,37 @@ namespace Xenko.Rendering
             var renderEffects = RenderData.GetData(RenderEffectKey);
             int effectSlotCount = EffectPermutationSlotCount;
 
-            Dispatcher.ForEach(RenderSystem.Views, view =>
-            {
-                var viewFeature = view.Features[Index];
-                Dispatcher.ForEach(viewFeature.RenderNodes, renderNodeReference =>
+            Dispatcher.ForEach(RenderSystem.Views, (this, renderEffects, effectSlotCount),
+                delegate (ref (RootEffectRenderFeature @this, StaticObjectPropertyData<RenderEffect> renderEffects, int effectSlotCount) outerP, RenderView view)
                 {
-                    var renderNode = this.GetRenderNode(renderNodeReference);
-                    var renderObject = renderNode.RenderObject;
+                    var viewFeature = view.Features[outerP.@this.Index];
+                    Dispatcher.ForEach(viewFeature.RenderNodes, (outerP.@this, outerP.renderEffects, outerP.effectSlotCount),
+                        delegate (ref (RootEffectRenderFeature @this, StaticObjectPropertyData<RenderEffect> renderEffects, int effectSlotCount) p, RenderNodeReference renderNodeReference)
+                        {
+                            var renderNode = p.@this.GetRenderNode(renderNodeReference);
+                            var renderObject = renderNode.RenderObject;
 
-                    // Get RenderEffect
-                    var staticObjectNode = renderObject.StaticObjectNode;
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlots[renderNode.RenderStage.Index].Index;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
+                            // Get RenderEffect
+                            var staticObjectNode = renderObject.StaticObjectNode;
+                            var staticEffectObjectNode = staticObjectNode * p.effectSlotCount + p.@this.effectSlots[renderNode.RenderStage.Index].Index;
+                            var renderEffect = p.renderEffects[staticEffectObjectNode];
 
-                    var effectSelector = renderObject.ActiveRenderStages[renderNode.RenderStage.Index].EffectSelector;
+                            var effectSelector = renderObject.ActiveRenderStages[renderNode.RenderStage.Index].EffectSelector;
 
-                    // Create it (first time) or regenerate it if effect changed
-                    if (renderEffect == null || effectSelector != renderEffect.EffectSelector)
-                    {
-                        renderEffect = new RenderEffect(renderObject.ActiveRenderStages[renderNode.RenderStage.Index].EffectSelector);
-                        renderEffects[staticEffectObjectNode] = renderEffect;
-                    }
+                            // Create it (first time) or regenerate it if effect changed
+                            if (renderEffect == null || effectSelector != renderEffect.EffectSelector)
+                            {
+                                renderEffect = new RenderEffect(renderObject.ActiveRenderStages[renderNode.RenderStage.Index].EffectSelector);
+                                p.renderEffects[staticEffectObjectNode] = renderEffect;
+                            }
 
-                    // Is it the first time this frame that we check this RenderEffect?
-                    if (renderEffect.MarkAsUsed(RenderSystem))
-                    {
-                        renderEffect.EffectValidator.BeginEffectValidation();
-                    }
+                            // Is it the first time this frame that we check this RenderEffect?
+                            if (renderEffect.MarkAsUsed(p.@this.RenderSystem))
+                            {
+                                renderEffect.EffectValidator.BeginEffectValidation();
+                            }
+                        });
                 });
-            });
 
             // Step1: Perform permutations
             PrepareEffectPermutationsImpl(context);
@@ -436,101 +438,104 @@ namespace Xenko.Rendering
             var currentTime = DateTime.UtcNow;
 
             // Step2: Compile effects
-            Dispatcher.ForEach(RenderObjects, renderObject =>
-            {
-                //var renderObject = RenderObjects[index];
-                var staticObjectNode = renderObject.StaticObjectNode;
-
-                for (int i = 0; i < effectSlotCount; ++i)
+            Dispatcher.ForEach(RenderObjects, (this, renderEffects, effectSlotCount, currentTime),
+                delegate (ref (RootEffectRenderFeature @this, StaticObjectPropertyData<RenderEffect> renderEffects, int effectSlotCount, DateTime currentTime) p, RenderObject renderObject)
                 {
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + i;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
+                    //var renderObject = RenderObjects[index];
+                    var staticObjectNode = renderObject.StaticObjectNode;
 
-                    // Skip if not used
-                    if (renderEffect == null)
-                        continue;
-
-                    // Skip reflection update unless a state change requires it
-                    renderEffect.IsReflectionUpdateRequired = false;
-
-                    if (!renderEffect.IsUsedDuringThisFrame(RenderSystem))
-                        continue;
-
-                    // Skip if nothing changed
-                    if (renderEffect.EffectValidator.ShouldSkip)
+                    for (int i = 0; i < p.effectSlotCount; ++i)
                     {
-                        // Reset pending effect, as it is now obsolete anyway
-                        renderEffect.Effect = null;
-                        renderEffect.State = RenderEffectState.Skip;
-                    }
-                    else if (renderEffect.EffectValidator.EndEffectValidation() && (renderEffect.Effect == null || !renderEffect.Effect.SourceChanged) && !(renderEffect.State == RenderEffectState.Error && currentTime >= renderEffect.RetryTime))
-                    {
-                        InvalidateEffectPermutation(renderObject, renderEffect);
+                        var staticEffectObjectNode = staticObjectNode * p.effectSlotCount + i;
+                        var renderEffect = p.renderEffects[staticEffectObjectNode];
 
-                        // Still, let's check if there is a pending effect compiling
-                        var pendingEffect = renderEffect.PendingEffect;
-                        if (pendingEffect == null || !pendingEffect.IsCompleted)
+                        // Skip if not used
+                        if (renderEffect == null)
                             continue;
 
-                        renderEffect.ClearFallbackParameters();
-                        if (pendingEffect.IsFaulted)
+                        // Skip reflection update unless a state change requires it
+                        renderEffect.IsReflectionUpdateRequired = false;
+
+                        if (!renderEffect.IsUsedDuringThisFrame(p.@this.RenderSystem))
+                            continue;
+
+                        // Skip if nothing changed
+                        if (renderEffect.EffectValidator.ShouldSkip)
                         {
-                            // The effect can fail compilation asynchronously
-                            renderEffect.State = RenderEffectState.Error;
-                            renderEffect.Effect = ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Error);
+                            // Reset pending effect, as it is now obsolete anyway
+                            renderEffect.Effect = null;
+                            renderEffect.State = RenderEffectState.Skip;
+                        }
+                        else if (renderEffect.EffectValidator.EndEffectValidation() && (renderEffect.Effect == null || !renderEffect.Effect.SourceChanged)
+                                                                                    && !(renderEffect.State == RenderEffectState.Error && p.currentTime >= renderEffect.RetryTime))
+                        {
+                            p.@this.InvalidateEffectPermutation(renderObject, renderEffect);
+
+                            // Still, let's check if there is a pending effect compiling
+                            var pendingEffect = renderEffect.PendingEffect;
+                            if (pendingEffect == null || !pendingEffect.IsCompleted)
+                                continue;
+
+                            renderEffect.ClearFallbackParameters();
+                            if (pendingEffect.IsFaulted)
+                            {
+                                // The effect can fail compilation asynchronously
+                                renderEffect.State = RenderEffectState.Error;
+                                renderEffect.Effect = p.@this.ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Error);
+                            }
+                            else
+                            {
+                                renderEffect.State = RenderEffectState.Normal;
+                                renderEffect.Effect = pendingEffect.Result;
+                            }
+
+                            renderEffect.PendingEffect = null;
                         }
                         else
                         {
+                            // Reset pending effect, as it is now obsolete anyway
+                            renderEffect.PendingEffect = null;
                             renderEffect.State = RenderEffectState.Normal;
-                            renderEffect.Effect = pendingEffect.Result;
+
+                            // CompilerParameters are ThreadStatic
+                            if (staticCompilerParameters == null)
+                                staticCompilerParameters = new CompilerParameters();
+
+                            foreach (var effectValue in renderEffect.EffectValidator.EffectValues)
+                            {
+                                staticCompilerParameters.SetObject(effectValue.Key, effectValue.Value);
+                            }
+
+                            TaskOrResult<Effect> asyncEffect;
+                            try
+                            {
+                                // The effect can fail compilation synchronously
+                                asyncEffect = p.@this.RenderSystem.EffectSystem.LoadEffect(renderEffect.EffectSelector.EffectName, staticCompilerParameters);
+                                staticCompilerParameters.Clear();
+                            }
+                            catch
+                            {
+                                staticCompilerParameters.Clear();
+                                renderEffect.ClearFallbackParameters();
+                                renderEffect.State = RenderEffectState.Error;
+                                renderEffect.Effect = p.@this.ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Error);
+                                continue;
+                            }
+
+                            renderEffect.Effect = asyncEffect.Result;
+                            if (renderEffect.Effect == null)
+                            {
+                                // Effect still compiling, let's find if there is a fallback
+                                renderEffect.ClearFallbackParameters();
+                                renderEffect.PendingEffect = asyncEffect.Task;
+                                renderEffect.State = RenderEffectState.Compiling;
+                                renderEffect.Effect = p.@this.ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Compiling);
+                            }
                         }
-                        renderEffect.PendingEffect = null;
+
+                        renderEffect.IsReflectionUpdateRequired = true;
                     }
-                    else
-                    {
-                        // Reset pending effect, as it is now obsolete anyway
-                        renderEffect.PendingEffect = null;
-                        renderEffect.State = RenderEffectState.Normal;
-
-                        // CompilerParameters are ThreadStatic
-                        if (staticCompilerParameters == null)
-                            staticCompilerParameters = new CompilerParameters();
-
-                        foreach (var effectValue in renderEffect.EffectValidator.EffectValues)
-                        {
-                            staticCompilerParameters.SetObject(effectValue.Key, effectValue.Value);
-                        }
-
-                        TaskOrResult<Effect> asyncEffect;
-                        try
-                        {
-                            // The effect can fail compilation synchronously
-                            asyncEffect = RenderSystem.EffectSystem.LoadEffect(renderEffect.EffectSelector.EffectName, staticCompilerParameters);
-                            staticCompilerParameters.Clear();
-                        }
-                        catch
-                        {
-                            staticCompilerParameters.Clear();
-                            renderEffect.ClearFallbackParameters();
-                            renderEffect.State = RenderEffectState.Error;
-                            renderEffect.Effect = ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Error);
-                            continue;
-                        }
-
-                        renderEffect.Effect = asyncEffect.Result;
-                        if (renderEffect.Effect == null)
-                        {
-                            // Effect still compiling, let's find if there is a fallback
-                            renderEffect.ClearFallbackParameters();
-                            renderEffect.PendingEffect = asyncEffect.Task;
-                            renderEffect.State = RenderEffectState.Compiling;
-                            renderEffect.Effect = ComputeFallbackEffect?.Invoke(renderObject, renderEffect, RenderEffectState.Compiling);
-                        }
-                    }
-
-                    renderEffect.IsReflectionUpdateRequired = true;
-                }
-            });
+                });
 
             // Step3: Uupdate reflection infos (offset, etc...)
             foreach (var renderObject in RenderObjects)
@@ -672,145 +677,148 @@ namespace Xenko.Rendering
             {
                 var viewFeature = view.Features[Index];
 
-                Dispatcher.ForEach(viewFeature.RenderNodes, () => prepareThreadContext.Value, (renderNodeReference, batch) =>
-                {
-                    var threadContext = batch.Context;
-                    var renderNode = this.GetRenderNode(renderNodeReference);
-                    var renderObject = renderNode.RenderObject;
-
-                    // Get RenderEffect
-                    var staticObjectNode = renderObject.StaticObjectNode;
-                    var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlots[renderNode.RenderStage.Index].Index;
-                    var renderEffect = renderEffects[staticEffectObjectNode];
-
-                    // Not compiled yet?
-                    if (renderEffect.Effect == null)
+                Dispatcher.ForEach(viewFeature.RenderNodes, (this, view, viewFeature, effectSlotCount, renderEffects),
+                    delegate (ref (RootEffectRenderFeature @this, RenderView view, RenderViewFeature viewFeature, int effectSlotCount, StaticObjectPropertyData<RenderEffect> renderEffects) p,
+                        RenderNodeReference renderNodeReference, PrepareThreadContext batch)
                     {
-                        renderNode.RenderEffect = renderEffect;
-                        renderNode.EffectObjectNode = EffectObjectNodeReference.Invalid;
-                        renderNode.Resources = null;
-                        RenderNodes[renderNodeReference.Index] = renderNode;
-                        return;
-                    }
+                        var threadContext = batch.Context;
+                        var renderNode = p.@this.GetRenderNode(renderNodeReference);
+                        var renderObject = renderNode.RenderObject;
 
-                    var renderEffectReflection = renderEffect.Reflection;
+                        // Get RenderEffect
+                        var staticObjectNode = renderObject.StaticObjectNode;
+                        var staticEffectObjectNode = staticObjectNode * p.effectSlotCount + p.@this.effectSlots[renderNode.RenderStage.Index].Index;
+                        var renderEffect = p.renderEffects[staticEffectObjectNode];
 
-                    // PerView resources/cbuffer
-                    var viewLayout = renderEffectReflection.PerViewLayout;
-                    if (viewLayout != null)
-                    {
-                        var viewCount = RenderSystem.Views.Count;
-                        if (viewLayout.Entries?.Length < viewCount)
+                        // Not compiled yet?
+                        if (renderEffect.Effect == null)
                         {
-                            // TODO: Should this be a first loop?
-                            lock (viewLayout)
+                            renderNode.RenderEffect = renderEffect;
+                            renderNode.EffectObjectNode = EffectObjectNodeReference.Invalid;
+                            renderNode.Resources = null;
+                            p.@this.RenderNodes[renderNodeReference.Index] = renderNode;
+                            return;
+                        }
+
+                        var renderEffectReflection = renderEffect.Reflection;
+
+                        // PerView resources/cbuffer
+                        var viewLayout = renderEffectReflection.PerViewLayout;
+                        if (viewLayout != null)
+                        {
+                            var viewCount = p.@this.RenderSystem.Views.Count;
+                            if (viewLayout.Entries?.Length < viewCount)
                             {
-                                if (viewLayout.Entries?.Length < viewCount)
+                                // TODO: Should this be a first loop?
+                                lock (viewLayout)
                                 {
-                                    var newEntries = new ResourceGroupEntry[viewCount];
+                                    if (viewLayout.Entries?.Length < viewCount)
+                                    {
+                                        var newEntries = new ResourceGroupEntry[viewCount];
 
-                                    for (int index = 0; index < viewLayout.Entries.Length; index++)
-                                        newEntries[index] = viewLayout.Entries[index];
+                                        for (int index = 0; index < viewLayout.Entries.Length; index++)
+                                            newEntries[index] = viewLayout.Entries[index];
 
-                                    for (int index = viewLayout.Entries.Length; index < viewCount; index++)
-                                        newEntries[index].Resources = new ResourceGroup();
+                                        for (int index = viewLayout.Entries.Length; index < viewCount; index++)
+                                            newEntries[index].Resources = new ResourceGroup();
 
-                                    viewLayout.Entries = newEntries;
+                                        viewLayout.Entries = newEntries;
+                                    }
                                 }
+                            }
+
+                            if (viewLayout.Entries[p.view.Index].MarkAsUsed(p.@this.RenderSystem))
+                            {
+                                threadContext.ResourceGroupAllocator.PrepareResourceGroup(viewLayout, BufferPoolAllocationType.UsedMultipleTime, viewLayout.Entries[p.view.Index].Resources);
+
+                                // Register it in list of view layouts to update for this frame
+                                p.viewFeature.Layouts.Add(viewLayout);
                             }
                         }
 
-                        if (viewLayout.Entries[view.Index].MarkAsUsed(RenderSystem))
+                        // PerFrame resources/cbuffer
+                        var frameLayout = renderEffect.Reflection.PerFrameLayout;
+                        if (frameLayout != null && frameLayout.Entry.MarkAsUsed(p.@this.RenderSystem))
                         {
-                            threadContext.ResourceGroupAllocator.PrepareResourceGroup(viewLayout, BufferPoolAllocationType.UsedMultipleTime, viewLayout.Entries[view.Index].Resources);
+                            threadContext.ResourceGroupAllocator.PrepareResourceGroup(frameLayout, BufferPoolAllocationType.UsedMultipleTime, frameLayout.Entry.Resources);
 
                             // Register it in list of view layouts to update for this frame
-                            viewFeature.Layouts.Add(viewLayout);
+                            p.@this.FrameLayouts.Add(frameLayout);
                         }
-                    }
 
-                    // PerFrame resources/cbuffer
-                    var frameLayout = renderEffect.Reflection.PerFrameLayout;
-                    if (frameLayout != null && frameLayout.Entry.MarkAsUsed(RenderSystem))
-                    {
-                        threadContext.ResourceGroupAllocator.PrepareResourceGroup(frameLayout, BufferPoolAllocationType.UsedMultipleTime, frameLayout.Entry.Resources);
+                        // PerDraw resources/cbuffer
+                        // Get nodes
+                        var viewObjectNode = p.@this.GetViewObjectNode(renderNode.ViewObjectNode);
 
-                        // Register it in list of view layouts to update for this frame
-                        FrameLayouts.Add(frameLayout);
-                    }
-
-                    // PerDraw resources/cbuffer
-                    // Get nodes
-                    var viewObjectNode = GetViewObjectNode(renderNode.ViewObjectNode);
-
-                    // Allocate descriptor set
-                    renderNode.Resources = threadContext.ResourceGroupAllocator.AllocateResourceGroup();
-                    if (renderEffectReflection.PerDrawLayout != null)
-                    {
-                        threadContext.ResourceGroupAllocator.PrepareResourceGroup(renderEffectReflection.PerDrawLayout, BufferPoolAllocationType.UsedOnce, renderNode.Resources);
-                    }
-
-                    // Create EffectObjectNode
-                    var effectObjectNodeIndex = EffectObjectNodes.Add(new EffectObjectNode(renderEffect, viewObjectNode.ObjectNode));
-
-                    // Link to EffectObjectNode (created right after)
-                    // TODO: rewrite this
-                    renderNode.EffectObjectNode = new EffectObjectNodeReference(effectObjectNodeIndex);
-
-                    renderNode.RenderEffect = renderEffect;
-                    
-                    // Bind well-known descriptor sets
-                    var descriptorSetPoolOffset = ComputeResourceGroupOffset(renderNodeReference);
-                    ResourceGroupPool[descriptorSetPoolOffset + perFrameDescriptorSetSlot.Index] = frameLayout?.Entry.Resources;
-                    ResourceGroupPool[descriptorSetPoolOffset + perViewDescriptorSetSlot.Index] = renderEffect.Reflection.PerViewLayout?.Entries[view.Index].Resources;
-                    ResourceGroupPool[descriptorSetPoolOffset + perDrawDescriptorSetSlot.Index] = renderNode.Resources;
-
-                    // Create resource group for everything else in case of fallback effects
-                    if (renderEffect.State != RenderEffectState.Normal && renderEffect.FallbackParameters != null)
-                    {
-                        if (renderEffect.FallbackParameterUpdater.ResourceGroups == null)
+                        // Allocate descriptor set
+                        renderNode.Resources = threadContext.ResourceGroupAllocator.AllocateResourceGroup();
+                        if (renderEffectReflection.PerDrawLayout != null)
                         {
-                            // First time
-                            renderEffect.FallbackParameterUpdater = new EffectParameterUpdater(renderEffect.Reflection.FallbackUpdaterLayout, renderEffect.FallbackParameters);
+                            threadContext.ResourceGroupAllocator.PrepareResourceGroup(renderEffectReflection.PerDrawLayout, BufferPoolAllocationType.UsedOnce, renderNode.Resources);
                         }
 
-                        renderEffect.FallbackParameterUpdater.Update(RenderSystem.GraphicsDevice, threadContext.ResourceGroupAllocator, renderEffect.FallbackParameters);
+                        // Create EffectObjectNode
+                        var effectObjectNodeIndex = p.@this.EffectObjectNodes.Add(new EffectObjectNode(renderEffect, viewObjectNode.ObjectNode));
 
-                        var fallbackResourceGroupMapping = renderEffect.Reflection.FallbackResourceGroupMapping;
-                        for (int i = 0; i < fallbackResourceGroupMapping.Length; ++i)
+                        // Link to EffectObjectNode (created right after)
+                        // TODO: rewrite this
+                        renderNode.EffectObjectNode = new EffectObjectNodeReference(effectObjectNodeIndex);
+
+                        renderNode.RenderEffect = renderEffect;
+
+                        // Bind well-known descriptor sets
+                        var descriptorSetPoolOffset = p.@this.ComputeResourceGroupOffset(renderNodeReference);
+                        p.@this.ResourceGroupPool[descriptorSetPoolOffset + p.@this.perFrameDescriptorSetSlot.Index] = frameLayout?.Entry.Resources;
+                        p.@this.ResourceGroupPool[descriptorSetPoolOffset + p.@this.perViewDescriptorSetSlot.Index] = renderEffect.Reflection.PerViewLayout?.Entries[p.view.Index].Resources;
+                        p.@this.ResourceGroupPool[descriptorSetPoolOffset + p.@this.perDrawDescriptorSetSlot.Index] = renderNode.Resources;
+
+                        // Create resource group for everything else in case of fallback effects
+                        if (renderEffect.State != RenderEffectState.Normal && renderEffect.FallbackParameters != null)
                         {
-                            ResourceGroupPool[descriptorSetPoolOffset + fallbackResourceGroupMapping[i]] = renderEffect.FallbackParameterUpdater.ResourceGroups[i];
+                            if (renderEffect.FallbackParameterUpdater.ResourceGroups == null)
+                            {
+                                // First time
+                                renderEffect.FallbackParameterUpdater = new EffectParameterUpdater(renderEffect.Reflection.FallbackUpdaterLayout, renderEffect.FallbackParameters);
+                            }
+
+                            renderEffect.FallbackParameterUpdater.Update(p.@this.RenderSystem.GraphicsDevice, threadContext.ResourceGroupAllocator, renderEffect.FallbackParameters);
+
+                            var fallbackResourceGroupMapping = renderEffect.Reflection.FallbackResourceGroupMapping;
+                            for (int i = 0; i < fallbackResourceGroupMapping.Length; ++i)
+                            {
+                                p.@this.ResourceGroupPool[descriptorSetPoolOffset + fallbackResourceGroupMapping[i]] = renderEffect.FallbackParameterUpdater.ResourceGroups[i];
+                            }
                         }
-                    }
 
-                    // Compile pipeline state object (if first time or need change)
-                    // TODO GRAPHICS REFACTOR how to invalidate if we want to change some state? (setting to null should be fine)
-                    if (renderEffect.PipelineState == null)
-                    {
-                        var mutablePipelineState = batch.MutablePipelineState;
-                        var pipelineState = mutablePipelineState.State;
-                        pipelineState.SetDefaults();
+                        // Compile pipeline state object (if first time or need change)
+                        // TODO GRAPHICS REFACTOR how to invalidate if we want to change some state? (setting to null should be fine)
+                        if (renderEffect.PipelineState == null)
+                        {
+                            var mutablePipelineState = batch.MutablePipelineState;
+                            var pipelineState = mutablePipelineState.State;
+                            pipelineState.SetDefaults();
 
-                        // Effect
-                        pipelineState.EffectBytecode = renderEffect.Effect.Bytecode;
-                        pipelineState.RootSignature = renderEffect.Reflection.RootSignature;
+                            // Effect
+                            pipelineState.EffectBytecode = renderEffect.Effect.Bytecode;
+                            pipelineState.RootSignature = renderEffect.Reflection.RootSignature;
 
-                        // Extract outputs from render stage
-                        pipelineState.Output = renderNode.RenderStage.Output;
-                        pipelineState.RasterizerState.MultisampleCount = renderNode.RenderStage.Output.MultisampleCount;
+                            // Extract outputs from render stage
+                            pipelineState.Output = renderNode.RenderStage.Output;
+                            pipelineState.RasterizerState.MultisampleCount = renderNode.RenderStage.Output.MultisampleCount;
 
-                        // Bind VAO
-                        ProcessPipelineState(Context, renderNodeReference, ref renderNode, renderObject, pipelineState);
+                            // Bind VAO
+                            p.@this.ProcessPipelineState(p.@this.Context, renderNodeReference, ref renderNode, renderObject, pipelineState);
 
-                        foreach (var pipelineProcessor in PipelineProcessors)
-                            pipelineProcessor.Process(renderNodeReference, ref renderNode, renderObject, pipelineState);
+                            foreach (var pipelineProcessor in p.@this.PipelineProcessors)
+                                pipelineProcessor.Process(renderNodeReference, ref renderNode, renderObject, pipelineState);
 
-                        mutablePipelineState.Update();
-                        renderEffect.PipelineState = mutablePipelineState.CurrentState;
-                    }
+                            mutablePipelineState.Update();
+                            renderEffect.PipelineState = mutablePipelineState.CurrentState;
+                        }
 
-                    RenderNodes[renderNodeReference.Index] = renderNode;
-                });
+                        p.@this.RenderNodes[renderNodeReference.Index] = renderNode;
+                    }, 
+                    (ref (RootEffectRenderFeature @this, RenderView, RenderViewFeature, int, StaticObjectPropertyData<RenderEffect>) p) => p.@this.prepareThreadContext.Value);
 
                 viewFeature.RenderNodes.Close();
                 viewFeature.Layouts.Close();

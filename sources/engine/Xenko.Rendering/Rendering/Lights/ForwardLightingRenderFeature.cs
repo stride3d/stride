@@ -287,7 +287,7 @@ namespace Xenko.Rendering.Lights
                 if (!renderMesh.MaterialPass.IsLightDependent)
                     return;
 
-                var staticObjectNode = renderMesh.StaticObjectNode;
+                    var staticObjectNode = renderMesh.StaticObjectNode;
 
                 for (int i = 0; i < effectSlotCount; ++i)
                 {
@@ -417,7 +417,7 @@ namespace Xenko.Rendering.Lights
                     if (drawLayout == null)
                         return;
 
-                    var drawLighting = drawLayout.GetLogicalGroup(drawLightingKey);
+                    var drawLighting = drawLayout.GetLogicalGroup(@this.drawLightingKey);
                     if (drawLighting.Hash == ObjectId.Empty)
                         return;
 
@@ -437,13 +437,13 @@ namespace Xenko.Rendering.Lights
                     Debug.Assert(drawLighting.Hash == locals.DrawLayoutHash, "PerDraw Lighting layout differs between different RenderObject in the same RenderView");
 
                     // Compute PerDraw lighting
-                    foreach (var directLightGroup in shaderPermutation.DirectLightGroups)
+                    foreach (var directLightGroup in @this.shaderPermutation.DirectLightGroups)
                     {
-                        directLightGroup.ApplyDrawParameters(context, viewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
+                        directLightGroup.ApplyDrawParameters(pContext, pViewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
                     }
-                    foreach (var environmentLight in shaderPermutation.EnvironmentLights)
+                    foreach (var environmentLight in @this.shaderPermutation.EnvironmentLights)
                     {
-                        environmentLight.ApplyDrawParameters(context, viewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
+                        environmentLight.ApplyDrawParameters(pContext, pViewIndex, locals.DrawParameters, ref renderNode.RenderObject.BoundingBox);
                     }
 
                     // Update resources
