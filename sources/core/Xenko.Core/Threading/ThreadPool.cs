@@ -142,7 +142,8 @@ namespace Xenko.Core.Threading
 
                     Interlocked.Exchange(ref currentSignal, SIGNAL_IDLE);
                     // We're idle, push this thread onto the stack to wait for signal
-                    pool.Push(this);
+                    if (pool.TryPush(this) == false)
+                        return;
                     
                     SpinWait sw = new SpinWait();
                     do

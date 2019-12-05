@@ -34,7 +34,7 @@ namespace Xenko.Core.Threading
                 Items = new T[size],
                 Mask = size - 1,
             };
-            Push(new T());
+            TryPush(new T());
         }
 
         public T Pop()
@@ -52,12 +52,12 @@ namespace Xenko.Core.Threading
             // The entire logic works on the guarantee that there is
             // always at least one item within the collection.
             if (iterator <= 0)
-                Push(new T());
+                TryPush(new T());
 
             return item;
         }
 
-        public void Push(T item)
+        public bool TryPush(T item)
         {
             var localHead = head;
             int iterator;
@@ -67,7 +67,7 @@ namespace Xenko.Core.Threading
             {
                 iterator = Volatile.Read(ref localHead.Iterator);
                 if (iterator >= localHead.Items.Length)
-                    return;
+                    return false;
                 if (Interlocked.CompareExchange(ref localHead.Iterator, iterator + 1, iterator) == iterator)
                     break;
                 spin.SpinOnce();
@@ -78,6 +78,7 @@ namespace Xenko.Core.Threading
             {
                 spin.SpinOnce();
             }
+            return true;
         }
     }
 }

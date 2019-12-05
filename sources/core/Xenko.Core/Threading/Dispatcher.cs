@@ -605,7 +605,7 @@ namespace Xenko.Core.Threading
                     {
                         job.Recycle();
                         Interlocked.Exchange(ref job, null);
-                        pool.Push(this);
+                        pool.TryPush(this);
                     }
                 }
             }
@@ -639,7 +639,7 @@ namespace Xenko.Core.Threading
             {
                 action = null;
                 constant = default;
-                pool.Push(this);
+                pool.TryPush(this);
             }
         }
 
