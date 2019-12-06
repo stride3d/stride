@@ -11,7 +11,7 @@ namespace Xenko.Core.Threading
     /// always contains at least one item.
     /// Fastest collection type under heavy concurrency.
     /// </summary>
-    public class ConcurrentFixedPool<T> where T : class, new()
+    public class ConcurrentFixedPool<T> where T : class
     {
         private class Segment
         {
@@ -21,9 +21,10 @@ namespace Xenko.Core.Threading
         }
 
         private readonly Segment head;
+        private readonly Func<T> factory;
 
         /// <exception cref="ArgumentOutOfRangeException"><paramref name="size"/> must be a power of two</exception>
-        public ConcurrentFixedPool(int size)
+        public ConcurrentFixedPool(int size, Func<T> factoryParam)
         {
             // Size must be a power of two for modulo and overflow of read/write indices to behave correctly
             if (size <= 0 || ((size & (size - 1)) != 0))
@@ -34,7 +35,8 @@ namespace Xenko.Core.Threading
                 Items = new T[size],
                 Mask = size - 1,
             };
-            TryPush(new T());
+            factory = factoryParam;
+            TryPush(factory());
         }
 
         public T Pop()
@@ -52,7 +54,7 @@ namespace Xenko.Core.Threading
             // The entire logic works on the guarantee that there is
             // always at least one item within the collection.
             if (iterator <= 0)
-                TryPush(new T());
+                TryPush(factory());
 
             return item;
         }

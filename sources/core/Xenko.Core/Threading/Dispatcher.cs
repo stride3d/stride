@@ -554,7 +554,7 @@ namespace Xenko.Core.Threading
 
         private class BatchState : ThreadPool.IConcurrentJob
         {
-            private static readonly ConcurrentFixedPool<BatchState> pool = new ConcurrentFixedPool<BatchState>(64);
+            private static readonly ConcurrentFixedPool<BatchState> pool = new ConcurrentFixedPool<BatchState>(64, () => new BatchState());
             
             public readonly ManualResetEventSlim Finished = new ManualResetEventSlim(false);
             
@@ -615,7 +615,7 @@ namespace Xenko.Core.Threading
 
         private class CachedDelegateCapture<TConst, TParam> : ICachedDelegateCapture<TParam>
         {
-            private static readonly ConcurrentFixedPool<CachedDelegateCapture<TConst, TParam>> pool = new ConcurrentFixedPool<CachedDelegateCapture<TConst, TParam>>(8);
+            private static readonly ConcurrentFixedPool<CachedDelegateCapture<TConst, TParam>> pool = new ConcurrentFixedPool<CachedDelegateCapture<TConst, TParam>>(8, () => new CachedDelegateCapture<TConst, TParam>());
             private ActionRef<TConst, TParam> action;
             private TConst constant;
 
