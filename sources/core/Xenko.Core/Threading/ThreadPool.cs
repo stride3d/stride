@@ -21,105 +21,152 @@ namespace Xenko.Core.Threading
         
         /// <summary> Maximum amount of idle threads waiting for work. </summary>
         public readonly int PoolSize;
-
-        private readonly ConcurrentFixedPool<PooledThread> pool;
+        
+        /// <summary>
+        /// OS semaphores are close to two times faster to signal multiple
+        /// threads than doing the same thing through monitor like
+        /// SemaphoreSlim and other reset events are doing.
+        /// </summary>
+        private readonly Semaphore semaphore;
+        private readonly ConcurrentPool<object> jobs;
+        private int spinningCount;
+        private int spinToRelease;
+        private int sleeping;
 
         public ThreadPool()
         {
-            int nextPow2 = Environment.ProcessorCount * 4;
-            if (nextPow2 >= 1073741824)
-            {
-                nextPow2 = 1073741824;
-            }
-            else if (nextPow2 <= 0)
-            {
-                nextPow2 = 1;
-            }
-            else
-            {
-                nextPow2--;
-                nextPow2 |= nextPow2 >> 1;
-                nextPow2 |= nextPow2 >> 2;
-                nextPow2 |= nextPow2 >> 4;
-                nextPow2 |= nextPow2 >> 8;
-                nextPow2 |= nextPow2 >> 16;
-                nextPow2++;
-            }
-
-            PoolSize = nextPow2;
-            pool = new ConcurrentFixedPool<PooledThread>(PoolSize);
+            PoolSize = Environment.ProcessorCount * 4;
+            semaphore = new Semaphore(0, int.MaxValue);
+            jobs = new ConcurrentPool<object>(() => null);
         }
 
         /// <summary> Schedule an action to be run on one of the <see cref="ThreadPool"/>'s threads </summary>
         /// <exception cref="ArgumentNullException"><see cref="workItem"/> is null</exception>
-        public void QueueWorkItem([NotNull, Pooled] Action workItem)
+        public void QueueWorkItem([NotNull, Pooled] Action workItem, int amount = 1)
         {
             if (workItem == null)
             {
                 throw new ArgumentNullException(nameof(workItem));
             }
             
-            pool.Pop().Signal(workItem, pool);
+            Dispatch(workItem, amount);
         }
 
         /// <summary> Schedule a job to be run on one of or multiple <see cref="ThreadPool"/>'s threads </summary>
         /// <exception cref="ArgumentNullException"><see cref="jobParam"/> is null</exception>
-        public void DispatchJob([NotNull] IConcurrentJob jobParam)
+        public void DispatchJob([NotNull] IConcurrentJob jobParam, int amount = 1)
         {
             if (jobParam == null)
             {
                 throw new ArgumentNullException(nameof(jobParam));
             }
+
+            Dispatch(jobParam, amount);
+        }
+
+        private void Dispatch(object job, int amount)
+        {
+            for (int i = 0; i < amount; i++)
+            {
+                jobs.Release(job);
+            }
+            SignalThreads(amount, out int leftToSpawn);
+            for (int i = 0; i < leftToSpawn; i++)
+            {
+                new PooledThread(this);
+            }
+        }
+
+        private bool TryEnterSleep()
+        {
+            if ((Volatile.Read(ref sleeping) + Volatile.Read(ref spinningCount)) >= PoolSize)
+                return false;
             
-            pool.Pop().Signal(jobParam, pool);
+            Interlocked.Increment(ref spinningCount);
+            var spin = new SpinWait();
+            while (spin.NextSpinWillYield == false)
+            {
+                int spinRelease = Volatile.Read(ref spinToRelease);
+                if (spinRelease > 0 && Interlocked.CompareExchange(ref spinToRelease, spinRelease - 1, spinRelease) == spinRelease)
+                {
+                    Interlocked.Decrement(ref spinningCount);
+                    return true;
+                }
+
+                spin.SpinOnce();
+            }
+            
+            Interlocked.Increment(ref sleeping);
+            Interlocked.Decrement(ref spinningCount);
+
+            semaphore.WaitOne();
+            return true;
+        }
+        
+        private void SignalThreads(int releaseCount, out int leftThatCouldntBeReleased)
+        {
+            if (releaseCount < 1)
+                throw new ArgumentOutOfRangeException(nameof(releaseCount));
+
+            var spin = new SpinWait();
+            Interlocked.Add(ref spinToRelease, releaseCount);
+            while (spin.NextSpinWillYield == false && Volatile.Read(ref spinningCount) > 0)
+            {
+                spin.SpinOnce();
+            }
+            
+            // Retrieve amount that wasn't released
+            releaseCount = Interlocked.Exchange(ref spinToRelease, 0);
+            if (releaseCount == 0)
+            {
+                leftThatCouldntBeReleased = 0;
+                return;
+            }
+            
+            spin = new SpinWait();
+            int semaphoreToRelease;
+            while (true)
+            {
+                var sleepingSample = Volatile.Read(ref sleeping);
+                semaphoreToRelease = sleepingSample > releaseCount ? releaseCount : sleepingSample;
+                if (Interlocked.CompareExchange(ref sleeping, sleepingSample - semaphoreToRelease, sleepingSample) == sleepingSample)
+                    break;
+                spin.SpinOnce();
+            }
+
+            semaphore.Release(semaphoreToRelease);
+
+            leftThatCouldntBeReleased = releaseCount - semaphoreToRelease;
         }
 
         private class PooledThread
         {
-            private const int SIGNAL_IDLE = 0;
-            private const int SIGNAL_WORK = 1;
-            private const int SIGNAL_SLEEPING = 2;
-            
             private static int nextThreadId;
             
             private readonly Thread thread;
-            private readonly ManualResetEventSlim mre = new ManualResetEventSlim(true);
-            private ConcurrentFixedPool<PooledThread> pool;
-            private object job;
-            private bool init;
-            private int currentSignal;
+            private ThreadPool pool;
 
-            public PooledThread()
+            public PooledThread(ThreadPool poolParam)
             {
+                pool = poolParam;
                 thread = new Thread(Loop)
                 {
                     Name = $"{GetType().Name} thread #{Interlocked.Increment(ref nextThreadId)}",
                     IsBackground = true,
                     Priority = ThreadPriority.Highest,
                 };
-            }
-
-            public void Signal(object newJob, ConcurrentFixedPool<PooledThread> poolParam)
-            {
-                Interlocked.Exchange(ref job, newJob);
-                if (Interlocked.Exchange(ref currentSignal, SIGNAL_WORK) == SIGNAL_SLEEPING)
-                {
-                    mre.Set();
-                }
-
-                if (init == false)
-                {
-                    init = true;
-                    pool = poolParam;
-                    thread.Start();
-                }
+                thread.Start();
             }
 
             private void Loop()
             {
                 do
                 {
-                    var scheduledOp = Interlocked.Exchange(ref job, null);
+                    // Logic guarantees one job per initialization and signal
+                    object scheduledOp = pool.jobs.Acquire();
+                    if (scheduledOp == null)
+                        throw new NullReferenceException("Missing job in pool");
+                        
                     if (scheduledOp is IConcurrentJob pooledJob)
                     {
                         pooledJob.Work();
@@ -140,37 +187,8 @@ namespace Xenko.Core.Threading
                         throw new ArgumentException($"Invalid job type: {scheduledOp}");
                     }
 
-                    Interlocked.Exchange(ref currentSignal, SIGNAL_IDLE);
-                    // We're idle, push this thread onto the stack to wait for signal
-                    if (pool.TryPush(this) == false)
+                    if (pool.TryEnterSleep() == false)
                         return;
-                    
-                    SpinWait sw = new SpinWait();
-                    do
-                    {
-                        if (Volatile.Read(ref currentSignal) == SIGNAL_WORK)
-                        {
-                            break;
-                        }
-
-                        if (sw.NextSpinWillYield)
-                        {
-                            mre.Reset();
-                            // Check for last-minute signal to work, otherwise sleep
-                            int previousSignal = Interlocked.CompareExchange(ref currentSignal, SIGNAL_SLEEPING, SIGNAL_IDLE);
-                            if (previousSignal == SIGNAL_WORK)
-                            {
-                                break;
-                            }
-
-                            mre.Wait();
-                            break;
-                        }
-                        else
-                        {
-                            sw.SpinOnce();
-                        }
-                    } while (true);
                 } while (true);
             }
         }

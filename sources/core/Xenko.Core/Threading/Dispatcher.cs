@@ -280,10 +280,7 @@ namespace Xenko.Core.Threading
             var batchSize = count / tCount;
             batchSize = batchSize > 1 ? batchSize / 2 : batchSize;
             var state = BatchState.Acquire(tCount, fromInclusive, toExclusive, batchSize, executeBatch);
-            for (int i = 0; i < tCount - 1; i++)
-            {
-                ThreadPool.Instance.DispatchJob(state);
-            }
+            ThreadPool.Instance.DispatchJob(state, tCount - 1);
 
             state.Work();
 
