@@ -601,26 +601,33 @@ namespace Xenko.Navigation
                             var mesh = GeometricPrimitive.Plane.New(width, length, width, length, normalDirection: NormalDirection.UpY, toLeftHanded: true);
 
                             var arrayLength = heightfield.HeightStickWidth * heightfield.HeightStickLength;
-                            switch (heightfield.HeightType)
+
+                            using (heightfield.LockToReadHeights())
                             {
-                                case HeightfieldTypes.Short:
-                                    for (int i = 0; i < arrayLength; ++i)
-                                    {
-                                        mesh.Vertices[i].Position.Y = heightfield.ShortArray[i] * heightfield.HeightScale;
-                                    }
-                                    break;
-                                case HeightfieldTypes.Byte:
-                                    for (int i = 0; i < arrayLength; ++i)
-                                    {
-                                        mesh.Vertices[i].Position.Y = heightfield.ByteArray[i] * heightfield.HeightScale;
-                                    }
-                                    break;
-                                case HeightfieldTypes.Float:
-                                    for (int i = 0; i < arrayLength; ++i)
-                                    {
-                                        mesh.Vertices[i].Position.Y = heightfield.FloatArray[i];
-                                    }
-                                    break;
+                                switch (heightfield.HeightType)
+                                {
+                                    case HeightfieldTypes.Short:
+                                        if (heightfield.ShortArray == null) continue;
+                                        for (int i = 0; i < arrayLength; ++i)
+                                        {
+                                            mesh.Vertices[i].Position.Y = heightfield.ShortArray[i] * heightfield.HeightScale;
+                                        }
+                                        break;
+                                    case HeightfieldTypes.Byte:
+                                        if (heightfield.ByteArray == null) continue;
+                                        for (int i = 0; i < arrayLength; ++i)
+                                        {
+                                            mesh.Vertices[i].Position.Y = heightfield.ByteArray[i] * heightfield.HeightScale;
+                                        }
+                                        break;
+                                    case HeightfieldTypes.Float:
+                                        if (heightfield.FloatArray == null) continue;
+                                        for (int i = 0; i < arrayLength; ++i)
+                                        {
+                                            mesh.Vertices[i].Position.Y = heightfield.FloatArray[i];
+                                        }
+                                        break;
+                                }
                             }
 
                             entityNavigationMeshInputBuilder.AppendMeshData(mesh, transform);
