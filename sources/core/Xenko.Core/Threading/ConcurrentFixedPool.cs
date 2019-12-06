@@ -65,7 +65,7 @@ namespace Xenko.Core.Threading
             var spin = new SpinWait();
             do
             {
-                iterator = Volatile.Read(ref localHead.Iterator);
+                iterator = localHead.Iterator;
                 if (iterator >= localHead.Items.Length)
                     return false;
                 if (Interlocked.CompareExchange(ref localHead.Iterator, iterator + 1, iterator) == iterator)

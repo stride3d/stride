@@ -86,7 +86,7 @@ namespace Xenko.Core.Threading
             var spin = new SpinWait();
             while (spin.NextSpinWillYield == false)
             {
-                int spinRelease = Volatile.Read(ref spinToRelease);
+                int spinRelease = spinToRelease;
                 if (spinRelease > 0 && Interlocked.CompareExchange(ref spinToRelease, spinRelease - 1, spinRelease) == spinRelease)
                 {
                     Interlocked.Decrement(ref spinningCount);
@@ -127,7 +127,7 @@ namespace Xenko.Core.Threading
             int semaphoreToRelease;
             while (true)
             {
-                var sleepingSample = Volatile.Read(ref sleeping);
+                var sleepingSample = sleeping;
                 semaphoreToRelease = sleepingSample > releaseCount ? releaseCount : sleepingSample;
                 if (Interlocked.CompareExchange(ref sleeping, sleepingSample - semaphoreToRelease, sleepingSample) == sleepingSample)
                     break;
