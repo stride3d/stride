@@ -7,9 +7,18 @@
   <Import Project="$(MSBuildThisDirectory)..\..\sources\core\Xenko.Core\build\Xenko.Core.props"/>
 
   <PropertyGroup>
+    <!-- Default fallback -->
+    <XenkoPlatform Condition="'$(XenkoPlatform)' == ''">Windows</XenkoPlatform>
+    <OutputType>WinExe</OutputType>
+
     <XenkoPlatformFullName>$(XenkoPlatform)</XenkoPlatformFullName>
     <XenkoPlatformFullName Condition="'$(XenkoBuildDirExtension)' != ''">$(XenkoPlatformFullName)-$(XenkoBuildDirExtension)</XenkoPlatformFullName>
 
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>
