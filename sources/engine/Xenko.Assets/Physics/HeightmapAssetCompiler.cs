@@ -215,8 +215,7 @@ namespace Xenko.Assets.Physics
                                 // Set rest of properties
 
                                 heightmap.HeightType = heightfieldType;
-                                heightmap.Width = size.X;
-                                heightmap.Length = size.Y;
+                                heightmap.Size = size;
                             }
                         }
                     }

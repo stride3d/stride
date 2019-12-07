@@ -17,8 +17,8 @@ namespace Xenko.Assets.Presentation.Preview
         private Texture heightmapTexture;
         private BlendStateDescription adequateBlendState;
 
-        public int Width => heightmap?.Width ?? 0;
-        public int Length => heightmap?.Length ?? 0;
+        public int Width => heightmap?.Size.X ?? 0;
+        public int Length => heightmap?.Size.Y ?? 0;
 
         /// <summary>
         /// Gets or sets a callback that will be invoked when the texture is loaded.

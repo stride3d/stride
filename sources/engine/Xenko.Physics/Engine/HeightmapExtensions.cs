@@ -12,7 +12,7 @@ namespace Xenko.Physics
         {
             if (heightmap == null) throw new ArgumentNullException(nameof(heightmap));
 
-            return heightmap.Width >= 2 && heightmap.Length >= 2;
+            return heightmap.Size.X >= 2 && heightmap.Size.Y >= 2;
         }
 
         public static Texture CreateTexture([NotNull] this Heightmap heightmap, GraphicsDevice device)
@@ -27,13 +27,13 @@ namespace Xenko.Physics
             switch (heightmap.HeightType)
             {
                 case HeightfieldTypes.Float:
-                    return Texture.New2D(device, heightmap.Width, heightmap.Length, PixelFormat.R32_Float, heightmap.Floats);
+                    return Texture.New2D(device, heightmap.Size.X, heightmap.Size.Y, PixelFormat.R32_Float, heightmap.Floats);
 
                 case HeightfieldTypes.Short:
-                    return Texture.New2D(device, heightmap.Width, heightmap.Length, PixelFormat.R16_SNorm, heightmap.Shorts);
+                    return Texture.New2D(device, heightmap.Size.X, heightmap.Size.Y, PixelFormat.R16_SNorm, heightmap.Shorts);
 
                 case HeightfieldTypes.Byte:
-                    return Texture.New2D(device, heightmap.Width, heightmap.Length, PixelFormat.R8_UNorm, heightmap.Bytes);
+                    return Texture.New2D(device, heightmap.Size.X, heightmap.Size.Y, PixelFormat.R8_UNorm, heightmap.Bytes);
 
                 default:
                     return null;

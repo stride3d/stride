@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
 using Xenko.Core;
+using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
 using Xenko.Engine.Design;
@@ -31,14 +32,11 @@ namespace Xenko.Physics
         public HeightfieldTypes HeightType;
 
         [DataMember(50)]
-        public int Width;
+        public Int2 Size { get; set; }
 
-        [DataMember(60)]
-        public int Length;
-
-        public static Heightmap Create<T>(int width, int length, T[] data) where T : struct
+        public static Heightmap Create<T>(Int2 size, T[] data) where T : struct
         {
-            if (width <= 1 || length <= 1 || data == null)
+            if (size.X <= 1 || size.Y <= 1 || data == null)
             {
                 return null;
             }
@@ -50,8 +48,7 @@ namespace Xenko.Physics
                 return new Heightmap
                 {
                     HeightType = HeightfieldTypes.Float,
-                    Width = width,
-                    Length = length,
+                    Size = size,
                     Floats = data as float[],
                 };
             }
@@ -60,8 +57,7 @@ namespace Xenko.Physics
                 return new Heightmap
                 {
                     HeightType = HeightfieldTypes.Short,
-                    Width = width,
-                    Length = length,
+                    Size = size,
                     Shorts = data as short[],
                 };
             }
@@ -70,8 +66,7 @@ namespace Xenko.Physics
                 return new Heightmap
                 {
                     HeightType = HeightfieldTypes.Byte,
-                    Width = width,
-                    Length = length,
+                    Size = size,
                     Bytes = data as byte[],
                 };
             }
