@@ -133,8 +133,9 @@ namespace Xenko.Core.Threading
                     break;
                 spin.SpinOnce();
             }
-
-            semaphore.Release(semaphoreToRelease);
+            
+            if (semaphoreToRelease > 0)
+                semaphore.Release(semaphoreToRelease);
 
             leftThatCouldntBeReleased = releaseCount - semaphoreToRelease;
         }
