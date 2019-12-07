@@ -211,11 +211,11 @@ namespace Xenko.Core.Quantum
             var dictionaryDescriptor = Descriptor as DictionaryDescriptor;
             if (collectionDescriptor != null)
             {
-                collectionDescriptor.SetValue(Value, index.Int, newValue);
+                collectionDescriptor.SetValue(Value, index.Int, ConvertValue(newValue, collectionDescriptor.ElementType));
             }
             else if (dictionaryDescriptor != null)
             {
-                dictionaryDescriptor.SetValue(Value, index.Value, newValue);
+                dictionaryDescriptor.SetValue(Value, index.Value, ConvertValue(newValue, dictionaryDescriptor.ValueType));
             }
             else
                 throw new NotSupportedException("Unable to set the node value, the collection is unsupported");

@@ -7,7 +7,6 @@ using Xenko.Core.Annotations;
 using Xenko.Core.Extensions;
 using Xenko.Core.Reflection;
 using Xenko.Core.Quantum.References;
-using Xenko.Core.TypeConverters;
 
 namespace Xenko.Core.Quantum
 {
@@ -102,7 +101,6 @@ namespace Xenko.Core.Quantum
 
         private void Update(object newValue, bool sendNotification)
         {
-            newValue = ConvertValue(newValue);
             var oldValue = Retrieve();
             MemberNodeChangeEventArgs args = null;
             if (sendNotification)
@@ -113,7 +111,7 @@ namespace Xenko.Core.Quantum
             var containerValue = Parent.Retrieve();
             if (containerValue == null)
                 throw new InvalidOperationException("Container's value is null");
-            MemberDescriptor.Set(containerValue, newValue);
+            MemberDescriptor.Set(containerValue, ConvertValue(newValue, MemberDescriptor.Type));
 
             if (containerValue.GetType().GetTypeInfo().IsValueType)
                 ((GraphNodeBase)Parent).UpdateFromMember(containerValue, NodeIndex.Empty);
@@ -123,16 +121,6 @@ namespace Xenko.Core.Quantum
             {
                 NotifyContentChanged(args);
             }
-        }
-
-        private object ConvertValue(object value)
-        {
-            if (value == null)
-                return null;
-            object convertedValue;
-            if (!TypeConverterHelper.TryConvert(value, Type, out convertedValue))
-                throw new InvalidOperationException("Can not convert value to the required type");
-            return convertedValue;
         }
 
         private void UpdateReferences()
