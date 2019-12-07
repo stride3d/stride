@@ -128,11 +128,6 @@ namespace Xenko.Core.Serialization
             attachedReference.Id = id;
             attachedReference.Url = location;
             attachedReference.IsProxy = true;
-
-            if (proxyObject is UrlReference urlReference)
-            {
-                urlReference.Url = location;
-            }
         }
     }
 }

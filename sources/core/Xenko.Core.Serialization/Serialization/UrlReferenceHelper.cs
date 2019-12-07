@@ -10,21 +10,18 @@ namespace Xenko.Core.Serialization
         /// <summary>
         /// Creates a url reference to the given asset that matches the given reference type.
         /// </summary>
+        /// <param name="referenceType">The type of reference to create.</param>
         /// <param name="assetId">The target asset id to create.</param>
         /// <param name="assetUrl">The target asset url to create.</param>
-        /// <param name="referenceType">The type of reference to create.</param>
         /// <returns>A url reference to the given asset if it's not null and <paramref name="referenceType"/> is a valid reference url type, null otherwise.</returns>
         /// <remarks>A reference type is either an <see cref="UrlReference"/> or a <see cref="UrlReference{T}"/>.</remarks>
-        public static object CreateReference(AssetId assetId, string assetUrl, Type referenceType)
+        public static object CreateReference(Type referenceType, AssetId assetId, string assetUrl)
         {
             if (assetId != null && assetUrl != null && IsUrlReferenceType(referenceType))
             {
-                var urlReference = Activator.CreateInstance(referenceType, assetUrl);
+                var urlReference = (UrlReference)AttachedReferenceManager.CreateProxyObject(referenceType, assetId, assetUrl);
 
-                var attachedReference = AttachedReferenceManager.GetOrCreateAttachedReference(urlReference);
-                attachedReference.Id = assetId;
-                attachedReference.Url = assetUrl;
-                attachedReference.IsProxy = true;
+                urlReference.Url = assetUrl;
 
                 return urlReference;
             }
@@ -63,21 +60,6 @@ namespace Xenko.Core.Serialization
             }
 
             return null;
-        }
-
-        /// <summary>
-        /// Creates an instance of <see cref="UrlReference{T}"/> for the given <see cref="Type"/>
-        /// </summary>
-        /// <param name="type">The <see cref="Type"/> to use as generic type parameter</param>
-        /// <returns></returns>
-        public static Type MakeGenericType(Type type)
-        {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            return GenericType.MakeGenericType(type);
         }
 
         private static readonly Type GenericType = typeof(UrlReference<>);

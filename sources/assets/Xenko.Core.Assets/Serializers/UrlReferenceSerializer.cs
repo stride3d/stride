@@ -23,15 +23,12 @@ namespace Xenko.Core.Assets.Serializers
 
         public override object ConvertFrom(ref ObjectContext context, Scalar fromScalar)
         {
-            AssetId guid;
-            UFile location;
-            if (!AssetReference.TryParse(fromScalar.Value, out guid, out location))
+            if (!AssetReference.TryParse(fromScalar.Value, out var guid, out var location))
             {
                 throw new YamlException(fromScalar.Start, fromScalar.End, "Unable to decode url reference [{0}]. Expecting format GUID:LOCATION".ToFormat(fromScalar.Value));
             }
 
-            //TODO: IT would be better if this could use the UrlReferenceHelper class.
-            var urlReference = AttachedReferenceManager.CreateProxyObject(context.Descriptor.Type, guid, location.FullPath);
+            var urlReference = UrlReferenceHelper.CreateReference(context.Descriptor.Type, guid, location.FullPath);
 
             return urlReference;
         }

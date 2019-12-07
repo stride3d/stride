@@ -17,16 +17,21 @@ namespace Xenko.Core.Serialization.Serializers
         {
             if (mode == ArchiveMode.Serialize)
             {
-                var id = AttachedReferenceManager.GetAttachedReference(urlReference)?.Id ?? throw new Exception("OH NOES, no Id");
-                stream.Write(id);
-                stream.Write(urlReference.Url);
+                var attachedReference = AttachedReferenceManager.GetAttachedReference(urlReference);
+                if(attachedReference == null)
+                {
+                    throw new InvalidOperationException("UrlReference does not have an AttachedReference.");
+                }
+
+                stream.Write(attachedReference.Id);
+                stream.Write(attachedReference.Url);
             }
             else
             {
                 var id = stream.Read<AssetId>();
                 var url = stream.ReadString();
 
-                urlReference = (T)AttachedReferenceManager.CreateProxyObject(typeof(T),id,url);
+                urlReference = (T)UrlReferenceHelper.CreateReference(typeof(T), id, url);
             }
         }
     }
