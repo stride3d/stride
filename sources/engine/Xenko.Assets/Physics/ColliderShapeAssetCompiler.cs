@@ -19,7 +19,6 @@ using Xenko.Core.Serialization.Contents;
 using Xenko.Assets.Textures;
 using VHACDSharp;
 using Buffer = Xenko.Graphics.Buffer;
-using Xenko.Graphics;
 
 namespace Xenko.Assets.Physics
 {
