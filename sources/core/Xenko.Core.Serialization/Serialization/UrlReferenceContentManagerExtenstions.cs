@@ -19,6 +19,7 @@ namespace Xenko.Core.Serialization
         /// <param name="content">The <see cref="IContentManager"/>.</param>
         /// <param name="urlReference">The URL.</param>
         /// <returns><c>true</c> if the specified asset url exists, <c>false</c> otherwise.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="urlReference"/> is <c>null</c> or <c>empty</c>. Or <paramref name="content"/> is <c>null</c>.</exception>
         public static bool Exists(this IContentManager content, UrlReference urlReference)
         {
             CheckArguments(content, urlReference);
@@ -33,6 +34,7 @@ namespace Xenko.Core.Serialization
         /// <param name="urlReference">The URL to the raw asset.</param>
         /// <param name="streamFlags">The type of stream needed</param>
         /// <returns>A stream to the raw asset.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="urlReference"/> is <c>null</c> or <c>empty</c>. Or <paramref name="content"/> is <c>null</c>.</exception>
         public static Stream OpenAsStream(this IContentManager content, UrlReference urlReference, StreamFlags streamFlags = StreamFlags.None)
         {
             CheckArguments(content, urlReference);
@@ -47,7 +49,8 @@ namespace Xenko.Core.Serialization
         /// <param name="content">The <see cref="IContentManager"/>.</param>
         /// <param name="urlReference">The URL to load from.</param>
         /// <param name="settings">The settings. If null, fallback to <see cref="ContentManagerLoaderSettings.Default"/>.</param>
-        /// <returns></returns>
+        /// <returns>The loaded content.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="urlReference"/> is <c>null</c> or <c>empty</c>. Or <paramref name="content"/> is <c>null</c>.</exception>
         public static T Load<T>(this IContentManager content, UrlReference<T> urlReference, ContentManagerLoaderSettings settings = null)
             where T : class
         {
@@ -63,7 +66,8 @@ namespace Xenko.Core.Serialization
         /// <param name="content">The <see cref="IContentManager"/>.</param>
         /// <param name="urlReference">The URL to load from.</param>
         /// <param name="settings">The settings. If null, fallback to <see cref="ContentManagerLoaderSettings.Default"/>.</param>
-        /// <returns></returns>
+        /// <returns>The loaded content.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="urlReference"/> is <c>null</c> or <c>empty</c>. Or <paramref name="content"/> is <c>null</c>.</exception>
         public static Task<T> LoadAsync<T>(this IContentManager content, UrlReference<T> urlReference, ContentManagerLoaderSettings settings = null)
             where T : class
         {
