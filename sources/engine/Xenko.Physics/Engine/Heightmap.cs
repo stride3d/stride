@@ -28,7 +28,7 @@ namespace Xenko.Physics
 
         [DataMember(40)]
         [Display(Browsable = false)]
-        public HeightfieldTypes HeightfieldType;
+        public HeightfieldTypes HeightType;
 
         [DataMember(50)]
         public int Width;
@@ -49,7 +49,7 @@ namespace Xenko.Physics
             {
                 return new Heightmap
                 {
-                    HeightfieldType = HeightfieldTypes.Float,
+                    HeightType = HeightfieldTypes.Float,
                     Width = width,
                     Length = length,
                     Floats = data as float[],
@@ -59,7 +59,7 @@ namespace Xenko.Physics
             {
                 return new Heightmap
                 {
-                    HeightfieldType = HeightfieldTypes.Short,
+                    HeightType = HeightfieldTypes.Short,
                     Width = width,
                     Length = length,
                     Shorts = data as short[],
@@ -69,7 +69,7 @@ namespace Xenko.Physics
             {
                 return new Heightmap
                 {
-                    HeightfieldType = HeightfieldTypes.Byte,
+                    HeightType = HeightfieldTypes.Byte,
                     Width = width,
                     Length = length,
                     Bytes = data as byte[],

@@ -23,7 +23,7 @@ namespace Xenko.Assets.Physics
         [DataMember(20)]
         [Display(category: "Convert")]
         [NotNull]
-        public HeightfieldTypes Type { get; set; } = HeightfieldTypes.Float;
+        public HeightfieldTypes HeightType { get; set; } = HeightfieldTypes.Float;
 
         [DataMember(30)]
         [Display(category: "Convert")]

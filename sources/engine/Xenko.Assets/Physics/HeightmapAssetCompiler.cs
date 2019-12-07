@@ -76,7 +76,7 @@ namespace Xenko.Assets.Physics
 
                             // Convert pixel format of the image
 
-                            var heightfieldType = Parameters.Type;
+                            var heightfieldType = Parameters.HeightType;
 
                             switch (heightfieldType)
                             {
@@ -214,7 +214,7 @@ namespace Xenko.Assets.Physics
 
                                 // Set rest of properties
 
-                                heightmap.HeightfieldType = heightfieldType;
+                                heightmap.HeightType = heightfieldType;
                                 heightmap.Width = size.X;
                                 heightmap.Length = size.Y;
                             }

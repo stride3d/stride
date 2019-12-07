@@ -19,7 +19,7 @@ namespace Xenko.Physics
         public Heightmap InitialHeights { get; set; }
 
         [DataMember(30)]
-        public HeightfieldTypes HeightfieldType;
+        public HeightfieldTypes HeightType;
 
         [DataMember(40)]
         public Int2 HeightStickSize;
@@ -43,7 +43,7 @@ namespace Xenko.Physics
         public HeightfieldColliderShapeDesc()
         {
             InitialHeights = null;
-            HeightfieldType = HeightfieldTypes.Float;
+            HeightType = HeightfieldTypes.Float;
             HeightStickSize = new Int2(65, 65);
             HeightRange = new Vector2(-10, 10);
             HeightScale = new CustomHeightScale();
@@ -73,7 +73,7 @@ namespace Xenko.Physics
             var initialHeightsComparison = (other.InitialHeights == InitialHeights);
 
             return initialHeightsComparison &&
-                other.HeightfieldType == HeightfieldType &&
+                other.HeightType == HeightType &&
                 other.HeightStickSize == HeightStickSize &&
                 other.HeightRange == HeightRange &&
                 heightScaleComparison &&
@@ -116,7 +116,7 @@ namespace Xenko.Physics
                     return null;
                 }
 
-                float heightScale = (HeightfieldType != HeightfieldTypes.Float) && HeightScale.Enabled ? HeightScale.Scale : CalculateHeightScale();
+                float heightScale = (HeightType != HeightfieldTypes.Float) && HeightScale.Enabled ? HeightScale.Scale : CalculateHeightScale();
 
                 if (Math.Abs(heightScale) < float.Epsilon)
                 {
@@ -127,7 +127,7 @@ namespace Xenko.Physics
 
                 object unmanagedArray;
 
-                switch (HeightfieldType)
+                switch (HeightType)
                 {
                     case HeightfieldTypes.Float:
                     {
@@ -153,7 +153,7 @@ namespace Xenko.Physics
                             (
                                 HeightStickSize.X,
                                 HeightStickSize.Y,
-                                HeightfieldType,
+                                HeightType,
                                 unmanagedArray,
                                 heightScale,
                                 HeightRange.X,
@@ -170,7 +170,7 @@ namespace Xenko.Physics
 
         public float CalculateHeightScale()
         {
-            switch (HeightfieldType)
+            switch (HeightType)
             {
                 case HeightfieldTypes.Float:
                     return 1f;

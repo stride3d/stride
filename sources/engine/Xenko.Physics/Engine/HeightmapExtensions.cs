@@ -24,7 +24,7 @@ namespace Xenko.Physics
                 return null;
             }
 
-            switch (heightmap.HeightfieldType)
+            switch (heightmap.HeightType)
             {
                 case HeightfieldTypes.Float:
                     return Texture.New2D(device, heightmap.Width, heightmap.Length, PixelFormat.R32_Float, heightmap.Floats);
