@@ -64,6 +64,20 @@ namespace Xenko.Assets.Navigation
                                     yield return new ObjectUrl(UrlType.Content, assetReference.Url);
                                 }
                             }
+                            else if (desc is HeightfieldColliderShapeDesc)
+                            {
+                                var heightfieldDesc = desc as HeightfieldColliderShapeDesc;
+
+                                if (heightfieldDesc.InitialHeights != null)
+                                {
+                                    var url = AttachedReferenceManager.GetUrl(heightfieldDesc.InitialHeights);
+
+                                    if (!string.IsNullOrEmpty(url))
+                                    {
+                                        yield return new ObjectUrl(UrlType.Content, url);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -305,22 +319,19 @@ namespace Xenko.Assets.Navigation
                                             }
                                             shapeAssetDesc.Shape = loadedColliderShape;
                                         }
-                                        else
+                                        else if (desc is HeightfieldColliderShapeDesc)
                                         {
-                                            if (desc.GetType() == typeof(HeightfieldColliderShapeDesc))
+                                            var heightfieldDesc = desc as HeightfieldColliderShapeDesc;
+                                            if (heightfieldDesc.InitialHeights != null)
                                             {
-                                                var heightfieldDesc = ((HeightfieldColliderShapeDesc)desc);
-                                                if (heightfieldDesc.InitialHeights != null)
+                                                var assetReference = AttachedReferenceManager.GetAttachedReference(heightfieldDesc.InitialHeights);
+                                                object loadedHeightfieldInitialData;
+                                                if (!loadedHeightfieldInitialDatas.TryGetValue(assetReference.Url, out loadedHeightfieldInitialData))
                                                 {
-                                                    var assetReference = AttachedReferenceManager.GetAttachedReference(heightfieldDesc.InitialHeights);
-                                                    object loadedHeightfieldInitialData;
-                                                    if (!loadedHeightfieldInitialDatas.TryGetValue(assetReference.Url, out loadedHeightfieldInitialData))
-                                                    {
-                                                        loadedHeightfieldInitialData = contentManager.Load(typeof(Heightmap), assetReference.Url);
-                                                        loadedHeightfieldInitialDatas.Add(assetReference.Url, loadedHeightfieldInitialData);
-                                                    }
-                                                    heightfieldDesc.InitialHeights = loadedHeightfieldInitialData as Heightmap;
+                                                    loadedHeightfieldInitialData = contentManager.Load(typeof(Heightmap), assetReference.Url);
+                                                    loadedHeightfieldInitialDatas.Add(assetReference.Url, loadedHeightfieldInitialData);
                                                 }
+                                                heightfieldDesc.InitialHeights = loadedHeightfieldInitialData as Heightmap;
                                             }
                                         }
                                     }
