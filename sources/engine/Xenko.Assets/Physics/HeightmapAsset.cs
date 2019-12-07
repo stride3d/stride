@@ -48,7 +48,7 @@ namespace Xenko.Assets.Physics
 
             [DataMember(10)]
             [InlineProperty]
-            public Int2 Size { get; set; }
+            public Int2 Size { get; set; } = new Int2(1024, 1024);
         }
         #endregion
     }
