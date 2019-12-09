@@ -1,7 +1,7 @@
 !Package
 SerializedVersion: {Assets: 3.1.0.0}
 Meta:
-    Name: CSharpBasics.Windows
+    Name: CSharpBeginner.Windows
     Version: 1.0.0
     Authors: []
     Owners: []
@@ -14,4 +14,5 @@ OutputGroupDirectories: {}
 ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
-RootAssets: []
+RootAssets:
+    - d625592d-d7c2-4151-bd8e-09ff90120d9e:Scenes/Basics/Linear Interpolation

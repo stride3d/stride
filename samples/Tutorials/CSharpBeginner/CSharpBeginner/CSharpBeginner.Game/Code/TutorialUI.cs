@@ -55,6 +55,7 @@ namespace CSharpBeginner.Code
             tutorialScenes.Add("Keyboard input", "Keyboard input");
             tutorialScenes.Add("Mouse input", "Mouse input");
             tutorialScenes.Add("Virtual buttons", "Virtual buttons");
+            tutorialScenes.Add("Linear Interpolation", "Linear Interpolation");
 
             foreach (var keyPair in tutorialScenes)
             {
