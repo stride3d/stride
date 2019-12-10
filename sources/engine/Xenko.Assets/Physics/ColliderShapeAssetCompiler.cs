@@ -77,10 +77,11 @@ namespace Xenko.Assets.Physics
                 else if (desc is HeightfieldColliderShapeDesc)
                 {
                     var heightfieldDesc = desc as HeightfieldColliderShapeDesc;
+                    var initialHeights = heightfieldDesc?.InitialHeights as HeightDataFromHeightmap;
 
-                    if (heightfieldDesc.InitialHeights != null)
+                    if (initialHeights?.Heightmap != null)
                     {
-                        var url = AttachedReferenceManager.GetUrl(heightfieldDesc.InitialHeights);
+                        var url = AttachedReferenceManager.GetUrl(initialHeights.Heightmap);
 
                         if (!string.IsNullOrEmpty(url))
                         {

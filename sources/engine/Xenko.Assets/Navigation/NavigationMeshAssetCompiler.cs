@@ -67,10 +67,11 @@ namespace Xenko.Assets.Navigation
                             else if (desc is HeightfieldColliderShapeDesc)
                             {
                                 var heightfieldDesc = desc as HeightfieldColliderShapeDesc;
+                                var initialHeights = heightfieldDesc?.InitialHeights as HeightDataFromHeightmap;
 
-                                if (heightfieldDesc.InitialHeights != null)
+                                if (initialHeights?.Heightmap != null)
                                 {
-                                    var url = AttachedReferenceManager.GetUrl(heightfieldDesc.InitialHeights);
+                                    var url = AttachedReferenceManager.GetUrl(initialHeights.Heightmap);
 
                                     if (!string.IsNullOrEmpty(url))
                                     {
@@ -322,16 +323,18 @@ namespace Xenko.Assets.Navigation
                                         else if (desc is HeightfieldColliderShapeDesc)
                                         {
                                             var heightfieldDesc = desc as HeightfieldColliderShapeDesc;
-                                            if (heightfieldDesc.InitialHeights != null)
+                                            var initialHeights = heightfieldDesc?.InitialHeights as HeightDataFromHeightmap;
+
+                                            if (initialHeights?.Heightmap != null)
                                             {
-                                                var assetReference = AttachedReferenceManager.GetAttachedReference(heightfieldDesc.InitialHeights);
+                                                var assetReference = AttachedReferenceManager.GetAttachedReference(initialHeights.Heightmap);
                                                 object loadedHeightfieldInitialData;
                                                 if (!loadedHeightfieldInitialDatas.TryGetValue(assetReference.Url, out loadedHeightfieldInitialData))
                                                 {
                                                     loadedHeightfieldInitialData = contentManager.Load(typeof(Heightmap), assetReference.Url);
                                                     loadedHeightfieldInitialDatas.Add(assetReference.Url, loadedHeightfieldInitialData);
                                                 }
-                                                heightfieldDesc.InitialHeights = loadedHeightfieldInitialData as Heightmap;
+                                                initialHeights.Heightmap = loadedHeightfieldInitialData as Heightmap;
                                             }
                                         }
                                     }

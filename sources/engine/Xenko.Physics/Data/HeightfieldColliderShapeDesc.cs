@@ -16,13 +16,9 @@ namespace Xenko.Physics
     public class HeightfieldColliderShapeDesc : IInlineColliderShapeDesc
     {
         [DataMember(10)]
-        public Heightmap InitialHeights { get; set; }
-
-        [DataMember(30)]
-        public HeightfieldTypes HeightType;
-
-        [DataMember(40)]
-        public Int2 HeightStickSize;
+        [NotNull]
+        [Display(Expand = ExpandRule.Always)]
+        public IInitialHeightData InitialHeights { get; set; } = new HeightDataFromHeightmap();
 
         [DataMember(50)]
         public Vector2 HeightRange;
@@ -42,9 +38,6 @@ namespace Xenko.Physics
 
         public HeightfieldColliderShapeDesc()
         {
-            InitialHeights = null;
-            HeightType = HeightfieldTypes.Float;
-            HeightStickSize = new Int2(65, 65);
             HeightRange = new Vector2(-10, 10);
             HeightScale = new CustomHeightScale();
             FlipQuadEdges = false;
@@ -70,11 +63,9 @@ namespace Xenko.Physics
                 Math.Abs(other.HeightScale.Scale - HeightScale.Scale) < float.Epsilon :
                 other.HeightScale.Enabled == HeightScale.Enabled;
 
-            var initialHeightsComparison = (other.InitialHeights == InitialHeights);
+            var initialHeightsComparison = other.InitialHeights?.Match(InitialHeights) ?? InitialHeights == null;
 
             return initialHeightsComparison &&
-                other.HeightType == HeightType &&
-                other.HeightStickSize == HeightStickSize &&
                 other.HeightRange == HeightRange &&
                 heightScaleComparison &&
                 other.FlipQuadEdges == FlipQuadEdges;
@@ -108,40 +99,41 @@ namespace Xenko.Physics
 
         public ColliderShape CreateShape()
         {
-                if (HeightStickSize.X <= 1 ||
-                    HeightStickSize.Y <= 1 ||
+                if (InitialHeights == null ||
+                    InitialHeights.HeightStickSize.X <= 1 ||
+                    InitialHeights.HeightStickSize.Y <= 1 ||
                     HeightRange.Y < HeightRange.X ||
                     Math.Abs(HeightRange.Y - HeightRange.X) < float.Epsilon)
                 {
                     return null;
                 }
 
-                float heightScale = (HeightType != HeightfieldTypes.Float) && HeightScale.Enabled ? HeightScale.Scale : CalculateHeightScale();
+                float heightScale = (InitialHeights.HeightType != HeightfieldTypes.Float) && HeightScale.Enabled ? HeightScale.Scale : CalculateHeightScale();
 
                 if (Math.Abs(heightScale) < float.Epsilon)
                 {
                     return null;
                 }
 
-                var arrayLength = HeightStickSize.X * HeightStickSize.Y;
+                var arrayLength = InitialHeights.HeightStickSize.X * InitialHeights.HeightStickSize.Y;
 
                 object unmanagedArray;
 
-                switch (HeightType)
+                switch (InitialHeights.HeightType)
                 {
                     case HeightfieldTypes.Float:
                     {
-                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Floats);
+                        unmanagedArray = CreateHeights(arrayLength, InitialHeights.Floats);
                         break;
                     }
                     case HeightfieldTypes.Short:
                     {
-                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Shorts);
+                        unmanagedArray = CreateHeights(arrayLength, InitialHeights.Shorts);
                         break;
                     }
                     case HeightfieldTypes.Byte:
                     {
-                        unmanagedArray = CreateHeights(arrayLength, InitialHeights?.Bytes);
+                        unmanagedArray = CreateHeights(arrayLength, InitialHeights.Bytes);
                         break;
                     }
 
@@ -151,9 +143,9 @@ namespace Xenko.Physics
 
                 var shape = new HeightfieldColliderShape
                             (
-                                HeightStickSize.X,
-                                HeightStickSize.Y,
-                                HeightType,
+                                InitialHeights.HeightStickSize.X,
+                                InitialHeights.HeightStickSize.Y,
+                                InitialHeights.HeightType,
                                 unmanagedArray,
                                 heightScale,
                                 HeightRange.X,
@@ -170,7 +162,7 @@ namespace Xenko.Physics
 
         public float CalculateHeightScale()
         {
-            switch (HeightType)
+            switch (InitialHeights.HeightType)
             {
                 case HeightfieldTypes.Float:
                     return 1f;
