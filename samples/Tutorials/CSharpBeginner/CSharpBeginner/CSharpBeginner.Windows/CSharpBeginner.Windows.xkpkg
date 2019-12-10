@@ -15,4 +15,5 @@ ExplicitFolders: []
 Bundles: []
 TemplateFolders: []
 RootAssets:
+    - ca777fe9-5471-4137-a42d-fa87b6c20c91:Scenes/Basics/Loading content
     - d625592d-d7c2-4151-bd8e-09ff90120d9e:Scenes/Basics/Linear Interpolation

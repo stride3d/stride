@@ -26,7 +26,7 @@ Hierarchy:
                         Materials: {}
                     4045262021e6e62289f01a5704d862b6: !CSharpBeginner.Code.LerpDemo,CSharpBeginner.Game
                         Id: 300d7f8d-2f0f-4ee9-91fb-eeb2ca71bff4
-                        LerpTime: 5.0
+                        AnimationTimer: 5.0
         -   Entity:
                 Id: f0878308-3e3c-4539-9dcb-b810bd514a23
                 Name: Camera

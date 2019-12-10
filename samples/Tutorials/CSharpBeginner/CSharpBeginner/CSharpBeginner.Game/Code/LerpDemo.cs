@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 
@@ -19,7 +18,6 @@ namespace CSharpBeginner.Code
         private Random random = new Random();
         private Vector3 startPosition;
         private Vector3 targetPosition;
-
 
         public override void Start()
         {

@@ -42,6 +42,7 @@ namespace CSharpBeginner.Code
             var placeHolderTextBlock = placeHolderButton.VisualChildren[0] as TextBlock;
             placeHolderButton.Visibility = Visibility.Hidden;
 
+            //Tutorial button text - Tutorial scene name
             var tutorialScenes = new Dictionary<string, string>();
             tutorialScenes.Add("Getting the entity", "Getting the entity");
             tutorialScenes.Add("Child entities", "Child entities");
@@ -56,6 +57,7 @@ namespace CSharpBeginner.Code
             tutorialScenes.Add("Mouse input", "Mouse input");
             tutorialScenes.Add("Virtual buttons", "Virtual buttons");
             tutorialScenes.Add("Linear Interpolation", "Linear Interpolation");
+            tutorialScenes.Add("Loading content from code", "Loading content");
 
             foreach (var keyPair in tutorialScenes)
             {
