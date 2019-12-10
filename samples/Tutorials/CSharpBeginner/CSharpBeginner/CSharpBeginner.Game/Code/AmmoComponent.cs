@@ -7,8 +7,8 @@ namespace CSharpBeginner.Code
     /// </summary>
     public class AmmoComponent : StartupScript
     {
-        private int clips = 4;
-        private int bullets = 6;
+        private int _clips = 4;
+        private int _bullets = 6;
 
         public override void Start()
         {
@@ -17,7 +17,7 @@ namespace CSharpBeginner.Code
         // This method return the total amount of ammo
         public int GetTotalAmmo()
         {
-            return bullets * clips;
+            return _bullets * _clips;
         }
     }
 }

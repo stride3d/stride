@@ -10,8 +10,8 @@ namespace CSharpBeginner.Code
     /// </summary>
     public class GettingAComponentDemo : SyncScript
     {
-        int ammoCount1 = 0;
-        int ammoCount2 = 0;
+        private int _ammoCount1 = 0;
+        private int _ammoCount2 = 0;
 
         public override void Start()
         {
@@ -19,7 +19,7 @@ namespace CSharpBeginner.Code
             AmmoComponent ammoComponent1 = Entity.Get<AmmoComponent>();
 
             // We can now access public methods and properties of the retrieve component
-            ammoCount1 = ammoComponent1.GetTotalAmmo();
+            _ammoCount1 = ammoComponent1.GetTotalAmmo();
 
             // We now remove the AmmoComponent from our entity. If we try to retrieve it again, null will be returned
             Entity.Remove<AmmoComponent>();
@@ -29,7 +29,7 @@ namespace CSharpBeginner.Code
             if (ammoComponent2 != null)
             { 
                 // This line will never happen
-                ammoCount2 = ammoComponent2.GetTotalAmmo();
+                _ammoCount2 = ammoComponent2.GetTotalAmmo();
             }
 
             // Add the component again so that it doesn't crash next run
@@ -39,8 +39,8 @@ namespace CSharpBeginner.Code
         public override void Update()
         {
             // We display the stored ammo count on screen
-            DebugText.Print("Ammo count 1: " + ammoCount1.ToString(), new Int2(300, 200));
-            DebugText.Print("Ammo count 2: " + ammoCount2.ToString(), new Int2(300, 220));
+            DebugText.Print("Ammo count 1: " + _ammoCount1.ToString(), new Int2(300, 200));
+            DebugText.Print("Ammo count 2: " + _ammoCount2.ToString(), new Int2(300, 220));
         }
     }
 }

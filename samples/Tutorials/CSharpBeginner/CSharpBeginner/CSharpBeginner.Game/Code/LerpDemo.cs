@@ -14,10 +14,10 @@ namespace CSharpBeginner.Code
     {
         public float AnimationTimer = 5.0f;
         
-        private float elapsedTime = 0;
-        private Random random = new Random();
-        private Vector3 startPosition;
-        private Vector3 targetPosition;
+        private float _elapsedTime = 0;
+        private Random _random = new Random();
+        private Vector3 _startPosition;
+        private Vector3 _targetPosition;
 
         public override void Start()
         {
@@ -28,24 +28,24 @@ namespace CSharpBeginner.Code
         {
             // Keep track of elapsed time
             var deltaTime = (float)Game.UpdateTime.Elapsed.TotalSeconds;
-            elapsedTime += deltaTime;
+            _elapsedTime += deltaTime;
 
             // In order to make use of the lerp method, we need to calculate the 'interpolation value': a value going from 0 to 1.
-            var lerpValue = elapsedTime / AnimationTimer;
+            var lerpValue = _elapsedTime / AnimationTimer;
             
             // The Vector3 class exposes a 'Lerp' method that requires a start and target position. The third argument is the lerp value.
-            Entity.Transform.Position = Vector3.Lerp(startPosition, targetPosition, lerpValue);
+            Entity.Transform.Position = Vector3.Lerp(_startPosition, _targetPosition, lerpValue);
 
             // If the elapsedTime passes the animation timer we reset the timer and set a new target
-            if (elapsedTime > AnimationTimer)
+            if (_elapsedTime > AnimationTimer)
             {
                 SetNewLerpTargetAndResetTimer();
             }
 
-            DebugText.Print("Elapsed time: " + elapsedTime, new Int2(480, 120));
+            DebugText.Print("Elapsed time: " + _elapsedTime, new Int2(480, 120));
             DebugText.Print("Lerp value: " + lerpValue, new Int2(480, 140));
-            DebugText.Print("Start position: " + startPosition, new Int2(480, 160));
-            DebugText.Print("Target position: " + targetPosition, new Int2(480, 180));
+            DebugText.Print("Start position: " + _startPosition, new Int2(480, 160));
+            DebugText.Print("Target position: " + _targetPosition, new Int2(480, 180));
         }
 
         /// <summary>
@@ -53,9 +53,9 @@ namespace CSharpBeginner.Code
         /// </summary>
         private void SetNewLerpTargetAndResetTimer()
         {
-            elapsedTime = 0;
-            startPosition = Entity.Transform.Position;
-            targetPosition = new Vector3(random.Next(-2, 2), random.Next(0, 3), random.Next(-1, 1));
+            _elapsedTime = 0;
+            _startPosition = Entity.Transform.Position;
+            _targetPosition = new Vector3(_random.Next(-2, 2), _random.Next(0, 3), _random.Next(-1, 1));
         }
     }
 }
