@@ -1,6 +1,5 @@
 // Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using System.Collections.Generic;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization;
@@ -36,7 +35,7 @@ namespace Xenko.Physics
 
         public static Heightmap Create<T>(Int2 size, T[] data) where T : struct
         {
-            if (size.X <= 1 || size.Y <= 1 || data == null)
+            if (!HeightfieldColliderShapeDesc.IsValidHeightStickSize(size) || data == null)
             {
                 return null;
             }

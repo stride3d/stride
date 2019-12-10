@@ -1,7 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Xenko.Assets.Textures;
 using Xenko.Core.Assets;
@@ -65,9 +64,14 @@ namespace Xenko.Assets.Physics
                         {
                             // Resize the image if need
 
-                            var size = Parameters.Size.Enabled && Parameters.Size.Size.X > 1 && Parameters.Size.Size.Y > 1 ?
+                            var size = Parameters.Size.Enabled ?
                                 Parameters.Size.Size :
                                 new Int2(texImage.Width, texImage.Height);
+
+                            if (!HeightfieldColliderShapeDesc.IsValidHeightStickSize(size))
+                            {
+                                continue;
+                            }
 
                             if (texImage.Width != size.X || texImage.Height != size.Y)
                             {

@@ -71,6 +71,11 @@ namespace Xenko.Physics
                 other.FlipQuadEdges == FlipQuadEdges;
         }
 
+        public static bool IsValidHeightStickSize(Int2 size)
+        {
+            return size.X >= HeightfieldColliderShape.MinimumHeightStickWidth && size.Y >= HeightfieldColliderShape.MinimumHeightStickLength;
+        }
+
         private static void FillHeights<T>(UnmanagedArray<T> unmanagedArray, T value) where T : struct
         {
             if (unmanagedArray == null) throw new ArgumentNullException(nameof(unmanagedArray));
@@ -100,8 +105,7 @@ namespace Xenko.Physics
         public ColliderShape CreateShape()
         {
                 if (InitialHeights == null ||
-                    InitialHeights.HeightStickSize.X <= 1 ||
-                    InitialHeights.HeightStickSize.Y <= 1 ||
+                    !IsValidHeightStickSize(InitialHeights.HeightStickSize) ||
                     HeightRange.Y < HeightRange.X ||
                     Math.Abs(HeightRange.Y - HeightRange.X) < float.Epsilon)
                 {

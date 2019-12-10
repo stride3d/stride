@@ -36,6 +36,9 @@ namespace Xenko.Physics
 
     public class HeightfieldColliderShape : ColliderShape
     {
+        public static readonly int MinimumHeightStickWidth = 2;
+        public static readonly int MinimumHeightStickLength = 2;
+
         public HeightfieldColliderShape(int heightStickWidth, int heightStickLength, UnmanagedArray<short> dynamicFieldData, float heightScale, float minHeight, float maxHeight, bool flipQuadEdges)
             : this(heightStickWidth, heightStickLength, HeightfieldTypes.Short, dynamicFieldData, heightScale, minHeight, maxHeight, flipQuadEdges)
         {

@@ -12,7 +12,7 @@ namespace Xenko.Physics
         {
             if (heightmap == null) throw new ArgumentNullException(nameof(heightmap));
 
-            return heightmap.Size.X >= 2 && heightmap.Size.Y >= 2;
+            return HeightfieldColliderShapeDesc.IsValidHeightStickSize(heightmap.Size);
         }
 
         public static Texture CreateTexture([NotNull] this Heightmap heightmap, GraphicsDevice device)
