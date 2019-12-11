@@ -57,6 +57,6 @@ namespace Xenko.Editor.EditorGame.ContentLoader
         /// <typeparam name="T">The expected type of the run-time object.</typeparam>
         /// <param name="assetItem">The asset corresponding to the run-time object to retrieve.</param>
         /// <returns>The run-time object corresponding to the given asset item if it exists, null otherwise.</returns>
-        T GetRuntimeObject<T>(AssetItem assetItem);
+        T GetRuntimeObject<T>(AssetItem assetItem) where T : class;
     }
 }

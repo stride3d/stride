@@ -76,6 +76,48 @@ namespace Xenko.Core.Serialization
             return content.LoadAsync<T>(urlReference.Url, settings);
         }
 
+        /// <summary>
+        /// Gets a previously loaded asset from its URL.
+        /// </summary>
+        /// <typeparam name="T">The type of asset to retrieve.</typeparam>
+        /// <param name="urlReference">The URL of the asset to retrieve.</param>
+        /// <returns>The loaded asset, or <c>null</c> if the asset has not been loaded.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="urlReference"/> is <c>null</c> or <c>empty</c>. Or <paramref name="content"/> is <c>null</c>.</exception>
+        /// <remarks>This function does not increase the reference count on the asset.</remarks>
+        public static T Get<T>(this IContentManager content, UrlReference<T> urlReference)
+            where T : class
+        {
+            CheckArguments(content, urlReference);
+
+            return content.Get<T>(urlReference.Url);
+        }
+
+        /// <summary>
+        /// Gets whether an asset with the given URL is currently loaded.
+        /// </summary>
+        /// <param name="urlReference">The URL to check.</param>
+        /// <param name="loadedManuallyOnly">If <c>true</c>, this method will return true only if an asset with the given URL has been manually loaded via <see cref="Load"/>, and not if the asset has been only loaded indirectly from another asset.</param>
+        /// <returns><c>True</c> if an asset with the given URL is currently loaded, <c>false</c> otherwise.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="urlReference"/> is <c>null</c> or <c>empty</c>. Or <paramref name="content"/> is <c>null</c>.</exception>
+        public static bool IsLoaded(this IContentManager content, UrlReference urlReference, bool loadedManuallyOnly = false)
+        {
+            CheckArguments(content, urlReference);
+
+            return content.IsLoaded(urlReference.Url, loadedManuallyOnly);
+        }
+
+        /// <summary>
+        /// Unloads the asset at the specified URL.
+        /// </summary>
+        /// <param name="urlReference">The URL.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="urlReference"/> is <c>null</c> or <c>empty</c>. Or <paramref name="content"/> is <c>null</c>.</exception>
+        public static void Unload(this IContentManager content, UrlReference urlReference)
+        {
+            CheckArguments(content, urlReference);
+
+            content.Unload(urlReference.Url);
+        }
+
         private static void CheckArguments(IContentManager content, UrlReference urlReference)
         {
             if (content == null)
