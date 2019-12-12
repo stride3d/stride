@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
   <PropertyGroup>
     <TargetFrameworks>net461</TargetFrameworks>
@@ -20,8 +20,5 @@
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
     <ProjectReference Include="..\Xenko.Graphics.Regression\Xenko.Graphics.Regression.csproj" />
   </ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
   <Import Project="..\..\targets\Xenko.UnitTests.targets" />
 </Project>

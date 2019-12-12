@@ -24,6 +24,5 @@
     <ProjectReference Include="..\Xenko.Assets\Xenko.Assets.csproj" />
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
   </ItemGroup>
-  <ItemGroup>
   <Import Project="..\..\targets\Xenko.UnitTests.targets" />
 </Project>
