@@ -5,6 +5,6 @@ namespace Xenko.Navigation
 {
     public class StaticColliderCacheSettings
     {
-        public bool EnableAlwaysUpdateDynamicShape = true;
+        public bool AlwaysUpdateDynamicShape = true;
     }
 }
