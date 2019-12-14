@@ -1,6 +1,6 @@
+// Copyright (c) Xenko contributors (https://xenko.com)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Xenko.Core.Annotations;
 using Xenko.Core.Assets;
 
@@ -10,7 +10,7 @@ namespace Xenko.Core.Serialization.Serializers
     /// Serializer base class for for <see cref="UrlReference"/>.
     /// </summary>
     public abstract class UrlReferenceDataSerializerBase<T> : DataSerializer<T>
-        where T: UrlReference
+        where T: IUrlReference
     {
         /// <inheritdoc/>
         public override void Serialize(ref T urlReference, ArchiveMode mode, [NotNull] SerializationStream stream)

@@ -1,8 +1,6 @@
+// Copyright (c) Xenko contributors (https://xenko.com)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using Xenko.Core;
-using Xenko.Core.Annotations;
-using Xenko.Core.IO;
-using Xenko.Core.Reflection;
 using Xenko.Core.Serialization;
 using Xenko.Core.Yaml;
 using Xenko.Core.Yaml.Events;
@@ -18,7 +16,7 @@ namespace Xenko.Core.Assets.Serializers
     {
         public override bool CanVisit(Type type)
         {
-            return typeof(UrlReference).IsAssignableFrom(type);
+            return UrlReferenceHelper.IsUrlReferenceType(type);
         }
 
         public override object ConvertFrom(ref ObjectContext context, Scalar fromScalar)

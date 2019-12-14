@@ -1,6 +1,5 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-
 using System;
 using System.ComponentModel;
 using System.Globalization;
@@ -9,26 +8,23 @@ using Xenko.Core.Serialization;
 namespace Xenko.Core.TypeConverters
 {
     /// <summary>
-    /// Defines a type converter for <see cref="UrlReference"/>.
+    /// Defines a type converter for <see cref="IUrlReference"/>.
     /// </summary>
     public class UrlReferenceConverter : BaseConverter
     {
 
         public UrlReferenceConverter()
         {
-
-            //var type = typeof(Xenko.Core.Serialization.UrlReference);
-            //Properties = new PropertyDescriptorCollection(new System.ComponentModel.PropertyDescriptor[]
-            //{
-            //    new Reflection.PropertyDescriptor(type.GetProperty(nameof(Xenko.Core.Serialization.UrlReference.Url))),
-            //});
+            //TODO: PropertyDescriptor does not support Properties, only fields so can not currently Set Properties. Does not seem to impact usage.
         }
 
+        /// <inheritdoc/>
         public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
         {
             return UrlReferenceHelper.IsUrlReferenceType(TypeConverterHelper.GetDestinationType(context));
         }
 
+        /// <inheritdoc/>
         public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
         {
             var attachedReference = AttachedReferenceManager.GetAttachedReference(value);

@@ -1,10 +1,13 @@
+// Copyright (c) Xenko contributors (https://xenko.com)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.Collections.Generic;
-using System.Text;
 using Xenko.Core.Assets;
 
 namespace Xenko.Core.Serialization
 {
+    /// <summary>
+    /// A Helper class for <see cref="UrlReference"/> and <see cref="UrlReference{T}"/>.
+    /// </summary>
     public static class UrlReferenceHelper
     {
         /// <summary>
@@ -19,10 +22,10 @@ namespace Xenko.Core.Serialization
         {
             if (assetId != null && assetUrl != null && IsUrlReferenceType(referenceType))
             {
-                var urlReference = (UrlReference)AttachedReferenceManager.CreateProxyObject(referenceType, assetId, assetUrl);
+                var urlReference = (UrlReferenceBase)AttachedReferenceManager.CreateProxyObject(referenceType, assetId, assetUrl);
 
                 urlReference.Url = assetUrl;
-
+                
                 return urlReference;
             }
 
@@ -35,7 +38,7 @@ namespace Xenko.Core.Serialization
         /// <param name="type">The type to test.</param>
         /// <returns></returns>
         public static bool IsUrlReferenceType(Type type)
-            => type != null && typeof(UrlReference).IsAssignableFrom(type);
+            => type != null && typeof(UrlReference).IsAssignableFrom(type) || IsGenericUrlReferenceType(type);
 
         /// <summary>
         /// Checks if the given type is a <see cref="UrlReference{T}"/>

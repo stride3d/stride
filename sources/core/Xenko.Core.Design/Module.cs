@@ -29,7 +29,7 @@ namespace Xenko.Core
             TypeDescriptor.AddAttributes(typeof(Vector2), new TypeConverterAttribute(typeof(Vector2Converter)));
             TypeDescriptor.AddAttributes(typeof(Vector3), new TypeConverterAttribute(typeof(Vector3Converter)));
             TypeDescriptor.AddAttributes(typeof(Vector4), new TypeConverterAttribute(typeof(Vector4Converter)));
-            TypeDescriptor.AddAttributes(typeof(UrlReference), new TypeConverterAttribute(typeof(UrlReferenceConverter)));
+            TypeDescriptor.AddAttributes(typeof(IUrlReference), new TypeConverterAttribute(typeof(UrlReferenceConverter)));
         }
     }
 }
