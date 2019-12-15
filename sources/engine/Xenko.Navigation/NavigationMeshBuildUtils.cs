@@ -188,20 +188,19 @@ namespace Xenko.Navigation
                 else
                 {
                     var compound = collider.ColliderShape as CompoundColliderShape;
-                    var descriptions = collider.ColliderShape?.Description as PhysicsComponent.ColliderShapeCollection;
-                    if ((compound == null) || (descriptions == null) || (descriptions.Count != collider.ColliderShapes.Count))
-                    {
-                        return false;
-                    }
-                    else
+                    if ((compound != null) && (compound.Count == collider.ColliderShapes.Count))
                     {
                         for (int i = 0; i < compound.Count; ++i)
                         {
-                            if (!compound[i].Description.Match(collider.ColliderShapes[i]))
+                            if (!collider.ColliderShapes[i].Match(compound[i].Description))
                             {
                                 return false;
                             }
                         }
+                    }
+                    else
+                    {
+                        return false;
                     }
                 }
             }
