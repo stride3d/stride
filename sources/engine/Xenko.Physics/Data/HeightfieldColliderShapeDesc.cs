@@ -30,6 +30,9 @@ namespace Xenko.Physics
         [DataMember(70)]
         public bool FlipQuadEdges;
 
+        [DataMember(80)]
+        public bool IsRecenteringOffsetted;
+
         [DataMember(100)]
         public Vector3 LocalOffset;
 
@@ -41,6 +44,7 @@ namespace Xenko.Physics
             HeightRange = new Vector2(-10, 10);
             HeightScale = new CustomHeightScale();
             FlipQuadEdges = false;
+            IsRecenteringOffsetted = true;
             LocalOffset = new Vector3(0, 0, 0);
             LocalRotation = Quaternion.Identity;
         }
@@ -68,7 +72,8 @@ namespace Xenko.Physics
             return initialHeightsComparison &&
                 other.HeightRange == HeightRange &&
                 heightScaleComparison &&
-                other.FlipQuadEdges == FlipQuadEdges;
+                other.FlipQuadEdges == FlipQuadEdges &&
+                other.IsRecenteringOffsetted == IsRecenteringOffsetted;
         }
 
         public static bool IsValidHeightStickSize(Int2 size)
@@ -145,6 +150,8 @@ namespace Xenko.Physics
                     return null;
             }
 
+            var offsetToCancelRecenter = IsRecenteringOffsetted ? HeightRange.X + ((HeightRange.Y - HeightRange.X) * 0.5f) : 0f;
+
             var shape = new HeightfieldColliderShape
                         (
                             InitialHeights.HeightStickSize.X,
@@ -157,7 +164,7 @@ namespace Xenko.Physics
                             FlipQuadEdges
                         )
                         {
-                            LocalOffset = LocalOffset,
+                            LocalOffset = LocalOffset + new Vector3(0, offsetToCancelRecenter, 0),
                             LocalRotation = LocalRotation,
                         };
 
@@ -175,7 +182,14 @@ namespace Xenko.Physics
                     return Math.Max(Math.Abs(HeightRange.X), Math.Abs(HeightRange.Y)) / short.MaxValue;
 
                 case HeightfieldTypes.Byte:
-                    return HeightRange.Y / byte.MaxValue;
+                    if (Math.Abs(HeightRange.X) < Math.Abs(HeightRange.Y))
+                    {
+                        return HeightRange.Y / byte.MaxValue;
+                    }
+                    else
+                    {
+                        return HeightRange.X / byte.MaxValue;
+                    }
 
                 default:
                     return 0f;
