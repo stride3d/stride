@@ -463,10 +463,12 @@ namespace Xenko.Video
             long startPosition = 0;
             long end = 0;
 
-            var dataUrl = videoComponent.Source?.CompressedDataUrl;
-            if (dataUrl != null)
+            var source = videoComponent.Source;
+            if (source != null)
             {
-                var fileProvider = services.GetSafeServiceAs<IDatabaseFileProviderService>().FileProvider;
+                var dataUrl = source.CompressedDataUrl;
+
+                var fileProvider = source.FileProvider;
 
                 if (!fileProvider.ContentIndexMap.TryGetValue(dataUrl, out ObjectId objectId) ||
                     !fileProvider.ObjectDatabase.BundleBackend.TryGetObjectLocation(objectId, out url, out startPosition, out end))
