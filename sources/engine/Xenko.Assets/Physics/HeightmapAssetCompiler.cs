@@ -64,8 +64,8 @@ namespace Xenko.Assets.Physics
                         {
                             // Resize the image if need
 
-                            var size = Parameters.Size.Enabled ?
-                                Parameters.Size.Size :
+                            var size = Parameters.Resizing.Enabled ?
+                                Parameters.Resizing.Size :
                                 new Int2(texImage.Width, texImage.Height);
 
                             if (!HeightfieldColliderShapeDesc.IsValidHeightStickSize(size))
