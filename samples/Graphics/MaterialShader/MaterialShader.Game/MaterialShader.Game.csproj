@@ -10,26 +10,4 @@
     <PackageReference Include="Xenko.Particles" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
     <PackageReference Include="Xenko.UI" Version="3.2.0.1-beta01" PrivateAssets="contentfiles;analyzers" />
   </ItemGroup>
-  <ItemGroup>
-    <None Update="Effects\ComputeColorWave.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ComputeColorWave.cs</LastGenOutput>
-    </None>
-    <Compile Update="Effects\ComputeColorWave.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ComputeColorWave.xksl</DependentUpon>
-    </Compile>
-    <None Update="Effects\ComputeColorWaveNormal.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>ComputeColorWaveNormal.cs</LastGenOutput>
-    </None>
-    <Compile Update="Effects\ComputeColorWaveNormal.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>ComputeColorWaveNormal.xksl</DependentUpon>
-    </Compile>
-  </ItemGroup>
 </Project>

@@ -115,19 +115,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\*.cur" />
   </ItemGroup>
-  <!-- Shaders -->
-  <ItemGroup>
-    <Compile Update="Shaders\*.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>%(Filename).xkfx</DependentUpon>
-    </Compile>
-    <None Update="Shaders\*.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>%(Filename).cs</LastGenOutput>
-    </None>
-  </ItemGroup>
   <!-- Templates -->
   <ItemGroup>
     <Compile Remove="Templates\Core\**" />

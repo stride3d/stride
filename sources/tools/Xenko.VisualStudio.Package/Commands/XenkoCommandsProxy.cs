@@ -44,6 +44,11 @@ namespace Xenko.VisualStudio.Commands
         private readonly IXenkoCommands remote;
         private readonly List<Tuple<string, DateTime>> assembliesLoaded = new List<Tuple<string, DateTime>>();
 
+        public static PackageInfo CurrentPackageInfo
+        {
+            get { lock (computedPackageInfoLock) { return computedPackageInfo; } }
+        }
+
         static XenkoCommandsProxy()
         {
             // This assembly resolve is only used to resolve the GetExecutingAssembly on the Default Domain

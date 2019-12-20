@@ -17,7 +17,7 @@ namespace Xenko.Assets.Effect
         /// </summary>
         public const string FileExtension = ".xkfx";
 
-        public override string Generator => "XenkoShaderKeyGenerator";
+        public override string Generator => "XenkoEffectCodeGenerator";
 
         public override void SaveGeneratedAsset(AssetItem assetItem)
         {

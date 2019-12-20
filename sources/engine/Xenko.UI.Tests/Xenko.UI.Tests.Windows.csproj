@@ -1,39 +1,24 @@
-<Project>
+﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <RootNamespace>Xenko.UI.Tests</RootNamespace>
+    <TargetFrameworks>net461</TargetFrameworks>
     <AssemblyName>Xenko.UI.Tests</AssemblyName>
-    <TargetFramework>net461</TargetFramework>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <RootNamespace>Xenko.UI.Tests</RootNamespace>
     <EnableDefaultItems>false</EnableDefaultItems>
     <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoPlatform>Windows</XenkoPlatform>
-    <XenkoBuildProfile>Windows</XenkoBuildProfile>
-    <XenkoPackageGuid>{b18707e8-1d26-49fc-9911-3834506d8149}</XenkoPackageGuid>
-    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
-    <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
+    <XenkoCompileAssets>true</XenkoCompileAssets>
+    <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
   </PropertyGroup>
   <PropertyGroup>
-    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)Xenko.UI.Tests.xkpkg</XenkoCurrentPackagePath>
-    <OutputPath>..\..\..\Bin\$(XenkoPlatformFullName)\$(XenkoOutputFolder)</OutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(XenkoPlatformFullName)-$(XenkoGraphicsApi)\$(Configuration)</IntermediateOutputPath>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>Xenko.UI.Tests.Regression.EditTextTest</StartupObject>
+    <StartupObject>xunit.runner.xenko.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.xenko\xunit.runner.xenko.csproj" />
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
     <ProjectReference Include="..\Xenko.UI\Xenko.UI.csproj" />
     <ProjectReference Include="..\Xenko.Graphics.Regression\Xenko.Graphics.Regression.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="XunitAttributes.cs" />
@@ -143,10 +128,6 @@
     <None Include="Xenko.UI.Tests.xkpkg" />
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\ToggleChecked.dds" />
     <None Include="Resources\ToggleIndetermate.dds" />
     <None Include="Resources\ToggleUnchecked.dds" />
@@ -154,6 +135,5 @@
   <ItemGroup>
     <None Include="Resources\UIDesigns.dds" />
   </ItemGroup>
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <Import Project="..\..\targets\Xenko.UnitTests.targets" />
 </Project>

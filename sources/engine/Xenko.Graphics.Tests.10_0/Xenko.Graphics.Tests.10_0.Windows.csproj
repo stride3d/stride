@@ -1,73 +1,24 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <RootNamespace>Xenko.Graphics.Tests</RootNamespace>
+    <TargetFrameworks>net461</TargetFrameworks>
     <AssemblyName>Xenko.Graphics.Tests.10_0</AssemblyName>
-    <TargetFramework>net461</TargetFramework>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <EnableDefaultItems>false</EnableDefaultItems>
+    <RootNamespace>Xenko.Graphics.Tests</RootNamespace>
     <XenkoBuildTags>*</XenkoBuildTags>
-    <XenkoPlatform>Windows</XenkoPlatform>
-    <XenkoBuildProfile>Windows</XenkoBuildProfile>
-    <XenkoPackageGuid>{04ed1618-1a06-4a69-ac34-1006a978af11}</XenkoPackageGuid>
-    <XenkoAssemblySign>true</XenkoAssemblySign>
-    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
-    <XenkoOutputFolder>Tests\$(XenkoGraphicsApi)\$(AssemblyName)</XenkoOutputFolder>
+    <XenkoCompileAssets>true</XenkoCompileAssets>
+    <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
     <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
     <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
-    <XenkoCurrentPackagePath>$(MSBuildThisFileDirectory)Xenko.Graphics.Tests.10_0.xkpkg</XenkoCurrentPackagePath>
-    <OutputPath>..\..\..\Bin\$(XenkoPlatformFullName)\$(XenkoOutputFolder)</OutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(XenkoPlatformFullName)-$(XenkoGraphicsApi)\$(Configuration)</IntermediateOutputPath>
+    <StartupObject>xunit.runner.xenko.Program</StartupObject>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>Xenko.Engine.NextGen.NextGenTest1</StartupObject>
-  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.xenko\xunit.runner.xenko.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
     <ProjectReference Include="..\Xenko.Graphics.Regression\Xenko.Graphics.Regression.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="XunitAttributes.cs" />
-    <Compile Include="Assets\MultipleRenderTargetsEffect.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>MultipleRenderTargetsEffect.xkfx</DependentUpon>
-    </Compile>
-    <Compile Include="Assets\MultipleRenderTargetsEffectShader.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>MultipleRenderTargetsEffectShader.xksl</DependentUpon>
-    </Compile>
-    <Compile Include="LightingTests.cs" />
-    <Compile Include="MaterialTests.cs" />
-    <Compile Include="NextGen\NextGenTest1.cs" />
-    <Compile Include="GraphicTestGameBase.cs" />
-    <Compile Include="TestImageEffect.cs" />
-    <Compile Include="TestLightShafts.cs" />
-    <None Include="Assets\MultipleRenderTargetsEffect.xkfx">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>MultipleRenderTargetsEffect.cs</LastGenOutput>
-    </None>
-    <None Include="Assets\MultipleRenderTargetsEffectShader.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>MultipleRenderTargetsEffectShader.cs</LastGenOutput>
-    </None>
-    <None Include="Xenko.Graphics.Tests.10_0.xkpkg" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <Import Project="..\..\targets\Xenko.UnitTests.targets" />
 </Project>

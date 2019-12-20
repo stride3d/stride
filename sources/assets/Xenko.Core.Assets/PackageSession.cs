@@ -156,7 +156,9 @@ namespace Xenko.Core.Assets
                         }
 
                         //check if the item is already there, this is possible when saving the first time when creating from a template
-                        if (project.Items.All(x => x.EvaluatedInclude != projectInclude))
+                        // Note: if project has auto items, no need to add it
+                        if (project.Items.All(x => x.EvaluatedInclude != projectInclude)
+                            && (string.Compare(project.GetPropertyValue("EnableDefaultCompileItems"), "true", true, CultureInfo.InvariantCulture) != 0))
                         {
                             var generatorAsset = projectAsset as IProjectFileGeneratorAsset;
                             if (generatorAsset != null)
@@ -181,9 +183,7 @@ namespace Xenko.Core.Assets
                             }
                             else
                             {
-                                // Note: if project has auto items, no need to add it
-                                if (string.Compare(project.GetPropertyValue("EnableDefaultCompileItems"), "true", true, CultureInfo.InvariantCulture) != 0)
-                                    project.AddItem("Compile", projectInclude);
+                                project.AddItem("Compile", projectInclude);
                             }
                         }
                     }

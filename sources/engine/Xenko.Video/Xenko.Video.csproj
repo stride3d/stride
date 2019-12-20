@@ -24,12 +24,6 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Update="Shaders\VideoShader.cs">
-      <DependentUpon>VideoShader.xksl</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DesignTime>True</DesignTime>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
@@ -55,12 +49,6 @@
       </ItemGroup>
     </When>
   </Choose>
-  <ItemGroup>
-    <None Update="Shaders\VideoShader.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>VideoShader.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" Condition="'$(XenkoPlatform)' == 'Windows'" />
   </ItemGroup>
