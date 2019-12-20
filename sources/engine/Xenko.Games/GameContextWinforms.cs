@@ -41,7 +41,7 @@ namespace Xenko.Games
         }
 
         /// <summary>
-        /// The is running delegate
+        /// Indicating whether the user will call the main loop. E.g. Xenko is used as a library.
         /// </summary>
         public bool IsUserManagingRun { get; protected set; }
 

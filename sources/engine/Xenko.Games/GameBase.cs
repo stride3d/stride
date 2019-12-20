@@ -481,17 +481,19 @@ namespace Xenko.Games
                 Context.RequestedGraphicsProfile = graphicsDeviceManagerImpl.PreferredGraphicsProfile;
                 Context.DeviceCreationFlags = graphicsDeviceManagerImpl.DeviceCreationFlags;
 
+                isEndRunRequired = !gamePlatform.IsBlockingRun;
+
+#if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
+                if (Context is GameContextWinforms gameContextWinforms)
+                    isEndRunRequired |= gameContextWinforms.IsUserManagingRun; 
+#endif
+
                 gamePlatform.Run(Context);
 
-                if (gamePlatform.IsBlockingRun)
+                if (gamePlatform.IsBlockingRun && !isEndRunRequired)
                 {
                     // If the previous call was blocking, then we can call Endrun
                     EndRun();
-                }
-                else
-                {
-                    // EndRun will be executed on Game.Exit
-                    isEndRunRequired = true;
                 }
             }
             finally
