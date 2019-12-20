@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using Xenko.Core;
+using Xenko.Core.IO;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
 
@@ -14,9 +15,12 @@ namespace Xenko.Video
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     [ContentSerializer(typeof(DataContentSerializer<Video>))]
     [ReferenceSerializer, DataSerializerGlobal(typeof(ReferenceSerializer<Video>), Profile = "Content")]
-    [DataContract]
+    [DataSerializer(typeof(VideoSerializer))]
+
     public sealed class Video : ComponentBase
     {
+        internal DatabaseFileProvider FileProvider;
+
         public string CompressedDataUrl { get; set; }
     }
 }

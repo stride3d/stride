@@ -112,6 +112,28 @@ namespace Xenko.Core.Storage
             BundleOdbBackend.CreateBundle(packUrl, backendRead1, objectIds, disableCompressionIds, indexMap, dependencies, useIncrementalBundle);
         }
 
+        public bool TryGetObjectLocation(ObjectId objectId, out string filePath, out long start, out long end)
+        {
+            if (BundleBackend != null && BundleBackend.TryGetObjectLocation(objectId, out filePath, out start, out end))
+                return true;
+
+            foreach (var backend in new[] { backendRead1, backendRead2 })
+            {
+                if (backend != null && backend.Exists(objectId))
+                {
+                    filePath = backend.GetFilePath(objectId);
+                    start = 0;
+                    end = backend.GetSize(objectId);
+                    return true;
+                }
+            }
+
+            filePath = null;
+            start = 0;
+            end = 0;
+            return false;
+        }
+
         /// <summary>
         /// Loads the specified bundle.
         /// </summary>
