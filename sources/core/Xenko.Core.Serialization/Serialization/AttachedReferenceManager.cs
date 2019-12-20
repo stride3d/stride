@@ -85,10 +85,8 @@ namespace Xenko.Core.Serialization
         public static T CreateProxyObject<T>(AssetId id, string location) where T : class, new()
         {
             var result = new T();
-            var attachedReference = GetOrCreateAttachedReference(result);
-            attachedReference.Id = id;
-            attachedReference.Url = location;
-            attachedReference.IsProxy = true;
+            InitializeProxyObject(result, id, location);
+
             return result;
         }
 
@@ -121,11 +119,15 @@ namespace Xenko.Core.Serialization
                 }
             }
             var result = emptyCtor.Invoke(EmptyObjectArray);
-            var attachedReference = GetOrCreateAttachedReference(result);
+            InitializeProxyObject(result, id, location);
+            return result;
+        }
+        private static void InitializeProxyObject(object proxyObject, AssetId id, string location)
+        {
+            var attachedReference = GetOrCreateAttachedReference(proxyObject);
             attachedReference.Id = id;
             attachedReference.Url = location;
             attachedReference.IsProxy = true;
-            return result;
         }
     }
 }

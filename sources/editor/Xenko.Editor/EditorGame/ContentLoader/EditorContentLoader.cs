@@ -148,7 +148,7 @@ namespace Xenko.Editor.EditorGame.ContentLoader
             Session.Dispatcher.InvokeAsync(() => BuildAndReloadAssets(assetToRebuild.Yield()));
         }
 
-        public T GetRuntimeObject<T>(AssetItem assetItem)
+        public T GetRuntimeObject<T>(AssetItem assetItem) where T : class
         {
             if (assetItem == null) throw new ArgumentNullException(nameof(assetItem));
 

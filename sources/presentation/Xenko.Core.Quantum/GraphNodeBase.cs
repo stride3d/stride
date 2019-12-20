@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xenko.Core.Annotations;
 using Xenko.Core.Reflection;
+using Xenko.Core.TypeConverters;
 
 namespace Xenko.Core.Quantum
 {
@@ -80,6 +81,16 @@ namespace Xenko.Core.Quantum
         public void Seal()
         {
             IsSealed = true;
+        }
+
+        protected static object ConvertValue(object value, Type type)
+        {
+            if (value == null)
+                return null;
+            object convertedValue;
+            if (!TypeConverterHelper.TryConvert(value, type, out convertedValue))
+                throw new InvalidOperationException("Can not convert value to the required type");
+            return convertedValue;
         }
     }
 }

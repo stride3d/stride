@@ -3,6 +3,7 @@
 using System;
 using Xenko.Core.Extensions;
 using Xenko.Core.Mathematics;
+using Xenko.Core.Serialization;
 using Xenko.Engine;
 using Xenko.Graphics;
 using Xenko.Rendering.Sprites;
@@ -16,7 +17,7 @@ namespace UIElementLink
     {
         public SpriteSheet SplashScreenImages;
 
-        public string NextScene;
+        public UrlReference<Scene> NextScene;
 
         private Button followedButton;
 
@@ -24,10 +25,10 @@ namespace UIElementLink
 
         private void LoadNextScene()
         {
-            if (NextScene.IsNullOrEmpty())
+            if (NextScene?.IsEmpty ?? true)
                 return;
 
-            SceneSystem.SceneInstance.RootScene = Content.Load<Scene>(NextScene);
+            SceneSystem.SceneInstance.RootScene = Content.Load(NextScene);
             Cancel();
         }
 
