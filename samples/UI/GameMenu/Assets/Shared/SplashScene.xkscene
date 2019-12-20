@@ -28,9 +28,6 @@ Hierarchy:
                     fd54344b6ac8b2ed232d62dc08820239: !GameMenu.SplashScript,GameMenu.Game
                         Id: c7c92d4b-2c04-446f-b8c5-59e9d2b989cd
                         NextSceneUrl: 9294c606-6173-4215-a8dc-0d5043d68333:MainScene
-                    2f704fab49b226562874d765af6b6918: !GameMenu.SplashScript,GameMenu.Game
-                        Id: 10460fb9-8816-4db7-9b7f-452c3d653779
-                        NextSceneUrl: 9294c606-6173-4215-a8dc-0d5043d68333:MainScene
         -   Entity:
                 Id: a604bc4e-f7f3-42c1-b98f-eeea9e10b54c
                 Name: Camera
