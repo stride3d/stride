@@ -2,6 +2,8 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using Xenko.Core.Annotations;
 
@@ -10,34 +12,59 @@ namespace Xenko.Core.Threading
     /// <summary>
     /// Thread pool for scheduling actions.
     /// </summary>
-    /// <remarks>
-    /// When more than <see cref="PoolSize"/> jobs have been scheduled,
-    /// new threads will have to be spawned to avoid user-side deadlocks.
-    /// </remarks>
-    internal class ThreadPool
+    internal class ThreadPool : IDisposable
     {
-        /// <summary> Instance shared across the program </summary>
+        /// <summary>
+        /// Instance shared across the program.
+        /// </summary>
         public static readonly ThreadPool Instance = new ThreadPool();
         
-        /// <summary> Maximum amount of idle threads waiting for work. </summary>
+        /// <summary>
+        /// Used to assign names to threads.
+        /// </summary>
+        private static int nextThreadId;
+        
         public readonly int PoolSize;
+
+        private readonly IColl<object> queue;
         
         /// <summary>
-        /// OS semaphores are close to two times faster to signal multiple
-        /// threads than doing the same thing through monitor like
-        /// SemaphoreSlim and other reset events are doing.
+        /// Reference used to put to sleep and signal threads
         /// </summary>
-        private readonly Semaphore semaphore;
-        private readonly ConcurrentPool<object> jobs;
-        private int spinningCount;
-        private int spinToRelease;
-        private int sleeping;
+        private readonly object poolSyncObj = new object();
+        
+        /// <summary>
+        /// Cached delegate to avoid allocating when assigning to new threads.
+        /// </summary>
+        private readonly ThreadStart cachedThreadLoop;
+        
+        /// <summary>
+        /// Amount of threads waiting for a pulse.
+        /// </summary>
+        private int idles;
+        
+        private int disposed;
 
         public ThreadPool()
         {
-            PoolSize = Environment.ProcessorCount * 4;
-            semaphore = new Semaphore(0, int.MaxValue);
-            jobs = new ConcurrentPool<object>(() => null);
+            PoolSize = Environment.ProcessorCount-1;
+            if (PoolSize >= 13)
+                queue = new HighContentionQueue<object>();
+            else
+                queue = new LowContentionQueue<object>();
+                
+            cachedThreadLoop = ThreadLoop;
+            for (int i = 0; i < PoolSize; i++)
+                SpawnThread();
+        }
+
+        /// <summary> Signals threads to shutdown asap </summary>
+        public void Dispose()
+        {
+            if (Interlocked.Exchange(ref disposed, 1) != 0)
+                return;
+
+            Dispatch(new ShutdownSignal(), PoolSize);
         }
 
         /// <summary> Schedule an action to be run on one of the <see cref="ThreadPool"/>'s threads </summary>
@@ -48,7 +75,7 @@ namespace Xenko.Core.Threading
             {
                 throw new ArgumentNullException(nameof(workItem));
             }
-            
+
             Dispatch(workItem, amount);
         }
 
@@ -66,132 +93,239 @@ namespace Xenko.Core.Threading
 
         private void Dispatch(object job, int amount)
         {
-            for (int i = 0; i < amount; i++)
-            {
-                jobs.Release(job);
-            }
-            SignalThreads(amount, out int leftToSpawn);
-            for (int i = 0; i < leftToSpawn; i++)
-            {
-                new PooledThread(this);
-            }
-        }
-
-        private bool TryEnterSleep()
-        {
-            if ((Volatile.Read(ref sleeping) + Volatile.Read(ref spinningCount)) >= PoolSize)
-                return false;
+            if (amount < 1)
+                throw new ArgumentOutOfRangeException(nameof(amount));
             
-            Interlocked.Increment(ref spinningCount);
-            var spin = new SpinWait();
-            while (spin.NextSpinWillYield == false)
+            queue.Enqueue(job, amount);
+
+            // Only attempt to enter if the lock is not busy,
+            // The owner will take care of pulsing other threads if we couldn't enter
+            if (Monitor.TryEnter(poolSyncObj))
             {
-                int spinRelease = spinToRelease;
-                if (spinRelease > 0 && Interlocked.CompareExchange(ref spinToRelease, spinRelease - 1, spinRelease) == spinRelease)
+                try
                 {
-                    Interlocked.Decrement(ref spinningCount);
-                    return true;
+                    if (idles == 0)
+                        return;
+            
+                    idles--;
+                    // Don't pulse all, it takes too much time, let pool threads pulse instead
+                    Monitor.Pulse(poolSyncObj);
                 }
-
-                spin.SpinOnce();
-            }
-            
-            Interlocked.Increment(ref sleeping);
-            Interlocked.Decrement(ref spinningCount);
-
-            semaphore.WaitOne();
-            return true;
-        }
-        
-        private void SignalThreads(int releaseCount, out int leftThatCouldntBeReleased)
-        {
-            if (releaseCount < 1)
-                throw new ArgumentOutOfRangeException(nameof(releaseCount));
-
-            var spin = new SpinWait();
-            Interlocked.Add(ref spinToRelease, releaseCount);
-            while (spin.NextSpinWillYield == false && Volatile.Read(ref spinningCount) > 0)
-            {
-                spin.SpinOnce();
-            }
-            
-            // Retrieve amount that wasn't released
-            releaseCount = Interlocked.Exchange(ref spinToRelease, 0);
-            if (releaseCount == 0)
-            {
-                leftThatCouldntBeReleased = 0;
-                return;
-            }
-            
-            spin = new SpinWait();
-            int semaphoreToRelease;
-            while (true)
-            {
-                var sleepingSample = sleeping;
-                semaphoreToRelease = sleepingSample > releaseCount ? releaseCount : sleepingSample;
-                if (Interlocked.CompareExchange(ref sleeping, sleepingSample - semaphoreToRelease, sleepingSample) == sleepingSample)
-                    break;
-                spin.SpinOnce();
-            }
-            
-            if (semaphoreToRelease > 0)
-                semaphore.Release(semaphoreToRelease);
-
-            leftThatCouldntBeReleased = releaseCount - semaphoreToRelease;
-        }
-
-        private class PooledThread
-        {
-            private static int nextThreadId;
-            
-            private readonly Thread thread;
-            private ThreadPool pool;
-
-            public PooledThread(ThreadPool poolParam)
-            {
-                pool = poolParam;
-                thread = new Thread(Loop)
+                finally
                 {
-                    Name = $"{GetType().Name} thread #{Interlocked.Increment(ref nextThreadId)}",
-                    IsBackground = true,
-                    Priority = ThreadPriority.Highest,
-                };
-                thread.Start();
+                    Monitor.Exit(poolSyncObj);
+                }
             }
+        }
 
-            private void Loop()
+        private void ThreadLoop()
+        {
+            try
             {
                 do
                 {
-                    // Logic guarantees one job per initialization and signal
-                    object scheduledOp = pool.jobs.Acquire();
-                    if (scheduledOp == null)
-                        throw new NullReferenceException("Missing job in pool");
-                        
-                    if (scheduledOp is IConcurrentJob pooledJob)
+                    switch (WaitOne())
                     {
-                        pooledJob.Work();
+                        case IConcurrentJob pooledJob:
+                            pooledJob.Work();
+                            break;
+                        case Action action:
+                            try
+                            {
+                                action.Invoke();
+                            }
+                            finally
+                            {
+                                PooledDelegateHelper.Release(action);
+                            }
+                            break;
+                        case ShutdownSignal _:
+                            return;
+                        case null:
+                            throw new NullReferenceException("Missing job in pool");
+                        case object obj:
+                            throw new ArgumentException($"Invalid job type: {obj.GetType()}");
                     }
-                    else if (scheduledOp is Action action)
-                    {
-                        try
-                        {
-                            action.Invoke();
-                        }
-                        finally
-                        {
-                            PooledDelegateHelper.Release(action);
-                        }
-                    }
-                    else
-                    {
-                        throw new ArgumentException($"Invalid job type: {scheduledOp}");
-                    }
-
-                    if (pool.TryEnterSleep() == false)
-                        return;
                 } while (true);
             }
+            finally
+            {
+                // Let this thread throw if it needs to,
+                // ensure that there's another one to take its place
+                SpawnThread();
+            }
+        }
+
+        private object WaitOne()
+        {
+            SpinWait sw = new SpinWait();
+            do
+            {
+                if (queue.TryDequeue(out var item))
+                    return item;
+
+                sw.SpinOnce();
+                
+                if (queue.LatestItemCount == 0 && Monitor.TryEnter(poolSyncObj))
+                {
+                    try
+                    {
+                        sw = new SpinWait();
+                        if (queue.LatestItemCount == 0)
+                        {
+                            idles++;
+                            Monitor.Wait(poolSyncObj);
+                        }
+                        
+                        if (idles > 0)
+                        {
+                            idles = 0;
+                            Monitor.PulseAll(poolSyncObj);
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(poolSyncObj);
+                    }
+                }
+            } while (true);
+        }
+
+        private void SpawnThread()
+        {
+            new Thread(cachedThreadLoop)
+            {
+                Name = $"{GetType().Name} thread #{Interlocked.Increment(ref nextThreadId)}",
+                IsBackground = true,
+                Priority = ThreadPriority.Highest,
+            }.Start();
+        }
+        
+        /// <summary> Comp-exchange around a ConcurrentQueue </summary>
+        private class HighContentionQueue<T> : IColl<T>
+        {
+            public int LatestItemCount => Volatile.Read(ref queueSize);
+            
+            /// <summary>
+            /// Items scheduled to run on the pool.
+            /// Using a lock around a queue leads to better performance on processors with 8 and less HW threads,
+            /// needs to be investigated further.
+            /// </summary>
+            private readonly ConcurrentQueue<T> queue = new ConcurrentQueue<T>();
+        
+            /// <summary>
+            /// Amount of items in the queue, used to lighten the load on <see cref="queue"/>.
+            /// </summary>
+            private int queueSize;
+
+            public void Enqueue(T item, int amount)
+            {
+                Interlocked.Add(ref queueSize, amount);
+                for (int i = 0; i < amount; i++)
+                    queue.Enqueue(item);
+            }
+
+            public bool TryDequeue(out T item)
+            {
+                item = default;
+                SpinWait sw = new SpinWait();
+                do
+                {
+                    int sample;
+                    while ((sample = Volatile.Read(ref queueSize)) > 0)
+                    {
+                        if (Interlocked.CompareExchange(ref queueSize, sample - 1, sample) == sample)
+                        {
+                            sw = new SpinWait();
+                            while (queue.TryDequeue(out item) == false)
+                            {
+                                // Should resolve shortly as we increase queueSize before adding items to the queue
+                                sw.SpinOnce();
+                            }
+                            return true;
+                        }
+                        sw.SpinOnce();
+                    }
+
+                    if (sw.NextSpinWillYield)
+                        return false;
+                    
+                    sw.SpinOnce();
+                } while (true);
+            }
+        }
+        
+        /// <summary> Spinlock around a queue </summary>
+        private class LowContentionQueue<T> : IColl<T>
+        {
+            public int LatestItemCount => Volatile.Read(ref queueSize);
+            
+            /// <summary>
+            /// Items scheduled to run on the pool.
+            /// Using a lock around a queue leads to better performance on processors with 8 and less HW threads,
+            /// needs to be investigated further.
+            /// </summary>
+            private readonly Queue<T> queue = new Queue<T>();
+        
+            /// <summary>
+            /// Amount of items in the queue, used to lighten the load on <see cref="queue"/>.
+            /// </summary>
+            private int queueSize;
+            
+            private SpinLock sLock = new SpinLock();
+
+            public void Enqueue(T item, int amount)
+            {
+                bool entered = false;
+                try
+                {
+                    sLock.Enter(ref entered);
+                    Interlocked.Add(ref queueSize, amount);
+                    for (int i = 0; i < amount; i++)
+                        queue.Enqueue(item);
+                }
+                finally
+                {
+                    sLock.Exit(true);
+                }
+            }
+
+            public bool TryDequeue(out T item)
+            {
+                bool found = false;
+                item = default;
+                bool entered = false;
+                try
+                {
+                    sLock.Enter(ref entered);
+                    if (queue.Count > 0)
+                    {
+                        found = true;
+                        item = queue.Dequeue();
+                    }
+                }
+                finally
+                {
+                    sLock.Exit(true);
+                }
+
+                if (found)
+                {
+                    Interlocked.Decrement(ref queueSize);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+
+        interface IColl<T>
+        {
+            int LatestItemCount { get; }
+            void Enqueue(T item, int amount);
+            bool TryDequeue(out T item);
         }
         
         /// <summary>
@@ -203,5 +337,10 @@ namespace Xenko.Core.Threading
             /// <summary> Called once from any thread to perform work </summary>
             void Work();
         }
+            
+        /// <summary>
+        /// When queued, ensure that the thread dequeuing that job shutdowns by itself.
+        /// </summary>
+        private class ShutdownSignal { }
     }
 }
