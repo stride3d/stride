@@ -242,7 +242,8 @@ namespace Xenko.Rendering.UI
             var lastMouseOverElement = state.LastMouseOverElement;
 
             // determine currently overred element.
-            if (mousePosition != state.LastMousePosition)
+            if (mousePosition != state.LastMousePosition
+                || (lastMouseOverElement?.RequiresMouseOverUpdate ?? false))
             {
                 Ray uiRay;
                 if (!GetTouchPosition(state.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
@@ -258,6 +259,8 @@ namespace Xenko.Rendering.UI
             var parent = lastMouseOverElement;
             while (parent != commonElement && parent != null)
             {
+                parent.RequiresMouseOverUpdate = false;
+
                 parent.MouseOverState = MouseOverState.MouseOverNone;
                 parent = parent.VisualParent;
             }

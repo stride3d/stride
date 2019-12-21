@@ -98,6 +98,9 @@ namespace Xenko.UI
             }
         }
 
+        [DataMemberIgnore]
+        public bool RequiresMouseOverUpdate { get; set; }
+
         internal void PropagateRoutedEvent(RoutedEventArgs e)
         {
             var routedEvent = e.RoutedEvent;
