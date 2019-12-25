@@ -19,6 +19,9 @@ namespace Xenko.Rendering.UI
 
         private readonly List<PointerEvent> compactedPointerEvents = new List<PointerEvent>();
 
+        [Obsolete]
+        public UIElement UIElementUnderMouseCursor { get; private set; }
+
         partial void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime)
         {
             if (renderUIElement.Page?.RootElement == null)
@@ -282,6 +285,8 @@ namespace Xenko.Rendering.UI
                     parent = parent.VisualParent;
                 }
             }
+
+            UIElementUnderMouseCursor = uIElementUnderMouseCursor;
 
             // update cached values
             state.LastMouseOverElement = uIElementUnderMouseCursor;
