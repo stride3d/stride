@@ -204,6 +204,10 @@ namespace Xenko.Engine
                 var oldParent = Parent;
                 if (oldParent == value)
                     return;
+                
+                // SceneValue must be null if we have a parent
+                if( Entity.SceneValue != null )
+                    Entity.Scene = null;
 
                 var previousScene = oldParent?.Entity?.Scene;
                 var newScene = value?.Entity?.Scene;
