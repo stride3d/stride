@@ -98,6 +98,19 @@ namespace Xenko.UI
             }
         }
 
+        /// <summary>
+        /// Gets or sets whether this element requires a mouse over check.
+        /// </summary>
+        /// <remarks>
+        /// By default, the engine does not check whether <see cref="MouseOverState"/>
+        /// of the element is changed while the cursor is still. This behavior is 
+        /// overriden when this parameter is set to true, which forces the engine to
+        /// check for changes of <see cref="MouseOverState"/>.
+        /// The engine sets this to true when the layout of the element changes.
+        /// </remarks>
+        [DataMemberIgnore]
+        public bool RequiresMouseOverUpdate { get; set; }
+
         internal void PropagateRoutedEvent(RoutedEventArgs e)
         {
             var routedEvent = e.RoutedEvent;
