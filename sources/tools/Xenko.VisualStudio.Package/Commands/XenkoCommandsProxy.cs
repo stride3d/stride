@@ -337,7 +337,7 @@ namespace Xenko.VisualStudio.Commands
                     }
                     else
                     {
-                        // TODO: Report error from log
+                        throw new InvalidOperationException( $"Could not restore {packageName} {packageInfo.ExpectedVersion}, build it or pull it from nugget manually." );
                     }
                 }
             }
