@@ -17,37 +17,20 @@ namespace Xenko.Physics
         [DataMember(10)]
         [NotNull]
         [Display(Expand = ExpandRule.Always)]
-        public IInitialHeightData InitialHeights { get; set; } = new HeightDataFromHeightmap();
-
-        [DataMember(50)]
-        public Vector2 HeightRange;
-
-        [DataMember(60)]
-        [NotNull]
-        [Display("Height Scale for Short or Byte", Expand = ExpandRule.Always)]
-        public IHeightScale HeightScale { get; set; }
+        public IInitialHeightfieldHeightData InitialHeights { get; set; } = new HeightfieldHeightDataFromHeightmap();
 
         [DataMember(70)]
-        public bool FlipQuadEdges;
+        public bool FlipQuadEdges = false;
 
         [DataMember(80)]
-        public bool IsRecenteringOffsetted;
+        [Display("Center the height 0")]
+        public bool ShouldCenterHeightZero = true;
 
         [DataMember(100)]
         public Vector3 LocalOffset;
 
         [DataMember(110)]
-        public Quaternion LocalRotation;
-
-        public HeightfieldColliderShapeDesc()
-        {
-            HeightRange = new Vector2(-10, 10);
-            HeightScale = new HeightScaleFromHeightRange();
-            FlipQuadEdges = false;
-            IsRecenteringOffsetted = true;
-            LocalOffset = new Vector3(0, 0, 0);
-            LocalRotation = Quaternion.Identity;
-        }
+        public Quaternion LocalRotation = Quaternion.Identity;
 
         public bool Match(object obj)
         {
@@ -63,15 +46,11 @@ namespace Xenko.Physics
                 return false;
             }
 
-            var heightScaleComparison = other.HeightScale?.Match(HeightScale) ?? HeightScale == null;
-
             var initialHeightsComparison = other.InitialHeights?.Match(InitialHeights) ?? InitialHeights == null;
 
             return initialHeightsComparison &&
-                other.HeightRange == HeightRange &&
-                heightScaleComparison &&
                 other.FlipQuadEdges == FlipQuadEdges &&
-                other.IsRecenteringOffsetted == IsRecenteringOffsetted;
+                other.ShouldCenterHeightZero == ShouldCenterHeightZero;
         }
 
         public static bool IsValidHeightStickSize(Int2 size)
@@ -109,16 +88,8 @@ namespace Xenko.Physics
         {
             if (InitialHeights == null ||
                 !IsValidHeightStickSize(InitialHeights.HeightStickSize) ||
-                HeightRange.Y < HeightRange.X ||
-                Math.Abs(HeightRange.Y - HeightRange.X) < float.Epsilon ||
-                HeightScale == null)
-            {
-                return null;
-            }
-
-            float heightScale = InitialHeights.HeightType == HeightfieldTypes.Float ? 1f : HeightScale.CalculateHeightScale(this);
-
-            if (Math.Abs(heightScale) < float.Epsilon)
+                InitialHeights.HeightRange.Y < InitialHeights.HeightRange.X ||
+                Math.Abs(InitialHeights.HeightRange.Y - InitialHeights.HeightRange.X) < float.Epsilon)
             {
                 return null;
             }
@@ -149,7 +120,7 @@ namespace Xenko.Physics
                     return null;
             }
 
-            var offsetToCancelRecenter = IsRecenteringOffsetted ? HeightRange.X + ((HeightRange.Y - HeightRange.X) * 0.5f) : 0f;
+            var offsetToCenterHeightZero = ShouldCenterHeightZero ? InitialHeights.HeightRange.X + ((InitialHeights.HeightRange.Y - InitialHeights.HeightRange.X) * 0.5f) : 0f;
 
             var shape = new HeightfieldColliderShape
                         (
@@ -157,13 +128,13 @@ namespace Xenko.Physics
                             InitialHeights.HeightStickSize.Y,
                             InitialHeights.HeightType,
                             unmanagedArray,
-                            heightScale,
-                            HeightRange.X,
-                            HeightRange.Y,
+                            InitialHeights.HeightScale,
+                            InitialHeights.HeightRange.X,
+                            InitialHeights.HeightRange.Y,
                             FlipQuadEdges
                         )
                         {
-                            LocalOffset = LocalOffset + new Vector3(0, offsetToCancelRecenter, 0),
+                            LocalOffset = LocalOffset + new Vector3(0, offsetToCenterHeightZero, 0),
                             LocalRotation = LocalRotation,
                         };
 

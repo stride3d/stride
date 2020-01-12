@@ -7,29 +7,35 @@ namespace Xenko.Physics
 {
     [DataContract]
     [Display("Heightmap")]
-    public class HeightDataFromHeightmap : IInitialHeightData
+    public class HeightfieldHeightDataFromHeightmap : IInitialHeightfieldHeightData
     {
         [DataMember(10)]
         public Heightmap Heightmap { get; set; }
 
-        [Display(Browsable = false)]
+        [DataMemberIgnore]
         public HeightfieldTypes HeightType => Heightmap?.HeightType ?? default;
 
-        [Display(Browsable = false)]
+        [DataMemberIgnore]
         public Int2 HeightStickSize => Heightmap?.Size ?? default;
 
-        [Display(Browsable = false)]
+        [DataMemberIgnore]
+        public Vector2 HeightRange => Heightmap?.HeightRange ?? default;
+
+        [DataMemberIgnore]
+        public float HeightScale => Heightmap?.HeightScale ?? default;
+
+        [DataMemberIgnore]
         public float[] Floats => Heightmap?.Floats;
 
-        [Display(Browsable = false)]
+        [DataMemberIgnore]
         public short[] Shorts => Heightmap?.Shorts;
 
-        [Display(Browsable = false)]
+        [DataMemberIgnore]
         public byte[] Bytes => Heightmap?.Bytes;
 
         public bool Match(object obj)
         {
-            var other = obj as HeightDataFromHeightmap;
+            var other = obj as HeightfieldHeightDataFromHeightmap;
 
             if (other == null)
             {

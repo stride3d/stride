@@ -1,6 +1,8 @@
 // Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xenko.Assets.Textures;
 using Xenko.Core.Assets;
@@ -52,180 +54,209 @@ namespace Xenko.Assets.Physics
             {
                 var assetManager = new ContentManager(MicrothreadLocalDatabases.ProviderService);
 
-                var items = new Heightmap[] { new Heightmap(), };
+                Heightmap heightmap = null;
 
-                foreach (var heightmap in items)
+                // HeightRange
+
+                var heightRange = Parameters.HeightParameters.HeightRange;
+
+                if (heightRange.Y < heightRange.X)
                 {
-                    var source = Parameters.Source;
-                    if (!string.IsNullOrEmpty(source))
+                    throw new Exception($"Invalid HeightRange. Max height should be greater than min height.");
+                }
+
+                // HeightScale
+
+                var heightScale = Parameters.HeightParameters.HeightScale;
+
+                // Heights
+
+                var source = Parameters.Source;
+
+                using (var textureTool = new TextureTool())
+                using (var texImage = textureTool.Load(source, Parameters.IsSRgb))
+                {
+                    // Resize the image if needed
+
+                    var size = Parameters.Resizing.Enabled ?
+                        Parameters.Resizing.Size :
+                        new Int2(texImage.Width, texImage.Height);
+
+                    if (!HeightfieldColliderShapeDesc.IsValidHeightStickSize(size))
                     {
-                        using (var textureTool = new TextureTool())
-                        using (var texImage = textureTool.Load(source, Parameters.IsSRgb))
-                        {
-                            // Resize the image if need
+                        throw new Exception($"Invalid size. Width and length of the heightmap should be greater or than equal to 2.");
+                    }
 
-                            var size = Parameters.Resizing.Enabled ?
-                                Parameters.Resizing.Size :
-                                new Int2(texImage.Width, texImage.Height);
+                    if (texImage.Width != size.X || texImage.Height != size.Y)
+                    {
+                        textureTool.Resize(texImage, size.X, size.Y, Filter.Rescaling.Nearest);
+                    }
 
-                            if (!HeightfieldColliderShapeDesc.IsValidHeightStickSize(size))
+                    // Convert pixel format of the image
+
+                    var heightfieldType = Parameters.HeightParameters.HeightType;
+
+                    switch (heightfieldType)
+                    {
+                        case HeightfieldTypes.Float:
+                            switch (texImage.Format)
                             {
-                                continue;
-                            }
-
-                            if (texImage.Width != size.X || texImage.Height != size.Y)
-                            {
-                                textureTool.Resize(texImage, size.X, size.Y, Filter.Rescaling.Nearest);
-                            }
-
-                            // Convert pixel format of the image
-
-                            var heightfieldType = Parameters.HeightType;
-
-                            switch (heightfieldType)
-                            {
-                                case HeightfieldTypes.Float:
-                                    switch (texImage.Format)
-                                    {
-                                        case PixelFormat.R32_Float:
-                                            break;
-
-                                        case PixelFormat.R32G32B32A32_Float:
-                                        case PixelFormat.R16_Float:
-                                            textureTool.Convert(texImage, PixelFormat.R32_Float);
-                                            break;
-
-                                        case PixelFormat.R16G16B16A16_UNorm:
-                                        case PixelFormat.R16_UNorm:
-                                            textureTool.Convert(texImage, PixelFormat.R16_SNorm);
-                                            textureTool.Convert(texImage, PixelFormat.R32_Float);
-                                            break;
-
-                                        case PixelFormat.B8G8R8A8_UNorm:
-                                        case PixelFormat.R8G8B8A8_UNorm:
-                                        case PixelFormat.R8_UNorm:
-                                            textureTool.Convert(texImage, PixelFormat.R8_SNorm);
-                                            textureTool.Convert(texImage, PixelFormat.R32_Float);
-                                            break;
-
-                                        case PixelFormat.B8G8R8A8_UNorm_SRgb:
-                                        case PixelFormat.B8G8R8X8_UNorm_SRgb:
-                                        case PixelFormat.R8G8B8A8_UNorm_SRgb:
-                                            textureTool.Convert(texImage, PixelFormat.R8_SNorm);
-                                            textureTool.Convert(texImage, PixelFormat.R32_Float);
-                                            break;
-
-                                        default:
-                                            continue;
-                                    }
+                                case PixelFormat.R32_Float:
                                     break;
 
-                                case HeightfieldTypes.Short:
-                                    switch (texImage.Format)
-                                    {
-                                        case PixelFormat.R16_SNorm:
-                                            break;
-
-                                        case PixelFormat.R16G16B16A16_SNorm:
-                                        case PixelFormat.R16G16B16A16_UNorm:
-                                        case PixelFormat.R16_UNorm:
-                                            textureTool.Convert(texImage, PixelFormat.R16_SNorm);
-                                            break;
-
-                                        case PixelFormat.R8G8B8A8_SNorm:
-                                        case PixelFormat.B8G8R8A8_UNorm:
-                                        case PixelFormat.R8G8B8A8_UNorm:
-                                        case PixelFormat.R8_UNorm:
-                                            textureTool.Convert(texImage, PixelFormat.R8_SNorm);
-                                            textureTool.Convert(texImage, PixelFormat.R16_SNorm);
-                                            break;
-
-                                        case PixelFormat.B8G8R8A8_UNorm_SRgb:
-                                        case PixelFormat.B8G8R8X8_UNorm_SRgb:
-                                        case PixelFormat.R8G8B8A8_UNorm_SRgb:
-                                            textureTool.Convert(texImage, PixelFormat.R8_SNorm);
-                                            textureTool.Convert(texImage, PixelFormat.R16_SNorm);
-                                            break;
-
-                                        default:
-                                            continue;
-                                    }
+                                case PixelFormat.R32G32B32A32_Float:
+                                case PixelFormat.R16_Float:
+                                    textureTool.Convert(texImage, PixelFormat.R32_Float);
                                     break;
 
-                                case HeightfieldTypes.Byte:
-                                    switch (texImage.Format)
-                                    {
-                                        case PixelFormat.R8_UNorm:
-                                            break;
+                                case PixelFormat.R16G16B16A16_UNorm:
+                                case PixelFormat.R16_UNorm:
+                                    textureTool.Convert(texImage, PixelFormat.R16_SNorm);
+                                    textureTool.Convert(texImage, PixelFormat.R32_Float);
+                                    break;
 
-                                        case PixelFormat.R8G8B8A8_SNorm:
-                                        case PixelFormat.B8G8R8A8_UNorm:
-                                        case PixelFormat.R8G8B8A8_UNorm:
-                                            textureTool.Convert(texImage, PixelFormat.R8_UNorm);
-                                            break;
+                                case PixelFormat.B8G8R8A8_UNorm:
+                                case PixelFormat.R8G8B8A8_UNorm:
+                                case PixelFormat.R8_UNorm:
+                                    textureTool.Convert(texImage, PixelFormat.R8_SNorm);
+                                    textureTool.Convert(texImage, PixelFormat.R32_Float);
+                                    break;
 
-                                        case PixelFormat.B8G8R8A8_UNorm_SRgb:
-                                        case PixelFormat.B8G8R8X8_UNorm_SRgb:
-                                        case PixelFormat.R8G8B8A8_UNorm_SRgb:
-                                            textureTool.Convert(texImage, PixelFormat.R8_UNorm);
-                                            break;
-
-                                        default:
-                                            continue;
-                                    }
+                                case PixelFormat.B8G8R8A8_UNorm_SRgb:
+                                case PixelFormat.B8G8R8X8_UNorm_SRgb:
+                                case PixelFormat.R8G8B8A8_UNorm_SRgb:
+                                    textureTool.Convert(texImage, PixelFormat.R8_SNorm);
+                                    textureTool.Convert(texImage, PixelFormat.R32_Float);
                                     break;
 
                                 default:
-                                    continue;
+                                    throw new Exception($"Not supported to convert {texImage.Format} to {PixelFormat.R32_Float}.");
                             }
+                            break;
 
-                            // Read, scale and set heights
-
-                            using (var image = textureTool.ConvertToXenkoImage(texImage))
+                        case HeightfieldTypes.Short:
+                            switch (texImage.Format)
                             {
-                                var pixelBuffer = image.PixelBuffer[0];
-                                var scale = Parameters.HeightScale;
+                                case PixelFormat.R16_SNorm:
+                                    break;
 
-                                switch (heightfieldType)
-                                {
-                                    case HeightfieldTypes.Float:
-                                        heightmap.Floats = pixelBuffer.GetPixels<float>();
-                                        for (int i = 0; i < heightmap.Floats.Length; ++i)
-                                        {
-                                            heightmap.Floats[i] *= scale;
-                                        }
-                                        break;
+                                case PixelFormat.R16G16B16A16_SNorm:
+                                case PixelFormat.R16G16B16A16_UNorm:
+                                case PixelFormat.R16_UNorm:
+                                    textureTool.Convert(texImage, PixelFormat.R16_SNorm);
+                                    break;
 
-                                    case HeightfieldTypes.Short:
-                                        heightmap.Shorts = pixelBuffer.GetPixels<short>();
-                                        for (int i = 0; i < heightmap.Shorts.Length; ++i)
-                                        {
-                                            heightmap.Shorts[i] = (short)MathUtil.Clamp(heightmap.Shorts[i] * scale, short.MinValue, short.MaxValue);
-                                        }
-                                        break;
+                                case PixelFormat.R8G8B8A8_SNorm:
+                                case PixelFormat.B8G8R8A8_UNorm:
+                                case PixelFormat.R8G8B8A8_UNorm:
+                                case PixelFormat.R8_UNorm:
+                                    textureTool.Convert(texImage, PixelFormat.R8_SNorm);
+                                    textureTool.Convert(texImage, PixelFormat.R16_SNorm);
+                                    break;
 
-                                    case HeightfieldTypes.Byte:
-                                        heightmap.Bytes = pixelBuffer.GetPixels<byte>();
-                                        for (int i = 0; i < heightmap.Bytes.Length; ++i)
-                                        {
-                                            heightmap.Bytes[i] = (byte)MathUtil.Clamp(heightmap.Bytes[i] * scale, byte.MinValue, byte.MaxValue);
-                                        }
-                                        break;
+                                case PixelFormat.B8G8R8A8_UNorm_SRgb:
+                                case PixelFormat.B8G8R8X8_UNorm_SRgb:
+                                case PixelFormat.R8G8B8A8_UNorm_SRgb:
+                                    textureTool.Convert(texImage, PixelFormat.R8_SNorm);
+                                    textureTool.Convert(texImage, PixelFormat.R16_SNorm);
+                                    break;
 
-                                    default:
-                                        continue;
-                                }
-
-                                // Set rest of properties
-
-                                heightmap.HeightType = heightfieldType;
-                                heightmap.Size = size;
+                                default:
+                                    throw new Exception($"Not supported to convert {texImage.Format} to {PixelFormat.R16_SNorm}.");
                             }
+                            break;
+
+                        case HeightfieldTypes.Byte:
+                            switch (texImage.Format)
+                            {
+                                case PixelFormat.R8_UNorm:
+                                    break;
+
+                                case PixelFormat.R8G8B8A8_SNorm:
+                                case PixelFormat.B8G8R8A8_UNorm:
+                                case PixelFormat.R8G8B8A8_UNorm:
+                                    textureTool.Convert(texImage, PixelFormat.R8_UNorm);
+                                    break;
+
+                                case PixelFormat.B8G8R8A8_UNorm_SRgb:
+                                case PixelFormat.B8G8R8X8_UNorm_SRgb:
+                                case PixelFormat.R8G8B8A8_UNorm_SRgb:
+                                    textureTool.Convert(texImage, PixelFormat.R8_UNorm);
+                                    break;
+
+                                default:
+                                    throw new Exception($"Not supported to convert {texImage.Format} to {PixelFormat.R8_UNorm}.");
+                            }
+                            break;
+
+                        default:
+                            throw new Exception($"Not supported the image whose pixel format is {texImage.Format}.");
+                    }
+
+                    // Convert pixels to heights
+
+                    using (var image = textureTool.ConvertToXenkoImage(texImage))
+                    {
+                        var pixelBuffer = image.PixelBuffer[0];
+
+                        object heights = null;
+
+                        switch (heightfieldType)
+                        {
+                            case HeightfieldTypes.Float:
+                                {
+                                    var floats = pixelBuffer.GetPixels<float>();
+
+                                    var floatConversionParameters = Parameters.HeightParameters as FloatHeightmapHeightConversionParamters;
+                                    if (floatConversionParameters == null)
+                                    {
+                                        throw new NullReferenceException($"{nameof(Parameters.HeightParameters)} is a null.");
+                                    }
+
+                                    float scale = 1f;
+
+                                    if (floatConversionParameters.ScaleToFit)
+                                    {
+                                        var max = floats.Max(h => Math.Abs(h));
+                                        if ((max - 1f) < float.Epsilon)
+                                        {
+                                            max = 1f;
+                                        }
+                                        scale = Math.Max(Math.Abs(heightRange.X), Math.Abs(heightRange.Y)) / max;
+                                    }
+
+                                    for (int i = 0; i < floats.Length; ++i)
+                                    {
+                                        floats[i] = MathUtil.Clamp(floats[i] * scale, heightRange.X, heightRange.Y);
+                                    }
+
+                                    heights = floats;
+                                }
+                                break;
+
+                            case HeightfieldTypes.Short:
+                                {
+                                    heights = pixelBuffer.GetPixels<short>();
+                                }
+                                break;
+
+                            case HeightfieldTypes.Byte:
+                                {
+                                    heights = pixelBuffer.GetPixels<byte>();
+                                }
+                                break;
                         }
+
+                        heightmap = Heightmap.Create(size, heightRange, heightScale, heights);
                     }
                 }
 
-                assetManager.Save(Url, items[0]);
+                if (heightmap == null)
+                {
+                    throw new Exception($"Failed to compile the heightmap asset.");
+                }
+
+                assetManager.Save(Url, heightmap);
 
                 return Task.FromResult(ResultStatus.Successful);
             }

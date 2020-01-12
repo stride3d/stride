@@ -1,12 +1,15 @@
 // Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Xenko.Core.Mathematics;
 
 namespace Xenko.Physics
 {
-    public interface IHeightScale
+    public interface IHeightfieldHeightDescription
     {
-        float CalculateHeightScale(HeightfieldColliderShapeDesc desc);
+        HeightfieldTypes HeightType { get; }
 
-        bool Match(object obj);
+        Vector2 HeightRange { get; }
+
+        float HeightScale { get; }
     }
 }

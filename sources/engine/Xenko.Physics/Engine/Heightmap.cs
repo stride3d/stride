@@ -1,5 +1,6 @@
 // Copyright (c) Xenko contributors (https://xenko.com)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using System;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization;
@@ -31,46 +32,65 @@ namespace Xenko.Physics
         public HeightfieldTypes HeightType;
 
         [DataMember(50)]
-        public Int2 Size { get; set; }
+        public Int2 Size;
 
-        public static Heightmap Create<T>(Int2 size, T[] data) where T : struct
+        [DataMember(60)]
+        public Vector2 HeightRange;
+
+        [DataMember(70)]
+        public float HeightScale;
+
+        public static Heightmap Create(Int2 size, Vector2 range, float scale, object data)
         {
-            if (!HeightfieldColliderShapeDesc.IsValidHeightStickSize(size) || data == null)
+            if (!HeightfieldColliderShapeDesc.IsValidHeightStickSize(size)) throw new ArgumentOutOfRangeException(nameof(size));
+            if (range.Y < range.X) throw new ArgumentException($"{nameof(range)} is invalid. Max height should be greater than min height.");
+            if (data == null) throw new ArgumentNullException(nameof(data));
+
+            var arrayLength = size.X * size.Y;
+
+            HeightfieldTypes heightType = default;
+            float[] floats = null;
+            short[] shorts = null;
+            byte[] bytes = null;
+
+            if (data is float[])
             {
-                return null;
+                heightType = HeightfieldTypes.Float;
+                floats = data as float[];
+                if (floats.Length != arrayLength) throw new ArgumentException($"Not matched {nameof(size)} and size of {nameof(data)}.");
+            }
+            else if (data is short[])
+            {
+                heightType = HeightfieldTypes.Short;
+                shorts = data as short[];
+                if (shorts.Length != arrayLength) throw new ArgumentException($"Not matched {nameof(size)} and size of {nameof(data)}.");
+            }
+            else if (data is byte[])
+            {
+                heightType = HeightfieldTypes.Byte;
+                bytes = data as byte[];
+                if (bytes.Length != arrayLength) throw new ArgumentException($"Not matched {nameof(size)} and size of {nameof(data)}.");
+            }
+            else
+            {
+                throw new NotSupportedException($"Not supported height type '{data.GetType()}'.");
             }
 
-            var type = data.GetType();
+            return new Heightmap
+            {
+                HeightType = heightType,
+                Size = size,
+                HeightRange = range,
+                HeightScale = scale,
+                Floats = floats,
+                Shorts = shorts,
+                Bytes = bytes,
+            };
+        }
 
-            if (type == typeof(float[]))
-            {
-                return new Heightmap
-                {
-                    HeightType = HeightfieldTypes.Float,
-                    Size = size,
-                    Floats = data as float[],
-                };
-            }
-            else if (type == typeof(short[]))
-            {
-                return new Heightmap
-                {
-                    HeightType = HeightfieldTypes.Short,
-                    Size = size,
-                    Shorts = data as short[],
-                };
-            }
-            else if (type == typeof(byte[]))
-            {
-                return new Heightmap
-                {
-                    HeightType = HeightfieldTypes.Byte,
-                    Size = size,
-                    Bytes = data as byte[],
-                };
-            }
-
-            return null;
+        public static Heightmap Create<T>(Int2 size, Vector2 range, float scale, T[] data) where T : struct
+        {
+            return Create(size, range, scale, data as object);
         }
     }
 }

@@ -4,10 +4,8 @@ using Xenko.Core.Mathematics;
 
 namespace Xenko.Physics
 {
-    public interface IInitialHeightData
+    public interface IInitialHeightfieldHeightData : IHeightfieldHeightDescription
     {
-        HeightfieldTypes HeightType { get; }
-
         Int2 HeightStickSize { get; }
 
         float[] Floats { get; }

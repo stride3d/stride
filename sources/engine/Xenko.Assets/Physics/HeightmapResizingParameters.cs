@@ -5,7 +5,7 @@ using Xenko.Core;
 using Xenko.Core.Annotations;
 using Xenko.Core.Mathematics;
 
-namespace Xenko.Physics
+namespace Xenko.Assets.Physics
 {
     [DataContract]
     public class HeightmapResizingParameters

@@ -18,17 +18,13 @@ namespace Xenko.Assets.Physics
 
         public const string FileExtension = ".xkhmap";
 
-        [DataMember(20)]
-        [Display(category: "Convert")]
+        [DataMember(10)]
+        [Display("Height", category: "Convert", Expand = ExpandRule.Always)]
         [NotNull]
-        public HeightfieldTypes HeightType { get; set; } = HeightfieldTypes.Float;
+        public IHeightmapHeightConversionParameters HeightParameters { get; set; } = new FloatHeightmapHeightConversionParamters();
 
-        [DataMember(30)]
+        [DataMember(20, "Resize")]
         [Display(category: "Convert")]
-        public float HeightScale { get; set; } = 1f;
-
-        [DataMember(40, "Resize")]
-        [Display(category: "Convert", Expand = ExpandRule.Always)]
         [NotNull]
         public HeightmapResizingParameters Resizing { get; set; } = new HeightmapResizingParameters();
 
