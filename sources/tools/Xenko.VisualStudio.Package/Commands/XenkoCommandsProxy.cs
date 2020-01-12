@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using NShader;
 using NuGet.Common;
 using NuGet.Versioning;
@@ -337,7 +338,9 @@ namespace Xenko.VisualStudio.Commands
                     }
                     else
                     {
-                        throw new InvalidOperationException( $"Could not restore {packageName} {packageInfo.ExpectedVersion}, build it or pull it from nugget manually." );
+                        MessageBox.Show( $"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it."
+                                         + $"To fix this you can either build {packageName} or pull the right version from nugget manually" );
+                        throw new InvalidOperationException( $"Could not restore {packageName} {packageInfo.ExpectedVersion}." );
                     }
                 }
             }
