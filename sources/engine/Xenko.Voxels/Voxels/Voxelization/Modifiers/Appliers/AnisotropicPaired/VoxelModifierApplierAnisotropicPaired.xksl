@@ -1,0 +1,7 @@
+﻿shader VoxelModifierApplierAnisotropicPaired
+{
+    void Apply(inout float4 X, inout float4 Y, inout float4 Z){ }
+    void Apply(inout float3 X, inout float3 Y, inout float3 Z){ }
+    void Apply(inout float2 X, inout float2 Y, inout float2 Z){ }
+    void Apply(inout float X, inout float Y, inout float Z){ }
+};

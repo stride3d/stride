@@ -1,0 +1,45 @@
+﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
+using Xenko.Rendering.Lights;
+namespace Xenko.Rendering.Voxels.VoxelGI
+{
+    /// <summary>
+    /// Defines a Voxel environment light
+    /// </summary>
+    shader LightVoxelShader : MarchAttributes, Camera, Texturing, EnvironmentLight, MaterialPixelShadingStream, NormalStream, PositionStream4, Transformation
+    {
+        cbuffer PerView.Lighting
+        {
+            float Intensity;
+            float SpecularIntensity;
+        }
+
+        compose VoxelMarchSet diffuseMarcher;
+        compose VoxelRadiusMarchMethod specularMarcher;
+
+        override void PrepareEnvironmentLight()
+        {
+            base.PrepareEnvironmentLight();
+            if (Intensity > 0.0)
+            {
+                float3 worldPos = streams.PositionWS;
+
+                float3 tan = normalize(cross(streams.normalWS.xyz, normalize(float3(1, 1, 1))));
+                float3 bitan = cross(tan, streams.normalWS.xyz);
+                float3x3 tangentMatrix = float3x3(tan, bitan, streams.normalWS.xyz);
+
+                float4 reflLighting = float4(0, 0, 0, 0);
+
+                float3 startPos = worldPos + streams.normalWS.xyz * specularMarcher.StepSizeRadius(1.0);
+
+                reflLighting = diffuseMarcher.March(worldPos, streams.normalWS.xyz);
+
+                streams.envLightDiffuseColor = reflLighting.rgb * Intensity;
+                if (SpecularIntensity > 0.0)
+                    streams.envLightSpecularColor = specularMarcher.MarchRadius(startPos, reflect(-streams.viewWS, streams.normalWS), sqrt(streams.alphaRoughness)).rgb * SpecularIntensity;
+                else
+                    streams.envLightSpecularColor = float4(0,0,0,0);
+            }
+        }
+    };
+}

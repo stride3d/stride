@@ -1,0 +1,27 @@
+﻿shader VoxelMarchCone<int steps, float stepScale, float coneRatio> : VoxelMarchMethod, VoxelRadiusMarchMethod, MarchAttributes
+{
+    override float4 March(float3 rayPos, float3 rayDir)
+    {
+        return MarchRadius(rayPos, rayDir, 1.0);
+    }
+    override float4 MarchRadius(float3 rayPos, float3 rayDir, float radiusScale)
+    {
+        float voxelSize = AttributeSamplers[AttributeID].VoxelSize();
+        float dist = 0;
+        float4 light = float4(0.0, 0.0, 0.0, 0.0);
+        rayPos += voxelSize * rayDir;
+        for (int i = 0; i < steps; i ++)
+        {
+            float size = max(voxelSize, coneRatio * radiusScale * dist);
+            float3 pos = rayPos + rayDir * dist;
+
+            light += AttributeSamplers[AttributeID].Sample(pos, -rayDir, size) * saturate(1.0 - light.a);
+
+            dist += size * stepScale;
+        }
+        return light;
+    }
+    
+    override float StepSize() { return AttributeSamplers[AttributeID].VoxelSize(); }
+    override float StepSizeRadius(float radiusScale) { return radiusScale * AttributeSamplers[AttributeID].VoxelSize(); }
+};

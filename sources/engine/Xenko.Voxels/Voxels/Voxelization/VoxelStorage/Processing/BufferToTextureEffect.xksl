@@ -1,0 +1,9 @@
+namespace Xenko.Rendering.Voxels
+{
+    partial effect BufferToTextureEffect
+    {
+        using params BufferToTextureKeys;
+        
+        mixin BufferToTexture;
+    };
+}

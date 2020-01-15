@@ -1,0 +1,61 @@
+﻿shader VoxelFragmentPackFloat16 : VoxelFragmentPacker, DataPacking
+{
+    override void Skip(inout uint address, float unpacked){address += 1;}
+    override void Skip(inout uint address, float2 unpacked){address += 1;}
+    override void Skip(inout uint address, float3 unpacked){address += 2;}
+    override void Skip(inout uint address, float4 unpacked){address += 2;}
+    override void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float unpacked)
+    {
+        writer.Write_Internal(fragmentsBuffer, address, FloatToHalfFloat(unpacked.r));
+    }
+    override void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float2 unpacked)
+    {
+        writer.Write_Internal(fragmentsBuffer, address, PackFloat2ToHalfFloat2(unpacked.rg));
+    }
+    override void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float3 unpacked)
+    {
+        writer.Write_Internal(fragmentsBuffer, address, 
+        uint2(
+            PackFloat2ToHalfFloat2(unpacked.rg),
+            FloatToHalfFloat(unpacked.b)
+        )
+        );
+    }
+    override void Write(RWBuffer<uint> fragmentsBuffer, inout uint address, float4 unpacked)
+    {
+        writer.Write_Internal(fragmentsBuffer, address, 
+        uint2(
+            PackFloat2ToHalfFloat2(unpacked.rg),
+            PackFloat2ToHalfFloat2(unpacked.ba)
+        )
+        );
+    }
+
+
+
+
+    override void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float unpacked)
+    {
+        unpacked = HalfFloatToFloat(fragmentsBuffer[address]);
+        address++;
+    }
+    override void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float2 unpacked)
+    {
+        unpacked = UnpackHalfFloat2ToFloat2(fragmentsBuffer[address]);
+        address++;
+    }
+    override void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float3 unpacked)
+    {
+        unpacked.rg = UnpackHalfFloat2ToFloat2(fragmentsBuffer[address]);
+        address++;
+        unpacked.b = HalfFloatToFloat(fragmentsBuffer[address]);
+        address++;
+    }
+    override void Read(RWBuffer<uint> fragmentsBuffer, inout uint address, out float4 unpacked)
+    {
+        unpacked.rg = UnpackHalfFloat2ToFloat2(fragmentsBuffer[address]);
+        address++;
+        unpacked.ba = UnpackHalfFloat2ToFloat2(fragmentsBuffer[address]);
+        address++;
+    }
+};

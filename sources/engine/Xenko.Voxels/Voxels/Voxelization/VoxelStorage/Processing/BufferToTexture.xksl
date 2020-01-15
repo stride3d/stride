@@ -1,0 +1,19 @@
+namespace Xenko.Rendering.Voxels
+{
+    //TODO: Currently broken, is being kept around for its shader keys
+    shader BufferToTexture : LocalSamples, ComputeShaderBase, VoxelPositionStream, DataPacking
+    {
+        stage RWBuffer<uint> VoxelFragments;
+        
+        stage float3 clipMapResolution;
+
+        stage float  storageUints;
+
+        stage uint  clipOffset;
+
+        override void Compute()
+        {
+            //TODO
+        }
+    };
+}

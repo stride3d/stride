@@ -1,0 +1,6 @@
+shader VoxelPositionStream
+{
+    stage stream float3 PositionVXS : POSITIONVXS;
+    stage stream int3 PositionVXPS : POSITIONVXPS;
+    stage stream float3 VoxelVolumeSize : VOXELVOLUMESIZE;
+};

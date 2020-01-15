@@ -1,0 +1,34 @@
+namespace Xenko.Rendering.Voxels
+{
+    shader IVoxelSampler
+    {
+        float4 Sample(float3 position, float3 normal, float diameter)
+        {
+            return 0;
+        }
+        float4 SampleByMipNearestMip(float3 position, float3 normal, float diameter)
+        {
+            return 0;
+        }
+        float4 SampleNearestMip(float3 position, float3 normal, float diameter)
+        {
+            return 0;
+        }
+        float4 SampleRaw(float3 pos, float mipmap, int textureID, int axis)
+        {
+            return float4(1, 0, 0, 0);
+        }
+        float VoxelSize()
+        {
+            return 1.0;
+        }
+        float4 Test()
+        {
+            return float4(1,0,0,1);
+        }
+        float4 ComputeLocal(float3 position)
+        {
+            return 0;
+        }
+    };
+}

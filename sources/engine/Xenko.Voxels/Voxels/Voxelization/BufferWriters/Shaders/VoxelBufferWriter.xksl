@@ -1,0 +1,27 @@
+﻿    shader VoxelBufferWriter
+    {
+        void Write_Internal(RWBuffer<uint> fragmentsBuffer, inout uint address, uint data){}
+        void Write_Internal(RWBuffer<uint> fragmentsBuffer, inout uint address, uint2 data)
+        {
+            Write_Internal(fragmentsBuffer, address,data.x);
+            Write_Internal(fragmentsBuffer, address,data.y);
+        }
+        void Write_Internal(RWBuffer<uint> fragmentsBuffer, inout uint address, uint3 data)
+        {
+            Write_Internal(fragmentsBuffer, address,data.x);
+            Write_Internal(fragmentsBuffer, address,data.y);
+            Write_Internal(fragmentsBuffer, address,data.z);
+        }
+        void Write_Internal(RWBuffer<uint> fragmentsBuffer, inout uint address, uint4 data)
+        {
+            Write_Internal(fragmentsBuffer, address,data.x);
+            Write_Internal(fragmentsBuffer, address,data.y);
+            Write_Internal(fragmentsBuffer, address,data.z);
+            Write_Internal(fragmentsBuffer, address,data.w);
+        }
+        
+        float4 Test()
+        {
+            return float4(1,0,0,1);
+        }
+    };

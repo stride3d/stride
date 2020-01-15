@@ -1,0 +1,52 @@
+namespace Xenko.Rendering.Voxels
+{
+    shader VoxelMipmapHeuristic : Math, Texturing, ComputeShaderBase
+    {
+        [Link("VoxelMipmapSimple.ReadOffset")]
+        stage float3 ReadOffset;
+        [Link("VoxelMipmapSimple.ReadTex")]
+        stage Texture3D<half4> ReadTex;
+        [Link("VoxelMipmapSimple.WriteTex")]
+        stage RWTexture3D<half4> WriteTex;
+        override void Compute()
+        {
+            uint3 pos = streams.DispatchThreadId;
+
+            uint3 posR = pos * 2 + (int3)ReadOffset;
+            float4 fragmentSum = (
+                ReadTex.Load(int4(posR, 0)) +
+                ReadTex.Load(int4(posR + uint3(1, 0, 0), 0)) +
+                ReadTex.Load(int4(posR + uint3(1, 1, 0), 0)) +
+                ReadTex.Load(int4(posR + uint3(1, 0, 1), 0)) +
+                ReadTex.Load(int4(posR + uint3(0, 1, 1), 0)) +
+                ReadTex.Load(int4(posR + uint3(0, 1, 0), 0)) +
+                ReadTex.Load(int4(posR + uint3(0, 0, 1), 0)) +
+                ReadTex.Load(int4(posR + uint3(1, 1, 1), 0))
+            );
+            float filledSum = (
+                ceil(ReadTex.Load(int4(posR, 0)).a) +
+                ceil(ReadTex.Load(int4(posR + uint3(1, 0, 0), 0)).a) +
+                ceil(ReadTex.Load(int4(posR + uint3(1, 1, 0), 0)).a) +
+                ceil(ReadTex.Load(int4(posR + uint3(1, 0, 1), 0)).a) +
+                ceil(ReadTex.Load(int4(posR + uint3(0, 1, 1), 0)).a) +
+                ceil(ReadTex.Load(int4(posR + uint3(0, 1, 0), 0)).a) +
+                ceil(ReadTex.Load(int4(posR + uint3(0, 0, 1), 0)).a) +
+                ceil(ReadTex.Load(int4(posR + uint3(1, 1, 1), 0)).a)
+            );
+            fragmentSum.rgb /= max(filledSum, 4);
+            fragmentSum.a /= 8;
+            WriteTex[pos] = (fragmentSum);
+            //Rather than divide by 8...
+            //I figure that since the visible surface of the
+            //emitter is a 2D projection, it should decrease
+            //by 2 dimensions rather than 3 (i.e divide by 4 rather than 8).
+
+            //This makes the lighting fall-off much more realistic,
+            //but I find the opacity coverage too strong then.
+            //so keep that dividing by 8.
+
+            //Of course, then the brightness in areas with clusters of voxels
+            //becomes too high, so instead divide by the number of filled voxels, minimum 4
+        }
+    };
+}

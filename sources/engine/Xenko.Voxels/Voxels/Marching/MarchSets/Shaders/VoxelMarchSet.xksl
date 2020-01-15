@@ -1,0 +1,4 @@
+﻿shader VoxelMarchSet
+{
+    float4 March(float3 rayPos, float3 rayDir){ return float4(0, 0, 0, 0); }
+};

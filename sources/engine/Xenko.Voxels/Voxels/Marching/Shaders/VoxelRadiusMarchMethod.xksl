@@ -1,0 +1,5 @@
+﻿shader VoxelRadiusMarchMethod
+{
+    float4 MarchRadius(float3 rayPos, float3 rayDir, float radiusScale){ return float4(0, 0, 0, 0); }
+    float StepSizeRadius(float radiusScale){ return radiusScale; }
+};

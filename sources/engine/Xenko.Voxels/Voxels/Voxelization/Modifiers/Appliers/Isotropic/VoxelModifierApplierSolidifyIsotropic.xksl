@@ -1,0 +1,8 @@
+shader VoxelModifierApplierSolidifyIsotropic<int SolidityAttributeID> : VoxelModifierApplierIsotropic, LocalSamples
+{
+    override void Apply(inout float4 center)
+    {
+        float Solidity = streams.LocalSample[SolidityAttributeID].a;
+        center.a = max(Solidity, center.a);
+    }
+};

@@ -1,0 +1,38 @@
+﻿namespace Xenko.Rendering.Voxels
+{
+    shader VoxelAnisotropicPairedSampler : IVoxelSampler, Texturing
+    {
+
+        compose VoxelStorageTextureShader storage;
+        override float4 Sample(float3 position, float3 normal, float diameter)
+        {
+            return storage.Sample(position, diameter, 0)*abs(normal.x)+
+                   storage.Sample(position, diameter, 1)*abs(normal.y)+
+                   storage.Sample(position, diameter, 2)*abs(normal.z);
+        }
+        override float4 SampleNearestMip(float3 position, float3 normal, float diameter)
+        {
+            return storage.SampleNearestMip(position, diameter, 0) * abs(normal.x) +
+                   storage.SampleNearestMip(position, diameter, 1) * abs(normal.y) +
+                   storage.SampleNearestMip(position, diameter, 2) * abs(normal.z);
+        }
+        override float4 SampleByMipNearestMip(float3 position, float3 normal, float diameter)
+        {
+            return storage.SampleByMipNearestMip(position, diameter, 0) * abs(normal.x) +
+                   storage.SampleByMipNearestMip(position, diameter, 1) * abs(normal.y) +
+                   storage.SampleByMipNearestMip(position, diameter, 2) * abs(normal.z);
+        }
+        override float4 SampleRaw(float3 pos, float mipmap, int textureID, int axis)
+        {
+            return storage.SampleRaw(pos, mipmap, textureID, axis);
+        }
+        override float VoxelSize()
+        {
+            return storage.VoxelSize();
+        }
+        override float4 Test()
+        {
+            return float4(0,1,0,1);
+        }
+    };
+}
