@@ -172,7 +172,7 @@ namespace Xenko.Rendering.UI
                     
                     // only update result element, when this one has a value
                     if (loopedElementUnderMouseCursor != null)
-                        elementUnderMouseCursor = loopedElementUnderMouseCursor;
+                        elementUnderMouseCursor = loopedElementUnderMouseCursor; 
                 }
             }
             UIElementUnderMouseCursor = elementUnderMouseCursor;
