@@ -399,6 +399,7 @@ namespace Xenko.Graphics.SDL
         public delegate void WindowEventDelegate(SDL.SDL_WindowEvent e);
         public delegate void KeyDelegate(SDL.SDL_KeyboardEvent e);
         public delegate void JoystickDeviceChangedDelegate(int which);
+        public delegate void TouchFingerDelegate(SDL.SDL_TouchFingerEvent e);
         public delegate void NotificationDelegate();
 
         public event MouseButtonDelegate PointerButtonPressActions;
@@ -412,6 +413,9 @@ namespace Xenko.Graphics.SDL
         public event NotificationDelegate CloseActions;
         public event JoystickDeviceChangedDelegate JoystickDeviceAdded;
         public event JoystickDeviceChangedDelegate JoystickDeviceRemoved;
+        public event TouchFingerDelegate FingerMoveActions;
+        public event TouchFingerDelegate FingerPressActions;
+        public event TouchFingerDelegate FingerReleaseActions;
         public event WindowEventDelegate ResizeBeginActions;
         public event WindowEventDelegate ResizeEndActions;
         public event WindowEventDelegate ActivateActions;
@@ -474,6 +478,18 @@ namespace Xenko.Graphics.SDL
 
                 case SDL.SDL_EventType.SDL_JOYDEVICEREMOVED:
                     JoystickDeviceRemoved?.Invoke(e.jdevice.which);
+                    break;
+
+                case SDL.SDL_EventType.SDL_FINGERMOTION:
+                    FingerMoveActions?.Invoke(e.tfinger);
+                    break;
+
+                case SDL.SDL_EventType.SDL_FINGERDOWN:
+                    FingerPressActions?.Invoke(e.tfinger);
+                    break;
+
+                case SDL.SDL_EventType.SDL_FINGERUP:
+                    FingerReleaseActions?.Invoke(e.tfinger);
                     break;
 
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:

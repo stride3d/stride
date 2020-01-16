@@ -82,9 +82,6 @@ void main()
         // Start offsets for cbuffer
         private static readonly int[] EmptyConstantBufferOffsets = { 0 };
         internal int[] ConstantBufferOffsets = EmptyConstantBufferOffsets;
-
-        internal byte[] BoundUniforms;
-        internal List<Uniform> Uniforms = new List<Uniform>();
 #endif
 
         internal struct Texture
@@ -147,12 +144,8 @@ void main()
                             throw new Exception("Unsupported shader stage");
                     }
 
-#if XENKO_GRAPHICS_API_OPENGLES
-                    var shaderSources = BinarySerialization.Read<ShaderLevelBytecode>(shader.Data);
-                    var shaderSource = GraphicsDevice.IsOpenGLES2 ? shaderSources.DataES2 : shaderSources.DataES3;
-#else
                     var shaderSource = shader.GetDataAsString();
-#endif
+
                     //edit the source a little to emulateDepthClamp
                     if (emulateDepthClamp)
                     {
@@ -229,11 +222,6 @@ void main()
                 }
 
                 CreateReflection(Reflection, effectBytecode.Stages[0].Stage); // need to regenerate the Uniforms on OpenGL ES
-
-#if XENKO_GRAPHICS_API_OPENGLES
-                // Allocate a buffer that can cache all the bound parameters
-                BoundUniforms = new byte[ConstantBufferOffsets[ConstantBufferOffsets.Length - 1]];
-#endif
             }
 
             // output the gathered errors
@@ -452,50 +440,6 @@ void main()
                     }
 #endif
 
-#if XENKO_GRAPHICS_API_OPENGLES
-                    // Process uniforms
-                    if (GraphicsDevice.IsOpenGLES2)
-                    {
-                        switch (uniformType)
-                        {
-                            case ActiveUniformType.Bool:
-                            case ActiveUniformType.Int:
-                                AddUniform(effectReflection, validConstantBuffers, sizeof(int)*1, uniformCount, uniformName, uniformType);
-                                break;
-                            case ActiveUniformType.BoolVec2:
-                            case ActiveUniformType.IntVec2:
-                                AddUniform(effectReflection, validConstantBuffers, sizeof(int)*2, uniformCount, uniformName, uniformType);
-                                break;
-                            case ActiveUniformType.BoolVec3:
-                            case ActiveUniformType.IntVec3:
-                                AddUniform(effectReflection, validConstantBuffers, sizeof(int)*3, uniformCount, uniformName, uniformType);
-                                break;
-                            case ActiveUniformType.BoolVec4:
-                            case ActiveUniformType.IntVec4:
-                                AddUniform(effectReflection, validConstantBuffers, sizeof(int)*4, uniformCount, uniformName, uniformType);
-                                break;
-                            case ActiveUniformType.Float:
-                                AddUniform(effectReflection, validConstantBuffers, sizeof(float)*1, uniformCount, uniformName, uniformType);
-                                break;
-                            case ActiveUniformType.FloatVec2:
-                                AddUniform(effectReflection, validConstantBuffers, sizeof(float)*2, uniformCount, uniformName, uniformType);
-                                break;
-                            case ActiveUniformType.FloatVec3:
-                                AddUniform(effectReflection, validConstantBuffers, sizeof(float)*3, uniformCount, uniformName, uniformType);
-                                break;
-                            case ActiveUniformType.FloatVec4:
-                                AddUniform(effectReflection, validConstantBuffers, sizeof(float)*4, uniformCount, uniformName, uniformType);
-                                break;
-                            case ActiveUniformType.FloatMat4:
-                                AddUniform(effectReflection, validConstantBuffers, sizeof(float)*4*4, uniformCount, uniformName, uniformType);
-                                break;
-                            case ActiveUniformType.FloatMat2:
-                            case ActiveUniformType.FloatMat3:
-                                throw new NotImplementedException();
-                        }
-                    }
-#endif
-
                     switch (uniformType)
                     {
 #if !XENKO_GRAPHICS_API_OPENGLES
@@ -589,172 +533,6 @@ void main()
 
             GL.UseProgram(currentProgram);
         }
-
-#if XENKO_GRAPHICS_API_OPENGLES
-        struct UniformPart
-        {
-            public int Start;
-            public int Count;
-            public int Indexer;
-        }
-
-        private void AddUniform(EffectReflection effectReflection, bool[] validConstantBuffers, int uniformSize, int uniformCount, string uniformName, ActiveUniformType uniformType)
-        {
-            // OpenGL ES 2 is adding uniform for each cbuffer member, so we need to remove array and struct indexers so that we can identify it in cbuffer and find offset
-            var uniformParts = new List<UniformPart>(8);
-            var uniformLastStart = 0;
-            for (var index = 0; index <= uniformName.Length; index++)
-            {
-                char c = index == uniformName.Length ? '.' : uniformName[index]; // Treat string end same as '.'
-                if (c == '.' || c == '[')
-                {
-                    var uniformPart = new UniformPart { Start = uniformLastStart, Count = index - uniformLastStart, Indexer = -1 };
-
-                    // Read array index (if any)
-                    if (c == '[')
-                    {
-                        var indexerStart = ++index;
-                        while (uniformName[index] != ']')
-                            index++;
-                        // TODO: Avoid substring
-                        uniformPart.Indexer = int.Parse(uniformName.Substring(indexerStart, index - indexerStart));
-                        index++;
-                    }
-
-                    uniformParts.Add(uniformPart);
-                    uniformLastStart = index + 1;
-                }
-            }
-
-            var variableName = uniformName.Substring(0, uniformParts[0].Count);
-
-            // check that this uniform is in a constant buffer
-            int indexOfConstantBuffer = -1;
-            int indexOfMember = -1;
-            EffectConstantBufferDescription constantBufferDescription = null;
-            for (int cbIndex = 0; cbIndex < effectReflection.ConstantBuffers.Count; cbIndex++)
-            {
-                var currentConstantBuffer = effectReflection.ConstantBuffers[cbIndex];
-                for (int index = 0; index < currentConstantBuffer.Members.Length; index++)
-                {
-                    var member = currentConstantBuffer.Members[index];
-                    if (member.RawName.Equals(variableName))
-                    {
-                        indexOfConstantBuffer = cbIndex;
-                        indexOfMember = index;
-                        constantBufferDescription = currentConstantBuffer;
-                        break;
-                    }
-                }
-                if (constantBufferDescription != null)
-                    break;
-            }
-
-            if (constantBufferDescription == null)
-            {
-                throw new Exception("The uniform value " + variableName + " is defined outside of a uniform block, which is not supported by the engine.");
-            }
-
-            var indexOfResource = effectReflection.ResourceBindings.FindIndex(x => x.RawName == constantBufferDescription.Name);
-            if (indexOfResource == -1)
-            {
-                reflectionResult.Error($"Unable to find uniform [{uniformName}] in any constant buffer");
-                return;
-            }
-
-            //var constantBufferDescription = effectReflection.ConstantBuffers[indexOfConstantBufferDescription];
-            var constantBuffer = effectReflection.ResourceBindings[indexOfResource];
-
-            // First time we encounter this cbuffer?
-            if (!validConstantBuffers[indexOfConstantBuffer])
-            {
-                constantBuffer.SlotStart = ConstantBufferOffsets.Length - 1;
-
-                // Find next cbuffer slot
-                Array.Resize(ref ConstantBufferOffsets, ConstantBufferOffsets.Length + 1);
-
-                effectReflection.ResourceBindings[indexOfResource] = constantBuffer;
-
-                ConstantBufferOffsets[constantBuffer.SlotStart + 1] = ConstantBufferOffsets[constantBuffer.SlotStart] + constantBufferDescription.Size;
-
-                validConstantBuffers[indexOfConstantBuffer] = true;
-            }
-
-            //var elementSize = uniformSize;
-
-            // For array, each element is rounded to register size
-            //if (uniformSize%16 != 0 && uniformCount > 1)
-            //{
-            //    constantBufferDescription.Size = (constantBufferDescription.Size + 15)/16*16;
-            //    uniformSize = (uniformSize + 15)/16*16;
-            //}
-
-            // Check if it can fits in the same register, otherwise starts at the next one
-            //if (uniformCount == 1 && constantBufferDescription.Size/16 != (constantBufferDescription.Size + uniformSize - 1)/16)
-            //    constantBufferDescription.Size = (constantBufferDescription.Size + 15)/16*16;
-
-            var variable = constantBufferDescription.Members[indexOfMember];
-
-            // Resolve array/member
-            var offset = variable.Offset;
-            var type = variable.Type;
-
-            for (int i = 0; i < uniformParts.Count; ++i)
-            {
-                var uniformPart = uniformParts[i];
-
-                // Apply member
-                if (i > 0)
-                {
-                    if (type.Members == null)
-                        throw new InvalidOperationException($"Tried to find member \"{uniformName.Substring(uniformPart.Start, uniformPart.Count)}\" on a non-struct type when processing \"{uniformName}\"");
-
-                    bool memberFound = false;
-                    for (int memberIndex = 0; memberIndex < type.Members.Length; ++memberIndex)
-                    {
-                        var member = type.Members[memberIndex];
-                        if (string.Compare(member.Name, 0, uniformName, uniformPart.Start, uniformPart.Count) == 0)
-                        {
-                            // Adjust offset and set new type
-                            offset += member.Offset;
-                            type = member.Type;
-
-                            memberFound = true;
-                            break;
-                        }
-                    }
-
-                    if (!memberFound)
-                        throw new InvalidOperationException($"Couldn't find member \"{uniformName.Substring(uniformPart.Start, uniformPart.Count)}\" on struct type \"{type.Name}\" when processing \"{uniformName}\"");
-                }
-                   
-                // Apply indexer for arrays
-                if (uniformPart.Indexer != -1)
-                {
-                    offset += (type.ElementSize + 15) / 16 * 16 * uniformPart.Indexer;
-                }
-            }
-
-            // Check type
-            if (type.Type != GetTypeFromActiveUniformType(uniformType))
-                throw new InvalidOperationException($"Uniform [{uniformName}] of type [{variable.Type.Type}] doesn't match OpenGL shader expected type [{GetTypeFromActiveUniformType(uniformType)}]");
-
-            // No need to compare last element padding.
-            // TODO: In case of float1/float2 arrays (rare) it is quite non-optimal to do a CompareMemory
-            //variable.Size = uniformSize * (uniformCount - 1) + elementSize;
-            //constantBufferDescription.Members[indexOfUniform] = variable;
-
-            Uniforms.Add(new Uniform
-            {
-                Type = uniformType,
-                Count = uniformCount,
-                CompareSize = uniformSize + (uniformSize + 15)/16*16 * (uniformCount - 1),
-                ConstantBufferSlot = constantBuffer.SlotStart,
-                Offset = offset,
-                UniformIndex = GL.GetUniformLocation(ProgramId, uniformName)
-            });
-        }
-#endif
 
         /// <summary>
         /// Inserts the data in the list if this is a copy of a previously set one.

@@ -42,9 +42,9 @@ namespace Xenko.Core.Presentation.Graph.ViewModel
         /// <param name="showArrows"></param>
         /// <param name="visibility"></param>
         /// <returns></returns>
-        public EdgeControl CreateEdgeControl(VertexControl source, VertexControl target, object edge, bool showLabels = false, bool showArrows = true, Visibility visibility = Visibility.Visible)
+        public EdgeControl CreateEdgeControl(VertexControl source, VertexControl target, object edge, bool showArrows = true, Visibility visibility = Visibility.Visible)
         {
-            return new NodeEdgeControl(source, target, edge, showLabels, showArrows) { Visibility = visibility, RootArea = FactoryRootArea };
+            return new NodeEdgeControl(source, target, edge, showArrows) { Visibility = visibility, RootArea = FactoryRootArea };
         }
 
         /// <summary>

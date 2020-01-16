@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using NShader;
 using NuGet.Common;
 using NuGet.Versioning;
@@ -43,6 +44,11 @@ namespace Xenko.VisualStudio.Commands
 
         private readonly IXenkoCommands remote;
         private readonly List<Tuple<string, DateTime>> assembliesLoaded = new List<Tuple<string, DateTime>>();
+
+        public static PackageInfo CurrentPackageInfo
+        {
+            get { lock (computedPackageInfoLock) { return computedPackageInfo; } }
+        }
 
         static XenkoCommandsProxy()
         {
@@ -332,7 +338,9 @@ namespace Xenko.VisualStudio.Commands
                     }
                     else
                     {
-                        // TODO: Report error from log
+                        MessageBox.Show( $"Could not restore {packageName} {packageInfo.ExpectedVersion}, this visual studio extension may fail to work properly without it."
+                                         + $"To fix this you can either build {packageName} or pull the right version from nugget manually" );
+                        throw new InvalidOperationException( $"Could not restore {packageName} {packageInfo.ExpectedVersion}." );
                     }
                 }
             }

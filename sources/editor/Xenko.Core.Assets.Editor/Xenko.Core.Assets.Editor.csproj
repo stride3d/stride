@@ -1,6 +1,6 @@
 ﻿<Project>
   <Import Project="..\..\targets\Xenko.Core.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
@@ -11,23 +11,20 @@
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="3.4.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.6.0" />
     <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="System.Diagnostics.Tracing" Version="4.3.0" />
     <Reference Include="System.Management" />
-    <PackageReference Include="System.Runtime" Version="4.3.0" />
-    <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.7.0" />
-    <Reference Include="System.Windows.Interactivity">
-      <HintPath>$(XenkoCommonDependenciesDir)ExpressionBlendSDK\System.Windows.Interactivity.dll</HintPath>
-    </Reference>
+    <PackageReference Include="System.Runtime" Version="4.3.1" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.10.0" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\assets\Xenko.Core.Assets\PackageSessionHelper.Solution.cs">
@@ -78,7 +75,7 @@
   </ItemGroup>
   <Import Project="..\..\editor\Xenko.Core.MostRecentlyUsedFiles\Xenko.Core.MostRecentlyUsedFiles.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>

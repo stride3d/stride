@@ -160,6 +160,12 @@ namespace Xenko.Graphics.SDL
                     ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.text.windowID));
                     break;
 
+                case SDL.SDL_EventType.SDL_FINGERMOTION:
+                case SDL.SDL_EventType.SDL_FINGERDOWN:
+                case SDL.SDL_EventType.SDL_FINGERUP:
+                    ctrl = WindowWithFocus;
+                    break;
+
                 case SDL.SDL_EventType.SDL_WINDOWEVENT:
                 {
                     ctrl = WindowFromSdlHandle(SDL.SDL_GetWindowFromID(e.window.windowID));

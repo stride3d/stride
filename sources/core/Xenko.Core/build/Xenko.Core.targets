@@ -1,17 +1,4 @@
-<Project InitialTargets="XenkoCheckRequirements;_XenkoCheckVisualCRuntime2015" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!--Check requirements when running this build file -->
-  <Target Name="XenkoCheckRequirements">
-    <Error Condition="'$(XenkoPlatform)' == ''" Text="The property %24(XenkoPlatform) must be defined by the project"/>
-
-    <!-- If we compile without Visual Studio, still properly resolve platform if SolutionPath is given -->
-    <MSBuild Projects="$(SolutionPath)"
-             Condition="'$(BuildingInsideVisualStudio)' != 'true' and '$(BuildingSolutionFile)' != 'true' and '$(SolutionPath)' != '' and '$(SolutionPath)' != '*Undefined*'"
-             Targets="GetSolutionConfigurationContents"
-             Properties="Configuration=$(Configuration);Platform=$(SolutionPlatform)"
-             ContinueOnError="$(ContinueOnError)">
-      <Output TaskParameter="TargetOutputs" PropertyName="CurrentSolutionConfigurationContents"/>
-    </MSBuild>
-  </Target>
+<Project InitialTargets="_XenkoCheckVisualCRuntime2015" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Check if Visual C++ Runtime 2015 is properly installed -->
   <Target Name="_XenkoCheckVisualCRuntime2015" Condition="'$(MSBuildRuntimeType)' == 'Full'">
     <ItemGroup>
@@ -63,8 +50,8 @@
   <PropertyGroup>
     <!--By default, turn on assembly processor-->
     <XenkoAssemblyProcessor Condition="'$(XenkoAssemblyProcessor)' == ''">true</XenkoAssemblyProcessor>
-    <XenkoAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe</XenkoAssemblyProcessorPath>
-    <XenkoAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed.exe</XenkoAssemblyProcessorPath>
+    <XenkoAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\tools\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed2.exe</XenkoAssemblyProcessorPath>
+    <XenkoAssemblyProcessorPath Condition="Exists('$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed2.exe')">$(MSBuildThisFileDirectory)..\..\..\..\deps\AssemblyProcessor\Xenko.Core.AssemblyProcessor.Packed2.exe</XenkoAssemblyProcessorPath>
   </PropertyGroup>
   <UsingTask TaskName="AssemblyProcessorTask" AssemblyFile="$(XenkoAssemblyProcessorPath)" Condition=" '$(XenkoAssemblyProcessorPath)' != '' And '$(XenkoAssemblyProcessorDev)' != 'true' "/>
   <Target Name="XenkoRunAssemblyProcessor" DependsOnTargets="ResolveAssemblyReferences">

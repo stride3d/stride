@@ -64,7 +64,7 @@ namespace Xenko.Shaders.Compiler.OpenGL
                     break;
                 case GraphicsPlatform.OpenGLES:
                     shaderPlatform = GlslShaderPlatform.OpenGLES;
-                    shaderVersion = effectParameters.Profile >= GraphicsProfile.Level_10_0 ? 300 : 100;
+                    shaderVersion = 300;
                     break;
                 case GraphicsPlatform.Vulkan:
                     shaderPlatform = GlslShaderPlatform.Vulkan;
@@ -92,27 +92,7 @@ namespace Xenko.Shaders.Compiler.OpenGL
                 }
             }
 
-            if (effectParameters.Platform == GraphicsPlatform.OpenGLES)
-            {
-                // store both ES 2 and ES 3 on OpenGL ES platforms
-                var shaderBytecodes = new ShaderLevelBytecode();
-                if (effectParameters.Profile >= GraphicsProfile.Level_10_0)
-                {
-                    shaderBytecodes.DataES3 = shader;
-                    shaderBytecodes.DataES2 = null;
-                }
-                else
-                {
-                    shaderBytecodes.DataES2 = shader;
-                    shaderBytecodes.DataES3 = Compile(shaderSource, entryPoint, stage, GlslShaderPlatform.OpenGLES, 300, shaderBytecodeResult, reflection, inputAttributeNames, resourceBindings, sourceFilename);
-                }
-                using (var stream = new MemoryStream())
-                {
-                    BinarySerialization.Write(stream, shaderBytecodes);
-                    rawData = stream.GetBuffer();
-                }
-            }
-            else if (effectParameters.Platform == GraphicsPlatform.Vulkan)
+            if (effectParameters.Platform == GraphicsPlatform.Vulkan)
             {
                 string inputFileExtension;
                 switch (stage)
@@ -179,9 +159,6 @@ namespace Xenko.Shaders.Compiler.OpenGL
 
         private string Compile(string shaderSource, string entryPoint, ShaderStage stage, GlslShaderPlatform shaderPlatform, int shaderVersion, ShaderBytecodeResult shaderBytecodeResult, EffectReflection reflection, IDictionary<int, string> inputAttributeNames, Dictionary<string, int> resourceBindings, string sourceFilename = null)
         {
-            if (shaderPlatform == GlslShaderPlatform.OpenGLES && shaderVersion < 300 && renderTargetCount > 1)
-                shaderBytecodeResult.Error("OpenGL ES 2 does not support multiple render targets.");
-
             PipelineStage pipelineStage = PipelineStage.None;
             switch (stage)
             {
@@ -299,16 +276,16 @@ namespace Xenko.Shaders.Compiler.OpenGL
 
                 if (shaderPlatform == GlslShaderPlatform.Vulkan)
                 {
-                    // Defines the ordering of resource groups in Vulkan. This is mirrored in the PipelineState
-                    var resourceGroups = reflection.ResourceBindings.Select(x => x.ResourceGroup ?? "Globals").Distinct().ToList();
-
                     // Register "NoSampler", required by HLSL=>GLSL translation to support HLSL such as texture.Load().
                     var noSampler = new EffectResourceBindingDescription { KeyInfo = { KeyName = "NoSampler" }, RawName = "NoSampler", Class = EffectParameterClass.Sampler, SlotStart = -1, SlotCount = 1 };
                     reflection.ResourceBindings.Add(noSampler);
 
+                    // Defines the ordering of resource groups in Vulkan. This is mirrored in the PipelineState
+                    var resourceGroups = reflection.ResourceBindings.Select(x => x.ResourceGroup ?? "Globals").Distinct().ToList();
+
                     var bindings = resourceGroups.SelectMany(resourceGroup => reflection.ResourceBindings
                         .Where(x => x.ResourceGroup == resourceGroup || (x.ResourceGroup == null && resourceGroup == "Globals"))
-                        .GroupBy(x => new { KeyName = x.KeyInfo.KeyName, RawName = x.RawName, Class = x.Class, Type = x.Type, SlotCount = x.SlotCount, LogicalGroup = x.LogicalGroup })
+                        .GroupBy(x => new { KeyName = x.KeyInfo.KeyName, RawName = x.RawName, Class = x.Class, Type = x.Type, ElementType = x.ElementType.Type, SlotCount = x.SlotCount, LogicalGroup = x.LogicalGroup })
                         .OrderBy(x => x.Key.Class == EffectParameterClass.ConstantBuffer ? 0 : 1))
                         .ToList();
 

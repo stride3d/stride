@@ -67,6 +67,7 @@ namespace Xenko.Input
         /// <param name="winformControl"></param>
         private void MissingInputHack(Control winformControl)
         {
+#if XENKO_INPUT_RAWINPUT
             if (winformControl.Handle == IntPtr.Zero)
             {
                 winformControl.HandleCreated += (sender, args) =>
@@ -81,6 +82,7 @@ namespace Xenko.Input
             {
                 SharpDX.RawInput.Device.RegisterDevice(SharpDX.Multimedia.UsagePage.Generic, SharpDX.Multimedia.UsageId.GenericKeyboard, SharpDX.RawInput.DeviceFlags.None, winformControl.Handle, SharpDX.RawInput.RegisterDeviceOptions.NoFiltering);
             }
+#endif
         }
 
         public override void Dispose()

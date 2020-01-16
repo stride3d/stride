@@ -45,8 +45,8 @@ Hierarchy:
                                 Size: XLarge
                                 DepthRange: {}
                                 PartitionMode: !LightDirectionalShadowMap.PartitionLogarithmic {}
-                                ComputeTransmittance: false
                                 BiasParameters: {}
+                                ComputeTransmittance: false
                         Intensity: 5.0
         -   Entity:
                 Id: 2b57370f-e61c-41c5-b8c4-df6619837e29
@@ -84,7 +84,7 @@ Hierarchy:
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
                         Id: 5b6e2307-e465-4da0-8d84-b9624682ef9f
-                        Url: EasternChunk
+                        Url: feaab56f-3f56-48e0-83be-dfe2f38f65a6:EasternChunk
                         Trigger: !RigidbodyComponent ref!! 00eee251-501b-4d85-b1b2-cdf1d7608ee4
         -   Entity:
                 Id: 3113203c-2276-420b-bf0d-fce00d95dc58
@@ -122,7 +122,7 @@ Hierarchy:
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
                         Id: 276ff6f0-dcc0-4945-b13e-f2dd2664b4e0
-                        Url: SouthernChunk
+                        Url: 7cdb3d4a-151d-4851-a736-fec1bba593d3:SouthernChunk
                         Trigger: !RigidbodyComponent ref!! 52032222-a039-47be-9d21-4a6c3adca582
         -   Entity:
                 Id: 36396dfa-6aa4-4489-a7f5-e45f569bb082
@@ -291,7 +291,7 @@ Hierarchy:
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
                         Id: 0d6efc2a-7d05-4295-aa27-1438d51972c0
-                        Url: WesternChunk
+                        Url: 465718fa-96e7-4d3b-897d-8e7075b1a9ae:WesternChunk
                         Trigger: !RigidbodyComponent ref!! 06ed6375-b5de-40e6-88e8-16ba15e8f474
         -   Folder: GlobalLights
             Entity:
@@ -376,7 +376,7 @@ Hierarchy:
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
                         Id: 1f7da7c0-2b66-4b6b-b5c2-924baea7652c
-                        Url: NorthernChunk
+                        Url: cd7db7bc-2d8e-45be-a6d9-4b7e9008e949:NorthernChunk
                         Trigger: !RigidbodyComponent ref!! 34034a61-5c72-4401-8c28-f112ab89f36b
         -   Entity:
                 Id: c3648c46-3fef-42fd-a935-6c2663254381
@@ -414,7 +414,7 @@ Hierarchy:
                                 LocalRotation: {X: 0.0, Y: 0.0, Z: 0.0, W: 1.0}
                     2eac96e8c90a836d8754e3f24fa1a99e: !Gameplay.SceneStreaming,TopDownRPG.Game
                         Id: 399f44ea-00ce-44fc-80ff-474e65ec1c9b
-                        Url: CentralChunk
+                        Url: 805ec36b-feab-40fb-93cd-8f5083937659:CentralChunk
                         Trigger: !RigidbodyComponent ref!! 78b1ff69-cfed-4a09-8c1b-eb12cbf817b1
         -   Entity:
                 Id: f7e977f3-a569-4ae2-a4e8-89afaf7e0817

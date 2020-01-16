@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>CSharpBeginner</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Xenko.Engine" Version="3.2.0.1-beta01" />
+    <PackageReference Include="Xenko.Video" Version="3.2.0.1-beta01" />
+    <PackageReference Include="Xenko.Physics" Version="3.2.0.1-beta01" />
+    <PackageReference Include="Xenko.Navigation" Version="3.2.0.1-beta01" />
+    <PackageReference Include="Xenko.Particles" Version="3.2.0.1-beta01" />
+    <PackageReference Include="Xenko.UI" Version="3.2.0.1-beta01" />
+    <PackageReference Include="Xenko.Core.Assets.CompilerApp" Version="3.2.0.1-beta01" IncludeAssets="build;buildTransitive" />
+    <ProjectReference Include="..\..\..\..\Templates\Packs\PrototypingBlocks\PrototypingBlocks.csproj" />
+    <ProjectReference Include="..\..\..\..\Templates\Packs\mannequinModel\mannequinModel.csproj" />
+    <ProjectReference Include="..\..\..\..\Templates\Packs\SamplesAssetPackage\SamplesAssetPackage.csproj" />
+  </ItemGroup>
+</Project>

@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Threading.Tasks;
+using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Engine;
 using Xenko.Games;
@@ -161,7 +162,8 @@ namespace TopDownRPG.Core
 
             var minDistance = float.PositiveInfinity;
 
-            var result = simulation.RaycastPenetrating(vectorNear.XYZ(), vectorFar.XYZ());
+            var result = new FastList<HitResult>();
+            simulation.RaycastPenetrating(vectorNear.XYZ(), vectorFar.XYZ(), result);
             foreach (var hitResult in result)
             {
                 ClickType type = ClickType.Empty;

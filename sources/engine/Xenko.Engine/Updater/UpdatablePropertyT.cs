@@ -12,8 +12,7 @@ namespace Xenko.Updater
     /// <typeparam name="T">The property type.</typeparam>
     public class UpdatableProperty<T> : UpdatableProperty where T : struct
     {
-        public UpdatableProperty(IntPtr getter, IntPtr setter)
-            : base(getter, setter)
+        public UpdatableProperty(IntPtr getter, bool virtualDispatchGetter, IntPtr setter, bool virtualDispatchSetter) : base(getter, virtualDispatchGetter, setter, virtualDispatchSetter)
         {
         }
 

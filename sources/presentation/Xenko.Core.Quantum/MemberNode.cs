@@ -111,7 +111,7 @@ namespace Xenko.Core.Quantum
             var containerValue = Parent.Retrieve();
             if (containerValue == null)
                 throw new InvalidOperationException("Container's value is null");
-            MemberDescriptor.Set(containerValue, newValue);
+            MemberDescriptor.Set(containerValue, ConvertValue(newValue, MemberDescriptor.Type));
 
             if (containerValue.GetType().GetTypeInfo().IsValueType)
                 ((GraphNodeBase)Parent).UpdateFromMember(containerValue, NodeIndex.Empty);

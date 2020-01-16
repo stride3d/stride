@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Annotations;
 using Xenko.Core.Presentation.Extensions;
 using Xenko.Core.Presentation.Internal;

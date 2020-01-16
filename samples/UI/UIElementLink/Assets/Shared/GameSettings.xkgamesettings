@@ -1,6 +1,6 @@
 !GameSettingsAsset
 Id: d60dae7b-9e44-44ad-bbe6-1e790cbc9f83
-SerializedVersion: {Xenko: 2.1.0.3}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
 DefaultScene: 67a9eb30-7686-4b8c-89c3-19f12755774e:FullScreen
 GraphicsCompositor: e571b655-a83d-4c90-b560-d3b182426fc7:GraphicsCompositor
@@ -18,7 +18,7 @@ Defaults:
         TextureQuality: Fast
     - !Xenko.Audio.AudioEngineSettings,Xenko.Audio
         HrtfSupport: false
-    - !Xenko.Streaming.StreamingSettings,Xenko.Engine
+    - !Xenko.Streaming.StreamingSettings,Xenko.Rendering
         ManagerUpdatesInterval: 0:00:00:00.0330000
         ResourceLiveTimeout: 0:00:00:08.0000000
 Overrides: []

@@ -13,7 +13,7 @@ using Xenko.Core.Presentation.Extensions;
 using System.Linq;
 using GraphX;
 using System.Diagnostics;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using GraphX.Controls;
 using System.Collections.Generic;
 using System.Collections;

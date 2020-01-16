@@ -114,7 +114,7 @@ namespace Xenko.Rendering
 
             Dispatcher.ForEach(((RootEffectRenderFeature)RootRenderFeature).RenderNodes, (ref RenderNode renderNode) =>
             {
-                var perDrawLayout = renderNode.RenderEffect.Reflection.PerDrawLayout;
+                var perDrawLayout = renderNode.RenderEffect.Reflection?.PerDrawLayout;
                 if (perDrawLayout == null)
                     return;
 

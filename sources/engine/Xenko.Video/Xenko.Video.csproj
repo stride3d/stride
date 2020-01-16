@@ -5,7 +5,7 @@
     <XenkoGraphicsApiDependent>true</XenkoGraphicsApiDependent>
   </PropertyGroup>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <XenkoAssemblyProcessor>true</XenkoAssemblyProcessor>
     <XenkoPlatformDependent>true</XenkoPlatformDependent>
@@ -24,18 +24,12 @@
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Update="Shaders\VideoShader.cs">
-      <DependentUpon>VideoShader.xksl</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DesignTime>True</DesignTime>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Xenko.Engine\Xenko.Engine.csproj" />
-    <PackageReference Include="SharpDX.MediaFoundation" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
-    <PackageReference Include="SharpDX.Direct3D12" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.MediaFoundation" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="SharpDX.Direct3D12" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'Windows'" />
   </ItemGroup>
   <Choose>
     <When Condition="$(DefineConstants.Contains(XENKO_VIDEO_FFMPEG))">
@@ -56,14 +50,8 @@
     </When>
   </Choose>
   <ItemGroup>
-    <None Update="Shaders\VideoShader.xksl">
-      <Generator>XenkoShaderKeyGenerator</Generator>
-      <LastGenOutput>VideoShader.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" Condition="'$(XenkoPlatform)' == 'Windows'" />
   </ItemGroup>
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 </Project>

@@ -2,9 +2,9 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
 using System.ComponentModel;
-
 using Xenko.Core.Mathematics;
 using Xenko.Core.Reflection;
+using Xenko.Core.Serialization;
 using Xenko.Core.TypeConverters;
 
 namespace Xenko.Core
@@ -16,6 +16,7 @@ namespace Xenko.Core
         {
             // Make sure that this assembly is registered
             AssemblyRegistry.Register(typeof(Module).Assembly, AssemblyCommonCategories.Assets);
+
             TypeDescriptor.AddAttributes(typeof(Color), new TypeConverterAttribute(typeof(ColorConverter)));
             TypeDescriptor.AddAttributes(typeof(Color3), new TypeConverterAttribute(typeof(Color3Converter)));
             TypeDescriptor.AddAttributes(typeof(Color4), new TypeConverterAttribute(typeof(Color4Converter)));
@@ -28,6 +29,7 @@ namespace Xenko.Core
             TypeDescriptor.AddAttributes(typeof(Vector2), new TypeConverterAttribute(typeof(Vector2Converter)));
             TypeDescriptor.AddAttributes(typeof(Vector3), new TypeConverterAttribute(typeof(Vector3Converter)));
             TypeDescriptor.AddAttributes(typeof(Vector4), new TypeConverterAttribute(typeof(Vector4Converter)));
+            TypeDescriptor.AddAttributes(typeof(IUrlReference), new TypeConverterAttribute(typeof(UrlReferenceConverter)));
         }
     }
 }

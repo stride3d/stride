@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModel="clr-namespace:Xenko.Assets.Presentation.ViewModel"
              xmlns:uevm="clr-namespace:Xenko.Assets.Presentation.AssetEditors.UIEditor.ViewModels"
-             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:cm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              xmlns:panels="clr-namespace:Xenko.UI.Panels;assembly=Xenko.UI"
              xmlns:views="clr-namespace:Xenko.Assets.Presentation.AssetEditors.AssetCompositeGameEditor.Views"

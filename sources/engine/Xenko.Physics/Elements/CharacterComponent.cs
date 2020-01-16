@@ -15,6 +15,7 @@ namespace Xenko.Physics
     {
         public CharacterComponent()
         {
+            Orientation = Quaternion.Identity;
             StepHeight = 0.1f;
             ProcessCollisions = true;
         }

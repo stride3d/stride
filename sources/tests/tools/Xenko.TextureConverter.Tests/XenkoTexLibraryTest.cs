@@ -44,7 +44,6 @@ namespace Xenko.TextureConverter.Tests
             TexImage image = TestTools.Load(library, "Texture3D_WMipMaps_ATC_RGBA_Explicit.xk");
             Assert.False(library.CanHandleRequest(image, new DecompressingRequest(false)));
             Assert.False(library.CanHandleRequest(image, new LoadingRequest(new TexImage(), false)));
-            Assert.True(library.CanHandleRequest(image, new LoadingRequest(Xenko.Graphics.Image.New1D(5, 0, Xenko.Graphics.PixelFormat.ATC_RGBA_Explicit), false)));
             Assert.True(library.CanHandleRequest(image, new LoadingRequest("TextureArray_WMipMaps_BC3.dds", false)));
             Assert.True(library.CanHandleRequest(image, new ExportRequest("TextureArray_WMipMaps_BC3.xk", 0)));
             Assert.True(library.CanHandleRequest(image, new ExportToXenkoRequest()));

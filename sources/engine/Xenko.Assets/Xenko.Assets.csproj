@@ -1,6 +1,6 @@
 ﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>$(TargetFrameworkTool)</TargetFramework>
@@ -16,26 +16,18 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.0.461" ExcludeAssets="runtime" />
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.0.1" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
     <!--PackageReference Include="Esent.Interop" Version="1.9.4" /-->
     <PackageReference Include="FFmpeg.AutoGen" Version="3.4.0.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.10.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="2.10.0" />
-    <Reference Include="Microsoft.CSharp" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.1.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="3.1.0" />
     <Reference Include="Renci.SshNet">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\deps\SSH.NET\Renci.SshNet.dll</HintPath>
     </Reference>
     <PackageReference Include="System.AppContext" Version="4.3.0" />
-    <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <PackageReference Include="System.Composition.AttributedModel" Version="1.1.0" />
-    <PackageReference Include="System.Composition.Convention" Version="1.1.0" />
-    <PackageReference Include="System.Composition.Hosting" Version="1.1.0" />
-    <PackageReference Include="System.Composition.Runtime" Version="1.1.0" />
-    <PackageReference Include="System.Composition.TypedParts" Version="1.1.0" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <PackageReference Include="System.Console" Version="4.3.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.6.0" />
+    <PackageReference Include="System.Console" Version="4.3.1" />
     <PackageReference Include="System.Diagnostics.FileVersionInfo" Version="4.3.0" />
     <PackageReference Include="System.Diagnostics.StackTrace" Version="4.3.0" />
     <PackageReference Include="System.IO" Version="4.3.0" />
@@ -43,17 +35,17 @@
     <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Reflection" Version="4.3.0" />
-    <PackageReference Include="System.Reflection.Metadata" Version="1.6.0" />
-    <PackageReference Include="System.Runtime" Version="4.3.0" />
-    <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Metadata" Version="1.7.0" />
+    <PackageReference Include="System.Runtime" Version="4.3.1" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.1" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.1" />
     <PackageReference Include="System.Security.Cryptography.Encoding" Version="4.3.0" />
     <PackageReference Include="System.Security.Cryptography.Primitives" Version="4.3.0" />
     <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.4.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="4.6.0" />
     <PackageReference Include="System.Threading.Thread" Version="4.3.0" />
-    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Xml.ReaderWriter" Version="4.3.1" />
     <PackageReference Include="System.Xml.XmlDocument" Version="4.3.0" />
     <PackageReference Include="System.Xml.XPath" Version="4.3.0" />
@@ -126,7 +118,7 @@
   </ItemGroup>
   <Import Project="..\..\shared\Xenko.Core.ShellHelper\Xenko.Core.ShellHelper.projitems" Label="Shared" />
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>

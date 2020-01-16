@@ -31,14 +31,14 @@ namespace Xenko.Assets.Tests2
             { Tuple.Create(PlatformType.UWP, AlphaFormat.Interpolated), PixelFormat.BC3_UNorm },
 
             { Tuple.Create(PlatformType.Android, AlphaFormat.None), PixelFormat.ETC1 },
-            { Tuple.Create(PlatformType.Android, AlphaFormat.Mask), PixelFormat.R8G8B8A8_UNorm },
-            { Tuple.Create(PlatformType.Android, AlphaFormat.Explicit), PixelFormat.R8G8B8A8_UNorm },
-            { Tuple.Create(PlatformType.Android, AlphaFormat.Interpolated), PixelFormat.R8G8B8A8_UNorm },
+            { Tuple.Create(PlatformType.Android, AlphaFormat.Mask), PixelFormat.ETC2_RGB_A1 },
+            { Tuple.Create(PlatformType.Android, AlphaFormat.Explicit), PixelFormat.ETC2_RGBA },
+            { Tuple.Create(PlatformType.Android, AlphaFormat.Interpolated), PixelFormat.ETC2_RGBA },
 
-            { Tuple.Create(PlatformType.iOS, AlphaFormat.None), PixelFormat.PVRTC_4bpp_RGB },
-            { Tuple.Create(PlatformType.iOS, AlphaFormat.Mask), PixelFormat.PVRTC_4bpp_RGBA },
-            { Tuple.Create(PlatformType.iOS, AlphaFormat.Explicit), PixelFormat.PVRTC_4bpp_RGBA },
-            { Tuple.Create(PlatformType.iOS, AlphaFormat.Interpolated), PixelFormat.PVRTC_4bpp_RGBA },
+            { Tuple.Create(PlatformType.iOS, AlphaFormat.None), PixelFormat.ETC1 },
+            { Tuple.Create(PlatformType.iOS, AlphaFormat.Mask), PixelFormat.ETC2_RGB_A1 },
+            { Tuple.Create(PlatformType.iOS, AlphaFormat.Explicit), PixelFormat.ETC2_RGBA },
+            { Tuple.Create(PlatformType.iOS, AlphaFormat.Interpolated), PixelFormat.ETC2_RGBA },
         };
 
         private static void CheckTextureFormat(Game game, string textureUrl, AlphaFormat expectedFormat)

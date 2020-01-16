@@ -89,7 +89,7 @@ namespace Xenko.Graphics.Font
             return CharacterToGlyph.ContainsKey(c);
         }
 
-        protected override Glyph GetGlyph(CommandList commandList, char character, ref Vector2 fontSize, bool dumb, out Vector2 fixScaling)
+        protected override Glyph GetGlyph(CommandList commandList, char character, in Vector2 fontSize, bool dumb, out Vector2 fixScaling)
         {
             Glyph glyph = null;
             fixScaling = new Vector2(1, 1);

@@ -1,46 +1,17 @@
 ﻿<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.UnitTests.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <RootNamespace>Xenko.Assets.Tests</RootNamespace>
-    <AssemblyName>Xenko.Assets.Tests</AssemblyName>
     <TargetFramework>net472</TargetFramework>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultItems>false</EnableDefaultItems>
-    <XenkoPlatform>Windows</XenkoPlatform>
-    <XenkoBuildProfile>Windows</XenkoBuildProfile>
-    <XenkoPackageGuid>{04ed1618-1a06-4a69-ac34-1006a978af11}</XenkoPackageGuid>
-    <XenkoCompileAssets>false</XenkoCompileAssets>
-    <XenkoGraphicsApi Condition="'$(XenkoGraphicsApi)' == ''">Direct3D11</XenkoGraphicsApi>
-    <XenkoOutputFolder>Tests\$(AssemblyName)</XenkoOutputFolder>
-    <XenkoOpenSourceSign>false</XenkoOpenSourceSign>
-    <!-- Force msbuild to check to rebuild this assembly instead of letting VS IDE guess -->
-    <DisableFastUpToDateCheck>true</DisableFastUpToDateCheck>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>..\..\..\Bin\$(XenkoPlatformFullName)\$(XenkoOutputFolder)</OutputPath>
-    <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(XenkoPlatformFullName)-$(XenkoGraphicsApi)\$(Configuration)</IntermediateOutputPath>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>Xenko.Assets.Tests.Program</StartupObject>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <PlatformTarget>x64</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\tests\xunit.runner.xenko\xunit.runner.xenko.csproj" />
     <ProjectReference Include="..\Xenko.Assets\Xenko.Assets.csproj" />
     <ProjectReference Include="..\Xenko.Assets.Models\Xenko.Assets.Models.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\assets\Xenko.Core.Assets.Tests\Helpers\GuidGenerator.cs">
@@ -48,7 +19,6 @@
     </Compile>
     <Compile Include="XunitAttributes.cs" />
     <Compile Include="TestMaterialGenerator.cs" />
-    <Compile Include="Program.cs" />
     <Compile Include="AssetImportTests.cs" />
     <Compile Include="TestDependencyResolver.cs" />
     <Compile Include="TestPrefabAsset.cs" />
@@ -69,7 +39,6 @@
       <Link>app_data\Xenko.Assets.Tests\TX-Factory_Ground.dds</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="app.config" />
     <None Include="materials\testConstantValueKey.xkmat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -129,9 +98,5 @@
     <Folder Include="Xenko.Assets.Tests\Projects\MaterialDeps\subfolder\" />
     <Folder Include="Xenko.Assets.Tests\Projects\TextureDeps\" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
   <Import Project="..\..\targets\Xenko.UnitTests.targets" />
 </Project>

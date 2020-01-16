@@ -753,7 +753,21 @@ namespace Xenko.Core.Shaders.Analysis.Hlsl
             public static Function[] Functions = new[]
 	        {
 		        // Missing5: dst EvaluateAttribute
-		        //           Interlocked*
+		        Template1("InterlockedAdd", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0), Param("original_value", 0, outParam: true)),
+		        Template1("InterlockedAdd", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0)),
+		        Template1("InterlockedAnd", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0), Param("original_value", 0, outParam: true)),
+		        Template1("InterlockedAnd", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0)),
+		        Template1("InterlockedCompareExchange", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("compare_value", 0), Param("value", 0), Param("original_value", 0, outParam: true)),
+		        Template1("InterlockedCompareStore", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("compare_value", 0), Param("value", 0)),
+		        Template1("InterlockedExchange", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0), Param("original_value", 0, outParam: true)),
+		        Template1("InterlockedMax", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0), Param("original_value", 0, outParam: true)),
+		        Template1("InterlockedMax", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0)),
+		        Template1("InterlockedMin", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0), Param("original_value", 0, outParam: true)),
+		        Template1("InterlockedMin", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0)),
+		        Template1("InterlockedOr", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0), Param("original_value", 0, outParam: true)),
+		        Template1("InterlockedOr", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0)),
+		        Template1("InterlockedXor", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0), Param("original_value", 0, outParam: true)),
+		        Template1("InterlockedXor", new[] { Target.Scalar }, new[] {ScalarType.Int, ScalarType.UInt }, Param((f, p) => TypeBase.Void), Param("dest", 0), Param("value", 0)),
 		        Template1("abs", AllTargets, NumericTargets, Param(0), Param("x", 0)),
 		        Template1("acos", AllTargets, FloatTargets, Param(0), Param("x", 0)),
 		        Template1("all", AllTargets, NumericAndBoolTargets, Param((f, p) => ScalarType.Bool), Param("x", 0)),

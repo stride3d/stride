@@ -321,7 +321,7 @@ namespace Xenko.Shaders.Parser
 
                     var variableType = variable.Type;
 
-                    parameterKey.Type = CreateTypeInfo(variableType, attributable.Attributes);
+                    parameterKey.Type = CreateTypeInfo(variableType, attributable.Attributes, out parameterKey.ElementType);
                 }
 
                 return parameterKey;
@@ -330,8 +330,10 @@ namespace Xenko.Shaders.Parser
             return null;
         }
 
-        private static EffectTypeDescription CreateTypeInfo(TypeBase variableType, List<AttributeBase> attributes)
+        private static EffectTypeDescription CreateTypeInfo(TypeBase variableType, List<AttributeBase> attributes, out EffectTypeDescription elementType)
         {
+            elementType = default;
+
             var parameterTypeInfo = new EffectTypeDescription();
 
             if (variableType.TypeInference.TargetType != null)
@@ -413,7 +415,7 @@ namespace Xenko.Shaders.Parser
                     var memberInfo = new EffectTypeMemberDescription
                     {
                         Name = field.Name.Text,
-                        Type = CreateTypeInfo(field.Type, field.Attributes),
+                        Type = CreateTypeInfo(field.Type, field.Attributes, out var _),
                     };
                     members.Add(memberInfo);
                 }
@@ -423,6 +425,11 @@ namespace Xenko.Shaders.Parser
             else
             {
                 var variableTypeName = variableType.Name.Text.ToLowerInvariant();
+
+                if (variableType is ClassType classType && classType.GenericArguments.Count == 1)
+                {
+                    elementType = CreateTypeInfo(classType.GenericArguments[0], new List<AttributeBase>(), out var _);
+                }
 
                 switch (variableTypeName)
                 {
@@ -645,7 +652,7 @@ namespace Xenko.Shaders.Parser
 
         private static void LinkVariable(EffectReflection reflection, string variableName, LocalParameterKey parameterKey, int slotCount)
         {
-            var binding = new EffectResourceBindingDescription { KeyInfo = { KeyName = parameterKey.Name }, Class = parameterKey.Type.Class, Type = parameterKey.Type.Type, RawName = variableName, SlotStart = -1, SlotCount = slotCount > 0 ? slotCount : 1, ResourceGroup = parameterKey.ResourceGroup, LogicalGroup = parameterKey.LogicalGroup };
+            var binding = new EffectResourceBindingDescription { KeyInfo = { KeyName = parameterKey.Name }, Class = parameterKey.Type.Class, Type = parameterKey.Type.Type, ElementType = parameterKey.ElementType, RawName = variableName, SlotStart = -1, SlotCount = slotCount > 0 ? slotCount : 1, ResourceGroup = parameterKey.ResourceGroup, LogicalGroup = parameterKey.LogicalGroup };
             reflection.ResourceBindings.Add(binding);
         }
 
@@ -688,6 +695,11 @@ namespace Xenko.Shaders.Parser
             public string LogicalGroup;
 
             public EffectTypeDescription Type;
+
+            /// <summary>
+            /// The element type (for buffers or textures).
+            /// </summary>
+            public EffectTypeDescription ElementType;
 
             /*public EffectParameterClass Class;
 

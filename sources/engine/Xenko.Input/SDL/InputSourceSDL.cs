@@ -11,7 +11,7 @@ using Xenko.Graphics.SDL;
 namespace Xenko.Input
 {
     /// <summary>
-    /// Provides support for mouse/keyboard/gamepads using SDL
+    /// Provides support for mouse/touch/keyboard/gamepads using SDL
     /// </summary>
     internal class InputSourceSDL : InputSourceBase
     {
@@ -21,6 +21,7 @@ namespace Xenko.Input
         private Window uiControl;
         private MouseSDL mouse;
         private KeyboardSDL keyboard;
+        private PointerSDL pointer; // Touch
         private InputManager inputManager;
 
         public override void Initialize(InputManager inputManager)
@@ -33,9 +34,11 @@ namespace Xenko.Input
 
             mouse = new MouseSDL(this, inputManager.Game, uiControl);
             keyboard = new KeyboardSDL(this, uiControl);
+            pointer = new PointerSDL(this, uiControl);
 
             RegisterDevice(mouse);
             RegisterDevice(keyboard);
+            RegisterDevice(pointer);
 
             // Scan for gamepads
             Scan();

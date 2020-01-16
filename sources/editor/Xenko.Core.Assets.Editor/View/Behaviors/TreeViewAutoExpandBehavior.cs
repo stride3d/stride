@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 using Xenko.Core.Assets.Editor.ViewModel;
 using Xenko.Core.Extensions;
 using Xenko.Core.Presentation.Controls;

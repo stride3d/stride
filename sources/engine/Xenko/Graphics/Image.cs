@@ -850,23 +850,6 @@ namespace Xenko.Graphics
                     case PixelFormat.ETC1:
                         bpb = 8;
                         break;
-                    case PixelFormat.PVRTC_4bpp_RGB:
-                    case PixelFormat.PVRTC_4bpp_RGB_SRgb:
-                    case PixelFormat.PVRTC_4bpp_RGBA:
-                    case PixelFormat.PVRTC_4bpp_RGBA_SRgb:
-                    case PixelFormat.PVRTC_II_4bpp:
-                        minWidth = 8;
-                        minHeight = 8;
-                        break;
-                    case PixelFormat.PVRTC_2bpp_RGB:
-                    case PixelFormat.PVRTC_2bpp_RGB_SRgb:
-                    case PixelFormat.PVRTC_2bpp_RGBA:
-                    case PixelFormat.PVRTC_2bpp_RGBA_SRgb:
-                    case PixelFormat.PVRTC_II_2bpp:
-                        minWidth = 16;
-                        minHeight = 8;
-                        bpb = 4;
-                        break;
                     default:
                         bpb = 16;
                         break;
