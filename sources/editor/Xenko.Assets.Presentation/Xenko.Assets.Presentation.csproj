@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
   <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
   <PropertyGroup>
@@ -21,8 +21,8 @@
     <PackageReference Include="Microsoft.Build" Version="16.0.461" ExcludeAssets="runtime" />
     <PackageReference Include="AvalonEdit" Version="6.0.0" />
     <PackageReference Include="System.Reactive.Linq" Version="4.2.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.1.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.1.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Features" Version="3.3.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.3.1" />
     <Reference Include="RoslynPad.Editor.Windows">
       <HintPath>$(XenkoCommonDependenciesDir)RoslynPad\net462\RoslynPad.Editor.Windows.dll</HintPath>
     </Reference>
@@ -70,8 +70,8 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-	  <None Remove="EditorPackage\buildpath\**" />
-	  <None Remove="EditorPackage\outputpath\**" />
+    <None Remove="EditorPackage\buildpath\**" />
+    <None Remove="EditorPackage\outputpath\**" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets.Quantum\Xenko.Core.Assets.Quantum.csproj" />
