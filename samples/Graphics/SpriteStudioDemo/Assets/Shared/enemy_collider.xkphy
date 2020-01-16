@@ -1,6 +1,6 @@
 !ColliderShapeAsset
 Id: 77a32831-fdf3-41b4-9443-751500fcbc10
-SerializedVersion: {Xenko: 2.0.0.0}
+SerializedVersion: {Xenko: 3.0.0.0}
 Tags: []
 ColliderShapes:
     e803604e1edf064bb9d035b760568ca5: !BoxColliderShapeDesc

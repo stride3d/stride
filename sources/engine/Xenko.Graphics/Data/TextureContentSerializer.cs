@@ -87,19 +87,25 @@ namespace Xenko.Graphics.Data
                         }
 
                         // Load initial texture (with limited number of mipmaps)
-                        using (var textureData = Image.Load(stream.NativeStream))
+                        if (storageHeader.InitialImage)
                         {
-                            if (texture.GraphicsDevice != null)
-                                texture.OnDestroyed(); //Allows fast reloading todo review maybe?
+                            using (var textureData = Image.Load(stream.NativeStream))
+                            {
+                                if (texture.GraphicsDevice != null)
+                                    texture.OnDestroyed(); //Allows fast reloading todo review maybe?
 
-                            texture.InitializeFrom(textureData.Description, new TextureViewDescription(), textureData.ToDataBox());
+                                texture.InitializeFrom(textureData.Description, new TextureViewDescription(), textureData.ToDataBox());
+                            }
                         }
                     }
                     else
                     {
                         // Load initial texture and discard it (we are going to load the full chunk texture right after)
-                        using (var textureData = Image.Load(stream.NativeStream))
+                        if (storageHeader.InitialImage)
                         {
+                            using (var textureData = Image.Load(stream.NativeStream))
+                            {
+                            }
                         }
 
                         // Deserialize whole texture without streaming feature

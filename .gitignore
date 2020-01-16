@@ -43,10 +43,9 @@ bin/
 Bin/
 ipch/
 obj/
+.vs/
 Cache/
 /doc/xenko_doc_output/
-/.vs
-/build/.vs
 /build/Xenko.version
 /build/Xenko.*VC.db
 /tools

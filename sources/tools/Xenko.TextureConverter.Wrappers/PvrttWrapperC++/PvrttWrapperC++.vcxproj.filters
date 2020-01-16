@@ -18,9 +18,6 @@
     <ClCompile Include="pvrtt_wrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\deps\PVRTT\source\PVRTString.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pvrtt_wrapper.h">

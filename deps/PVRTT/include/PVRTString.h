@@ -15,7 +15,7 @@
 
 /*!***************************************************************************
  @class CPVRTString
- @brief A string class
+ @brief A string class.
 *****************************************************************************/
 
 #if defined(_WINDLL_EXPORT)
@@ -50,14 +50,14 @@ public:
 	
 
 	/*!***********************************************************************
-	@brief      		CPVRTString constructor
+	@brief      		CPVRTString constructor.
 	@param[in]				_Ptr	A string
 	@param[in]				_Count	Length of _Ptr
 	************************************************************************/
 	CPVRTString(const char* _Ptr, size_t _Count = npos);
 
 	/*!***********************************************************************
-	@brief      		CPVRTString constructor
+	@brief      		CPVRTString constructor.
 	@param[in]				_Right	A string
 	@param[in]				_Roff	Offset into _Right
 	@param[in]				_Count	Number of chars from _Right to assign to the new string
@@ -65,37 +65,37 @@ public:
 	CPVRTString(const CPVRTString& _Right, size_t _Roff = 0, size_t _Count = npos);
 
 	/*!***********************************************************************
-	@brief      		CPVRTString constructor 
+	@brief      		CPVRTString constructor.
 	@param[in]				_Count	Length of new string
 	@param[in]				_Ch		A char to fill it with
 	*************************************************************************/
 	CPVRTString(size_t _Count, const char _Ch);
 
 	/*!***********************************************************************
-	@brief      		Constructor
+	@brief      		Constructor.
 	@param[in]				_Ch	A char
 	*************************************************************************/
 	CPVRTString(const char _Ch);
 
 	/*!***********************************************************************
-	@brief      		Constructor
+	@brief      		Constructor.
 	************************************************************************/
 	CPVRTString();
 
 	/*!***********************************************************************
-	@brief      		Destructor
+	@brief      		Destructor.
 	************************************************************************/
 	virtual ~CPVRTString();
 
 	/*!***********************************************************************
-	@brief      		Appends a string
+	@brief      		Appends a string.
 	@param[in]			_Ptr	A string
 	@return 			Updated string
 	*************************************************************************/
 	CPVRTString& append(const char* _Ptr);
 
 	/*!***********************************************************************
-	@brief      		Appends a string of length _Count
+	@brief      		Appends a string of length _Count.
 	@param[in]			_Ptr	A string
 	@param[in]			_Count	String length
 	@return 			Updated string
@@ -103,14 +103,14 @@ public:
 	CPVRTString& append(const char* _Ptr, size_t _Count);
 
 	/*!***********************************************************************
-	@brief      		Appends a string
+	@brief      		Appends a string.
 	@param[in]			_Str	A string
 	@return 			Updated string
 	*************************************************************************/
 	CPVRTString& append(const CPVRTString& _Str);
 
 	/*!***********************************************************************
-	@brief      		Appends _Count letters of _Str from _Off in _Str
+	@brief      		Appends _Count letters of _Str from _Off in _Str.
 	@param[in]			_Str	A string
 	@param[in]			_Off	A position in string
 	@param[in]			_Count	Number of letters to append
@@ -119,7 +119,7 @@ public:
 	CPVRTString& append(const CPVRTString& _Str, size_t _Off, size_t _Count);
 
 	/*!***********************************************************************
-	@brief      		Appends _Ch _Count times
+	@brief      		Appends _Ch _Count times.
 	@param[in]				_Ch		A char
 	@param[in]				_Count	Number of times to append _Ch
 	@return 			Updated string
@@ -129,14 +129,14 @@ public:
 	//template<class InputIterator> CPVRTString& append(InputIterator _First, InputIterator _Last);
 
 	/*!***********************************************************************
-	@brief      		Assigns the string to the string _Ptr
+	@brief      		Assigns the string to the string _Ptr.
 	@param[in]			_Ptr A string
 	@return 			Updated string
 	*************************************************************************/
 	CPVRTString& assign(const char* _Ptr);
 
 	/*!***********************************************************************
-	@brief      		Assigns the string to the string _Ptr
+	@brief      		Assigns the string to the string _Ptr.
 	@param[in]			_Ptr A string
 	@param[in]			_Count Length of _Ptr
 	@return 			Updated string
@@ -144,14 +144,14 @@ public:
 	CPVRTString& assign(const char* _Ptr, size_t _Count);
 
 	/*!***********************************************************************
-	@brief      		Assigns the string to the string _Str
+	@brief      		Assigns the string to the string _Str.
 	@param[in]			_Str A string
 	@return 			Updated string
 	*************************************************************************/
 	CPVRTString& assign(const CPVRTString& _Str);
 
 	/*!***********************************************************************
-	@brief      		Assigns the string to _Count characters in string _Str starting at _Off
+	@brief      		Assigns the string to _Count characters in string _Str starting at _Off.
 	@param[in]			_Str A string
 	@param[in]			_Off First char to start assignment from
 	@param[in]			_Count Length of _Str
@@ -160,7 +160,7 @@ public:
 	CPVRTString& assign(const CPVRTString& _Str, size_t _Off, size_t _Count=npos);
 
 	/*!***********************************************************************
-	@brief      		Assigns the string to _Count copies of _Ch
+	@brief      		Assigns the string to _Count copies of _Ch.
 	@param[in]			_Ch A string
 	@param[in]			_Count Number of times to repeat _Ch
 	@return 			Updated string
@@ -176,31 +176,31 @@ public:
 	// iterator begin();
 
 	/*!***********************************************************************
-	@brief      		Returns a const char* pointer of the string
+	@brief      		Returns a const char* pointer of the string.
 	@return 			const char* pointer of the string
 	*************************************************************************/
 	const char* c_str() const;
 
 	/*!***********************************************************************
-	@brief      		Returns the size of the character array reserved
+	@brief      		Returns the size of the character array reserved.
 	@return 			The size of the character array reserved
 	*************************************************************************/
 	size_t capacity() const;
 
 	/*!***********************************************************************
-	@brief      		Clears the string
+	@brief      		Clears the string.
 	*************************************************************************/
 	void clear();
 
 	/*!***********************************************************************
-	@brief      		Compares the string with _Str
+	@brief      		Compares the string with _Str.
 	@param[in]			_Str A string to compare with
 	@return 			0 if the strings match
 	*************************************************************************/
 	int compare(const CPVRTString& _Str) const;
 
 	/*!***********************************************************************
-	@brief      		Compares the string with _Str
+	@brief      		Compares the string with _Str.
 	@param[in]			_Pos1	Position to start comparing from
 	@param[in]			_Num1	Number of chars to compare
 	@param[in]			_Str 	A string to compare with
@@ -209,7 +209,7 @@ public:
 	int compare(size_t _Pos1, size_t _Num1, const CPVRTString& _Str) const;
 
 	/*!***********************************************************************
-	@brief      		Compares the string with _Str
+	@brief      		Compares the string with _Str.
 	@param[in]			_Pos1	Position to start comparing from
 	@param[in]			_Num1	Number of chars to compare
 	@param[in]			_Str 	A string to compare with
@@ -220,14 +220,14 @@ public:
 	int compare(size_t _Pos1, size_t _Num1, const CPVRTString& _Str, size_t _Off, size_t _Count) const;
 
 	/*!***********************************************************************
-	@brief      		Compares the string with _Ptr
+	@brief      		Compares the string with _Ptr.
 	@param[in]			_Ptr A string to compare with
 	@return 			0 if the strings match
 	*************************************************************************/
 	int compare(const char* _Ptr) const;
 
 	/*!***********************************************************************
-	@brief      		Compares the string with _Ptr
+	@brief      		Compares the string with _Ptr.
 	@param[in]			_Pos1	Position to start comparing from
 	@param[in]			_Num1	Number of chars to compare
 	@param[in]			_Ptr 	A string to compare with
@@ -236,7 +236,7 @@ public:
 	int compare(size_t _Pos1, size_t _Num1, const char* _Ptr) const;
 
 	/*!***********************************************************************
-	@brief      		Compares the string with _Str
+	@brief      		Compares the string with _Str.
 	@param[in]			_Pos1	Position to start comparing from
 	@param[in]			_Num1	Number of chars to compare
 	@param[in]			_Ptr 	A string to compare with
@@ -246,35 +246,35 @@ public:
 	int compare(size_t _Pos1, size_t _Num1, const char* _Ptr, size_t _Count) const;
 
 	/*!***********************************************************************
-	@brief      		Less than operator
+	@brief      		Less than operator.
 	@param[in]			_Str A string to compare with
 	@return 			True on success
 	*************************************************************************/
 	bool operator<(const CPVRTString & _Str) const;
 
 	/*!***********************************************************************
-	@brief      	== Operator
+	@brief      	== Operator.
 	@param[in]		_Str 	A string to compare with
 	@return 		True if they match
 	*************************************************************************/
 	bool operator==(const CPVRTString& _Str) const;
 
 	/*!***********************************************************************
-	@brief      	== Operator
+	@brief      	== Operator.
 	@param[in]		_Ptr 	A string to compare with
 	@return 		True if they match
 	*************************************************************************/
 	bool operator==(const char* const _Ptr) const;
 
 	/*!***********************************************************************
-	@brief      		!= Operator
+	@brief      		!= Operator.
 	@param[in]				_Str 	A string to compare with
 	@return 			True if they don't match
 	*************************************************************************/
 	bool operator!=(const CPVRTString& _Str) const;
 
 	/*!***********************************************************************
-	@brief      		!= Operator
+	@brief      		!= Operator.
 	@param[in]			_Ptr 	A string to compare with
 	@return 			True if they don't match
 	*************************************************************************/
@@ -286,21 +286,21 @@ public:
 	@param[in]			_Count	Size of _Ptr
 	@param[in]			_Off	Position to start copying from
 	@return 			Number of bytes copied
-	@brief      		Copies the string to _Ptr
+	@brief      		Copies the string to _Ptr.
 	*************************************************************************/
 	size_t copy(char* _Ptr, size_t _Count, size_t _Off = 0) const;
 
 	/*!***********************************************************************
 	@fn       			data
 	@return 			A const char* version of the string
-	@brief      		Returns a const char* version of the string
+	@brief      		Returns a const char* version of the string.
 	*************************************************************************/
 	const char* data( ) const;
 
 	/*!***********************************************************************
 	@fn       			empty
 	@return 			True if the string is empty
-	@brief      		Returns true if the string is empty
+	@brief      		Returns true if the string is empty.
 	*************************************************************************/
 	bool empty() const;
 
@@ -311,7 +311,7 @@ public:
 	//iterator erase(iterator _It);
 
 	/*!***********************************************************************
-	@brief      		Erases a portion of the string
+	@brief      		Erases a portion of the string.
 	@param[in]			_Pos	The position to start erasing from
 	@param[in]			_Count	Number of chars to erase
 	@return 			An updated string
@@ -319,7 +319,7 @@ public:
 	CPVRTString& erase(size_t _Pos = 0, size_t _Count = npos);
 
 	/*!***********************************************************************
-	@brief      		Erases a portion of the string
+	@brief      		Erases a portion of the string.
 	@param[in]			_src	Character to search
 	@param[in]			_subDes	Character to substitute for
 	@param[in]			_all	Substitute all
@@ -328,7 +328,7 @@ public:
 	CPVRTString& substitute(char _src,char _subDes, bool _all = true);
 
 	/*!***********************************************************************
-	@brief      		Erases a portion of the string
+	@brief      		Erases a portion of the string.
 	@param[in]			_src	Character to search
 	@param[in]			_subDes	Character to substitute for
 	@param[in]			_all	Substitute all
@@ -357,7 +357,7 @@ public:
 	size_t find(const CPVRTString& _Str, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the first char that is not _Ch
+	@brief      		Returns the position of the first char that is not _Ch.
 	@param[in]			_Ch		A char
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the first char that is not _Ch
@@ -365,7 +365,7 @@ public:
 	size_t find_first_not_of(char _Ch, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the first char that is not in _Ptr
+	@brief      		Returns the position of the first char that is not in _Ptr.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the first char that is not in _Ptr
@@ -373,7 +373,7 @@ public:
 	size_t find_first_not_of(const char* _Ptr, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the first char that is not in _Ptr
+	@brief      		Returns the position of the first char that is not in _Ptr.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
 	@param[in]			_Count	Number of chars in _Ptr
@@ -382,7 +382,7 @@ public:
 	size_t find_first_not_of(const char* _Ptr, size_t _Off, size_t _Count) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the first char that is not in _Str
+	@brief      		Returns the position of the first char that is not in _Str.
 	@param[in]			_Str	A string
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the first char that is not in _Str
@@ -390,7 +390,7 @@ public:
 	size_t find_first_not_of(const CPVRTString& _Str, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the first char that is _Ch
+	@brief      		Returns the position of the first char that is _Ch.
 	@param[in]			_Ch		A char
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the first char that is _Ch
@@ -398,7 +398,7 @@ public:
 	size_t find_first_of(char _Ch, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the first char that matches a char in _Ptr
+	@brief      		Returns the position of the first char that matches a char in _Ptr.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the first char that matches a char in _Ptr
@@ -406,7 +406,7 @@ public:
 	size_t find_first_of(const char* _Ptr, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the first char that matches a char in _Ptr
+	@brief      		Returns the position of the first char that matches a char in _Ptr.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
 	@param[in]			_Count	Size of _Ptr
@@ -415,7 +415,7 @@ public:
 	size_t find_first_of(const char* _Ptr, size_t _Off, size_t _Count) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the first char that matches all chars in _Ptr
+	@brief      		Returns the position of the first char that matches all chars in _Ptr.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
 	@param[in]			_Count	Size of _Ptr
@@ -425,7 +425,7 @@ public:
 	
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the first char that matches a char in _Str
+	@brief      		Returns the position of the first char that matches a char in _Str.
 	@param[in]			_Str	A string
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the first char that matches a char in _Str
@@ -433,7 +433,7 @@ public:
 	size_t find_first_of(const CPVRTString& _Str, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the last char that is not _Ch
+	@brief      		Returns the position of the last char that is not _Ch.
 	@param[in]			_Ch		A char
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the last char that is not _Ch
@@ -441,7 +441,7 @@ public:
 	size_t find_last_not_of(char _Ch, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the last char that is not in _Ptr
+	@brief      		Returns the position of the last char that is not in _Ptr.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the last char that is not in _Ptr
@@ -449,7 +449,7 @@ public:
 	size_t find_last_not_of(const char* _Ptr, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the last char that is not in _Ptr
+	@brief      		Returns the position of the last char that is not in _Ptr.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
 	@param[in]			_Count	Length of _Ptr
@@ -458,7 +458,7 @@ public:
 	size_t find_last_not_of(const char* _Ptr, size_t _Off, size_t _Count) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the last char that is not in _Str
+	@brief      		Returns the position of the last char that is not in _Str.
 	@param[in]			_Str	A string
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the last char that is not in _Str
@@ -466,7 +466,7 @@ public:
 	size_t find_last_not_of(const CPVRTString& _Str, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the last char that is _Ch
+	@brief      		Returns the position of the last char that is _Ch.
 	@param[in]			_Ch		A char
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the last char that is _Ch
@@ -474,7 +474,7 @@ public:
 	size_t find_last_of(char _Ch, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the last char that is in _Ptr
+	@brief      		Returns the position of the last char that is in _Ptr.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the last char that is in _Ptr
@@ -482,7 +482,7 @@ public:
 	size_t find_last_of(const char* _Ptr, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the last char that is in _Ptr
+	@brief      		Returns the position of the last char that is in _Ptr.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
 	@param[in]			_Count	Length of _Ptr
@@ -491,7 +491,7 @@ public:
 	size_t find_last_of(const char* _Ptr, size_t _Off, size_t _Count) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the position of the last char that is in _Str
+	@brief      		Returns the position of the last char that is in _Str.
 	@param[in]			_Str	A string
 	@param[in]			_Off	Start position of the find
 	@return 			Position of the last char that is in _Str
@@ -569,7 +569,7 @@ public:
 	int find_next_occurance_of(const CPVRTString& _Str, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the previous occurance of _Ch in the parent string
+	@brief      		Returns the previous occurance of _Ch in the parent string.
                         before _Off.	If not found, returns -1.
 	@param[in]			_Ch		A char
 	@param[in]			_Off	Start position of the find
@@ -578,7 +578,7 @@ public:
 	int find_previous_occurance_of(char _Ch, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the previous occurance of _Ptr in the parent string
+	@brief      		Returns the previous occurance of _Ptr in the parent string.
                         before _Off.	If not found, returns -1.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
@@ -587,7 +587,7 @@ public:
 	int find_previous_occurance_of(const char* _Ptr, size_t _Off = 0) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the previous occurance of _Ptr in the parent string
+	@brief      		Returns the previous occurance of _Ptr in the parent string.
                         before _Off.	If not found, returns -1.
 	@param[in]			_Ptr	A string
 	@param[in]			_Off	Start position of the find
@@ -597,7 +597,7 @@ public:
 	int find_previous_occurance_of(const char* _Ptr, size_t _Off, size_t _Count) const;
 
 	/*!***********************************************************************
-	@brief      		Returns the previous occurance of _Str in the parent string
+	@brief      		Returns the previous occurance of _Str in the parent string.
                         before _Off.	If not found, returns -1.
 	@param[in]			_Str	A string
 	@param[in]			_Off	Start position of the find
@@ -639,21 +639,21 @@ public:
 	/*!***********************************************************************
 	@fn       			length
 	@return 			Length of the string
-	@brief      		Returns the length of the string
+	@brief      		Returns the length of the string.
 	*************************************************************************/
 	size_t length() const;
 
 	/*!***********************************************************************
 	@fn       			max_size
 	@return 			The maximum number of chars that the string can contain
-	@brief      		Returns the maximum number of chars that the string can contain
+	@brief      		Returns the maximum number of chars that the string can contain.
 	*************************************************************************/
 	size_t max_size() const;
 
 	/*!***********************************************************************
 	@fn       			push_back
 	@param[in]			_Ch A char to append
-	@brief      		Appends _Ch to the string
+	@brief      		Appends _Ch to the string.
 	*************************************************************************/
 	void push_back(char _Ch);
 
@@ -678,7 +678,7 @@ public:
 	/*!***********************************************************************
 	@fn       			reserve
 	@param[in]			_Count Size of string to reserve
-	@brief      		Reserves space for _Count number of chars
+	@brief      		Reserves space for _Count number of chars.
 	*************************************************************************/
 	void reserve(size_t _Count = 0);
 
@@ -686,7 +686,7 @@ public:
 	@fn       			resize
 	@param[in]			_Count 	Size of string to resize to
 	@param[in]			_Ch		Character to use to fill any additional space
-	@brief      		Resizes the string to _Count in length
+	@brief      		Resizes the string to _Count in length.
 	*************************************************************************/
 	void resize(size_t _Count, char _Ch = char());
 
@@ -698,7 +698,7 @@ public:
 	/*!***********************************************************************
 	@fn       			size
 	@return 			Size of the string
-	@brief      		Returns the size of the string
+	@brief      		Returns the size of the string.
 	*************************************************************************/
 	size_t size() const;
 
@@ -707,28 +707,28 @@ public:
 	@param[in]			_Off	Start of the substring
 	@param[in]			_Count	Length of the substring
 	@return 			A substring of the string
-	@brief      		Returns the size of the string
+	@brief      		Returns the size of the string.
 	*************************************************************************/
 	CPVRTString substr(size_t _Off = 0, size_t _Count = npos) const;
 
 	/*!***********************************************************************
 	@fn       			swap
 	@param[in]			_Str	A string to swap with
-	@brief      		Swaps the contents of the string with _Str
+	@brief      		Swaps the contents of the string with _Str.
 	*************************************************************************/
 	void swap(CPVRTString& _Str);
 
 	/*!***********************************************************************
 	@fn       			toLower
 	@return 			An updated string
-	@brief      		Converts the string to lower case
+	@brief      		Converts the string to lower case.
 	*************************************************************************/
 	CPVRTString& toLower();
 	
 	/*!***********************************************************************
 	@fn       			toUpper
 	@return 			An updated string
-	@brief      		Converts the string to upper case
+	@brief      		Converts the string to upper case.
 	*************************************************************************/
 	CPVRTString& toUpper();
 
@@ -736,7 +736,7 @@ public:
 	@fn       			format
 	@param[in]			pFormat A string containing the formating
 	@return 			A formatted string
-	@brief      		return the formatted string
+	@brief      		Return the formatted string.
 	************************************************************************/
 	CPVRTString format(const char *pFormat, ...);
 	
@@ -746,69 +746,69 @@ public:
 	@param[in]			pFormat A string containing the formatting.
 								Positional modifiers may be used.
 	@return 			A formatted string
-	@brief      		return the formatted string
+	@brief      		Return the formatted string.
 	************************************************************************/
 	CPVRTString formatPositional(const char *pFormat, ...);
 #endif
 
 	/*!***********************************************************************
-	@brief      		+= Operator
+	@brief      		+= Operator.
 	@param[in]			_Ch A char
 	@return 			An updated string
 	*************************************************************************/
 	CPVRTString& operator+=(char _Ch);
 
 	/*!***********************************************************************
-	@brief      		+= Operator
+	@brief      		+= Operator.
 	@param[in]			_Ptr A string
 	@return 			An updated string
 	*************************************************************************/
 	CPVRTString& operator+=(const char* _Ptr);
 
 	/*!***********************************************************************
-	@brief      		+= Operator
+	@brief      		+= Operator.
 	@param[in]			_Right A string
 	@return 			An updated string
 	*************************************************************************/
 	CPVRTString& operator+=(const CPVRTString& _Right);
 
 	/*!***********************************************************************
-	@brief      		= Operator
+	@brief      		= Operator.
 	@param[in]			_Ch A char
 	@return 			An updated string
 	*************************************************************************/
 	CPVRTString& operator=(char _Ch);
 
 	/*!***********************************************************************
-	@brief      		= Operator
+	@brief      		= Operator.
 	@param[in]			_Ptr A string
 	@return 			An updated string
 	*************************************************************************/
 	CPVRTString& operator=(const char* _Ptr);
 
 	/*!***********************************************************************
-	@brief      		= Operator
+	@brief      		= Operator.
 	@param[in]			_Right A string
 	@return 			An updated string
 	*************************************************************************/
 	CPVRTString& operator=(const CPVRTString& _Right);
 
 	/*!***********************************************************************
-	@brief      		[] Operator
+	@brief      		[] Operator.
 	@param[in]			_Off An index into the string
 	@return 			A character
 	*************************************************************************/
 	const_reference operator[](size_t _Off) const;
 
 	/*!***********************************************************************
-	@brief      		[] Operator
+	@brief      		[] Operator.
 	@param[in]			_Off An index into the string
 	@return 			A character
 	*************************************************************************/
 	reference operator[](size_t _Off);
 
 	/*!***********************************************************************
-	@brief      		+ Operator
+	@brief      		+ Operator.
 	@param[in]			_Left A string
 	@param[in]			_Right A string
 	@return 			An updated string
@@ -816,7 +816,7 @@ public:
 	friend CPVRTString operator+ (const CPVRTString& _Left, const CPVRTString& _Right);
 
 	/*!***********************************************************************
-	@brief      		+ Operator
+	@brief      		+ Operator.
 	@param[in]			_Left A string
 	@param[in]			_Right A string
 	@return 			An updated string
@@ -824,7 +824,7 @@ public:
 	friend CPVRTString operator+ (const CPVRTString& _Left, const char* _Right);
 
 	/*!***********************************************************************
-	@brief      		+ Operator
+	@brief      		+ Operator.
 	@param[in]			_Left A string
 	@param[in]			_Right A string
 	@return 			An updated string
@@ -832,7 +832,7 @@ public:
 	friend CPVRTString operator+ (const CPVRTString& _Left, const char _Right);
 
 	/*!***********************************************************************
-	@brief      		+ Operator
+	@brief      		+ Operator.
 	@param[in]			_Left A string
 	@param[in]			_Right A string
 	@return 			An updated string
@@ -841,7 +841,7 @@ public:
 
 
 	/*!***********************************************************************
-	@brief      		+ Operator
+	@brief      		+ Operator.
 	@param[in]			_Left A string
 	@param[in]			_Right A string
 	@return 			An updated string
@@ -886,7 +886,7 @@ CPVRTString PVRTStringGetFileName(const CPVRTString& strFilePath);
  @fn       			PVRTStringStripWhiteSpaceFromStartOf
  @param[in]			strLine A string
  @return 			Result of the white space stripping
- @brief      		strips white space characters from the beginning of a CPVRTString.
+ @brief      		Strips white space characters from the beginning of a CPVRTString.
 ************************************************************************/
 CPVRTString PVRTStringStripWhiteSpaceFromStartOf(const CPVRTString& strLine);
 
@@ -894,7 +894,7 @@ CPVRTString PVRTStringStripWhiteSpaceFromStartOf(const CPVRTString& strLine);
  @fn       			PVRTStringStripWhiteSpaceFromEndOf
  @param[in]			strLine A string
  @return 			Result of the white space stripping
- @brief      		strips white space characters from the end of a CPVRTString.
+ @brief      		Strips white space characters from the end of a CPVRTString.
 ************************************************************************/
 CPVRTString PVRTStringStripWhiteSpaceFromEndOf(const CPVRTString& strLine);
 
@@ -902,7 +902,7 @@ CPVRTString PVRTStringStripWhiteSpaceFromEndOf(const CPVRTString& strLine);
  @fn       			PVRTStringFromFormattedStr
  @param[in]			pFormat A string containing the formating
  @return 			A formatted string
- @brief      		Creates a formatted string
+ @brief      		Creates a formatted string.
 ************************************************************************/
 CPVRTString PVRTStringFromFormattedStr(const char *pFormat, ...);
 

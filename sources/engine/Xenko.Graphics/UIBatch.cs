@@ -244,9 +244,9 @@ namespace Xenko.Graphics
             drawInfo.UnitZWorld = worldViewProjection.Row3;
             Vector4.Transform(ref vector4LeftTop, ref worldViewProjection, out drawInfo.LeftTopCornerWorld);
 
-            var elementInfo = new ElementInfo(4, 6, ref drawInfo, depthBias);
+            var elementInfo = new ElementInfo(4, 6, in drawInfo, depthBias);
 
-            Draw(whiteTexture, ref elementInfo);
+            Draw(whiteTexture, in elementInfo);
         }
 
         /// <summary>
@@ -306,9 +306,9 @@ namespace Xenko.Graphics
             drawInfo.UnitZWorld = worldViewProjection.Row3;
             Vector4.Transform(ref vector4LeftTop, ref worldViewProjection, out drawInfo.LeftTopCornerWorld);
 
-            var elementInfo = new ElementInfo(8, 6 * 6, ref drawInfo, depthBias);
+            var elementInfo = new ElementInfo(8, 6 * 6, in drawInfo, depthBias);
 
-            Draw(whiteTexture, ref elementInfo);
+            Draw(whiteTexture, in elementInfo);
         }
 
         /// <summary>
@@ -390,12 +390,12 @@ namespace Xenko.Graphics
                 indicesPerElement = 54;
             }
 
-            var elementInfo = new ElementInfo(verticesPerElement, indicesPerElement, ref drawInfo, depthBias);
+            var elementInfo = new ElementInfo(verticesPerElement, indicesPerElement, in drawInfo, depthBias);
 
-            Draw(texture, ref elementInfo);
+            Draw(texture, in elementInfo);
         }
 
-        internal void DrawCharacter(Texture texture, ref Matrix worldViewProjectionMatrix, ref RectangleF sourceRectangle, ref Color color, int depthBias, SwizzleMode swizzle)
+        internal void DrawCharacter(Texture texture, in Matrix worldViewProjectionMatrix, in RectangleF sourceRectangle, in Color color, int depthBias, SwizzleMode swizzle)
         {
             if (texture == null) throw new ArgumentNullException(nameof(texture));
 
@@ -420,9 +420,9 @@ namespace Xenko.Graphics
                 LeftTopCornerWorld = worldViewProjectionMatrix.Row4,
             };
 
-            var elementInfo = new ElementInfo(4, 6, ref drawInfo, depthBias);
+            var elementInfo = new ElementInfo(4, 6, in drawInfo, depthBias);
 
-            Draw(texture, ref elementInfo);
+            Draw(texture, in elementInfo);
         }
 
         internal void DrawString(SpriteFont font, string text, ref SpriteFont.InternalUIDrawCommand drawCommand)
@@ -442,19 +442,27 @@ namespace Xenko.Graphics
             // transform the world matrix into the world view project matrix
             Matrix.MultiplyTo(ref worldMatrix, ref viewProjectionMatrix, out drawCommand.Matrix);
 
-            // do not snap static fonts when real/virtual resolution does not match.
             if (font.FontType == SpriteFontType.SDF)
             {
                 drawCommand.SnapText = false;
                 float scaling = drawCommand.RequestedFontSize / font.Size;
                 drawCommand.RealVirtualResolutionRatio = 1 / new Vector2(scaling, scaling);
             }
-            else if ((font.FontType == SpriteFontType.Static)) 
+            if (font.FontType == SpriteFontType.Static)
             {
-                if ((drawCommand.RealVirtualResolutionRatio.X != 1 || drawCommand.RealVirtualResolutionRatio.Y != 1))
-                    drawCommand.SnapText = false;   // we don't want snapping of the resolution of the screen does not match virtual resolution. (character alignment problems)
-
                 drawCommand.RealVirtualResolutionRatio = Vector2.One; // ensure that static font are not scaled internally
+            }
+            if (font.FontType == SpriteFontType.Dynamic || font.FontType == SpriteFontType.Static)
+            {
+                // do not snap static fonts when real/virtual resolution does not match.
+                if (drawCommand.RealVirtualResolutionRatio.X != 1 || drawCommand.RealVirtualResolutionRatio.Y != 1)
+                    drawCommand.SnapText = false;   // we don't want snapping of the resolution of the screen does not match virtual resolution. (character alignment problems)
+            }
+            if (font.FontType == SpriteFontType.Dynamic)
+            {
+                // Dynamic: use virtual resolution (otherwise requested size might change on every camera move, esp. if UI is in 3D)
+                // TODO: some step function to have LOD without regenerating on every small change?
+                drawCommand.RealVirtualResolutionRatio = Vector2.One;
             }
 
             // snap draw start position to prevent characters to be drawn in between two pixels

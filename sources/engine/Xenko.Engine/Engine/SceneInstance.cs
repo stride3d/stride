@@ -167,7 +167,7 @@ namespace Xenko.Engine
                 var scenesToAdd = new FastList<Scene>();
                 // Reverse order, we're adding and removing from the tail to 
                 // avoid forcing the list to move all items when removing at [0]
-                for (int i = scene.Entities.Count - 1; i >= 0; i--)
+                for (int i = scene.Children.Count - 1; i >= 0; i--)
                     scenesToAdd.Add(scene.Children[i]);
 
                 scene.Children.CollectionChanged += DealWithTempChanges;

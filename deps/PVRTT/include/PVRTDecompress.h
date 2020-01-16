@@ -10,7 +10,7 @@
 #define _PVRTDECOMPRESS_H_
 
 /*!***********************************************************************
- @brief      	Decompresses PVRTC to RGBA 8888
+ @brief      	Decompresses PVRTC to RGBA 8888.
  @param[in]		pCompressedData The PVRTC texture data to decompress
  @param[in]		Do2bitMode      Signifies whether the data is PVRTC2 or PVRTC4
  @param[in]		XDim            X dimension of the texture
@@ -25,7 +25,7 @@ int PVRTDecompressPVRTC(const void *pCompressedData,
 				unsigned char* pResultImage);
 
 /*!***********************************************************************
- @brief      	Decompresses ETC to RGBA 8888
+ @brief      	Decompresses ETC to RGBA 8888.
  @param[in]		pSrcData        The ETC texture data to decompress
  @param[in]		x               X dimension of the texture
  @param[in]		y               Y dimension of the texture

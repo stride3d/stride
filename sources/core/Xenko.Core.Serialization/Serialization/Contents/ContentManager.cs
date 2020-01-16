@@ -232,7 +232,7 @@ namespace Xenko.Core.Serialization.Contents
         /// <param name="url">The URL of the asset to retrieve.</param>
         /// <returns>The loaded asset, or <c>null</c> if the asset has not been loaded.</returns>
         /// <remarks>This function does not increase the reference count on the asset.</remarks>
-        public T Get<T>(string url)
+        public T Get<T>(string url) where T : class
         {
             return (T)Get(typeof(T), url);
         }
@@ -250,7 +250,7 @@ namespace Xenko.Core.Serialization.Contents
         }
 
         /// <summary>
-        /// Gets or sets whether an asset with the given URL is currently loaded.
+        /// Gets whether an asset with the given URL is currently loaded.
         /// </summary>
         /// <param name="url">The URL to check.</param>
         /// <param name="loadedManuallyOnly">If <c>true</c>, this method will return true only if an asset with the given URL has been manually loaded via <see cref="Load"/>, and not if the asset has been only loaded indirectly from another asset.</param>

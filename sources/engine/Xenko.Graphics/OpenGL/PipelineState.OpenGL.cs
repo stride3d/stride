@@ -36,11 +36,6 @@ namespace Xenko.Graphics
             var pipelineStateCache = GetPipelineStateCache();
 
             var depthClampEmulation = !pipelineStateDescription.RasterizerState.DepthClipEnable && !graphicsDevice.HasDepthClamp;
-#if XENKO_GRAPHICS_API_OPENGLES
-            // Depth Clamp can't be emulated on OpenGL ES 2 (TODO: warning?)
-            if (graphicsDevice.IsOpenGLES2)
-                depthClampEmulation = false;
-#endif
 
             // Store states
             BlendState = new BlendState(pipelineStateDescription.BlendState, pipelineStateDescription.Output.RenderTargetCount > 0);

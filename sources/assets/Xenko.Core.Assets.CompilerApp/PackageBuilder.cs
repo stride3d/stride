@@ -113,7 +113,8 @@ namespace Xenko.Core.Assets.CompilerApp
                 {
                     Platform = builderOptions.Platform,
                     CompilationContext = typeof(AssetCompilationContext),
-                    BuildConfiguration = builderOptions.ProjectConfiguration
+                    BuildConfiguration = builderOptions.ProjectConfiguration,
+                    Package = package,
                 };
 
                 // Command line properties
@@ -136,8 +137,12 @@ namespace Xenko.Core.Assets.CompilerApp
                 // Setup the remote process build
                 var remoteBuilderHelper = new PackageBuilderRemoteHelper(projectSession.AssemblyContainer, builderOptions);
 
-                // Create the builder
                 var indexName = "index." + package.Meta.Name;
+                // Add runtime identifier (if any) to avoid clash when building multiple at the same time (this happens when using ExtrasBuildEachRuntimeIdentifier feature of MSBuild.Sdk.Extras)
+                if (builderOptions.Properties.TryGetValue("RuntimeIdentifier", out var runtimeIdentifier))
+                    indexName += $".{runtimeIdentifier}";
+
+                // Create the builder
                 builder = new Builder(builderOptions.Logger, buildDirectory, indexName) { ThreadCount = builderOptions.ThreadCount, TryExecuteRemote = remoteBuilderHelper.TryExecuteRemote };
 
                 builder.MonitorPipeNames.AddRange(builderOptions.MonitorPipeNames);

@@ -62,7 +62,7 @@ namespace Xenko.Graphics
             /// </summary>
             public TDrawInfo DrawInfo;
 
-            public ElementInfo(int vertexCount, int indexCount, ref TDrawInfo drawInfo, float depth = 0)
+            public ElementInfo(int vertexCount, int indexCount, in TDrawInfo drawInfo, float depth = 0)
             {
                 VertexCount = vertexCount;
                 IndexCount = indexCount;
@@ -522,7 +522,7 @@ namespace Xenko.Graphics
             }
         }
 
-        protected void Draw(Texture texture, ref ElementInfo elementInfo)
+        protected void Draw(Texture texture, in ElementInfo elementInfo)
         {
             // Make sure that Begin was called
             CheckBeginHasBeenCalled("draw");

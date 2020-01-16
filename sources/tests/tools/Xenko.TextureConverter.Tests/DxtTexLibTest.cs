@@ -73,7 +73,6 @@ namespace Xenko.TextureConverter.Tests
             Assert.True(library.CanHandleRequest(image, new LoadingRequest("TextureArray_WMipMaps_BC3.dds", false)));
             Assert.True(library.CanHandleRequest(image, new ExportRequest("TextureArray_WMipMaps_BC3.dds", 0)));
             Assert.True(library.CanHandleRequest(image, new CompressingRequest(Xenko.Graphics.PixelFormat.BC3_UNorm)));
-            Assert.False(library.CanHandleRequest(image, new CompressingRequest(Xenko.Graphics.PixelFormat.ATC_RGBA_Explicit)));
             Assert.False(library.CanHandleRequest(image, new GammaCorrectionRequest(0)));
             image.Dispose();
         }

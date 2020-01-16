@@ -2,19 +2,21 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-02-25 13:25:06+0900\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2019-11-15 00:04+0000\n"
+"Last-Translator: André L. Alvares <andrluiz.alvares.alvares84@gmail.com>\n"
+"Language-Team: Portuguese (Brazil) <https://hosted.weblate.org/projects/"
+"xenko/gamestudio/pt_BR/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: MonoDevelop Gettext addin\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 3.10-dev\n"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:48
 msgctxt "Title"
 msgid "Output"
-msgstr ""
+msgstr "Saída"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:189
 msgctxt "Message"
@@ -22,11 +24,13 @@ msgid ""
 "Some game code files have been modified. Do you want to reload the "
 "assemblies?"
 msgstr ""
+"Alguns arquivos de código de jogo foram modificados. Você quer recarregar os "
+"assemblies?"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
 msgid "Reload"
-msgstr ""
+msgstr "Recarregar"
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:191
 msgctxt "Button"
@@ -39,19 +43,19 @@ msgstr ""
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:467
 msgctxt "Message"
 msgid "Platform {0} isn't supported for execution."
-msgstr ""
+msgstr "Plataforma {0} não é suportada para execução."
 
 #. Displayed when user tries to run Android project without an Android device attached.
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:422
 msgctxt "Message"
 msgid "No Android device found for execution."
-msgstr ""
+msgstr "Nenhum dispositivo Android encontrado para execução."
 
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:475
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:639
 msgctxt "Message"
 msgid "Unable to load and compile project {0}"
-msgstr ""
+msgstr "Não é possível carregar e compilar o projeto {0}"
 
 #. Log message displayed when the executable can't be found after building the project. {0}: the expected executable path
 #: ../editor/Xenko.GameStudio/DebuggingViewModel.cs:492

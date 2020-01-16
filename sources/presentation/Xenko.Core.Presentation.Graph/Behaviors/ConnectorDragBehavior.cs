@@ -4,7 +4,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Interactivity;
+using Microsoft.Xaml.Behaviors;
 
 using Xenko.Core.Presentation.Graph.ViewModel;
 using Xenko.Core.Presentation.Extensions;

@@ -1,6 +1,6 @@
 !GameSettingsAsset
 Id: 2eabc4de-eca3-4407-83d7-8640d12f8b1c
-SerializedVersion: {Xenko: 2.1.0.3}
+SerializedVersion: {Xenko: 3.1.0.1}
 Tags: []
 DefaultScene: 961e35a8-ba9a-47b4-82c6-2a2450282c00:MainScene
 GraphicsCompositor: ce13d5ed-a9d2-46c0-97d0-e52f7482d0c6:GraphicsCompositor
@@ -43,7 +43,7 @@ Defaults:
                     MaxClimb: 0.3
                     MaxSlope: {Radians: 0.7853982}
                     Radius: 0.5
-    - !Xenko.Streaming.StreamingSettings,Xenko.Engine
+    - !Xenko.Streaming.StreamingSettings,Xenko.Rendering
         ManagerUpdatesInterval: 0:00:00:00.0330000
         ResourceLiveTimeout: 0:00:00:08.0000000
 Overrides: []

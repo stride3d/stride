@@ -81,7 +81,7 @@ namespace Xenko.Core.Assets
                             var projectAssets = format.Read(projectAssetsJsonPath);
                             foreach (var library in projectAssets.Libraries)
                             {
-                                if (library.Type == "package" && library.Name == "Xenko.Engine")
+                                if ((library.Type == "package" || library.Type == "project") && library.Name == "Xenko.Engine")
                                 {
                                     return new PackageVersion((string)library.Version.ToString());
                                 }

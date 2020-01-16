@@ -29,6 +29,11 @@ namespace Xenko.Core.Streaming
         }
 
         /// <summary>
+        /// True if data is followed by initial low resolution image.
+        /// </summary>
+        public bool InitialImage;
+
+        /// <summary>
         /// The data container url.
         /// </summary>
         public string DataUrl;
@@ -60,6 +65,7 @@ namespace Xenko.Core.Streaming
         public void Write(SerializationStream stream)
         {
             stream.Write(1);
+            stream.Write(InitialImage);
             stream.Write(DataUrl);
             stream.Write(PackageTime.Ticks);
             stream.Write(ChunksCount);
@@ -83,6 +89,7 @@ namespace Xenko.Core.Streaming
             var version = stream.ReadInt32();
             if (version == 1)
             {
+                result.InitialImage = stream.ReadBoolean();
                 result.DataUrl = stream.ReadString();
                 result.PackageTime = new DateTime(stream.ReadInt64());
                 int chunksCount = stream.ReadInt32();

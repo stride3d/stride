@@ -14,7 +14,7 @@ namespace Xenko.Graphics.Data
     /// </summary>
     public sealed class TextureSerializationData
     {
-        internal const int Version = 5;
+        internal const int Version = 6;
 
         /// <summary>
         /// Texture with a mip map count equal or less than this won't use streaming.
@@ -74,36 +74,51 @@ namespace Xenko.Graphics.Data
                 // Write image header
                 ImageHelper.ImageDescriptionSerializer.Serialize(ref Image.Description, ArchiveMode.Serialize, stream);
 
+                // Count number of mip maps that won't be part of initial load (they will be available through streaming)
+                int skippedMipCount = Image.Description.MipLevels - InitialNonStreamedMipCount;
+
+                // Determine whether we can store initial image
+                StorageHeader.InitialImage = true;
+                if (Image.Description.Format.IsCompressed())
+                {
+                    // Compressed: mips need to be multiple of 4, otherwise we can't do it
+                    var initialImageWidth = Image.PixelBuffers[skippedMipCount].Width;
+                    var initialImageHeight = Image.PixelBuffers[skippedMipCount].Height;
+                    if (initialImageWidth % 4 != 0 || initialImageHeight % 4 != 0)
+                        StorageHeader.InitialImage = false;
+                }
+
                 // Write storage header
                 Debug.Assert(!string.IsNullOrEmpty(StorageHeader.DataUrl));
                 StorageHeader.Write(stream);
 
-                // Note: in this scenario, we serialize only SkipStreamingMipCount (we know number is strictly higher than this due to previous check)
-                var newDesc = Image.Description;
-                newDesc.MipLevels = InitialNonStreamedMipCount;
-                var pixelBuffers = new PixelBuffer[Image.Description.ArraySize * InitialNonStreamedMipCount];
-
-                // Count number of mip maps that won't be part of initial load (they will be available through streaming)
-                int skippedMipCount = Image.Description.MipLevels - InitialNonStreamedMipCount;
-                for (uint item = 0; item < Image.Description.ArraySize; ++item)
+                if (StorageHeader.InitialImage)
                 {
-                    for (uint level = 0; level < InitialNonStreamedMipCount; ++level)
+                    // Note: in this scenario, we serialize only SkipStreamingMipCount (we know number is strictly higher than this due to previous check)
+                    var newDesc = Image.Description;
+                    newDesc.MipLevels = InitialNonStreamedMipCount;
+                    var pixelBuffers = new PixelBuffer[Image.Description.ArraySize * InitialNonStreamedMipCount];
+
+                    for (uint item = 0; item < Image.Description.ArraySize; ++item)
                     {
-                        pixelBuffers[item * InitialNonStreamedMipCount + level] = Image.PixelBuffers[item * Image.Description.MipLevels + level + skippedMipCount];
+                        for (uint level = 0; level < InitialNonStreamedMipCount; ++level)
+                        {
+                            pixelBuffers[item * InitialNonStreamedMipCount + level] = Image.PixelBuffers[item * Image.Description.MipLevels + level + skippedMipCount];
+                        }
                     }
+
+                    // Adjust new Width/Height
+                    newDesc.Width = pixelBuffers[0].Width;
+                    newDesc.Height = pixelBuffers[0].Height;
+
+                    var initialImage = new Image
+                    {
+                        Description = newDesc,
+                        PixelBuffers = pixelBuffers,
+                    };
+                    // TODO: We end up duplicating some of the texture data; we could find a way to avoid that by saving only the chunks of higher level mips?
+                    initialImage.Save(stream.NativeStream, ImageFileType.Xenko);
                 }
-
-                // Adjust new Width/Height
-                newDesc.Width = pixelBuffers[0].Width;
-                newDesc.Height = pixelBuffers[0].Height;
-
-                var initialImage = new Image
-                {
-                    Description = newDesc,
-                    PixelBuffers = pixelBuffers,
-                };
-                // TODO: We end up duplicating some of the texture data; we could find a way to avoid that by saving only the chunks of higher level mips?
-                initialImage.Save(stream.NativeStream, ImageFileType.Xenko);
             }
             else
             {

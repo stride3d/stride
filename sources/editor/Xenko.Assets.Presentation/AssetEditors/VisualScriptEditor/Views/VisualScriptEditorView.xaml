@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor"
              xmlns:graphx="clr-namespace:GraphX.Controls;assembly=GraphX.WPF.Controls"
              xmlns:sskkgraph="http://schemas.xenko.com/xaml/presentation/graph"
-             xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              xmlns:templateViews="clr-namespace:Xenko.Core.Assets.Editor.Components.TemplateDescriptions.Views;assembly=Xenko.Core.Assets.Editor"
              xmlns:converters="clr-namespace:Xenko.Assets.Presentation.AssetEditors.VisualScriptEditor.Converters"
              xmlns:graphX="http://schemas.panthernet.ru/graphx/"

@@ -23,7 +23,7 @@ namespace Xenko.Graphics
                 bool hasBindings = false;
                 foreach (var resourceBinding in effectBytecode.Reflection.ResourceBindings
                     .Where(x => x.ResourceGroup == effectDescriptorSetSlot || (effectDescriptorSetSlot == defaultSetSlot && (x.ResourceGroup == null || x.ResourceGroup == "Globals")))
-                    .GroupBy(x => new { Key = x.KeyInfo.Key, Class = x.Class, Type = x.Type, SlotCount = x.SlotCount, LogicalGroup = x.LogicalGroup })
+                    .GroupBy(x => new { Key = x.KeyInfo.Key, Class = x.Class, Type = x.Type, ElementType = x.ElementType.Type, SlotCount = x.SlotCount, LogicalGroup = x.LogicalGroup })
                     .OrderBy(x => x.Key.Class == EffectParameterClass.ConstantBuffer ? 0 : 1)) // Note: Putting cbuffer first for now
                 {
                     SamplerState samplerState = null;
@@ -35,7 +35,7 @@ namespace Xenko.Graphics
                     }
                     hasBindings = true;
 
-                    descriptorSetLayoutBuilder.AddBinding(resourceBinding.Key.Key, resourceBinding.Key.LogicalGroup, resourceBinding.Key.Class, resourceBinding.Key.Type, resourceBinding.Key.SlotCount, samplerState);
+                    descriptorSetLayoutBuilder.AddBinding(resourceBinding.Key.Key, resourceBinding.Key.LogicalGroup, resourceBinding.Key.Class, resourceBinding.Key.Type, resourceBinding.Key.ElementType, resourceBinding.Key.SlotCount, samplerState);
                 }
 
                 descriptorSetLayouts.AddLayout(effectDescriptorSetSlot, hasBindings ? descriptorSetLayoutBuilder : null);

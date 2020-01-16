@@ -14,5 +14,7 @@ namespace Xenko.Core.Assets.Editor
         Spanish,
         [Display("Chinese (Simplified)")]
         ChineseSimplified,
+        Italian,
+        Korean,
     }
 }

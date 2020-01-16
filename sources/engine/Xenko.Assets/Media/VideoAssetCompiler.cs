@@ -66,7 +66,7 @@ namespace Xenko.Assets.Media
             public EncodeVideoFileCommand(string url, VideoConvertParameters description, IAssetFinder assetFinder, AVCodecID[] listSupportedCodecNames)
                 : base(url, description, assetFinder)
             {
-                Version = 3;
+                Version = 4;
                 ListSupportedCodecNames = listSupportedCodecNames;
             }
 

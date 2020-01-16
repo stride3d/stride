@@ -76,6 +76,7 @@ namespace Xenko.Graphics.Font
                 if (!packer.Insert(targetSize.X, targetSize.Y, ref character.Glyph.Subrect))
                 {
                     // memory is too fragmented in order to place the new character -> clear all the characters and restart.
+                    // TODO: This is invalid, we might delete character from current frame!
                     ClearCache();
                     if (!packer.Insert(targetSize.X, targetSize.Y, ref character.Glyph.Subrect))
                         throw new InvalidOperationException("The rendered character is too big for the cache texture");

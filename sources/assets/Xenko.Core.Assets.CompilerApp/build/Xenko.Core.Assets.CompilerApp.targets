@@ -148,4 +148,16 @@
       </None>
     </ItemGroup>
   </Target>
+
+  <!-- 
+  *****************************************************************************************************************************
+  Default items for xksl/xkfx (mark generated files as dependent)
+  *****************************************************************************************************************************
+  -->
+  <ItemGroup>
+    <Compile Update="**\*.xksl.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.xksl" Generator="XenkoShaderKeyGenerator" />
+    <Compile Update="**\*.xkfx.cs" DependentUpon="%(Filename)" />
+    <None Update="**\*.xkfx" Generator="XenkoEffectCodeGenerator" />
+  </ItemGroup>
 </Project>

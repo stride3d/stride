@@ -225,7 +225,7 @@ namespace Xenko.Graphics
         {
         }
 
-        internal void InternalDrawGlyph(ref InternalDrawCommand parameters, ref Vector2 fontSize, ref Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
+        internal void InternalDrawGlyph(ref InternalDrawCommand parameters, in Vector2 fontSize, in Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
         {
             if (char.IsWhiteSpace((char)glyph.Character) || glyph.Subrect.Width == 0 || glyph.Subrect.Height == 0)
                 return;
@@ -258,15 +258,17 @@ namespace Xenko.Graphics
             ForEachGlyph(commandList, ref text, ref requestedFontSize, internalUIDrawGlyphAction, ref drawCommand, drawCommand.Alignment, true, textBoxSize);
         }
 
-        internal void InternalUIDrawGlyph(ref InternalUIDrawCommand parameters, ref Vector2 requestedFontSize, ref Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
+        internal void InternalUIDrawGlyph(ref InternalUIDrawCommand parameters, in Vector2 requestedFontSize, in Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
         {
             if (char.IsWhiteSpace((char)glyph.Character))
                 return;
 
+            var realVirtualResolutionRatio = requestedFontSize / parameters.RequestedFontSize;
+
             // Skip items with null size
             var elementSize = new Vector2(
-                auxiliaryScaling.X * glyph.Subrect.Width / parameters.RealVirtualResolutionRatio.X,
-                auxiliaryScaling.Y * glyph.Subrect.Height / parameters.RealVirtualResolutionRatio.Y);
+                auxiliaryScaling.X * glyph.Subrect.Width / realVirtualResolutionRatio.X,
+                auxiliaryScaling.Y * glyph.Subrect.Height / realVirtualResolutionRatio.Y);
             if (elementSize.Length() < MathUtil.ZeroTolerance) 
                 return;
 
@@ -277,23 +279,27 @@ namespace Xenko.Graphics
                 xShift = (float)Math.Round(xShift);
                 yShift = (float)Math.Round(yShift);
             }
-            var xScaledShift = xShift / parameters.RealVirtualResolutionRatio.X;
-            var yScaledShift = yShift / parameters.RealVirtualResolutionRatio.Y;
+            var xScaledShift = xShift / realVirtualResolutionRatio.X;
+            var yScaledShift = yShift / realVirtualResolutionRatio.Y;
 
             var worldMatrix = parameters.Matrix;
+
             worldMatrix.M41 += worldMatrix.M11 * xScaledShift + worldMatrix.M21 * yScaledShift;
             worldMatrix.M42 += worldMatrix.M12 * xScaledShift + worldMatrix.M22 * yScaledShift;
             worldMatrix.M43 += worldMatrix.M13 * xScaledShift + worldMatrix.M23 * yScaledShift;
-
+            worldMatrix.M44 += worldMatrix.M14 * xScaledShift + worldMatrix.M24 * yScaledShift;
+            
             worldMatrix.M11 *= elementSize.X;
             worldMatrix.M12 *= elementSize.X;
             worldMatrix.M13 *= elementSize.X;
+            worldMatrix.M14 *= elementSize.X;
             worldMatrix.M21 *= elementSize.Y;
             worldMatrix.M22 *= elementSize.Y;
             worldMatrix.M23 *= elementSize.Y;
+            worldMatrix.M24 *= elementSize.Y;
 
             RectangleF sourceRectangle = glyph.Subrect;
-            parameters.Batch.DrawCharacter(Textures[glyph.BitmapIndex], ref worldMatrix, ref sourceRectangle, ref parameters.Color, parameters.DepthBias, swizzle);
+            parameters.Batch.DrawCharacter(Textures[glyph.BitmapIndex], in worldMatrix, in sourceRectangle, in parameters.Color, parameters.DepthBias, swizzle);
         }
 
         /// <summary>
@@ -466,13 +472,13 @@ namespace Xenko.Graphics
         /// <param name="uploadGpuResources">Indicate if the GPU resource should be uploaded or not.</param>
         /// <param name="auxiliaryScaling">If the requested font size isn't available, the closest one is chosen and an auxiliary scaling is returned</param>
         /// <returns>The glyph corresponding to the request or null if not existing</returns>
-        protected virtual Glyph GetGlyph(CommandList commandList, char character, ref Vector2 fontSize, bool uploadGpuResources, out Vector2 auxiliaryScaling)
+        protected virtual Glyph GetGlyph(CommandList commandList, char character, in Vector2 fontSize, bool uploadGpuResources, out Vector2 auxiliaryScaling)
         {
             auxiliaryScaling = new Vector2(1, 1);
             return null;
         }
         
-        private void MeasureStringGlyph(ref Vector2 result, ref Vector2 fontSize, ref Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
+        private void MeasureStringGlyph(ref Vector2 result, in Vector2 fontSize, in Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling)
         {
             // TODO Do we need auxiliaryScaling
             var h = y + GetTotalLineSpacing(fontSize.Y);
@@ -486,7 +492,7 @@ namespace Xenko.Graphics
             }
         }
 
-        private delegate void GlyphAction<T>(ref T parameters, ref Vector2 fontSize, ref Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling);
+        private delegate void GlyphAction<T>(ref T parameters, in Vector2 fontSize, in Glyph glyph, float x, float y, float nextx, ref Vector2 auxiliaryScaling);
 
         private static int FindCariageReturn(ref StringProxy text, int startIndex)
         {
@@ -566,9 +572,9 @@ namespace Xenko.Graphics
                     default:
                         // Output this character.
                         Vector2 auxiliaryScaling;
-                        var glyph = GetGlyph(commandList, character, ref fontSize, updateGpuResources, out auxiliaryScaling);
+                        var glyph = GetGlyph(commandList, character, in fontSize, updateGpuResources, out auxiliaryScaling);
                         if (glyph == null && !IgnoreUnkownCharacters && DefaultCharacter.HasValue)
-                            glyph = GetGlyph(commandList, DefaultCharacter.Value, ref fontSize, updateGpuResources, out auxiliaryScaling);
+                            glyph = GetGlyph(commandList, DefaultCharacter.Value, in fontSize, updateGpuResources, out auxiliaryScaling);
                         if (glyph == null)
                             continue;
 
@@ -581,7 +587,7 @@ namespace Xenko.Graphics
                             dx += kerningOffset;
 
                         float nextX = x + (glyph.XAdvance + GetExtraSpacing(fontSize.X)) * auxiliaryScaling.X;
-                        action(ref parameters, ref fontSize, ref glyph, x + dx * auxiliaryScaling.X, y, nextX, ref auxiliaryScaling);
+                        action(ref parameters, in fontSize, in glyph, x + dx * auxiliaryScaling.X, y, nextX, ref auxiliaryScaling);
                         x = nextX;
                         break;
                 }
@@ -636,7 +642,7 @@ namespace Xenko.Graphics
         /// </summary>
         internal struct InternalDrawCommand
         {
-            public InternalDrawCommand(SpriteBatch spriteBatch, ref Vector2 fontSize, ref Vector2 position, ref Color4 color, float rotation, ref Vector2 origin, ref Vector2 scale, SpriteEffects spriteEffects, float depth)
+            public InternalDrawCommand(SpriteBatch spriteBatch, in Vector2 fontSize, in Vector2 position, in Color4 color, float rotation, in Vector2 origin, in Vector2 scale, SpriteEffects spriteEffects, float depth)
             {
                 SpriteBatch = spriteBatch;
                 Position = position;

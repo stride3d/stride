@@ -63,7 +63,7 @@ namespace Xenko.Graphics
             0 // InputAttachment
         };
 
-        internal Buffer EmptyTexelBuffer;
+        internal Buffer EmptyTexelBufferInt, EmptyTexelBufferFloat;
         internal Texture EmptyTexture;
 
         internal PhysicalDevice NativePhysicalDevice => Adapter.GetPhysicalDevice(IsDebugMode);
@@ -361,7 +361,8 @@ namespace Xenko.Graphics
             nativeResourceCollector = new NativeResourceCollector(this);
             graphicsResourceLinkCollector = new GraphicsResourceLinkCollector(this);
 
-            EmptyTexelBuffer = Buffer.Typed.New(this, 1, PixelFormat.R32G32B32A32_Float);
+            EmptyTexelBufferInt = Buffer.Typed.New(this, 1, PixelFormat.R32G32B32A32_UInt);
+            EmptyTexelBufferFloat = Buffer.Typed.New(this, 1, PixelFormat.R32G32B32A32_Float);
             EmptyTexture = Texture.New2D(this, 1, 1, PixelFormat.R8G8B8A8_UNorm_SRgb, TextureFlags.ShaderResource);
         }
 
@@ -451,8 +452,10 @@ namespace Xenko.Graphics
 
         private unsafe void ReleaseDevice()
         {
-            EmptyTexelBuffer.Dispose();
-            EmptyTexelBuffer = null;
+            EmptyTexelBufferInt.Dispose();
+            EmptyTexelBufferInt = null;
+            EmptyTexelBufferFloat.Dispose();
+            EmptyTexelBufferFloat = null;
 
             EmptyTexture.Dispose();
             EmptyTexture = null;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
@@ -110,7 +110,6 @@ namespace Xenko.Core.Shaders.Convertor
         public HlslToGlslConvertor(GlslShaderPlatform shaderPlatform, int shaderVersion, string entryPointName, PipelineStage pipelineStage, ShaderModel shaderModel, bool useBuiltinSemantic = true)
             : base(true, true)
         {
-            bool isOpenGLES2 = shaderPlatform == GlslShaderPlatform.OpenGLES && shaderVersion < 300;
             bool isVulkan = shaderPlatform == GlslShaderPlatform.Vulkan;
 
             this.shaderPlatform = shaderPlatform;
@@ -121,8 +120,8 @@ namespace Xenko.Core.Shaders.Convertor
             this.VariableLayouts = new Dictionary<string, VariableLayoutRule>();
             this.ConstantBufferLayouts = new Dictionary<string, ConstantBufferLayoutRule>();
             this.MapRules = new Dictionary<string, MapRule>();
-            this.KeepConstantBuffer = !isOpenGLES2;
-            this.TextureFunctionsCompatibilityProfile = isOpenGLES2;
+            this.KeepConstantBuffer = true;
+            this.TextureFunctionsCompatibilityProfile = false;
             this.KeepNonUniformArrayInitializers = shaderPlatform != GlslShaderPlatform.OpenGLES;
             this.ViewFrustumRemap = !isVulkan;
             this.KeepSamplers = isVulkan;
@@ -132,10 +131,6 @@ namespace Xenko.Core.Shaders.Convertor
             {
                 builtinInputs = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
                 builtinOutputs = new Dictionary<string, string>(StringComparer.CurrentCultureIgnoreCase);
-
-                // Don't use gl_FragData except on ES2
-                if (shaderPlatform == GlslShaderPlatform.OpenGLES && shaderVersion < 300)
-                    needCustomFragData = false;
 
                 // Register defaults Semantics with ShaderModel
                 switch (pipelineStage)
@@ -496,9 +491,6 @@ namespace Xenko.Core.Shaders.Convertor
 
             // Sort qualifiers in the order GLSL expects them
             ReorderVariableQualifiers();
-
-            if (shaderPlatform == GlslShaderPlatform.OpenGLES && shaderVersion < 300)
-                FixupVaryingES2();
         }
 
         #endregion
@@ -1417,10 +1409,7 @@ namespace Xenko.Core.Shaders.Convertor
 
                             if (isLoad)
                             {
-                                if (shaderPlatform == GlslShaderPlatform.OpenGLES && shaderVersion < 300) // ES2
-                                    methodName += "Lod";
-                                else
-                                    methodName = "texelFetch";
+                                methodName = "texelFetch";
                             }
 
                             if (memberReferenceExpression.Member == "SampleCmp" || memberReferenceExpression.Member == "SampleCmpLevelZero")
@@ -1501,28 +1490,13 @@ namespace Xenko.Core.Shaders.Convertor
                                         break;
                                 }
 
-                                bool isES2 = shaderPlatform == GlslShaderPlatform.OpenGLES && shaderVersion < 300;
-                                
                                 // Note: older GL versions don't allow scalar swizzle, so let's avoid them
-                                var coordExpr = dimP == "x" ? NewCast(new VectorType(isES2 ? ScalarType.Float : ScalarType.Int, dimP.Length), methodInvocationExpression.Arguments[1]) : new MemberReferenceExpression(new ParenthesizedExpression(methodInvocationExpression.Arguments[1]), dimP);
+                                var coordExpr = dimP == "x" ? NewCast(new VectorType(ScalarType.Int, dimP.Length), methodInvocationExpression.Arguments[1]) : new MemberReferenceExpression(new ParenthesizedExpression(methodInvocationExpression.Arguments[1]), dimP);
 
-                                if (shaderPlatform == GlslShaderPlatform.OpenGLES && shaderVersion < 300) // ES2
-                                {
-                                    if (mipLevel.Length > 0)
-                                        methodInvocationExpression.Arguments.Insert(2, NewCast(ScalarType.Float, new MemberReferenceExpression(new ParenthesizedExpression(methodInvocationExpression.Arguments[1].DeepClone()), mipLevel)));
+                                if (mipLevel.Length > 0)
+                                    methodInvocationExpression.Arguments.Insert(2, NewCast(ScalarType.Int, new MemberReferenceExpression(new ParenthesizedExpression(methodInvocationExpression.Arguments[1].DeepClone()), mipLevel)));
 
-                                    methodInvocationExpression.Arguments[1] = NewCast(new VectorType(ScalarType.Float, dimP.Length), new BinaryExpression(
-                                        BinaryOperator.Divide,
-                                        coordExpr,
-                                        NewCast(new VectorType(ScalarType.Float, dimP.Length), new MethodInvocationExpression("textureSize", glslSampler, new LiteralExpression(0)))));
-                                }
-                                else
-                                {
-                                    if (mipLevel.Length > 0)
-                                        methodInvocationExpression.Arguments.Insert(2, NewCast(ScalarType.Int, new MemberReferenceExpression(new ParenthesizedExpression(methodInvocationExpression.Arguments[1].DeepClone()), mipLevel)));
-
-                                    methodInvocationExpression.Arguments[1] = coordExpr;
-                                }
+                                methodInvocationExpression.Arguments[1] = coordExpr;
 
                                 // D3D returns an object of type T, but OpenGL returns an object of type gvec4
                                 var expectedResultType = methodInvocationExpression.TypeInference.TargetType;
@@ -4528,27 +4502,6 @@ namespace Xenko.Core.Shaders.Convertor
                     constantBuffer.Qualifiers |= layoutQualifier;
                 }
                 layoutQualifier.Layouts.Add(new LayoutKeyValue("std140"));
-            }
-        }
-
-        private void FixupVaryingES2()
-        {
-            foreach (var variable in shader.Declarations.OfType<Variable>())
-            {
-                if (variable.Qualifiers.Contains(ParameterQualifier.In))
-                {
-                    variable.Qualifiers.Values.Remove(ParameterQualifier.In);
-                    // "in" becomes "attribute" in VS, "varying" in other stages
-                    variable.Qualifiers.Values.Add(
-                        pipelineStage == PipelineStage.Vertex
-                            ? global::Xenko.Core.Shaders.Ast.Glsl.ParameterQualifier.Attribute
-                            : global::Xenko.Core.Shaders.Ast.Glsl.ParameterQualifier.Varying);
-                }
-                if (variable.Qualifiers.Contains(ParameterQualifier.Out))
-                {
-                    variable.Qualifiers.Values.Remove(ParameterQualifier.Out);
-                    variable.Qualifiers.Values.Add(global::Xenko.Core.Shaders.Ast.Glsl.ParameterQualifier.Varying);
-                }
             }
         }
 

@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-02-25 13:25:06+0900\n"
-"PO-Revision-Date: 2019-03-02 14:19+0000\n"
-"Last-Translator: Lucifer <786325481@qq.com>\n"
+"PO-Revision-Date: 2019-09-03 01:25+0000\n"
+"Last-Translator: 陈宇航 <xiaocunzhangh@outlook.com>\n"
 "Language-Team: Chinese (Simplified) <https://hosted.weblate.org/projects/"
 "xenko/coreassetseditor/zh_HANS-CN/>\n"
 "Language: zh_HANS-CN\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 3.5-dev\n"
+"X-Generator: Weblate 3.9-dev\n"
 
 #: ../editor/Xenko.Core.Assets.Editor/Components/Properties/PropertiesViewModel.cs:144
 msgctxt "Properties"
@@ -44,17 +44,17 @@ msgstr "选择项目 - {0}"
 #: ../editor/Xenko.Core.Assets.Editor/Services/VisualStudioService.cs:92
 msgctxt "Message"
 msgid "An error occurred while starting Visual Studio."
-msgstr "启动 Visual Studio 时发生错误。"
+msgstr "启动 视觉工作室 时发生错误。"
 
 #: ../editor/Xenko.Core.Assets.Editor/Services/VisualStudioService.cs:101
 msgctxt "Message"
 msgid "The session currently open is not a Visual Studio session."
-msgstr "当前打开的会话不是 Visual Studio 会话。"
+msgstr "当前打开的会话不是 视觉工作室 会话。"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:21
 msgctxt "Settings"
 msgid "Always delete {0} without asking"
-msgstr "总是删除 {0} 而不需询问"
+msgstr "始终在不询问的情况下删除{0}"
 
 #: ../editor/Xenko.Core.Assets.Editor/Settings/EditorSettings.cs:22
 msgctxt "Settings"

@@ -15,7 +15,7 @@ namespace Xenko.VisualStudio
         private uint updateSolutionEventsCookie;
         private uint selectionEventsCoockie;
 
-        public event Action AfterSolutionLoaded;
+        public event Action AfterSolutionOpened;
         public event Action AfterSolutionBackgroundLoadComplete;
         public event Action BeforeSolutionClosed;
 
@@ -89,7 +89,7 @@ namespace Xenko.VisualStudio
 
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
-            AfterSolutionLoaded?.Invoke();
+            AfterSolutionOpened?.Invoke();
             return VSConstants.S_OK;
         }
 

@@ -5,7 +5,7 @@
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                   xmlns:templates="clr-namespace:Xenko.Assets.Presentation.Templates"
-                  xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+                  xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                   mc:Ignorable="d" SizeToContent="Height" Width="480"
                   Style="{DynamicResource WindowChromeStyle}" Title="{xk:Localize Import from model}"
                   d:DataContext="{d:DesignInstance templates:ImportModelFromFileViewModel}">

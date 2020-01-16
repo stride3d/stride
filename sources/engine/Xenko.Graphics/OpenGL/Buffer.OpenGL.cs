@@ -25,9 +25,6 @@ namespace Xenko.Graphics
 
         private int bufferTextureElementSize;
 
-        // Special case: ConstantBuffer are faked with a byte array on OpenGL ES 2.0.
-        internal IntPtr StagingData { get; set; }
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Buffer" /> class.
         /// </summary>
@@ -82,24 +79,6 @@ namespace Xenko.Graphics
 #endif
             }
 
-            if ((ViewFlags & BufferFlags.ConstantBuffer) == BufferFlags.ConstantBuffer)
-            {
-                BufferTarget = BufferTarget.UniformBuffer;
-
-                // Special case: ConstantBuffer are stored CPU side
-                StagingData = Marshal.AllocHGlobal(Description.SizeInBytes);
-            }
-            else if (Description.Usage == GraphicsResourceUsage.Dynamic)
-            {
-#if XENKO_GRAPHICS_API_OPENGLES
-                if (GraphicsDevice.IsOpenGLES2)
-                {
-                    // OpenGL ES might not always support MapBuffer (TODO: Use MapBufferOES if available)
-                    StagingData = Marshal.AllocHGlobal(Description.SizeInBytes);
-                }
-#endif
-            }
-
             Init(dataPointer);
         }
 
@@ -120,12 +99,6 @@ namespace Xenko.Graphics
         /// <inheritdoc/>
         protected internal override void OnDestroyed()
         {
-            if (StagingData != IntPtr.Zero)
-            {
-                Marshal.FreeHGlobal(StagingData);
-                StagingData = IntPtr.Zero;
-            }
-
             using (GraphicsDevice.UseOpenGLCreationContext())
             {
                 GL.DeleteTextures(1, ref TextureId);
@@ -144,22 +117,6 @@ namespace Xenko.Graphics
 
         protected void Init(IntPtr dataPointer)
         {
-#if XENKO_GRAPHICS_API_OPENGLES
-            if (GraphicsDevice.IsOpenGLES2 
-                && ((Description.BufferFlags & BufferFlags.ConstantBuffer) == BufferFlags.ConstantBuffer
-                    || Description.Usage == GraphicsResourceUsage.Dynamic))
-            {
-                if (dataPointer != IntPtr.Zero)
-                {
-                    // Special case: ConstantBuffer are faked with a byte array on OpenGL ES 2.0.
-                    unsafe
-                    {
-                        Utilities.CopyMemory(StagingData, dataPointer, Description.SizeInBytes);
-                    }
-                }
-                return;
-            }
-#endif
             switch (Description.Usage)
             {
                 case GraphicsResourceUsage.Default:

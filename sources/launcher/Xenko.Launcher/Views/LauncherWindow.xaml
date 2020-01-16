@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:Xenko.LauncherApp.ViewModels"
         xmlns:sskk="http://schemas.xenko.com/xaml/presentation"
-        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         xmlns:services="clr-namespace:Xenko.LauncherApp.Services"
         xmlns:s="clr-namespace:System;assembly=mscorlib"
         xmlns:r="clr-namespace:Xenko.LauncherApp.Resources"

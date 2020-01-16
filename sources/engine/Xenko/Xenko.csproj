@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <Import Project="..\..\targets\Xenko.PreSettings.targets" />
-  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
   <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -39,8 +39,8 @@
     <ProjectReference Include="..\..\core\Xenko.Core.Serialization\Xenko.Core.Serialization.csproj" />
     <ProjectReference Include="..\..\core\Xenko.Core.Mathematics\Xenko.Core.Mathematics.csproj" />
     <!-- SharpDX is needed for WIC -->
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.0.1" Condition="'$(XenkoPlatform)' == 'UWP'" />
-    <PackageReference Include="System.Drawing.Common" Version="4.5.1" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" Condition="'$(XenkoPlatform)' == 'UWP'" />
+    <PackageReference Include="System.Drawing.Common" Version="4.6.0" Condition="'$(XenkoPlatform)' == 'Windows' Or '$(XenkoPlatform)' == 'Linux'" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,6 +55,6 @@
   </ItemGroup>
 
   <Import Project="$(XenkoPostSettingsTargets)" />
-  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.24" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
 
 </Project>
