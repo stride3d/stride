@@ -40,20 +40,6 @@ namespace Xenko.Rendering.Voxels
         //so instead cache them as seperate shaders.
         Xenko.Rendering.ComputeEffect.ComputeEffectShader[] VoxelMipmapSimpleGroups;
 
-        Int3 ToInt3(Vector3 v)
-        {
-            return new Int3((int)v.X, (int)v.Y, (int)v.Z);
-        }
-
-        float Mod(float v, float m)
-        {
-            return ((v % m) + m) % m;//Proper modulo
-        }
-        Vector3 Mod(Vector3 v, Vector3 m)
-        {
-            return new Vector3(Mod(v.X, m.X), Mod(v.Y, m.Y), Mod(v.Z, m.Z));
-        }
-
         public void PostProcess(RenderDrawContext drawContext, ShaderSource[] mipmapShaders)
         {
             if (mipmapShaders.Length != LayoutSize)
@@ -93,19 +79,19 @@ namespace Xenko.Rendering.Voxels
                     Vector3 Offset = MippingOffset[offsetIndex];
 
                     VoxelMipmapSimple.ThreadNumbers = new Int3(8);
-                    VoxelMipmapSimple.ThreadGroupCounts = ToInt3((ClipMapResolution / 2f) / (Vector3)VoxelMipmapSimple.ThreadNumbers);
+                    VoxelMipmapSimple.ThreadGroupCounts = (Int3)((ClipMapResolution / 2f) / (Vector3)VoxelMipmapSimple.ThreadNumbers);
 
                     for (int axis = 0; axis < LayoutSize; axis++)
                     {
                         VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.ReadTex, ClipMaps);
                         VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.WriteTex, TempMipMaps[0]);
-                        VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.ReadOffset, -(Mod(Offset, new Vector3(2))) + new Vector3(0, (int)totalResolution.Y * i + (int)ClipMapResolution.Y * axis, 0));
+                        VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.ReadOffset, -(Vector3.Mod(Offset, new Vector3(2))) + new Vector3(0, (int)totalResolution.Y * i + (int)ClipMapResolution.Y * axis, 0));
                         VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.WriteOffset, new Vector3(0, ClipMapResolution.Y / 2 * axis, 0));
                         VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.mipmapper, mipmapShaders[axis]);
                         ((RendererBase)VoxelMipmapSimple).Draw(drawContext);
                     }
 
-                    Offset -= Mod(Offset, new Vector3(2));
+                    Offset -= Vector3.Mod(Offset, new Vector3(2));
                     //Copy each axis, ignoring the top and bottom plane
                     for (int axis = 0; axis < LayoutSize; axis++)
                     {
@@ -151,8 +137,8 @@ namespace Xenko.Rendering.Voxels
                 resolution /= 2;
 
                 Vector3 threadNums = Vector3.Min(resolution, new Vector3(8));
-                mipmapShader.ThreadNumbers = ToInt3(threadNums);
-                mipmapShader.ThreadGroupCounts = ToInt3(resolution / threadNums);
+                mipmapShader.ThreadNumbers = (Int3)(threadNums);
+                mipmapShader.ThreadGroupCounts = (Int3)(resolution / threadNums);
 
                 for (int axis = 0; axis < LayoutSize; axis++)
                 {
