@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Xenko.Shaders;
+using static Xenko.Rendering.Voxels.VoxelAttributeEmissionOpacity;
 
 namespace Xenko.Rendering.Voxels
 {
@@ -10,7 +11,7 @@ namespace Xenko.Rendering.Voxels
         void PrepareOutputStorage(VoxelStorageContext context, IVoxelStorage storage);
         void ClearOutputStorage();
 
-        void PostProcess(RenderDrawContext drawContext, string MipMapShader);
+        void PostProcess(RenderDrawContext drawContext, LightFalloffs LightFalloff);
 
         //Writing
         ShaderSource GetVoxelizationShader(List<IVoxelModifierEmissionOpacity> modifiers);

@@ -1,9 +1,18 @@
 ﻿shader VoxelMarchConePerMipmap<int steps> : VoxelMarchMethod, MarchAttributes
 {
+    #ifndef AttributeID
+        #define AttributeID 0
+    #endif
+    cbuffer PerView.Lighting
+    {
+        float offset;
+        float coneRatioInv;
+    }
     override float4 March(float3 rayPos, float3 rayDir)
     {
         float voxelSize = AttributeSamplers[AttributeID].VoxelSize();
-        float dist = voxelSize;
+        rayPos += rayDir * voxelSize * offset;
+        float dist = voxelSize * coneRatioInv;
         float size = 0;
         float4 light = float4(0.0, 0.0, 0.0, 0.0);
         for (int i = 0; i < steps; i++)

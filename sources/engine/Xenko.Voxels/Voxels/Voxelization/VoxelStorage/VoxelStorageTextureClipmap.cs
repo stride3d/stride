@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Xenko.Core.Mathematics;
 using Xenko.Graphics;
@@ -35,7 +35,6 @@ namespace Xenko.Rendering.Voxels
         {
             parameters.Set(MainKey, ClipMaps);
         }
-        string curMipMapShader = "";
         Xenko.Rendering.ComputeEffect.ComputeEffectShader VoxelMipmapSimple;
         //Memory leaks if the ThreadGroupCounts/Numbers changes (I suppose due to recompiles...?)
         //so instead cache them as seperate shaders.
@@ -55,15 +54,19 @@ namespace Xenko.Rendering.Voxels
             return new Vector3(Mod(v.X, m.X), Mod(v.Y, m.Y), Mod(v.Z, m.Z));
         }
 
-        public void PostProcess(RenderDrawContext drawContext, string MipMapShader)
+        public void PostProcess(RenderDrawContext drawContext, ShaderSource[] mipmapShaders)
         {
-            if (VoxelMipmapSimple == null || curMipMapShader != MipMapShader)
+            if (mipmapShaders.Length != LayoutSize)
             {
-                if (VoxelMipmapSimple != null)
-                    VoxelMipmapSimple.Dispose();
-                VoxelMipmapSimple = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = MipMapShader };
+                return;
             }
-            if (VoxelMipmapSimpleGroups == null || VoxelMipmapSimpleGroups.Length != TempMipMaps.Length || curMipMapShader != MipMapShader)
+
+            if (VoxelMipmapSimple == null)
+            {
+                VoxelMipmapSimple = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = "Voxel2x2x2MipmapEffect" };
+            }
+
+            if (VoxelMipmapSimpleGroups == null || VoxelMipmapSimpleGroups.Length != TempMipMaps.Length)
             {
                 if (VoxelMipmapSimpleGroups != null)
                 {
@@ -75,10 +78,9 @@ namespace Xenko.Rendering.Voxels
                 VoxelMipmapSimpleGroups = new Xenko.Rendering.ComputeEffect.ComputeEffectShader[TempMipMaps.Length];
                 for (int i = 0; i < VoxelMipmapSimpleGroups.Length; i++)
                 {
-                    VoxelMipmapSimpleGroups[i] = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = MipMapShader };
+                    VoxelMipmapSimpleGroups[i] = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = "Voxel2x2x2MipmapEffect" };
                 }
             }
-            curMipMapShader = MipMapShader;
 
             int offsetIndex = 0;
             //Mipmap detailed clipmaps into less detailed ones
@@ -89,13 +91,19 @@ namespace Xenko.Rendering.Voxels
                 for (int i = 0; i < ClipMapCount - 1; i++)
                 {
                     Vector3 Offset = MippingOffset[offsetIndex];
-                    VoxelMipmapSimple.ThreadGroupCounts = threadGroupCounts;
-                    VoxelMipmapSimple.ThreadNumbers = new Int3((int)totalResolution.X / threadGroupCounts.X, (int)totalResolution.Y / threadGroupCounts.Y, (int)totalResolution.Z / threadGroupCounts.Z);
 
-                    VoxelMipmapSimple.Parameters.Set(VoxelMipmapSimpleKeys.ReadTex, ClipMaps);
-                    VoxelMipmapSimple.Parameters.Set(VoxelMipmapSimpleKeys.WriteTex, TempMipMaps[0]);
-                    VoxelMipmapSimple.Parameters.Set(VoxelMipmapSimpleKeys.ReadOffset, -(Mod(Offset,new Vector3(2))) + new Vector3(0, (int)totalResolution.Y * i, 0));
-                    ((RendererBase)VoxelMipmapSimple).Draw(drawContext);
+                    VoxelMipmapSimple.ThreadNumbers = new Int3(8);
+                    VoxelMipmapSimple.ThreadGroupCounts = ToInt3((ClipMapResolution / 2f) / (Vector3)VoxelMipmapSimple.ThreadNumbers);
+
+                    for (int axis = 0; axis < LayoutSize; axis++)
+                    {
+                        VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.ReadTex, ClipMaps);
+                        VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.WriteTex, TempMipMaps[0]);
+                        VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.ReadOffset, -(Mod(Offset, new Vector3(2))) + new Vector3(0, (int)totalResolution.Y * i + (int)ClipMapResolution.Y * axis, 0));
+                        VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.WriteOffset, new Vector3(0, ClipMapResolution.Y / 2 * axis, 0));
+                        VoxelMipmapSimple.Parameters.Set(Voxel2x2x2MipmapKeys.mipmapper, mipmapShaders[axis]);
+                        ((RendererBase)VoxelMipmapSimple).Draw(drawContext);
+                    }
 
                     Offset -= Mod(Offset, new Vector3(2));
                     //Copy each axis, ignoring the top and bottom plane
@@ -134,7 +142,6 @@ namespace Xenko.Rendering.Voxels
                 }
             }
             Vector3 resolution = ClipMapResolution;
-            resolution.Y *= LayoutSize;
             offsetIndex = ClipMapCount-1;
             //Mipmaps for the largest clipmap
             for (int i = 0; i < TempMipMaps.Length - 1; i++)
@@ -147,18 +154,24 @@ namespace Xenko.Rendering.Voxels
                 mipmapShader.ThreadNumbers = ToInt3(threadNums);
                 mipmapShader.ThreadGroupCounts = ToInt3(resolution / threadNums);
 
-                if (i == 0)
+                for (int axis = 0; axis < LayoutSize; axis++)
                 {
-                    mipmapShader.Parameters.Set(VoxelMipmapSimpleKeys.ReadTex, ClipMaps);
-                    mipmapShader.Parameters.Set(VoxelMipmapSimpleKeys.ReadOffset, -Offset + new Vector3(0, (int)ClipMapResolution.Y * LayoutSize * (ClipMapCount - 1), 0));
+                    if (i == 0)
+                    {
+                        mipmapShader.Parameters.Set(Voxel2x2x2MipmapKeys.ReadTex, ClipMaps);
+                        mipmapShader.Parameters.Set(Voxel2x2x2MipmapKeys.ReadOffset, -Offset + new Vector3(0, (int)ClipMapResolution.Y * LayoutSize * (ClipMapCount - 1) + (int)ClipMapResolution.Y * axis, 0));
+                        mipmapShader.Parameters.Set(Voxel2x2x2MipmapKeys.WriteOffset, new Vector3(0, resolution.Y * axis, 0));
+                    }
+                    else
+                    {
+                        mipmapShader.Parameters.Set(Voxel2x2x2MipmapKeys.ReadTex, TempMipMaps[i - 1]);
+                        mipmapShader.Parameters.Set(Voxel2x2x2MipmapKeys.ReadOffset, -Offset + new Vector3(0, resolution.Y * axis * 2, 0));
+                        mipmapShader.Parameters.Set(Voxel2x2x2MipmapKeys.WriteOffset, new Vector3(0, resolution.Y * axis, 0));
+                    }
+                    mipmapShader.Parameters.Set(Voxel2x2x2MipmapKeys.WriteTex, TempMipMaps[i]);
+                    mipmapShader.Parameters.Set(Voxel2x2x2MipmapKeys.mipmapper, mipmapShaders[axis]);
+                    ((RendererBase)mipmapShader).Draw(drawContext);
                 }
-                else
-                {
-                    mipmapShader.Parameters.Set(VoxelMipmapSimpleKeys.ReadTex, TempMipMaps[i - 1]);
-                    mipmapShader.Parameters.Set(VoxelMipmapSimpleKeys.ReadOffset, -Offset + new Vector3(0, 0, 0));
-                }
-                mipmapShader.Parameters.Set(VoxelMipmapSimpleKeys.WriteTex, TempMipMaps[i]);
-                ((RendererBase)mipmapShader).Draw(drawContext);
                 //Don't seem to be able to read and write to the same texture, even if the views
                 //point to different mipmaps.
                 drawContext.CommandList.CopyRegion(TempMipMaps[i], 0, null, MipMaps, i);

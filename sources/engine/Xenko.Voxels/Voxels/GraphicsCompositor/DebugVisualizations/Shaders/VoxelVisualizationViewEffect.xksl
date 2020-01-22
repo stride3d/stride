@@ -1,4 +1,4 @@
-﻿namespace Xenko.Rendering.Voxels.Debug
+namespace Xenko.Rendering.Voxels.Debug
 {
     effect VoxelVisualizationViewEffect
     {

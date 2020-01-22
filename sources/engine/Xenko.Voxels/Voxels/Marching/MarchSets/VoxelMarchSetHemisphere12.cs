@@ -8,9 +8,8 @@ namespace Xenko.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Hemisphere (12)")]
-    public class VoxelMarchSetHemisphere12 : IVoxelMarchSet
+    public class VoxelMarchSetHemisphere12 : VoxelMarchSetBase, IVoxelMarchSet
     {
-        public IVoxelMarchMethod Marcher { set; get; } = new VoxelMarchCone(9, 1.0f, 1.0f);
         public VoxelMarchSetHemisphere12()
         {
 
@@ -19,6 +18,7 @@ namespace Xenko.Rendering.Voxels
         {
             Marcher = marcher;
         }
+
         public ShaderSource GetMarchingShader(int attrID)
         {
             var mixin = new ShaderMixinSource();
@@ -27,13 +27,10 @@ namespace Xenko.Rendering.Voxels
             return mixin;
         }
 
-        public void UpdateMarchingLayout(string compositionName)
+        public override void UpdateMarchingLayout(string compositionName)
         {
-            Marcher.UpdateMarchingLayout("Marcher."+compositionName);
-        }
-        public void ApplyMarchingParameters(ParameterCollection parameters)
-        {
-            Marcher.ApplyMarchingParameters(parameters);
+            base.UpdateMarchingLayout(compositionName);
+            OffsetKey = VoxelMarchSetHemisphere12Keys.offset.ComposeWith(compositionName);
         }
     }
 }

@@ -16,8 +16,12 @@ using Buffer = Xenko.Graphics.Buffer;
 
 namespace Xenko.Rendering
 {
-    public static partial class VoxelMarchSetHemisphere6Keys
+    public static partial class VoxelMarchConeEditModeKeys
     {
+        public static readonly ValueParameterKey<int> steps = ParameterKeys.NewValue<int>();
+        public static readonly ValueParameterKey<float> stepScale = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<float> coneRatio = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<int> fast = ParameterKeys.NewValue<int>();
         public static readonly ValueParameterKey<float> offset = ParameterKeys.NewValue<float>();
     }
 }

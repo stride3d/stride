@@ -1,0 +1,10 @@
+﻿namespace Xenko.Rendering.Voxels
+{
+    shader Voxel2x2x2Mipmapper : Math, Texturing, ComputeShaderBase
+    {
+        float4 Mipmap(float4 s000, float4 s100, float4 s110, float4 s101, float4 s011, float4 s010, float4 s001, float4 s111)
+        {
+            return float4(1,0,0,1);
+        }
+    };
+}

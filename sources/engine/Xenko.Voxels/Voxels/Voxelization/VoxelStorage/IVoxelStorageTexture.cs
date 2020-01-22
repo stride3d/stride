@@ -11,7 +11,7 @@ namespace Xenko.Rendering.Voxels
         void UpdateVoxelizationLayout(string compositionName);
         void UpdateSamplingLayout(string compositionName);
         void ApplyVoxelizationParameters(ObjectParameterKey<Texture> MainKey, ParameterCollection parameters);
-        void PostProcess(RenderDrawContext drawContext, string MipMapShader);
+        void PostProcess(RenderDrawContext drawContext, ShaderSource[] mipmapShaders);
         ShaderClassSource GetSamplingShader();
         void ApplySamplingParameters(VoxelViewContext viewContext, ParameterCollection parameters);
     }

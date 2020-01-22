@@ -1,0 +1,21 @@
+﻿namespace Xenko.Rendering.Voxels
+{
+    shader Voxel2x2x2MipmapperPhysicallyBased : Voxel2x2x2Mipmapper
+    {
+        override float4 Mipmap(float4 s000, float4 s100, float4 s110, float4 s101, float4 s011, float4 s010, float4 s001, float4 s111)
+        {
+            float4 fragmentSum = (s000 + s100 + s110 + s101 + s011 + s010 + s001 + s111);
+            fragmentSum.rgb /= 4;
+            fragmentSum.a /= 8;
+            return fragmentSum;
+            //Rather than divide by 8...
+            //I figure that since the visible surface of the
+            //emitter is a 2D projection, it should decrease
+            //by 2 dimensions rather than 3 (i.e divide by 4 rather than 8).
+
+            //This makes the lighting fall-off much more realistic,
+            //but I find the opacity coverage too strong then.
+            //so keep that dividing by 8.
+        }
+    };
+}

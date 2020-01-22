@@ -1,5 +1,8 @@
 ﻿shader VoxelMarchBeam<int steps, float stepScale, float beamDiameter> : VoxelMarchMethod, VoxelRadiusMarchMethod, MarchAttributes
 {
+    #ifndef AttributeID
+        #define AttributeID 0
+    #endif
     override float4 March(float3 rayPos, float3 rayDir)
     {
         return MarchRadius(rayPos, rayDir, 1.0);

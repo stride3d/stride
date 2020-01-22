@@ -16,8 +16,9 @@ using Buffer = Xenko.Graphics.Buffer;
 
 namespace Xenko.Rendering
 {
-    public static partial class VoxelMarchSetHemisphere6Keys
+    public static partial class VoxelMarchSetRandomHemisphereKeys
     {
-        public static readonly ValueParameterKey<float> offset = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<int> marchCount = ParameterKeys.NewValue<int>();
+        public static readonly ValueParameterKey<float> time = ParameterKeys.NewValue<float>();
     }
 }

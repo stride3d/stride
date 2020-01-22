@@ -16,9 +16,10 @@ using Buffer = Xenko.Graphics.Buffer;
 
 namespace Xenko.Rendering.Voxels
 {
-    public static partial class VoxelMipmapSimpleKeys
+    public static partial class Voxel2x2x2MipmapKeys
     {
         public static readonly ValueParameterKey<Vector3> ReadOffset = ParameterKeys.NewValue<Vector3>();
+        public static readonly ValueParameterKey<Vector3> WriteOffset = ParameterKeys.NewValue<Vector3>();
         public static readonly ObjectParameterKey<Texture> ReadTex = ParameterKeys.NewObject<Texture>();
         public static readonly ObjectParameterKey<Texture> WriteTex = ParameterKeys.NewObject<Texture>();
     }

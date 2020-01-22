@@ -72,9 +72,43 @@ namespace Xenko.Rendering.Voxels
             storageTex = null;
         }
 
-        virtual public void PostProcess(RenderDrawContext drawContext, string shader)
+        protected ShaderSource[] mipmapperSharp = null;
+        protected ShaderSource[] mipmapperPhysicallyBased = null;
+        protected ShaderSource[] mipmapperHeuristic = null;
+
+        virtual public void PrepareMipmapShaders()
         {
-            storageTex.PostProcess(drawContext, shader);
+            mipmapperSharp = new ShaderSource[LayoutCount];
+            mipmapperPhysicallyBased = new ShaderSource[LayoutCount];
+            mipmapperHeuristic = new ShaderSource[LayoutCount];
+
+            ShaderSource sharp = new ShaderClassSource("Voxel2x2x2MipmapperSimple");
+            ShaderSource physicallybased = new ShaderClassSource("Voxel2x2x2MipmapperPhysicallyBased");
+            ShaderSource heuristic = new ShaderClassSource("Voxel2x2x2MipmapperHeuristic");
+            for (int i = 0; i < LayoutCount; i++)
+            {
+                mipmapperSharp[i] = sharp;
+                mipmapperPhysicallyBased[i] = physicallybased;
+                mipmapperHeuristic[i] = heuristic;
+            }
+        }
+        virtual public void PostProcess(RenderDrawContext drawContext, LightFalloffs LightFalloff)
+        {
+            if (mipmapperSharp == null)
+            {
+                PrepareMipmapShaders();
+            }
+            switch (LightFalloff)
+            {
+                case LightFalloffs.Sharp:
+                    storageTex.PostProcess(drawContext, mipmapperSharp); break;
+                case LightFalloffs.PhysicallyBased:
+                    storageTex.PostProcess(drawContext, mipmapperPhysicallyBased); break;
+                case LightFalloffs.Heuristic:
+                    storageTex.PostProcess(drawContext, mipmapperHeuristic); break;
+                default:
+                    throw new InvalidOperationException("Cannot call PostProcess on voxel texture with unknown LightFalloff type.");
+            }
         }
 
 

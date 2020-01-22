@@ -40,9 +40,10 @@ namespace Xenko.Rendering.Voxels
             attributes.Add(new AttributeStream(this, VoxelizationStage.Post, output));
         }
 
+        ShaderSource[] mipmapper = { new ShaderClassSource("Voxel2x2x2MipmapperSimple") };
         public void PostProcess(RenderDrawContext drawContext)
         {
-            CoverageTex.PostProcess(drawContext, "VoxelMipmapSimple");
+            CoverageTex.PostProcess(drawContext, mipmapper);
         }
 
 

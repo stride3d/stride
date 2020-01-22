@@ -72,17 +72,7 @@ namespace Xenko.Rendering.Voxels
         }
         public void PostProcess(RenderDrawContext drawContext)
         {
-            switch (LightFalloff)
-            {
-                case LightFalloffs.Sharp:
-                    VoxelLayout.PostProcess(drawContext, "VoxelMipmapSimple"); break;
-                case LightFalloffs.PhysicallyBased:
-                    VoxelLayout.PostProcess(drawContext, "VoxelMipmapPhysicallyBased"); break;
-                case LightFalloffs.Heuristic:
-                    VoxelLayout.PostProcess(drawContext, "VoxelMipmapHeuristic"); break;
-                default:
-                    throw new InvalidOperationException("Cannot call PostProcess on voxel texture with unknown LightFalloff type.");
-            }
+            VoxelLayout.PostProcess(drawContext, LightFalloff);
         }
 
 

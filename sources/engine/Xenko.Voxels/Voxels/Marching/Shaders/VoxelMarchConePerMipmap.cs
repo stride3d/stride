@@ -6,4 +6,19 @@
 // and re-save the associated .xkfx.
 // </auto-generated>
 
-// Nothing to generate
+using System;
+using Xenko.Core;
+using Xenko.Rendering;
+using Xenko.Graphics;
+using Xenko.Shaders;
+using Xenko.Core.Mathematics;
+using Buffer = Xenko.Graphics.Buffer;
+
+namespace Xenko.Rendering
+{
+    public static partial class VoxelMarchConePerMipmapKeys
+    {
+        public static readonly ValueParameterKey<float> offset = ParameterKeys.NewValue<float>();
+        public static readonly ValueParameterKey<float> coneRatioInv = ParameterKeys.NewValue<float>();
+    }
+}

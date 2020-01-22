@@ -1,0 +1,44 @@
+﻿shader VoxelMarchSetRandomHemisphere : VoxelMarchSet, ShaderBase
+{
+    cbuffer PerView.Lighting
+    {
+        int marchCount;
+        float time;
+    }
+    float Random(in float2 uv)
+    {
+        float2 noise = (frac(sin(dot(uv,float2(12.9898,78.233)*2.0)) * 43758.5453));
+        return abs(noise.x + noise.y) * 0.5;
+    }
+    float3 CosineWeightedPointOnHemisphere(float2 uv) {
+        float u = Random(uv) * 6.28;
+        float v = Random(uv + 0.1);
+
+        v = sqrt(v);
+
+        float2 pos = float2(sin(u),cos(u)) * v;
+
+        return float3(pos, sqrt(1-pos.x*pos.x-pos.y*pos.y));
+    }
+
+    compose VoxelMarchMethod Marcher;
+    override float4 March(float3 rayPos, float3 rayDir)
+    {
+        float3 tan = normalize(cross(rayDir, normalize(float3(1,1,1))));
+        float3 bitan = cross(tan, rayDir);
+        float3x3 tangentMatrix = float3x3(tan, bitan, rayDir);
+
+        float3 startPos = rayPos + rayDir * Marcher.StepSize();
+
+        float4 reflLighting = float4(0, 0, 0, 0);
+
+        for(int i = 0; i < marchCount; i ++)
+        {
+            float3 dir = CosineWeightedPointOnHemisphere(streams.ShadingPosition.xy + i*1.73 + time);
+            dir = mul(dir, tangentMatrix);
+            reflLighting += Marcher.March(startPos, dir);
+        }
+
+        return reflLighting/(float)marchCount;
+    }
+};

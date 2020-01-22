@@ -28,5 +28,26 @@ namespace Xenko.Rendering.Voxels
             BrightnessKey = VoxelAnisotropicSamplerKeys.maxBrightness.ComposeWith(compositionName);
             storageTex.UpdateSamplingLayout("storage." + compositionName);
         }
+
+        ShaderClassSource mipmapXP = new ShaderClassSource("Voxel2x2x2Mipmapper_AnisoXP");
+        ShaderClassSource mipmapXN = new ShaderClassSource("Voxel2x2x2Mipmapper_AnisoXN");
+        ShaderClassSource mipmapYP = new ShaderClassSource("Voxel2x2x2Mipmapper_AnisoYP");
+        ShaderClassSource mipmapYN = new ShaderClassSource("Voxel2x2x2Mipmapper_AnisoYN");
+        ShaderClassSource mipmapZP = new ShaderClassSource("Voxel2x2x2Mipmapper_AnisoZP");
+        ShaderClassSource mipmapZN = new ShaderClassSource("Voxel2x2x2Mipmapper_AnisoZN");
+        override public void PostProcess(RenderDrawContext drawContext, LightFalloffs LightFalloff)
+        {
+            if (mipmapperSharp == null)
+            {
+                PrepareMipmapShaders();
+                mipmapperHeuristic[0] = mipmapXP;
+                mipmapperHeuristic[1] = mipmapXN;
+                mipmapperHeuristic[2] = mipmapYP;
+                mipmapperHeuristic[3] = mipmapYN;
+                mipmapperHeuristic[4] = mipmapZP;
+                mipmapperHeuristic[5] = mipmapZN;
+            }
+            base.PostProcess(drawContext, LightFalloff);
+        }
     }
 }

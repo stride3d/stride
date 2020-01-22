@@ -49,10 +49,11 @@ namespace Xenko.Rendering.Voxels
         {
             return false;
         }
+        ShaderSource[] mipmapper = { new ShaderClassSource("Voxel2x2x2MipmapperSimple") };
         
         public void PostProcess(RenderDrawContext drawContext)
         {
-            SolidityTex.PostProcess(drawContext, "VoxelMipmapSimple");
+            SolidityTex.PostProcess(drawContext, mipmapper);
         }
 
 

@@ -81,6 +81,12 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>VoxelMarchSetHemisphere6.xksl</DependentUpon>
     </Compile>
+    <Compile Update="Voxels\Marching\MarchSets\Shaders\VoxelMarchSetRandomHemisphere.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>VoxelMarchSetRandomHemisphere.xksl</DependentUpon>
+    </Compile>
     <Compile Update="Voxels\Marching\Shaders\MarchAttributes.cs">
       <DesignTime>True</DesignTime>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
@@ -104,6 +110,12 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>
       <DependentUpon>VoxelMarchCone.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Marching\Shaders\VoxelMarchConeEditMode.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>VoxelMarchConeEditMode.xksl</DependentUpon>
     </Compile>
     <Compile Update="Voxels\Marching\Shaders\VoxelMarchConeFast.cs">
       <DesignTime>True</DesignTime>
@@ -363,6 +375,78 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>LocalSamples.xksl</DependentUpon>
     </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoXN.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2Mipmapper_AnisoXN.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoXP.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2Mipmapper_AnisoXP.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoYN.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2Mipmapper_AnisoYN.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoYP.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2Mipmapper_AnisoYP.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoZN.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2Mipmapper_AnisoZN.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoZP.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2Mipmapper_AnisoZP.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2Mipmap.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2Mipmap.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2MipmapEffect.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2MipmapEffect.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2Mipmapper.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2Mipmapper.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2MipmapperHeuristic.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2MipmapperHeuristic.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2MipmapperPhysicallyBased.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2MipmapperPhysicallyBased.xksl</DependentUpon>
+    </Compile>
+    <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2MipmapperSimple.cs">
+      <DesignTime>True</DesignTime>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Voxel2x2x2MipmapperSimple.xksl</DependentUpon>
+    </Compile>
     <Compile Update="Voxels\Voxelization\VoxelStorage\Mipmapping\VoxelMipmapHeuristic.cs">
       <DesignTime>True</DesignTime>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
@@ -473,6 +557,10 @@
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>VoxelMarchSetHemisphere6.cs</LastGenOutput>
     </None>
+    <None Update="Voxels\Marching\MarchSets\Shaders\VoxelMarchSetRandomHemisphere.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>VoxelMarchSetRandomHemisphere.cs</LastGenOutput>
+    </None>
     <None Update="Voxels\Marching\Shaders\MarchAttributes.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>MarchAttributes.cs</LastGenOutput>
@@ -488,6 +576,10 @@
     <None Update="Voxels\Marching\Shaders\VoxelMarchCone.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>VoxelMarchCone.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Marching\Shaders\VoxelMarchConeEditMode.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>VoxelMarchConeEditMode.cs</LastGenOutput>
     </None>
     <None Update="Voxels\Marching\Shaders\VoxelMarchConeFast.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
@@ -660,6 +752,54 @@
     <None Update="Voxels\Voxelization\VoxelStorage\LocalSamples.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
       <LastGenOutput>LocalSamples.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoXN.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2Mipmapper_AnisoXN.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoXP.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2Mipmapper_AnisoXP.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoYN.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2Mipmapper_AnisoYN.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoYP.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2Mipmapper_AnisoYP.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoZN.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2Mipmapper_AnisoZN.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Anisotropic\Voxel2x2x2Mipmapper_AnisoZP.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2Mipmapper_AnisoZP.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2Mipmap.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2Mipmap.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2MipmapEffect.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2MipmapEffect.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2Mipmapper.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2Mipmapper.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2MipmapperHeuristic.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2MipmapperHeuristic.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2MipmapperPhysicallyBased.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2MipmapperPhysicallyBased.cs</LastGenOutput>
+    </None>
+    <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\Voxel2x2x2MipmapperSimple.xksl">
+      <Generator>XenkoShaderKeyGenerator</Generator>
+      <LastGenOutput>Voxel2x2x2MipmapperSimple.cs</LastGenOutput>
     </None>
     <None Update="Voxels\Voxelization\VoxelStorage\Mipmapping\VoxelMipmapHeuristic.xksl">
       <Generator>XenkoShaderKeyGenerator</Generator>
