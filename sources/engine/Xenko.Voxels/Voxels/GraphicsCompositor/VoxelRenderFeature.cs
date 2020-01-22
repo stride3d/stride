@@ -23,9 +23,6 @@ namespace Xenko.Rendering.Voxels
         public static readonly PropertyKey<Dictionary<VoxelVolumeComponent, ProcessedVoxelVolume>> CurrentProcessedVoxelVolumes = new PropertyKey<Dictionary<VoxelVolumeComponent, ProcessedVoxelVolume>>("VoxelRenderFeature.CurrentProcessedVoxelVolumes", typeof(VoxelRenderFeature));
 
         private Dictionary<VoxelVolumeComponent, ProcessedVoxelVolume> renderVoxelVolumeData;
-
-        [DataMember]
-        public RenderStage VoxelizerRenderStage { get; set; }
         
         private LogicalGroupReference VoxelizerStorerCasterKey;
         private StaticObjectPropertyKey<RenderEffect> renderEffectKey;
@@ -55,48 +52,42 @@ namespace Xenko.Rendering.Voxels
             {
                 var processedVolume = processedVolumeKeyValue.Value;
 
-                if (processedVolume == null) continue;
-
                 foreach (VoxelizationPass pass in processedVolume.passList.passes)
                 {
-                    var viewFeature = pass.view.Features[RootRenderFeature.Index];
-                    if (processedVolume == null)
-                        continue;
-
                     pass.storer.UpdateVoxelizationLayout("Storage");
-                    for (int i  = 0; i < pass.AttributesIndirect.Count;  i++)
+                    for (int i = 0; i < pass.AttributesIndirect.Count; i++)
                     {
                         var attr = pass.AttributesIndirect[i];
-                        attr.UpdateVoxelizationLayout("AttributesIndirect["+i+"]");
+                        attr.UpdateVoxelizationLayout($"AttributesIndirect[{i}]");
                     }
+                }
+                foreach (var group in processedVolume.groupedPasses)
+                {
+                    //Each pass in a group should have identical shaders
+                    var pass = group[0];
 
-                    var effectSlot = rootEffectRenderFeature.GetEffectPermutationSlot(RenderSystem.RenderStages[pass.view.RenderStages[0].Index]);
-
-                    foreach (var renderObject in pass.view.RenderObjects)
+                    Dispatcher.ForEach(RootRenderFeature.RenderObjects, renderObject =>
                     {
-                        var staticObjectNode = renderObject.StaticObjectNode;
-                        if (staticObjectNode == null)
-                            continue;
+                        var renderMesh = (RenderMesh)renderObject;
 
-                        var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlot.Index;
-                        if (staticEffectObjectNode == null)
-                            continue;
+                        var staticObjectNode = renderMesh.StaticObjectNode;
 
-                        RenderEffect renderEffect = null;
-                        try
+
+                        var effectSlot = rootEffectRenderFeature.GetEffectPermutationSlot(RenderSystem.RenderStages[pass.view.RenderStages[0].Index]);
                         {
-                            renderEffect = renderEffects[staticEffectObjectNode];
+
+                            var staticEffectObjectNode = staticObjectNode * effectSlotCount + effectSlot.Index;
+                            var renderEffect = renderEffects[staticEffectObjectNode];
+
+                            // Skip effects not used during this frame
+                            if (renderEffect != null)
+                            {
+                                renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.Storage, pass.source);
+                                renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.RequireGeometryShader, pass.storer.RequireGeometryShader() || pass.method.RequireGeometryShader());
+                                renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.GeometryShaderMaxVertexCount, pass.storer.GeometryShaderOutputCount() * pass.method.GeometryShaderOutputCount());
+                            }
                         }
-                        catch
-                        {
-                        }
-                        if (renderEffect != null)
-                        {
-                            renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.Storage, pass.source);
-                            renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.RequireGeometryShader, pass.storer.RequireGeometryShader() || pass.method.RequireGeometryShader());
-                            renderEffect.EffectValidator.ValidateParameter(VoxelizeToFragmentsKeys.GeometryShaderMaxVertexCount, pass.storer.GeometryShaderOutputCount() * pass.method.GeometryShaderOutputCount());
-                        }
-                    }
+                    });
                 }
             }
         }
@@ -113,7 +104,6 @@ namespace Xenko.Rendering.Voxels
                     var viewFeature = pass.view.Features[RootRenderFeature.Index];
 
 
-                    var viewParameters = new ParameterCollection();
                     // Find a PerView layout from an effect in normal state
                     ViewResourceGroupLayout firstViewLayout = null;
                     foreach (var viewLayout in viewFeature.Layouts)
@@ -134,6 +124,7 @@ namespace Xenko.Rendering.Voxels
                     if (firstViewLayout == null)
                         continue;
 
+                    var viewParameters = new ParameterCollection();
 
                     var firstViewLighting = firstViewLayout.GetLogicalGroup(VoxelizerStorerCasterKey);
 
@@ -159,8 +150,6 @@ namespace Xenko.Rendering.Voxels
 
                     foreach (var viewLayout in viewFeature.Layouts)
                     {
-
-
                         if (viewLayout.State != RenderEffectState.Normal)
                             continue;
 

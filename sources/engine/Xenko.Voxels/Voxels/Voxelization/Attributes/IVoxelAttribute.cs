@@ -16,6 +16,7 @@ namespace Xenko.Rendering.Voxels
         void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, VoxelizationStage stage, bool output);
         void CollectAttributes(List<AttributeStream> attributes, VoxelizationStage stage, bool output);
 
+        bool RequiresColumns();
         void PostProcess(RenderDrawContext drawContext);
 
         //Writing
@@ -23,16 +24,14 @@ namespace Xenko.Rendering.Voxels
         void UpdateVoxelizationLayout(string compositionName);
         void ApplyVoxelizationParameters(ParameterCollection parameters);
 
-        void SetBufferOffset(int id);
-        int GetBufferOffset();
+        int BufferOffset { get; set; }
 
         //Sampling
         ShaderSource GetSamplingShader();
         void UpdateSamplingLayout(string compositionName);
         void ApplySamplingParameters(VoxelViewContext viewContext, ParameterCollection parameters);
 
-        void SetLocalSamplerID(int id);
-        int GetLocalSamplerID();
+        int LocalSamplerID { get; set; }
 
 
     }

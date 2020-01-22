@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xenko.Core;
@@ -11,13 +11,13 @@ namespace Xenko.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Solidity")]
-    public class VoxelAttributeSolidity : IVoxelAttribute
+    public class VoxelAttributeSolidity : VoxelAttributeBase, IVoxelAttribute
     {
         IVoxelStorageTexture SolidityTex;
 
         public void PrepareLocalStorage(VoxelStorageContext context, IVoxelStorage storage)
         {
-            SetBufferOffset(storage.RequestTempStorage(64));
+            BufferOffset = storage.RequestTempStorage(64);
         }
         public void PrepareOutputStorage(VoxelStorageContext context, IVoxelStorage storage)
         {
@@ -45,9 +45,14 @@ namespace Xenko.Rendering.Voxels
             attributes.Add(new AttributeStream(this, VoxelizationStage.Post, output));
         }
 
+        override public bool RequiresColumns()
+        {
+            return false;
+        }
+        
         public void PostProcess(RenderDrawContext drawContext)
         {
-            SolidityTex?.PostProcess(drawContext, "VoxelMipmapSimple");
+            SolidityTex.PostProcess(drawContext, "VoxelMipmapSimple");
         }
 
 
@@ -69,17 +74,6 @@ namespace Xenko.Rendering.Voxels
         public void ApplyVoxelizationParameters(ParameterCollection parameters)
         {
             SolidityTex?.ApplyVoxelizationParameters(DirectOutput, parameters);
-        }
-
-        int bufferOffset;
-
-        public void SetBufferOffset(int bo)
-        {
-            bufferOffset = bo;
-        }
-        public int GetBufferOffset()
-        {
-            return bufferOffset;
         }
 
 
@@ -105,17 +99,6 @@ namespace Xenko.Rendering.Voxels
         {
             parameters.Set(BrightnessKey, 1.0f);
             SolidityTex?.ApplySamplingParameters(viewContext, parameters);
-        }
-
-        int samplerLocalID;
-
-        public void SetLocalSamplerID(int id)
-        {
-            samplerLocalID = id;
-        }
-        public int GetLocalSamplerID()
-        {
-            return samplerLocalID;
         }
     }
 }

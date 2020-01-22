@@ -90,22 +90,34 @@ namespace Xenko.Rendering.Voxels.VoxelGI
 
             public RenderLight Light { get; set; }
 
+            IVoxelAttribute traceAttribute = null;
+
             public LightVoxelShaderGroup(ShaderSource mixin) : base(mixin)
             {
                 HasEffectPermutations = true;
+                traceAttribute = null;
             }
-            IVoxelAttribute GetTraceAttr()
+
+            ProcessedVoxelVolume GetProcessedVolume()
             {
                 var lightVoxel = ((LightVoxel)Light.Type);
                 if (lightVoxel.Volume == null)
                 {
                     throw new ArgumentNullException("No Voxel Volume Component selected for voxel light.");
                 }
-                //ProcessedVoxelVolume processedVolume = Voxels.VoxelRenderer.GetDataForComponent(lightVoxel.Volume);
                 var voxelVolumeProcessor = lightVoxel.Volume.Entity.EntityManager.GetProcessor<VoxelVolumeProcessor>();
                 if (voxelVolumeProcessor == null)
                     return null;
+
                 ProcessedVoxelVolume processedVolume = voxelVolumeProcessor.GetProcessedVolumeForComponent(lightVoxel.Volume);
+                return processedVolume;
+            }
+
+            IVoxelAttribute GetTraceAttr()
+            {
+                var lightVoxel = ((LightVoxel)Light.Type);
+
+                ProcessedVoxelVolume processedVolume = GetProcessedVolume();
                 if (processedVolume == null)
                     return null;
 
@@ -122,6 +134,8 @@ namespace Xenko.Rendering.Voxels.VoxelGI
             {
                 base.UpdateLayout(compositionName);
 
+                traceAttribute = GetTraceAttr();
+
                 intensityKey = LightVoxelShaderKeys.Intensity.ComposeWith(compositionName);
                 specularIntensityKey = LightVoxelShaderKeys.SpecularIntensity.ComposeWith(compositionName);
 
@@ -129,23 +143,23 @@ namespace Xenko.Rendering.Voxels.VoxelGI
                 specularMarcherKey = LightVoxelShaderKeys.specularMarcher.ComposeWith(compositionName);
                 attributeSamplersKey = MarchAttributesKeys.AttributeSamplers.ComposeWith(compositionName);
 
-                if (GetTraceAttr() != null)
+                if (traceAttribute != null)
                 {
                     if (((LightVoxel)Light.Type).DiffuseMarcher != null)
                         ((LightVoxel)Light.Type).DiffuseMarcher.UpdateMarchingLayout("diffuseMarcher." + compositionName);
                     if (((LightVoxel)Light.Type).SpecularMarcher != null)
                         ((LightVoxel)Light.Type).SpecularMarcher.UpdateMarchingLayout("specularMarcher." + compositionName);
-                    GetTraceAttr().UpdateSamplingLayout("AttributeSamplers[0]." + compositionName);
+                    traceAttribute.UpdateSamplingLayout("AttributeSamplers[0]." + compositionName);
                 }
             }
 
             public override void ApplyEffectPermutations(RenderEffect renderEffect)
             {
-                if (GetTraceAttr() != null)
+                if (traceAttribute != null)
                 {
                     ShaderSourceCollection collection = new ShaderSourceCollection
                     {
-                        GetTraceAttr().GetSamplingShader()
+                        traceAttribute.GetSamplingShader()
                     };
                     renderEffect.EffectValidator.ValidateParameter(attributeSamplersKey, collection);
 
@@ -158,32 +172,32 @@ namespace Xenko.Rendering.Voxels.VoxelGI
 
             public override void ApplyViewParameters(RenderDrawContext context, int viewIndex, ParameterCollection parameters)
             {
-                VoxelViewContext viewContext = new VoxelViewContext(context, viewIndex);
                 base.ApplyViewParameters(context, viewIndex, parameters);
 
                 var lightVoxel = ((LightVoxel)Light.Type);
+
+                if (lightVoxel.Volume == null)
+                    return;
 
                 var intensity = Light.Intensity;
                 var intensityBounceScale = lightVoxel.BounceIntensityScale;
                 var specularIntensity = lightVoxel.SpecularIntensityScale * intensity;
 
+                VoxelViewContext viewContext = new VoxelViewContext(GetProcessedVolume().passList, viewIndex);
                 if (viewContext.IsVoxelView)
                 {
                     intensity *= intensityBounceScale / 3.141592f;
                     specularIntensity = 0.0f;
                 }
 
-                if (lightVoxel.Volume == null)
-                    return;
-
                 parameters.Set(intensityKey, intensity);
                 parameters.Set(specularIntensityKey, specularIntensity);
 
-                if (GetTraceAttr() != null)
+                if (traceAttribute != null)
                 {
                     lightVoxel.DiffuseMarcher?.ApplyMarchingParameters(parameters);
                     lightVoxel.SpecularMarcher?.ApplyMarchingParameters(parameters);
-                    GetTraceAttr().ApplySamplingParameters(viewContext, parameters);
+                    traceAttribute.ApplySamplingParameters(viewContext, parameters);
                 }
             }
         }

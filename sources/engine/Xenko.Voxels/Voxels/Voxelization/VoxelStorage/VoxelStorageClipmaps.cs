@@ -240,6 +240,7 @@ namespace Xenko.Rendering.Voxels
             }
         }
 
+        Xenko.Rendering.ComputeEffect.ComputeEffectShader BufferToTexture;
         Xenko.Rendering.ComputeEffect.ComputeEffectShader BufferToTextureColumns;
         Xenko.Rendering.ComputeEffect.ComputeEffectShader ClearBuffer;
 
@@ -253,14 +254,27 @@ namespace Xenko.Rendering.Voxels
             if (ClearBuffer == null)
             {
                 ClearBuffer = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(context) { ShaderSourceName = "ClearBuffer" };
-                //BufferToTexture = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(Context) { ShaderSourceName = "BufferToTextureEffect" };
+                BufferToTexture = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(context) { ShaderSourceName = "BufferToTextureEffect" };
                 BufferToTextureColumns = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(context) { ShaderSourceName = "BufferToTextureColumnsEffect" };
             }
+
+            bool VoxelsAreIndependent = true;
 
             List<IVoxelAttribute> IndirectVoxels = new List<IVoxelAttribute>();
             List<IVoxelAttribute> TempVoxels = new List<IVoxelAttribute>();
             ShaderSourceCollection Indirect = new ShaderSourceCollection();
             ShaderSourceCollection Temp = new ShaderSourceCollection();
+
+            //Assign sample indices and check whether voxels can be calculated independently
+            int sampleIndex = 0;
+            foreach (var attr in data.Attributes)
+            {
+                attr.Attribute.LocalSamplerID = sampleIndex;
+                VoxelsAreIndependent &= !attr.Attribute.RequiresColumns();
+                sampleIndex++;
+            }
+
+            //Populate ShaderSourceCollections and temp lists
             foreach (var attr in data.Attributes)
             {
                 if (attr.Stage != VoxelizationStage.Post) continue;
@@ -276,17 +290,17 @@ namespace Xenko.Rendering.Voxels
                 }
             }
 
+            var BufferWriter = VoxelsAreIndependent ? BufferToTexture : BufferToTextureColumns;
 
-            var BufferWriter = BufferToTextureColumns;
             for (int i = 0; i < IndirectVoxels.Count; i++)
             {
                 var attr = IndirectVoxels[i];
-                attr.UpdateVoxelizationLayout("AttributesIndirect[" + i + "]");
+                attr.UpdateVoxelizationLayout($"AttributesIndirect[{i}]");
             }
             for (int i = 0; i < TempVoxels.Count; i++)
             {
                 var attr = TempVoxels[i];
-                attr.UpdateVoxelizationLayout("AttributesTemp[" + i + "]");
+                attr.UpdateVoxelizationLayout($"AttributesTemp[{i}]");
             }
             foreach (var attr in data.Attributes)
             {
@@ -294,15 +308,11 @@ namespace Xenko.Rendering.Voxels
             }
 
 
-            BufferWriter.ThreadGroupCounts = new Int3(32, 1, 32);
-            if (UpdatesPerFrame == UpdateMethods.SingleClipmap)
-            {
-                BufferWriter.ThreadNumbers = new Int3((int)ClipMapResolution.X / BufferWriter.ThreadGroupCounts.X, 1 / BufferWriter.ThreadGroupCounts.Y, (int)ClipMapResolution.Z / BufferWriter.ThreadGroupCounts.Z);
-            }
-            else
-            {
-                BufferWriter.ThreadNumbers = new Int3((int)ClipMapResolution.X / BufferWriter.ThreadGroupCounts.X, ClipMapCount / BufferWriter.ThreadGroupCounts.Y, (int)ClipMapResolution.Z / BufferWriter.ThreadGroupCounts.Z);
-            }
+            int processYSize = VoxelsAreIndependent ? (int)ClipMapResolution.Y : 1;
+            processYSize *= (UpdatesPerFrame == UpdateMethods.SingleClipmap) ? 1 : ClipMapCount;
+
+            BufferWriter.ThreadGroupCounts = VoxelsAreIndependent ? new Int3(32, 32, 32) : new Int3(32, 1, 32);
+            BufferWriter.ThreadNumbers = new Int3((int)ClipMapResolution.X / BufferWriter.ThreadGroupCounts.X, processYSize / BufferWriter.ThreadGroupCounts.Y, (int)ClipMapResolution.Z / BufferWriter.ThreadGroupCounts.Z);
 
             BufferWriter.Parameters.Set(BufferToTextureKeys.VoxelFragments, FragmentsBuffer);
             BufferWriter.Parameters.Set(BufferToTextureKeys.clipMapResolution, ClipMapResolution);
@@ -317,27 +327,24 @@ namespace Xenko.Rendering.Voxels
             //makes it difficult to access the results array (AttributeLocalSamples) by index. So instead it's just all done through this macro...
             string IndirectReadAndStoreMacro = "";
             string IndirectStoreMacro = "";
-            int sampleIndex = 0;
             for (int i = 0; i < Temp.Count; i ++)
             {
                 string iStr = i.ToString();
-                string sampleIndexStr = sampleIndex.ToString();
-                IndirectReadAndStoreMacro += "AttributesTemp[" + iStr + "].InitializeFromBuffer(VoxelFragments, VoxelFragmentsIndex + " + TempVoxels[i].GetBufferOffset().ToString() + ", uint2(" + TempVoxels[i].GetBufferOffset().ToString() + " + initialVoxelFragmentsIndex, yStride));\n" +
-                                             "streams.LocalSample[" + sampleIndexStr + "] = AttributesTemp[" + iStr + "].SampleLocal();\n\n";
-                IndirectStoreMacro += "streams.LocalSample[" + sampleIndexStr + "] = AttributesTemp[" + iStr + "].SampleLocal();\n";
-                TempVoxels[i].SetLocalSamplerID(sampleIndex);
-                sampleIndex++;
+                string sampleIndexStr = TempVoxels[i].LocalSamplerID.ToString();
+                IndirectReadAndStoreMacro += $"AttributesTemp[{iStr}].InitializeFromBuffer(VoxelFragments, VoxelFragmentsIndex + {TempVoxels[i].BufferOffset}, uint2({TempVoxels[i].BufferOffset} + initialVoxelFragmentsIndex, yStride));\n" +
+                                             $"streams.LocalSample[{sampleIndexStr}] = AttributesTemp[{iStr}].SampleLocal();\n\n";
+                IndirectStoreMacro += $"streams.LocalSample[{sampleIndexStr}] = AttributesTemp[{iStr}].SampleLocal();\n";
             }
             for (int i = 0; i < Indirect.Count; i++)
             {
                 string iStr = i.ToString();
-                string sampleIndexStr = sampleIndex.ToString();
-                IndirectReadAndStoreMacro += "AttributesIndirect[" + iStr + "].InitializeFromBuffer(VoxelFragments, VoxelFragmentsIndex + " + IndirectVoxels[i].GetBufferOffset().ToString() + ", uint2(" + IndirectVoxels[i].GetBufferOffset().ToString() + " + initialVoxelFragmentsIndex, yStride));\n" +
-                                             "streams.LocalSample[" + sampleIndexStr + "] = AttributesIndirect[" + iStr + "].SampleLocal();\n\n";
-                IndirectStoreMacro += "streams.LocalSample[" + sampleIndexStr + "] = AttributesIndirect[" + iStr + "].SampleLocal();\n";
-                IndirectVoxels[i].SetLocalSamplerID(sampleIndex);
-                sampleIndex++;
+                string sampleIndexStr = IndirectVoxels[i].LocalSamplerID.ToString();
+                IndirectReadAndStoreMacro += $"AttributesIndirect[{iStr}].InitializeFromBuffer(VoxelFragments, VoxelFragmentsIndex + {IndirectVoxels[i].BufferOffset}, uint2({IndirectVoxels[i].BufferOffset} + initialVoxelFragmentsIndex, yStride));\n" +
+                                             $"streams.LocalSample[{sampleIndexStr}] = AttributesIndirect[{iStr}].SampleLocal();\n\n";
+                IndirectStoreMacro += $"streams.LocalSample[{sampleIndexStr}] = AttributesIndirect[{iStr}].SampleLocal();\n";
             }
+
+
 
             BufferWriter.Parameters.Set(BufferToTextureKeys.AttributesIndirect, Indirect);
             BufferWriter.Parameters.Set(BufferToTextureKeys.AttributesTemp, Temp);
@@ -345,6 +352,8 @@ namespace Xenko.Rendering.Voxels
             BufferWriter.Parameters.Set(BufferToTextureKeys.IndirectStoreMacro, IndirectStoreMacro);
 
             ((RendererBase)BufferWriter).Draw(drawContext);
+
+
 
             ClearBuffer.Parameters.Set(ClearBufferKeys.buffer, FragmentsBuffer);
 

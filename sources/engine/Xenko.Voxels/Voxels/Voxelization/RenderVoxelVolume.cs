@@ -36,11 +36,11 @@ namespace Xenko.Rendering.Voxels
         public IVoxelAttribute Attribute;
         public VoxelizationStage Stage;
         public bool Output;
-        public AttributeStream(IVoxelAttribute a, VoxelizationStage s, bool o)
+        public AttributeStream(IVoxelAttribute attribute, VoxelizationStage stage, bool output)
         {
-            Attribute = a;
-            Stage = s;
-            Output = o;
+            Attribute = attribute;
+            Stage = stage;
+            Output = output;
         }
     }
     public class ProcessedVoxelVolume

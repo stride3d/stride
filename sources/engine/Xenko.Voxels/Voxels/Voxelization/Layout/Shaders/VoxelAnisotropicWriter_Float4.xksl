@@ -8,6 +8,8 @@ shader VoxelAnisotropicWriter_Float4 : VoxelLayout_Float4, NormalStream
     stream float4 axisZN;
     RWTexture3D<float4> DirectOutput;
     compose VoxelFragmentPacker writer;
+
+    float maxBrightnessInv;
     
     compose VoxelModifierApplierAnisotropic Modifiers[];
     override void InitializeDummy()
@@ -36,6 +38,10 @@ shader VoxelAnisotropicWriter_Float4 : VoxelLayout_Float4, NormalStream
         else
             streams.axisZN = original * -streams.normalWS.z;
     }
+    float4 applyMaxBrightness(float4 col)
+    {
+        return float4(col.rgb * maxBrightnessInv, col.a);
+    }
     override void DirectWrite(uint3 address, uint strideIndex, uint stride)
     {
         address.y += strideIndex * stride * 6;
@@ -55,17 +61,17 @@ shader VoxelAnisotropicWriter_Float4 : VoxelLayout_Float4, NormalStream
         streams.axisYN = tempAxisYN;
         streams.axisZP = tempAxisZP;
         streams.axisZN = tempAxisZN;
-        DirectOutput[address] = streams.axisXP;
+        DirectOutput[address] = applyMaxBrightness(streams.axisXP);
         address.y += stride;
-            DirectOutput[address] = streams.axisXN;
+            DirectOutput[address] = applyMaxBrightness(streams.axisXN);
         address.y += stride;
-            DirectOutput[address] = streams.axisYP;
+            DirectOutput[address] = applyMaxBrightness(streams.axisYP);
         address.y += stride;
-            DirectOutput[address] = streams.axisYN;
+            DirectOutput[address] = applyMaxBrightness(streams.axisYN);
         address.y += stride;
-            DirectOutput[address] = streams.axisZP;
+            DirectOutput[address] = applyMaxBrightness(streams.axisZP);
         address.y += stride;
-            DirectOutput[address] = streams.axisZN;
+            DirectOutput[address] = applyMaxBrightness(streams.axisZN);
     }
     override void IndirectWrite(RWBuffer<uint> buffer, uint address)
     {

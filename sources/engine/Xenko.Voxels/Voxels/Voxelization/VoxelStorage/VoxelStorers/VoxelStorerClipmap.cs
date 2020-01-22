@@ -56,7 +56,7 @@ namespace Xenko.Rendering.Voxels
         }
         public override int GetHashCode()
         {
-            return 0;
+            return UpdatesOneClipPerFrame().GetHashCode();
         }
 
 
@@ -125,7 +125,7 @@ namespace Xenko.Rendering.Voxels
             for (int i = 0; i < pass.AttributesIndirect.Count; i++)
             {
                 string iStr = i.ToString();
-                IndirectStoreMacro += "AttributesIndirect[" + iStr + "].IndirectWrite(fragmentsBuffer, writeindex + " + pass.AttributesIndirect[i].GetBufferOffset().ToString() + ");\n";
+                IndirectStoreMacro += $"AttributesIndirect[{iStr}].IndirectWrite(fragmentsBuffer, writeindex + {pass.AttributesIndirect[i].BufferOffset});\n";
             }
 
             cachedMixin.AddMacro("IndirectStoreMacro", IndirectStoreMacro);

@@ -23,9 +23,7 @@ namespace Xenko.Rendering.Voxels
     [Display("Single Axis")]
     public class VoxelizationMethodSingleAxis : IVoxelizationMethod
     {
-        [DataMemberIgnore]
         List<RenderView> VoxelizationViews { get; } = new List<RenderView>();
-        [DataMemberIgnore]
         Dictionary<RenderView,Int2> VoxelizationViewSizes { get; } = new Dictionary<RenderView, Int2>();
         int currentViewIndex = 0;
 
@@ -53,7 +51,7 @@ namespace Xenko.Rendering.Voxels
         }
         public override int GetHashCode()
         {
-            return 0;
+            return MultisampleCount.GetHashCode();
         }
 
 

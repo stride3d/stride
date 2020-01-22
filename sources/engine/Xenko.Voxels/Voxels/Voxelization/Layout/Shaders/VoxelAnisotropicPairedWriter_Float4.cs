@@ -19,5 +19,6 @@ namespace Xenko.Rendering
     public static partial class VoxelAnisotropicPairedWriter_Float4Keys
     {
         public static readonly ObjectParameterKey<Texture> DirectOutput = ParameterKeys.NewObject<Texture>();
+        public static readonly ValueParameterKey<float> maxBrightnessInv = ParameterKeys.NewValue<float>();
     }
 }

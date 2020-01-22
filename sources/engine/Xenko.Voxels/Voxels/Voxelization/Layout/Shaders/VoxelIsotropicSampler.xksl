@@ -32,9 +32,5 @@
         {
             return storage.VoxelSize();
         }
-        override float4 Test()
-        {
-            return float4(0,1,0,1);
-        }
     };
 }

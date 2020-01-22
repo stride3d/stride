@@ -17,7 +17,7 @@ namespace Xenko.Rendering.Voxels.Debug
         private ImageEffectShader voxelDebugEffectShader = new ImageEffectShader("VoxelVisualizationRawEffect");
         public ImageEffectShader GetShader(RenderDrawContext context, IVoxelAttribute attr)
         {
-            VoxelViewContext viewContext = new VoxelViewContext(context, 0);
+            VoxelViewContext viewContext = new VoxelViewContext(false);
             attr.UpdateSamplingLayout("Attribute");
             attr.ApplySamplingParameters(viewContext, voxelDebugEffectShader.Parameters);
             voxelDebugEffectShader.Parameters.Set(VoxelVisualizationRawShaderKeys.Attribute, attr.GetSamplingShader());

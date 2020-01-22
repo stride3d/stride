@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xenko.Core;
@@ -11,7 +11,7 @@ namespace Xenko.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Emission+Opacity")]
-    public class VoxelAttributeEmissionOpacity : IVoxelAttribute
+    public class VoxelAttributeEmissionOpacity : VoxelAttributeBase, IVoxelAttribute
     {
         public enum LightFalloffs
         {
@@ -30,7 +30,7 @@ namespace Xenko.Rendering.Voxels
 
         public void PrepareLocalStorage(VoxelStorageContext context, IVoxelStorage storage)
         {
-            SetBufferOffset(VoxelLayout.PrepareLocalStorage(context, storage));
+            BufferOffset = VoxelLayout.PrepareLocalStorage(context, storage);
         }
         public void PrepareOutputStorage(VoxelStorageContext context, IVoxelStorage storage)
         {
@@ -52,11 +52,24 @@ namespace Xenko.Rendering.Voxels
         {
             foreach (IVoxelModifierEmissionOpacity modifier in Modifiers)
             {
+                if (!modifier.Enabled) continue;
+
                 modifier.CollectAttributes(attributes, VoxelizationStage.Post, false);
             }
             attributes.Add(new AttributeStream(this, VoxelizationStage.Post, output));
         }
 
+        override public bool RequiresColumns()
+        {
+            foreach (IVoxelModifierEmissionOpacity modifier in Modifiers)
+            {
+                if (!modifier.Enabled) continue;
+
+                if (modifier.RequiresColumns())
+                    return true;
+            }
+            return false;
+        }
         public void PostProcess(RenderDrawContext drawContext)
         {
             switch (LightFalloff)
@@ -67,6 +80,8 @@ namespace Xenko.Rendering.Voxels
                     VoxelLayout.PostProcess(drawContext, "VoxelMipmapPhysicallyBased"); break;
                 case LightFalloffs.Heuristic:
                     VoxelLayout.PostProcess(drawContext, "VoxelMipmapHeuristic"); break;
+                default:
+                    throw new InvalidOperationException("Cannot call PostProcess on voxel texture with unknown LightFalloff type.");
             }
         }
 
@@ -87,7 +102,9 @@ namespace Xenko.Rendering.Voxels
             int i = 0;
             foreach (IVoxelModifierEmissionOpacity modifier in Modifiers)
             {
-                modifier.UpdateVoxelizationLayout("Modifiers[" + i.ToString() + "].layout." + compositionName);
+                if (!modifier.Enabled) continue;
+
+                modifier.UpdateVoxelizationLayout($"Modifiers[{i}].layout.{compositionName}");
                 i++;
             }
             VoxelLayout.UpdateVoxelizationLayout("layout." + compositionName, Modifiers);
@@ -96,20 +113,11 @@ namespace Xenko.Rendering.Voxels
         {
             foreach (IVoxelModifierEmissionOpacity modifier in Modifiers)
             {
+                if (!modifier.Enabled) continue;
+
                 modifier.ApplyVoxelizationParameters(parameters);
             }
             VoxelLayout.ApplyVoxelizationParameters(parameters, Modifiers);
-        }
-
-        int bufferOffset;
-
-        public void SetBufferOffset(int bo)
-        {
-            bufferOffset = bo;
-        }
-        public int GetBufferOffset()
-        {
-            return bufferOffset;
         }
 
 
@@ -126,17 +134,6 @@ namespace Xenko.Rendering.Voxels
         public void ApplySamplingParameters(VoxelViewContext viewContext, ParameterCollection parameters)
         {
             VoxelLayout.ApplySamplingParameters(viewContext, parameters);
-        }
-
-        int samplerLocalID;
-
-        public void SetLocalSamplerID(int id)
-        {
-            samplerLocalID = id;
-        }
-        public int GetLocalSamplerID()
-        {
-            return samplerLocalID;
         }
     }
 }

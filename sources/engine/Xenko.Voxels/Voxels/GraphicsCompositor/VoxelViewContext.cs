@@ -6,12 +6,22 @@ namespace Xenko.Rendering.Voxels
 {
     public struct VoxelViewContext
     {
-        public int ViewIndex;
         public bool IsVoxelView;
-        public VoxelViewContext(RenderDrawContext context, int viewIndex)
+        public VoxelViewContext(VoxelizationPassList passes, int viewIndex)
         {
-            ViewIndex = viewIndex;
-            IsVoxelView = ViewIndex != 0;
+            IsVoxelView = false;
+            foreach (var pass in passes.passes)
+            {
+                if (pass.view.Index == viewIndex)
+                {
+                    IsVoxelView = true;
+                    break;
+                }
+            }
+        }
+        public VoxelViewContext(bool voxelView)
+        {
+            IsVoxelView = voxelView;
         }
     }
 }

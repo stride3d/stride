@@ -23,9 +23,7 @@ namespace Xenko.Rendering.Voxels
     [Display("Dominant Axis (Geometry Shader)")]
     public class VoxelizationMethodDominantAxis : IVoxelizationMethod
     {
-        [DataMemberIgnore]
         List<RenderView> VoxelizationViews { get; } = new List<RenderView>();
-        [DataMemberIgnore]
         Dictionary<RenderView, Int2> VoxelizationViewSizes { get; } = new Dictionary<RenderView, Int2>();
         int currentViewIndex = 0;
 
@@ -56,7 +54,7 @@ namespace Xenko.Rendering.Voxels
         }
         public override int GetHashCode()
         {
-            return 0;
+            return MultisampleCount.GetHashCode();
         }
 
         public void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, IVoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)

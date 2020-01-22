@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xenko.Core;
@@ -11,13 +11,13 @@ namespace Xenko.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Directional Coverage")]
-    public class VoxelAttributeDirectionalCoverage : IVoxelAttribute
+    public class VoxelAttributeDirectionalCoverage : VoxelAttributeBase, IVoxelAttribute
     {
         IVoxelStorageTexture CoverageTex;
 
         public void PrepareLocalStorage(VoxelStorageContext context, IVoxelStorage storage)
         {
-            SetBufferOffset(storage.RequestTempStorage(32));
+            BufferOffset = storage.RequestTempStorage(32);
         }
         public void PrepareOutputStorage(VoxelStorageContext context, IVoxelStorage storage)
         {
@@ -66,17 +66,6 @@ namespace Xenko.Rendering.Voxels
             CoverageTex?.ApplyVoxelizationParameters(DirectOutput, parameters);
         }
 
-        int bufferOffset;
-
-        public void SetBufferOffset(int bo)
-        {
-            bufferOffset = bo;
-        }
-        public int GetBufferOffset()
-        {
-            return bufferOffset;
-        }
-
 
 
 
@@ -97,17 +86,6 @@ namespace Xenko.Rendering.Voxels
         public void ApplySamplingParameters(VoxelViewContext viewContext, ParameterCollection parameters)
         {
             CoverageTex?.ApplySamplingParameters(viewContext, parameters);
-        }
-
-        int samplerLocalID;
-
-        public void SetLocalSamplerID(int id)
-        {
-            samplerLocalID = id;
-        }
-        public int GetLocalSamplerID()
-        {
-            return samplerLocalID;
         }
     }
 }

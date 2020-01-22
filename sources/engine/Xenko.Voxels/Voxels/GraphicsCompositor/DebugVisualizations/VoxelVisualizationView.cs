@@ -22,7 +22,7 @@ namespace Xenko.Rendering.Voxels.Debug
         private ImageEffectShader voxelDebugEffectShader = new ImageEffectShader("VoxelVisualizationViewEffect");
         public ImageEffectShader GetShader(RenderDrawContext context, IVoxelAttribute attr)
         {
-            VoxelViewContext viewContext = new VoxelViewContext(context, 0);
+            VoxelViewContext viewContext = new VoxelViewContext(false);
             Matrix ViewProjection = context.RenderContext.RenderView.ViewProjection;
 
             voxelDebugEffectShader.Parameters.Set(VoxelVisualizationViewShaderKeys.view, ViewProjection);

@@ -17,8 +17,10 @@ namespace Xenko.Rendering.Voxels
     /// </summary>
     [DataContract("VoxelVolumeComponent")]
     [DefaultEntityComponentRenderer(typeof(VoxelVolumeProcessor))]
-    [Display("Voxel Volume")]
+    [Display("Voxel Volume", Expand = ExpandRule.Once)]
     [ComponentCategory("Lights")]
+    [CategoryOrder(10, "Attributes")]
+    [CategoryOrder(60, "Visualization/Debug")]
     public class VoxelVolumeComponent : ActivableEntityComponent
     {
         private bool enabled = true;
@@ -32,32 +34,32 @@ namespace Xenko.Rendering.Voxels
         [DataMember(1)]
         public bool Voxelize = true;
 
-        [DataMember(5)]
+        [DataMember(10)]
         [NotNull]
         public IVoxelizationMethod VoxelizationMethod { get; set; } = new VoxelizationMethodDominantAxis();
 
-        [DataMember(10)]
+        [DataMember(20)]
         [NotNull]
         public IVoxelStorage Storage { get; set; } = new VoxelStorageClipmaps();
 
-        [DataMember(20)]
+        [DataMember(30)]
         [Category]
         public List<IVoxelAttribute> Attributes { get; set; } = new List<IVoxelAttribute>();
 
 
-        [DataMember(30)]
+        [DataMember(40)]
         public float AproximateVoxelSize { get; set; } = 0.15f;
-        [DataMember(34)]
+        [DataMember(50)]
         public bool VoxelGridSnapping { get; set; } = true;
 
-        [DataMember(40)]
-        [Category]
-        public bool VoxelVisualization { get; set; } = false;//Unused, toggle doesn't show if category
-        [DataMember(50)]
-        public bool VisualizeVoxels { get; set; } = false;
-        [DataMember(55)]
-        public int VisualizeIndex { get; set; } = 0;
         [DataMember(60)]
+        [Display(category: "Visualization/Debug")]
+        public bool VisualizeVoxels { get; set; } = false;
+        [DataMember(70)]
+        [Display(category: "Visualization/Debug")]
+        public int VisualizeIndex { get; set; } = 0;
+        [DataMember(80)]
+        [Display(category: "Visualization/Debug")]
         public IVoxelVisualization Visualization { get; set; } = null;
 
         public event EventHandler Changed;

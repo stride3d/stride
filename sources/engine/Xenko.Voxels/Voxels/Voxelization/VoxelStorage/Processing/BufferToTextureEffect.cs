@@ -23,6 +23,38 @@ namespace Xenko.Rendering.Voxels
             public void Generate(ShaderMixinSource mixin, ShaderMixinContext context)
             {
                 context.Mixin(mixin, "BufferToTexture");
+                if (context.GetParam(BufferToTextureKeys.AttributesIndirect) != null)
+                {
+                    foreach(var attr in context.GetParam(BufferToTextureKeys.AttributesIndirect))
+
+                    {
+
+                        {
+                            var __mixinToCompose__ = (attr);
+                            var __subMixin = new ShaderMixinSource();
+                            context.PushCompositionArray(mixin, "AttributesIndirect", __subMixin);
+                            context.Mixin(__subMixin, __mixinToCompose__);
+                            context.PopComposition();
+                        }
+                    }
+                }
+                if (context.GetParam(BufferToTextureKeys.AttributesTemp) != null)
+                {
+                    foreach(var attr in context.GetParam(BufferToTextureKeys.AttributesTemp))
+
+                    {
+
+                        {
+                            var __mixinToCompose__ = (attr);
+                            var __subMixin = new ShaderMixinSource();
+                            context.PushCompositionArray(mixin, "AttributesTemp", __subMixin);
+                            context.Mixin(__subMixin, __mixinToCompose__);
+                            context.PopComposition();
+                        }
+                    }
+                }
+                mixin.AddMacro("IndirectReadAndStoreMacro", context.GetParam(BufferToTextureKeys.IndirectReadAndStoreMacro));
+                mixin.AddMacro("IndirectStoreMacro", context.GetParam(BufferToTextureKeys.IndirectStoreMacro));
             }
 
             [ModuleInitializer]
