@@ -52,20 +52,10 @@ namespace Xenko.Core.Assets
             return assemblies;
         }
 
-        public static async Task<(RestoreRequest, RestoreResult)> Restore(ILogger logger, NuGetFramework nugetFramework, string packageName, VersionRange versionRange)
+        public static async Task<(RestoreRequest, RestoreResult)> Restore(ILogger logger, NuGetFramework nugetFramework, string runtimeIdentifier, string packageName, VersionRange versionRange)
         {
             var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
-            var packageSourceProvider = new PackageSourceProvider(settings);
-
-            // not sure what these do, but it was in the NuGet command line.
-            var resourceProviders = new List<Lazy<INuGetResourceProvider>>();
-            resourceProviders.AddRange(Repository.Provider.GetCoreV3());
-
-            // Setup source provider as a V3 only.
-            var sourceRepositoryProvider = new SourceRepositoryProvider(settings, resourceProviders);
-
-            var installPath = SettingsUtility.GetGlobalPackagesFolder(settings);
             var assemblies = new List<string>();
 
             var projectPath = Path.Combine("XenkoNugetResolver.json");
@@ -93,14 +83,14 @@ namespace Xenko.Core.Assets
                     ProjectName = Path.GetFileNameWithoutExtension(projectPath),
                     ProjectStyle = ProjectStyle.PackageReference,
                     ProjectUniqueName = projectPath,
-                    OutputPath = Path.Combine(Path.GetTempPath(), $"XenkoNugetResolver-{packageName}-{versionRange.MinVersion.ToString()}"),
+                    OutputPath = Path.Combine(Path.GetTempPath(), $"XenkoNugetResolver-{packageName}-{versionRange.MinVersion.ToString()}-{nugetFramework.GetShortFolderName()}-{runtimeIdentifier}"),
                     OriginalTargetFrameworks = new[] { nugetFramework.GetShortFolderName() },
                     ConfigFilePaths = settings.GetConfigFilePaths(),
                     PackagesPath = SettingsUtility.GetGlobalPackagesFolder(settings),
                     Sources = SettingsUtility.GetEnabledSources(settings).ToList(),
                     FallbackFolders = SettingsUtility.GetFallbackPackageFolders(settings).ToList()
                 },
-                RuntimeGraph = new RuntimeGraph(new[] { new RuntimeDescription("win") }),
+                RuntimeGraph = new RuntimeGraph(new[] { new RuntimeDescription(runtimeIdentifier) }),
             };
 
             using (var context = new SourceCacheContext())

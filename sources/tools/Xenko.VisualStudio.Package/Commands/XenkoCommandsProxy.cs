@@ -331,7 +331,7 @@ namespace Xenko.VisualStudio.Commands
                 else
                 {
                     var logger = new Logger();
-                    var (request, result) = await RestoreHelper.Restore(logger, NuGetFramework.ParseFrameworkName(".NETFramework,Version=v4.7.2", DefaultFrameworkNameProvider.Instance), packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion()));
+                    var (request, result) = await RestoreHelper.Restore(logger, NuGetFramework.ParseFrameworkName(".NETFramework,Version=v4.7.2", "win", DefaultFrameworkNameProvider.Instance), packageName, new VersionRange(packageInfo.ExpectedVersion.ToNuGetVersion()));
                     if (result.Success)
                     {
                         packageInfo.SdkPaths.AddRange(RestoreHelper.ListAssemblies(request, result));

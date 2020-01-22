@@ -84,7 +84,7 @@ namespace Xenko.Core.Assets
 
                             // Only allow this specific version
                             var versionRange = new VersionRange(new NuGetVersion(XenkoVersion.NuGetVersion), true, new NuGetVersion(XenkoVersion.NuGetVersion), true);
-                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, Assembly.GetExecutingAssembly().GetName().Name, versionRange).Result;
+                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, "win", Assembly.GetExecutingAssembly().GetName().Name, versionRange).Result;
                             if (!result.Success)
                             {
                                 throw new InvalidOperationException($"Could not restore NuGet packages");
