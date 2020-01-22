@@ -1,6 +1,8 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using Xenko.Core.Annotations;
 
@@ -12,6 +14,8 @@ namespace Xenko.Core.Diagnostics
     [DataContract]
     public sealed class ExceptionInfo
     {
+        private static readonly ExceptionInfo[] EmptyExceptions = new ExceptionInfo[0];
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ExceptionInfo"/> class with default values for its properties
         /// </summary>
@@ -30,7 +34,15 @@ namespace Xenko.Core.Diagnostics
             StackTrace = exception.StackTrace;
             TypeFullName = exception.GetType().FullName;
             TypeName = exception.GetType().Name;
-            InnerException = exception.InnerException != null ? new ExceptionInfo(exception.InnerException) : null;
+
+            if (exception.InnerException != null)
+            {
+                InnerExceptions = new ExceptionInfo[] { new ExceptionInfo(exception.InnerException) };
+            }
+            else if (exception is ReflectionTypeLoadException reflectionException)
+            {
+                InnerExceptions = reflectionException.LoaderExceptions.Select(x => new ExceptionInfo(x)).ToArray();
+            }
         }
 
         /// <summary>
@@ -56,7 +68,7 @@ namespace Xenko.Core.Diagnostics
         /// <summary>
         /// Gets or sets the <see cref="ExceptionInfo"/> of the inner exception.
         /// </summary>
-        public ExceptionInfo InnerException { get; set; }
+        public ExceptionInfo[] InnerExceptions { get; set; } = EmptyExceptions;
 
         /// <inheritdoc/>
         public override string ToString()
@@ -65,8 +77,10 @@ namespace Xenko.Core.Diagnostics
             sb.AppendLine(Message);
             if (StackTrace != null)
                 sb.AppendLine(StackTrace);
-            if (InnerException != null)
-                sb.AppendFormat("Inner exception: {0}{1}", InnerException, Environment.NewLine);
+            foreach (var innerException in InnerExceptions)
+            {
+                sb.AppendFormat("Inner/Loader Exception: {0}{1}", innerException, Environment.NewLine);
+            }
             return sb.ToString();
         }
     }
