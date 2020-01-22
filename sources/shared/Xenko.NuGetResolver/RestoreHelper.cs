@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Commands;
@@ -16,105 +15,44 @@ using NuGet.LibraryModel;
 using NuGet.ProjectModel;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
+using NuGet.RuntimeModel;
 using NuGet.Versioning;
 
 namespace Xenko.Core.Assets
 {
     static class RestoreHelper
     {
-        static List<string> SupportedRuntimes = new List<string>
-        {
-            "win",
-            "any",
-            "none",
-        };
-        static List<string> SupportedTfms = new List<string>
-        {
-            "net472",
-            "net471",
-            "net47",
-            "net462",
-            "net461",
-            "net46",
-            "net452",
-            "net451",
-            "net45",
-            "net40",
-            "net35",
-            "net20",
-            "net11",
-            "net10",
-            "netstandard2.0",
-            "netstandard1.6",
-            "netstandard1.5",
-            "netstandard1.4",
-            "netstandard1.3",
-            "netstandard1.2",
-            "netstandard1.1",
-            "netstandard1.0",
-        };
-        struct SortedFile
-        {
-            public string Filename;
-            public int Order;
-        }
         public static List<string> ListAssemblies(RestoreRequest request, RestoreResult result)
         {
             var assemblies = new List<string>();
-            foreach (var library in result.LockFile.Libraries)
+
+            var lockFile = result.LockFile;
+            var packageFolder = lockFile.PackageFolders[0].Path;
+            var libPaths = new Dictionary<string, string>();
+            foreach (var lib in lockFile.Libraries)
             {
-                var libraryFiles = library.Files
-                    .Select(x =>
-                        new SortedFile
-                        {
-                            Filename = x,
-                            Order = ComputeFilePriority(x),
-                        })
-                    .Where(x => x.Order != -1)
-                    .OrderBy(x => x.Order)
-                    .ToList();
-                foreach (var file in libraryFiles)
+                libPaths.Add(lib.Name, Path.Combine(packageFolder, lib.Path.Replace('/', Path.DirectorySeparatorChar)));
+            }
+            var target = lockFile.Targets.Last();
+            foreach (var lib in target.Libraries)
+            {
+                var libPath = libPaths[lib.Name];
+                foreach (var a in lib.RuntimeAssemblies)
                 {
-                    var extension = Path.GetExtension(file.Filename).ToLowerInvariant();
-                    // Try several known path (note: order matters)
-                    if (extension == ".dll" || extension == ".exe")
-                    {
-                        assemblies.Add(Path.Combine(request.DependencyProviders.GlobalPackages.RepositoryRoot, library.Path, file.Filename));
-                    }
+                    var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                    assemblies.Add(assemblyFile);
+                }
+                foreach (var a in lib.RuntimeTargets)
+                {
+                    var assemblyFile = Path.Combine(libPath, a.Path.Replace('/', Path.DirectorySeparatorChar));
+                    assemblies.Add(assemblyFile);
                 }
             }
 
             return assemblies;
         }
 
-        static int ComputeFilePriority(string filename)
-        {
-            var libPosition = 0;
-            var runtime = "none";
-
-            var pathParts = filename.Split('/');
-            if (pathParts.Length >= 2 && pathParts[0].ToLowerInvariant() == "runtimes")
-            {
-                libPosition = 2;
-                runtime = pathParts[1].ToLowerInvariant();
-            }
-            var runtimeIndex = SupportedRuntimes.IndexOf(runtime);
-            if (runtimeIndex == -1)
-                return -1;
-
-            if (!(libPosition + 1 < pathParts.Length // also includes TFM
-                && pathParts[libPosition].ToLowerInvariant() == "lib"))
-                return -1;
-
-            var tfm = pathParts[libPosition + 1].ToLowerInvariant();
-            var tfmIndex = SupportedTfms.IndexOf(tfm);
-            if (tfmIndex == -1)
-                return -1;
-
-            return tfmIndex * 1000 + runtimeIndex;
-        }
-
-        public static async Task<(RestoreRequest, RestoreResult)> Restore(ILogger logger, string packageName, VersionRange versionRange)
+        public static async Task<(RestoreRequest, RestoreResult)> Restore(ILogger logger, NuGetFramework nugetFramework, string packageName, VersionRange versionRange)
         {
             var settings = NuGet.Configuration.Settings.LoadDefaultSettings(null);
 
@@ -146,7 +84,7 @@ namespace Xenko.Core.Assets
                 {
                     new TargetFrameworkInformation
                     {
-                        FrameworkName = NuGetFramework.Parse("net472"),
+                        FrameworkName = nugetFramework,
                     }
                 },
                 RestoreMetadata = new ProjectRestoreMetadata
@@ -156,12 +94,13 @@ namespace Xenko.Core.Assets
                     ProjectStyle = ProjectStyle.PackageReference,
                     ProjectUniqueName = projectPath,
                     OutputPath = Path.Combine(Path.GetTempPath(), $"XenkoNugetResolver-{packageName}-{versionRange.MinVersion.ToString()}"),
-                    OriginalTargetFrameworks = new[] { "net472" },
+                    OriginalTargetFrameworks = new[] { nugetFramework.GetShortFolderName() },
                     ConfigFilePaths = settings.GetConfigFilePaths(),
                     PackagesPath = SettingsUtility.GetGlobalPackagesFolder(settings),
                     Sources = SettingsUtility.GetEnabledSources(settings).ToList(),
                     FallbackFolders = SettingsUtility.GetFallbackPackageFolders(settings).ToList()
                 },
+                RuntimeGraph = new RuntimeGraph(new[] { new RuntimeDescription("win") }),
             };
 
             using (var context = new SourceCacheContext())
