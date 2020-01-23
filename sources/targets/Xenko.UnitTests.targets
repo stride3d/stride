@@ -129,6 +129,6 @@
 
   <!-- This needs to be after Sdk.targets -->
   <Import Project="$(MSBuildThisFileDirectory)..\core\Xenko.Core\build\Xenko.Core.targets"/>
-  <Import Condition="'$(XenkoCompileAssets)' == 'true'" Project="$(MSBuildThisFileDirectory)..\assets\Xenko.Core.Assets.CompilerApp\build\Xenko.Core.Assets.CompilerApp.targets"/>
+  <Import Condition="'$(XenkoCompileAssets)' == 'true' And '$(XenkoCompilerTargetsEnable)' != 'false'" Project="$(MSBuildThisFileDirectory)..\assets\Xenko.Core.Assets.CompilerApp\build\Xenko.Core.Assets.CompilerApp.targets"/>
 
 </Project>
