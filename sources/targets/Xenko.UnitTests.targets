@@ -72,9 +72,6 @@
     <AssemblyOriginatorKeyFile Condition="'$(XenkoOpenSourceSign)' == 'true'">$(SolutionDir)xenko.public.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   
-  <!-- Add Default targets used by Msbuild for undefined Platforms / or when skipping compilation under a platform -->
-  <Import Condition="'$(XenkoCompilerTargetsEnable)' == 'false'" Project="$(MSBuildThisFileDirectory)Xenko.UnitTests.DisableBuild.targets"/>
-
   <PropertyGroup>
     <XenkoCommonDependenciesDir>$(XenkoPackageXenko)\deps\</XenkoCommonDependenciesDir>
   </PropertyGroup>
@@ -126,6 +123,9 @@
   <Import Project="$(MSBuildThisFileDirectory)Xenko.AutoPack.targets"/>
 
   <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.54" />
+
+  <!-- Add Default targets used by Msbuild for undefined Platforms / or when skipping compilation under a platform -->
+  <Import Condition="'$(XenkoCompilerTargetsEnable)' == 'false'" Project="$(MSBuildThisFileDirectory)Xenko.UnitTests.DisableBuild.targets"/>
 
   <!-- This needs to be after Sdk.targets -->
   <Import Project="$(MSBuildThisFileDirectory)..\core\Xenko.Core\build\Xenko.Core.targets"/>
