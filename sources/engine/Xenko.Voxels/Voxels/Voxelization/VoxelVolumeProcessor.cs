@@ -37,9 +37,7 @@ namespace Xenko.Engine.Processors
             graphicsDevice = Services.GetService<IGraphicsDeviceService>().GraphicsDevice;
             commandList = Services.GetService<CommandList>();
         }
-        public override void Update(GameTime time)
-        {
-        }
+
         public override void Draw(RenderContext context)
         {
             RegenerateVoxelVolumes();
@@ -70,6 +68,7 @@ namespace Xenko.Engine.Processors
         {
             isDirty = true;
         }
+
         private void RegenerateVoxelVolumes()
         {
             renderVoxelVolumes.Clear();
@@ -112,8 +111,6 @@ namespace Xenko.Engine.Processors
                     data.VisualizationAttribute = null;
                 }
             }
-
-
         }
     }
 }
