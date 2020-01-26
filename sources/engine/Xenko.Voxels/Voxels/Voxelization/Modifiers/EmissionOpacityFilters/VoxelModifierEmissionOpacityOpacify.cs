@@ -8,23 +8,23 @@ namespace Xenko.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Opacify")]
-    public class VoxelModifierEmissionOpacityOpacify : VoxelModifierBase, IVoxelModifierEmissionOpacity
+    public class VoxelModifierEmissionOpacityOpacify : VoxelModifierEmissionOpacity
     {
         public float Amount = 2.0f;
-        public void CollectAttributes(List<AttributeStream> attributes, VoxelizationStage stage, bool output) { }
+        public override void CollectAttributes(List<AttributeStream> attributes, VoxelizationStage stage, bool output) { }
 
-        public ShaderSource GetApplier(string layout)
+        public override ShaderSource GetApplier(string layout)
         {
             return new ShaderClassSource("VoxelModifierApplierOpacify" + layout);
         }
 
         ValueParameterKey<float> AmountKey;
-        public void UpdateVoxelizationLayout(string compositionName)
+        public override void UpdateVoxelizationLayout(string compositionName)
         {
             AmountKey = VoxelModifierApplierOpacifyIsotropicKeys.Amount.ComposeWith(compositionName);
         }
 
-        public void ApplyVoxelizationParameters(ParameterCollection parameters)
+        public override void ApplyVoxelizationParameters(ParameterCollection parameters)
         {
             parameters.Set(AmountKey, Amount);
         }

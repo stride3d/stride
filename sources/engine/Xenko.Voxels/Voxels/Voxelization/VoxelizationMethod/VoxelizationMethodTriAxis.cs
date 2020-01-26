@@ -36,7 +36,7 @@ namespace Xenko.Rendering.Voxels
 
         public MultisampleCount MultisampleCount = MultisampleCount.X8;
 
-        public void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, IVoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)
+        public void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, VoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)
         {
             axisX.MultisampleCount = MultisampleCount;
             axisY.MultisampleCount = MultisampleCount;

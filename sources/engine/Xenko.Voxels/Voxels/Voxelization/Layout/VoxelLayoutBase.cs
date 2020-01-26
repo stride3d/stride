@@ -117,7 +117,7 @@ namespace Xenko.Rendering.Voxels
         protected ValueParameterKey<float> BrightnessInvKey;
         protected ObjectParameterKey<Xenko.Graphics.Texture> DirectOutput;
 
-        virtual public ShaderSource GetVoxelizationShader(List<IVoxelModifierEmissionOpacity> modifiers)
+        virtual public ShaderSource GetVoxelizationShader(List<VoxelModifierEmissionOpacity> modifiers)
         {
             var mixin = new ShaderMixinSource();
             mixin.Mixins.Add(Writer);
@@ -132,7 +132,7 @@ namespace Xenko.Rendering.Voxels
             }
             return mixin;
         }
-        virtual public void ApplyVoxelizationParameters(ParameterCollection parameters, List<IVoxelModifierEmissionOpacity> modifiers)
+        virtual public void ApplyVoxelizationParameters(ParameterCollection parameters, List<VoxelModifierEmissionOpacity> modifiers)
         {
             if (StorageFormat != StorageFormats.RGBA16F)
                 parameters.Set(BrightnessInvKey, 1.0f / maxBrightness);

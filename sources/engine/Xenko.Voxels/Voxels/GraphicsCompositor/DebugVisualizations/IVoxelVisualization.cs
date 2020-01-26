@@ -7,6 +7,6 @@ namespace Xenko.Rendering.Voxels.Debug
 {
     public interface IVoxelVisualization
     {
-        ImageEffectShader GetShader(RenderDrawContext context, IVoxelAttribute attr);
+        ImageEffectShader GetShader(RenderDrawContext context, VoxelAttribute attr);
     }
 }

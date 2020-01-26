@@ -17,7 +17,7 @@ namespace Xenko.Rendering.Voxels
         protected override ShaderClassSource Sampler { get; set; } = new ShaderClassSource("VoxelAnisotropicPairedSampler");
         protected override string ApplierKey { get; set; } = "AnisotropicPaired";
 
-        public void UpdateVoxelizationLayout(string compositionName, List<IVoxelModifierEmissionOpacity> modifier)
+        public void UpdateVoxelizationLayout(string compositionName, List<VoxelModifierEmissionOpacity> modifier)
         {
             DirectOutput = VoxelAnisotropicPairedWriter_Float4Keys.DirectOutput.ComposeWith(compositionName);
             BrightnessInvKey = VoxelAnisotropicPairedWriter_Float4Keys.maxBrightnessInv.ComposeWith(compositionName);

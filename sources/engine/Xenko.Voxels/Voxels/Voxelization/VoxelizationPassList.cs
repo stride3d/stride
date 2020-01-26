@@ -9,7 +9,7 @@ namespace Xenko.Rendering.Voxels
     {
         public List<VoxelizationPass> passes = new List<VoxelizationPass>();
         public IVoxelizationMethod defaultVoxelizationMethod;
-        public void AddDirect(IVoxelStorer storer, IVoxelizationMethod method, RenderView view, IVoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)
+        public void AddDirect(IVoxelStorer storer, IVoxelizationMethod method, RenderView view, VoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)
         {
             bool toAdd = true;
             foreach (VoxelizationPass pass in passes)

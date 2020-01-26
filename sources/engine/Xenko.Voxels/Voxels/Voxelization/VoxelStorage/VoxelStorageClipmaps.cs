@@ -260,8 +260,8 @@ namespace Xenko.Rendering.Voxels
 
             bool VoxelsAreIndependent = true;
 
-            List<IVoxelAttribute> IndirectVoxels = new List<IVoxelAttribute>();
-            List<IVoxelAttribute> TempVoxels = new List<IVoxelAttribute>();
+            List<VoxelAttribute> IndirectVoxels = new List<VoxelAttribute>();
+            List<VoxelAttribute> TempVoxels = new List<VoxelAttribute>();
             ShaderSourceCollection Indirect = new ShaderSourceCollection();
             ShaderSourceCollection Temp = new ShaderSourceCollection();
 

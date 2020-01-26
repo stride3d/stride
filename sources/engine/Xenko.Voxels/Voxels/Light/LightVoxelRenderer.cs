@@ -90,7 +90,7 @@ namespace Xenko.Rendering.Voxels.VoxelGI
 
             public RenderLight Light { get; set; }
 
-            IVoxelAttribute traceAttribute = null;
+            VoxelAttribute traceAttribute = null;
 
             public LightVoxelShaderGroup(ShaderSource mixin) : base(mixin)
             {
@@ -113,7 +113,7 @@ namespace Xenko.Rendering.Voxels.VoxelGI
                 return processedVolume;
             }
 
-            IVoxelAttribute GetTraceAttr()
+            VoxelAttribute GetTraceAttr()
             {
                 var lightVoxel = ((LightVoxel)Light.Type);
 

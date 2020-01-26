@@ -8,23 +8,23 @@ namespace Xenko.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Solidify")]
-    public class VoxelModifierEmissionOpacitySolidify : VoxelModifierBase, IVoxelModifierEmissionOpacity
+    public class VoxelModifierEmissionOpacitySolidify : VoxelModifierEmissionOpacity
     {
         VoxelAttributeSolidity solidityAttribute = new VoxelAttributeSolidity();
 
-        public void CollectAttributes(List<AttributeStream> attributes, VoxelizationStage stage, bool output)
+        public override void CollectAttributes(List<AttributeStream> attributes, VoxelizationStage stage, bool output)
         {
             solidityAttribute.CollectAttributes(attributes, stage, output);
         }
-        override public bool RequiresColumns()
+        public override bool RequiresColumns()
         {
             return true;
         }
-        public ShaderSource GetApplier(string layout)
+        public override ShaderSource GetApplier(string layout)
         {
             return new ShaderClassSource("VoxelModifierApplierSolidify" + layout, solidityAttribute.LocalSamplerID);
         }
-        public void UpdateVoxelizationLayout(string compositionName) { }
-        public void ApplyVoxelizationParameters(ParameterCollection parameters) { }
+        public override void UpdateVoxelizationLayout(string compositionName) { }
+        public override void ApplyVoxelizationParameters(ParameterCollection parameters) { }
     }
 }

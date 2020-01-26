@@ -23,7 +23,8 @@ namespace Xenko.Rendering.Voxels
             int3 clipMapResolutionI = (int3)clipMapResolution;
 
             uint3 pos = streams.DispatchThreadId.xyz;
-            uint clipIndex = clipOffset;
+            pos.y = pos.y % clipMapResolutionI.y;
+            uint clipIndex = clipOffset + streams.DispatchThreadId.y/clipMapResolutionI.y;
 
             streams.PositionVXPS = pos;
             streams.VoxelVolumeSize = clipMapResolutionI;

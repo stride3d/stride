@@ -13,9 +13,9 @@ namespace Xenko.Rendering.Voxels
         public IVoxelStorer storer;
         public IVoxelizationMethod method;
         //Stage1
-        public List<IVoxelAttribute> AttributesTemp = new List<IVoxelAttribute>();
-        public List<IVoxelAttribute> AttributesDirect = new List<IVoxelAttribute>();
-        public List<IVoxelAttribute> AttributesIndirect = new List<IVoxelAttribute>();
+        public List<VoxelAttribute> AttributesTemp = new List<VoxelAttribute>();
+        public List<VoxelAttribute> AttributesDirect = new List<VoxelAttribute>();
+        public List<VoxelAttribute> AttributesIndirect = new List<VoxelAttribute>();
 
         public ShaderSource source;
 
@@ -23,7 +23,7 @@ namespace Xenko.Rendering.Voxels
         public RenderStage renderStage = null;
 
 
-        public void Add(IVoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)
+        public void Add(VoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)
         {
             if (stage == VoxelizationStage.Initial)
             {

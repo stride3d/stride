@@ -55,7 +55,7 @@ namespace Xenko.Rendering.Voxels
         }
 
 
-        public void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, IVoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)
+        public void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, VoxelAttribute attr, VoxelizationStage stage, bool output, bool shadows)
         {
             var actualView = Matrix.Identity;
             if (VoxelizationAxis == Axis.Y)

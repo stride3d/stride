@@ -11,7 +11,7 @@ namespace Xenko.Rendering.Voxels
 {
     [DataContract(DefaultMemberMode = DataMemberMode.Default)]
     [Display("Emission+Opacity")]
-    public class VoxelAttributeEmissionOpacity : VoxelAttributeBase, IVoxelAttribute
+    public class VoxelAttributeEmissionOpacity : VoxelAttribute
     {
         public enum LightFalloffs
         {
@@ -23,20 +23,20 @@ namespace Xenko.Rendering.Voxels
         [NotNull]
         public IVoxelLayout VoxelLayout { get; set; } = new VoxelLayoutIsotropic();
 
-        public List<IVoxelModifierEmissionOpacity> Modifiers { get; set; } = new List<IVoxelModifierEmissionOpacity>();
+        public List<VoxelModifierEmissionOpacity> Modifiers { get; set; } = new List<VoxelModifierEmissionOpacity>();
 
         public LightFalloffs LightFalloff { get; set; } = LightFalloffs.Heuristic;
 
 
-        public void PrepareLocalStorage(VoxelStorageContext context, IVoxelStorage storage)
+        public override void PrepareLocalStorage(VoxelStorageContext context, IVoxelStorage storage)
         {
             BufferOffset = VoxelLayout.PrepareLocalStorage(context, storage);
         }
-        public void PrepareOutputStorage(VoxelStorageContext context, IVoxelStorage storage)
+        public override void PrepareOutputStorage(VoxelStorageContext context, IVoxelStorage storage)
         {
             VoxelLayout.PrepareOutputStorage(context, storage);
         }
-        public void ClearOutputStorage()
+        public override void ClearOutputStorage()
         {
             VoxelLayout.ClearOutputStorage();
         }
@@ -44,13 +44,13 @@ namespace Xenko.Rendering.Voxels
 
 
 
-        public void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, VoxelizationStage stage, bool output)
+        public override void CollectVoxelizationPasses(VoxelizationPassList passList, IVoxelStorer storer, Matrix view, Vector3 resolution, VoxelizationStage stage, bool output)
         {
             passList.defaultVoxelizationMethod.CollectVoxelizationPasses(passList, storer, view, resolution, this, stage, output, true);
         }
-        public void CollectAttributes(List<AttributeStream> attributes, VoxelizationStage stage, bool output)
+        public override void CollectAttributes(List<AttributeStream> attributes, VoxelizationStage stage, bool output)
         {
-            foreach (IVoxelModifierEmissionOpacity modifier in Modifiers)
+            foreach (VoxelModifierEmissionOpacity modifier in Modifiers)
             {
                 if (!modifier.Enabled) continue;
 
@@ -59,9 +59,9 @@ namespace Xenko.Rendering.Voxels
             attributes.Add(new AttributeStream(this, VoxelizationStage.Post, output));
         }
 
-        override public bool RequiresColumns()
+        public override bool RequiresColumns()
         {
-            foreach (IVoxelModifierEmissionOpacity modifier in Modifiers)
+            foreach (VoxelModifierEmissionOpacity modifier in Modifiers)
             {
                 if (!modifier.Enabled) continue;
 
@@ -70,7 +70,7 @@ namespace Xenko.Rendering.Voxels
             }
             return false;
         }
-        public void PostProcess(RenderDrawContext drawContext)
+        public override void PostProcess(RenderDrawContext drawContext)
         {
             VoxelLayout.PostProcess(drawContext, LightFalloff);
         }
@@ -80,17 +80,17 @@ namespace Xenko.Rendering.Voxels
 
         ShaderClassSource source = new ShaderClassSource("VoxelAttributeEmissionOpacityShader");
 
-        public ShaderSource GetVoxelizationShader()
+        public override ShaderSource GetVoxelizationShader()
         {
             var mixin = new ShaderMixinSource();
             mixin.Mixins.Add(source);
             mixin.AddComposition("layout", VoxelLayout.GetVoxelizationShader(Modifiers));
             return mixin;
         }
-        public void UpdateVoxelizationLayout(string compositionName)
+        public override void UpdateVoxelizationLayout(string compositionName)
         {
             int i = 0;
-            foreach (IVoxelModifierEmissionOpacity modifier in Modifiers)
+            foreach (VoxelModifierEmissionOpacity modifier in Modifiers)
             {
                 if (!modifier.Enabled) continue;
 
@@ -99,9 +99,9 @@ namespace Xenko.Rendering.Voxels
             }
             VoxelLayout.UpdateVoxelizationLayout("layout." + compositionName, Modifiers);
         }
-        public void ApplyVoxelizationParameters(ParameterCollection parameters)
+        public override void ApplyVoxelizationParameters(ParameterCollection parameters)
         {
-            foreach (IVoxelModifierEmissionOpacity modifier in Modifiers)
+            foreach (VoxelModifierEmissionOpacity modifier in Modifiers)
             {
                 if (!modifier.Enabled) continue;
 
@@ -113,15 +113,15 @@ namespace Xenko.Rendering.Voxels
 
 
 
-        public ShaderSource GetSamplingShader()
+        public override ShaderSource GetSamplingShader()
         {
             return VoxelLayout.GetSamplingShader();
         }
-        public void UpdateSamplingLayout(string compositionName)
+        public override void UpdateSamplingLayout(string compositionName)
         {
             VoxelLayout.UpdateSamplingLayout(compositionName);
         }
-        public void ApplySamplingParameters(VoxelViewContext viewContext, ParameterCollection parameters)
+        public override void ApplySamplingParameters(VoxelViewContext viewContext, ParameterCollection parameters)
         {
             VoxelLayout.ApplySamplingParameters(viewContext, parameters);
         }

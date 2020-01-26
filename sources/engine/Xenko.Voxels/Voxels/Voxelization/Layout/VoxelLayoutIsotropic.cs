@@ -17,7 +17,7 @@ namespace Xenko.Rendering.Voxels
         protected override ShaderClassSource Sampler { get; set; } = new ShaderClassSource("VoxelIsotropicSampler");
         protected override string ApplierKey { get; set; } = "Isotropic";
 
-        public void UpdateVoxelizationLayout(string compositionName, List<IVoxelModifierEmissionOpacity> modifiers)
+        public void UpdateVoxelizationLayout(string compositionName, List<VoxelModifierEmissionOpacity> modifiers)
         {
             DirectOutput = VoxelIsotropicWriter_Float4Keys.DirectOutput.ComposeWith(compositionName);
             BrightnessInvKey = VoxelIsotropicWriter_Float4Keys.maxBrightnessInv.ComposeWith(compositionName);

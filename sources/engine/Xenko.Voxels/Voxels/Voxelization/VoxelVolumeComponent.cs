@@ -44,7 +44,7 @@ namespace Xenko.Rendering.Voxels
 
         [DataMember(30)]
         [Category]
-        public List<IVoxelAttribute> Attributes { get; set; } = new List<IVoxelAttribute>();
+        public List<VoxelAttribute> Attributes { get; set; } = new List<VoxelAttribute>();
 
 
         [DataMember(40)]

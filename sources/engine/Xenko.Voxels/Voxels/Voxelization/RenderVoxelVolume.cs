@@ -18,10 +18,10 @@ namespace Xenko.Rendering.Voxels
 
         public bool VoxelGridSnapping;
         public bool VisualizeVoxels;
-        public IVoxelAttribute VisualizationAttribute;
+        public VoxelAttribute VisualizationAttribute;
         public IVoxelVisualization VoxelVisualization;
 
-        public List<IVoxelAttribute> Attributes = new List<IVoxelAttribute>();
+        public List<VoxelAttribute> Attributes = new List<VoxelAttribute>();
 
         public IVoxelStorage Storage;
         public IVoxelizationMethod VoxelizationMethod;
@@ -33,10 +33,10 @@ namespace Xenko.Rendering.Voxels
     }
     public struct AttributeStream
     {
-        public IVoxelAttribute Attribute;
+        public VoxelAttribute Attribute;
         public VoxelizationStage Stage;
         public bool Output;
-        public AttributeStream(IVoxelAttribute attribute, VoxelizationStage stage, bool output)
+        public AttributeStream(VoxelAttribute attribute, VoxelizationStage stage, bool output)
         {
             Attribute = attribute;
             Stage = stage;
@@ -47,7 +47,7 @@ namespace Xenko.Rendering.Voxels
     {
         public bool Voxelize;
         public bool VisualizeVoxels;
-        public IVoxelAttribute VisualizationAttribute;
+        public VoxelAttribute VisualizationAttribute;
         public IVoxelVisualization VoxelVisualization;
 
         public IVoxelStorage Storage;
@@ -58,7 +58,7 @@ namespace Xenko.Rendering.Voxels
 
         public List<List<VoxelizationPass>> groupedPasses = new List<List<VoxelizationPass>>();
 
-        public List<IVoxelAttribute> OutputAttributes = new List<IVoxelAttribute>();
+        public List<VoxelAttribute> OutputAttributes = new List<VoxelAttribute>();
         public List<AttributeStream> Attributes = new List<AttributeStream>();
     }
 }

@@ -14,9 +14,9 @@ namespace Xenko.Rendering.Voxels
         void PostProcess(RenderDrawContext drawContext, LightFalloffs LightFalloff);
 
         //Writing
-        ShaderSource GetVoxelizationShader(List<IVoxelModifierEmissionOpacity> modifiers);
-        void UpdateVoxelizationLayout(string compositionName, List<IVoxelModifierEmissionOpacity> modifiers);
-        void ApplyVoxelizationParameters(ParameterCollection parameters, List<IVoxelModifierEmissionOpacity> modifiers);
+        ShaderSource GetVoxelizationShader(List<VoxelModifierEmissionOpacity> modifiers);
+        void UpdateVoxelizationLayout(string compositionName, List<VoxelModifierEmissionOpacity> modifiers);
+        void ApplyVoxelizationParameters(ParameterCollection parameters, List<VoxelModifierEmissionOpacity> modifiers);
 
         //Sampling
         ShaderSource GetSamplingShader();
