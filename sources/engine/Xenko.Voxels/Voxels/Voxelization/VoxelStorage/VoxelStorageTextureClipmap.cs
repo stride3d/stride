@@ -35,10 +35,11 @@ namespace Xenko.Rendering.Voxels
         {
             parameters.Set(MainKey, ClipMaps);
         }
+
         Xenko.Rendering.ComputeEffect.ComputeEffectShader VoxelMipmapSimple;
-        //Memory leaks if the ThreadGroupCounts/Numbers changes (I suppose due to recompiles...?)
+        //Memory leaks if the ThreadGroupCounts/Numbers/Composition changes (I suppose due to recompiles...?)
         //so instead cache them as seperate shaders.
-        Xenko.Rendering.ComputeEffect.ComputeEffectShader[] VoxelMipmapSimpleGroups;
+        Xenko.Rendering.ComputeEffect.ComputeEffectShader[][] VoxelMipmapSimpleGroups;
 
         public void PostProcess(RenderDrawContext drawContext, ShaderSource[] mipmapShaders)
         {
@@ -52,19 +53,29 @@ namespace Xenko.Rendering.Voxels
                 VoxelMipmapSimple = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = "Voxel2x2x2MipmapEffect" };
             }
 
-            if (VoxelMipmapSimpleGroups == null || VoxelMipmapSimpleGroups.Length != TempMipMaps.Length)
+            if (VoxelMipmapSimpleGroups == null || VoxelMipmapSimpleGroups.Length != LayoutSize || VoxelMipmapSimpleGroups[0].Length != TempMipMaps.Length)
             {
                 if (VoxelMipmapSimpleGroups != null)
                 {
-                    foreach (var shader in VoxelMipmapSimpleGroups)
+                    for (int axis = 0; axis < LayoutSize; axis++)
                     {
-                        shader.Dispose();
+                        if (VoxelMipmapSimpleGroups[axis] != null)
+                        {
+                            foreach (var shader in VoxelMipmapSimpleGroups[axis])
+                            {
+                                shader.Dispose();
+                            }
+                        }
                     }
                 }
-                VoxelMipmapSimpleGroups = new Xenko.Rendering.ComputeEffect.ComputeEffectShader[TempMipMaps.Length];
-                for (int i = 0; i < VoxelMipmapSimpleGroups.Length; i++)
+                VoxelMipmapSimpleGroups = new Xenko.Rendering.ComputeEffect.ComputeEffectShader[LayoutSize][];
+                for (int axis = 0; axis < LayoutSize; axis++)
                 {
-                    VoxelMipmapSimpleGroups[i] = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = "Voxel2x2x2MipmapEffect" };
+                    VoxelMipmapSimpleGroups[axis] = new Xenko.Rendering.ComputeEffect.ComputeEffectShader[TempMipMaps.Length];
+                    for (int i = 0; i < VoxelMipmapSimpleGroups[axis].Length; i++)
+                    {
+                        VoxelMipmapSimpleGroups[axis][i] = new Xenko.Rendering.ComputeEffect.ComputeEffectShader(drawContext.RenderContext) { ShaderSourceName = "Voxel2x2x2MipmapEffect" };
+                    }
                 }
             }
 
@@ -133,15 +144,15 @@ namespace Xenko.Rendering.Voxels
             for (int i = 0; i < TempMipMaps.Length - 1; i++)
             {
                 Vector3 Offset = MippingOffset[offsetIndex];
-                var mipmapShader = VoxelMipmapSimpleGroups[i];
                 resolution /= 2;
 
                 Vector3 threadNums = Vector3.Min(resolution, new Vector3(8));
-                mipmapShader.ThreadNumbers = (Int3)(threadNums);
-                mipmapShader.ThreadGroupCounts = (Int3)(resolution / threadNums);
 
                 for (int axis = 0; axis < LayoutSize; axis++)
                 {
+                    var mipmapShader = VoxelMipmapSimpleGroups[axis][i];
+                    mipmapShader.ThreadNumbers = (Int3)(threadNums);
+                    mipmapShader.ThreadGroupCounts = (Int3)(resolution / threadNums);
                     if (i == 0)
                     {
                         mipmapShader.Parameters.Set(Voxel2x2x2MipmapKeys.ReadTex, ClipMaps);
@@ -165,6 +176,8 @@ namespace Xenko.Rendering.Voxels
             }
             Array.Copy(PerMapOffsetScale, PerMapOffsetScaleCurrent, PerMapOffsetScale.Length);
         }
+
+
 
 
         private ObjectParameterKey<Texture> ClipMapskey;
