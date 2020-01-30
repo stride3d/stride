@@ -182,6 +182,11 @@ namespace Xenko.Core
         [NotNull]
         private static string GetApplicationBinaryDirectory()
         {
+            return FindCoreAssemblyDirectory(GetApplicationExecutableDiretory());
+        }
+
+        private static string GetApplicationExecutableDiretory()
+        {
 #if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_MONO_MOBILE || XENKO_PLATFORM_UNIX
             var executableName = GetApplicationExecutablePath();
             if (!string.IsNullOrEmpty(executableName))
@@ -198,6 +203,30 @@ namespace Xenko.Core
 #else
             throw new NotImplementedException();
 #endif
+        }
+
+        static string FindCoreAssemblyDirectory(string entryDirectory)
+        {
+            //simple case
+            var corePath = Path.Combine(entryDirectory, "Xenko.Core.dll");
+            if (File.Exists(corePath))
+            {
+                return entryDirectory;
+            }
+            else //search one level down
+            {
+                foreach (var subfolder in Directory.GetDirectories(entryDirectory))
+                {
+                    corePath = Path.Combine(subfolder, "Xenko.Core.dll");
+                    if (File.Exists(corePath))
+                    {
+                        return subfolder;
+                    }
+                }
+            }
+
+            //if nothing found, return input
+            return entryDirectory;
         }
 
         [NotNull]
