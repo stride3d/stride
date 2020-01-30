@@ -64,6 +64,7 @@ namespace Xenko.Games
         private int nextLastUpdateCountIndex;
         private bool drawRunningSlowly;
         private bool forceElapsedTimeToZero;
+        private bool throttleUpdate;
 
         private readonly TimerTick timer;
 
@@ -97,7 +98,8 @@ namespace Xenko.Games
             TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
             lastUpdateCount = new int[4];
             nextLastUpdateCountIndex = 0;
-            
+
+            throttleUpdate = true;
             TreatNotFocusedLikeMinimized = true;
             WindowMinimumUpdateRate      = new ThreadThrottler(TimeSpan.FromSeconds(0d));
             MinimizedMinimumUpdateRate   = new ThreadThrottler(TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 15)); // by default 15 updates per second while minimized
@@ -485,7 +487,10 @@ namespace Xenko.Games
 
 #if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
                 if (Context is GameContextWinforms gameContextWinforms)
-                    isEndRunRequired |= gameContextWinforms.IsUserManagingRun; 
+                {
+                    isEndRunRequired |= gameContextWinforms.IsUserManagingRun;
+                    throttleUpdate = !gameContextWinforms.IsUserManagingRun;
+                }
 #endif
 
                 gamePlatform.Run(Context);
@@ -687,10 +692,14 @@ namespace Xenko.Games
                         using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
                         {
                             EndDraw(true);
-                            if (gamePlatform.MainWindow.IsMinimized || gamePlatform.MainWindow.Visible == false || (gamePlatform.MainWindow.Focused == false && TreatNotFocusedLikeMinimized))
-                                MinimizedMinimumUpdateRate.Throttle(out _);
-                            else
-                                WindowMinimumUpdateRate.Throttle(out _);
+
+                            if (throttleUpdate)
+                            {
+                                if (gamePlatform.MainWindow.IsMinimized || gamePlatform.MainWindow.Visible == false || (gamePlatform.MainWindow.Focused == false && TreatNotFocusedLikeMinimized))
+                                    MinimizedMinimumUpdateRate.Throttle(out _);
+                                else
+                                    WindowMinimumUpdateRate.Throttle(out _);
+                            }
                         }
                     }
 
