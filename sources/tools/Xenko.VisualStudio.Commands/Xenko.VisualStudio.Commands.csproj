@@ -9,12 +9,12 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.ServiceModel" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>    
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ServiceWire" Version="5.3.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\assets\Xenko.Core.Assets\Xenko.Core.Assets.csproj" />
