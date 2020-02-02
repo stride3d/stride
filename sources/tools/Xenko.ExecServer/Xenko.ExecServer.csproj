@@ -18,7 +18,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="8.0.1" />
-    <Reference Include="System.ServiceModel" />
+    <PackageReference Include="ServiceWire" Version="5.3.2" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
