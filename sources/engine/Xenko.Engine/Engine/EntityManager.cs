@@ -15,6 +15,7 @@ using Xenko.Core.Reflection;
 using Xenko.Engine.Design;
 using Xenko.Games;
 using Xenko.Rendering;
+using static EntityPool;
 
 namespace Xenko.Engine
 {
@@ -34,7 +35,7 @@ namespace Xenko.Engine
         private readonly TrackingEntityProcessorCollection processors;
 
         // use an ordered list to make sure processor are added in the correct order as much as possible
-        private readonly EntityProcessorCollection pendingProcessors; 
+        private readonly EntityProcessorCollection pendingProcessors;
 
         // List of processors per EntityComponent final type
         internal readonly Dictionary<TypeInfo, EntityProcessorCollectionPerComponentType> MapComponentTypeToProcessors;
@@ -229,7 +230,7 @@ namespace Xenko.Engine
             entities.Add(entity);
             entity.AddReferenceInternal();
 
-            // Because a processor can add entities, we want to make sure that 
+            // Because a processor can add entities, we want to make sure that
             // the RegisterPendingProcessors is called only at the top level
             {
                 addEntityLevel++;
@@ -337,7 +338,7 @@ namespace Xenko.Engine
                                 break;
                             }
                         }
-                        
+
                         // If not found, we can add this processor
                         if (addNewProcessor)
                         {
@@ -383,7 +384,7 @@ namespace Xenko.Engine
                 }
             }
 
-            // NOTE: It is important to perform a ToList() as the TransformProcessor adds children 
+            // NOTE: It is important to perform a ToList() as the TransformProcessor adds children
             // entities and modifies the current list of entities
             foreach (var entity in entities.ToList())
             {
@@ -414,7 +415,7 @@ namespace Xenko.Engine
 
         internal void NotifyComponentChanged(Entity entity, int index, EntityComponent oldComponent, EntityComponent newComponent)
         {
-            // No real update   
+            // No real update
             if (oldComponent == newComponent)
                 return;
 
@@ -426,7 +427,7 @@ namespace Xenko.Engine
             }
 
             // Remove previous component from processors
-            currentDependentProcessors.Clear(); 
+            currentDependentProcessors.Clear();
             if (oldComponent != null)
             {
                 CheckEntityComponentWithProcessors(entity, oldComponent, true, currentDependentProcessors);
@@ -570,6 +571,7 @@ namespace Xenko.Engine
 
         protected virtual void OnEntityAdded(Entity e)
         {
+            if (e.UsingPool != null) e.UsingPool.myPool.ReturnToPool(e, ref e.UsingPool.active);
             EntityAdded?.Invoke(this, e);
         }
 
@@ -608,7 +610,7 @@ namespace Xenko.Engine
                 if (manager == null) throw new ArgumentNullException(nameof(manager));
                 this.manager = manager;
             }
-            
+
             protected override void ClearItems()
             {
                 for (int i = 0; i < Count; i++)

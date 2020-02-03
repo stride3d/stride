@@ -32,5 +32,32 @@ namespace Xenko.Engine
             var newPrefab = EntityCloner.Clone(this);
             return newPrefab.Entities;
         }
+
+        private Entity packed;
+
+    /// <summary>
+    /// Converts a Prefab into a single Entity that has all entities as children. Makes it easier to use with an EntityPool
+    /// </summary>
+    /// <param name="p"></param>
+    /// <returns></returns>
+    public Entity PackToEntity() {
+        if (packed == null) {
+            List<Entity> roots = new List<Entity>();
+            for (int i = 0; i < Entities.Count; i++) {
+                if (Entities[i].Transform.Parent == null)
+                    roots.Add(Entities[i]);
+            }
+            if (roots.Count == 1) {
+                packed = roots[0];
+            } else {
+                packed = new Entity();
+                for (int i = 0; i < roots.Count; i++) {
+                    roots[i].Transform.Parent = packed.Transform;
+                }
+            }
+        }
+        return packed;
+    }
+
     }
 }
