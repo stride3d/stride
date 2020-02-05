@@ -20,9 +20,6 @@ namespace Xenko.VisualStudio.BuildEngine
             this.logPipeUrl = logPipeUrl;
 
             // Listen to pipe with this as listener
-            //var host = new ServiceHost(this);
-            //host.AddServiceEndpoint(typeof(IForwardSerializableLogRemote), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None) { MaxReceivedMessageSize = int.MaxValue }, this.logPipeUrl);
-            //host.Open();
             var host = new NpHost(this.logPipeUrl, null, null);
             host.AddService<IForwardSerializableLogRemote>(this);
             host.Open();

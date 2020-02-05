@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using ServiceWire.NamedPipes;
 
 namespace Xenko.ExecServer
 {
@@ -57,13 +58,13 @@ namespace Xenko.ExecServer
         /// <param name="shadowCache">If [true], use shadow cache.</param>
         /// <param name="logger">The logger.</param>
         /// <returns>System.Int32.</returns>
-        public int Run(string workingDirectory, Dictionary<string, string> environmentVariables, string[] args, bool shadowCache, IServerLogger logger)
+        public int Run(string workingDirectory, Dictionary<string, string> environmentVariables, string[] args, bool shadowCache, NpClient<IServerLogger> callbackChannel)
         {
             lock (disposingLock)
             {
                 if (isDisposed)
                 {
-                    logger.OnLog("Error, server is being shutdown, cannot run Compiler", ConsoleColor.Red);
+                    callbackChannel.Proxy.OnLog("Error, server is being shutdown, cannot run Compiler", ConsoleColor.Red);
                     return 1;
                 }
             }
@@ -73,7 +74,7 @@ namespace Xenko.ExecServer
             try
             {
                 shadowDomain = GetOrNew(shadowCache, IsCachingAppDomain);
-                return shadowDomain.Run(workingDirectory, environmentVariables, args, logger);
+                return shadowDomain.Run(workingDirectory, environmentVariables, args, callbackChannel);
             }
             finally
             {

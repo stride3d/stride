@@ -12,6 +12,6 @@ namespace Xenko.ExecServer
     {
         void Check();
 
-        int Run(string currentDirectory, Dictionary<string, string> environmentVariables, string[] args, bool shadowCache, int? debuggerProcessId, IServerLogger logger);
+        int Run(string currentDirectory, Dictionary<string, string> environmentVariables, string[] args, bool shadowCache, int? debuggerProcessId, string callbackAddress);
     }
 }

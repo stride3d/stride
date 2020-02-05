@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using ServiceWire.NamedPipes;
 using Xenko.Core.VisualStudio;
 using static Xenko.ExecServer.AppDomainShadow;
 using static Xenko.ExecServer.ExecServerApp;
@@ -65,7 +66,7 @@ namespace Xenko.ExecServer
         {
         }
 
-        public int Run(string currentDirectory, Dictionary<string, string> environmentVariables, string[] args, bool shadowCache, int? debuggerProcessId, IServerLogger logger)
+        public int Run(string currentDirectory, Dictionary<string, string> environmentVariables, string[] args, bool shadowCache, int? debuggerProcessId, string callbackAddress)
         {
             bool lockTaken = false;
             try
@@ -89,9 +90,11 @@ namespace Xenko.ExecServer
                         debugger?.Attach();
                     }
                 }
-
-                var result = shadowManager.Run(currentDirectory, environmentVariables, args, shadowCache,logger);
-                return result;
+                using (var callbackChannel = new NpClient<IServerLogger>(new NpEndPoint(callbackAddress)))
+                {
+                    var result = shadowManager.Run(currentDirectory, environmentVariables, args, shadowCache, callbackChannel);
+                    return result;
+                }
             }
             finally
             {

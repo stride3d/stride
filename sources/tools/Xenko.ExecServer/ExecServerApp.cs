@@ -195,7 +195,7 @@ namespace Xenko.ExecServer
 
                     TrySameConnectionAgain:
                         var redirectLog = new RedirectLogger();
-                        var client = clients[serverInstanceIndex] ?? new ExecServerRemoteClient(address);
+                        var client = clients[serverInstanceIndex] ?? new ExecServerRemoteClient(address, redirectLog);
                         // Console.WriteLine("{0}: ExecServer Try to connect", DateTime.Now);
 
                         var service = client.Proxy;
@@ -207,7 +207,7 @@ namespace Xenko.ExecServer
                             clients[serverInstanceIndex] = client;
                             try
                             {
-                                var result = service.Run(workingDirectory, environmentVariables, args.ToArray(), shadowCache, debuggerProcessId, redirectLog);
+                                var result = service.Run(workingDirectory, environmentVariables, args.ToArray(), shadowCache, debuggerProcessId, client.CallbackAddress);
                                 if (result == ExecServerRemote.BusyReturnCode)
                                 {
                                     // Try next server
@@ -390,13 +390,19 @@ namespace Xenko.ExecServer
 
         private class ExecServerRemoteClient : IDisposable
         {
-
             private NpClient<IExecServerRemote> _client;
+            private NpHost _callbackChannel;
 
             public IExecServerRemote Proxy { get { return _client.Proxy; } }
-            public ExecServerRemoteClient(string remoteAddress)
+            public string CallbackAddress { get; set; }
+            public ExecServerRemoteClient(string remoteAddress, RedirectLogger logger)
             {
                 _client = new NpClient<IExecServerRemote>(new NpEndPoint(remoteAddress));
+
+                //Create callback channel
+                this.CallbackAddress = remoteAddress + "_callback";
+                _callbackChannel= new NpHost(this.CallbackAddress, null, null);
+                _callbackChannel.AddService<IServerLogger>(logger);
             }
 
             #region IDisposable Support
@@ -409,6 +415,8 @@ namespace Xenko.ExecServer
                     if (disposing)
                     {
                         _client.Dispose();
+                        _callbackChannel.Close();
+                        _callbackChannel.Dispose();
                     }
                     disposedValue = true;
                 }
