@@ -228,7 +228,7 @@ namespace Xenko.Core.Presentation.Controls
             if (cancelRoutedEventArgs.Cancel)
                 return;
 
-            if (!CheckIsTextValue(Text))
+            if (!IsTextCompatibleWithValueBinding(Text))
             {
                 var textBindingFailedArgs = new RoutedEventArgs(TextToSourceValueConversionFailedEvent);
                 RaiseEvent(textBindingFailedArgs);
@@ -326,7 +326,7 @@ namespace Xenko.Core.Presentation.Controls
         /// <summary>
         /// Preliminary check during validation to see if the text is in a valid format.
         /// </summary>
-        protected virtual bool CheckIsTextValue(string text)
+        protected virtual bool IsTextCompatibleWithValueBinding(string text)
         {
             return true;
         }

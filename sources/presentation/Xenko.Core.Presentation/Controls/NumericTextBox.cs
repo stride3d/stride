@@ -326,7 +326,7 @@ namespace Xenko.Core.Presentation.Controls
             expression?.UpdateSource();
         }
 
-        protected override bool CheckIsTextValue(string text)
+        protected override bool IsTextCompatibleWithValueBinding(string text)
         {
             return double.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out _);
         }
