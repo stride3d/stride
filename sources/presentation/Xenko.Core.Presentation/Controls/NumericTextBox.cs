@@ -326,6 +326,11 @@ namespace Xenko.Core.Presentation.Controls
             expression?.UpdateSource();
         }
 
+        protected override bool CheckIsTextValue(string text)
+        {
+            return double.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out _);
+        }
+
         /// <inheritdoc/>
         [NotNull]
         protected override string CoerceTextForValidation(string baseValue)
