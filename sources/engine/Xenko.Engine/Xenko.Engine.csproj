@@ -17,7 +17,7 @@
     <XenkoProjectPlatformDependentWindows>true</XenkoProjectPlatformDependentWindows>
     <XenkoBuildTags>*</XenkoBuildTags>
     <RestorePackages>true</RestorePackages>
-    <RootNamespace>Xenko</RootNamespace>
+    <RootNamespace>Xenko.Engine</RootNamespace>
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
     <XenkoPackAssets>true</XenkoPackAssets>
   </PropertyGroup>

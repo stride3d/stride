@@ -21,6 +21,8 @@ using Xenko.Graphics.OpenGL;
 
 namespace Xenko.Starter
 {
+    using Resource = Xenko.Engine.Resource;
+    
     // NOTE: the class should implement View.IOnSystemUiVisibilityChangeListener but doing so will prevent the engine to work on Android below 3.0 (API Level 11 is mandatory).
     // So the methods are implemented but the class does not implement View.IOnSystemUiVisibilityChangeListener.
     // Maybe this will change when support for API Level 10 is dropped
