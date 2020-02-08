@@ -1,26 +1,25 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
-using System.ServiceModel;
 using Xenko.Core.BuildEngine;
+using ServiceWire.NamedPipes;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Presentation.ViewModel;
 
 namespace Xenko.GameStudio.Logs
 {
-    [ServiceBehavior(InstanceContextMode = InstanceContextMode.Single, UseSynchronizationContext = false)]
     public sealed class BuildLogViewModel : LoggerViewModel, IForwardSerializableLogRemote
     {
         private const string BasePipeName = "net.pipe://localhost/Xenko.Core.Assets.Editor";
-        private readonly ServiceHost host;
+        private readonly NpHost _host;
 
         public BuildLogViewModel(IViewModelServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             PipeName = $"{BasePipeName}.{Guid.NewGuid()}";
-            host = new ServiceHost(this);
-            host.AddServiceEndpoint(typeof(IForwardSerializableLogRemote), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None) { MaxReceivedMessageSize = int.MaxValue }, PipeName);
-            host.Open();
+            _host = new NpHost(PipeName, null, null);
+            _host.AddService<IForwardSerializableLogRemote>(this);
+            _host.Open();
         }
         
         public string PipeName { get; }
@@ -36,7 +35,8 @@ namespace Xenko.GameStudio.Logs
         /// <inheritdoc/>
         public override void Destroy()
         {
-            host.Close();
+            _host.Close();
+            _host.Dispose();
             base.Destroy();
         }
     }

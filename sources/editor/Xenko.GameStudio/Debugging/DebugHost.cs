@@ -3,8 +3,7 @@
 
 using System;
 using System.Diagnostics;
-using System.ServiceModel;
-
+using ServiceWire.NamedPipes;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.VisualStudio;
 using Xenko.Debugger.Target;
@@ -17,7 +16,7 @@ namespace Xenko.GameStudio.Debugging
     class DebugHost : IDisposable
     {
         private AttachedChildProcessJob attachedChildProcessJob;
-        public ServiceHost ServiceHost { get; private set; }
+        public NpHost ServiceHost { get; private set; }
         public GameDebuggerHost GameHost { get; private set; }
 
         public void Start(string workingDirectory, Process debuggerProcess, LoggerResult logger)
@@ -44,11 +43,10 @@ namespace Xenko.GameStudio.Debugging
                     RedirectStandardError = true,
                 };
 
-                // Start WCF pipe
+                // Start ServiceWire pipe
                 var gameDebuggerHost = new GameDebuggerHost(logger);
-                ServiceHost = new ServiceHost(gameDebuggerHost);
-                ServiceHost.AddServiceEndpoint(typeof(IGameDebuggerHost), new NetNamedPipeBinding(NetNamedPipeSecurityMode.None) { MaxReceivedMessageSize = int.MaxValue }, address);
-                ServiceHost.Open();
+                ServiceHost = new NpHost(address, null, null);
+                ServiceHost.AddService<IGameDebuggerHost>(gameDebuggerHost);
 
                 var process = new Process { StartInfo = startInfo };
                 process.Start();
@@ -74,7 +72,8 @@ namespace Xenko.GameStudio.Debugging
             }
             if (ServiceHost != null)
             {
-                ServiceHost.Abort();
+                ServiceHost.Close();
+                ServiceHost.Dispose();
                 ServiceHost = null;
             }
         }
