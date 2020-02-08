@@ -356,7 +356,7 @@ namespace Xenko.Core.Assets.CompilerApp
                 await Task.Delay(1, command.CancellationToken);
             }
 
-            var address = "net.pipe://localhost/" + Guid.NewGuid();
+            var address = "Xenko/CompilerApp/PackageBuilderApp/" + Guid.NewGuid();
             var arguments = $"--slave=\"{address}\" --build-path=\"{builderOptions.BuildDirectory}\"";
 
             using (var debugger = VisualStudioDebugger.GetAttached())

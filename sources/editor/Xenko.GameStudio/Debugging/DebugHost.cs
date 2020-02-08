@@ -25,7 +25,7 @@ namespace Xenko.GameStudio.Debugging
 
             using (var debugger = debuggerProcess != null ? VisualStudioDebugger.GetByProcess(debuggerProcess.Id) : null)
             {
-                var address = "net.pipe://localhost/" + Guid.NewGuid();
+                var address = "Xenko/Debugger/" + Guid.NewGuid();
                 var arguments = $"--host=\"{address}\"";
 
                 // Child process should wait for a debugger to be attached

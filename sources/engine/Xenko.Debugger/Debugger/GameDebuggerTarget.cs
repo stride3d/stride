@@ -217,7 +217,7 @@ namespace Xenko.Debugger.Target
         public void MainLoop(IGameDebuggerHost gameDebuggerHost)
         {
             host = gameDebuggerHost;
-            string callbackChannelEndpoint = "net.pipe://localhost/Xenko.Debugger.GameDebuggerTarget.CallbackChannel";
+            string callbackChannelEndpoint = "Xenko/Debugger/GameDebuggerTarget/CallbackChannel";
             using (var callbackHost = new NpHost(callbackChannelEndpoint, null, null))
             {
                 callbackHost.AddService<IGameDebuggerTarget>(this);

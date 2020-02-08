@@ -10,7 +10,7 @@ namespace Xenko.GameStudio.Logs
 {
     public sealed class BuildLogViewModel : LoggerViewModel, IForwardSerializableLogRemote
     {
-        private const string BasePipeName = "net.pipe://localhost/Xenko.Core.Assets.Editor";
+        private const string BasePipeName = "XenkoCoreAssetsEditor";
         private readonly NpHost _host;
 
         public BuildLogViewModel(IViewModelServiceProvider serviceProvider)

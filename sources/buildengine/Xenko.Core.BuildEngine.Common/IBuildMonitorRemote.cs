@@ -5,6 +5,22 @@ using System.Collections.Generic;
 
 namespace Xenko.Core.BuildEngine
 {
+    public interface IBuildMonitorRemote
+    {
+        int Ping();
+
+        void StartBuild(Guid buildId, DateTime time);
+
+        void SendBuildStepInfo(Guid buildId, long executionId, string description, DateTime startTime);
+
+        void SendCommandLog(Guid buildId, DateTime startTime, long microthreadId, List<SerializableTimestampLogMessage> messages);
+
+        void SendMicrothreadEvents(Guid buildId, DateTime startTime, DateTime now, IEnumerable<MicrothreadNotification> microthreadJobInfo);
+
+        void SendBuildStepResult(Guid buildId, DateTime startTime, long microthreadId, ResultStatus status);
+
+        void EndBuild(Guid buildId, DateTime time);
+    }
     public class MicrothreadNotification
     {
         public enum NotificationType

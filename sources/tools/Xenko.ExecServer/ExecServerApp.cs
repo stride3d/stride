@@ -371,7 +371,7 @@ namespace Xenko.ExecServer
         private static string GetEndpointAddress(string executablePath, int serverInstanceIndex)
         {
             var executableKey = Regex.Replace(executablePath, "[:\\/#]", "_");
-            var address = "net.pipe://localhost/" + executableKey + "_" + serverInstanceIndex;
+            var address = "ExecServerApp/" + executableKey + "_" + serverInstanceIndex;
             return address;
         }
 

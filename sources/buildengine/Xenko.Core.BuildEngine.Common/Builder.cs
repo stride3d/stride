@@ -90,7 +90,7 @@ namespace Xenko.Core.BuildEngine
 
         public List<string> MonitorPipeNames { get; }
         
-        public const string MonitorPipeName = "net.pipe://localhost/Xenko.BuildEngine.Monitor";
+        public const string MonitorPipeName = "Xenko/BuildEngine/Monitor";
 
         public IDictionary<string, string> InitialVariables { get; }
 
@@ -117,6 +117,7 @@ namespace Xenko.Core.BuildEngine
         private Scheduler scheduler;
 
         private readonly CommandIOMonitor ioMonitor;
+        private readonly List<IBuildThreadMonitor> currentThreadMonitors = new List<IBuildThreadMonitor>();
 
         /// <summary>
         /// A map containing results of each commands, indexed by command hashes. When the builder is running, this map if filled with the result of the commands of the current execution.
@@ -296,6 +297,11 @@ namespace Xenko.Core.BuildEngine
 
                     buildStep.ExecutionId = microThread.Id;
 
+                    foreach (var threadMonitor in currentThreadMonitors)
+                    {
+                        threadMonitor.RegisterBuildStep(buildStep, buildStepLogger.StepLogger);
+                    }
+
                     microThread.Name = buildStep.ToString();
 
                     // Default:
@@ -416,6 +422,9 @@ namespace Xenko.Core.BuildEngine
 
         private void RunUntilEnd()
         {
+            foreach (var threadMonitor in currentThreadMonitors)
+                threadMonitor.RegisterThread(Thread.CurrentThread.ManagedThreadId);
+
             while (true)
             {
                 scheduler.Run();
@@ -470,7 +479,7 @@ namespace Xenko.Core.BuildEngine
         /// <summary>
         /// Runs this instance.
         /// </summary>
-        public BuildResultCode Run(Mode mode, bool writeIndexFile = true)
+        public BuildResultCode Run(Mode mode, bool writeIndexFile = true, List<IBuildThreadMonitor> threadMonitors = null)
         {
             // When we setup the database ourself we have to take responsibility to close it after
             var shouldCloseDatabase = ObjectDatabase == null;
@@ -489,6 +498,13 @@ namespace Xenko.Core.BuildEngine
             IsRunning = true;
             DisableCompressionIds.Clear();
 
+            currentThreadMonitors.Clear();
+            if (threadMonitors != null)
+            {
+                foreach (var threadMonitor in threadMonitors)
+                    currentThreadMonitors.Add(threadMonitor);
+            }
+
             // Reseting result map
             var inputHashes = FileVersionTracker.GetDefault();
             {
@@ -497,6 +513,8 @@ namespace Xenko.Core.BuildEngine
                 resultMap = ObjectDatabase;
 
                 scheduler = new Scheduler();
+                foreach (var threadMonitor in currentThreadMonitors)
+                    threadMonitor.Start();
 
                 // Schedule the build
                 ScheduleBuildStep(builderContext, null, Root, InitialVariables);
@@ -517,7 +535,15 @@ namespace Xenko.Core.BuildEngine
                 {
                     thread.Join();
                 }
+
+                foreach (var threadMonitor in currentThreadMonitors)
+                    threadMonitor.Finish();
+
+                foreach (var threadMonitor in currentThreadMonitors)
+                    threadMonitor.Join();
             }
+
+            currentThreadMonitors.Clear();
             BuildResultCode result;
 
             if (runMode == Mode.Build)
