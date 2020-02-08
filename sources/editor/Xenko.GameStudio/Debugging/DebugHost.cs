@@ -75,7 +75,6 @@ namespace Xenko.GameStudio.Debugging
             if (ServiceHost != null)
             {
                 ServiceHost.Close();
-                ServiceHost.Dispose();
                 ServiceHost = null;
             }
         }

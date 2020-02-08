@@ -5,11 +5,12 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.ServiceModel;
+using ServiceWire.NamedPipes;
 using System.Threading;
 using Mono.Options;
 using Xenko.Core;
 using Xenko.Debugger.Target;
+using Xenko.Core.BuildEngine.Common;
 
 namespace Xenko
 {
@@ -70,12 +71,13 @@ namespace Xenko
                 }
 
                 // Open WCF channel with master builder
-                var namedPipeBinding = new NetNamedPipeBinding(NetNamedPipeSecurityMode.None) { SendTimeout = TimeSpan.FromSeconds(300.0), MaxReceivedMessageSize = int.MaxValue };
                 try
                 {
-                    var gameDebuggerTarget = new GameDebuggerTarget();
-                    var gameDebuggerHost = DuplexChannelFactory<IGameDebuggerHost>.CreateChannel(new InstanceContext(gameDebuggerTarget), namedPipeBinding, new EndpointAddress(hostPipe));
-                    gameDebuggerTarget.MainLoop(gameDebuggerHost);
+                    using (var channel = new NpClient<IGameDebuggerHost>(new NpEndPoint(hostPipe), new XenkoJSONSerializer()))
+                    {
+                        var gameDebuggerTarget = new GameDebuggerTarget();
+                        gameDebuggerTarget.MainLoop(channel.Proxy);
+                    }
                 }
                 catch (Exception)
                 {
