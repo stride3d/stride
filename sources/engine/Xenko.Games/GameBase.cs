@@ -98,7 +98,7 @@ namespace Xenko.Games
             TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
             lastUpdateCount = new int[4];
             nextLastUpdateCountIndex = 0;
-
+            
             throttleUpdate = true;
             TreatNotFocusedLikeMinimized = true;
             WindowMinimumUpdateRate      = new ThreadThrottler(TimeSpan.FromSeconds(0d));
@@ -483,22 +483,24 @@ namespace Xenko.Games
                 Context.RequestedGraphicsProfile = graphicsDeviceManagerImpl.PreferredGraphicsProfile;
                 Context.DeviceCreationFlags = graphicsDeviceManagerImpl.DeviceCreationFlags;
 
-                isEndRunRequired = !gamePlatform.IsBlockingRun;
-
 #if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
                 if (Context is GameContextWinforms gameContextWinforms)
                 {
-                    isEndRunRequired |= gameContextWinforms.IsUserManagingRun;
                     throttleUpdate = !gameContextWinforms.IsUserManagingRun;
+                    gamePlatform.IsBlockingRun = !gameContextWinforms.IsUserManagingRun;
                 }
 #endif
-
                 gamePlatform.Run(Context);
 
-                if (gamePlatform.IsBlockingRun && !isEndRunRequired)
+                if (gamePlatform.IsBlockingRun)
                 {
                     // If the previous call was blocking, then we can call Endrun
                     EndRun();
+                }
+                else
+                {
+                    // EndRun will be executed on Game.Exit
+                    isEndRunRequired = true;
                 }
             }
             finally
