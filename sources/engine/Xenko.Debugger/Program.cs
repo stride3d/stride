@@ -10,7 +10,6 @@ using System.Threading;
 using Mono.Options;
 using Xenko.Core;
 using Xenko.Debugger.Target;
-using Xenko.Core.BuildEngine.Common;
 
 namespace Xenko
 {
@@ -73,7 +72,7 @@ namespace Xenko
                 // Open WCF channel with master builder
                 try
                 {
-                    using (var channel = new NpClient<IGameDebuggerHost>(new NpEndPoint(hostPipe), new XenkoJSONSerializer()))
+                    using (var channel = new NpClient<IGameDebuggerHost>(new NpEndPoint(hostPipe)))
                     {
                         var gameDebuggerTarget = new GameDebuggerTarget();
                         gameDebuggerTarget.MainLoop(channel.Proxy);

@@ -5,7 +5,7 @@ using System;
 
 namespace Xenko.Core.Serialization.Contents
 {
-    [DataContract]
+    [DataContract, Serializable]
     [DataSerializer(typeof(Serializer))]
     public struct ObjectUrl : IEquatable<ObjectUrl>
     {

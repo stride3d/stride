@@ -11,7 +11,7 @@ namespace Xenko.Core.Storage
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
 #if !XENKO_ASSEMBLY_PROCESSOR
-    [DataContract("ObjectId")]
+    [DataContract("ObjectId"),Serializable]
 #endif
     public unsafe partial struct ObjectId : IEquatable<ObjectId>, IComparable<ObjectId>
     {

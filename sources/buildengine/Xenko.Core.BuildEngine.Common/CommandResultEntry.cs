@@ -11,7 +11,7 @@ using Xenko.Core.Serialization.Contents;
 namespace Xenko.Core.BuildEngine
 {
     [ContentSerializer(typeof(DataContentSerializer<CommandResultEntry>))]
-    [DataContract]
+    [DataContract,Serializable]
     public class CommandResultEntry
     {
         public Dictionary<ObjectUrl, ObjectId> InputDependencyVersions;

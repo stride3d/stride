@@ -8,7 +8,7 @@ namespace Xenko.Core.Diagnostics
     /// <summary>
     /// A class that represents a copy of a <see cref="LogMessage"/> that can be serialized.
     /// </summary>
-    [DataContract]
+    [DataContract, Serializable]
     public class SerializableLogMessage : ILogMessage
     {
         /// <summary>

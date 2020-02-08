@@ -5,7 +5,6 @@ using Xenko.Core.BuildEngine;
 using ServiceWire.NamedPipes;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.Presentation.ViewModel;
-using Xenko.Core.BuildEngine.Common;
 
 namespace Xenko.GameStudio.Logs
 {
@@ -18,7 +17,7 @@ namespace Xenko.GameStudio.Logs
             : base(serviceProvider)
         {
             PipeName = $"{BasePipeName}.{Guid.NewGuid()}";
-            _host = new NpHost(PipeName, null, null, new XenkoJSONSerializer());
+            _host = new NpHost(PipeName, null, null);
             _host.AddService<IForwardSerializableLogRemote>(this);
             _host.Open();
         }

@@ -15,7 +15,7 @@ using Xenko.Core.Serialization.Contents;
 
 namespace Xenko.Core.BuildEngine
 {
-    [DataContract(Inherited = true)]
+    [DataContract(Inherited = true), Serializable]
     public abstract class Command
     {
         /// <summary>

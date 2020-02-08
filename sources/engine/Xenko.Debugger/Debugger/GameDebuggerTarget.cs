@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using ServiceWire.NamedPipes;
-using Xenko.Core.BuildEngine.Common;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.MicroThreading;
 using Xenko.Core.Reflection;
@@ -219,7 +218,7 @@ namespace Xenko.Debugger.Target
         {
             host = gameDebuggerHost;
             string callbackChannelEndpoint = "net.pipe://localhost/Xenko.Debugger.GameDebuggerTarget.CallbackChannel";
-            using (var callbackHost = new NpHost(callbackChannelEndpoint, null, null, new XenkoJSONSerializer()))
+            using (var callbackHost = new NpHost(callbackChannelEndpoint, null, null))
             {
                 callbackHost.AddService<IGameDebuggerTarget>(this);
                 host.RegisterTarget(callbackChannelEndpoint);
