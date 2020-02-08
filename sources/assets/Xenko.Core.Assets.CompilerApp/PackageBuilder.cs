@@ -23,6 +23,7 @@ using Xenko.Assets;
 using Xenko.Graphics;
 using Xenko.Core.VisualStudio;
 using ServiceWire.NamedPipes;
+using Xenko.Core.BuildEngine.Common;
 
 namespace Xenko.Core.Assets.CompilerApp
 {
@@ -253,7 +254,7 @@ namespace Xenko.Core.Assets.CompilerApp
             VirtualFileSystem.CreateDirectory(VirtualFileSystem.ApplicationDatabasePath);
 
             // Open ServiceWire Client Channel
-            using (var client = new NpClient<IProcessBuilderRemote>(new NpEndPoint(builderOptions.SlavePipe)))
+            using (var client = new NpClient<IProcessBuilderRemote>(new NpEndPoint(builderOptions.SlavePipe), new XenkoJSONSerializer()))
             {
                 RegisterRemoteLogger(client);
 
@@ -369,7 +370,7 @@ namespace Xenko.Core.Assets.CompilerApp
 
             // Start ServiceWire pipe for communication with process
             var processBuilderRemote = new ProcessBuilderRemote(assemblyContainer, commandContext, command);
-            var host = new NpHost(address);
+            var host = new NpHost(address,null,null,new XenkoJSONSerializer());
             host.AddService<IProcessBuilderRemote>(processBuilderRemote);
 
             var startInfo = new ProcessStartInfo

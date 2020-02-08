@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using ServiceWire.NamedPipes;
 using Xenko.Core.Assets.Diagnostics;
 using Xenko.Core.BuildEngine;
+using Xenko.Core.BuildEngine.Common;
 using Xenko.Core.Diagnostics;
 
 namespace Xenko.Core.Assets.CompilerApp
@@ -24,7 +25,7 @@ namespace Xenko.Core.Assets.CompilerApp
 
             foreach (var logPipeName in logPipeNames)
             {
-                var client = new NpClient<IForwardSerializableLogRemote>(new NpEndPoint(logPipeName));
+                var client = new NpClient<IForwardSerializableLogRemote>(new NpEndPoint(logPipeName), new XenkoJSONSerializer());
                 remoteLogs.Add(client);
             }
 

@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using ServiceWire.NamedPipes;
+using Xenko.Core.BuildEngine.Common;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.VisualStudio;
 using Xenko.Debugger.Target;
@@ -45,8 +46,9 @@ namespace Xenko.GameStudio.Debugging
 
                 // Start ServiceWire pipe
                 var gameDebuggerHost = new GameDebuggerHost(logger);
-                ServiceHost = new NpHost(address, null, null);
+                ServiceHost = new NpHost(address, null, null, new XenkoJSONSerializer());
                 ServiceHost.AddService<IGameDebuggerHost>(gameDebuggerHost);
+                ServiceHost.Open();
 
                 var process = new Process { StartInfo = startInfo };
                 process.Start();
