@@ -20,6 +20,8 @@
     <RootNamespace>Xenko</RootNamespace>
     <XenkoCodeAnalysis>true</XenkoCodeAnalysis>
     <XenkoPackAssets>true</XenkoPackAssets>
+    <!-- force generate Resource.designer.cs to namespace Xenko.Engine to fix issue #553 -->
+    <AndroidResgenNamespace>Xenko.Engine</AndroidResgenNamespace>
   </PropertyGroup>
 
   <ItemGroup>
