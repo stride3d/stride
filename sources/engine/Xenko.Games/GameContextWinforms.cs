@@ -41,11 +41,6 @@ namespace Xenko.Games
         }
 
         /// <summary>
-        /// Indicating whether the user will call the main loop. E.g. Xenko is used as a library.
-        /// </summary>
-        public bool IsUserManagingRun { get; protected set; }
-
-        /// <summary>
         /// Gets the run loop to be called when <see cref="IsUserManagingRun"/> is true.
         /// </summary>
         /// <value>The run loop.</value>

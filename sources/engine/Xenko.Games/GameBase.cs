@@ -64,7 +64,6 @@ namespace Xenko.Games
         private int nextLastUpdateCountIndex;
         private bool drawRunningSlowly;
         private bool forceElapsedTimeToZero;
-        private bool throttleUpdate;
 
         private readonly TimerTick timer;
 
@@ -99,7 +98,6 @@ namespace Xenko.Games
             lastUpdateCount = new int[4];
             nextLastUpdateCountIndex = 0;
             
-            throttleUpdate = true;
             TreatNotFocusedLikeMinimized = true;
             WindowMinimumUpdateRate      = new ThreadThrottler(TimeSpan.FromSeconds(0d));
             MinimizedMinimumUpdateRate   = new ThreadThrottler(TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 15)); // by default 15 updates per second while minimized
@@ -483,13 +481,6 @@ namespace Xenko.Games
                 Context.RequestedGraphicsProfile = graphicsDeviceManagerImpl.PreferredGraphicsProfile;
                 Context.DeviceCreationFlags = graphicsDeviceManagerImpl.DeviceCreationFlags;
 
-#if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)
-                if (Context is GameContextWinforms gameContextWinforms)
-                {
-                    throttleUpdate = !gameContextWinforms.IsUserManagingRun;
-                    gamePlatform.IsBlockingRun = !gameContextWinforms.IsUserManagingRun;
-                }
-#endif
                 gamePlatform.Run(Context);
 
                 if (gamePlatform.IsBlockingRun)
@@ -694,8 +685,7 @@ namespace Xenko.Games
                         using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
                         {
                             EndDraw(true);
-
-                            if (throttleUpdate)
+                            if (gamePlatform.IsBlockingRun) // throttle fps if Game.Tick() called from internal main loop
                             {
                                 if (gamePlatform.MainWindow.IsMinimized || gamePlatform.MainWindow.Visible == false || (gamePlatform.MainWindow.Focused == false && TreatNotFocusedLikeMinimized))
                                     MinimizedMinimumUpdateRate.Throttle(out _);
