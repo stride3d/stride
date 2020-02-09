@@ -11,7 +11,6 @@ using Xenko.Core.Assets.Editor.ViewModel;
 using Xenko.Core.Presentation.Collections;
 using Xenko.Core.Presentation.Extensions;
 
-using Xceed.Wpf.DataGrid;
 
 namespace Xenko.Core.Assets.Editor.View
 {
@@ -126,8 +125,8 @@ namespace Xenko.Core.Assets.Editor.View
         {
 
             InitializeComponent();
-            Loaded += (s, e) => AddHandler(Row.EditBeginningEvent, (CancelRoutedEventHandler)CanBeginEditEvent);
-            Unloaded += (s, e) => RemoveHandler(Row.EditBeginningEvent, (CancelRoutedEventHandler)CanBeginEditEvent);
+            //Loaded += (s, e) => AddHandler(Row.EditBeginningEvent, (CancelRoutedEventHandler)CanBeginEditEvent);
+            //Unloaded += (s, e) => RemoveHandler(Row.EditBeginningEvent, (CancelRoutedEventHandler)CanBeginEditEvent);
         }
 
         /// <summary>
@@ -215,8 +214,8 @@ namespace Xenko.Core.Assets.Editor.View
             var listBox = AssetViewPresenter.FindVisualChildOfType<EditableContentListBox>();
             listBox?.BeginEdit();
 
-            var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridControl>();
-            gridView?.BeginEdit();
+            //var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridControl>();
+            //gridView?.BeginEdit();
         }
 
         private void ZoomIn()
@@ -231,15 +230,15 @@ namespace Xenko.Core.Assets.Editor.View
                 }
             }
 
-            var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridControl>();
-            if (gridView != null)
-            {
-                GridThumbnailSize += ThumbnailZoomIncrement;
-                if (GridThumbnailSize >= ThumbnailMaximumSize)
-                {
-                    GridThumbnailSize = ThumbnailMaximumSize;
-                }
-            }
+            //var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridControl>();
+            //if (gridView != null)
+            //{
+            //    GridThumbnailSize += ThumbnailZoomIncrement;
+            //    if (GridThumbnailSize >= ThumbnailMaximumSize)
+            //    {
+            //        GridThumbnailSize = ThumbnailMaximumSize;
+            //    }
+            //}
         }
 
         private void ZoomOut()
@@ -254,15 +253,15 @@ namespace Xenko.Core.Assets.Editor.View
                 }
             }
 
-            var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridControl>();
-            if (gridView != null)
-            {
-                GridThumbnailSize -= ThumbnailZoomIncrement;
-                if (GridThumbnailSize <= ThumbnailMinimumSize)
-                {
-                    GridThumbnailSize = ThumbnailMinimumSize;
-                }
-            }
+            //var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridControl>();
+            //if (gridView != null)
+            //{
+            //    GridThumbnailSize -= ThumbnailZoomIncrement;
+            //    if (GridThumbnailSize <= ThumbnailMinimumSize)
+            //    {
+            //        GridThumbnailSize = ThumbnailMinimumSize;
+            //    }
+            //}
         }
 
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
@@ -313,11 +312,11 @@ namespace Xenko.Core.Assets.Editor.View
             e.CanExecute = control.CanBeginEdit();
         }
 
-        private static void CanBeginEditEvent(object sender, CancelRoutedEventArgs e)
-        {
-            var control = (AssetViewUserControl)sender;
-            e.Cancel = !control.CanBeginEdit();
-        }
+        //private static void CanBeginEditEvent(object sender, CancelRoutedEventArgs e)
+        //{
+        //    var control = (AssetViewUserControl)sender;
+        //    e.Cancel = !control.CanBeginEdit();
+        //}
 
         private static void BeginEdit(object sender, ExecutedRoutedEventArgs e)
         {

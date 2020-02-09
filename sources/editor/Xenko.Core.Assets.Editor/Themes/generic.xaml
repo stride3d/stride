@@ -7,7 +7,7 @@
                     xmlns:behaviors="clr-namespace:Xenko.Core.Assets.Editor.View.Behaviors"
                     xmlns:diagnostics="clr-namespace:Xenko.Core.Assets.Diagnostics;assembly=Xenko.Core.Assets">
 
-  <ResourceDictionary.MergedDictionaries>
+  <!--<ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/CommonResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
@@ -91,11 +91,11 @@
                 </DataTemplate>
                 <DataTemplate x:Key="LogMessageHasExceptionCellTemplate" DataType="compilerApp:AssetSerializableLogMessage">
                   <Border />
-                  <!--<Image SnapsToDevicePixels="True" Width="16" Height="16" Stretch="None" VerticalAlignment="Center" Source="../Resources/exception.png" Visibility="{Binding ExceptionInfo, Mode=OneTime, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrHidden}}}">
+                  --><!--<Image SnapsToDevicePixels="True" Width="16" Height="16" Stretch="None" VerticalAlignment="Center" Source="../Resources/exception.png" Visibility="{Binding ExceptionInfo, Mode=OneTime, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrHidden}}}">
                                         <ToolTipService.ToolTip>
                                             <TextBlock Text="{Binding ExceptionInfo.TypeFullName, Mode=OneTime}" Foreground="#FF2B91AF" FontWeight="Bold"/>
                                         </ToolTipService.ToolTip>
-                                    </Image>-->
+                                    </Image>--><!--
                 </DataTemplate>
                 <DataTemplate x:Key="LogMessageAssetUrlCellTemplate">
                   <TextBlock Text="{xk:PriorityBinding {Binding DataContext.AssetUrl, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}}, {Binding DataContext.AssetReference.Location, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}}}" />
@@ -105,9 +105,9 @@
                 </DataTemplate>
               </xcdg:DataGridControl.Resources>
               <xcdg:DataGridControl.View>
-                <!-- Don't forget to change TableflowViewItemsHost in TableflowView.GridElementTemplates.xaml -->
+                --><!-- Don't forget to change TableflowViewItemsHost in TableflowView.GridElementTemplates.xaml -->
                 <!--<xcdg:TableflowView ContainerHeight="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:Chained {xk:SumNum}, {xk:MaxNum}, Parameter1={xk:Double 8}, Parameter2={xk:Double 26}}}"
-                                            ScrollingAnimationDuration="0" RowFadeInAnimationDuration="0" IsColumnVirtualizationEnabled="False"/>-->
+                                            ScrollingAnimationDuration="0" RowFadeInAnimationDuration="0" IsColumnVirtualizationEnabled="False"/>--><!--
                 <xcdg:TableView AllowRowResize="False" IsColumnVirtualizationEnabled="False" FixedColumnCount="2" UseDefaultHeadersFooters="False">
                   <xcdg:TableView.FixedHeaders>
                     <DataTemplate>
@@ -123,7 +123,7 @@
                 <xcdg:Column FieldName="Type" Title="" VisiblePosition="0" AllowSort="True" MinWidth="16" MaxWidth="16" CellContentTemplate="{StaticResource LogMessageTypeCellTemplate}" />
                 <xcdg:Column FieldName="HasException" Title="" VisiblePosition="1" AllowSort="True" MinWidth="16" MaxWidth="16" CellContentTemplate="{StaticResource LogMessageHasExceptionCellTemplate}" />
                 <xcdg:Column FieldName="Text" Title="Message" Width="*" AllowSort="True" CellContentTemplate="{StaticResource LogMessageTextCellTemplate}" />
-                <!-- Module is not actually used, we're just hacking an additional column here for asset url which requires a priority binding -->
+                --><!-- Module is not actually used, we're just hacking an additional column here for asset url which requires a priority binding --><!--
                 <xcdg:Column FieldName="Module" Title="Asset" Width="200" AllowSort="True" CellContentTemplate="{StaticResource LogMessageAssetUrlCellTemplate}" />
               </xcdg:DataGridControl.Columns>
             </xcdg:DataGridControl>
@@ -131,5 +131,5 @@
         </ControlTemplate>
       </Setter.Value>
     </Setter>
-  </Style>
+  </Style>-->
 </ResourceDictionary>

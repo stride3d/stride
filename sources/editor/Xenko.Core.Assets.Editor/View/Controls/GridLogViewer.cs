@@ -13,25 +13,17 @@ using Xenko.Core.Assets.Diagnostics;
 using Xenko.Core.Assets.Editor.ViewModel;
 using Xenko.Core.Diagnostics;
 
-using Xceed.Wpf.DataGrid;
-
 namespace Xenko.Core.Assets.Editor.View.Controls
 {
     /// <summary>
     /// This control displays a collection of <see cref="ILogMessage"/> in a grid.
     /// </summary>
-    [TemplatePart(Name = "PART_LogGridView", Type = typeof(DataGridControl))]
     [TemplatePart(Name = "PART_PreviousResult", Type = typeof(ButtonBase))]
     [TemplatePart(Name = "PART_NextResult", Type = typeof(ButtonBase))]
     [TemplatePart(Name = "PART_GridLogViewerCollectionSourceContainer", Type = typeof(FrameworkElement))]   
     public class GridLogViewer : Control
     {
         private int currentResult;
-
-        /// <summary>
-        /// The <see cref="DataGridControl"/> used to display log messages.
-        /// </summary>
-        private DataGridControl logGridView;
 
         /// <summary>
         /// The <see cref="ButtonBase"/> used to navigate to the previous search result.
@@ -203,9 +195,7 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         {
             base.OnApplyTemplate();
 
-            logGridView = GetTemplateChild("PART_LogGridView") as DataGridControl;
-            if (logGridView == null)
-                throw new InvalidOperationException("A part named 'PART_LogGridView' must be present in the ControlTemplate, and must be of type 'DataGridControl'.");
+
 
             previousResultButton = GetTemplateChild("PART_PreviousResult") as ButtonBase;
             if (previousResultButton == null)
@@ -220,11 +210,7 @@ namespace Xenko.Core.Assets.Editor.View.Controls
                 throw new InvalidOperationException("A part named 'PART_GridLogViewerCollectionSourceContainer' must be present in the ControlTemplate, and must be of type 'FrameworkElement'.");
 
             var source = sourceContainer.Resources["GridLogViewerCollectionSource"];
-            if (!(source is DataGridCollectionViewSourceBase))
-                throw new InvalidOperationException("The 'PART_GridLogViewerCollectionSourceContainer' must be contain a 'GridLogViewerCollectionSource' resource that is the source of the collection view for the DataGridControl.");
 
-            ((DataGridCollectionViewSourceBase)source).Filter += FilterHandler;
-            logGridView.MouseDoubleClick += GridMouseDoubleClick;
             previousResultButton.Click += PreviousResultClicked;
             nextResultButton.Click += NextResultClicked;
         }
@@ -239,21 +225,7 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             if (Session == null)
                 return;
 
-            var logMessage = logGridView.SelectedItem as AssetSerializableLogMessage;
-            if (logMessage != null && !string.IsNullOrEmpty(logMessage.AssetUrl))
-            {
-                var asset = Session.GetAssetById(logMessage.AssetId);
-                if (asset != null)
-                    Session.ActiveAssetView.SelectAssetCommand.Execute(asset);
-            }
 
-            var assetLogMessage = logGridView.SelectedItem as AssetLogMessage;
-            if (assetLogMessage != null && assetLogMessage.AssetReference != null)
-            {
-                AssetViewModel asset = Session.GetAssetById(assetLogMessage.AssetReference.Id);
-                if (asset != null)
-                    Session.ActiveAssetView.SelectAssetCommand.Execute(asset);
-            }
         }
 
         private void SelectFirstOccurrence()
@@ -263,11 +235,7 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             if (!string.IsNullOrEmpty(token))
             {
                 var message = LogMessages.FirstOrDefault(Match);
-                logGridView.SelectedItem = message;
-                if (message != null)
-                {
-                    logGridView.BringItemIntoView(message);
-                }
+
             }
         }
 
@@ -277,13 +245,7 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             if (!string.IsNullOrEmpty(token))
             {
                 var message = FindPreviousMessage();
-                logGridView.SelectedItem = message;
-                if (message != null)
-                {
-                    logGridView.BringItemIntoView(message);
-                }
-                else
-                    logGridView.SelectedItem = null;
+
             }
         }
 
@@ -293,11 +255,7 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             if (!string.IsNullOrEmpty(token))
             {
                 var message = FindNextMessage();
-                logGridView.SelectedItem = message;
-                if (message != null)
-                {
-                    logGridView.BringItemIntoView(message);
-                }
+
             }
         }
 
@@ -402,14 +360,8 @@ namespace Xenko.Core.Assets.Editor.View.Controls
 
         private void ApplyFilters()
         {
-            if (logGridView == null || logGridView.ItemsSource == null)
-                return;
 
-            if (!(logGridView.ItemsSource is DataGridCollectionView))
-                throw new InvalidOperationException("The item source of the part 'PART_LogGridView' must be a 'DataGridCollectionView'.");
-
-            var view = (DataGridCollectionView)logGridView.ItemsSource;
-            view.Refresh();
+            //view.Refresh();
         }
 
         private bool FilterMethod(object msg)
