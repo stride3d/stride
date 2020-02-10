@@ -13,12 +13,20 @@
                     xmlns:io="clr-namespace:Xenko.Core.IO;assembly=Xenko.Core.Design"
                     xmlns:edvw="clr-namespace:Xenko.Core.Assets.Editor.View"
                     xmlns:viewModel="clr-namespace:Xenko.Core.Assets.Editor.ViewModel"
+                    xmlns:adr="clr-namespace:Xenko.Core.Presentation.Adorners;assembly=Xenko.Core.Presentation"
                     xmlns:qvm="clr-namespace:Xenko.Core.Presentation.Quantum.ViewModels;assembly=Xenko.Core.Presentation.Quantum"
                     xmlns:assetCommands="clr-namespace:Xenko.Core.Assets.Editor.Quantum.NodePresenters.Commands"
                     mc:Ignorable="d">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="CommonResources.xaml"/>
   </ResourceDictionary.MergedDictionaries>
+
+  <Storyboard x:Key="HighlightBorderAdornerValidationErrorStoryboard">
+    <DoubleAnimation From="0" To="1"
+                     AutoReverse="True" RepeatBehavior="3x"
+                     Storyboard.TargetProperty="(adr:HighlightBorderAdorner.BorderBrush).(Brush.Opacity)"
+                     Duration="0:0:0.30" />
+  </Storyboard>
 
   <Style x:Key="AddNewItemButtonStyle" BasedOn="{StaticResource ImageButtonStyle}" TargetType="Button">
     <Setter Property="Visibility" Value="{xk:MultiBinding {Binding HasCommand_AddNewItem}, {Binding HasCollection},
@@ -562,9 +570,10 @@
                              SmallChange="1" LargeChange="10" DecimalPlaces="0" Minimum="0" ToolTip="{xk:Localize Unicode value, Context=ToolTip}"
                              WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                              DisplayUpDownButtons="False">
-          <!--<i:Interaction.Behaviors>
-            <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
-          </i:Interaction.Behaviors>-->
+          <i:Interaction.Behaviors>
+            <!--<xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>-->
+            <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+          </i:Interaction.Behaviors>
         </xk:NumericTextBox>
       </Grid>
       <DataTemplate.Triggers>
@@ -595,7 +604,11 @@
       </ToggleButton>
       <xk:TextBox x:Name="TextBox" Grid.Column="1" Margin="2" SelectAllOnFocus="True" VerticalAlignment="Center"
                     Text="{Binding NodeValue, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ColorConverter}}}"
-                    WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"/>
+                    WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
+        <i:Interaction.Behaviors>
+          <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+        </i:Interaction.Behaviors>
+      </xk:TextBox>
       <Popup Grid.Column="0" IsOpen="{Binding ElementName=PickerToggleButton, Path=IsChecked}" StaysOpen="False">
         <Grid Background="{StaticResource BackgroundBrush}" MinWidth="200" MinHeight="200" MaxWidth="400" MaxHeight="400">
           <TabControl>
@@ -660,9 +673,10 @@
                              DecimalPlaces="{Binding DecimalPlaces, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=6}"
                              WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                              DisplayUpDownButtons="False">
-          <!--<i:Interaction.Behaviors>
-            <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
-          </i:Interaction.Behaviors>-->
+          <i:Interaction.Behaviors>
+            <!--<xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>-->
+            <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+          </i:Interaction.Behaviors>
         </xk:NumericTextBox>
       </Grid>
       <DataTemplate.Triggers>
@@ -684,9 +698,10 @@
                          DecimalPlaces="{Binding DecimalPlaces, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=6}"
                          WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                          DisplayUpDownButtons="False">
-      <!--<i:Interaction.Behaviors>
-        <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
-      </i:Interaction.Behaviors>-->
+      <i:Interaction.Behaviors>
+        <!--<xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>-->
+        <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+      </i:Interaction.Behaviors>
     </xk:NumericTextBox>
     <DataTemplate.Triggers>
       <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
@@ -708,9 +723,10 @@
                          DecimalPlaces="0"
                          WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                          DisplayUpDownButtons="False">
-      <!--<i:Interaction.Behaviors>
-        <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
-      </i:Interaction.Behaviors>-->
+      <i:Interaction.Behaviors>
+        <!--<xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>-->
+        <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+      </i:Interaction.Behaviors>
     </xk:NumericTextBox>
     <DataTemplate.Triggers>
       <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
@@ -741,9 +757,10 @@
                            DecimalPlaces="{Binding DecimalPlaces, Converter={xk:Chained {cvt:DifferentValuesToNull}, {xk:ToDouble}}, FallbackValue=3}"
                            WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                            DisplayUpDownButtons="False">
-        <!--<i:Interaction.Behaviors>
-          <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
-        </i:Interaction.Behaviors>-->
+        <i:Interaction.Behaviors>
+          <!--<xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>-->
+          <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+        </i:Interaction.Behaviors>
       </xk:NumericTextBox>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
@@ -772,7 +789,11 @@
     <DataTemplate DataType="qvm:NodeViewModel">
       <xk:Vector2Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
-                          WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" DecimalPlaces="3" x:Name="VectorEditor"/>
+                          WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" DecimalPlaces="3" x:Name="VectorEditor">
+        <i:Interaction.Behaviors>
+          <behaviors:TextBoxVectorPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+        </i:Interaction.Behaviors>
+      </xk:Vector2Editor>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="VectorEditor" Property="WatermarkContent" Value="≠"/>
@@ -787,7 +808,11 @@
       <xk:Vector3Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Z="{Binding Z.NodeValue, Converter={cvt:DifferentValuesToNull}}"
-                          WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" DecimalPlaces="3" x:Name="VectorEditor"/>
+                          WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" DecimalPlaces="3" x:Name="VectorEditor">
+        <i:Interaction.Behaviors>
+          <behaviors:TextBoxVectorPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+        </i:Interaction.Behaviors>
+      </xk:Vector3Editor>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="VectorEditor" Property="WatermarkContent" Value="≠"/>
@@ -803,7 +828,11 @@
                           Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           Z="{Binding Z.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                           W="{Binding W.NodeValue, Converter={cvt:DifferentValuesToNull}}"
-                          WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" DecimalPlaces="3" x:Name="VectorEditor"/>
+                          WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" DecimalPlaces="3" x:Name="VectorEditor">
+        <i:Interaction.Behaviors>
+          <behaviors:TextBoxVectorPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+        </i:Interaction.Behaviors>
+      </xk:Vector4Editor>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="VectorEditor" Property="WatermarkContent" Value="≠"/>
@@ -817,7 +846,11 @@
     <DataTemplate DataType="qvm:NodeViewModel">
       <xk:Int2Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
-                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" x:Name="VectorEditor"/>
+                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" x:Name="VectorEditor">
+        <i:Interaction.Behaviors>
+          <behaviors:TextBoxVectorPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+        </i:Interaction.Behaviors>
+      </xk:Int2Editor>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="VectorEditor" Property="WatermarkContent" Value="≠"/>
@@ -832,7 +865,11 @@
       <xk:Int3Editor X="{Binding X.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        Z="{Binding Z.NodeValue, Converter={cvt:DifferentValuesToNull}}"
-                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" x:Name="VectorEditor"/>
+                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" x:Name="VectorEditor">
+        <i:Interaction.Behaviors>
+          <behaviors:TextBoxVectorPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+        </i:Interaction.Behaviors>
+      </xk:Int3Editor>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="VectorEditor" Property="WatermarkContent" Value="≠"/>
@@ -848,7 +885,11 @@
                        Y="{Binding Y.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        Z="{Binding Z.NodeValue, Converter={cvt:DifferentValuesToNull}}"
                        W="{Binding W.NodeValue, Converter={cvt:DifferentValuesToNull}}"
-                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" x:Name="VectorEditor"/>
+                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}" x:Name="VectorEditor">
+        <i:Interaction.Behaviors>
+          <behaviors:TextBoxVectorPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+        </i:Interaction.Behaviors>
+      </xk:Int4Editor>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
           <Setter TargetName="VectorEditor" Property="WatermarkContent" Value="≠"/>
@@ -938,9 +979,10 @@
                            ToolTip="{xk:Localize Angle in degrees, Context=ToolTip}"
                            WatermarkContent="≠" WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}"
                            DisplayUpDownButtons="False">
-        <!--<i:Interaction.Behaviors>
-          <xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>
-        </i:Interaction.Behaviors>-->
+        <i:Interaction.Behaviors>
+          <!--<xk:NumericTextBoxTransactionalRepeatButtonsBehavior UndoRedoService="{Binding Session.UndoRedoService}"/>-->
+          <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
+        </i:Interaction.Behaviors>
       </xk:NumericTextBox>
       <DataTemplate.Triggers>
         <DataTrigger Binding="{Binding NodeValue}" Value="{x:Static qvm:NodeViewModel.DifferentValues}">
@@ -991,6 +1033,7 @@
                       WatermarkContentTemplate="{StaticResource DifferentValuesWatermarkTemplate}">
           <i:Interaction.Behaviors>
             <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="ExternalOnly"/>
+            <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
           </i:Interaction.Behaviors>
         </xk:TextBox>
       </DockPanel>
@@ -1236,6 +1279,7 @@
                                   Margin="2,0,5,5" ContextMenu="{StaticResource ReferenceContextMenu}" IsReadOnly="{Binding IsReadOnly}">
             <i:Interaction.Behaviors>
               <behaviors:ReferenceHostDragDropBehavior UsePreviewEvents="True" DisplayDropAdorner="InternalOnly"/>
+              <behaviors:TextBoxPropertyValueValidationBehavior AdornerStoryboard="{StaticResource HighlightBorderAdornerValidationErrorStoryboard}"/>
             </i:Interaction.Behaviors>
           </xk:TextBox>
           <UniformGrid Rows="1" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6,0">
