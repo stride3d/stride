@@ -3,14 +3,13 @@
                     xmlns:controls="clr-namespace:Xenko.Core.Assets.Editor.View.Controls"
                     xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                     xmlns:view="clr-namespace:Xenko.Core.Assets.Editor.View"
-                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-                    xmlns:behaviors="clr-namespace:Xenko.Core.Assets.Editor.View.Behaviors"
                     xmlns:diagnostics="clr-namespace:Xenko.Core.Assets.Diagnostics;assembly=Xenko.Core.Assets">
 
   <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
     <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/CommonResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
-
+  
   <Style TargetType="controls:GridLogViewer">
     <Setter Property="Template">
       <Setter.Value>
@@ -59,7 +58,7 @@
                 </ToggleButton>
               </ToolBar>-->
             </ToolBarTray>
-            <view:DataGridEx x:Name="PART_LogGridView" ItemsSource="{Binding LogMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" AutoGenerateColumns="False">
+            <view:DataGridEx x:Name="PART_LogGridView" ItemsSource="{Binding LogMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" AutoGenerateColumns="False" CanUserResizeRows="False" CanUserReorderColumns="False" RowHeaderWidth="0">
               <DataGrid.Resources>
                 <DataTemplate x:Key="LogMessageTypeCellTemplate" DataType="diagnostics:AssetSerializableLogMessage">
                   <Path x:Name="MessageTypePath" Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextBrush}">
