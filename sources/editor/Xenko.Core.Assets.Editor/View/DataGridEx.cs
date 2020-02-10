@@ -14,6 +14,14 @@ using Xenko.Core.Presentation.Extensions;
 namespace Xenko.Core.Assets.Editor.View
 {
     /// <summary>
+    /// Xenko generic wpf data grid. 
+    /// </summary>
+    public class DataGridEx : DataGrid
+    {
+
+    }
+
+    /// <summary>
     /// This class wraps the <see cref="TextSearch"/> class, making accessible all members that are required to make the feature work.
     /// <see cref="TextSearch"/> is massively internal, making this feature impossible to implement by default on custom controls.
     /// </summary>

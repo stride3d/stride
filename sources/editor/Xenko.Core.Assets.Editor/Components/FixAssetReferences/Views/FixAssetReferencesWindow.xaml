@@ -4,6 +4,7 @@
                   xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                   xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:view="clr-namespace:Xenko.Core.Assets.Editor.View"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:valueConverters="clr-namespace:Xenko.Core.Assets.Editor.View.ValueConverters"
                   xmlns:far="clr-namespace:Xenko.Core.Assets.Editor.Components.FixAssetReferences"
@@ -43,7 +44,26 @@
         </Button>
       </UniformGrid>
     </StackPanel>
-
+    <view:DataGridEx Margin="20" Grid.Row="4" ItemsSource="{Binding CurrentReplacements}" IsEnabled="{Binding UseSingleReplace, Converter={xk:InvertBool}}" AutoGenerateColumns="False">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="{xk:Localize Referencer}" Width="2*" Binding="{Binding Referencer.Url}" IsReadOnly="True" />
+        <DataGridTemplateColumn Header="{xk:Localize Replacement asset}" Width="3*"  >
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <DockPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}}" d:DataContext="{d:DesignInstance far:AssetReferenceReplacementViewModel}">
+                <Button Command="{Binding PickupReplacementObjectCommand}"
+                    ToolTip="{xk:Localize Select asset, Context=ToolTip}" DockPanel.Dock="Right" Content="{xk:Image {StaticResource ImagePickup}, 16, 16, NearestNeighbor}"
+                    Background="Transparent" IsEnabled="{Binding IsChecked, ElementName=ClearCheckBox, Converter={xk:InvertBool}}"/>
+                <CheckBox x:Name="ClearCheckBox" Content="{xk:Localize Clear this reference, Context=Button}" Margin="10,0" DockPanel.Dock="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                      IsChecked="{Binding DontFixReference}"/>
+                <xk:TextBox Text="{Binding ReplacementObject, Converter={valueConverters:AssetViewModelToUrl}}"
+                          Margin="10,0" MinWidth="200" WatermarkContent="{xk:Localize Select an asset}" IsEnabled="{Binding IsChecked, ElementName=ClearCheckBox, Converter={xk:InvertBool}}"/>
+              </DockPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </view:DataGridEx>
     <RadioButton Grid.Row="3" Margin="20" Content="{xk:Localize Replace references individually:, Context=Button}" IsChecked="{Binding UseSingleReplace, Converter={xk:InvertBool}}"/>
     <UniformGrid Grid.Row="5" Rows="1" DockPanel.Dock="Bottom" Margin="20">
       <Button Margin="10,0,0,0" Padding="10,4" Content="{xk:Localize Done, Context=Button}" Command="{Binding FixReferencesCommand}"/>
