@@ -19,10 +19,7 @@ namespace Xenko.Core.Assets.Editor.View.Controls
     /// <summary>
     /// This control displays a collection of <see cref="ILogMessage"/> in a grid.
     /// </summary>
-    [TemplatePart(Name = "PART_LogGridView", Type = typeof(DataGridEx))]
-    [TemplatePart(Name = "PART_PreviousResult", Type = typeof(ButtonBase))]
-    [TemplatePart(Name = "PART_NextResult", Type = typeof(ButtonBase))]
-    [TemplatePart(Name = "PART_GridLogViewerCollectionSourceContainer", Type = typeof(FrameworkElement))]   
+    [TemplatePart(Name = "PART_LogGridView", Type = typeof(DataGridEx))] 
     public class GridLogViewer : Control
     {
         private int currentResult;
@@ -31,16 +28,6 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         /// The <see cref="DataGridControl"/> used to display log messages.
         /// </summary>
         private DataGridEx logGridView;
-
-        /// <summary>
-        /// The <see cref="ButtonBase"/> used to navigate to the previous search result.
-        /// </summary>
-        private ButtonBase previousResultButton;
-
-        /// <summary>
-        /// The <see cref="ButtonBase"/> used to navigate to the next search result.
-        /// </summary>
-        private ButtonBase nextResultButton;
 
         static GridLogViewer()
         {
@@ -206,23 +193,7 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             if (logGridView == null)
                 throw new InvalidOperationException("A part named 'PART_LogGridView' must be present in the ControlTemplate, and must be of type 'DataGridControl'.");
 
-            previousResultButton = GetTemplateChild("PART_PreviousResult") as ButtonBase;
-            if (previousResultButton == null)
-                throw new InvalidOperationException("A part named 'PART_PreviousResult' must be present in the ControlTemplate, and must be of type 'ButtonBase'.");
-
-            nextResultButton = GetTemplateChild("PART_NextResult") as ButtonBase;
-            if (nextResultButton == null)
-                throw new InvalidOperationException("A part named 'PART_NextResult' must be present in the ControlTemplate, and must be of type 'ButtonBase'.");
-
-            var sourceContainer = GetTemplateChild("PART_GridLogViewerCollectionSourceContainer") as FrameworkElement;
-            if (sourceContainer == null)
-                throw new InvalidOperationException("A part named 'PART_GridLogViewerCollectionSourceContainer' must be present in the ControlTemplate, and must be of type 'FrameworkElement'.");
-
-            var source = sourceContainer.Resources["GridLogViewerCollectionSource"];
-            //((DataGridEx)source).Filter += FilterHandler;
             logGridView.MouseDoubleClick += GridMouseDoubleClick;
-            previousResultButton.Click += PreviousResultClicked;
-            nextResultButton.Click += NextResultClicked;
         }
 
         private void FilterHandler(object value, FilterEventArgs e)
