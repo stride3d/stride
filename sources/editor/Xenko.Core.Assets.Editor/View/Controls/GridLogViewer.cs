@@ -2,6 +2,7 @@
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,12 +19,18 @@ namespace Xenko.Core.Assets.Editor.View.Controls
     /// <summary>
     /// This control displays a collection of <see cref="ILogMessage"/> in a grid.
     /// </summary>
+    [TemplatePart(Name = "PART_LogGridView", Type = typeof(DataGridEx))]
     [TemplatePart(Name = "PART_PreviousResult", Type = typeof(ButtonBase))]
     [TemplatePart(Name = "PART_NextResult", Type = typeof(ButtonBase))]
     [TemplatePart(Name = "PART_GridLogViewerCollectionSourceContainer", Type = typeof(FrameworkElement))]   
     public class GridLogViewer : Control
     {
         private int currentResult;
+
+        /// <summary>
+        /// The <see cref="DataGridControl"/> used to display log messages.
+        /// </summary>
+        private DataGridEx logGridView;
 
         /// <summary>
         /// The <see cref="ButtonBase"/> used to navigate to the previous search result.
@@ -195,7 +202,9 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         {
             base.OnApplyTemplate();
 
-
+            logGridView = GetTemplateChild("PART_LogGridView") as DataGridEx;
+            if (logGridView == null)
+                throw new InvalidOperationException("A part named 'PART_LogGridView' must be present in the ControlTemplate, and must be of type 'DataGridControl'.");
 
             previousResultButton = GetTemplateChild("PART_PreviousResult") as ButtonBase;
             if (previousResultButton == null)
@@ -210,7 +219,8 @@ namespace Xenko.Core.Assets.Editor.View.Controls
                 throw new InvalidOperationException("A part named 'PART_GridLogViewerCollectionSourceContainer' must be present in the ControlTemplate, and must be of type 'FrameworkElement'.");
 
             var source = sourceContainer.Resources["GridLogViewerCollectionSource"];
-
+            //((DataGridEx)source).Filter += FilterHandler;
+            logGridView.MouseDoubleClick += GridMouseDoubleClick;
             previousResultButton.Click += PreviousResultClicked;
             nextResultButton.Click += NextResultClicked;
         }
@@ -225,6 +235,21 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             if (Session == null)
                 return;
 
+            var logMessage = logGridView.SelectedItem as AssetSerializableLogMessage;
+            if (logMessage != null && !string.IsNullOrEmpty(logMessage.AssetUrl))
+            {
+                var asset = Session.GetAssetById(logMessage.AssetId);
+                if (asset != null)
+                    Session.ActiveAssetView.SelectAssetCommand.Execute(asset);
+            }
+
+            var assetLogMessage = logGridView.SelectedItem as AssetLogMessage;
+            if (assetLogMessage != null && assetLogMessage.AssetReference != null)
+            {
+                AssetViewModel asset = Session.GetAssetById(assetLogMessage.AssetReference.Id);
+                if (asset != null)
+                    Session.ActiveAssetView.SelectAssetCommand.Execute(asset);
+            }
 
         }
 
@@ -235,7 +260,11 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             if (!string.IsNullOrEmpty(token))
             {
                 var message = LogMessages.FirstOrDefault(Match);
-
+                logGridView.SelectedItem = message;
+                if (message != null)
+                {
+                    logGridView.ScrollIntoView(message);
+                }
             }
         }
 
@@ -245,6 +274,13 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             if (!string.IsNullOrEmpty(token))
             {
                 var message = FindPreviousMessage();
+                logGridView.SelectedItem = message;
+                if (message != null)
+                {
+                    logGridView.ScrollIntoView(message);
+                }
+                else
+                    logGridView.SelectedItem = null;
 
             }
         }
@@ -255,7 +291,11 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             if (!string.IsNullOrEmpty(token))
             {
                 var message = FindNextMessage();
-
+                logGridView.SelectedItem = message;
+                if (message != null)
+                {
+                    logGridView.ScrollIntoView(message);
+                }
             }
         }
 
@@ -360,8 +400,8 @@ namespace Xenko.Core.Assets.Editor.View.Controls
 
         private void ApplyFilters()
         {
-
-            //view.Refresh();
+            if (logGridView == null || logGridView.ItemsSource == null)
+                return;
         }
 
         private bool FilterMethod(object msg)
