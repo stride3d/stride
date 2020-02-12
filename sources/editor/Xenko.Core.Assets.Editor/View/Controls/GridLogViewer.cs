@@ -36,7 +36,7 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         /// <summary>
         /// Identifies the <see cref="LogMessages"/> dependency property.
         /// </summary>
-        public static readonly DependencyProperty LogMessagesProperty = DependencyProperty.Register("LogMessages", typeof(ICollection<ILogMessage>), typeof(GridLogViewer), new PropertyMetadata(null));
+        public static readonly DependencyProperty LogMessagesProperty = DependencyProperty.Register("LogMessages", typeof(ObservableList<ILogMessage>), typeof(GridLogViewer), new PropertyMetadata(null));
 
         /// <summary>
         /// Identifies the <see cref="IsToolBarVisible"/> dependency property.
@@ -86,7 +86,7 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         /// <summary>
         /// Gets or sets the collection of <see cref="ILogMessage"/> to display.
         /// </summary>
-        public ICollection<ILogMessage> LogMessages { get { return (ICollection<ILogMessage>)GetValue(LogMessagesProperty); } set { SetValue(LogMessagesProperty, value); } }
+        public ObservableList<ILogMessage> LogMessages { get { return (ObservableList<ILogMessage>)GetValue(LogMessagesProperty); } set { SetValue(LogMessagesProperty, value); } }
 
         public ObservableList<ILogMessage> FilteredLogMessages { get; set; } = new ObservableList<ILogMessage>();
 
@@ -147,11 +147,6 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             logGridView.MouseDoubleClick += GridMouseDoubleClick;
         }
 
-        private void FilterHandler(object value, FilterEventArgs e)
-        {
-            e.Accepted = FilterMethod(e.Item);
-        }
-
         private void GridMouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (Session == null)
@@ -193,17 +188,6 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             x.IsInfo() && ShowInfoMessages ||
             x.IsVerbose() && ShowVerboseMessages ||
             x.IsWarning() && ShowWarningMessages));
-        }
-
-        private bool FilterMethod(object msg)
-        {
-            var message = (ILogMessage)msg;
-            return (ShowDebugMessages && message.Type == LogMessageType.Debug)
-                 || (ShowVerboseMessages && message.Type == LogMessageType.Verbose)
-                 || (ShowInfoMessages && message.Type == LogMessageType.Info)
-                 || (ShowWarningMessages && message.Type == LogMessageType.Warning)
-                 || (ShowErrorMessages && message.Type == LogMessageType.Error)
-                 || (ShowFatalMessages && message.Type == LogMessageType.Fatal);
         }
     }
 }
