@@ -13,6 +13,7 @@ using System.Windows.Input;
 using Xenko.Core.Assets.Diagnostics;
 using Xenko.Core.Assets.Editor.ViewModel;
 using Xenko.Core.Diagnostics;
+using Xenko.Core.Presentation.Collections;
 
 namespace Xenko.Core.Assets.Editor.View.Controls
 {
@@ -86,6 +87,8 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         /// Gets or sets the collection of <see cref="ILogMessage"/> to display.
         /// </summary>
         public ICollection<ILogMessage> LogMessages { get { return (ICollection<ILogMessage>)GetValue(LogMessagesProperty); } set { SetValue(LogMessagesProperty, value); } }
+
+        public ObservableList<ILogMessage> FilteredLogMessages { get; set; } = new ObservableList<ILogMessage>();
 
         /// <summary>
         /// Gets or sets whether the tool bar should be visible.
@@ -182,6 +185,14 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         {
             if (logGridView == null || logGridView.ItemsSource == null)
                 return;
+            this.FilteredLogMessages.Clear();
+            this.FilteredLogMessages.AddRange(this.LogMessages.Where(x =>
+            x.IsDebug() && ShowDebugMessages ||
+            x.IsError() && ShowErrorMessages ||
+            x.IsFatal() && ShowFatalMessages ||
+            x.IsInfo() && ShowInfoMessages ||
+            x.IsVerbose() && ShowVerboseMessages ||
+            x.IsWarning() && ShowWarningMessages));
         }
 
         private bool FilterMethod(object msg)

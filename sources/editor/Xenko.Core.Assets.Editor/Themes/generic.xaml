@@ -58,7 +58,7 @@
                 </ToggleButton>
               </ToolBar>-->
             </ToolBarTray>
-            <view:DataGridEx x:Name="PART_LogGridView" ItemsSource="{Binding LogMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" 
+            <view:DataGridEx x:Name="PART_LogGridView" ItemsSource="{Binding FilteredLogMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" 
                              AutoGenerateColumns="False" 
                              CanUserResizeRows="False" 
                              CanUserReorderColumns="False" 
