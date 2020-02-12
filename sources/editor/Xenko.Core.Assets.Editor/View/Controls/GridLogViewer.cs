@@ -22,8 +22,6 @@ namespace Xenko.Core.Assets.Editor.View.Controls
     [TemplatePart(Name = "PART_LogGridView", Type = typeof(DataGridEx))] 
     public class GridLogViewer : Control
     {
-        private int currentResult;
-
         /// <summary>
         /// The <see cref="DataGridControl"/> used to display log messages.
         /// </summary>
@@ -43,31 +41,6 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         /// Identifies the <see cref="IsToolBarVisible"/> dependency property.
         /// </summary>
         public static readonly DependencyProperty IsToolBarVisibleProperty = DependencyProperty.Register("IsToolBarVisible", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(true));
-
-        /// <summary>
-        /// Identifies the <see cref="CanFilterLog"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty CanFilterLogProperty = DependencyProperty.Register("CanFilterLog", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(true));
-
-        /// <summary>
-        /// Identifies the <see cref="CanSearchLog"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty CanSearchLogProperty = DependencyProperty.Register("CanSearchLog", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(true));
-
-        /// <summary>
-        /// Identifies the <see cref="SearchToken"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty SearchTokenProperty = DependencyProperty.Register("SearchToken", typeof(string), typeof(GridLogViewer), new PropertyMetadata("", SearchTokenChanged));
-
-        /// <summary>
-        /// Identifies the <see cref="SearchMatchCase"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty SearchMatchCaseProperty = DependencyProperty.Register("SearchMatchCase", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(false, SearchTokenChanged));
-
-        /// <summary>
-        /// Identifies the <see cref="SearchMatchWord"/> dependency property.
-        /// </summary>
-        public static readonly DependencyProperty SearchMatchWordProperty = DependencyProperty.Register("SearchMatchWord", typeof(bool), typeof(GridLogViewer), new PropertyMetadata(false, SearchTokenChanged));
 
         /// <summary>
         /// Identifies the <see cref="ShowDebugMessages"/> dependency property.
@@ -118,31 +91,6 @@ namespace Xenko.Core.Assets.Editor.View.Controls
         /// Gets or sets whether the tool bar should be visible.
         /// </summary>
         public bool IsToolBarVisible { get { return (bool)GetValue(IsToolBarVisibleProperty); } set { SetValue(IsToolBarVisibleProperty, value); } }
-
-        /// <summary>
-        /// Gets or sets whether it is possible to filter the log text.
-        /// </summary>
-        public bool CanFilterLog { get { return (bool)GetValue(CanFilterLogProperty); } set { SetValue(CanFilterLogProperty, value); } }
-
-        /// <summary>
-        /// Gets or sets whether it is possible to search the log text.
-        /// </summary>
-        public bool CanSearchLog { get { return (bool)GetValue(CanSearchLogProperty); } set { SetValue(CanSearchLogProperty, value); } }
-
-        /// <summary>
-        /// Gets or sets the current search token.
-        /// </summary>
-        public string SearchToken { get { return (string)GetValue(SearchTokenProperty); } set { SetValue(SearchTokenProperty, value); } }
-
-        /// <summary>
-        /// Gets or sets whether the search result should match the case.
-        /// </summary>
-        public bool SearchMatchCase { get { return (bool)GetValue(SearchMatchCaseProperty); } set { SetValue(SearchMatchCaseProperty, value); } }
-
-        /// <summary>
-        /// Gets or sets whether the search result should match whole words only.
-        /// </summary>
-        public bool SearchMatchWord { get { return (bool)GetValue(SearchMatchWordProperty); } set { SetValue(SearchMatchWordProperty, value); } }
 
         /// <summary>
         /// Gets or sets whether the log viewer should display debug messages.
@@ -223,152 +171,13 @@ namespace Xenko.Core.Assets.Editor.View.Controls
             }
 
         }
-
-        private void SelectFirstOccurrence()
-        {
-            currentResult = 0;
-            var token = SearchToken;
-            if (!string.IsNullOrEmpty(token))
-            {
-                var message = LogMessages.FirstOrDefault(Match);
-                logGridView.SelectedItem = message;
-                if (message != null)
-                {
-                    logGridView.ScrollIntoView(message);
-                }
-            }
-        }
-
-        private void SelectPreviousOccurrence()
-        {
-            var token = SearchToken;
-            if (!string.IsNullOrEmpty(token))
-            {
-                var message = FindPreviousMessage();
-                logGridView.SelectedItem = message;
-                if (message != null)
-                {
-                    logGridView.ScrollIntoView(message);
-                }
-                else
-                    logGridView.SelectedItem = null;
-
-            }
-        }
-
-        private void SelectNextOccurrence()
-        {
-            var token = SearchToken;
-            if (!string.IsNullOrEmpty(token))
-            {
-                var message = FindNextMessage();
-                logGridView.SelectedItem = message;
-                if (message != null)
-                {
-                    logGridView.ScrollIntoView(message);
-                }
-            }
-        }
-
-        private ILogMessage FindPreviousMessage()
-        {
-            int count = 0;
-            ILogMessage lastMessage = null;
-            --currentResult;
-            foreach (var message in LogMessages.Where(Match))
-            {
-                lastMessage = message;
-
-                if (count == currentResult)
-                {
-                    return message;
-                }
-                ++count;
-            }
-            currentResult = Math.Max(0, count - 1);
-            return lastMessage;
-        }
-
-        private ILogMessage FindNextMessage()
-        {
-            int count = 0;
-            ILogMessage firstMessage = null;
-            ++currentResult;
-            foreach (var message in LogMessages.Where(Match))
-            {
-                if (firstMessage == null)
-                    firstMessage = message;
-
-                if (count == currentResult)
-                {
-                    return message;
-                }
-                ++count;
-            }
-            currentResult = 0;
-            return firstMessage;
-        }
-
-        private bool Match(ILogMessage message)
-        {
-            if (Match(message.Text))
-                return true;
-
-            var assetMessage = message as AssetSerializableLogMessage;
-            return assetMessage != null && Match(assetMessage.AssetUrl.FullPath);
-        }
-
-        private bool Match(string text)
-        {
-            var token = SearchToken;
-            var stringComparison = SearchMatchCase ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            int index = text.IndexOf(token, stringComparison);
-            if (index < 0)
-                return false;
-
-            if (SearchMatchWord && text.Length > 1)
-            {
-                if (index > 0)
-                {
-                    char c = text[index - 1];
-                    if (char.IsLetterOrDigit(c))
-                        return false;
-                }
-                if (index + token.Length < text.Length)
-                {
-                    char c = text[index + token.Length];
-                    if (char.IsLetterOrDigit(c))
-                        return false;
-                }
-            }
-            return true;
-        }
-
         private static void FilterPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var logViewer = (GridLogViewer)d;
             logViewer.ApplyFilters();
         }
 
-        /// <summary>
-        /// Raised when the <see cref="SearchToken"/> property is changed.
-        /// </summary>
-        private static void SearchTokenChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var logViewer = (GridLogViewer)d;
-            logViewer.SelectFirstOccurrence();
-        }
-
-        private void PreviousResultClicked(object sender, RoutedEventArgs e)
-        {
-            SelectPreviousOccurrence();
-        }
-
-        private void NextResultClicked(object sender, RoutedEventArgs e)
-        {
-            SelectNextOccurrence();
-        }
-
+        
         private void ApplyFilters()
         {
             if (logGridView == null || logGridView.ItemsSource == null)

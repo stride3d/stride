@@ -44,9 +44,8 @@
         </Button>
       </UniformGrid>
     </StackPanel>
-    <view:DataGridEx Margin="20" Grid.Row="4" ItemsSource="{Binding CurrentReplacements}" IsEnabled="{Binding UseSingleReplace, Converter={xk:InvertBool}}" AutoGenerateColumns="False" CanUserResizeRows="False"  CanUserReorderColumns="False" RowHeaderWidth="0">
+    <view:DataGridEx Margin="20" Grid.Row="4" ItemsSource="{Binding CurrentReplacements}" IsEnabled="{Binding UseSingleReplace, Converter={xk:InvertBool}}" AutoGenerateColumns="False" CanUserResizeRows="False"  CanUserReorderColumns="False" RowHeaderWidth="0" IsReadOnly="True">
       <DataGrid.Columns>
-        <!--<DataGridTextColumn Header="{xk:Localize Referencer}" Width="2*" Binding="{Binding Referencer.Url}" IsReadOnly="True" />-->
         <DataGridTemplateColumn Header="{xk:Localize Referencer}" Width="2*"  >
           <DataGridTemplateColumn.CellTemplate>
             <DataTemplate>
