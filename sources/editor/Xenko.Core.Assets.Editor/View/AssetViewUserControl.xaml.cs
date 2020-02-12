@@ -125,8 +125,6 @@ namespace Xenko.Core.Assets.Editor.View
         {
 
             InitializeComponent();
-            //Loaded += (s, e) => AddHandler(e.RoutedEvent, (CancelRoutedEventHandler)CanBeginEditEvent);
-            //Unloaded += (s, e) => RemoveHandler(e.RoutedEvent, (CancelRoutedEventHandler)CanBeginEditEvent);
         }
 
         /// <summary>

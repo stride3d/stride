@@ -15,9 +15,6 @@
       <Setter.Value>
         <ControlTemplate TargetType="controls:GridLogViewer">
           <DockPanel x:Name="PART_GridLogViewerCollectionSourceContainer">
-            <!--<DockPanel.Resources>
-              <xcdg:DataGridCollectionViewSource x:Key="GridLogViewerCollectionSource" Source="{Binding LogMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
-            </DockPanel.Resources>-->
             <ToolBarTray DockPanel.Dock="Top" Visibility="{Binding IsToolBarVisible, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={xk:VisibleOrCollapsed}}">
               <ToolBar ToolBarTray.IsLocked="True" Header="Filters:" Visibility="{Binding CanFilterLog, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={xk:VisibleOrCollapsed}}">
                 <ToggleButton IsChecked="{Binding ShowDebugMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}">
@@ -42,21 +39,6 @@
                   <Label Content="..." Width="12" Height="12" HorizontalContentAlignment="Center" />
                 </ToggleButton>
               </ToolBar>
-              <!--<ToolBar ToolBarTray.IsLocked="True" Header="Search:" Visibility="{Binding CanSearchLog, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={xk:VisibleOrCollapsed}}">
-                <xk:TextBox Width="150" UseTimedValidation="True" Text="{Binding SearchToken, RelativeSource={RelativeSource Mode=TemplatedParent}, Mode=OneWayToSource}" WatermarkContent="Search" />
-                <Button x:Name="PART_PreviousResult">
-                  <Path Width="8" Height="8" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryPrevious}" />
-                </Button>
-                <Button x:Name="PART_NextResult">
-                  <Path Width="8" Height="8" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryNext}" />
-                </Button>
-                <ToggleButton IsChecked="{Binding SearchMatchCase, RelativeSource={RelativeSource Mode=TemplatedParent}}">
-                  <Path Width="16" Height="16" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryMatchCase}" />
-                </ToggleButton>
-                <ToggleButton IsChecked="{Binding SearchMatchWord, RelativeSource={RelativeSource Mode=TemplatedParent}}">
-                  <Path Width="16" Height="16" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryMatchWord}" />
-                </ToggleButton>
-              </ToolBar>-->
             </ToolBarTray>
             <view:DataGridEx x:Name="PART_LogGridView" ItemsSource="{Binding FilteredLogMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" 
                              AutoGenerateColumns="False" 

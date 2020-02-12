@@ -101,14 +101,6 @@ namespace Xenko.Core.Assets.Editor.View
 
         }
 
-        //public static int FindMatchingPrefix(DataGridEx dataGridEx, string primaryTextPath, string prefix, string nextChar, int startItemIndex, bool lookForFallbackMatchToo, ref bool wasNewCharUsed)
-        //{
-        //    var parameters = new object[] { dataGridEx, primaryTextPath, prefix, nextChar, startItemIndex, lookForFallbackMatchToo, wasNewCharUsed };
-        //    var result = (int)FindMatchingPrefixMethod.Invoke(null, parameters);
-        //    wasNewCharUsed = (bool)parameters[6];
-        //    return result;
-        //}
-
         public void AddCharToPrefix(string nextChar)
         {
             AddCharToPrefixMethod.Invoke(textSearch, new object[] { nextChar });

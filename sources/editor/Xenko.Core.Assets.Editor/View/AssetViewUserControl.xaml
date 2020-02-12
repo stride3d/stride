@@ -180,13 +180,7 @@
             </i:Interaction.Behaviors>
           </controls:EditableContentListBox>
         </DataTemplate>
-
         <CollectionViewSource x:Key="FilteredContentView" Source="{Binding FilteredAssets}" />
-
-        <!--<DataTemplate x:Key="AssetGridView">
-          
-        </DataTemplate>-->
-
       </ResourceDictionary>
     </FrameworkElement.Resources>
     <ToolBarTray DockPanel.Dock="Top">
@@ -332,14 +326,6 @@
                   </Button>
                 </DockPanel>
               </MenuItem.Header>
-              <!--<MenuItem Header="{xk:Localize Grid, Context=Menu}" CommandParameter="{StaticResource AssetGridView}">
-                <MenuItem.Command>
-                  <view:SetContentTemplateCommand Target="{x:Reference AssetViewPresenter}"/>
-                </MenuItem.Command>
-                <MenuItem.Icon>
-                  <Image Grid.Column="0" Source="{StaticResource ImageShowGrid}"/>
-                </MenuItem.Icon>
-              </MenuItem>-->
               <MenuItem Header="{xk:Localize Tiles, Context=Menu}" CommandParameter="{StaticResource AssetTileView}">
                 <MenuItem.Command>
                   <view:SetContentTemplateCommand Target="{x:Reference AssetViewPresenter}"/>
