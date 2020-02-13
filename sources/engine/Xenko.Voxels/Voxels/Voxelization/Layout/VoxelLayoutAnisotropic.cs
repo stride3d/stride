@@ -49,14 +49,14 @@ namespace Xenko.Rendering.Voxels
             }
             base.PostProcess(drawContext, LightFalloff);
         }
-        override public void ApplyVoxelizationParameters(ParameterCollection parameters, List<VoxelModifierEmissionOpacity> modifiers)
+        override public void ApplySamplingParameters(VoxelViewContext viewContext, ParameterCollection parameters)
         {
             if (StorageFormat != StorageFormats.RGBA16F)
-                parameters.Set(BrightnessInvKey, (float)Math.PI / maxBrightness);
+                parameters.Set(BrightnessKey, maxBrightness * (float)Math.PI);
             else
-                parameters.Set(BrightnessInvKey, (float)Math.PI);
+                parameters.Set(BrightnessKey, (float)Math.PI);
 
-            storageTex.ApplyVoxelizationParameters(DirectOutput, parameters);
+            storageTex.ApplySamplingParameters(viewContext, parameters);
         }
     }
 }
