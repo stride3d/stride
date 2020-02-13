@@ -143,6 +143,9 @@ namespace Xenko.UI.Panels
                 throw new UIInternalException("The parent of the removed children UIElement not null");
             SetParent(oldElement, null);
             SetVisualParent(oldElement, null);
+
+            if (oldElement.MouseOverState != MouseOverState.MouseOverNone)
+                MouseOverState = MouseOverState.MouseOverNone;
         }
 
         /// <summary>

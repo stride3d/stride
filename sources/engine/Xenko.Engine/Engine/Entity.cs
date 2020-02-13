@@ -13,6 +13,7 @@ using Xenko.Core.Collections;
 using Xenko.Core.Mathematics;
 using Xenko.Core.Serialization;
 using Xenko.Core.Serialization.Contents;
+using static EntityPool
 
 namespace Xenko.Engine
 {
@@ -112,6 +113,27 @@ namespace Xenko.Engine
                 value?.Entities.Add(this);
             }
         }
+
+
+        /// <summary>
+        /// Manually puts this entity back into a pool. This should happen automatically when something
+        /// gets removed from a scene.
+        /// </summary>
+        /// <returns>returns false if wasn't an active pool member</returns>
+        public bool ManualReturnToPool() {
+            if (UsingPool == null) return false;
+            if (UsingPool.active == false) return false;
+            UsingPool.myPool.ReturnToPool(this, ref UsingPool.active);
+            Scene = null;
+            return true;
+        }
+
+        /// <summary>
+        /// Are we part of a EntityPool?
+        /// </summary>
+        [DataMemberIgnore]
+        public PoolMember UsingPool;
+
 
         /// <summary>
         /// The entity manager which processes this entity.

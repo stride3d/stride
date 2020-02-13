@@ -21,7 +21,7 @@ namespace Xenko.Assets
 
         public override IEnumerable<GraphicsPlatform> GetSupportedGraphicsPlatforms()
         {
-            return new[] { GraphicsPlatform.Direct3D11, GraphicsPlatform.OpenGL, GraphicsPlatform.OpenGLES, };
+            return new[] { GraphicsPlatform.Vulkan, GraphicsPlatform.Direct3D11, GraphicsPlatform.OpenGL, GraphicsPlatform.OpenGLES, };
         }
     }
 }

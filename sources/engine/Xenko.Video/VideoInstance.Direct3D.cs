@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using SharpDX.MediaFoundation;
 using Xenko.Core;
 using Xenko.Core.IO;
+using Xenko.Core.Serialization;
 using Xenko.Graphics;
 using Xenko.Media;
 
@@ -177,13 +178,7 @@ namespace Xenko.Video
                 // set the video source 
                 var mediaEngineEx = mediaEngine.QueryInterface<MediaEngineEx>();
                 
-                var databaseUrl = videoComponent.Source?.CompressedDataUrl;
-                if (databaseUrl == null)
-                {
-                    Logger.Info("The video source is null. The video won't play.");
-                    throw new Exception();
-                }
-                videoFileStream = contentManager.OpenAsStream(databaseUrl, StreamFlags.Seekable);
+                videoFileStream = new VirtualFileStream(File.OpenRead(url), startPosition, startPosition + length);
                 videoDataStream = new ByteStream(videoFileStream);
 
                 // Creates an URL to the file

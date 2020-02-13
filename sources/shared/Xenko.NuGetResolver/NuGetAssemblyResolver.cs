@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -74,9 +75,16 @@ namespace Xenko.Core.Assets
                             // Since we execute restore synchronously, we don't want any surprise concerning synchronization context (i.e. Avalonia one doesn't work with this)
                             SynchronizationContext.SetSynchronizationContext(null);
 
+                            // Determine current TFM
+                            var framework = Assembly
+                                .GetEntryAssembly()?
+                                .GetCustomAttribute<TargetFrameworkAttribute>()?
+                                .FrameworkName ?? ".NETFramework,Version=v4.7.2";
+                            var nugetFramework = NuGetFramework.ParseFrameworkName(framework, DefaultFrameworkNameProvider.Instance);
+
                             // Only allow this specific version
                             var versionRange = new VersionRange(new NuGetVersion(XenkoVersion.NuGetVersion), true, new NuGetVersion(XenkoVersion.NuGetVersion), true);
-                            var (request, result) = RestoreHelper.Restore(logger, Assembly.GetExecutingAssembly().GetName().Name, versionRange).Result;
+                            var (request, result) = RestoreHelper.Restore(logger, nugetFramework, "win", Assembly.GetExecutingAssembly().GetName().Name, versionRange).Result;
                             if (!result.Success)
                             {
                                 throw new InvalidOperationException($"Could not restore NuGet packages");

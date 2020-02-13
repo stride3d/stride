@@ -30,7 +30,7 @@ namespace Xenko.Assets
             var asset = (GameSettingsAsset)assetItem.Asset;
             // TODO: We should ignore game settings stored in dependencies
             result.BuildSteps = new AssetBuildStep(assetItem);
-            result.BuildSteps.Add(new GameSettingsCompileCommand(targetUrlInStorage, assetItem.Package, context.Platform, context.GetCompilationMode(), asset));
+            result.BuildSteps.Add(new GameSettingsCompileCommand(targetUrlInStorage, assetItem.Package, context.Package, context.Platform, context.GetCompilationMode(), asset));
         }
 
         public override IEnumerable<Type> GetRuntimeTypes(AssetItem assetItem)
@@ -45,10 +45,12 @@ namespace Xenko.Assets
             private readonly PlatformType platform;
             private readonly CompilationMode compilationMode;
             private readonly Package package;
-            public GameSettingsCompileCommand(string url, Package package, PlatformType platform, CompilationMode compilationMode, GameSettingsAsset asset)
+            private readonly Package entryPackage;
+            public GameSettingsCompileCommand(string url, Package package, Package entryPackage, PlatformType platform, CompilationMode compilationMode, GameSettingsAsset asset)
                 : base(url, asset, package)
             {
                 this.package = package;
+                this.entryPackage = entryPackage ?? package;
                 this.platform = platform;
                 this.compilationMode = compilationMode;
             }
@@ -59,8 +61,8 @@ namespace Xenko.Assets
 
                 // Hash used parameters from package
                 writer.Write(package.Meta.Name);
-                writer.Write(package.UserSettings.GetValue(GameUserSettings.Effect.EffectCompilation));
-                writer.Write(package.UserSettings.GetValue(GameUserSettings.Effect.RecordUsedEffects));
+                writer.Write(entryPackage.UserSettings.GetValue(GameUserSettings.Effect.EffectCompilation));
+                writer.Write(entryPackage.UserSettings.GetValue(GameUserSettings.Effect.RecordUsedEffects));
                 writer.Write(compilationMode);
 
                 // Hash platform
@@ -77,8 +79,8 @@ namespace Xenko.Assets
                     SplashScreenUrl = Parameters.SplashScreenTexture != null && (compilationMode == CompilationMode.Release || compilationMode == CompilationMode.AppStore) ? AttachedReferenceManager.GetUrl(Parameters.SplashScreenTexture) : null,
                     SplashScreenColor = Parameters.SplashScreenColor,
                     DoubleViewSplashScreen = Parameters.DoubleViewSplashScreen,
-                    EffectCompilation = package.UserSettings.GetValue(GameUserSettings.Effect.EffectCompilation),
-                    RecordUsedEffects = package.UserSettings.GetValue(GameUserSettings.Effect.RecordUsedEffects),
+                    EffectCompilation = entryPackage.UserSettings.GetValue(GameUserSettings.Effect.EffectCompilation),
+                    RecordUsedEffects = entryPackage.UserSettings.GetValue(GameUserSettings.Effect.RecordUsedEffects),
                     Configurations = new PlatformConfigurations(),
                     CompilationMode = compilationMode
                 };

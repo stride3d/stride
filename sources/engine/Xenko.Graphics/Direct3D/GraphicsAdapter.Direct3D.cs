@@ -118,7 +118,7 @@ namespace Xenko.Graphics
         /// <returns>true if the profile is supported</returns>
         public bool IsProfileSupported(GraphicsProfile graphicsProfile)
         {
-#if XENKO_GRAPHICS_API_DIRECT3D12
+#if XENKO_GRAPHICS_API_DIRECT3D12 || XENKO_GRAPHICS_API_VULKAN
             return true;
 #else
             // Did we check fo this or a higher profile, and it was supported?

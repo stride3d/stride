@@ -113,7 +113,8 @@ namespace Xenko.Core.Assets.CompilerApp
                 {
                     Platform = builderOptions.Platform,
                     CompilationContext = typeof(AssetCompilationContext),
-                    BuildConfiguration = builderOptions.ProjectConfiguration
+                    BuildConfiguration = builderOptions.ProjectConfiguration,
+                    Package = package,
                 };
 
                 // Command line properties
