@@ -178,12 +178,15 @@ namespace Xenko.Rendering.Voxels.VoxelGI
 
                 if (lightVoxel.Volume == null)
                     return;
+                ProcessedVoxelVolume processedVolume = GetProcessedVolume();
+                if (processedVolume == null)
+                    return;
 
                 var intensity = Light.Intensity;
                 var intensityBounceScale = lightVoxel.BounceIntensityScale;
                 var specularIntensity = lightVoxel.SpecularIntensityScale * intensity;
 
-                VoxelViewContext viewContext = new VoxelViewContext(GetProcessedVolume().passList, viewIndex);
+                VoxelViewContext viewContext = new VoxelViewContext(processedVolume.passList, viewIndex);
                 if (viewContext.IsVoxelView)
                 {
                     intensity *= intensityBounceScale / 3.141592f;
