@@ -22,6 +22,11 @@ namespace Xenko.Core.Assets.Compiler
         public string BuildConfiguration { get; set; }
 
         /// <summary>
+        /// Gets or sets the entry package this build was called upon.
+        /// </summary>
+        public Package Package { get; set; }
+
+        /// <summary>
         /// Gets or sets the target platform for compiler is being used for.
         /// </summary>
         /// <value>The platform.</value>

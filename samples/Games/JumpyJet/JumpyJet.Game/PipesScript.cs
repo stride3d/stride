@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Xenko.Core.Mathematics;
+using Xenko.Core.Serialization;
 using Xenko.Engine;
 using Xenko.Engine.Events;
 
@@ -29,9 +30,11 @@ namespace JumpyJet
         private float sceneWidth;
         private float pipeOvervaluedWidth = 1f;
 
+        public UrlReference<Prefab> PipePrefabUrl { get; set; }
+
         public override void Start()
         {
-            var pipeSetPrefab = Content.Load<Prefab>("Pipe Set");
+            var pipeSetPrefab = Content.Load(PipePrefabUrl);
 
             // Create PipeSets
             sceneWidth = GameGlobals.GamePixelToUnitScale*GraphicsDevice.Presenter.BackBuffer.Width;

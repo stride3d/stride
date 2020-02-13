@@ -50,7 +50,7 @@
   
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.2.2" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="2.2.3" />
   </ItemGroup>
   
   <ItemGroup>

@@ -38,8 +38,8 @@
     <Compile Include="..\..\tests\nunitlite\NUnitLiteLauncher.iPhone.cs" Label="Xenko.DoNotSync">
       <Link>NUnitLiteLauncher.iPhone.cs</Link>
     </Compile>
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Compile Include="..\..\shared\SharedAssemblyInfo.cs">

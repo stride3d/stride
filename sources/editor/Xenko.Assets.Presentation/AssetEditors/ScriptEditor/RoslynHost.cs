@@ -13,12 +13,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition.Convention;
 using System.Composition.Hosting;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
 using RoslynPad.Editor;
 using RoslynPad.Roslyn;
@@ -49,6 +51,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
             workspace.EnableDiagnostics(DiagnosticOptions.Semantic | DiagnosticOptions.Syntax);
 
             GetService<IDiagnosticService>().DiagnosticsUpdated += OnDiagnosticsUpdated;
+
+            ParseOptions = CreateDefaultParseOptions();
         }
 
         private static CompositionHost CreateCompositionContext()
@@ -74,6 +78,15 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
                 .CreateContainer();
         }
 
+        internal static readonly ImmutableArray<string> PreprocessorSymbols =
+            ImmutableArray.CreateRange(new[] { "TRACE", "DEBUG" });
+
+        protected virtual ParseOptions CreateDefaultParseOptions()
+        {
+            return new CSharpParseOptions(kind: SourceCodeKind.Regular,
+                preprocessorSymbols: PreprocessorSymbols, languageVersion: LanguageVersion.Latest);
+        }
+
         /// <summary>
         /// The roslyn workspace.
         /// </summary>
@@ -83,6 +96,8 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
         /// The roslyn services.
         /// </summary>
         public MefHostServices HostServices => hostServices;
+
+        public ParseOptions ParseOptions { get; }
 
         /// <summary>
         /// Gets a specific service.
@@ -119,6 +134,11 @@ namespace Xenko.Assets.Presentation.AssetEditors.ScriptEditor
         public void CloseDocument(DocumentId documentId)
         {
             workspace.CloseDocument(documentId);
+        }
+
+        public MetadataReference CreateMetadataReference(string location)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -13,10 +13,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Xenko.Core.MicroThreading;
 
-#if NET45
-using TaskEx = System.Threading.Tasks.Task;
-#endif
-
 namespace Xenko.Core.Tests
 {
     // TODO: Add some checks to see if tests really complete within scheduler.Step() callstack
@@ -37,7 +33,7 @@ namespace Xenko.Core.Tests
         {
             protected async Task TestSpecialHelper()
             {
-                await TaskEx.Delay(100);
+                await Task.Delay(100);
             }
 
             public async Task TestSpecial(Action completed)
@@ -51,7 +47,7 @@ namespace Xenko.Core.Tests
             public async Task TestAwaitDelayAsync(Action completed)
             {
                 int counter = SharedCounter;
-                await TaskEx.Delay(100);
+                await Task.Delay(100);
                 Assert.NotEqual(SharedCounter, counter);
                 completed();
             }
@@ -59,7 +55,7 @@ namespace Xenko.Core.Tests
             public async Task TestWaitDelayAsync(Action completed)
             {
                 int counter = SharedCounter;
-                TaskEx.Delay(100).Wait();
+                Task.Delay(100).Wait();
                 Assert.Equal(counter, SharedCounter);
                 completed();
             }
@@ -84,13 +80,13 @@ namespace Xenko.Core.Tests
 
             protected async Task TestInsideWaitHelperAsync2()
             {
-                TaskEx.Delay(200).Wait();
-                await TaskEx.Delay(200);
+                Task.Delay(200).Wait();
+                await Task.Delay(200);
             }
 
             protected async Task TestInsideWaitHelperAsync()
             {
-                await TaskEx.Delay(200);
+                await Task.Delay(200);
                 TestInsideWaitHelperAsync2().Wait();
             }
 
@@ -150,7 +146,7 @@ namespace Xenko.Core.Tests
 
             protected async Task TestWaitMultipleAsyncHelper()
             {
-                await TaskEx.WhenAll(TaskEx.Delay(1000), TestWaitMultipleAsyncHelper2());
+                await Task.WhenAll(Task.Delay(1000), TestWaitMultipleAsyncHelper2());
             }
 
             public async Task TestWaitMultipleAsync(Action completed)
@@ -161,12 +157,12 @@ namespace Xenko.Core.Tests
 
             protected async Task TestWaitForkingAsyncHelper()
             {
-                await TaskEx.Delay(10);
+                await Task.Delay(10);
             }
 
             public async Task TestWaitForkingAsync(Action completed)
             {
-                await TaskEx.WhenAll(TestWaitForkingAsyncHelper(), TestWaitForkingAsyncHelper());
+                await Task.WhenAll(TestWaitForkingAsyncHelper(), TestWaitForkingAsyncHelper());
                 completed();
             }
 
@@ -205,7 +201,7 @@ namespace Xenko.Core.Tests
 
             public async Task TestThrowAfterAsync(Action completed)
             {
-                await TaskEx.Delay(100);
+                await Task.Delay(100);
                 completed();
                 await TestThrowAsyncHelper();
             }
@@ -221,7 +217,7 @@ namespace Xenko.Core.Tests
         {
             protected async Task TestSleep()
             {
-                await TaskEx.Delay(200);
+                await Task.Delay(200);
             }
 
             public async Task TestWaitMicroThread(Action completed)
@@ -338,9 +334,9 @@ namespace Xenko.Core.Tests
                 {
                     using (await scheduler.SwitchToNewMicroThread())
                     {
-                        await TaskEx.Delay(100);
+                        await Task.Delay(100);
                         await scheduler.WaitFrame();
-                        await TaskEx.Delay(100);
+                        await Task.Delay(100);
                         await scheduler.WaitFrame();
                         Interlocked.Increment(ref completed);
                     }

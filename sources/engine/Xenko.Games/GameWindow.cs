@@ -53,7 +53,7 @@ namespace Xenko.Games
         public event EventHandler<EventArgs> Activated;
 
         /// <summary>
-        /// Occurs, when device client size is changed.
+        /// Occurs when device client size is changed.
         /// </summary>
         public event EventHandler<EventArgs> ClientSizeChanged;
 
@@ -63,14 +63,19 @@ namespace Xenko.Games
         public event EventHandler<EventArgs> Deactivated;
 
         /// <summary>
-        /// Occurs, when device orientation is changed.
+        /// Occurs when device orientation is changed.
         /// </summary>
         public event EventHandler<EventArgs> OrientationChanged;
 
         /// <summary>
-        /// Occurs, when device full screen mode is toggled.
+        /// Occurs when device full screen mode is toggled.
         /// </summary>
         public event EventHandler<EventArgs> FullscreenToggle;
+
+        /// <summary>
+        /// Occurs before the window gets destroyed.
+        /// </summary>
+        public event EventHandler<EventArgs> Closing;
 
         #endregion
 
@@ -225,6 +230,12 @@ namespace Xenko.Games
         protected void OnFullscreenToggle(object source, EventArgs e)
         {
             var handler = FullscreenToggle;
+            handler?.Invoke(this, e);
+        }
+
+        protected void OnClosing(object source, EventArgs e)
+        {
+            var handler = Closing;
             handler?.Invoke(this, e);
         }
 

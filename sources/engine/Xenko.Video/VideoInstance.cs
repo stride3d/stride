@@ -463,26 +463,28 @@ namespace Xenko.Video
             long startPosition = 0;
             long end = 0;
 
-            var dataUrl = videoComponent.Source?.CompressedDataUrl;
-            if (dataUrl != null)
+            var source = videoComponent.Source;
+            if (source != null)
             {
-                var fileProvider = services.GetSafeServiceAs<IDatabaseFileProviderService>().FileProvider;
+                var dataUrl = source.CompressedDataUrl;
+
+                var fileProvider = source.FileProvider;
 
                 if (!fileProvider.ContentIndexMap.TryGetValue(dataUrl, out ObjectId objectId) ||
-                    !fileProvider.ObjectDatabase.BundleBackend.TryGetObjectLocation(objectId, out url, out startPosition, out end))
+                    !fileProvider.ObjectDatabase.TryGetObjectLocation(objectId, out url, out startPosition, out end))
                 {
                     throw new InvalidOperationException("Video files needs to be stored on the virtual file system in a non-compressed form.");
                 }
+
+                // Initialize media
+                InitializeMedia(url, startPosition, end - startPosition);
+
+                // Set playback properties
+                UpdateAudioVolume();
+                UpdateLoopingSettings();
+                UpdatePlayRangeSettings();
+                UpdateSpeedSettings();
             }
-
-            // Initialize media
-            InitializeMedia(url, startPosition, end - startPosition);
-
-            // Set playback properties
-            UpdateAudioVolume();
-            UpdateLoopingSettings();
-            UpdatePlayRangeSettings();
-            UpdateSpeedSettings();
 
             // Do not play and pause the new video. The new video always starts in the 'Stopped' state
             // It is responsibility of the user the revert play state after changing the source video.
