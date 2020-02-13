@@ -85,11 +85,7 @@ namespace Xenko.Engine.Processors
                 processedVoxelVolumes.Add(volume, new ProcessedVoxelVolume());
 
                 data.VolumeTranslation = volume.Entity.Transform.WorldMatrix.TranslationVector;
-                //data.VolumeSize = volume.Entity.Transform.Scale;
-                //TODO: Get non cube volumes working again
-                //Temporarily force to cube
-                float largestSide = Math.Max(volume.Entity.Transform.Scale.X, Math.Max(volume.Entity.Transform.Scale.Y, volume.Entity.Transform.Scale.Z));
-                data.VolumeSize = new Vector3(largestSide);
+                data.VolumeSize = new Vector3(volume.VoxelVolumeSize);
 
 
                 data.Voxelize = volume.Voxelize;

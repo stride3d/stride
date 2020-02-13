@@ -47,6 +47,8 @@ namespace Xenko.Rendering.Voxels
         public List<VoxelAttribute> Attributes { get; set; } = new List<VoxelAttribute>();
 
 
+        [DataMember(35)]
+        public float VoxelVolumeSize { get; set; } = 20f;
         [DataMember(40)]
         public float AproximateVoxelSize { get; set; } = 0.15f;
         [DataMember(50)]
