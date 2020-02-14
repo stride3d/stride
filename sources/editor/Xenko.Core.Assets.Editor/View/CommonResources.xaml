@@ -14,6 +14,19 @@
     <ResourceDictionary Source="../Themes/ExpressionDark/TableflowView.ExpressionDark.normalcolor.xaml"/>
   </ResourceDictionary.MergedDictionaries>
 
+  <Style TargetType="view:DataGridEx">
+    <Setter Property="Background" Value="{StaticResource NormalBrush}" />
+  </Style>
+  <Style TargetType="DataGridRow">
+    <Setter Property="Background" Value="{StaticResource NormalBrush}" />
+  </Style>
+  <Style TargetType="DataGridCell">
+    <Setter Property="Background" Value="{StaticResource NormalBrush}" />
+  </Style>
+  <Style TargetType="DataGridColumnHeader">
+    <Setter Property="Background" Value="{StaticResource WindowBackgroundBrush}" />
+  </Style>
+
   <SolidColorBrush x:Key="EmphasisColorBrush" Color="#316B8F"/>
 
   <!-- STYLE USED FOR TOOLBAR BUTTONS -->

@@ -21,7 +21,6 @@
         <ResourceDictionary Source="Theme.AvalonDock.xaml"/>
         <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/CommonResources.xaml" />
       </ResourceDictionary.MergedDictionaries>
-
       <DataTemplate x:Key="AvalonDock_GameStudio_TitleTemplate">
         <DockPanel LastChildFill="False">
           <TextBlock Margin="3 0" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>

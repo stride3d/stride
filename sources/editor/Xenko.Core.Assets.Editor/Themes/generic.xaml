@@ -2,23 +2,19 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:Xenko.Core.Assets.Editor.View.Controls"
                     xmlns:xk="http://schemas.xenko.com/xaml/presentation"
-                    xmlns:xcdg="http://schemas.xceed.com/wpf/xaml/datagrid"
-                    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
-                    xmlns:behaviors="clr-namespace:Xenko.Core.Assets.Editor.View.Behaviors"
+                    xmlns:view="clr-namespace:Xenko.Core.Assets.Editor.View"
                     xmlns:diagnostics="clr-namespace:Xenko.Core.Assets.Diagnostics;assembly=Xenko.Core.Assets">
 
   <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
     <ResourceDictionary Source="/Xenko.Core.Assets.Editor;component/View/CommonResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
-
+  
   <Style TargetType="controls:GridLogViewer">
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="controls:GridLogViewer">
           <DockPanel x:Name="PART_GridLogViewerCollectionSourceContainer">
-            <DockPanel.Resources>
-              <xcdg:DataGridCollectionViewSource x:Key="GridLogViewerCollectionSource" Source="{Binding LogMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" />
-            </DockPanel.Resources>
             <ToolBarTray DockPanel.Dock="Top" Visibility="{Binding IsToolBarVisible, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={xk:VisibleOrCollapsed}}">
               <ToolBar ToolBarTray.IsLocked="True" Header="Filters:" Visibility="{Binding CanFilterLog, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={xk:VisibleOrCollapsed}}">
                 <ToggleButton IsChecked="{Binding ShowDebugMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}">
@@ -43,45 +39,37 @@
                   <Label Content="..." Width="12" Height="12" HorizontalContentAlignment="Center" />
                 </ToggleButton>
               </ToolBar>
-              <ToolBar ToolBarTray.IsLocked="True" Header="Search:" Visibility="{Binding CanSearchLog, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={xk:VisibleOrCollapsed}}">
-                <xk:TextBox Width="150" UseTimedValidation="True" Text="{Binding SearchToken, RelativeSource={RelativeSource Mode=TemplatedParent}, Mode=OneWayToSource}" WatermarkContent="Search" />
-                <Button x:Name="PART_PreviousResult">
-                  <Path Width="8" Height="8" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryPrevious}" />
-                </Button>
-                <Button x:Name="PART_NextResult">
-                  <Path Width="8" Height="8" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryNext}" />
-                </Button>
-                <ToggleButton IsChecked="{Binding SearchMatchCase, RelativeSource={RelativeSource Mode=TemplatedParent}}">
-                  <Path Width="16" Height="16" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryMatchCase}" />
-                </ToggleButton>
-                <ToggleButton IsChecked="{Binding SearchMatchWord, RelativeSource={RelativeSource Mode=TemplatedParent}}">
-                  <Path Width="16" Height="16" Stretch="Uniform" Fill="{StaticResource TextBrush}" Data="{StaticResource GeometryMatchWord}" />
-                </ToggleButton>
-              </ToolBar>
             </ToolBarTray>
-            <xcdg:DataGridControl x:Name="PART_LogGridView" ItemsSource="{Binding Source={StaticResource GridLogViewerCollectionSource}}" AutoCreateColumns="False" ItemScrollingBehavior="Immediate">
-              <xcdg:DataGridControl.Resources>
+            <view:DataGridEx x:Name="PART_LogGridView" ItemsSource="{Binding FilteredLogMessages, RelativeSource={RelativeSource Mode=TemplatedParent}}" 
+                             AutoGenerateColumns="False" 
+                             CanUserResizeRows="False" 
+                             CanUserReorderColumns="False" 
+                             RowHeaderWidth="0" 
+                             IsReadOnly="True"
+                             CanUserAddRows="False" 
+                             CanUserDeleteRows="False">
+              <DataGrid.Resources>
                 <DataTemplate x:Key="LogMessageTypeCellTemplate" DataType="diagnostics:AssetSerializableLogMessage">
                   <Path x:Name="MessageTypePath" Width="12" Height="12" Stretch="Uniform" Fill="{DynamicResource TextBrush}">
                     <Path.Style>
                       <Style>
                         <Style.Triggers>
-                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}, Mode=OneWay}" Value="Debug">
+                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}, Mode=OneWay}" Value="Debug">
                             <Setter Property="Path.Data" Value="{DynamicResource GeometryDebugMessage}" />
                           </DataTrigger>
-                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}, Mode=OneWay}" Value="Verbose">
+                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}, Mode=OneWay}" Value="Verbose">
                             <Setter Property="Path.Data" Value="{DynamicResource GeometryVerboseMessage}" />
                           </DataTrigger>
-                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}, Mode=OneWay}" Value="Info">
+                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}, Mode=OneWay}" Value="Info">
                             <Setter Property="Path.Data" Value="{DynamicResource GeometryInfoMessage}" />
                           </DataTrigger>
-                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}, Mode=OneWay}" Value="Warning">
+                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}, Mode=OneWay}" Value="Warning">
                             <Setter Property="Path.Data" Value="{DynamicResource GeometryWarningMessage}" />
                           </DataTrigger>
-                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}, Mode=OneWay}" Value="Error">
+                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}, Mode=OneWay}" Value="Error">
                             <Setter Property="Path.Data" Value="{DynamicResource GeometryErrorMessage}" />
                           </DataTrigger>
-                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}, Mode=OneWay}" Value="Fatal">
+                          <DataTrigger Binding="{Binding DataContext.Type, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}, Mode=OneWay}" Value="Fatal">
                             <Setter Property="Path.Data" Value="{DynamicResource GeometryFatalMessage}" />
                           </DataTrigger>
                         </Style.Triggers>
@@ -90,43 +78,29 @@
                   </Path>
                 </DataTemplate>
                 <DataTemplate x:Key="LogMessageHasExceptionCellTemplate" DataType="compilerApp:AssetSerializableLogMessage">
-                  <Border />
-                  <!--<Image SnapsToDevicePixels="True" Width="16" Height="16" Stretch="None" VerticalAlignment="Center" Source="../Resources/exception.png" Visibility="{Binding ExceptionInfo, Mode=OneTime, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrHidden}}}">
-                                        <ToolTipService.ToolTip>
-                                            <TextBlock Text="{Binding ExceptionInfo.TypeFullName, Mode=OneTime}" Foreground="#FF2B91AF" FontWeight="Bold"/>
-                                        </ToolTipService.ToolTip>
-                                    </Image>-->
+                  <Border>
+                    <Image SnapsToDevicePixels="True" Width="16" Height="16" Stretch="None" VerticalAlignment="Center" Source="../Resources/exception.png" Visibility="{Binding ExceptionInfo, Mode=OneTime, Converter={xk:Chained {xk:ObjectToBool}, {xk:VisibleOrHidden}}}">
+                      <ToolTipService.ToolTip>
+                        <TextBlock Text="{Binding ExceptionInfo.TypeFullName, Mode=OneTime}" Foreground="#FF2B91AF" FontWeight="Bold"/>
+                      </ToolTipService.ToolTip>
+                    </Image>
+                  </Border>
                 </DataTemplate>
                 <DataTemplate x:Key="LogMessageAssetUrlCellTemplate">
-                  <TextBlock Text="{xk:PriorityBinding {Binding DataContext.AssetUrl, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}}, {Binding DataContext.AssetReference.Location, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}}}" />
+                  <TextBlock Text="{xk:PriorityBinding {Binding DataContext.AssetUrl, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}}, {Binding DataContext.AssetReference.Location, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}}}" />
                 </DataTemplate>
                 <DataTemplate x:Key="LogMessageTextCellTemplate" DataType="compilerApp:AssetSerializableLogMessage">
                   <TextBlock Text="{Binding}" TextWrapping="Wrap" />
                 </DataTemplate>
-              </xcdg:DataGridControl.Resources>
-              <xcdg:DataGridControl.View>
-                <!-- Don't forget to change TableflowViewItemsHost in TableflowView.GridElementTemplates.xaml -->
-                <!--<xcdg:TableflowView ContainerHeight="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:Chained {xk:SumNum}, {xk:MaxNum}, Parameter1={xk:Double 8}, Parameter2={xk:Double 26}}}"
-                                            ScrollingAnimationDuration="0" RowFadeInAnimationDuration="0" IsColumnVirtualizationEnabled="False"/>-->
-                <xcdg:TableView AllowRowResize="False" IsColumnVirtualizationEnabled="False" FixedColumnCount="2" UseDefaultHeadersFooters="False">
-                  <xcdg:TableView.FixedHeaders>
-                    <DataTemplate>
-                      <xcdg:ColumnManagerRow AllowColumnReorder="False" />
-                    </DataTemplate>
-                  </xcdg:TableView.FixedHeaders>
-                </xcdg:TableView>
-              </xcdg:DataGridControl.View>
-              <i:Interaction.Behaviors>
-                <behaviors:XceedDataGridResizableColumnsBehavior />
-              </i:Interaction.Behaviors>
-              <xcdg:DataGridControl.Columns>
-                <xcdg:Column FieldName="Type" Title="" VisiblePosition="0" AllowSort="True" MinWidth="16" MaxWidth="16" CellContentTemplate="{StaticResource LogMessageTypeCellTemplate}" />
-                <xcdg:Column FieldName="HasException" Title="" VisiblePosition="1" AllowSort="True" MinWidth="16" MaxWidth="16" CellContentTemplate="{StaticResource LogMessageHasExceptionCellTemplate}" />
-                <xcdg:Column FieldName="Text" Title="Message" Width="*" AllowSort="True" CellContentTemplate="{StaticResource LogMessageTextCellTemplate}" />
-                <!-- Module is not actually used, we're just hacking an additional column here for asset url which requires a priority binding -->
-                <xcdg:Column FieldName="Module" Title="Asset" Width="200" AllowSort="True" CellContentTemplate="{StaticResource LogMessageAssetUrlCellTemplate}" />
-              </xcdg:DataGridControl.Columns>
-            </xcdg:DataGridControl>
+              </DataGrid.Resources>
+              <DataGrid.Columns>
+                <DataGridTemplateColumn Header="" MinWidth="16" MaxWidth="16" CellTemplate="{StaticResource LogMessageTypeCellTemplate}" >
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="" MinWidth="16" MaxWidth="16" CellTemplate="{StaticResource LogMessageHasExceptionCellTemplate}"  />
+                <DataGridTemplateColumn Header="Message" Width="*" CellTemplate="{StaticResource LogMessageTextCellTemplate}"  />
+                <DataGridTemplateColumn Header="Asset" Width="200" CellTemplate="{StaticResource LogMessageAssetUrlCellTemplate}"  />
+              </DataGrid.Columns>
+            </view:DataGridEx>
           </DockPanel>
         </ControlTemplate>
       </Setter.Value>

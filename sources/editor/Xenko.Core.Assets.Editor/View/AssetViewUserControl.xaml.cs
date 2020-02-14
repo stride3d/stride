@@ -5,13 +5,12 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-
+using Xceed.Wpf.Toolkit.Core;
 using Xenko.Core.Assets.Editor.View.Controls;
 using Xenko.Core.Assets.Editor.ViewModel;
 using Xenko.Core.Presentation.Collections;
 using Xenko.Core.Presentation.Extensions;
 
-using Xceed.Wpf.DataGrid;
 
 namespace Xenko.Core.Assets.Editor.View
 {
@@ -126,8 +125,6 @@ namespace Xenko.Core.Assets.Editor.View
         {
 
             InitializeComponent();
-            Loaded += (s, e) => AddHandler(Row.EditBeginningEvent, (CancelRoutedEventHandler)CanBeginEditEvent);
-            Unloaded += (s, e) => RemoveHandler(Row.EditBeginningEvent, (CancelRoutedEventHandler)CanBeginEditEvent);
         }
 
         /// <summary>
@@ -215,7 +212,7 @@ namespace Xenko.Core.Assets.Editor.View
             var listBox = AssetViewPresenter.FindVisualChildOfType<EditableContentListBox>();
             listBox?.BeginEdit();
 
-            var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridControl>();
+            var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridEx>();
             gridView?.BeginEdit();
         }
 
@@ -231,7 +228,7 @@ namespace Xenko.Core.Assets.Editor.View
                 }
             }
 
-            var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridControl>();
+            var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridEx>();
             if (gridView != null)
             {
                 GridThumbnailSize += ThumbnailZoomIncrement;
@@ -254,7 +251,7 @@ namespace Xenko.Core.Assets.Editor.View
                 }
             }
 
-            var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridControl>();
+            var gridView = AssetViewPresenter.FindVisualChildOfType<DataGridEx>();
             if (gridView != null)
             {
                 GridThumbnailSize -= ThumbnailZoomIncrement;

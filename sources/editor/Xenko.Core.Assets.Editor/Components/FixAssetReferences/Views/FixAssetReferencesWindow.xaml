@@ -4,10 +4,9 @@
                   xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
                   xmlns:xk="http://schemas.xenko.com/xaml/presentation"
                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                  xmlns:view="clr-namespace:Xenko.Core.Assets.Editor.View"
                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                   xmlns:valueConverters="clr-namespace:Xenko.Core.Assets.Editor.View.ValueConverters"
-                  xmlns:xcdg="http://schemas.xceed.com/wpf/xaml/datagrid"
-                  xmlns:behaviors="clr-namespace:Xenko.Core.Assets.Editor.View.Behaviors"
                   xmlns:far="clr-namespace:Xenko.Core.Assets.Editor.Components.FixAssetReferences"
                   mc:Ignorable="d"
                   ShowInTaskbar="False"
@@ -45,37 +44,33 @@
         </Button>
       </UniformGrid>
     </StackPanel>
-
-    <RadioButton Grid.Row="3" Margin="20" Content="{xk:Localize Replace references individually:, Context=Button}" IsChecked="{Binding UseSingleReplace, Converter={xk:InvertBool}}"/>
-    <xcdg:DataGridControl Margin="20" Grid.Row="4" ItemsSource="{Binding CurrentReplacements}" AutoCreateColumns="False" ItemScrollingBehavior="Immediate" IsEnabled="{Binding UseSingleReplace, Converter={xk:InvertBool}}">
-      <xcdg:DataGridControl.Resources>
-        <DataTemplate x:Key="AssetPickupCellTemplate">
-          <DockPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type xcdg:DataRow}}}" d:DataContext="{d:DesignInstance far:AssetReferenceReplacementViewModel}">
-            <Button Command="{Binding PickupReplacementObjectCommand}"
+    <view:DataGridEx Margin="20" Grid.Row="4" ItemsSource="{Binding CurrentReplacements}" IsEnabled="{Binding UseSingleReplace, Converter={xk:InvertBool}}" AutoGenerateColumns="False" CanUserResizeRows="False"  CanUserReorderColumns="False" RowHeaderWidth="0" IsReadOnly="True">
+      <DataGrid.Columns>
+        <DataGridTemplateColumn Header="{xk:Localize Referencer}" Width="2*"  >
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock DataContext="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}}" d:DataContext="{d:DesignInstance far:AssetReferenceReplacementViewModel}" Text="{Binding Referencer.Url}"></TextBlock>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Header="{xk:Localize Replacement asset}" Width="3*"  >
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <DockPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGridRow}}}" d:DataContext="{d:DesignInstance far:AssetReferenceReplacementViewModel}">
+                <Button Command="{Binding PickupReplacementObjectCommand}"
                     ToolTip="{xk:Localize Select asset, Context=ToolTip}" DockPanel.Dock="Right" Content="{xk:Image {StaticResource ImagePickup}, 16, 16, NearestNeighbor}"
                     Background="Transparent" IsEnabled="{Binding IsChecked, ElementName=ClearCheckBox, Converter={xk:InvertBool}}"/>
-            <CheckBox x:Name="ClearCheckBox" Content="{xk:Localize Clear this reference, Context=Button}" Margin="10,0" DockPanel.Dock="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"
+                <CheckBox x:Name="ClearCheckBox" Content="{xk:Localize Clear this reference, Context=Button}" Margin="10,0" DockPanel.Dock="Left" VerticalAlignment="Center" VerticalContentAlignment="Center"
                       IsChecked="{Binding DontFixReference}"/>
-            <xk:TextBox Text="{Binding ReplacementObject, Converter={valueConverters:AssetViewModelToUrl}}"
+                <xk:TextBox Text="{Binding ReplacementObject, Converter={valueConverters:AssetViewModelToUrl}}"
                           Margin="10,0" MinWidth="200" WatermarkContent="{xk:Localize Select an asset}" IsEnabled="{Binding IsChecked, ElementName=ClearCheckBox, Converter={xk:InvertBool}}"/>
-          </DockPanel>
-        </DataTemplate>
-      </xcdg:DataGridControl.Resources>
-      <xcdg:DataGridControl.Columns>
-        <xcdg:Column Width="2*" FieldName="Referencer.Url" Title="{xk:Localize Referencer}" AllowSort="True" ReadOnly="True"/>
-        <xcdg:Column Width="3*" FieldName="MemberPath" Title="{xk:Localize Reference path}" AllowSort="True" ReadOnly="True"/>
-        <xcdg:Column Width="3*" FieldName="ReplacementObject" Title="{xk:Localize Replacement asset}" AllowSort="True" CellContentTemplate="{StaticResource AssetPickupCellTemplate}"/>
-      </xcdg:DataGridControl.Columns>
-      <xcdg:DataGridControl.View>
-        <!-- Don't forget to change TableflowViewItemsHost in TableflowView.GridElementTemplates.xaml -->
-        <!--<xcdg:TableflowView ContainerHeight="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:Chained {xk:SumNum}, {xk:MaxNum}, Parameter1={xk:Double 8}, Parameter2={xk:Double 26}}}"
-                                            ScrollingAnimationDuration="0" RowFadeInAnimationDuration="0" IsColumnVirtualizationEnabled="False"/>-->
-        <xcdg:TableView AllowRowResize="False" IsColumnVirtualizationEnabled="False"/>
-      </xcdg:DataGridControl.View>
-      <i:Interaction.Behaviors>
-        <behaviors:XceedDataGridResizableColumnsBehavior/>
-      </i:Interaction.Behaviors>
-    </xcdg:DataGridControl>
+              </DockPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </view:DataGridEx>
+    <RadioButton Grid.Row="3" Margin="20" Content="{xk:Localize Replace references individually:, Context=Button}" IsChecked="{Binding UseSingleReplace, Converter={xk:InvertBool}}"/>
     <UniformGrid Grid.Row="5" Rows="1" DockPanel.Dock="Bottom" Margin="20">
       <Button Margin="10,0,0,0" Padding="10,4" Content="{xk:Localize Done, Context=Button}" Command="{Binding FixReferencesCommand}"/>
       <Button Margin="10,0,0,0" Padding="10,4" Content="{xk:Localize Clear references, Context=Button}" Command="{Binding ClearReferencesCommand}" ToolTip="{xk:Localize Clear the references of the current asset, Context=ToolTip}"/>

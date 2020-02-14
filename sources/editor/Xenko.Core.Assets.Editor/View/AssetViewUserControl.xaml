@@ -10,7 +10,6 @@
              xmlns:controls="clr-namespace:Xenko.Core.Assets.Editor.View.Controls"
              xmlns:behaviors="clr-namespace:Xenko.Core.Assets.Editor.View.Behaviors"
              xmlns:cvt="clr-namespace:Xenko.Core.Assets.Editor.View.ValueConverters"
-             xmlns:xcdg="http://schemas.xceed.com/wpf/xaml/datagrid"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:status="clr-namespace:Xenko.Core.Assets.Editor.Components.Status.Views"
              xmlns:strings="clr-namespace:Xenko.Core.Assets.Editor.Resources.Strings"
@@ -181,74 +180,7 @@
             </i:Interaction.Behaviors>
           </controls:EditableContentListBox>
         </DataTemplate>
-
         <CollectionViewSource x:Key="FilteredContentView" Source="{Binding FilteredAssets}" />
-
-        <DataTemplate x:Key="AssetGridView">
-          <view:DataGridEx ItemsSource="{Binding Source={StaticResource FilteredContentView}}" AutoCreateColumns="False" ItemScrollingBehavior="Immediate" IsTextSearchEnabled="True" TextSearch.TextPath="Name">
-            <xcdg:DataGridControl.Resources>
-              <xk:BindingProxy x:Key="GridThumbnailSize" Data="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"/>
-            </xcdg:DataGridControl.Resources>
-            <xcdg:DataGridControl.Columns>
-              <xcdg:Column FieldName="ThumbnailData" ReadOnly="True" AllowSort="False"
-                         MinWidth="{Binding Data, Source={StaticResource GridThumbnailSize}, Converter={xk:SumNum}, ConverterParameter={xk:Double 8}}"
-                         MaxWidth="{Binding Data, Source={StaticResource GridThumbnailSize}, Converter={xk:SumNum}, ConverterParameter={xk:Double 8}}">
-                <xcdg:Column.CellContentTemplate>
-                  <DataTemplate DataType="{x:Type services:ThumbnailData}">
-                    <Image Margin="2" Source="{Binding Presenter, Mode=OneWay}" RenderOptions.BitmapScalingMode="Linear" SnapsToDevicePixels="True"
-                                                    Width="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:SumNum}}"
-                                                    Height="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:SumNum}}"/>
-                  </DataTemplate>
-                </xcdg:Column.CellContentTemplate>
-              </xcdg:Column>
-              <xcdg:Column Width="2*" FieldName="Name" Title="{xk:Localize Name}" AllowSort="True" CellEditorDisplayConditions="RowIsBeingEdited"/>
-              <xcdg:Column Width="2*" FieldName="TypeDisplayName" Title="{xk:Localize Type}" AllowSort="True" ReadOnly="True" />
-              <xcdg:Column Width="4*" FieldName="Url" Title="{xk:Localize URL}" AllowSort="True" ReadOnly="True" />
-              <xcdg:Column FieldName="Dependencies" Title="{xk:Localize Included}" AllowSort="False" ReadOnly="True" >
-                <xcdg:Column.CellContentTemplate>
-                  <DataTemplate DataType="viewModel:AssetDependenciesViewModel">
-                    <Grid Background="Transparent">
-                      <Image Source="{StaticResource ImageAssetIsRoot}" Width="16" Height="16" Visibility="{Binding IsRoot, Converter={xk:VisibleOrHidden}}"/>
-                      <Image Source="{StaticResource ImageAssetIsIndirectlyIncluded}" Width="16" Height="16" Visibility="{Binding IsIndirectlyIncluded, Converter={xk:VisibleOrHidden}}"/>
-                      <Image Source="{StaticResource ImageAssetIsExcluded}" Width="16" Height="16" Visibility="{Binding IsExcluded, Converter={xk:VisibleOrHidden}}"/>
-                    </Grid>
-                  </DataTemplate>
-                </xcdg:Column.CellContentTemplate>
-              </xcdg:Column>
-              <xcdg:Column FieldName="IsDirty" Title="Modified" AllowSort="True" ReadOnly="True" />
-            </xcdg:DataGridControl.Columns>
-            <xcdg:DataGridControl.ItemContainerStyle>
-              <Style TargetType="xcdg:DataRow" BasedOn="{StaticResource {x:Type xcdg:DataRow}}" d:DataContext="{d:DesignInstance viewModel:AssetViewModel}">
-                <Setter Property="Height" Value="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:SumNum}, ConverterParameter={xk:Double 8}}"/>
-                <Setter Property="MinHeight" Value="26"/>
-                <Setter Property="MaxHeight" Value="{x:Static system:Double.PositiveInfinity}"/>
-                <Setter Property="xk:Interaction.Behaviors">
-                  <Setter.Value>
-                    <xk:BehaviorCollection>
-                      <xk:OnEventCommandBehavior EventName="MouseDoubleClick"
-                                                   Command="{Binding AssetDoubleClick, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}}"
-                                                   CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=controls:EditableContentListBox}}"/>
-                    </xk:BehaviorCollection>
-                  </Setter.Value>
-                </Setter>
-              </Style>
-            </xcdg:DataGridControl.ItemContainerStyle>
-            <xcdg:DataGridControl.View>
-              <!-- Don't forget to change TableflowViewItemsHost in TableflowView.GridElementTemplates.xaml -->
-              <!--<xcdg:TableflowView ContainerHeight="{Binding GridThumbnailSize, RelativeSource={RelativeSource AncestorType=view:AssetViewUserControl}, Converter={xk:Chained {xk:SumNum}, {xk:MaxNum}, Parameter1={xk:Double 8}, Parameter2={xk:Double 26}}}"
-                                            ScrollingAnimationDuration="0" RowFadeInAnimationDuration="0" IsColumnVirtualizationEnabled="False"/>-->
-              <xcdg:TableView AllowRowResize="False" IsColumnVirtualizationEnabled="False"/>
-            </xcdg:DataGridControl.View>
-            <i:Interaction.Behaviors>
-              <behaviors:XceedDataGridBindableSelectedItemsBehavior SelectedItems="{Binding SelectedContent}"/>
-              <behaviors:XceedDataGridDragDropBehavior DragVisualTemplate="{StaticResource DragVisualTemplate}"/>
-              <behaviors:XceedDataGridThumbnailPrioritizationBehavior/>
-              <behaviors:XceedDataGridResizableColumnsBehavior/>
-              <xk:CommandBindingBehavior RoutedCommand="ApplicationCommands.Delete" Command="{Binding DeleteContentCommand}" IsEnabled="{Binding CanDeleteAssets, ElementName=AssetView}"/>
-            </i:Interaction.Behaviors>
-          </view:DataGridEx>
-        </DataTemplate>
-
       </ResourceDictionary>
     </FrameworkElement.Resources>
     <ToolBarTray DockPanel.Dock="Top">
@@ -394,14 +326,6 @@
                   </Button>
                 </DockPanel>
               </MenuItem.Header>
-              <MenuItem Header="{xk:Localize Grid, Context=Menu}" CommandParameter="{StaticResource AssetGridView}">
-                <MenuItem.Command>
-                  <view:SetContentTemplateCommand Target="{x:Reference AssetViewPresenter}"/>
-                </MenuItem.Command>
-                <MenuItem.Icon>
-                  <Image Grid.Column="0" Source="{StaticResource ImageShowGrid}"/>
-                </MenuItem.Icon>
-              </MenuItem>
               <MenuItem Header="{xk:Localize Tiles, Context=Menu}" CommandParameter="{StaticResource AssetTileView}">
                 <MenuItem.Command>
                   <view:SetContentTemplateCommand Target="{x:Reference AssetViewPresenter}"/>
