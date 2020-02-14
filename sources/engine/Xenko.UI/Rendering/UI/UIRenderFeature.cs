@@ -36,6 +36,13 @@ namespace Xenko.Rendering.UI
 
         public override Type SupportedRenderObjectType => typeof(RenderUIElement);
 
+        /// <summary>
+        /// Represents the UI-element thats currently under the mouse cursor.
+        /// Only elements with CanBeHitByUser == true are taken into account.
+        /// Last processed element_state / ?UIComponent? with a valid element will be used.
+        /// </summary>
+        public UIElement UIElementUnderMouseCursor { get; private set; }
+
         protected override void InitializeCore()
         {
             base.InitializeCore();
@@ -61,7 +68,7 @@ namespace Xenko.Rendering.UI
 
         partial void PickingPrepare();
 
-        partial void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime);
+        partial void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime, ref UIElement elementUnderMouseCursor);
 
         partial void PickingClear();
 
@@ -120,6 +127,10 @@ namespace Xenko.Rendering.UI
                 }
             }
 
+            // see UIElementUnderMouseCursor property
+            UIElement elementUnderMouseCursor = null;
+            
+
             // update view parameters and perform UI picking
             foreach (var uiElementState in uiElementStates)
             {
@@ -128,6 +139,8 @@ namespace Xenko.Rendering.UI
                 if (rootElement == null)
                     continue;
 
+                UIElement loopedElementUnderMouseCursor = null;
+                
                 // calculate the size of the virtual resolution depending on target size (UI canvas)
                 var virtualResolution = renderObject.Resolution;
 
@@ -151,12 +164,18 @@ namespace Xenko.Rendering.UI
                         uiElementState.Update(renderObject, cameraComponent);
                 }
 
+                
                 // Check if the current UI component is being picked based on the current ViewParameters (used to draw this element)
                 using (Profiler.Begin(UIProfilerKeys.TouchEventsUpdate))
                 {
-                    PickingUpdate(uiElementState.RenderObject, context.CommandList.Viewport, ref uiElementState.WorldViewProjectionMatrix, drawTime);
+                    PickingUpdate(uiElementState.RenderObject, context.CommandList.Viewport, ref uiElementState.WorldViewProjectionMatrix, drawTime, ref loopedElementUnderMouseCursor);
+                    
+                    // only update result element, when this one has a value
+                    if (loopedElementUnderMouseCursor != null)
+                        elementUnderMouseCursor = loopedElementUnderMouseCursor; 
                 }
             }
+            UIElementUnderMouseCursor = elementUnderMouseCursor;
 
             // render the UI elements of all the entities
             foreach (var uiElementState in uiElementStates)
