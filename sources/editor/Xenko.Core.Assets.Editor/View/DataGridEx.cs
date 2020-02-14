@@ -14,7 +14,7 @@ using Xenko.Core.Presentation.Extensions;
 namespace Xenko.Core.Assets.Editor.View
 {
     /// <summary>
-    /// Xenko generic wpf data grid. 
+    /// Xenko generic wpf data grid. Left empty for future development on a generic datagrid.
     /// </summary>
     public class DataGridEx : DataGrid
     {
