@@ -377,10 +377,17 @@ namespace Xenko.Rendering
         /// <param name="value"></param>
         public void Set<T>(PermutationParameter<T> parameter, T value)
         {
-            if (!EqualityComparer<T>.Default.Equals((T)ObjectValues[parameter.BindingSlot], value))
+            bool isSame = EqualityComparer<T>.Default.Equals((T)ObjectValues[parameter.BindingSlot], value);
+            if (!isSame)
+            {
                 PermutationCounter++;
+            }
 
-            ObjectValues[parameter.BindingSlot] = value;
+            // For value types, we don't assign again because this causes boxing.
+            if (!typeof(T).IsValueType || !isSame)
+            {
+                ObjectValues[parameter.BindingSlot] = value;
+            }
         }
 
         /// <summary>
