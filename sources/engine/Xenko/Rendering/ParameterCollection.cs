@@ -448,7 +448,7 @@ namespace Xenko.Rendering
         public object GetObject(ParameterKey key)
         {
             if (key.Type != ParameterKeyType.Permutation && key.Type != ParameterKeyType.Object)
-                throw new InvalidOperationException("SetObject can only be used for Permutation or Object keys");
+                throw new InvalidOperationException("GetObject can only be used for Permutation or Object keys");
 
             var accessor = GetObjectParameterHelper(key, false);
             if (accessor.Offset == -1)
@@ -564,7 +564,7 @@ namespace Xenko.Rendering
                     newParameterKeyInfos.Items[i].BindingSlot = resourceCount++;
                 }
             }
-            
+
             var newDataValues = new byte[bufferSize];
             var newResourceValues = new object[resourceCount];
 
