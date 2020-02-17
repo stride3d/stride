@@ -20,9 +20,7 @@
 
   <ResourceDictionary.MergedDictionaries>
 
-    <ResourceDictionary Source="/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
-
-    <ResourceDictionary Source="TableViewScrollViewer.generic.xaml"/>
+    <ResourceDictionary Source="pack://application:,,,/Xenko.Core.Presentation;component/Themes/ExpressionDark/Theme.xaml"/>
 
     <!-- Include the view independant, color-scheme independant, theme resources -->
     <ResourceDictionary Source="Resources/ExpressionDark.normalcolor.Resources.xaml" />
