@@ -15,7 +15,7 @@ namespace Xenko.Graphics
     /// </summary>
     public class UIBatch : BatchBase<UIBatch.UIImageDrawInfo>
     {
-        private static readonly List<short[]> PrimiteTypeToIndices = new List<short[]>(4);
+        private static readonly short[][] PrimitiveTypeToIndices;
 
         private const int MaxVerticesPerElement = 16;
         private const int MaxIndicesPerElement = 54;
@@ -50,13 +50,15 @@ namespace Xenko.Graphics
 
         static UIBatch()
         {
-            PrimiteTypeToIndices.Add(new short[6]);  // rectangle
-            PrimiteTypeToIndices.Add(new short[54]); // border rectangle
-            PrimiteTypeToIndices.Add(new short[36]); // cube
-            PrimiteTypeToIndices.Add(new short[36]); // reverse cube
-
+            PrimitiveTypeToIndices = new[]
+            {
+                new short[6],  // rectangle
+                new short[54], // border rectangle
+                new short[36], // cube
+                new short[36], // reverse cube
+            };
             // rectangle
-            var indices = PrimiteTypeToIndices[(int)PrimitiveType.Rectangle];
+            var indices = PrimitiveTypeToIndices[(int)PrimitiveType.Rectangle];
             indices[0] = 0;
             indices[1] = 1;
             indices[2] = 2;
@@ -65,7 +67,7 @@ namespace Xenko.Graphics
             indices[5] = 2;
 
             // border rectangle
-            indices = PrimiteTypeToIndices[(int)PrimitiveType.BorderRectangle];
+            indices = PrimitiveTypeToIndices[(int)PrimitiveType.BorderRectangle];
             var count = 0;
             for (var j = 0; j < 3; ++j)
             {
@@ -83,7 +85,7 @@ namespace Xenko.Graphics
 
             // cube
             count = 0;
-            indices = PrimiteTypeToIndices[(int)PrimitiveType.Cube];
+            indices = PrimitiveTypeToIndices[(int)PrimitiveType.Cube];
             indices[count++] = 0; //front
             indices[count++] = 1;
             indices[count++] = 2;
@@ -127,8 +129,8 @@ namespace Xenko.Graphics
             indices[count] = 6;
 
             // reverse cube
-            var cubeIndices = PrimiteTypeToIndices[(int)PrimitiveType.Cube];
-            indices = PrimiteTypeToIndices[(int)PrimitiveType.ReverseCube];
+            var cubeIndices = PrimitiveTypeToIndices[(int)PrimitiveType.Cube];
+            indices = PrimitiveTypeToIndices[(int)PrimitiveType.ReverseCube];
             for (var i = 0; i < cubeIndices.Length; i += 3)
             {
                 indices[i + 0] = cubeIndices[i + 0];
@@ -507,7 +509,7 @@ namespace Xenko.Graphics
 
                 // the index buffer
                 var index = (short*)indexPtr;
-                var indices = PrimiteTypeToIndices[(int)drawInfo->Primitive];
+                var indices = PrimitiveTypeToIndices[(int)drawInfo->Primitive];
                 for (var i = 0; i < indices.Length; ++i)
                     index[i] = (short)(indices[i] + vertexOffset);
             }
