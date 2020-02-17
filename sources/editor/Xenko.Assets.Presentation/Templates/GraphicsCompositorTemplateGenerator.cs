@@ -13,20 +13,23 @@ namespace Xenko.Assets.Presentation.Templates
     {
         public new static readonly GraphicsCompositorTemplateGenerator Default = new GraphicsCompositorTemplateGenerator();
 
-        public static readonly Guid Level9TemplateId = new Guid("20947F4A-7B50-4716-AC85-D10EFF58CD33");
-        public static readonly Guid Level10TemplateId = new Guid("D4EE3BD3-9B06-460E-9175-D6AFB2459463");
+        public static readonly Dictionary<Guid, string> SupportedTemplatesToUrl = new Dictionary<Guid, string>
+        {
+            { new Guid("20947F4A-7B50-4716-AC85-D10EFF58CD33"), XenkoPackageUpgrader.DefaultGraphicsCompositorLevel9Url },
+            { new Guid("D4EE3BD3-9B06-460E-9175-D6AFB2459463"), XenkoPackageUpgrader.DefaultGraphicsCompositorLevel10Url },
+            { new Guid("4BC182D7-69D5-4BE2-9AF3-1C82F67B629D"), "GraphicsCompositor/DefaultGraphicsCompositorVoxels" },
+        };
 
         public override bool IsSupportingTemplate(TemplateDescription templateDescription)
         {
             if (templateDescription == null) throw new ArgumentNullException(nameof(templateDescription));
-            return templateDescription.Id == Level9TemplateId || templateDescription.Id == Level10TemplateId;
+            return SupportedTemplatesToUrl.ContainsKey(templateDescription.Id);
         }
 
         protected override IEnumerable<AssetItem> CreateAssets(AssetTemplateGeneratorParameters parameters)
         {
             // Find default graphics compositor to create a derived asset from
-            var graphicsCompositorUrl = parameters.Description.Id == Level9TemplateId ? XenkoPackageUpgrader.DefaultGraphicsCompositorLevel9Url : XenkoPackageUpgrader.DefaultGraphicsCompositorLevel10Url;
-            var graphicsCompositor = parameters.Package.FindAsset(graphicsCompositorUrl);
+            var graphicsCompositor = SupportedTemplatesToUrl.TryGetValue(parameters.Description.Id, out var graphicsCompositorUrl) ? parameters.Package.FindAsset(graphicsCompositorUrl) : null;
 
             // Something went wrong, create an empty asset
             if (graphicsCompositor == null)
