@@ -18,6 +18,17 @@ namespace Xenko.Rendering.Shadows
     /// </summary>
     public class LightPointShadowMapRendererCubeMap : LightShadowMapRendererBase
     {
+        // Face based on index in this array
+        private static readonly Matrix[] ViewFaceRotationMatrices = new[]
+        {
+            Matrix.RotationY(MathUtil.Pi),          // Front
+            Matrix.Identity,                        // Back
+            Matrix.RotationY(MathUtil.PiOverTwo),   // Right
+            Matrix.RotationY(-MathUtil.PiOverTwo),  // Left
+            Matrix.RotationX(-MathUtil.PiOverTwo),  // Up
+            Matrix.RotationX(MathUtil.PiOverTwo),   // Down
+        };
+
         // Number of border pixels to add to the cube map in order to allow filtering
         public const int BorderPixels = 8;
 
@@ -27,9 +38,9 @@ namespace Xenko.Rendering.Shadows
         {
             shaderDataPool = new PoolListStruct<ShaderData>(4, () => new ShaderData());
         }
-        
+
         public override void Reset(RenderContext context)
-        {   
+        {
             base.Reset(context);
 
             shaderDataPool.Clear();
@@ -54,51 +65,25 @@ namespace Xenko.Rendering.Shadows
             shadowMapTexture.CascadeCount = 6; // 6 faces
             return shadowMapTexture;
         }
-        
-        private Vector2 GetLightClippingPlanes(LightPoint pointLight)
+
+        private static Vector2 GetLightClippingPlanes(LightPoint pointLight)
         {
             // Note: we don't take exactly the required depth range since this will result in a very poor resolution in most of the light's range
             return new Vector2(0.1f, pointLight.Radius * 2);
         }
 
-        private void GetViewParameters(LightShadowMapTexture shadowMapTexture, int index, out Matrix view)
+        private static void GetViewParameters(LightShadowMapTexture shadowMapTexture, int index, out Matrix view)
         {
-            Matrix rotation = Matrix.Identity;
-
             // Apply light position
-            view = Matrix.Translation(-shadowMapTexture.RenderLight.Position);
+            var translationMatrix = Matrix.Translation(-shadowMapTexture.RenderLight.Position);
 
-            // Select face based on index
-            switch (index)
-            {
-                case 0: // Front
-                    rotation *= Matrix.RotationY(MathUtil.Pi);
-                    break;
-                case 1: // Back
-                    break;
-                case 2: // Right
-                    rotation *= Matrix.RotationY(MathUtil.PiOverTwo);
-                    break;
-                case 3: // Left
-                    rotation *= Matrix.RotationY(-MathUtil.PiOverTwo);
-                    break;
-                case 4: // Up
-                    rotation *= Matrix.RotationX(-MathUtil.PiOverTwo);
-                    break;
-                case 5: // Down
-                    rotation *= Matrix.RotationX(MathUtil.PiOverTwo);
-                    break;
-                default:
-                    throw new IndexOutOfRangeException(nameof(index));
-            }
-
-            view *= rotation;
+            Matrix.Multiply(ref translationMatrix, ref ViewFaceRotationMatrices[index], out view);
         }
 
         /// <returns>
         /// x = Near; y = 1/(Far-Near)
         /// </returns>
-        private Vector2 GetShadowMapDepthParameters(LightShadowMapTexture shadowMapTexture)
+        private static Vector2 GetShadowMapDepthParameters(LightShadowMapTexture shadowMapTexture)
         {
             var lightPoint = shadowMapTexture.Light as LightPoint;
             Vector2 clippingPlanes = GetLightClippingPlanes(lightPoint);
@@ -125,7 +110,7 @@ namespace Xenko.Rendering.Shadows
             shaderData.Projection = Matrix.PerspectiveFovRH(halfFov * 2, 1.0f, clippingPlanes.X, clippingPlanes.Y);
 
             Vector2 atlasSize = new Vector2(lightShadowMap.Atlas.Width, lightShadowMap.Atlas.Height);
-            
+
             for (int i = 0; i < 6; i++)
             {
                 Rectangle faceRectangle = lightShadowMap.GetRectangle(i);
@@ -138,15 +123,15 @@ namespace Xenko.Rendering.Shadows
                 var shadowRenderView = CreateRenderView();
                 shadowRenderView.RenderView = sourceView;
                 shadowRenderView.ShadowMapTexture = lightShadowMap;
-                shadowRenderView.Rectangle = lightShadowMap.GetRectangle(i);
-                shadowRenderView.ViewSize = new Vector2(lightShadowMap.GetRectangle(i).Width, lightShadowMap.GetRectangle(i).Height);
+                shadowRenderView.Rectangle = faceRectangle;
+                shadowRenderView.ViewSize = new Vector2(faceRectangle.Width, faceRectangle.Height);
 
                 shadowRenderView.NearClipPlane = clippingPlanes.X;
                 shadowRenderView.FarClipPlane = clippingPlanes.Y;
 
                 shadowRenderView.View = shaderData.View[i];
                 shadowRenderView.Projection = shaderData.Projection;
-                shadowRenderView.ViewProjection = shadowRenderView.View * shadowRenderView.Projection;
+                Matrix.Multiply(ref shadowRenderView.View, ref shadowRenderView.Projection, out shadowRenderView.ViewProjection);
 
                 // Create projection matrix with adjustment
                 var textureCoords = new Vector4(
@@ -159,10 +144,9 @@ namespace Xenko.Rendering.Shadows
                 float centerX = 0.5f * (textureCoords.X + textureCoords.Z);
                 float centerY = 0.5f * (textureCoords.Y + textureCoords.W);
 
-                var viewProjection = shadowRenderView.ViewProjection;
                 var projectionToShadow = Matrix.Scaling(leftX, -leftY, 1.0f) * Matrix.Translation(centerX, centerY, 0.0f);
-                shaderData.WorldToShadow[i] = viewProjection * projectionToShadow;
-                
+                Matrix.Multiply(ref shadowRenderView.ViewProjection, ref projectionToShadow, out shaderData.WorldToShadow[i]);
+
                 shadowRenderView.VisiblityIgnoreDepthPlanes = false;
 
                 // Add the render view for the current frame
@@ -206,7 +190,7 @@ namespace Xenko.Rendering.Shadows
         private class ShaderGroupData : LightShadowMapShaderGroupDataBase
         {
             private const string ShaderName = "ShadowMapReceiverPointCubeMap";
-            
+
             private Texture shadowMapTexture;
             private Vector2 shadowMapTextureSize;
             private Vector2 shadowMapTextureTexelSize;
@@ -258,7 +242,7 @@ namespace Xenko.Rendering.Shadows
             {
                 return new ShaderClassSource(ShaderName, lightCurrentCount);
             }
-            
+
             public override void ApplyDrawParameters(RenderDrawContext context, ParameterCollection parameters, FastListStruct<LightDynamicEntry> currentLights, ref BoundingBoxExt boundingBox)
             {
                 var boundingBox2 = (BoundingBox)boundingBox;

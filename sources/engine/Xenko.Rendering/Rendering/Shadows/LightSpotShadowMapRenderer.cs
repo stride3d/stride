@@ -66,9 +66,8 @@ namespace Xenko.Rendering.Shadows
             shaderData.DepthRange = new Vector2(nearClip, farClip); //////////////////////////////////////////
 
             // Update the shadow camera
-            var viewMatrix = renderLight.WorldMatrix;
-            viewMatrix.Invert();
-            var projectionMatrix = Matrix.PerspectiveFovRH(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip); // Perspective Projection for spotlights
+            Matrix.Invert(ref renderLight.WorldMatrix, out var viewMatrix);
+            Matrix.PerspectiveFovRH(spotLight.AngleOuterInRadians, spotLight.AspectRatio, nearClip, farClip, out var projectionMatrix); // Perspective Projection for spotlights
             Matrix.Multiply(ref viewMatrix, ref projectionMatrix, out var viewProjectionMatrix);
 
             var shadowMapRectangle = lightShadowMap.GetRectangle(0);
@@ -93,7 +92,9 @@ namespace Xenko.Rendering.Shadows
             float centerY = 0.5f * (cascadeTextureCoords.Y + cascadeTextureCoords.W);
 
             // Compute receiver view proj matrix
-            Matrix adjustmentMatrix = Matrix.Scaling(leftX, -leftY, 1.0f) * Matrix.Translation(centerX, centerY, 0.0f);
+            Matrix.Scaling(leftX, -leftY, 1.0f, out var scaleMatrix);
+            Matrix.Translation(centerX, centerY, 0.0f, out var translationMatrix);
+            Matrix.Multiply(ref scaleMatrix, ref translationMatrix, out var adjustmentMatrix);
             // Calculate View Proj matrix from World space to Cascade space
             Matrix.Multiply(ref viewProjectionMatrix, ref adjustmentMatrix, out shaderData.WorldToShadowCascadeUV);
 
@@ -107,7 +108,7 @@ namespace Xenko.Rendering.Shadows
             var shadowRenderView = CreateRenderView();
             shadowRenderView.RenderView = sourceView;
             shadowRenderView.ShadowMapTexture = lightShadowMap;
-            shadowRenderView.Rectangle = lightShadowMap.GetRectangle(0);
+            shadowRenderView.Rectangle = shadowMapRectangle;
             // Compute view parameters
             shadowRenderView.View = shaderData.ViewMatrix;
             shadowRenderView.Projection = shaderData.ProjectionMatrix;
@@ -224,7 +225,7 @@ namespace Xenko.Rendering.Shadows
                     {
                         var singleLightData = (LightSpotShadowMapShaderData)lightEntry.ShadowMapTexture.ShaderData;
                         worldToShadowCascadeUV[lightIndex] = singleLightData.WorldToShadowCascadeUV;
-                        inverseWorldToShadowCascadeUV[lightIndex] = Matrix.Invert(singleLightData.WorldToShadowCascadeUV);
+                        Matrix.Invert(ref singleLightData.WorldToShadowCascadeUV, out inverseWorldToShadowCascadeUV[lightIndex]);
 
                         depthBiases[lightIndex] = singleLightData.DepthBias;
                         offsetScales[lightIndex] = singleLightData.OffsetScale;
