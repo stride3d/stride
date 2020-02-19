@@ -960,6 +960,10 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <param name="result">The product of the two matrices.</param>
+        /// <remarks>
+        /// Variables passed as <paramref name="left"/> or <paramref name="right"/> must not be used as the out parameter
+        /// <paramref name="result"/>, because <paramref name="result"/> is calculated in-place.
+        /// </remarks>
         public static void MultiplyTo(ref Matrix left, ref Matrix right, out Matrix result)
         {
             result.M11 = (left.M11 * right.M11) + (left.M12 * right.M21) + (left.M13 * right.M31) + (left.M14 * right.M41);
@@ -986,6 +990,10 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <param name="result">The product of the two matrices.</param>
+        /// <remarks>
+        /// Variables passed as <paramref name="left"/> or <paramref name="right"/> must not be used as the out parameter
+        /// <paramref name="result"/>, because <paramref name="result"/> is calculated in-place.
+        /// </remarks>
         public static void Multiply(ref Matrix left, ref Matrix right, out Matrix result)
         {
             result.M11 = (left.M11 * right.M11) + (left.M12 * right.M21) + (left.M13 * right.M31) + (left.M14 * right.M41);
@@ -1012,6 +1020,10 @@ namespace Xenko.Core.Mathematics
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
         /// <param name="result">The product of the two matrices.</param>
+        /// <remarks>
+        /// Variables passed as <paramref name="left"/> or <paramref name="right"/> must not be used as the out parameter
+        /// <paramref name="result"/>, because <paramref name="result"/> is calculated in-place.
+        /// </remarks>
         public static void MultiplyRef(ref Matrix left, ref Matrix right, ref Matrix result)
         {
             result.M11 = (left.M11 * right.M11) + (left.M12 * right.M21) + (left.M13 * right.M31) + (left.M14 * right.M41);
