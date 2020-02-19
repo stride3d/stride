@@ -309,7 +309,8 @@ namespace Xenko.Engine
                         scene.UpdateWorldMatrix();
                     }
 
-                    Matrix.Multiply(ref WorldMatrix, ref scene.WorldMatrix, out WorldMatrix);
+                    var curWorldMatrix = WorldMatrix;   // Must make a copy to use as the ref parameter, otherwise matrix will not be calculated correctly
+                    Matrix.Multiply(ref curWorldMatrix, ref scene.WorldMatrix, out WorldMatrix);
                 }
             }
 
