@@ -352,14 +352,16 @@ namespace Xenko.Graphics
                 var renderTargets = &description.RenderTarget0;
                 for (int i = 0; i < 8; i++)
                 {
-                    nativeDescription.RenderTarget[i].IsBlendEnabled = renderTargets[i].BlendEnable;
-                    nativeDescription.RenderTarget[i].SourceBlend = (SharpDX.Direct3D11.BlendOption)renderTargets[i].ColorSourceBlend;
-                    nativeDescription.RenderTarget[i].DestinationBlend = (SharpDX.Direct3D11.BlendOption)renderTargets[i].ColorDestinationBlend;
-                    nativeDescription.RenderTarget[i].BlendOperation = (SharpDX.Direct3D11.BlendOperation)renderTargets[i].ColorBlendFunction;
-                    nativeDescription.RenderTarget[i].SourceAlphaBlend = (SharpDX.Direct3D11.BlendOption)renderTargets[i].AlphaSourceBlend;
-                    nativeDescription.RenderTarget[i].DestinationAlphaBlend = (SharpDX.Direct3D11.BlendOption)renderTargets[i].AlphaDestinationBlend;
-                    nativeDescription.RenderTarget[i].AlphaBlendOperation = (SharpDX.Direct3D11.BlendOperation)renderTargets[i].AlphaBlendFunction;
-                    nativeDescription.RenderTarget[i].RenderTargetWriteMask = (SharpDX.Direct3D11.ColorWriteMaskFlags)renderTargets[i].ColorWriteChannels;
+                    ref var renderTarget = ref renderTargets[i];
+                    ref var nativeRenderTarget = ref nativeDescription.RenderTarget[i];
+                    nativeRenderTarget.IsBlendEnabled = renderTarget.BlendEnable;
+                    nativeRenderTarget.SourceBlend = (SharpDX.Direct3D11.BlendOption)renderTarget.ColorSourceBlend;
+                    nativeRenderTarget.DestinationBlend = (SharpDX.Direct3D11.BlendOption)renderTarget.ColorDestinationBlend;
+                    nativeRenderTarget.BlendOperation = (SharpDX.Direct3D11.BlendOperation)renderTarget.ColorBlendFunction;
+                    nativeRenderTarget.SourceAlphaBlend = (SharpDX.Direct3D11.BlendOption)renderTarget.AlphaSourceBlend;
+                    nativeRenderTarget.DestinationAlphaBlend = (SharpDX.Direct3D11.BlendOption)renderTarget.AlphaDestinationBlend;
+                    nativeRenderTarget.AlphaBlendOperation = (SharpDX.Direct3D11.BlendOperation)renderTarget.AlphaBlendFunction;
+                    nativeRenderTarget.RenderTargetWriteMask = (SharpDX.Direct3D11.ColorWriteMaskFlags)renderTarget.ColorWriteChannels;
                 }
 
                 return nativeDescription;
