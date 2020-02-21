@@ -293,14 +293,16 @@ namespace Xenko.Graphics
             var renderTargets = &description.RenderTarget0;
             for (int i = 0; i < 8; ++i)
             {
-                nativeDescription.RenderTarget[i].IsBlendEnabled = renderTargets[i].BlendEnable;
-                nativeDescription.RenderTarget[i].SourceBlend = (BlendOption)renderTargets[i].ColorSourceBlend;
-                nativeDescription.RenderTarget[i].DestinationBlend = (BlendOption)renderTargets[i].ColorDestinationBlend;
-                nativeDescription.RenderTarget[i].BlendOperation = (BlendOperation)renderTargets[i].ColorBlendFunction;
-                nativeDescription.RenderTarget[i].SourceAlphaBlend = (BlendOption)renderTargets[i].AlphaSourceBlend;
-                nativeDescription.RenderTarget[i].DestinationAlphaBlend = (BlendOption)renderTargets[i].AlphaDestinationBlend;
-                nativeDescription.RenderTarget[i].AlphaBlendOperation = (BlendOperation)renderTargets[i].AlphaBlendFunction;
-                nativeDescription.RenderTarget[i].RenderTargetWriteMask = (ColorWriteMaskFlags)renderTargets[i].ColorWriteChannels;
+                ref var renderTarget = ref renderTargets[i];
+                ref var nativeRenderTarget = ref nativeDescription.RenderTarget[i];
+                nativeRenderTarget.IsBlendEnabled = renderTarget.BlendEnable;
+                nativeRenderTarget.SourceBlend = (BlendOption)renderTarget.ColorSourceBlend;
+                nativeRenderTarget.DestinationBlend = (BlendOption)renderTarget.ColorDestinationBlend;
+                nativeRenderTarget.BlendOperation = (BlendOperation)renderTarget.ColorBlendFunction;
+                nativeRenderTarget.SourceAlphaBlend = (BlendOption)renderTarget.AlphaSourceBlend;
+                nativeRenderTarget.DestinationAlphaBlend = (BlendOption)renderTarget.AlphaDestinationBlend;
+                nativeRenderTarget.AlphaBlendOperation = (BlendOperation)renderTarget.AlphaBlendFunction;
+                nativeRenderTarget.RenderTargetWriteMask = (ColorWriteMaskFlags)renderTarget.ColorWriteChannels;
             }
 
             return nativeDescription;

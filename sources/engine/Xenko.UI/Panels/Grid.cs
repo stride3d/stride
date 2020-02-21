@@ -284,9 +284,9 @@ namespace Xenko.UI.Panels
                 // reset the estimated size of the auto-sized strip calculated before.
                 InitializeStripDefinitionActualSize(definitions);
 
-                for (var index = 0; index < stripDefinitions[dim].Count; index++)
+                for (var index = 0; index < definitions.Count; index++)
                 {
-                    var currentDefinition = stripDefinitions[dim][index];
+                    var currentDefinition = definitions[index];
                     if (currentDefinition.Type != StripType.Auto) // we are interested only in auto-sized strip here
                         continue;
 
@@ -294,14 +294,15 @@ namespace Xenko.UI.Panels
                     foreach (var element in stripIndexToNoStarElements[dim][index])
                     {
                         var currentDefinitionIndex = 0; // the index of 'currentDefinition' in 'elementToStripDefinitions[dim][element]'
+                        var elementStripDefinitions = elementToStripDefinitions[dim][element];
 
                         // first determine the total space still needed for the element
                         var spaceAvailable = 0f;
-                        for (var i = 0; i < elementToStripDefinitions[dim][element].Count; i++)
+                        for (var i = 0; i < elementStripDefinitions.Count; i++)
                         {
-                            spaceAvailable += elementToStripDefinitions[dim][element][i].ActualSize;
+                            spaceAvailable += elementStripDefinitions[i].ActualSize;
 
-                            if (elementToStripDefinitions[dim][element][i] == currentDefinition)
+                            if (elementStripDefinitions[i] == currentDefinition)
                                 currentDefinitionIndex = i;
                         }
                         var spaceNeeded = Math.Max(0, element.DesiredSizeWithMargins[dim] - spaceAvailable);
@@ -311,9 +312,9 @@ namespace Xenko.UI.Panels
                             continue;
 
                         // look if the space needed can be found in next strip definitions
-                        for (var i = currentDefinitionIndex + 1; i < elementToStripDefinitions[dim][element].Count; i++)
+                        for (var i = currentDefinitionIndex + 1; i < elementStripDefinitions.Count; i++)
                         {
-                            var def = elementToStripDefinitions[dim][element][i];
+                            var def = elementStripDefinitions[i];
 
                             if (def.Type == StripType.Auto)
                                 spaceNeeded = Math.Max(0, spaceNeeded - (def.MaximumSize - def.ActualSize));
