@@ -99,7 +99,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
         public void Execute(TexImage image, IRequest request)
         {
-            XenkoTextureLibraryData libraryData = image.LibraryData.ContainsKey(this) ? (XenkoTextureLibraryData)image.LibraryData[this] : null;
+            XenkoTextureLibraryData libraryData = image.LibraryData.TryGetValue(this, out var libData) ? (XenkoTextureLibraryData)libData : null;
 
             switch (request.Type)
             {
@@ -419,7 +419,7 @@ namespace Xenko.TextureConverter.TexLibraries
             image.SubImageArray = new TexImage.SubImage[imageCount];
             
             for (int i = 0; i < imageCount; ++i)
-            { 
+            {
                 image.SubImageArray[i] = new TexImage.SubImage();
                 image.SubImageArray[i].Data = inputImage.PixelBuffer[i * bufferStepFactor].DataPointer;
                 image.SubImageArray[i].DataSize = inputImage.PixelBuffer[i * bufferStepFactor].BufferStride;

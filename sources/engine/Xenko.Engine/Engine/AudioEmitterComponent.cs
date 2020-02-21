@@ -136,8 +136,8 @@ namespace Xenko.Engine
             if (sound.Channels > 1)
                 throw new InvalidOperationException("The provided Sound has more than one channel. It can not be localized in the 3D scene, please check the spatialized option in the Sound asset.");
 
-            if (SoundToController.ContainsKey(sound))
-                return SoundToController[sound];
+            if (SoundToController.TryGetValue(sound, out var existingController))
+                return existingController;
 
             var newController = new AudioEmitterSoundController(this, sound);
             SoundToController[sound] = newController;

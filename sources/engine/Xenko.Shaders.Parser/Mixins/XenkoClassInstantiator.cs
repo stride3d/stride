@@ -92,7 +92,7 @@ namespace Xenko.Shaders.Parser.Mixins
             // Try to find usage of all MemberName 'yyy' in reference expressions like "xxx.yyy" and replace by their
             // generic instantiation
             var memberVariableName = memberReferenceExpression.Member.Text;
-            if (variableGenerics.ContainsKey(memberVariableName) && variableGenerics[memberVariableName].Type is MemberName)
+            if (variableGenerics.TryGetValue(memberVariableName, out var memberVariable) && memberVariable.Type is MemberName)
             {
                 string memberName;
                 if (stringGenerics.TryGetValue(memberVariableName, out memberName) && !autoGenericInstances)
@@ -101,7 +101,7 @@ namespace Xenko.Shaders.Parser.Mixins
                 }
                 else
                 {
-                    memberReferenceExpression.TypeInference.Declaration = variableGenerics[memberVariableName];
+                    memberReferenceExpression.TypeInference.Declaration = memberVariable;
                 }
             }
         }
@@ -140,7 +140,7 @@ namespace Xenko.Shaders.Parser.Mixins
             }
 
             // MemberName keyword: replace variable names
-            if (variableGenerics.ContainsKey(variable.Name) && variableGenerics[variable.Name].Type is MemberName)
+            if (variableGenerics.TryGetValue(variable.Name, out var genVariable) && genVariable.Type is MemberName)
             {
                 string memberName;
                 if (stringGenerics.TryGetValue(variable.Name, out memberName))

@@ -17,7 +17,7 @@ namespace Xenko.UI.Renderers
         private readonly ElementRenderer defaultRenderer;
 
         private readonly Dictionary<Type, ElementRenderer> typeToRenderers = new Dictionary<Type, ElementRenderer>();
-        
+
         public DefaultRenderersFactory(IServiceRegistry services)
         {
             defaultRenderer = new ElementRenderer(services);
@@ -40,8 +40,8 @@ namespace Xenko.UI.Renderers
             var currentType = element.GetType();
             while (currentType != null)
             {
-                if (typeToRenderers.ContainsKey(currentType))
-                    return typeToRenderers[currentType];
+                if (typeToRenderers.TryGetValue(currentType, out var renderer))
+                    return renderer;
 
                 currentType = currentType.GetTypeInfo().BaseType;
             }

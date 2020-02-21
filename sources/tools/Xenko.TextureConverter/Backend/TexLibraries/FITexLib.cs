@@ -172,7 +172,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
         public void Execute(TexImage image, IRequest request)
         {
-            FreeImageTextureLibraryData libraryData = image.LibraryData.ContainsKey(this) ? (FreeImageTextureLibraryData)image.LibraryData[this] : null;
+            FreeImageTextureLibraryData libraryData = image.LibraryData.TryGetValue(this, out var libData) ? (FreeImageTextureLibraryData)libData : null;
 
             switch (request.Type)
             {
@@ -234,7 +234,7 @@ namespace Xenko.TextureConverter.TexLibraries
 
                 if (temp.IsNull)
                     throw new Exception("FreeImage's image data is null");
-            } 
+            }
             catch (Exception e)
             {
                 Log.Error("Loading file " + loader.FilePath + " failed: " + e.Message);
