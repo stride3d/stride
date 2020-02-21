@@ -183,9 +183,9 @@ namespace Xenko.Assets.Presentation.AssetEditors.EntityHierarchyEditor.Game
                     var attribute = gizmoType.GetCustomAttribute<GizmoComponentAttribute>(true);
                     isMainGizmo = attribute.IsMainGizmo;
                     // Remove the fallback gizmo if we got a new component.
-                    if (gizmoEntities != null && gizmoEntities.ContainsKey(entity.Transform))
+                    if (gizmoEntities != null && gizmoEntities.TryGetValue(entity.Transform, out var removeGizmo))
                     {
-                        RemoveGizmo(gizmoEntities, gizmoEntities[entity.Transform], entity.Transform);
+                        RemoveGizmo(gizmoEntities, removeGizmo, entity.Transform);
                     }
                 }
                 if (isMainGizmo)

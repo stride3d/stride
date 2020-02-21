@@ -162,9 +162,8 @@ namespace Xenko.Assets.Sprite
                     var center = image.Center + (image.CenterFromMiddle ? new Vector2(image.TextureRegion.Width, image.TextureRegion.Height) / 2 : Vector2.Zero);
 
                     if (isPacking
-                        && spriteToPackedSprite.ContainsKey(image)) // ensure that unpackable elements (invalid because of null size/texture) are properly added in the sheet using the normal path
+                        && spriteToPackedSprite.TryGetValue(image, out var packedSprite)) // ensure that unpackable elements (invalid because of null size/texture) are properly added in the sheet using the normal path
                     {
-                        var packedSprite = spriteToPackedSprite[image];
                         var isOriginalSpriteRotated = image.Orientation == ImageOrientation.Rotated90;
 
                         region = packedSprite.Region;

@@ -74,8 +74,8 @@ namespace Xenko.Core.Collections
         public bool Remove([NotNull] TKey key)
         {
             var collectionChanged = itemRemoved;
-            if (collectionChanged != null && innerDictionary.ContainsKey(key))
-                collectionChanged(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, key, innerDictionary[key], null, true));
+            if (collectionChanged != null && innerDictionary.TryGetValue(key, out var dictValue))
+                collectionChanged(this, new TrackingCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, key, dictValue, null, true));
 
             return innerDictionary.Remove(key);
         }

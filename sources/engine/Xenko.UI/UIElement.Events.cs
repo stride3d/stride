@@ -125,7 +125,7 @@ namespace Xenko.UI
                 classHandler.Invoke(this, e);
 
             // Trigger instance handlers
-            if (eventsToHandlers.ContainsKey(routedEvent))
+            if (eventsToHandlers.TryGetValue(routedEvent, out var handlers))
             {
                 // get a list of handler from the pool where we can copy the handler to trigger
                 if (RoutedEventHandlerInfoListPool.Count == 0)
@@ -133,7 +133,7 @@ namespace Xenko.UI
                 var pooledList = RoutedEventHandlerInfoListPool.Dequeue();
 
                 // copy the RoutedEventHandlerEventInfo list into a list of the pool in order to be able to modify the handler list in the handler itself
-                pooledList.AddRange(eventsToHandlers[routedEvent]);
+                pooledList.AddRange(handlers);
 
                 // iterate on the pooled list to invoke handlers
                 foreach (var handlerInfo in pooledList)

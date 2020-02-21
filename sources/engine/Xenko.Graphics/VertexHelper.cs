@@ -147,11 +147,11 @@ namespace Xenko.Graphics
             {
                 var vertexElement = VertexElement.TextureCoordinate(i, DefaultUVFormat);
                 var semantic = vertexElement.SemanticAsText;
-                if (offsetMapping.ContainsKey(semantic))
+                if (offsetMapping.TryGetValue(semantic, out int offset))
                 {
                     if (vertexUVOffset < 0)
                     {
-                        vertexUVOffset = offsetMapping[semantic];
+                        vertexUVOffset = offset;
                     }
                 }
                 else

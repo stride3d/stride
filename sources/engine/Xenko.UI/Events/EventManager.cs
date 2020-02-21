@@ -25,8 +25,9 @@ namespace Xenko.UI.Events
             var currentType = ownerType;
             while (currentType != null)
             {
-                if (OwnerToEvents.ContainsKey(currentType) && OwnerToEvents[currentType].ContainsKey(eventName))
-                    return OwnerToEvents[currentType][eventName];
+                if (OwnerToEvents.TryGetValue(currentType, out var eventsMap)
+                    && eventsMap.TryGetValue(eventName, out var routedEvent))
+                    return routedEvent;
 
                 currentType = currentType.GetTypeInfo().BaseType;
             }
@@ -101,8 +102,9 @@ namespace Xenko.UI.Events
             var currentType = classType;
             while (currentType != null)
             {
-                if (ClassesToClassHandlers.ContainsKey(currentType) && ClassesToClassHandlers[currentType].ContainsKey(routedEvent))
-                    return ClassesToClassHandlers[currentType][routedEvent];
+                if (ClassesToClassHandlers.TryGetValue(currentType, out var classHandlersMap)
+                    && classHandlersMap.TryGetValue(routedEvent, out var handler))
+                    return handler;
 
                 currentType = currentType.GetTypeInfo().BaseType;
             }
