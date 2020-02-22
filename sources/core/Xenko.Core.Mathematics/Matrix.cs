@@ -7,17 +7,17 @@
 // -----------------------------------------------------------------------------
 /*
 * Copyright (c) 2007-2011 SlimDX Group
-* 
+*
 * Permission is hereby granted, free of charge, to any person obtaining a copy
 * of this software and associated documentation files (the "Software"), to deal
 * in the Software without restriction, including without limitation the rights
 * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 * copies of the Software, and to permit persons to whom the Software is
 * furnished to do so, subject to the following conditions:
-* 
+*
 * The above copyright notice and this permission notice shall be included in
 * all copies or substantial portions of the Software.
-* 
+*
 * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -77,7 +77,7 @@ namespace Xenko.Core.Mathematics
         /// Value at row 4 column 1 of the matrix.
         /// </summary>
         public float M41;
-        
+
         /// <summary>
         /// Value at row 1 column 2 of the matrix.
         /// </summary>
@@ -102,7 +102,7 @@ namespace Xenko.Core.Mathematics
         /// Value at row 1 column 3 of the matrix.
         /// </summary>
         public float M13;
-        
+
         /// <summary>
         /// Value at row 2 column 3 of the matrix.
         /// </summary>
@@ -117,7 +117,7 @@ namespace Xenko.Core.Mathematics
         /// Value at row 4 column 3 of the matrix.
         /// </summary>
         public float M43;
-        
+
         /// <summary>
         /// Value at row 1 column 4 of the matrix.
         /// </summary>
@@ -598,14 +598,14 @@ namespace Xenko.Core.Mathematics
 
             L = new Matrix();
             L.M11 = Vector4.Dot(Q.Row1, Row1);
-            
+
             L.M21 = Vector4.Dot(Q.Row1, Row2);
             L.M22 = Vector4.Dot(Q.Row2, Row2);
-            
+
             L.M31 = Vector4.Dot(Q.Row1, Row3);
             L.M32 = Vector4.Dot(Q.Row2, Row3);
             L.M33 = Vector4.Dot(Q.Row3, Row3);
-            
+
             L.M41 = Vector4.Dot(Q.Row1, Row4);
             L.M42 = Vector4.Dot(Q.Row2, Row4);
             L.M43 = Vector4.Dot(Q.Row3, Row4);
@@ -622,7 +622,7 @@ namespace Xenko.Core.Mathematics
         {
             pitch = (float)Math.Asin(-M32);
             // Hardcoded constant - burn him, he's a witch
-            // double threshold = 0.001; 
+            // double threshold = 0.001;
             double test = Math.Cos(pitch);
             if (test > MathUtil.ZeroTolerance)
             {
@@ -956,6 +956,8 @@ namespace Xenko.Core.Mathematics
 
         /// <summary>
         /// Determines the product of two matrices.
+        /// Variables passed as <paramref name="left"/> or <paramref name="right"/> must not be used as the out parameter
+        /// <paramref name="result"/>, because <paramref name="result"/> is calculated in-place.
         /// </summary>
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
@@ -982,6 +984,8 @@ namespace Xenko.Core.Mathematics
 
         /// <summary>
         /// Determines the product of two matrices.
+        /// Variables passed as <paramref name="left"/> or <paramref name="right"/> must not be used as the out parameter
+        /// <paramref name="result"/>, because <paramref name="result"/> is calculated in-place.
         /// </summary>
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
@@ -1008,6 +1012,8 @@ namespace Xenko.Core.Mathematics
 
         /// <summary>
         /// Determines the product of two matrices.
+        /// Variables passed as <paramref name="left"/> or <paramref name="right"/> must not be used as the out parameter
+        /// <paramref name="result"/>, because <paramref name="result"/> is calculated in-place.
         /// </summary>
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
@@ -1223,16 +1229,16 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs a linear interpolation between two matricies.
+        /// Performs a linear interpolation between two matrices.
         /// </summary>
         /// <param name="start">Start matrix.</param>
         /// <param name="end">End matrix.</param>
         /// <param name="amount">Value between 0 and 1 indicating the weight of <paramref name="end"/>.</param>
-        /// <param name="result">When the method completes, contains the linear interpolation of the two matricies.</param>
+        /// <param name="result">When the method completes, contains the linear interpolation of the two matrices.</param>
         /// <remarks>
         /// This method performs the linear interpolation based on the following formula.
         /// <code>start + (end - start) * amount</code>
-        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
+        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
         /// </remarks>
         public static void Lerp(ref Matrix start, ref Matrix end, float amount, out Matrix result)
         {
@@ -1255,7 +1261,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs a linear interpolation between two matricies.
+        /// Performs a linear interpolation between two matrices.
         /// </summary>
         /// <param name="start">Start matrix.</param>
         /// <param name="end">End matrix.</param>
@@ -1264,7 +1270,7 @@ namespace Xenko.Core.Mathematics
         /// <remarks>
         /// This method performs the linear interpolation based on the following formula.
         /// <code>start + (end - start) * amount</code>
-        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned. 
+        /// Passing <paramref name="amount"/> a value of 0 will cause <paramref name="start"/> to be returned; a value of 1 will cause <paramref name="end"/> to be returned.
         /// </remarks>
         public static Matrix Lerp(Matrix start, Matrix end, float amount)
         {
@@ -1274,7 +1280,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs a cubic interpolation between two matricies.
+        /// Performs a cubic interpolation between two matrices.
         /// </summary>
         /// <param name="start">Start matrix.</param>
         /// <param name="end">End matrix.</param>
@@ -2450,13 +2456,13 @@ namespace Xenko.Core.Mathematics
         /// <param name="plane">The plane onto which to project the geometry as a shadow. This parameter is assumed to be normalized.</param>
         /// <param name="result">When the method completes, contains the shadow matrix.</param>
         public static void Shadow(ref Vector4 light, ref Plane plane, out Matrix result)
-        {        
+        {
             float dot = (plane.Normal.X * light.X) + (plane.Normal.Y * light.Y) + (plane.Normal.Z * light.Z) + (plane.D * light.W);
             float x = -plane.Normal.X;
             float y = -plane.Normal.Y;
             float z = -plane.Normal.Z;
             float d = -plane.D;
-        
+
             result.M11 = (x * light.X) + dot;
             result.M21 = y * light.X;
             result.M31 = z * light.X;
@@ -2474,7 +2480,7 @@ namespace Xenko.Core.Mathematics
             result.M34 = z * light.W;
             result.M44 = (d * light.W) + dot;
         }
-        
+
         /// <summary>
         /// Creates a matrix that flattens geometry into a shadow.
         /// </summary>
@@ -3009,7 +3015,7 @@ namespace Xenko.Core.Mathematics
             Matrix sr = RotationQuaternion(scalingRotation);
 
             result = Translation(-scalingCenter) * Transpose(sr) * Scaling(scaling) * sr * Translation(scalingCenter) * Translation(-rotationCenter) *
-                RotationQuaternion(rotation) * Translation(rotationCenter) * Translation(translation);       
+                RotationQuaternion(rotation) * Translation(rotationCenter) * Translation(translation);
         }
 
         /// <summary>
@@ -3041,7 +3047,7 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the created transformation matrix.</param>
         public static void Transformation2D(ref Vector2 scalingCenter, float scalingRotation, ref Vector2 scaling, ref Vector2 rotationCenter, float rotation, ref Vector2 translation, out Matrix result)
         {
-            result = Translation((Vector3)(-scalingCenter)) * RotationZ(-scalingRotation) * Scaling((Vector3)scaling) * RotationZ(scalingRotation) * Translation((Vector3)scalingCenter) * 
+            result = Translation((Vector3)(-scalingCenter)) * RotationZ(-scalingRotation) * Scaling((Vector3)scaling) * RotationZ(scalingRotation) * Translation((Vector3)scalingCenter) *
                 Translation((Vector3)(-rotationCenter)) * RotationZ(rotation) * Translation((Vector3)rotationCenter) * Translation((Vector3)translation);
 
             result.M33 = 1f;
@@ -3113,11 +3119,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Adds two matricies.
+        /// Adds two matrices.
         /// </summary>
         /// <param name="left">The first matrix to add.</param>
         /// <param name="right">The second matrix to add.</param>
-        /// <returns>The sum of the two matricies.</returns>
+        /// <returns>The sum of the two matrices.</returns>
         public static Matrix operator +(Matrix left, Matrix right)
         {
             Matrix result;
@@ -3136,11 +3142,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Subtracts two matricies.
+        /// Subtracts two matrices.
         /// </summary>
         /// <param name="left">The first matrix to subtract.</param>
         /// <param name="right">The second matrix to subtract.</param>
-        /// <returns>The difference between the two matricies.</returns>
+        /// <returns>The difference between the two matrices.</returns>
         public static Matrix operator -(Matrix left, Matrix right)
         {
             Matrix result;
@@ -3191,7 +3197,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="left">The first matrix to multiply.</param>
         /// <param name="right">The second matrix to multiply.</param>
-        /// <returns>The product of the two matricies.</returns>
+        /// <returns>The product of the two matrices.</returns>
         public static Matrix operator *(Matrix left, Matrix right)
         {
             Matrix result;
@@ -3213,11 +3219,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Divides two matricies.
+        /// Divides two matrices.
         /// </summary>
         /// <param name="left">The first matrix to divide.</param>
         /// <param name="right">The second matrix to divide.</param>
-        /// <returns>The quotient of the two matricies.</returns>
+        /// <returns>The quotient of the two matrices.</returns>
         public static Matrix operator /(Matrix left, Matrix right)
         {
             Matrix result;
@@ -3318,7 +3324,7 @@ namespace Xenko.Core.Mathematics
         /// Returns a hash code for this instance.
         /// </summary>
         /// <returns>
-        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table. 
+        /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
         /// </returns>
         public override int GetHashCode()
         {
