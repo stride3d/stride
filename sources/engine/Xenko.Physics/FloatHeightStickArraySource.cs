@@ -14,6 +14,7 @@ namespace Xenko.Physics
         public HeightfieldTypes HeightType => HeightfieldTypes.Float;
 
         [DataMember(10)]
+        [Display("Size")]
         public Int2 HeightStickSize { get; set; } = new Int2(65, 65);
 
         [DataMember(20)]

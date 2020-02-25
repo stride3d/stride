@@ -6,7 +6,7 @@ using Xenko.Core;
 namespace Xenko.Physics
 {
     [DataContract]
-    [Display("Fit to height range")]
+    [Display("Auto")]
     public class HeightScaleCalculator : IHeightScaleCalculator
     {
         public float Calculate(IHeightStickParameters heightDescription)

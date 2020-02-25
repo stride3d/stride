@@ -5,7 +5,7 @@ using Xenko.Core;
 namespace Xenko.Physics
 {
     [DataContract]
-    [Display("Value")]
+    [Display("Custom")]
     public class CustomHeightScaleCalculator : IHeightScaleCalculator
     {
         [DataMember(10)]
