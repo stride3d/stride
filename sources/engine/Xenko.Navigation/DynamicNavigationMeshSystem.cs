@@ -177,10 +177,6 @@ namespace Xenko.Navigation
             return result.Result;
         }
 
-        public StaticColliderCacheSettings GetStaticColliderCacheSettings(StaticColliderComponent staticCollider) => builder?.GetStaticColliderCacheSettings(staticCollider);
-
-        public StaticColliderCacheSettings[] GetStaticColliderCacheSettings() => builder?.GetStaticColliderCacheSettings();
-
         internal void InitializeSettingsFromNavigationSettings(NavigationSettings navigationSettings)
         {
             BuildSettings = navigationSettings.BuildSettings;

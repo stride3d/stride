@@ -77,31 +77,6 @@ namespace Xenko.Navigation
         }
 
         /// <summary>
-        /// Get specific collider cache settings from the builder
-        /// </summary>
-        /// <param name="staticCollider">Collider component related to the collider cache settings</param>
-        /// <returns>The collider cache settings if there is, null otherwise</returns>
-        public StaticColliderCacheSettings GetStaticColliderCacheSettings(StaticColliderComponent staticCollider)
-        {
-            lock (colliders)
-            {
-                return colliders.Where(c => ReferenceEquals(c.Component, staticCollider)).FirstOrDefault()?.CacheSettings;
-            }
-        }
-
-        /// <summary>
-        /// Get all collider cache settings from the builder
-        /// </summary>
-        /// <returns>All collider cache settings that are valid currently</returns>
-        public StaticColliderCacheSettings[] GetStaticColliderCacheSettings()
-        {
-            lock (colliders)
-            {
-                return colliders.Select(c => c.CacheSettings).ToArray();
-            }
-        }
-
-        /// <summary>
         /// Performs the build of a navigation mesh
         /// </summary>
         /// <param name="buildSettings">The build settings to pass to recast</param>

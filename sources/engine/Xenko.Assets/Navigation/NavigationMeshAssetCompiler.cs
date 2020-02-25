@@ -301,7 +301,6 @@ namespace Xenko.Assets.Navigation
                                 staticColliderDatas.Add(new StaticColliderData
                                 {
                                     Component = colliderComponent,
-                                    CacheSettings = new StaticColliderCacheSettings(colliderComponent),
                                 });
 
                                 if (colliderComponent.Enabled && !colliderComponent.IsTrigger && ((int)asset.IncludedCollisionGroups & (int)colliderComponent.CollisionGroup) != 0)

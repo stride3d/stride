@@ -16,7 +16,7 @@ namespace Xenko.Navigation.Processors
         /// <inheritdoc />
         protected override StaticColliderData GenerateComponentData(Entity entity, StaticColliderComponent component)
         {
-            return new StaticColliderData { Component = component, CacheSettings = new StaticColliderCacheSettings(component), };
+            return new StaticColliderData { Component = component, };
         }
 
         /// <inheritdoc />
