@@ -36,6 +36,7 @@ using Xenko.Core.Presentation.Services;
 using Xenko.Core.Presentation.ViewModel;
 using Xenko.Core.Presentation.Windows;
 using Xenko.Core.Translation;
+using Xenko.Core.Packages;
 
 namespace Xenko.Core.Assets.Editor.ViewModel
 {
@@ -1164,55 +1165,63 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             var projectPath = fileDialog.FilePaths.FirstOrDefault();
             if (result == DialogResult.Ok && projectPath != null)
             {
-                var loggerResult = new LoggerResult();
+                await AddExistingProject(projectPath);
+            }
+        }
 
-                var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
+        public async Task<PackageViewModel> AddExistingProject(string projectPath)
+        {
+            var loggerResult = new LoggerResult();
+
+            var workProgress = new WorkProgressViewModel(ServiceProvider, loggerResult)
+            {
+                Title = Tr._p("Title", "Importing project..."),
+                KeepOpen = KeepOpen.OnWarningsOrErrors,
+                IsIndeterminate = true,
+                IsCancellable = false
+            };
+            workProgress.RegisterProgressStatus(loggerResult, true);
+            // Note: this task is note safely cancellable
+            // TODO: Remove the cancellation token if possible.
+            var cancellationSource = new CancellationTokenSource();
+
+            ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 500);
+
+            Package package = null;
+            await Task.Run(() =>
+            {
+                try
                 {
-                    Title = Tr._p("Title", "Importing project..."),
-                    KeepOpen = KeepOpen.OnWarningsOrErrors,
-                    IsIndeterminate = true,
-                    IsCancellable = false
-                };
-                workProgress.RegisterProgressStatus(loggerResult, true);
-                // Note: this task is note safely cancellable
-                // TODO: Remove the cancellation token if possible.
-                var cancellationSource = new CancellationTokenSource();
-
-                ServiceProvider.Get<IEditorDialogService>().ShowProgressWindow(workProgress, 500);
-
-                await Task.Run(() =>
+                    package = session.AddExistingProject(projectPath, loggerResult, CreatePackageLoadParameters(workProgress, cancellationSource)).Package;
+                }
+                catch (Exception e)
                 {
-                    try
-                    {
-                        session.AddExistingProject(projectPath, loggerResult, CreatePackageLoadParameters(workProgress, cancellationSource));
-                    }
-                    catch (Exception e)
-                    {
-                        loggerResult.Error(Tr._p("Log", "There was a problem importing the package."), e);
-                    }
-
-                }, cancellationSource.Token);
-
-                // Set the range of the work in progress according to the created assets
-                workProgress.Minimum = 0;
-                workProgress.ProgressValue = 0;
-                workProgress.Maximum = session.Projects.OfType<SolutionProject>().Where(x => !packageMap.ContainsValue(x)).Sum(x => x.Package.Assets.Count);
-
-                using (var transaction = UndoRedoService.CreateTransaction())
-                {
-                    ProcessAddedProjects(loggerResult, workProgress, false);
-                    UndoRedoService.SetName(transaction, $"Import project '{new UFile(projectPath).GetFileNameWithoutExtension()}'");
+                    loggerResult.Error(Tr._p("Log", "There was a problem importing the package."), e);
                 }
 
-                // Notify that the task is finished
-                await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, loggerResult.HasErrors);
+            }, cancellationSource.Token);
+
+            // Set the range of the work in progress according to the created assets
+            workProgress.Minimum = 0;
+            workProgress.ProgressValue = 0;
+            workProgress.Maximum = session.Projects.OfType<SolutionProject>().Where(x => !packageMap.ContainsValue(x)).Sum(x => x.Package.Assets.Count);
+
+            using (var transaction = UndoRedoService.CreateTransaction())
+            {
+                ProcessAddedProjects(loggerResult, workProgress, true);
+                UndoRedoService.SetName(transaction, $"Import project '{new UFile(projectPath).GetFileNameWithoutExtension()}'");
             }
+
+            // Notify that the task is finished
+            await workProgress.NotifyWorkFinished(cancellationSource.IsCancellationRequested, loggerResult.HasErrors);
+
+            return AllPackages.FirstOrDefault(x => x.Package == package);
         }
 
         internal void ProcessAddedProjects(LoggerResult loggerResult, WorkProgressViewModel workProgress, bool packageAlreadyInSession)
         {
             var newPackages = new List<PackageViewModel>();
-            foreach (var package in session.Projects.OfType<SolutionProject>().Where(x => !packageMap.ContainsValue(x)))
+            foreach (var package in session.Projects.Where(x => !packageMap.ContainsValue(x)))
             {
                 var viewModel = CreateProjectViewModel(package, packageAlreadyInSession);
                 viewModel.LoadPackageInformation(loggerResult, workProgress);
@@ -1276,11 +1285,14 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             // and packages that are already referenced.
             packagePicker.Filter = x =>
             {
-                return !(x == selectedPackage || x.DependsOn(selectedPackage) ||
-                         selectedPackage.Dependencies.Content.Select(r => r.Target).Contains(x));
+                if (!(x is LoadedPickablePackageViewModel loadedPackage))
+                    return true;
+
+                return !(loadedPackage.Package == selectedPackage || loadedPackage.Package.DependsOn(selectedPackage) ||
+                         selectedPackage.Dependencies.Content.Select(r => r.Target).Contains(loadedPackage.Package));
             };
 
-            if (AllPackages.All(x => !packagePicker.Filter(x)))
+            if (AllPackages.All(x => !packagePicker.Filter(new LoadedPickablePackageViewModel(x))))
             {
                 await Dialogs.MessageBox(Tr._p("Message", "There are no packages that can be added as dependencies to this package."), MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
@@ -1751,6 +1763,27 @@ namespace Xenko.Core.Assets.Editor.ViewModel
         public IEnumerable<TemplateDescription> FindTemplates(TemplateScope asset)
         {
             return TemplateManager.FindTemplates(asset, session);
+        }
+
+        public List<PackageName> SuggestedPackages { get; } = new List<PackageName>();
+
+        public async Task<IEnumerable<PickablePackageViewModel>> SuggestPackagesToAdd()
+        {
+            var packages = new List<PickablePackageViewModel>();
+            packages.AddRange(LocalPackages.Select(x => new LoadedPickablePackageViewModel(x)));
+            packages.AddRange(StorePackages.Select(x => new LoadedPickablePackageViewModel(x)));
+
+            // Note: later, we could even go further and add a NuGet search UI rather than a hardcoded list
+            foreach (var packageInfo in SuggestedPackages)
+            {
+                // Make sure this package is not already in the list
+                if (packages.Any(x => x.Name == packageInfo.Id))
+                    continue;
+
+                packages.Add(new UnloadedPickablePackageViewModel(this, packageInfo));
+            }
+
+            return packages;
         }
     }
 }

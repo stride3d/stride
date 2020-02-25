@@ -118,7 +118,7 @@ namespace Xenko.Core.Assets
         /// </summary>
         /// <value><c>true</c> if this package is a system package; otherwise, <c>false</c>.</value>
         [DataMemberIgnore]
-        public bool IsSystem { get; internal set; }
+        public bool IsSystem => !(Container is SolutionProject);
 
         /// <summary>
         /// Gets or sets the metadata associated with this package.
@@ -629,6 +629,14 @@ namespace Xenko.Core.Assets
                 }
                 else
                 {
+                    // Try to get version from NuGet folder
+                    var path = new UFile(filePath);
+                    var nuspecPath = UPath.Combine(path.GetFullDirectory().GetParent(), new UFile(path.GetFileNameWithoutExtension() + ".nuspec"));
+                    if (path.GetFullDirectory().GetDirectoryName() == "xenko" && File.Exists(nuspecPath)
+                        && PackageVersion.TryParse(path.GetFullDirectory().GetParent().GetDirectoryName(), out var packageVersion))
+                    {
+                        package.Meta.Version = packageVersion;
+                    }
                     return new StandalonePackage(package);
                 }
             }

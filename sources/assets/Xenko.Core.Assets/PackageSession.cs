@@ -365,7 +365,9 @@ namespace Xenko.Core.Assets
                     switch (dependency.Type)
                     {
                         case DependencyType.Package:
-                            msbuildProject.AddItem("PackageReference", dependency.Name, new[] { new KeyValuePair<string, string>("Version", dependency.VersionRange.ToString()) });
+                            msbuildProject.AddItem("PackageReference", dependency.Name, new[] { new KeyValuePair<string, string>("Version", dependency.VersionRange.ToString()) })
+                                // Make sure Version is a XML attribute rather than a XML child.
+                                .ForEach(packageReference => packageReference.Metadata.ForEach(metadata => metadata.Xml.ExpressedAsAttribute = true));
                             isProjectDirty = true;
                             break;
                         case DependencyType.Project:
@@ -635,7 +637,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                 // Enable reference analysis caching during loading
                 AssetReferenceAnalysis.EnableCaching = true;
 
-                project = LoadProject(logger, projectPath.ToWindowsPath(), false, loadParametersArg);
+                project = LoadProject(logger, projectPath.ToWindowsPath(), loadParametersArg);
                 Projects.Add(project);
 
                 package = project.Package;
@@ -712,7 +714,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
             return reference != null ? (FindAsset(reference.Id) ?? FindAsset(reference.Url)) : null;
         }
 
-        private PackageContainer LoadProject(ILogger log, string filePath, bool isSystem, PackageLoadParameters loadParameters = null)
+        private PackageContainer LoadProject(ILogger log, string filePath, PackageLoadParameters loadParameters = null)
         {
             var project = Package.LoadProject(log, filePath);
 
@@ -734,7 +736,6 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
             }
 
             var package = project.Package;
-            package.IsSystem = isSystem;
 
             // If the package doesn't have a meta name, fix it here (This is supposed to be done in the above disabled analysis - but we still need to do it!)
             if (string.IsNullOrWhiteSpace(package.Meta.Name) && package.FullPath != null)
@@ -807,7 +808,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                         {
                             if (vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharp || vsProject.TypeGuid == VisualStudio.KnownProjectTypeGuid.CSharpNewSystem)
                             {
-                                var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, false, loadParameters);
+                                var project = (SolutionProject)session.LoadProject(sessionResult, vsProject.FullPath, loadParameters);
                                 project.VSProject = vsProject;
                                 session.Projects.Add(project);
 
@@ -827,7 +828,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
                     else if (Path.GetExtension(filePath).ToLowerInvariant() == ".csproj"
                         || Path.GetExtension(filePath).ToLowerInvariant() == Package.PackageFileExtension)
                     {
-                        var project = session.LoadProject(sessionResult, filePath, false, loadParameters);
+                        var project = session.LoadProject(sessionResult, filePath, loadParameters);
                         session.Projects.Add(project);
                         firstProject = project as SolutionProject;
                     }
@@ -1330,7 +1331,7 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
             AssetDirtyChanged?.Invoke(asset, oldValue, newValue);
         }
 
-        private Package PreLoadPackage(ILogger log, string filePath, bool isSystemPackage, PackageLoadParameters loadParameters)
+        private Package PreLoadPackage(ILogger log, string filePath, PackageLoadParameters loadParameters)
         {
             if (log == null) throw new ArgumentNullException(nameof(log));
             if (filePath == null) throw new ArgumentNullException(nameof(filePath));
@@ -1340,7 +1341,6 @@ MinimumVisualStudioVersion = {0}".ToFormat(DefaultVisualStudioVersion);
             {
                 // Load the package without loading any assets
                 var package = Package.LoadRaw(log, filePath);
-                package.IsSystem = isSystemPackage;
 
                 // Convert UPath to absolute (Package only)
                 // Removed for now because it is called again in PackageSession.LoadAssembliesAndAssets (and running it twice result in dirty package)

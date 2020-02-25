@@ -31,6 +31,8 @@ using Xenko.Core.Presentation.ViewModel;
 using Xenko.Core.Quantum;
 using Xenko.Core.Quantum.References;
 using Xenko.Core.Translation;
+using System.IO;
+using Xenko.Core.Packages;
 
 namespace Xenko.Core.Assets.Editor.ViewModel
 {
@@ -509,24 +511,40 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             }
         }
 
-        public void AddDependency(PackageViewModel packageViewModel)
+        public async Task AddDependency(PickablePackageViewModel pickablePackageViewModel)
         {
             using (var transaction = UndoRedoService.CreateTransaction())
             {
-                DependencyRange dependency;
-                if (packageViewModel.Package.Container is SolutionProject project)
-                {
-                    dependency = new DependencyRange(packageViewModel.Name, new PackageVersionRange(packageViewModel.Package.Meta.Version, true), DependencyType.Project)
-                    {
-                        MSBuildProject = project.FullPath,
-                    };
-                }
-                else
-                {
-                    dependency = new DependencyRange(packageViewModel.Name, new PackageVersionRange(packageViewModel.Package.Meta.Version, true), DependencyType.Package);
-                }
+                var dependency = pickablePackageViewModel.DependencyRange;
+
+                // Check if package isn't a dependency yet
+                if (Package.Container.DirectDependencies.Any(x => x.Name == dependency.Name))
+                    return;
+
                 var reference = new DirectDependencyReferenceViewModel(dependency, this, Dependencies, true);
                 UndoRedoService.SetName(transaction, $"Add dependency to package '{reference.Name}'");
+
+                // Update dependencies with NuGet
+                if (Package.Container is SolutionProject project2)
+                {
+                    var log = new LoggerResult();
+                    await VSProjectHelper.RestoreNugetPackages(log, project2.FullPath);
+                    PackageSession.UpdateDependencies(project2, false, true);
+
+                    // If the package is not part of session yet, make sure it gets added at this point
+                    foreach (var projectDependency in project2.FlattenedDependencies)
+                    {
+                        if (projectDependency.Package == null && projectDependency.Type == DependencyType.Package)
+                        {
+                            var packageFile = PackageStore.Instance.GetPackageFileName(projectDependency.Name, new PackageVersionRange(projectDependency.Version));
+                            if (packageFile != null && File.Exists(packageFile))
+                            {
+                                var dependencyPackageViewModel = await Session.AddExistingProject(packageFile);
+                                projectDependency.Package = dependencyPackageViewModel.Package;
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -771,5 +789,53 @@ namespace Xenko.Core.Assets.Editor.ViewModel
             }
             throw new InvalidOperationException("Unable to sort the given items for the Content collection of PackageViewModel");
         }
+    }
+    public abstract class PickablePackageViewModel : DispatcherViewModel
+    {
+        protected PickablePackageViewModel([NotNull] IViewModelServiceProvider serviceProvider)
+            : base(serviceProvider)
+        {
+        }
+
+        public abstract string Name { get; }
+
+        public abstract DependencyRange DependencyRange { get; }
+    }
+
+    public class LoadedPickablePackageViewModel : PickablePackageViewModel
+    {
+        public LoadedPickablePackageViewModel(PackageViewModel package) : base(package.ServiceProvider)
+        {
+            Package = package;
+        }
+
+        public PackageViewModel Package { get; }
+
+        public override string Name => Package.Name;
+
+        public override DependencyRange DependencyRange =>
+            (Package.Package.Container is SolutionProject project)
+                ? new DependencyRange(Package.Name, new PackageVersionRange(Package.Package.Meta.Version, true), DependencyType.Project)
+                {
+                    MSBuildProject = project.FullPath,
+                }
+                : new DependencyRange(Package.Name, new PackageVersionRange(Package.Package.Meta.Version, true), DependencyType.Package);
+    }
+
+    public class UnloadedPickablePackageViewModel : PickablePackageViewModel
+    {
+        private readonly SessionViewModel session;
+        private readonly PackageName package;
+
+        public UnloadedPickablePackageViewModel(SessionViewModel session, PackageName package) : base(session.ServiceProvider)
+        {
+            this.session = session;
+            this.package = package;
+        }
+
+        public override string Name => package.Id;
+
+        public override DependencyRange DependencyRange =>
+            new DependencyRange(package.Id, new PackageVersionRange(package.Version, true), DependencyType.Package);
     }
 }
