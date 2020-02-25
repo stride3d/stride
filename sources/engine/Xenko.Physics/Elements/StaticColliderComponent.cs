@@ -9,6 +9,9 @@ namespace Xenko.Physics
     [Display("Static collider")]
     public sealed class StaticColliderComponent : PhysicsTriggerComponentBase
     {
+        [DataMember(100)]
+        public bool AlwaysUpdateNaviMeshCache { get; set; } = false;
+
         protected override void OnAttach()
         {
             NativeCollisionObject = new BulletSharp.CollisionObject

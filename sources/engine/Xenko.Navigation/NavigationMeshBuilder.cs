@@ -463,7 +463,7 @@ namespace Xenko.Navigation
                 colliderData.Previous = null;
                 if (lastCache?.Objects.TryGetValue(colliderData.Component.Id, out colliderData.Previous) ?? false)
                 {
-                    if ((!NavigationMeshBuildUtils.IsDynamicShape(colliderData.Component.ColliderShape) || !colliderData.CacheSettings.AlwaysUpdateDynamicShape) &&
+                    if ((!colliderData.Component.AlwaysUpdateNaviMeshCache) &&
                         (colliderData.Previous.ParameterHash == colliderData.ParameterHash))
                     {
                         // In this case, we don't need to recalculate the geometry for this shape, since it wasn't changed
