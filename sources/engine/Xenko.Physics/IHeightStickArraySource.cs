@@ -4,7 +4,7 @@ using Xenko.Core.Mathematics;
 
 namespace Xenko.Physics
 {
-    public interface IInitialHeightfieldHeightData : IHeightfieldHeightDescription
+    public interface IHeightStickArraySource : IHeightStickParameters
     {
         Int2 HeightStickSize { get; }
 

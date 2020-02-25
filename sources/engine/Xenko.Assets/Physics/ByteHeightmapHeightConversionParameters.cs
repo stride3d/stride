@@ -23,6 +23,6 @@ namespace Xenko.Assets.Physics
         [DataMember(20)]
         [NotNull]
         [Display("HeightScale", Expand = ExpandRule.Always)]
-        public IHeightfieldHeightScaleCalculator HeightScaleCalculator { get; set; } = new HeightfieldHeightScaleCalculator();
+        public IHeightScaleCalculator HeightScaleCalculator { get; set; } = new HeightScaleCalculator();
     }
 }

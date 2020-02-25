@@ -9,7 +9,7 @@ namespace Xenko.Physics
 {
     [DataContract]
     [Display("Byte")]
-    public class EmptyByteHeightfieldHeightData : IInitialHeightfieldHeightData
+    public class ByteHeightStickArraySource : IHeightStickArraySource
     {
         [DataMemberIgnore]
         public HeightfieldTypes HeightType => HeightfieldTypes.Byte;
@@ -26,7 +26,7 @@ namespace Xenko.Physics
         [DataMember(30)]
         [NotNull]
         [Display("HeightScale", Expand = ExpandRule.Always)]
-        public IHeightfieldHeightScaleCalculator HeightScaleCalculator { get; set; } = new HeightfieldHeightScaleCalculator();
+        public IHeightScaleCalculator HeightScaleCalculator { get; set; } = new HeightScaleCalculator();
 
         [DataMemberIgnore]
         public float[] Floats => null;
@@ -39,7 +39,7 @@ namespace Xenko.Physics
 
         public bool Match(object obj)
         {
-            var other = obj as EmptyByteHeightfieldHeightData;
+            var other = obj as ByteHeightStickArraySource;
 
             if (other == null)
             {

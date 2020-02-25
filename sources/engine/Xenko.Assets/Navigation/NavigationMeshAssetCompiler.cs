@@ -67,7 +67,7 @@ namespace Xenko.Assets.Navigation
                             else if (desc is HeightfieldColliderShapeDesc)
                             {
                                 var heightfieldDesc = desc as HeightfieldColliderShapeDesc;
-                                var initialHeights = heightfieldDesc?.InitialHeights as HeightfieldHeightDataFromHeightmap;
+                                var initialHeights = heightfieldDesc?.InitialHeights as HeightStickArraySourceFromHeightmap;
 
                                 if (initialHeights?.Heightmap != null)
                                 {
@@ -323,7 +323,7 @@ namespace Xenko.Assets.Navigation
                                         else if (desc is HeightfieldColliderShapeDesc)
                                         {
                                             var heightfieldDesc = desc as HeightfieldColliderShapeDesc;
-                                            var initialHeights = heightfieldDesc?.InitialHeights as HeightfieldHeightDataFromHeightmap;
+                                            var initialHeights = heightfieldDesc?.InitialHeights as HeightStickArraySourceFromHeightmap;
 
                                             if (initialHeights?.Heightmap != null)
                                             {

@@ -7,9 +7,9 @@ namespace Xenko.Physics
 {
     [DataContract]
     [Display("Fit to height range")]
-    public class HeightfieldHeightScaleCalculator : IHeightfieldHeightScaleCalculator
+    public class HeightScaleCalculator : IHeightScaleCalculator
     {
-        public float Calculate(IHeightfieldHeightDescription heightDescription)
+        public float Calculate(IHeightStickParameters heightDescription)
         {
             var heightRange = heightDescription.HeightRange;
 

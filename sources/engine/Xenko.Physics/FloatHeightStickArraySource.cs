@@ -7,7 +7,7 @@ namespace Xenko.Physics
 {
     [DataContract]
     [Display("Float")]
-    public class EmptyFloatHeightfieldHeightData : IInitialHeightfieldHeightData
+    public class FloatHeightStickArraySource : IHeightStickArraySource
     {
         [DataMemberIgnore]
         public HeightfieldTypes HeightType => HeightfieldTypes.Float;
@@ -32,7 +32,7 @@ namespace Xenko.Physics
 
         public bool Match(object obj)
         {
-            var other = obj as EmptyFloatHeightfieldHeightData;
+            var other = obj as FloatHeightStickArraySource;
 
             if (other == null)
             {

@@ -7,7 +7,7 @@ namespace Xenko.Physics
 {
     [DataContract]
     [Display("Heightmap")]
-    public class HeightfieldHeightDataFromHeightmap : IInitialHeightfieldHeightData
+    public class HeightStickArraySourceFromHeightmap : IHeightStickArraySource
     {
         [DataMember(10)]
         public Heightmap Heightmap { get; set; }
@@ -35,7 +35,7 @@ namespace Xenko.Physics
 
         public bool Match(object obj)
         {
-            var other = obj as HeightfieldHeightDataFromHeightmap;
+            var other = obj as HeightStickArraySourceFromHeightmap;
 
             if (other == null)
             {

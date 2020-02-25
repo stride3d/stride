@@ -4,7 +4,7 @@ using Xenko.Physics;
 
 namespace Xenko.Assets.Physics
 {
-    public interface IHeightmapHeightConversionParameters : IHeightfieldHeightDescription
+    public interface IHeightmapHeightConversionParameters : IHeightStickParameters
     {
     }
 }

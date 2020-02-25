@@ -17,7 +17,7 @@ namespace Xenko.Physics
         [DataMember(10)]
         [NotNull]
         [Display(Expand = ExpandRule.Always)]
-        public IInitialHeightfieldHeightData InitialHeights { get; set; } = new HeightfieldHeightDataFromHeightmap();
+        public IHeightStickArraySource InitialHeights { get; set; } = new HeightStickArraySourceFromHeightmap();
 
         [DataMember(70)]
         public bool FlipQuadEdges = false;
