@@ -633,6 +633,31 @@ namespace Xenko.Core
             return second.Keys.All(first.ContainsKey);
         }
 
+        /// <summary>
+        /// Compares two collection, element by elements.
+        /// </summary>
+        /// <param name="first">The collection to compare from.</param>
+        /// <param name="second">The colllection to compare to.</param>
+        /// <returns>True if lists are identical (but not necessarily in the same order). False otherwise.</returns>
+        /// <remarks>Concrete SortedList is favored over interface to avoid enumerator object allocation.</remarks>
+        public static bool Compare<TKey, TValue>(Collections.SortedList<TKey, TValue> first, Collections.SortedList<TKey, TValue> second)
+        {
+            if (ReferenceEquals(first, second)) return true;
+            if (ReferenceEquals(first, null) || ReferenceEquals(second, null)) return false;
+            if (first.Count != second.Count) return false;
+
+            var comparer = EqualityComparer<TValue>.Default;
+
+            foreach (var keyValue in first)
+            {
+                TValue secondValue;
+                if (!second.TryGetValue(keyValue.Key, out secondValue)) return false;
+                if (!comparer.Equals(keyValue.Value, secondValue)) return false;
+            }
+
+            return true;
+        }
+
         public static bool Compare<T>(T[] left, T[] right)
         {
             if (ReferenceEquals(left, right))
@@ -684,6 +709,33 @@ namespace Xenko.Core
             // the exact number of elements
             if (count != left.Count)
                 return false;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Compares two list, element by elements.
+        /// </summary>
+        /// <param name="left">The list to compare from.</param>
+        /// <param name="right">The colllection to compare to.</param>
+        /// <returns>True if lists are sequentially equal. False otherwise.</returns>
+        /// <remarks>Concrete List is favored over interface to avoid enumerator object allocation.</remarks>
+        public static bool Compare<T>(List<T> left, List<T> right)
+        {
+            if (ReferenceEquals(left, right))
+                return true;
+            if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
+                return false;
+
+            if (left.Count != right.Count)
+                return false;
+
+            var comparer = EqualityComparer<T>.Default;
+            for (int i = 0; i < left.Count; i++)
+            {
+                if (!comparer.Equals(left[i], right[i]))
+                    return false;
+            }
 
             return true;
         }

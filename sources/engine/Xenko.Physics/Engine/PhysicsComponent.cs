@@ -22,7 +22,7 @@ namespace Xenko.Engine
         Ignore,
         Detect
     }
-    
+
     [DataContract("PhysicsComponent", Inherited = true)]
     [Display("Physics", Expand = ExpandRule.Once)]
     [DefaultEntityComponentProcessor(typeof(PhysicsProcessor))]
@@ -67,7 +67,7 @@ namespace Xenko.Engine
         /// The collision group.
         /// </value>
         /// <userdoc>
-        /// Which collision group the component belongs to. This can't be changed at runtime. The default is DefaultFilter. 
+        /// Which collision group the component belongs to. This can't be changed at runtime. The default is DefaultFilter.
         /// </userdoc>
         /// <remarks>
         /// The collider will still produce events, to allow non trigger rigidbodies or static colliders to act as a trigger if required for certain filtering groups.
@@ -244,7 +244,7 @@ namespace Xenko.Engine
         /// The friction
         /// </userdoc>
         /// <remarks>
-        /// It's importantant to realise that friction and restitution are not values of any particular surface, but rather a value of the interaction of two surfaces. 
+        /// It's important to realise that friction and restitution are not values of any particular surface, but rather a value of the interaction of two surfaces.
         /// So why is it defined for each object? In order to determine the overall friction and restitution between any two surfaces in a collision.
         /// </remarks>
         [DataMember(65)]
@@ -386,7 +386,7 @@ namespace Xenko.Engine
                     return;
 
                 if (NativeCollisionObject != null)
-                    NativeCollisionObject.CollisionShape = value.InternalShape;               
+                    NativeCollisionObject.CollisionShape = value.InternalShape;
             }
         }
 
@@ -527,7 +527,7 @@ namespace Xenko.Engine
         }
 
         /// <summary>
-        /// Updades the graphics transformation from the given physics transformation
+        /// Updates the graphics transformation from the given physics transformation
         /// </summary>
         /// <param name="physicsTransform"></param>
         internal void UpdateTransformationComponent(ref Matrix physicsTransform)
@@ -567,7 +567,7 @@ namespace Xenko.Engine
         }
 
         /// <summary>
-        /// Updades the graphics transformation from the given physics transformation
+        /// Updates the graphics transformation from the given physics transformation
         /// </summary>
         /// <param name="physicsTransform"></param>
         internal void UpdateBoneTransformation(ref Matrix physicsTransform)
