@@ -68,18 +68,15 @@ namespace Xenko.Physics
             }
         }
 
-        private static UnmanagedArray<T> CreateHeights<T>(int length, T[] initialHeights) where T : struct
+        private static UnmanagedArray<T> CreateHeights<T>(IHeightStickArraySource heightStickArraySource) where T : struct
         {
-            var unmanagedArray = new UnmanagedArray<T>(length);
+            if (heightStickArraySource == null) throw new ArgumentNullException(nameof(heightStickArraySource));
 
-            if (initialHeights != null)
-            {
-                unmanagedArray.Write(initialHeights, 0, 0, Math.Min(unmanagedArray.Length, initialHeights.Length));
-            }
-            else
-            {
-                FillHeights(unmanagedArray, default);
-            }
+            var arrayLength = heightStickArraySource.HeightStickSize.X * heightStickArraySource.HeightStickSize.Y;
+
+            var unmanagedArray = new UnmanagedArray<T>(arrayLength);
+
+            heightStickArraySource.CopyTo(unmanagedArray, 0);
 
             return unmanagedArray;
         }
@@ -94,25 +91,23 @@ namespace Xenko.Physics
                 return null;
             }
 
-            var arrayLength = InitialHeights.HeightStickSize.X * InitialHeights.HeightStickSize.Y;
-
             object unmanagedArray;
 
             switch (InitialHeights.HeightType)
             {
                 case HeightfieldTypes.Float:
                 {
-                    unmanagedArray = CreateHeights(arrayLength, InitialHeights.Floats);
+                    unmanagedArray = CreateHeights<float>(InitialHeights);
                     break;
                 }
                 case HeightfieldTypes.Short:
                 {
-                    unmanagedArray = CreateHeights(arrayLength, InitialHeights.Shorts);
+                    unmanagedArray = CreateHeights<short>(InitialHeights);
                     break;
                 }
                 case HeightfieldTypes.Byte:
                 {
-                    unmanagedArray = CreateHeights(arrayLength, InitialHeights.Bytes);
+                    unmanagedArray = CreateHeights<byte>(InitialHeights);
                     break;
                 }
 
