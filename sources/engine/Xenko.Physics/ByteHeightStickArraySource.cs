@@ -29,15 +29,6 @@ namespace Xenko.Physics
         [Display("HeightScale", Expand = ExpandRule.Always)]
         public IHeightScaleCalculator HeightScaleCalculator { get; set; } = new HeightScaleCalculator();
 
-        [DataMemberIgnore]
-        public float[] Floats => null;
-
-        [DataMemberIgnore]
-        public short[] Shorts => null;
-
-        [DataMemberIgnore]
-        public byte[] Bytes => null;
-
         [DataMember(40)]
         [DataMemberRange(0, 255, 1, 10, 0)]
         public byte InitialByte { get; set; } = 0;

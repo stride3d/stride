@@ -9,12 +9,6 @@ namespace Xenko.Physics
     {
         Int2 HeightStickSize { get; }
 
-        float[] Floats { get; }
-
-        short[] Shorts { get; }
-
-        byte[] Bytes { get; }
-
         void CopyTo<T>(UnmanagedArray<T> heightStickArray, int index) where T : struct;
 
         bool Match(object obj);

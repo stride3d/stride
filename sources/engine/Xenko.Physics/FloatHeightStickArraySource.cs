@@ -23,15 +23,6 @@ namespace Xenko.Physics
         [DataMemberIgnore]
         public float HeightScale => 1f;
 
-        [DataMemberIgnore]
-        public float[] Floats => null;
-
-        [DataMemberIgnore]
-        public short[] Shorts => null;
-
-        [DataMemberIgnore]
-        public byte[] Bytes => null;
-
         [DataMember(30)]
         public float InitialHeight { get; set; } = 0;
 
